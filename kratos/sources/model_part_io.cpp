@@ -2540,14 +2540,14 @@ void ModelPartIO::ReadConstraintsBlock(
         const std::size_t number_of_words = words.size();
 
         // Read the slave node id
-        word = words[number_of_words - number_of_master_dofs - 1];
+        word = words[number_of_words - number_of_master_dofs - 1]; // Reading slave id
         ExtractValue(word, node_id);
         p_slave_node= *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
 
         // Then we retrieve the master nodes
         temp_master_nodes.clear();
         for(SizeType i = 0 ; i < number_of_master_dofs ; i++) {
-            word = words[number_of_words - number_of_master_dofs - i];
+            word = words[number_of_words - number_of_master_dofs - i]; // Reading master id
             ExtractValue(word, node_id);
             temp_master_nodes[i] = *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
         }
@@ -3566,11 +3566,18 @@ ModelPartIO::SizeType ModelPartIO::ReadConstraintsConnectivitiesBlock(Connectivi
 
         // There are two options: either the constraint is 1x0 or it is 1xN and all the variables are the same
         std::getline(*mpStream, current_line);
-        const std::size_t count = StringUtilities::CountValuesUntilPrefix(current_line, "[");
+        const std::size_t count = StringUtilities::CountValuesUntilPrefix(current_line, "]");
 
-        // If it is 1x0 the count will be 1 (id constraint) + 1 (id node) + 1 (constant vector) = 3
-        // If the count is greater than 3, it means that the constraint is 1xN and all the variables are the same
-        number_of_master_dofs = count - 3;
+        // Use a string stream to easily extract tokens
+        std::size_t count_total = 0;
+        std::istringstream iss(current_line);
+        std::string token;
+        while (iss >> token) {
+            count_total++;
+        }
+
+        // The number of master dofs is the total count minus the count of the slave variable minus one (for the slave variable itself), minus the token which is the end of the block ("]")
+        number_of_master_dofs = count_total - count - 1 - 1;
 
         // We set the stream to the previous position
         mpStream->seekg(position);
@@ -3590,23 +3597,31 @@ ModelPartIO::SizeType ModelPartIO::ReadConstraintsConnectivitiesBlock(Connectivi
         // Constraint id
         ExtractValue(word, id);
 
+        // Retrieve the line
+        std::getline(*mpStream, current_line);
+        std::istringstream iss(current_line);
+        std::vector<std::string> words;
+
+        // Tokenize the string
+        while (iss >> word) {
+            words.push_back(word);
+        }
+        const std::size_t number_of_words = words.size();
+
         // Clear temporary connectivity vector
         temp_constraint_nodes.clear();
 
         // Reading a slave node id
-        ReadWord(word);
+        word = words[number_of_words - number_of_master_dofs - 1]; // Reading slave id
         ExtractValue(word, node_id);
         temp_constraint_nodes.push_back(ReorderedNodeId(node_id));
 
         // Read master node ids
         for(SizeType i = 0; i < number_of_master_dofs; i++) {
-            ReadWord(word); // Reading a master node id
+            word = words[number_of_words - number_of_master_dofs - i]; // Reading master id
             ExtractValue(word, node_id);
             temp_constraint_nodes.push_back(ReorderedNodeId(node_id));
         }
-
-        // End of line
-        std::getline(*mpStream, current_line);
 
         // Determine the correct index in the connectivity container
         const int index = ReorderedConstraintId(id) - 1;
@@ -3856,11 +3871,18 @@ void ModelPartIO::FillNodalConnectivitiesFromConstraintBlock(ConnectivitiesConta
 
         // There are two options: either the constraint is 1x0 or it is 1xN and all the variables are the same
         std::getline(*mpStream, current_line);
-        const std::size_t count = StringUtilities::CountValuesUntilPrefix(current_line, "[");
+        const std::size_t count = StringUtilities::CountValuesUntilPrefix(current_line, "]");
 
-        // If it is 1x0 the count will be 1 (id constraint) + 1 (id node) + 1 (constant vector) = 3
-        // If the count is greater than 3, it means that the constraint is 1xN and all the variables are the same
-        number_of_master_dofs = count - 3;
+        // Use a string stream to easily extract tokens
+        std::size_t count_total = 0;
+        std::istringstream iss(current_line);
+        std::string token;
+        while (iss >> token) {
+            count_total++;
+        }
+
+        // The number of master dofs is the total count minus the count of the slave variable minus one (for the slave variable itself), minus the token which is the end of the block ("]")
+        number_of_master_dofs = count_total - count - 1 - 1;
 
         // We set the stream to the previous position
         mpStream->seekg(position);
@@ -3876,24 +3898,28 @@ void ModelPartIO::FillNodalConnectivitiesFromConstraintBlock(ConnectivitiesConta
             break;
         }
 
-        // Extract the constraint id (unused for connectivity filling)
-        ExtractValue(word, id);
-        temp_constraint_nodes.clear();
+        // Retrieve the line
+        std::getline(*mpStream, current_line);
+        std::istringstream iss(current_line);
+        std::vector<std::string> words;
+
+        // Tokenize the string
+        while (iss >> word) {
+            words.push_back(word);
+        }
+        const std::size_t number_of_words = words.size();
 
         // Reading a slave node id
-        ReadWord(word);
+        word = words[number_of_words - number_of_master_dofs - 1]; // Reading slave id
         ExtractValue(word, node_id);
         temp_constraint_nodes.push_back(ReorderedNodeId(node_id));
 
         // Read master node ids
         for(SizeType i = 0; i < number_of_master_dofs; i++) {
-            ReadWord(word); // Reading a master node id
+            word = words[number_of_words - number_of_master_dofs - i]; // Reading master id
             ExtractValue(word, node_id);
             temp_constraint_nodes.push_back(ReorderedNodeId(node_id));
         }
-
-        // End of line
-        std::getline(*mpStream, current_line);
 
         // For each node in the constraint, add connectivities to all the other nodes in the same constraint
         for(SizeType i = 0; i < temp_constraint_nodes.size(); i++) {
@@ -5061,17 +5087,25 @@ void ModelPartIO::DivideConstraintsBlock(
 
         // There are two options: either the constraint is 1x0 or it is 1xN and all the variables are the same
         std::getline(*mpStream, current_line);
-        const std::size_t count = StringUtilities::CountValuesUntilPrefix(current_line, "[");
+        const std::size_t count = StringUtilities::CountValuesUntilPrefix(current_line, "]");
 
-        // If it is 1x0 the count will be 1 (id constraint) + 1 (id node) + 1 (constant vector) = 3
-        // If the count is greater than 3, it means that the constraint is 1xN and all the variables are the same
-        number_of_master_dofs = count - 3;
+        // Use a string stream to easily extract tokens
+        std::size_t count_total = 0;
+        std::istringstream iss(current_line);
+        std::string token;
+        while (iss >> token) {
+            count_total++;
+        }
+
+        // The number of master dofs is the total count minus the count of the slave variable minus one (for the slave variable itself), minus the token which is the end of the block ("]")
+        number_of_master_dofs = count_total - count - 1 - 1;
 
         // We set the stream to the previous position
         mpStream->seekg(position);
     }
 
     SizeType id;
+    SizeType node_id;
 
     while(!mpStream->eof()) {
         ReadWord(word); // Reading the constraint id or End
@@ -5090,23 +5124,33 @@ void ModelPartIO::DivideConstraintsBlock(
         std::stringstream constraint_data;
         constraint_data << '\n' << ReorderedConstraintId(id) << '\t'; // id
 
+        // Retrieve the line
+        std::getline(*mpStream, current_line);
+        std::istringstream iss(current_line);
+        std::vector<std::string> words;
+
+        // Tokenize the string
+        while (iss >> word) {
+            words.push_back(word);
+        }
+        const std::size_t number_of_words = words.size();
+
+        // Append the constant value and the coefficient vector
+        for (std::size_t i = 0; i < number_of_words - number_of_master_dofs - 1; ++i) {
+            constraint_data << words[i] << '\t';
+        }
+
         // Reading the slave node id;
-        ReadWord(word);
-        SizeType node_id;
+        word = words[number_of_words - number_of_master_dofs - 1]; // Reading slave id
         ExtractValue(word, node_id);
         constraint_data << ReorderedNodeId(node_id) << '\t'; // slave node id
 
         // Read master node ids
         for(SizeType i = 0 ; i < number_of_master_dofs ; i++) {
-            ReadWord(word); // Reading the master node id;
-            SizeType node_id;
+            word = words[number_of_words - number_of_master_dofs - i]; // Reading master id
             ExtractValue(word, node_id);
             constraint_data << ReorderedNodeId(node_id) << '\t'; // master node id
         }
-
-        // Appending the rest of the line
-        std::getline(*mpStream, current_line);
-        constraint_data << current_line;
 
         for(SizeType i = 0 ; i < rConstraintsAllPartitions[ReorderedConstraintId(id)-1].size() ; i++) {
             SizeType partition_id = rConstraintsAllPartitions[ReorderedConstraintId(id)-1][i];
