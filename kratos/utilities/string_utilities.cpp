@@ -307,7 +307,7 @@ std::vector<TType> StringToVector(const std::string& rInputString)
     return result;
 }
 
-// Explicit instantiation of the temCountValuesUntilPrefixplate function for double and integer types
+// Explicit instantiation of the template function for double and integer types
 template KRATOS_API(KRATOS_CORE) std::vector<double> StringToVector<double>(const std::string& rInputString);
 template KRATOS_API(KRATOS_CORE) std::vector<int> StringToVector<int>(const std::string& rInputString);
 template KRATOS_API(KRATOS_CORE) std::vector<unsigned int> StringToVector<unsigned int>(const std::string& rInputString);
