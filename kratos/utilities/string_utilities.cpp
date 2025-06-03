@@ -307,7 +307,7 @@ std::vector<TType> StringToVector(const std::string& rInputString)
     return result;
 }
 
-// Explicit instantiation of the template function for double and integer types
+// Explicit instantiation of the temCountValuesUntilPrefixplate function for double and integer types
 template KRATOS_API(KRATOS_CORE) std::vector<double> StringToVector<double>(const std::string& rInputString);
 template KRATOS_API(KRATOS_CORE) std::vector<int> StringToVector<int>(const std::string& rInputString);
 template KRATOS_API(KRATOS_CORE) std::vector<unsigned int> StringToVector<unsigned int>(const std::string& rInputString);
@@ -326,12 +326,13 @@ std::size_t CountValuesUntilPrefix(
     std::size_t count = 0;
 
     while (iss >> token) { // Read tokens one by one
-        // Check if the current token starts with the rStopPrefix
-        // string::find(substring_to_find, starting_position)
-        // If rStopPrefix is found at the beginning of token (position 0), it returns 0.
-        // If rStopPrefix is empty, token.find("", 0) also returns 0,
-        // meaning an empty rStopPrefix will cause the loop to break on the first token, returning 0.
-        if (token.find(rStopPrefix, 0) == 0) {
+        // Check if the token contains the stop prefix
+        // If the token contains the stop prefix, we stop counting
+        // We use find to check if the token contains the stop prefix
+        // Note: find returns std::string::npos if the substring is not found
+        // If the token contains the stop prefix, we stop counting
+        // We do not count the token that contains the stop prefix
+        if (token.find(rStopPrefix) != std::string::npos) {
             break; // Stop condition met, do not count this token or subsequent ones
         }
         count++; // Increment count for tokens that do not meet the stop condition
