@@ -1,8 +1,8 @@
 {
     "problem_data": {
-        "problem_name":         "1D-Consolidationtest_stage4",
-        "start_time":           17280.0,
-        "end_time":             43200.0,
+        "problem_name":         "1D-Consolidationtest_stage11",
+        "start_time":           4320000.0,
+        "end_time":             8640000.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -19,10 +19,11 @@
             "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
-            "time_step":            500
+            "time_step":            64000
         },
         "buffer_size":                        2,
         "echo_level":                         1,
+        "reset_displacements":                false,
         "clear_storage":                      false,
         "compute_reactions":                  true,
         "move_mesh_flag":                     false,
@@ -42,21 +43,21 @@
         "displacement_absolute_tolerance":    1.0E-9,
         "residual_relative_tolerance":        1.0E-4,
         "residual_absolute_tolerance":        1.0E-9,
-        "min_iterations":                      6,
-        "max_iterations":                      15,
+        "min_iterations":                     6,
+        "max_iterations":                     15,
         "number_cycles":                      10,
         "reduction_factor":                   0.5,
         "increase_factor":                    2.0,
         "desired_iterations":                 4,
         "max_radius_factor":                  10.0,
         "min_radius_factor":                  0.1,
-		"calculate_reactions"        : true,
-		"max_line_search_iterations" : 5,
-		"first_alpha_value"          : 0.5,
-		"second_alpha_value"         : 1.0,
-		"min_alpha"                  : 0.1,
-		"max_alpha"                  : 2.0,
-		"line_search_tolerance"      : 0.5,
+	    "calculate_reactions":                true,
+	    "max_line_search_iterations":         5,
+	    "first_alpha_value":                  0.5,
+	    "second_alpha_value":                 1.0,
+	    "min_alpha":                          0.1,
+	    "max_alpha":                          2.0,
+        "line_search_tolerance":              0.5,
         "rotation_dofs":                      true,
         "linear_solver_settings":             {
             "solver_type":     "amgcl",
@@ -79,23 +80,22 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "1D-Consolidationtest_stage4",
+                "output_name": "1D-Consolidationtest_stage11",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
                             "WriteDeformedMeshFlag": "WriteUndeformed",
                             "WriteConditionsFlag":   "WriteElementsOnly",
-                            "GiDPostMode":           "GiD_PostBinary",
+                            "GiDPostMode":           "GiD_PostAscii",
                             "MultiFileFlag":         "SingleFile"
                         },
                         "file_label":          "step",
                         "output_control_type": "step",
-                        "output_frequency":    1,
                         "body_output":         true,
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","WATER_PRESSURE"],
+                        "nodal_results":       ["TOTAL_DISPLACEMENT","WATER_PRESSURE"],
                         "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
                     },
                     "point_data_configuration":  []
