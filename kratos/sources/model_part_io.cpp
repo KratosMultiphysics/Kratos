@@ -3842,7 +3842,6 @@ void ModelPartIO::FillNodalConnectivitiesFromConstraintBlock(ConnectivitiesConta
 {
     KRATOS_TRY;
 
-    SizeType id;
     SizeType node_id;
     std::string word;
     std::string constraint_name;
