@@ -2547,7 +2547,7 @@ void ModelPartIO::ReadConstraintsBlock(
         // Then we retrieve the master nodes
         temp_master_nodes.clear();
         for(SizeType i = 0 ; i < number_of_master_dofs ; i++) {
-            word = words[number_of_words - number_of_master_dofs - i]; // Reading master id
+            word = words[number_of_words - (number_of_master_dofs - i)]; // Reading master id
             ExtractValue(word, node_id);
             temp_master_nodes[i] = *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
         }
@@ -3618,7 +3618,7 @@ ModelPartIO::SizeType ModelPartIO::ReadConstraintsConnectivitiesBlock(Connectivi
 
         // Read master node ids
         for(SizeType i = 0; i < number_of_master_dofs; i++) {
-            word = words[number_of_words - number_of_master_dofs - i]; // Reading master id
+            word = words[number_of_words - (number_of_master_dofs - i)]; // Reading master id
             ExtractValue(word, node_id);
             temp_constraint_nodes.push_back(ReorderedNodeId(node_id));
         }
@@ -3916,7 +3916,7 @@ void ModelPartIO::FillNodalConnectivitiesFromConstraintBlock(ConnectivitiesConta
 
         // Read master node ids
         for(SizeType i = 0; i < number_of_master_dofs; i++) {
-            word = words[number_of_words - number_of_master_dofs - i]; // Reading master id
+            word = words[number_of_words - (number_of_master_dofs - i)]; // Reading master id
             ExtractValue(word, node_id);
             temp_constraint_nodes.push_back(ReorderedNodeId(node_id));
         }
@@ -5147,7 +5147,7 @@ void ModelPartIO::DivideConstraintsBlock(
 
         // Read master node ids
         for(SizeType i = 0 ; i < number_of_master_dofs ; i++) {
-            word = words[number_of_words - number_of_master_dofs - i]; // Reading master id
+            word = words[number_of_words - (number_of_master_dofs - i)]; // Reading master id
             ExtractValue(word, node_id);
             constraint_data << ReorderedNodeId(node_id) << '\t'; // master node id
         }
