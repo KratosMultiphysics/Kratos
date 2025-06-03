@@ -13,6 +13,7 @@
 #pragma once
 
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
 #include "solving_strategies/schemes/scheme.h"
 #include <memory>
 
@@ -37,7 +38,23 @@ public:
             return std::make_shared<BackwardEulerQuasistaticUPwScheme<TSparseSpace, TDenseSpace>>();
         }
 
-        KRATOS_ERROR << "Specified solution_type/scheme_type is not supported, aborting";
+        if (rSolverSettings["scheme_type"].GetString() == "Newmark" &&
+            rSolverSettings["solution_type"].GetString() == "dynamic") {
+            KRATOS_ERROR_IF_NOT(rSolverSettings.Has("newmark_beta"))
+                << "'newmark_beta' is not defined, aborting";
+            KRATOS_ERROR_IF_NOT(rSolverSettings.Has("newmark_gamma"))
+                << "'newmark_gamma' is not defined, aborting";
+            KRATOS_ERROR_IF_NOT(rSolverSettings.Has("newmark_theta"))
+                << "'newmark_theta' is not defined, aborting";
+
+            return std::make_shared<NewmarkDynamicUPwScheme<TSparseSpace, TDenseSpace>>(
+                rSolverSettings["newmark_beta"].GetDouble(), rSolverSettings["newmark_gamma"].GetDouble(),
+                rSolverSettings["newmark_theta"].GetDouble());
+        }
+
+        KRATOS_ERROR << "Specified combination of solution_type ("
+                     << rSolverSettings["solution_type"].GetString() << ") and scheme_type ("
+                     << rSolverSettings["scheme_type"].GetString() << ") is not supported, aborting";
     }
 };
 

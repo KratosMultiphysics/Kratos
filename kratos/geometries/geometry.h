@@ -1502,17 +1502,17 @@ public:
      * @param rHighPoint Higher point of the boundingbox.
      */
     virtual void BoundingBox(
-        TPointType& rLowPoint,
-        TPointType& rHighPoint
+        Point& rLowPoint,
+        Point& rHighPoint
         ) const
     {
-        rHighPoint = this->GetPoint( 0 );
-        rLowPoint  = this->GetPoint( 0 );
+        rHighPoint.Coordinates() = this->GetPoint(0).Coordinates();
+        rLowPoint.Coordinates()= rHighPoint.Coordinates();
         const SizeType dim = WorkingSpaceDimension();
 
-        for ( IndexType point = 1; point < PointsNumber(); ++point ) { //The first node is already assigned, so we can start from 1
+        for (unsigned int point = 1; point < PointsNumber(); ++point ) { //The first node is already assigned, so we can start from 1
             const auto& r_point = this->GetPoint( point );
-            for ( IndexType i = 0; i < dim; ++i ) {
+            for (unsigned int i = 0; i < dim; ++i ) {
                 rHighPoint[i] = ( rHighPoint[i] < r_point[i] ) ? r_point[i] : rHighPoint[i];
                 rLowPoint[i]  = ( rLowPoint[i]  > r_point[i] ) ? r_point[i] : rLowPoint[i];
             }
