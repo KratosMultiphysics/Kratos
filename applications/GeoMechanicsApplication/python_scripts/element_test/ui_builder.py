@@ -21,6 +21,7 @@ class GeotechTestUI:
 
         self.model_var = tk.StringVar(root)
         self.model_var.set(model_dict["model_name"][0])
+        self.current_test = tk.StringVar(value="Triaxial")
 
         self._init_frames()
         self._init_dropdown_section()
@@ -83,20 +84,34 @@ class GeotechTestUI:
         default_values = {
             input_parameters_format_to_unicode(k): v for k, v in raw_defaults.items()
         }
-
         self.entry_widgets = self._create_entries(self.param_frame, "Soil Input Parameters", params, units, default_values)
 
         self.mohr_checkbox = tk.BooleanVar()
         self.cohesion_var = tk.StringVar(value="3")
         self.phi_var = tk.StringVar(value="4")
-
         self._create_mohr_options(params)
 
-        self.triaxial_widgets = self._create_entries(self.param_frame, "Triaxial Input Data", [
-            "Initial effective cell pressure |σ'₃₃|", "Maximum Strain |εᵧᵧ|", "Number of steps", "Duration"
-        ], ["kN/m²", "%", "", "s"], {k: v for k, v in zip([
-            "Initial effective cell pressure |σ'₃₃|", "Maximum Strain |εᵧᵧ|", "Number of steps", "Duration"
-        ], ["100", "10", "100", "1.0"])})
+        self.test_selector_frame = ttk.Frame(self.param_frame, padding="5")
+        self.test_selector_frame.pack(fill="x", pady=(10, 5))
+
+        self.test_buttons = {}
+        for test_name in ["Triaxial", "Oedometer", "Direct Shear"]:
+            btn = tk.Button(
+                self.test_selector_frame,
+                text=test_name,
+                font=("Arial", 8, "bold"),
+                width=10,
+                height=10,
+                relief="raised",
+                command=lambda name=test_name: self._switch_test(name)
+            )
+            btn.pack(side="left", padx=5, pady=5)
+            self.test_buttons[test_name] = btn
+
+        self.test_input_frame = ttk.Frame(self.param_frame, padding="10")
+        self.test_input_frame.pack(fill="both", expand=True)
+
+        self._switch_test("Triaxial")
 
         self.run_button = ttk.Button(self.button_frame, text="Run Calculation", command=self._run_simulation)
         self.run_button.pack(pady=5)
@@ -135,14 +150,50 @@ class GeotechTestUI:
     def _toggle_mohr_options(self):
         widgets = [self.c_label, self.c_dropdown, self.phi_label, self.phi_dropdown]
         if self.mohr_checkbox.get():
+            log_message("Mohr-Coulomb model is selected.", "info")
             for w in widgets:
                 w.pack(side="left", padx=5)
         else:
             for w in widgets:
                 w.pack_forget()
 
-    def _run_simulation(self):
+    def _switch_test(self, test_name):
         clear_log()
+        self.current_test.set(test_name)
+
+        for w in self.test_input_frame.winfo_children():
+            w.destroy()
+
+        if test_name == "Triaxial":
+            self.triaxial_widgets = self._create_entries(
+                self.test_input_frame,
+                "Triaxial Input Data",
+                ["Initial effective cell pressure |σ'₃₃|", "Maximum Strain |εᵧᵧ|", "Number of steps", "Duration"],
+                ["kN/m²", "%", "", "s"],
+                {"Initial effective cell pressure |σ'₃₃|": "100", "Maximum Strain |εᵧᵧ|": "10",
+                 "Number of steps": "100", "Duration": "1.0"}
+            )
+        elif test_name == "Oedometer":
+            self.oedometer_widgets = self._create_entries(
+                self.test_input_frame,
+                "Oedometer Input Data",
+                ["Initial stress", "Loading increment", "Number of cycles"],
+                ["kN/m²", "kN/m²", ""],
+                {"Initial stress": "100", "Loading increment": "50", "Number of cycles": "5"}
+            )
+        elif test_name == "Direct Shear":
+            self.shear_widgets = self._create_entries(
+                self.test_input_frame,
+                "Direct Shear Input Data",
+                ["Normal stress", "Shear rate", "Displacement limit"],
+                ["kN/m²", "mm/min", "mm"],
+                {"Normal stress": "100", "Shear rate": "1", "Displacement limit": "10"}
+            )
+
+        log_message(f"{test_name} test selected.", "info")
+
+    def _run_simulation(self):
+        # clear_log()
         log_message("Starting triaxial calculation... Please wait...", "info")
         log_message("Validating input...", "info")
         self.root.update_idletasks()
@@ -150,6 +201,10 @@ class GeotechTestUI:
 
         try:
             umat_params = [e.get() for e in self.entry_widgets.values()]
+
+            if self.current_test.get() != "Triaxial":
+                raise NotImplementedError(f"{self.current_test.get()} simulation not yet implemented.")
+
             eps_max = float(self.triaxial_widgets["Maximum Strain |εᵧᵧ|"].get())
             sigma_init = float(self.triaxial_widgets["Initial effective cell pressure |σ'₃₃|"].get())
             n_steps = float(self.triaxial_widgets["Number of steps"].get())
