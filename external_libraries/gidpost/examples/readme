@@ -1,0 +1,22 @@
+This directory contains some examples (not useful, only illustratives) of
+interfacing with the library gidpost.
+
+testpostfor.f is a small FORTRAN sample, using the gidpost.lib library to write
+GiD postprocess mesh and results.
+
+testpost.c is another small sample, but using "C/C++".
+
+
+To compile using MS Developer Studio (for example using Compaq Visual FORTRAN):
+
+1- Compile first the library gidpost.lib (read gidpost.html)
+
+2- Create a new Fortran Console application project and add testpostfor.f to the
+   source files (or a Win32 Console Application and add testpost.c for the "C"
+   sample)
+
+3- Change the Link Input category setting, adding gidpost.lib to "Object/Library
+   modules", and the location of this library in "Additional library path"
+
+
+
