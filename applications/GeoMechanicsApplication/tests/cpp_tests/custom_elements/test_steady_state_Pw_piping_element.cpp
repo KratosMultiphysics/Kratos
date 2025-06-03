@@ -80,7 +80,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateEquilibriumPipeHeight, KratosGeoMechanicsFast
     // Create the test piping element
     auto p_element = make_intrusive<SteadyStatePwPipingElement<2, 4>>(
         1, Kratos::make_shared<Quadrilateral2D4<Node>>(p_node_1, p_node_2, p_node_3, p_node_4),
-        p_elem_prop, std::make_unique<PlaneStrainStressState>());
+        p_elem_prop, std::make_unique<PlaneStrainStressState>(), nullptr);
     r_model_part.AddElement(p_element);
 
     // Initialize the element to initialize the constitutive law
@@ -149,7 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateHeadGradient, KratosGeoMechanicsFastSuiteWith
     // Create the test piping element
     auto p_element = make_intrusive<SteadyStatePwPipingElement<2, 4>>(
         1, Kratos::make_shared<Quadrilateral2D4<Node>>(p_node_1, p_node_2, p_node_3, p_node_4),
-        p_elem_prop, std::make_unique<PlaneStrainStressState>());
+        p_elem_prop, std::make_unique<PlaneStrainStressState>(), nullptr);
     r_model_part.AddElement(p_element);
 
     // Initialize the element to initialize the constitutive law

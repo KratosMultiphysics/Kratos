@@ -23,7 +23,7 @@
 #include "custom_utilities/control_utils.h"
 #include "custom_utilities/mask_utils.h"
 #include "custom_utilities/smooth_clamper.h"
-#include "custom_utilities/sensor_generator_utils.h"
+#include "custom_utilities/sensor_utils.h"
 #include "custom_utilities/distance_matrix.h"
 
 // Include base h
@@ -41,9 +41,9 @@ void AddSmoothClamper(
     using smooth_clamper_type = SmoothClamper<TContainerType>;
     py::class_<smooth_clamper_type, typename smooth_clamper_type::Pointer>(m, (rName + "SmoothClamper").c_str())
         .def(py::init<const double, const double>(), py::arg("min"), py::arg("max"))
-        .def("ProjectForward", &smooth_clamper_type::ProjectForward, py::arg("x_expression"))
-        .def("CalculateForwardProjectionGradient", &smooth_clamper_type::CalculateForwardProjectionGradient, py::arg("x_expression"))
-        .def("ProjectBackward", &smooth_clamper_type::ProjectBackward, py::arg("y_expression"))
+        .def("ProjectForward", py::overload_cast<const ContainerExpression<TContainerType>&>(&smooth_clamper_type::ProjectForward, py::const_), py::arg("x_expression"))
+        .def("CalculateForwardProjectionGradient", py::overload_cast<const ContainerExpression<TContainerType>&>(&smooth_clamper_type::CalculateForwardProjectionGradient, py::const_), py::arg("x_expression"))
+        .def("ProjectBackward", py::overload_cast<const ContainerExpression<TContainerType>&>(&smooth_clamper_type::ProjectBackward, py::const_), py::arg("y_expression"))
         ;
 }
 
@@ -96,8 +96,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     AddMaskUtilsToPython<ModelPart::ConditionsContainerType>(mask_utils);
     AddMaskUtilsToPython<ModelPart::ElementsContainerType>(mask_utils);
 
-    auto sensor_generator_utils = m.def_submodule("SensorGeneratorUtils");
-    sensor_generator_utils.def("IsPointInGeometry", &SensorGeneratorUtils::IsPointInGeometry, py::arg("point"), py::arg("geometry"));
+    auto sensor_utils = m.def_submodule("SensorUtils");
+    sensor_utils.def("IsPointInGeometry", &SensorUtils::IsPointInGeometry, py::arg("point"), py::arg("geometry"));
+    sensor_utils.def("CreateSensorView", &SensorUtils::CreateSensorView, py::arg("sensor"), py::arg("expression_name"));
 
     py::class_<DistanceMatrix, DistanceMatrix::Pointer>(m, "DistanceMatrix")
         .def(py::init<>())

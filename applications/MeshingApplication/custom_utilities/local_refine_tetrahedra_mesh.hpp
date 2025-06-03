@@ -74,7 +74,7 @@ public:
 
     /**
     * Insert the news nodes in the center of elements and interopolate the variables.
-    * @param geom: The curret geometry
+    * @param geom: The current geometry
     * @return model_part: The model part of the model (it is the input too)
     */
 
@@ -120,7 +120,7 @@ public:
             (p_new_dof)->FreeDof();
         }
 
-        // Intepolating the data
+        // Interpolating the data
         for (unsigned int step = 0; step < buffer_size; step++)
         {
             double* new_step_data = pnode->SolutionStepData().Data(step);
@@ -528,7 +528,7 @@ public:
 
     /**
     * It calculates the new edges of the new tetrahedras,
-    * first it calculates the new edges correspondign to the lower face (as a triangle),
+    * first it calculates the new edges correspondingn to the lower face (as a triangle),
     * later it added to the upper face
     * @param geom: The tetrahedra element geometry
     * @param edge_ids: The ids of the edges
@@ -619,7 +619,7 @@ public:
 
     /**
     * It calculates the new edges of the new triangles,
-    * first it calculates the new edges correspondign to the lower face (as a triangle),
+    * first it calculates the new edges correspondingn to the lower face (as a triangle),
     * later it added to the upper face
     * @param geom: The prism element geometry
     * @param edge_ids: The ids of the edges

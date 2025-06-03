@@ -7,7 +7,7 @@ import KratosMultiphysics.DEMApplication as DEM
 
 # The results calculated by Kratos are compared to the expected results. We
 # assume the domain to be a periodic parallepiped, so that the closest neighbors
-# are to be found accross the boundaries in some cases.
+# are to be found across the boundaries in some cases.
 
 # In particular, it is checked that the search is sharp, in the sense that if we
 # vary the search radius by a small amount (epsilon), neighbors placed strategically

@@ -198,6 +198,21 @@ private:
     void CalculateRotationMatrix2DLine(DimensionMatrixType& rRotationMatrix, const Element::GeometryType& rGeom);
 
     /**
+     * @brief Calculates the rotation matrix of the current condition for 3D triangle conditions
+     * @param rRotationMatrix rotation matrix of the current condition
+     * @param rGeom geometry of the current condition
+     */
+    void CalculateRotationMatrix3DTriangle(DimensionMatrixType&         rRotationMatrix,
+                                           const Element::GeometryType& rGeom);
+
+    /**
+     * @brief Calculates the rotation matrix of the current condition for 3D quad conditions
+     * @param rRotationMatrix rotation matrix of the current condition
+     * @param rGeom geometry of the current condition
+     */
+    void CalculateRotationMatrix3DQuad(DimensionMatrixType& rRotationMatrix, const Element::GeometryType& rGeom);
+
+    /**
      * @brief Calculates the stiffness matrix for the current condition
      * @param rStiffnessMatrix The stiffness matrix to be calculated
      * @param rCurrentProcessInfo Current process information

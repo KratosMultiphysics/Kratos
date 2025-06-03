@@ -37,9 +37,6 @@ public:
           mProjectParameters{rProjectParameters},
           mWorkingDirectory{rWorkingDirectory}
     {
-        for (const auto& node : mrModelPart.Nodes()) {
-            mOldTotalDisplacements.emplace_back(node.GetSolutionStepValue(TOTAL_DISPLACEMENT));
-        }
     }
 
     ~SolvingStrategyWrapper() override = default;
@@ -98,28 +95,10 @@ public:
         CopyNodalSolutionStepValues(ROTATION, index_of_old_value, index_of_new_value);
     }
 
-    void SaveTotalDisplacementFieldAtStartOfTimeLoop() override
-    {
-        if (mResetDisplacements) {
-            mOldTotalDisplacements.clear();
-            for (const auto& node : mrModelPart.Nodes()) {
-                mOldTotalDisplacements.emplace_back(node.GetSolutionStepValue(TOTAL_DISPLACEMENT));
-            }
-        }
-    }
-
     void AccumulateTotalDisplacementField() override
     {
-        KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().size() == mOldTotalDisplacements.size())
-            << "The number of old displacements (" << mOldTotalDisplacements.size()
-            << ") does not match the current number of nodes (" << mrModelPart.Nodes().size() << ").";
-
-        KRATOS_INFO("Accumulating Total Displacement") << std::endl;
-        std::size_t count = 0;
         for (auto& node : mrModelPart.Nodes()) {
-            node.GetSolutionStepValue(TOTAL_DISPLACEMENT) =
-                mOldTotalDisplacements[count] + node.GetSolutionStepValue(DISPLACEMENT);
-            ++count;
+            node.GetSolutionStepValue(TOTAL_DISPLACEMENT) += node.GetSolutionStepValue(INCREMENTAL_DISPLACEMENT);
         }
     }
 
@@ -169,7 +148,6 @@ private:
     std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> mpStrategy;
     ModelPart&                                                  mrModelPart;
     bool                                                        mResetDisplacements;
-    std::vector<array_1d<double, 3>>                            mOldTotalDisplacements;
     Parameters                                                  mProjectParameters;
     std::filesystem::path                                       mWorkingDirectory;
     std::unique_ptr<GeoOutputWriter>                            mWriter;

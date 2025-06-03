@@ -65,7 +65,7 @@ namespace Kratos
     ///@{
 
     /**
-     * Material parameters are inizialized
+     * Material parameters are initialized
      */
     void InitializeMaterial(const Properties& rProperties,
 			    const GeometryType& rElementGeometry,

@@ -99,7 +99,10 @@ void MovingLoadCondition<TDim, TNumNodes>::InitializeSolutionStep(const ProcessI
     // check if cond should be calculated
     mIsMovingLoad = false;
     for (IndexType i = 0; i < TDim; ++i) {
-        if (std::abs(this->GetValue(POINT_LOAD)[i]) > std::numeric_limits<double>::epsilon() && local_x_coord <= this->GetGeometry().Length() && local_x_coord >= 0.0) {
+        if (std::abs(this->GetValue(POINT_LOAD)[i]) > std::numeric_limits<double>::epsilon() && 
+            local_x_coord <= this->GetGeometry().Length() + std::numeric_limits<double>::epsilon() && 
+            local_x_coord >= 0.0 - std::numeric_limits<double>::epsilon()) {
+
             mIsMovingLoad = true;
         }
     }

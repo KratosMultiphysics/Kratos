@@ -9,7 +9,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.component_data_view im
 
 def OptimizationComponentFactory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
     if not parameters.Has("type"):
-        raise RuntimeError(f"Components created from OptimizationComponentFactory require the \"type\" [ provided paramters = {parameters}].")
+        raise RuntimeError(f"Components created from OptimizationComponentFactory require the \"type\" [ provided parameters = {parameters}].")
 
     python_type = parameters["type"].GetString()
 
@@ -18,7 +18,7 @@ def OptimizationComponentFactory(model: Kratos.Model, parameters: Kratos.Paramet
         # as in the case python_type is in the sys path or the current working directory.
         full_module_name = python_type
     else:
-        # in the case python type comes witha a module.
+        # in the case python type comes with a module.
         module = parameters["module"].GetString()
         full_module_name = f"{module}.{python_type}"
 

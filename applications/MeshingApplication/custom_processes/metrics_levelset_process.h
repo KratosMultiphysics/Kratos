@@ -46,7 +46,7 @@ namespace Kratos
 /**
  * @class ComputeLevelSetSolMetricProcess
  * @ingroup MeshingApplication
- * @brief This class is can be used to compute the metrics of the model part with a level set approach
+ * @brief This class can be used to compute the metrics of the model part with a level set approach
  * @author Vicente Mataix Ferrandiz
  */
 template<SizeType TDim>
@@ -239,8 +239,8 @@ private:
 
     /**
      * @brief This converts the interpolation string to an enum
-     * @param Str The string that you want to comvert in the equivalent enum
-     * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
+     * @param Str The string that you want to convert in the equivalent enum
+     * @return Interpolation: The equivalent enum (this requires less memory than a std::string)
      */
 
     Interpolation ConvertInter(const std::string& Str)

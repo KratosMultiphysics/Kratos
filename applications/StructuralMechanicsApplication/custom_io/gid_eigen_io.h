@@ -39,7 +39,7 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /// GidIO extended for writting Eigenvalue Results
+  /// GidIO extended for writing Eigenvalue Results
 
   /** The main functionality of this class is to write the custom format
   * where the result label is customizable, i.e. it can contain e.g.
@@ -84,7 +84,7 @@ class GidEigenIO : public GidIO<>
     /**
     * Write the post-processed eigensolver-results
     * for Variable of type "double"
-    * The label is can be e.g. the Eigenvalue or -frequency
+    * The label can be e.g. the Eigenvalue or -frequency
     */
     void WriteEigenResults( ModelPart& rModelPart,
                             const Variable<double>& rVariable,
@@ -108,7 +108,7 @@ class GidEigenIO : public GidIO<>
     /**
     * Write the post-processed eigensolver-results
     * for Variable of type "array_1d<double, 3>""
-    * The label is can be e.g. the Eigenvalue or -frequency
+    * The label can be e.g. the Eigenvalue or -frequency
     */
     void WriteEigenResults( ModelPart& rModelPart,
                             const Variable<array_1d<double, 3>>& rVariable,

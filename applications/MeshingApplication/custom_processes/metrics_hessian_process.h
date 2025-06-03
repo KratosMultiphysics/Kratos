@@ -88,7 +88,7 @@ namespace Kratos
 /**
  * @class ComputeHessianSolMetricProcess
  * @ingroup MeshingApplication
- * @brief This class is can be used to compute the metrics of the model part with an Hessian approach
+ * @brief This class can be used to compute the metrics of the model part with an Hessian approach
  * @details References:
  *         [1] P.J. Frey, F. Alauzet; Anisotropic mesh adaptation for CFD computations; Comput. Methods Appl. Mech. Engrg. 194 (2005) 5068–5082
  * @author Vicente Mataix Ferrandiz
@@ -296,7 +296,7 @@ private:
     /**
      * @brief This converts the interpolation string to an enum
      * @param Str The string that you want to convert in the equivalent enum
-     * @return Interpolation: The equivalent enum (this requires less memmory and is eassier to compare than a std::string)
+     * @return Interpolation: The equivalent enum (this requires less memory and is eassier to compare than a std::string)
      */
     Interpolation ConvertInter(const std::string& Str)
     {
@@ -313,7 +313,7 @@ private:
     /**
      * @brief This converts the normalization string to an enum
      * @param Str The string that you want to convert in the equivalent enum
-     * @return Normalization: The equivalent enum (this requires less memmory and is eassier to compare than a std::string)
+     * @return Normalization: The equivalent enum (this requires less memory and is eassier to compare than a std::string)
      */
     Normalization ConvertNormalization(const std::string& Str)
     {

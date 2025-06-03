@@ -3,8 +3,19 @@
         "problem_name"    : "high_cycle_fatigue_test",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
-        "end_time"        : 400,
+        "end_time"        : 1000,
         "echo_level"      : 0
+    },
+    "fatigue"             : {
+		"advancing_strategy"			: true,
+        "advancing_strategy_cycles"     : 1.0e12,
+        "advancing_strategy_time"     	: 1.0e12,
+        "cyclic_constraints_process_list"      : ["Structure.DISPLACEMENT_Displacement_Auto2"],
+        "monotonic_constraints_process_list"      : [],
+        "loads_process_list"            : [],
+        "advancing_strategy_damage"     : 600.0,
+		"element_gausspoint_print"		: [1,0],
+		"node_print"					: 1
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
@@ -41,7 +52,7 @@
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0],
-                "interval"        : [0.0,"End"]
+                "interval"        : [0.0,1000.0]
             }
         },{
             "python_module" : "assign_vector_variable_process",
@@ -51,7 +62,7 @@
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,"-(2.85E-03)*cos(pi*(t+2)/6.0)+(2.85E-03)"],
-                "interval"        : [0.0,"End"]
+                "interval"        : [0.0,1000.0]
             }
         }],
         "json_check_process" : [
@@ -70,21 +81,23 @@
         ],
         "loads_process_list"       : [],
         "list_other_processes"     : []
-    }
-	//"_json_output_process" : [
-	//{
-	//	"python_module"   : "json_output_process",
-	//	"kratos_module" : "KratosMultiphysics",
-	//	"help"                  : "",
-	//	"process_name"          : "JsonOutputProcess",
-	//	"Parameters"            : {
-	//		"gauss_points_output_variables" : ["DAMAGE","UNIAXIAL_STRESS"],
-	//		"output_file_name"              : "HighCycleFatigue/high_cycle_fatigue_test_results.json",
-	//		"model_part_name"               : "Structure.Parts_Parts_Auto1",
-	//		"time_frequency"                : 3.0
-	//	}
-	//}
-	
+    },
+    "analysis_stage"   : "KratosMultiphysics.ConstitutiveLawsApplication.high_cycle_fatigue_analysis"
+
+	// "_json_output_process" : [
+	// {
+	// 	"python_module"   : "json_output_process",
+	// 	"kratos_module" : "KratosMultiphysics",
+	// 	"help"                  : "",
+	// 	"process_name"          : "JsonOutputProcess",
+	// 	"Parameters"            : {
+	// 		"gauss_points_output_variables" : ["DAMAGE","UNIAXIAL_STRESS"],
+	// 		"output_file_name"              : "HighCycleFatigue/high_cycle_fatigue_test_results.json",
+	// 		"model_part_name"               : "Structure.Parts_Parts_Auto1",
+	// 		"time_frequency"                : 3.0
+	// 	}
+	// }
+
     // "_json_output_process" : [
     // {
     //     "python_module"   : "json_output_process",

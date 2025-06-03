@@ -410,7 +410,7 @@ namespace Kratos
 
     double RHSi = 0;
     if (this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION))
-    { // it must be checked once at the begining only
+    { // it must be checked once at the beginning only
       array_1d<double, 3> &VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 
       for (SizeType d = 0; d < TDim; ++d)

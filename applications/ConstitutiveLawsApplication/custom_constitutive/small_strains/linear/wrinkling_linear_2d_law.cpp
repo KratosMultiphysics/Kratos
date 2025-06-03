@@ -211,7 +211,7 @@ void WrinklingLinear2DLaw::CheckWrinklingState(WrinklingType& rWrinklingState, c
     Vector principal_strains = ZeroVector(2);
     Vector temp_strains = ZeroVector(3);
     temp_strains = rStrain;
-    temp_strains[2] /= 2.0; // Adjust voigt strain vector to calcualte principal strains
+    temp_strains[2] /= 2.0; // Adjust voigt strain vector to calculate principal strains
     PrincipalVector(principal_strains,temp_strains);
 
     Vector principal_stresses = ZeroVector(2);

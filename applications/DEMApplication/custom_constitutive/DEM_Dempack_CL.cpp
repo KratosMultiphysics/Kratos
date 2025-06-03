@@ -21,7 +21,7 @@ namespace Kratos {
         mHistoryDamage              = 0.0; //cumulated_damage
         mHistoryDegradation         = 1.0; //degradation factor for G reducing in Dempack;
         mHistoryDisp                = 0.0; //displacement;
-        mHistoryShearFlag           = 0.0; //shear limit achived;
+        mHistoryShearFlag           = 0.0; //shear limit achieved;
     KRATOS_CATCH("")
     }
 

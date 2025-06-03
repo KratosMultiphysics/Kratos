@@ -69,7 +69,7 @@ CompositeCondition::CompositeCondition( CompositeCondition const& rOther)
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 CompositeCondition&  CompositeCondition::operator=(CompositeCondition const& rOther)

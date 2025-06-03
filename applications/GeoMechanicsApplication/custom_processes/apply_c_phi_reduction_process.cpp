@@ -96,7 +96,8 @@ double ApplyCPhiReductionProcess::GetAndCheckPhi(const Element::PropertiesType& 
         << "Invalid INDEX_OF_UMAT_PHI_PARAMETER: " << part_properties[INDEX_OF_UMAT_PHI_PARAMETER]
         << " (out-of-bounds index)" << std::endl;
     const auto phi = ConstitutiveLawUtilities::GetFrictionAngleInDegrees(part_properties);
-    KRATOS_ERROR_IF(phi < 0. || phi > 90.) << "Friction angle Phi out of range: " << phi << std::endl;
+    KRATOS_ERROR_IF(phi < 0. || phi > 90.)
+        << "Friction angle Phi out of range [0;90] (degrees): " << phi << std::endl;
     return phi;
 }
 

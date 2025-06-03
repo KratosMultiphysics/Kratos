@@ -419,7 +419,7 @@ namespace Kratos
 						double plane_point_distance=1.0;
 						double fixed_face_area_or_lenght=0.0;
 						array_1d<double, 3 > boundary_stress;
-						if (number_of_fixed_nodes==TDim) //it means we have cutted elements!
+						if (number_of_fixed_nodes==TDim) //it means we have cut elements!
 						{
 							//boundary_element=true;
 							array_1d<double, 3 > normal;

@@ -369,7 +369,10 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
         const double element_length = r_geom.Length();
 
         // if moving load is located at current condition element, apply moving load, else apply a zero load
-        if (distance_cond + element_length >= mCurrentDistance && distance_cond <= mCurrentDistance && !is_moving_load_added){
+        if (distance_cond + element_length >= mCurrentDistance - std::numeric_limits<double>::epsilon() && 
+            distance_cond <= mCurrentDistance + std::numeric_limits<double>::epsilon() && 
+            !is_moving_load_added){
+
             double local_distance;
             if (mIsCondReversedVector[i]){
                 local_distance = distance_cond + element_length - mCurrentDistance;

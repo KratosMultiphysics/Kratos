@@ -383,7 +383,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     // serializes/deserializes the MapperInterfaceInfos works correctly
     // => this is needed to transfer the data btw the ranks in MPI
     // The test is rather large, this is needed to cover a complete example
-    // Note that the same checks are performed before and after ther serialization
+    // Note that the same checks are performed before and after the serialization
     // to make sure that the objects are properly initialized
 
     typedef Kratos::shared_ptr<MapperInterfaceInfo> MapperInterfaceInfoPointerType;
@@ -464,7 +464,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     // Now finally we can construct the container
     MapperInterfaceInfoPointerVectorType interface_info_container(2);
 
-    // Note: the order is choosen intentionally
+    // Note: the order is chosen intentionally
     interface_info_container[0].push_back(p_nearest_neighbor_info_3);
     interface_info_container[1].push_back(p_nearest_neighbor_info_1);
     interface_info_container[1].push_back(p_nearest_neighbor_info_2);

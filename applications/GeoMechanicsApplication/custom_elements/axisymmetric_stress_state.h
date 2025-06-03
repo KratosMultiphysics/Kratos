@@ -21,9 +21,6 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) AxisymmetricStressState final : public StressStatePolicy
 {
 public:
-    [[nodiscard]] double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
-                                                         double DetJ,
-                                                         const Geometry<Node>& rGeometry) const override;
     [[nodiscard]] Matrix CalculateBMatrix(const Matrix&         rDN_DX,
                                           const Vector&         rN,
                                           const Geometry<Node>& rGeometry) const override;

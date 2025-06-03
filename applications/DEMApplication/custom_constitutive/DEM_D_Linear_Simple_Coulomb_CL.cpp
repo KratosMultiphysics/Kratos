@@ -15,7 +15,7 @@
 #include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
-  
+
   DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_Linear_Simple_Coulomb::Clone() const {
     DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_Linear_Simple_Coulomb(*this));
     return p_clone;
@@ -63,7 +63,7 @@ namespace Kratos {
     const double equiv_radius = 2.0 * my_radius * other_radius / (my_radius + other_radius);
     const double my_young     = element1->GetYoung();
     const double my_poisson   = element1->GetPoisson();
-    
+
     mKn = my_young * equiv_radius; // normal
     mKt = my_poisson * mKn;        // tangent
 
@@ -100,4 +100,34 @@ namespace Kratos {
 
     CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, sliding, element, wall);
   }
+
+    template<class NeighbourClassType>
+    void DEM_D_Linear_Simple_Coulomb::CalculateTangentialForceWithNeighbour(
+        const double normal_contact_force,
+          const double OldLocalElasticContactForce[3],
+          double LocalElasticContactForce[3],
+          const double LocalDeltDisp[3],
+          bool& sliding,
+          SphericParticle* const element,
+          NeighbourClassType* const neighbour)
+    {
+        // Compute shear force
+        LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - this->mKt * LocalDeltDisp[0];
+        LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - this->mKt * LocalDeltDisp[1];
+        const double tangent_contact_force = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+
+        // Compute maximum admissible shear force
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(neighbour->GetProperties().Id());
+        const double friction_angle_tg = std::tan(properties_of_this_contact[STATIC_FRICTION]);
+        const double MaximumAdmisibleShearForce = normal_contact_force * friction_angle_tg;
+
+        // Check for sliding: apply Coulomb friction condition
+        if (tangent_contact_force > MaximumAdmisibleShearForce) {
+            sliding = true;
+            const double fraction = MaximumAdmisibleShearForce / tangent_contact_force;
+            LocalElasticContactForce[0] *= fraction;
+            LocalElasticContactForce[1] *= fraction;
+        }
+    }
+
 } // namespace Kratos

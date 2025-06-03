@@ -677,7 +677,7 @@ private:
 
     /**
      * @brief This method regulates the four bezier control strains to avoid a constitutive snap-back (fracture energy considerations)
-     * @param specific_dissipated_fracture_energy FRACTURE_ENERGY_CMOPRESSION devided by CharacteristicLength
+     * @param specific_dissipated_fracture_energy FRACTURE_ENERGY_CMOPRESSION divided by CharacteristicLength
      *        sp, sk, sr stress Values to control the bezier curves
      *        ep strain pproperty to control the bezier curve
      *        ej, ek, er, eu strain properties to be regulated in method

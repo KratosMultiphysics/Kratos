@@ -263,7 +263,7 @@ protected:
     //Tangent variables in 3D
     ContactTangentVariables  Tangent;
 
-    //Contact condition conectivities
+    //Contact condition connectivities
     std::vector<unsigned int> nodes;
     std::vector<unsigned int> order;
     std::vector<unsigned int> slaves;

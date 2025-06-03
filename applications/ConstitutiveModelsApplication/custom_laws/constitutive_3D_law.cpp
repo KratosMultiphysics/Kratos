@@ -31,7 +31,7 @@ namespace Kratos
   {
   }
 
-  //*******************************ASSIGMENT OPERATOR***********************************
+  //******************************ASSIGNMENT OPERATOR***********************************
   //************************************************************************************
 
   Constitutive3DLaw& Constitutive3DLaw::operator=(const Constitutive3DLaw& rOther)

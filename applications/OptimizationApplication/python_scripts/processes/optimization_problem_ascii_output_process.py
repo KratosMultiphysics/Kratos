@@ -122,7 +122,7 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
                 # write the step
                 file_output.write("{:>7d}".format(self.optimization_problem.GetStep()))
 
-                # wrtie the values
+                # write the values
                 for component, header_info_dict in self.list_of_headers:
                     componend_data_view = ComponentDataView(component, self.optimization_problem)
                     buffered_dict = componend_data_view.GetBufferedData()

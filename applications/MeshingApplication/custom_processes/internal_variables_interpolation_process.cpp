@@ -61,7 +61,7 @@ void InternalVariablesInterpolationProcess::Execute()
 //         InterpolateGaussPointsShapeFunctionTransfer();
         KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: SHAPE FUNCTION TRANSFER THIS DOESN'T WORK, AND REQUIRES EXTRA STORE. PLEASE COOSE ANY OTHER ALTERNATIVE" << std::endl;
     } else
-        KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: INTERPOLATION TYPE NOT AVALAIBLE OR EMPTY LIST" << std::endl;
+        KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: INTERPOLATION TYPE NOT AVAILABLE OR EMPTY LIST" << std::endl;
 }
 
 /***********************************************************************************/
@@ -121,7 +121,7 @@ PointVector InternalVariablesInterpolationProcess::CreateGaussPointList(ModelPar
                     ConstitutiveLaw::Pointer p_origin_cl = constitutive_law_vector[i_gauss_point];
                     PointTypePointer p_point = PointTypePointer(new PointType(global_coordinates, p_origin_cl, weight));
 
-                    // We save the values not accesible from the CL (it consummes memory, so preferably use variable from the CL)
+                    // We save the values not accessible from the CL (it consummes memory, so preferably use variable from the CL)
                     for (auto& variable_name : mInternalVariableList) {
                         if (KratosComponents<DoubleVarType>::Has(variable_name)) {
                             const DoubleVarType& r_variable = KratosComponents<DoubleVarType>::Get(variable_name);
@@ -148,7 +148,7 @@ PointVector InternalVariablesInterpolationProcess::CreateGaussPointList(ModelPar
                         }
                     }
 
-                    // Finally we push over the the buffer vector
+                    // Finally we push over the buffer vector
                     points_buffer.push_back(p_point);
                 }
             }
@@ -178,7 +178,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsClosestPointTr
 
     //#pragma omp parallel firstprivate(mPointListOrigin)
     //{
-        // We initialize the intergration method
+        // We initialize the integration method
         GeometryData::IntegrationMethod this_integration_method;
 
         // Create a tree
@@ -279,7 +279,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsLeastSquareTra
 
     //#pragma omp parallel firstprivate(mPointListOrigin)
     //{
-        // We initialize the intergration method
+        // We initialize the integration method
         GeometryData::IntegrationMethod this_integration_method;
 
         // Initialize values
@@ -439,7 +439,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
             std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
             rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,r_origin_process_info);
 
-            // We initialize the total weigth
+            // We initialize the total weight
             double total_weight = 0.0;
 
             for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point ) {

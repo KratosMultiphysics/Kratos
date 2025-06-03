@@ -357,7 +357,7 @@ void ComputeTriaxialSandProduction(ModelPart& dem_model_part, ModelPart& outer_w
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-/// Turn back information as a stemplate<class T, std::size_t dim> tring.
+/// Turn back information as a stemplate<class T, std::size_t dim> string.
 
 virtual std::string Info() const
 {

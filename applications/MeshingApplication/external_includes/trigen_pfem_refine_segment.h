@@ -266,7 +266,7 @@ public:
             kd_tree  nodes_tree1(list_of_nodes.begin(),list_of_nodes.end(), bucket_size);
 
             unsigned int n_points_in_radius;
-            //radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
+            //radius means the distance, closer than which no node shall be allowed. if closer -> mark for erasing
             double radius;
 
             for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
@@ -476,7 +476,7 @@ public:
         KRATOS_WATCH("*********NUMBER OF ELEMENTS***********");
         KRATOS_WATCH(el_number);
 
-        //prepairing for alpha shape passing : creating necessary arrays
+        //preparing for alpha shape passing : creating necessary arrays
         //list of preserved elements is created: at max el_number can be preserved (all elements)
         std::vector<int> preserved_list1(el_number);
         preserved_list1.resize(el_number);
@@ -749,7 +749,7 @@ public:
 
 
         //and now we shall find out where the new nodes belong to
-        //defintions for spatial search
+        //definitions for spatial search
         typedef Node PointType;
         typedef Node::Pointer PointPointerType;
         typedef std::vector<PointType::Pointer>           PointVector;
@@ -761,7 +761,7 @@ public:
 
         //typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;//commented
 
-        //typedef Tree< KDTreePartition<BucketType> > kd_tree; //Kdtree;//comented
+        //typedef Tree< KDTreePartition<BucketType> > kd_tree; //Kdtree;//commented
 
         //int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
 
@@ -1263,7 +1263,7 @@ private:
 
         KRATOS_CATCH("")
     }
-    //AUXILLIARY FCTNS
+    //AUXILIARY FUNCTIONS
     inline void CalculateCenterAndSearchRadius(const double x0, const double y0,
             const double x1, const double y1,
             const double x2, const double y2,
@@ -1596,10 +1596,10 @@ private:
 
             int bad_node = nodes_of_bad_segments[ii];
 
-//COORDINTAES of bad node
+//COORDINATES of bad node
             KRATOS_WATCH(ThisModelPart.Nodes()[bad_node].X());
             KRATOS_WATCH(ThisModelPart.Nodes()[bad_node].Y());
-//ens of COORDINTAES
+//ens of COORDINATES
 
             for(int & jj : raw_seg_list)
             {
