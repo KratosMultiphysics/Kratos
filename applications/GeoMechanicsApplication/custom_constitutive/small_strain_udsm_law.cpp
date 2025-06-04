@@ -703,13 +703,13 @@ void SmallStrainUDSMLaw::CalculateStress(Parameters& rValues, Vector& rStressVec
     KRATOS_CATCH("")
 }
 
-int SmallStrainUDSMLaw::getIsNonSymmetric() { return mAttributes[IS_NON_SYMMETRIC]; }
+int SmallStrainUDSMLaw::GetIsNonSymmetric() { return mAttributes[IS_NON_SYMMETRIC]; }
 
-int SmallStrainUDSMLaw::getIsStressDependent() { return mAttributes[IS_STRESS_DEPENDENT]; }
+int SmallStrainUDSMLaw::GetIsStressDependent() { return mAttributes[IS_STRESS_DEPENDENT]; }
 
-int SmallStrainUDSMLaw::getIsTimeDependent() { return mAttributes[IS_TIME_DEPENDENT]; }
+int SmallStrainUDSMLaw::GetIsTimeDependent() { return mAttributes[IS_TIME_DEPENDENT]; }
 
-int SmallStrainUDSMLaw::getUseTangentMatrix() { return mAttributes[USE_TANGENT_MATRIX]; }
+int SmallStrainUDSMLaw::GetUseTangentMatrix() { return mAttributes[USE_TANGENT_MATRIX]; }
 
 array_1d<double, SmallStrainUDSMLaw::Sig0Size>& SmallStrainUDSMLaw::GetSig0() { return mSig0; }
 

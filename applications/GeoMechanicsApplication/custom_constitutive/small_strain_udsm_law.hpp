@@ -193,16 +193,16 @@ protected:
     void CalculateStress(Parameters& rValues, Vector& rStressVector);
 
     // returns 1 if the stiffness matrix of the material is non-symmetric
-    int getIsNonSymmetric();
+    int GetIsNonSymmetric();
 
     // returns 1 if the stiffness matrix of the material is stress dependent
-    int getIsStressDependent();
+    int GetIsStressDependent();
 
     // returns 1 if material is time dependent
-    int getIsTimeDependent();
+    int GetIsTimeDependent();
 
     // returns 1 if the stiffness matrix of the material is tangential
-    int getUseTangentMatrix();
+    int GetUseTangentMatrix();
 
     array_1d<double, Sig0Size>& GetSig0();
 
