@@ -70,9 +70,9 @@ int GiD_WriteCluster(int id, int nid)
 
 int GiD_fWriteCluster(GiD_FILE fd, int id, int nid)
 {
-  CPostFile *File = NULL;
 
-  FD2FILE(fd,File);
+  CPostFile *File = NULL;
+  if ( ( File = FD2FILE( fd)) == NULL) { return -8;}
 
   return _GiD_WriteCluster(File, id, nid);
 }
@@ -116,9 +116,9 @@ int GiD_WriteClusterMat(int id, int nid, int mat)
 
 int GiD_fWriteClusterMat(GiD_FILE fd, int id, int nid, int mat)
 {
+  
   CPostFile *File = NULL;
-
-  FD2FILE(fd,File);
+  if ( ( File = FD2FILE( fd)) == NULL) { return -8;}
 
   return _GiD_WriteClusterMat(File, id, nid, mat);
 }
