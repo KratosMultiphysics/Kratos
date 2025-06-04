@@ -81,6 +81,8 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUDSM3DLaw : public Consti
 public:
     using SizeType = std::size_t;
 
+    // See section 16.2 "Implementation of User Defined (UD) soil Models in calculations program"
+    // of the Plaxis documentation for the array sizes
     static constexpr SizeType Sig0Size                  = 20;
     static constexpr SizeType StressVectorSize          = 6;
     static constexpr SizeType StrainIncrementVectorSize = 12;
@@ -214,8 +216,6 @@ private:
     Vector mStateVariables;
     Vector mStateVariablesFinalized;
 
-    // See section 16.2 "Implementation of User Defined (UD) soil Models in calculations program"
-    // of the Plaxis documentation for the array sizes
     array_1d<double, Sig0Size> mSig0{Sig0Size, 0.0};
 
     std::unique_ptr<ConstitutiveLawDimension> mpDimension;

@@ -29,6 +29,8 @@ namespace
 
 using namespace Kratos;
 
+// See section 16.2 "Implementation of User Defined (UD) soil Models in calculations program"
+// of the Plaxis documentation for the array size of `Props`
 constexpr auto props_size = SizeType{50};
 
 array_1d<double, props_size> MakePropsVector(const Vector& rUMatParameters)
