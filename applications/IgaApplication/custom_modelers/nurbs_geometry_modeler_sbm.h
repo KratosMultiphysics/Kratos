@@ -51,7 +51,8 @@ public:
         const Parameters ModelerParameters = Parameters())
         : NurbsGeometryModeler(rModel, ModelerParameters)
     {
-        mParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
+        mParameters.ValidateDefaults(this->GetValidParameters());
+        mParameters.AddMissingParameters(this->GetDefaultParameters());
     }
 
     /// Destructor.
@@ -67,6 +68,7 @@ public:
 
     // Get the default parameters
     const Parameters GetDefaultParameters() const override;
+    const Parameters GetValidParameters() const;
 
     ///@}
     ///@name Stages
