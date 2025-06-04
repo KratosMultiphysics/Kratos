@@ -617,7 +617,8 @@ void SmallStrainUDSMLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 void SmallStrainUDSMLaw::UpdateInternalDeltaStrainVector(Parameters& rValues)
 {
     const auto& r_strain_vector = rValues.GetStrainVector();
-    std::transform(r_strain_vector.begin(), r_strain_vector.begin() + GetStrainSize(),
+    std::transform(r_strain_vector.begin(),
+                   r_strain_vector.begin() + static_cast<Vector::difference_type>(GetStrainSize()),
                    mStrainVectorFinalized.begin(), mDeltaStrainVector.begin(), std::minus<>{});
 }
 
