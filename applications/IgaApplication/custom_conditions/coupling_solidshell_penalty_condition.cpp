@@ -1,4 +1,4 @@
-//    |  /           |
+﻿//    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
@@ -174,8 +174,13 @@ namespace Kratos
                     bool check72 = abs(diff72) < 1E-10;
                     bool check73 = abs(diff73) < 1E-10;
 
-                    // Minas TODO : Import thickness from properties
-                    double thickness = 2;
+                    double thickness = GetProperties().GetValue(THICKNESS);
+                    if (abs(theta3) > thickness / 2) { 
+                        std::cout << "Theta3 > thickness/2" << std::endl; 
+                    }
+                    if (check71 == false || check72 == false || check73 == false) {
+                        std::cout << "Theta3 caclulation iw wrong" << std::endl;
+                    }
                     KRATOS_ERROR_IF(abs(theta3) > thickness / 2) << "Theta 3 > 1" << std::endl;;
                     KRATOS_ERROR_IF(check71 == false || check72 == false || check73 == false) << "Something happened with theta 3" << std::endl;
                 }

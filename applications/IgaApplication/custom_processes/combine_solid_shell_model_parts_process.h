@@ -139,6 +139,11 @@ private:
     //Model part and different settings
     Model& _Model;
     Parameters _Parameters;
+
+    void Cylinder270_projection(const Geometry<Node>& ShellCurveOnCouplingInterface,
+        CoordinatesArrayType& integration_points_global_coords_vector, 
+        CoordinatesArrayType& local_slave_coords);
+
     ///@}
 
 }; // Class CombineSolidShellModelPartsProcess
