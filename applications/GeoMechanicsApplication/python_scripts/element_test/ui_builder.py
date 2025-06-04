@@ -43,9 +43,9 @@ class GeotechTestUI:
 
     def _start_simulation_thread(self):
         if self.is_running:
-            return  # Prevent re-entry
+            return
         self.is_running = True
-        self.run_button.config(state="disabled")
+        self._freeze_gui()
         threading.Thread(target=self._run_simulation, daemon=True).start()
 
     def _init_frames(self):
@@ -260,11 +260,33 @@ class GeotechTestUI:
             log_message(traceback.format_exc(), "error")
 
         finally:
-            self.root.after(0, self._enable_run_button)
+            self.root.after(0, self._unfreeze_gui)
+            self.is_running = False
 
     def _enable_run_button(self):
+            self.run_button.config(state="normal")
+            self.is_running = False
+
+    def _set_widget_state(self, parent, state):
+        for child in parent.winfo_children():
+            if isinstance(child, (ttk.Entry, ttk.Combobox, tk.Button, ttk.Button, tk.Checkbutton)):
+                child.configure(state=state)
+            elif isinstance(child, scrolledtext.ScrolledText):
+                if state == "disabled":
+                    child.config(state="disabled")
+                else:
+                    init_log_widget(child)
+            elif isinstance(child, (ttk.Frame, tk.Frame)):
+                self._set_widget_state(child, state)
+
+    def _freeze_gui(self):
+        self._set_widget_state(self.left_frame, "disabled")
+
+    def _unfreeze_gui(self):
+        self._set_widget_state(self.left_frame, "normal")
         self.run_button.config(state="normal")
-        self.is_running = False
+
+
 
 
 

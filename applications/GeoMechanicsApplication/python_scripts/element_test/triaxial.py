@@ -38,7 +38,7 @@ class TriaxialTest:
             friction_angle = umat_parameters[3]
             return cohesion, friction_angle
         except KeyError:
-            return 0.0, 30.0  #Remove the reasonable defaults for Mohr-Coulomb failure envelope for Linear Elastic
+            raise KeyError("Cohesion and Friction angle  not found in the UMAT_PARAMETERS.")
 
 class TriaxialTestRunner:
     def __init__(self, output_file_paths, work_dir):
