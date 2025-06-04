@@ -1,6 +1,7 @@
 import os
 
 import KratosMultiphysics
+import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.testing.utilities import ReadModelPart
@@ -151,6 +152,12 @@ class TestSensitivityUtilitiesTwoDimSymmetricalSquare(KratosUnittest.TestCase):
             else:
                 analytical_value = KratosMultiphysics.Matrix(1, 1, 0.0)
             self.assertMatrixAlmostEqual(value, analytical_value, 12)
+
+class TestSensitivityUtilitiesGetSensitivityVariableName(KratosUnittest.TestCase):
+    def test_GetSensitivityVariableName(self):
+        self.assertEqual(KratosMultiphysics.SensitivityUtilities.GetSensitivityVariableName(KratosMultiphysics.POISSON_RATIO), "POISSON_RATIO_SENSITIVITY")
+        self.assertEqual(KratosMultiphysics.SensitivityUtilities.GetSensitivityVariableName(KratosMultiphysics.StructuralMechanicsApplication.POINT_LOAD_X), "POINT_LOAD_SENSITIVITY_X")
+        self.assertEqual(KratosMultiphysics.SensitivityUtilities.GetSensitivityVariableName(KratosMultiphysics.StructuralMechanicsApplication.POINT_LOAD), "POINT_LOAD_SENSITIVITY")
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
