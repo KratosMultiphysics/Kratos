@@ -141,27 +141,6 @@ using f_UserMod          = void (*)(int*,
 
 using SizeType = std::size_t;
 
-SmallStrainUDSM3DLaw::SmallStrainUDSM3DLaw(const SmallStrainUDSM3DLaw& rOther)
-    : ConstitutiveLaw(rOther),
-      mStressVector(rOther.mStressVector),
-      mDeltaStrainVector(rOther.mDeltaStrainVector),
-      mStrainVectorFinalized(rOther.mStrainVectorFinalized),
-      mIsModelInitialized(rOther.mIsModelInitialized),
-      mIsUDSMLoaded(rOther.mIsUDSMLoaded),
-      mAttributes(rOther.mAttributes),
-      mStateVariables(rOther.mStateVariables),
-      mStateVariablesFinalized(rOther.mStateVariablesFinalized),
-      mSig0(rOther.mSig0)
-{
-    KRATOS_TRY
-
-    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i)
-        for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j)
-            mMatrixD[i][j] = rOther.mMatrixD[i][j];
-
-    KRATOS_CATCH("")
-}
-
 SmallStrainUDSM3DLaw::~SmallStrainUDSM3DLaw() = default;
 
 SmallStrainUDSM3DLaw::SmallStrainUDSM3DLaw(std::unique_ptr<ConstitutiveLawDimension> pDimension)
@@ -174,35 +153,14 @@ SmallStrainUDSM3DLaw::SmallStrainUDSM3DLaw(std::unique_ptr<ConstitutiveLawDimens
     }
 }
 
+SmallStrainUDSM3DLaw::SmallStrainUDSM3DLaw(SmallStrainUDSM3DLaw&&) noexcept            = default;
+SmallStrainUDSM3DLaw& SmallStrainUDSM3DLaw::operator=(SmallStrainUDSM3DLaw&&) noexcept = default;
+
 ConstitutiveLaw::Pointer SmallStrainUDSM3DLaw::Clone() const
 {
     auto pResult = std::make_shared<SmallStrainUDSM3DLaw>();
     CloneDataMembersTo(*pResult);
     return pResult;
-}
-
-SmallStrainUDSM3DLaw& SmallStrainUDSM3DLaw::operator=(SmallStrainUDSM3DLaw const& rOther)
-{
-    KRATOS_TRY
-
-    ConstitutiveLaw::operator=(rOther);
-    this->mIsModelInitialized      = rOther.mIsModelInitialized;
-    this->mIsUDSMLoaded            = rOther.mIsUDSMLoaded;
-    this->mAttributes              = rOther.mAttributes;
-    this->mStateVariables          = rOther.mStateVariables;
-    this->mStateVariablesFinalized = rOther.mStateVariablesFinalized;
-    this->mStressVector            = rOther.mStressVector;
-    this->mDeltaStrainVector       = rOther.mDeltaStrainVector;
-    this->mStrainVectorFinalized   = rOther.mStrainVectorFinalized;
-    this->mSig0                    = rOther.mSig0;
-
-    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i)
-        for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j)
-            this->mMatrixD[i][j] = rOther.mMatrixD[i][j];
-
-    return *this;
-
-    KRATOS_CATCH("")
 }
 
 void SmallStrainUDSM3DLaw::GetLawFeatures(Features& rFeatures)

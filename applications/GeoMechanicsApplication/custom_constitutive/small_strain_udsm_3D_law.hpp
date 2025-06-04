@@ -91,14 +91,17 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUDSM3DLaw);
 
     explicit SmallStrainUDSM3DLaw(std::unique_ptr<ConstitutiveLawDimension> pDimension = nullptr);
-
-    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
-
-    SmallStrainUDSM3DLaw(SmallStrainUDSM3DLaw const& rOther);
-
     ~SmallStrainUDSM3DLaw() override;
 
-    SmallStrainUDSM3DLaw& operator=(SmallStrainUDSM3DLaw const& rOther);
+    // This constitutive law cannot be copied. Use member function `Clone` instead.
+    SmallStrainUDSM3DLaw(const SmallStrainUDSM3DLaw&)            = delete;
+    SmallStrainUDSM3DLaw& operator=(const SmallStrainUDSM3DLaw&) = delete;
+
+    // This constitutive law can be moved
+    SmallStrainUDSM3DLaw(SmallStrainUDSM3DLaw&&) noexcept;
+    SmallStrainUDSM3DLaw& operator=(SmallStrainUDSM3DLaw&&) noexcept;
+
+    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
     void GetLawFeatures(Features& rFeatures) override;
 
