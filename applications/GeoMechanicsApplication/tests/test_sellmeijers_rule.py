@@ -63,9 +63,9 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
             yield r
             r += step
 
-    def critical_head_loop(self, file_path, kappa, d70, Hc, search_type='linear'):
+    def critical_head_loop(self, file_path, kappa, d70, h_c, search_type='linear'):
         self.change_material_parameters(file_path, kappa, d70)
-        heads = list(self.drange(Hc - 1, Hc + 2, 0.1))
+        heads = list(self.drange(h_c - 1, h_c + 2, 0.1))
         critical_head_found = math.nan
         length = math.nan
         if search_type == 'linear':

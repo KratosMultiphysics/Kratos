@@ -27,7 +27,7 @@ namespace Kratos
   }
 
 
-  //*******************************ASSIGMENT OPERATOR***********************************
+  //******************************ASSIGNMENT OPERATOR***********************************
   //************************************************************************************
 
   BakerJohnsonCookThermalHardeningRule& BakerJohnsonCookThermalHardeningRule::operator=(BakerJohnsonCookThermalHardeningRule const& rOther)

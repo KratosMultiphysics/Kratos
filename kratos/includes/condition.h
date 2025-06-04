@@ -10,8 +10,7 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_CONDITION_H_INCLUDED )
-#define  KRATOS_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -1216,5 +1215,4 @@ KRATOS_DEFINE_VARIABLE(GlobalPointersVector< Condition >, NEIGHBOUR_CONDITIONS)
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
 
 } // namespace Kratos.
-#endif // KRATOS_CONDITION_H_INCLUDED  defined
 

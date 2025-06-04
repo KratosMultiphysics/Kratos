@@ -26,10 +26,12 @@ ConstitutiveLaw::Pointer SmallStrainUDSM2DInterfaceLaw::Clone() const
 
 void SmallStrainUDSM2DInterfaceLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues)
 {
-    const Vector& rStrainVector = rValues.GetStrainVector();
+    const auto& r_strain_vector = rValues.GetStrainVector();
 
-    mDeltaStrainVector[INDEX_3D_ZZ] = rStrainVector(INDEX_2D_INTERFACE_ZZ) - mStrainVectorFinalized[INDEX_3D_ZZ];
-    mDeltaStrainVector[INDEX_3D_XZ] = rStrainVector(INDEX_2D_INTERFACE_XZ) - mStrainVectorFinalized[INDEX_3D_XZ];
+    mDeltaStrainVector[INDEX_3D_ZZ] =
+        r_strain_vector[INDEX_2D_INTERFACE_ZZ] - mStrainVectorFinalized[INDEX_3D_ZZ];
+    mDeltaStrainVector[INDEX_3D_XZ] =
+        r_strain_vector[INDEX_2D_INTERFACE_XZ] - mStrainVectorFinalized[INDEX_3D_XZ];
 }
 
 void SmallStrainUDSM2DInterfaceLaw::SetExternalStressVector(Vector& rStressVector)
@@ -40,12 +42,12 @@ void SmallStrainUDSM2DInterfaceLaw::SetExternalStressVector(Vector& rStressVecto
 
 void SmallStrainUDSM2DInterfaceLaw::SetInternalStressVector(const Vector& rStressVector)
 {
-    KRATOS_TRY
-    std::fill(mStressVectorFinalized.begin(), mStressVectorFinalized.end(), 0.0);
+    auto& r_sig0 = GetSig0();
 
-    mStressVectorFinalized[INDEX_3D_ZZ] = rStressVector(INDEX_2D_INTERFACE_ZZ);
-    mStressVectorFinalized[INDEX_3D_XZ] = rStressVector(INDEX_2D_INTERFACE_XZ);
-    KRATOS_CATCH("")
+    std::fill_n(r_sig0.begin(), StressVectorSize, 0.0);
+
+    r_sig0[INDEX_3D_ZZ] = rStressVector[INDEX_2D_INTERFACE_ZZ];
+    r_sig0[INDEX_3D_XZ] = rStressVector[INDEX_2D_INTERFACE_XZ];
 }
 
 void SmallStrainUDSM2DInterfaceLaw::SetInternalStrainVector(const Vector& rStrainVector)
@@ -95,10 +97,11 @@ Vector& SmallStrainUDSM2DInterfaceLaw::GetValue(const Variable<Vector>& rThisVar
     if (rThisVariable == STATE_VARIABLES) {
         SmallStrainUDSM3DLaw::GetValue(rThisVariable, rValue);
     } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
-        if (rValue.size() != VoigtSize) rValue.resize(VoigtSize);
+        rValue.resize(VoigtSize);
 
-        rValue[INDEX_2D_INTERFACE_ZZ] = mStressVectorFinalized[INDEX_3D_ZZ];
-        rValue[INDEX_2D_INTERFACE_XZ] = mStressVectorFinalized[INDEX_3D_XZ];
+        auto& r_sig0                  = GetSig0();
+        rValue[INDEX_2D_INTERFACE_ZZ] = r_sig0[INDEX_3D_ZZ];
+        rValue[INDEX_2D_INTERFACE_XZ] = r_sig0[INDEX_3D_XZ];
     }
     return rValue;
 }

@@ -114,6 +114,11 @@ class TestMassCalculation(KratosUnittest.TestCase):
         elem3.SetValue(KratosMultiphysics.NODAL_MASS, expected_elemental_masses_by_id[3])
         elem4.SetValue(KratosMultiphysics.NODAL_MASS, expected_elemental_masses_by_id[4])
 
+        elem1.Initialize(mp.ProcessInfo)
+        elem2.Initialize(mp.ProcessInfo)
+        elem3.Initialize(mp.ProcessInfo)
+        elem4.Initialize(mp.ProcessInfo)
+
         mass_process = StructuralMechanicsApplication.TotalStructuralMassProcess(mp)
         mass_process.Execute()
 

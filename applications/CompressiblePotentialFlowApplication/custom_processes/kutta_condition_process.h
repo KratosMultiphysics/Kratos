@@ -147,7 +147,7 @@ public:
             }
         }
         
-        //now compute one elemntal distance per each element in the kutta list
+        //now compute one elemental distance per each element in the kutta list
         for(auto it=kutta_elements.begin(); it!=kutta_elements.end(); ++it)
         {
             it->Set(MARKER,false);
