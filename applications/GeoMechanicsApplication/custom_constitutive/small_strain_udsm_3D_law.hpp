@@ -87,7 +87,7 @@ public:
     static constexpr SizeType StressVectorSize          = 6;
     static constexpr SizeType StrainIncrementVectorSize = 12;
 
-    /// Pointer definition of SmallStrainUDSM3DLaw
+    /// Pointer definition of SmallStrainUDSMLaw
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUDSMLaw);
 
     explicit SmallStrainUDSMLaw(std::unique_ptr<ConstitutiveLawDimension> pDimension = nullptr);
@@ -244,6 +244,6 @@ private:
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
-}; // Class SmallStrainUDSM3DLaw
+};
 
 } // namespace Kratos

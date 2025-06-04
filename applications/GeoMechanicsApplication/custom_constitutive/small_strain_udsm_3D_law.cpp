@@ -596,7 +596,7 @@ void SmallStrainUDSMLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parame
 
     KRATOS_DEBUG_ERROR_IF(rOptions.IsDefined(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN) &&
                           rOptions.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
-        << "The SmallStrainUDSM3DLaw needs an element provided strain" << std::endl;
+        << "The SmallStrainUDSMLaw needs an element provided strain" << std::endl;
 
     KRATOS_ERROR_IF(!rValues.IsSetStrainVector() || rValues.GetStrainVector().size() != GetStrainSize())
         << "Constitutive laws in the geomechanics application need a valid provided strain" << std::endl;
@@ -949,13 +949,13 @@ void SmallStrainUDSMLaw::SetValue(const Variable<Vector>& rVariable, const Vecto
     }
 }
 
-std::string SmallStrainUDSMLaw::Info() const { return "SmallStrainUDSM3DLaw"; }
+std::string SmallStrainUDSMLaw::Info() const { return "SmallStrainUDSMLaw"; }
 
 void SmallStrainUDSMLaw::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
 
 void SmallStrainUDSMLaw::PrintData(std::ostream& rOStream) const
 {
-    rOStream << "SmallStrainUDSM3DLaw Data";
+    rOStream << "SmallStrainUDSMLaw Data";
 }
 
 void SmallStrainUDSMLaw::save(Serializer& rSerializer) const
