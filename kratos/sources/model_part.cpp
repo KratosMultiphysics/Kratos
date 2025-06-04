@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -18,9 +18,9 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/exception.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 
 namespace Kratos
@@ -210,14 +210,11 @@ ModelPart::IndexType ModelPart::CloneSolutionStep()
         << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
-    const int nnodes = static_cast<int>(Nodes().size());
-    auto nodes_begin = NodesBegin();
-    #pragma omp parallel for firstprivate(nodes_begin,nnodes)
-    for(int i = 0; i<nnodes; ++i)
-    {
-        auto node_iterator = nodes_begin + i;
+    auto& r_nodes = Nodes();
+    IndexPartition<size_t>(r_nodes.size()).for_each([&](size_t i){
+        auto node_iterator = r_nodes.begin() + i;
         node_iterator->CloneSolutionStepData();
-    }
+    });
 
     mpProcessInfo->CloneSolutionStepInfo();
 
@@ -2141,14 +2138,11 @@ void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
 
     mBufferSize = NewBufferSize;
 
-    auto nodes_begin = NodesBegin();
-    const int nnodes = static_cast<int>(Nodes().size());
-    #pragma omp parallel for firstprivate(nodes_begin,nnodes)
-    for(int i = 0; i<nnodes; ++i)
-    {
-        auto node_iterator = nodes_begin + i;
+    auto& r_nodes = Nodes();
+    IndexPartition<size_t>(r_nodes.size()).for_each([&](size_t i){
+        auto node_iterator = r_nodes.begin() + i;
         node_iterator->SetBufferSize(mBufferSize);
-    }
+    });
 
 }
 
