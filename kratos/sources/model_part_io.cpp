@@ -3566,7 +3566,7 @@ ModelPartIO::SizeType ModelPartIO::ReadConstraintsConnectivitiesBlock(Connectivi
 
         // There are two options: either the constraint is 1x0 or it is 1xN and all the variables are the same
         std::getline(*mpStream, current_line);
-        const std::size_t count = StringUtilities::CountValuesUntilPrefix(current_line, "]");
+        const std::size_t count = StringUtilities::CountValuesUntilCharacter(current_line, "]");
 
         // Use a string stream to easily extract tokens
         std::size_t count_total = 0;
@@ -3870,7 +3870,7 @@ void ModelPartIO::FillNodalConnectivitiesFromConstraintBlock(ConnectivitiesConta
 
         // There are two options: either the constraint is 1x0 or it is 1xN and all the variables are the same
         std::getline(*mpStream, current_line);
-        const std::size_t count = StringUtilities::CountValuesUntilPrefix(current_line, "]");
+        const std::size_t count = StringUtilities::CountValuesUntilCharacter(current_line, "]");
 
         // Use a string stream to easily extract tokens
         std::size_t count_total = 0;
@@ -5086,7 +5086,7 @@ void ModelPartIO::DivideConstraintsBlock(
 
         // There are two options: either the constraint is 1x0 or it is 1xN and all the variables are the same
         std::getline(*mpStream, current_line);
-        const std::size_t count = StringUtilities::CountValuesUntilPrefix(current_line, "]");
+        const std::size_t count = StringUtilities::CountValuesUntilCharacter(current_line, "]");
 
         // Use a string stream to easily extract tokens
         std::size_t count_total = 0;
