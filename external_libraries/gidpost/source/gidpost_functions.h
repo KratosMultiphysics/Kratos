@@ -1,6 +1,8 @@
 #ifndef __GIDPOST_FUNCTIONS__
 #define __GIDPOST_FUNCTIONS__
 
+#include "gidpost_cluster_functions.h"
+
 /*
   GiD_PostInit -- Initialization of gidpost library, must be called
   from the main thread of the program.

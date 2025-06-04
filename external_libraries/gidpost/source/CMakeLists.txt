@@ -1,6 +1,6 @@
 #include (ExternalProject)
 set (gidpost_source 
-  gidpost.c gidpostFILES.c gidpostInt.c  gidpostfor.c gidpostforAPI.c
+  gidpost.c gidpost_cluster.c gidpostFILES.c gidpostInt.c  gidpostfor.c gidpostforAPI.c
   gidpostHash.c hashtab.c recycle.c lookupa.c)
 
 # find  package already done in  ../CmakeLists.txt
@@ -70,4 +70,4 @@ install (TARGETS gidpost
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
 
-install( FILES gidpost.h gidpost_types.h gidpost_functions.h gidpost_functions_deprecated.h DESTINATION include )
+install( FILES gidpost.h gidpost_types.h gidpost_functions.h gidpost_cluster_functions.h gidpost_functions_deprecated.h DESTINATION include )

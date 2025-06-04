@@ -30,7 +30,8 @@ typedef enum {
   GiD_Prism,
   GiD_Pyramid,
   GiD_Sphere,
-  GiD_Circle
+  GiD_Circle,
+  GiD_Cluster
 } GiD_ElementType;
 
 typedef enum {

@@ -404,6 +404,7 @@ int GiD_BeginElements_HDF5( CurrentHdf5WriteData *obj )
   switch(obj->current_mesh_etype){
     case GiD_Sphere: num_int=3; num_real=1; break;
     case GiD_Circle: num_int=3; num_real=4; break;
+    case GiD_Cluster: num_int=3; break;
     default: num_int=obj->current_mesh_nnode+2; break;
   }
   char dst_mesh_path[ 1024 ];

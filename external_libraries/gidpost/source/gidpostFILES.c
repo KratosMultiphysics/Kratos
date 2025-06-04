@@ -176,6 +176,7 @@ int ValidateConnectivity(GiD_ElementType etype , int NNode)
   case GiD_Point:
   case GiD_Sphere:
   case GiD_Circle:
+  case GiD_Cluster:
     error = (NNode != 1);
     break;
   case GiD_Linear:
