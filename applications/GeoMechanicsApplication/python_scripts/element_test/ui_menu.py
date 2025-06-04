@@ -4,6 +4,9 @@ from ui_builder import GeotechTestUI
 from ui_udsm_parser import udsm_parser
 
 
+SELECT_DLL = "Select DLL File"
+LINEAR_ELASTIC = "Linear Elastic Model"
+
 def create_menu():
     root = tk.Tk()
     root.title("Triaxial Test")
@@ -17,7 +20,7 @@ def create_menu():
     main_frame.pack(side="top", fill="both", expand=True)
 
     def load_dll():
-        dll_path = filedialog.askopenfilename(title="Select DLL File", filetypes=[("DLL files", "*.dll")])
+        dll_path = filedialog.askopenfilename(title=SELECT_DLL, filetypes=[("DLL files", "*.dll")])
         if not dll_path:
             messagebox.showerror("Error", "No DLL file selected.")
             return
@@ -35,7 +38,7 @@ def create_menu():
 
     def load_linear_elastic():
         model_dict = {
-            "model_name": ["Linear Elastic"],
+            "model_name": [LINEAR_ELASTIC],
             "num_params": [2],
             "param_names": [["YOUNG MODULUS", "POISSON RATIO"]],
             "param_units": [["kN/m²", "–"]]
@@ -49,16 +52,16 @@ def create_menu():
 
     def handle_model_source_selection(event):
         choice = model_source_var.get()
-        if choice == "Select DLL File":
+        if choice == SELECT_DLL:
             load_dll()
-        elif choice == "Linear Elastic Model":
+        elif choice == LINEAR_ELASTIC:
             load_linear_elastic()
 
     model_source_var = tk.StringVar(value="Select Model Source")
     model_source_menu = ttk.Combobox(
         top_frame,
         textvariable=model_source_var,
-        values=["Select DLL File", "Linear Elastic Model"],
+        values=[SELECT_DLL, LINEAR_ELASTIC],
         state="readonly"
     )
     model_source_menu.bind("<<ComboboxSelected>>", handle_model_source_selection)

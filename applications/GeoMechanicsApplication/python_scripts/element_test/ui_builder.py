@@ -3,12 +3,24 @@ from tkinter import ttk, scrolledtext
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import threading
 
 from set_triaxial_test import run_triaxial_simulation
 from ui_plot_manager import render_plots
 from ui_logger import init_log_widget, log_message, clear_log
 from ui_udsm_parser import input_parameters_format_to_unicode
 import traceback
+
+
+MAX_STRAIN_LABEL = "Maximum Strain |εᵧᵧ|"
+INIT_PRESSURE_LABEL = "Initial effective cell pressure |σ'ₓₓ|"
+STRESS_INC_LABEL = "Stress increment |σ'ᵧᵧ|"
+NUM_STEPS_LABEL = "Number of steps"
+DURATION_LABEL = "Duration"
+FL2_UNIT_LABEL = "kN/m²"
+SECONDS_UNIT_LABEL = "s"
+PERCENTAGE_UNIT_LABEL = "%"
+WITHOUT_UNIT_LABEL = ""
 
 
 class GeotechTestUI:
@@ -27,6 +39,14 @@ class GeotechTestUI:
         self._init_dropdown_section()
         self._init_plot_canvas()
         self._create_input_fields()
+        self.is_running = False
+
+    def _start_simulation_thread(self):
+        if self.is_running:
+            return  # Prevent re-entry
+        self.is_running = True
+        self.run_button.config(state="disabled")
+        threading.Thread(target=self._run_simulation, daemon=True).start()
 
     def _init_frames(self):
         self.left_frame = ttk.Frame(self.parent, padding="10", width=700)
@@ -113,7 +133,7 @@ class GeotechTestUI:
 
         self._switch_test("Triaxial")
 
-        self.run_button = ttk.Button(self.button_frame, text="Run Calculation", command=self._run_simulation)
+        self.run_button = ttk.Button(self.button_frame, text="Run Calculation", command=self._start_simulation_thread)
         self.run_button.pack(pady=5)
 
     def _create_entries(self, frame, title, labels, units, defaults):
@@ -168,47 +188,47 @@ class GeotechTestUI:
             self.triaxial_widgets = self._create_entries(
                 self.test_input_frame,
                 "Triaxial Input Data",
-                ["Initial effective cell pressure |σ'₃₃|", "Maximum Strain |εᵧᵧ|", "Number of steps", "Duration"],
-                ["kN/m²", "%", "", "s"],
-                {"Initial effective cell pressure |σ'₃₃|": "100", "Maximum Strain |εᵧᵧ|": "10",
-                 "Number of steps": "100", "Duration": "1.0"}
+                [INIT_PRESSURE_LABEL, MAX_STRAIN_LABEL, NUM_STEPS_LABEL, DURATION_LABEL],
+                [FL2_UNIT_LABEL, PERCENTAGE_UNIT_LABEL, WITHOUT_UNIT_LABEL, SECONDS_UNIT_LABEL],
+                {INIT_PRESSURE_LABEL: "100", MAX_STRAIN_LABEL: "10",
+                 NUM_STEPS_LABEL: "100", DURATION_LABEL: "1.0"}
             )
         elif test_name == "Oedometer":
             self.oedometer_widgets = self._create_entries(
                 self.test_input_frame,
                 "Oedometer Input Data",
-                ["Initial stress", "Loading increment", "Number of cycles"],
-                ["kN/m²", "kN/m²", ""],
-                {"Initial stress": "100", "Loading increment": "50", "Number of cycles": "5"}
+                [DURATION_LABEL, STRESS_INC_LABEL, NUM_STEPS_LABEL],
+                [FL2_UNIT_LABEL, FL2_UNIT_LABEL, WITHOUT_UNIT_LABEL],
+                {DURATION_LABEL: "1.0", STRESS_INC_LABEL: "100", NUM_STEPS_LABEL: "100"}
             )
         elif test_name == "Direct Shear":
             self.shear_widgets = self._create_entries(
                 self.test_input_frame,
                 "Direct Shear Input Data",
-                ["Normal stress", "Shear rate", "Displacement limit"],
-                ["kN/m²", "mm/min", "mm"],
-                {"Normal stress": "100", "Shear rate": "1", "Displacement limit": "10"}
+                [INIT_PRESSURE_LABEL, MAX_STRAIN_LABEL, NUM_STEPS_LABEL, DURATION_LABEL],
+                [FL2_UNIT_LABEL, PERCENTAGE_UNIT_LABEL, "", SECONDS_UNIT_LABEL],
+                {INIT_PRESSURE_LABEL: "100", MAX_STRAIN_LABEL: "10",
+                 NUM_STEPS_LABEL: "100", DURATION_LABEL: "1.0"}
             )
 
         log_message(f"{test_name} test selected.", "info")
 
     def _run_simulation(self):
-        # clear_log()
-        log_message("Starting triaxial calculation... Please wait...", "info")
-        log_message("Validating input...", "info")
-        self.root.update_idletasks()
-        self.run_button.config(state="disabled")
-
+        clear_log()
         try:
+            log_message("Starting calculation... Please wait...", "info")
+            log_message("Validating input...", "info")
+            self.root.update_idletasks()
+
             umat_params = [e.get() for e in self.entry_widgets.values()]
 
             if self.current_test.get() != "Triaxial":
                 raise NotImplementedError(f"{self.current_test.get()} simulation not yet implemented.")
 
-            eps_max = float(self.triaxial_widgets["Maximum Strain |εᵧᵧ|"].get())
-            sigma_init = float(self.triaxial_widgets["Initial effective cell pressure |σ'₃₃|"].get())
-            n_steps = float(self.triaxial_widgets["Number of steps"].get())
-            duration = float(self.triaxial_widgets["Duration"].get())
+            eps_max = float(self.triaxial_widgets[MAX_STRAIN_LABEL].get())
+            sigma_init = float(self.triaxial_widgets[INIT_PRESSURE_LABEL].get())
+            n_steps = float(self.triaxial_widgets[NUM_STEPS_LABEL].get())
+            duration = float(self.triaxial_widgets[DURATION_LABEL].get())
 
             if any(val <= 0 for val in [eps_max, n_steps, duration]) or sigma_init < 0:
                 raise ValueError("All values must be positive and non-zero.")
@@ -232,7 +252,7 @@ class GeotechTestUI:
                 initial_effective_cell_pressure=sigma_init,
                 cohesion_phi_indices=cohesion_phi_indices
             )
-            render_plots(figs, self.axes, self.canvas)
+            self.root.after(0, lambda: render_plots(figs, self.axes, self.canvas))
             log_message("Simulation completed successfully.", "info")
 
         except Exception:
@@ -240,4 +260,11 @@ class GeotechTestUI:
             log_message(traceback.format_exc(), "error")
 
         finally:
-            self.run_button.config(state="normal")
+            self.root.after(0, self._enable_run_button)
+
+    def _enable_run_button(self):
+        self.run_button.config(state="normal")
+        self.is_running = False
+
+
+
