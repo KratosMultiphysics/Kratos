@@ -9,6 +9,7 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/openmp_utils.h"
 #include "input_output/logger.h"
+#include "custom_utilities/container_io_utils.h"
 
 namespace Kratos
 {
@@ -61,12 +62,10 @@ bool ModelPartIO::ReadNodes(NodesContainerType& rNodes)
     KRATOS_TRY;
 
     rNodes.clear();
-    unsigned start_index, block_size;
-    std::tie(start_index, block_size) =
-        StartIndexAndBlockSize(mPrefix + "/Nodes/Local");
-    Internals::PointsData points;
-    points.ReadData(*mpFile, mPrefix + "/Nodes/Local", start_index, block_size);
-    points.CreateNodes(rNodes);
+
+    Internals::PointsData<Internals::NodesIO> points(mPrefix + "/Nodes/Local", mpFile);
+    points.Read(rNodes, Internals::NodesIO{});
+
     return true;
 
     KRATOS_CATCH("");
@@ -82,11 +81,8 @@ void ModelPartIO::WriteNodes(NodesContainerType const& rNodes)
 {
     KRATOS_TRY;
 
-    Internals::PointsData points;
-    points.SetData(rNodes);
-    WriteInfo info;
-    points.WriteData(*mpFile, mPrefix + "/Nodes/Local", info);
-    StoreWriteInfo(mPrefix + "/Nodes/Local", info);
+    Internals::PointsData<Internals::NodesIO> points(mPrefix + "/Nodes/Local", mpFile);
+    points.Write(rNodes, Internals::NodesIO{}, Parameters(R"({})"));
 
     KRATOS_CATCH("");
 }
