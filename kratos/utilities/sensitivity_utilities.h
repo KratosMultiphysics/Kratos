@@ -104,6 +104,7 @@ public:
 private:
     ///@name Private Operations
     ///@{
+    
     static void ComputeEntityGeometryNeighbourNodeMap(
         std::unordered_map<int, std::unordered_map<int, int>>& rDerivativeNodesMap,
         const std::unordered_map<int, std::vector<int>>& rNeighbourNodeIdsMap,
