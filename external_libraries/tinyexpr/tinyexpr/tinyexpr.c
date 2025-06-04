@@ -42,6 +42,7 @@ For log = natural log uncomment the next line. */
 #include <stdio.h>
 #include <ctype.h>
 #include <limits.h>
+#include <stddef.h>
 
 #ifndef NAN
 #define NAN (0.0/0.0)
@@ -87,11 +88,26 @@ typedef struct state {
 static te_expr *new_expr(const int type, const te_expr *parameters[]) {
     const int arity = ARITY(type);
     const int psize = sizeof(void*) * arity;
-    const int size = (sizeof(te_expr) - sizeof(void*)) + psize + (IS_CLOSURE(type) ? sizeof(void*) : 0);
-    te_expr *ret = malloc(size);
-    CHECK_NULL(ret);
 
-    memset(ret, 0, size);
+    /* Calculate the size needed for the header (type, union member) and the actual parameters. */
+    size_t actual_alloc_size = offsetof(te_expr, parameters) + psize;
+
+    if (IS_CLOSURE(type)) {
+        actual_alloc_size += sizeof(void*); /* For the context pointer, typically stored after parameters. */
+    }
+
+    /* Ensure that the allocated size is at least sizeof(te_expr).
+     * This makes the te_expr* pointer valid for static analysis even if arity is 0,
+     * as sizeof(te_expr) includes the first element of the parameters array.
+     */
+    if (actual_alloc_size < sizeof(te_expr)) {
+        actual_alloc_size = sizeof(te_expr);
+    }
+
+    te_expr *ret = malloc(actual_alloc_size);
+    CHECK_NULL(ret); /* Handle malloc failure. */
+
+    memset(ret, 0, actual_alloc_size);
     if (arity && parameters) {
         memcpy(ret->parameters, parameters, psize);
     }
