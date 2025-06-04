@@ -152,4 +152,47 @@ KRATOS_TEST_CASE_IN_SUITE(FloatComparison, KratosCoreFastSuite)
 }
 
 
+KRATOS_TEST_CASE_IN_SUITE(FloatComparisonConsistency, KratosCoreFastSuite)
+{
+    const float absolute_tolerance = std::numeric_limits<float>::min();
+    const float relative_tolerance = 1e-4f;
+
+    Comparison<float>::Equal equality_comparison(absolute_tolerance, relative_tolerance);
+
+    const std::array<float,3> test_values {4.9303807e-32f,  //< reference value
+                                           4.9303810e-32f,
+                                           4.9309825e-32f};
+
+    // Example of an inconsistent comparison.
+    {
+        const auto inconsistent_comparison = [absolute_tolerance, relative_tolerance](float left, float right) {
+            const float diff = std::abs(left - right);
+            if (left == 0.0f || right == 0.0f || diff < absolute_tolerance) {
+                return diff < relative_tolerance * absolute_tolerance;
+            } else {
+                return diff < relative_tolerance * (std::abs(left) + std::abs(right));
+            }
+        };
+
+        // Even though these values are very close to each other, they are already
+        // too far apart for the absolute tolerance, but not far enough for
+        // the relative comparison to kick in yet.
+        KRATOS_EXPECT_FALSE(inconsistent_comparison(test_values[0], test_values[1]));
+
+        // Even though these values are farther apart than the previous two, they're
+        // picked up by the relative comparison.
+        KRATOS_EXPECT_TRUE(inconsistent_comparison(test_values[0], test_values[2]));
+    }
+
+    // Make sure the implemented comparison deals with the case
+    // the inconsistent one fails at.
+    KRATOS_EXPECT_TRUE(equality_comparison(test_values[0], test_values[1]));
+    KRATOS_EXPECT_TRUE(equality_comparison(test_values[0], test_values[2]));
+
+    // Classic example of finite precision inaccuracies.
+    KRATOS_EXPECT_TRUE(3.0f * 0.3f != 1.0f - 0.1f
+                    && equality_comparison(3.0f * 0.3f, 1.0f - 0.1f));
+}
+
+
 } // namespace Kratos::Testing
