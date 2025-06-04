@@ -367,7 +367,7 @@ private:
     
     //
     std::vector<double> _theta3;
-
+    std::vector<Matrix> _OutOfPlaneDeformations;
     // Components of the metric coefficient tensor on the contravariant basis
     std::vector<array_1d<double, 6>> m_A_ab_covariant_vector_master; // Solid has 6.
     std::vector<array_1d<double, 3>> m_A_ab_covariant_vector_slave;
