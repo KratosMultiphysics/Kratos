@@ -160,6 +160,8 @@ SmallStrainUDSM3DLaw::SmallStrainUDSM3DLaw(const SmallStrainUDSM3DLaw& rOther)
     KRATOS_CATCH("")
 }
 
+SmallStrainUDSM3DLaw::~SmallStrainUDSM3DLaw() = default;
+
 SmallStrainUDSM3DLaw::SmallStrainUDSM3DLaw(std::unique_ptr<ConstitutiveLawDimension> pDimension)
     : mpDimension(std::move(pDimension))
 {

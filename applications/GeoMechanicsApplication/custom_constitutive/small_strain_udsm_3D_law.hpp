@@ -88,14 +88,13 @@ public:
     /// Pointer definition of SmallStrainUDSM3DLaw
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUDSM3DLaw);
 
-    //@}
-    SmallStrainUDSM3DLaw(std::unique_ptr<ConstitutiveLawDimension> pDimension = nullptr);
+    explicit SmallStrainUDSM3DLaw(std::unique_ptr<ConstitutiveLawDimension> pDimension = nullptr);
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
     SmallStrainUDSM3DLaw(SmallStrainUDSM3DLaw const& rOther);
 
-    ~SmallStrainUDSM3DLaw() override = default;
+    ~SmallStrainUDSM3DLaw() override;
 
     SmallStrainUDSM3DLaw& operator=(SmallStrainUDSM3DLaw const& rOther);
 
