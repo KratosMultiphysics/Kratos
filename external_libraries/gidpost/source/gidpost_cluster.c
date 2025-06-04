@@ -96,7 +96,7 @@ int GiD_fWriteCluster(GiD_FILE fd, int id, int nid)
 int _GiD_WriteClusterMat(CPostFile * File, int id, int nid, int mat)
 {
   /* state checking */
-  assert(_GiDfiles_CheckState(POST_MESH_ELEM, File->level_mesh));    
+  assert(_GiDfiles_CheckState(POST_MESH_ELEM, File));    
   /* keep on the same state */
   CPostFile_WriteInteger(File, id,  0);
   CPostFile_WriteInteger(File, nid, 1);

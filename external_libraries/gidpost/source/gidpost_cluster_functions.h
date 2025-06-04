@@ -1,4 +1,4 @@
-#pragma once __GIDPOST_CLUSTER_FUNCTIONS__
+#pragma once
 
 /*
  *  Write a cluster element member at the current Elements Block.
