@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -437,10 +437,10 @@ void ModelPartIO::ReadConditions(NodesContainerType& rThisNodes, PropertiesConta
     KRATOS_CATCH("")
 }
 
-std::size_t  ModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
+std::size_t ModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
 {
     KRATOS_TRY
-    std::size_t number_of_elements = 0;
+    std::size_t number_of_conditions = 0;
     ResetInput();
     std::string word;
     while(true)
@@ -450,11 +450,11 @@ std::size_t  ModelPartIO::ReadConditionsConnectivities(ConnectivitiesContainerTy
             break;
         ReadBlockName(word);
         if(word == "Conditions")
-            number_of_elements += ReadConditionsConnectivitiesBlock(rConditionsConnectivities);
+            number_of_conditions += ReadConditionsConnectivitiesBlock(rConditionsConnectivities);
         else
             SkipBlock(word);
     }
-    return number_of_elements;
+    return number_of_conditions;
     KRATOS_CATCH("")
 }
 
@@ -803,7 +803,6 @@ void ModelPartIO::FillNodalConnectivitiesFromGeometryBlockInList(
             break;
 
         ExtractValue(word,id);
-        ReadWord(word); // Reading the properties id;
         temp_geometry_nodes.clear();
         for(SizeType i = 0 ; i < n_nodes_in_elem ; i++) {
             ReadWord(word); // Reading the node id;
@@ -1049,7 +1048,8 @@ void ModelPartIO::DivideInputToPartitions(
 void ModelPartIO::DivideInputToPartitionsImpl(
     OutputFilesContainerType& rOutputFiles,
     SizeType NumberOfPartitions,
-    const PartitioningInfo& rPartitioningInfo)
+    const PartitioningInfo& rPartitioningInfo
+    )
 {
     KRATOS_TRY
 
@@ -1160,7 +1160,7 @@ void ModelPartIO::ReadSubModelPartDataBlock(ModelPart& rModelPart)
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart)
+void ModelPartIO::ReadModelPartDataBlock(ModelPart& rModelPart, const bool IsSubmodelpart)
 {
     KRATOS_TRY
 
@@ -1169,7 +1169,7 @@ void ModelPartIO::ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_su
     while(!mpStream->eof())
     {
         ReadWord(variable_name);
-        if(!is_submodelpart){
+        if(!IsSubmodelpart){
             if(CheckEndBlock("ModelPartData", variable_name))
                 break;
         }
@@ -1242,7 +1242,7 @@ void ModelPartIO::ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_su
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::WriteModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart)
+void ModelPartIO::WriteModelPartDataBlock(ModelPart& rModelPart, const bool IsSubmodelpart)
 {
     KRATOS_TRY;
 
