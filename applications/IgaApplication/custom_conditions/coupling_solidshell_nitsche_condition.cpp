@@ -102,6 +102,8 @@ namespace Kratos
             m_n_contravariant_vector_slave.resize(r_number_of_integration_points_slave);
         if (_theta3.size() != r_number_of_integration_points_slave)
             _theta3.resize(r_number_of_integration_points_slave);
+        if (_OutOfPlaneDeformations.size() != r_number_of_integration_points_slave)
+            _OutOfPlaneDeformations.resize(r_number_of_integration_points_slave);
 
         for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
         {
@@ -133,9 +135,23 @@ namespace Kratos
 
             m_n_contravariant_vector_master[point_number] = kinematic_variables_reference_master.n_contravariant;
             m_n_contravariant_vector_slave[point_number] = kinematic_variables_reference_slave.n_contravariant;
-
+        
             CalculateTransformationShell(kinematic_variables_reference_slave, m_T_vector_slave[point_number],
                 m_T_hat_vector_slave[point_number], m_reference_contravariant_base_slave[point_number]); // m_reference_contravariant_base_slave is not used anywhere
+
+            if (CalculateStiffnessMatrixFlag) {
+                _theta3[point_number] = ComputeTheta3Shell(point_number, kinematic_variables_reference_slave);
+                _OutOfPlaneDeformations[point_number] = ZeroMatrix(3, 3 * number_of_nodes_slave);
+                CalculateOutOfPlaneDeformationContributionShell(
+                    point_number,
+                    _OutOfPlaneDeformations[point_number],
+                    kinematic_variables_reference_slave,
+                    shape_functions_gradients_i_slave,
+                    _theta3[point_number]
+                );
+            }
+            Matrix OutOfPlaneDeformationContributionMatrix = _OutOfPlaneDeformations[point_number];
+            double theta3 = _theta3[point_number];
 
             // Compute Kinematics 
             KinematicVariablesSolid kinematic_variables_master(
@@ -166,10 +182,6 @@ namespace Kratos
                 constitutive_law_parameters_master,
                 ConstitutiveLaw::StressMeasure_PK2);
 
-            if (CalculateStiffnessMatrixFlag) {
-                 _theta3[point_number] = ComputeTheta3Shell(point_number, kinematic_variables_reference_slave);
-            }
-            double theta3 = _theta3[point_number];
             CalculateConstitutiveVariablesShell(
                 point_number,
                 theta3,
@@ -228,15 +240,6 @@ namespace Kratos
                 r_N_master(2, 3 * r + 2) =  N_master(point_number, r);
             }
 
-            Matrix OutOfPlaneDeformationContributionMatrix = ZeroMatrix(3, 3 * number_of_nodes_slave);
-            CalculateOutOfPlaneDeformationContributionShell(
-                point_number,
-                OutOfPlaneDeformationContributionMatrix,
-                kinematic_variables_reference_slave,
-                shape_functions_gradients_i_slave,
-                theta3
-            );
-
             for (IndexType r = 0; r < number_of_nodes_slave; r++)
             {
                 r_N_slave(0, 3 * r)     = OutOfPlaneDeformationContributionMatrix(0, 3 * r)     + N_slave(point_number, r);
@@ -294,8 +297,7 @@ namespace Kratos
                 displacement_vector_master,
                 displacement_vector_slave,
                 kinematic_variables_slave,
-                constitutive_variables_slave
-                );
+                constitutive_variables_slave);
 
             //Penalty part & RHS
             Matrix H = ZeroMatrix(3, mat_size);
@@ -1488,9 +1490,9 @@ namespace Kratos
                 double e12_rs = 0.5 * (inner_prod(a1_r, a2_s) + inner_prod(a1_s,a2_r));
 
                 // strain Kindl 5.34, 5.35
-                double k11_rs = inner_prod(a1_1_r, a3_s) + inner_prod(a1_1_s, a3_r) + inner_prod(a1_1, a3_rs);
-                double k22_rs = inner_prod(a2_2_r, a3_s) + inner_prod(a2_2_s, a3_r) + inner_prod(a2_2, a3_rs);
-                double k12_rs = inner_prod(a1_2_r, a3_s) + inner_prod(a1_2_s, a3_r) + inner_prod(a1_2, a3_rs); 
+                double k11_rs = -(inner_prod(a1_1_r, a3_s) + inner_prod(a1_1_s, a3_r) + inner_prod(a1_1, a3_rs));
+                double k22_rs = -(inner_prod(a2_2_r, a3_s) + inner_prod(a2_2_s, a3_r) + inner_prod(a2_2, a3_rs));
+                double k12_rs = -(inner_prod(a1_2_r, a3_s) + inner_prod(a1_2_s, a3_r) + inner_prod(a1_2, a3_rs)); 
 
                 // Kindl 3.36 for second variation
                 array_1d<double, 3> dE_curvilinear;
@@ -1538,9 +1540,9 @@ namespace Kratos
                 rSecondVariationTraction[1] += first_variation_traction_covariant[0] * a1_r[1] + first_variation_traction_covariant[1] * a2_r[1];
                 rSecondVariationTraction[2] += first_variation_traction_covariant[0] * a1_r[2] + first_variation_traction_covariant[1] * a2_r[2];
 
-                rProductSecondVariationTraction_Displacement(r, s) = rSecondVariationTraction[0] * (rDisplacementMaster(0) - rDisplacementSlave(0));
-                rProductSecondVariationTraction_Displacement(r, s) = rSecondVariationTraction[1] * (rDisplacementMaster(1) - rDisplacementSlave(1));
-                rProductSecondVariationTraction_Displacement(r, s) = rSecondVariationTraction[2] * (rDisplacementMaster(2) - rDisplacementSlave(2));
+                rProductSecondVariationTraction_Displacement(r, s) = - ( rSecondVariationTraction[0] * (rDisplacementMaster(0) - rDisplacementSlave(0)) )
+                                                                     - ( rSecondVariationTraction[1] * (rDisplacementMaster(1) - rDisplacementSlave(1)) )
+                                                                     - ( rSecondVariationTraction[2] * (rDisplacementMaster(2) - rDisplacementSlave(2))  );
             }
         }
 
