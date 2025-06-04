@@ -17,6 +17,7 @@
 #include "gidpostInt.h"
 #include "gidpost.h"
 #include "gidpostHash.h"
+#include "gidpostFILES.h"
   
 #ifdef HDF5
   #include "gidpostHDF5.h"
@@ -47,7 +48,7 @@ extern CPostFile *G_outputMesh;
 int _GiD_WriteCluster(CPostFile *File, int id, int nid)
 {
   /* state checking */
-  assert(CheckState(POST_MESH_ELEM, File->level_mesh));    
+  assert(_GiDfiles_CheckState(POST_MESH_ELEM, File));    
   /* keep on the same state */
   CPostFile_WriteInteger(File, id, 0);
   CPostFile_WriteInteger(File, nid, 1);
@@ -95,7 +96,7 @@ int GiD_fWriteCluster(GiD_FILE fd, int id, int nid)
 int _GiD_WriteClusterMat(CPostFile * File, int id, int nid, int mat)
 {
   /* state checking */
-  assert(CheckState(POST_MESH_ELEM, File->level_mesh));    
+  assert(_GiDfiles_CheckState(POST_MESH_ELEM, File->level_mesh));    
   /* keep on the same state */
   CPostFile_WriteInteger(File, id,  0);
   CPostFile_WriteInteger(File, nid, 1);
