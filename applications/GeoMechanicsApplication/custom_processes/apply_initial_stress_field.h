@@ -24,10 +24,13 @@ class Parameters;
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyInitialStressField : public Process
 {
 public:
-    ApplyInitialStressField(ModelPart& rModelPart, const Parameters&);
+    ApplyInitialStressField(ModelPart& rModelPart, const Parameters& rParameters);
+
+    void ExecuteInitialize() override;
 
 private:
     ModelPart& mrModelPart;
+    Vector     mImposedStressVector;
 };
 
 } // namespace Kratos
