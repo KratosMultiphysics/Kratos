@@ -72,11 +72,38 @@ public:
         const Flags& rFlag,
         const bool CheckValue = true);
 
+    
+    /**
+     * @brief This method takes input variable and returns the sensitivity variable string
+     *
+     * This method takes input variable and returns the sensitivity variable string
+     *
+     * @tparam TVariableType           Variable type
+     * @param rVariable                Variable
+     */    
+    template <class TVariableType>
+    static std::string GetSensitivityVariableName(
+        const TVariableType& rVariable){
+            
+            KRATOS_TRY;
+
+            const std::string suffix = "_SENSITIVITY";
+            const std::string base_name = rVariable.IsComponent() ? rVariable.GetSourceVariable().Name() : rVariable.Name();
+            if (rVariable.IsComponent()) {
+                const size_t last_underscore_pos = rVariable.Name().rfind('_');
+                const std::string component_suffix = rVariable.Name().substr(last_underscore_pos);
+                return base_name + suffix + component_suffix;
+            } else {
+                return base_name + suffix;
+            }
+
+            KRATOS_CATCH("");
+    }
+
     ///@}
 private:
     ///@name Private Operations
     ///@{
-
     static void ComputeEntityGeometryNeighbourNodeMap(
         std::unordered_map<int, std::unordered_map<int, int>>& rDerivativeNodesMap,
         const std::unordered_map<int, std::vector<int>>& rNeighbourNodeIdsMap,
