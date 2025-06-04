@@ -14,6 +14,7 @@
 // System includes
 
 // Project includes
+#include "includes/constitutive_law.h"
 #include "utilities/data_type_traits.h"
 
 // Application includes
@@ -23,11 +24,11 @@
 
 namespace Kratos
 {
-namespace DataValueContainerIOHelperUtilities
+namespace HDF5Utilities
 {
 
 template<class TDataType>
-bool ReadComponentData(
+bool ReadComponent(
     HDF5::File& rFile,
     const std::string& rVariableName,
     const std::string& rPrefix,
@@ -37,9 +38,22 @@ bool ReadComponentData(
 
     if (KratosComponents<Variable<TDataType>>::Has(rVariableName)) {
         const auto& r_variable = KratosComponents<Variable<TDataType>>::Get(rVariableName);
-        TDataType value{};
-        rFile.ReadAttribute(rPrefix + "/DataValues", rVariableName, value);
-        rData[r_variable] = value;
+        if constexpr(std::is_same_v<TDataType, ConstitutiveLaw::Pointer>) {
+            // reading the constitutive law name
+            std::string constitutive_law_name;
+            rFile.ReadAttribute(rPrefix + "/DataValues", rVariableName, constitutive_law_name);
+            KRATOS_ERROR_IF_NOT(KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name)) << "Kratos components missing \"" << constitutive_law_name << "\"" << std::endl;
+
+            // TODO: The constitutive law cannot be constructed because, the constitutive law does not retain
+            //       the construction mechanism it used in creating it (especially in composites, where the composite
+            //       the structure of composite is given in json).
+            // auto p_constitutive_law = KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name).Create(cl_parameters, rProperty);
+            // rData[r_variable] = p_constitutive_law;
+        } else {
+            TDataType value{};
+            rFile.ReadAttribute(rPrefix + "/DataValues", rVariableName, value);
+            rData[r_variable] = value;
+        }
         return true;
     } else {
         return false;
@@ -49,7 +63,7 @@ bool ReadComponentData(
 }
 
 template<class TDataType>
-bool WriteComponentData(
+bool WriteComponent(
     HDF5::File& rFile,
     const std::string& rVariableName,
     const std::string& rPrefix,
@@ -60,7 +74,20 @@ bool WriteComponentData(
     if (KratosComponents<Variable<TDataType>>::Has(rVariableName)) {
         const auto& r_variable = KratosComponents<Variable<TDataType>>::Get(rVariableName);
         const auto& r_value = rData[r_variable];
-        rFile.WriteAttribute(rPrefix + "/DataValues", rVariableName, r_value);
+        if constexpr(std::is_same_v<TDataType, ConstitutiveLaw::Pointer>) {
+            auto components_cl = KratosComponents<ConstitutiveLaw>::GetComponents();
+            std::string cl_name = "";
+            for (const auto& comp_cl : components_cl) {
+                if (r_value->HasSameType(r_value.get(), comp_cl.second)) {
+                    cl_name = comp_cl.first;
+                    break;
+                }
+            }
+            KRATOS_ERROR_IF(cl_name == "") << "Kratos components missing \"" << r_value << "\"" << std::endl;
+            rFile.WriteAttribute(rPrefix + "/DataValues", rVariableName, cl_name);
+        } else {
+            rFile.WriteAttribute(rPrefix + "/DataValues", rVariableName, r_value);
+        }
         return true;
     } else {
         return false;
@@ -78,7 +105,7 @@ void Read(
 {
     KRATOS_TRY
 
-    const bool is_read = (... || ReadComponentData<TDataTypes>(rFile, rVariableName, rPrefix, rData));
+    const bool is_read = (... || ReadComponent<TDataTypes>(rFile, rVariableName, rPrefix, rData));
 
     KRATOS_ERROR_IF_NOT(is_read) << "The variable \"" << rVariableName << "\" not found in registered variables list.";
 
@@ -94,14 +121,14 @@ void Write(
 {
     KRATOS_TRY
 
-    const bool is_written = (... || WriteComponentData<TDataTypes>(rFile, rVariableName, rPrefix, rData));
+    const bool is_written = (... || WriteComponent<TDataTypes>(rFile, rVariableName, rPrefix, rData));
 
     KRATOS_ERROR_IF_NOT(is_written) << "The variable \"" << rVariableName << "\" not found in registered variables list.";
 
     KRATOS_CATCH("");
 }
 
-} // namespace DataValueContainerIOHelperUtilities
+} // namespace HDF5Utilities
 
 namespace HDF5
 {
@@ -118,7 +145,9 @@ void ReadDataValueContainer(
     const auto& attr_names = rFile.GetAttributeNames(rPrefix + "/DataValues");
 
     for (const auto& r_name : attr_names) {
-        DataValueContainerIOHelperUtilities::Read<
+        HDF5Utilities  ::Read<
+            ConstitutiveLaw::Pointer,
+            bool,
             int,
             double,
             std::string,
@@ -143,7 +172,9 @@ void WriteDataValueContainer(
     rFile.AddPath(rPrefix + "/DataValues");
 
     for (auto it = rData.begin(); it != rData.end(); ++it) {
-        DataValueContainerIOHelperUtilities::Write<
+        HDF5Utilities  ::Write<
+            ConstitutiveLaw::Pointer,
+            bool,
             int,
             double,
             std::string,

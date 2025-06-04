@@ -21,7 +21,7 @@ class HelmholtzAnalysis(AnalysisStage):
 
     #### Internal functions ####
     def _CreateSolver(self):
-        """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
+        """ Create the Solver (and create and import the ModelPart if it is not already in the model) """
         return implicit_filter_solvers.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):
@@ -39,17 +39,12 @@ class HelmholtzAnalysis(AnalysisStage):
     #### Public user interface functions ####
     def Initialize(self):
         super().Initialize()
+        self.InitializeFilterModelPart()
+
+    def InitializeFilterModelPart(self):
         self._SetSolverMode()
-        self.SetFilterRadius(self._GetSolver().GetFilterRadius())
-        self.SetBulkFilterRadius()
+        self._GetSolver().SetFilterRadius(self._GetSolver().GetFilterRadius())
         self._SetHelmHoltzSourceMode()
-
-    def SetFilterRadius(self, filter_radius: float):
-        self._GetComputingModelPart().ProcessInfo.SetValue(KOA.HELMHOLTZ_RADIUS, filter_radius)
-
-    def SetBulkFilterRadius(self):
-        if self._GetSolver().GetFilterType() == "bulk_surface_shape":
-            KOA.ImplicitFilterUtils.SetBulkRadiusForShapeFiltering(self._GetComputingModelPart())
 
     def RunSolver(self):
         self.InitializeSolutionStep()
@@ -81,6 +76,14 @@ class HelmholtzAnalysis(AnalysisStage):
         self.RunSolver()
         return self.__AssignNodalSolutionToDataExpression()
 
+    def AssignExpressionDataToNodalSolution(self, data_exp: ContainerExpressionTypes) -> None:
+        mapped_values = KM.Expression.NodalExpression(data_exp.GetModelPart())
+        if isinstance(data_exp, KM.Expression.NodalExpression):
+            mapped_values = data_exp
+        else:
+            KOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, self.__GetNeighbourEntities(data_exp))
+        KM.Expression.VariableExpressionIO.Write(mapped_values, self._GetSolver().GetSolvingVariable(), True)
+
     def __AssignDataExpressionToNodalSource(self, data_exp: ContainerExpressionTypes):
         self.__source_data = data_exp
 
@@ -94,29 +97,13 @@ class HelmholtzAnalysis(AnalysisStage):
         if isinstance(data_exp, KM.Expression.NodalExpression):
             mapped_values = data_exp
         else:
-            # following makes the number of neighbours computation to be executed once
-            # per given contaienr, hence if the mesh element/connectivity changes
-            # this computation needs to be redone. Especially in the case if MMG is
-            # used for re-meshing.
-            key = data_exp.GetContainer()
-            if key not in  self.__neighbour_entities.keys():
-                self.__neighbour_entities[key] = KM.Expression.NodalExpression(data_exp.GetModelPart())
-                if isinstance(data_exp, KM.Expression.ElementExpression):
-                    KOA.ExpressionUtils.ComputeNumberOfNeighbourElements(self.__neighbour_entities[key])
-                else:
-                    KOA.ExpressionUtils.ComputeNumberOfNeighbourConditions(self.__neighbour_entities[key])
+            KOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, self.__GetNeighbourEntities(data_exp))
 
-            KOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, self.__neighbour_entities[key])
-
-        filter_type = self._GetSolver().GetFilterType()
-        if filter_type == "bulk_surface_shape" or filter_type == "general_vector":
-            KM.Expression.VariableExpressionIO.Write(mapped_values, KOA.HELMHOLTZ_VECTOR_SOURCE, False)
-        else:
-            KM.Expression.VariableExpressionIO.Write(mapped_values, KOA.HELMHOLTZ_SCALAR_SOURCE, False)
+        KM.Expression.VariableExpressionIO.Write(mapped_values, self._GetSolver().GetSourceVariable(), False)
 
     def __AssignNodalSolutionToDataExpression(self) -> ContainerExpressionTypes:
         if self.__source_data is None:
-            raise RuntimeError("The __AssignDataExpressionToNodalSource shoud be called first.")
+            raise RuntimeError("The __AssignDataExpressionToNodalSource should be called first.")
 
         # it is better to work on the model part of the data_exp rather than the internal
         # model part created with ConnectivityPreserveModelPart because, then all the outputs will
@@ -126,11 +113,7 @@ class HelmholtzAnalysis(AnalysisStage):
         # data containers.
         nodal_solution_field = KM.Expression.NodalExpression(self.__source_data.GetModelPart())
 
-        filter_type = self._GetSolver().GetFilterType()
-        if filter_type == "bulk_surface_shape" or filter_type == "general_vector":
-            KM.Expression.VariableExpressionIO.Read(nodal_solution_field, KOA.HELMHOLTZ_VECTOR, True)
-        else:
-            KM.Expression.VariableExpressionIO.Read(nodal_solution_field, KOA.HELMHOLTZ_SCALAR, True)
+        KM.Expression.VariableExpressionIO.Read(nodal_solution_field, self._GetSolver().GetSolvingVariable(), True)
 
         if isinstance(self.__source_data, KM.Expression.NodalExpression):
             return nodal_solution_field.Clone()
@@ -138,3 +121,17 @@ class HelmholtzAnalysis(AnalysisStage):
             mapped_entity_solution_field = self.__source_data.Clone()
             KOA.ExpressionUtils.MapNodalVariableToContainerVariable(mapped_entity_solution_field, nodal_solution_field)
             return mapped_entity_solution_field
+
+    def __GetNeighbourEntities(self, data_exp: ContainerExpressionTypes) -> ContainerExpressionTypes:
+        # following makes the number of neighbours computation to be executed once
+        # per given container, hence if the mesh element/connectivity changes
+        # this computation needs to be redone. Especially in the case if MMG is
+        # used for re-meshing.
+        key = data_exp.GetContainer()
+        if key not in  self.__neighbour_entities.keys():
+            self.__neighbour_entities[key] = KM.Expression.NodalExpression(data_exp.GetModelPart())
+            if isinstance(data_exp, KM.Expression.ElementExpression):
+                KOA.ExpressionUtils.ComputeNumberOfNeighbourElements(self.__neighbour_entities[key])
+            else:
+                KOA.ExpressionUtils.ComputeNumberOfNeighbourConditions(self.__neighbour_entities[key])
+        return self.__neighbour_entities[key]

@@ -237,7 +237,8 @@ namespace Kratos {
                                                                                      other_radius,
                                                                                      data_buffer.mDt,
                                                                                      ang_vel,
-                                                                                     neighbour_iterator);
+                                                                                     neighbour_iterator,
+                                                                                     data_buffer);
             }
 
             RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info,
@@ -362,7 +363,7 @@ namespace Kratos {
                 double ViscoLocalRotationalMoment[3] = {0.0};
 
                 ComputeMoments(LocalContactForce[2],
-                               TotalGlobalElasticContactForce,
+                               GlobalContactForce,
                                data_buffer.mLocalCoordSystem[2],
                                data_buffer.mpOtherParticle,
                                indentation,
@@ -379,8 +380,7 @@ namespace Kratos {
                                                                                    ElasticLocalRotationalMoment,
                                                                                    ViscoLocalRotationalMoment,
                                                                                    equiv_poisson,
-                                                                                   indentation,
-                                                                                   LocalElasticContactForce);
+                                                                                   indentation);
                 }
 
                 AddUpMomentsAndProject(data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
@@ -388,19 +388,18 @@ namespace Kratos {
 
             if (r_process_info[CONTACT_MESH_OPTION] == 1 && (i < (int)mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
                 double total_local_elastic_contact_force[3] = {0.0};
-                double Elastic_Local_Rotational_Moment[3] = {0.0};
                 total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
                 total_local_elastic_contact_force[1] = LocalElasticContactForce[1] + LocalElasticExtraContactForce[1];
                 total_local_elastic_contact_force[2] = LocalElasticContactForce[2] + LocalElasticExtraContactForce[2];
                 SphericContinuumParticle::CalculateOnContinuumContactElements(i,
                                                                               total_local_elastic_contact_force,
-                                                                              Elastic_Local_Rotational_Moment,
                                                                               contact_sigma,
                                                                               contact_tau,
                                                                               failure_criterion_state,
                                                                               acumulated_damage,
                                                                               time_steps,
-                                                                              calculation_area);
+                                                                              calculation_area,
+                                                                              GlobalContactForce);
             }
         } // for each neighbor
 

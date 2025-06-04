@@ -9,6 +9,7 @@ on:
     paths:
       - 'scripts/docker_files/docker_file_ci_ubuntu_22_04/*'
       - 'scripts/docker_files/docker_file_ci_centos_7/*'
+      - 'scripts/docker_files/docker_file_ci_rockylinux8/*'
       - '.github/workflows/build_docker_images_for_ci.yml'
   pull_request:
     branches:
@@ -16,6 +17,7 @@ on:
     paths:
       - 'scripts/docker_files/docker_file_ci_ubuntu_22_04/*'
       - 'scripts/docker_files/docker_file_ci_centos_7/*'
+      - 'scripts/docker_files/docker_file_ci_rockylinux8/*'
       - '.github/workflows/build_docker_images_for_ci.yml'
 
   workflow_dispatch:
@@ -37,7 +39,7 @@ jobs:
     - name: Build the Docker image
       run: docker build . --file scripts/docker_files/docker_file_ci_ubuntu_22_04/DockerFile --tag kratosmultiphysics/kratos-image-ci-ubuntu-22-04
     - name: Docker Login
-      uses: azure/docker-login@v1
+      uses: azure/docker-login@v2
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
@@ -46,19 +48,19 @@ jobs:
       # only push the new image when the changes are merged to master
       run: docker push kratosmultiphysics/kratos-image-ci-ubuntu-22-04
 
-  build-docker-centos:
+  build-docker-rocky:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
     - name: Build the Docker image
-      run: docker build . --file scripts/docker_files/docker_file_ci_centos_7/DockerFile --tag kratosmultiphysics/kratos-image-ci-centos7
+      run: docker build . --file scripts/docker_files/docker_file_ci_rockylinux8/DockerFile --tag kratosmultiphysics/kratos-image-ci-rocky8
     - name: Docker Login
-      uses: azure/docker-login@v1
+      uses: azure/docker-login@v2
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     - name: Publish the Docker image
       if: ${{ github.event_name == 'push'}}
       # only push the new image when the changes are merged to master
-      run: docker push kratosmultiphysics/kratos-image-ci-centos7
+      run: docker push kratosmultiphysics/kratos-image-ci-rocky8

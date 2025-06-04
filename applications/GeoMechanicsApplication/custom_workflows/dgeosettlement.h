@@ -19,6 +19,8 @@
 #include "includes/kernel.h"
 #include "includes/kratos_export_api.h"
 
+#include "custom_utilities/node_utilities.h"
+#include "custom_utilities/process_factory.hpp"
 #include "geo_mechanics_application.h"
 #include "linear_solvers_application.h"
 #include "structural_mechanics_application.h"
@@ -27,7 +29,6 @@
 namespace Kratos
 {
 
-class ProcessFactory;
 class InputUtility;
 class ProcessInfoParser;
 class Process;
@@ -38,8 +39,8 @@ class StrategyWrapper;
 class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosGeoSettlement
 {
 public:
-    KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUtility,
-                        std::unique_ptr<ProcessInfoParser> pProcessInfoParser,
+    KratosGeoSettlement(std::unique_ptr<InputUtility>              pInputUtility,
+                        std::unique_ptr<ProcessInfoParser>         pProcessInfoParser,
                         std::unique_ptr<TimeLoopExecutorInterface> pTimeLoopExecutorInterface);
 
     ~KratosGeoSettlement();
@@ -47,7 +48,7 @@ public:
     int RunStage(const std::filesystem::path&            rWorkingDirectory,
                  const std::filesystem::path&            rProjectParametersFile,
                  const std::function<void(const char*)>& rLogCallback,
-                 const std::function<void(double)>&      rReportProgress,
+                 const std::function<void(double)>&      rProgressDelegate,
                  const std::function<void(const char*)>& rReportTextualProgress,
                  const std::function<bool()>&            rShouldCancel);
 
@@ -55,48 +56,54 @@ public:
 
 private:
     ModelPart& AddNewModelPart(const std::string& rModelPartName);
-    void PrepareModelPart(const Parameters& rSolverSettings);
+    void       PrepareModelPart(const Parameters& rSolverSettings);
 
     ModelPart& GetMainModelPart();
     ModelPart& GetComputationalModelPart();
 
-    static void AddNodalSolutionStepVariablesTo(ModelPart& rModelPart);
-    static void AddDegreesOfFreedomTo(ModelPart& rModelPart);
-    void InitializeProcessFactory();
+    static void                           AddNodalSolutionStepVariablesTo(ModelPart& rModelPart);
+    static void                           AddDegreesOfFreedomTo(ModelPart& rModelPart);
+    void                                  InitializeProcessFactory();
     std::vector<std::shared_ptr<Process>> GetProcesses(const Parameters& project_parameters) const;
     static std::unique_ptr<TimeIncrementor> MakeTimeIncrementor(const Parameters& rProjectParameters);
-    std::shared_ptr<StrategyWrapper> MakeStrategyWrapper(const Parameters&            rProjectParameters,
+    std::shared_ptr<StrategyWrapper> MakeStrategyWrapper(const Parameters& rProjectParameters,
                                                          const std::filesystem::path& rWorkingDirectory);
-    LoggerOutput::Pointer CreateLoggingOutput(std::stringstream& rKratosLogBuffer) const;
-    void FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback, LoggerOutput::Pointer pLoggerOutput, const std::stringstream& rKratosLogBuffer) const;
+    LoggerOutput::Pointer            CreateLoggingOutput(std::stringstream& rKratosLogBuffer) const;
+    void FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback,
+                            LoggerOutput::Pointer                   pLoggerOutput,
+                            const std::stringstream&                rKratosLogBuffer) const;
 
     template <typename TVariableType>
-    void RestoreValuesOfNodalVariable(const TVariableType& rVariable,
-                                      Node::IndexType      SourceIndex,
-                                      Node::IndexType      DestinationIndex)
+    void ResetValuesOfNodalVariable(const TVariableType& rVariable)
     {
-        if (!GetComputationalModelPart().HasNodalSolutionStepVariable(rVariable))
-            return;
+        if (!GetComputationalModelPart().HasNodalSolutionStepVariable(rVariable)) return;
 
-        VariableUtils{}.SetHistoricalVariableToZero(rVariable, GetComputationalModelPart().Nodes());
-
-        block_for_each(GetComputationalModelPart().Nodes(),
-                       [&rVariable, SourceIndex, DestinationIndex](auto& node) {
-            node.GetSolutionStepValue(rVariable, DestinationIndex) = node.GetSolutionStepValue(rVariable, SourceIndex);
-        });
+        NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
+            GetComputationalModelPart().Nodes(), rVariable, rVariable.Zero(), 0);
+        NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
+            GetComputationalModelPart().Nodes(), rVariable, rVariable.Zero(), 1);
     }
 
-    Kernel mKernel;
-    Model mModel;
-    std::string mModelPartName;
-    KratosGeoMechanicsApplication::Pointer mpGeoApp;
-    KratosLinearSolversApplication::Pointer mpLinearSolversApp;
+    template <typename ProcessType>
+    std::function<ProcessFactory::ProductType(const Parameters&)> MakeCreatorFor()
+    {
+        return [&model = mModel](const Parameters& rProcessSettings) {
+            auto& model_part = model.GetModelPart(rProcessSettings["model_part_name"].GetString());
+            return std::make_unique<ProcessType>(model_part, rProcessSettings);
+        };
+    }
+
+    Kernel                                        mKernel;
+    Model                                         mModel;
+    std::string                                   mModelPartName;
+    KratosGeoMechanicsApplication::Pointer        mpGeoApp;
+    KratosLinearSolversApplication::Pointer       mpLinearSolversApp;
     KratosStructuralMechanicsApplication::Pointer mpStructuralMechanicsApp;
-    std::unique_ptr<ProcessFactory> mProcessFactory = std::make_unique<ProcessFactory>();
-    std::unique_ptr<InputUtility> mpInputUtility;
-    std::unique_ptr<ProcessInfoParser> mpProcessInfoParser;
+    std::unique_ptr<ProcessFactory>            mProcessFactory = std::make_unique<ProcessFactory>();
+    std::unique_ptr<InputUtility>              mpInputUtility;
+    std::unique_ptr<ProcessInfoParser>         mpProcessInfoParser;
     std::unique_ptr<TimeLoopExecutorInterface> mpTimeLoopExecutor;
     const std::string mComputationalSubModelPartName{"settlement_computational_model_part"};
 };
 
-}
+} // namespace Kratos

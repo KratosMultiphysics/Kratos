@@ -53,7 +53,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     mInterfacePoint = rParameters["point_on_interface"].GetVector();
     mInletRadius = rParameters["inlet_transition_radius"].GetDouble();
 
-    // normalization of itnerface normal vector
+    // normalization of interface normal vector
     if ( norm_2( mInterfaceNormal ) > 1.0e-7 ){
         mInterfaceNormal /= norm_2( mInterfaceNormal );
     } else {

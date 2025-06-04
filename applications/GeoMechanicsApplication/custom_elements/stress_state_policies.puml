@@ -1,0 +1,31 @@
+@startuml
+
+abstract class StressStatePolicy {
+  +{abstract} Matrix CalculateBMatrix()
+  +{abstract} Vector CalculateGreenLagrangeStrain()
+  +{abstract} std::unique_ptr<StressStatePolicy> Clone()
+
+}
+
+class ThreeDimensionalStressState {
+  +Matrix CalculateBMatrix()
+  +Vector CalculateGreenLagrangeStrain()
+  +std::unique_ptr<StressStatePolicy> Clone()
+}
+
+class PlaneStrainStressState {
+  +Matrix CalculateBMatrix()
+  +Vector CalculateGreenLagrangeStrain()
+  +std::unique_ptr<StressStatePolicy> Clone()
+}
+
+class AxisymmetricStressState {
+  +Matrix CalculateBMatrix()
+  +Vector CalculateGreenLagrangeStrain()
+  +std::unique_ptr<StressStatePolicy> Clone()
+}
+
+StressStatePolicy <|-- ThreeDimensionalStressState
+StressStatePolicy <|-- PlaneStrainStressState
+StressStatePolicy <|-- AxisymmetricStressState
+@enduml

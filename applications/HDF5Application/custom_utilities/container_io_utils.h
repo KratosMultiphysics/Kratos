@@ -43,7 +43,7 @@ public:
     using TLSType = char;
 
     template<class TDataType>
-    using ComponentDataType = char;
+    using ComponentType = char;
 
     ///@}
     ///@name Public operations
@@ -80,7 +80,7 @@ public:
     using TLSType = char;
 
     template<class TDataType>
-    using ComponentDataType = TDataType;
+    using ComponentType = TDataType;
 
     ///@}
     ///@name Life cycle
@@ -94,7 +94,7 @@ public:
 
     template<class TDataType>
     inline const TDataType& GetValue(
-        const ModelPart::NodeType& rNode,
+        const Node& rNode,
         const Variable<TDataType>& rVariable,
         char& rTLS) const
     {
@@ -103,7 +103,7 @@ public:
 
     template<class TDataType>
     inline void SetValue(
-        ModelPart::NodeType& rNode,
+        Node& rNode,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue) const
     {
@@ -131,7 +131,7 @@ public:
     using TLSType = char;
 
     template<class TDataType>
-    using ComponentDataType = TDataType;
+    using ComponentType = TDataType;
 
     ///@}
     ///@name Public operations
@@ -168,7 +168,7 @@ public:
     using TLSType = char;
 
     template<class TDataType>
-    using ComponentDataType = TDataType;
+    using ComponentType = TDataType;
 
     ///@}
     ///@name Life cycle
@@ -182,7 +182,7 @@ public:
 
     template<class TDataType>
     inline TDataType GetValue(
-        const ModelPart::NodeType& rNode,
+        const Node& rNode,
         const Variable<TDataType>& rVariable,
         char& rTLS) const
     {
@@ -195,7 +195,7 @@ public:
 
     template<class TDataType>
     inline void SetValue(
-        ModelPart::NodeType& rNode,
+        Node& rNode,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue) const
     {
@@ -223,7 +223,7 @@ public:
     using TLSType = char;
 
     template<class TDataType>
-    using ComponentDataType = TDataType;
+    using ComponentType = TDataType;
 
     ///@}
     ///@name Life cycle
@@ -274,7 +274,7 @@ public:
     using TLSType = char;
 
     template<class TDataType>
-    using ComponentDataType = TDataType;
+    using ComponentType = TDataType;
 
     ///@}
     ///@name Public operations
@@ -309,7 +309,7 @@ private:
     ///@}
 };
 
-class GaussPointValueIO
+class GaussPointIO
 {
 public:
     ///@name Calss definitions
@@ -330,55 +330,47 @@ public:
     using TLSType = TLSStruct<TDataType>;
 
     template<class TDataType>
-    using ComponentDataType = Vector<typename DataTypeTraits<TDataType>::PrimitiveType>;
+    using ComponentType = Vector<typename DataTypeTraits<TDataType>::PrimitiveType>;
 
     ///@}
     ///@name Life cycle
     ///@{
 
-    GaussPointValueIO(const ProcessInfo& rProcessInfo) : mrProcessInfo(rProcessInfo) {}
+    GaussPointIO(const ProcessInfo& rProcessInfo) : mrProcessInfo(rProcessInfo) {}
 
     ///@}
     ///@name Public operations
     ///@{
 
     template<class TEntityType, class TDataType>
-    inline const ComponentDataType<TDataType>& GetValue(
+    inline const ComponentType<TDataType>& GetValue(
         const TEntityType& rEntity,
         const Variable<TDataType>& rVariable,
         TLSType<TDataType>& rTLS) const
     {
-        // Since the array_1d<double, 4> and array_1d<double 9> interfaces are not present in
-        // elements and conditions.
-        if constexpr(!std::is_same_v<TDataType, array_1d<double, 4>> && !std::is_same_v<TDataType, array_1d<double, 9>>) {
+        using list_traits = DataTypeTraits<std::vector<TDataType>>;
 
-            using list_traits = DataTypeTraits<std::vector<TDataType>>;
+        using vector_traits = DataTypeTraits<Vector<typename list_traits::PrimitiveType>>;
 
-            using vector_traits = DataTypeTraits<Vector<typename list_traits::PrimitiveType>>;
+        const_cast<TEntityType&>(rEntity).CalculateOnIntegrationPoints(rVariable, rTLS.mList, mrProcessInfo);
 
-            const_cast<TEntityType&>(rEntity).CalculateOnIntegrationPoints(rVariable, rTLS.mList, mrProcessInfo);
-
-            const auto size = list_traits::Size(rTLS.mList);
-            if (rTLS.mVector.size() != size) {
-                rTLS.mVector.resize(size, false);
-            }
-
-            list_traits::CopyToContiguousData(vector_traits::GetContiguousData(rTLS.mVector), rTLS.mList);
-
-            return rTLS.mVector;
-        } else {
-            KRATOS_ERROR << "The gauss point interface in elements/conditions for Variable<array_1d<double, 4>> and Variable<array_1d<double, 9>> are not defined.";
-            return rTLS.mVector;
+        const auto size = list_traits::Size(rTLS.mList);
+        if (rTLS.mVector.size() != size) {
+            rTLS.mVector.resize(size, false);
         }
+
+        list_traits::CopyToContiguousData(vector_traits::GetContiguousData(rTLS.mVector), rTLS.mList);
+
+        return rTLS.mVector;
     }
 
     template<class TEntityType, class TDataType>
     inline void SetValue(
         TEntityType& rEntity,
         const Variable<TDataType>& rVariable,
-        const ComponentDataType<TDataType>& rValue) const
+        const ComponentType<TDataType>& rValue) const
     {
-        KRATOS_ERROR << "GaussPointValueIO does not support setting values from vertices";
+        KRATOS_ERROR << "GaussPointIO does not support setting values from vertices";
     }
 
     ///@}
@@ -427,7 +419,7 @@ public:
     ///@}
 };
 
-class VerticesIO
+class VertexIO
 {
 public:
     ///@name Type definitions
@@ -455,14 +447,14 @@ public:
         const IndexType Id,
         const array_1d<double, 3>& rCoordinates) const
     {
-        KRATOS_ERROR << "Reading vertices are not allowed.";
+        KRATOS_ERROR << "Reading vertices is not allowed.";
     }
 
     ///@}
 };
 
 template<class TContainerIOType>
-std::string GetContainerIOType()
+std::string GetContainerIOName()
 {
     if constexpr(std::is_same_v<TContainerIOType, HistoricalIO>) {
         return "HISTORICAL";
@@ -476,7 +468,7 @@ std::string GetContainerIOType()
         return "INTERPOLATED_HISTORICAL";
     } else if constexpr(std::is_same_v<TContainerIOType, VertexNonHistoricalValueIO>) {
         return "INTERPOLATED_NONHISTORICAL";
-    } else if constexpr(std::is_same_v<TContainerIOType, GaussPointValueIO>) {
+    } else if constexpr(std::is_same_v<TContainerIOType, GaussPointIO>) {
         return "GAUSS_POINT";
     } else {
         static_assert(!std::is_same_v<TContainerIOType, TContainerIOType>, "Unsupported container io type.");
@@ -484,7 +476,7 @@ std::string GetContainerIOType()
 }
 
 template<class TContainerType>
-std::string GetContainerType()
+std::string GetContainerName()
 {
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
         return "NODES";
@@ -528,17 +520,18 @@ const auto& GetLocalContainer(const ModelPart& rModelPart)
 }
 
 template<class TContainerType, class TComponentType, class TContainerDataIO, class TDataType>
-void CopyToContiguousDataArray(
+void CopyToContiguousArray(
     const TContainerType& rContainer,
     const TComponentType& rComponent,
     const TContainerDataIO& rContainerDataIO,
-    TDataType* pBegin)
+    TDataType* pBegin,
+    const IndexType Size)
 {
     KRATOS_TRY
 
-    using component_data_type = typename Internals::template ComponentTraits<TComponentType>::ValueType;
+    using component_type = typename Internals::template ComponentTraits<TComponentType>::ValueType;
 
-    using value_type = typename TContainerDataIO::template ComponentDataType<component_data_type>;
+    using value_type = typename TContainerDataIO::template ComponentType<component_type>;
 
     using value_type_traits = DataTypeTraits<value_type>;
 
@@ -550,17 +543,22 @@ void CopyToContiguousDataArray(
     }
 
     // get the first item for sizing.
-    typename TContainerDataIO::template TLSType<component_data_type> tls;
+    typename TContainerDataIO::template TLSType<component_type> tls;
     const auto& initial_value = rContainerDataIO.GetValue(rContainer.front(), rComponent, tls);
 
     // get the stride from the first element to support dynamic types.
     const auto stride = value_type_traits::Size(initial_value);
 
+    KRATOS_ERROR_IF_NOT(Size == rContainer.size() * stride)
+        << "The contiguous array size mismatch with data in the container [ "
+        << "Contiguous array size = " << Size << ", number of entities = "
+        << rContainer.size() << ", data stride = " << stride << " ].";
+
     IndexPartition<unsigned int>(rContainer.size()).for_each(tls, [&rContainer, &rComponent, &rContainerDataIO, pBegin, stride](const auto Index, auto& rTLS) {
         const auto& value = rContainerDataIO.GetValue(*(rContainer.begin() + Index), rComponent, rTLS);
         TDataType const* p_value_begin = value_type_traits::GetContiguousData(value);
-        auto p_array_start = pBegin + Index * stride;
-        std::copy(p_value_begin, p_value_begin + stride, p_array_start);
+        auto p_subrange_begin = pBegin + Index * stride;
+        std::copy(p_value_begin, p_value_begin + stride, p_subrange_begin);
     });
 
     KRATOS_CATCH("");
@@ -576,7 +574,7 @@ void CopyFromContiguousDataArray(
 {
     KRATOS_TRY
 
-    using value_type = typename TContainerDataIO::template ComponentDataType<typename Internals::template ComponentTraits<TComponentType>::ValueType>;
+    using value_type = typename TContainerDataIO::template ComponentType<typename Internals::template ComponentTraits<TComponentType>::ValueType>;
 
     using value_type_traits = DataTypeTraits<value_type>;
 
@@ -594,8 +592,8 @@ void CopyFromContiguousDataArray(
 
     IndexPartition<unsigned int>(rContainer.size()).for_each(tls_prototype, [&rContainer, &rComponent, &rContainerDataIO, pBegin, stride](const auto Index, auto& rTLS) {
         TDataType * p_value_begin = value_type_traits::GetContiguousData(rTLS);
-        TDataType const * p_array_start = pBegin + Index * stride;
-        std::copy(p_array_start, p_array_start + stride, p_value_begin);
+        TDataType const * p_subrange_begin = pBegin + Index * stride;
+        std::copy(p_subrange_begin, p_subrange_begin + stride, p_value_begin);
         rContainerDataIO.SetValue(*(rContainer.begin() + Index), rComponent, rTLS);
     });
 

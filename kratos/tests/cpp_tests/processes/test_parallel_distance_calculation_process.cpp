@@ -20,8 +20,7 @@
 #include "processes/parallel_distance_calculation_process.h"
 #include "testing/testing.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos ::Testing {
 
 namespace ParallelDistanceCalculationProcessTestInternals
 {
@@ -174,5 +173,56 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelDistanceProcessQuadrilateralNonHistorical2D, K
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ParallelDistanceProcessPreserveInterface, KratosCoreFastSuite)
+{
+    // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
+    Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 10.0, 0.0);
+    Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 10.0, 10.0, 0.0);
+    Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 10.0, 0.0, 0.0);
+    Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+
+    Parameters mesher_parameters(R"({
+        "number_of_divisions" : 7,
+        "element_name" : "Element2D3N",
+        "create_skin_sub_model_part" : false
+    })");
+    Model current_model;
+    auto& r_model_part = current_model.CreateModelPart("MainModelPart");
+    r_model_part.AddNodalSolutionStepVariable(DISTANCE);
+    r_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
+    StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
+
+    // Set up the intersected elements distance
+    std::function<double(Node& rNode)> nodal_value_function = [](Node& rNode){return rNode.X() + rNode.Y() - 100.0/9.9;};
+    std::function<double&(Node& rNode)> distance_getter = [](Node& rNode)->double&{return rNode.FastGetSolutionStepValue(DISTANCE);};
+    ParallelDistanceCalculationProcessTestInternals::SetUpDistanceField(r_model_part, nodal_value_function, distance_getter);
+
+    const double distance_node_7 = r_model_part.GetNode(7).FastGetSolutionStepValue(DISTANCE);
+
+    // Compute distance
+    Parameters parallel_distance_settings(R"({
+        "model_part_name" : "MainModelPart",
+        "distance_variable" : "DISTANCE",
+        "nodal_area_variable" : "NODAL_AREA",
+        "distance_database" : "nodal_historical",
+        "preserve_interface" : true,
+        "max_levels" : 10.0,
+        "max_distance" : 10.0,
+        "calculate_exact_distances_to_plane" : false
+    })");
+    ParallelDistanceCalculationProcess<2>(r_model_part, parallel_distance_settings).Execute();
+
+    // Check results
+    const double tolerance = 1.0e-8;
+    const std::array<std::size_t,5> nodal_ids = {1,28,37,64,7};
+    //node 7 is an interface node and its distance should be preserved
+    const std::array<double, 5> exact_dist = {-5.8152958152958174, -1.5295815295815309, 1.3275613275613267, 5.613275613275615, distance_node_7};
+    for (std::size_t i = 0; i < nodal_ids.size(); ++i) {
+        const auto& r_node = r_model_part.GetNode(nodal_ids[i]);
+        const double dist = r_node.FastGetSolutionStepValue(DISTANCE);
+        KRATOS_EXPECT_NEAR(dist, exact_dist[i], tolerance);
+    }
 }
-}  // namespace Kratos.
+
+}  // namespace Kratos::Testing.

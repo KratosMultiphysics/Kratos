@@ -32,7 +32,7 @@ class CheckSameModelPartUsingSkinDistanceProcess(KratosMultiphysics.Process):
 
         # Get first model part (must be defined anyway)
         self.model_part = self.model[settings["skin_model_part_1_name"].GetString()]
-        if not self.model_part.ProcessInfo.Has(KratosMultiphysics.DOMAIN_SIZE)
+        if not self.model_part.ProcessInfo.Has(KratosMultiphysics.DOMAIN_SIZE):
             raise ValueError("DOMAIN_SIZE nor defined in ProcessInfo")
 
 

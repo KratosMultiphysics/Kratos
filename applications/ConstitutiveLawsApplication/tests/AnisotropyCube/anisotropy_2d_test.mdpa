@@ -1,0 +1,65 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   0.6696930000   2.7809300000   0.0000000000
+    2   0.6696930000   0.5902400000   0.0000000000
+    3  -3.2463085000   2.7809300000   0.0000000000
+    4   0.6696930000  -1.6004500000   0.0000000000
+    5  -3.2463085000   0.5902400000   0.0000000000
+    6  -3.2463085000  -1.6004500000   0.0000000000
+    7  -7.1623100000   2.7809300000   0.0000000000
+    8  -7.1623100000   0.5902400000   0.0000000000
+    9  -7.1623100000  -1.6004500000   0.0000000000
+End Nodes
+
+
+Begin Elements SmallDisplacementElement2D4N// GUI group identifier: Solid Auto1
+        1          0     3     5     2     1 
+        2          0     7     8     5     3 
+        3          0     5     6     4     2 
+        4          0     8     9     6     5 
+End Elements
+
+Begin SubModelPart Parts_Solid_Solid_Auto1 // Group Solid Auto1 // Subtree Parts_Solid
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+    End SubModelPartElements
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            7
+            8
+            9
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart SelfWeight2D_Self_weight_Auto1 // Group Self weight Auto1 // Subtree SelfWeight2D
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+    End SubModelPartNodes
+End SubModelPart

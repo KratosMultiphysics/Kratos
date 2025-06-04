@@ -37,21 +37,38 @@
 // Include base h
 #include "hdf5_file.h"
 
+#ifndef KRATOS_CHECK_FOR_HDF5_ERROR
+#define KRATOS_CHECK_FOR_HDF5_ERROR(METHOD, /*int*/ RETURN_VALUE)                                           \
+    if (RETURN_VALUE < 0) {                                                                                 \
+        std::stringstream message;                                                                          \
+        message << "call to " << #METHOD << " returned error code " << RETURN_VALUE << " with message:\n";  \
+        auto callback = [](unsigned depth,                                                                  \
+                        const H5E_error_t* p_error_descriptor,                                              \
+                        void* p_stream) -> herr_t {                                                         \
+            std::stringstream& r_stream = *static_cast<std::stringstream*>(p_stream);                       \
+            if (not depth) r_stream << p_error_descriptor->desc << "\n";                                    \
+            r_stream << "in file " << p_error_descriptor->file_name                                         \
+                    << ":" << p_error_descriptor->line                                                      \
+                    << " in function " << p_error_descriptor->func_name << "\n";                            \
+            return 0;                                                                                       \
+        };                                                                                                  \
+        H5Ewalk(H5E_DEFAULT, H5E_WALK_UPWARD, callback, static_cast<void*>(&message));                      \
+        KRATOS_ERROR << message.str();                                                                      \
+    }
+#endif
+
 #ifndef KRATOS_HDF5_CALL_WITH_RETURN
 #define KRATOS_HDF5_CALL_WITH_RETURN(RETURN_VALUE, METHOD, ...) \
     RETURN_VALUE = METHOD(__VA_ARGS__);                         \
-    KRATOS_ERROR_IF(RETURN_VALUE < 0)                           \
-        << "Error occured in " << #METHOD                       \
-        << " [ hdf5 error code = " << RETURN_VALUE << " ].\n";
+    KRATOS_CHECK_FOR_HDF5_ERROR(METHOD, RETURN_VALUE)           \
 
 #endif
 
 #ifndef KRATOS_HDF5_CALL
-#define KRATOS_HDF5_CALL(METHOD, ...)                                              \
-    {                                                                              \
-        const auto error = METHOD(__VA_ARGS__);                                    \
-        KRATOS_ERROR_IF(error < 0) << "Error occured in " << #METHOD               \
-                                   << " [ hdf5 error code = " << error << " ].\n"; \
+#define KRATOS_HDF5_CALL(METHOD, ...)              \
+    {                                              \
+        const auto error = METHOD(__VA_ARGS__);    \
+        KRATOS_CHECK_FOR_HDF5_ERROR(METHOD, error) \
     }
 
 #endif
@@ -87,6 +104,13 @@ File::File(
     : mpDataCommunicator(&rDataCommunicator)
 {
     KRATOS_TRY;
+
+    // Unset error handling callbacks set by dependencies.
+    // Some dependencies (such as h5py) may set callbacks via the legacy HDF5 API,
+    // which breaks Kratos HDF5 calls. We don't do any kind of error handling
+    // apart from reporting, so there's no behavior change on our end, but if
+    // dependencies issue HDF5 calls after Kratos, they might run into trouble.
+    KRATOS_HDF5_CALL(H5Eset_auto, H5E_DEFAULT, NULL, NULL)
 
     Parameters default_params(R"(
             {
@@ -792,12 +816,14 @@ bool File::HasDataType(const std::string& rPath) const
     KRATOS_HDF5_CALL(H5Tclose, dtype_id)
     KRATOS_HDF5_CALL(H5Dclose, dset_id)
 
-    if constexpr(std::is_same_v<TDataType, int>) {
+    if constexpr(std::is_same_v<TDataType, bool>) {
+        return type == H5T_INTEGER;
+    } else if constexpr(std::is_same_v<TDataType, int>) {
         return type == H5T_INTEGER;
     } else if constexpr(std::is_same_v<TDataType, double>) {
-        return (type == H5T_FLOAT);
+        return type == H5T_FLOAT;
     } else if constexpr(std::is_same_v<TDataType, char>) {
-        return (type == H5T_INTEGER);
+        return type == H5T_INTEGER;
     } else {
         static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
     }
@@ -952,7 +978,18 @@ void File::WriteDataSetImpl(
                 local_shape_start[0] = r_data_communicator.ScanSum(static_cast<unsigned int>(local_reduced_shape[0])) - local_reduced_shape[0];
             }
 
-            if (TDataTransferMode == DataTransferMode::Collective || number_of_local_primitive_data_values > 0) {
+            bool write_data = TDataTransferMode == DataTransferMode::Collective || number_of_local_primitive_data_values > 0;
+            #if H5_VERS_MAJOR < 2 && ((H5_VERS_MINOR == 14 && H5_VERS_RELEASE < 2) ||  H5_VERS_MINOR < 14)
+                /**
+                 *  Until hdf5 1.14.2, if someone tries to read/write empty containers from every rank, it throws an error. This is
+                 *  fixed in the later versions.
+                 *
+                 * TODO: Remove this pre-compiler directive once we move to compatible versions.
+                 */
+                write_data &= r_data_communicator.SumAll(static_cast<std::size_t>(number_of_local_primitive_data_values)) > 0;
+            #endif
+
+            if (write_data) {
                 hid_t dxpl_id, mspace_id;
                 KRATOS_HDF5_CALL_WITH_RETURN(dxpl_id, H5Pcreate, H5P_DATASET_XFER)
                 if constexpr(TDataTransferMode == DataTransferMode::Collective) {
@@ -1064,19 +1101,32 @@ void File::ReadDataSetImpl(
         }
     } else {
         #ifdef KRATOS_USING_MPI
-            hid_t dxpl_id;
-            KRATOS_HDF5_CALL_WITH_RETURN(dxpl_id, H5Pcreate, H5P_DATASET_XFER)
-            if constexpr(TDataTransferMode == DataTransferMode::Collective) {
-                KRATOS_HDF5_CALL(H5Pset_dxpl_mpio, dxpl_id, H5FD_MPIO_COLLECTIVE)
-            } else {
-                KRATOS_HDF5_CALL(H5Pset_dxpl_mpio, dxpl_id, H5FD_MPIO_INDEPENDENT)
+            bool read_data  = true;
+            #if H5_VERS_MAJOR < 2 && ((H5_VERS_MINOR == 14 && H5_VERS_RELEASE < 2) ||  H5_VERS_MINOR < 14)
+                /**
+                 *  Until hdf5 1.14.2, if someone tries to read/write empty containers from every rank, it throws an error. This is
+                 *  fixed in the later versions.
+                 *
+                 * TODO: Remove this pre-compiler directive once we move to compatible versions.
+                 */
+                read_data &= mpDataCommunicator->SumAll(TypeTraits::Size(rData)) > 0;
+            #endif
+
+            if (read_data) {
+                hid_t dxpl_id;
+                KRATOS_HDF5_CALL_WITH_RETURN(dxpl_id, H5Pcreate, H5P_DATASET_XFER)
+                if constexpr(TDataTransferMode == DataTransferMode::Collective) {
+                    KRATOS_HDF5_CALL(H5Pset_dxpl_mpio, dxpl_id, H5FD_MPIO_COLLECTIVE)
+                } else {
+                    KRATOS_HDF5_CALL(H5Pset_dxpl_mpio, dxpl_id, H5FD_MPIO_INDEPENDENT)
+                }
+                if (TypeTraits::Size(rData) > 0) {
+                    KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, TypeTraits::GetContiguousData(rData))
+                } else {
+                    KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, nullptr)
+                }
+                KRATOS_HDF5_CALL(H5Pclose, dxpl_id)
             }
-            if (TypeTraits::Size(rData) > 0) {
-                KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, TypeTraits::GetContiguousData(rData))
-            } else {
-                KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, nullptr)
-            }
-            KRATOS_HDF5_CALL(H5Pclose, dxpl_id)
         #else
             KRATOS_ERROR << "HDF5Application is not compiled with MPI.";
         #endif
@@ -1093,6 +1143,9 @@ void File::ReadDataSetImpl(
 }
 
 // template instantiations
+template KRATOS_API(HDF5_APPLICATION) bool File::HasDataType<int>(const std::string&) const;
+template KRATOS_API(HDF5_APPLICATION) bool File::HasDataType<double>(const std::string&) const;
+
 #ifndef KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION
 #define KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(...)                                                                                                                                     \
     template KRATOS_API(HDF5_APPLICATION) void File::WriteDataSetImpl<__VA_ARGS__, File::DataTransferMode::Collective>(const std::string&, const __VA_ARGS__&, WriteInfo&);                     \
@@ -1114,6 +1167,7 @@ void File::ReadDataSetImpl(
 
 #endif
 
+KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(bool);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(int);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(double);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(std::string);
@@ -1126,6 +1180,7 @@ KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(array_1d<double, 4>);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(array_1d<double, 6>);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(array_1d<double, 9>);
 
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<bool>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<char>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<int>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<double>);

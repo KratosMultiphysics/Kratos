@@ -4,46 +4,30 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
-
-#if !defined(KRATOS_FIND_CONDITIONS_NEIGHBOURS_PROCESS_H_INCLUDED )
-#define  KRATOS_FIND_CONDITIONS_NEIGHBOURS_PROCESS_H_INCLUDED
-
-
+#pragma once
 
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
-#include "includes/node.h"
-#include "includes/condition.h"
 #include "includes/model_part.h"
-
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
 ///@}
 ///@name Type Definitions
 ///@{
-typedef  ModelPart::NodesContainerType NodesContainerType;
-typedef  ModelPart::ConditionsContainerType ConditionsContainerType;
-
 
 ///@}
 ///@name  Enum's
@@ -57,15 +41,23 @@ typedef  ModelPart::ConditionsContainerType ConditionsContainerType;
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
-class FindConditionsNeighboursProcess
+/**
+ * @class FindConditionsNeighboursProcess
+ * @ingroup KratosCore
+ * @brief This process finds the neighboring conditions for each node and condition in a given model part.
+ * @details This process iterates over all conditions in the model part and assigns neighboring conditions to each node and condition based on the connectivity information. It also provides functionality to clear the neighbor data if needed.
+ * @author Riccardo Rossi
+ * @todo In the future for MPI compatibility and reduce code duplication FindGlobalNodalEntityNeighboursProcess can be used as base class. Unfortunately it only computes for the nodes, not conditions, so something must be done in that class before properly computing.
+ */
+class KRATOS_API(KRATOS_CORE) FindConditionsNeighboursProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    /// Defining the Index type
+    using IndexType = std::size_t;
 
     /// Pointer definition of FindConditionsNeighboursProcess
     KRATOS_CLASS_POINTER_DEFINITION(FindConditionsNeighboursProcess);
@@ -74,23 +66,34 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    /// avg_elems ------ expected number of neighbour elements per node.,
-    /// avg_nodes ------ expected number of neighbour Nodes
-    /// the better the guess for the quantities above the less memory occupied and the fastest the algorithm
-    FindConditionsNeighboursProcess(ModelPart& model_part, int TDim, unsigned int avg_conds = 10)
-        : mr_model_part(model_part)
-    {
-        mavg_conds = avg_conds;
-        mTDim=TDim;
-// 	mavg_nodes = avg_nodes;
-    }
+    /**
+     * @brief Default constructor with parameters.
+     * @details The better the guess for the quantities above the less memory occupied and the fastest the algorithm
+     * @param rModel The model containing the target model part.
+     * @param ThisParameters The setting parameters for the process.
+     */
+    FindConditionsNeighboursProcess(
+        Model& rModel,
+        Parameters ThisParameters
+        );
+
+    /**
+     * @brief Default constructor.
+     * @details The better the guess for the quantities above the less memory occupied and the fastest the algorithm
+     * @param rModelPart The model part containing the conditions.
+     * @param Dim The dimension of the problem.
+     * @param AverageConditions The expected number of neighboring conditions per node.
+     */
+    FindConditionsNeighboursProcess(
+        ModelPart& rModelPart,
+        const int Dim = -1,
+        const unsigned int AverageConditions = 10
+        );
 
     /// Destructor.
     ~FindConditionsNeighboursProcess() override
     {
     }
-
 
     ///@}
     ///@name Operators
@@ -101,92 +104,37 @@ public:
         Execute();
     }
 
-
     ///@}
     ///@name Operations
     ///@{
 
-    void Execute() override
-    {
-        NodesContainerType& rNodes = mr_model_part.Nodes();
-        ConditionsContainerType& rConds = mr_model_part.Conditions();
+    /**
+     * @brief Executes the process.
+     */
+    void Execute() override;
 
-        //first of all the neighbour nodes and conditions array are initialized to the guessed size
-        //and empties the old entries
-        for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
-        {
-            (in->GetValue(NEIGHBOUR_CONDITIONS)).reserve(mavg_conds);
-            GlobalPointersVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
-            rC.erase(rC.begin(),rC.end() );
-        }
-        for(ConditionsContainerType::iterator ic = rConds.begin(); ic!=rConds.end(); ic++)
-        {
-            (ic->GetValue(NEIGHBOUR_CONDITIONS)).reserve(3);
-            GlobalPointersVector<Condition >& rC = ic->GetValue(NEIGHBOUR_CONDITIONS);
-            rC.erase(rC.begin(),rC.end() );
-        }
+    /**
+     * @brief This method clears the assignation of the conditions
+     */
+    void Clear() override;
 
-        //add the neighbour conditions to all the nodes in the mesh
-        for(ConditionsContainerType::iterator ic = rConds.begin(); ic!=rConds.end(); ic++)
-        {
-            Condition::GeometryType& pGeom = ic->GetGeometry();
-            for(unsigned int i = 0; i < pGeom.size(); i++)
-            {
-                //KRATOS_WATCH( pGeom[i] );
-                (pGeom[i].GetValue(NEIGHBOUR_CONDITIONS)).push_back( Condition::WeakPointer( *(ic.base()) ) );
-                //KRATOS_WATCH( (pGeom[i].GetValue(NEIGHBOUR_CONDITIONS)).size() );
-            }
-        }
+    /**
+     * @brief Clears the neighbor data for all nodes and conditions.
+     */
+    void ClearNeighbours();
 
-        //adding the neighbouring conditions to the condition
-        //loop over faces
-        if (mTDim==3)
-        {
-            for(ConditionsContainerType::iterator ic = rConds.begin(); ic!=rConds.end(); ic++)
-            {
-                //face nodes
-                Geometry<Node >& geom = (ic)->GetGeometry();
-                //vector of the 3 faces around the given face
-                (ic->GetValue(NEIGHBOUR_CONDITIONS)).resize(3);
-                GlobalPointersVector< Condition >& neighb_faces = ic->GetValue(NEIGHBOUR_CONDITIONS);
-                //neighb_face is the vector containing pointers to the three faces around ic
-                //neighb_face[0] = neighbour face over edge 1-2 of element ic;
-                //neighb_face[1] = neighbour face over edge 2-0 of element ic;
-                //neighb_face[2] = neighbour face over edge 0-1 of element ic;
-                neighb_faces(0) = CheckForNeighbourFaces(geom[1].Id(), geom[2].Id(), geom[1].GetValue(NEIGHBOUR_CONDITIONS), ic->Id());
-                neighb_faces(1) = CheckForNeighbourFaces(geom[2].Id(), geom[0].Id(), geom[2].GetValue(NEIGHBOUR_CONDITIONS), ic->Id());
-                neighb_faces(2) = CheckForNeighbourFaces(geom[0].Id(), geom[1].Id(), geom[0].GetValue(NEIGHBOUR_CONDITIONS), ic->Id());
-            }
-        }
-    }
-
-
-    void ClearNeighbours()
-    {
-        NodesContainerType& rNodes = mr_model_part.Nodes();
-        for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
-        {
-            GlobalPointersVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
-            rC.erase(rC.begin(),rC.end());
-        }
-        ConditionsContainerType& rConds = mr_model_part.Conditions();
-        for(ConditionsContainerType::iterator ic = rConds.begin(); ic!=rConds.end(); ic++)
-        {
-            GlobalPointersVector<Condition >& rC = ic->GetValue(NEIGHBOUR_CONDITIONS);
-            rC.erase(rC.begin(),rC.end());
-        }
-
-    }
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -209,121 +157,113 @@ public:
     {
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart& mr_model_part;
-    unsigned int mavg_conds;
-    int mTDim;
-// 	unsigned int mavg_nodes;
 
+    ModelPart& mrModelPart;               /// Reference to the model part.
+    unsigned int mAverageConditions = 10; /// Expected number of neighboring conditions per node.
+    int mDim = -1;                        /// Dimension of the problem. NOTE: Should be a template argument
 
     ///@}
     ///@name Private Operators
     ///@{
 
-    //******************************************************************************************
-    //******************************************************************************************
-    template< class TDataType > void  AddUniqueWeakPointer
-    (GlobalPointersVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
+    /**
+     * @brief Compute the dimension for the FindConditionsNeighboursProcess.
+     * @details This function computes the dimension of the process if it's not already defined. It retrieves the dimension from the first condition's geometry if it's not defined. If the dimension is not 2 or 3, it throws an error.
+     */
+    void ComputeDimension();
+
+    /**
+     * @brief Adds a unique weak pointer to a GlobalPointersVector if it does not already exist.
+     * @details This function iterates through the GlobalPointersVector to check if the candidate weak pointer's ID already exists. If it does not, the candidate is added to the vector.
+     * @tparam TDataType The data type of the elements stored it_node the GlobalPointersVector.
+     * @param v Reference to the GlobalPointersVector to which the unique weak pointer is to be added.
+     * @param candidate The weak pointer candidate to be added if it's unique based on its ID.
+     */
+    template< class TDataType >
+    void AddUniqueWeakPointer(
+        GlobalPointersVector<TDataType>& v,
+        const typename TDataType::WeakPointer candidate
+        )
     {
-        typename GlobalPointersVector< TDataType >::iterator i = v.begin();
-        typename GlobalPointersVector< TDataType >::iterator endit = v.end();
-        while ( i != endit && (i)->Id() != (candidate.lock())->Id())
-        {
-            i++;
+        auto it = v.begin();
+        auto it_end = v.end();
+        while ( it != it_end && (it)->Id() != (candidate.lock())->Id()) {
+            it++;
         }
-        if( i == endit )
-        {
+        if(it == it_end) {
             v.push_back(candidate);
         }
 
     }
 
-    Condition::WeakPointer CheckForNeighbourFaces (unsigned int Id_1, unsigned int Id_2, GlobalPointersVector< Condition >& neighbour_face, unsigned int face)
-    {
-        //look for the faces around node Id_1
-        for( GlobalPointersVector< Condition >::iterator i =neighbour_face.begin(); i != neighbour_face.end(); i++)
-        {
-            //look for the nodes of the neighbour faces
-            Geometry<Node >& neigh_face_geometry = (i)->GetGeometry();
-            for( unsigned int node_i = 0 ; node_i < neigh_face_geometry.size(); node_i++)
-            {
-                if (neigh_face_geometry[node_i].Id() == Id_2)
-                {
-                    if(i->Id() != face)
-                    {
-                        return *(i.base());
-                    }
-                }
-            }
-        }
-        return Condition::WeakPointer();
-    }
+    /**
+    * @brief Checks for neighbouring faces around a given node that do not match a specified face ID.
+    * @details This function iterates through the neighbour faces of a node (Id1) to find a face that has a node with Id2 and does not match the specified face ID. This is used to find adjacent or connected elements it_node a mesh, based on their nodes.
+    * @param Id1 The ID of the node around which neighbouring faces are checked.
+    * @param Id2 The ID of the second node to match it_node the neighbouring faces.
+    * @param rNeighbourFace The GlobalPointersVector containing the neighbour faces to check.
+    * @param Face The face ID that should not match the found neighbouring face.
+    * @return Condition::WeakPointer to the first neighbouring face found that matches the criteria or an empty WeakPointer if no such face is found.
+    */
+    Condition::WeakPointer CheckForNeighbourFaces(
+        const unsigned int Id1,
+        const unsigned int Id2,
+        GlobalPointersVector<Condition>& rNeighbourFace,
+        const unsigned int Face
+        );
+
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -335,21 +275,16 @@ private:
     /// Copy constructor.
     //FindConditionsNeighboursProcess(FindConditionsNeighboursProcess const& rOther);
 
-
     ///@}
-
 }; // Class FindConditionsNeighboursProcess
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -367,9 +302,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_FIND_CONDITIONS_NEIGHBOURS_PROCESS_H_INCLUDED  defined 
 
 

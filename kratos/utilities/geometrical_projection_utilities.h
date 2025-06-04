@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Philipp Bucher
@@ -31,8 +31,8 @@ namespace Kratos
 /**
  * @class GeometricalProjectionUtilities
  * @ingroup KratosCore
- * @brief This is a class that provides auxiliar utilities for projections
- * @details This is a class that provides auxiliar utilities for the projections. Check the documentation for more details
+ * @brief This is a class that provides auxiliary utilities for projections
+ * @details This is a class that provides auxiliary utilities for the projections. Check the documentation for more details
  * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(KRATOS_CORE) GeometricalProjectionUtilities
@@ -56,15 +56,11 @@ public:
     /// Pointer definition of GeometricalProjectionUtilities
     KRATOS_CLASS_POINTER_DEFINITION( GeometricalProjectionUtilities );
 
-    // Some geometrical definitions
-    typedef Node                                              NodeType;
-    typedef Point                                               PointType;
-
     /// Index type definition
-    typedef std::size_t                                         IndexType;
+    using IndexType = std::size_t;
 
     /// Size type definition
-    typedef std::size_t                                          SizeType;
+    using SizeType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -90,8 +86,8 @@ public:
     template<class TGeometryType>
     static inline double FastProjectDirection(
         const TGeometryType& rGeom,
-        const PointType& rPointToProject,
-        PointType& rPointProjected,
+        const Point& rPointToProject,
+        Point& rPointProjected,
         const array_1d<double,3>& rNormal,
         const array_1d<double,3>& rVector,
         const SizeType EchoLevel = 0
@@ -131,7 +127,7 @@ public:
      * @param rDistance The distance to the projection
      * @return PointProjected The point pojected over the plane
      */
-    template<class TPointClass1, class TPointClass2 = TPointClass1, class TPointClass3 = PointType>
+    template<class TPointClass1, class TPointClass2 = TPointClass1, class TPointClass3 = Point>
     static inline TPointClass3 FastProject(
         const TPointClass1& rPointOrigin,
         const TPointClass2& rPointToProject,
@@ -162,7 +158,7 @@ public:
     template<class TGeometryType>
     static inline double FastProjectOnGeometry(const TGeometryType& rGeom,
                                                const Point& rPointToProject,
-                                               PointType& rPointProjected,
+                                               Point& rPointProjected,
                                                const SizeType EchoLevel = 0)
     {
         // using the normal in the center of the geometry for the projection
@@ -182,30 +178,49 @@ public:
     /**
      * @brief Project a point over a line (2D or 3D)
      * @tparam TGeometryType The type of the line
+     * @param rPointLine0 The first point of the line
+     * @param rPointLine1 The second point of the line
+     * @param rPointToProject The point to be projected
+     * @param rPointProjected The point projected over the line
+     * @return Distance The distance between point and line
+     * @link https://www.qc.edu.hk/math/Advanced%20Level/Point_to_line.htm "Method 3 Using Dot Product"
+     */
+    static inline double FastProjectOnLine(
+        const array_1d<double, 3>& rPointLine0,
+        const array_1d<double, 3>& rPointLine1,
+        const array_1d<double, 3>& rPointToProject,
+        array_1d<double, 3>& rPointProjected
+        )
+    {
+        const array_1d<double, 3> ab = rPointLine1 - rPointLine0;
+
+        const array_1d<double, 3>& p_c = rPointToProject;
+
+        const double factor = (inner_prod(rPointLine1, p_c) - inner_prod(rPointLine0, p_c) - inner_prod(rPointLine1, rPointLine0) + inner_prod(rPointLine0, rPointLine0)) / inner_prod(ab, ab);
+
+        rPointProjected = rPointLine0 + factor * ab;
+
+        return norm_2(rPointProjected-p_c);
+    }
+
+    /**
+     * @brief Project a point over a line (2D or 3D)
+     * @tparam TGeometryType The type of the line
      * @param rGeometry The line where to be projected
      * @param rPointToProject The point to be projected
-     * @param rPointProjected The point pojected over the line
+     * @param rPointProjected The point projected over the line
      * @return Distance The distance between point and line
      * @link https://www.qc.edu.hk/math/Advanced%20Level/Point_to_line.htm "Method 3 Using Dot Product"
      */
     template<class TGeometryType>
-    static inline double FastProjectOnLine(const TGeometryType& rGeometry,
-                                           const PointType& rPointToProject,
-                                           PointType& rPointProjected)
+    static inline double FastProjectOnLine(
+        const TGeometryType& rGeometry,
+        const array_1d<double, 3>& rPointToProject,
+        array_1d<double, 3>& rPointProjected
+        )
     {
-        const array_1d<double, 3>& r_p_a = rGeometry[0].Coordinates();
-        const array_1d<double, 3>& r_p_b = rGeometry[1].Coordinates();
-        const array_1d<double, 3> ab = r_p_b - r_p_a;
-
-        const array_1d<double, 3>& p_c = rPointToProject.Coordinates();
-
-        const double factor = (inner_prod(r_p_b, p_c) - inner_prod(r_p_a, p_c) - inner_prod(r_p_b, r_p_a) + inner_prod(r_p_a, r_p_a)) / inner_prod(ab, ab);
-
-        rPointProjected.Coordinates() = r_p_a + factor * ab;
-
-        return norm_2(rPointProjected.Coordinates()-p_c);
+        return FastProjectOnLine(rGeometry[0], rGeometry[1], rPointToProject, rPointProjected);
     }
-
 
     /**
      * @brief Computes the minimal distance to a line
@@ -219,11 +234,11 @@ public:
     template<class TGeometryType>
     static inline double FastMinimalDistanceOnLine(
         const TGeometryType& rGeometry,
-        const PointType& rPoint,
+        const Point& rPoint,
         const double Tolerance = 1.0e-9
         )
     {
-        PointType projected_point;
+        Point projected_point;
         const double projected_distance = FastProjectOnLine(rGeometry, rPoint, projected_point);
         typename TGeometryType::CoordinatesArrayType projected_local;
         if (rGeometry.IsInside(projected_point.Coordinates(), projected_local, Tolerance)) {
@@ -310,7 +325,7 @@ public:
         double DeltaXi = 0.5
         )
     {
-//         rResultingPoint.clear();
+        //rResultingPoint.clear();
 
         double old_delta_xi = 0.0;
 
@@ -379,7 +394,12 @@ public:
         return false;
     }
 
+///@}
 private:
+///@name Private Operations
+///@{
+
+///@}
 };// class GeometricalProjectionUtilities
 
 ///@}

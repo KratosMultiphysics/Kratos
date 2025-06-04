@@ -50,7 +50,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.DISPLACEMENT_edge",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,true,true],
@@ -63,7 +62,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.ROTATION_edge",
             "variable_name"   : "ROTATION",
             "constrained"     : [true,true,true],
@@ -79,7 +77,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.SurfaceLoad3D_Surface_Q4_thick",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 0.25,
@@ -93,7 +90,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.SurfaceLoad3D_Surface_Q4_thin",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 0.25,
@@ -107,7 +103,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.SurfaceLoad3D_Surface_T3_thick",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 0.25,
@@ -121,7 +116,6 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.SurfaceLoad3D_Surface_T3_thin",
             "variable_name"   : "SURFACE_LOAD",
             "modulus"         : 0.25,

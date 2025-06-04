@@ -15,10 +15,12 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_constitutive/auxiliary_files/hcf_data_container.h"
 #include "constitutive_laws_application_variables.h"
+
+// Application includes
+#include "tests/cpp_tests/constitutive_laws_fast_suite.h"
 
 namespace Kratos::Testing
 {
@@ -54,6 +56,7 @@ KRATOS_TEST_CASE_IN_SUITE(HCFDataContainerFatigueTest, KratosConstitutiveLawsFas
     HCFVariables.GlobalNumberOfCycles = 12;
     HCFVariables.LocalNumberOfCycles = 12;
     HCFVariables.ReversionFactor = -1.00005;
+    HCFVariables.UltimateStress = 806.715E+06;
 
     mFatigueData.CalculateFatigueParameters(material_properties, HCFVariables);
 

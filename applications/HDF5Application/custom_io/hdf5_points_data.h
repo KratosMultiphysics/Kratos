@@ -37,14 +37,16 @@ namespace Internals
 ///@{
 
 /// A class representing points in a mesh.
+/**
+ * @tparam TContainerDataIO A IO class which have the @p ContainerType defined in public scope
+ *                          with @p SetValue, @p GetValue methods implemented.
+*/
 template<class TContainerDataIO>
 class PointsData
 {
 public:
     ///@name Type Definitions
     ///@{
-
-    using IndexType = unsigned int;
 
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(PointsData);

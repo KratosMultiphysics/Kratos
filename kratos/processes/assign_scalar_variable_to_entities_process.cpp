@@ -5,8 +5,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Josep Maria Carbonell
 //                   Vicente Mataix Ferrandiz
@@ -17,15 +17,30 @@
 // External includes
 
 // Project includes
+#include "utilities/variable_utils.h"
 #include "processes/assign_scalar_variable_to_entities_process.h"
 
 namespace Kratos
 {
 
-template<class TEntity>
-AssignScalarVariableToEntitiesProcess<TEntity>::AssignScalarVariableToEntitiesProcess(
+template<class TEntity, bool THistorical>
+AssignScalarVariableToEntitiesProcess<TEntity, THistorical>::AssignScalarVariableToEntitiesProcess(
+    Model& rModel,
+    Parameters ThisParameters
+    ) : AssignScalarVariableToEntitiesProcess(rModel.GetModelPart(ThisParameters["model_part_name"].GetString()), ThisParameters)
+{
+    KRATOS_TRY
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity, bool THistorical>
+AssignScalarVariableToEntitiesProcess<TEntity, THistorical>::AssignScalarVariableToEntitiesProcess(
     ModelPart& rModelPart,
-    Parameters rParameters
+    Parameters ThisParameters
     ) : Process(Flags()) ,
         mrModelPart(rModelPart)
 {
@@ -33,17 +48,16 @@ AssignScalarVariableToEntitiesProcess<TEntity>::AssignScalarVariableToEntitiesPr
 
     // Validate against defaults -- this ensures no type mismatch
     const Parameters default_parameters = GetDefaultParameters();
-    rParameters.ValidateAndAssignDefaults(default_parameters);
+    ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mMeshId       = rParameters["mesh_id"].GetInt();
-    mVariableName = rParameters["variable_name"].GetString();
+    mVariableName = ThisParameters["variable_name"].GetString();
 
-    if( KratosComponents< Variable<double> >::Has( mVariableName )) { //case of double variable
-        mDoubleValue = rParameters["value"].GetDouble();
-    } else if( KratosComponents< Variable<int> >::Has( mVariableName ) ) { //case of int variable
-        mIntValue = rParameters["value"].GetInt();
-    } else if( KratosComponents< Variable<bool> >::Has( mVariableName ) ) { //case of bool variable
-        mBoolValue = rParameters["value"].GetBool();
+    if( KratosComponents<Variable<double>>::Has( mVariableName )) { //case of double variable
+        mDoubleValue = ThisParameters["value"].GetDouble();
+    } else if( KratosComponents<Variable<int>>::Has( mVariableName ) ) { //case of int variable
+        mIntValue = ThisParameters["value"].GetInt();
+    } else if( KratosComponents<Variable<bool>>::Has( mVariableName ) ) { //case of bool variable
+        mBoolValue = ThisParameters["value"].GetBool();
     } else {
         KRATOS_ERROR <<"Trying to set a variable that is not in the model_part - variable name is " << mVariableName << std::endl;
     }
@@ -54,17 +68,17 @@ AssignScalarVariableToEntitiesProcess<TEntity>::AssignScalarVariableToEntitiesPr
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-void AssignScalarVariableToEntitiesProcess<TEntity>::Execute()
+template<class TEntity, bool THistorical>
+void AssignScalarVariableToEntitiesProcess<TEntity, THistorical>::Execute()
 {
     KRATOS_TRY;
 
-    if( KratosComponents< Variable<double> >::Has( mVariableName )) { //case of double variable
-        InternalAssignValue<>(KratosComponents< Variable<double> >::Get(mVariableName), mDoubleValue);
-    } else if( KratosComponents< Variable<int> >::Has( mVariableName ) ) { //case of int variable
-        InternalAssignValue<>(KratosComponents< Variable<int> >::Get(mVariableName) , mIntValue);
-    } else if( KratosComponents< Variable<bool> >::Has( mVariableName ) ) { //case of bool variable
-        InternalAssignValue<>(KratosComponents< Variable<bool> >::Get(mVariableName), mBoolValue);
+    if(KratosComponents<Variable<double>>::Has(mVariableName)) { //case of double variable
+        InternalAssignValue<>(KratosComponents<Variable<double> >::Get(mVariableName), mDoubleValue);
+    } else if( KratosComponents<Variable<int>>::Has(mVariableName)) { //case of int variable
+        InternalAssignValue<>(KratosComponents<Variable<int>>::Get(mVariableName) , mIntValue);
+    } else if( KratosComponents<Variable<bool>>::Has(mVariableName)) { //case of bool variable
+        InternalAssignValue<>(KratosComponents<Variable<bool>>::Get(mVariableName), mBoolValue);
     } else {
         KRATOS_ERROR << "Not able to set the variable. Attempting to set variable: " << mVariableName << std::endl;
     }
@@ -75,13 +89,12 @@ void AssignScalarVariableToEntitiesProcess<TEntity>::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-const Parameters AssignScalarVariableToEntitiesProcess<TEntity>::GetDefaultParameters() const
+template<class TEntity, bool THistorical>
+const Parameters AssignScalarVariableToEntitiesProcess<TEntity, THistorical>::GetDefaultParameters() const
 {
     const Parameters default_parameters( R"(
     {
-        "model_part_name" : "MODEL_PART_NAME",
-        "mesh_id"         : 0,
+        "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
         "variable_name"   : "VARIABLE_NAME",
         "value"           : 1.0
     }  )" );
@@ -92,9 +105,18 @@ const Parameters AssignScalarVariableToEntitiesProcess<TEntity>::GetDefaultParam
 /***********************************************************************************/
 
 template<>
-PointerVectorSet<Node, IndexedObject>& AssignScalarVariableToEntitiesProcess<Node>::GetEntitiesContainer()
+PointerVectorSet<Node, IndexedObject>& AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh(mMeshId).Nodes();
+    return mrModelPart.Nodes();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Node, IndexedObject>& AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable>::GetEntitiesContainer()
+{
+    return mrModelPart.Nodes();
 }
 
 /***********************************************************************************/
@@ -103,7 +125,7 @@ PointerVectorSet<Node, IndexedObject>& AssignScalarVariableToEntitiesProcess<Nod
 template<>
 PointerVectorSet<Condition, IndexedObject>& AssignScalarVariableToEntitiesProcess<Condition>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh(mMeshId).Conditions();
+    return mrModelPart.Conditions();
 }
 
 /***********************************************************************************/
@@ -112,7 +134,7 @@ PointerVectorSet<Condition, IndexedObject>& AssignScalarVariableToEntitiesProces
 template<>
 PointerVectorSet<Element, IndexedObject>& AssignScalarVariableToEntitiesProcess<Element>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh(mMeshId).Elements();
+    return mrModelPart.Elements();
 }
 
 /***********************************************************************************/
@@ -121,13 +143,106 @@ PointerVectorSet<Element, IndexedObject>& AssignScalarVariableToEntitiesProcess<
 template<>
 PointerVectorSet<MasterSlaveConstraint, IndexedObject>& AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh(mMeshId).MasterSlaveConstraints();
+    return mrModelPart.MasterSlaveConstraints();
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class AssignScalarVariableToEntitiesProcess<Node>;
+template<class TEntity, bool THistorical>
+template<class TVarType>
+void AssignScalarVariableToEntitiesProcess<TEntity, THistorical>::InternalAssignValue(
+    TVarType& rVar,
+    const typename TVarType::Type Value
+    )
+{
+    if constexpr (THistorical == AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable) {
+        VariableUtils().SetVariable(rVar, Value, GetEntitiesContainer());
+    } else {
+        VariableUtils().SetNonHistoricalVariable(rVar, Value, GetEntitiesContainer());
+    }
+}
+
+template void AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::InternalAssignValue<Variable<bool>>(
+    Variable<bool>& rVar,
+    const bool Value
+    );
+
+template void AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable>::InternalAssignValue<Variable<bool>>(
+    Variable<bool>& rVar,
+    const bool Value
+    );
+
+template void AssignScalarVariableToEntitiesProcess<Condition>::InternalAssignValue<Variable<bool>>(
+    Variable<bool>& rVar,
+    const bool Value
+    );
+
+template void AssignScalarVariableToEntitiesProcess<Element>::InternalAssignValue<Variable<bool>>(
+    Variable<bool>& rVar,
+    const bool Value
+    );
+
+template void AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::InternalAssignValue<Variable<bool>>(
+    Variable<bool>& rVar,
+    const bool Value
+    );
+
+template void AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::InternalAssignValue<Variable<int>>(
+    Variable<int>& rVar,
+    const int Value
+    );
+
+template void AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable>::InternalAssignValue<Variable<int>>(
+    Variable<int>& rVar,
+    const int Value
+    );
+
+template void AssignScalarVariableToEntitiesProcess<Condition>::InternalAssignValue<Variable<int>>(
+    Variable<int>& rVar,
+    const int Value
+    );
+
+template void AssignScalarVariableToEntitiesProcess<Element>::InternalAssignValue<Variable<int>>(
+    Variable<int>& rVar,
+    const int Value
+    );
+
+template void AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::InternalAssignValue<Variable<int>>(
+    Variable<int>& rVar,
+    const int Value
+    );
+
+template void AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::InternalAssignValue<Variable<double>>(
+    Variable<double>& rVar,
+    const double Value
+    );
+
+template void AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable>::InternalAssignValue<Variable<double>>(
+    Variable<double>& rVar,
+    const double Value
+    );
+
+template void AssignScalarVariableToEntitiesProcess<Condition>::InternalAssignValue<Variable<double>>(
+    Variable<double>& rVar,
+    const double Value
+    );
+
+template void AssignScalarVariableToEntitiesProcess<Element>::InternalAssignValue<Variable<double>>(
+    Variable<double>& rVar,
+    const double Value
+    );
+
+template void AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::InternalAssignValue<Variable<double>>(
+    Variable<double>& rVar,
+    const double Value
+    );
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsNonHistoricalVariable>;
+template class AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable>;
 template class AssignScalarVariableToEntitiesProcess<Condition>;
 template class AssignScalarVariableToEntitiesProcess<Element>;
 template class AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>;

@@ -32,12 +32,12 @@ class AssignScalarVariableToNodesProcess(assign_scalar_variable_to_entities_proc
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"            : "This process assigns a given value (scalar) to the nodes belonging a certain submodelpart",
-            "mesh_id"         : 0,
             "model_part_name" : "please_specify_model_part_name",
             "variable_name"   : "SPECIFY_VARIABLE_NAME",
             "interval"        : [0.0, 1e30],
             "value"           : 0.0,
             "local_axes"      : {},
+            "historical"      : false,
             "entities"        : ["nodes"]
         }
         """
@@ -58,4 +58,4 @@ class AssignScalarVariableToNodesProcess(assign_scalar_variable_to_entities_proc
                 settings["entities"] = default_settings["entities"]
 
         # Construct the base process.
-        super(AssignScalarVariableToNodesProcess, self).__init__(Model, settings)
+        super().__init__(Model, settings)

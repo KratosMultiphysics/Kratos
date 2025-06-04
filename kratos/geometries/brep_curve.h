@@ -141,7 +141,7 @@ public:
     /**
     * @brief This function returns the pointer of the geometry
     *        which is corresponding to the index.
-    *        Curve of the geometry is accessable with GeometryType::BACKGROUND_GEOMETRY_INDEX.
+    *        Curve of the geometry is accessible with GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @param Index: trim_index or GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
@@ -155,7 +155,7 @@ public:
     /**
     * @brief This function returns the pointer of the geometry
     *        which is corresponding to the trim index.
-    *        Curve of the geometry is accessable with GeometryType::BACKGROUND_GEOMETRY_INDEX.
+    *        Curve of the geometry is accessible with GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @param Index: trim_index or GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
@@ -373,11 +373,21 @@ public:
     ///@name Geometry Classification
     ///@{
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Brep;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Brep_Curve;
