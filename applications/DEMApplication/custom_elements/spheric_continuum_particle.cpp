@@ -270,12 +270,19 @@ namespace Kratos {
                 bond_contact_area = lognorm(gen);
             } while (bond_contact_area > upper_bound);
 
-            const double bond_contact_area_small_percentage = 0.12;
+            const double bond_contact_area_small_percentage = 0.08;
             const double bond_contact_area_small_minimum = 1.0e-12;
-            const double bond_contact_area_small_maximum = 1.0e-10;
+            const double bond_contact_area_small_maximum = 2.0e-10;
+            const double bond_contact_area_small_percentage_2 = 0.04;
+            const double bond_contact_area_small_minimum_2 = 2.0e-10;
+            const double bond_contact_area_small_maximum_2 = 4.0e-10;
 
-            if ((static_cast<double>(rand()) / RAND_MAX) < bond_contact_area_small_percentage) {
-                bond_contact_area = static_cast<double>(rand()) / RAND_MAX * (bond_contact_area_small_maximum - bond_contact_area_small_minimum) + bond_contact_area_small_minimum;
+            double my_random_value = static_cast<double>(rand()) / RAND_MAX;
+            if (my_random_value < bond_contact_area_small_percentage) {
+                bond_contact_area = my_random_value * (bond_contact_area_small_maximum - bond_contact_area_small_minimum) + bond_contact_area_small_minimum;
+            } else if (my_random_value < (bond_contact_area_small_percentage_2 + bond_contact_area_small_percentage))
+            {
+                bond_contact_area = my_random_value * (bond_contact_area_small_maximum_2 - bond_contact_area_small_minimum_2) + bond_contact_area_small_minimum_2;
             }
         }
     }
