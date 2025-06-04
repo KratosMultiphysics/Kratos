@@ -101,16 +101,16 @@ indexStress3D SmallStrainUDSM3DInterfaceLaw::getIndex3D(const indexStress3DInter
 
 void SmallStrainUDSM3DInterfaceLaw::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainUDSM3DLaw)
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainUDSMLaw)
 }
 
 void SmallStrainUDSM3DInterfaceLaw::load(Serializer& rSerializer){
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUDSM3DLaw)}
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUDSMLaw)}
 
 Vector& SmallStrainUDSM3DInterfaceLaw::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
 {
     if (rVariable == STATE_VARIABLES) {
-        SmallStrainUDSM3DLaw::GetValue(rVariable, rValue);
+        SmallStrainUDSMLaw::GetValue(rVariable, rValue);
     } else if (rVariable == CAUCHY_STRESS_VECTOR) {
         rValue.resize(GetStrainSize());
 
@@ -127,7 +127,7 @@ void SmallStrainUDSM3DInterfaceLaw::SetValue(const Variable<Vector>& rVariable,
                                              const ProcessInfo&      rCurrentProcessInfo)
 {
     if (rVariable == STATE_VARIABLES) {
-        SmallStrainUDSM3DLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
+        SmallStrainUDSMLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
     } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == GetStrainSize())) {
         this->SetInternalStressVector(rValue);
     }

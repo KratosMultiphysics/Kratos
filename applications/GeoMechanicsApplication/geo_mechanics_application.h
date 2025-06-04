@@ -991,8 +991,8 @@ private:
     const GeoIncrementalLinearElasticLaw mLinearElastic3DLaw{std::make_unique<ThreeDimensional>()};
     const GeoLinearElasticPlaneStress2DLaw mLinearElasticPlaneStress2DLaw;
 
-    const SmallStrainUDSM3DLaw mSmallStrainUDSM2DPlaneStrainLaw{std::make_unique<PlaneStrain>()};
-    const SmallStrainUDSM3DLaw mSmallStrainUDSM3DLaw{std::make_unique<ThreeDimensional>()};
+    const SmallStrainUDSMLaw mSmallStrainUDSM2DPlaneStrainLaw{std::make_unique<PlaneStrain>()};
+    const SmallStrainUDSMLaw mSmallStrainUDSM3DLaw{std::make_unique<ThreeDimensional>()};
     const SmallStrainUDSM2DInterfaceLaw mSmallStrainUDSM2DInterfaceLaw{};
     const SmallStrainUDSM3DInterfaceLaw mSmallStrainUDSM3DInterfaceLaw{};
 

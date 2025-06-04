@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUDSM3DInterfaceLaw : public SmallStrainUDSM3DLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUDSM3DInterfaceLaw : public SmallStrainUDSMLaw
 {
 public:
     // The base class ConstitutiveLaw type definition
@@ -33,10 +33,10 @@ public:
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
     Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override;
-    using SmallStrainUDSM3DLaw::GetValue;
+    using SmallStrainUDSMLaw::GetValue;
 
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
-    using SmallStrainUDSM3DLaw::SetValue;
+    using SmallStrainUDSMLaw::SetValue;
 
     SizeType WorkingSpaceDimension() override;
 

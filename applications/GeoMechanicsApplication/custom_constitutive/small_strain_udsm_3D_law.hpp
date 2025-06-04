@@ -76,7 +76,7 @@ using pF_UserMod          = void (*)(int*,
                             int*,
                             int*);
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUDSM3DLaw : public ConstitutiveLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUDSMLaw : public ConstitutiveLaw
 {
 public:
     using SizeType = std::size_t;
@@ -88,18 +88,18 @@ public:
     static constexpr SizeType StrainIncrementVectorSize = 12;
 
     /// Pointer definition of SmallStrainUDSM3DLaw
-    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUDSM3DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUDSMLaw);
 
-    explicit SmallStrainUDSM3DLaw(std::unique_ptr<ConstitutiveLawDimension> pDimension = nullptr);
-    ~SmallStrainUDSM3DLaw() override;
+    explicit SmallStrainUDSMLaw(std::unique_ptr<ConstitutiveLawDimension> pDimension = nullptr);
+    ~SmallStrainUDSMLaw() override;
 
     // This constitutive law cannot be copied. Use member function `Clone` instead.
-    SmallStrainUDSM3DLaw(const SmallStrainUDSM3DLaw&)            = delete;
-    SmallStrainUDSM3DLaw& operator=(const SmallStrainUDSM3DLaw&) = delete;
+    SmallStrainUDSMLaw(const SmallStrainUDSMLaw&)            = delete;
+    SmallStrainUDSMLaw& operator=(const SmallStrainUDSMLaw&) = delete;
 
     // This constitutive law can be moved
-    SmallStrainUDSM3DLaw(SmallStrainUDSM3DLaw&&) noexcept;
-    SmallStrainUDSM3DLaw& operator=(SmallStrainUDSM3DLaw&&) noexcept;
+    SmallStrainUDSMLaw(SmallStrainUDSMLaw&&) noexcept;
+    SmallStrainUDSMLaw& operator=(SmallStrainUDSMLaw&&) noexcept;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
@@ -187,7 +187,7 @@ protected:
     virtual void SetInternalStrainVector(const Vector& rStrainVector);
     virtual void CopyConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix);
 
-    void CloneDataMembersTo(SmallStrainUDSM3DLaw& rDestination) const;
+    void CloneDataMembersTo(SmallStrainUDSMLaw& rDestination) const;
 
     void CalculateConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix);
     void CalculateStress(Parameters& rValues, Vector& rStressVector);
