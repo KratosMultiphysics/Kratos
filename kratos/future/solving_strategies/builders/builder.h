@@ -214,13 +214,7 @@ public:
         TSparseMatrixType& rConstraintsRelationMatrix,
         TSparseVectorType& rConstraintsConstantVector)
     {
-        if (mBuildType == BuildType::Block) {
-            BlockConstructMasterSlaveConstraintsStructure(rModelPart, rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector);
-        } else if (mBuildType == BuildType::Elimination) {
-            EliminationConstructMasterSlaveConstraintsStructure(rModelPart, rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector);
-        } else {
-            KRATOS_ERROR << "Build type not supported." << std::endl;
-        }
+        KRATOS_ERROR << "Calling base class ConstructMasterSlaveConstraintsStructure." << std::endl;
     }
 
     virtual void SetUpSparseGraph(TSparseGraphType& rSparseGraph)
@@ -282,161 +276,161 @@ public:
         return mEquationSystemSize;
     }
 
-    virtual void Assemble(
-        TSparseMatrixType& rLHS,
-        TSparseVectorType& rRHS,
-        TThreadLocalStorage& rTLS)
-    {
-        // Call the implementation of the function with building type template argument
-        if (mBuildType == BuildType::Block) {
-            AssembleImplementation<BuildType::Block>(rLHS, rRHS, rTLS);
-        } else if (mBuildType == BuildType::Elimination) {
-            AssembleImplementation<BuildType::Elimination>(rLHS, rRHS, rTLS);
-        } else {
-            KRATOS_ERROR << "Not implemented build type." << std::endl;
-        }
-    }
+    // virtual void Assemble(
+    //     TSparseMatrixType& rLHS,
+    //     TSparseVectorType& rRHS,
+    //     TThreadLocalStorage& rTLS)
+    // {
+    //     // Call the implementation of the function with building type template argument
+    //     if (mBuildType == BuildType::Block) {
+    //         AssembleImplementation<BuildType::Block>(rLHS, rRHS, rTLS);
+    //     } else if (mBuildType == BuildType::Elimination) {
+    //         AssembleImplementation<BuildType::Elimination>(rLHS, rRHS, rTLS);
+    //     } else {
+    //         KRATOS_ERROR << "Not implemented build type." << std::endl;
+    //     }
+    // }
 
-    virtual void Assemble(
-        TSparseMatrixType& rLHS,
-        TThreadLocalStorage& rTLS)
-    {
-        // Call the implementation of the function with building type template argument
-        if (mBuildType == BuildType::Block) {
-            AssembleImplementation<BuildType::Block>(rLHS, rTLS);
-        } else if (mBuildType == BuildType::Elimination) {
-            AssembleImplementation<BuildType::Elimination>(rLHS, rTLS);
-        } else {
-            KRATOS_ERROR << "Not implemented build type." << std::endl;
-        }
-    }
+    // virtual void Assemble(
+    //     TSparseMatrixType& rLHS,
+    //     TThreadLocalStorage& rTLS)
+    // {
+    //     // Call the implementation of the function with building type template argument
+    //     if (mBuildType == BuildType::Block) {
+    //         AssembleImplementation<BuildType::Block>(rLHS, rTLS);
+    //     } else if (mBuildType == BuildType::Elimination) {
+    //         AssembleImplementation<BuildType::Elimination>(rLHS, rTLS);
+    //     } else {
+    //         KRATOS_ERROR << "Not implemented build type." << std::endl;
+    //     }
+    // }
 
-    virtual void Assemble(
-        TSparseVectorType& rRHS,
-        TThreadLocalStorage& rTLS,
-        const bool AssembleReactionVector = false)
-    {
-        // Call the implementation of the function with building type template argument
-        if (mBuildType == BuildType::Block) {
-            AssembleImplementation<BuildType::Block, false>(rRHS, rTLS);
-        } else if (mBuildType == BuildType::Elimination) {
-            if (AssembleReactionVector) {
-                AssembleImplementation<BuildType::Elimination, true>(rRHS, rTLS);
-            } else {
-                AssembleImplementation<BuildType::Elimination, false>(rRHS, rTLS);
-            }
-        } else {
-            KRATOS_ERROR << "Not implemented build type." << std::endl;
-        }
-    }
+    // virtual void Assemble(
+    //     TSparseVectorType& rRHS,
+    //     TThreadLocalStorage& rTLS,
+    //     const bool AssembleReactionVector = false)
+    // {
+    //     // Call the implementation of the function with building type template argument
+    //     if (mBuildType == BuildType::Block) {
+    //         AssembleImplementation<BuildType::Block, false>(rRHS, rTLS);
+    //     } else if (mBuildType == BuildType::Elimination) {
+    //         if (AssembleReactionVector) {
+    //             AssembleImplementation<BuildType::Elimination, true>(rRHS, rTLS);
+    //         } else {
+    //             AssembleImplementation<BuildType::Elimination, false>(rRHS, rTLS);
+    //         }
+    //     } else {
+    //         KRATOS_ERROR << "Not implemented build type." << std::endl;
+    //     }
+    // }
 
-    virtual void AssembleMasterSlaveConstraints(
-        const DofsArrayType& rDofSet,
-        const EffectiveDofsMapType& rDofIdMap,
-        TSparseMatrixType& rConstraintsRelationMatrix,
-        TSparseVectorType& rConstraintsConstantVector,
-        TThreadLocalStorage& rTLS)
-    {
-        // Getting constraints to be assembled
-        const auto& r_consts = mpModelPart->MasterSlaveConstraints();
-        const auto& r_process_info = mpModelPart->GetProcessInfo();
+    // virtual void AssembleMasterSlaveConstraints(
+    //     const DofsArrayType& rDofSet,
+    //     const EffectiveDofsMapType& rDofIdMap,
+    //     TSparseMatrixType& rConstraintsRelationMatrix,
+    //     TSparseVectorType& rConstraintsConstantVector,
+    //     TThreadLocalStorage& rTLS)
+    // {
+    //     // Getting constraints to be assembled
+    //     const auto& r_consts = mpModelPart->MasterSlaveConstraints();
+    //     const auto& r_process_info = mpModelPart->GetProcessInfo();
 
-        // Getting constraints container data
-        auto consts_begin = r_consts.begin();
-        const std::size_t n_consts = r_consts.size();
+    //     // Getting constraints container data
+    //     auto consts_begin = r_consts.begin();
+    //     const std::size_t n_consts = r_consts.size();
 
-        // Initialize constraints arrays
-        rConstraintsRelationMatrix.SetValue(0.0);
-        rConstraintsConstantVector.SetValue(0.0);
+    //     // Initialize constraints arrays
+    //     rConstraintsRelationMatrix.SetValue(0.0);
+    //     rConstraintsConstantVector.SetValue(0.0);
 
-        // We clear the inactive DOFs set
-        mInactiveSlaveDofs.clear();
+    //     // We clear the inactive DOFs set
+    //     mInactiveSlaveDofs.clear();
 
-        rConstraintsRelationMatrix.BeginAssemble();
-        rConstraintsConstantVector.BeginAssemble();
+    //     rConstraintsRelationMatrix.BeginAssemble();
+    //     rConstraintsConstantVector.BeginAssemble();
 
-        #pragma omp parallel firstprivate(rDofIdMap, consts_begin, r_process_info)
-        {
-            // Auxiliary set to store the inactive constraints slave DOFs (required by the block build)
-            std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;
+    //     #pragma omp parallel firstprivate(rDofIdMap, consts_begin, r_process_info)
+    //     {
+    //         // Auxiliary set to store the inactive constraints slave DOFs (required by the block build)
+    //         std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;
 
-            // Assemble constraints
-            if (mpConstraintAssemblyFunction != nullptr) {
-                # pragma omp for schedule(guided, 512) nowait
-                for (int k = 0; k < n_consts; ++k) {
-                    // Calculate local contributions
-                    auto it_const = consts_begin + k;
-                    const bool assemble_const = (*mpConstraintAssemblyFunction)(it_const, r_process_info, rTLS);
+    //         // Assemble constraints
+    //         if (mpConstraintAssemblyFunction != nullptr) {
+    //             # pragma omp for schedule(guided, 512) nowait
+    //             for (int k = 0; k < n_consts; ++k) {
+    //                 // Calculate local contributions
+    //                 auto it_const = consts_begin + k;
+    //                 const bool assemble_const = (*mpConstraintAssemblyFunction)(it_const, r_process_info, rTLS);
 
-                    // Set the master and slave equation ids
-                    // Note that the slaves follow the system equation ids while the masters use the effective map ones
-                    const auto& r_slave_dofs = it_const->GetSlaveDofsVector();
-                    auto& r_slave_eq_ids = GetThreadLocalStorageSlaveEqIds(rTLS);
-                    const std::size_t n_slaves = r_slave_dofs.size();
-                    if (r_slave_eq_ids.size() != n_slaves) {
-                        r_slave_eq_ids.resize(n_slaves);
-                    }
-                    for (IndexType i_slave = 0; i_slave < n_slaves; ++i_slave) {
-                        r_slave_eq_ids[i_slave] = (*(r_slave_dofs.begin() + i_slave))->EquationId();
-                    }
+    //                 // Set the master and slave equation ids
+    //                 // Note that the slaves follow the system equation ids while the masters use the effective map ones
+    //                 const auto& r_slave_dofs = it_const->GetSlaveDofsVector();
+    //                 auto& r_slave_eq_ids = GetThreadLocalStorageSlaveEqIds(rTLS);
+    //                 const std::size_t n_slaves = r_slave_dofs.size();
+    //                 if (r_slave_eq_ids.size() != n_slaves) {
+    //                     r_slave_eq_ids.resize(n_slaves);
+    //                 }
+    //                 for (IndexType i_slave = 0; i_slave < n_slaves; ++i_slave) {
+    //                     r_slave_eq_ids[i_slave] = (*(r_slave_dofs.begin() + i_slave))->EquationId();
+    //                 }
 
-                    const auto& r_master_dofs = it_const->GetMasterDofsVector();
-                    auto& r_master_eq_ids = GetThreadLocalStorageMasterEqIds(rTLS);
-                    const std::size_t n_masters = r_master_dofs.size();
-                    if (r_master_eq_ids.size() != n_masters) {
-                        r_master_eq_ids.resize(n_masters);
-                    }
-                    for (IndexType i_master = 0; i_master < n_masters; ++i_master) {
-                        auto p_master = *(r_master_dofs.begin() + i_master);
-                        auto p_master_find = rDofIdMap.find(p_master);
-                        KRATOS_ERROR_IF(p_master_find == rDofIdMap.end()) << "Master DOF cannot be found in DOF ids map." << std::endl;
-                        r_master_eq_ids[i_master] = p_master_find->second;
-                    }
+    //                 const auto& r_master_dofs = it_const->GetMasterDofsVector();
+    //                 auto& r_master_eq_ids = GetThreadLocalStorageMasterEqIds(rTLS);
+    //                 const std::size_t n_masters = r_master_dofs.size();
+    //                 if (r_master_eq_ids.size() != n_masters) {
+    //                     r_master_eq_ids.resize(n_masters);
+    //                 }
+    //                 for (IndexType i_master = 0; i_master < n_masters; ++i_master) {
+    //                     auto p_master = *(r_master_dofs.begin() + i_master);
+    //                     auto p_master_find = rDofIdMap.find(p_master);
+    //                     KRATOS_ERROR_IF(p_master_find == rDofIdMap.end()) << "Master DOF cannot be found in DOF ids map." << std::endl;
+    //                     r_master_eq_ids[i_master] = p_master_find->second;
+    //                 }
 
-                    // Assemble the constraints local contributions to the global system
-                    if (assemble_const) {
-                        // Assemble relation matrix contribution
-                        const auto& r_loc_T = GetThreadLocalStorageContainer(rConstraintsRelationMatrix, rTLS);
-                        rConstraintsRelationMatrix.Assemble(r_loc_T, r_slave_eq_ids, r_master_eq_ids);
+    //                 // Assemble the constraints local contributions to the global system
+    //                 if (assemble_const) {
+    //                     // Assemble relation matrix contribution
+    //                     const auto& r_loc_T = GetThreadLocalStorageContainer(rConstraintsRelationMatrix, rTLS);
+    //                     rConstraintsRelationMatrix.Assemble(r_loc_T, r_slave_eq_ids, r_master_eq_ids);
 
-                        // Assemble constant vector contribution
-                        const auto& r_loc_v = GetThreadLocalStorageContainer(rConstraintsConstantVector, rTLS);
-                        rConstraintsConstantVector.Assemble(r_loc_v, r_slave_eq_ids);
-                    } else {
-                        auxiliar_inactive_slave_dofs.insert(r_slave_eq_ids.begin(), r_slave_eq_ids.end());
-                    }
-                }
+    //                     // Assemble constant vector contribution
+    //                     const auto& r_loc_v = GetThreadLocalStorageContainer(rConstraintsConstantVector, rTLS);
+    //                     rConstraintsConstantVector.Assemble(r_loc_v, r_slave_eq_ids);
+    //                 } else {
+    //                     auxiliar_inactive_slave_dofs.insert(r_slave_eq_ids.begin(), r_slave_eq_ids.end());
+    //                 }
+    //             }
 
-                // We merge all the sets in one thread
-                #pragma omp critical
-                {
-                    mInactiveSlaveDofs.insert(auxiliar_inactive_slave_dofs.begin(), auxiliar_inactive_slave_dofs.end());
-                }
-            }
-        }
+    //             // We merge all the sets in one thread
+    //             #pragma omp critical
+    //             {
+    //                 mInactiveSlaveDofs.insert(auxiliar_inactive_slave_dofs.begin(), auxiliar_inactive_slave_dofs.end());
+    //             }
+    //         }
+    //     }
 
-        rConstraintsRelationMatrix.FinalizeAssemble();
-        rConstraintsConstantVector.FinalizeAssemble();
+    //     rConstraintsRelationMatrix.FinalizeAssemble();
+    //     rConstraintsConstantVector.FinalizeAssemble();
 
-        // Setting the missing effective but not constrain-related DOFs into the T and C system
-        // For doing so we loop the standard DOF array (the one from elements and conditions)
-        // We search for each DOF in the effective DOF ids map, if present it means its effective
-        IndexPartition<IndexType>(rDofSet.size()).for_each([&](IndexType Index){
-            const auto p_dof = *(rDofSet.ptr_begin() + Index);
-            const auto p_dof_find = rDofIdMap.find(p_dof);
-            if (p_dof_find != rDofIdMap.end()) {
-                rConstraintsConstantVector[p_dof->EquationId()] = 0.0;
-                rConstraintsRelationMatrix(p_dof->EquationId(), p_dof_find->second) = 1.0;
-            }
-        });
+    //     // Setting the missing effective but not constrain-related DOFs into the T and C system
+    //     // For doing so we loop the standard DOF array (the one from elements and conditions)
+    //     // We search for each DOF in the effective DOF ids map, if present it means its effective
+    //     IndexPartition<IndexType>(rDofSet.size()).for_each([&](IndexType Index){
+    //         const auto p_dof = *(rDofSet.ptr_begin() + Index);
+    //         const auto p_dof_find = rDofIdMap.find(p_dof);
+    //         if (p_dof_find != rDofIdMap.end()) {
+    //             rConstraintsConstantVector[p_dof->EquationId()] = 0.0;
+    //             rConstraintsRelationMatrix(p_dof->EquationId(), p_dof_find->second) = 1.0;
+    //         }
+    //     });
 
-        // Setting inactive slave dofs in the T and C system
-        //TODO: Can't this be parallel?
-        for (auto eq_id : mInactiveSlaveDofs) {
-            rConstraintsConstantVector[eq_id] = 0.0;
-            rConstraintsRelationMatrix(eq_id, eq_id) = 1.0;
-        }
-    }
+    //     // Setting inactive slave dofs in the T and C system
+    //     //TODO: Can't this be parallel?
+    //     for (auto eq_id : mInactiveSlaveDofs) {
+    //         rConstraintsConstantVector[eq_id] = 0.0;
+    //         rConstraintsRelationMatrix(eq_id, eq_id) = 1.0;
+    //     }
+    // }
 
     virtual void ApplyMasterSlaveConstraints(
         typename TSparseMatrixType::Pointer& rpLhs,
@@ -518,43 +512,43 @@ public:
         }
     }
 
-    virtual void CalculateReactionsRightHandSide(
-        const DofsArrayType& rDofSet,
-        TSparseVectorType& rRHS,
-        TThreadLocalStorage& rTLS)
-    {
-        // Initialize the provided RHS (note that this has been potentially used in the system resolution)
-        rRHS.SetValue(DataType());
+    // virtual void CalculateReactionsRightHandSide(
+    //     const DofsArrayType& rDofSet,
+    //     TSparseVectorType& rRHS,
+    //     TThreadLocalStorage& rTLS)
+    // {
+    //     // Initialize the provided RHS (note that this has been potentially used in the system resolution)
+    //     rRHS.SetValue(DataType());
 
-        if (mBuildType == BuildType::Block) {
-            // Do the block RHS assembly without Dirichlet BCs
-            AssembleImplementation<BuildType::Block, false>(rRHS, rTLS);
+    //     if (mBuildType == BuildType::Block) {
+    //         // Do the block RHS assembly without Dirichlet BCs
+    //         AssembleImplementation<BuildType::Block, false>(rRHS, rTLS);
 
-            // Set minus the RHS as reaction values
-            // Note that in the block build DOFs are assumed to be numbered consecutively
-            block_for_each(rDofSet, [&](DofType& rDof){
-                rDof.GetSolutionStepReactionValue() = -rRHS[rDof.EquationId()];
-            });
-        } else if (mBuildType == BuildType::Elimination) {
-            //FIXME: This is wrong
-            // Do the elimination RHS assembly without Dirichlet BCs
-            AssembleImplementation<BuildType::Elimination, true>(rRHS, rTLS);
+    //         // Set minus the RHS as reaction values
+    //         // Note that in the block build DOFs are assumed to be numbered consecutively
+    //         block_for_each(rDofSet, [&](DofType& rDof){
+    //             rDof.GetSolutionStepReactionValue() = -rRHS[rDof.EquationId()];
+    //         });
+    //     } else if (mBuildType == BuildType::Elimination) {
+    //         //FIXME: This is wrong
+    //         // Do the elimination RHS assembly without Dirichlet BCs
+    //         AssembleImplementation<BuildType::Elimination, true>(rRHS, rTLS);
 
-            // Set minus the RHS as reaction values
-            // Note that in the elimination case the fix DOFs residuals are stored in the mpReactionsVector
-            auto& r_reactions_vector = *mpReactionsVector;
-            block_for_each(rDofSet, [&](DofType& rDof){
-                IndexType i_react = rDof.EquationId();
-                if (i_react >= mEquationSystemSize) { // Check if current DOF is fixed
-                    i_react -= mEquationSystemSize; // Get the corresponding row index in the reactions vector
-                    rDof.GetSolutionStepReactionValue() = - r_reactions_vector[i_react];
-                }
-            });
-            //FIXME: This is wrong
-        } else {
-            KRATOS_ERROR << "Build type not supported." << std::endl;
-        }
-    }
+    //         // Set minus the RHS as reaction values
+    //         // Note that in the elimination case the fix DOFs residuals are stored in the mpReactionsVector
+    //         auto& r_reactions_vector = *mpReactionsVector;
+    //         block_for_each(rDofSet, [&](DofType& rDof){
+    //             IndexType i_react = rDof.EquationId();
+    //             if (i_react >= mEquationSystemSize) { // Check if current DOF is fixed
+    //                 i_react -= mEquationSystemSize; // Get the corresponding row index in the reactions vector
+    //                 rDof.GetSolutionStepReactionValue() = - r_reactions_vector[i_react];
+    //             }
+    //         });
+    //         //FIXME: This is wrong
+    //     } else {
+    //         KRATOS_ERROR << "Build type not supported." << std::endl;
+    //     }
+    // }
 
     virtual double GetDiagonalScalingFactor(const TSparseMatrixType& rLHS) const
     {
@@ -617,11 +611,6 @@ public:
     {
         // Clear the system info
         mEquationSystemSize = 0;
-
-        // Clear the assembly functions
-        mpElementAssemblyFunction = nullptr;
-        mpConditionAssemblyFunction = nullptr;
-        mpConstraintAssemblyFunction = nullptr;
     }
 
     ///@}
@@ -633,27 +622,27 @@ public:
         return mEquationSystemSize;
     }
 
-    void SetElementAssemblyFunction(ElementAssemblyFunctionType rElementAssemblyFunction)
-    {
-        auto p_aux = std::make_unique<ElementAssemblyFunctionType>(rElementAssemblyFunction);
-        mpElementAssemblyFunction.swap(p_aux);
-        KRATOS_INFO_IF("Builder", mEchoLevel > 1) << "Element assembly function set." << std::endl;
-    }
+    // void SetElementAssemblyFunction(ElementAssemblyFunctionType rElementAssemblyFunction)
+    // {
+    //     auto p_aux = std::make_unique<ElementAssemblyFunctionType>(rElementAssemblyFunction);
+    //     mpElementAssemblyFunction.swap(p_aux);
+    //     KRATOS_INFO_IF("Builder", mEchoLevel > 1) << "Element assembly function set." << std::endl;
+    // }
 
-    void SetConditionAssemblyFunction(ConditionAssemblyFunctionType rConditionAssemblyFunction)
-    {
-        auto p_aux = std::make_unique<ConditionAssemblyFunctionType>(rConditionAssemblyFunction);
-        mpConditionAssemblyFunction.swap(p_aux);
-        KRATOS_INFO_IF("Builder", mEchoLevel > 1) << "Condition assembly function set." << std::endl;
-    }
+    // void SetConditionAssemblyFunction(ConditionAssemblyFunctionType rConditionAssemblyFunction)
+    // {
+    //     auto p_aux = std::make_unique<ConditionAssemblyFunctionType>(rConditionAssemblyFunction);
+    //     mpConditionAssemblyFunction.swap(p_aux);
+    //     KRATOS_INFO_IF("Builder", mEchoLevel > 1) << "Condition assembly function set." << std::endl;
+    // }
 
-    //TODO: For sure we'll need to modify this one
-    void SetConstraintAssemblyFunction(ConstraintAssemblyFunctionType rConstraintAssemblyFunction)
-    {
-        auto p_aux = std::make_unique<ConstraintAssemblyFunctionType>(rConstraintAssemblyFunction);
-        mpConstraintAssemblyFunction.swap(p_aux);
-        KRATOS_INFO_IF("Builder", mEchoLevel > 1) << "Constraint assembly function set." << std::endl;
-    }
+    // //TODO: For sure we'll need to modify this one
+    // void SetConstraintAssemblyFunction(ConstraintAssemblyFunctionType rConstraintAssemblyFunction)
+    // {
+    //     auto p_aux = std::make_unique<ConstraintAssemblyFunctionType>(rConstraintAssemblyFunction);
+    //     mpConstraintAssemblyFunction.swap(p_aux);
+    //     KRATOS_INFO_IF("Builder", mEchoLevel > 1) << "Constraint assembly function set." << std::endl;
+    // }
 
     ///@}
 private:
@@ -672,345 +661,336 @@ private:
 
     std::size_t mEquationSystemSize = 0; /// Number of degrees of freedom of the problem to be solved
 
-    //TODO: study performance if we get rid of the pointer to the assembly function (pass them by argument)
-    std::unique_ptr<ElementAssemblyFunctionType> mpElementAssemblyFunction = nullptr; // Pointer to the function to be called in the elements assembly
-
-    //TODO: study performance if we get rid of the pointer to the assembly function (pass them by argument)
-    std::unique_ptr<ConditionAssemblyFunctionType> mpConditionAssemblyFunction = nullptr; // Pointer to the function to be called in the conditions assembly
-
-    //TODO: study performance if we get rid of the pointer to the assembly function (pass them by argument)
-    std::unique_ptr<ConstraintAssemblyFunctionType> mpConstraintAssemblyFunction = nullptr; // Pointer to the function to be called in the constraints assembly
-
     typename TSparseVectorType::Pointer mpReactionsVector = nullptr; // Auxiliary vector to calculate the reactions in the elimination build
 
     // std::vector<IndexType> mSlaveIds; /// Vector containing the equation ids of the slaves
 
     // std::vector<IndexType> mMasterIds; /// Vector containing the equation ids of the master
 
-    std::unordered_set<IndexType> mInactiveSlaveDofs; /// The set containing the inactive slave DOFs (only used in the block build)
+    // std::unordered_set<IndexType> mInactiveSlaveDofs; /// The set containing the inactive slave DOFs (only used in the block build)
 
     ///@}
     ///@name Private Operations
     ///@{
 
-    template<BuildType TBuildType>
-    void AssembleImplementation(
-        TSparseMatrixType& rLHS,
-        TSparseVectorType& rRHS,
-        TThreadLocalStorage& rTLS)
-    {
-        // Getting conditions and elements to be assembled
-        const auto& r_elems = mpModelPart->Elements();
-        const auto& r_conds = mpModelPart->Conditions();
-        const auto& r_process_info = mpModelPart->GetProcessInfo();
+    // template<BuildType TBuildType>
+    // void AssembleImplementation(
+    //     TSparseMatrixType& rLHS,
+    //     TSparseVectorType& rRHS,
+    //     TThreadLocalStorage& rTLS)
+    // {
+    //     // Getting conditions and elements to be assembled
+    //     const auto& r_elems = mpModelPart->Elements();
+    //     const auto& r_conds = mpModelPart->Conditions();
+    //     const auto& r_process_info = mpModelPart->GetProcessInfo();
 
-        // Getting entities container data
-        auto elems_begin = r_elems.begin();
-        auto conds_begin = r_conds.begin();
-        const std::size_t n_elems = r_elems.size();
-        const std::size_t n_conds = r_conds.size();
+    //     // Getting entities container data
+    //     auto elems_begin = r_elems.begin();
+    //     auto conds_begin = r_conds.begin();
+    //     const std::size_t n_elems = r_elems.size();
+    //     const std::size_t n_conds = r_conds.size();
 
-        // Initialize RHS and LHS assembly
-        rRHS.BeginAssemble();
-        rLHS.BeginAssemble();
+    //     // Initialize RHS and LHS assembly
+    //     rRHS.BeginAssemble();
+    //     rLHS.BeginAssemble();
 
-        // Assemble entities
-        #pragma omp parallel firstprivate(n_elems, n_conds, elems_begin, conds_begin, r_process_info, rTLS)
-        {
-            // Assemble elements
-            if (mpElementAssemblyFunction != nullptr) {
-                # pragma omp for schedule(guided, 512) nowait
-                for (int k = 0; k < n_elems; ++k) {
-                    // Calculate local LHS and RHS contributions
-                    auto it_elem = elems_begin + k;
-                    const bool assemble = (*mpElementAssemblyFunction)(it_elem, r_process_info, rTLS);
+    //     // Assemble entities
+    //     #pragma omp parallel firstprivate(n_elems, n_conds, elems_begin, conds_begin, r_process_info, rTLS)
+    //     {
+    //         // Assemble elements
+    //         if (mpElementAssemblyFunction != nullptr) {
+    //             # pragma omp for schedule(guided, 512) nowait
+    //             for (int k = 0; k < n_elems; ++k) {
+    //                 // Calculate local LHS and RHS contributions
+    //                 auto it_elem = elems_begin + k;
+    //                 const bool assemble = (*mpElementAssemblyFunction)(it_elem, r_process_info, rTLS);
 
-                    // Assemble the local contributions to the global system
-                    if (assemble) {
-                        AssembleLocalContribution<TBuildType>(rTLS, rLHS, rRHS);
-                    }
-                }
-            }
+    //                 // Assemble the local contributions to the global system
+    //                 if (assemble) {
+    //                     AssembleLocalContribution<TBuildType>(rTLS, rLHS, rRHS);
+    //                 }
+    //             }
+    //         }
 
-            // Assemble conditions
-            if (mpConditionAssemblyFunction != nullptr) {
-                # pragma omp for schedule(guided, 512)
-                for (int k = 0; k < n_conds; ++k) {
-                    // Calculate local LHS and RHS contributions
-                    auto it_cond = conds_begin + k;
-                    const bool assemble = (*mpConditionAssemblyFunction)(it_cond, r_process_info, rTLS);
+    //         // Assemble conditions
+    //         if (mpConditionAssemblyFunction != nullptr) {
+    //             # pragma omp for schedule(guided, 512)
+    //             for (int k = 0; k < n_conds; ++k) {
+    //                 // Calculate local LHS and RHS contributions
+    //                 auto it_cond = conds_begin + k;
+    //                 const bool assemble = (*mpConditionAssemblyFunction)(it_cond, r_process_info, rTLS);
 
-                    // Assemble the local contributions to the global system
-                    if (assemble) {
-                        AssembleLocalContribution<TBuildType>(rTLS, rLHS, rRHS);
-                    }
-                }
-            }
-        }
+    //                 // Assemble the local contributions to the global system
+    //                 if (assemble) {
+    //                     AssembleLocalContribution<TBuildType>(rTLS, rLHS, rRHS);
+    //                 }
+    //             }
+    //         }
+    //     }
 
-        // Finalize RHS and LHS assembly
-        rRHS.FinalizeAssemble();
-        rLHS.FinalizeAssemble();
-    }
+    //     // Finalize RHS and LHS assembly
+    //     rRHS.FinalizeAssemble();
+    //     rLHS.FinalizeAssemble();
+    // }
 
-    template<BuildType TBuildType>
-    void AssembleImplementation(
-        TSparseMatrixType& rLHS,
-        TThreadLocalStorage& rTLS)
-    {
-        // Getting conditions and elements to be assembled
-        const auto& r_elems = mpModelPart->Elements();
-        const auto& r_conds = mpModelPart->Conditions();
-        const auto& r_process_info = mpModelPart->GetProcessInfo();
+    // template<BuildType TBuildType>
+    // void AssembleImplementation(
+    //     TSparseMatrixType& rLHS,
+    //     TThreadLocalStorage& rTLS)
+    // {
+    //     // Getting conditions and elements to be assembled
+    //     const auto& r_elems = mpModelPart->Elements();
+    //     const auto& r_conds = mpModelPart->Conditions();
+    //     const auto& r_process_info = mpModelPart->GetProcessInfo();
 
-        // Getting entities container data
-        auto elems_begin = r_elems.begin();
-        auto conds_begin = r_conds.begin();
-        const std::size_t n_elems = r_elems.size();
-        const std::size_t n_conds = r_conds.size();
+    //     // Getting entities container data
+    //     auto elems_begin = r_elems.begin();
+    //     auto conds_begin = r_conds.begin();
+    //     const std::size_t n_elems = r_elems.size();
+    //     const std::size_t n_conds = r_conds.size();
 
-        // Initialize LHS assembly
-        rLHS.BeginAssemble();
+    //     // Initialize LHS assembly
+    //     rLHS.BeginAssemble();
 
-        // Assemble entities
-        #pragma omp parallel firstprivate(n_elems, n_conds, elems_begin, conds_begin, r_process_info, rTLS)
-        {
-            // Assemble elements
-            if (mpElementAssemblyFunction != nullptr) {
-                # pragma omp for schedule(guided, 512) nowait
-                for (int k = 0; k < n_elems; ++k) {
-                    // Calculate local LHS contributions
-                    auto it_elem = elems_begin + k;
-                    const bool assemble = (*mpElementAssemblyFunction)(it_elem, r_process_info, rTLS);
+    //     // Assemble entities
+    //     #pragma omp parallel firstprivate(n_elems, n_conds, elems_begin, conds_begin, r_process_info, rTLS)
+    //     {
+    //         // Assemble elements
+    //         if (mpElementAssemblyFunction != nullptr) {
+    //             # pragma omp for schedule(guided, 512) nowait
+    //             for (int k = 0; k < n_elems; ++k) {
+    //                 // Calculate local LHS contributions
+    //                 auto it_elem = elems_begin + k;
+    //                 const bool assemble = (*mpElementAssemblyFunction)(it_elem, r_process_info, rTLS);
 
-                    // Assemble the local contributions to the global system
-                    if (assemble) {
-                        AssembleLocalContribution<TBuildType>(rTLS, rLHS);
-                    }
-                }
-            }
+    //                 // Assemble the local contributions to the global system
+    //                 if (assemble) {
+    //                     AssembleLocalContribution<TBuildType>(rTLS, rLHS);
+    //                 }
+    //             }
+    //         }
 
-            // Assemble conditions
-            if (mpConditionAssemblyFunction != nullptr) {
-                # pragma omp for schedule(guided, 512)
-                for (int k = 0; k < n_conds; ++k) {
-                    // Calculate local LHS contributions
-                    auto it_cond = conds_begin + k;
-                    const bool assemble = (*mpConditionAssemblyFunction)(it_cond, r_process_info, rTLS);
+    //         // Assemble conditions
+    //         if (mpConditionAssemblyFunction != nullptr) {
+    //             # pragma omp for schedule(guided, 512)
+    //             for (int k = 0; k < n_conds; ++k) {
+    //                 // Calculate local LHS contributions
+    //                 auto it_cond = conds_begin + k;
+    //                 const bool assemble = (*mpConditionAssemblyFunction)(it_cond, r_process_info, rTLS);
 
-                    // Assemble the local contributions to the global system
-                    if (assemble) {
-                        AssembleLocalContribution<TBuildType>(rTLS, rLHS);
-                    }
-                }
-            }
-        }
+    //                 // Assemble the local contributions to the global system
+    //                 if (assemble) {
+    //                     AssembleLocalContribution<TBuildType>(rTLS, rLHS);
+    //                 }
+    //             }
+    //         }
+    //     }
 
-        // Finalize LHS assembly
-        rLHS.FinalizeAssemble();
-    }
+    //     // Finalize LHS assembly
+    //     rLHS.FinalizeAssemble();
+    // }
 
-    template<BuildType TBuildType, bool TAssembleReactionVector>
-    void AssembleImplementation(
-        TSparseVectorType& rRHS,
-        TThreadLocalStorage& rTLS)
-    {
-        // Getting conditions and elements to be assembled
-        const auto& r_elems = mpModelPart->Elements();
-        const auto& r_conds = mpModelPart->Conditions();
-        const auto& r_process_info = mpModelPart->GetProcessInfo();
+    // template<BuildType TBuildType, bool TAssembleReactionVector>
+    // void AssembleImplementation(
+    //     TSparseVectorType& rRHS,
+    //     TThreadLocalStorage& rTLS)
+    // {
+    //     // Getting conditions and elements to be assembled
+    //     const auto& r_elems = mpModelPart->Elements();
+    //     const auto& r_conds = mpModelPart->Conditions();
+    //     const auto& r_process_info = mpModelPart->GetProcessInfo();
 
-        // Getting entities container data
-        auto elems_begin = r_elems.begin();
-        auto conds_begin = r_conds.begin();
-        const std::size_t n_elems = r_elems.size();
-        const std::size_t n_conds = r_conds.size();
+    //     // Getting entities container data
+    //     auto elems_begin = r_elems.begin();
+    //     auto conds_begin = r_conds.begin();
+    //     const std::size_t n_elems = r_elems.size();
+    //     const std::size_t n_conds = r_conds.size();
 
-        // Initialize RHS and LHS assembly
-        rRHS.BeginAssemble();
+    //     // Initialize RHS and LHS assembly
+    //     rRHS.BeginAssemble();
 
-        // Assemble entities
-        #pragma omp parallel firstprivate(n_elems, n_conds, elems_begin, conds_begin, r_process_info, rTLS)
-        {
-            // Assemble elements
-            if (mpElementAssemblyFunction != nullptr) {
-                # pragma omp for schedule(guided, 512) nowait
-                for (int k = 0; k < n_elems; ++k) {
-                    // Calculate local RHS contributions
-                    auto it_elem = elems_begin + k;
-                    const bool assemble = (*mpElementAssemblyFunction)(it_elem, r_process_info, rTLS);
+    //     // Assemble entities
+    //     #pragma omp parallel firstprivate(n_elems, n_conds, elems_begin, conds_begin, r_process_info, rTLS)
+    //     {
+    //         // Assemble elements
+    //         if (mpElementAssemblyFunction != nullptr) {
+    //             # pragma omp for schedule(guided, 512) nowait
+    //             for (int k = 0; k < n_elems; ++k) {
+    //                 // Calculate local RHS contributions
+    //                 auto it_elem = elems_begin + k;
+    //                 const bool assemble = (*mpElementAssemblyFunction)(it_elem, r_process_info, rTLS);
 
-                    // Assemble the local contributions to the global system
-                    if (assemble) {
-                        AssembleLocalContribution<TBuildType, TAssembleReactionVector>(rTLS, rRHS);
-                    }
-                }
-            }
+    //                 // Assemble the local contributions to the global system
+    //                 if (assemble) {
+    //                     AssembleLocalContribution<TBuildType, TAssembleReactionVector>(rTLS, rRHS);
+    //                 }
+    //             }
+    //         }
 
-            // Assemble conditions
-            if (mpConditionAssemblyFunction != nullptr) {
-                # pragma omp for schedule(guided, 512)
-                for (int k = 0; k < n_conds; ++k) {
-                    // Calculate local RHS contributions
-                    auto it_cond = conds_begin + k;
-                    const bool assemble = (*mpConditionAssemblyFunction)(it_cond, r_process_info, rTLS);
+    //         // Assemble conditions
+    //         if (mpConditionAssemblyFunction != nullptr) {
+    //             # pragma omp for schedule(guided, 512)
+    //             for (int k = 0; k < n_conds; ++k) {
+    //                 // Calculate local RHS contributions
+    //                 auto it_cond = conds_begin + k;
+    //                 const bool assemble = (*mpConditionAssemblyFunction)(it_cond, r_process_info, rTLS);
 
-                    // Assemble the local contributions to the global system
-                    if (assemble) {
-                        AssembleLocalContribution<TBuildType, TAssembleReactionVector>(rTLS, rRHS);
-                    }
-                }
-            }
-        }
+    //                 // Assemble the local contributions to the global system
+    //                 if (assemble) {
+    //                     AssembleLocalContribution<TBuildType, TAssembleReactionVector>(rTLS, rRHS);
+    //                 }
+    //             }
+    //         }
+    //     }
 
-        // Finalize RHS assembly
-        rRHS.FinalizeAssemble();
-    }
+    //     // Finalize RHS assembly
+    //     rRHS.FinalizeAssemble();
+    // }
 
-    template<BuildType TBuildType>
-    void AssembleLocalContribution(
-        const TThreadLocalStorage& rTLS,
-        TSparseMatrixType& rLHS,
-        TSparseVectorType& rRHS)
-    {
-        auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
-        if constexpr (TBuildType == BuildType::Block) {
-            rRHS.Assemble(GetThreadLocalStorageContainer(rRHS, rTLS), r_loc_eq_ids); // RHS contributions assembly
-            rLHS.Assemble(GetThreadLocalStorageContainer(rLHS, rTLS), r_loc_eq_ids); // LHS contributions assembly
+    // template<BuildType TBuildType>
+    // void AssembleLocalContribution(
+    //     const TThreadLocalStorage& rTLS,
+    //     TSparseMatrixType& rLHS,
+    //     TSparseVectorType& rRHS)
+    // {
+    //     auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
+    //     if constexpr (TBuildType == BuildType::Block) {
+    //         rRHS.Assemble(GetThreadLocalStorageContainer(rRHS, rTLS), r_loc_eq_ids); // RHS contributions assembly
+    //         rLHS.Assemble(GetThreadLocalStorageContainer(rLHS, rTLS), r_loc_eq_ids); // LHS contributions assembly
 
-        } else if (TBuildType == BuildType::Elimination) {
-            const auto& r_loc_rhs = GetThreadLocalStorageContainer(rRHS, rTLS);
-            const auto& r_loc_lhs = GetThreadLocalStorageContainer(rLHS, rTLS);
-            const std::size_t loc_size = r_loc_rhs.size();
+    //     } else if (TBuildType == BuildType::Elimination) {
+    //         const auto& r_loc_rhs = GetThreadLocalStorageContainer(rRHS, rTLS);
+    //         const auto& r_loc_lhs = GetThreadLocalStorageContainer(rLHS, rTLS);
+    //         const std::size_t loc_size = r_loc_rhs.size();
 
-            for (IndexType i_loc = 0; i_loc < loc_size; ++i_loc) {
-                IndexType i_glob = r_loc_eq_ids[i_loc];
-                if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
-                    rRHS.AssembleEntry(r_loc_rhs[i_loc], i_glob); // RHS contribution assembly
-                    for (IndexType j_loc = 0; j_loc < loc_size; ++j_loc) {
-                        const IndexType j_glob = r_loc_eq_ids[j_loc];
-                        if (j_glob < mEquationSystemSize) {// Check if current column DOF is free
-                            rLHS.AssembleEntry(r_loc_lhs(i_loc, j_loc), i_glob, j_glob); // LHS contribution assembly
-                        }
-                    }
-                }
-            }
+    //         for (IndexType i_loc = 0; i_loc < loc_size; ++i_loc) {
+    //             IndexType i_glob = r_loc_eq_ids[i_loc];
+    //             if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
+    //                 rRHS.AssembleEntry(r_loc_rhs[i_loc], i_glob); // RHS contribution assembly
+    //                 for (IndexType j_loc = 0; j_loc < loc_size; ++j_loc) {
+    //                     const IndexType j_glob = r_loc_eq_ids[j_loc];
+    //                     if (j_glob < mEquationSystemSize) {// Check if current column DOF is free
+    //                         rLHS.AssembleEntry(r_loc_lhs(i_loc, j_loc), i_glob, j_glob); // LHS contribution assembly
+    //                     }
+    //                 }
+    //             }
+    //         }
 
-        } else {
-            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
-        }
-    }
+    //     } else {
+    //         static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
+    //     }
+    // }
 
-    template<BuildType TBuildType>
-    void AssembleLocalContribution(
-        const TThreadLocalStorage& rTLS,
-        TSparseMatrixType& rLHS)
-    {
-        auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
-        if constexpr (TBuildType == BuildType::Block) {
-            rLHS.Assemble(GetThreadLocalStorageContainer(rLHS, rTLS), r_loc_eq_ids); // LHS contributions assembly
+    // template<BuildType TBuildType>
+    // void AssembleLocalContribution(
+    //     const TThreadLocalStorage& rTLS,
+    //     TSparseMatrixType& rLHS)
+    // {
+    //     auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
+    //     if constexpr (TBuildType == BuildType::Block) {
+    //         rLHS.Assemble(GetThreadLocalStorageContainer(rLHS, rTLS), r_loc_eq_ids); // LHS contributions assembly
 
-        } else if (TBuildType == BuildType::Elimination) {
-            const auto& r_loc_lhs = GetThreadLocalStorageContainer(rLHS, rTLS);
-            const std::size_t loc_size = r_loc_lhs.size1();
+    //     } else if (TBuildType == BuildType::Elimination) {
+    //         const auto& r_loc_lhs = GetThreadLocalStorageContainer(rLHS, rTLS);
+    //         const std::size_t loc_size = r_loc_lhs.size1();
 
-            for (IndexType i_loc = 0; i_loc < loc_size; ++i_loc) {
-                IndexType i_glob = r_loc_eq_ids[i_loc];
-                if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
-                    for (IndexType j_loc = 0; j_loc < loc_size; ++j_loc) {
-                        const IndexType j_glob = r_loc_eq_ids[j_loc];
-                        if (j_glob < mEquationSystemSize) {// Check if current column DOF is free
-                            rLHS.AssembleEntry(r_loc_lhs(i_loc, j_loc), i_glob, j_glob); // LHS contribution assembly
-                        }
-                    }
-                }
-            }
+    //         for (IndexType i_loc = 0; i_loc < loc_size; ++i_loc) {
+    //             IndexType i_glob = r_loc_eq_ids[i_loc];
+    //             if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
+    //                 for (IndexType j_loc = 0; j_loc < loc_size; ++j_loc) {
+    //                     const IndexType j_glob = r_loc_eq_ids[j_loc];
+    //                     if (j_glob < mEquationSystemSize) {// Check if current column DOF is free
+    //                         rLHS.AssembleEntry(r_loc_lhs(i_loc, j_loc), i_glob, j_glob); // LHS contribution assembly
+    //                     }
+    //                 }
+    //             }
+    //         }
 
-        } else {
-            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
-        }
-    }
+    //     } else {
+    //         static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
+    //     }
+    // }
 
-    template<BuildType TBuildType, bool TAssembleReactionVector>
-    void AssembleLocalContribution(
-        const TThreadLocalStorage& rTLS,
-        TSparseVectorType& rRHS)
-    {
-        auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
-        if constexpr (TBuildType == BuildType::Block) {
-            if constexpr (!TAssembleReactionVector) {
-                rRHS.Assemble(GetThreadLocalStorageContainer(rRHS, rTLS), r_loc_eq_ids); // RHS contributions assembly
-            } else {
-                static_assert(TBuildType == BuildType::Block && TAssembleReactionVector == true, "Assemble reaction vector cannot be used with block build type.");
-            }
+    // template<BuildType TBuildType, bool TAssembleReactionVector>
+    // void AssembleLocalContribution(
+    //     const TThreadLocalStorage& rTLS,
+    //     TSparseVectorType& rRHS)
+    // {
+    //     auto& r_loc_eq_ids = GetThreadLocalStorageEqIds(rTLS);
+    //     if constexpr (TBuildType == BuildType::Block) {
+    //         if constexpr (!TAssembleReactionVector) {
+    //             rRHS.Assemble(GetThreadLocalStorageContainer(rRHS, rTLS), r_loc_eq_ids); // RHS contributions assembly
+    //         } else {
+    //             static_assert(TBuildType == BuildType::Block && TAssembleReactionVector == true, "Assemble reaction vector cannot be used with block build type.");
+    //         }
 
-        } else if (TBuildType == BuildType::Elimination) {
-            const auto& r_loc_rhs = GetThreadLocalStorageContainer(rRHS, rTLS);
-            const std::size_t loc_size = r_loc_rhs.size();
-            for (IndexType i_loc = 0; i_loc < loc_size; ++i_loc) {
-                IndexType i_glob = r_loc_eq_ids[i_loc];
-                if constexpr (!TAssembleReactionVector) {
-                    if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
-                        rRHS.AssembleEntry(r_loc_rhs[i_loc], i_glob); // RHS contribution assembly
-                    }
-                } else {
-                    if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
-                        rRHS.AssembleEntry(r_loc_rhs[i_loc], i_glob); // RHS contribution assembly
-                    } else {
-                        const IndexType react_vec_pos = i_glob - mEquationSystemSize;// Get the corresponding position in the reactions vector
-                        mpReactionsVector->AssembleEntry(r_loc_rhs[i_loc], react_vec_pos); // RHS contribution assembly to reactions vector
-                    }
-                }
-            }
+    //     } else if (TBuildType == BuildType::Elimination) {
+    //         const auto& r_loc_rhs = GetThreadLocalStorageContainer(rRHS, rTLS);
+    //         const std::size_t loc_size = r_loc_rhs.size();
+    //         for (IndexType i_loc = 0; i_loc < loc_size; ++i_loc) {
+    //             IndexType i_glob = r_loc_eq_ids[i_loc];
+    //             if constexpr (!TAssembleReactionVector) {
+    //                 if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
+    //                     rRHS.AssembleEntry(r_loc_rhs[i_loc], i_glob); // RHS contribution assembly
+    //                 }
+    //             } else {
+    //                 if (i_glob < mEquationSystemSize) {// Check if current row DOF is free
+    //                     rRHS.AssembleEntry(r_loc_rhs[i_loc], i_glob); // RHS contribution assembly
+    //                 } else {
+    //                     const IndexType react_vec_pos = i_glob - mEquationSystemSize;// Get the corresponding position in the reactions vector
+    //                     mpReactionsVector->AssembleEntry(r_loc_rhs[i_loc], react_vec_pos); // RHS contribution assembly to reactions vector
+    //                 }
+    //             }
+    //         }
 
-        } else {
-            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
-        }
-    }
+    //     } else {
+    //         static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
+    //     }
+    // }
 
-    template<class TContainerType>
-    auto& GetThreadLocalStorageContainer(
-        const TContainerType& rContainer,
-        const TThreadLocalStorage& rTLS)
-    {
-        if constexpr (std::is_same_v<TContainerType, TSparseMatrixType>) {
-            return rTLS.LocalMatrix; // We can eventually do a get method in the TLS and call it in here
-        } else if (std::is_same_v<TContainerType, TSparseVectorType>) {
-            return rTLS.LocalVector; // We can eventually do a get method in the TLS and call it in here
-        } else {
-            static_assert(std::is_same_v<TContainerType, TSparseMatrixType> || std::is_same_v<TContainerType, TSparseVectorType>, "Unsupported container type.");
-        }
-    }
+    // template<class TContainerType>
+    // auto& GetThreadLocalStorageContainer(
+    //     const TContainerType& rContainer,
+    //     const TThreadLocalStorage& rTLS)
+    // {
+    //     if constexpr (std::is_same_v<TContainerType, TSparseMatrixType>) {
+    //         return rTLS.LocalMatrix; // We can eventually do a get method in the TLS and call it in here
+    //     } else if (std::is_same_v<TContainerType, TSparseVectorType>) {
+    //         return rTLS.LocalVector; // We can eventually do a get method in the TLS and call it in here
+    //     } else {
+    //         static_assert(std::is_same_v<TContainerType, TSparseMatrixType> || std::is_same_v<TContainerType, TSparseVectorType>, "Unsupported container type.");
+    //     }
+    // }
 
-    auto& GetThreadLocalStorageEqIds(TThreadLocalStorage& rTLS)
-    {
-        return rTLS.LocalEqIds; // We can eventually do a get method in the TLS and call it in here
-    }
+    // auto& GetThreadLocalStorageEqIds(TThreadLocalStorage& rTLS)
+    // {
+    //     return rTLS.LocalEqIds; // We can eventually do a get method in the TLS and call it in here
+    // }
 
-    auto& GetThreadLocalStorageEqIds(const TThreadLocalStorage& rTLS)
-    {
-        return rTLS.LocalEqIds; // We can eventually do a get method in the TLS and call it in here
-    }
+    // auto& GetThreadLocalStorageEqIds(const TThreadLocalStorage& rTLS)
+    // {
+    //     return rTLS.LocalEqIds; // We can eventually do a get method in the TLS and call it in here
+    // }
 
-    auto& GetThreadLocalStorageSlaveEqIds(TThreadLocalStorage& rTLS)
-    {
-        return rTLS.SlaveEqIds; // We can eventually do a get method in the TLS and call it in here
-    }
+    // auto& GetThreadLocalStorageSlaveEqIds(TThreadLocalStorage& rTLS)
+    // {
+    //     return rTLS.SlaveEqIds; // We can eventually do a get method in the TLS and call it in here
+    // }
 
-    auto& GetThreadLocalStorageSlaveEqIds(const TThreadLocalStorage& rTLS)
-    {
-        return rTLS.SlaveEqIds; // We can eventually do a get method in the TLS and call it in here
-    }
+    // auto& GetThreadLocalStorageSlaveEqIds(const TThreadLocalStorage& rTLS)
+    // {
+    //     return rTLS.SlaveEqIds; // We can eventually do a get method in the TLS and call it in here
+    // }
 
-    auto& GetThreadLocalStorageMasterEqIds(TThreadLocalStorage& rTLS)
-    {
-        return rTLS.MasterEqIds; // We can eventually do a get method in the TLS and call it in here
-    }
+    // auto& GetThreadLocalStorageMasterEqIds(TThreadLocalStorage& rTLS)
+    // {
+    //     return rTLS.MasterEqIds; // We can eventually do a get method in the TLS and call it in here
+    // }
 
-    auto& GetThreadLocalStorageMasterEqIds(const TThreadLocalStorage& rTLS)
-    {
-        return rTLS.MasterEqIds; // We can eventually do a get method in the TLS and call it in here
-    }
+    // auto& GetThreadLocalStorageMasterEqIds(const TThreadLocalStorage& rTLS)
+    // {
+    //     return rTLS.MasterEqIds; // We can eventually do a get method in the TLS and call it in here
+    // }
 
     void ApplyBlockBuildDirichletConditions(
         const DofsArrayType& rDofArray,
@@ -1259,136 +1239,136 @@ private:
         KRATOS_ERROR << "Not implemented yet." << std::endl;
     }
 
-    template<BuildType TBuildType>
-    void AssembleMasterSlaveConstraintsImplementation(
-        const DofsArrayType& rDofSet,
-        const EffectiveDofsMapType& rDofIdMap,
-        TSparseMatrixType& rConstraintsRelationMatrix,
-        TSparseVectorType& rConstraintsConstantVector,
-        TThreadLocalStorage& rTLS)
-    {
-        // Getting constraints to be assembled
-        const auto& r_consts = mpModelPart->MasterSlaveConstraints();
-        const auto& r_process_info = mpModelPart->GetProcessInfo();
+    // template<BuildType TBuildType>
+    // void AssembleMasterSlaveConstraintsImplementation(
+    //     const DofsArrayType& rDofSet,
+    //     const EffectiveDofsMapType& rDofIdMap,
+    //     TSparseMatrixType& rConstraintsRelationMatrix,
+    //     TSparseVectorType& rConstraintsConstantVector,
+    //     TThreadLocalStorage& rTLS)
+    // {
+    //     // Getting constraints to be assembled
+    //     const auto& r_consts = mpModelPart->MasterSlaveConstraints();
+    //     const auto& r_process_info = mpModelPart->GetProcessInfo();
 
-        // Getting constraints container data
-        auto consts_begin = r_consts.begin();
-        const std::size_t n_consts = r_consts.size();
+    //     // Getting constraints container data
+    //     auto consts_begin = r_consts.begin();
+    //     const std::size_t n_consts = r_consts.size();
 
-        // Initialize constraints arrays
-        rConstraintsRelationMatrix.SetValue(0.0);
-        rConstraintsConstantVector.SetValue(0.0);
+    //     // Initialize constraints arrays
+    //     rConstraintsRelationMatrix.SetValue(0.0);
+    //     rConstraintsConstantVector.SetValue(0.0);
 
-        if constexpr (TBuildType == BuildType::Block) {
-            // We clear the inactive DOFs set
-            mInactiveSlaveDofs.clear();
-        }
+    //     if constexpr (TBuildType == BuildType::Block) {
+    //         // We clear the inactive DOFs set
+    //         mInactiveSlaveDofs.clear();
+    //     }
 
-        rConstraintsRelationMatrix.BeginAssemble();
-        rConstraintsConstantVector.BeginAssemble();
+    //     rConstraintsRelationMatrix.BeginAssemble();
+    //     rConstraintsConstantVector.BeginAssemble();
 
-        #pragma omp parallel firstprivate(rDofIdMap, consts_begin, r_process_info)
-        {
-            // Auxiliary set to store the inactive constraints slave DOFs (required by the block build)
-            std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;
+    //     #pragma omp parallel firstprivate(rDofIdMap, consts_begin, r_process_info)
+    //     {
+    //         // Auxiliary set to store the inactive constraints slave DOFs (required by the block build)
+    //         std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;
 
-            // Assemble constraints
-            if (mpConstraintAssemblyFunction != nullptr) {
-                # pragma omp for schedule(guided, 512) nowait
-                for (int k = 0; k < n_consts; ++k) {
-                    // Calculate local contributions
-                    auto it_const = consts_begin + k;
-                    const bool assemble_const = (*mpConstraintAssemblyFunction)(it_const, r_process_info, rTLS);
+    //         // Assemble constraints
+    //         if (mpConstraintAssemblyFunction != nullptr) {
+    //             # pragma omp for schedule(guided, 512) nowait
+    //             for (int k = 0; k < n_consts; ++k) {
+    //                 // Calculate local contributions
+    //                 auto it_const = consts_begin + k;
+    //                 const bool assemble_const = (*mpConstraintAssemblyFunction)(it_const, r_process_info, rTLS);
 
-                    // Set the master and slave equation ids
-                    // Note that the slaves follow the system equation ids while the masters use the effective map ones
-                    const auto& r_slave_dofs = it_const->GetSlaveDofsVector();
-                    auto& r_slave_eq_ids = GetThreadLocalStorageSlaveEqIds(rTLS);
-                    const std::size_t n_slaves = r_slave_dofs.size();
-                    if (r_slave_eq_ids.size() != n_slaves) {
-                        r_slave_eq_ids.resize(n_slaves);
-                    }
-                    for (IndexType i_slave = 0; i_slave < n_slaves; ++i_slave) {
-                        r_slave_eq_ids[i_slave] = (*(r_slave_dofs.begin() + i_slave))->EquationId();
-                    }
+    //                 // Set the master and slave equation ids
+    //                 // Note that the slaves follow the system equation ids while the masters use the effective map ones
+    //                 const auto& r_slave_dofs = it_const->GetSlaveDofsVector();
+    //                 auto& r_slave_eq_ids = GetThreadLocalStorageSlaveEqIds(rTLS);
+    //                 const std::size_t n_slaves = r_slave_dofs.size();
+    //                 if (r_slave_eq_ids.size() != n_slaves) {
+    //                     r_slave_eq_ids.resize(n_slaves);
+    //                 }
+    //                 for (IndexType i_slave = 0; i_slave < n_slaves; ++i_slave) {
+    //                     r_slave_eq_ids[i_slave] = (*(r_slave_dofs.begin() + i_slave))->EquationId();
+    //                 }
 
-                    const auto& r_master_dofs = it_const->GetMasterDofsVector();
-                    auto& r_master_eq_ids = GetThreadLocalStorageMasterEqIds(rTLS);
-                    const std::size_t n_masters = r_master_dofs.size();
-                    if (r_master_eq_ids.size() != n_masters) {
-                        r_master_eq_ids.resize(n_masters);
-                    }
-                    for (IndexType i_master = 0; i_master < n_masters; ++i_master) {
-                        auto p_master = *(r_master_dofs.begin() + i_master);
-                        auto p_master_find = rDofIdMap.find(p_master);
-                        KRATOS_ERROR_IF(p_master_find == rDofIdMap.end()) << "Master DOF cannot be found in DOF ids map." << std::endl;
-                        r_master_eq_ids[i_master] = p_master_find->second;
-                    }
+    //                 const auto& r_master_dofs = it_const->GetMasterDofsVector();
+    //                 auto& r_master_eq_ids = GetThreadLocalStorageMasterEqIds(rTLS);
+    //                 const std::size_t n_masters = r_master_dofs.size();
+    //                 if (r_master_eq_ids.size() != n_masters) {
+    //                     r_master_eq_ids.resize(n_masters);
+    //                 }
+    //                 for (IndexType i_master = 0; i_master < n_masters; ++i_master) {
+    //                     auto p_master = *(r_master_dofs.begin() + i_master);
+    //                     auto p_master_find = rDofIdMap.find(p_master);
+    //                     KRATOS_ERROR_IF(p_master_find == rDofIdMap.end()) << "Master DOF cannot be found in DOF ids map." << std::endl;
+    //                     r_master_eq_ids[i_master] = p_master_find->second;
+    //                 }
 
-                    // Assemble the constraints local contributions to the global system
-                    if (assemble_const) {
-                        if constexpr (TBuildType == BuildType::Block) {
-                            // Assemble relation matrix contribution
-                            const auto& r_loc_T = GetThreadLocalStorageContainer(rConstraintsRelationMatrix, rTLS);
-                            rConstraintsRelationMatrix.Assemble(r_loc_T, r_slave_eq_ids, r_master_eq_ids);
+    //                 // Assemble the constraints local contributions to the global system
+    //                 if (assemble_const) {
+    //                     if constexpr (TBuildType == BuildType::Block) {
+    //                         // Assemble relation matrix contribution
+    //                         const auto& r_loc_T = GetThreadLocalStorageContainer(rConstraintsRelationMatrix, rTLS);
+    //                         rConstraintsRelationMatrix.Assemble(r_loc_T, r_slave_eq_ids, r_master_eq_ids);
 
-                            // Assemble constant vector contribution
-                            const auto& r_loc_v = GetThreadLocalStorageContainer(rConstraintsConstantVector, rTLS);
-                            rConstraintsConstantVector.Assemble(r_loc_v, r_slave_eq_ids);
-                        } else if (TBuildType == BuildType::Elimination) {
+    //                         // Assemble constant vector contribution
+    //                         const auto& r_loc_v = GetThreadLocalStorageContainer(rConstraintsConstantVector, rTLS);
+    //                         rConstraintsConstantVector.Assemble(r_loc_v, r_slave_eq_ids);
+    //                     } else if (TBuildType == BuildType::Elimination) {
 
-                        } else {
-                            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
-                        }
-                    } else {
-                        if constexpr (TBuildType == BuildType::Block) {
-                            auxiliar_inactive_slave_dofs.insert(r_slave_eq_ids.begin(), r_slave_eq_ids.end());
-                        } else if (TBuildType == BuildType::Elimination) {
+    //                     } else {
+    //                         static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
+    //                     }
+    //                 } else {
+    //                     if constexpr (TBuildType == BuildType::Block) {
+    //                         auxiliar_inactive_slave_dofs.insert(r_slave_eq_ids.begin(), r_slave_eq_ids.end());
+    //                     } else if (TBuildType == BuildType::Elimination) {
 
-                        } else {
-                            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
-                        }
-                    }
-                }
+    //                     } else {
+    //                         static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
+    //                     }
+    //                 }
+    //             }
 
-                // We merge all the sets in one thread
-                if constexpr (TBuildType == BuildType::Block) {
-                    #pragma omp critical
-                    {
-                        mInactiveSlaveDofs.insert(auxiliar_inactive_slave_dofs.begin(), auxiliar_inactive_slave_dofs.end());
-                    }
-                }
-            }
-        }
+    //             // We merge all the sets in one thread
+    //             if constexpr (TBuildType == BuildType::Block) {
+    //                 #pragma omp critical
+    //                 {
+    //                     mInactiveSlaveDofs.insert(auxiliar_inactive_slave_dofs.begin(), auxiliar_inactive_slave_dofs.end());
+    //                 }
+    //             }
+    //         }
+    //     }
 
-        rConstraintsRelationMatrix.FinalizeAssemble();
-        rConstraintsConstantVector.FinalizeAssemble();
+    //     rConstraintsRelationMatrix.FinalizeAssemble();
+    //     rConstraintsConstantVector.FinalizeAssemble();
 
-        if constexpr (TBuildType == BuildType::Block) {
-            // Setting the missing effective but not constrain-related DOFs into the T and C system
-            // For doing so we loop the standard DOF array (the one from elements and conditions)
-            // We search for each DOF in the effective DOF ids map, if present it means its effective
-            IndexPartition<IndexType>(rDofSet.size()).for_each([&](IndexType Index){
-                const auto p_dof = *(rDofSet.ptr_begin() + Index);
-                const auto p_dof_find = rDofIdMap.find(p_dof);
-                if (p_dof_find != rDofIdMap.end()) {
-                    rConstraintsConstantVector[p_dof->EquationId()] = 0.0;
-                    rConstraintsRelationMatrix(p_dof->EquationId(), p_dof_find->second) = 1.0;
-                }
-            });
+    //     if constexpr (TBuildType == BuildType::Block) {
+    //         // Setting the missing effective but not constrain-related DOFs into the T and C system
+    //         // For doing so we loop the standard DOF array (the one from elements and conditions)
+    //         // We search for each DOF in the effective DOF ids map, if present it means its effective
+    //         IndexPartition<IndexType>(rDofSet.size()).for_each([&](IndexType Index){
+    //             const auto p_dof = *(rDofSet.ptr_begin() + Index);
+    //             const auto p_dof_find = rDofIdMap.find(p_dof);
+    //             if (p_dof_find != rDofIdMap.end()) {
+    //                 rConstraintsConstantVector[p_dof->EquationId()] = 0.0;
+    //                 rConstraintsRelationMatrix(p_dof->EquationId(), p_dof_find->second) = 1.0;
+    //             }
+    //         });
 
-            // Setting inactive slave dofs in the T and C system
-            //TODO: Can't this be parallel?
-            for (auto eq_id : mInactiveSlaveDofs) {
-                rConstraintsConstantVector[eq_id] = 0.0;
-                rConstraintsRelationMatrix(eq_id, eq_id) = 1.0;
-            }
-        } else if (TBuildType == BuildType::Elimination) {
+    //         // Setting inactive slave dofs in the T and C system
+    //         //TODO: Can't this be parallel?
+    //         for (auto eq_id : mInactiveSlaveDofs) {
+    //             rConstraintsConstantVector[eq_id] = 0.0;
+    //             rConstraintsRelationMatrix(eq_id, eq_id) = 1.0;
+    //         }
+    //     } else if (TBuildType == BuildType::Elimination) {
 
-        } else {
-            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
-        }
-    }
+    //     } else {
+    //         static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
+    //     }
+    // }
 
     template <BuildType TBuildType>
     void ApplyMasterSlaveConstraintsImplementation(
