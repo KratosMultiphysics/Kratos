@@ -233,6 +233,7 @@ private:
     void CallUDSM(int* IDTask, Parameters& rValues);
 
     void ResetStateVariables(const Properties& rMaterialProperties);
+    void ResetConstitutiveMatrix();
 
     void SetAttributes(const Properties& rMaterialProperties);
 

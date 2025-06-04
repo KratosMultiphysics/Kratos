@@ -147,11 +147,7 @@ SmallStrainUDSMLaw::~SmallStrainUDSMLaw() = default;
 SmallStrainUDSMLaw::SmallStrainUDSMLaw(std::unique_ptr<ConstitutiveLawDimension> pDimension)
     : mpDimension(std::move(pDimension))
 {
-    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i) {
-        for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j) {
-            mMatrixD[i][j] = 0.0;
-        }
-    }
+    ResetConstitutiveMatrix();
 }
 
 SmallStrainUDSMLaw::SmallStrainUDSMLaw(SmallStrainUDSMLaw&&) noexcept            = default;
@@ -272,6 +268,15 @@ void SmallStrainUDSMLaw::ResetStateVariables(const Properties& rMaterialProperti
     KRATOS_CATCH("")
 }
 
+void SmallStrainUDSMLaw::ResetConstitutiveMatrix()
+{
+    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i) {
+        for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j) {
+            mMatrixD[i][j] = 0.0;
+        }
+    }
+}
+
 void SmallStrainUDSMLaw::ResetMaterial(const Properties&   rMaterialProperties,
                                        const GeometryType& rElementGeometry,
                                        const Vector&       rShapeFunctionsValues)
@@ -290,9 +295,7 @@ void SmallStrainUDSMLaw::ResetMaterial(const Properties&   rMaterialProperties,
     mDeltaStrainVector.clear();
     noalias(mStrainVectorFinalized) = ZeroVector(mStrainVectorFinalized.size());
 
-    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i)
-        for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j)
-            mMatrixD[i][j] = 0.0;
+    ResetConstitutiveMatrix();
 
     // state variables
     noalias(mStateVariables)          = ZeroVector(mStateVariables.size());
