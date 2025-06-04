@@ -125,7 +125,7 @@
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.hpp"
 #include "custom_constitutive/small_strain_udsm_3D_interface_law.hpp"
-#include "custom_constitutive/small_strain_udsm_3D_law.hpp"
+#include "custom_constitutive/small_strain_udsm_law.hpp"
 #include "custom_constitutive/small_strain_umat_2D_interface_law.hpp"
 #include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
 #include "custom_constitutive/small_strain_umat_3D_interface_law.hpp"

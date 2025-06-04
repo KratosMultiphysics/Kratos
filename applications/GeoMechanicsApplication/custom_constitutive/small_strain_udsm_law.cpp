@@ -14,7 +14,7 @@
 #include <type_traits>
 
 #include "custom_constitutive/constitutive_law_dimension.h"
-#include "custom_constitutive/small_strain_udsm_3D_law.hpp"
+#include "custom_constitutive/small_strain_udsm_law.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS

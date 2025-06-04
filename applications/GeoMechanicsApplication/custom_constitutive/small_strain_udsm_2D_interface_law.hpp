@@ -13,7 +13,7 @@
 #pragma once
 
 #include "includes/define.h"
-#include "small_strain_udsm_3D_law.hpp"
+#include "small_strain_udsm_law.hpp"
 
 namespace Kratos
 {
