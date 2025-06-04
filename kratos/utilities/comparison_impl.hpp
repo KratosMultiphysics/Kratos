@@ -83,7 +83,7 @@ struct FloatComparison {
         bool operator()(T Left, T Right) const noexcept {
             const T norm = std::min(std::abs(Left) + std::abs(Right),
                                     std::numeric_limits<T>::max());
-            return std::abs(Left - Right) < std::max(mAbsoluteTolerance, mRelativeTolerance * norm);
+            return Left == Right || std::abs(Left - Right) < std::max(mAbsoluteTolerance, mRelativeTolerance * norm);
         }
 
     private:
