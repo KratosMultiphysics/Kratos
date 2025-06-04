@@ -44,7 +44,7 @@ namespace Kratos
 			// Check  Read normals Vectors for Solid Triangles on the Interface
 			//vector<array_1d<double, 3>> vectorsNomralVectors(SolidModelPart_NeumannBC.NumberOfConditions());
 			//ReadNormalVectors("Queso_NormalVectors_Interface.txt", vectorsNomralVectors, SolidModelPart_NeumannBC);
-
+			
 		for (auto it_condition = SolidModelPart_NeumannBC.ConditionsBegin(); it_condition != SolidModelPart_NeumannBC.ConditionsEnd(); ++it_condition) {
 			master_quadrature_points_geometry.push_back((it_condition->pGetGeometry()));
 
@@ -53,6 +53,9 @@ namespace Kratos
 			integration_points_global_coords_vector[2] = master_quadrature_points_geometry(ii)->IntegrationPoints()[0].Z();
 
 			ShellCurveOnCouplingInterface.ProjectionPointGlobalToLocalSpace(integration_points_global_coords_vector, local_slave_coords);
+			if (_Parameters["example_name"].GetString() == "Cylinder270_0d2") {
+				Cylinder270_projection(ShellCurveOnCouplingInterface,  integration_points_global_coords_vector, local_slave_coords);
+			}
 			integration_points_slave_local_coords_vector[ii][0] = local_slave_coords[0];
 			integration_points_slave_local_coords_vector[ii][1] = local_slave_coords[1];
 			integration_points_slave_local_coords_vector[ii][2] = local_slave_coords[2];
@@ -75,7 +78,7 @@ namespace Kratos
 			integration_points_slave_local_coords_vector,
 			rIntegrationInfo); //IntegrationInfo is not used, yet has to be passed to function
 
-		// 5. Create CoupingGeometries
+		// 5. Create CouplingGeometries
 		PointerVector<CouplingGeometry<Node>> Coupled_Quadrature_Point_Geometries(num_integration_points);
 		for (SizeType i = 0; i < num_integration_points; ++i) {
 			Coupled_Quadrature_Point_Geometries(i) = Kratos::make_shared<CouplingGeometry<Node>>(master_quadrature_points_geometry(i), slave_quadrature_points_geometry(i));
@@ -92,7 +95,7 @@ namespace Kratos
 			_Model.GetModelPart("NurbsMesh").RemoveConditionFromAllLevels(*cond_it);
 		}
 
-		// 7. Combine Model Parts merged the two model parts to one without deleted the original ones
+		// 7. Combine Model Parts merged the two model parts to one without deleting the original ones
 		CombineModelParts();
 
 		// 8. Remove submodel parts which are not longer needed.
@@ -102,7 +105,7 @@ namespace Kratos
 		// 9. Assign each coupling geometry to a coupling (penalty/nitsche) condition
 		ModelPart& interface_model_part = _Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("CouplingInterface");
 
-		std::string name = _Parameters["coupling_method"].GetString();;
+		std::string name = _Parameters["coupling_method"].GetString();
 		const Condition& rReferenceCondition = KratosComponents<Condition>::Get(name);
 
 		ModelPart::ConditionsContainerType new_condition_list;
@@ -126,22 +129,29 @@ namespace Kratos
 		interface_model_part.AddConditions(new_condition_list.begin(), new_condition_list.end());
 
 		// 11. Assign the p_properties to the model part's conditions.
+
+		// 11.1) Assign shell thickness as a propert for penalty condition (as in nitsche_stabilization_model_part_process.cpp)
+			if (name == "CouplingSolidShellPenaltyCondition") {
+				double& ShellThickness = IgaModelPart.ElementsBegin()->GetProperties().GetValue(THICKNESS);
+				interface_model_part.GetProperties(3).SetValue(THICKNESS, ShellThickness);
+			}
+		
 		auto& r_conditions_array = interface_model_part.Conditions();
-		auto& p_prop = interface_model_part.pGetProperties(3); // TO DO: ID is preset to three (StructuralMaterials.json). Generalize it later
+		auto& p_prop = interface_model_part.pGetProperties(3); // TO DO: ID is preset to three (StructuralMaterials.json). Generalize it later	
 		block_for_each(
 			r_conditions_array,
 			[&p_prop](Condition& rCondition)
 			{ rCondition.SetProperties(p_prop); }
 		);
 
-		// 11.5) Assign properties from master and slave geometries to coupling condition (as in nitsche_stabilization_model_part_process.cpp)
-		SizeType prop_id = (interface_model_part.ConditionsBegin()->pGetProperties())->Id();
-		if (name == "CouplingSolidShellNitscheCondition") {
-			Properties::Pointer master_properties = _Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("NurbsMesh").ElementsBegin()->pGetProperties();
-			Properties::Pointer slave_properties = _Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("IgaModelPart").ElementsBegin()->pGetProperties();
-			interface_model_part.pGetProperties(prop_id)->AddSubProperties(master_properties);
-			interface_model_part.pGetProperties(prop_id)->AddSubProperties(slave_properties);
-		}
+			// 11.2) Assign properties from master and slave geometries to coupling condition (as in nitsche_stabilization_model_part_process.cpp)
+			SizeType prop_id = (interface_model_part.ConditionsBegin()->pGetProperties())->Id();
+			if (name == "CouplingSolidShellNitscheCondition" ) {
+				Properties::Pointer master_properties = _Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("NurbsMesh").ElementsBegin()->pGetProperties();
+				Properties::Pointer slave_properties = _Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("IgaModelPart").ElementsBegin()->pGetProperties();
+				interface_model_part.pGetProperties(prop_id)->AddSubProperties(master_properties);
+				interface_model_part.pGetProperties(prop_id)->AddSubProperties(slave_properties);
+			}		
 
 		// 12. Set Flags
 		const auto flagX = IgaFlags::FIX_DISPLACEMENT_X;
@@ -379,5 +389,103 @@ namespace Kratos
 
 	}
 
+	void CombineSolidShellModelPartsProcess::Cylinder270_projection(const Geometry<Node>& ShellCurveOnCouplingInterface,
+		CoordinatesArrayType& integration_points_global_coords_vector,
+		CoordinatesArrayType& local_slave_coords)
+	{
+		CoordinatesArrayType rProjectedPointGlobalCoordinates;
+		ShellCurveOnCouplingInterface.GlobalCoordinates(rProjectedPointGlobalCoordinates, local_slave_coords);
+
+		array_1d<double, 3> AO; // Master
+		AO[0] = integration_points_global_coords_vector[0] - 15;
+		AO[1] = integration_points_global_coords_vector[1];
+		AO[2] = integration_points_global_coords_vector[2];
+		CoordinatesArrayType new_integration_points_global_coords_vector;
+		double AO_d = std::sqrt(AO[1] * AO[1] + AO[2] * AO[2]);
+		new_integration_points_global_coords_vector[0] = AO_d * integration_points_global_coords_vector[0];
+		new_integration_points_global_coords_vector[1] = 4.5 / AO_d * integration_points_global_coords_vector[1];
+		new_integration_points_global_coords_vector[2] = 4.5 / AO_d * integration_points_global_coords_vector[2];
+
+		double dYY, dZZ, dist, min_dist;
+		// tt parametric value of the knot vector
+		dYY = abs(4.5 / AO_d * integration_points_global_coords_vector[1] - rProjectedPointGlobalCoordinates[1]);
+		dZZ = abs(4.5 / AO_d * integration_points_global_coords_vector[2] - rProjectedPointGlobalCoordinates[2]);
+		dist = sqrt(dYY * dYY + dZZ * dZZ);
+		min_dist = dist;
+		double tt_higher_bound = 28.274333882308138;
+		double tt_min_distance = (28.274333882308138 + 7.0685834705770345) / 2;
+		double increment_tt = (28.274333882308138 - 7.0685834705770345) / 2;
+		double tt = 0, a = 0;
+		
+		bool ProjectionConverged = (dist < 1E-13);
+		while (a <= 7 && ProjectionConverged == false) {
+			a += 1;
+			tt = tt_min_distance - increment_tt;
+			tt_higher_bound = tt_min_distance + increment_tt;
+			increment_tt = pow(10, -a);
+
+			while (tt < tt_higher_bound && ProjectionConverged == false) {
+				tt += increment_tt;	
+				local_slave_coords[0] = tt;
+				ShellCurveOnCouplingInterface.ProjectionPointGlobalToLocalSpace(new_integration_points_global_coords_vector, local_slave_coords);
+				ShellCurveOnCouplingInterface.GlobalCoordinates(rProjectedPointGlobalCoordinates, local_slave_coords);
+
+				dYY = abs(4.5 / AO_d * integration_points_global_coords_vector[1] - rProjectedPointGlobalCoordinates[1]);
+				dZZ = abs(4.5 / AO_d * integration_points_global_coords_vector[2] - rProjectedPointGlobalCoordinates[2]);
+				dist = sqrt(dYY * dYY + dZZ * dZZ);
+
+				if (dist < 1E-13)	ProjectionConverged = true;
+				if (dist < min_dist) {
+					min_dist = dist;
+					tt_min_distance = tt;
+				}
+			}
+		}
+
+
+
+		//while ( (dYY > 1E-14 || dZZ > 1E-14) && (tt <= 28.274333882308138)) {
+		//	
+		//	new_integration_points_global_coords_vector[0] = AO_d * integration_points_global_coords_vector[0];
+		//	new_integration_points_global_coords_vector[1] = 4.5 / AO_d * integration_points_global_coords_vector[1];
+		//	new_integration_points_global_coords_vector[2] = 4.5 / AO_d * integration_points_global_coords_vector[2];
+
+		//	tt += 0.1;
+		//	local_slave_coords[0] = tt;
+		//	ShellCurveOnCouplingInterface.ProjectionPointGlobalToLocalSpace(new_integration_points_global_coords_vector, local_slave_coords);
+		//	ShellCurveOnCouplingInterface.GlobalCoordinates(rProjectedPointGlobalCoordinates, local_slave_coords);
+
+		//	dYY = abs(4.5 / AO_d * integration_points_global_coords_vector[1] - rProjectedPointGlobalCoordinates[1]);
+		//	dZZ = abs(4.5 / AO_d * integration_points_global_coords_vector[2] - rProjectedPointGlobalCoordinates[2]);
+		//}
+
+		if (ProjectionConverged == false) {
+			local_slave_coords[0] = tt_min_distance;
+			ShellCurveOnCouplingInterface.ProjectionPointGlobalToLocalSpace(new_integration_points_global_coords_vector, local_slave_coords);
+			ShellCurveOnCouplingInterface.GlobalCoordinates(rProjectedPointGlobalCoordinates, local_slave_coords);
+			std::cout << "---------------------" << std::endl;
+			std::cout << "Cylinder270_projection FAILED" << std::endl;
+			std::cout << " Initial Point :";
+			std::cout << integration_points_global_coords_vector[1] << " , " << integration_points_global_coords_vector[2] << std::endl;
+			std::cout << " Projected Final point :";
+			std::cout << rProjectedPointGlobalCoordinates[1] << " , " << rProjectedPointGlobalCoordinates[2] << std::endl;
+			std::cout << " Projected point should be ";
+			std::cout << new_integration_points_global_coords_vector[1] << " , " << new_integration_points_global_coords_vector[2] << std::endl;
+			std::cout << "---------------------" << std::endl;
+		}
+		else if (ProjectionConverged == true && tt != 0) {
+			//std::cout << "---------------------" << std::endl;
+			//std::cout << "Cylinder270_projection SUCCEEDED" << std::endl;
+			//std::cout << " Initial Point :";
+			//std::cout << integration_points_global_coords_vector[1] << " , " << integration_points_global_coords_vector[2] << std::endl;
+			//std::cout << " Projected Final point :";
+			//std::cout << rProjectedPointGlobalCoordinates[1] << " , " << rProjectedPointGlobalCoordinates[2] << std::endl;
+			//std::cout << " Projected point should be ";
+			//std::cout << new_integration_points_global_coords_vector[1] << " , " << new_integration_points_global_coords_vector[2] << std::endl;
+			//std::cout << "---------------------" << std::endl;
+		}
+
+
+	}
 
 } // namespace Kratos
