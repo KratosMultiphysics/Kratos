@@ -179,7 +179,7 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rConditions)
     KRATOS_CATCH("");
 }
 
-void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
+void ModelPartIO::WriteModelPart(const ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
@@ -188,7 +188,9 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
     Internals::WriteBufferSize(*mpFile, mPrefix, rModelPart.GetBufferSize());
     WriteProperties(rModelPart.rProperties());
     Internals::WriteDataValueContainer(*mpFile, mPrefix + "/ProcessInfo", rModelPart.GetProcessInfo());
-    rModelPart.Nodes().Sort(); // Avoid inadvertently reordering partway through
+
+    // Charlie: A write function should not modify the model part. This is a bug. If its broken needs to be fixed elsewhere.
+    // rModelPart.Nodes().Sort(); // Avoid inadvertently reordering partway through
                                // the writing process.
     WriteNodes(rModelPart.Nodes());
     WriteElements(rModelPart.Elements());
