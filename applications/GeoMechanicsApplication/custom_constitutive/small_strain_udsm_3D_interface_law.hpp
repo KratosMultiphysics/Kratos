@@ -54,8 +54,6 @@ protected:
     void CopyConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix) override;
 
 private:
-    [[nodiscard]] indexStress3D getIndex3D(indexStress3DInterface index3D) const;
-
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;

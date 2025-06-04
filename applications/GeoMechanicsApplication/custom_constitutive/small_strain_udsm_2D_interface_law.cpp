@@ -15,6 +15,25 @@
 
 #include <type_traits>
 
+namespace
+{
+
+using namespace Kratos;
+
+indexStress3D GetIndex3D(const indexStress2DInterface Index2D)
+{
+    switch (Index2D) {
+    case INDEX_2D_INTERFACE_ZZ:
+        return INDEX_3D_ZZ;
+    case INDEX_2D_INTERFACE_XZ:
+        return INDEX_3D_XZ;
+    default:
+        KRATOS_ERROR << "invalid index: " << Index2D << std::endl;
+    }
+}
+
+} // namespace
+
 namespace Kratos
 {
 
@@ -66,30 +85,18 @@ void SmallStrainUDSM2DInterfaceLaw::CopyConstitutiveMatrix(Parameters& rValues, 
         for (unsigned int i = 0; i < GetStrainSize(); i++) {
             for (unsigned int j = 0; j < GetStrainSize(); j++) {
                 rConstitutiveMatrix(i, j) =
-                    mMatrixD[getIndex3D(static_cast<indexStress2DInterface>(j))]
-                            [getIndex3D(static_cast<indexStress2DInterface>(i))];
+                    mMatrixD[GetIndex3D(static_cast<indexStress2DInterface>(j))]
+                            [GetIndex3D(static_cast<indexStress2DInterface>(i))];
             }
         }
     } else {
         for (unsigned int i = 0; i < GetStrainSize(); i++) {
             for (unsigned int j = 0; j < GetStrainSize(); j++) {
                 rConstitutiveMatrix(i, j) =
-                    mMatrixD[getIndex3D(static_cast<indexStress2DInterface>(i))]
-                            [getIndex3D(static_cast<indexStress2DInterface>(j))];
+                    mMatrixD[GetIndex3D(static_cast<indexStress2DInterface>(i))]
+                            [GetIndex3D(static_cast<indexStress2DInterface>(j))];
             }
         }
-    }
-}
-
-indexStress3D SmallStrainUDSM2DInterfaceLaw::getIndex3D(const indexStress2DInterface index2D) const
-{
-    switch (index2D) {
-    case INDEX_2D_INTERFACE_ZZ:
-        return INDEX_3D_ZZ;
-    case INDEX_2D_INTERFACE_XZ:
-        return INDEX_3D_XZ;
-    default:
-        KRATOS_ERROR << "invalid index: " << index2D << std::endl;
     }
 }
 
