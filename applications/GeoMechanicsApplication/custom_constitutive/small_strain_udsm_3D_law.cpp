@@ -564,7 +564,7 @@ bool SmallStrainUDSMLaw::loadUDSMWindows(const Properties& rMaterialProperties)
     KRATOS_CATCH("")
 }
 
-void SmallStrainUDSMLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainUDSMLaw::CalculateMaterialResponsePK1(Parameters& rValues)
 {
     KRATOS_TRY
 
@@ -573,41 +573,41 @@ void SmallStrainUDSMLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameter
     KRATOS_CATCH("")
 }
 
-void SmallStrainUDSMLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainUDSMLaw::CalculateMaterialResponsePK2(Parameters& rValues)
 {
     KRATOS_TRY
     CalculateMaterialResponseCauchy(rValues);
     KRATOS_CATCH("")
 }
 
-void SmallStrainUDSMLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainUDSMLaw::CalculateMaterialResponseKirchhoff(Parameters& rValues)
 {
     KRATOS_TRY
     CalculateMaterialResponseCauchy(rValues);
     KRATOS_CATCH("")
 }
 
-void SmallStrainUDSMLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainUDSMLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
     KRATOS_TRY
 
     // Get Values to compute the constitutive law:
     const Flags& rOptions = rValues.GetOptions();
 
-    KRATOS_DEBUG_ERROR_IF(rOptions.IsDefined(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN) &&
-                          rOptions.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
+    KRATOS_DEBUG_ERROR_IF(rOptions.IsDefined(USE_ELEMENT_PROVIDED_STRAIN) &&
+                          rOptions.IsNot(USE_ELEMENT_PROVIDED_STRAIN))
         << "The SmallStrainUDSMLaw needs an element provided strain" << std::endl;
 
     KRATOS_ERROR_IF(!rValues.IsSetStrainVector() || rValues.GetStrainVector().size() != GetStrainSize())
         << "Constitutive laws in the geomechanics application need a valid provided strain" << std::endl;
 
-    if (rOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+    if (rOptions.Is(COMPUTE_CONSTITUTIVE_TENSOR)) {
         // Constitutive matrix (D matrix)
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         CalculateConstitutiveMatrix(rValues, r_constitutive_matrix);
     }
 
-    if (rOptions.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+    if (rOptions.Is(COMPUTE_STRESS)) {
         Vector& r_stress_vector = rValues.GetStressVector();
         CalculateStress(rValues, r_stress_vector);
     }
@@ -615,7 +615,7 @@ void SmallStrainUDSMLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parame
     KRATOS_CATCH("")
 }
 
-void SmallStrainUDSMLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainUDSMLaw::UpdateInternalDeltaStrainVector(Parameters& rValues)
 {
     const auto& r_strain_vector = rValues.GetStrainVector();
     std::transform(r_strain_vector.begin(), r_strain_vector.begin() + GetStrainSize(),
@@ -632,7 +632,7 @@ void SmallStrainUDSMLaw::SetInternalStressVector(const Vector& rStressVector)
     std::copy(rStressVector.begin(), rStressVector.end(), mSig0.begin());
 }
 
-void SmallStrainUDSMLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix)
+void SmallStrainUDSMLaw::CopyConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix)
 {
     KRATOS_TRY
 
@@ -677,7 +677,7 @@ void SmallStrainUDSMLaw::CloneDataMembersTo(SmallStrainUDSMLaw& rDestination) co
     rDestination.mpDimension              = mpDimension ? mpDimension->Clone() : nullptr;
 }
 
-void SmallStrainUDSMLaw::CalculateConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix)
+void SmallStrainUDSMLaw::CalculateConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix)
 {
     KRATOS_TRY
     // update strain vector
@@ -691,7 +691,7 @@ void SmallStrainUDSMLaw::CalculateConstitutiveMatrix(ConstitutiveLaw::Parameters
     KRATOS_CATCH("")
 }
 
-void SmallStrainUDSMLaw::CalculateStress(ConstitutiveLaw::Parameters& rValues, Vector& rStressVector)
+void SmallStrainUDSMLaw::CalculateStress(Parameters& rValues, Vector& rStressVector)
 {
     KRATOS_TRY
     // update strain vector
@@ -714,7 +714,7 @@ int SmallStrainUDSMLaw::getUseTangentMatrix() { return mAttributes[USE_TANGENT_M
 
 array_1d<double, SmallStrainUDSMLaw::Sig0Size>& SmallStrainUDSMLaw::GetSig0() { return mSig0; }
 
-void SmallStrainUDSMLaw::CallUDSM(int* pIDTask, ConstitutiveLaw::Parameters& rValues)
+void SmallStrainUDSMLaw::CallUDSM(int* pIDTask, Parameters& rValues)
 {
     KRATOS_TRY
 
@@ -772,25 +772,25 @@ void SmallStrainUDSMLaw::CallUDSM(int* pIDTask, ConstitutiveLaw::Parameters& rVa
     KRATOS_CATCH("")
 }
 
-void SmallStrainUDSMLaw::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainUDSMLaw::InitializeMaterialResponsePK1(Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     InitializeMaterialResponseCauchy(rValues);
 }
 
-void SmallStrainUDSMLaw::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainUDSMLaw::InitializeMaterialResponsePK2(Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     InitializeMaterialResponseCauchy(rValues);
 }
 
-void SmallStrainUDSMLaw::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainUDSMLaw::InitializeMaterialResponseKirchhoff(Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     InitializeMaterialResponseCauchy(rValues);
 }
 
-void SmallStrainUDSMLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainUDSMLaw::InitializeMaterialResponseCauchy(Parameters& rValues)
 {
     KRATOS_TRY
 
@@ -810,25 +810,25 @@ void SmallStrainUDSMLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Param
     KRATOS_CATCH("")
 }
 
-void SmallStrainUDSMLaw::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainUDSMLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     FinalizeMaterialResponseCauchy(rValues);
 }
 
-void SmallStrainUDSMLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainUDSMLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     FinalizeMaterialResponseCauchy(rValues);
 }
 
-void SmallStrainUDSMLaw::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainUDSMLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     FinalizeMaterialResponseCauchy(rValues);
 }
 
-void SmallStrainUDSMLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainUDSMLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
     UpdateInternalStrainVectorFinalized(rValues);
     mStateVariablesFinalized = mStateVariables;
@@ -840,13 +840,13 @@ void SmallStrainUDSMLaw::SetInternalStrainVector(const Vector& rStrainVector)
     std::copy_n(rStrainVector.begin(), GetStrainSize(), mStrainVectorFinalized.begin());
 }
 
-void SmallStrainUDSMLaw::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainUDSMLaw::UpdateInternalStrainVectorFinalized(Parameters& rValues)
 {
     const Vector& rStrainVector = rValues.GetStrainVector();
     this->SetInternalStrainVector(rStrainVector);
 }
 
-double& SmallStrainUDSMLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+double& SmallStrainUDSMLaw::CalculateValue(Parameters& rParameterValues,
                                            const Variable<double>&      rVariable,
                                            double&                      rValue)
 {
@@ -860,7 +860,7 @@ double& SmallStrainUDSMLaw::CalculateValue(ConstitutiveLaw::Parameters& rParamet
     return rValue;
 }
 
-Vector& SmallStrainUDSMLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+Vector& SmallStrainUDSMLaw::CalculateValue(Parameters& rParameterValues,
                                            const Variable<Vector>&      rVariable,
                                            Vector&                      rValue)
 {
@@ -870,25 +870,25 @@ Vector& SmallStrainUDSMLaw::CalculateValue(ConstitutiveLaw::Parameters& rParamet
         Flags& rFlags = rParameterValues.GetOptions();
 
         // Previous flags saved
-        const bool flagConstTensor = rFlags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-        const bool flagStress      = rFlags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+        const bool flagConstTensor = rFlags.Is(COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flagStress      = rFlags.Is(COMPUTE_STRESS);
 
-        rFlags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-        rFlags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        rFlags.Set(COMPUTE_CONSTITUTIVE_TENSOR, true);
+        rFlags.Set(COMPUTE_STRESS, true);
 
         // We compute the stress
         CalculateMaterialResponseCauchy(rParameterValues);
         rValue = rParameterValues.GetStressVector();
 
         // Previous flags restored
-        rFlags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flagConstTensor);
-        rFlags.Set(ConstitutiveLaw::COMPUTE_STRESS, flagStress);
+        rFlags.Set(COMPUTE_CONSTITUTIVE_TENSOR, flagConstTensor);
+        rFlags.Set(COMPUTE_STRESS, flagStress);
     }
 
     return rValue;
 }
 
-Matrix& SmallStrainUDSMLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+Matrix& SmallStrainUDSMLaw::CalculateValue(Parameters& rParameterValues,
                                            const Variable<Matrix>&      rVariable,
                                            Matrix&                      rValue)
 {

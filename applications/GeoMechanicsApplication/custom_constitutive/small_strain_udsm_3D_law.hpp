@@ -230,7 +230,7 @@ private:
     bool loadUDSMWindows(const Properties& rMaterialProperties);
     bool loadUDSMLinux(const Properties& rMaterialProperties);
 
-    void CallUDSM(int* IDTask, ConstitutiveLaw::Parameters& rValues);
+    void CallUDSM(int* IDTask, Parameters& rValues);
 
     void ResetStateVariables(const Properties& rMaterialProperties);
 
