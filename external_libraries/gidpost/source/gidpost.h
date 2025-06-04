@@ -55,7 +55,7 @@
 #endif
 */
 
-#if defined (WIN32)
+#if defined (_WIN32)
 // in Windows (VisualStudio), deprecated declarations are of the form:
 // __declspec(deprecated) void func1() {}
   #if defined (GIDPOST_SHARED)
@@ -71,7 +71,7 @@
     #define  GIDPOST_API_DEPRECATED    __declspec( deprecated)
   #endif // GIDPOST_SHARED
   #define GCC_GIDPOST_API_DEPRECATED
-#else /* defined (WIN32)*/
+#else /* defined (_WIN32)*/
   // in linux / macOS, deprecated declarations are of the form:
   // void __attribute__(( deprecated)) func1() {}
   #define GIDPOST_API
