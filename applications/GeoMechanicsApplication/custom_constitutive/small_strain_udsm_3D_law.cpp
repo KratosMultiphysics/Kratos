@@ -11,6 +11,7 @@
 //
 
 #include <algorithm>
+#include <type_traits>
 
 #include "custom_constitutive/constitutive_law_dimension.h"
 #include "custom_constitutive/small_strain_udsm_3D_law.hpp"
@@ -978,5 +979,11 @@ void SmallStrainUDSM3DLaw::load(Serializer& rSerializer)
     rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
     rSerializer.load("StateVariablesFinalized", mStateVariablesFinalized);
 }
+
+// Instances of this class cannot be copied, but they can be moved. Check that at compile time.
+static_assert(!std::is_copy_constructible_v<SmallStrainUDSM3DLaw>);
+static_assert(!std::is_copy_assignable_v<SmallStrainUDSM3DLaw>);
+static_assert(std::is_move_constructible_v<SmallStrainUDSM3DLaw>);
+static_assert(std::is_move_assignable_v<SmallStrainUDSM3DLaw>);
 
 } // Namespace Kratos
