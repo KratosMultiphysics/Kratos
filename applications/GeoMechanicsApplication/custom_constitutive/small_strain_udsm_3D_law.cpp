@@ -176,27 +176,8 @@ SmallStrainUDSM3DLaw::SmallStrainUDSM3DLaw(std::unique_ptr<ConstitutiveLawDimens
 
 ConstitutiveLaw::Pointer SmallStrainUDSM3DLaw::Clone() const
 {
-    auto pResult                    = std::make_shared<SmallStrainUDSM3DLaw>();
-    pResult->mStressVector          = mStressVector;
-    pResult->mDeltaStrainVector     = mDeltaStrainVector;
-    pResult->mStrainVectorFinalized = mStrainVectorFinalized;
-    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i) {
-        for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j) {
-            pResult->mMatrixD[i][j] = mMatrixD[i][j];
-        }
-    }
-    pResult->mpGetParamCount          = mpGetParamCount;
-    pResult->mpGetStateVarCount       = mpGetStateVarCount;
-    pResult->mpUserMod                = mpUserMod;
-    pResult->mIsModelInitialized      = mIsModelInitialized;
-    pResult->mIsUDSMLoaded            = mIsUDSMLoaded;
-    pResult->mAttributes              = mAttributes;
-    pResult->mProjectDirectory        = mProjectDirectory;
-    pResult->mStateVariables          = mStateVariables;
-    pResult->mStateVariablesFinalized = mStateVariablesFinalized;
-    pResult->mSig0                    = mSig0;
-    if (mpDimension) pResult->mpDimension = mpDimension->Clone();
-
+    auto pResult = std::make_shared<SmallStrainUDSM3DLaw>();
+    CloneDataMembersTo(*pResult);
     return pResult;
 }
 
@@ -712,6 +693,29 @@ void SmallStrainUDSM3DLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& r
     }
 
     KRATOS_CATCH("")
+}
+
+void SmallStrainUDSM3DLaw::CloneDataMembersTo(SmallStrainUDSM3DLaw& rDestination) const
+{
+    rDestination.mStressVector          = mStressVector;
+    rDestination.mDeltaStrainVector     = mDeltaStrainVector;
+    rDestination.mStrainVectorFinalized = mStrainVectorFinalized;
+    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i) {
+        for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j) {
+            rDestination.mMatrixD[i][j] = mMatrixD[i][j];
+        }
+    }
+    rDestination.mpGetParamCount          = mpGetParamCount;
+    rDestination.mpGetStateVarCount       = mpGetStateVarCount;
+    rDestination.mpUserMod                = mpUserMod;
+    rDestination.mIsModelInitialized      = mIsModelInitialized;
+    rDestination.mIsUDSMLoaded            = mIsUDSMLoaded;
+    rDestination.mAttributes              = mAttributes;
+    rDestination.mProjectDirectory        = mProjectDirectory;
+    rDestination.mStateVariables          = mStateVariables;
+    rDestination.mStateVariablesFinalized = mStateVariablesFinalized;
+    rDestination.mSig0                    = mSig0;
+    rDestination.mpDimension              = mpDimension ? mpDimension->Clone() : nullptr;
 }
 
 void SmallStrainUDSM3DLaw::CalculateConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix)

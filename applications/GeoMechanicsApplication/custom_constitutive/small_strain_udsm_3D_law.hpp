@@ -184,6 +184,8 @@ protected:
     virtual void SetInternalStrainVector(const Vector& rStrainVector);
     virtual void CopyConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix);
 
+    void CloneDataMembersTo(SmallStrainUDSM3DLaw& rDestination) const;
+
     void CalculateConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix);
     void CalculateStress(Parameters& rValues, Vector& rStressVector);
 
