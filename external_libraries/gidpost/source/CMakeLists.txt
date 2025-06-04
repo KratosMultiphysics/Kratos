@@ -3,6 +3,15 @@ set (gidpost_source
   gidpost.c gidpost_cluster.c gidpostFILES.c gidpostInt.c  gidpostfor.c gidpostforAPI.c
   gidpostHash.c hashtab.c recycle.c lookupa.c)
 
+  
+# Remove Unity ofr gidpost
+# set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/source/gidpost.c PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+# set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/source/gidpostInt.c PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+# set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/source/gidpostHash.c PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+# set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/source/hashtab.c PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+# set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/source/recycle.c PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+# set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/source/lookupa.c PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+
 # find  package already done in  ../CmakeLists.txt
 # find_package(HDF5)
 # if (HDF5_FOUND)
