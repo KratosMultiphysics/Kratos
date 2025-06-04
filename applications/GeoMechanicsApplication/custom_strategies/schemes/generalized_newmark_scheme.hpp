@@ -61,7 +61,7 @@ public:
     {
     }
 
-    void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& A, TSystemVectorType& Dx, TSystemVectorType& b) override
+    void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rb) override
     {
         KRATOS_TRY
 
@@ -82,7 +82,7 @@ public:
                 rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE)    = 0.0;
             });
 
-            this->FinalizeSolutionStepActiveEntities(rModelPart, A, Dx, b);
+            this->FinalizeSolutionStepActiveEntities(rModelPart, rA, rDx, rb);
 
             // Compute smoothed nodal variables
             block_for_each(rModelPart.Nodes(), [](Node& rNode) {
@@ -100,7 +100,7 @@ public:
                 }
             });
         } else {
-            this->FinalizeSolutionStepActiveEntities(rModelPart, A, Dx, b);
+            this->FinalizeSolutionStepActiveEntities(rModelPart, rA, rDx, rb);
         }
 
         KRATOS_CATCH("")
