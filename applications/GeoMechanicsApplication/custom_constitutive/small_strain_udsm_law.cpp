@@ -385,7 +385,7 @@ int SmallStrainUDSMLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rMat
     int    isUndr            = 0;
     int    nStateVariables   = 0;
 
-    // variable to check if an error happend in the model:
+    // variable to check if an error occurred in the model:
     int                 iAbort                = 0;
     auto                nSizeProjectDirectory = static_cast<int>(mProjectDirectory.size());
     std::vector<double> StateVariablesFinalized;
@@ -594,22 +594,18 @@ void SmallStrainUDSMLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     // Get Values to compute the constitutive law:
     const Flags& rOptions = rValues.GetOptions();
 
-    KRATOS_DEBUG_ERROR_IF(rOptions.IsDefined(USE_ELEMENT_PROVIDED_STRAIN) &&
-                          rOptions.IsNot(USE_ELEMENT_PROVIDED_STRAIN))
+    KRATOS_DEBUG_ERROR_IF(rOptions.IsDefined(USE_ELEMENT_PROVIDED_STRAIN) && rOptions.IsNot(USE_ELEMENT_PROVIDED_STRAIN))
         << "The SmallStrainUDSMLaw needs an element provided strain" << std::endl;
 
     KRATOS_ERROR_IF(!rValues.IsSetStrainVector() || rValues.GetStrainVector().size() != GetStrainSize())
         << "Constitutive laws in the geomechanics application need a valid provided strain" << std::endl;
 
     if (rOptions.Is(COMPUTE_CONSTITUTIVE_TENSOR)) {
-        // Constitutive matrix (D matrix)
-        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        CalculateConstitutiveMatrix(rValues, r_constitutive_matrix);
+        CalculateConstitutiveMatrix(rValues, rValues.GetConstitutiveMatrix());
     }
 
     if (rOptions.Is(COMPUTE_STRESS)) {
-        Vector& r_stress_vector = rValues.GetStressVector();
-        CalculateStress(rValues, r_stress_vector);
+        CalculateStress(rValues, rValues.GetStressVector());
     }
 
     KRATOS_CATCH("")
@@ -795,12 +791,8 @@ void SmallStrainUDSMLaw::InitializeMaterialResponseCauchy(Parameters& rValues)
     KRATOS_TRY
 
     if (!mIsModelInitialized) {
-        // stress and strain vectors must be initialized:
-        const Vector& rStressVector = rValues.GetStressVector();
-        SetInternalStressVector(rStressVector);
-
-        const Vector& rStrainVector = rValues.GetStrainVector();
-        SetInternalStrainVector(rStrainVector);
+        SetInternalStressVector(rValues.GetStressVector());
+        SetInternalStrainVector(rValues.GetStrainVector());
 
         int IDTask = INITIALISATION;
         CallUDSM(&IDTask, rValues);
@@ -842,27 +834,19 @@ void SmallStrainUDSMLaw::SetInternalStrainVector(const Vector& rStrainVector)
 
 void SmallStrainUDSMLaw::UpdateInternalStrainVectorFinalized(Parameters& rValues)
 {
-    const Vector& rStrainVector = rValues.GetStrainVector();
-    this->SetInternalStrainVector(rStrainVector);
+    SetInternalStrainVector(rValues.GetStrainVector());
 }
 
-double& SmallStrainUDSMLaw::CalculateValue(Parameters& rParameterValues,
-                                           const Variable<double>&      rVariable,
-                                           double&                      rValue)
+double& SmallStrainUDSMLaw::CalculateValue(Parameters& rParameterValues, const Variable<double>& rVariable, double& rValue)
 {
     if (rVariable == STRAIN_ENERGY) {
-        const Vector& r_strain_vector = rParameterValues.GetStrainVector();
-        Vector&       r_stress_vector = rParameterValues.GetStressVector();
-        this->CalculateStress(rParameterValues, r_stress_vector);
-
-        rValue = 0.5 * inner_prod(r_strain_vector, r_stress_vector); // Strain energy = 0.5*E:C:E
+        CalculateStress(rParameterValues, rParameterValues.GetStressVector());
+        rValue = 0.5 * inner_prod(rParameterValues.GetStrainVector(), rParameterValues.GetStressVector()); // Strain energy = 0.5*E:C:E
     }
     return rValue;
 }
 
-Vector& SmallStrainUDSMLaw::CalculateValue(Parameters& rParameterValues,
-                                           const Variable<Vector>&      rVariable,
-                                           Vector&                      rValue)
+Vector& SmallStrainUDSMLaw::CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rVariable, Vector& rValue)
 {
     if (rVariable == STRESSES || rVariable == CAUCHY_STRESS_VECTOR ||
         rVariable == KIRCHHOFF_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR) {
@@ -888,13 +872,11 @@ Vector& SmallStrainUDSMLaw::CalculateValue(Parameters& rParameterValues,
     return rValue;
 }
 
-Matrix& SmallStrainUDSMLaw::CalculateValue(Parameters& rParameterValues,
-                                           const Variable<Matrix>&      rVariable,
-                                           Matrix&                      rValue)
+Matrix& SmallStrainUDSMLaw::CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rVariable, Matrix& rValue)
 {
     if (rVariable == CONSTITUTIVE_MATRIX || rVariable == CONSTITUTIVE_MATRIX_PK2 ||
         rVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
-        this->CalculateConstitutiveMatrix(rParameterValues, rValue);
+        CalculateConstitutiveMatrix(rParameterValues, rValue);
     }
     return rValue;
 }
@@ -902,9 +884,7 @@ Matrix& SmallStrainUDSMLaw::CalculateValue(Parameters& rParameterValues,
 Vector& SmallStrainUDSMLaw::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
 {
     if (rVariable == STATE_VARIABLES) {
-        if (rValue.size() != mStateVariablesFinalized.size())
-            rValue.resize(mStateVariablesFinalized.size());
-
+        rValue.resize(mStateVariablesFinalized.size());
         noalias(rValue) = mStateVariablesFinalized;
     } else if (rVariable == CAUCHY_STRESS_VECTOR) {
         rValue.resize(GetStrainSize());
