@@ -11,10 +11,10 @@
 //
 
 #include "custom_elements/calculation_contribution.h"
+#include "custom_elements/integration_coefficient_modifier_for_line_element.h"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/three_dimensional_stress_state.h"
 #include "custom_elements/transient_Pw_line_element.h"
-#include "custom_elements/integration_coefficient_modifier_for_line_element.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
@@ -987,6 +987,82 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_CalculateLocalSystem, Krato
 
     Vector expected_right_hand_side(3);
     expected_right_hand_side <<= 500000, 0, -500000;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_model_part = AddModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
+    PointerVector<Node> nodes;
+    // Node 6, 5, 8  from test_transient_groundwater_flow.py: case A1_2D3N
+    nodes.push_back(r_model_part.CreateNewNode(0, 0.0100000000, 1.9600000000, 0.0000000000));
+    nodes.push_back(r_model_part.CreateNewNode(1, 0.0000000000, 1.9600000000, 0.0000000000));
+    nodes.push_back(r_model_part.CreateNewNode(2, 0.0100000000, 1.9400000000, 0.0000000000));
+
+    const std::vector<CalculationContribution> contributions = {
+        CalculationContribution::Permeability, CalculationContribution::Compressibility,
+        CalculationContribution::FluidBodyFlow};
+    auto properties = std::make_shared<Properties>();
+    properties->SetValue(IGNORE_UNDRAINED, false);
+    properties->SetValue(YOUNG_MODULUS, 10000);
+    properties->SetValue(POISSON_RATIO, 0.2);
+    properties->SetValue(DENSITY_SOLID, 2.65);
+    properties->SetValue(DENSITY_WATER, 1.0);
+    properties->SetValue(POROSITY, 0.36);
+    properties->SetValue(BULK_MODULUS_SOLID, 1.0e9);
+    properties->SetValue(BULK_MODULUS_FLUID, 175500);
+    properties->SetValue(PERMEABILITY_XX, 0.1521);
+    properties->SetValue(PERMEABILITY_YY, 0.1521);
+    properties->SetValue(PERMEABILITY_XY, 0.0);
+    properties->SetValue(DYNAMIC_VISCOSITY, 9.81);
+    properties->SetValue(THICKNESS, 1.0);
+    properties->SetValue(BIOT_COEFFICIENT, 1.0);
+    properties->SetValue(RETENTION_LAW, "VanGenuchtenLaw");
+    properties->SetValue(SATURATED_SATURATION, 1.0);
+    properties->SetValue(RESIDUAL_SATURATION, 0.06203);
+    properties->SetValue(VAN_GENUCHTEN_AIR_ENTRY_PRESSURE, 4.379464286);
+    properties->SetValue(VAN_GENUCHTEN_GN, 2.286);
+    properties->SetValue(VAN_GENUCHTEN_GL, 0);
+    properties->SetValue(MINIMUM_RELATIVE_PERMEABILITY, 0.0001);
+    auto process_info                     = ProcessInfo{};
+    process_info[DT_PRESSURE_COEFFICIENT] = 250.0;
+
+    auto element = TransientPwLineElement<2, 3>(1, std::make_shared<Triangle2D3<Node>>(nodes),
+                                                properties, contributions, nullptr);
+    element.GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
+        array_1d<double, 3>{0.0, -9.81, 0.0};
+    element.GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
+        array_1d<double, 3>{0.0, -9.81, 0.0};
+    element.GetGeometry()[2].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
+        array_1d<double, 3>{0.0, -9.81, 0.0};
+    element.GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE)    = 10.9671575;
+    element.GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE)    = 10.2635811;
+    element.GetGeometry()[2].FastGetSolutionStepValue(WATER_PRESSURE)    = 9.736040251;
+    element.GetGeometry()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE) = 289.2893748;
+    element.GetGeometry()[1].FastGetSolutionStepValue(DT_WATER_PRESSURE) = 113.395276;
+    element.GetGeometry()[2].FastGetSolutionStepValue(DT_WATER_PRESSURE) = -18.48993726;
+    element.Initialize(process_info);
+    element.InitializeSolutionStep(process_info);
+
+    // Act
+    Vector actual_right_hand_side;
+    Matrix actual_left_hand_side;
+    element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, process_info);
+
+    // Assert
+    Matrix expected_left_hand_side(3, 3);
+    // clang-format off
+    expected_left_hand_side <<= -0.000144736222,5.634212252e-05,-3.774083572e-06,
+                                 5.634212252e-05,-0.000127227034,-2.416421349e-05,
+                                 -3.774083572e-06,-2.416421349e-05,-6.942855172e-05;
+    // clang-format on
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+
+    Vector expected_right_hand_side(3);
+    expected_right_hand_side <<= 0.0001404394389, -9.276110236e-06, 1.140103478e-05;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
