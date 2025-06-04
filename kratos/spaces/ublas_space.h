@@ -19,7 +19,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/process_info.h"
 #include "includes/ublas_interface.h"
 #include "includes/matrix_market_interface.h"
@@ -29,9 +28,8 @@
 
 namespace Kratos
 {
-#ifdef _OPENMP
-// The function object multiplies an element by a Factor
 
+// The function object multiplies an element by a Factor
 template <class Type>
 class MultValueNoAdd
 {
@@ -71,7 +69,6 @@ public:
         return elem1 * Factor + elem2;
     }
 };
-#endif
 
 ///@name Kratos Globals
 ///@{
@@ -186,95 +183,78 @@ public:
     }
 
     /// return size of vector rV
-
     static IndexType Size(VectorType const& rV)
     {
         return rV.size();
     }
 
     /// return number of rows of rM
-
     static IndexType Size1(MatrixType const& rM)
     {
         return rM.size1();
     }
 
     /// return number of columns of rM
-
     static IndexType Size2(MatrixType const& rM)
     {
         return rM.size2();
     }
 
     /// rXi = rMij
-	// This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
-	template<typename TColumnType>
-	static void GetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
-	{
-		if (rX.size() != rM.size1())
-			rX.resize(rM.size1(), false);
-
-		for (std::size_t i = 0; i < rM.size1(); i++) {
-			rX[i] = rM(i, j);
-		}
+    // This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
+    template<typename TColumnType>
+    static void GetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
+    {
+	if (rX.size() != rM.size1()) {
+	    rX.resize(rM.size1(), false);
 	}
 
-	// This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
-	template<typename TColumnType>
-	static void SetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
-	{
-		for (std::size_t i = 0; i < rM.size1(); i++) {
-			rM(i,j) = rX[i];
-		}
+	for (std::size_t i = 0; i < rM.size1(); i++) {
+	    rX[i] = rM(i, j);
 	}
-
+    }
+	
+    // This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
+    template<typename TColumnType>
+    static void SetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
+    {
+        for (std::size_t i = 0; i < rM.size1(); i++) {
+	    rM(i,j) = rX[i];
+        }
+    }
 
     /// rY = rX
-
     static void Copy(MatrixType const& rX, MatrixType& rY)
     {
         rY.assign(rX);
     }
 
     /// rY = rX
-
     static void Copy(VectorType const& rX, VectorType& rY)
     {
-#ifndef _OPENMP
-        rY.assign(rX);
-#else
-
         const int size = rX.size();
         if (rY.size() != static_cast<unsigned int>(size))
             rY.resize(size, false);
 
-        #pragma omp parallel for
-        for (int i = 0; i < size; i++)
+        IndexPartition<int>(size).for_each([&](int i){
             rY[i] = rX[i];
-#endif
+        });
     }
 
     /// rX * rY
-
     static TDataType Dot(VectorType const& rX, VectorType const& rY)
     {
-#ifndef _OPENMP
-        return inner_prod(rX, rY);
-#else
         const int size = static_cast<int>(rX.size());
 
-        TDataType total = TDataType();
-        #pragma omp parallel for reduction( +: total), firstprivate(size)
-        for(int i =0; i<size; ++i)
-            total += rX[i]*rY[i];
+        TDataType total = IndexPartition<int>(size).for_each<SumReduction<TDataType>>([&, size](int i){
+            return rX[i] * rY[i];
+        });
 
         return total;
-#endif
     }
 
 
     /// ||rX||2
-
     static TDataType TwoNorm(VectorType const& rX)
     {
         return std::sqrt(Dot(rX, rX));
@@ -282,26 +262,23 @@ public:
 
     static TDataType TwoNorm(const Matrix& rA) // Frobenious norm
     {
-        TDataType aux_sum = TDataType();
-        #pragma omp parallel for reduction(+:aux_sum)
-        for (int i=0; i<static_cast<int>(rA.size1()); ++i) {
+        TDataType aux_sum = IndexPartition<int>(static_cast<int>(rA.size1())).for_each<SumReduction<TDataType>>([&](int i){
+            TDataType row_sum = TDataType();
             for (int j=0; j<static_cast<int>(rA.size2()); ++j) {
-                aux_sum += std::pow(rA(i,j),2);
+                row_sum += std::pow(rA(i,j),2);
             }
-        }
+            return row_sum;
+        });
         return std::sqrt(aux_sum);
     }
 
     static TDataType TwoNorm(const compressed_matrix<TDataType> & rA) // Frobenious norm
     {
-        TDataType aux_sum = TDataType();
-
         const auto& r_values = rA.value_data();
 
-        #pragma omp parallel for reduction(+:aux_sum)
-        for (int i=0; i<static_cast<int>(r_values.size()); ++i) {
-            aux_sum += std::pow(r_values[i] , 2);
-        }
+        TDataType aux_sum = IndexPartition<int>(static_cast<int>(r_values.size())).for_each<SumReduction<TDataType>>([&](int i){
+            return std::pow(r_values[i] , 2);
+        });
         return std::sqrt(aux_sum);
     }
 
@@ -312,15 +289,15 @@ public:
      */
     static TDataType JacobiNorm(const Matrix& rA)
     {
-        TDataType aux_sum = TDataType();
-        #pragma omp parallel for reduction(+:aux_sum)
-        for (int i=0; i<static_cast<int>(rA.size1()); ++i) {
+        TDataType aux_sum = IndexPartition<int>(static_cast<int>(rA.size1())).for_each<SumReduction<TDataType>>([&](int i){
+            TDataType row_sum = TDataType();
             for (int j=0; j<static_cast<int>(rA.size2()); ++j) {
                 if (i != j) {
-                    aux_sum += std::abs(rA(i,j));
+                    row_sum += std::abs(rA(i,j));
                 }
             }
-        }
+            return row_sum;
+        });
         return aux_sum;
     }
 
@@ -343,16 +320,12 @@ public:
 
     static void Mult(const Matrix& rA, const VectorType& rX, VectorType& rY)
     {
-        axpy_prod(rA, rX, rY, true);
+        boost::numeric::ublas::axpy_prod(rA, rX, rY, true);
     }
 
     static void Mult(const compressed_matrix<TDataType>& rA, const VectorType& rX, VectorType& rY)
     {
-#ifndef _OPENMP
-        axpy_prod(rA, rX, rY, true);
-#else
         ParallelProductNoAdd(rA, rX, rY);
-#endif
     }
 
     template< class TOtherMatrixType >
@@ -399,41 +372,21 @@ public:
 
     static void InplaceMult(VectorType& rX, const double A)
     {
-
-        if (A == 1.00)
-        {
-        }
-        else if (A == -1.00)
-        {
-#ifndef _OPENMP
-            typename VectorType::iterator x_iterator = rX.begin();
-            typename VectorType::iterator end_iterator = rX.end();
-            while (x_iterator != end_iterator)
-            {
-                *x_iterator = -*x_iterator;
-                x_iterator++;
-
-            }
-#else
-             const int size = rX.size();
-
-            #pragma omp parallel for firstprivate(size)
-            for (int i = 0; i < size; i++)
-                rX[i] = -rX[i];
-
-#endif
-        }
-        else
-        {
-#ifndef _OPENMP
-            rX *= A;
-#else
+        if (A == 1.00) {
+	    // NOTHING
+        } else if (A == -1.00) {
             const int size = rX.size();
 
-            #pragma omp parallel for firstprivate(size)
-            for (int i = 0; i < size; i++)
-                rX[i] *= A;
-#endif
+            IndexPartition<int>(size).for_each([&, size](int i){
+                rX[i] = -rX[i];
+            });
+        } else {
+            const int size = rX.size();
+            const double factor = A; // Ensure A is captured correctly by the lambda
+
+            IndexPartition<int>(size).for_each([&, size, factor](int i){
+                rX[i] *= factor;
+            });
         }
     }
 
@@ -444,37 +397,24 @@ public:
 
     static void Assign(VectorType& rX, const double A, const VectorType& rY)
     {
-#ifndef _OPENMP
-        if (A == 1.00)
-            noalias(rX) = rY;
-        else if (A == -1.00)
-            noalias(rX) = -rY;
-        else
-            noalias(rX) = A*rY;
-#else
         const int size = rY.size();
         if (rX.size() != static_cast<unsigned int>(size) )
             rX.resize(size, false);
 
-        if (A == 1.00)
-        {
-            #pragma omp parallel for
-            for (int i = 0; i < size; i++)
+        if (A == 1.00) {
+            IndexPartition<int>(size).for_each([&](int i){
                 rX[i] = rY[i];
-        }
-        else if (A == -1.00)
-        {
-            #pragma omp parallel for
-            for (int i = 0; i < size; i++)
+            });
+        } else if (A == -1.00) {
+            IndexPartition<int>(size).for_each([&](int i){
                 rX[i] = -rY[i];
+            });
+        } else {
+            const double factor = A; // Ensure A is captured correctly
+            IndexPartition<int>(size).for_each([&, factor](int i){
+                rX[i] = factor * rY[i];
+            });
         }
-        else
-        {
-            #pragma omp parallel for
-            for (int i = 0; i < size; i++)
-                rX[i] = A * rY[i];
-        }
-#endif
     }
 
     //********************************************************************
@@ -484,40 +424,24 @@ public:
 
     static void UnaliasedAdd(VectorType& rX, const double A, const VectorType& rY)
     {
-#ifndef _OPENMP
-        if (A == 1.00)
-            noalias(rX) += rY;
-        else if (A == -1.00)
-            noalias(rX) -= rY;
-        else
-            noalias(rX) += A*rY;
-#else
         const int size = rY.size();
         if (rX.size() != static_cast<unsigned int>(size) )
             rX.resize(size, false);
 
-        if (A == 1.00)
-        {
-            #pragma omp parallel for
-            for (int i = 0; i < size; i++)
+        if (A == 1.00) {
+            IndexPartition<int>(size).for_each([&](int i){
                 rX[i] += rY[i];
-        }
-        else if (A == -1.00)
-        {
-            #pragma omp parallel for
-            for (int i = 0; i < size; i++)
+            });
+        } else if (A == -1.00) {
+            IndexPartition<int>(size).for_each([&](int i){
                 rX[i] -= rY[i];
+            });
+        } else {
+            const double factor = A; // Ensure A is captured correctly
+            IndexPartition<int>(size).for_each([&, factor](int i){
+                rX[i] += factor * rY[i];
+            });
         }
-        else
-        {
-            #pragma omp parallel for
-            for (int i = 0; i < size; i++)
-                rX[i] += A * rY[i];
-        }
-
-
-#endif
-
     }
 
     //********************************************************************
@@ -534,9 +458,7 @@ public:
         UnaliasedAdd(rY, A, rX);
     }
 
-
     /// rA[i] * rX
-
     static double RowDot(unsigned int i, MatrixType& rA, VectorType& rX)
     {
         return inner_prod(row(rA, i), rX);
@@ -549,7 +471,6 @@ public:
     }
 
     /// rX = A
-
     static void Set(VectorType& rX, TDataType A)
     {
         std::fill(rX.begin(), rX.end(), A);
@@ -591,80 +512,55 @@ public:
     inline static void ResizeData(TOtherMatrixType& rA, SizeType m)
     {
         rA.resize(m, false);
-        //            std::fill(rA.begin(), rA.end(), TDataType());
-#ifndef _OPENMP
-        std::fill(rA.begin(), rA.end(), TDataType());
-#else
         DataType* vals = rA.value_data().begin();
-        #pragma omp parallel for firstprivate(m)
-        for(int i=0; i<static_cast<int>(m); ++i)
+        IndexPartition<int>(static_cast<int>(m)).for_each([&](int i){
             vals[i] = TDataType();
-#endif
+        });
     }
 
     inline static void ResizeData(compressed_matrix<TDataType>& rA, SizeType m)
     {
         rA.value_data().resize(m);
-#ifndef _OPENMP
-        std::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
-#else
         TDataType* vals = rA.value_data().begin();
-        #pragma omp parallel for firstprivate(m)
-        for(int i=0; i<static_cast<int>(m); ++i)
+        IndexPartition<int>(static_cast<int>(m)).for_each([&](int i){
             vals[i] = TDataType();
-#endif
+        });
     }
 
     inline static void ResizeData(VectorType& rX, SizeType m)
     {
         rX.resize(m, false);
-#ifndef _OPENMP
-        std::fill(rX.begin(), rX.end(), TDataType());
-#else
-        const int size = rX.size();
-        #pragma omp parallel for firstprivate(size)
-        for(int i=0; i<size; ++i)
+        const int current_size = rX.size();
+        IndexPartition<int>(current_size).for_each([&](int i){
             rX[i] = TDataType();
-#endif
+        });
     }
 
     template<class TOtherMatrixType>
     inline static void SetToZero(TOtherMatrixType& rA)
     {
-#ifndef _OPENMP
-        std::fill(rA.begin(), rA.end(), TDataType());
-#else
         TDataType* vals = rA.value_data().begin();
         const int size = rA.value_data().end() - rA.value_data().begin();
-        #pragma omp parallel for firstprivate(size)
-        for(int i=0; i<size; ++i)
+        IndexPartition<int>(size).for_each([&](int i){
             vals[i] = TDataType();
-#endif
+        });
     }
 
     inline static void SetToZero(compressed_matrix<TDataType>& rA)
     {
-#ifndef _OPENMP
-        std::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
-#else
         TDataType* vals = rA.value_data().begin();
         const int size = rA.value_data().end() - rA.value_data().begin();
-        #pragma omp parallel for firstprivate(size)
-        for(int i=0; i<size; ++i)
+        IndexPartition<int>(size).for_each([&](int i){
             vals[i] = TDataType();
-#endif
+        });
     }
 
     inline static void SetToZero(VectorType& rX)
     {
-#ifndef _OPENMP
-        std::fill(rX.begin(), rX.end(), TDataType());
-#else
-        const int size = rX.size();
-        #pragma omp parallel for firstprivate(size)
-        for(int i=0; i<size; ++i)
+        const int current_size = rX.size();
+        IndexPartition<int>(current_size).for_each([&](int i){
             rX[i] = TDataType();
-#endif
+        });
     }
 
     template<class TOtherMatrixType, class TEquationIdVectorType>
@@ -1008,81 +904,33 @@ private:
     ///@name Private Operators
     ///@{
 
-#ifdef _OPENMP
-    //y += A*x in parallel
-
-    static void ParallelProductNoAdd(const MatrixType& A, const VectorType& in, VectorType& out)
+    //y = A*x in parallel (note: original was y+=A*x, but implementation was y=A*x)
+    static void ParallelProductNoAdd(const MatrixType& A, const VectorType& rIn, VectorType& rOut)
     {
-        //create partition
-        DenseVector<unsigned int> partition;
-        unsigned int number_of_threads = omp_get_max_threads();
-        unsigned int number_of_initialized_rows = A.filled1() - 1;
-        CreatePartition(number_of_threads, number_of_initialized_rows, partition);
-        //parallel loop
-        #pragma omp parallel
-        {
-            int thread_id = omp_get_thread_num();
-            int number_of_rows = partition[thread_id + 1] - partition[thread_id];
-            typename compressed_matrix<TDataType>::index_array_type::const_iterator row_iter_begin = A.index1_data().begin() + partition[thread_id];
-            typename compressed_matrix<TDataType>::index_array_type::const_iterator index_2_begin = A.index2_data().begin()+*row_iter_begin;
-            typename compressed_matrix<TDataType>::value_array_type::const_iterator value_begin = A.value_data().begin()+*row_iter_begin;
-            //                  typename VectorType::iterator output_vec_begin = out.begin()+partition[thread_id];
-
-
-            partial_product_no_add(number_of_rows,
-                                   row_iter_begin,
-                                   index_2_begin,
-                                   value_begin,
-                                   in,
-                                   partition[thread_id],
-                                   out
-                                  );
+        const unsigned int number_of_rows = A.size1(); // Total rows to process
+        if (rOut.size() != number_of_rows) {
+            rOut.resize(number_of_rows, false);
         }
-    }
 
-    static void CreatePartition(unsigned int number_of_threads, const int number_of_rows, DenseVector<unsigned int>& partitions)
-    {
-        partitions.resize(number_of_threads + 1);
-        int partition_size = number_of_rows / number_of_threads;
-        partitions[0] = 0;
-        partitions[number_of_threads] = number_of_rows;
-        for (unsigned int i = 1; i < number_of_threads; i++)
-            partitions[i] = partitions[i - 1] + partition_size;
-    }
+        const auto& A_index1_data = A.index1_data();
+        const auto& A_index2_data = A.index2_data();
+        const auto& A_value_data = A.value_data();
 
-
-    /**
-     * calculates partial product resetting to Zero the output before
-     */
-    static void partial_product_no_add(
-        int number_of_rows,
-        typename compressed_matrix<TDataType>::index_array_type::const_iterator row_begin,
-        typename compressed_matrix<TDataType>::index_array_type::const_iterator index2_begin,
-        typename compressed_matrix<TDataType>::value_array_type::const_iterator value_begin,
-        const VectorType& input_vec,
-        unsigned int output_begin_index,
-        VectorType& output_vec
-        //                 typename VectorType::iterator output_vec_begin
-    )
-    {
-        int row_size;
-        int kkk = output_begin_index;
-        typename MatrixType::index_array_type::const_iterator row_it = row_begin;
-        for (int k = 0; k < number_of_rows; k++)
-        {
-            row_size = *(row_it + 1)-*row_it;
-            row_it++;
+        IndexPartition<unsigned int>(number_of_rows).for_each([&](unsigned int i_row){
             TDataType t = TDataType();
+            // Correctly access row information for compressed matrix A
+            // The iterators row_begin, index2_begin, value_begin were specific to the old partitioning.
+            // We need to get the correct start and end for column indices and values for row i_row.
+            const unsigned int row_start_idx = A_index1_data[i_row];
+            const unsigned int row_end_idx = A_index1_data[i_row+1];
 
-            for (int i = 0; i < row_size; i++)
-                t += *value_begin++ * (input_vec[*index2_begin++]);
-
-            output_vec[kkk++] = t;
-            //                 *output_vec_begin++ = t;
-
-        }
+            for (unsigned int k = row_start_idx; k < row_end_idx; ++k) {
+                const unsigned int j_col = A_index2_data[k];
+                t += A_value_data[k] * rIn[j_col];
+            }
+            rOut[i_row] = t;
+        });
     }
-#endif
 
     ///@}
     ///@name Private Operations
@@ -1132,6 +980,5 @@ private:
 //       return rOStream;
 //     }
 ///@}
-
 
 } // namespace Kratos.
