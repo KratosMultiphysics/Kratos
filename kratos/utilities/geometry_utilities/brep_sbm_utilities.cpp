@@ -137,7 +137,7 @@ void BrepSbmUtilities<TNodeType>::CreateBrepVolumeSbmIntegrationPoints(
     const std::vector<double>& rSpansW,
     GeometrySurrogateArrayType& rOuterLoops,
     GeometrySurrogateArrayType& rInnerLoops,
-    IntegrationInfo& rIntegrationInfo);
+    IntegrationInfo& rIntegrationInfo)
 {
     KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
 }
