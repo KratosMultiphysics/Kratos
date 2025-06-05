@@ -89,10 +89,7 @@ public:
         Matrix                                    NContainer;
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
 
-        double RelativePermeability;
-
         // needed for updated Lagrangian:
-        double detJ;
         double detJInitialConfiguration;
         double IntegrationCoefficient;
     };
@@ -170,7 +167,6 @@ public:
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
             noalias(grad_Np_T) = DN_DX_container[integration_point];
-            auto detJ          = det_J_container[integration_point];
 
             auto integration_coefficient = integration_coefficients[integration_point];
 
@@ -339,12 +335,10 @@ public:
             GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
                 body_acceleration, Variables.NContainer, volume_acceleration, integration_point);
 
-            Variables.RelativePermeability = relative_permeability_values[integration_point];
-
             array_1d<double, TDim> GradPressureTerm = prod(trans(grad_Np_T), Variables.PressureVector);
             GradPressureTerm += PORE_PRESSURE_SIGN_FACTOR * r_properties[DENSITY_WATER] * body_acceleration;
 
-            fluid_fluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * dynamic_viscosity_inverse * Variables.RelativePermeability *
+            fluid_fluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * dynamic_viscosity_inverse * relative_permeability_values[integration_point] *
                                    prod(permeability_matrix, GradPressureTerm));
         }
 
@@ -356,9 +350,7 @@ public:
         KRATOS_TRY
 
         // Setting the vector of shape functions and the matrix of the shape functions global gradients
-
-        rVariables.detJ = rVariables.detJContainer[IntegrationPointIndex];
-
+        
         Matrix J0, InvJ0;
         this->CalculateDerivativesOnInitialConfiguration(rVariables.detJInitialConfiguration, J0,
                                                          InvJ0, rVariables.GradNpTInitialConfiguration,
@@ -382,16 +374,6 @@ public:
             return pRetentionLaw->CalculateRelativePermeability(retention_law_params);
         });
         return result;
-    }
-
-    void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const
-    {
-        KRATOS_TRY
-
-        rJ = this->GetGeometry().Jacobian(rJ, GPoint, GetIntegrationMethod());
-        MathUtils<double>::InvertMatrix(rJ, rInvJ, detJ);
-
-        KRATOS_CATCH("")
     }
 
     void CalculateDerivativesOnInitialConfiguration(
@@ -432,9 +414,6 @@ public:
 
         r_geometry.ShapeFunctionsIntegrationPointsGradients(
             rVariables.DN_DXContainer, rVariables.detJContainer, this->GetIntegrationMethod());
-
-        // Retention law
-        rVariables.RelativePermeability = 1.0;
 
         KRATOS_CATCH("")
     }
