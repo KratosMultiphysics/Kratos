@@ -166,13 +166,6 @@ protected:
         MATRIX_ELASTIC
     };
 
-    enum ATTRIBUTE : int {
-        IS_NON_SYMMETRIC,
-        IS_STRESS_DEPENDENT,
-        IS_TIME_DEPENDENT,
-        USE_TANGENT_MATRIX
-    };
-
     array_1d<double, VOIGT_SIZE_3D> mStressVector{VOIGT_SIZE_3D, 0.0};
 
     array_1d<double, StrainIncrementVectorSize> mDeltaStrainVector{StrainIncrementVectorSize, 0.0};

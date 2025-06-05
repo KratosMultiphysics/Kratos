@@ -30,6 +30,11 @@ namespace
 
 using namespace Kratos;
 
+constexpr auto index_of_is_non_symmetric_flag    = 0;
+constexpr auto index_of_is_stress_dependent_flag = 1;
+constexpr auto index_of_is_time_dependent_flag   = 2;
+constexpr auto index_of_use_tangent_matrix_flag  = 3;
+
 // See section 16.2 "Implementation of User Defined (UD) soil Models in calculations program"
 // of the Plaxis documentation for the array size of `Props`
 constexpr auto props_size = SizeType{50};
@@ -153,7 +158,7 @@ void SmallStrainUDSMLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
 
     if (mIsModelInitialized) {
-        if (mAttributes[IS_NON_SYMMETRIC] == 1) {
+        if (mAttributes[index_of_is_non_symmetric_flag] == 1) {
             rFeatures.mOptions.Set(ANISOTROPIC);
         } else {
             rFeatures.mOptions.Set(ISOTROPIC);
@@ -328,14 +333,15 @@ void SmallStrainUDSMLaw::SetAttributes(const Properties& rMaterialProperties)
 
     const auto umat_parameters = MakePropsVector(rMaterialProperties[UMAT_PARAMETERS]);
 
-    mpUserMod(&task_id_as_int, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
-              &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
-              &(mSig0.data()[0]), &excessPorePressurePrevious, StateVariablesFinalized.data(),
-              &(mDeltaStrainVector.data()[0]), (double**)mMatrixD, &bulkWater,
-              &(mStressVector.data()[0]), &excessPorePressureCurrent, StateVariables.data(), &iPlastic,
-              &nStateVariables, &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
-              &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
-              mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
+    mpUserMod(
+        &task_id_as_int, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
+        &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
+        &(mSig0.data()[0]), &excessPorePressurePrevious, StateVariablesFinalized.data(),
+        &(mDeltaStrainVector.data()[0]), (double**)mMatrixD, &bulkWater, &(mStressVector.data()[0]),
+        &excessPorePressureCurrent, StateVariables.data(), &iPlastic, &nStateVariables,
+        &mAttributes[index_of_is_non_symmetric_flag], &mAttributes[index_of_is_stress_dependent_flag],
+        &mAttributes[index_of_is_time_dependent_flag], &mAttributes[index_of_use_tangent_matrix_flag],
+        mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
 
     KRATOS_ERROR_IF_NOT(iAbort == 0)
         << "The specified UDSM returns an error while call UDSM with IDTASK" << task_id_as_int
@@ -380,14 +386,15 @@ int SmallStrainUDSMLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rMat
 
     const auto umat_parameters = MakePropsVector(rMaterialProperties[UMAT_PARAMETERS]);
 
-    mpUserMod(&task_id_as_int, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
-              &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
-              &(mSig0.data()[0]), &excessPorePressurePrevious, StateVariablesFinalized.data(),
-              &(mDeltaStrainVector.data()[0]), (double**)mMatrixD, &bulkWater,
-              &(mStressVector.data()[0]), &excessPorePressureCurrent, StateVariables.data(), &iPlastic,
-              &nStateVariables, &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
-              &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
-              mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
+    mpUserMod(
+        &task_id_as_int, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
+        &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
+        &(mSig0.data()[0]), &excessPorePressurePrevious, StateVariablesFinalized.data(),
+        &(mDeltaStrainVector.data()[0]), (double**)mMatrixD, &bulkWater, &(mStressVector.data()[0]),
+        &excessPorePressureCurrent, StateVariables.data(), &iPlastic, &nStateVariables,
+        &mAttributes[index_of_is_non_symmetric_flag], &mAttributes[index_of_is_stress_dependent_flag],
+        &mAttributes[index_of_is_time_dependent_flag], &mAttributes[index_of_use_tangent_matrix_flag],
+        mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
 
     KRATOS_ERROR_IF_NOT(iAbort == 0)
         << "The specified UDSM returns an error while call UDSM with IDTASK" << task_id_as_int
@@ -725,14 +732,15 @@ void SmallStrainUDSMLaw::CallUDSM(UdsmTaskId TaskId, Parameters& rValues)
 
     const auto umat_parameters = MakePropsVector(rMaterialProperties[UMAT_PARAMETERS]);
 
-    mpUserMod(&task_id_as_int, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
-              &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
-              &(mSig0.data()[0]), &excessPorePressurePrevious, &(mStateVariablesFinalized.data()[0]),
-              &(mDeltaStrainVector.data()[0]), (double**)mMatrixD, &bulkWater,
-              &(mStressVector.data()[0]), &excessPorePressureCurrent, &(mStateVariables.data()[0]),
-              &iPlastic, &nStateVariables, &mAttributes[IS_NON_SYMMETRIC],
-              &mAttributes[IS_STRESS_DEPENDENT], &mAttributes[IS_TIME_DEPENDENT],
-              &mAttributes[USE_TANGENT_MATRIX], mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
+    mpUserMod(
+        &task_id_as_int, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
+        &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
+        &(mSig0.data()[0]), &excessPorePressurePrevious, &(mStateVariablesFinalized.data()[0]),
+        &(mDeltaStrainVector.data()[0]), (double**)mMatrixD, &bulkWater, &(mStressVector.data()[0]),
+        &excessPorePressureCurrent, &(mStateVariables.data()[0]), &iPlastic, &nStateVariables,
+        &mAttributes[index_of_is_non_symmetric_flag], &mAttributes[index_of_is_stress_dependent_flag],
+        &mAttributes[index_of_is_time_dependent_flag], &mAttributes[index_of_use_tangent_matrix_flag],
+        mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
 
     if (iAbort != 0) {
         KRATOS_INFO("CallUDSM, iAbort !=0")
