@@ -38,8 +38,7 @@ public:
             return std::make_shared<BackwardEulerQuasistaticUPwScheme<TSparseSpace, TDenseSpace>>();
         }
 
-        if (rSolverSettings["scheme_type"].GetString() == "Newmark" &&
-            rSolverSettings["solution_type"].GetString() == "dynamic") {
+        if (rSolverSettings["scheme_type"].GetString() == "Newmark") {
             KRATOS_ERROR_IF_NOT(rSolverSettings.Has("newmark_beta"))
                 << "'newmark_beta' is not defined, aborting";
             KRATOS_ERROR_IF_NOT(rSolverSettings.Has("newmark_gamma"))
@@ -47,9 +46,16 @@ public:
             KRATOS_ERROR_IF_NOT(rSolverSettings.Has("newmark_theta"))
                 << "'newmark_theta' is not defined, aborting";
 
-            return std::make_shared<NewmarkDynamicUPwScheme<TSparseSpace, TDenseSpace>>(
-                rSolverSettings["newmark_beta"].GetDouble(), rSolverSettings["newmark_gamma"].GetDouble(),
-                rSolverSettings["newmark_theta"].GetDouble());
+            const auto beta  = rSolverSettings["newmark_beta"].GetDouble();
+            const auto gamma = rSolverSettings["newmark_gamma"].GetDouble();
+            const auto theta = rSolverSettings["newmark_theta"].GetDouble();
+            if (rSolverSettings["solution_type"].GetString() == "dynamic") {
+                return std::make_shared<NewmarkDynamicUPwScheme<TSparseSpace, TDenseSpace>>(beta, gamma, theta);
+            }
+            if (rSolverSettings["solution_type"].GetString() == "Quasi-Static") {
+                return std::make_shared<NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>>(
+                    beta, gamma, theta);
+            }
         }
 
         KRATOS_ERROR << "Specified combination of solution_type ("
