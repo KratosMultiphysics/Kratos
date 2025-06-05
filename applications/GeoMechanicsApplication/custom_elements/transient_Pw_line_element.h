@@ -192,8 +192,8 @@ public:
             rVariable == DERIVATIVE_OF_SATURATION || rVariable == RELATIVE_PERMEABILITY) {
             Matrix N_container(number_of_integration_points, TNumNodes);
             N_container = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
-            RetentionLaw::Parameters RetentionParameters(r_properties);
-            Vector                   Np(TNumNodes);
+            RetentionLaw::Parameters    RetentionParameters(r_properties);
+            Vector                      Np(TNumNodes);
             array_1d<double, TNumNodes> pressure_vector;
             VariablesUtilities::GetNodalValues(r_geometry, WATER_PRESSURE, pressure_vector.begin());
 
@@ -269,8 +269,7 @@ public:
 
         if (rVariable == FLUID_FLUX_VECTOR) {
             std::vector<double> permeability_update_factors(number_of_integration_points, 1.0);
-            const auto          fluid_fluxes =
-                this->CalculateFluidFluxes(permeability_update_factors);
+            const auto fluid_fluxes = this->CalculateFluidFluxes(permeability_update_factors);
 
             for (unsigned int integration_point = 0;
                  integration_point < number_of_integration_points; ++integration_point) {
@@ -303,9 +302,8 @@ public:
         BoundedMatrix<double, TDim, TDim> permeability_matrix;
         GeoElementUtilities::FillPermeabilityMatrix(permeability_matrix, r_properties);
 
-        auto relative_permeability_values =
-            this->CalculateRelativePermeabilityValues(GeoTransportEquationUtilities::CalculateFluidPressures(
-                N_container, pressure_vector));
+        auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
+            GeoTransportEquationUtilities::CalculateFluidPressures(N_container, pressure_vector));
         std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
                        rPermeabilityUpdateFactors.cbegin(), relative_permeability_values.begin(),
                        std::multiplies<>{});
@@ -313,12 +311,12 @@ public:
         array_1d<double, TNumNodes * TDim> volume_acceleration;
         GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(
             volume_acceleration, r_geometry, VOLUME_ACCELERATION);
-        array_1d<double, TDim> body_acceleration;
-        Matrix grad_Np_T(TNumNodes, TDim);
+        array_1d<double, TDim>                    body_acceleration;
+        Matrix                                    grad_Np_T(TNumNodes, TDim);
         Vector                                    det_J_Container(number_of_integration_points);
         GeometryType::ShapeFunctionsGradientsType dN_dx_container;
-        r_geometry.ShapeFunctionsIntegrationPointsGradients(
-            dN_dx_container, det_J_Container, this->GetIntegrationMethod());
+        r_geometry.ShapeFunctionsIntegrationPointsGradients(dN_dx_container, det_J_Container,
+                                                            this->GetIntegrationMethod());
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
             noalias(grad_Np_T) = dN_dx_container[integration_point];
@@ -329,7 +327,8 @@ public:
             array_1d<double, TDim> GradPressureTerm = prod(trans(grad_Np_T), pressure_vector);
             GradPressureTerm += PORE_PRESSURE_SIGN_FACTOR * r_properties[DENSITY_WATER] * body_acceleration;
 
-            fluid_fluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * dynamic_viscosity_inverse * relative_permeability_values[integration_point] *
+            fluid_fluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * dynamic_viscosity_inverse *
+                                   relative_permeability_values[integration_point] *
                                    prod(permeability_matrix, GradPressureTerm));
         }
 

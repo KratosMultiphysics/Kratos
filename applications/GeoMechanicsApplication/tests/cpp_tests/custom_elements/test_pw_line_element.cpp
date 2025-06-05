@@ -1135,11 +1135,11 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
     // copy of CalculateOnIntegrationPoints_1DArray
     // Act
     std::vector<array_1d<double, 3>> results_1d{};
-   element.CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, results_1d, process_info);
+    element.CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, results_1d, process_info);
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    array_1d<double, 3> expected_nonzero_component_1d{0.004903748623,0.003606555048,0.000000000000};
+    array_1d<double, 3> expected_nonzero_component_1d{0.004903748623, 0.003606555048, 0.000000000000};
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(results_1d[0], expected_nonzero_component_1d, Defaults::relative_tolerance);
     expected_nonzero_component_1d[0] = 0.005635581005;
     expected_nonzero_component_1d[1] = 0.004144795072;
