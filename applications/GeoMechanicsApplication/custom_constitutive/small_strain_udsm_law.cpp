@@ -296,7 +296,7 @@ void SmallStrainUDSMLaw::SetAttributes(const Properties& rMaterialProperties)
 
     if (!mIsUDSMLoaded) mIsUDSMLoaded = loadUDSM(rMaterialProperties);
 
-    int IDTask = ATTRIBUTES;
+    auto task_id_as_int = static_cast<int>(UdsmTaskId::ATTRIBUTES);
 
     // process data
     double deltaTime = 0.0;
@@ -328,7 +328,7 @@ void SmallStrainUDSMLaw::SetAttributes(const Properties& rMaterialProperties)
 
     const auto umat_parameters = MakePropsVector(rMaterialProperties[UMAT_PARAMETERS]);
 
-    mpUserMod(&IDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
+    mpUserMod(&task_id_as_int, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
               &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
               &(mSig0.data()[0]), &excessPorePressurePrevious, StateVariablesFinalized.data(),
               &(mDeltaStrainVector.data()[0]), (double**)mMatrixD, &bulkWater,
@@ -338,8 +338,8 @@ void SmallStrainUDSMLaw::SetAttributes(const Properties& rMaterialProperties)
               mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
 
     KRATOS_ERROR_IF_NOT(iAbort == 0)
-        << "The specified UDSM returns an error while call UDSM with IDTASK"
-        << std::to_string(IDTask) << ". UDSM" << rMaterialProperties[UDSM_NAME] << std::endl;
+        << "The specified UDSM returns an error while call UDSM with IDTASK" << task_id_as_int
+        << ". UDSM" << rMaterialProperties[UDSM_NAME] << std::endl;
     KRATOS_CATCH(" ")
 }
 
@@ -348,7 +348,7 @@ int SmallStrainUDSMLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rMat
     KRATOS_TRY
     if (!mIsUDSMLoaded) mIsUDSMLoaded = loadUDSM(rMaterialProperties);
 
-    int IDTask = NUMBER_OF_STATE_VARIABLES;
+    auto task_id_as_int = static_cast<int>(UdsmTaskId::NUMBER_OF_STATE_VARIABLES);
 
     // process data
     double deltaTime = 0.0;
@@ -380,7 +380,7 @@ int SmallStrainUDSMLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rMat
 
     const auto umat_parameters = MakePropsVector(rMaterialProperties[UMAT_PARAMETERS]);
 
-    mpUserMod(&IDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
+    mpUserMod(&task_id_as_int, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
               &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
               &(mSig0.data()[0]), &excessPorePressurePrevious, StateVariablesFinalized.data(),
               &(mDeltaStrainVector.data()[0]), (double**)mMatrixD, &bulkWater,
@@ -390,8 +390,8 @@ int SmallStrainUDSMLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rMat
               mProjectDirectory.data(), &nSizeProjectDirectory, &iAbort);
 
     KRATOS_ERROR_IF_NOT(iAbort == 0)
-        << "The specified UDSM returns an error while call UDSM with IDTASK"
-        << std::to_string(IDTask) << ". UDSM" << rMaterialProperties[UDSM_NAME] << std::endl;
+        << "The specified UDSM returns an error while call UDSM with IDTASK" << task_id_as_int
+        << ". UDSM" << rMaterialProperties[UDSM_NAME] << std::endl;
 
     return nStateVariables;
 
@@ -667,8 +667,7 @@ void SmallStrainUDSMLaw::CalculateConstitutiveMatrix(Parameters& rValues, Matrix
     // update strain vector
     UpdateInternalDeltaStrainVector(rValues);
 
-    int IDTask = MATRIX_ELASTO_PLASTIC;
-    CallUDSM(&IDTask, rValues);
+    CallUDSM(UdsmTaskId::MATRIX_ELASTO_PLASTIC, rValues);
 
     CopyConstitutiveMatrix(rValues, rConstitutiveMatrix);
 
@@ -681,8 +680,7 @@ void SmallStrainUDSMLaw::CalculateStress(Parameters& rValues, Vector& rStressVec
     // update strain vector
     UpdateInternalDeltaStrainVector(rValues);
 
-    int IDTask = STRESS_CALCULATION;
-    CallUDSM(&IDTask, rValues);
+    CallUDSM(UdsmTaskId::STRESS_CALCULATION, rValues);
 
     SetExternalStressVector(rStressVector);
     KRATOS_CATCH("")
@@ -698,9 +696,11 @@ int SmallStrainUDSMLaw::GetUseTangentMatrix() { return mAttributes[USE_TANGENT_M
 
 array_1d<double, SmallStrainUDSMLaw::Sig0Size>& SmallStrainUDSMLaw::GetSig0() { return mSig0; }
 
-void SmallStrainUDSMLaw::CallUDSM(int* pIDTask, Parameters& rValues)
+void SmallStrainUDSMLaw::CallUDSM(UdsmTaskId TaskId, Parameters& rValues)
 {
     KRATOS_TRY
+
+    auto task_id_as_int = static_cast<int>(TaskId);
 
     // process data
     double deltaTime = rValues.GetProcessInfo()[DELTA_TIME];
@@ -733,7 +733,7 @@ void SmallStrainUDSMLaw::CallUDSM(int* pIDTask, Parameters& rValues)
 
     const auto umat_parameters = MakePropsVector(rMaterialProperties[UMAT_PARAMETERS]);
 
-    mpUserMod(pIDTask, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
+    mpUserMod(&task_id_as_int, &modelNumber, &isUndr, &iStep, &iteration, &iElement, &integrationNumber,
               &Xorigin, &Yorigin, &Zorigin, &time, &deltaTime, &(umat_parameters.data()[0]),
               &(mSig0.data()[0]), &excessPorePressurePrevious, &(mStateVariablesFinalized.data()[0]),
               &(mDeltaStrainVector.data()[0]), (double**)mMatrixD, &bulkWater,
@@ -744,14 +744,13 @@ void SmallStrainUDSMLaw::CallUDSM(int* pIDTask, Parameters& rValues)
 
     if (iAbort != 0) {
         KRATOS_INFO("CallUDSM, iAbort !=0")
-            << " iAbort: " << iAbort << " the specified UDSM returns an error while call UDSM with IDTASK: "
-            << std::to_string(*pIDTask) << "."
+            << " iAbort: " << iAbort
+            << " the specified UDSM returns an error while call UDSM with IDTASK: " << task_id_as_int << "."
             << " UDSM: " << rMaterialProperties[UDSM_NAME]
             << " UDSM_NUMBER: " << rMaterialProperties[UDSM_NUMBER]
             << " Parameters: " << rMaterialProperties[UMAT_PARAMETERS] << std::endl;
-        KRATOS_ERROR << "the specified UDSM returns an error while call UDSM with IDTASK: "
-                     << std::to_string(*pIDTask) << ". UDSM: " << rMaterialProperties[UDSM_NAME]
-                     << std::endl;
+        KRATOS_ERROR << "the specified UDSM returns an error while call UDSM with IDTASK: " << task_id_as_int
+                     << ". UDSM: " << rMaterialProperties[UDSM_NAME] << std::endl;
     }
     KRATOS_CATCH("")
 }
@@ -782,8 +781,7 @@ void SmallStrainUDSMLaw::InitializeMaterialResponseCauchy(Parameters& rValues)
         SetInternalStressVector(rValues.GetStressVector());
         SetInternalStrainVector(rValues.GetStrainVector());
 
-        int IDTask = INITIALISATION;
-        CallUDSM(&IDTask, rValues);
+        CallUDSM(UdsmTaskId::INITIALISATION, rValues);
 
         mIsModelInitialized = true;
     }

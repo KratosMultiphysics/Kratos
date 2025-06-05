@@ -157,7 +157,7 @@ public:
     void                      PrintData(std::ostream& rOStream) const override;
 
 protected:
-    enum IDTASK : int {
+    enum class UdsmTaskId : int {
         INITIALISATION = 1,
         STRESS_CALCULATION,
         MATRIX_ELASTO_PLASTIC,
@@ -230,7 +230,7 @@ private:
     bool loadUDSMWindows(const Properties& rMaterialProperties);
     bool loadUDSMLinux(const Properties& rMaterialProperties);
 
-    void CallUDSM(int* IDTask, Parameters& rValues);
+    void CallUDSM(UdsmTaskId TaskId, Parameters& rValues);
 
     void ResetStateVariables(const Properties& rMaterialProperties);
     void ResetConstitutiveMatrix();
