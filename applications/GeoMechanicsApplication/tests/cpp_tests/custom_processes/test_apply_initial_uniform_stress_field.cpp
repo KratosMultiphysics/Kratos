@@ -33,7 +33,6 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesTo
     auto& rModelPart = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
     rModelPart.GetElement(1).GetProperties()[CONSTITUTIVE_LAW] =
         std::make_shared<GeoIncrementalLinearElasticLaw>(std::make_unique<PlaneStrain>());
-    rModelPart.GetElement(1).Initialize(rModelPart.GetProcessInfo());
 
     ApplyInitialUniformStressField process(rModelPart, parameters);
     process.ExecuteInitialize();
@@ -60,7 +59,6 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesTo
     auto& rModelPart = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
     rModelPart.GetElement(1).GetProperties()[CONSTITUTIVE_LAW] =
         std::make_shared<GeoIncrementalLinearElasticLaw>(std::make_unique<ThreeDimensional>());
-    rModelPart.GetElement(1).Initialize(rModelPart.GetProcessInfo());
     ApplyInitialUniformStressField process(rModelPart, parameters);
     process.ExecuteInitialize();
 
@@ -71,6 +69,32 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesTo
     KRATOS_EXPECT_EQ(actual_stresses.size(), 4);
 
     const std::vector<double> expected_stress = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+    for (const auto& stress : actual_stresses) {
+        KRATOS_EXPECT_VECTOR_NEAR(stress, expected_stress, 1e-6);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesToThreeDimensionalDiffOrderElementsInModelParts,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Parameters parameters(R"({
+        "value": [1.0, 2.0, 3.0, 4.0]
+    })");
+
+    Model model;
+    auto& rModelPart = ModelSetupUtilities::CreateModelPartWithASingle2D6NDiffOrderElement(model);
+    rModelPart.GetElement(1).GetProperties()[CONSTITUTIVE_LAW] =
+        std::make_shared<GeoIncrementalLinearElasticLaw>(std::make_unique<PlaneStrain>());
+    ApplyInitialUniformStressField process(rModelPart, parameters);
+    process.ExecuteInitialize();
+
+    std::vector<Vector> actual_stresses;
+
+    rModelPart.GetElement(1).CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_stresses,
+                                                          rModelPart.GetProcessInfo());
+    KRATOS_EXPECT_EQ(actual_stresses.size(), 3);
+
+    const std::vector<double> expected_stress = {1.0, 2.0, 3.0, 4.0};
     for (const auto& stress : actual_stresses) {
         KRATOS_EXPECT_VECTOR_NEAR(stress, expected_stress, 1e-6);
     }
