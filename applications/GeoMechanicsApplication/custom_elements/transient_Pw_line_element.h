@@ -351,25 +351,7 @@ public:
         });
         return result;
     }
-
-    void CalculateDerivativesOnInitialConfiguration(
-        double& rDetJ, Matrix& rJ0, Matrix& rInvJ0, Matrix& rDNu_DX0, unsigned int IntegrationPointIndex) const
-    {
-        KRATOS_TRY
-
-        const auto& r_geometry           = this->GetGeometry();
-        const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
-
-        GeometryUtils::JacobianOnInitialConfiguration(
-            r_geometry, r_integration_points[IntegrationPointIndex], rJ0);
-        const auto& r_dn_de =
-            r_geometry.ShapeFunctionsLocalGradients(GetIntegrationMethod())[IntegrationPointIndex];
-        MathUtils<>::InvertMatrix(rJ0, rInvJ0, rDetJ);
-        GeometryUtils::ShapeFunctionsGradients(r_dn_de, rInvJ0, rDNu_DX0);
-
-        KRATOS_CATCH("")
-    }
-
+    
     std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
                                                          const Vector& rDetJs) const
     {
