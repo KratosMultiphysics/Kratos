@@ -26,7 +26,8 @@ ApplyInitialUniformStressField::ApplyInitialUniformStressField(ModelPart& rModel
             << "The size of the input stress vector for applying a uniform initial "
                "stress field must match the strain size of the constitutive law, which is "
             << p_constitutive_law->GetStrainSize() << ", but is " << mImposedStressVector.size()
-            << " for model part '" << mrModelPart.Name() << "'. Please check the process parameters.\n";
+            << " for element " << rElement.Id() << " in model part '" << mrModelPart.Name()
+            << "'. Please check the process parameters.\n";
     });
 }
 

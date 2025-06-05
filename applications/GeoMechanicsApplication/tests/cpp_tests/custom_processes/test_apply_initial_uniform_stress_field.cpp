@@ -34,23 +34,17 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesTo
     rModelPart.GetElement(1).GetProperties()[CONSTITUTIVE_LAW] =
         std::make_shared<GeoIncrementalLinearElasticLaw>(std::make_unique<PlaneStrain>());
     rModelPart.GetElement(1).Initialize(rModelPart.GetProcessInfo());
+
     ApplyInitialUniformStressField process(rModelPart, parameters);
     process.ExecuteInitialize();
 
     std::vector<Vector> actual_stresses;
-
-    auto p_element = rModelPart.Elements()[0];
-
     rModelPart.GetElement(1).CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_stresses,
                                                           rModelPart.GetProcessInfo());
     KRATOS_EXPECT_EQ(actual_stresses.size(), 3);
 
+    const std::vector<double> expected_stress = {1.0, 2.0, 3.0, 4.0};
     for (const auto& stress : actual_stresses) {
-        Vector expected_stress(4);
-        expected_stress[0] = 1.0;
-        expected_stress[1] = 2.0;
-        expected_stress[2] = 3.0;
-        expected_stress[3] = 4.0;
         KRATOS_EXPECT_VECTOR_NEAR(stress, expected_stress, 1e-6);
     }
 }
@@ -72,20 +66,12 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesTo
 
     std::vector<Vector> actual_stresses;
 
-    auto p_element = rModelPart.Elements()[0];
-
     rModelPart.GetElement(1).CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_stresses,
                                                           rModelPart.GetProcessInfo());
     KRATOS_EXPECT_EQ(actual_stresses.size(), 4);
 
+    const std::vector<double> expected_stress = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
     for (const auto& stress : actual_stresses) {
-        Vector expected_stress(6);
-        expected_stress[0] = 1.0;
-        expected_stress[1] = 2.0;
-        expected_stress[2] = 3.0;
-        expected_stress[3] = 4.0;
-        expected_stress[4] = 5.0;
-        expected_stress[5] = 6.0;
         KRATOS_EXPECT_VECTOR_NEAR(stress, expected_stress, 1e-6);
     }
 }
@@ -116,7 +102,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldThrowsUponConstructionWh
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         ApplyInitialUniformStressField(rModelPart, parameters),
         "The size of the input stress vector for applying a uniform initial stress field must "
-        "match the strain size of the constitutive law, which is 4, but is 3 for model part "
+        "match the strain size of the constitutive law, which is 4, but is 3 for element 1 in model part "
         "'Main'. Please check the process parameters.");
 }
 
