@@ -59,20 +59,44 @@ namespace Kratos::Future
 ///@{
 
 /**
+ * @brief Implicit scheme TLS type definition
+ * Thread Local Storage container to be used in the parallel assembly of implicit problems
+ * @tparam DataType data type of the problem to be solved
+ */
+template<class TDataType = double >
+struct StaticThreadLocalStorage
+{
+    // Local LHS contribution
+    DenseMatrix<TDataType> LocalMatrix;
+
+    // Local RHS constribution
+    DenseVector<TDataType> LocalVector;
+
+    // Vector containing the localization in the system of the different terms
+    Element::EquationIdVectorType LocalEqIds;
+
+    // Vector containing the slave equation ids
+    MasterSlaveConstraint::EquationIdVectorType SlaveEqIds;
+
+    // Vector containing the master equation ids
+    MasterSlaveConstraint::EquationIdVectorType MasterEqIds;
+};
+
+/**
  * @class StaticScheme
  * @ingroup KratosCore
  * @brief This class provides the implementation of the basic tasks that are needed by the solution strategy.
  * @details It is intended to be the place for tailoring the solution strategies to problem specific tasks.
  * @author Ruben Zorrilla
  */
-template<class TSparseMatrixType, class TSparseVectorType, class TSparseGraphType>
-class StaticScheme : public ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>
+template<class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
+class StaticScheme : public ImplicitScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>
 {
 public:
     // FIXME: Does not work... ask @Charlie
     // /// Add scheme to Kratos registry
-    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", StaticScheme, StaticScheme, TSparseMatrixType, TSparseVectorType)
-    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.All", StaticScheme, StaticScheme, TSparseMatrixType, TSparseVectorType)
+    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", StaticScheme, StaticScheme, TSparseMatrixType, TSystemVectorType)
+    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.All", StaticScheme, StaticScheme, TSparseMatrixType, TSystemVectorType)
 
     ///@name Type Definitions
     ///@{
@@ -81,7 +105,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(StaticScheme);
 
     /// The definition of the current class
-    using BaseType = ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>;
+    using BaseType = ImplicitScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
 
     /// Size type definition
     using SizeType = std::size_t;
@@ -91,6 +115,9 @@ public:
 
     /// Data type definition
     using DataType = typename TSparseMatrixType::DataType;
+
+    /// TLS type
+    using TLSType = StaticThreadLocalStorage<DataType>;
 
     /// DoF type definition
     using DofType = Dof<DataType>;
@@ -160,23 +187,13 @@ public:
         ModelPart& rModelPart,
         Parameters ThisParameters) const override
     {
-        return Kratos::make_shared<StaticScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>>(rModelPart, ThisParameters);
+        return Kratos::make_shared<StaticScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>>(rModelPart, ThisParameters);
     }
 
     typename BaseType::Pointer Clone() override
     {
-        return Kratos::make_shared<StaticScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>>(*this) ;
+        return Kratos::make_shared<StaticScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>>(*this) ;
     }
-
-    /**
-     * @brief Function called once at the beginning of each solution step.
-     * @details The basic operations to be carried in there are the following:
-     * - managing variables to be kept constant over the time step (for example time-Scheme constants depending on the actual time step)
-     * @param rModelPart The model part of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
-     */
 
     /**
      * @brief Function called once at the beginning of each solution step
@@ -191,28 +208,14 @@ public:
      * @param rDofSet The array of DOFs from elements and conditions
      * @param rEffectiveDofSet The array of DOFs to be solved after the application of constraints
      * @param rEffectiveDofIdMap A map relating each effective DOF to its effective id
-     * @param rpA The system left hand side matrix
-     * @param rpEffectiveLhs The effective left hand side matrix
-     * @param rpB The system right hand side vector
-     * @param rpEffectiveRhs The effective right hand side vector
-     * @param rpDx The solution update vector
-     * @param rpEffectiveDx The effective solution update vector
-     * @param rConstraintsRelationMatrix The assembled constraints relation matrix (i.e. T)
-     * @param rConstraintsConstantVector The assembled constraints constant vector
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      * @param ReformDofSet Flag to indicate if the DOFs have changed and need to be updated
      */
     void InitializeSolutionStep(
-        DofsArrayType& rDofSet,
-        DofsArrayType& rEffectiveDofSet,
-        EffectiveDofsMapType& rEffectiveDofIdMap,
-        typename TSparseMatrixType::Pointer& rpA,
-        typename TSparseMatrixType::Pointer& rpEffectiveLhs,
-        typename TSparseVectorType::Pointer& rpB,
-        typename TSparseVectorType::Pointer& rpEffectiveRhs,
-        typename TSparseVectorType::Pointer& rpDx,
-        typename TSparseVectorType::Pointer& rpEffectiveDx,
-        TSparseMatrixType& rConstraintsRelationMatrix,
-        TSparseVectorType& rConstraintsConstantVector,
+        DofsArrayType &rDofSet,
+        DofsArrayType &rEffectiveDofSet,
+        EffectiveDofsMapType &rEffectiveDofIdMap,
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer,
         const bool ReformDofSets = true) override
     {
         KRATOS_TRY
@@ -235,7 +238,7 @@ public:
 
                 // Set up the system constraints
                 BuiltinTimer constraints_construction_time;
-                this->ConstructMasterSlaveConstraintsStructure(rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector);
+                this->ConstructMasterSlaveConstraintsStructure(rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, rLinearSystemContainer);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Constraints construction time: " << constraints_construction_time << std::endl;
 
                 //TODO: I think we should compute the sparse graph in here (separate it from the ResizeAndInitializeVectors and pass it downstream)
@@ -244,7 +247,7 @@ public:
 
                 // Allocating the system vectors to their correct sizes
                 BuiltinTimer system_matrix_resize_time;
-                this->ResizeAndInitializeVectors(rDofSet, rEffectiveDofSet, rpA, rpEffectiveLhs, rpB, rpEffectiveRhs, rpDx, rpEffectiveDx);
+                this->ResizeAndInitializeVectors(rDofSet, rEffectiveDofSet, rLinearSystemContainer);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
 
             } else {
@@ -277,12 +280,7 @@ public:
         DofsArrayType& rDofSet,
         DofsArrayType& rEffectiveDofSet,
         EffectiveDofsMapType& rEffectiveDofIdMap,
-        TSparseMatrixType& rA,
-        TSparseVectorType& rb,
-        TSparseVectorType& rDx,
-        TSparseVectorType& rEffectiveDx,
-        TSparseMatrixType& rConstraintsRelationMatrix,
-        TSparseVectorType& rConstraintsConstantVector) override
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
         KRATOS_TRY
 
@@ -300,11 +298,13 @@ public:
         if (n_constraints_glob != 0) {
             // Assemble constraints constant vector and apply it to the DOF set
             // Note that the constant vector is applied only once in here as we then solve for the solution increment
-            this->BuildMasterSlaveConstraints(rDofSet, rEffectiveDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector);
+            auto p_constraints_T = rLinearSystemContainer.pConstraintsT;
+            auto p_constraints_Q = rLinearSystemContainer.pConstraintsQ;
+            this->BuildMasterSlaveConstraints(rDofSet, rEffectiveDofIdMap, *p_constraints_T, *p_constraints_Q);
 
             // Fill the current values vector
-            TSparseVectorType x(rEffectiveDofIdMap.size());
-            (this->GetBuilder()).CalculateSolutionVector(rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector, x);
+            TSystemVectorType x(rEffectiveDofIdMap.size());
+            (this->GetBuilder()).CalculateSolutionVector(rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, *p_constraints_T, *p_constraints_Q, x);
 
             // Update DOFs with solution values
             block_for_each(rDofSet, [&x](DofType& rDof){
@@ -325,31 +325,30 @@ public:
      * @warning Must be defined in derived classes
      * @param rModelPart The model part of the problem to solve
      * @param rDofSet Set of all primary variables
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
     void Update(
-        DofsArrayType& rDofSet,
-        EffectiveDofsMapType& rEffectiveDofIdMap,
-        TSparseMatrixType& rA,
-        TSparseVectorType& rb,
-        TSparseVectorType& rDx,
-        const TSparseVectorType& rEffectiveDx,
-        const TSparseMatrixType& rConstraintsRelationMatrix) override
+        DofsArrayType &rDofSet,
+        EffectiveDofsMapType &rEffectiveDofIdMap,
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
     {
         KRATOS_TRY
 
+        // Get linear system arrays
+        auto& r_dx = *(rLinearSystemContainer.pDx);
+        auto& r_eff_dx = *(rLinearSystemContainer.pEffectiveDx);
+        auto& r_T = *(rLinearSystemContainer.pConstraintsT);
+
         // First update the constraints loose DOFs with the effective solution vector
-        this->UpdateConstraintsLooseDofs(rEffectiveDx, rDofSet, rEffectiveDofIdMap);
+        this->UpdateConstraintsLooseDofs(r_eff_dx, rDofSet, rEffectiveDofIdMap);
 
         // Get the solution update vector from the effective one
-        this->CalculateUpdateVector(rConstraintsRelationMatrix, rEffectiveDx, rDx);
+        this->CalculateUpdateVector(r_T, r_eff_dx, r_dx);
 
         // Update DOFs with solution values (note that we solve for the increments)
-        block_for_each(rDofSet, [&rDx](DofType& rDof){
+        block_for_each(rDofSet, [&r_dx](DofType& rDof){
             if (rDof.IsFree()) {
-                rDof.GetSolutionStepValue() += rDx[rDof.EquationId()];
+                rDof.GetSolutionStepValue() += r_dx[rDof.EquationId()];
             }
         });
 
@@ -371,8 +370,8 @@ public:
      */
     virtual void CalculateOutputData(
         TSparseMatrixType& A,
-        TSparseVectorType& Dx,
-        TSparseVectorType& b) override
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 

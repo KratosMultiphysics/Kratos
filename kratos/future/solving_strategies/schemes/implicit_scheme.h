@@ -58,7 +58,7 @@ namespace Kratos::Future
 ///@name Kratos Classes
 ///@{
 
-/// TLS type definition
+//FIXME: We need to find a way to redefine the TLS in derived classes
 
 /**
  * @brief Implicit scheme TLS type definition
@@ -92,16 +92,15 @@ struct ImplicitThreadLocalStorage
  * @author Ruben Zorrilla
  */
 //TODO: Think about the template parameters
-
-template<class TSparseMatrixType, class TSparseVectorType, class TSparseGraphType>
+template<class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
 class ImplicitScheme
 {
 public:
 
     // FIXME: Does not work... ask @Charlie
     // /// Add scheme to Kratos registry
-    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", ImplicitScheme, ImplicitScheme, TSparseMatrixType, TSparseVectorType)
-    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.All", ImplicitScheme, ImplicitScheme, TSparseMatrixType, TSparseVectorType)
+    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", ImplicitScheme, ImplicitScheme, TSparseMatrixType, TSystemVectorType)
+    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.All", ImplicitScheme, ImplicitScheme, TSparseMatrixType, TSystemVectorType)
 
     ///@name Type Definitions
     ///@{
@@ -123,7 +122,7 @@ public:
 
     /// Assembly helper type
     //FIXME: This should be set in the constructor
-    using BuilderType = Future::BlockBuilder<TLSType, TSparseMatrixType, TSparseVectorType, TSparseGraphType>;
+    using BuilderType = Future::BlockBuilder<TLSType, TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
 
     /// DoF type definition
     using DofType = Dof<DataType>;
@@ -189,20 +188,20 @@ public:
      * @brief Create method
      * @param ThisParameters The configuration parameters
      */
-    virtual typename ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>::Pointer Create(
+    virtual typename ImplicitScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>::Pointer Create(
         ModelPart& rModelPart,
         Parameters ThisParameters) const
     {
-        return Kratos::make_shared<ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>>(rModelPart, ThisParameters);
+        return Kratos::make_shared<ImplicitScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>>(rModelPart, ThisParameters);
     }
 
     /**
      * @brief Clone method
      * @return The pointer of the cloned ImplicitScheme
      */
-    virtual typename ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>::Pointer Clone()
+    virtual typename ImplicitScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>::Pointer Clone()
     {
-        return Kratos::make_shared<ImplicitScheme<TSparseMatrixType, TSparseVectorType, TSparseGraphType>>(*this) ;
+        return Kratos::make_shared<ImplicitScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>>(*this) ;
     }
 
     /**
@@ -238,28 +237,14 @@ public:
      * @param rDofSet The array of DOFs from elements and conditions
      * @param rEffectiveDofSet The array of DOFs to be solved after the application of constraints
      * @param rEffectiveDofIdMap A map relating each effective DOF to its effective id
-     * @param rpA The system left hand side matrix
-     * @param rpEffectiveLhs The effective left hand side matrix
-     * @param rpB The system right hand side vector
-     * @param rpEffectiveRhs The effective right hand side vector
-     * @param rpDx The solution update vector
-     * @param rpEffectiveDx The effective solution update vector
-     * @param rConstraintsRelationMatrix The assembled constraints relation matrix (i.e. T)
-     * @param rConstraintsConstantVector The assembled constraints constant vector
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      * @param ReformDofSet Flag to indicate if the DOFs have changed and need to be updated
      */
     virtual void InitializeSolutionStep(
         DofsArrayType& rDofSet,
         DofsArrayType& rEffectiveDofSet,
         EffectiveDofsMapType& rEffectiveDofIdMap,
-        typename TSparseMatrixType::Pointer& rpA,
-        typename TSparseMatrixType::Pointer& rpEffectiveLhs,
-        typename TSparseVectorType::Pointer& rpB,
-        typename TSparseVectorType::Pointer& rpEffectiveRhs,
-        typename TSparseVectorType::Pointer& rpDx,
-        typename TSparseVectorType::Pointer& rpEffectiveDx,
-        TSparseMatrixType& rConstraintsRelationMatrix,
-        TSparseVectorType& rConstraintsConstantVector,
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer,
         const bool ReformDofSets = true)
     {
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'InitializeSolutionStep\' method. Call derived class one." << std::endl;
@@ -273,10 +258,7 @@ public:
      * @param b RHS Vector
      */
     //TODO: Think on the arguments of this one (I'd pass all in order to provide maximum flexibility in derived classes)
-    virtual void FinalizeSolutionStep(
-        TSparseMatrixType& A,
-        TSparseVectorType& Dx,
-        TSparseVectorType& b)
+    virtual void FinalizeSolutionStep(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         KRATOS_TRY
 
@@ -295,15 +277,9 @@ public:
      * @warning Must be defined in derived classes
      * @details The function is called in the builder for memory efficiency
      * @param rModelPart The model part of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    //TODO: Think on the arguments of this one (I'd pass all in order to provide maximum flexibility in derived classes)
-    virtual void InitializeNonLinIteration(
-        TSparseMatrixType& A,
-        TSparseVectorType& Dx,
-        TSparseVectorType& b)
+    virtual void InitializeNonLinIteration(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         KRATOS_TRY
 
@@ -316,15 +292,9 @@ public:
     /**
      * @brief Function to be called when it is needed to finalize an iteration. It is designed to be called at the end of each non linear iteration
      * @param rModelPart The model part of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    //TODO: Think on the arguments of this one (I'd pass all in order to provide maximum flexibility in derived classes)
-    virtual void FinalizeNonLinIteration(
-        TSparseMatrixType& A,
-        TSparseVectorType& Dx,
-        TSparseVectorType& b)
+    virtual void FinalizeNonLinIteration(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         KRATOS_TRY
 
@@ -362,21 +332,16 @@ public:
 
     //TODO: Think on the overloads for the mass and damping matrices
     virtual void ResizeAndInitializeVectors(
-        const DofsArrayType& rDofSet,
-        const DofsArrayType& rEffectiveDofSet,
-        typename TSparseMatrixType::Pointer& rpLhs,
-        typename TSparseMatrixType::Pointer& rpEffectiveLhs,
-        typename TSparseVectorType::Pointer& rpRhs,
-        typename TSparseVectorType::Pointer& rpEffectiveRhs,
-        typename TSparseVectorType::Pointer& rpDx,
-        typename TSparseVectorType::Pointer& rpEffectiveDx,
+        const DofsArrayType &rDofSet,
+        const DofsArrayType &rEffectiveDofSet,
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer,
         const bool CalculateReactions = false)
     {
         KRATOS_TRY
 
         // Call the assembly helper to allocate and initialize the required vectors
         // Note that this also allocates the required reaction vectors (e.g., elimination build)
-        (this->GetBuilder()).ResizeAndInitializeVectors(rDofSet, rEffectiveDofSet, rpLhs, rpEffectiveLhs, rpRhs, rpEffectiveRhs, rpDx, rpEffectiveDx, CalculateReactions);
+        (this->GetBuilder()).ResizeAndInitializeVectors(rDofSet, rEffectiveDofSet, rLinearSystemContainer, CalculateReactions);
 
         KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() >= 2) << "Finished system initialization." << std::endl;
 
@@ -384,16 +349,15 @@ public:
     }
 
     virtual void ConstructMasterSlaveConstraintsStructure(
-        const DofsArrayType& rDofSet,
-        DofsArrayType& rEffectiveDofSet,
-        EffectiveDofsMapType& rEffectiveDofIdMap,
-        TSparseMatrixType& rConstraintsRelationMatrix,
-        TSparseVectorType& rConstraintsConstantVector)
+        const DofsArrayType &rDofSet,
+        DofsArrayType &rEffectiveDofSet,
+        EffectiveDofsMapType &rEffectiveDofIdMap,
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         KRATOS_TRY
 
         // Call the assembly helper to set the master-slave constraints
-        (this->GetBuilder()).ConstructMasterSlaveConstraintsStructure(*mpModelPart, rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector);
+        (this->GetBuilder()).ConstructMasterSlaveConstraintsStructure(*mpModelPart, rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, rLinearSystemContainer);
 
         KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() >= 2) << "Finished constraints initialization." << std::endl;
 
@@ -402,59 +366,11 @@ public:
 
     virtual void Build(
         TSparseMatrixType& rLHS,
-        TSparseVectorType& rRHS)
+        TSystemVectorType& rRHS)
     {
         Timer::Start("Build");
 
         const auto timer = BuiltinTimer();
-
-        // const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLSType& rTLS){
-        //     if (ItElem->Is(ACTIVE)) {
-        //         // Calculate local LHS and RHS contributions
-        //         ItElem->CalculateLocalSystem(rTLS.LocalMatrix, rTLS.LocalVector, rProcessInfo);
-
-        //         // Get the positions in the global system
-        //         ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
-
-        //         // The element is active and is to be assembled
-        //         return true;
-        //     } else {
-        //         // Clear current TLS values
-        //         rTLS.LocalEqIds.clear();
-        //         rTLS.LocalVector.clear();
-        //         rTLS.LocalMatrix.clear();
-
-        //         // The element is inactive and is not to be assembled
-        //         return false;
-        //     }
-        // };
-
-        // const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, TLSType& rTLS){
-        //     if (ItCond->Is(ACTIVE)) {
-        //         // Calculate local LHS and RHS contributions
-        //         ItCond->CalculateLocalSystem(rTLS.LocalMatrix, rTLS.LocalVector, rProcessInfo);
-
-        //         // Get the positions in the global system
-        //         ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
-
-        //         // The condition is active and is to be assembled
-        //         return true;
-        //     } else {
-        //         // Clear current TLS values
-        //         rTLS.LocalEqIds.clear();
-        //         rTLS.LocalVector.clear();
-        //         rTLS.LocalMatrix.clear();
-
-        //         // The condition is inactive and is not to be assembled
-        //         return false;
-        //     }
-        // };
-
-        // TLSType aux_tls;
-        // auto& r_assembly_helper = GetBuilder();
-        // r_assembly_helper.SetElementAssemblyFunction(elem_func);
-        // r_assembly_helper.SetConditionAssemblyFunction(cond_func);
-        // r_assembly_helper.Assemble(rLHS, rRHS, aux_tls);
 
         // Getting conditions and elements to be assembled
         const auto& r_elems = mpModelPart->Elements();
@@ -514,57 +430,11 @@ public:
         Timer::Stop("Build");
     }
 
-    virtual void Build(TSparseVectorType& rRHS)
+    virtual void Build(TSystemVectorType& rRHS)
     {
         Timer::Start("BuildRightHandSide");
 
         const auto timer = BuiltinTimer();
-
-        // const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLSType& rTLS){
-        //     if (ItElem->Is(ACTIVE)) {
-        //         // Calculate the RHS contribution
-        //         ItElem->CalculateRightHandSide(rTLS.LocalVector, rProcessInfo);
-
-        //         // Get the positions in the global system
-        //         ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
-
-        //         // The element is active and is to be assembled
-        //         return true;
-        //     } else {
-        //         // Clear current TLS values
-        //         rTLS.LocalEqIds.clear();
-        //         rTLS.LocalVector.clear();
-
-        //         // The element is inactive and is not to be assembled
-        //         return false;
-        //     }
-        // };
-
-        // const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, TLSType& rTLS){
-        //     if (ItCond->Is(ACTIVE)) {
-        //         // Calculate the RHS contribution
-        //         ItCond->CalculateRightHandSide(rTLS.LocalVector, rProcessInfo);
-
-        //         // Get the positions in the global system
-        //         ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
-
-        //         // The condition is active and is to be assembled
-        //         return true;
-        //     } else {
-        //         // Clear current TLS values
-        //         rTLS.LocalEqIds.clear();
-        //         rTLS.LocalVector.clear();
-
-        //         // The condition is inactive and is not to be assembled
-        //         return false;
-        //     }
-        // };
-
-        // TLSType aux_tls;
-        // auto& r_assembly_helper = GetBuilder();
-        // r_assembly_helper.SetElementAssemblyFunction(elem_func);
-        // r_assembly_helper.SetConditionAssemblyFunction(cond_func);
-        // r_assembly_helper.Assemble(rRHS, aux_tls);
 
         // Getting conditions and elements to be assembled
         const auto& r_elems = mpModelPart->Elements();
@@ -626,52 +496,6 @@ public:
 
         const auto timer = BuiltinTimer();
 
-        // const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLSType& rTLS){
-        //     if (ItElem->Is(ACTIVE)) {
-        //         // Calculate local LHS contribution
-        //         ItElem->CalculateLeftHandSide(rTLS.LocalMatrix, rProcessInfo);
-
-        //         // Get the positions in the global system
-        //         ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
-
-        //         // The element is active and is to be assembled
-        //         return true;
-        //     } else {
-        //         // Clear current TLS values
-        //         rTLS.LocalEqIds.clear();
-        //         rTLS.LocalMatrix.clear();
-
-        //         // The element is inactive and is not to be assembled
-        //         return false;
-        //     }
-        // };
-
-        // const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, TLSType& rTLS){
-        //     if (ItCond->Is(ACTIVE)) {
-        //         // Calculate local LHS contribution
-        //         ItCond->CalculateLeftHandSide(rTLS.LocalMatrix, rProcessInfo);
-
-        //         // Get the positions in the global system
-        //         ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
-
-        //         // The condition is active and is to be assembled
-        //         return true;
-        //     } else {
-        //         // Clear current TLS values
-        //         rTLS.LocalEqIds.clear();
-        //         rTLS.LocalMatrix.clear();
-
-        //         // The condition is inactive and is not to be assembled
-        //         return false;
-        //     }
-        // };
-
-        // TLSType aux_tls;
-        // auto& r_assembly_helper = GetBuilder();
-        // r_assembly_helper.SetElementAssemblyFunction(elem_func);
-        // r_assembly_helper.SetConditionAssemblyFunction(cond_func);
-        // r_assembly_helper.Assemble(rLHS, aux_tls);
-
         // Getting conditions and elements to be assembled
         const auto& r_elems = mpModelPart->Elements();
         const auto& r_conds = mpModelPart->Conditions();
@@ -731,52 +555,6 @@ public:
         Timer::Start("BuildMassMatrix");
 
         const auto timer = BuiltinTimer();
-
-        // const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLSType& rTLS){
-        //     if (ItElem->Is(ACTIVE)) {
-        //         // Calculate local mass matrix contribution
-        //         ItElem->CalculateMassMatrix(rTLS.LocalMatrix, rProcessInfo);
-
-        //         // Get the positions in the global system
-        //         ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
-
-        //         // The element is active and is to be assembled
-        //         return true;
-        //     } else {
-        //         // Clear current TLS values
-        //         rTLS.LocalEqIds.clear();
-        //         rTLS.LocalMatrix.clear();
-
-        //         // The element is inactive and is not to be assembled
-        //         return false;
-        //     }
-        // };
-
-        // const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, TLSType& rTLS){
-        //     if (ItCond->Is(ACTIVE)) {
-        //         // Calculate local mass matrix contribution
-        //         ItCond->CalculateMassMatrix(rTLS.LocalMatrix, rProcessInfo);
-
-        //         // Get the positions in the global system
-        //         ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
-
-        //         // The condition is active and is to be assembled
-        //         return true;
-        //     } else {
-        //         // Clear current TLS values
-        //         rTLS.LocalEqIds.clear();
-        //         rTLS.LocalMatrix.clear();
-
-        //         // The condition is inactive and is not to be assembled
-        //         return false;
-        //     }
-        // };
-
-        // TLSType aux_tls;
-        // auto& r_assembly_helper = GetBuilder();
-        // r_assembly_helper.SetElementAssemblyFunction(elem_func);
-        // r_assembly_helper.SetConditionAssemblyFunction(cond_func);
-        // r_assembly_helper.Assemble(rMassMatrix, aux_tls);
 
         // Getting conditions and elements to be assembled
         const auto& r_elems = mpModelPart->Elements();
@@ -838,52 +616,6 @@ public:
 
         const auto timer = BuiltinTimer();
 
-        // const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLSType& rTLS){
-        //     if (ItElem->Is(ACTIVE)) {
-        //         // Calculate local damping matrix contribution
-        //         ItElem->CalculateDampingMatrix(rTLS.LocalMatrix, rProcessInfo);
-
-        //         // Get the positions in the global system
-        //         ItElem->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
-
-        //         // The element is active and is to be assembled
-        //         return true;
-        //     } else {
-        //         // Clear current TLS values
-        //         rTLS.LocalEqIds.clear();
-        //         rTLS.LocalMatrix.clear();
-
-        //         // The element is inactive and is not to be assembled
-        //         return false;
-        //     }
-        // };
-
-        // const auto cond_func = [](ModelPart::ConditionConstantIterator ItCond, const ProcessInfo& rProcessInfo, TLSType& rTLS){
-        //     if (ItCond->Is(ACTIVE)) {
-        //         // Calculate local damping matrix contribution
-        //         ItCond->CalculateDampingMatrix(rTLS.LocalMatrix, rProcessInfo);
-
-        //         // Get the positions in the global system
-        //         ItCond->EquationIdVector(rTLS.LocalEqIds, rProcessInfo);
-
-        //         // The condition is active and is to be assembled
-        //         return true;
-        //     } else {
-        //         // Clear current TLS values
-        //         rTLS.LocalEqIds.clear();
-        //         rTLS.LocalMatrix.clear();
-
-        //         // The condition is inactive and is not to be assembled
-        //         return false;
-        //     }
-        // };
-
-        // TLSType aux_tls;
-        // auto& r_assembly_helper = GetBuilder();
-        // r_assembly_helper.SetElementAssemblyFunction(elem_func);
-        // r_assembly_helper.SetConditionAssemblyFunction(cond_func);
-        // r_assembly_helper.Assemble(rDampingMatrix, aux_tls);
-
         // Getting conditions and elements to be assembled
         const auto& r_elems = mpModelPart->Elements();
         const auto& r_conds = mpModelPart->Conditions();
@@ -942,34 +674,12 @@ public:
         const DofsArrayType& rDofSet,
         const EffectiveDofsMapType& rDofIdMap,
         TSparseMatrixType& rConstraintsRelationMatrix,
-        TSparseVectorType& rConstraintsConstantVector)
+        TSystemVectorType& rConstraintsConstantVector)
     {
         if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
             Timer::Start("BuildConstraints");
 
             const auto timer_constraints = BuiltinTimer();
-
-            // const auto const_func = [](ModelPart::MasterSlaveConstraintConstantIteratorType ItConst, const ProcessInfo& rProcessInfo, TLSType& rTLS){
-            //     if (ItConst->Is(ACTIVE)) {
-            //         // Calculate local relation matrix and constant vector contributions
-            //         ItConst->CalculateLocalSystem(rTLS.LocalMatrix, rTLS.LocalVector, rProcessInfo);
-
-            //         // The constraint is active and is to be assembled
-            //         return true;
-            //     } else {
-            //         // Reset the local relation matrix and constant vector contributions
-            //         rTLS.LocalVector.resize(0, false);
-            //         rTLS.LocalMatrix.resize(0, 0, false);
-
-            //         // The constraint is inactive and is not to be assembled
-            //         return false;
-            //     }
-            // };
-
-            // TLSType aux_tls;
-            // auto& r_assembly_helper = GetBuilder();
-            // r_assembly_helper.SetConstraintAssemblyFunction(const_func);
-            // r_assembly_helper.AssembleMasterSlaveConstraints(rDofSet, rDofIdMap, rConstraintsRelationMatrix, rConstraintsConstantVector, aux_tls);
 
             // Getting constraints to be assembled
             const auto& r_consts = mpModelPart->MasterSlaveConstraints();
@@ -1076,87 +786,39 @@ public:
         }
     }
 
-    virtual void ApplyMasterSlaveConstraints(
-        typename TSparseMatrixType::Pointer& rpLhs,
-        typename TSparseMatrixType::Pointer& rpEffectiveLhs,
-        typename TSparseVectorType::Pointer& rpRhs,
-        typename TSparseVectorType::Pointer& rpEffectiveRhs,
-        typename TSparseVectorType::Pointer& rpDx,
-        typename TSparseVectorType::Pointer& rpEffectiveDx,
-        const TSparseMatrixType& rConstraintsRelationMatrix,
-        const TSparseVectorType& rConstraintsConstantVector)
+    virtual void BuildLinearSystemConstraints(
+        const DofsArrayType &rDofSet,
+        const EffectiveDofsMapType &rDofIdMap,
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
-        if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
-            Timer::Start("ApplyConstraints");
+        BuiltinTimer build_linear_system_constraints_time;
 
-            const auto timer_constraints = BuiltinTimer();
+        auto p_constraints_T = rLinearSystemContainer.pConstraintsT;
+        auto p_constraints_q = rLinearSystemContainer.pConstraintsQ;
+        BuildMasterSlaveConstraints(rDofSet, rDofIdMap, *p_constraints_T, *p_constraints_q);
 
-            auto& r_assembly_helper = GetBuilder();
-            r_assembly_helper.ApplyMasterSlaveConstraints(rpLhs, rpEffectiveLhs, rpRhs, *rpEffectiveRhs, *rpDx, *rpEffectiveDx, rConstraintsRelationMatrix, rConstraintsConstantVector);
-
-            KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Constraints apply time: " << timer_constraints << std::endl;
-
-            Timer::Stop("ApplyConstraints");
-        } else {
-            // If there are no constraints the effective arrays are the same as the input ones
-            // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
-            rpEffectiveLhs = rpLhs;
-            rpEffectiveRhs = rpRhs;
-            rpEffectiveDx = rpDx;
-        }
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Build linear system constraints time: " << build_linear_system_constraints_time << std::endl;
     }
 
-    virtual void ApplyMasterSlaveConstraints(
-        typename TSparseVectorType::Pointer& rpRhs,
-        typename TSparseVectorType::Pointer& rpEffectiveRhs,
-        typename TSparseVectorType::Pointer& rpDx,
-        typename TSparseVectorType::Pointer& rpEffectiveDx,
-        const TSparseMatrixType& rConstraintsRelationMatrix,
-        const TSparseVectorType& rConstraintsConstantVector)
+    virtual void ApplyLinearSystemConstraints(
+        const DofsArrayType &rDofArray,
+        const EffectiveDofsMapType &rDofIdMap,
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
-        if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
-            Timer::Start("ApplyConstraintsRightHandSide");
+        BuiltinTimer apply_linear_system_constraints_time;
 
-            const auto timer_constraints = BuiltinTimer();
+        GetBuilder().ApplyLinearSystemConstraints(rDofArray, rDofIdMap, rLinearSystemContainer);
 
-            auto& r_assembly_helper = GetBuilder();
-            r_assembly_helper.ApplyMasterSlaveConstraints(rpRhs, *rpEffectiveRhs, *rpDx, *rpEffectiveDx, rConstraintsRelationMatrix, rConstraintsConstantVector);
-
-            KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Constraints apply time (RightHandSide only): " << timer_constraints << std::endl;
-
-            Timer::Stop("ApplyConstraintsRightHandSide");
-        } else {
-            // If there are no constraints the effective arrays are the same as the input ones
-            // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
-            rpEffectiveRhs = rpRhs;
-            rpEffectiveDx = rpDx;
-        }
-    }
-
-    //TODO: Think about the dynamic case and the mass and damping matrices!!
-    virtual void ApplyDirichletConditions(
-        const DofsArrayType& rDofArray,
-        const EffectiveDofsMapType& rDofIdMap,
-        TSparseMatrixType& rLHS,
-        TSparseVectorType& rRHS)
-    {
-        GetBuilder().ApplyDirichletConditions(rDofArray, rDofIdMap, rLHS, rRHS);
-    }
-
-    virtual void ApplyDirichletConditions(
-        const DofsArrayType& rDofArray,
-        const EffectiveDofsMapType& rDofIdMap,
-        TSparseVectorType& rRHS)
-    {
-        GetBuilder().ApplyDirichletConditions(rDofArray, rDofIdMap, rRHS);
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Apply linear system constraints time: " << apply_linear_system_constraints_time << std::endl;
     }
 
     //TODO: Think about the dynamic case and the mass and damping matrices!!
     virtual void CalculateReactions(
         const DofsArrayType& rDofSet,
-        TSparseVectorType& rRHS)
+        TSystemVectorType& rRHS)
     {
         //TODO: To be implemented
+        KRATOS_ERROR << "Not implemented yet." << std::endl;
 
         // const auto elem_func = [](ModelPart::ElementConstantIterator ItElem, const ProcessInfo& rProcessInfo, TLSType& rTLS){
         //     if (ItElem->Is(ACTIVE)) {
@@ -1213,15 +875,10 @@ public:
      * @param b RHS Vector
      */
     virtual void Predict(
-        DofsArrayType& rDofSet,
-        DofsArrayType& rEffectiveDofSet,
-        EffectiveDofsMapType& rEffectiveDofIdMap,
-        TSparseMatrixType& rA,
-        TSparseVectorType& rb,
-        TSparseVectorType& rDx,
-        TSparseVectorType& rEffectiveDx,
-        TSparseMatrixType& rConstraintsRelationMatrix,
-        TSparseVectorType& rConstraintsConstantVector)
+        DofsArrayType &rDofSet,
+        DofsArrayType &rEffectiveDofSet,
+        EffectiveDofsMapType &rEffectiveDofIdMap,
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Predict\' method. Call derived class one." << std::endl;
     }
@@ -1237,17 +894,13 @@ public:
     virtual void Update(
         DofsArrayType& rDofSet,
         EffectiveDofsMapType& rEffectiveDofIdMap,
-        TSparseMatrixType& rA,
-        TSparseVectorType& rb,
-        TSparseVectorType& rDx,
-        const TSparseVectorType& rEffectiveDx,
-        const TSparseMatrixType& rConstraintsRelationMatrix)
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Update\' method. Call derived class one." << std::endl;
     }
 
     void UpdateConstraintsLooseDofs(
-        const TSparseVectorType& rEffectiveDx,
+        const TSystemVectorType& rEffectiveDx,
         DofsArrayType& rDofSet,
         EffectiveDofsMapType& rEffectiveDofIdMap)
     {
@@ -1286,8 +939,8 @@ public:
      */
     void CalculateUpdateVector(
         const TSparseMatrixType& rConstraintsRelationMatrix,
-        const TSparseVectorType& rEffectiveDx,
-        TSparseVectorType& rDx)
+        const TSystemVectorType& rEffectiveDx,
+        TSystemVectorType& rDx)
     {
         if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
             rDx.SetValue(0.0);
@@ -1306,8 +959,8 @@ public:
      */
     virtual void CalculateOutputData(
         TSparseMatrixType& A,
-        TSparseVectorType& Dx,
-        TSparseVectorType& b)
+        TSystemVectorType& Dx,
+        TSystemVectorType& b)
     {
         KRATOS_TRY
 
@@ -1426,7 +1079,6 @@ public:
     {
         mSchemeSolutionStepIsInitialized = SchemeSolutionStepIsInitialized;
     }
-
 
     ModelPart& GetModelPart()
     {

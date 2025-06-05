@@ -37,26 +37,26 @@ namespace Kratos::Future
 ///@{
 
 /**
- * @class BlockBuilder
+ * @class EliminationBuilder
  * @ingroup KratosCore
  * @brief Utility class for handling the build
  * @details This class collects the methods required to
  * handle the building of the sparse sytem matrices
  * @author Ruben Zorrilla
  */
-template<class TThreadLocalStorage, class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
-class BlockBuilder : public Builder<TThreadLocalStorage, TSparseMatrixType, TSystemVectorType, TSparseGraphType>
+template<class TThreadLocalStorage, class TSparseMatrixType, class TSparseVectorType, class TSparseGraphType>
+class EliminationBuilder : public Builder<TThreadLocalStorage, TSparseMatrixType, TSparseVectorType, TSparseGraphType>
 {
 public:
     ///@name Type Definitions
     ///@{
 
 
-    /// Pointer definition of BlockBuilder
-    KRATOS_CLASS_POINTER_DEFINITION(BlockBuilder);
+    /// Pointer definition of EliminationBuilder
+    KRATOS_CLASS_POINTER_DEFINITION(EliminationBuilder);
 
     /// Base builder type definition
-    using BaseType = Builder<TThreadLocalStorage, TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
+    using BaseType = Builder<TThreadLocalStorage, TSparseMatrixType, TSparseVectorType, TSparseGraphType>;
 
     /// Data type definition from sparse matrix
     using DataType = typename TSparseMatrixType::DataType;
@@ -76,28 +76,37 @@ public:
     /// DOF pointer vector type definition
     using DofPointerVectorType = typename BaseType::DofPointerVectorType;
 
+    /// Function type for elements assembly
+    using ElementAssemblyFunctionType = typename BaseType::ElementAssemblyFunctionType;
+
+    /// Function type for conditions assembly
+    using ConditionAssemblyFunctionType = typename BaseType::ConditionAssemblyFunctionType;
+
+    /// Function type for constraints assembly
+    using ConstraintAssemblyFunctionType = typename BaseType::ConstraintAssemblyFunctionType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    BlockBuilder() = delete;
+    EliminationBuilder() = delete;
 
     /// Constructor with model part
-    BlockBuilder(
+    EliminationBuilder(
         const ModelPart &rModelPart,
         Parameters Settings = Parameters(R"({})"))
         : BaseType(rModelPart, Settings)
     {
         Parameters default_parameters( R"({
-            "name" : "block_builder",
+            "name" : "elimination_builder",
             "scaling_type" : "max_diagonal",
             "echo_level" : 0
         })");
         Settings.ValidateAndAssignDefaults(default_parameters);
     }
 
-    virtual ~BlockBuilder() = default;
+    virtual ~EliminationBuilder() = default;
 
     ///@}
     ///@name Operations
@@ -108,11 +117,12 @@ public:
         const DofsArrayType& rDofSet,
         DofsArrayType& rEffectiveDofSet,
         EffectiveDofsMapType& rEffectiveDofIdMap,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
+        TSparseMatrixType& rConstraintsRelationMatrix,
+        TSparseVectorType& rConstraintsConstantVector) override
     {
         // Clear the provided effective DOFs map
-        KRATOS_WARNING_IF("BlockBuilder", !rEffectiveDofSet.empty()) << "Provided effective DOFs set is not empty. About to clear it." << std::endl;
-        KRATOS_WARNING_IF("BlockBuilder", !rEffectiveDofIdMap.empty()) << "Provided effective DOFs ids map is not empty. About to clear it." << std::endl;
+        KRATOS_WARNING_IF("EliminationBuilder", !rEffectiveDofSet.empty()) << "Provided effective DOFs set is not empty. About to clear it." << std::endl;
+        KRATOS_WARNING_IF("EliminationBuilder", !rEffectiveDofIdMap.empty()) << "Provided effective DOFs ids map is not empty. About to clear it." << std::endl;
         rEffectiveDofSet.clear();
         rEffectiveDofIdMap.clear();
 
@@ -228,33 +238,12 @@ public:
             // }
 
             // Allocate the constraints arrays (note that we are using the move assignment operator in here)
-            auto p_aux_q = Kratos::make_shared<TSystemVectorType>(this->GetEquationSystemSize());
-            rLinearSystemContainer.pConstraintsQ.swap(p_aux_q);
+            rConstraintsConstantVector = std::move(TSparseVectorType(this->GetEquationSystemSize()));
+            rConstraintsRelationMatrix = std::move(TSparseMatrixType(constraints_sparse_graph));
 
-            auto p_aux_T = Kratos::make_shared<TSparseMatrixType>(constraints_sparse_graph);
-            rLinearSystemContainer.pConstraintsT.swap(p_aux_T);
         } else {
             rEffectiveDofSet = rDofSet; // If there are no constraints the effective DOF set is the standard one
             rEffectiveDofIdMap = EffectiveDofsMapType(); // Create an empty master ids map as the standard DOF equation ids can be used
-        }
-    }
-
-    //FIXME: Do the RHS-only version
-    void ApplyLinearSystemConstraints(
-        const DofsArrayType& rDofArray,
-        const EffectiveDofsMapType& rDofIdMap,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
-    {
-        // Calculate the effective LHS, RHS and solution vector
-        ApplyBlockBuildMasterSlaveConstraints(rLinearSystemContainer);
-
-        // Apply the Dirichlet BCs in a block way by leveraging the CSR matrix implementation
-        auto& r_eff_rhs = *(rLinearSystemContainer.pEffectiveRhs);
-        auto& r_eff_lhs = *(rLinearSystemContainer.pEffectiveLhs);
-        if (rDofIdMap.empty()) {
-            ApplyBlockBuildDirichletConditions(rDofArray, r_eff_lhs, r_eff_rhs);
-        } else {
-            ApplyBlockBuildDirichletConditions(rDofArray, rDofIdMap, r_eff_lhs, r_eff_rhs);
         }
     }
 
@@ -267,157 +256,8 @@ private:
     ///@name Private Operations
     ///@{
 
-    void ApplyBlockBuildMasterSlaveConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
-    {
-        const auto& r_model_part = this->GetModelPart();
-        const std::size_t n_constraints = r_model_part.NumberOfMasterSlaveConstraints();
-        if (n_constraints) { //FIXME: In here we should check the number of active constraints
-            // Get effective arrays
-            auto p_eff_dx = rLinearSystemContainer.pEffectiveDx;
-            auto p_eff_rhs = rLinearSystemContainer.pEffectiveRhs;
-
-            // Initialize the effective RHS
-            KRATOS_ERROR_IF(p_eff_rhs == nullptr) << "Effective RHS vector has not been initialized yet." << std::endl;
-            p_eff_rhs->SetValue(0.0);
-
-            // Initialize the effective solution vector
-            KRATOS_ERROR_IF(p_eff_rhs == nullptr) << "Effective solution increment vector has not been initialized yet." << std::endl;
-            p_eff_dx->SetValue(0.0);
-
-            // Apply constraints to RHS
-            auto p_rhs = rLinearSystemContainer.pRhs;
-            auto p_constraints_T = rLinearSystemContainer.pConstraintsT;
-            p_constraints_T->TransposeSpMV(*p_rhs, *p_eff_rhs);
-
-            // Apply constraints to LHS
-            auto p_lhs = rLinearSystemContainer.pLhs;
-            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *p_constraints_T);
-            auto p_transT = AmgclCSRConversionUtilities::Transpose(*p_constraints_T);
-            rLinearSystemContainer.pEffectiveLhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
-
-            // // Compute the scale factor value
-            // //TODO: think on how to make this user-definable
-            // const double scale_factor = rpEffectiveLhs->NormDiagonal();
-
-            // // Apply diagonal values on slave DOFs
-            // IndexPartition<IndexType>(mSlaveIds.size()).for_each([&](IndexType Index){
-            //     const IndexType slave_eq_id = mSlaveIds[Index];
-            //     if (mInactiveSlaveDofs.find(slave_eq_id) == mInactiveSlaveDofs.end()) {
-            //         (*rpEffectiveLhs)(slave_eq_id, slave_eq_id) = scale_factor;
-            //         (*rpEffectiveRhs)[slave_eq_id] = 0.0;
-            //     }
-            // });
-        } else {
-            // If there are no constraints the effective arrays are the same as the input ones
-            // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
-            rLinearSystemContainer.pEffectiveLhs = rLinearSystemContainer.pLhs;
-            rLinearSystemContainer.pEffectiveRhs = rLinearSystemContainer.pRhs;
-            rLinearSystemContainer.pEffectiveDx = rLinearSystemContainer.pDx;
-        }
-    }
-
-    void ApplyBlockBuildDirichletConditions(
-        const DofsArrayType& rDofArray,
-        const EffectiveDofsMapType& rDofIdMap,
-        TSparseMatrixType& rLHS,
-        TSystemVectorType& rRHS) const
-    {
-        // Set the free DOFs vector (0 means fixed / 1 means free)
-        // Note that we initialize to 1 so we start assuming all free
-        // Also note that the type is uint_8 for the sake of efficiency
-        const std::size_t system_size = rLHS.size1();
-        std::vector<uint8_t> free_dofs_vector(system_size, 1);
-
-        // Loop the DOFs to find which ones are fixed
-        // Note that DOFs are assumed to be numbered consecutively in the block building
-        const auto dof_ptr_begin = rDofArray.ptr_begin();
-        IndexPartition<std::size_t>(rDofArray.size()).for_each([&](IndexType Index){
-            const auto p_dof = *(dof_ptr_begin + Index);
-            if (p_dof->IsFixed()) {
-                const auto p_dof_find = rDofIdMap.find(p_dof);
-                KRATOS_ERROR_IF(p_dof_find == rDofIdMap.end()) << "DOF cannot be found in DOF id map." << std::endl;
-                free_dofs_vector[p_dof_find->second] = 0;
-            }
-        });
-
-        //TODO: Implement this in the CSR matrix or here?
-        // // Detect if there is a line of all zeros and set the diagonal to a certain number if this happens (1 if not scale, some norms values otherwise)
-        // mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
-
-        // Get the diagonal scaling factor
-        const double diagonal_value = this->GetDiagonalScalingFactor(rLHS);
-
-        // Apply the free DOFs (i.e., fixity) vector to the system arrays
-        rLHS.ApplyHomogeneousDirichlet(free_dofs_vector, diagonal_value, rRHS);
-    }
-
-    void ApplyBlockBuildDirichletConditions(
-        const DofsArrayType& rDofArray,
-        TSparseMatrixType& rLHS,
-        TSystemVectorType& rRHS) const
-    {
-        // Set the free DOFs vector (0 means fixed / 1 means free)
-        // Note that we initialize to 1 so we start assuming all free
-        // Also note that the type is uint_8 for the sake of efficiency
-        const std::size_t system_size = rLHS.size1();
-        std::vector<uint8_t> free_dofs_vector(system_size, 1);
-
-        // Loop the DOFs to find which ones are fixed
-        // Note that DOFs are assumed to be numbered consecutively in the block building
-        const auto dof_begin = rDofArray.begin();
-        IndexPartition<std::size_t>(rDofArray.size()).for_each([&](IndexType Index){
-            const auto p_dof = dof_begin + Index;
-            if (p_dof->IsFixed()) {
-                free_dofs_vector[p_dof->EquationId()] = 0;
-            }
-        });
-
-        //TODO: Implement this in the CSR matrix or here?
-        // // Detect if there is a line of all zeros and set the diagonal to a certain number if this happens (1 if not scale, some norms values otherwise)
-        // mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
-
-        // Get the diagonal scaling factor
-        const double diagonal_value = this->GetDiagonalScalingFactor(rLHS);
-
-        // Apply the free DOFs (i.e., fixity) vector to the system arrays
-        rLHS.ApplyHomogeneousDirichlet(free_dofs_vector, diagonal_value, rRHS);
-    }
-
-    void ApplyBlockBuildDirichletConditions(
-        const DofsArrayType& rDofArray,
-        const EffectiveDofsMapType& rDofIdMap,
-        TSystemVectorType& rRHS) const
-    {
-        // Loop the DOFs to find which ones are fixed
-        // Note that DOFs are assumed to be numbered consecutively in the block building
-        const auto dof_ptr_begin = rDofArray.ptr_begin();
-        IndexPartition<std::size_t>(rDofArray.size()).for_each([&](IndexType Index){
-            auto p_dof = *(dof_ptr_begin + Index);
-            if (p_dof->IsFixed()) {
-                auto p_dof_find = rDofIdMap.find(p_dof);
-                KRATOS_ERROR_IF(p_dof_find == rDofIdMap.end()) << "DOF cannot be found in DOF id map." << std::endl;
-                rRHS[p_dof_find->second] = 0;
-            }
-        });
-    }
-
-    void ApplyBlockBuildDirichletConditions(
-        const DofsArrayType& rDofArray,
-        TSystemVectorType& rRHS) const
-    {
-        // Loop the DOFs to find which ones are fixed
-        // Note that DOFs are assumed to be numbered consecutively in the block building
-        const auto dof_begin = rDofArray.begin();
-        IndexPartition<std::size_t>(rDofArray.size()).for_each([&](IndexType Index){
-            auto p_dof = dof_begin + Index;
-            if (p_dof->IsFixed()) {
-                rRHS[p_dof->EquationId()] = 0;
-            }
-        });
-    }
-
     ///@}
-}; // Class BlockBuilder
+}; // Class EliminationBuilder
 
 ///@}
 ///@name Input and output

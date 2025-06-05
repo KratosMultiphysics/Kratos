@@ -185,19 +185,14 @@ KRATOS_TEST_CASE_IN_SUITE(StaticScheme, KratosCoreFastSuite)
 
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
-    CsrMatrix<> T;
-    SystemVector<> b;
-    auto p_lhs = Kratos::make_shared<CsrMatrix<>>();
-    auto p_eff_lhs = Kratos::make_shared<CsrMatrix<>>();
-    auto p_dx = Kratos::make_shared<SystemVector<>>();
-    auto p_eff_dx = Kratos::make_shared<SystemVector<>>();
-    auto p_rhs = Kratos::make_shared<SystemVector<>>();
-    auto p_eff_rhs = Kratos::make_shared<SystemVector<>>();
+    Future::LinearSystemContainer<CsrMatrix<>, SystemVector<>> linear_system_container;
 
     // Call the initialize solution step (note that this sets all the arrays above)
-    p_scheme->InitializeSolutionStep(dof_set, eff_dof_set, eff_dof_map, p_lhs, p_eff_lhs, p_rhs, p_eff_rhs, p_dx, p_eff_dx, T, b);
+    p_scheme->InitializeSolutionStep(dof_set, eff_dof_set, eff_dof_map, linear_system_container);
 
     // Call the build
+    auto p_lhs = linear_system_container.pLhs;
+    auto p_rhs = linear_system_container.pRhs;
     p_scheme->Build(*p_lhs, *p_rhs);
 
     // Check resultant matrices
