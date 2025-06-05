@@ -101,9 +101,9 @@ public:
         array_1d<double, TDim>                        BodyAcceleration;
         array_1d<double, TDim>                        SoilGamma;
 
-        Vector Np;
-        Matrix GradNpT;
-        Matrix GradNpTInitialConfiguration;
+        Vector                                    Np;
+        Matrix                                    GradNpT;
+        Matrix                                    GradNpTInitialConfiguration;
         Vector                                    detJContainer;
         Matrix                                    NContainer;
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
@@ -168,8 +168,8 @@ public:
             // there is no need to calculate the discharge for a line element
             return;
         }
-        std::vector<array_1d<double, 3>> FluidFlux;
-        this->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, FluidFlux, rCurrentProcessInfo);
+        std::vector<array_1d<double, 3>> fluid_flux;
+        this->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_flux, rCurrentProcessInfo);
 
         const GeometryType& r_geometry = this->GetGeometry();
         const IndexType     number_of_integration_points =
@@ -177,32 +177,32 @@ public:
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
             r_geometry.IntegrationPoints(GetIntegrationMethod());
 
-        ElementVariables Variables;
         // Gradient of shape functions and determinant of Jacobian
-        Variables.GradNpTInitialConfiguration.resize(TNumNodes, TDim, false);
-        Variables.GradNpT.resize(TNumNodes, TDim, false);
-        Variables.detJContainer.resize(number_of_integration_points, false);
-        r_geometry.ShapeFunctionsIntegrationPointsGradients(
-            Variables.DN_DXContainer, Variables.detJContainer, GetIntegrationMethod());
+        Matrix                                    grad_Np_T(TNumNodes, TDim);
+        Vector                                    det_J_container(number_of_integration_points);
+        GeometryType::ShapeFunctionsGradientsType DN_DX_container;
+        r_geometry.ShapeFunctionsIntegrationPointsGradients(DN_DX_container, det_J_container,
+                                                            GetIntegrationMethod());
         const auto integration_coefficients =
-            this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
+            this->CalculateIntegrationCoefficients(IntegrationPoints, det_J_container);
 
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
-            noalias(Variables.GradNpT) = Variables.DN_DXContainer[integration_point];
-            Variables.detJ             = Variables.detJContainer[integration_point];
+            noalias(grad_Np_T) = DN_DX_container[integration_point];
+            auto detJ          = det_J_container[integration_point];
 
-            Variables.IntegrationCoefficient = integration_coefficients[integration_point];
+            auto integration_coefficient = integration_coefficients[integration_point];
 
             for (unsigned int node = 0; node < TNumNodes; ++node) {
-                double HydraulicDischarge = 0;
-                for (unsigned int iDir = 0; iDir < TDim; ++iDir) {
-                    HydraulicDischarge += Variables.GradNpT(node, iDir) * FluidFlux[integration_point][iDir];
+                double hydraulic_discharge = 0;
+                for (unsigned int direction = 0; direction < TDim; ++direction) {
+                    hydraulic_discharge +=
+                        grad_Np_T(node, direction) * fluid_flux[integration_point][direction];
                 }
 
-                HydraulicDischarge *= Variables.IntegrationCoefficient;
-                HydraulicDischarge += r_geometry[node].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE);
-                ThreadSafeNodeWrite(this->GetGeometry()[node], HYDRAULIC_DISCHARGE, HydraulicDischarge);
+                hydraulic_discharge *= integration_coefficient;
+                hydraulic_discharge += r_geometry[node].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE);
+                ThreadSafeNodeWrite(this->GetGeometry()[node], HYDRAULIC_DISCHARGE, hydraulic_discharge);
             }
         }
 
