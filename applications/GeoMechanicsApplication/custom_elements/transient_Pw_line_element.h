@@ -84,7 +84,6 @@ public:
 
     struct ElementVariables {
         array_1d<double, TNumNodes>        PressureVector;
-        array_1d<double, TNumNodes * TDim> VolumeAcceleration;
 
         /// Variables computed at each GP
         Matrix                                        B;
@@ -334,13 +333,15 @@ public:
                        rPermeabilityUpdateFactors.cbegin(), relative_permeability_values.begin(),
                        std::multiplies<>{});
         const auto dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
-
+        array_1d<double, TNumNodes * TDim> volume_acceleration;
+        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(
+            volume_acceleration, r_geometry, VOLUME_ACCELERATION);
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
             this->CalculateKinematics(Variables, integration_point);
 
             GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-                Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, integration_point);
+                Variables.BodyAcceleration, Variables.NContainer, volume_acceleration, integration_point);
 
             Variables.RelativePermeability = relative_permeability_values[integration_point];
 
@@ -424,8 +425,6 @@ public:
 
         const GeometryType& r_geometry = this->GetGeometry();
         VariablesUtilities::GetNodalValues(r_geometry, WATER_PRESSURE, rVariables.PressureVector.begin());
-        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(
-            rVariables.VolumeAcceleration, r_geometry, VOLUME_ACCELERATION);
 
         // Variables computed at each GP
         noalias(rVariables.Nu) = ZeroMatrix(TDim, TNumNodes * TDim);
