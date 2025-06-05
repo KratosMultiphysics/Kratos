@@ -4,6 +4,13 @@ import os.path
 
 
 class KratosGeoMechanicsApplyInitialUniformStressFieldTests(unittest.TestCase):
+    """
+    This test applies an initial uniform stress field to a single three dimensional, linear hexahedron (3D8N)
+    `UPwSmallStrainElement` using the `ApplyInitialUniformStressField` process.
+    The test checks that the initial stress field is applied correctly,
+    while all DoF are fixed (i.e. all displacements and water pressures).
+    """
+
     def test_application_of_uniform_stress_field(self):
         output = self.run_simulation("apply_initial_uniform_stress_field")
         stress_vectors = (
