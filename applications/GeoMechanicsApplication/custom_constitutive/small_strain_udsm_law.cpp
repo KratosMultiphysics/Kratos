@@ -49,22 +49,6 @@ array_1d<double, props_size> MakePropsVector(const Vector& rUMatParameters)
 
 namespace Kratos
 {
-/*
-   - structure of the functions in PLAXIS UDSM:
-   - Function to get stress, stiffness matrix, attribute, number of state variables, ...
-   void User_Mod(int *IDTASK, int *IMOD, int *ISUNDR,
-                 int *ISTEP, int *ITER, int *IEL, int *INT,
-                 double *X, double *Y, double *Z,
-                 double *TIME0, double *DTIME,
-                 double *PROPS, double *SIG0, double *SWP0, double *STVAR0,
-                 double *DEPS, double **D, double *BULKW,
-                 double *SIG, double *SWP, double *STVAR, int *IPL,
-                 int *NSTAT, int *NONSYM, int *ISTRSDEP, int *ITIMEDEP, int *ITANG,
-                 int *IPRDIR, int *IPRJLEN, int *IABORT);
-
-   void GetParamCount(int *IMOD, int *NPARAM);
-   void GetStateVarCount(int *IMOD, int *NSTVAR);
-*/
 
 // calling convention (__cdecl, __stdcall, ...)
 // __stdcall is the convention used by the WinAPI
