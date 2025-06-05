@@ -88,10 +88,6 @@ public:
         Vector                                    detJContainer;
         Matrix                                    NContainer;
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
-
-        // needed for updated Lagrangian:
-        double detJInitialConfiguration;
-        double IntegrationCoefficient;
     };
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
@@ -209,7 +205,6 @@ public:
 
             for (unsigned int integration_point = 0;
                  integration_point < number_of_integration_points; ++integration_point) {
-                this->CalculateKinematics(Variables, integration_point);
                 noalias(Np) = row(Variables.NContainer, integration_point);
 
                 RetentionParameters.SetFluidPressure(
@@ -329,7 +324,6 @@ public:
 
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
-            this->CalculateKinematics(Variables, integration_point);
             noalias(grad_Np_T) = Variables.DN_DXContainer[integration_point];
 
             GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
@@ -343,20 +337,6 @@ public:
         }
 
         return fluid_fluxes;
-    }
-
-    void CalculateKinematics(ElementVariables& rVariables, unsigned int IntegrationPointIndex)
-    {
-        KRATOS_TRY
-
-        // Setting the vector of shape functions and the matrix of the shape functions global gradients
-        
-        Matrix J0, InvJ0;
-        this->CalculateDerivativesOnInitialConfiguration(rVariables.detJInitialConfiguration, J0,
-                                                         InvJ0, rVariables.GradNpTInitialConfiguration,
-                                                         IntegrationPointIndex);
-
-        KRATOS_CATCH("")
     }
 
     std::vector<double> CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const
