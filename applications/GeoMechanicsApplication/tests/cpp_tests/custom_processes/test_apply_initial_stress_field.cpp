@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_processes/apply_initial_stress_field.h"
+#include "custom_processes/apply_initial_uniform_stress_field.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 

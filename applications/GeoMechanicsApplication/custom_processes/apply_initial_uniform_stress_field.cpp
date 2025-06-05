@@ -10,7 +10,7 @@
 //  Main authors: Richard Faasse
 //
 
-#include "apply_initial_stress_field.h"
+#include "apply_initial_uniform_stress_field.h"
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 
