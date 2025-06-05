@@ -84,12 +84,6 @@ public:
 
     struct ElementVariables {
         array_1d<double, TNumNodes> PressureVector;
-
-        /// Variables computed at each GP
-        array_1d<double, TDim> BodyAcceleration;
-        array_1d<double, TDim> SoilGamma;
-
-        Matrix                                    GradNpT;
         Matrix                                    GradNpTInitialConfiguration;
         Vector                                    detJContainer;
         Matrix                                    NContainer;
@@ -334,17 +328,21 @@ public:
         array_1d<double, TNumNodes * TDim> volume_acceleration;
         GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(
             volume_acceleration, r_geometry, VOLUME_ACCELERATION);
+        array_1d<double, TDim> body_acceleration;
+        Matrix grad_Np_T(TNumNodes, TDim);
+
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
             this->CalculateKinematics(Variables, integration_point);
+            noalias(grad_Np_T) = Variables.DN_DXContainer[integration_point];
 
             GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-                Variables.BodyAcceleration, Variables.NContainer, volume_acceleration, integration_point);
+                body_acceleration, Variables.NContainer, volume_acceleration, integration_point);
 
             Variables.RelativePermeability = relative_permeability_values[integration_point];
 
-            array_1d<double, TDim> GradPressureTerm = prod(trans(Variables.GradNpT), Variables.PressureVector);
-            GradPressureTerm += PORE_PRESSURE_SIGN_FACTOR * r_properties[DENSITY_WATER] * Variables.BodyAcceleration;
+            array_1d<double, TDim> GradPressureTerm = prod(trans(grad_Np_T), Variables.PressureVector);
+            GradPressureTerm += PORE_PRESSURE_SIGN_FACTOR * r_properties[DENSITY_WATER] * body_acceleration;
 
             fluid_fluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * dynamic_viscosity_inverse * Variables.RelativePermeability *
                                    prod(permeability_matrix, GradPressureTerm));
@@ -358,7 +356,6 @@ public:
         KRATOS_TRY
 
         // Setting the vector of shape functions and the matrix of the shape functions global gradients
-        noalias(rVariables.GradNpT) = rVariables.DN_DXContainer[IntegrationPointIndex];
 
         rVariables.detJ = rVariables.detJContainer[IntegrationPointIndex];
 
@@ -421,8 +418,6 @@ public:
 
         const GeometryType& r_geometry = this->GetGeometry();
         VariablesUtilities::GetNodalValues(r_geometry, WATER_PRESSURE, rVariables.PressureVector.begin());
-
-        rVariables.GradNpT.resize(TNumNodes, TDim, false);
 
         // General Variables
         const unsigned int number_of_integration_points =
