@@ -84,7 +84,6 @@ public:
 
     struct ElementVariables {
         array_1d<double, TNumNodes>        PressureVector;
-        array_1d<double, TNumNodes>        DtPressureVector;
         array_1d<double, TNumNodes * TDim> VolumeAcceleration;
 
         /// Variables computed at each GP
@@ -425,8 +424,6 @@ public:
 
         const GeometryType& r_geometry = this->GetGeometry();
         VariablesUtilities::GetNodalValues(r_geometry, WATER_PRESSURE, rVariables.PressureVector.begin());
-        VariablesUtilities::GetNodalValues(r_geometry, DT_WATER_PRESSURE,
-                                           rVariables.DtPressureVector.begin());
         GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(
             rVariables.VolumeAcceleration, r_geometry, VOLUME_ACCELERATION);
 
