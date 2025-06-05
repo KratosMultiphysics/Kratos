@@ -129,6 +129,19 @@ void BrepSbmUtilities<TNodeType>::CreateBrepSurfaceSbmIntegrationPoints(
     }
 };
 
+template<class TNodeType>
+void BrepSbmUtilities<TNodeType>::CreateBrepVolumeSbmIntegrationPoints(
+    IntegrationPointsArrayType& rIntegrationPoints,
+    const std::vector<double>& rSpansU,
+    const std::vector<double>& rSpansV,
+    const std::vector<double>& rSpansW,
+    GeometrySurrogateArrayType& rOuterLoops,
+    GeometrySurrogateArrayType& rInnerLoops,
+    IntegrationInfo& rIntegrationInfo);
+{
+    KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
+}
+
 ///@} // Kratos Classes
 template<class TNodeType>
 int BrepSbmUtilities<TNodeType>::FindKnotSpans1D(
