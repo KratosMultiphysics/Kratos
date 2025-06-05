@@ -84,8 +84,6 @@ public:
 
     struct ElementVariables {
         /// Properties variables
-        double DynamicViscosityInverse;
-
         double                            BiotCoefficient;
         double                            BiotModulusInverse;
         BoundedMatrix<double, TDim, TDim> PermeabilityMatrix;
@@ -340,6 +338,7 @@ public:
         std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
                        rPermeabilityUpdateFactors.cbegin(), relative_permeability_values.begin(),
                        std::multiplies<>{});
+        const auto dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
 
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
@@ -353,7 +352,7 @@ public:
             array_1d<double, TDim> GradPressureTerm = prod(trans(Variables.GradNpT), Variables.PressureVector);
             GradPressureTerm += PORE_PRESSURE_SIGN_FACTOR * r_properties[DENSITY_WATER] * Variables.BodyAcceleration;
 
-            fluid_fluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
+            fluid_fluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * dynamic_viscosity_inverse *
                                    Variables.RelativePermeability *
                                    prod(Variables.PermeabilityMatrix, GradPressureTerm));
         }
@@ -429,11 +428,16 @@ public:
         KRATOS_TRY
 
         // Properties variables
-        this->InitializeProperties(rVariables);
+        const PropertiesType& r_properties = this->GetProperties();
+        GeoElementUtilities::FillPermeabilityMatrix(rVariables.PermeabilityMatrix, r_properties);
 
         // Nodal Variables
-        this->InitializeNodalPorePressureVariables(rVariables);
-        this->InitializeNodalVolumeAccelerationVariables(rVariables);
+        const GeometryType& r_geometry = this->GetGeometry();
+        VariablesUtilities::GetNodalValues(r_geometry, WATER_PRESSURE, rVariables.PressureVector.begin());
+        VariablesUtilities::GetNodalValues(r_geometry, DT_WATER_PRESSURE,
+                                           rVariables.DtPressureVector.begin());
+        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(
+            rVariables.VolumeAcceleration, r_geometry, VOLUME_ACCELERATION);
 
         // Variables computed at each GP
         noalias(rVariables.Nu) = ZeroMatrix(TDim, TNumNodes * TDim);
@@ -441,56 +445,21 @@ public:
         rVariables.GradNpT.resize(TNumNodes, TDim, false);
 
         // General Variables
-        const GeometryType& r_geom = this->GetGeometry();
         const unsigned int  number_of_integration_points =
-            r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+            r_geometry.IntegrationPointsNumber(this->GetIntegrationMethod());
 
         // shape functions
         (rVariables.NContainer).resize(number_of_integration_points, TNumNodes, false);
-        rVariables.NContainer = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
+        rVariables.NContainer = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
         // gradient of shape functions and determinant of Jacobian
         (rVariables.detJContainer).resize(number_of_integration_points, false);
 
-        r_geom.ShapeFunctionsIntegrationPointsGradients(
+        r_geometry.ShapeFunctionsIntegrationPointsGradients(
             rVariables.DN_DXContainer, rVariables.detJContainer, this->GetIntegrationMethod());
 
         // Retention law
         rVariables.RelativePermeability = 1.0;
-
-        KRATOS_CATCH("")
-    }
-
-    void InitializeProperties(ElementVariables& rVariables)
-    {
-        KRATOS_TRY
-
-        const PropertiesType& r_properties = this->GetProperties();
-
-        rVariables.DynamicViscosityInverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
-        GeoElementUtilities::FillPermeabilityMatrix(rVariables.PermeabilityMatrix, r_properties);
-
-        KRATOS_CATCH("")
-    }
-
-    void InitializeNodalPorePressureVariables(ElementVariables& rVariables)
-    {
-        KRATOS_TRY
-
-        const GeometryType& r_geometry = this->GetGeometry();
-        VariablesUtilities::GetNodalValues(r_geometry, WATER_PRESSURE, rVariables.PressureVector.begin());
-        VariablesUtilities::GetNodalValues(r_geometry, DT_WATER_PRESSURE,
-                                           rVariables.DtPressureVector.begin());
-
-        KRATOS_CATCH("")
-    }
-
-    void InitializeNodalVolumeAccelerationVariables(ElementVariables& rVariables)
-    {
-        KRATOS_TRY
-
-        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(
-            rVariables.VolumeAcceleration, this->GetGeometry(), VOLUME_ACCELERATION);
 
         KRATOS_CATCH("")
     }
