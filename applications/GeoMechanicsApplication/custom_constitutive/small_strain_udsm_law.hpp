@@ -192,18 +192,6 @@ protected:
     void CalculateConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix);
     void CalculateStress(Parameters& rValues, Vector& rStressVector);
 
-    // returns 1 if the stiffness matrix of the material is non-symmetric
-    int GetIsNonSymmetric();
-
-    // returns 1 if the stiffness matrix of the material is stress dependent
-    int GetIsStressDependent();
-
-    // returns 1 if material is time dependent
-    int GetIsTimeDependent();
-
-    // returns 1 if the stiffness matrix of the material is tangential
-    int GetUseTangentMatrix();
-
     array_1d<double, Sig0Size>& GetSig0();
 
 private:
