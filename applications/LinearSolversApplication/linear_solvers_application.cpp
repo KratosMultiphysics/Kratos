@@ -25,7 +25,7 @@
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
 #include "custom_solvers/eigen_pardiso_llt_solver.h"
 #include "custom_solvers/eigen_pardiso_ldlt_solver.h"
-#include "custom_solvers/mkl_ilu.hpp" // MKLILU0Solver, MKLILUTSolver
+#include "custom_solvers/mkl_ilu.hpp" // MKLILU0Smoother, MKLILUTSmoother
 #include "mkl_service.h"
 #endif
 
@@ -120,7 +120,7 @@ void KratosLinearSolversApplication::Register()
     static auto mkl_ilu0_factory = StandardLinearSolverFactory<
         TUblasSparseSpace<double>,
         TUblasDenseSpace<double>,
-        MKLILU0Solver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>
+        MKLILU0Smoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>
     >();
     KratosComponents<LinearSolverFactory<
         TUblasSparseSpace<double>,
@@ -130,7 +130,7 @@ void KratosLinearSolversApplication::Register()
     static auto mkl_ilut_factory = StandardLinearSolverFactory<
         TUblasSparseSpace<double>,
         TUblasDenseSpace<double>,
-        MKLILUTSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>
+        MKLILUTSmoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>
     >();
     KratosComponents<LinearSolverFactory<
         TUblasSparseSpace<double>,

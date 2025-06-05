@@ -15,7 +15,7 @@
 #include "mkl_spblas.h" // mkl_sparse_trsv, mkl_sparse_destroy, mkl_sparse_d_create_csr
 
 // Project includes
-#include "custom_solvers/mkl_ilu.hpp" // MKLILUSolverBase
+#include "custom_solvers/mkl_ilu.hpp" // MKLILUSmootherBase
 #include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
 
 // STL includes
@@ -64,7 +64,7 @@ std::string TranslateMKLSparseReturnCode(sparse_status_t Status)
 
 
 template <class TSparse, class TDense>
-struct MKLILUSolverBase<TSparse,TDense>::Impl
+struct MKLILUSmootherBase<TSparse,TDense>::Impl
 {
     std::vector<typename TSparse::DataType> bilut;
 
@@ -83,18 +83,18 @@ struct MKLILUSolverBase<TSparse,TDense>::Impl
     MKL_INT mIterations;
 
     typename TSparse::DataType mRelaxation;
-}; // struct MKLILUSolverBase::Impl
+}; // struct MKLILUSmootherBase::Impl
 
 
 template <class TSparse, class TDense>
-MKLILUSolverBase<TSparse,TDense>::MKLILUSolverBase()
-    : MKLILUSolverBase(Parameters())
+MKLILUSmootherBase<TSparse,TDense>::MKLILUSmootherBase()
+    : MKLILUSmootherBase(Parameters())
 {
 }
 
 
 template <class TSparse, class TDense>
-MKLILUSolverBase<TSparse,TDense>::MKLILUSolverBase(Parameters Settings)
+MKLILUSmootherBase<TSparse,TDense>::MKLILUSmootherBase(Parameters Settings)
     : Base(),
       mpImpl(new Impl)
 {
@@ -112,16 +112,16 @@ MKLILUSolverBase<TSparse,TDense>::MKLILUSolverBase(Parameters Settings)
 
 
 template <class TSparse, class TDense>
-MKLILUSolverBase<TSparse,TDense>::~MKLILUSolverBase() = default;
+MKLILUSmootherBase<TSparse,TDense>::~MKLILUSmootherBase() = default;
 
 
 /// Compute the incomplete LU factorization.
 template <class TSparse, class TDense>
-void MKLILUSolverBase<TSparse,TDense>::ProvideAdditionalData(typename Base::SparseMatrix& rLhs,
-                                                          typename Base::Vector& rSolution,
-                                                          typename Base::Vector& rRhs,
-                                                          ModelPart::DofsArrayType& rDofSet,
-                                                          ModelPart& rModelPart)
+void MKLILUSmootherBase<TSparse,TDense>::ProvideAdditionalData(typename Base::SparseMatrix& rLhs,
+                                                               typename Base::Vector& rSolution,
+                                                               typename Base::Vector& rRhs,
+                                                               ModelPart::DofsArrayType& rDofSet,
+                                                               ModelPart& rModelPart)
 {
     KRATOS_TRY
     Base::ProvideAdditionalData(rLhs, rSolution, rRhs, rDofSet, rModelPart);
@@ -179,7 +179,7 @@ void MKLILUSolverBase<TSparse,TDense>::ProvideAdditionalData(typename Base::Spar
 
 
 template <class TSparse, class TDense>
-Parameters MKLILUSolverBase<TSparse,TDense>::GetDefaultParameters()
+Parameters MKLILUSmootherBase<TSparse,TDense>::GetDefaultParameters()
 {
     return Parameters(R"({
         "iterations" : 1,
@@ -189,7 +189,7 @@ Parameters MKLILUSolverBase<TSparse,TDense>::GetDefaultParameters()
 
 
 template <class TSparse, class TDense>
-void MKLILUSolverBase<TSparse,TDense>::Clear()
+void MKLILUSmootherBase<TSparse,TDense>::Clear()
 {
     Base::Clear();
     mpImpl->mpLUAdaptor.reset();
@@ -202,11 +202,11 @@ void MKLILUSolverBase<TSparse,TDense>::Clear()
 
 /// Use the factorization and a triangular solver.
 template <class TSparse, class TDense>
-bool MKLILUSolverBase<TSparse,TDense>::Solve(typename Base::CSRView LhsView,
-                                          typename Base::template VectorView</*IsMutable=*/true> SolutionView,
-                                          typename Base::template VectorView</*IsMutable=*/false> RhsView)
+bool MKLILUSmootherBase<TSparse,TDense>::Solve(typename Base::CSRView LhsView,
+                                               typename Base::template VectorView</*IsMutable=*/true> SolutionView,
+                                               typename Base::template VectorView</*IsMutable=*/false> RhsView)
 {
-    KRATOS_ERROR_IF_NOT(mpImpl->mpLUAdaptor) << "MKLILUSolverBase::ProvideAdditionalData must be called before MKLILUSolverBase::Solve";
+    KRATOS_ERROR_IF_NOT(mpImpl->mpLUAdaptor) << "MKLILUSmootherBase::ProvideAdditionalData must be called before MKLILUSmootherBase::Solve";
     KRATOS_ERROR_IF_NOT(static_cast<MKL_INT>(mpImpl->mBuffer.size()) == LhsView.row_count);
     KRATOS_ERROR_IF_NOT(LhsView.row_count == LhsView.column_count);
     KRATOS_ERROR_IF_NOT(LhsView.row_count == SolutionView.size);
@@ -227,7 +227,7 @@ bool MKLILUSolverBase<TSparse,TDense>::Solve(typename Base::CSRView LhsView,
                                               RhsView.it_begin,
                                               mpImpl->mBuffer.data());
         KRATOS_ERROR_IF_NOT(status == SPARSE_STATUS_SUCCESS)
-            << "MKLILUSolverBase failed its forward sweep at iteration "
+            << "MKLILUSmootherBase failed its forward sweep at iteration "
             << i_sweep << " when calling mkl_sparse_d_trsv returned "
             << TranslateMKLSparseReturnCode(status);
         KRATOS_CATCH("")
@@ -243,7 +243,7 @@ bool MKLILUSolverBase<TSparse,TDense>::Solve(typename Base::CSRView LhsView,
                                               mpImpl->mBuffer.data(),
                                               SolutionView.it_begin);
         KRATOS_ERROR_IF_NOT(status == SPARSE_STATUS_SUCCESS)
-            << "MKLILUSolverBase failed its backward sweep at iteration "
+            << "MKLILUSmootherBase failed its backward sweep at iteration "
             << i_sweep << " when calling mkl_sparse_d_trsv returned "
             << TranslateMKLSparseReturnCode(status);
         KRATOS_CATCH("")
@@ -254,28 +254,28 @@ bool MKLILUSolverBase<TSparse,TDense>::Solve(typename Base::CSRView LhsView,
 
 
 template <class TSparse, class TDense>
-int MKLILUSolverBase<TSparse,TDense>::GetIterations() const noexcept
+int MKLILUSmootherBase<TSparse,TDense>::GetIterations() const noexcept
 {
     return mpImpl->mIterations;
 }
 
 
 template <class TSparse, class TDense>
-MKLILU0Solver<TSparse,TDense>::MKLILU0Solver()
-    : MKLILU0Solver(Parameters())
+MKLILU0Smoother<TSparse,TDense>::MKLILU0Smoother()
+    : MKLILU0Smoother(Parameters())
 {
 }
 
 
 template <class TSparse, class TDense>
-MKLILU0Solver<TSparse,TDense>::MKLILU0Solver(Parameters Settings)
+MKLILU0Smoother<TSparse,TDense>::MKLILU0Smoother(Parameters Settings)
     : Base(Settings)
 {
 }
 
 
 template <class TSparse, class TDense>
-Parameters MKLILU0Solver<TSparse,TDense>::GetDefaultParameters()
+Parameters MKLILU0Smoother<TSparse,TDense>::GetDefaultParameters()
 {
     Parameters defaults(R"({
         "solver_type" : "mkl_ilu0"
@@ -286,12 +286,12 @@ Parameters MKLILU0Solver<TSparse,TDense>::GetDefaultParameters()
 
 
 template <class TSparse, class TDense>
-void MKLILU0Solver<TSparse,TDense>::Factorize(std::vector<int>& rRowExtents,
-                                              std::vector<int>& rColumnIndices,
-                                              std::vector<typename TSparse::DataType>& rEntries,
-                                              typename Base::CSRView LhsView,
-                                              const std::array<int,128>& rIntegerSettings,
-                                              const std::array<typename TSparse::DataType,128>& rNumericSettings)
+void MKLILU0Smoother<TSparse,TDense>::Factorize(std::vector<int>& rRowExtents,
+                                                std::vector<int>& rColumnIndices,
+                                                std::vector<typename TSparse::DataType>& rEntries,
+                                                typename Base::CSRView LhsView,
+                                                const std::array<int,128>& rIntegerSettings,
+                                                const std::array<typename TSparse::DataType,128>& rNumericSettings)
 {
     KRATOS_TRY
     const auto ilu0_entry_count = LhsView.entry_count;
@@ -324,14 +324,14 @@ void MKLILU0Solver<TSparse,TDense>::Factorize(std::vector<int>& rRowExtents,
 
 
 template <class TSparse, class TDense>
-MKLILUTSolver<TSparse,TDense>::MKLILUTSolver()
-    : MKLILUTSolver(Parameters())
+MKLILUTSmoother<TSparse,TDense>::MKLILUTSmoother()
+    : MKLILUTSmoother(Parameters())
 {
 }
 
 
 template <class TSparse, class TDense>
-MKLILUTSolver<TSparse,TDense>::MKLILUTSolver(Parameters Settings)
+MKLILUTSmoother<TSparse,TDense>::MKLILUTSmoother(Parameters Settings)
     : Base(Settings)
 {
     KRATOS_TRY
@@ -343,7 +343,7 @@ MKLILUTSolver<TSparse,TDense>::MKLILUTSolver(Parameters Settings)
 
 
 template <class TSparse, class TDense>
-Parameters MKLILUTSolver<TSparse,TDense>::GetDefaultParameters()
+Parameters MKLILUTSmoother<TSparse,TDense>::GetDefaultParameters()
 {
     Parameters defaults(R"({
         "solver_type" : "mkl_ilut",
@@ -356,12 +356,12 @@ Parameters MKLILUTSolver<TSparse,TDense>::GetDefaultParameters()
 
 
 template <class TSparse, class TDense>
-void MKLILUTSolver<TSparse,TDense>::Factorize(std::vector<int>& rRowExtents,
-                                              std::vector<int>& rColumnIndices,
-                                              std::vector<typename TSparse::DataType>& rEntries,
-                                              typename Base::CSRView LhsView,
-                                              const std::array<int,128>& rIntegerSettings,
-                                              const std::array<typename TSparse::DataType,128>& rNumericSettings)
+void MKLILUTSmoother<TSparse,TDense>::Factorize(std::vector<int>& rRowExtents,
+                                               std::vector<int>& rColumnIndices,
+                                               std::vector<typename TSparse::DataType>& rEntries,
+                                               typename Base::CSRView LhsView,
+                                               const std::array<int,128>& rIntegerSettings,
+                                               const std::array<typename TSparse::DataType,128>& rNumericSettings)
 {
     KRATOS_TRY
     const auto ilut_entry_count = (2 * mFillFactor + 1) * LhsView.row_count
@@ -391,13 +391,13 @@ void MKLILUTSolver<TSparse,TDense>::Factorize(std::vector<int>& rRowExtents,
 }
 
 
-template class MKLILUSolverBase<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
+template class MKLILUSmootherBase<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
 
 
-template class MKLILU0Solver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
+template class MKLILU0Smoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
 
 
-template class MKLILUTSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
+template class MKLILUTSmoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
 
 
 } // namespace Kratos

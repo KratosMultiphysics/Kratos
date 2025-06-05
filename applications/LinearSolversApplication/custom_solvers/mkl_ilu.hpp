@@ -14,7 +14,7 @@
 
 
 // Project includes
-#include "custom_solvers/mkl_solver_base.hpp" // MKLSolverBase
+#include "custom_solvers/mkl_smoother_base.hpp" // MKLSmootherBase
 
 // STL includes
 #include <memory> // std::unique_ptr
@@ -25,21 +25,21 @@
 namespace Kratos {
 
 
-/// @brief Base class for @ref MKLILU0Solver and @ref MKLILUTSolver
+/// @brief Base class for @ref MKLILU0Smoother and @ref MKLILUTSmoother
 /// @internal
 template <class TSparse, class TDense>
-class KRATOS_API(LINEARSOLVERS_APPLICATION) MKLILUSolverBase
-    : public MKLSolverBase<TSparse,TDense>
+class KRATOS_API(LINEARSOLVERS_APPLICATION) MKLILUSmootherBase
+    : public MKLSmootherBase<TSparse,TDense>
 {
 private:
-    using Base = MKLSolverBase<TSparse,TDense>;
+    using Base = MKLSmootherBase<TSparse,TDense>;
 
 public:
-    MKLILUSolverBase();
+    MKLILUSmootherBase();
 
-    MKLILUSolverBase(Parameters Settings);
+    MKLILUSmootherBase(Parameters Settings);
 
-    ~MKLILUSolverBase();
+    ~MKLILUSmootherBase();
 
     void ProvideAdditionalData(typename Base::SparseMatrix& rLhs,
                                typename Base::Vector& rSolution,
@@ -70,7 +70,7 @@ protected:
 private:
     struct Impl;
     std::unique_ptr<Impl> mpImpl;
-}; // class MKLILUSolverBase
+}; // class MKLILUSmootherBase
 
 
 /** @brief ILU0 smoother/preconditioner/solver from MKL.
@@ -90,18 +90,18 @@ private:
  *  @see https://www.intel.com/content/www/us/en/docs/onemkl/developer-reference-c/2025-1/mkl-sparse-trsv.html
  */
 template <class TSparse, class TDense>
-class KRATOS_API(LINEARSOLVERS_APPLICATION) MKLILU0Solver final
-    : public MKLILUSolverBase<TSparse,TDense>
+class KRATOS_API(LINEARSOLVERS_APPLICATION) MKLILU0Smoother final
+    : public MKLILUSmootherBase<TSparse,TDense>
 {
 private:
-    using Base = MKLILUSolverBase<TSparse,TDense>;
+    using Base = MKLILUSmootherBase<TSparse,TDense>;
 
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(MKLILU0Solver);
+    KRATOS_CLASS_POINTER_DEFINITION(MKLILU0Smoother);
 
-    MKLILU0Solver();
+    MKLILU0Smoother();
 
-    MKLILU0Solver(Parameters Settings);
+    MKLILU0Smoother(Parameters Settings);
 
     static Parameters GetDefaultParameters();
 
@@ -112,7 +112,7 @@ protected:
                    typename Base::CSRView LhsView,
                    const std::array<int,128>& rIntegerSettings,
                    const std::array<typename TSparse::DataType,128>& rNumericSettings) override;
-}; // class MKLILU0Solver
+}; // class MKLILU0Smoother
 
 
 /** @brief ILUT smoother/preconditioner/solver from MKL.
@@ -139,18 +139,18 @@ protected:
  *  @see https://www.intel.com/content/www/us/en/docs/onemkl/developer-reference-c/2025-1/mkl-sparse-trsv.html
  */
 template <class TSparse, class TDense>
-class KRATOS_API(LINEARSOLVERS_APPLICATION) MKLILUTSolver final
-    : public MKLILUSolverBase<TSparse,TDense>
+class KRATOS_API(LINEARSOLVERS_APPLICATION) MKLILUTSmoother final
+    : public MKLILUSmootherBase<TSparse,TDense>
 {
 private:
-    using Base = MKLILUSolverBase<TSparse,TDense>;
+    using Base = MKLILUSmootherBase<TSparse,TDense>;
 
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(MKLILUTSolver);
+    KRATOS_CLASS_POINTER_DEFINITION(MKLILUTSmoother);
 
-    MKLILUTSolver();
+    MKLILUTSmoother();
 
-    MKLILUTSolver(Parameters Settings);
+    MKLILUTSmoother(Parameters Settings);
 
     static Parameters GetDefaultParameters();
 
@@ -166,7 +166,7 @@ private:
     typename TSparse::DataType mFactorizationTolerance;
 
     int mFillFactor;
-}; // class MKLILUTSolver
+}; // class MKLILUTSmoother
 
 
 } // namespace Kratos

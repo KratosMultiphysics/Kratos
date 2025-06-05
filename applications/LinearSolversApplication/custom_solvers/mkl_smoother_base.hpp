@@ -29,7 +29,7 @@ namespace Kratos {
 /// @brief Base class for MKL linear solvers.
 /// @internal
 template <class TSparse, class TDense>
-class KRATOS_API(LINEARSOLVERS_APPLICATION) MKLSolverBase : public LinearSolver<TSparse,TDense>
+class KRATOS_API(LINEARSOLVERS_APPLICATION) MKLSmootherBase : public LinearSolver<TSparse,TDense>
 {
 public:
     /// @brief View over a CSR matrix.
@@ -69,9 +69,9 @@ public:
 
     using DenseMatrix = typename TDense::MatrixType;
 
-    MKLSolverBase();
+    MKLSmootherBase();
 
-    ~MKLSolverBase();
+    ~MKLSmootherBase();
 
     /// @copydoc Base::Solve(SparseMatrix&,Vector&,Vector&)
     bool Solve(SparseMatrix& rLhs, Vector& rSolution, Vector& rRhs) final override;
@@ -113,17 +113,17 @@ protected:
                        VectorView</*IsMutable=*/false> Rhs) = 0;
 
 private:
-    MKLSolverBase(MKLSolverBase&&) = delete;
+    MKLSmootherBase(MKLSmootherBase&&) = delete;
 
-    MKLSolverBase(const MKLSolverBase&) = delete;
+    MKLSmootherBase(const MKLSmootherBase&) = delete;
 
-    MKLSolverBase& operator=(MKLSolverBase&&) = delete;
+    MKLSmootherBase& operator=(MKLSmootherBase&&) = delete;
 
-    MKLSolverBase& operator=(const MKLSolverBase&) = delete;
+    MKLSmootherBase& operator=(const MKLSmootherBase&) = delete;
 
     struct Impl;
     class std::unique_ptr<Impl> mpImpl;
-}; // class MKLSolverBase
+}; // class MKLSmootherBase
 
 
 } // namespace Kratos

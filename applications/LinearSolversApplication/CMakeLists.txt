@@ -51,7 +51,7 @@ if( USE_EIGEN_MKL MATCHES ON )
 
     add_definitions( -DUSE_EIGEN_MKL -DEIGEN_USE_MKL_ALL )
     target_sources(KratosLinearSolversCore PRIVATE
-                   "${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/mkl_solver_base.cpp"
+                   "${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/mkl_smoother_base.cpp"
                    "${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/mkl_ilu.cpp")
 endif()
 

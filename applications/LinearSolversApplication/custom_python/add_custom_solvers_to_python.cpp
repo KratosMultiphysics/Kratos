@@ -32,7 +32,7 @@
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
 #include "custom_solvers/eigen_pardiso_llt_solver.h"
 #include "custom_solvers/eigen_pardiso_ldlt_solver.h"
-#include "custom_solvers/mkl_ilu.hpp" // MKLILU0Solver, MKLILUTSolver
+#include "custom_solvers/mkl_ilu.hpp" // MKLILU0Smoother, MKLILUTSmoother
 #endif
 
 #if defined USE_EIGEN_FEAST
@@ -233,16 +233,16 @@ void AddCustomSolversToPython(pybind11::module& m)
     register_solver<EigenPardisoLDLTSolver<complex>>(m, "ComplexPardisoLDLTSolver");
     register_solver<EigenPardisoLLTSolver<complex>>(m, "ComplexPardisoLLTSolver");
 
-    pybind11::class_<MKLILU0Solver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>,
-                     MKLILU0Solver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>::Pointer,
-                     LinearSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>>(m, "MKLILU0Solver")
+    pybind11::class_<MKLILU0Smoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>,
+                     MKLILU0Smoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>::Pointer,
+                     LinearSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>>(m, "MKLILU0Smoother")
         .def(pybind11::init<>())
         .def(pybind11::init<Parameters>())
         ;
 
-    pybind11::class_<MKLILUTSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>,
-                     MKLILUTSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>::Pointer,
-                     LinearSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>>(m, "MKLILUTSolver")
+    pybind11::class_<MKLILUTSmoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>,
+                     MKLILUTSmoother<TUblasSparseSpace<double>,TUblasDenseSpace<double>>::Pointer,
+                     LinearSolver<TUblasSparseSpace<double>,TUblasDenseSpace<double>>>(m, "MKLILUTSmoother")
         .def(pybind11::init<>())
         .def(pybind11::init<Parameters>())
         ;

@@ -14,7 +14,7 @@
 #include "mkl.h" // MKL_INT
 
 // Project includes
-#include "custom_solvers/mkl_solver_base.hpp" // MKLSolverBase
+#include "custom_solvers/mkl_smoother_base.hpp" // MKLSmootherBase
 #include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
 
 // STL includes
@@ -34,29 +34,29 @@ namespace Kratos {
  *           As a result, the LHS matrix must be copied with @p MKL_INT as its index type.
  */
 template <class TSparse, class TDense>
-struct MKLSolverBase<TSparse,TDense>::Impl
+struct MKLSmootherBase<TSparse,TDense>::Impl
 {
     static_assert(std::is_same_v<MKL_INT,int>);
 
     std::optional<std::vector<MKL_INT>> mMaybeRowExtents;
 
     std::optional<std::vector<MKL_INT>> mMaybeColumnIndices;
-}; // struct MKLSolverBase::Impl
+}; // struct MKLSmootherBase::Impl
 
 
 template <class TSparse, class TDense>
-MKLSolverBase<TSparse,TDense>::MKLSolverBase()
+MKLSmootherBase<TSparse,TDense>::MKLSmootherBase()
     : mpImpl(new Impl)
 {
 }
 
 
 template <class TSparse, class TDense>
-MKLSolverBase<TSparse,TDense>::~MKLSolverBase() = default;
+MKLSmootherBase<TSparse,TDense>::~MKLSmootherBase() = default;
 
 
 template <class TSparse, class TDense>
-bool MKLSolverBase<TSparse,TDense>::Solve(SparseMatrix& rLhs,
+bool MKLSmootherBase<TSparse,TDense>::Solve(SparseMatrix& rLhs,
                                           Vector& rSolution,
                                           Vector& rRhs)
 {
@@ -80,7 +80,7 @@ bool MKLSolverBase<TSparse,TDense>::Solve(SparseMatrix& rLhs,
 
 /// Copy and transform the index arrays to MKL_INT, and a 1-based indices. ...
 template <class TSparse, class TDense>
-void MKLSolverBase<TSparse,TDense>::ProvideAdditionalData(SparseMatrix& rLhs,
+void MKLSmootherBase<TSparse,TDense>::ProvideAdditionalData(SparseMatrix& rLhs,
                                                           Vector&,
                                                           Vector&,
                                                           ModelPart::DofsArrayType&,
@@ -106,7 +106,7 @@ void MKLSolverBase<TSparse,TDense>::ProvideAdditionalData(SparseMatrix& rLhs,
 
 
 template <class TSparse, class TDense>
-void MKLSolverBase<TSparse,TDense>::FinalizeSolutionStep(SparseMatrix&,
+void MKLSmootherBase<TSparse,TDense>::FinalizeSolutionStep(SparseMatrix&,
                                                          Vector&,
                                                          Vector&)
 {
@@ -114,7 +114,7 @@ void MKLSolverBase<TSparse,TDense>::FinalizeSolutionStep(SparseMatrix&,
 
 
 template <class TSparse, class TDense>
-void MKLSolverBase<TSparse,TDense>::Clear()
+void MKLSmootherBase<TSparse,TDense>::Clear()
 {
     Base::Clear();
     mpImpl->mMaybeRowExtents.reset();
@@ -124,14 +124,14 @@ void MKLSolverBase<TSparse,TDense>::Clear()
 
 template <class TSparse, class TDense>
 std::tuple<
-    typename MKLSolverBase<TSparse,TDense>::CSRView,
-    typename MKLSolverBase<TSparse,TDense>::template VectorView</*IsMutable=*/true>,
-    typename MKLSolverBase<TSparse,TDense>::template VectorView</*IsMutable=*/false>>
-MKLSolverBase<TSparse,TDense>::MakeSystemView(const SparseMatrix& rLhs,
-                                              typename TSparse::DataType* itSolutionBegin,
-                                              typename TSparse::DataType* itSolutionEnd,
-                                              const typename TSparse::DataType* itRhsBegin,
-                                              const typename TSparse::DataType* itRhsEnd) const
+    typename MKLSmootherBase<TSparse,TDense>::CSRView,
+    typename MKLSmootherBase<TSparse,TDense>::template VectorView</*IsMutable=*/true>,
+    typename MKLSmootherBase<TSparse,TDense>::template VectorView</*IsMutable=*/false>>
+MKLSmootherBase<TSparse,TDense>::MakeSystemView(const SparseMatrix& rLhs,
+                                                typename TSparse::DataType* itSolutionBegin,
+                                                typename TSparse::DataType* itSolutionEnd,
+                                                const typename TSparse::DataType* itRhsBegin,
+                                                const typename TSparse::DataType* itRhsEnd) const
 {
     KRATOS_TRY
 
@@ -141,17 +141,17 @@ MKLSolverBase<TSparse,TDense>::MakeSystemView(const SparseMatrix& rLhs,
 
     // Construct views.
     return std::make_tuple(
-        typename MKLSolverBase<TSparse,TDense>::CSRView {
+        typename MKLSmootherBase<TSparse,TDense>::CSRView {
             /*row_count=*/      static_cast<MKL_INT>(rLhs.size1()),
             /*column_count=*/   static_cast<MKL_INT>(rLhs.size2()),
             /*entry_count=*/    static_cast<MKL_INT>(rLhs.nnz()),
             /*it_row_begin=*/   mpImpl->mMaybeRowExtents.value().data(),
             /*it_column_begin=*/mpImpl->mMaybeColumnIndices.value().data(),
             /*it_entry_begin=*/ &*rLhs.value_data().begin()},
-        typename MKLSolverBase<TSparse,TDense>::template VectorView</*IsMutable=*/true> {
+        typename MKLSmootherBase<TSparse,TDense>::template VectorView</*IsMutable=*/true> {
             /*size=*/           static_cast<MKL_INT>(std::distance(itSolutionBegin, itSolutionEnd)),
             /*it_begin=*/       itSolutionBegin},
-        typename MKLSolverBase<TSparse,TDense>::template VectorView</*IsMutable=*/false>{
+        typename MKLSmootherBase<TSparse,TDense>::template VectorView</*IsMutable=*/false>{
             /*size=*/           static_cast<MKL_INT>(std::distance(itRhsBegin, itRhsEnd)),
             /*it_begin=*/       itRhsBegin
         }
@@ -161,10 +161,10 @@ MKLSolverBase<TSparse,TDense>::MakeSystemView(const SparseMatrix& rLhs,
 }
 
 
-template class MKLSolverBase<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
+template class MKLSmootherBase<TUblasSparseSpace<double>,TUblasDenseSpace<double>>;
 
 
-template class MKLSolverBase<TUblasSparseSpace<float>,TUblasDenseSpace<double>>;
+template class MKLSmootherBase<TUblasSparseSpace<float>,TUblasDenseSpace<double>>;
 
 
 } // namespace Kratos
