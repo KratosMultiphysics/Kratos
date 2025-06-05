@@ -83,7 +83,6 @@ public:
     }
 
     struct ElementVariables {
-        array_1d<double, TNumNodes> PressureVector;
         Matrix                                    NContainer;
     };
 
@@ -199,13 +198,15 @@ public:
 
             RetentionLaw::Parameters RetentionParameters(r_properties);
             Vector                   Np(TNumNodes);
+            array_1d<double, TNumNodes> pressure_vector;
+            VariablesUtilities::GetNodalValues(r_geometry, WATER_PRESSURE, pressure_vector.begin());
 
             for (unsigned int integration_point = 0;
                  integration_point < number_of_integration_points; ++integration_point) {
                 noalias(Np) = row(Variables.NContainer, integration_point);
 
                 RetentionParameters.SetFluidPressure(
-                    GeoTransportEquationUtilities::CalculateFluidPressure(Np, Variables.PressureVector));
+                    GeoTransportEquationUtilities::CalculateFluidPressure(Np, pressure_vector));
                 rOutput[integration_point] = mRetentionLawVector[integration_point]->CalculateValue(
                     RetentionParameters, rVariable, rOutput[integration_point]);
             }
@@ -301,6 +302,8 @@ public:
         fluid_fluxes.reserve(number_of_integration_points);
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+        array_1d<double, TNumNodes> pressure_vector;
+        VariablesUtilities::GetNodalValues(r_geometry, WATER_PRESSURE, pressure_vector.begin());
 
         const PropertiesType&             r_properties = this->GetProperties();
         BoundedMatrix<double, TDim, TDim> permeability_matrix;
@@ -308,7 +311,7 @@ public:
 
         auto relative_permeability_values =
             this->CalculateRelativePermeabilityValues(GeoTransportEquationUtilities::CalculateFluidPressures(
-                Variables.NContainer, Variables.PressureVector));
+                Variables.NContainer, pressure_vector));
         std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
                        rPermeabilityUpdateFactors.cbegin(), relative_permeability_values.begin(),
                        std::multiplies<>{});
@@ -329,7 +332,7 @@ public:
             GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
                 body_acceleration, Variables.NContainer, volume_acceleration, integration_point);
 
-            array_1d<double, TDim> GradPressureTerm = prod(trans(grad_Np_T), Variables.PressureVector);
+            array_1d<double, TDim> GradPressureTerm = prod(trans(grad_Np_T), pressure_vector);
             GradPressureTerm += PORE_PRESSURE_SIGN_FACTOR * r_properties[DENSITY_WATER] * body_acceleration;
 
             fluid_fluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * dynamic_viscosity_inverse * relative_permeability_values[integration_point] *
@@ -379,8 +382,6 @@ public:
         KRATOS_TRY
 
         const GeometryType& r_geometry = this->GetGeometry();
-        VariablesUtilities::GetNodalValues(r_geometry, WATER_PRESSURE, rVariables.PressureVector.begin());
-
         // General Variables
         const unsigned int number_of_integration_points =
             r_geometry.IntegrationPointsNumber(this->GetIntegrationMethod());
