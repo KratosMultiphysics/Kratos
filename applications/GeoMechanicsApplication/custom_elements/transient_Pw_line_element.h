@@ -83,12 +83,6 @@ public:
     }
 
     struct ElementVariables {
-        /// Properties variables
-        double                            BiotCoefficient;
-        double                            BiotModulusInverse;
-        BoundedMatrix<double, TDim, TDim> PermeabilityMatrix;
-
-        /// Nodal variables
         array_1d<double, TNumNodes>        PressureVector;
         array_1d<double, TNumNodes>        DtPressureVector;
         array_1d<double, TNumNodes * TDim> VolumeAcceleration;
@@ -331,6 +325,8 @@ public:
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
         const PropertiesType& r_properties = this->GetProperties();
+        BoundedMatrix<double, TDim, TDim> permeability_matrix;
+        GeoElementUtilities::FillPermeabilityMatrix(permeability_matrix, r_properties);
 
         auto relative_permeability_values =
             this->CalculateRelativePermeabilityValues(GeoTransportEquationUtilities::CalculateFluidPressures(
@@ -354,7 +350,7 @@ public:
 
             fluid_fluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * dynamic_viscosity_inverse *
                                    Variables.RelativePermeability *
-                                   prod(Variables.PermeabilityMatrix, GradPressureTerm));
+                                   prod(permeability_matrix, GradPressureTerm));
         }
 
         return fluid_fluxes;
@@ -427,11 +423,6 @@ public:
     {
         KRATOS_TRY
 
-        // Properties variables
-        const PropertiesType& r_properties = this->GetProperties();
-        GeoElementUtilities::FillPermeabilityMatrix(rVariables.PermeabilityMatrix, r_properties);
-
-        // Nodal Variables
         const GeometryType& r_geometry = this->GetGeometry();
         VariablesUtilities::GetNodalValues(r_geometry, WATER_PRESSURE, rVariables.PressureVector.begin());
         VariablesUtilities::GetNodalValues(r_geometry, DT_WATER_PRESSURE,
@@ -571,9 +562,9 @@ public:
 
         if (rVariable == PERMEABILITY_MATRIX) {
             // If the permeability of the element is a given property
-            BoundedMatrix<double, TDim, TDim> PermeabilityMatrix;
-            GeoElementUtilities::FillPermeabilityMatrix(PermeabilityMatrix, this->GetProperties());
-            std::fill_n(rOutput.begin(), number_of_integration_points, PermeabilityMatrix);
+            BoundedMatrix<double, TDim, TDim> permeability_matrix;
+            GeoElementUtilities::FillPermeabilityMatrix(permeability_matrix, this->GetProperties());
+            std::fill_n(rOutput.begin(), number_of_integration_points, permeability_matrix);
         } else {
             for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
                 rOutput[i].resize(TDim, TDim, false);
