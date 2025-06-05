@@ -166,8 +166,21 @@ public:
     {
         CheckAndFitKnotVectors();
 
-        KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
-            << "Number of control points and weights do not match!" << std::endl;
+        gismo::gsKnotVector<> UKnotVector(PolynomialDegreeU,rKnotsU.begin(),rKnotsU.end());
+        gismo::gsKnotVector<> VKnotVector(PolynomialDegreeV,rKnotsV.begin(),rKnotsV.end());
+
+        gismo::gsTensorBSplineBasis<2> BSplineBasis(UKnotVector,VKnotVector);
+        // gismo::gsTensorNurbsBasis<2> NurbsBasis(BSplineBasis)
+        mThb = gismo::gsTHBSplineBasis<2>(BSplineBasis);
+        
+        gsMatrix<> controlPoints;
+        ControlPointsToGismo(this->Points(),controlPoints);
+       
+        gismo::gsTHBSpline<2> ThbGeometry(mThb,controlPoints);
+
+
+        ControlPointsFromGismo(ThbGeometry.coefs(),this->Points());
+        mThb = ThbGeometry.basis();
     }
 
     explicit THBSurfaceGeometry(const PointsArrayType& ThisPoints)
