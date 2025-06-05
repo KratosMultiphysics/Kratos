@@ -54,6 +54,9 @@ void NearestNeighborLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
         mInterfaceInfos[0]->GetValue(nearest_neighbor_distance, MapperInterfaceInfo::InfoType::Dummy);
         rOriginIds = nearest_neighbor_id;
 
+        KRATOS_WATCH(nearest_neighbor_id)
+        KRATOS_WATCH(nearest_neighbor_distance)
+
         for (std::size_t i=1; i<mInterfaceInfos.size(); ++i) {
             // no check if this InterfaceInfo is an approximation is necessary
             // bcs this does not exist for NearestNeighbor

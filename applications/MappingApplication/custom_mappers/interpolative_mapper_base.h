@@ -264,6 +264,7 @@ protected:
         KRATOS_TRY;
 
         BuildMappingMatrix();
+        exit(0);
 
         KRATOS_CATCH("");
     }
@@ -426,6 +427,9 @@ private:
 
         mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
 
+        KRATOS_WATCH(*mpMappingMatrix)
+        KRATOS_WATCH(mpInterfaceVectorContainerOrigin->GetVector())
+
         TSparseSpace::Mult(
             *mpMappingMatrix,
             mpInterfaceVectorContainerOrigin->GetVector(),
@@ -443,6 +447,8 @@ private:
         KRATOS_TRY;
 
         mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
+
+        KRATOS_WATCH(mpInterfaceVectorContainerDestination->GetVector())
 
         TSparseSpace::TransposeMult(
             *mpMappingMatrix,

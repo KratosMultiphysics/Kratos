@@ -7,11 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher, Jordi Cotela
-//
-// See Master-Thesis P.Bucher
-// "Development and Implementation of a Parallel
-//  Framework for Non-Matching Grid Mapping"
+//  Main authors:    Juan Ignacio Camarotti
+
 
 #pragma once
 
@@ -27,28 +24,28 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(MAPPING_APPLICATION) NearestNeighborInterfaceInfo : public MapperInterfaceInfo
+class KRATOS_API(MAPPING_APPLICATION) NearestNeighborInterfaceInfoIGA : public MapperInterfaceInfo
 {
 public:
 
     /// Default constructor.
-    NearestNeighborInterfaceInfo() {}
+    NearestNeighborInterfaceInfoIGA() {}
 
-    explicit NearestNeighborInterfaceInfo(const CoordinatesArrayType& rCoordinates,
+    explicit NearestNeighborInterfaceInfoIGA(const CoordinatesArrayType& rCoordinates,
                                  const IndexType SourceLocalSystemIndex,
                                  const IndexType SourceRank)
         : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank) {}
 
     MapperInterfaceInfo::Pointer Create() const override
     {
-        return Kratos::make_shared<NearestNeighborInterfaceInfo>();
+        return Kratos::make_shared<NearestNeighborInterfaceInfoIGA>();
     }
 
     MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
                                         const IndexType SourceLocalSystemIndex,
                                         const IndexType SourceRank) const override
     {
-        return Kratos::make_shared<NearestNeighborInterfaceInfo>(
+        return Kratos::make_shared<NearestNeighborInterfaceInfoIGA>(
             rCoordinates,
             SourceLocalSystemIndex,
             SourceRank);
@@ -95,11 +92,11 @@ private:
     }
 };
 
-class KRATOS_API(MAPPING_APPLICATION) NearestNeighborLocalSystem : public MapperLocalSystem
+class KRATOS_API(MAPPING_APPLICATION) NearestNeighborLocalSystemIGA : public MapperLocalSystem
 {
 public:
 
-    explicit NearestNeighborLocalSystem(NodePointerType pNode) : mpNode(pNode) {}
+    explicit NearestNeighborLocalSystemIGA(NodePointerType pNode) : mpNode(pNode) {}
 
     void CalculateAll(MatrixType& rLocalMappingMatrix,
                       EquationIdVectorType& rOriginIds,
@@ -114,7 +111,7 @@ public:
 
     MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
     {
-        return Kratos::make_unique<NearestNeighborLocalSystem>(pNode);
+        return Kratos::make_unique<NearestNeighborLocalSystemIGA>(pNode);
     }
 
     void PairingInfo(std::ostream& rOStream, const int EchoLevel) const override;
@@ -134,7 +131,7 @@ private:
 * look into the class description of the MapperCommunicator
 */
 template<class TSparseSpace, class TDenseSpace, class TMapperBackend>
-class KRATOS_API(MAPPING_APPLICATION) NearestNeighborMapper
+class KRATOS_API(MAPPING_APPLICATION) NearestNeighborMapperIGA
     : public InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend>
 {
 public:
@@ -144,8 +141,8 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of NearestNeighborMapper
-    KRATOS_CLASS_POINTER_DEFINITION(NearestNeighborMapper);
+    /// Pointer definition of NearestNeighborMapperIGA
+    KRATOS_CLASS_POINTER_DEFINITION(NearestNeighborMapperIGA);
 
     typedef InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend> BaseType;
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
@@ -156,11 +153,11 @@ public:
     ///@{
 
     // Default constructor, needed for registration
-    NearestNeighborMapper(ModelPart& rModelPartOrigin,
+    NearestNeighborMapperIGA(ModelPart& rModelPartOrigin,
                           ModelPart& rModelPartDestination)
                           : BaseType(rModelPartOrigin, rModelPartDestination) {}
 
-    NearestNeighborMapper(ModelPart& rModelPartOrigin,
+    NearestNeighborMapperIGA(ModelPart& rModelPartOrigin,
                           ModelPart& rModelPartDestination,
                           Parameters JsonParameters)
                           : BaseType(rModelPartOrigin,
@@ -188,7 +185,7 @@ public:
     }
 
     /// Destructor.
-    ~NearestNeighborMapper() override = default;
+    ~NearestNeighborMapperIGA() override = default;
 
     ///@}
     ///@name Operations
@@ -200,7 +197,7 @@ public:
     {
         KRATOS_TRY;
 
-        return Kratos::make_unique<NearestNeighborMapper<TSparseSpace, TDenseSpace, TMapperBackend>>(
+        return Kratos::make_unique<NearestNeighborMapperIGA<TSparseSpace, TDenseSpace, TMapperBackend>>(
             rModelPartOrigin,
             rModelPartDestination,
             JsonParameters);
@@ -225,13 +222,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "NearestNeighborMapper";
+        return "NearestNeighborMapperIGA";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "NearestNeighborMapper";
+        rOStream << "NearestNeighborMapperIGA";
     }
 
     /// Print object's data.
@@ -249,15 +246,15 @@ private:
         const Communicator& rModelPartCommunicator,
         std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems) override
     {
-        MapperUtilities::CreateMapperLocalSystemsFromNodes(
-            NearestNeighborLocalSystem(nullptr),
-            rModelPartCommunicator,
-            rLocalSystems);
+        // MapperUtilities::CreateMapperLocalSystemsFromNodes(
+        //     NearestNeighborLocalSystemIGA(nullptr),
+        //     rModelPartCommunicator,
+        //     rLocalSystems);
     }
 
     MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const override
     {
-        return Kratos::make_unique<NearestNeighborInterfaceInfo>();
+        // return Kratos::make_unique<NearestNeighborInterfaceInfoIGA>();
     }
 
     Parameters GetMapperDefaultSettings() const override
@@ -273,7 +270,7 @@ private:
 
     ///@}
 
-}; // Class NearestNeighborMapper
+}; // Class NearestNeighborMapperIGA
 
 ///@} addtogroup block
 }  // namespace Kratos.
