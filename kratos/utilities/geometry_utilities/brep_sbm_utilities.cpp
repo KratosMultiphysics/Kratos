@@ -26,7 +26,7 @@ void BrepSbmUtilities<TNodeType>::CreateBrepSurfaceSbmIntegrationPoints(
 {    
     // Loop over rSurrogateOuterLoopGeometries and collect the vertical conditions on each y-knot span
     std::vector<std::vector<double>> vertical_conditions_per_row(rSpansV.size()-1);
-    const double tolerance = 1e-13;
+    const double tolerance = tolerance;
 
     // Check if the outer loop is defined
     bool is_outer_loop_defined = false;
@@ -158,6 +158,7 @@ void BrepSbmUtilities<TNodeType>::CreateBrepVolumeSbmIntegrationPoints(
 {
     // Loop over rSurrogateInnerLoopGeometries and outer and save the perpendicular faces with respect to x-direction
     std::vector<std::vector<std::vector<double>>> perpendicular_conditions_per_u_direction(rSpansV.size()-1);
+    const double tolerance = tolerance;
 
     for (IndexType v = 0; v < rSpansV.size()-1; v++) 
     {
@@ -169,7 +170,7 @@ void BrepSbmUtilities<TNodeType>::CreateBrepVolumeSbmIntegrationPoints(
     for (auto i_cond : rSurrogateOuterLoopGeometries) {
         auto p_geometry = i_cond; 
         // Check if the condition is perpendicular to x-direction
-        if (std::abs((*p_geometry)[0].X()-(*p_geometry)[2].X()) < 1e-13 ) {
+        if (std::abs((*p_geometry)[0].X()-(*p_geometry)[2].X()) < tolerance ) {
 
             // When local refining is performed, the surrogate steps might be larger that the refined knot spans
             const double direction_v = ((*p_geometry)[2].Y()-(*p_geometry)[0].Y())/std::abs(((*p_geometry)[2].Y()-(*p_geometry)[0].Y()));
@@ -191,7 +192,7 @@ void BrepSbmUtilities<TNodeType>::CreateBrepVolumeSbmIntegrationPoints(
     for (auto i_cond : rSurrogateInnerLoopGeometries) {
         auto p_geometry = i_cond;
         // Check if the condition is perpendicular to x-direction
-        if (std::abs((*p_geometry)[0].X()-(*p_geometry)[2].X()) < 1e-13 ) {
+        if (std::abs((*p_geometry)[0].X()-(*p_geometry)[2].X()) < tolerance ) {
 
             // When local refining is performed, the surrogate steps might be larger that the refined knot spans
             const double direction_v = ((*p_geometry)[2].Y()-(*p_geometry)[0].Y())/std::abs(((*p_geometry)[2].Y()-(*p_geometry)[0].Y()));
@@ -224,8 +225,8 @@ void BrepSbmUtilities<TNodeType>::CreateBrepVolumeSbmIntegrationPoints(
             IndexType starting_u_index = 0;
             IndexType next_switch_knot_span;
             if (perpendicular_conditions_per_u_direction[j][k].size() > 0) {
-                // next_switch_knot_span = (vertical_conditions_per_row[j][0]+1e-13)/meshSizes_uv[0];
-                next_switch_knot_span = FindKnotSpans1D(rSpansU, perpendicular_conditions_per_u_direction[j][k][0]+1e-13);
+                // next_switch_knot_span = (vertical_conditions_per_row[j][0]+tolerance)/meshSizes_uv[0];
+                next_switch_knot_span = FindKnotSpans1D(rSpansU, perpendicular_conditions_per_u_direction[j][k][0]+tolerance);
 
             }
             else {
@@ -235,8 +236,8 @@ void BrepSbmUtilities<TNodeType>::CreateBrepVolumeSbmIntegrationPoints(
 
             if (is_outer_loop_defined){
                 if (perpendicular_conditions_per_u_direction[j][k].empty()) {continue;}
-                starting_u_index = FindKnotSpans1D(rSpansU, perpendicular_conditions_per_u_direction[j][k][0]+1e-13);
-                next_switch_knot_span = FindKnotSpans1D(rSpansU, perpendicular_conditions_per_u_direction[j][k][1]+1e-13);
+                starting_u_index = FindKnotSpans1D(rSpansU, perpendicular_conditions_per_u_direction[j][k][0]+tolerance);
+                next_switch_knot_span = FindKnotSpans1D(rSpansU, perpendicular_conditions_per_u_direction[j][k][1]+tolerance);
                 perpendicular_condition_index = 2;
             }
 
@@ -244,13 +245,13 @@ void BrepSbmUtilities<TNodeType>::CreateBrepVolumeSbmIntegrationPoints(
 
                 if (i == next_switch_knot_span) {
                     if (perpendicular_condition_index < perpendicular_conditions_per_u_direction[j][k].size()) {
-                        i = FindKnotSpans1D(rSpansU, perpendicular_conditions_per_u_direction[j][k][perpendicular_condition_index]+1e-13);
+                        i = FindKnotSpans1D(rSpansU, perpendicular_conditions_per_u_direction[j][k][perpendicular_condition_index]+tolerance);
                     } else {
                         break;
                     }
                     perpendicular_condition_index++;
                     if (perpendicular_condition_index < perpendicular_conditions_per_u_direction[j][k].size()) {
-                        next_switch_knot_span = FindKnotSpans1D(rSpansU, perpendicular_conditions_per_u_direction[j][k][perpendicular_condition_index]+1e-13);
+                        next_switch_knot_span = FindKnotSpans1D(rSpansU, perpendicular_conditions_per_u_direction[j][k][perpendicular_condition_index]+tolerance);
                     }
                     else {
                         next_switch_knot_span = rSpansU.size() - 1;
