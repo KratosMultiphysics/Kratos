@@ -79,4 +79,18 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessThrowsUponCheckWh
                          "stress field must be 6, but is 2. Please check the process parameters.")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessCheckReturns0WhenValuesAreCorrectLength,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Parameters parameters(R"({
+        "value": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+    })");
+    Model      model;
+    auto&      rModelPart = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
+
+    ApplyInitialUniformStressField process(rModelPart, parameters);
+
+    KRATOS_EXPECT_EQ(process.Check(), 0);
+}
+
 } // namespace Kratos::Testing
