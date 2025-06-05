@@ -22,9 +22,12 @@ class ModelPart;
 class Parameters;
 
 ///
-/// @brief This process applies a uniform stress field to all elements in a model part.
-/// The elements in the modelpart need to be able to calculate and set the CAUCHY_STRESS_VECTOR variable.
-/// The Parameters object should contain a "value" field, which is a vector of size 6 representing the stress components.
+/// @brief This process applies an initial uniform stress field to all elements in a model part.
+/// The elements in the model part need to be able to calculate and set the CAUCHY_STRESS_VECTOR variable.
+/// The Parameters object should contain a "value" field, which is a vector representing the stress components.
+/// The vector should have a length equal to the strain size (e.g. 4 for plane strain and axisymmetric cases, 6 for 3D).
+/// Note that this means that if you want to apply a uniform stress field to
+/// elements with different strain sizes, you will need to apply the process multiple times with separate model parts.
 ///
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyInitialUniformStressField : public Process
 {
