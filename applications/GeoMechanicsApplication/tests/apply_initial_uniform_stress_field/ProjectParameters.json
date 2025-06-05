@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "apply_initial_stress_field",
+        "problem_name":         "apply_initial_uniform_stress_field",
         "start_time":           0.0,
         "end_time":             1.0,
         "echo_level":           1,
@@ -112,9 +112,9 @@
         }
     }],
         "loads_process_list": [{
-            "python_module": "apply_initial_stress_field",
+            "python_module": "apply_initial_uniform_stress_field",
             "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-            "process_name":  "ApplyInitialStressField",
+            "process_name":  "ApplyInitialUniformStressField",
             "Parameters":    {
                 "model_part_name": "PorousDomain.Soil",
                 "value": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]

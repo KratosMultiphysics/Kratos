@@ -183,8 +183,8 @@ void AddCustomProcessesToPython(pybind11::module& m)
         m, "ApplyFinalStressesOfPreviousStageToInitialState")
         .def(py::init<ModelPart&, const Parameters&>());
 
-    py::class_<ApplyInitialStressField, ApplyInitialStressField::Pointer, Process>(
-        m, "ApplyInitialStressField")
+    py::class_<ApplyInitialUniformStressField, ApplyInitialUniformStressField::Pointer, Process>(
+        m, "ApplyInitialUniformStressField")
         .def(py::init<ModelPart&, const Parameters&>());
 }
 

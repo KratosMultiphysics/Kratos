@@ -21,12 +21,12 @@ namespace Kratos
 class ModelPart;
 class Parameters;
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyInitialStressField : public Process
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyInitialUniformStressField : public Process
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(ApplyInitialStressField);
+    KRATOS_CLASS_POINTER_DEFINITION(ApplyInitialUniformStressField);
 
-    ApplyInitialStressField(ModelPart& rModelPart, const Parameters& rParameters);
+    ApplyInitialUniformStressField(ModelPart& rModelPart, const Parameters& rParameters);
     void ExecuteInitialize() override;
 
 private:

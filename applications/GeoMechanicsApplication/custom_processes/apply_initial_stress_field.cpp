@@ -17,12 +17,12 @@
 namespace Kratos
 {
 
-ApplyInitialStressField::ApplyInitialStressField(ModelPart& rModelPart, const Parameters& rParameters)
+ApplyInitialUniformStressField::ApplyInitialUniformStressField(ModelPart& rModelPart, const Parameters& rParameters)
     : mrModelPart(rModelPart), mImposedStressVector(rParameters["value"].GetVector())
 {
 }
 
-void ApplyInitialStressField::ExecuteInitialize()
+void ApplyInitialUniformStressField::ExecuteInitialize()
 {
     block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
         std::vector<Vector> dummy_stress_vector(

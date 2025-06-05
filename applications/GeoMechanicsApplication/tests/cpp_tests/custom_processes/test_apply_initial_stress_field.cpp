@@ -17,21 +17,7 @@
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyInitialStressFieldProcessCanBeCreated, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    Parameters parameters(R"({
-        "model_part_name": "test_model_part",
-        "variable_name": "CAUCHY_STRESS_VECTOR",
-        "value": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
-    })");
-
-    Model      model;
-    ModelPart& r_model_part = model.CreateModelPart("test_model_part");
-
-    ApplyInitialStressField process(r_model_part, parameters);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(ApplyInitialStressFieldProcessAppliesStressesToElementsInModelParts,
+KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesToElementsInModelParts,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Parameters parameters(R"({
@@ -43,7 +29,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialStressFieldProcessAppliesStressesToElement
     Model model;
     auto& rModelPart = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
 
-    ApplyInitialStressField process(rModelPart, parameters);
+    ApplyInitialUniformStressField process(rModelPart, parameters);
     process.ExecuteInitialize();
 
     std::vector<Vector> actual_stresses;

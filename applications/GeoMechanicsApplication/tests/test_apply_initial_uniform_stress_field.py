@@ -3,9 +3,9 @@ import test_helper
 import os.path
 
 
-class KratosGeoMechanicsApplyInitialStressFieldTests(unittest.TestCase):
-    def test_something(self):
-        output = self.run_simulation("apply_initial_stress_field")
+class KratosGeoMechanicsApplyInitialUniformStressFieldTests(unittest.TestCase):
+    def test_application_of_uniform_stress_field(self):
+        output = self.run_simulation("apply_initial_uniform_stress_field")
         stress_vectors = (
             test_helper.GiDOutputFileReader.element_integration_point_values_at_time(
                 "CAUCHY_STRESS_VECTOR", 1.0, output, [1]

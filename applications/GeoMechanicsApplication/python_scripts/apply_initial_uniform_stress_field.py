@@ -6,7 +6,7 @@ def Factory(settings, model):
         raise TypeError("expected input shall be a Parameters object, encapsulating a json string")
 
     model_part = model[settings["Parameters"]["model_part_name"].GetString()]
-    return Geo.ApplyInitialStressField(model_part, settings["Parameters"])
+    return Geo.ApplyInitialUniformStressField(model_part, settings["Parameters"])
 
 
 
