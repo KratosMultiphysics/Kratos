@@ -44,7 +44,7 @@ Vector FluidBodyFlowCalculator::RHSContribution()
         GeoTransportEquationUtilities::CalculateFluidPressures(nc_container, pressure_vector);
     const auto fluid_body_vector_length = shape_function_gradients[0].size1();
     auto       result                   = Vector{ZeroVector(fluid_body_vector_length)};
-    const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
+    const auto bishop_coefficients      = CalculateBishopCoefficients(fluid_pressures);
 
     for (unsigned int integration_point_index = 0;
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {

@@ -66,7 +66,6 @@ public:
 private:
     InputProvider mInputProvider;
     std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const;
-
 };
 
 } // namespace Kratos
