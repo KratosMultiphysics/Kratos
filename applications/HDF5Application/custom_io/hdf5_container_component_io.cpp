@@ -17,6 +17,8 @@
 
 // Project includes
 #include "expression/container_data_io.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // Application includes
 #include "custom_utilities/container_io_utils.h"
@@ -271,6 +273,26 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
             values.resize(rLocalContainer.size(), std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>{}));
             Internals::CopyToContiguousArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values), values.size1() * values.size2());
             mpFile->WriteDataSet(r_data_set_path, values, rInfo);
+        }
+
+        // now writing the availability of each value
+        // it is only required to calculate if the components are optional
+        if constexpr(TContainerDataIO::RequireAvailabilityCheck) {
+            Vector<bool> availability(rLocalContainer.size());
+
+            const auto availability_local_counts_pair = IndexPartition<IndexType>(rLocalContainer.size()).for_each<CombinedReduction<SumReduction<IndexType>, SumReduction<IndexType>>>([&rContainerDataIO, &rLocalContainer, &r_component, &availability](const auto Index) {
+                availability[Index] = rContainerDataIO.HasValue(*(rLocalContainer.begin() + Index), r_component);
+                return std::make_tuple<IndexType, IndexType>(availability[Index] == true, availability[Index] == false);
+            });
+
+            const auto& availability_global_counts_pair = mpFile->GetDataCommunicator().SumAll(std::vector<IndexType>{std::get<0>(availability_local_counts_pair), std::get<1>(availability_local_counts_pair), rLocalContainer.size()});
+
+            if (availability_global_counts_pair[0] != availability_global_counts_pair[2] && availability_global_counts_pair[1] != availability_global_counts_pair[2]) {
+                // number of entities having the component defined is not equal to total number of entities or, number of entities
+                // not having the component defined is not equal to total number of entities.
+                // therefore, it is essential to write the availability to record which entity has the component.
+                mpFile->WriteDataSet(r_data_set_path + "_availability", availability, rInfo);
+            }
         }
 
         // add the shape to attributes.
