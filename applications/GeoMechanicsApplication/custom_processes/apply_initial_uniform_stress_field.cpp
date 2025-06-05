@@ -20,14 +20,22 @@ namespace Kratos
 ApplyInitialUniformStressField::ApplyInitialUniformStressField(ModelPart& rModelPart, const Parameters& rParameters)
     : mrModelPart(rModelPart), mImposedStressVector(rParameters["value"].GetVector())
 {
+    block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
+        const auto p_constitutive_law = rElement.GetProperties()[CONSTITUTIVE_LAW];
+        KRATOS_ERROR_IF_NOT(mImposedStressVector.size() == p_constitutive_law->GetStrainSize())
+            << "The size of the input stress vector for applying a uniform initial "
+               "stress field must match the strain size of the constitutive law, which is "
+            << p_constitutive_law->GetStrainSize() << ", but is " << mImposedStressVector.size()
+            << " for model part '" << mrModelPart.Name() << "'. Please check the process parameters.\n";
+    });
 }
 
 void ApplyInitialUniformStressField::ExecuteInitialize()
 {
     block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
-        std::vector<Vector> dummy_stress_vector(
+        std::vector<Vector> imposed_stress_vectors(
             rElement.GetGeometry().IntegrationPointsNumber(rElement.GetIntegrationMethod()), mImposedStressVector);
-        rElement.SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, dummy_stress_vector,
+        rElement.SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, imposed_stress_vectors,
                                               mrModelPart.GetProcessInfo());
     });
 }
