@@ -8,7 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # SMALL TESTS
 import SmallTests
-# NIGTHLY TESTS
+# NIGHTLY TESTS
 import NightTests
 # VALIDATION TESTS
 import ValidationTests
@@ -21,10 +21,10 @@ def AssembleTestSuites():
     # SMALL TESTS
     small_suite = SmallTests.SetTestSuite(suites)
 
-    # NIGTHLY TESTS
+    # NIGHTLY TESTS
     night_suite = NightTests.SetTestSuite(suites)
 
-    # inlude small suite in night suite
+    # include small suite in night suite
     night_suite.addTests(small_suite)
 
     # VALIDATION TESTS

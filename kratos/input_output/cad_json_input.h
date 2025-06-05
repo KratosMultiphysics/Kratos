@@ -74,8 +74,8 @@ class CadJsonInput : public IO
     typedef typename NurbsSurfaceType::Pointer NurbsSurfacePointerType;
     typedef typename NurbsTrimmingCurveType::Pointer NurbsTrimmingCurvePointerType;
 
-    typedef BrepSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepSurfaceType;
-    typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
+    typedef BrepSurface<ContainerNodeType, false, ContainerEmbeddedNodeType> BrepSurfaceType;
+    typedef BrepCurveOnSurface<ContainerNodeType, false, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
     typedef BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveType;
     typedef PointOnGeometry<ContainerNodeType, 3, 2> PointOnGeometryOnSurfaceType;
     typedef PointOnGeometry<ContainerNodeType, 3, 1> PointOnGeometryOnCurveType;

@@ -5,7 +5,7 @@ This folder contains the custom processes that are used in the GeoMechanicsAppli
 Documented processes:
 - [$c-\phi$ reduction process](#c-phi-reduction-process)
 - [GeoExtrapolateIntegrationPointValuesToNodesProcess](#extrapolation-of-integration-values-to-nodes)
-- [ResetDisplacementProcess](#reset-displacement-process)
+- [ApplyFinalStressesOfPreviousStageToInitialState](#apply-final-stresses-of-previous-stage-to-initial-state-process)
 - [$K_0$ procedure process](#K_0-procedure-process)
 
 ## $c-\phi$ reduction process
@@ -19,7 +19,10 @@ The $c-\phi$ reduction process requires the existence of a stress state in your 
 points violate the given Mohr-Coulomb failure surface. During the stage with the active $c-\phi$ reduction process, 
 $c$ and $\tan \phi$ will be incrementally reduced in steps with an initial size of 10%. For each reduction step stresses are 
 mapped back onto the reduced Mohr-Coulomb yield surface and equilibrium is found if possible. When equilibrium is no longer 
-found in the given number of iterations for the Newton-Raphson scheme, the step is retried with a halved reduction increment. This is repeated until the allowed number of cycles for a step is reached.   
+found in the given number of iterations for the Newton-Raphson scheme, the step is retried with a halved reduction increment.
+This is repeated until the allowed number of cycles for a step is reached or until the reduction factor drops below 0.01.
+As the stepping is "mis"using the time-stepping of the GeoMechanics application, reaching the end_time also terminates the
+reduction process.
 
 ### Safety factor
 The safety factor is computed as the inverse of the reduction factor [[1]](#1):
@@ -61,14 +64,13 @@ Where the `model_part_name` should contain the name of the model part where the 
 
 When this process is added to the `ProjectParameters.json`, the variables specified in `list_of_variables` can be exported as nodal output (e.g. as `nodal_results` in the `GiDOutputProcess`). 
 
-## Reset displacement process
-The `ResetDisplacementProcess` can be used to change the reference point of the displacements to the displacement at the start of that stage.
+## Apply Final Stresses Of Previous Stage To Initial State Process
+The `ApplyFinalStressesOfPreviousStageToInitialState` process can be used to change the reference point of the displacements to the displacement at the start of that stage. This process only needs to be applied to structural and interface elements, to convert the displacements from a total displacement to a staged displacement.
 
 ### Requirements
 For this process to work, the following requirements have to be met:
 1. The elements in the model part that the process is applied to should have an implementation for `CalculateOnIntegrationPoints` that calculates the PK2_STRESS_VECTOR as well as an overload of `CalculateOnIntegrationPoints` that returns a list of ConstitutiveLaw::Pointer objects for each integration point.
-2. The input type of the model can only be "rest" (short for restarted), to ensure that the state of the model is retained from the previous stage. The reason for this, is that the constitutive laws are used at the start of a state to calculate the initial stresses based on the history. If the model is not 'restarted', the constitutive laws will be cleared and the initial stresses can not be calculated correctly.
-3. The ConstitutiveLaw used in the elements this process is applied to should use the `InitialState` to apply the initial stresses to the calculated stresses.
+2. The ConstitutiveLaw used in the elements this process is applied to should use the `InitialState` to apply the initial stresses to the calculated stresses.
 
 
 ## $K_0$ procedure process
@@ -112,7 +114,7 @@ After the stress adaptation by the $K_0$ procedure, the stress state may not be 
 The process is defined as follows in "ProjectParameters.json" (also found in some of the [integration tests](../tests/test_k0_procedure_process)). Without the addition of this process, no adaptation of the horizontal stresses takes place.
 ```json
 {
-  "auxilliary_process_list": [
+  "auxiliary_process_list": [
     {
       "python_module": "apply_k0_procedure_process",
       "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
@@ -144,7 +146,7 @@ The "apply_k0_procedure_process" needs the following material parameter input to
     "OCR":                         1.4,
     "POISSON_UNLOADING_RELOADING": 0.35,
     "POP":                         800.0
-  },
+  }
 }
 ```
 

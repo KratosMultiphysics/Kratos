@@ -92,38 +92,5 @@ class KratosGeoMechanicsBenchmarkSet2(KratosUnittest.TestCase):
         self.assertAlmostEqual(max_y_total_stress_plaxis, max_y_cauchy_stress_kratos,  delta=max(max_y_total_stress_plaxis*relative_precision_stress,absolute_precision_stress))
         self.assertAlmostEqual(min_y_total_stress_plaxis, min_y_cauchy_stress_kratos,  delta=max(abs(min_x_total_stress_plaxis*relative_precision_stress),absolute_precision_stress))
 
-    @KratosUnittest.skip("unit test skipped as it is not ready")
-    def test_benchmark2_3(self):
-        """
-        In this benchmark a four stage model is tested.
-        Stage 1: initialisation sand layer
-        Stage 2: addition of sheetpile
-        Stage 3: addition of dike
-        Stage 4: addition of water
-
-        The test is calculated using gravity loading.
-
-        This test compares minimum, maximum stress and displacement in the third and fourth stage.
-
-        :return:
-        """
-
-        test_name = r'dike_with_sheetpile_all_stage'
-        project_path = test_helper.get_file_path(os.path.join('.', test_name))
-        n_stages = 3
-        test_helper.run_stages(project_path, n_stages)
-
-        # max_x_disp_plaxis = 0.01279
-        # min_x_disp_plaxis = -0.012234
-        #
-        # max_y_disp_plaxis = 0.0
-        # min_y_disp_plaxis = -0.21458
-        #
-        # max_x_total_stress_plaxis = -311
-        # min_x_total_stress_plaxis = -146256
-        #
-        # max_y_total_stress_plaxis = -674
-        # min_y_total_stress_plaxis = -432068
-
 if __name__ == '__main__':
     KratosUnittest.main()

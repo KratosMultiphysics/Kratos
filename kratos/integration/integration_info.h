@@ -58,10 +58,12 @@ public:
 
     enum class QuadratureMethod
     {
-        Default,
-        GAUSS,
-        EXTENDED_GAUSS,
-        GRID
+        Default, // Default do nothing integration rule
+        GAUSS, // Standard Gauss integration rule
+        EXTENDED_GAUSS, //FIXME: Messy and misleading stuff to be removed in an upcoming PR
+        LOBATTO, // Standard Lobatto integration rule
+        GRID, // Equally-spaced integration points rule (not suitable for all geometries)
+        CUSTOM // Custom integration rule (e.g., integration points coming from QuESo)
     };
 
     ///@}
@@ -115,7 +117,7 @@ public:
     IntegrationMethod GetIntegrationMethod(
         IndexType DimensionIndex) const;
 
-    /* Evaluates the corresponding IntegrationMethod to 
+    /* Evaluates the corresponding IntegrationMethod to
      * the number of points and the quadrature method.
      */
     static IntegrationMethod GetIntegrationMethod(
@@ -127,8 +129,11 @@ public:
             if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
                 return IntegrationMethod::GI_GAUSS_1;
             }
-            else {
+            else if (ThisQuadratureMethod == QuadratureMethod::EXTENDED_GAUSS) {
                 return IntegrationMethod::GI_EXTENDED_GAUSS_1;
+            }
+            else {
+                return IntegrationMethod::GI_LOBATTO_1;
             }
             break;
         case 2:

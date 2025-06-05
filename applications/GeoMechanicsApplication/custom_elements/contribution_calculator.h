@@ -13,6 +13,8 @@
 
 #include "includes/ublas_interface.h"
 
+#include <optional>
+
 namespace Kratos
 {
 
@@ -21,9 +23,9 @@ class ContributionCalculator
 public:
     virtual ~ContributionCalculator() = default;
 
-    virtual Matrix                    LHSContribution()         = 0;
-    virtual Vector                    RHSContribution()         = 0;
-    virtual std::pair<Matrix, Vector> LocalSystemContribution() = 0;
+    virtual std::optional<Matrix>                    LHSContribution()         = 0;
+    virtual Vector                                   RHSContribution()         = 0;
+    virtual std::pair<std::optional<Matrix>, Vector> LocalSystemContribution() = 0;
 };
 
 } // namespace Kratos

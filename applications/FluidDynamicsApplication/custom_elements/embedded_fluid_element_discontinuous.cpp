@@ -5,9 +5,10 @@
 #include "custom_elements/weakly_compressible_navier_stokes.h"
 
 #include "utilities/element_size_calculator.h"
-#include "custom_utilities/embedded_discontinuous_data.h"
-#include "custom_utilities/time_integrated_qsvms_data.h"
-#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
+
+#include "data_containers/embedded_discontinuous_data.h"
+#include "data_containers/time_integrated_qs_vms/time_integrated_qs_vms_data.h"
+#include "data_containers/weakly_compressible_navier_stokes/weakly_compressible_navier_stokes_data.h"
 
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
@@ -102,7 +103,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // Resize and intialize output
+    // Resize and initialize output
     if (rLeftHandSideMatrix.size1() != LocalSize){
         rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
     }
@@ -642,7 +643,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddNormalSymmetricCounterp
         const BoundedMatrix<double, StrainSize, Dim> aux_matrix_APnorm = prod(trans(voigt_normal_proj_matrix), normal_proj_matrix);
         const BoundedMatrix<double, LocalSize, Dim> aux_matrix_BCAPnorm = prod(aux_matrix_BC, aux_matrix_APnorm);
 
-        // Contribution coming fron the shear stress operator
+        // Contribution coming from the shear stress operator
         noalias(aux_LHS) -= adjoint_consistency*weight*prod(aux_matrix_BCAPnorm, N_mat);
 
         // Contribution coming from the pressure terms
@@ -692,7 +693,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddNormalSymmetricCounterp
         const BoundedMatrix<double, StrainSize, Dim> aux_matrix_APnorm = prod(trans(voigt_normal_proj_matrix), normal_proj_matrix);
         const BoundedMatrix<double, LocalSize, Dim> aux_matrix_BCAPnorm = prod(aux_matrix_BC, aux_matrix_APnorm);
 
-        // Contribution coming fron the shear stress operator
+        // Contribution coming from the shear stress operator
         noalias(aux_LHS) -= adjoint_consistency*weight*prod(aux_matrix_BCAPnorm, N_mat);
 
         // Contribution coming from the pressure terms

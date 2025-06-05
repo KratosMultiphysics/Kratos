@@ -29,8 +29,9 @@ class MaterialPropertiesControl(Control):
         super().__init__(name)
 
         default_settings = Kratos.Parameters("""{
-            "model_part_names"     : [""],
-            "control_variable_name": ""
+            "model_part_names"                  : [""],
+            "control_variable_name"             : "",
+            "consider_recursive_property_update": false
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
@@ -49,11 +50,13 @@ class MaterialPropertiesControl(Control):
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", controlled_model_part_names, False)
         self.model_part: Optional[Kratos.ModelPart] = None
 
+        self.consider_recursive_property_update = parameters["consider_recursive_property_update"].GetBool()
+
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
 
         if not KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
-            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
+            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements, self.consider_recursive_property_update)
             KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
 
     def Check(self) -> None:
@@ -102,6 +105,9 @@ class MaterialPropertiesControl(Control):
 
         if Kratos.Expression.Utils.NormL2(unfiltered_control_field - control_field) > 1e-9:
             KratosOA.PropertiesVariableExpressionIO.Write(control_field, self.controlled_physical_variable)
+
+            if self.consider_recursive_property_update:
+                KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(control_field.GetContainer(), self.controlled_physical_variable)
             return True
 
         return False
