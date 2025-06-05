@@ -193,6 +193,29 @@ class TestCase(KratosUnittest.TestCase):
         }""")
         return HDF5NodalFlagValueIO(params, hdf5_file)
 
+    def test_GetListOfAvailableVariables(self):
+        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            current_model = Model()
+            model_part = current_model.CreateModelPart("write")
+            KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(model_part, Testing.GetDefaultDataCommunicator())
+            self._initialize_model_part(model_part)
+
+            data_communicator: DataCommunicator = model_part.GetCommunicator().GetDataCommunicator()
+
+            my_rank = data_communicator.Rank()
+            element: Element
+            for element in model_part.Elements:
+                if my_rank % 2 == 0 and element.Id % 2 == 0:
+                    element.SetValue(DENSITY, 1.0)
+                elif my_rank % 2 == 1 and element.Id % 2 == 1:
+                    element.SetValue(DISTANCE, 2.0)
+                elif my_rank % 2 == 1 and element.Id % 2 == 0:
+                    element.SetValue(RADIUS, 3.0)
+                else:
+                    element.SetValue(BOSSAK_ALPHA, 4.0)
+
+            self.assertEqual(Utilities.GetListOfAvailableVariables(model_part.Elements, data_communicator), ['BOSSAK_ALPHA', 'DENSITY', 'DISTANCE', 'RADIUS'])
+
     def test_HDF5ModelPartIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             current_model = Model()
