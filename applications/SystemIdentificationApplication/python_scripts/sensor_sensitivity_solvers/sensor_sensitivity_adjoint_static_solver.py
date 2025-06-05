@@ -62,7 +62,7 @@ class SensorSensitivityAdjointStaticSolver(StructuralMechanicsAdjointStaticSolve
     def __ReadSensitivities(self, sensitivity_dict: 'dict[SupportedSensitivityFieldVariableTypes, ExpressionUnionType]', list_of_variable_names: 'list[str]', expression_type, read_lambda) -> None:
         for sensitivity_variable_name in list_of_variable_names:
  
-            sensitivity_variable_name = Kratos.SensitivityUtilities.GetSensitivityVariableName(sensitivity_variable_name)
+            sensitivity_variable_name = Kratos.SensitivityUtilities.GetSensitivityVariableName(Kratos.KratosGlobals.GetVariable(sensitivity_variable_name))
             sensitivity_variable = Kratos.KratosGlobals.GetVariable(sensitivity_variable_name)
             exp = expression_type(self.GetSensitivityModelPart())
             read_lambda(exp, sensitivity_variable)
