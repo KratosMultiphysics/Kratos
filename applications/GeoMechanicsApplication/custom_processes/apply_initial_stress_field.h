@@ -24,8 +24,9 @@ class Parameters;
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyInitialStressField : public Process
 {
 public:
-    ApplyInitialStressField(ModelPart& rModelPart, const Parameters& rParameters);
+    KRATOS_CLASS_POINTER_DEFINITION(ApplyInitialStressField);
 
+    ApplyInitialStressField(ModelPart& rModelPart, const Parameters& rParameters);
     void ExecuteInitialize() override;
 
 private:

@@ -35,6 +35,7 @@
 #include "custom_processes/apply_excavation_process.h"
 #include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
 #include "custom_processes/apply_hydrostatic_pressure_table_process.hpp"
+#include "custom_processes/apply_initial_stress_field.h"
 #include "custom_processes/apply_k0_procedure_process.h"
 #include "custom_processes/apply_normal_load_table_process.h"
 #include "custom_processes/apply_phreatic_line_pressure_table_process.hpp"
@@ -180,6 +181,10 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyFinalStressesOfPreviousStageToInitialState, ApplyFinalStressesOfPreviousStageToInitialState::Pointer, Process>(
         m, "ApplyFinalStressesOfPreviousStageToInitialState")
+        .def(py::init<ModelPart&, const Parameters&>());
+
+    py::class_<ApplyInitialStressField, ApplyInitialStressField::Pointer, Process>(
+        m, "ApplyInitialStressField")
         .def(py::init<ModelPart&, const Parameters&>());
 }
 
