@@ -32,4 +32,14 @@ void ApplyInitialUniformStressField::ExecuteInitialize()
     });
 }
 
+int ApplyInitialUniformStressField::Check()
+{
+    KRATOS_ERROR_IF_NOT(mImposedStressVector.size() == 6)
+        << "The size of the input stress vector for applying a uniform initial "
+           "stress field must be 6, but is "
+        << mImposedStressVector.size() << ". Please check the process parameters.\n";
+
+    return 0;
+}
+
 } // namespace Kratos

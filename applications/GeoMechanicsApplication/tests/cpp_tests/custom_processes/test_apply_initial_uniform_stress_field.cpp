@@ -20,9 +20,9 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesToElementsInModelParts,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+    // Note that when creating the process using python, these parameters
+    // should also contain the "model_part_name" field.
     Parameters parameters(R"({
-        "model_part_name": "test_model_part",
-        "variable_name": "CAUCHY_STRESS_VECTOR",
         "value": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
     })");
 
@@ -50,6 +50,33 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesTo
         expected_stress[5] = 6.0;
         KRATOS_EXPECT_VECTOR_NEAR(stress, expected_stress, 1e-6);
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessThrowsUponConstructionWhenValuesAreMissing,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Parameters parameters;
+    Model      model;
+    auto&      rModelPart = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ApplyInitialUniformStressField process(rModelPart, parameters),
+                                      "Getting a value that does not exist. entry string : value");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessThrowsUponCheckWhenValuesAreWrongLength,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Parameters parameters(R"({
+        "value": [1.0, 2.0]
+    })");
+    Model      model;
+    auto&      rModelPart = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
+
+    ApplyInitialUniformStressField process(rModelPart, parameters);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        process.Check(), "The size of the input stress vector for applying a uniform initial "
+                         "stress field must be 6, but is 2. Please check the process parameters.")
 }
 
 } // namespace Kratos::Testing

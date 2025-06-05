@@ -33,6 +33,7 @@ public:
 
     ApplyInitialUniformStressField(ModelPart& rModelPart, const Parameters& rParameters);
     void ExecuteInitialize() override;
+    int  Check() override;
 
 private:
     ModelPart& mrModelPart;
