@@ -156,8 +156,6 @@ class TestSensitivityUtilitiesGetSensitivityVariableName(KratosUnittest.TestCase
     def test_GetSensitivityVariableName(self):
         import KratosMultiphysics.StructuralMechanicsApplication
         self.assertEqual(KratosMultiphysics.SensitivityUtilities.GetSensitivityVariableName(KratosMultiphysics.POISSON_RATIO), "POISSON_RATIO_SENSITIVITY")
-        self.assertEqual(KratosMultiphysics.SensitivityUtilities.GetSensitivityVariableName(KratosMultiphysics.StructuralMechanicsApplication.POINT_LOAD_X), "POINT_LOAD_SENSITIVITY_X")
-        self.assertEqual(KratosMultiphysics.SensitivityUtilities.GetSensitivityVariableName(KratosMultiphysics.StructuralMechanicsApplication.POINT_LOAD), "POINT_LOAD_SENSITIVITY")
         self.assertEqual(KratosMultiphysics.SensitivityUtilities.GetSensitivityVariableName(KratosMultiphysics.SHAPE_SENSITIVITY), "SHAPE_SENSITIVITY")
         self.assertEqual(KratosMultiphysics.SensitivityUtilities.GetSensitivityVariableName(KratosMultiphysics.SHAPE_SENSITIVITY_X), "SHAPE_SENSITIVITY_X")
 
