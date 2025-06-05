@@ -5,6 +5,7 @@
 #include "custom_io/hdf5_connectivities_data.h"
 #include "custom_utilities/factor_elements_and_conditions_utility.h"
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
+#include "custom_utilities/container_io_utils.h"
 
 namespace Kratos
 {
@@ -25,14 +26,14 @@ bool PartitionedModelPartIO::ReadNodes(NodesContainerType& rNodes)
     KRATOS_TRY;
 
     rNodes.clear();
+
+    // read local nodes
     BaseType::ReadNodes(rNodes);
-    unsigned ghost_start_index, ghost_block_size;
-    File& r_file = *mpFile;
-    std::tie(ghost_start_index, ghost_block_size) = StartIndexAndBlockSize(mPrefix + "/Nodes/Ghost");
+
     // Read ghost nodes.
-    Internals::PointsData ghost_points;
-    ghost_points.ReadData(r_file, mPrefix + "/Nodes/Ghost", ghost_start_index, ghost_block_size);
-    ghost_points.CreateNodes(rNodes);
+    Internals::PointsData<Internals::NodesIO> ghost_points(mPrefix + "/Nodes/Ghost", mpFile);
+    ghost_points.Read(rNodes, Internals::NodesIO{});
+
     return true;
 
     KRATOS_CATCH("");
@@ -63,13 +64,9 @@ void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     BaseType::WriteNodes(local_nodes);
 
     // Write ghost nodes.
-    WriteInfo info;
-    Internals::PointsData ghost_points;
-    ghost_points.SetData(ghost_nodes);
-    ghost_points.WriteData(r_file, mPrefix + "/Nodes/Ghost", info);
-    StoreWriteInfo(mPrefix + "/Nodes/Ghost", info);
+    Internals::PointsData<Internals::NodesIO> ghost_points(mPrefix + "/Nodes/Ghost", mpFile);
+    ghost_points.Write(ghost_nodes, Internals::NodesIO{}, Parameters(R"({})"));
     WritePartitionIndex(mPrefix + "/Nodes/Ghost", ghost_nodes);
-    ghost_points.Clear();
 
     KRATOS_CATCH("");
 }
