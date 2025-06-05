@@ -26,7 +26,7 @@ void BrepSbmUtilities<TNodeType>::CreateBrepSurfaceSbmIntegrationPoints(
 {    
     // Loop over rSurrogateOuterLoopGeometries and collect the vertical conditions on each y-knot span
     std::vector<std::vector<double>> vertical_conditions_per_row(rSpansV.size()-1);
-    const double tolerance = tolerance;
+    const double tolerance = 1e-13;
 
     // Check if the outer loop is defined
     bool is_outer_loop_defined = false;
@@ -158,7 +158,7 @@ void BrepSbmUtilities<TNodeType>::CreateBrepVolumeSbmIntegrationPoints(
 {
     // Loop over rSurrogateInnerLoopGeometries and outer and save the perpendicular faces with respect to x-direction
     std::vector<std::vector<std::vector<double>>> perpendicular_conditions_per_u_direction(rSpansV.size()-1);
-    const double tolerance = tolerance;
+    const double tolerance = 1e-13;
 
     for (IndexType v = 0; v < rSpansV.size()-1; v++) 
     {
