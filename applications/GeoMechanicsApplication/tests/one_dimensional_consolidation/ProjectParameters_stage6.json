@@ -1,8 +1,8 @@
 {
     "problem_data": {
-        "problem_name":         "1D-Consolidationtest_stage9",
-        "start_time":           864000.0,
-        "end_time":             1728000.0,
+        "problem_name":         "1D-Consolidationtest_stage6",
+        "start_time":           86400.0,
+        "end_time":             172800.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -19,10 +19,11 @@
             "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
-            "time_step":            16000
+            "time_step":            2000
         },
         "buffer_size":                        2,
         "echo_level":                         1,
+        "reset_displacements":                false,
         "clear_storage":                      false,
         "compute_reactions":                  true,
         "move_mesh_flag":                     false,
@@ -79,23 +80,22 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "1D-Consolidationtest_stage9",
+                "output_name": "1D-Consolidationtest_stage6",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
                             "WriteDeformedMeshFlag": "WriteUndeformed",
                             "WriteConditionsFlag":   "WriteElementsOnly",
-                            "GiDPostMode":           "GiD_PostBinary",
+                            "GiDPostMode":           "GiD_PostAscii",
                             "MultiFileFlag":         "SingleFile"
                         },
                         "file_label":          "step",
                         "output_control_type": "step",
-                        "output_frequency":    1,
                         "body_output":         true,
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","WATER_PRESSURE"],
+                        "nodal_results":       ["TOTAL_DISPLACEMENT","WATER_PRESSURE"],
                         "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
                     },
                     "point_data_configuration":  []
