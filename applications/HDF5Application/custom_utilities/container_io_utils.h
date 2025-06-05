@@ -45,6 +45,8 @@ public:
     template<class TDataType>
     using ComponentType = char;
 
+    constexpr static bool RequireAvailabilityCheck = true;
+
     ///@}
     ///@name Public operations
     ///@{
@@ -67,6 +69,14 @@ public:
         rEntity.Set(rFlag, static_cast<bool>(rValue));
     }
 
+    template<class TEntityType>
+    inline bool HasValue(
+        const TEntityType& rEntity,
+        const Flags& rFlag) const
+    {
+        return rEntity.IsDefined(rFlag);
+    }
+
     ///@}
 };
 
@@ -81,6 +91,8 @@ public:
 
     template<class TDataType>
     using ComponentType = TDataType;
+
+    constexpr static bool RequireAvailabilityCheck = false;
 
     ///@}
     ///@name Life cycle
@@ -133,6 +145,8 @@ public:
     template<class TDataType>
     using ComponentType = TDataType;
 
+    constexpr static bool RequireAvailabilityCheck = true;
+
     ///@}
     ///@name Public operations
     ///@{
@@ -155,6 +169,14 @@ public:
         rEntity.SetValue(rVariable, rValue);
     }
 
+    template<class TEntityType, class TDataType>
+    inline bool HasValue(
+        const TEntityType& rEntity,
+        const Variable<TDataType>& rVariable) const
+    {
+        return rEntity.Has(rVariable);
+    }
+
     ///@}
 };
 
@@ -169,6 +191,8 @@ public:
 
     template<class TDataType>
     using ComponentType = TDataType;
+
+    constexpr static bool RequireAvailabilityCheck = false;
 
     ///@}
     ///@name Life cycle
@@ -225,6 +249,8 @@ public:
     template<class TDataType>
     using ComponentType = TDataType;
 
+    constexpr static bool RequireAvailabilityCheck = false;
+
     ///@}
     ///@name Life cycle
     ///@{
@@ -276,6 +302,8 @@ public:
     template<class TDataType>
     using ComponentType = TDataType;
 
+    constexpr static bool RequireAvailabilityCheck = false;
+
     ///@}
     ///@name Public operations
     ///@{
@@ -325,12 +353,13 @@ public:
     ///@name Type definitions
     ///@{
 
-
     template<class TDataType>
     using TLSType = TLSStruct<TDataType>;
 
     template<class TDataType>
     using ComponentType = Vector<typename DataTypeTraits<TDataType>::PrimitiveType>;
+
+    constexpr static bool RequireAvailabilityCheck = false;
 
     ///@}
     ///@name Life cycle
