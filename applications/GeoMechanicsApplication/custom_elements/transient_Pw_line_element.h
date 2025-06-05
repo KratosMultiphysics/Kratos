@@ -9,6 +9,8 @@
 //
 //  Main authors:    Mohamed Nabi
 //                   John van Esch
+//                   Richard Faasse
+//                   Gennady Markelov
 //
 
 #pragma once
@@ -31,7 +33,6 @@
 #include "includes/serializer.h"
 #include "integration_coefficients_calculator.h"
 #include "permeability_calculator.h"
-#include "utilities/geometry_utilities.h"
 
 #include <optional>
 
@@ -351,7 +352,7 @@ public:
         });
         return result;
     }
-    
+
     std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
                                                          const Vector& rDetJs) const
     {
