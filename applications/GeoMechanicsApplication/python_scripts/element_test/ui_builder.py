@@ -24,7 +24,7 @@ WITHOUT_UNIT_LABEL = ""
 
 
 class GeotechTestUI:
-    def __init__(self, root, parent_frame, test_name, dll_path, model_dict):
+    def __init__(self, root, parent_frame, test_name, dll_path, model_dict, external_widgets=None):
         self.root = root
         self.parent = parent_frame
         self.test_name = test_name
@@ -39,7 +39,9 @@ class GeotechTestUI:
         self._init_dropdown_section()
         self._init_plot_canvas()
         self._create_input_fields()
+
         self.is_running = False
+        self.external_widgets = external_widgets if external_widgets else []
 
     def _start_simulation_thread(self):
         if self.is_running:
@@ -152,19 +154,23 @@ class GeotechTestUI:
         return widgets
 
     def _create_mohr_options(self, params):
-        mohr_row = ttk.Frame(self.param_frame)
-        mohr_row.pack(fill="x", padx=10, pady=5)
+        self.mohr_frame = ttk.Frame(self.param_frame)
+        self.mohr_frame.pack(fill="x", padx=10, pady=5)
 
-        checkbox = ttk.Checkbutton(mohr_row, text="Mohr-Coulomb Model", variable=self.mohr_checkbox,
-                                   command=self._toggle_mohr_options)
-        checkbox.pack(side="left")
+        self.mohr_checkbox_widget = ttk.Checkbutton(
+            self.mohr_frame,
+            text="Mohr-Coulomb Model",
+            variable=self.mohr_checkbox,
+            command=self._toggle_mohr_options
+        )
+        self.mohr_checkbox_widget.pack(side="left")
 
-        self.c_label = ttk.Label(mohr_row, text="Cohesion Index (1-based)")
-        self.c_dropdown = ttk.Combobox(mohr_row, textvariable=self.cohesion_var,
+        self.c_label = ttk.Label(self.mohr_frame, text="Cohesion Index (1-based)")
+        self.c_dropdown = ttk.Combobox(self.mohr_frame, textvariable=self.cohesion_var,
                                        values=[str(i+1) for i in range(len(params))], state="readonly", width=10)
 
-        self.phi_label = ttk.Label(mohr_row, text="Friction Angle Index (1-based)")
-        self.phi_dropdown = ttk.Combobox(mohr_row, textvariable=self.phi_var,
+        self.phi_label = ttk.Label(self.mohr_frame, text="Friction Angle Index (1-based)")
+        self.phi_dropdown = ttk.Combobox(self.mohr_frame, textvariable=self.phi_var,
                                          values=[str(i+1) for i in range(len(params))], state="readonly", width=10)
 
     def _toggle_mohr_options(self):
@@ -269,15 +275,15 @@ class GeotechTestUI:
 
     def _set_widget_state(self, parent, state):
         for child in parent.winfo_children():
-            if isinstance(child, (ttk.Entry, ttk.Combobox, tk.Button, ttk.Button, tk.Checkbutton)):
+            if isinstance(child, (ttk.Entry, ttk.Combobox, tk.Button, ttk.Button, tk.Checkbutton, ttk.Checkbutton)):
                 child.configure(state=state)
             elif isinstance(child, scrolledtext.ScrolledText):
-                if state == "disabled":
-                    child.config(state="disabled")
-                else:
-                    init_log_widget(child)
+                child.config(state=state if state == "normal" else "disabled")
             elif isinstance(child, (ttk.Frame, tk.Frame)):
                 self._set_widget_state(child, state)
+
+        for widget in self.external_widgets:
+            widget.configure(state=state)
 
     def _freeze_gui(self):
         self._set_widget_state(self.left_frame, "disabled")
@@ -285,8 +291,3 @@ class GeotechTestUI:
     def _unfreeze_gui(self):
         self._set_widget_state(self.left_frame, "normal")
         self.run_button.config(state="normal")
-
-
-
-
-

@@ -34,7 +34,8 @@ def create_menu():
         for widget in main_frame.winfo_children():
             widget.destroy()
 
-        GeotechTestUI(root, main_frame, test_name="Triaxial", dll_path=dll_path, model_dict=model_dict)
+        GeotechTestUI(root, main_frame, test_name="Triaxial", dll_path=dll_path, model_dict=model_dict,
+                      external_widgets=[model_source_menu])
 
     def load_linear_elastic():
         model_dict = {
@@ -47,8 +48,8 @@ def create_menu():
         for widget in main_frame.winfo_children():
             widget.destroy()
 
-        GeotechTestUI(root, main_frame, test_name="Triaxial", dll_path=None, model_dict=model_dict)
-
+        GeotechTestUI(root, main_frame, test_name="Triaxial", dll_path=None, model_dict=model_dict,
+                      external_widgets=[model_source_menu])
 
     def handle_model_source_selection(event):
         choice = model_source_var.get()
