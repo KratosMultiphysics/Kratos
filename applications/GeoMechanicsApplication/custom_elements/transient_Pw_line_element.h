@@ -269,7 +269,7 @@ public:
         if (rVariable == FLUID_FLUX_VECTOR) {
             std::vector<double> permeability_update_factors(number_of_integration_points, 1.0);
             const auto          fluid_fluxes =
-                this->CalculateFluidFluxes(permeability_update_factors, rCurrentProcessInfo);
+                this->CalculateFluidFluxes(permeability_update_factors);
 
             for (unsigned int integration_point = 0;
                  integration_point < number_of_integration_points; ++integration_point) {
@@ -286,8 +286,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors,
-                                                             const ProcessInfo& rCurrentProcessInfo)
+    std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors)
     {
         const GeometryType& r_geometry = this->GetGeometry();
         const IndexType     number_of_integration_points =
