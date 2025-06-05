@@ -20,7 +20,6 @@
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
 #include "filter_compressibility_calculator.h"
@@ -34,7 +33,6 @@
 #include "permeability_calculator.h"
 #include "utilities/geometry_utilities.h"
 
-#include <numeric>
 #include <optional>
 
 namespace Kratos
@@ -173,6 +171,8 @@ public:
 
         KRATOS_CATCH("")
     }
+
+    using Element::CalculateOnIntegrationPoints;
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>&    rOutput,
