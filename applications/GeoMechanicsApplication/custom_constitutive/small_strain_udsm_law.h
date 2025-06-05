@@ -87,7 +87,6 @@ public:
     static constexpr SizeType StressVectorSize          = 6;
     static constexpr SizeType StrainIncrementVectorSize = 12;
 
-    /// Pointer definition of SmallStrainUDSMLaw
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUDSMLaw);
 
     explicit SmallStrainUDSMLaw(std::unique_ptr<ConstitutiveLawDimension> pDimension = nullptr);
@@ -157,7 +156,7 @@ public:
     void                      PrintData(std::ostream& rOStream) const override;
 
 protected:
-    enum class UdsmTaskId : int {
+    enum class UDSMTaskId : int {
         INITIALISATION = 1,
         STRESS_CALCULATION,
         MATRIX_ELASTO_PLASTIC,
@@ -211,7 +210,7 @@ private:
     bool loadUDSMWindows(const Properties& rMaterialProperties);
     bool loadUDSMLinux(const Properties& rMaterialProperties);
 
-    void CallUDSM(UdsmTaskId TaskId, Parameters& rValues);
+    void CallUDSM(UDSMTaskId TaskId, Parameters& rValues);
 
     void ResetStateVariables(const Properties& rMaterialProperties);
     void ResetConstitutiveMatrix();

@@ -21,13 +21,8 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUDSM2DInterfaceLaw : public SmallStrainUDSMLaw
 {
 public:
-    // The base class ConstitutiveLaw type definition
-    using BaseType = ConstitutiveLaw;
-
-    // The size type definition
     using SizeType = std::size_t;
 
-    // Pointer definition of SmallStrainUDSM2DInterfaceLaw
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUDSM2DInterfaceLaw);
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
@@ -43,7 +38,6 @@ public:
     [[nodiscard]] SizeType GetStrainSize() const override;
 
     [[nodiscard]] std::string Info() const override;
-    void                      PrintInfo(std::ostream& rOStream) const override;
     void                      PrintData(std::ostream& rOStream) const override;
 
 protected:

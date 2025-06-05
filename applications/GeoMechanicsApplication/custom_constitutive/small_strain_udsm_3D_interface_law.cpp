@@ -147,8 +147,6 @@ SizeType SmallStrainUDSM3DInterfaceLaw::GetStrainSize() const { return VOIGT_SIZ
 
 std::string SmallStrainUDSM3DInterfaceLaw::Info() const { return "SmallStrainUDSM3DInterfaceLaw"; }
 
-void SmallStrainUDSM3DInterfaceLaw::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
-
 void SmallStrainUDSM3DInterfaceLaw::PrintData(std::ostream& rOStream) const
 {
     rOStream << "SmallStrainUDSM3DInterfaceLaw Data";

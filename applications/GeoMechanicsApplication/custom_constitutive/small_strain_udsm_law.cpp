@@ -301,7 +301,7 @@ void SmallStrainUDSMLaw::SetAttributes(const Properties& rMaterialProperties)
 
     if (!mIsUDSMLoaded) mIsUDSMLoaded = loadUDSM(rMaterialProperties);
 
-    auto task_id_as_int = static_cast<int>(UdsmTaskId::ATTRIBUTES);
+    auto task_id_as_int = static_cast<int>(UDSMTaskId::ATTRIBUTES);
 
     // process data
     double deltaTime = 0.0;
@@ -354,7 +354,7 @@ int SmallStrainUDSMLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rMat
     KRATOS_TRY
     if (!mIsUDSMLoaded) mIsUDSMLoaded = loadUDSM(rMaterialProperties);
 
-    auto task_id_as_int = static_cast<int>(UdsmTaskId::NUMBER_OF_STATE_VARIABLES);
+    auto task_id_as_int = static_cast<int>(UDSMTaskId::NUMBER_OF_STATE_VARIABLES);
 
     // process data
     double deltaTime = 0.0;
@@ -671,10 +671,10 @@ void SmallStrainUDSMLaw::CloneDataMembersTo(SmallStrainUDSMLaw& rDestination) co
 void SmallStrainUDSMLaw::CalculateConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix)
 {
     KRATOS_TRY
-    // update strain vector
+
     UpdateInternalDeltaStrainVector(rValues);
 
-    CallUDSM(UdsmTaskId::MATRIX_ELASTO_PLASTIC, rValues);
+    CallUDSM(UDSMTaskId::MATRIX_ELASTO_PLASTIC, rValues);
 
     CopyConstitutiveMatrix(rValues, rConstitutiveMatrix);
 
@@ -684,10 +684,10 @@ void SmallStrainUDSMLaw::CalculateConstitutiveMatrix(Parameters& rValues, Matrix
 void SmallStrainUDSMLaw::CalculateStress(Parameters& rValues, Vector& rStressVector)
 {
     KRATOS_TRY
-    // update strain vector
+
     UpdateInternalDeltaStrainVector(rValues);
 
-    CallUDSM(UdsmTaskId::STRESS_CALCULATION, rValues);
+    CallUDSM(UDSMTaskId::STRESS_CALCULATION, rValues);
 
     SetExternalStressVector(rStressVector);
     KRATOS_CATCH("")
@@ -695,13 +695,12 @@ void SmallStrainUDSMLaw::CalculateStress(Parameters& rValues, Vector& rStressVec
 
 array_1d<double, SmallStrainUDSMLaw::Sig0Size>& SmallStrainUDSMLaw::GetSig0() { return mSig0; }
 
-void SmallStrainUDSMLaw::CallUDSM(UdsmTaskId TaskId, Parameters& rValues)
+void SmallStrainUDSMLaw::CallUDSM(UDSMTaskId TaskId, Parameters& rValues)
 {
     KRATOS_TRY
 
     auto task_id_as_int = static_cast<int>(TaskId);
 
-    // process data
     double deltaTime = rValues.GetProcessInfo()[DELTA_TIME];
     double time      = rValues.GetProcessInfo()[TIME] - deltaTime;
     int    iStep     = rValues.GetProcessInfo()[STEP];
@@ -781,7 +780,7 @@ void SmallStrainUDSMLaw::InitializeMaterialResponseCauchy(Parameters& rValues)
         SetInternalStressVector(rValues.GetStressVector());
         SetInternalStrainVector(rValues.GetStrainVector());
 
-        CallUDSM(UdsmTaskId::INITIALISATION, rValues);
+        CallUDSM(UDSMTaskId::INITIALISATION, rValues);
 
         mIsModelInitialized = true;
     }
