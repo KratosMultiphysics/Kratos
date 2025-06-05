@@ -82,10 +82,6 @@ public:
                                                       this->CloneIntegrationCoefficientModifier());
     }
 
-    struct ElementVariables {
-        Matrix                                    NContainer;
-    };
-
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
     {
         rElementalDofList = GetDofs();
@@ -150,15 +146,15 @@ public:
         // Gradient of shape functions and determinant of Jacobian
         Matrix                                    grad_Np_T(TNumNodes, TDim);
         Vector                                    det_J_container(number_of_integration_points);
-        GeometryType::ShapeFunctionsGradientsType DN_DX_container;
-        r_geometry.ShapeFunctionsIntegrationPointsGradients(DN_DX_container, det_J_container,
+        GeometryType::ShapeFunctionsGradientsType dN_dx_container;
+        r_geometry.ShapeFunctionsIntegrationPointsGradients(dN_dx_container, det_J_container,
                                                             GetIntegrationMethod());
         const auto integration_coefficients =
             this->CalculateIntegrationCoefficients(IntegrationPoints, det_J_container);
 
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
-            noalias(grad_Np_T) = DN_DX_container[integration_point];
+            noalias(grad_Np_T) = dN_dx_container[integration_point];
 
             auto integration_coefficient = integration_coefficients[integration_point];
 
@@ -193,9 +189,8 @@ public:
 
         if (rVariable == DEGREE_OF_SATURATION || rVariable == EFFECTIVE_SATURATION || rVariable == BISHOP_COEFFICIENT ||
             rVariable == DERIVATIVE_OF_SATURATION || rVariable == RELATIVE_PERMEABILITY) {
-            ElementVariables Variables;
-            this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
+            Matrix N_container(number_of_integration_points, TNumNodes);
+            N_container = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
             RetentionLaw::Parameters RetentionParameters(r_properties);
             Vector                   Np(TNumNodes);
             array_1d<double, TNumNodes> pressure_vector;
@@ -203,7 +198,7 @@ public:
 
             for (unsigned int integration_point = 0;
                  integration_point < number_of_integration_points; ++integration_point) {
-                noalias(Np) = row(Variables.NContainer, integration_point);
+                noalias(Np) = row(N_container, integration_point);
 
                 RetentionParameters.SetFluidPressure(
                     GeoTransportEquationUtilities::CalculateFluidPressure(Np, pressure_vector));
@@ -212,14 +207,14 @@ public:
             }
         } else if (rVariable == HYDRAULIC_HEAD) {
             // Defining the shape functions, the Jacobian and the shape functions local gradients containers
-            const Matrix& n_container = r_geometry.ShapeFunctionsValues(GetIntegrationMethod());
+            const Matrix& N_container = r_geometry.ShapeFunctionsValues(GetIntegrationMethod());
 
             const auto nodal_hydraulic_head =
                 GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(r_geometry, r_properties);
 
             for (unsigned int integration_point = 0;
                  integration_point < number_of_integration_points; ++integration_point) {
-                const auto& shape_function_values = row(n_container, integration_point);
+                const auto& shape_function_values = row(N_container, integration_point);
                 rOutput[integration_point] =
                     std::inner_product(shape_function_values.begin(), shape_function_values.end(),
                                        nodal_hydraulic_head.begin(), 0.0);
@@ -300,18 +295,17 @@ public:
 
         std::vector<array_1d<double, TDim>> fluid_fluxes;
         fluid_fluxes.reserve(number_of_integration_points);
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables, rCurrentProcessInfo);
         array_1d<double, TNumNodes> pressure_vector;
         VariablesUtilities::GetNodalValues(r_geometry, WATER_PRESSURE, pressure_vector.begin());
-
+        Matrix N_container(number_of_integration_points, TNumNodes);
+        N_container = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
         const PropertiesType&             r_properties = this->GetProperties();
         BoundedMatrix<double, TDim, TDim> permeability_matrix;
         GeoElementUtilities::FillPermeabilityMatrix(permeability_matrix, r_properties);
 
         auto relative_permeability_values =
             this->CalculateRelativePermeabilityValues(GeoTransportEquationUtilities::CalculateFluidPressures(
-                Variables.NContainer, pressure_vector));
+                N_container, pressure_vector));
         std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
                        rPermeabilityUpdateFactors.cbegin(), relative_permeability_values.begin(),
                        std::multiplies<>{});
@@ -322,15 +316,15 @@ public:
         array_1d<double, TDim> body_acceleration;
         Matrix grad_Np_T(TNumNodes, TDim);
         Vector                                    det_J_Container(number_of_integration_points);
-        GeometryType::ShapeFunctionsGradientsType DN_DX_container;
+        GeometryType::ShapeFunctionsGradientsType dN_dx_container;
         r_geometry.ShapeFunctionsIntegrationPointsGradients(
-            DN_DX_container, det_J_Container, this->GetIntegrationMethod());
+            dN_dx_container, det_J_Container, this->GetIntegrationMethod());
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
-            noalias(grad_Np_T) = DN_DX_container[integration_point];
+            noalias(grad_Np_T) = dN_dx_container[integration_point];
 
             GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-                body_acceleration, Variables.NContainer, volume_acceleration, integration_point);
+                body_acceleration, N_container, volume_acceleration, integration_point);
 
             array_1d<double, TDim> GradPressureTerm = prod(trans(grad_Np_T), pressure_vector);
             GradPressureTerm += PORE_PRESSURE_SIGN_FACTOR * r_properties[DENSITY_WATER] * body_acceleration;
@@ -373,22 +367,6 @@ public:
             r_geometry.ShapeFunctionsLocalGradients(GetIntegrationMethod())[IntegrationPointIndex];
         MathUtils<>::InvertMatrix(rJ0, rInvJ0, rDetJ);
         GeometryUtils::ShapeFunctionsGradients(r_dn_de, rInvJ0, rDNu_DX0);
-
-        KRATOS_CATCH("")
-    }
-
-    void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY
-
-        const GeometryType& r_geometry = this->GetGeometry();
-        // General Variables
-        const unsigned int number_of_integration_points =
-            r_geometry.IntegrationPointsNumber(this->GetIntegrationMethod());
-
-        // shape functions
-        (rVariables.NContainer).resize(number_of_integration_points, TNumNodes, false);
-        rVariables.NContainer = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
         KRATOS_CATCH("")
     }
