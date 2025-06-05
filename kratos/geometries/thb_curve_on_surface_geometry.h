@@ -466,8 +466,8 @@ public:
             gismo::gsTHBSpline<2> thb_geom = mpNurbsSurface->ToGismo();
             gismo::gsTHBSplineBasis<2> thb = thb_geom.basis();
 
-            rLocalCoordinateThb(0,0) = global_space_derivatives[0][0];
-            rLocalCoordinateThb(1,0) = global_space_derivatives[0][1];
+            rLocalCoordinateThb(0,0) = std::floor(global_space_derivatives[0][0] * 1e12) / 1e12;
+            rLocalCoordinateThb(1,0) = std::floor(global_space_derivatives[0][1] * 1e12) / 1e12;
             
             thb.active_into(rLocalCoordinateThb,ThbIndices);
             thb.eval_into(rLocalCoordinateThb,ThbResult);
