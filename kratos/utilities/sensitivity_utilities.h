@@ -88,13 +88,22 @@ public:
             KRATOS_TRY;
 
             const std::string suffix = "_SENSITIVITY";
-            const std::string base_name = rVariable.IsComponent() ? rVariable.GetSourceVariable().Name() : rVariable.Name();
-            if (rVariable.IsComponent()) {
-                const size_t last_underscore_pos = rVariable.Name().rfind('_');
-                const std::string component_suffix = rVariable.Name().substr(last_underscore_pos);
-                return base_name + suffix + component_suffix;
+            const size_t pos = rVariable.Name().find(suffix);
+
+            // Check if the variable is already a sensitivity variable.
+            // If so, return as is. If not, the apply appropriate logic.
+            if (pos != std::string::npos) {
+                return rVariable.Name();
             } else {
-                return base_name + suffix;
+                const std::string& base_name = rVariable.IsComponent() ? rVariable.GetSourceVariable().Name() : rVariable.Name();
+
+                if (rVariable.IsComponent()) {
+                    const size_t last_underscore_pos = rVariable.Name().rfind('_');
+                    const std::string component_suffix = rVariable.Name().substr(last_underscore_pos);
+                    return base_name + suffix + component_suffix;
+                } else {
+                    return base_name + suffix;
+                }
             }
 
             KRATOS_CATCH("");
