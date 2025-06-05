@@ -84,7 +84,6 @@ public:
 
     struct ElementVariables {
         array_1d<double, TNumNodes> PressureVector;
-        Vector                                    detJContainer;
         Matrix                                    NContainer;
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
     };
@@ -389,10 +388,9 @@ public:
         rVariables.NContainer = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
         // gradient of shape functions and determinant of Jacobian
-        (rVariables.detJContainer).resize(number_of_integration_points, false);
-
+        Vector                                    det_J_Container(number_of_integration_points);
         r_geometry.ShapeFunctionsIntegrationPointsGradients(
-            rVariables.DN_DXContainer, rVariables.detJContainer, this->GetIntegrationMethod());
+            rVariables.DN_DXContainer, det_J_Container, this->GetIntegrationMethod());
 
         KRATOS_CATCH("")
     }
