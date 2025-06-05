@@ -10,7 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#include "custom_constitutive/small_strain_udsm_2D_interface_law.hpp"
+#include "custom_constitutive/small_strain_udsm_2D_interface_law.h"
 #include "custom_constitutive/constitutive_law_dimension.h"
 
 #include <type_traits>
