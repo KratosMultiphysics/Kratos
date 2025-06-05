@@ -84,7 +84,6 @@ public:
 
     struct ElementVariables {
         array_1d<double, TNumNodes> PressureVector;
-        Matrix                                    GradNpTInitialConfiguration;
         Vector                                    detJContainer;
         Matrix                                    NContainer;
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
