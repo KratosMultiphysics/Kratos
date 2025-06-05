@@ -271,15 +271,11 @@ public:
     /// Provides the default integration dependent on the polynomial degree.
     IntegrationInfo GetDefaultIntegrationInfo() const override
     {
-        
-        // IndexType p = mpNurbsVolume->PolynomialDegreeU() + mpNurbsVolume->PolynomialDegreeV() +1;
+        IndexType degree_u = mpNurbsVolume->PolynomialDegreeU();
+        IndexType degree_v = mpNurbsVolume->PolynomialDegreeV();
+        IndexType degree_w = mpNurbsVolume->PolynomialDegreeW();
 
-        const int degree_u = mpNurbsVolume->PolynomialDegreeU();
-        const int degree_v = mpNurbsVolume->PolynomialDegreeV();
-        const int degree_w = mpNurbsVolume->PolynomialDegreeW();
-
-        const int maximum_polynomial_order = std::max({degree_u, degree_v, degree_w});
-
+        IndexType maximum_polynomial_order = std::max({degree_u, degree_v, degree_w});
 
         return IntegrationInfo(
             { maximum_polynomial_order + 1, maximum_polynomial_order + 1 },
