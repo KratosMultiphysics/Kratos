@@ -1064,6 +1064,81 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
     Vector expected_right_hand_side(3);
     expected_right_hand_side <<= 0.0001404394389, -9.276110236e-06, 1.140103478e-05;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
+
+    // Copy of
+    std::cout << std::setprecision(12) << std::fixed;
+    // Act
+    std::vector<double> results{};
+    element.CalculateOnIntegrationPoints(DEGREE_OF_SATURATION, results, process_info);
+    auto const number_of_integration_points =
+        element.GetGeometry().IntegrationPointsNumber(element.GetIntegrationMethod());
+
+    // Assert
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    std::cout << results << std::endl;
+    Vector expected_results(3);
+    expected_results <<= 0.341298621521, 0.352123307571, 0.360698051689;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(results, expected_results, Defaults::relative_tolerance);
+
+    // Act
+    results.clear();
+    element.CalculateOnIntegrationPoints(EFFECTIVE_SATURATION, results, process_info);
+
+    // Assert
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    std::cout << results << std::endl;
+    expected_results <<= 0.297737264007, 0.309277810133, 0.318419620765;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(results, expected_results, Defaults::relative_tolerance);
+
+    // Act
+    results.clear();
+    element.CalculateOnIntegrationPoints(BISHOP_COEFFICIENT, results, process_info);
+
+    // Assert
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    std::cout << results << std::endl;
+    expected_results <<= 0.297737264007, 0.309277810133, 0.318419620765;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(results, expected_results, Defaults::relative_tolerance);
+
+    // Act
+    results.clear();
+    element.CalculateOnIntegrationPoints(DERIVATIVE_OF_SATURATION, results, process_info);
+
+    // Assert
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    std::cout << results << std::endl;
+    expected_results <<= -0.029823048151, -0.031743614419, -0.033288714765;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(results, expected_results, Defaults::relative_tolerance);
+
+    // Act
+    results.clear();
+    element.CalculateOnIntegrationPoints(RELATIVE_PERMEABILITY, results, process_info);
+
+    // Assert
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    std::cout << results << std::endl;
+    expected_results <<= 0.004495279802, 0.005166152553, 0.005748179834;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(results, expected_results, Defaults::relative_tolerance);
+
+    // Act
+    results.clear();
+    element.CalculateOnIntegrationPoints(HYDRAULIC_HEAD, results, process_info);
+
+    // Assert
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    std::cout << results << std::endl;
+    expected_results <<= 0.871579, 0.907439, 0.924327;
+    KRATOS_EXPECT_VECTOR_NEAR(results, expected_results, Defaults::relative_tolerance);
+
+    // Act
+    results.clear();
+    element.CalculateOnIntegrationPoints(DT_WATER_PRESSURE, results, process_info);
+
+    // Assert
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    std::cout << results << std::endl;
+    expected_results <<= 0, 0, 0;
+    KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement3D4N_CalculateLocalSystem, KratosGeoMechanicsFastSuiteWithoutKernel)
