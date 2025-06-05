@@ -85,7 +85,6 @@ public:
     struct ElementVariables {
         array_1d<double, TNumNodes> PressureVector;
         Matrix                                    NContainer;
-        GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
     };
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
@@ -319,10 +318,13 @@ public:
             volume_acceleration, r_geometry, VOLUME_ACCELERATION);
         array_1d<double, TDim> body_acceleration;
         Matrix grad_Np_T(TNumNodes, TDim);
-
+        Vector                                    det_J_Container(number_of_integration_points);
+        GeometryType::ShapeFunctionsGradientsType DN_DX_container;
+        r_geometry.ShapeFunctionsIntegrationPointsGradients(
+            DN_DX_container, det_J_Container, this->GetIntegrationMethod());
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
-            noalias(grad_Np_T) = Variables.DN_DXContainer[integration_point];
+            noalias(grad_Np_T) = DN_DX_container[integration_point];
 
             GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
                 body_acceleration, Variables.NContainer, volume_acceleration, integration_point);
@@ -386,11 +388,6 @@ public:
         // shape functions
         (rVariables.NContainer).resize(number_of_integration_points, TNumNodes, false);
         rVariables.NContainer = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
-
-        // gradient of shape functions and determinant of Jacobian
-        Vector                                    det_J_Container(number_of_integration_points);
-        r_geometry.ShapeFunctionsIntegrationPointsGradients(
-            rVariables.DN_DXContainer, det_J_Container, this->GetIntegrationMethod());
 
         KRATOS_CATCH("")
     }
