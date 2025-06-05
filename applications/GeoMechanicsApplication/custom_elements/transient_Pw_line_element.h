@@ -83,15 +83,12 @@ public:
     }
 
     struct ElementVariables {
-        array_1d<double, TNumNodes>        PressureVector;
+        array_1d<double, TNumNodes> PressureVector;
 
         /// Variables computed at each GP
-        Matrix                                        B;
-        BoundedMatrix<double, TDim, TNumNodes * TDim> Nu;
-        array_1d<double, TDim>                        BodyAcceleration;
-        array_1d<double, TDim>                        SoilGamma;
+        array_1d<double, TDim> BodyAcceleration;
+        array_1d<double, TDim> SoilGamma;
 
-        Vector                                    Np;
         Matrix                                    GradNpT;
         Matrix                                    GradNpTInitialConfiguration;
         Vector                                    detJContainer;
@@ -218,14 +215,15 @@ public:
             this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
             RetentionLaw::Parameters RetentionParameters(r_properties);
+            Vector                   Np(TNumNodes);
 
             for (unsigned int integration_point = 0;
                  integration_point < number_of_integration_points; ++integration_point) {
-                // Compute Np, GradNpT, B and StrainVector
                 this->CalculateKinematics(Variables, integration_point);
+                noalias(Np) = row(Variables.NContainer, integration_point);
 
-                RetentionParameters.SetFluidPressure(GeoTransportEquationUtilities::CalculateFluidPressure(
-                    Variables.Np, Variables.PressureVector));
+                RetentionParameters.SetFluidPressure(
+                    GeoTransportEquationUtilities::CalculateFluidPressure(Np, Variables.PressureVector));
                 rOutput[integration_point] = mRetentionLawVector[integration_point]->CalculateValue(
                     RetentionParameters, rVariable, rOutput[integration_point]);
             }
@@ -322,7 +320,7 @@ public:
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-        const PropertiesType& r_properties = this->GetProperties();
+        const PropertiesType&             r_properties = this->GetProperties();
         BoundedMatrix<double, TDim, TDim> permeability_matrix;
         GeoElementUtilities::FillPermeabilityMatrix(permeability_matrix, r_properties);
 
@@ -348,8 +346,7 @@ public:
             array_1d<double, TDim> GradPressureTerm = prod(trans(Variables.GradNpT), Variables.PressureVector);
             GradPressureTerm += PORE_PRESSURE_SIGN_FACTOR * r_properties[DENSITY_WATER] * Variables.BodyAcceleration;
 
-            fluid_fluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * dynamic_viscosity_inverse *
-                                   Variables.RelativePermeability *
+            fluid_fluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * dynamic_viscosity_inverse * Variables.RelativePermeability *
                                    prod(permeability_matrix, GradPressureTerm));
         }
 
@@ -361,7 +358,6 @@ public:
         KRATOS_TRY
 
         // Setting the vector of shape functions and the matrix of the shape functions global gradients
-        noalias(rVariables.Np)      = row(rVariables.NContainer, IntegrationPointIndex);
         noalias(rVariables.GradNpT) = rVariables.DN_DXContainer[IntegrationPointIndex];
 
         rVariables.detJ = rVariables.detJContainer[IntegrationPointIndex];
@@ -426,13 +422,10 @@ public:
         const GeometryType& r_geometry = this->GetGeometry();
         VariablesUtilities::GetNodalValues(r_geometry, WATER_PRESSURE, rVariables.PressureVector.begin());
 
-        // Variables computed at each GP
-        noalias(rVariables.Nu) = ZeroMatrix(TDim, TNumNodes * TDim);
-        rVariables.Np.resize(TNumNodes, false);
         rVariables.GradNpT.resize(TNumNodes, TDim, false);
 
         // General Variables
-        const unsigned int  number_of_integration_points =
+        const unsigned int number_of_integration_points =
             r_geometry.IntegrationPointsNumber(this->GetIntegrationMethod());
 
         // shape functions
