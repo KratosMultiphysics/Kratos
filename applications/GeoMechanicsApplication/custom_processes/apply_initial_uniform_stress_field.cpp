@@ -20,7 +20,7 @@ namespace Kratos
 ApplyInitialUniformStressField::ApplyInitialUniformStressField(ModelPart& rModelPart, const Parameters& rParameters)
     : mrModelPart(rModelPart), mImposedStressVector(rParameters["value"].GetVector())
 {
-    block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
+    block_for_each(mrModelPart.Elements(), [this](const auto& rElement) {
         const auto p_constitutive_law = rElement.GetProperties()[CONSTITUTIVE_LAW];
         KRATOS_ERROR_IF_NOT(mImposedStressVector.size() == p_constitutive_law->GetStrainSize())
             << "The size of the input stress vector for applying a uniform initial "
@@ -33,7 +33,7 @@ ApplyInitialUniformStressField::ApplyInitialUniformStressField(ModelPart& rModel
 
 void ApplyInitialUniformStressField::ExecuteInitialize()
 {
-    block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
+    block_for_each(mrModelPart.Elements(), [this](auto& rElement) {
         std::vector<Vector> imposed_stress_vectors(
             rElement.GetGeometry().IntegrationPointsNumber(rElement.GetIntegrationMethod()), mImposedStressVector);
         rElement.SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, imposed_stress_vectors,

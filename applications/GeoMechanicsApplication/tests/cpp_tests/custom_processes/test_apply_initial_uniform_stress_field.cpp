@@ -15,12 +15,13 @@
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_processes/apply_initial_uniform_stress_field.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesToPlaneStrainElementsInModelParts,
+KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesToPlaneStrainElementsInModelPart,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Note that when creating the process using python, these parameters
@@ -30,25 +31,25 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesTo
     })");
 
     Model model;
-    auto& rModelPart = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
-    rModelPart.GetElement(1).GetProperties()[CONSTITUTIVE_LAW] =
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
+    r_model_part.GetElement(1).GetProperties()[CONSTITUTIVE_LAW] =
         std::make_shared<GeoIncrementalLinearElasticLaw>(std::make_unique<PlaneStrain>());
 
-    ApplyInitialUniformStressField process(rModelPart, parameters);
+    ApplyInitialUniformStressField process(r_model_part, parameters);
     process.ExecuteInitialize();
 
     std::vector<Vector> actual_stresses;
-    rModelPart.GetElement(1).CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_stresses,
-                                                          rModelPart.GetProcessInfo());
+    r_model_part.GetElement(1).CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_stresses,
+                                                            r_model_part.GetProcessInfo());
     KRATOS_EXPECT_EQ(actual_stresses.size(), 3);
 
     const std::vector<double> expected_stress = {1.0, 2.0, 3.0, 4.0};
     for (const auto& stress : actual_stresses) {
-        KRATOS_EXPECT_VECTOR_NEAR(stress, expected_stress, 1e-6);
+        KRATOS_EXPECT_VECTOR_NEAR(stress, expected_stress, Defaults::absolute_tolerance);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesToThreeDimensionalElementsInModelParts,
+KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesToThreeDimensionalElementsInModelPart,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Parameters parameters(R"({
@@ -56,25 +57,25 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesTo
     })");
 
     Model model;
-    auto& rModelPart = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
-    rModelPart.GetElement(1).GetProperties()[CONSTITUTIVE_LAW] =
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
+    r_model_part.GetElement(1).GetProperties()[CONSTITUTIVE_LAW] =
         std::make_shared<GeoIncrementalLinearElasticLaw>(std::make_unique<ThreeDimensional>());
-    ApplyInitialUniformStressField process(rModelPart, parameters);
+    ApplyInitialUniformStressField process(r_model_part, parameters);
     process.ExecuteInitialize();
 
     std::vector<Vector> actual_stresses;
 
-    rModelPart.GetElement(1).CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_stresses,
-                                                          rModelPart.GetProcessInfo());
+    r_model_part.GetElement(1).CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_stresses,
+                                                            r_model_part.GetProcessInfo());
     KRATOS_EXPECT_EQ(actual_stresses.size(), 4);
 
     const std::vector<double> expected_stress = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
     for (const auto& stress : actual_stresses) {
-        KRATOS_EXPECT_VECTOR_NEAR(stress, expected_stress, 1e-6);
+        KRATOS_EXPECT_VECTOR_NEAR(stress, expected_stress, Defaults::absolute_tolerance);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesToThreeDimensionalDiffOrderElementsInModelParts,
+KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesToPlaneStrainDiffOrderElementsInModelPart,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Parameters parameters(R"({
@@ -82,21 +83,21 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesTo
     })");
 
     Model model;
-    auto& rModelPart = ModelSetupUtilities::CreateModelPartWithASingle2D6NDiffOrderElement(model);
-    rModelPart.GetElement(1).GetProperties()[CONSTITUTIVE_LAW] =
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D6NDiffOrderElement(model);
+    r_model_part.GetElement(1).GetProperties()[CONSTITUTIVE_LAW] =
         std::make_shared<GeoIncrementalLinearElasticLaw>(std::make_unique<PlaneStrain>());
-    ApplyInitialUniformStressField process(rModelPart, parameters);
+    ApplyInitialUniformStressField process(r_model_part, parameters);
     process.ExecuteInitialize();
 
     std::vector<Vector> actual_stresses;
 
-    rModelPart.GetElement(1).CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_stresses,
-                                                          rModelPart.GetProcessInfo());
+    r_model_part.GetElement(1).CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_stresses,
+                                                            r_model_part.GetProcessInfo());
     KRATOS_EXPECT_EQ(actual_stresses.size(), 3);
 
     const std::vector<double> expected_stress = {1.0, 2.0, 3.0, 4.0};
     for (const auto& stress : actual_stresses) {
-        KRATOS_EXPECT_VECTOR_NEAR(stress, expected_stress, 1e-6);
+        KRATOS_EXPECT_VECTOR_NEAR(stress, expected_stress, Defaults::absolute_tolerance);
     }
 }
 
@@ -105,9 +106,9 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessThrowsUponConstru
 {
     Parameters parameters;
     Model      model;
-    auto&      rModelPart = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
+    auto&      r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ApplyInitialUniformStressField process(rModelPart, parameters),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ApplyInitialUniformStressField(r_model_part, parameters),
                                       "Getting a value that does not exist. entry string : value");
 }
 
@@ -119,12 +120,11 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldThrowsUponConstructionWh
     })");
 
     Model model;
-    auto& rModelPart = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
-    rModelPart.GetElement(1).GetProperties()[CONSTITUTIVE_LAW] =
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
+    r_model_part.GetElement(1).GetProperties()[CONSTITUTIVE_LAW] =
         std::make_shared<GeoIncrementalLinearElasticLaw>(std::make_unique<PlaneStrain>());
-    rModelPart.GetElement(1).Initialize(rModelPart.GetProcessInfo());
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        ApplyInitialUniformStressField(rModelPart, parameters),
+        ApplyInitialUniformStressField(r_model_part, parameters),
         "The size of the input stress vector for applying a uniform initial stress field must "
         "match the strain size of the constitutive law, which is 4, but is 3 for element 1 in "
         "model part "

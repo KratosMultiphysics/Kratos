@@ -25,8 +25,7 @@
             "BIOT_COEFFICIENT"         :  1.0,
             "RETENTION_LAW"            : "SaturatedLaw",
             "SATURATED_SATURATION"     :  1.0
-         },
-         "Tables": {}
+         }
       }
    }]
 }

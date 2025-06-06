@@ -1,9 +1,9 @@
-import unittest
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 import os.path
 
 
-class KratosGeoMechanicsApplyInitialUniformStressFieldTests(unittest.TestCase):
+class KratosGeoMechanicsApplyInitialUniformStressFieldTests(KratosUnittest.TestCase):
     """
     This test applies an initial uniform stress field to a single three dimensional, linear hexahedron (3D8N)
     `UPwSmallStrainElement` using the `ApplyInitialUniformStressField` process.
@@ -20,12 +20,9 @@ class KratosGeoMechanicsApplyInitialUniformStressFieldTests(unittest.TestCase):
         )
         expected_stress_vector = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
         for stress_vector_at_integration_point in stress_vectors:
-            for actual_stress_vector_component, expected_stress_vector_component in zip(
-                stress_vector_at_integration_point, expected_stress_vector
-            ):
-                self.assertAlmostEqual(
-                    actual_stress_vector_component, expected_stress_vector_component, 6
-                )
+            self.assertVectorAlmostEqual(
+                stress_vector_at_integration_point, expected_stress_vector, 6
+            )
 
     @staticmethod
     def run_simulation(test_name):
@@ -37,4 +34,4 @@ class KratosGeoMechanicsApplyInitialUniformStressFieldTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    KratosUnittest.main()
