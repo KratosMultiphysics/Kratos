@@ -1,4 +1,4 @@
-/* gidpost 2.0 */
+/* gidpost */
 /*
  *  gidpost.c--
  *
@@ -10,12 +10,19 @@
 
 #include <assert.h>
 #include <stdarg.h>
-#include "gidpost.h"
 
-/*
-  hay que encapsular HDF5 en las estructuras internas de GiDPost
-*/
-extern GiD_PostMode PostMode;
+// Do not complain about implementing deprecated api
+#ifdef WIN32
+// #if defined( _MSC_VER )
+// disable deprecated declarations
+#pragma warning(disable:4996)
+// #endif
+#else // WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif // WIN32
+
+#include "gidpost.h"
 
 int SetupComponents( int CompNumber, GP_CONST char * CompBuffer[], ... )
 {
@@ -40,14 +47,9 @@ int GiD_BeginScalarResult(GP_CONST char * Result, GP_CONST char * Analysis, doub
 {
   int ncomp = 0;
   
-#ifdef HDF5
-  if(PostMode==GiD_PostHDF5){
-    return -1;
-  }
-#endif
-  
   if ( Comp1 && *Comp1 )
     ncomp = 1;
+  
   return GiD_BeginResult(Result, Analysis, step, GiD_Scalar, Where, GaussPointsName, RangeTable, ncomp, &Comp1);
 }
 
@@ -72,13 +74,8 @@ int GiD_BeginVectorResult(GP_CONST char * Result, GP_CONST char * Analysis, doub
   int ncomp = 0;
   GP_CONST char * CompBuffer[4];
 
-#ifdef HDF5
-  if(PostMode==GiD_PostHDF5){
-    return -1;
-  }
-#endif
-
   ncomp = SetupComponents(4, CompBuffer, Comp1, Comp2, Comp3, Comp4);
+
   return GiD_BeginResult(Result, Analysis, step, GiD_Vector, Where, GaussPointsName, RangeTable, ncomp, CompBuffer);
 }
 
@@ -103,13 +100,8 @@ int GiD_Begin2DMatResult(GP_CONST char * Result, GP_CONST char * Analysis, doubl
   int ncomp = 0;
   GP_CONST char * CompBuffer[3];
 
-#ifdef HDF5
-  if(PostMode==GiD_PostHDF5){
-    return -1;
-  }
-#endif
-
   ncomp = SetupComponents(3, CompBuffer, Comp1, Comp2, Comp3);
+
   return GiD_BeginResult(Result, Analysis, step, GiD_Matrix, Where, GaussPointsName, RangeTable, ncomp, CompBuffer);
 }
 
@@ -134,13 +126,8 @@ int GiD_Begin3DMatResult(GP_CONST char * Result, GP_CONST char * Analysis, doubl
   int ncomp = 0;
   GP_CONST char * CompBuffer[6];
 
-#ifdef HDF5
-  if(PostMode==GiD_PostHDF5){
-    return -1;
-  }
-#endif
-
   ncomp = SetupComponents(6, CompBuffer, Comp1, Comp2, Comp3, Comp4, Comp5, Comp6);
+
   return GiD_BeginResult(Result, Analysis, step, GiD_Matrix, Where, GaussPointsName, RangeTable, ncomp, CompBuffer);
 }
 
@@ -166,13 +153,8 @@ int GiD_BeginPDMMatResult(GP_CONST char * Result, GP_CONST char * Analysis, doub
   int ncomp = 0;
   GP_CONST char * CompBuffer[4];
 
-#ifdef HDF5
-  if(PostMode==GiD_PostHDF5){
-    return -1;
-  }
-#endif
-
   ncomp = SetupComponents(4, CompBuffer, Comp1, Comp2, Comp3, Comp4);
+
   return GiD_BeginResult(Result, Analysis, step, GiD_PlainDeformationMatrix,
 		         Where, GaussPointsName, RangeTable, ncomp, CompBuffer);
 }
@@ -201,12 +183,6 @@ int GiD_BeginMainMatResult(GP_CONST char * Result, GP_CONST char * Analysis, dou
 {
   int ncomp = 0;
   GP_CONST char * CompBuffer[12];
-
-#ifdef HDF5
-  if(PostMode==GiD_PostHDF5){
-    return -1;
-  }
-#endif
 
   ncomp = SetupComponents(12, CompBuffer,
 		          Comp1, Comp2, Comp3, Comp4,
@@ -245,12 +221,6 @@ int GiD_BeginLAResult(GP_CONST char * Result, GP_CONST char * Analysis, double s
   int ncomp = 0;
   GP_CONST char * CompBuffer[3];
 
-#ifdef HDF5
-  if(PostMode==GiD_PostHDF5){
-    return -1;
-  }
-#endif
-
   ncomp = SetupComponents(3, CompBuffer, Comp1, Comp2, Comp3);
 
   return GiD_BeginResult(Result, Analysis, step, GiD_LocalAxes,
@@ -279,13 +249,8 @@ int GiD_BeginComplexScalarResult(GP_CONST char * Result, GP_CONST char * Analysi
   int ncomp = 0;
   GP_CONST char * CompBuffer[2];
 
-#ifdef HDF5
-  if(PostMode==GiD_PostHDF5){
-    return -1;
-  }
-#endif
-
   ncomp = SetupComponents(2, CompBuffer, Re, Im);
+
   return GiD_BeginResult(Result, Analysis, step, GiD_ComplexScalar, Where, GaussPointsName, RangeTable, ncomp, CompBuffer);
 }
 
@@ -310,13 +275,8 @@ int GiD_BeginComplexVectorResult(GP_CONST char * Result, GP_CONST char * Analysi
   int ncomp = 0;
   GP_CONST char * CompBuffer[6];
 
-#ifdef HDF5
-  if(PostMode==GiD_PostHDF5){
-    return -1;
-  }
-#endif
-
   ncomp = SetupComponents(6, CompBuffer, Rex, Imx, Rey, Imy, Rez, Imz);
+
   return GiD_BeginResult(Result, Analysis, step, GiD_ComplexVector, Where, GaussPointsName, RangeTable, ncomp, CompBuffer);
 }
 
@@ -541,3 +501,7 @@ int GiD_fComplexVectorComp(GiD_FILE fd, GP_CONST char * Rex,GP_CONST char * Imx,
   }
   return 0;
 }
+
+#ifndef WIN32
+#pragma GCC diagnostic pop
+#endif // WIN32
