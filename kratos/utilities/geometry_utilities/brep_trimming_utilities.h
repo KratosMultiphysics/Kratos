@@ -32,7 +32,6 @@ namespace Kratos
 
     //using namespace ClipperLib;
 
-    template<bool TShiftedBoundary>
     class KRATOS_API(KRATOS_CORE) BrepTrimmingUtilities
     {
     public:
@@ -52,13 +51,13 @@ namespace Kratos
 
         typedef signed long long cInt;
 
-        using BrepCurveOnSurfacePointerType = typename BrepCurveOnSurface<PointerVector<Node>, TShiftedBoundary, PointerVector<Point>>::Pointer;
+        //using BrepCurveOnSurfacePointerType = typename BrepCurveOnSurface<PointerVector<Node>, TShiftedBoundary, PointerVector<Point>>::Pointer;
 
         //template<class TBrepLoopType, class TPointType>
         static void CreateBrepSurfaceTrimmingIntegrationPoints(
             IntegrationPointsArrayType& rIntegrationPoints,
-            const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rOuterLoops,
-            const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rInnerLoops,
+            const DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node>, PointerVector<Point>>::Pointer>>& rOuterLoops,
+            const DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node>, PointerVector<Point>>::Pointer>>& rInnerLoops,
             const std::vector<double>& rSpansU,
             const std::vector<double>& rSpansV,
             IntegrationInfo& rIntegrationInfo);
