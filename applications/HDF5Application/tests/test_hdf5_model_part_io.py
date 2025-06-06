@@ -104,6 +104,8 @@ class TestCase(KratosUnittest.TestCase):
             node.Set(STRUCTURE, bool(random.randint(-100, 100) % 2))
 
         for element in model_part.Elements:
+            element.SetValue(DISPLACEMENT, Vector([random.random(), random.random(), random.random()]))
+            element.SetValue(VELOCITY, Vector([random.random(), random.random(), random.random()]))
             element.SetValue(ACCELERATION, Vector([random.random(), random.random(), random.random()]))
             element.SetValue(PRESSURE, random.random())
             element.SetValue(VISCOSITY, random.random())
@@ -115,6 +117,8 @@ class TestCase(KratosUnittest.TestCase):
             element.Set(STRUCTURE, bool(random.randint(-100, 100) % 2))
 
         for condition in model_part.Conditions:
+            condition.SetValue(DISPLACEMENT, Vector([random.random(), random.random(), random.random()]))
+            condition.SetValue(VELOCITY, Vector([random.random(), random.random(), random.random()]))
             condition.SetValue(ACCELERATION, Vector([random.random(), random.random(), random.random()]))
             condition.SetValue(PRESSURE, random.random())
             condition.SetValue(VISCOSITY, random.random())
