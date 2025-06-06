@@ -30,6 +30,7 @@ class GeotechTestUI:
         self.test_name = test_name
         self.dll_path = dll_path
         self.model_dict = model_dict
+        self.is_linear_elastic = model_dict["model_name"][0].lower() == "linear elastic model"
 
         self.model_var = tk.StringVar(root)
         self.model_var.set(model_dict["model_name"][0])
@@ -112,6 +113,8 @@ class GeotechTestUI:
         self.cohesion_var = tk.StringVar(value="3")
         self.phi_var = tk.StringVar(value="4")
         self._create_mohr_options(params)
+        if self.is_linear_elastic:
+            self.mohr_checkbox_widget.configure(state="disabled")
 
         self.test_selector_frame = ttk.Frame(self.param_frame, padding="5")
         self.test_selector_frame.pack(fill="x", pady=(10, 5))
@@ -240,7 +243,7 @@ class GeotechTestUI:
                 raise ValueError("All values must be positive and non-zero.")
 
             cohesion_phi_indices = None
-            if self.mohr_checkbox.get():
+            if not self.is_linear_elastic and self.mohr_checkbox.get():
                 cohesion_phi_indices = (int(self.cohesion_var.get()), int(self.phi_var.get()))
 
             index = self.model_dict["model_name"].index(self.model_var.get()) + 1 if self.dll_path else -2
@@ -291,3 +294,6 @@ class GeotechTestUI:
     def _unfreeze_gui(self):
         self._set_widget_state(self.left_frame, "normal")
         self.run_button.config(state="normal")
+
+        if self.is_linear_elastic:
+            self.mohr_checkbox_widget.configure(state="disabled")
