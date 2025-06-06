@@ -157,7 +157,8 @@ class TestSensitivityUtilitiesGetSensitivityVariableName(KratosUnittest.TestCase
         self.assertEqual(KratosMultiphysics.SensitivityUtilities.GetSensitivityVariableName(KratosMultiphysics.POISSON_RATIO), "POISSON_RATIO_SENSITIVITY")
         self.assertEqual(KratosMultiphysics.SensitivityUtilities.GetSensitivityVariableName(KratosMultiphysics.SHAPE_SENSITIVITY), "SHAPE_SENSITIVITY")
         self.assertEqual(KratosMultiphysics.SensitivityUtilities.GetSensitivityVariableName(KratosMultiphysics.SHAPE_SENSITIVITY_X), "SHAPE_SENSITIVITY_X")
-
+        self.assertEqual(KratosMultiphysics.SensitivityUtilities.GetSensitivityVariableName(KratosMultiphysics.DISPLACEMENT), "DISPLACEMENT_SENSITIVITY")
+        self.assertEqual(KratosMultiphysics.SensitivityUtilities.GetSensitivityVariableName(KratosMultiphysics.DISPLACEMENT_X), "DISPLACEMENT_SENSITIVITY_X")
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
