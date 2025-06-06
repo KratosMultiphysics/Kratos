@@ -81,8 +81,8 @@ public:
         const std::vector<double>& rSpansU,
         const std::vector<double>& rSpansV,
         const std::vector<double>& rSpansW,
-        GeometrySurrogateArrayType& rOuterLoops,
-        GeometrySurrogateArrayType& rInnerLoops,
+        const GeometrySurrogateArrayType& rOuterLoops,
+        const GeometrySurrogateArrayType& rInnerLoops,
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo);
 

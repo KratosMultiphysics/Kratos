@@ -151,8 +151,8 @@ void BrepSbmUtilities<TNodeType>::CreateBrepVolumeSbmIntegrationPoints(
     const std::vector<double>& rSpansU,
     const std::vector<double>& rSpansV,
     const std::vector<double>& rSpansW,
-    GeometrySurrogateArrayType& rSurrogateOuterLoopGeometries,
-    GeometrySurrogateArrayType& rSurrogateInnerLoopGeometries,
+    const GeometrySurrogateArrayType& rSurrogateOuterLoopGeometries,
+    const GeometrySurrogateArrayType& rSurrogateInnerLoopGeometries,
     IntegrationPointsArrayType& rIntegrationPoints,
     IntegrationInfo& rIntegrationInfo)
 {
