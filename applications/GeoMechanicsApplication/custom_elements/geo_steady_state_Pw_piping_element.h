@@ -102,7 +102,7 @@ public:
         KRATOS_TRY
         CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id());
         CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), WATER_PRESSURE);
-        CheckHasDofsFor(WATER_PRESSURE);
+        CheckUtilities::CheckHasDofsFor(this->GetGeometry(), WATER_PRESSURE);
         CheckProperties();
         // conditional on model dimension
         if constexpr (TDim == 2) {
@@ -226,15 +226,6 @@ public:
     std::string Info() const override { return "GeoSteadyStatePwPipingElement"; }
 
 private:
-    void CheckHasDofsFor(const Variable<double>& rVariable) const
-    {
-        for (const auto& node : GetGeometry()) {
-            KRATOS_ERROR_IF_NOT(node.HasDofFor(rVariable))
-                << "Missing degree of freedom for " << rVariable.Name() << " on node " << node.Id()
-                << std::endl;
-        }
-    }
-
     void CheckProperties() const
     {
         // typical material parameters check, this should be in the check of the constitutive

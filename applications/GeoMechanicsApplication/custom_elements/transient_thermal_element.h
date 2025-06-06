@@ -128,7 +128,7 @@ public:
         CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id());
         CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), TEMPERATURE);
         CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), DT_TEMPERATURE);
-        CheckHasDofsFor(TEMPERATURE);
+        CheckUtilities::CheckHasDofsFor(this->GetGeometry(), TEMPERATURE);
         CheckProperties();
         CheckForNonZeroZCoordinateIn2D();
 
@@ -144,15 +144,6 @@ public:
 
 private:
     IntegrationCoefficientsCalculator mIntegrationCoefficientsCalculator;
-
-    void CheckHasDofsFor(const Variable<double>& rVariable) const
-    {
-        for (const auto& node : GetGeometry()) {
-            KRATOS_ERROR_IF_NOT(node.HasDofFor(rVariable))
-                << "Missing degree of freedom for " << rVariable.Name() << " on node " << node.Id()
-                << std::endl;
-        }
-    }
 
     void CheckProperties() const
     {

@@ -276,7 +276,7 @@ public:
         CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), WATER_PRESSURE);
         CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), DT_WATER_PRESSURE);
         CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), VOLUME_ACCELERATION);
-        CheckHasDofsFor(WATER_PRESSURE);
+        CheckUtilities::CheckHasDofsFor(this->GetGeometry(), WATER_PRESSURE);
         CheckProperties();
         CheckForNonZeroZCoordinateIn2D();
         CheckRetentionLaw(rCurrentProcessInfo);
@@ -324,15 +324,6 @@ private:
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     std::vector<RetentionLaw::Pointer>    mRetentionLawVector;
-
-    void CheckHasDofsFor(const Variable<double>& rVariable) const
-    {
-        for (const auto& node : GetGeometry()) {
-            KRATOS_ERROR_IF_NOT(node.HasDofFor(rVariable))
-                << "Missing degree of freedom for " << rVariable.Name() << " on node " << node.Id()
-                << std::endl;
-        }
-    }
 
     void CheckProperties() const
     {

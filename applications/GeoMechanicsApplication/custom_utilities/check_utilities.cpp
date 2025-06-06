@@ -33,4 +33,12 @@ void CheckUtilities::CheckHasSolutionStepsDataFor(const Geometry<Node>& rGeometr
     }
 }
 
+void CheckUtilities::CheckHasDofsFor(const Geometry<Node>& rGeometry, const Variable<double>& rVariable)
+{
+    for (const auto& node : rGeometry) {
+        KRATOS_ERROR_IF_NOT(node.HasDofFor(rVariable))
+            << "Missing degree of freedom for " << rVariable.Name() << " on node " << node.Id()
+            << std::endl;
+    }
+}
 } /* namespace Kratos.*/

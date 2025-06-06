@@ -13,8 +13,6 @@
 #pragma once
 
 // Project includes
-#include "containers/variable_data.h"
-#include "includes/define.h"
 #include "includes/geometrical_object.h"
 
 #include <optional>
@@ -31,6 +29,7 @@ public:
                                 const std::optional<std::string>& PrintName = std::nullopt);
 
     static void CheckHasSolutionStepsDataFor(const Geometry<Node>& rGeometry, const VariableData& rVariable);
+    static void CheckUtilities::CheckHasDofsFor(const Geometry<Node>& rGeometry, const Variable<double>& rVariable);
 
 }; /* Class CheckUtilities*/
 } /* namespace Kratos.*/
