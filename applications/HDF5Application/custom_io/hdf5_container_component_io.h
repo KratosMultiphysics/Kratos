@@ -190,6 +190,7 @@ private:
     const static inline std::vector<std::string> ReservedAttributeKeys = {
                                             "__data_dimension",
                                             "__data_shape",
+                                            "__data_availability",
                                             "__container_type",
                                             "__data_name",
                                             "__data_location",
