@@ -41,4 +41,39 @@ void CheckUtilities::CheckHasDofsFor(const Geometry<Node>& rGeometry, const Vari
             << std::endl;
     }
 }
+
+void CheckUtilities::CheckProperty(size_t                          Id,
+                                   const Properties&               rProperties,
+                                   const Kratos::Variable<double>& rVariable,
+                                   std::optional<double>           MaxValue)
+{
+    KRATOS_ERROR_IF_NOT(rProperties.Has(rVariable))
+        << rVariable.Name() << " does not exist in the material properties (Id = " << rProperties.Id()
+        << ") at element " << Id << std::endl;
+    constexpr auto min_value = 0.0;
+    if (MaxValue.has_value()) {
+        KRATOS_ERROR_IF(rProperties[rVariable] < min_value || rProperties[rVariable] > MaxValue.value())
+            << rVariable.Name() << " of material Id = " << rProperties.Id() << " at element " << Id
+            << " has an invalid value " << rProperties[rVariable] << " which is outside of the range [ "
+            << min_value << ", " << MaxValue.value() << "]" << std::endl;
+    } else {
+        KRATOS_ERROR_IF(rProperties[rVariable] < min_value)
+            << rVariable.Name() << " of material Id = " << rProperties.Id() << " at element " << Id
+            << " has an invalid value " << rProperties[rVariable]
+            << " which is below the minimum allowed value of " << min_value << std::endl;
+    }
+}
+
+void CheckUtilities::CheckProperty(size_t                               Id,
+                                   const Properties&                    rProperties,
+                                   const Kratos::Variable<std::string>& rVariable,
+                                   const std::string&                   rName)
+{
+    KRATOS_ERROR_IF_NOT(rProperties.Has(rVariable))
+        << rVariable.Name() << " does not exist in the pressure element's properties" << std::endl;
+    KRATOS_ERROR_IF_NOT(rProperties[rVariable] == rName)
+        << rVariable.Name() << " has a value of (" << rProperties[rVariable] << ") instead of ("
+        << rName << ") at element " << Id << std::endl;
+}
+
 } /* namespace Kratos.*/

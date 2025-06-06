@@ -147,40 +147,23 @@ private:
 
     void CheckProperties() const
     {
-        CheckProperty(DENSITY_WATER);
-        CheckProperty(POROSITY);
-        CheckProperty(RETENTION_LAW, "SaturatedLaw");
-        CheckProperty(SATURATED_SATURATION);
-        CheckProperty(DENSITY_SOLID);
-        CheckProperty(SPECIFIC_HEAT_CAPACITY_WATER);
-        CheckProperty(SPECIFIC_HEAT_CAPACITY_SOLID);
-        CheckProperty(THERMAL_CONDUCTIVITY_WATER);
-        CheckProperty(THERMAL_CONDUCTIVITY_SOLID_XX);
-        CheckProperty(THERMAL_CONDUCTIVITY_SOLID_YY);
-        CheckProperty(THERMAL_CONDUCTIVITY_SOLID_XY);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), DENSITY_WATER);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), POROSITY);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), RETENTION_LAW, "SaturatedLaw");
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), SATURATED_SATURATION);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), DENSITY_SOLID);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), SPECIFIC_HEAT_CAPACITY_WATER);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), SPECIFIC_HEAT_CAPACITY_SOLID);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_WATER);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_SOLID_XX);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_SOLID_YY);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_SOLID_XY);
 
         if constexpr (TDim == 3) {
-            CheckProperty(THERMAL_CONDUCTIVITY_SOLID_ZZ);
-            CheckProperty(THERMAL_CONDUCTIVITY_SOLID_YZ);
-            CheckProperty(THERMAL_CONDUCTIVITY_SOLID_XZ);
+            CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_SOLID_ZZ);
+            CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_SOLID_YZ);
+            CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_SOLID_XZ);
         }
-    }
-
-    void CheckProperty(const Kratos::Variable<double>& rVariable) const
-    {
-        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
-            << rVariable.Name() << " does not exist in the thermal element's properties" << std::endl;
-        KRATOS_ERROR_IF(GetProperties()[rVariable] < 0.0)
-            << rVariable.Name() << " has an invalid value at element " << Id() << std::endl;
-    }
-
-    void CheckProperty(const Kratos::Variable<std::string>& rVariable, const std::string& rName) const
-    {
-        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
-            << rVariable.Name() << " does not exist in the thermal element's properties" << std::endl;
-        KRATOS_ERROR_IF_NOT(GetProperties()[rVariable] == rName)
-            << rVariable.Name() << " has a value of (" << GetProperties()[rVariable]
-            << ") instead of (" << rName << ") at element " << Id() << std::endl;
     }
 
     void CheckForNonZeroZCoordinateIn2D() const

@@ -256,27 +256,27 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput,
         CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element2->Check(dummy_process_info),
-        "Error: DENSITY_WATER does not exist in the properties of element 2")
+        "DENSITY_WATER does not exist in the material properties (Id = 0) at element 2")
     p_element2->GetProperties().SetValue(DENSITY_WATER, -1.0E3);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element2->Check(dummy_process_info),
-        "Error: DENSITY_WATER (-1000) is not in the range [0,-> at element 2")
+        "DENSITY_WATER of material Id = 0 at element 2 has an invalid value -1000 which is below the minimum allowed value of 0")
     p_element2->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element2->Check(dummy_process_info),
-        "Error: DYNAMIC_VISCOSITY does not exist in the properties of element 2")
+        "DYNAMIC_VISCOSITY does not exist in the material properties (Id = 0) at element 2")
     p_element2->GetProperties().SetValue(DYNAMIC_VISCOSITY, -1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element2->Check(dummy_process_info),
-        "Error: DYNAMIC_VISCOSITY (-0.01) is not in the range [0,-> at element 2")
+        "DYNAMIC_VISCOSITY of material Id = 0 at element 2 has an invalid value -0.01 which is below the minimum allowed value of 0")
     p_element2->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element2->Check(dummy_process_info),
-        "Error: PIPE_HEIGHT does not exist in the properties of element 2")
+        "PIPE_HEIGHT does not exist in the material properties (Id = 0) at element 2")
     p_element2->GetProperties().SetValue(PIPE_HEIGHT, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element2->Check(dummy_process_info),
-        "Error: PIPE_HEIGHT (-1) is not in the range [0,-> at element 2")
+        "PIPE_HEIGHT of material Id = 0 at element 2 has an invalid value -1 which is below the minimum allowed value of 0")
     p_element2->GetProperties().SetValue(PIPE_HEIGHT, 1.0);
 
     p_element2->GetGeometry().begin()->Z() += 1;

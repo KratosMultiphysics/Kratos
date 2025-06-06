@@ -327,54 +327,24 @@ private:
 
     void CheckProperties() const
     {
-        CheckProperty(DENSITY_WATER);
-        CheckProperty(DENSITY_SOLID);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), DENSITY_WATER);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), DENSITY_SOLID);
         constexpr auto max_value = 1.0;
-        CheckProperty(POROSITY, max_value);
-        CheckProperty(BULK_MODULUS_SOLID);
-        CheckProperty(BULK_MODULUS_FLUID);
-        CheckProperty(DYNAMIC_VISCOSITY);
-        CheckProperty(BIOT_COEFFICIENT);
-        CheckProperty(PERMEABILITY_XX);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), POROSITY, max_value);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), BULK_MODULUS_SOLID);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), BULK_MODULUS_FLUID);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), DYNAMIC_VISCOSITY);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), BIOT_COEFFICIENT);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), PERMEABILITY_XX);
         if (GetGeometry().LocalSpaceDimension() > 1) {
-            CheckProperty(PERMEABILITY_YY);
-            CheckProperty(PERMEABILITY_XY);
+            CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), PERMEABILITY_YY);
+            CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), PERMEABILITY_XY);
             if constexpr (TDim > 2) {
-                CheckProperty(PERMEABILITY_ZZ);
-                CheckProperty(PERMEABILITY_YZ);
-                CheckProperty(PERMEABILITY_ZX);
+                CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), PERMEABILITY_ZZ);
+                CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), PERMEABILITY_YZ);
+                CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), PERMEABILITY_ZX);
             }
         }
-    }
-
-    void CheckProperty(const Kratos::Variable<double>& rVariable, std::optional<double> MaxValue = std::nullopt) const
-    {
-        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
-            << rVariable.Name()
-            << " does not exist in the material properties (Id = " << GetProperties().Id()
-            << ") at element " << Id() << std::endl;
-        constexpr auto min_value = 0.0;
-        if (MaxValue.has_value()) {
-            KRATOS_ERROR_IF(GetProperties()[rVariable] < min_value ||
-                            GetProperties()[rVariable] > MaxValue.value())
-                << rVariable.Name() << " of material Id = " << GetProperties().Id() << " at element "
-                << Id() << " has an invalid value " << GetProperties()[rVariable] << " which is outside of the range [ "
-                << min_value << ", " << MaxValue.value() << "]" << std::endl;
-        } else {
-            KRATOS_ERROR_IF(GetProperties()[rVariable] < min_value)
-                << rVariable.Name() << " of material Id = " << GetProperties().Id()
-                << " at element " << Id() << " has an invalid value " << GetProperties()[rVariable]
-                << " which is below the minimum allowed value of " << min_value << std::endl;
-        }
-    }
-
-    void CheckProperty(const Kratos::Variable<std::string>& rVariable, const std::string& rName) const
-    {
-        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
-            << rVariable.Name() << " does not exist in the pressure element's properties" << std::endl;
-        KRATOS_ERROR_IF_NOT(GetProperties()[rVariable] == rName)
-            << rVariable.Name() << " has a value of (" << GetProperties()[rVariable]
-            << ") instead of (" << rName << ") at element " << Id() << std::endl;
     }
 
     void CheckForNonZeroZCoordinateIn2D() const
