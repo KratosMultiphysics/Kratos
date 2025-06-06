@@ -382,9 +382,11 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Rea
 
         auto attributes = mpFile->ReadAttribute(r_data_set_path);
 
-        // const auto data_availability = attributes["__data_availability"].GetString();
+        const auto data_availability = attributes["__data_availability"].GetString();
+
         // there is no need to read data sets which cannot be set, hence can ignore the whole block
-        // if (data_availability != "consistently_not_available") {
+        Vector<bool> availability(BlockSize, true);
+        if (data_availability != "consistently_not_available") {
             if constexpr(value_type_traits::IsDynamic) {
                 std::vector<unsigned int> shape;
                 Internals::GetShapeFromAttributes(shape, attributes);
@@ -393,29 +395,23 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Rea
                 values.resize(BlockSize, std::accumulate(shape.begin(), shape.end(), 1U, std::multiplies<unsigned int>{}));
                 mpFile->ReadDataSet(r_data_set_path, values, StartIndex, BlockSize);
 
-                // if (data_availability == "consistently_available") {
-                    Internals::CopyFromContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values), shape);
-                // } else {
-                //     Vector<bool> availability(BlockSize);
-                //     mpFile->ReadDataSet(r_data_set_path + "_availability", availability, StartIndex, BlockSize);
-                //     Internals::CopyFromContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values), availability, shape);
-                // }
+                if (data_availability == "inconclusive") {
+                    mpFile->ReadDataSet(r_data_set_path + "_availability", availability, StartIndex, BlockSize);
+                }
+                Internals::CopyFromContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values), shape, availability);
             } else {
                 Vector<value_type> values;
                 values.resize(BlockSize);
                 mpFile->ReadDataSet(r_data_set_path, values, StartIndex, BlockSize);
 
-                // if (data_availability == "consistently_available") {
-                    Internals::CopyFromContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Vector<value_type>>::GetContiguousData(values), value_type_traits::Shape(value_type{}));
-                // } else {
-                //     Vector<bool> availability(BlockSize);
-                //     mpFile->ReadDataSet(r_data_set_path + "_availability", availability, StartIndex, BlockSize);
-                //     Internals::CopyFromContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Vector<value_type>>::GetContiguousData(values), availability, value_type_traits::Shape(value_type{}));
-                // }
+                if (data_availability == "inconclusive") {
+                    mpFile->ReadDataSet(r_data_set_path + "_availability", availability, StartIndex, BlockSize);
+                }
+                Internals::CopyFromContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Vector<value_type>>::GetContiguousData(values), value_type_traits::Shape(value_type{}), availability);
             }
 
             NewContainerComponentIOUtilities::SynchronizeComponent<TContainerType>::template Execute<TContainerDataIO>(rCommunicator, r_component);
-        // }
+        }
 
         RemoveReservedAttributes(attributes);
         rAttributesMap[rComponentName] = attributes;
