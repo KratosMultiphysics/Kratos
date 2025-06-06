@@ -642,44 +642,8 @@ void CopyFromContiguousDataArray(
     const TComponentType& rComponent,
     const TContainerDataIO& rContainerDataIO,
     TDataType const* pBegin,
-    const std::vector<unsigned int>& rShape)
-{
-    KRATOS_TRY
-
-    using value_type = typename TContainerDataIO::template ComponentType<typename Internals::template ComponentTraits<TComponentType>::ValueType>;
-
-    using value_type_traits = DataTypeTraits<value_type>;
-
-    static_assert(value_type_traits::IsContiguous, "Only contiguous data types are supported.");
-
-    if (rContainer.empty()) {
-        // do nothing if the container is empty.
-        return;
-    }
-
-    value_type tls_prototype;
-    value_type_traits::Reshape(tls_prototype, rShape);
-
-    const auto stride = value_type_traits::Size(tls_prototype);
-
-    IndexPartition<unsigned int>(rContainer.size()).for_each(tls_prototype, [&rContainer, &rComponent, &rContainerDataIO, pBegin, stride](const auto Index, auto& rTLS) {
-        TDataType * p_value_begin = value_type_traits::GetContiguousData(rTLS);
-        TDataType const * p_subrange_begin = pBegin + Index * stride;
-        std::copy(p_subrange_begin, p_subrange_begin + stride, p_value_begin);
-        rContainerDataIO.SetValue(*(rContainer.begin() + Index), rComponent, rTLS);
-    });
-
-    KRATOS_CATCH("");
-}
-
-template<class TContainerType, class TComponentType, class TContainerDataIO, class TDataType>
-void CopyFromContiguousDataArray(
-    TContainerType& rContainer,
-    const TComponentType& rComponent,
-    const TContainerDataIO& rContainerDataIO,
-    TDataType const* pBegin,
-    const Vector<bool>& rAvailability,
-    const std::vector<unsigned int>& rShape)
+    const std::vector<unsigned int>& rShape,
+    const Vector<bool>& rAvailability)
 {
     KRATOS_TRY
 
@@ -700,11 +664,20 @@ void CopyFromContiguousDataArray(
     const auto stride = value_type_traits::Size(tls_prototype);
 
     IndexPartition<unsigned int>(rContainer.size()).for_each(tls_prototype, [&rAvailability, &rContainer, &rComponent, &rContainerDataIO, pBegin, stride](const auto Index, auto& rTLS) {
-        if (rAvailability[Index]) {
+        if constexpr(TContainerDataIO::DataAvailability == Internals::DataAvailabilityStatesList::INCONCLUSIVE) {
+            if (rAvailability[Index]) {
+                TDataType * p_value_begin = value_type_traits::GetContiguousData(rTLS);
+                TDataType const * p_subrange_begin = pBegin + Index * stride;
+                std::copy(p_subrange_begin, p_subrange_begin + stride, p_value_begin);
+                rContainerDataIO.SetValue(*(rContainer.begin() + Index), rComponent, rTLS);
+            }
+        } else if constexpr(TContainerDataIO::DataAvailability == Internals::DataAvailabilityStatesList::CONSISTENTLY_AVAILABLE) {
             TDataType * p_value_begin = value_type_traits::GetContiguousData(rTLS);
             TDataType const * p_subrange_begin = pBegin + Index * stride;
             std::copy(p_subrange_begin, p_subrange_begin + stride, p_value_begin);
             rContainerDataIO.SetValue(*(rContainer.begin() + Index), rComponent, rTLS);
+        } else {
+            // do nothing
         }
     });
 
