@@ -24,7 +24,11 @@ End Properties
 Begin Nodes
   // id	  X	Y	Z
 End Nodes
- 
+
+Begin Geometries	geometry_name
+	// id	 n1	n2	n3	...
+End Geometries
+
 Begin Elements element_name
   // id prop_id	 n1	n2	n3	...
 End Elements
@@ -33,6 +37,10 @@ Begin Conditions condition_name
   // id prop_id	 n1	n2	n3	...
 End Conditions
  
+Begin Constraints	constraint_name	dependent_variable independent_variables
+	// id const_value vector_of_relation id_dependent_node id_indepents_nodes
+End Constraints
+
 Begin NodalData VARIABLE_NAME
   //  id is_fixed value                 //data accessible by GetSolutionStepValue
 End NodalData
@@ -82,6 +90,14 @@ Begin SubModelPart SubModelPartName
     // condition_id
   End SubModelPartConditions
 
+  Begin SubModelPartGeometries
+    // geometry_ids
+  End SubModelPartGeometries
+  
+  Begin SubModelPartConstraints
+    // constraint_id
+  End SubModelPartConstraints
+
   Begin SubModelPart SubModelPartName   // Note that this would be a sub sub modelpart
     Begin SubModelPartTables
       // Table_id
@@ -98,6 +114,14 @@ Begin SubModelPart SubModelPartName
     Begin SubModelPartConditions
       // condition_id
     End SubModelPartConditions
+
+    Begin SubModelPartGeometries
+      // geometry_ids
+    End SubModelPartGeometries
+    
+    Begin SubModelPartConstraints
+      // constraint_id
+    End SubModelPartConstraints
   End SubModelPart
 End SubModelPart
 ```
@@ -143,6 +167,13 @@ Begin Nodes
   974                   0                   8                   0
 End Nodes
 
+Begin Geometries	Triangle2D3
+  1        1        2        3
+  2        2        3        972
+  3        3        972      973
+  1796     972      973      974
+End Geometries
+
 Begin Elements Element2D3N
   1 1        1        2        3
   2 1        2        3        972
@@ -157,6 +188,11 @@ Begin Conditions Condition2D
   1947 1        972        973
   1948 1        973        974
 End Conditions
+
+Begin Constraints	LinearMasterSlaveConstraint	DISPLACEMENT_X	DISPLACEMENT_X
+	1	0.0	[5.0e-01]	2	1	
+	2	0.0	[5.0e-01]	3	1	
+End Constraints
 
 Begin NodalData DISPLACEMENT_X
   1 1 0.100000
