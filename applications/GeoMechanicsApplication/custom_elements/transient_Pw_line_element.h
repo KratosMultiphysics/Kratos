@@ -120,7 +120,9 @@ public:
     {
         KRATOS_TRY
 
-        this->CalculateHydraulicDischarge(rCurrentProcessInfo);
+        if (this->GetGeometry().LocalSpaceDimension() != 1) {
+            this->CalculateHydraulicDischarge(rCurrentProcessInfo);
+        }
 
         KRATOS_CATCH("")
     }
@@ -129,10 +131,6 @@ public:
     {
         KRATOS_TRY
 
-        if (GetGeometry().LocalSpaceDimension() == 1) {
-            // there is no need to calculate the discharge for a line element
-            return;
-        }
         std::vector<array_1d<double, 3>> fluid_flux;
         this->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_flux, rCurrentProcessInfo);
 
