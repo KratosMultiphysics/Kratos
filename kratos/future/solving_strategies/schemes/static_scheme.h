@@ -107,9 +107,6 @@ public:
     /// The definition of the current class
     using BaseType = ImplicitScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
 
-    /// Size type definition
-    using SizeType = std::size_t;
-
     /// Index type definition
     using IndexType = typename TSparseMatrixType::IndexType;
 
@@ -212,8 +209,8 @@ public:
      * @param ReformDofSet Flag to indicate if the DOFs have changed and need to be updated
      */
     void InitializeSolutionStep(
-        DofsArrayType &rDofSet,
-        DofsArrayType &rEffectiveDofSet,
+        DofsArrayType::Pointer pDofSet,
+        DofsArrayType::Pointer pEffectiveDofSet,
         EffectiveDofsMapType &rEffectiveDofIdMap,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer,
         const bool ReformDofSets = true) override
@@ -223,41 +220,51 @@ public:
         // Check if the InitializeSolutionStep has been already performed
         if (!this->GetSchemeSolutionStepIsInitialized()) {
             // Set up the system
-            BuiltinTimer system_construction_time;
             if (!(this->GetDofSetIsInitialized()) || ReformDofSets) {
                 // Setting up the DOFs list to be solved
                 BuiltinTimer setup_dofs_time;
-                this->SetUpDofArray(rDofSet);
+                this->SetUpDofArray(*pDofSet);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
 
                 // Set up the equation ids
                 BuiltinTimer setup_system_time;
-                const SizeType eq_system_size = this->SetUpSystemIds(rDofSet);
+                const std::size_t eq_system_size = this->SetUpSystemIds(pDofSet);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_time << std::endl;
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
 
                 // Set up the system constraints
                 BuiltinTimer constraints_construction_time;
-                this->ConstructMasterSlaveConstraintsStructure(rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, rLinearSystemContainer);
+                this->ConstructMasterSlaveConstraintsStructure(pDofSet, pEffectiveDofSet, rEffectiveDofIdMap, rLinearSystemContainer);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Constraints construction time: " << constraints_construction_time << std::endl;
 
-                //TODO: I think we should compute the sparse graph in here (separate it from the ResizeAndInitializeVectors and pass it downstream)
-                //TODO: Then we have a method to initialize all the standard arrays from it. In here we can make also initializations of the mass and damping matrix with the same graph
+                //TODO: Then we have a method to initialize all the standard arrays from the graph. In here we can make also initializations of the mass and damping matrix with the same graph
                 //TODO: Then we initialize the effective ones by passing the effective DOF set and effective DOFIdMap.
 
+                // Set up the sparse matrix graph
+                // std::cin.get();
+                BuiltinTimer sparse_matrix_graph_time;
+                TSparseGraphType sparse_matrix_graph(eq_system_size);
+                this->SetUpSparseMatrixGraph(sparse_matrix_graph);
+                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up sparse matrix graph time: " << sparse_matrix_graph_time << std::endl;
+
                 // Allocating the system vectors to their correct sizes
+                // std::cin.get();
                 BuiltinTimer system_matrix_resize_time;
-                this->ResizeAndInitializeVectors(rDofSet, rEffectiveDofSet, rLinearSystemContainer);
+                this->ResizeAndInitializeVectors(sparse_matrix_graph, pDofSet, pEffectiveDofSet, rLinearSystemContainer);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
 
+                // Clearing the sparse matrix graph
+                // std::cin.get();
+                sparse_matrix_graph.Clear();
+                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Sparse matrix graph cleared." << std::endl;
+                // std::cin.get();
             } else {
                 // Set up the equation ids (note that this needs to be always done as the fixity may have changed and this can affect some build types)
                 BuiltinTimer setup_system_time;
-                const SizeType eq_system_size = this->SetUpSystemIds(rDofSet);
+                const std::size_t eq_system_size = this->SetUpSystemIds(pDofSet);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_time << std::endl;
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
             }
-            KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "System construction time: " << system_construction_time << std::endl;
 
             // Initializes solution step for all of the elements, conditions and constraints
             EntitiesUtilities::InitializeSolutionStepAllEntities(this->GetModelPart());
@@ -277,8 +284,8 @@ public:
      * @param b RHS Vector
      */
     void Predict(
-        DofsArrayType& rDofSet,
-        DofsArrayType& rEffectiveDofSet,
+        DofsArrayType::Pointer pDofSet,
+        DofsArrayType::Pointer pEffectiveDofSet,
         EffectiveDofsMapType& rEffectiveDofIdMap,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
@@ -300,14 +307,14 @@ public:
             // Note that the constant vector is applied only once in here as we then solve for the solution increment
             auto p_constraints_T = rLinearSystemContainer.pConstraintsT;
             auto p_constraints_Q = rLinearSystemContainer.pConstraintsQ;
-            this->BuildMasterSlaveConstraints(rDofSet, rEffectiveDofIdMap, *p_constraints_T, *p_constraints_Q);
+            this->BuildMasterSlaveConstraints(*pDofSet, rEffectiveDofIdMap, *p_constraints_T, *p_constraints_Q);
 
             // Fill the current values vector
             TSystemVectorType x(rEffectiveDofIdMap.size());
-            (this->GetBuilder()).CalculateSolutionVector(rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, *p_constraints_T, *p_constraints_Q, x);
+            (this->GetBuilder()).CalculateSolutionVector(*pDofSet, *pEffectiveDofSet, rEffectiveDofIdMap, *p_constraints_T, *p_constraints_Q, x);
 
             // Update DOFs with solution values
-            block_for_each(rDofSet, [&x](DofType& rDof){
+            block_for_each(*pDofSet, [&x](DofType& rDof){
                 rDof.GetSolutionStepValue() = x[rDof.EquationId()];
             });
 
@@ -360,18 +367,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    /**
-     * @brief Functions to be called to prepare the data needed for the output of results.
-     * @warning Must be defined in derived classes
-     * @param rModelPart The model part of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
-     */
-    virtual void CalculateOutputData(
-        TSparseMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+    void CalculateOutputData(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
     {
         KRATOS_TRY
 
@@ -467,7 +463,8 @@ protected:
      */
     void AssignSettings(const Parameters ThisParameters) override
     {
-        //TODO:
+        // Assign base scheme settings
+        BaseType::AssignSettings(ThisParameters);
     }
 
     ///@}

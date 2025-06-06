@@ -23,6 +23,7 @@
 #include "containers/sparse_contiguous_row_graph.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/builtin_timer.h"
 #include "utilities/amgcl_csr_conversion_utilities.h"
 #include "utilities/amgcl_csr_spmm_utilities.h"
 
@@ -236,33 +237,29 @@ public:
     // - DampingMatrix
     // TODO: To be discussed in the future. It would be great to have one with references. This will require using the move constructors
     virtual void ResizeAndInitializeVectors(
-        const DofsArrayType &rDofSet,
-        const DofsArrayType &rEffectiveDofSet,
+        const TSparseGraphType& rSparseGraph,
+        const DofsArrayType::Pointer pDofSet,
+        const DofsArrayType::Pointer pEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer,
         const bool ReactionVector = false)
     {
-        // Set up the sparse matrix graph (note that we do not need to keep it after the resizing)
-        KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Equation system size is not set yet. Please call 'SetUpSystemIds' before this method." << std::endl;
-        TSparseGraphType sparse_graph(mEquationSystemSize);
-        SetUpSparseGraph(sparse_graph);
-
         //TODO: I think all these must be done by the system container
 
         // Set the system arrays
         // Note that the graph-based constructor does both resizing and initialization
-        auto p_lhs = Kratos::make_shared<TSparseMatrixType>(sparse_graph);
+        auto p_lhs = Kratos::make_shared<TSparseMatrixType>(rSparseGraph);
         rLinearSystemContainer.pLhs.swap(p_lhs);
 
-        auto p_dx = Kratos::make_shared<TSystemVectorType>(sparse_graph);
+        auto p_dx = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
         rLinearSystemContainer.pDx.swap(p_dx);
 
-        auto p_rhs = Kratos::make_shared<TSystemVectorType>(sparse_graph);
+        auto p_rhs = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
         rLinearSystemContainer.pRhs.swap(p_rhs);
 
         //FIXME: I think we should separate these
         // Set the effective arrays
         // In a standard case we only need to allocate the effective solution update to avoid the first Predict() call to crash
-        if (rDofSet == rEffectiveDofSet) {
+        if (pDofSet == pEffectiveDofSet) {
             // If there are no constraints, the effective DOF set matches the standard one and the effective arrays are the same as the input ones
             // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
             rLinearSystemContainer.pEffectiveDx = rLinearSystemContainer.pDx;
@@ -271,25 +268,25 @@ public:
             auto p_eff_lhs = Kratos::make_shared<TSparseMatrixType>();
             rLinearSystemContainer.pEffectiveLhs.swap(p_eff_lhs);
 
-            auto p_eff_rhs = Kratos::make_shared<TSystemVectorType>(rEffectiveDofSet.size());
+            auto p_eff_rhs = Kratos::make_shared<TSystemVectorType>(pEffectiveDofSet->size());
             rLinearSystemContainer.pEffectiveRhs.swap(p_eff_rhs);
 
-            auto p_eff_dx = Kratos::make_shared<TSystemVectorType>(rEffectiveDofSet.size());
+            auto p_eff_dx = Kratos::make_shared<TSystemVectorType>(pEffectiveDofSet->size());
             rLinearSystemContainer.pEffectiveDx.swap(p_eff_dx);
         }
     }
 
     virtual void ConstructMasterSlaveConstraintsStructure(
         const ModelPart& rModelPart,
-        const DofsArrayType& rDofSet,
-        DofsArrayType& rEffectiveDofSet,
+        const typename DofsArrayType::Pointer pDofSet,
+        typename DofsArrayType::Pointer pEffectiveDofSet,
         EffectiveDofsMapType& rEffectiveDofIdMap,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
         KRATOS_ERROR << "Calling base class ConstructMasterSlaveConstraintsStructure." << std::endl;
     }
 
-    virtual void SetUpSparseGraph(TSparseGraphType& rSparseGraph)
+    virtual void SetUpSparseMatrixGraph(TSparseGraphType& rSparseGraph)
     {
         KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Current equation system size is 0. Sparse graph cannot be set (call \'SetUpSystemIds\' first)." << std::endl;
 
@@ -311,25 +308,25 @@ public:
         }
     }
 
-    virtual std::size_t SetUpSystemIds(const DofsArrayType& rDofSet)
+    virtual std::size_t SetUpSystemIds(const typename DofsArrayType::Pointer pDofSet)
     {
         if (mBuildType == BuildType::Block) {
             // Set up the DOFs equation global ids
-            IndexPartition<IndexType>(rDofSet.size()).for_each([&](IndexType Index) {
-                auto it_dof = rDofSet.begin() + Index;
+            IndexPartition<IndexType>(pDofSet->size()).for_each([&](IndexType Index) {
+                auto it_dof = pDofSet->begin() + Index;
                 it_dof->SetEquationId(Index);
             });
 
             // Save the size of the system based on the number of DOFs
-            mEquationSystemSize = rDofSet.size();
+            mEquationSystemSize = pDofSet->size();
 
         } else if (mBuildType == BuildType::Elimination) {
             // Set up the DOFs equation global ids
             // The free DOFs are positioned at the beginning of the system
             // The fixed DOFs are positioned at the end of the system (in reversed order)
             IndexType free_id = 0;
-            IndexType fix_id = rDofSet.size();
-            for (auto it_dof = rDofSet.begin(); it_dof != rDofSet.end(); ++it_dof) {
+            IndexType fix_id = pDofSet->size();
+            for (auto it_dof = pDofSet->begin(); it_dof != pDofSet->end(); ++it_dof) {
                 if (it_dof->IsFixed()) {
                     it_dof->SetEquationId(--fix_id);
                 } else {

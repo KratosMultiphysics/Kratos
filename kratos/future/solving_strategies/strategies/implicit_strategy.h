@@ -197,7 +197,7 @@ public:
         KRATOS_TRY
 
         // Call the scheme InitializeSolutionStep
-        pGetScheme()->InitializeSolutionStep(mDofSet, mEffectiveDofSet, mEffectiveDofIdMap, mLinearSystemContainer, mReformDofsAtEachStep);
+        pGetScheme()->InitializeSolutionStep(mpDofSet, mpEffectiveDofSet, mEffectiveDofIdMap, mLinearSystemContainer, mReformDofsAtEachStep);
 
         KRATOS_CATCH("")
     }
@@ -207,7 +207,7 @@ public:
         KRATOS_TRY
 
         // Call the time scheme predict (note that this also updates the mesh if needed)
-        pGetScheme()->Predict(mDofSet, mEffectiveDofSet, mEffectiveDofIdMap, mLinearSystemContainer);
+        pGetScheme()->Predict(mpDofSet, mpEffectiveDofSet, mEffectiveDofIdMap, mLinearSystemContainer);
 
         KRATOS_CATCH("")
     }
@@ -266,7 +266,7 @@ public:
         //TODO: this should probably go to the Scheme check (based on previous comment)
         // If reactions are to be calculated, we check if all the dofs have reactions defined
         if (mComputeReactions) {
-            for (auto& r_dof : mDofSet) {
+            for (auto& r_dof : *mpDofSet) {
                 KRATOS_ERROR_IF_NOT(r_dof.HasReaction())
                     << "Reaction variable not set for the following: " << std::endl
                     << "- Node: "<< r_dof.Id() << std::endl
@@ -281,7 +281,7 @@ public:
 
     void CalculateOutputData() override
     {
-        pGetScheme()->CalculateOutputData(*mpA, *mpdx, *mpb);
+        pGetScheme()->CalculateOutputData(mLinearSystemContainer);
     }
 
     Parameters GetDefaultParameters() const override
@@ -505,7 +505,7 @@ public:
      */
     DofsArrayType& GetDofSet()
     {
-        return mDofSet;
+        return *mpDofSet;
     }
 
     /**
@@ -513,7 +513,7 @@ public:
      */
     const DofsArrayType& GetDofSet() const
     {
-        return mDofSet;
+        return *mpDofSet;
     }
 
     /**
@@ -521,7 +521,7 @@ public:
      */
     DofsArrayType& GetEffectiveDofSet()
     {
-        return mEffectiveDofSet;
+        return *mpEffectiveDofSet;
     }
 
     /**
@@ -529,7 +529,7 @@ public:
      */
     const DofsArrayType &GetEffectiveDofSet() const
     {
-        return mEffectiveDofSet;
+        return *mpEffectiveDofSet;
     }
     /**
      * @brief It allows to get the map of effective DOFs
@@ -600,8 +600,10 @@ public:
      */
     double GetResidualNorm()
     {
-        if (mpb->size() != 0) {
-            return mpb->Norm();
+        auto p_rhs = mLinearSystemContainer.pRhs;
+        KRATOS_ERROR_IF(p_rhs == nullptr) << "Right hand side vector is not set. Residual cannot be computed." << std::endl;
+        if (p_rhs->size() != 0) {
+            return p_rhs->Norm();
         } else {
             return 0.0;
         }
@@ -675,9 +677,9 @@ protected:
      */
     virtual void EchoInfo()
     {
-        const auto& r_A = *mpA;
-        const auto& r_b = *mpb;
-        const auto& r_dx = *mpdx;
+        const auto& r_A = mLinearSystemContainer.pLhs;
+        const auto& r_b = mLinearSystemContainer.pRhs;
+        const auto& r_dx = *mLinearSystemContainer.pDx;
 
         if (GetEchoLevel() == 3) { //if it is needed to print the debug info
             KRATOS_INFO("LHS") << "LHS = " << r_A << std::endl;
@@ -721,27 +723,11 @@ private:
 
     LinearSolverPointerType mpLinearSolver = nullptr; /// The pointer to the linear solver
 
-    DofsArrayType mDofSet; /// The set containing the DOFs of the system
+    DofsArrayType::Pointer mpDofSet; /// The set containing the DOFs of the system
 
-    DofsArrayType mEffectiveDofSet; /// The PVS containing the effective DOFs of the system
+    DofsArrayType::Pointer mpEffectiveDofSet; /// The PVS containing the effective DOFs of the system
 
     EffectiveDofsMapType mEffectiveDofIdMap; /// The pointer to ids map containing the effective DOFs of the system
-
-    SystemVectorPointerType mpdx = nullptr; /// The incremement in the solution //TODO: use naming convention
-
-    SystemVectorPointerType mpb = nullptr; /// The RHS vector of the system of equations //TODO: use naming convention (mpRHS)
-
-    SystemMatrixPointerType mpA = nullptr; /// The LHS matrix of the system of equations //TODO: use naming convention (mpLHS)
-
-    SystemMatrixPointerType mpEffectiveLhs = Kratos::make_shared<TSparseMatrixType>(); /// The LHS matrix of the system of equations
-
-    SystemVectorPointerType mpEffectiveRhs = Kratos::make_shared<TSystemVectorType>(); /// The RHS vector of the system of equations
-
-    SystemVectorPointerType mpEffectiveDx = Kratos::make_shared<TSystemVectorType>(); /// The effective solution increment for the constrained system
-
-    SystemMatrixType mConstraintsRelationMatrix; // Constraints relation matrix
-
-    SystemVectorType mConstraintsConstantVector; // Constraints constant vector
 
     LinearSystemContainer<TSparseMatrixType, TSystemVectorType> mLinearSystemContainer;
 

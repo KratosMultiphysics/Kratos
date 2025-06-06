@@ -153,7 +153,7 @@ public:
     {
         // Validate default parameters
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
+        AssignSettings(ThisParameters);
 
         //TODO: User-definable reshaping stuff
 
@@ -241,8 +241,8 @@ public:
      * @param ReformDofSet Flag to indicate if the DOFs have changed and need to be updated
      */
     virtual void InitializeSolutionStep(
-        DofsArrayType& rDofSet,
-        DofsArrayType& rEffectiveDofSet,
+        DofsArrayType::Pointer pDofSet,
+        DofsArrayType::Pointer pEffectiveDofSet,
         EffectiveDofsMapType& rEffectiveDofIdMap,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer,
         const bool ReformDofSets = true)
@@ -315,13 +315,13 @@ public:
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished DOFs array set up." << std::endl;
     }
 
-    SizeType SetUpSystemIds(DofsArrayType& rDofSet)
+    SizeType SetUpSystemIds(typename DofsArrayType::Pointer pDofSet)
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF(rDofSet.empty()) << "DOFs set is empty. Call the 'SetUpDofArray' first." << std::endl;
+        KRATOS_ERROR_IF(pDofSet->empty()) << "DOFs set is empty. Call the 'SetUpDofArray' first." << std::endl;
 
-        const SizeType equation_system_size = mpBuilder->SetUpSystemIds(rDofSet);
+        const SizeType equation_system_size = mpBuilder->SetUpSystemIds(pDofSet);
 
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished system set up." << std::endl;
 
@@ -330,36 +330,49 @@ public:
         KRATOS_CATCH("")
     }
 
+    virtual void SetUpSparseMatrixGraph(TSparseGraphType& rSparseMatrixGraph)
+    {
+        KRATOS_TRY
+
+        BuiltinTimer set_up_sparse_graph_time;
+
+        (this->GetBuilder()).SetUpSparseMatrixGraph(rSparseMatrixGraph);
+
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 0) << "Finished sparse matrix graph set up." << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
     //TODO: Think on the overloads for the mass and damping matrices
     virtual void ResizeAndInitializeVectors(
-        const DofsArrayType &rDofSet,
-        const DofsArrayType &rEffectiveDofSet,
+        const TSparseGraphType& rSparseMatrixGraph,
+        const DofsArrayType::Pointer pDofSet,
+        const DofsArrayType::Pointer pEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer,
         const bool CalculateReactions = false)
     {
         KRATOS_TRY
 
         // Call the assembly helper to allocate and initialize the required vectors
-        // Note that this also allocates the required reaction vectors (e.g., elimination build)
-        (this->GetBuilder()).ResizeAndInitializeVectors(rDofSet, rEffectiveDofSet, rLinearSystemContainer, CalculateReactions);
+        (this->GetBuilder()).ResizeAndInitializeVectors(rSparseMatrixGraph, pDofSet, pEffectiveDofSet, rLinearSystemContainer, CalculateReactions);
 
-        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() >= 2) << "Finished system initialization." << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished system initialization." << std::endl;
 
         KRATOS_CATCH("")
     }
 
     virtual void ConstructMasterSlaveConstraintsStructure(
-        const DofsArrayType &rDofSet,
-        DofsArrayType &rEffectiveDofSet,
+        const DofsArrayType::Pointer pDofSet,
+        DofsArrayType::Pointer pEffectiveDofSet,
         EffectiveDofsMapType &rEffectiveDofIdMap,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         KRATOS_TRY
 
         // Call the assembly helper to set the master-slave constraints
-        (this->GetBuilder()).ConstructMasterSlaveConstraintsStructure(*mpModelPart, rDofSet, rEffectiveDofSet, rEffectiveDofIdMap, rLinearSystemContainer);
+        (this->GetBuilder()).ConstructMasterSlaveConstraintsStructure(*mpModelPart, pDofSet, pEffectiveDofSet, rEffectiveDofIdMap, rLinearSystemContainer);
 
-        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() >= 2) << "Finished constraints initialization." << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() >= 2) << "Finished constraints initialization." << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -428,6 +441,72 @@ public:
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;
 
         Timer::Stop("Build");
+    }
+
+    virtual void BuildWithSafeAssemble(
+        TSparseMatrixType& rLHS,
+        TSystemVectorType& rRHS)
+    {
+        Timer::Start("BuildWithSafeAssemble");
+
+        const auto timer = BuiltinTimer();
+
+        // Getting conditions and elements to be assembled
+        const auto& r_elems = mpModelPart->Elements();
+        const auto& r_conds = mpModelPart->Conditions();
+        const auto& r_process_info = mpModelPart->GetProcessInfo();
+
+        // Getting entities container data
+        auto elems_begin = r_elems.begin();
+        auto conds_begin = r_conds.begin();
+        const std::size_t n_elems = r_elems.size();
+        const std::size_t n_conds = r_conds.size();
+
+        // Initialize RHS and LHS assembly
+        rRHS.BeginAssemble();
+        rLHS.BeginAssemble();
+
+        // Assemble entities
+        TLSType aux_tls;
+        #pragma omp parallel firstprivate(n_elems, n_conds, elems_begin, conds_begin, r_process_info, aux_tls)
+        {
+            // Assemble elements
+            # pragma omp for schedule(guided, 512) nowait
+            for (int k = 0; k < n_elems; ++k) {
+                // Calculate local LHS and RHS contributions
+                auto it_elem = elems_begin + k;
+                const bool assemble = CalculateLocalSystemContribution(*it_elem, aux_tls, r_process_info);
+
+                // Assemble the local contributions to the global system
+                if (assemble) {
+                    rRHS.SafeAssemble(aux_tls.LocalVector, aux_tls.LocalEqIds); // RHS contributions assembly FIXME: Do the ij-test
+                    rLHS.SafeAssemble(aux_tls.LocalMatrix, aux_tls.LocalEqIds); // LHS contributions assembly FIXME: Do the ij-test
+                }
+            }
+
+            // Assemble conditions
+            # pragma omp for schedule(guided, 512)
+            for (int k = 0; k < n_conds; ++k) {
+                // Calculate local LHS and RHS contributions
+                auto it_cond = conds_begin + k;
+                const bool assemble = CalculateLocalSystemContribution(*it_cond, aux_tls, r_process_info);
+
+                // Assemble the local contributions to the global system
+                if (assemble) {
+                    rRHS.SafeAssemble(aux_tls.LocalVector, aux_tls.LocalEqIds); // RHS contributions assembly FIXME: Do the ij-test
+                    rLHS.SafeAssemble(aux_tls.LocalMatrix, aux_tls.LocalEqIds); // LHS contributions assembly FIXME: Do the ij-test
+                }
+            }
+        }
+
+        // Finalize RHS and LHS assembly
+        rRHS.FinalizeAssemble();
+        rLHS.FinalizeAssemble();
+
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Build w/ safe assemble time: " << timer << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;
+
+        Timer::Stop("BuildWithSafeAssemble");
     }
 
     virtual void Build(TSystemVectorType& rRHS)
@@ -875,8 +954,8 @@ public:
      * @param b RHS Vector
      */
     virtual void Predict(
-        DofsArrayType &rDofSet,
-        DofsArrayType &rEffectiveDofSet,
+        DofsArrayType::Pointer pDofSet,
+        DofsArrayType::Pointer pEffectiveDofSet,
         EffectiveDofsMapType &rEffectiveDofIdMap,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
@@ -957,10 +1036,7 @@ public:
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
-    virtual void CalculateOutputData(
-        TSparseMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+    virtual void CalculateOutputData(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
         KRATOS_TRY
 

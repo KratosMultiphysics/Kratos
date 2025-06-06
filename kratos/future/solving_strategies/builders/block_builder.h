@@ -105,15 +105,15 @@ public:
 
     void ConstructMasterSlaveConstraintsStructure(
         const ModelPart& rModelPart,
-        const DofsArrayType& rDofSet,
-        DofsArrayType& rEffectiveDofSet,
+        const typename DofsArrayType::Pointer pDofSet,
+        typename DofsArrayType::Pointer pEffectiveDofSet,
         EffectiveDofsMapType& rEffectiveDofIdMap,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
         // Clear the provided effective DOFs map
-        KRATOS_WARNING_IF("BlockBuilder", !rEffectiveDofSet.empty()) << "Provided effective DOFs set is not empty. About to clear it." << std::endl;
+        KRATOS_WARNING_IF("BlockBuilder", !pEffectiveDofSet->empty()) << "Provided effective DOFs set is not empty. About to clear it." << std::endl;
         KRATOS_WARNING_IF("BlockBuilder", !rEffectiveDofIdMap.empty()) << "Provided effective DOFs ids map is not empty. About to clear it." << std::endl;
-        rEffectiveDofSet.clear();
+        pEffectiveDofSet->clear();
         rEffectiveDofIdMap.clear();
 
         //FIXME: Do the IsActiveConstraints in here and set a flag that stays "forever"
@@ -147,9 +147,9 @@ public:
             }
 
             // Loop the elements and conditions DOFs container to get the DOFs that are not slave
-            for (IndexType i_dof = 0; i_dof < rDofSet.size(); ++i_dof) {
+            for (IndexType i_dof = 0; i_dof < pDofSet->size(); ++i_dof) {
                 // Get current DOF
-                auto p_dof = *(rDofSet.ptr_begin() + i_dof);
+                auto p_dof = *(pDofSet->ptr_begin() + i_dof);
 
                 // Check if current DOF is slave by checking the slaves DOFs map
                 // If not present in the slaves DOFs map it should be considered in the resolution of the system
@@ -169,13 +169,13 @@ public:
                 [](const typename DofType::Pointer& pA, const typename DofType::Pointer& pB){return *pA > *pB;});
 
             // Fill the effective DOFs PVS with the sorted effective DOFs container
-            rEffectiveDofSet = std::move(DofsArrayType(ordered_eff_dofs_vector));
+            pEffectiveDofSet = std::make_shared<DofsArrayType>(ordered_eff_dofs_vector);
 
             // Set the effective DOFs equation ids based on the sorted list
-            rEffectiveDofIdMap.reserve(rEffectiveDofSet.size());
+            rEffectiveDofIdMap.reserve(pEffectiveDofSet->size());
             IndexType aux_dof_id = 0;
-            for (IndexType i_dof = 0; i_dof < rEffectiveDofSet.size(); ++i_dof) {
-                auto p_dof = *(rEffectiveDofSet.ptr_begin() + i_dof);
+            for (IndexType i_dof = 0; i_dof < pEffectiveDofSet->size(); ++i_dof) {
+                auto p_dof = *(pEffectiveDofSet->ptr_begin() + i_dof);
                 rEffectiveDofIdMap.insert(std::make_pair(p_dof, aux_dof_id));
                 ++aux_dof_id;
             }
@@ -189,9 +189,9 @@ public:
             TSparseGraphType constraints_sparse_graph(this->GetEquationSystemSize());
 
             // Loop the elements and conditions DOFs container to add the slave entries to the graph
-            for (IndexType i_dof = 0; i_dof < rDofSet.size(); ++i_dof) {
+            for (IndexType i_dof = 0; i_dof < pDofSet->size(); ++i_dof) {
                 // Get current DOF
-                auto p_dof = *(rDofSet.ptr_begin() + i_dof);
+                auto p_dof = *(pDofSet->ptr_begin() + i_dof);
                 const IndexType i_dof_eq_id = p_dof->EquationId();
 
                 // Check if current DOF is slave by checking the slaves DOFs map
@@ -234,7 +234,7 @@ public:
             auto p_aux_T = Kratos::make_shared<TSparseMatrixType>(constraints_sparse_graph);
             rLinearSystemContainer.pConstraintsT.swap(p_aux_T);
         } else {
-            rEffectiveDofSet = rDofSet; // If there are no constraints the effective DOF set is the standard one
+            pEffectiveDofSet = pDofSet; // If there are no constraints the effective DOF set is the standard one
             rEffectiveDofIdMap = EffectiveDofsMapType(); // Create an empty master ids map as the standard DOF equation ids can be used
         }
     }
