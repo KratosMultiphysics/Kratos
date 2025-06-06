@@ -67,7 +67,7 @@
             "model_part_name" : "MainModelPart.DISPLACEMENT_Displacement_Auto1",
             "variable_name"   : "DISPLACEMENT",
             "interval"        : [0.0,"End"],
-            "is_fixed"        : [true,true,true],
+            "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0],
             "Value_Table"     : [0,0,0]
         }

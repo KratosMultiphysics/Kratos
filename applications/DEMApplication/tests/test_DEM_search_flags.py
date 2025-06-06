@@ -16,7 +16,7 @@ def GetFilePath(fileName):
 class DEM3D_SearchFlagTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
     '''
     Test definition:
-    Two particles are created in two different locations and assigned velocities in order to make them collide. A FEM surface is also created between the two particles. With boths search flags set to FALSE, the test expect no collision between particles or against the middle wall.
+    Two particles are created in two different locations and assigned velocities in order to make them collide. A FEM surface is also created between the two particles. With both search flags set to FALSE, the test expects no collision between particles or against the middle wall.
     '''
 
     def GetMainPath(self):

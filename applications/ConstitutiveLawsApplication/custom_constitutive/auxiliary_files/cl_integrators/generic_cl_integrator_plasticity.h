@@ -142,7 +142,7 @@ class GenericConstitutiveLawIntegratorPlasticity
     ///@{
 
     /**
-     * @brief This method integrates the predictive stress vector with the CL using differents evolution laws using the backward euler scheme
+     * @brief This method integrates the predictive stress vector with the CL using different evolution laws using the backward euler scheme
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rStrainVector The equivalent strain vector of that integration point
      * @param rUniaxialStress The equivalent uniaxial stress
@@ -736,7 +736,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         if (PlasticDissipation <= segment_threshold) {
             const double Eps = EquivalentPlasticStrain;
 
-            if (EquivalentPlasticStrain < plastic_strain_indicator_1) { // Polinomial region
+            if (EquivalentPlasticStrain < plastic_strain_indicator_1) { // Polynomial region
                 double S_Ep = curve_fitting_parameters[0];
                 double dS_dEp = 0.0;
                 for (IndexType i = 1; i < order_polinomial; ++i) {

@@ -14,6 +14,7 @@
 
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
+#include "integration_coefficients_calculator.h"
 #include "integration_scheme.h"
 #include "stress_state_policy.h"
 
@@ -75,6 +76,7 @@ private:
     std::unique_ptr<IntegrationScheme>    mIntegrationScheme;
     std::unique_ptr<StressStatePolicy>    mStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
+    IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
 };
 
 } // namespace Kratos

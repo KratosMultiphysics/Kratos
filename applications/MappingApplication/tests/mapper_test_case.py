@@ -50,7 +50,7 @@ class MapperTestCase(KratosUnittest.TestCase):
 
     def setUp(self):
         # reset the ModelPart
-        # initialize it with random values, such that I am not accidentially
+        # initialize it with random values, such that I am not accidentally
         # checking against 0.0
         default_scalar = -12345.6789
         default_vector = KM.Vector([111.222, -222.999, 333.444])

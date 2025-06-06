@@ -42,3 +42,31 @@ def GetContainerExpression(model_part: Kratos.ModelPart, data_location: Expressi
     else:
         raise RuntimeError(f"Unsupported {data_location}.")
     return expression
+
+class ExpressionBoundingManager:
+    def __init__(self, bounds: 'list[float]') -> None:
+        """
+        This class is used to bound values of an expression to specified interval.
+            If a value in an expression is above the max value of bounds, then it will have a value larger than 1.0
+            if a value in an expression is below the min value of bounds, then it will have a value smaller than 0.0
+            Values in an expression will be linearly interpolated and mapped from interval [min(bounds), max(bounds)]
+            to [0, 1].
+
+        Args:
+            bounds (list[float]): Bounds of the given expression values.
+
+        Raises:
+            RuntimeError: If bounds does not contain two values.
+        """
+        if len(bounds) != 2:
+            raise RuntimeError(f"The bounds should be of size 2. [bounds = {bounds}]")
+        self.bounds = sorted(bounds)
+
+    def GetBoundGap(self) -> float:
+        return self.bounds[1] - self.bounds[0]
+
+    def GetBoundedExpression(self, unbounded_expression: ExpressionUnionType) -> ExpressionUnionType:
+        return (unbounded_expression - self.bounds[0]) / self.GetBoundGap()
+
+    def GetUnboundedExpression(self, bounded_expression: ExpressionUnionType) -> ExpressionUnionType:
+        return bounded_expression * self.GetBoundGap() + self.bounds[0]

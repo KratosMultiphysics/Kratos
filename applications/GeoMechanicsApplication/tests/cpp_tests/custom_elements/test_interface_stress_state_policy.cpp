@@ -126,21 +126,6 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectBMatrixForThreePlus
     KRATOS_EXPECT_MATRIX_NEAR(b_matrix, expected_b_matrix, 1.0e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectIntegrationCoefficient, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto interface_stress_state = InterfaceStressState{};
-
-    const Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
-
-    constexpr auto detJ                   = 2.0;
-    const auto     calculated_coefficient = interface_stress_state.CalculateIntegrationCoefficient(
-        integration_point, detJ, LineInterfaceGeometry<Line2D3<Node>>());
-
-    // The expected number is calculated as follows:
-    // weight * detJ = 0.5 * 2.0 = 1.0
-    KRATOS_EXPECT_NEAR(calculated_coefficient, 1.0, 1e-5);
-}
-
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto stress_state_policy = InterfaceStressState{};

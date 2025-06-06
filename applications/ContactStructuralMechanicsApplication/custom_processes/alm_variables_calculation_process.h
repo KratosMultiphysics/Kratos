@@ -185,7 +185,7 @@ private:
     ///@{
 
     ModelPart& mrThisModelPart;              /// The main model part
-    Variable<double>& mrNodalLengthVariable; /// The variable used to messure the lenght of the element
+    Variable<double>& mrNodalLengthVariable; /// The variable used to messure the length of the element
     double mFactorStiffness;                 /// The proportion between stiffness and penalty/scale factor
     double mPenaltyScale;                    /// The penalty/scale factor proportion
     bool mComputeScaleFactor;                /// If compute the scale factor
