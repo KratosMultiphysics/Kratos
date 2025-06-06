@@ -48,6 +48,7 @@ def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_tim
     project_editor = ProjectParameterEditor(project_param_path)
     project_editor.update_time_step_properties(num_steps, end_time)
     project_editor.update_end_time_properties(end_time)
+    project_editor.update_initial_stress_vector(initial_effective_cell_pressure)
 
     mdpa_editor = MdpaEditor(mdpa_path)
     mdpa_editor.update_maximum_strain(maximum_strain)
