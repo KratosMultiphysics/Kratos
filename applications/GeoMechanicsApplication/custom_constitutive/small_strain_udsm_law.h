@@ -96,9 +96,10 @@ public:
     SmallStrainUDSMLaw(const SmallStrainUDSMLaw&)            = delete;
     SmallStrainUDSMLaw& operator=(const SmallStrainUDSMLaw&) = delete;
 
-    // This constitutive law can be moved
-    SmallStrainUDSMLaw(SmallStrainUDSMLaw&&) noexcept;
-    SmallStrainUDSMLaw& operator=(SmallStrainUDSMLaw&&) noexcept;
+    // This constitutive law cannot be moved using the default semantics provided by the compiler
+    // due to the C-style multidimensional array. We'll disable the move operations for now.
+    SmallStrainUDSMLaw(SmallStrainUDSMLaw&&) noexcept = delete;
+    SmallStrainUDSMLaw& operator=(SmallStrainUDSMLaw&&) noexcept = delete;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
@@ -170,7 +171,7 @@ protected:
     array_1d<double, StrainIncrementVectorSize> mDeltaStrainVector{StrainIncrementVectorSize, 0.0};
     array_1d<double, VOIGT_SIZE_3D>             mStrainVectorFinalized{VOIGT_SIZE_3D, 0.0};
 
-    double mMatrixD[VOIGT_SIZE_3D][VOIGT_SIZE_3D];
+    double mMatrixD[VOIGT_SIZE_3D][VOIGT_SIZE_3D] = {}; // all elements equal zero
 
     virtual void UpdateInternalDeltaStrainVector(Parameters& rValues);
     virtual void UpdateInternalStrainVectorFinalized(Parameters& rValues);

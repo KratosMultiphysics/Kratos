@@ -144,10 +144,10 @@ void SmallStrainUDSM2DInterfaceLaw::PrintData(std::ostream& rOStream) const
     rOStream << "SmallStrainUDSM2DInterfaceLaw Data";
 }
 
-// Instances of this class cannot be copied, but they can be moved. Check that at compile time.
+// Instances of this class can neither be copied nor moved. Check that at compile time.
 static_assert(!std::is_copy_constructible_v<SmallStrainUDSM2DInterfaceLaw>);
 static_assert(!std::is_copy_assignable_v<SmallStrainUDSM2DInterfaceLaw>);
-static_assert(std::is_move_constructible_v<SmallStrainUDSM2DInterfaceLaw>);
-static_assert(std::is_move_assignable_v<SmallStrainUDSM2DInterfaceLaw>);
+static_assert(!std::is_move_constructible_v<SmallStrainUDSM2DInterfaceLaw>);
+static_assert(!std::is_move_assignable_v<SmallStrainUDSM2DInterfaceLaw>);
 
 } // Namespace Kratos

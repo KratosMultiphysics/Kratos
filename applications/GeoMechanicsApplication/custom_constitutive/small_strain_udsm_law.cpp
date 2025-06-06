@@ -136,11 +136,7 @@ SmallStrainUDSMLaw::~SmallStrainUDSMLaw() = default;
 SmallStrainUDSMLaw::SmallStrainUDSMLaw(std::unique_ptr<ConstitutiveLawDimension> pDimension)
     : mpDimension(std::move(pDimension))
 {
-    ResetConstitutiveMatrix();
 }
-
-SmallStrainUDSMLaw::SmallStrainUDSMLaw(SmallStrainUDSMLaw&&) noexcept            = default;
-SmallStrainUDSMLaw& SmallStrainUDSMLaw::operator=(SmallStrainUDSMLaw&&) noexcept = default;
 
 ConstitutiveLaw::Pointer SmallStrainUDSMLaw::Clone() const
 {
@@ -970,10 +966,10 @@ void SmallStrainUDSMLaw::load(Serializer& rSerializer)
     rSerializer.load("Dimension", mpDimension);
 }
 
-// Instances of this class cannot be copied, but they can be moved. Check that at compile time.
+// Instances of this class can neither be copied nor moved. Check that at compile time.
 static_assert(!std::is_copy_constructible_v<SmallStrainUDSMLaw>);
 static_assert(!std::is_copy_assignable_v<SmallStrainUDSMLaw>);
-static_assert(std::is_move_constructible_v<SmallStrainUDSMLaw>);
-static_assert(std::is_move_assignable_v<SmallStrainUDSMLaw>);
+static_assert(!std::is_move_constructible_v<SmallStrainUDSMLaw>);
+static_assert(!std::is_move_assignable_v<SmallStrainUDSMLaw>);
 
 } // Namespace Kratos
