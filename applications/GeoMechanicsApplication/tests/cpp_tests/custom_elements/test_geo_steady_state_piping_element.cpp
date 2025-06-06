@@ -260,7 +260,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput,
     p_element2->GetProperties().SetValue(DENSITY_WATER, -1.0E3);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element2->Check(dummy_process_info),
-        "DENSITY_WATER of material Id = 0 at element 2 has an invalid value -1000 which is below the minimum allowed value of 0")
+        "DENSITY_WATER of material Id = 0 at element 2 has an invalid value -1000 which is below "
+        "the minimum allowed value of 0")
     p_element2->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element2->Check(dummy_process_info),
@@ -268,15 +269,16 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput,
     p_element2->GetProperties().SetValue(DYNAMIC_VISCOSITY, -1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element2->Check(dummy_process_info),
-        "DYNAMIC_VISCOSITY of material Id = 0 at element 2 has an invalid value -0.01 which is below the minimum allowed value of 0")
+        "DYNAMIC_VISCOSITY of material Id = 0 at element 2 has an invalid value -0.01 which is "
+        "below the minimum allowed value of 0")
     p_element2->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element2->Check(dummy_process_info),
         "PIPE_HEIGHT does not exist in the material properties (Id = 0) at element 2")
     p_element2->GetProperties().SetValue(PIPE_HEIGHT, -1.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_element2->Check(dummy_process_info),
-        "PIPE_HEIGHT of material Id = 0 at element 2 has an invalid value -1 which is below the minimum allowed value of 0")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element2->Check(dummy_process_info),
+                                      "PIPE_HEIGHT of material Id = 0 at element 2 has an invalid "
+                                      "value -1 which is below the minimum allowed value of 0")
     p_element2->GetProperties().SetValue(PIPE_HEIGHT, 1.0);
 
     p_element2->GetGeometry().begin()->Z() += 1;
