@@ -1,5 +1,3 @@
-from tkinter import scrolledtext
-
 _log_widget = None
 
 def init_log_widget(widget):
