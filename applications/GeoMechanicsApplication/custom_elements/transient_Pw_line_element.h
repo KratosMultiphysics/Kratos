@@ -230,31 +230,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                      std::vector<Vector>&    rOutput,
-                                      const ProcessInfo&      rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        const auto& r_geometry = this->GetGeometry();
-        const auto number_of_integration_points = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
-        const auto& r_properties = this->GetProperties();
-
-        rOutput.resize(number_of_integration_points);
-
-        if (r_properties.Has(rVariable)) {
-            // Map initial material property to integration points, as required for the output
-            std::fill_n(rOutput.begin(), mConstitutiveLawVector.size(), r_properties.GetValue(rVariable));
-        } else {
-            for (unsigned int integration_point = 0;
-                 integration_point < mConstitutiveLawVector.size(); ++integration_point)
-                rOutput[integration_point] = mConstitutiveLawVector[integration_point]->GetValue(
-                    rVariable, rOutput[integration_point]);
-        }
-
-        KRATOS_CATCH("")
-    }
-
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override
@@ -365,8 +340,6 @@ public:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
-
-    //////////////////////////////////////////////////
 
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
