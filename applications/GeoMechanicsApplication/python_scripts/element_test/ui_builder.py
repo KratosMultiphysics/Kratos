@@ -82,9 +82,14 @@ class GeotechTestUI:
 
     def _init_dropdown_section(self):
         ttk.Label(self.dropdown_frame, text="Select a Model:", font=("Arial", 12, "bold")).pack(anchor="w", padx=5, pady=5)
-        model_menu = ttk.Combobox(self.dropdown_frame, textvariable=self.model_var, values=self.model_dict["model_name"], state="readonly")
-        model_menu.pack(side="top", fill="x", expand=True, padx=5)
+        self.model_menu = ttk.Combobox(self.dropdown_frame, textvariable=self.model_var, values=self.model_dict["model_name"], state="readonly")
+        self.model_menu.pack(side="top", fill="x", expand=True, padx=5)
         self.model_var.trace("w", lambda *args: self._create_input_fields())
+
+        if self.is_linear_elastic:
+            self.model_menu.configure(state="disabled")
+        else:
+            self.model_menu.configure(state="readonly")
 
         ttk.Label(self.log_frame, text="Log Output:", font=("Arial", 10, "bold")).pack(anchor="w")
         self.log_widget = scrolledtext.ScrolledText(self.log_frame, height=6, width=40, state="disabled", wrap="word", font=("Courier", 9))
@@ -308,3 +313,6 @@ class GeotechTestUI:
 
         if self.is_linear_elastic:
             self.mohr_checkbox_widget.configure(state="disabled")
+            self.model_menu.configure(state="disabled")
+        else:
+            self.model_menu.configure(state="readonly")
