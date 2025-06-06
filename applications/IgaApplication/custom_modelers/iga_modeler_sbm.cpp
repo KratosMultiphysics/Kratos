@@ -274,12 +274,15 @@ void IgaModelerSbm::CreateQuadraturePointGeometries(
                 rModelPart, name, id, PropertiesPointerType());
         }
         else if (type == "condition") {
+            // Get the mesh sizes from the iga model part
+            const Vector& knot_span_sizes = rModelPart.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+
             SizeType id = 1;
             if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                 id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
             this->CreateConditions(
                 geometries.ptr_begin(), geometries.ptr_end(),
-                rModelPart, name, id, PropertiesPointerType());
+                rModelPart, name, id, PropertiesPointerType(), knot_span_sizes);
         }
         else {
             KRATOS_ERROR << "\"type\" does not exist: " << type
@@ -496,14 +499,14 @@ void IgaModelerSbm::CreateElements(
     rModelPart.AddElements(new_element_list.begin(), new_element_list.end());
 }
 
-
 void IgaModelerSbm::CreateConditions(
     typename GeometriesArrayType::ptr_iterator rGeometriesBegin,
     typename GeometriesArrayType::ptr_iterator rGeometriesEnd,
     ModelPart& rModelPart,
     std::string& rConditionName,
     SizeType& rIdCounter,
-    PropertiesPointerType pProperties) const
+    PropertiesPointerType pProperties,
+    const Vector KnotSpanSizes) const
 {
     const Condition& reference_condition = KratosComponents<Condition>::Get(rConditionName);
 
@@ -513,14 +516,20 @@ void IgaModelerSbm::CreateConditions(
         << "Creating conditions of type " << rConditionName
         << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
+    int countListClosestCondition = 0;
     for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
     {
         new_condition_list.push_back(
             reference_condition.Create(rIdCounter, (*it), pProperties));
+        
+        // Set knot span sizes to the condition
+        new_condition_list.GetContainer()[countListClosestCondition]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);
+
         for (SizeType i = 0; i < (*it)->size(); ++i) {
             rModelPart.Nodes().push_back((*it)->pGetPoint(i));
         }
         rIdCounter++;
+        countListClosestCondition++;
     }
 
     rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
@@ -537,7 +546,7 @@ void IgaModelerSbm::CreateConditions(
     SizeType& rIdCounter,
     PropertiesPointerType pProperties,
     bool IsInner,
-    Vector KnotSpanSizes) const
+    const Vector KnotSpanSizes) const
 {
     const Condition& reference_condition = KratosComponents<Condition>::Get(rConditionName);
 
