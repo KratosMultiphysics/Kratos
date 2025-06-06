@@ -868,6 +868,15 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CalculateOnIntegrationPoints_Ve
 
     // Act
     results.clear();
+    p_element->CalculateOnIntegrationPoints(DYNAMIC_VISCOSITY, results, dummy_process_info);
+
+    // Assert
+    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    expected_results <<= 0.01, 0.01, 0.01;
+    KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
+
+    // Act
+    results.clear();
     p_element->CalculateOnIntegrationPoints(DT_WATER_PRESSURE, results, dummy_process_info);
 
     // Assert
