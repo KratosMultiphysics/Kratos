@@ -144,7 +144,7 @@ Some users of the technologies developed in Kratos are:
 ## In Kratos Core:
 - [Boost](http://www.boost.org/) for uBLAS
 - [pybind11](https://github.com/pybind/pybind11) for exposing C++ to python
-- [GidPost](https://www.gidhome.com/gid-plus/tools/476/gidpost/) providing output to [GiD](https://www.gidhome.com/)
+- [GidPost]([https://www.gidhome.com/gid-plus/tools/476/gidpost/](https://www.gidsimulation.com/downloads/gidpost-2-11-library-to-write-postprocess-results-for-gid-in-ascii-binary-or-hdf5-format/)) providing output to [GiD](https://www.gidsimulation.com/)
 - [AMGCL](https://github.com/ddemidov/amgcl) for its highly scalable multigrid solver
 - [JSON](https://github.com/nlohmann/json) JSON for Modern C++
 - [ZLib](https://zlib.net/) The compression library
