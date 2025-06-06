@@ -89,6 +89,11 @@ class GeotechTestUI:
         ttk.Label(self.log_frame, text="Log Output:", font=("Arial", 10, "bold")).pack(anchor="w")
         self.log_widget = scrolledtext.ScrolledText(self.log_frame, height=6, width=40, state="disabled", wrap="word", font=("Courier", 9))
         self.log_widget.pack(fill="x", expand=False)
+
+        self.log_widget.bind("<Key>", lambda e: "break")
+        self.log_widget.bind("<Button-1>", lambda e: "break")
+        self.log_widget.bind("<FocusIn>", lambda e: self.root.focus())
+
         init_log_widget(self.log_widget)
 
     def _create_input_fields(self):
