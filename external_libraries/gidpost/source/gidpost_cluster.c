@@ -33,6 +33,7 @@ extern CPostFile *G_MeshFile;
 extern CPostFile *G_ResultFile;
 extern CPostFile *G_outputMesh;
 // extern GiD_PostMode G_PostMode;
+CPostFile *FD2FILE( GiD_FILE fd);
 
 /*
  *  Write a cluster element member at the current Elements Block.
