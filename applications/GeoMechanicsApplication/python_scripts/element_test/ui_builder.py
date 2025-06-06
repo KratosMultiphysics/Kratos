@@ -190,6 +190,12 @@ class GeotechTestUI:
         clear_log()
         self.current_test.set(test_name)
 
+        for name, button in self.test_buttons.items():
+            if name == test_name:
+                button.config(relief="sunken", bg="#d9d9d9", state="disabled")
+            else:
+                button.config(relief="raised", bg="SystemButtonFace", state="normal")
+
         for w in self.test_input_frame.winfo_children():
             w.destroy()
 
