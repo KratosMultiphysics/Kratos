@@ -326,40 +326,12 @@ std::size_t CountValuesUntilPrefix(
     std::size_t count = 0;
 
     while (iss >> token) { // Read tokens one by one
-        // Check if the token contains the stop prefix
-        // If the token contains the stop prefix, we stop counting
-        // We use find to check if the token contains the stop prefix
-        // Note: find returns std::string::npos if the substring is not found
-        // If the token contains the stop prefix, we stop counting
-        // We do not count the token that contains the stop prefix
-        if (token.find(rStopPrefix) != std::string::npos) {
-            break; // Stop condition met, do not count this token or subsequent ones
-        }
-        count++; // Increment count for tokens that do not meet the stop condition
-    }
-    return count;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-std::size_t CountValuesUntilCharacter(
-    const std::string& rInputString,
-    const std::string& rStopCharacter
-    )
-{
-    std::istringstream iss(rInputString); // Use a string stream to easily extract tokens
-    std::string token;
-    std::size_t count = 0;
-
-    while (iss >> token) { // Read tokens one by one
-        // Check if the token contains the stop prefix
-        // If the token contains the stop prefix, we stop counting
-        // We use find to check if the token contains the stop prefix
-        // Note: find returns std::string::npos if the substring is not found
-        // If the token contains the stop prefix, we stop counting
-        // We do not count the token that contains the stop prefix
-        if (token.find(rStopCharacter) != std::string::npos) {
+        // Check if the current token starts with the rStopPrefix
+        // string::find(substring_to_find, starting_position)
+        // If rStopPrefix is found at the beginning of token (position 0), it returns 0.
+        // If rStopPrefix is empty, token.find("", 0) also returns 0,
+        // meaning an empty rStopPrefix will cause the loop to break on the first token, returning 0.
+        if (token.find(rStopPrefix, 0) == 0) {
             break; // Stop condition met, do not count this token or subsequent ones
         }
         count++; // Increment count for tokens that do not meet the stop condition
