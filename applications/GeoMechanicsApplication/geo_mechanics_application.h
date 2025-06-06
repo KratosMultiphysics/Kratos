@@ -123,10 +123,9 @@
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
 #include "custom_constitutive/plane_strain.h"
-#include "custom_constitutive/small_strain_udsm_2D_interface_law.hpp"
-#include "custom_constitutive/small_strain_udsm_2D_plane_strain_law.hpp"
-#include "custom_constitutive/small_strain_udsm_3D_interface_law.hpp"
-#include "custom_constitutive/small_strain_udsm_3D_law.hpp"
+#include "custom_constitutive/small_strain_udsm_2D_interface_law.h"
+#include "custom_constitutive/small_strain_udsm_3D_interface_law.h"
+#include "custom_constitutive/small_strain_udsm_law.h"
 #include "custom_constitutive/small_strain_umat_2D_interface_law.hpp"
 #include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
 #include "custom_constitutive/small_strain_umat_3D_interface_law.hpp"
@@ -992,10 +991,10 @@ private:
     const GeoIncrementalLinearElasticLaw mLinearElastic3DLaw{std::make_unique<ThreeDimensional>()};
     const GeoLinearElasticPlaneStress2DLaw mLinearElasticPlaneStress2DLaw;
 
-    const SmallStrainUDSM3DLaw            mSmallStrainUDSM3DLaw{};
-    const SmallStrainUDSM2DPlaneStrainLaw mSmallStrainUDSM2DPlaneStrainLaw{};
-    const SmallStrainUDSM2DInterfaceLaw   mSmallStrainUDSM2DInterfaceLaw{};
-    const SmallStrainUDSM3DInterfaceLaw   mSmallStrainUDSM3DInterfaceLaw{};
+    const SmallStrainUDSMLaw mSmallStrainUDSM2DPlaneStrainLaw{std::make_unique<PlaneStrain>()};
+    const SmallStrainUDSMLaw mSmallStrainUDSM3DLaw{std::make_unique<ThreeDimensional>()};
+    const SmallStrainUDSM2DInterfaceLaw mSmallStrainUDSM2DInterfaceLaw{};
+    const SmallStrainUDSM3DInterfaceLaw mSmallStrainUDSM3DInterfaceLaw{};
 
     const SmallStrainUMAT3DLaw            mSmallStrainUMAT3DLaw{};
     const SmallStrainUMAT2DPlaneStrainLaw mSmallStrainUMAT2DPlaneStrainLaw{};
