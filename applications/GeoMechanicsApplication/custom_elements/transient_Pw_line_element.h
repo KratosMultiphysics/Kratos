@@ -279,7 +279,9 @@ public:
         CheckUtilities::CheckHasDofsFor(this->GetGeometry(), WATER_PRESSURE);
         CheckProperties();
         CheckUtilities::CheckForNonZeroZCoordinateIn2D(TDim, this->GetGeometry());
-        CheckRetentionLaw(rCurrentProcessInfo);
+        if (!mRetentionLawVector.empty()) {
+            return mRetentionLawVector[0]->Check(this->GetProperties(), rCurrentProcessInfo);
+        }
 
         KRATOS_CATCH("")
 
@@ -344,13 +346,6 @@ private:
                 CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), PERMEABILITY_YZ);
                 CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), PERMEABILITY_ZX);
             }
-        }
-    }
-
-    void CheckRetentionLaw(const ProcessInfo& rCurrentProcessInfo) const
-    {
-        if (!mRetentionLawVector.empty()) {
-            mRetentionLawVector[0]->Check(this->GetProperties(), rCurrentProcessInfo);
         }
     }
 
