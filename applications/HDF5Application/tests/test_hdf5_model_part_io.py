@@ -104,17 +104,21 @@ class TestCase(KratosUnittest.TestCase):
             node.Set(STRUCTURE, bool(random.randint(-100, 100) % 2))
 
         for element in model_part.Elements:
-            element.SetValue(DISPLACEMENT, Vector([random.random(), random.random(), random.random()]))
+            if (element.Id % 2 == 0):
+                element.SetValue(DISPLACEMENT, Vector([random.random(), random.random(), random.random()]))
             element.SetValue(VELOCITY, Vector([random.random(), random.random(), random.random()]))
-            element.SetValue(ACCELERATION, Vector([random.random(), random.random(), random.random()]))
+            if (element.Id % 3 == 0):
+                element.SetValue(ACCELERATION, Vector([random.random(), random.random(), random.random()]))
             element.SetValue(PRESSURE, random.random())
             element.SetValue(VISCOSITY, random.random())
-            element.SetValue(DENSITY, random.random())
+            if (element.Id % 4 == 0):
+                element.SetValue(DENSITY, random.random())
             element.SetValue(ACTIVATION_LEVEL, random.randint(-100, 100))
 
             element.Set(SLIP, bool(random.randint(-100, 100) % 2))
             element.Set(ACTIVE, bool(random.randint(-100, 100) % 2))
-            element.Set(STRUCTURE, bool(random.randint(-100, 100) % 2))
+            if (element.Id % 3 == 0):
+                element.Set(STRUCTURE, bool(random.randint(-100, 100) % 2))
 
         for condition in model_part.Conditions:
             condition.SetValue(DISPLACEMENT, Vector([random.random(), random.random(), random.random()]))
@@ -399,7 +403,11 @@ class TestCase(KratosUnittest.TestCase):
             # Check data.
             for read_element, write_element in zip(read_model_part.Elements, write_model_part.Elements):
                 for var in assert_variables_list:
-                    self.assertEqual(read_element.GetValue(var), write_element.GetValue(var))
+                    if (write_element.Has(var)):
+                        self.assertTrue(read_element.Has(var))
+                        self.assertEqual(read_element.GetValue(var), write_element.GetValue(var))
+                    else:
+                        self.assertFalse(read_element.Has(var))
 
     def test_HDF5ElementFlagValueIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -420,7 +428,11 @@ class TestCase(KratosUnittest.TestCase):
             # Check data.
             for read_element, write_element in zip(read_model_part.Elements, write_model_part.Elements):
                 for var in assert_variables_list:
-                    self.assertEqual(read_element.Is(var), write_element.Is(var))
+                    if write_element.IsDefined(var):
+                        self.assertTrue(read_element.IsDefined(var))
+                        self.assertEqual(read_element.Is(var), write_element.Is(var))
+                    else:
+                        self.assertFalse(read_element.IsDefined(var))
 
     def test_HDF5ConditionDataValueIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
