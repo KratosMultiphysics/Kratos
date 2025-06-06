@@ -614,10 +614,10 @@ public:
         SizeType NumPointsPerSpanU,
         SizeType NumPointsPerSpanV) const
     {
-        auto element_iterator = mThb.makeDomainIterator();
+        auto element_iterator_end = mThb.domain()->endAll();
 
         const SizeType number_of_integration_points =
-            element_iterator->numElements() 
+            mThb.numElements() 
             * NumPointsPerSpanU * NumPointsPerSpanV;
 
         if (rIntegrationPoints.size() != number_of_integration_points) {
@@ -626,13 +626,13 @@ public:
 
         typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
 
-        for(;element_iterator->good();element_iterator->next())
+        for (auto element_iterator =  mThb.domain()->beginAll(); element_iterator<element_iterator_end; ++element_iterator )
         {
-                IntegrationPointUtilities::IntegrationPoints2D(
-                    integration_point_iterator,
-                    NumPointsPerSpanU, NumPointsPerSpanV,
-                element_iterator->lowerCorner()[0], element_iterator->upperCorner()[0],
-                element_iterator->lowerCorner()[1], element_iterator->upperCorner()[1]);
+            IntegrationPointUtilities::IntegrationPoints2D(
+                integration_point_iterator,
+                NumPointsPerSpanU, NumPointsPerSpanV,
+                element_iterator.lowerCorner()[0], element_iterator.upperCorner()[0],
+                element_iterator.lowerCorner()[1], element_iterator.upperCorner()[1]);
         }
     }
 
@@ -712,11 +712,11 @@ public:
             if (NumberOfShapeFunctionDerivatives > 0) {
                 for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; n++) {
                     if(n == 0){
-                    for (IndexType k = 0; k < n + 2; k++) {
-                        for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                            shape_function_derivatives[n](j, k) = ThbResultDeriv(j*2 + k , 0);
+                        for (IndexType k = 0; k < n + 2; k++) {
+                            for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                                shape_function_derivatives[n](j, k) = ThbResultDeriv(j*2 + k , 0);
+                            }
                         }
-                    }
                     }
                     else if(n == 1){
                         for (IndexType j = 0; j < num_nonzero_cps; j++) {
