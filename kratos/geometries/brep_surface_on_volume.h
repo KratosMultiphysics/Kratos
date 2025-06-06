@@ -78,6 +78,7 @@ public:
 
     static constexpr IndexType SURFACE_ON_VOLUME_INDEX = std::numeric_limits<IndexType>::max() - 2;
 
+    using GeometryType::SpansLocalSpace;
 
     ///@}
     ///@name Life Cycle
