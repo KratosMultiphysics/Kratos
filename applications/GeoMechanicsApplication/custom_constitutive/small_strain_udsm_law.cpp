@@ -374,7 +374,7 @@ int SmallStrainUDSMLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rMat
     int    isUndr            = 0;
     int    nStateVariables   = 0;
 
-    // variable to check if an error occurred in the model:
+    // Variable to check if an error occurred in the shared library:
     int                 iAbort                = 0;
     auto                nSizeProjectDirectory = static_cast<int>(mProjectDirectory.size());
     std::vector<double> StateVariablesFinalized;
@@ -841,7 +841,6 @@ Vector& SmallStrainUDSMLaw::CalculateValue(Parameters& rParameterValues, const V
         rFlags.Set(COMPUTE_CONSTITUTIVE_TENSOR, true);
         rFlags.Set(COMPUTE_STRESS, true);
 
-        // We compute the stress
         CalculateMaterialResponseCauchy(rParameterValues);
         rValue = rParameterValues.GetStressVector();
 
