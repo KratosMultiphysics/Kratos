@@ -625,8 +625,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
     KRATOS_TRY
 
     const GeometryType& r_geom = GetGeometry();
-    const auto number_of_integration_points =
-        r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+    const auto number_of_integration_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
     rOutput.resize(number_of_integration_points);
 
     if (rVariable == CAUCHY_STRESS_VECTOR) {

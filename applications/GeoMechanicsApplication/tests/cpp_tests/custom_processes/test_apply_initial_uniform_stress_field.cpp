@@ -126,7 +126,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldThrowsUponConstructionWh
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         ApplyInitialUniformStressField(rModelPart, parameters),
         "The size of the input stress vector for applying a uniform initial stress field must "
-        "match the strain size of the constitutive law, which is 4, but is 3 for element 1 in model part "
+        "match the strain size of the constitutive law, which is 4, but is 3 for element 1 in "
+        "model part "
         "'Main'. Please check the process parameters.");
 }
 
