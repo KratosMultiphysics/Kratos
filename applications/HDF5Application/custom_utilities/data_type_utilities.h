@@ -16,6 +16,8 @@
 #include "hdf5.h"
 #include <algorithm>
 #include <type_traits>
+#include <unordered_map>
+#include <sstream>
 
 // Project includes
 #include "containers/flags.h"
@@ -88,7 +90,89 @@ void GetShapeFromAttributes(
     }
 }
 
+template<class TContainerType>
+[[nodiscard]] std::vector<std::string> GetListOfAvailableVariables(
+    TContainerType& rContainer,
+    const DataCommunicator& rDataCommunicator)
+{
+    KRATOS_TRY
 
+    using map_type = std::unordered_map<VariableData::KeyType, std::string>;
+
+    // Map to Map reduction class
+    class MapReduction
+    {
+    public:
+        using return_type = map_type;
+
+        return_type mValue;
+
+        /// access to reduced value
+        return_type GetValue() const
+        {
+            return mValue;
+        }
+
+        /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+        void LocalReduce(map_type rValue){
+            mValue.merge(rValue);
+        }
+
+        /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+        void ThreadSafeReduce(MapReduction& rOther)
+        {
+            KRATOS_CRITICAL_SECTION
+            mValue.merge(rOther.mValue);
+        }
+    };
+
+    // collect all the unique key, variable names map from all the entities
+    const auto& key_variable_names_map = block_for_each<MapReduction>(rContainer, map_type(), [](auto& rEntity, auto& rTLS) {
+        const auto& r_data = rEntity.GetData();
+        for (auto it = r_data.begin(); it != r_data.end(); ++it) {
+            auto itr = rTLS.find(it->first->Key());
+            if (itr == rTLS.end()) {
+                rTLS.insert(std::make_pair(it->first->Key(), it->first->Name()));
+            }
+        }
+
+        return rTLS;
+    });
+
+    // serialize the collected map with only the variable names
+    std::vector<char> serialized_char_array;
+    std::for_each(key_variable_names_map.begin(), key_variable_names_map.end(),
+                  [&serialized_char_array](const auto& rPair) {
+                      std::for_each(rPair.second.begin(), rPair.second.end(),
+                                    [&serialized_char_array](const auto CurrentChar) {
+                                        serialized_char_array.push_back(CurrentChar);
+                                    });
+                      serialized_char_array.push_back(';');
+                  });
+
+    // do the mpi communication
+    const auto& global_serialized_char_array = rDataCommunicator.AllGatherv(serialized_char_array);
+
+    std::vector<std::string> result;
+    for (const auto& r_serialized_char_array : global_serialized_char_array) {
+        std::stringstream temp;
+        for (const auto current_char : r_serialized_char_array) {
+            if (current_char != ';') {
+                temp << current_char;
+            } else {
+                result.push_back(temp.str());
+                temp.str(std::string()); // clear the string stream
+            }
+        }
+    }
+
+    std::sort(result.begin(), result.end());
+    auto last = std::unique(result.begin(), result.end());
+    result.erase(last, result.end());
+    return result;
+
+    KRATOS_CATCH("");
+}
 
 template<class TDataType>
 struct ComponentTraits {};
