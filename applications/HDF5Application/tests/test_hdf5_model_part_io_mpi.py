@@ -216,6 +216,73 @@ class TestCase(KratosUnittest.TestCase):
 
             self.assertEqual(Utilities.GetListOfAvailableVariables(model_part.Elements, data_communicator), ['BOSSAK_ALPHA', 'DENSITY', 'DISTANCE', 'RADIUS'])
 
+    def test_HDF5ElementDataAndFlags(self):
+        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            current_model = Model()
+            write_model_part = current_model.CreateModelPart("write")
+            KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(write_model_part, Testing.GetDefaultDataCommunicator())
+            self._initialize_model_part(write_model_part)
+
+            data_communicator: DataCommunicator = write_model_part.GetCommunicator().GetDataCommunicator()
+
+            my_rank = data_communicator.Rank()
+            element: Element
+            for element in write_model_part.Elements:
+                element.SetValue(TEMPERATURE, random.random())
+                element.Set(STRUCTURE, element.Id % 2)
+                if my_rank % 2 == 0 and element.Id % 2 == 0:
+                    element.SetValue(DENSITY, 1.0)
+                    element.Set(SLIP, True)
+                elif my_rank % 2 == 1 and element.Id % 2 == 1:
+                    element.SetValue(DISPLACEMENT, Vector([random.random(), random.random(), random.random()]))
+                    element.SetValue(DISTANCE, random.random())
+                elif my_rank % 2 == 1 and element.Id % 2 == 0:
+                    element.SetValue(RADIUS, 3.0)
+                else:
+                    element.SetValue(BOSSAK_ALPHA, 4.0)
+
+            params = Parameters("""
+            {
+                "prefix" : "/ResultsData",
+                "list_of_variables" : ["DENSITY", "DISPLACEMENT", "RADIUS", "BOSSAK_ALPHA", "DISTANCE", "TEMPERATURE"]
+            }""")
+            hdf5_file = self._get_file(write_model_part.GetCommunicator().GetDataCommunicator())
+            data_value_io = HDF5ElementDataValueIO(params, hdf5_file)
+            data_value_io.Write(write_model_part)
+
+            params = Parameters("""
+            {
+                "prefix" : "/ResultsData",
+                "list_of_variables" : ["SLIP", "STRUCTURE"]
+            }""")
+            flag_value_io = HDF5ElementFlagValueIO(params, hdf5_file)
+            flag_value_io.Write(write_model_part)
+
+            read_model_part = current_model.CreateModelPart("read")
+            KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(read_model_part, Testing.GetDefaultDataCommunicator())
+            self._initialize_model_part(read_model_part)
+            data_value_io.Read(read_model_part)
+            flag_value_io.Read(read_model_part)
+
+            assert_variables_list = [DENSITY, DISTANCE, RADIUS, BOSSAK_ALPHA, TEMPERATURE]
+            assert_flags_list = [SLIP, STRUCTURE]
+            for read_element, write_element in zip(read_model_part.Elements, write_model_part.Elements):
+                for var in assert_variables_list:
+                    if write_element.Has(var):
+                        self.assertTrue(read_element.Has(var))
+                        self.assertEqual(read_element.GetValue(var), write_element.GetValue(var))
+                    else:
+                        self.assertFalse(read_element.Has(var))
+
+                for flag in assert_flags_list:
+                    if write_element.IsDefined(flag):
+                        self.assertTrue(read_element.IsDefined(flag))
+                        self.assertEqual(read_element.Is(flag), write_element.Is(flag))
+                    else:
+                        self.assertFalse(read_element.IsDefined(flag))
+
+            kratos_utilities.DeleteFileIfExisting("test_hdf5_model_part_io_mpi.h5")
+
     def test_HDF5ModelPartIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             current_model = Model()
