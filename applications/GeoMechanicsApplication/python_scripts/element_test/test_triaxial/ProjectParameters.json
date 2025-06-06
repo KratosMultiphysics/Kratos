@@ -160,7 +160,7 @@
                     },
                     "point_data_configuration"  : []
                 },
-                "output_name"            : "gid_output/triaxial_Stage_2"
+                "output_name"            : "gid_output/triaxial"
             }
         }]
     }

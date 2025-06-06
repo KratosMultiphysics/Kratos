@@ -51,7 +51,6 @@ class ProjectParameterEditor:
         ProjectParameterEditor._update_property(self, 'end_time', end_time)
 
     def update_initial_stress_vector(self,  initial_effective_cell_pressure):
-
         new_stress_values = [-initial_effective_cell_pressure] * 3 + [0.0]
         self._update_nested_value("apply_initial_uniform_stress_field", "value", new_stress_values)
 

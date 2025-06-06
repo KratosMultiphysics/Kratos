@@ -14,7 +14,8 @@ def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_tim
                             cohesion_phi_indices=None):
     tmp_folder = tempfile.mkdtemp(prefix="triaxial_")
 
-    src_dir = 'test_triaxial'
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    src_dir = os.path.join(base_dir, "test_triaxial")
     files_to_copy = [
         "MaterialParameters.json",
         "ProjectParameters.json",
@@ -56,7 +57,7 @@ def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_tim
     mdpa_editor.update_end_time(end_time)
     mdpa_editor.update_first_timestep(num_steps)
 
-    output_files = [os.path.join(tmp_folder, 'gid_output', "triaxial_Stage_2.post.res")]
+    output_files = [os.path.join(tmp_folder, 'gid_output', "triaxial.post.res")]
     runner = TriaxialTestRunner(output_files, tmp_folder)
     reshaped_values_by_time, vertical_strain, volumetric_strain, von_mise_stress, mean_effective_stresses = runner.run()
 

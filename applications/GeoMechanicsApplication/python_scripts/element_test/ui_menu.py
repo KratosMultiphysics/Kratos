@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from ui_builder import GeotechTestUI
@@ -68,6 +69,12 @@ def create_menu():
     model_source_menu.bind("<<ComboboxSelected>>", handle_model_source_selection)
     model_source_menu.pack(side="left", padx=5)
 
+    def on_close():
+        root.quit()
+        root.destroy()
+        os._exit(0)
+
+    root.protocol("WM_DELETE_WINDOW", on_close)
     root.mainloop()
 
 if __name__ == "__main__":
