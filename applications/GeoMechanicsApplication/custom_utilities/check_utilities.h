@@ -38,6 +38,7 @@ public:
                                               const Properties&                    rProperties,
                                               const Kratos::Variable<std::string>& rVariable,
                                               const std::string&                   rName);
+    static void CheckForNonZeroZCoordinateIn2D(size_t Dimension, const Geometry<Node>& rGeometry);
 
 }; /* Class CheckUtilities*/
 } /* namespace Kratos.*/

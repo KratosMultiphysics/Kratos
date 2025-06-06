@@ -278,7 +278,7 @@ public:
         CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), VOLUME_ACCELERATION);
         CheckUtilities::CheckHasDofsFor(this->GetGeometry(), WATER_PRESSURE);
         CheckProperties();
-        CheckForNonZeroZCoordinateIn2D();
+        CheckUtilities::CheckForNonZeroZCoordinateIn2D(TDim, this->GetGeometry());
         CheckRetentionLaw(rCurrentProcessInfo);
 
         KRATOS_CATCH("")
@@ -344,17 +344,6 @@ private:
                 CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), PERMEABILITY_YZ);
                 CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), PERMEABILITY_ZX);
             }
-        }
-    }
-
-    void CheckForNonZeroZCoordinateIn2D() const
-    {
-        if constexpr (TDim == 2) {
-            const auto& r_geometry = GetGeometry();
-            auto        pos        = std::find_if(r_geometry.begin(), r_geometry.end(),
-                                                  [](const auto& node) { return node.Z() != 0.0; });
-            KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
-                << "Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
         }
     }
 
