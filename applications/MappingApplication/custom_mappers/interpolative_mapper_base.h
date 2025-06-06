@@ -264,7 +264,6 @@ protected:
         KRATOS_TRY;
 
         BuildMappingMatrix();
-        exit(0);
 
         KRATOS_CATCH("");
     }
