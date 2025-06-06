@@ -538,6 +538,8 @@ std::string GetContainerName()
         return "ELEMENTS";
     } else if constexpr(std::is_same_v<TContainerType, Detail::VertexContainerType>) {
         return "VERTICES";
+    } else if constexpr(std::is_same_v<TContainerType, ModelPart::PropertiesContainerType>){
+        return "PROPERTIES";
     } else {
         static_assert(!std::is_same_v<TContainerType, TContainerType>, "Unsupported container type.");
     }
