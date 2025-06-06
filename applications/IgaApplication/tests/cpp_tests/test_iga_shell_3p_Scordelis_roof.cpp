@@ -16,6 +16,7 @@
 #include "test_creation_utility_Scordelis_roof.h"
 
 #include "custom_elements/shell_3p_element.h"
+#include "iga_fast_suite.h"
 
 namespace Kratos
 {

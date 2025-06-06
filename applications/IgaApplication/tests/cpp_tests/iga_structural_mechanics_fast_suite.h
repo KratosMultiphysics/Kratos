@@ -16,27 +16,20 @@
 namespace Kratos
 {
 class KratosIgaApplication;
+class KratosStructuralMechanicsApplication;
 } // namespace Kratos
 
 namespace Kratos::Testing
 {
 
-class KratosIgaFastSuite : public KratosCoreFastSuite
+class KratosIgaSMFastSuite : public KratosCoreFastSuite
 {
 public:
-    KratosIgaFastSuite();
+    KratosIgaSMFastSuite();
 
 private:
     std::shared_ptr<KratosIgaApplication>  mpIgaApp;
-};
-
-class KratosIgaFast5PSuite : public KratosCoreFastSuite
-{
-public:
-    KratosIgaFast5PSuite();
-
-private:
-    std::shared_ptr<KratosIgaApplication>  mpIgaApp;
+    std::shared_ptr<KratosStructuralMechanicsApplication> mpSMApp;
 };
 
 } // namespace Kratos::Testing

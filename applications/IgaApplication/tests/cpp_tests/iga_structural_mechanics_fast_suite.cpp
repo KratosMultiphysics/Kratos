@@ -10,19 +10,17 @@
 //  Main authors:    Andrea Gorgi
 //
 
-#include "iga_fast_suite.h"
+#include "iga_structural_mechanics_fast_suite.h"
 #include "iga_application.h"
+#include "structural_mechanics_application.h"
 
 namespace Kratos::Testing
 {
 
-KratosIgaFastSuite::KratosIgaFastSuite() : KratosCoreFastSuite()
+KratosIgaSMFastSuite::KratosIgaSMFastSuite() : KratosCoreFastSuite()
 {
-    mpIgaApp = std::make_shared<KratosIgaApplication>();
-    this->ImportApplicationIntoKernel(mpIgaApp);
-}
-
-KratosIgaFast5PSuite::KratosIgaFast5PSuite() : KratosCoreFastSuite() {
+    mpSMApp = std::make_shared<KratosStructuralMechanicsApplication>();
+    this->ImportApplicationIntoKernel(mpSMApp);
     mpIgaApp = std::make_shared<KratosIgaApplication>();
     this->ImportApplicationIntoKernel(mpIgaApp);
 }

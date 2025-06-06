@@ -62,14 +62,14 @@ void SupportLaplacianCondition::CalculateLeftHandSide(
     const double penalty = GetProperties()[PENALTY_FACTOR];
 
     const auto& r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType number_of_control_points = r_geometry.size();
 
     // Integration
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
     
     const unsigned int dim = r_DN_De[0].size2();
-    Matrix DN_DX(number_of_nodes,dim);
+    Matrix DN_DX(number_of_control_points,dim);
     
     // Compute the normals
     array_1d<double, 3> normal_physical_space;
@@ -101,9 +101,9 @@ void SupportLaplacianCondition::CalculateLeftHandSide(
     determinant_factor[2] = 0.0; // 2D case
     const double det_J0 = norm_2(determinant_factor);
     
-    Matrix H = ZeroMatrix(1, number_of_nodes);
-    Matrix DN_dot_n = ZeroMatrix(1, number_of_nodes);
-    for (IndexType i = 0; i < number_of_nodes; ++i)
+    Matrix H = ZeroMatrix(1, number_of_control_points);
+    Matrix DN_dot_n = ZeroMatrix(1, number_of_control_points);
+    for (IndexType i = 0; i < number_of_control_points; ++i)
     {
         H(0, i)            = N(0, i);
         for (unsigned int idim = 0; idim < dim; idim++) {
@@ -147,14 +147,14 @@ void SupportLaplacianCondition::CalculateRightHandSide(
     const double penalty = GetProperties()[PENALTY_FACTOR];
 
     const auto& r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType number_of_control_points = r_geometry.size();
 
     // Integration
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
     
     const unsigned int dim = r_DN_De[0].size2();
-    Matrix DN_DX(number_of_nodes,dim);
+    Matrix DN_DX(number_of_control_points,dim);
     
     // Compute the normals
     array_1d<double, 3> normal_physical_space;
@@ -186,9 +186,9 @@ void SupportLaplacianCondition::CalculateRightHandSide(
     determinant_factor[2] = 0.0; // 2D case
     const double det_J0 = norm_2(determinant_factor);
     
-    Vector DN_dot_n_vec = ZeroVector(number_of_nodes);
-    Vector H_vector = ZeroVector(number_of_nodes);
-    for (IndexType i = 0; i < number_of_nodes; ++i)
+    Vector DN_dot_n_vec = ZeroVector(number_of_control_points);
+    Vector H_vector = ZeroVector(number_of_control_points);
+    for (IndexType i = 0; i < number_of_control_points; ++i)
     {
         H_vector(i)        = N(0, i); 
         for (unsigned int idim = 0; idim < dim; idim++) {
@@ -212,8 +212,8 @@ void SupportLaplacianCondition::CalculateRightHandSide(
     noalias(rRightHandSideVector) -=  H_vector * u_D_scalar * penalty_integration * std::abs(det_J0);
     noalias(rRightHandSideVector) -= nitsche_penalty * DN_dot_n_vec * u_D_scalar * integration_points[0].Weight() * std::abs(det_J0);
 
-    Vector temperature_old_iteration(number_of_nodes);
-    for (IndexType i = 0; i < number_of_nodes; i++) {
+    Vector temperature_old_iteration(number_of_control_points);
+    for (IndexType i = 0; i < number_of_control_points; i++) {
         temperature_old_iteration[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
     }
     // Corresponding RHS
@@ -241,12 +241,12 @@ void SupportLaplacianCondition::EquationIdVector(
     const auto& r_unknown_var = p_settings->GetUnknownVariable();
 
     const auto& r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType number_of_control_points = r_geometry.size();
 
-    if (rResult.size() !=  number_of_nodes)
-        rResult.resize(number_of_nodes, false);
+    if (rResult.size() !=  number_of_control_points)
+        rResult.resize(number_of_control_points, false);
 
-    for (IndexType i = 0; i < number_of_nodes; ++i) {
+    for (IndexType i = 0; i < number_of_control_points; ++i) {
         const auto& r_node = r_geometry[i];
         rResult[i] = r_node.GetDof(r_unknown_var).EquationId();
     }
@@ -261,12 +261,12 @@ void SupportLaplacianCondition::GetDofList(
     const auto& r_unknown_var = p_settings->GetUnknownVariable();
 
     const auto& r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType number_of_control_points = r_geometry.size();
 
     rElementalDofList.resize(0);
-    rElementalDofList.reserve(number_of_nodes);
+    rElementalDofList.reserve(number_of_control_points);
 
-    for (IndexType i = 0; i < number_of_nodes; ++i) {
+    for (IndexType i = 0; i < number_of_control_points; ++i) {
         const auto& r_node = r_geometry[i];
         rElementalDofList.push_back(r_node.pGetDof(r_unknown_var));
     }

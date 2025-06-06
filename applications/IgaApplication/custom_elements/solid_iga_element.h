@@ -5,7 +5,7 @@
 //      /___/\____/_/  |_| Application
 //
 //  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Andrea Gorgi
 //
@@ -46,10 +46,9 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class KRATOS_API(IGA_APPLICATION) SolidElement : public Element
+class KRATOS_API(IGA_APPLICATION) SolidIGAElement : public Element
 {
 protected:
-/**
     /**
      * Internal variables used in the kinematic calculations
      */
@@ -85,8 +84,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of SolidElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SolidElement);
+    /// Counted pointer of SolidIGAElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SolidIGAElement);
 
     // static constexpr std::size_t NumNodes = TDim + 1;
 
@@ -97,17 +96,17 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Default constructor.
-    SolidElement(
+    SolidIGAElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
-    SolidElement(
+    SolidIGAElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~SolidElement();
+    virtual ~SolidIGAElement();
 
     ///@}
     ///@name Operators
@@ -176,7 +175,7 @@ public:
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    SolidElement() : Element()
+    SolidIGAElement() : Element()
     {
     }
 
@@ -202,7 +201,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "SolidElement #" << Id();
+        buffer << "SolidIGAElement #" << Id();
         return buffer.str();
     }
 
@@ -231,11 +230,22 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
+    /**
+     * @brief Calculate the B matrix for the element in the two-dimensional case.
+     * 
+     * @param rB B matrix to be calculated
+     * @param r_DN_DX The shape function derivatives in the global coordinate system
+     */
     void CalculateB(
         Matrix& rB,
         Matrix& r_DN_DX) const;
 
-    void GetValuesVector(
+    /**
+     * @brief Get the solution coefficient at the previous time step in the two-dimensional case.
+     * 
+     * @param rValues solution coefficients at the previous time step
+     */
+    void GetSolutionCoefficientVector(
         Vector& rValues) const;
 
 protected:
@@ -332,7 +342,7 @@ private:
 
     ///@}
 
-}; // Class SolidElement
+}; // Class SolidIGAElement
 
 ///@}
 

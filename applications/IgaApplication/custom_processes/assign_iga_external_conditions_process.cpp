@@ -304,7 +304,7 @@ void AssignIgaExternalConditionsProcess::SetExternalConditionToElementsAndCondit
                 } else if (component_rVariableName == "FORCE_Z") {
                     i_cond->SetValue(FORCE_Z, value);
                 } else {
-                    KRATOS_ERROR << "No name found" ;
+                    KRATOS_ERROR << "Variable name not defined in assign_iga_external_conditions_process: " << component_rVariableName << std::endl;
                 }
             } 
         } else {KRATOS_ERROR << "AssignIgaExternalConditionsProcess : No Condition or Elements defined" ;}
