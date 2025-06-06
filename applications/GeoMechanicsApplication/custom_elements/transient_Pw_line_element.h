@@ -273,9 +273,9 @@ public:
         CheckUtilities::CheckDomainSize(
             GetGeometry().DomainSize(), Id(),
             GetGeometry().LocalSpaceDimension() == 1 ? "Length" : std::optional<std::string>{});
-        CheckHasSolutionStepsDataFor(WATER_PRESSURE);
-        CheckHasSolutionStepsDataFor(DT_WATER_PRESSURE);
-        CheckHasSolutionStepsDataFor(VOLUME_ACCELERATION);
+        CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), WATER_PRESSURE);
+        CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), DT_WATER_PRESSURE);
+        CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), VOLUME_ACCELERATION);
         CheckHasDofsFor(WATER_PRESSURE);
         CheckProperties();
         CheckForNonZeroZCoordinateIn2D();
@@ -286,7 +286,7 @@ public:
         return 0;
     }
 
-     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override
     {
@@ -324,14 +324,6 @@ private:
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     std::vector<RetentionLaw::Pointer>    mRetentionLawVector;
-
-    void CheckHasSolutionStepsDataFor(const VariableData& rVariable) const
-    {
-        for (const auto& node : GetGeometry()) {
-            KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(rVariable))
-                << "Missing variable " << rVariable.Name() << " on node " << node.Id() << std::endl;
-        }
-    }
 
     void CheckHasDofsFor(const Variable<double>& rVariable) const
     {
@@ -422,7 +414,7 @@ private:
         return result;
     }
 
-        std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors)
+    std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors)
     {
         const GeometryType& r_geometry = this->GetGeometry();
         const IndexType     number_of_integration_points =

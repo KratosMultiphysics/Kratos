@@ -25,4 +25,12 @@ void CheckUtilities::CheckDomainSize(double DomainSize, std::size_t Id, const st
         << min_domain_size << " for element " << Id << std::endl;
 }
 
+void CheckUtilities::CheckHasSolutionStepsDataFor(const Geometry<Node>& rGeometry, const VariableData& rVariable)
+{
+    for (const auto& node : rGeometry) {
+        KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(rVariable))
+            << "Missing variable " << rVariable.Name() << " on node " << node.Id() << std::endl;
+    }
+}
+
 } /* namespace Kratos.*/

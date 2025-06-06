@@ -126,8 +126,8 @@ public:
         KRATOS_TRY
 
         CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id());
-        CheckHasSolutionStepsDataFor(TEMPERATURE);
-        CheckHasSolutionStepsDataFor(DT_TEMPERATURE);
+        CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), TEMPERATURE);
+        CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), DT_TEMPERATURE);
         CheckHasDofsFor(TEMPERATURE);
         CheckProperties();
         CheckForNonZeroZCoordinateIn2D();
@@ -144,14 +144,6 @@ public:
 
 private:
     IntegrationCoefficientsCalculator mIntegrationCoefficientsCalculator;
-
-    void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
-    {
-        for (const auto& node : GetGeometry()) {
-            KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(rVariable))
-                << "Missing variable " << rVariable.Name() << " on node " << node.Id() << std::endl;
-        }
-    }
 
     void CheckHasDofsFor(const Variable<double>& rVariable) const
     {

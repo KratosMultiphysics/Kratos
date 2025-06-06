@@ -13,7 +13,9 @@
 #pragma once
 
 // Project includes
+#include "containers/variable_data.h"
 #include "includes/define.h"
+#include "includes/geometrical_object.h"
 
 #include <optional>
 #include <string>
@@ -27,5 +29,8 @@ public:
     static void CheckDomainSize(double                            DomainSize,
                                 std::size_t                       Id,
                                 const std::optional<std::string>& PrintName = std::nullopt);
+
+    static void CheckHasSolutionStepsDataFor(const Geometry<Node>& rGeometry, const VariableData& rVariable);
+
 }; /* Class CheckUtilities*/
 } /* namespace Kratos.*/
