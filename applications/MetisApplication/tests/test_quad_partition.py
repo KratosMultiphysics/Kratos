@@ -1,10 +1,10 @@
 import pathlib
 
-from KratosMultiphysics import KratosUnittest, Model, ModelPartIO, PARTITION_INDEX, FRACTIONAL_STEP
+from KratosMultiphysics import KratosUnittest, Model, ModelPartIO, PARTITION_INDEX, FRACTIONAL_STEP, Logger
 from KratosMultiphysics.kratos_utilities import DeleteDirectoryIfExisting
 from KratosMultiphysics.MetisApplication import MetisDivideHeterogeneousInputProcess
 
-class QuadPartitionTest(KratosUnittest.TestCase):
+class TestQuadPartition(KratosUnittest.TestCase):
 
     def testConditionPartitioning(self):
         test_file = "quads"
@@ -40,3 +40,7 @@ class QuadPartitionTest(KratosUnittest.TestCase):
                 for condition in model_part.Conditions:
                     parent = condition.GetValue(FRACTIONAL_STEP)
                     self.assertTrue(parent in model_part.Elements)
+
+if __name__ == '__main__':
+    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
+    KratosUnittest.main()
