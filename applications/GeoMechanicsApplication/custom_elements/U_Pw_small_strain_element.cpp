@@ -546,10 +546,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
             deformation_gradients, b_matrices, Variables.DisplacementVector,
             Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
 
-        const auto fluid_fluxes =
-            CalculateFluidFluxes(GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(
-                                     strain_vectors, this->GetProperties()),
-                                 rCurrentProcessInfo);
+        const auto fluid_fluxes = GeoTransportEquationUtilities::CalculateFluidFluxes<TDim, TNumNodes>(
+            this->GetGeometry(), this->GetIntegrationMethod(), this->GetProperties(), mRetentionLawVector,
+            GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(
+                strain_vectors, this->GetProperties()));
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
             GeoElementUtilities::FillArray1dOutput(rOutput[integration_point], fluid_fluxes[integration_point]);
@@ -951,46 +951,6 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDegreesOfSa
     });
 
     return result;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::CalculateFluidFluxes(
-    const std::vector<double>& rPermeabilityUpdateFactors, const ProcessInfo& rCurrentProcessInfo)
-{
-    const GeometryType& r_geometry = this->GetGeometry();
-    const IndexType     number_of_integration_points =
-        r_geometry.IntegrationPointsNumber(this->GetIntegrationMethod());
-
-    std::vector<array_1d<double, TDim>> fluid_fluxes;
-    fluid_fluxes.reserve(number_of_integration_points);
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-    const PropertiesType& r_properties = this->GetProperties();
-
-    auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
-        GeoTransportEquationUtilities::CalculateFluidPressures(Variables.NContainer, Variables.PressureVector));
-    std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
-                   rPermeabilityUpdateFactors.cbegin(), relative_permeability_values.begin(),
-                   std::multiplies<>{});
-
-    for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
-        this->CalculateKinematics(Variables, integration_point);
-
-        GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-            Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, integration_point);
-
-        Variables.RelativePermeability = relative_permeability_values[integration_point];
-
-        array_1d<double, TDim> GradPressureTerm = prod(trans(Variables.GradNpT), Variables.PressureVector);
-        GradPressureTerm += PORE_PRESSURE_SIGN_FACTOR * r_properties[DENSITY_WATER] * Variables.BodyAcceleration;
-
-        fluid_fluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
-                               Variables.RelativePermeability *
-                               prod(Variables.PermeabilityMatrix, GradPressureTerm));
-    }
-
-    return fluid_fluxes;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

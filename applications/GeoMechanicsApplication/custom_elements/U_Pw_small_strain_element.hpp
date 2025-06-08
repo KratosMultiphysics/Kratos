@@ -255,8 +255,6 @@ protected:
     void InitializeNodalVolumeAccelerationVariables(ElementVariables& rVariables);
 
     void InitializeProperties(ElementVariables& rVariables);
-    std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors,
-                                                             const ProcessInfo& rCurrentProcessInfo);
 
     [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures) const;
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures) const;

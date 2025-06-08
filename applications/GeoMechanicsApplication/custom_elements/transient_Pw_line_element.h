@@ -198,7 +198,9 @@ public:
 
         if (rVariable == FLUID_FLUX_VECTOR) {
             std::vector<double> permeability_update_factors(number_of_integration_points, 1.0);
-            const auto fluid_fluxes = this->CalculateFluidFluxes(permeability_update_factors);
+            const auto fluid_fluxes = GeoTransportEquationUtilities::CalculateFluidFluxes<TDim, TNumNodes>(
+                this->GetGeometry(), this->GetIntegrationMethod(), this->GetProperties(),
+                mRetentionLawVector, permeability_update_factors);
 
             for (unsigned int integration_point = 0;
                  integration_point < number_of_integration_points; ++integration_point) {
@@ -357,56 +359,6 @@ private:
             return node.FastGetSolutionStepValue(rNodalVariable);
         });
         return result;
-    }
-
-    std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors)
-    {
-        const GeometryType& r_geometry = this->GetGeometry();
-        const IndexType     number_of_integration_points =
-            r_geometry.IntegrationPointsNumber(this->GetIntegrationMethod());
-
-        std::vector<array_1d<double, TDim>> fluid_fluxes;
-        fluid_fluxes.reserve(number_of_integration_points);
-        array_1d<double, TNumNodes> pressure_vector;
-        VariablesUtilities::GetNodalValues(r_geometry, WATER_PRESSURE, pressure_vector.begin());
-        Matrix N_container(number_of_integration_points, TNumNodes);
-        N_container = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
-        const PropertiesType&             r_properties = this->GetProperties();
-        BoundedMatrix<double, TDim, TDim> permeability_matrix;
-        GeoElementUtilities::FillPermeabilityMatrix(permeability_matrix, r_properties);
-
-        auto relative_permeability_values = RetentionLaw::CalculateRelativePermeabilityValues(
-            mRetentionLawVector, this->GetProperties(),
-            GeoTransportEquationUtilities::CalculateFluidPressures(N_container, pressure_vector));
-        std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
-                       rPermeabilityUpdateFactors.cbegin(), relative_permeability_values.begin(),
-                       std::multiplies<>{});
-        const auto dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
-        array_1d<double, TNumNodes * TDim> volume_acceleration;
-        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(
-            volume_acceleration, r_geometry, VOLUME_ACCELERATION);
-        array_1d<double, TDim>                    body_acceleration;
-        Matrix                                    grad_Np_T(TNumNodes, TDim);
-        Vector                                    det_J_Container(number_of_integration_points);
-        GeometryType::ShapeFunctionsGradientsType dN_dx_container;
-        r_geometry.ShapeFunctionsIntegrationPointsGradients(dN_dx_container, det_J_Container,
-                                                            this->GetIntegrationMethod());
-        for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
-             ++integration_point) {
-            noalias(grad_Np_T) = dN_dx_container[integration_point];
-
-            GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-                body_acceleration, N_container, volume_acceleration, integration_point);
-
-            array_1d<double, TDim> GradPressureTerm = prod(trans(grad_Np_T), pressure_vector);
-            GradPressureTerm += PORE_PRESSURE_SIGN_FACTOR * r_properties[DENSITY_WATER] * body_acceleration;
-
-            fluid_fluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * dynamic_viscosity_inverse *
-                                   relative_permeability_values[integration_point] *
-                                   prod(permeability_matrix, GradPressureTerm));
-        }
-
-        return fluid_fluxes;
     }
 
     std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
