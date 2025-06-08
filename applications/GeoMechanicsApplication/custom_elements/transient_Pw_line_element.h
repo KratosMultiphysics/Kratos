@@ -22,9 +22,9 @@
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/hydraulic_discharge.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
-#include "custom_utilities/hydraulic_discharge.hpp"
 #include "filter_compressibility_calculator.h"
 #include "fluid_body_flow_calculator.h"
 #include "geo_mechanics_application_variables.h"
@@ -123,17 +123,17 @@ public:
 
         if (this->GetGeometry().LocalSpaceDimension() != 1) {
             GeometryType& r_geometry = this->GetGeometry();
-            const auto number_of_integration_points =
+            const auto    number_of_integration_points =
                 r_geometry.IntegrationPointsNumber(this->GetIntegrationMethod());
             Vector                                    det_J_container(number_of_integration_points);
             GeometryType::ShapeFunctionsGradientsType dN_dx_container;
-            r_geometry.ShapeFunctionsIntegrationPointsGradients(
-                dN_dx_container, det_J_container, GetIntegrationMethod());
+            r_geometry.ShapeFunctionsIntegrationPointsGradients(dN_dx_container, det_J_container,
+                                                                GetIntegrationMethod());
             const auto integration_coefficients = this->CalculateIntegrationCoefficients(det_J_container);
             std::vector<array_1d<double, 3>> fluid_flux;
             this->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_flux, rCurrentProcessInfo);
-            HydraulicDischarge<TDim, TNumNodes>::CalculateHydraulicDischarge(fluid_flux, integration_coefficients,
-                                                                 dN_dx_container, this->GetIntegrationMethod(), r_geometry);
+            HydraulicDischarge<TDim, TNumNodes>::CalculateHydraulicDischarge(
+                fluid_flux, integration_coefficients, dN_dx_container, this->GetIntegrationMethod(), r_geometry);
         }
 
         KRATOS_CATCH("")
