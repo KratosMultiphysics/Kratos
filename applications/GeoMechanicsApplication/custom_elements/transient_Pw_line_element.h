@@ -375,7 +375,8 @@ private:
         BoundedMatrix<double, TDim, TDim> permeability_matrix;
         GeoElementUtilities::FillPermeabilityMatrix(permeability_matrix, r_properties);
 
-        auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
+        auto relative_permeability_values = RetentionLaw::CalculateRelativePermeabilityValues(
+            mRetentionLawVector, this->GetProperties(),
             GeoTransportEquationUtilities::CalculateFluidPressures(N_container, pressure_vector));
         std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
                        rPermeabilityUpdateFactors.cbegin(), relative_permeability_values.begin(),
@@ -406,23 +407,6 @@ private:
         }
 
         return fluid_fluxes;
-    }
-
-    std::vector<double> CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const
-    {
-        KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mRetentionLawVector.size());
-
-        auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
-
-        auto result = std::vector<double>{};
-        result.reserve(rFluidPressures.size());
-        std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(),
-                       rFluidPressures.begin(), std::back_inserter(result),
-                       [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
-            retention_law_params.SetFluidPressure(FluidPressure);
-            return pRetentionLaw->CalculateRelativePermeability(retention_law_params);
-        });
-        return result;
     }
 
     std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,

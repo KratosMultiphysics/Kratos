@@ -1295,19 +1295,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow(VectorTy
 
 std::vector<double> SmallStrainUPwDiffOrderElement::CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const
 {
-    KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mRetentionLawVector.size());
-
-    auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
-
-    auto result = std::vector<double>{};
-    result.reserve(mRetentionLawVector.size());
-    std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   std::back_inserter(result),
-                   [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
-        retention_law_params.SetFluidPressure(FluidPressure);
-        return pRetentionLaw->CalculateRelativePermeability(retention_law_params);
-    });
-    return result;
+    return RetentionLaw::CalculateRelativePermeabilityValues(
+        mRetentionLawVector, this->GetProperties(), rFluidPressures);
 }
 
 std::vector<double> SmallStrainUPwDiffOrderElement::CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const
