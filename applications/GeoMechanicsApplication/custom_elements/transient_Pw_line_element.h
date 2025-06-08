@@ -367,14 +367,6 @@ private:
         return mIntegrationCoefficientsCalculator.Run<>(rIntegrationPoints, rDetJs, this);
     }
 
-    template <class TValueType>
-    inline void ThreadSafeNodeWrite(NodeType& rNode, const Variable<TValueType>& Var, const TValueType Value)
-    {
-        rNode.SetLock();
-        rNode.FastGetSolutionStepValue(Var) = Value;
-        rNode.UnSetLock();
-    }
-
     void CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
@@ -412,7 +404,7 @@ private:
 
                 hydraulic_discharge *= integration_coefficient;
                 hydraulic_discharge += r_geometry[node].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE);
-                ThreadSafeNodeWrite(this->GetGeometry()[node], HYDRAULIC_DISCHARGE, hydraulic_discharge);
+                GeoElementUtilities::ThreadSafeNodeWrite(this->GetGeometry()[node], HYDRAULIC_DISCHARGE, hydraulic_discharge);
             }
         }
 

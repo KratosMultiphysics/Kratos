@@ -126,7 +126,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ResetHydraulicDischarge()
 
     // Reset hydraulic discharge
     for (auto& r_node : this->GetGeometry()) {
-        ThreadSafeNodeWrite(r_node, HYDRAULIC_DISCHARGE, 0.0);
+        GeoElementUtilities::ThreadSafeNodeWrite(r_node, HYDRAULIC_DISCHARGE, 0.0);
     }
 
     KRATOS_CATCH("")
@@ -169,7 +169,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateHydraulicDischarge(const P
 
             HydraulicDischarge *= Variables.IntegrationCoefficient;
             HydraulicDischarge += r_geometry[node].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE);
-            ThreadSafeNodeWrite(this->GetGeometry()[node], HYDRAULIC_DISCHARGE, HydraulicDischarge);
+            GeoElementUtilities::ThreadSafeNodeWrite(this->GetGeometry()[node], HYDRAULIC_DISCHARGE, HydraulicDischarge);
         }
     }
 

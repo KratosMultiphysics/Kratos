@@ -300,13 +300,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
     }
 
-    template <class TValueType>
-    inline void ThreadSafeNodeWrite(NodeType& rNode, const Variable<TValueType>& Var, const TValueType Value)
-    {
-        rNode.SetLock();
-        rNode.FastGetSolutionStepValue(Var) = Value;
-        rNode.UnSetLock();
-    }
 };
 
 // Class UPwSmallStrainElement
