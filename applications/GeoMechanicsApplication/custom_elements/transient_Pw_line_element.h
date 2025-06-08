@@ -24,6 +24,7 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
+#include "custom_utilities/hydraulic_discharge.hpp"
 #include "filter_compressibility_calculator.h"
 #include "fluid_body_flow_calculator.h"
 #include "geo_mechanics_application_variables.h"
@@ -121,7 +122,7 @@ public:
         KRATOS_TRY
 
         if (this->GetGeometry().LocalSpaceDimension() != 1) {
-            const GeometryType& r_geometry = this->GetGeometry();
+            GeometryType& r_geometry = this->GetGeometry();
             const auto number_of_integration_points =
                 r_geometry.IntegrationPointsNumber(this->GetIntegrationMethod());
             Vector                                    det_J_container(number_of_integration_points);
@@ -131,7 +132,8 @@ public:
             const auto integration_coefficients = this->CalculateIntegrationCoefficients(det_J_container);
             std::vector<array_1d<double, 3>> fluid_flux;
             this->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_flux, rCurrentProcessInfo);
-            this->CalculateHydraulicDischarge(fluid_flux, integration_coefficients, dN_dx_container, r_geometry);
+            HydraulicDischarge<TDim, TNumNodes>::CalculateHydraulicDischarge(fluid_flux, integration_coefficients,
+                                                                 dN_dx_container, this->GetIntegrationMethod(), r_geometry);
         }
 
         KRATOS_CATCH("")
@@ -376,40 +378,6 @@ private:
         const GeometryType::IntegrationPointsArrayType& integration_points =
             this->GetGeometry().IntegrationPoints(GetIntegrationMethod());
         return mIntegrationCoefficientsCalculator.Run<>(integration_points, rDetJs, this);
-    }
-
-    void CalculateHydraulicDischarge(const std::vector<array_1d<double, 3>>& rFluidFlux,
-                                     const std::vector<double>& rIntegrationCoefficients,
-                                     const Geometry<Node>::ShapeFunctionsGradientsType& rdNDxContainer,
-                                     const Geometry<Node>& rGeometry)
-    {
-        KRATOS_TRY
-
-        const IndexType     number_of_integration_points =
-            rGeometry.IntegrationPointsNumber(GetIntegrationMethod());
-        Matrix grad_Np_T(TNumNodes, TDim);
-
-        for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
-             ++integration_point) {
-            noalias(grad_Np_T) = rdNDxContainer[integration_point];
-
-            auto integration_coefficient = rIntegrationCoefficients[integration_point];
-
-            for (unsigned int node = 0; node < TNumNodes; ++node) {
-                double hydraulic_discharge = 0;
-                for (unsigned int direction = 0; direction < TDim; ++direction) {
-                    hydraulic_discharge +=
-                        grad_Np_T(node, direction) * rFluidFlux[integration_point][direction];
-                }
-
-                hydraulic_discharge *= integration_coefficient;
-                hydraulic_discharge += rGeometry[node].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE);
-                GeoElementUtilities::ThreadSafeNodeWrite(this->GetGeometry()[node],
-                                                         HYDRAULIC_DISCHARGE, hydraulic_discharge);
-            }
-        }
-
-        KRATOS_CATCH("")
     }
 
     std::vector<Vector> CalculateProjectedGravityAtIntegrationPoints(const Matrix& rNContainer) const
