@@ -237,7 +237,8 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
         GeoElementUtilities::ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, 0.5 * (p[1] + p[2]));
         GeoElementUtilities::ThreadSafeNodeWrite(r_geom[6], WATER_PRESSURE, 0.5 * (p[2] + p[3]));
         GeoElementUtilities::ThreadSafeNodeWrite(r_geom[7], WATER_PRESSURE, 0.5 * (p[3] + p[0]));
-        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE, 0.25 * (p[0] + p[1] + p[2] + p[3]));
+        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE,
+                                                 0.25 * (p[0] + p[1] + p[2] + p[3]));
         break;
     }
     case 10: // 3D T10P4  //2D T10P6
@@ -253,14 +254,20 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
         } else if (n_dim == 2) {
             constexpr double c1 = 1.0 / 9.0;
             const Vector     p  = GetPressures(6);
-            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[3], WATER_PRESSURE, (2.0 * p[0] - p[1] + 8.0 * p[3]) * c1);
-            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, (2.0 * p[1] - p[0] + 8.0 * p[3]) * c1);
-            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, (2.0 * p[1] - p[2] + 8.0 * p[4]) * c1);
-            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[6], WATER_PRESSURE, (2.0 * p[2] - p[1] + 8.0 * p[4]) * c1);
-            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[7], WATER_PRESSURE, (2.0 * p[2] - p[0] + 8.0 * p[5]) * c1);
-            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE, (2.0 * p[0] - p[2] + 8.0 * p[5]) * c1);
-            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[9], WATER_PRESSURE,
-                                (4.0 * (p[3] + p[4] + p[5]) - (p[0] + p[1] + p[2])) * c1);
+            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[3], WATER_PRESSURE,
+                                                     (2.0 * p[0] - p[1] + 8.0 * p[3]) * c1);
+            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE,
+                                                     (2.0 * p[1] - p[0] + 8.0 * p[3]) * c1);
+            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE,
+                                                     (2.0 * p[1] - p[2] + 8.0 * p[4]) * c1);
+            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[6], WATER_PRESSURE,
+                                                     (2.0 * p[2] - p[1] + 8.0 * p[4]) * c1);
+            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[7], WATER_PRESSURE,
+                                                     (2.0 * p[2] - p[0] + 8.0 * p[5]) * c1);
+            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE,
+                                                     (2.0 * p[0] - p[2] + 8.0 * p[5]) * c1);
+            GeoElementUtilities::ThreadSafeNodeWrite(
+                r_geom[9], WATER_PRESSURE, (4.0 * (p[3] + p[4] + p[5]) - (p[0] + p[1] + p[2])) * c1);
         }
         break;
     }
@@ -268,27 +275,36 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
     {
         constexpr double c1 = 0.0390625;
         const Vector     p  = GetPressures(10);
-        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[3], WATER_PRESSURE, (3.0 * p[0] + p[1] + 27.0 * p[3] - 5.4 * p[4]) * c1);
-        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, (14.4 * (p[3] + p[4]) - 1.6 * (p[0] + p[1])) * c1);
-        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, (3.0 * p[1] + p[0] + 27.0 * p[4] - 5.4 * p[3]) * c1);
-        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[6], WATER_PRESSURE, (3.0 * p[1] + p[2] + 27.0 * p[5] - 5.4 * p[6]) * c1);
-        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[7], WATER_PRESSURE, (14.4 * (p[5] + p[6]) - 1.6 * (p[1] + p[2])) * c1);
-        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE, (3.0 * p[2] + p[1] + 27.0 * p[6] - 5.4 * p[5]) * c1);
-        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[9], WATER_PRESSURE, (3.0 * p[2] + p[0] + 27.0 * p[7] - 5.4 * p[8]) * c1);
-        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[10], WATER_PRESSURE, (14.4 * (p[7] + p[8]) - 1.6 * (p[0] + p[2])) * c1);
-        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[11], WATER_PRESSURE, (3.0 * p[0] + p[2] + 27.0 * p[8] - 5.4 * p[7]) * c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(
+            r_geom[3], WATER_PRESSURE, (3.0 * p[0] + p[1] + 27.0 * p[3] - 5.4 * p[4]) * c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE,
+                                                 (14.4 * (p[3] + p[4]) - 1.6 * (p[0] + p[1])) * c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(
+            r_geom[5], WATER_PRESSURE, (3.0 * p[1] + p[0] + 27.0 * p[4] - 5.4 * p[3]) * c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(
+            r_geom[6], WATER_PRESSURE, (3.0 * p[1] + p[2] + 27.0 * p[5] - 5.4 * p[6]) * c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[7], WATER_PRESSURE,
+                                                 (14.4 * (p[5] + p[6]) - 1.6 * (p[1] + p[2])) * c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(
+            r_geom[8], WATER_PRESSURE, (3.0 * p[2] + p[1] + 27.0 * p[6] - 5.4 * p[5]) * c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(
+            r_geom[9], WATER_PRESSURE, (3.0 * p[2] + p[0] + 27.0 * p[7] - 5.4 * p[8]) * c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[10], WATER_PRESSURE,
+                                                 (14.4 * (p[7] + p[8]) - 1.6 * (p[0] + p[2])) * c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(
+            r_geom[11], WATER_PRESSURE, (3.0 * p[0] + p[2] + 27.0 * p[8] - 5.4 * p[7]) * c1);
         GeoElementUtilities::ThreadSafeNodeWrite(r_geom[12], WATER_PRESSURE,
-                            (p[1] + p[2] + 7.2 * (p[3] + p[8]) - 3.6 * (p[4] + p[7]) -
-                             1.8 * (p[5] + p[6]) + 21.6 * p[9] - 1.6 * p[0]) *
-                                c1);
+                                                 (p[1] + p[2] + 7.2 * (p[3] + p[8]) - 3.6 * (p[4] + p[7]) -
+                                                  1.8 * (p[5] + p[6]) + 21.6 * p[9] - 1.6 * p[0]) *
+                                                     c1);
         GeoElementUtilities::ThreadSafeNodeWrite(r_geom[13], WATER_PRESSURE,
-                            (p[0] + p[2] + 7.2 * (p[4] + p[5]) - 3.6 * (p[3] + p[6]) -
-                             1.8 * (p[7] + p[8]) + 21.6 * p[9] - 1.6 * p[1]) *
-                                c1);
+                                                 (p[0] + p[2] + 7.2 * (p[4] + p[5]) - 3.6 * (p[3] + p[6]) -
+                                                  1.8 * (p[7] + p[8]) + 21.6 * p[9] - 1.6 * p[1]) *
+                                                     c1);
         GeoElementUtilities::ThreadSafeNodeWrite(r_geom[14], WATER_PRESSURE,
-                            (p[0] + p[1] + 7.2 * (p[6] + p[7]) - 3.6 * (p[5] + p[8]) -
-                             1.8 * (p[3] + p[4]) + 21.6 * p[9] - 1.6 * p[2]) *
-                                c1);
+                                                 (p[0] + p[1] + 7.2 * (p[6] + p[7]) - 3.6 * (p[5] + p[8]) -
+                                                  1.8 * (p[3] + p[4]) + 21.6 * p[9] - 1.6 * p[2]) *
+                                                     c1);
         break;
     }
     case 20: // 3D H20P8
@@ -330,15 +346,21 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
         GeoElementUtilities::ThreadSafeNodeWrite(r_geom[18], WATER_PRESSURE, 0.5 * (p[6] + p[7]));
         GeoElementUtilities::ThreadSafeNodeWrite(r_geom[19], WATER_PRESSURE, 0.5 * (p[7] + p[0]));
         // face centers
-        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[20], WATER_PRESSURE, 0.25 * (p[0] + p[1] + p[2] + p[3]));
-        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[21], WATER_PRESSURE, 0.25 * (p[0] + p[1] + p[4] + p[5]));
-        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[22], WATER_PRESSURE, 0.25 * (p[1] + p[2] + p[5] + p[6]));
-        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[23], WATER_PRESSURE, 0.25 * (p[2] + p[3] + p[6] + p[7]));
-        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[24], WATER_PRESSURE, 0.25 * (p[3] + p[0] + p[7] + p[4]));
-        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[25], WATER_PRESSURE, 0.25 * (p[4] + p[5] + p[6] + p[7]));
+        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[20], WATER_PRESSURE,
+                                                 0.25 * (p[0] + p[1] + p[2] + p[3]));
+        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[21], WATER_PRESSURE,
+                                                 0.25 * (p[0] + p[1] + p[4] + p[5]));
+        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[22], WATER_PRESSURE,
+                                                 0.25 * (p[1] + p[2] + p[5] + p[6]));
+        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[23], WATER_PRESSURE,
+                                                 0.25 * (p[2] + p[3] + p[6] + p[7]));
+        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[24], WATER_PRESSURE,
+                                                 0.25 * (p[3] + p[0] + p[7] + p[4]));
+        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[25], WATER_PRESSURE,
+                                                 0.25 * (p[4] + p[5] + p[6] + p[7]));
         // element center
-        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[26], WATER_PRESSURE,
-                            0.125 * (p[0] + p[1] + p[2] + p[3] + p[4] + p[5] + p[6] + p[7]));
+        GeoElementUtilities::ThreadSafeNodeWrite(
+            r_geom[26], WATER_PRESSURE, 0.125 * (p[0] + p[1] + p[2] + p[3] + p[4] + p[5] + p[6] + p[7]));
         break;
     }
     default:

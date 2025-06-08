@@ -169,7 +169,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateHydraulicDischarge(const P
 
             HydraulicDischarge *= Variables.IntegrationCoefficient;
             HydraulicDischarge += r_geometry[node].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE);
-            GeoElementUtilities::ThreadSafeNodeWrite(this->GetGeometry()[node], HYDRAULIC_DISCHARGE, HydraulicDischarge);
+            GeoElementUtilities::ThreadSafeNodeWrite(this->GetGeometry()[node], HYDRAULIC_DISCHARGE,
+                                                     HydraulicDischarge);
         }
     }
 

@@ -299,7 +299,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
     }
-
 };
 
 // Class UPwSmallStrainElement

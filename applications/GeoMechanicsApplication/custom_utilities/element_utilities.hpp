@@ -225,7 +225,7 @@ public:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
-	
+
 private:
     template <typename VectorType1, typename VectorType2>
     static void AddVectorAtPosition(const VectorType1& rSourceVector, VectorType2& rDestinationVector, std::size_t Offset)
