@@ -121,7 +121,17 @@ public:
         KRATOS_TRY
 
         if (this->GetGeometry().LocalSpaceDimension() != 1) {
-            this->CalculateHydraulicDischarge(rCurrentProcessInfo);
+            const GeometryType& r_geometry = this->GetGeometry();
+            const auto number_of_integration_points =
+                r_geometry.IntegrationPointsNumber(this->GetIntegrationMethod());
+            Vector                                    det_J_container(number_of_integration_points);
+            GeometryType::ShapeFunctionsGradientsType dN_dx_container;
+            r_geometry.ShapeFunctionsIntegrationPointsGradients(
+                dN_dx_container, det_J_container, GetIntegrationMethod());
+            const auto integration_coefficients = this->CalculateIntegrationCoefficients(det_J_container);
+            std::vector<array_1d<double, 3>> fluid_flux;
+            this->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_flux, rCurrentProcessInfo);
+            this->CalculateHydraulicDischarge(fluid_flux, integration_coefficients, dN_dx_container, r_geometry);
         }
 
         KRATOS_CATCH("")
@@ -361,50 +371,41 @@ private:
         return result;
     }
 
-    std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
-                                                         const Vector& rDetJs) const
+    std::vector<double> CalculateIntegrationCoefficients(const Vector& rDetJs) const
     {
-        return mIntegrationCoefficientsCalculator.Run<>(rIntegrationPoints, rDetJs, this);
+        const GeometryType::IntegrationPointsArrayType& integration_points =
+            this->GetGeometry().IntegrationPoints(GetIntegrationMethod());
+        return mIntegrationCoefficientsCalculator.Run<>(integration_points, rDetJs, this);
     }
 
-    void CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo)
+    void CalculateHydraulicDischarge(const std::vector<array_1d<double, 3>>& rFluidFlux,
+                                     const std::vector<double>& rIntegrationCoefficients,
+                                     const Geometry<Node>::ShapeFunctionsGradientsType& rdNDxContainer,
+                                     const Geometry<Node>& rGeometry)
     {
         KRATOS_TRY
 
-        std::vector<array_1d<double, 3>> fluid_flux;
-        this->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_flux, rCurrentProcessInfo);
-
-        const GeometryType& r_geometry = this->GetGeometry();
         const IndexType     number_of_integration_points =
-            r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-            r_geometry.IntegrationPoints(GetIntegrationMethod());
-
-        // Gradient of shape functions and determinant of Jacobian
-        Matrix                                    grad_Np_T(TNumNodes, TDim);
-        Vector                                    det_J_container(number_of_integration_points);
-        GeometryType::ShapeFunctionsGradientsType dN_dx_container;
-        r_geometry.ShapeFunctionsIntegrationPointsGradients(dN_dx_container, det_J_container,
-                                                            GetIntegrationMethod());
-        const auto integration_coefficients =
-            this->CalculateIntegrationCoefficients(IntegrationPoints, det_J_container);
+            rGeometry.IntegrationPointsNumber(GetIntegrationMethod());
+        Matrix grad_Np_T(TNumNodes, TDim);
 
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
-            noalias(grad_Np_T) = dN_dx_container[integration_point];
+            noalias(grad_Np_T) = rdNDxContainer[integration_point];
 
-            auto integration_coefficient = integration_coefficients[integration_point];
+            auto integration_coefficient = rIntegrationCoefficients[integration_point];
 
             for (unsigned int node = 0; node < TNumNodes; ++node) {
                 double hydraulic_discharge = 0;
                 for (unsigned int direction = 0; direction < TDim; ++direction) {
                     hydraulic_discharge +=
-                        grad_Np_T(node, direction) * fluid_flux[integration_point][direction];
+                        grad_Np_T(node, direction) * rFluidFlux[integration_point][direction];
                 }
 
                 hydraulic_discharge *= integration_coefficient;
-                hydraulic_discharge += r_geometry[node].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE);
-                GeoElementUtilities::ThreadSafeNodeWrite(this->GetGeometry()[node], HYDRAULIC_DISCHARGE, hydraulic_discharge);
+                hydraulic_discharge += rGeometry[node].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE);
+                GeoElementUtilities::ThreadSafeNodeWrite(this->GetGeometry()[node],
+                                                         HYDRAULIC_DISCHARGE, hydraulic_discharge);
             }
         }
 
