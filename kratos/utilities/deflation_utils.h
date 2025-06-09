@@ -274,12 +274,12 @@ public:
     //y = Wtranspose*x;
     static void ApplyWtranspose(const std::vector<int>& w, const SparseVectorType& x, SparseVectorType& y)
     {
-        // First set to zero the destination vector
+        //first set to zero the destination vector
         IndexPartition<std::size_t>(y.size()).for_each([&](std::size_t i) {
             y[i] = 0.0;
         });
 
-        // Now apply the Wtranspose
+        //now apply the Wtranspose
         IndexPartition<std::size_t>(w.size()).for_each([&](std::size_t i) {
             AtomicAdd(y[w[i]], x[i]);
         });
