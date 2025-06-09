@@ -134,7 +134,7 @@ public:
         // Assign an Equation Id to all non-duplicate nodes
         unsigned int EqId = 0;
 
-        // Modify edge/corner periodic condtions so that one of the nodes gets EquationId
+        // Modify edge/corner periodic conditions so that one of the nodes gets EquationId
         for (ModelPart::ConditionIterator itCond = r_model_part.ConditionsBegin(); itCond != r_model_part.ConditionsEnd(); itCond++) {
             auto& r_geometry = itCond->GetGeometry();
             if (itCond->Is(PERIODIC) && (r_geometry.PointsNumber() == 4 || r_geometry.PointsNumber() == 8)) {
@@ -148,7 +148,7 @@ public:
                 itDof->SetEquationId(EqId++);
         }
 
-        // Reset edge/corner periodic condtions
+        // Reset edge/corner periodic conditions
         for (ModelPart::ConditionIterator itCond = r_model_part.ConditionsBegin(); itCond != r_model_part.ConditionsEnd(); itCond++) {
             auto& r_geometry = itCond->GetGeometry();
             if (itCond->Is(PERIODIC) && (r_geometry.PointsNumber() == 4 || r_geometry.PointsNumber() == 8)) {

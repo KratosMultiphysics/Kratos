@@ -40,7 +40,7 @@ convection_diffusion_solver.AddVariables(model_part, ConvDiffSettings)
 #eulerian_convection_diffusion_solver.AddVariables(model_part) # no settings here! (read from the model_part)
 
 
-#now we proceed to use the GID interface (both to import the infomation inside the .mdpa file and later print the results in a file  
+#now we proceed to use the GID interface (both to import the information inside the .mdpa file and later print the results in a file  
 gid_mode = GiDPostMode.GiD_PostBinary  #we import the python file that includes the commands that we need  
 multifile = MultiFileFlag.SingleFile
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed

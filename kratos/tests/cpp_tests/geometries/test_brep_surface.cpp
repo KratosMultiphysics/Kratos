@@ -244,9 +244,12 @@ namespace Testing {
                 p_surface, 
                 outer_loops,
                 inner_loops);
-        
-        p_brep_surface->SetSurrogateInnerLoopGeometries(surrogate_inner_loop_geometries);
-        p_brep_surface->SetSurrogateOuterLoopGeometries(surrogate_outer_loop_geometries);
+
+        auto p_outer = Kratos::make_shared<GeometrySurrogateArrayType>(surrogate_outer_loop_geometries);
+        auto p_inner = Kratos::make_shared<GeometrySurrogateArrayType>(surrogate_inner_loop_geometries);
+
+        p_brep_surface->SetSurrogateOuterLoopGeometries(p_outer);
+        p_brep_surface->SetSurrogateInnerLoopGeometries(p_inner);
 
         KRATOS_EXPECT_EQ(p_brep_surface->GetSurrogateInnerLoopGeometries().size(), 4);
         KRATOS_EXPECT_EQ(p_brep_surface->GetSurrogateOuterLoopGeometries().size(), 4);

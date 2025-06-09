@@ -112,7 +112,6 @@ class SlidingVertexMorphingMapper():
                     "help"          : "This process fixes the selected components of a given vector variable",
                     "process_name"  : "AssignVectorVariableProcess",
                     "Parameters"    : {
-                        "mesh_id"         : 0,
                         "model_part_name" : "main.fixed_bc",
                         "variable_name"   : "DISPLACEMENT",
                         "value"           : [0.0,0.0,0.0]

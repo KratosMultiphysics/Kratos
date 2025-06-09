@@ -190,7 +190,7 @@ class PFEM2Solver:
         self.reseed = self.reseed + t4-t3
         self.prereseed = self.prereseed + t4-t3
 
-        #transfering data from the particles to the mesh:
+        #transferring data from the particles to the mesh:
         (self.moveparticles).TransferLagrangianToEulerian();
         t5 = timer.time()
         self.lagrangiantoeulerian = self.lagrangiantoeulerian + t5-t4

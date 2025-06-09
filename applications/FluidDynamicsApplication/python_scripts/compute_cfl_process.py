@@ -27,6 +27,6 @@ class ComputeCFLProcess(Kratos.Process):
     def Execute(self):
         KratosCFD.FluidCharacteristicNumbersUtilities.CalculateLocalCFL(self.model_part)
         if self.echo_level > 0:
-            Kratos.Logger.PrintInfo("CFLUtility", "Calculated CFL numebers of elements in {:s}.".format(self.model_part.FullName()))
+            Kratos.Logger.PrintInfo("CFLUtility", "Calculated CFL numbers of elements in {:s}.".format(self.model_part.FullName()))
 
 

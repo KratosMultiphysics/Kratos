@@ -556,7 +556,7 @@ namespace Kratos
 		void SetNeighboursOrderToNode(ModelPart::NodeIterator itNode)
 		{
 			NodeWeakPtrVectorType &neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
-			unsigned int neighbourNodes = neighb_nodes.size() + 1; // +1 becausealso the node itself must be considered as nieghbor node
+			unsigned int neighbourNodes = neighb_nodes.size() + 1; // +1 becausealso the node itself must be considered as neighbor node
 			Vector &rNodeOrderedNeighbours = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
 
 			if (rNodeOrderedNeighbours.size() != neighbourNodes)
@@ -1096,7 +1096,7 @@ namespace Kratos
 
 				if (neighSize > 0)
 				{
-					for (unsigned int i = 0; i < neighSize - 1; i++) // neigh_nodes has one cell less than nodalSFDneighboursId becuase this has also the considered node ID at the beginning
+					for (unsigned int i = 0; i < neighSize - 1; i++) // neigh_nodes has one cell less than nodalSFDneighboursId because this has also the considered node ID at the beginning
 					{
 						dNdXi = rNodalSFDneigh[firstRow];
 						dNdYi = rNodalSFDneigh[firstRow + 1];

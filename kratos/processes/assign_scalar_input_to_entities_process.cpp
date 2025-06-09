@@ -123,7 +123,6 @@ const Parameters AssignScalarInputToEntitiesProcess<TEntity, THistorical>::GetDe
     const Parameters default_parameters( R"(
     {
         "model_part_name"    : "MODEL_PART_NAME",
-        "mesh_id"            : 0,
         "variable_name"      : "VARIABLE_NAME",
         "file"               : "",
         "transfer_algorithm" : "nearest_neighbour"
@@ -173,7 +172,7 @@ array_1d<double, 3> AssignScalarInputToEntitiesProcess<Element, AssignScalarInpu
 template<>
 PointerVectorSet<Node, IndexedObject>& AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh().Nodes();
+    return mrModelPart.Nodes();
 }
 
 /***********************************************************************************/
@@ -182,7 +181,7 @@ PointerVectorSet<Node, IndexedObject>& AssignScalarInputToEntitiesProcess<Node, 
 template<>
 PointerVectorSet<Node, IndexedObject>& AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh().Nodes();
+    return mrModelPart.Nodes();
 }
 
 /***********************************************************************************/
@@ -191,7 +190,7 @@ PointerVectorSet<Node, IndexedObject>& AssignScalarInputToEntitiesProcess<Node, 
 template<>
 PointerVectorSet<Condition, IndexedObject>& AssignScalarInputToEntitiesProcess<Condition, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh().Conditions();
+    return mrModelPart.Conditions();
 }
 
 /***********************************************************************************/
@@ -200,7 +199,7 @@ PointerVectorSet<Condition, IndexedObject>& AssignScalarInputToEntitiesProcess<C
 template<>
 PointerVectorSet<Element, IndexedObject>& AssignScalarInputToEntitiesProcess<Element, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh().Elements();
+    return mrModelPart.Elements();
 }
 
 /***********************************************************************************/

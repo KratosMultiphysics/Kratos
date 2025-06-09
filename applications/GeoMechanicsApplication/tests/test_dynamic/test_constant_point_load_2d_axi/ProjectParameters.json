@@ -131,7 +131,6 @@
                     "table"                        : [0,1,0]
                 }
             }
-        ],
-        "auxiliary_process_list": []
+        ]
     }
 }

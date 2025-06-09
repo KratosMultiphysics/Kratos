@@ -908,7 +908,7 @@ namespace Kratos {
                               const ProcessInfo& CurrentProcessInfo)
         {
 
-            //multipling time scheme factor
+            //multiplying time scheme factor
             LHS_Contribution *= ma1;
 
             // adding mass contribution to the dynamic stiffness

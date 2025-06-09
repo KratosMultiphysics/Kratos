@@ -44,7 +44,7 @@ void FindContactsInSkinModelPart::ValidateParameters()
     }
 }
 
-void FindContactsInSkinModelPart::Apply() const
+void FindContactsInSkinModelPart::Execute()
 {
     ContactContainer contact_container;
     Parameters parameters = GetParameters();

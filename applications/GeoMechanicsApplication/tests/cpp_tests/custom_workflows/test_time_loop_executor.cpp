@@ -66,13 +66,6 @@ public:
 
     [[nodiscard]] bool IsRestoreCalled() const { return mIsRestoreCalled; }
 
-    void SaveTotalDisplacementFieldAtStartOfTimeLoop() override
-    {
-        mIsSaveTotalDisplacementFieldCalled = true;
-    }
-
-    [[nodiscard]] bool IsSaveFieldCalled() const { return mIsSaveTotalDisplacementFieldCalled; }
-
     void AccumulateTotalDisplacementField() override
     {
         ++mCountAccumulateTotalDisplacementFieldCalled;
@@ -148,7 +141,6 @@ private:
     ModelPart*            mpModelPart                                  = nullptr;
     bool                  mIsCloned                                    = false;
     bool                  mIsRestoreCalled                             = false;
-    bool                  mIsSaveTotalDisplacementFieldCalled          = false;
     std::size_t           mCountInitializeOutputCalled                 = 0;
     std::size_t           mCountAccumulateTotalDisplacementFieldCalled = 0;
     std::size_t           mCountOutputProcessCalled                    = 0;
@@ -317,13 +309,6 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectRestoreCalledForTwoCycles, KratosGeoMechanicsFas
     auto solver_strategy = RunFixedCycleTimeLoop(2);
 
     KRATOS_EXPECT_TRUE(solver_strategy->IsRestoreCalled())
-}
-
-KRATOS_TEST_CASE_IN_SUITE(ExpectDisplacementFieldStoredForResetDisplacements, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto solver_strategy = RunFixedCycleTimeLoop(1);
-
-    KRATOS_EXPECT_TRUE(solver_strategy->IsSaveFieldCalled())
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectDisplacementFieldUpdateForEveryStep, KratosGeoMechanicsFastSuiteWithoutKernel)

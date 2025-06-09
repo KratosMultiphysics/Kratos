@@ -31,7 +31,7 @@
     "nodal_smoothing": false,
     "block_builder": true,
     "solution_type": "quasi_static",
-    "scheme_type": "Newmark",
+    "scheme_type": "backward_euler",
     "reset_displacements": true,
     "strategy_type": "line_search",
     "convergence_criterion": "displacement_criterion",

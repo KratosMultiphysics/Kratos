@@ -72,7 +72,7 @@ public:
     ///@{
 
     /**
-     * @brief Constructor with separate paramters
+     * @brief Constructor with separate parameters
      *
      * @param rModelPart Complete model part (including boundaries) for the process to operate on
      * @param PerformCorrections Choice if only logging is required (false) or if corrections by shifting the distance field shall be performed (true)
@@ -142,7 +142,7 @@ public:
     double ComputeFlowOverBoundary( const Kratos::Flags boundaryFlag );
 
     /**
-     * @brief Initialization of the process including computation of inital volumes
+     * @brief Initialization of the process including computation of initial volumes
      *
      * @return std::string Output message (can appear in log-file)
      */
@@ -202,9 +202,9 @@ private:
     bool mPerformCorrections = true;
     std::string mLogFileName = "mass_conservation.log";
 
-    // Inital volume with negative distance field ("water" volume)
+    // Initial volume with negative distance field ("water" volume)
     double mInitialNegativeVolume = -1.0;
-    // Inital volume with positive distance field ("air" volume)
+    // Initial volume with positive distance field ("air" volume)
     double mInitialPositiveVolume = -1.0;
 
     // Balance parameter resulting from an integration of the net inflow into the domain over time

@@ -12,8 +12,7 @@
 //
 #include "containers/model.h"
 #include "custom_processes/apply_c_phi_reduction_process.h"
-#include "geometries/quadrilateral_2d_4.h"
-#include "processes/structured_mesh_generator_process.h"
+#include "geometries/triangle_2d_3.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/stub_linear_elastic_law.h"
 #include <boost/numeric/ublas/assignment.hpp>
@@ -22,32 +21,27 @@ using namespace Kratos;
 
 namespace
 {
-ModelPart& SetGeometryAndMesh(Model& rModel)
+ModelPart& CreateModelPartWithElements(Model& rModel)
 {
-    auto& result = rModel.CreateModelPart("dummy");
+    auto& result       = rModel.CreateModelPart("dummy");
+    auto  p_properties = result.CreateNewProperties(0);
 
-    // Set up the test model part mesh
-    const auto             p_point_1 = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
-    const auto             p_point_2 = make_intrusive<Node>(2, 0.0, 1.0, 0.0);
-    const auto             p_point_3 = make_intrusive<Node>(3, 1.0, 1.0, 0.0);
-    const auto             p_point_4 = make_intrusive<Node>(4, 1.0, 0.0, 0.0);
-    Quadrilateral2D4<Node> domain_geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+    const auto p_node1 = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    const auto p_node2 = make_intrusive<Node>(2, 1.0, 0.0, 0.0);
+    const auto p_node3 = make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+    const auto p_node4 = make_intrusive<Node>(4, 0.0, 1.0, 0.0);
 
-    Parameters mesher_parameters(R"({
-        "number_of_divisions": 2,
-        "element_name": "Element2D3N",
-        "condition_name": "LineCondition",
-        "create_skin_sub_model_part": true
-    })");
-
-    StructuredMeshGeneratorProcess(domain_geometry, result, mesher_parameters).Execute();
+    result.AddElement(make_intrusive<Element>(
+        1, std::make_shared<Triangle2D3<Node>>(p_node1, p_node2, p_node3), p_properties));
+    result.AddElement(make_intrusive<Element>(
+        3, std::make_shared<Triangle2D3<Node>>(p_node1, p_node3, p_node4), p_properties));
 
     return result;
 }
 
 ModelPart& PrepareCPhiTestModelPart(Model& rModel)
 {
-    auto& result = SetGeometryAndMesh(rModel);
+    auto& result = CreateModelPartWithElements(rModel);
 
     auto& r_model_part_properties = result.GetProperties(0);
     auto  p_dummy_law             = std::make_shared<Testing::StubLinearElasticLaw>();
@@ -83,7 +77,7 @@ void CheckReducedCPhi(const ModelPart& rModelPart, double COrig, double PhiOrig,
 
 namespace Kratos::Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiReducedAfterCallingApplyCPhiReductionProcess, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiReducedAfterCallingApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = PrepareCPhiTestModelPart(model);
@@ -94,7 +88,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiReducedAfterCallingApplyCPhiReductionProce
     CheckReducedCPhi(r_model_part, 10.0, 25.0, 0.9);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiTwiceReducedAfterCallingApplyCPhiReductionProcessTwice, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiTwiceReducedAfterCallingApplyCPhiReductionProcessTwice,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = PrepareCPhiTestModelPart(model);
@@ -107,10 +102,10 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiTwiceReducedAfterCallingApplyCPhiReduction
     CheckReducedCPhi(r_model_part, 10.0, 25.0, 0.8);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
-    auto& r_model_part = SetGeometryAndMesh(model);
+    auto& r_model_part = CreateModelPartWithElements(model);
 
     auto& r_model_part_properties = r_model_part.GetProperties(0);
     auto  p_dummy_law             = std::make_shared<Testing::StubLinearElasticLaw>();
@@ -144,13 +139,13 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "Friction angle Phi out of range: -0.0001")
+        "Friction angle Phi out of range [0;90] (degrees): -0.0001")
 
     umat_parameters(3) = 90.00001;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "Friction angle Phi out of range: 90")
+        "Friction angle Phi out of range [0;90] (degrees): 90")
 
     umat_parameters(3) = 25.0;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
@@ -177,7 +172,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
         "Cohesion C out of range: -1e-05")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckFailureEmptyModelPartApplyCPhiReductionProcess, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckFailureEmptyModelPartApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_modelpart = model.CreateModelPart("dummy");
@@ -185,7 +180,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureEmptyModelPartApplyCPhiReductionProcess, K
                                       "ApplyCPhiReductionProces has no elements in modelpart dummy")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckReturnsZeroForValidModelPartApplyCPhiReductionProcess, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckReturnsZeroForValidModelPartApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model                     model;
     auto&                     r_model_part = PrepareCPhiTestModelPart(model);
@@ -193,7 +188,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckReturnsZeroForValidModelPartApplyCPhiReductionPro
     KRATOS_CHECK_EQUAL(process.Check(), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckFailureNegativeReductionFactorApplyCPhiReductionProcess, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckFailureNegativeReductionFactorApplyCPhiReductionProcess,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = PrepareCPhiTestModelPart(model);
@@ -208,7 +204,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureNegativeReductionFactorApplyCPhiReductionP
         "Reduction factor should not drop below 0.01, calculation stopped.");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckFailureTooSmallReductionIncrementApplyCPhiReductionProcess, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CheckFailureTooSmallReductionIncrementApplyCPhiReductionProcess,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = PrepareCPhiTestModelPart(model);

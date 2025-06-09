@@ -155,7 +155,6 @@ private:
     double mDoubleValue;        /// The double value to assign
     int mIntValue;              /// The integer value to assign
     bool mBoolValue;            /// The boolean value to assign
-    std::size_t mMeshId;        /// The mesh id
 
     ///@}
     ///@name Private Operators

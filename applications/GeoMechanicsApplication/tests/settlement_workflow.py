@@ -5,7 +5,7 @@ import importlib
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the Kratos applications that we need. We need to reload these later.
+# Import the Kratos applications that we need
 import KratosMultiphysics.LinearSolversApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.GeoMechanicsApplication as GeoMechanicsApplication
@@ -154,40 +154,18 @@ class KratosGeoMechanicsSettlementWorkflowCppRoute(KratosGeoMechanicsSettlementW
     """
     This test class checks the settlement workflow using the C++ route.
     """
-    def tearDown(self):
-        # The `KratosGeoSettlement` instance used by this test removes all registered GeoMechanicsApplication
-        # components when it's destroyed. If no action is taken, any following tests will start to fail due to
-        # components not being registered. It seems that reloading the relevant Kratos applications overcomes this
-        # problem.
-        importlib.reload(KratosMultiphysics.LinearSolversApplication)
-        importlib.reload(KratosMultiphysics.StructuralMechanicsApplication)
-        importlib.reload(KratosMultiphysics.GeoMechanicsApplication)
-
-        super().tearDown()
-
-
     def get_test_dir_name(self):
         return "cpp"
 
 
     def test_d_settlement_workflow(self):
-        settlement_api = GeoMechanicsApplication.CustomWorkflowFactory.CreateKratosGeoSettlement()
+        import KratosMultiphysics.GeoMechanicsApplication.run_geo_settlement as run_geo_settlement
 
-        no_logging = lambda msg: None
-        no_progress_reporting = lambda fraction_done: None
-        no_progress_message = lambda msg: None
-        do_not_cancel = lambda: False
-
-        for project_parameters_filename in self.project_parameters_filenames:
-            status = settlement_api.RunStage(self.test_path, project_parameters_filename, no_logging, no_progress_reporting, no_progress_message, do_not_cancel)
-            self.assertEqual(status, 0)
+        status = run_geo_settlement.run_stages(self.test_path, self.project_parameters_filenames)
+        self.assertEqual(status, 0)
 
         self.check_displacements()
         self.check_nodal_stresses()
-
-        # Don't rely on the garbage collector to clean up the API object. Make sure it's destructor has run before
-        # executing the test case's `tearDown` method (which will reload the relevant Kratos applications)
-        del settlement_api
 
 
 if __name__ == '__main__':

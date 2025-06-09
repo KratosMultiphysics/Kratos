@@ -27,9 +27,8 @@ public:
     GeoFlowApplyConstantScalarValueProcess(Kratos::ModelPart&              rModelPart,
                                            const Kratos::Variable<double>& rVariable,
                                            double                          DoubleValue,
-                                           std::size_t                     MeshId,
                                            const Flags&                    rOptions)
-        : Kratos::ApplyConstantScalarValueProcess(rModelPart, rVariable, DoubleValue, MeshId, rOptions)
+        : Kratos::ApplyConstantScalarValueProcess(rModelPart, rVariable, DoubleValue, rOptions)
     {
     }
 
@@ -126,9 +125,7 @@ KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer Krat
         "max_radius_factor": 10.0,
         "min_radius_factor": 0.1,
         "search_neighbours_step": false,
-        "body_domain_sub_model_part_list": [],
-        "loads_sub_model_part_list": [],
-        "loads_variable_list" : []
+        "body_domain_sub_model_part_list": []
     }  )");
 
     int  MaxIterations          = 15;
@@ -163,7 +160,7 @@ void KratosExecute::ParseProcesses(ModelPart& rModelPart, Parameters projFile)
         if (pressure_type == "Uniform") {
             auto value = process["Parameters"]["value"].GetDouble();
             mProcesses.push_back(make_shared<GeoFlowApplyConstantScalarValueProcess>(
-                part, WATER_PRESSURE, value, 0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED));
+                part, WATER_PRESSURE, value, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED));
         } else if (pressure_type == "Hydrostatic") {
             auto cProcesses = process.Clone();
             cProcesses["Parameters"].RemoveValue("fluid_pressure_type");
@@ -181,13 +178,13 @@ void KratosExecute::ParseProcesses(ModelPart& rModelPart, Parameters projFile)
     std::string subname = name.substr(found + 1);
     ModelPart&  part    = rModelPart.GetSubModelPart(subname);
     mProcesses.push_back(make_shared<ApplyConstantScalarValueProcess>(
-        part, VOLUME_ACCELERATION_X, 0.0, 0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED));
+        part, VOLUME_ACCELERATION_X, 0.0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED));
 
     mProcesses.push_back(make_shared<ApplyConstantScalarValueProcess>(
-        part, VOLUME_ACCELERATION_Y, -9.81, 0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED));
+        part, VOLUME_ACCELERATION_Y, -9.81, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED));
 
     mProcesses.push_back(make_shared<ApplyConstantScalarValueProcess>(
-        part, VOLUME_ACCELERATION_Z, 0.0, 0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED));
+        part, VOLUME_ACCELERATION_Z, 0.0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED));
 }
 
 int KratosExecute::MainExecution(ModelPart& rModelPart,

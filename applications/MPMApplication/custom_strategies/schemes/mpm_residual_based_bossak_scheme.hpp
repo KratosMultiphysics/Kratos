@@ -273,23 +273,41 @@ public:
     void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
                                    TSystemVectorType &rb) override {
 
-        // clear any nodal reaction values for conforming friction (needed in current penalty-based formulation)
-        ClearConformingFrictionReaction();
+        // Special treatment of particle based dirichlet conditions to calculate the reaction forces at the boundary particles
+        // ***
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        
+        // clear any nodal reaction values
+        ClearReactionVariable();
+        
+        // Calculating as an intermediate step the nodal reaction forces due to the boundary particles
+        block_for_each(rModelPart.Conditions(), std::vector<bool>(), [&r_current_process_info](Condition& rCondition, auto& r_dummy)
+        {  
+            rCondition.CalculateOnIntegrationPoints(MPC_CALCULATE_NODAL_REACTIONS, r_dummy, r_current_process_info);
+        });
+        
+        // Calculating the reaction forces at the boundary particles due to the nodal reaction forces
+        block_for_each(rModelPart.Conditions(), std::vector<bool>(), [&r_current_process_info](Condition& rCondition, auto& r_dummy)
+        {  
+            rCondition.CalculateOnIntegrationPoints(MPC_CALCULATE_CONTACT_FORCE, r_dummy, r_current_process_info);
+        });  
+
+        // clear nodal reaction values again
+        ClearReactionVariable();    
+        
+        // *** 
 
         BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
 
-        // modify reaction forces for material point particle slip conditions (Penalty)
-        mRotationTool.CalculateReactionForces(mGridModelPart);
-
-        if(mFrictionIsActive) {
-            mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
-        }
     }
 
     void InitializeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
                                  TSystemVectorType &rb) override {
 
         BossakBaseType::InitializeNonLinIteration(rModelPart, rA, rDx, rb);
+
+        // clear nodal reaction values again
+        ClearReactionVariable();
 
         if(mFrictionIsActive) {
             mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
@@ -429,19 +447,27 @@ public:
         TSystemVectorType& rb) override
     {
         BossakBaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
-
+        
         if(mFrictionIsActive) {
-            block_for_each(mGridModelPart.Nodes(), [&](Node& rNode) {
+            block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
+            {
                 const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
-
-                const double mu = rConstNode.GetValue(FRICTION_COEFFICIENT);
-
-                // rotate friction forces stored in REACTION to global coordinates on conforming boundaries
-                if (mRotationTool.IsConformingSlip(rNode) && mu > 0) {
-                    mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rNode, true);
-                }
+                if( mRotationTool.IsConformingSlip(rConstNode) && rConstNode.GetValue(FRICTION_COEFFICIENT) > 0 )
+                    rNode.FastGetSolutionStepValue(REACTION).clear();       
             });
+            
+            mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
         }
+
+        block_for_each(mGridModelPart.Nodes(), [&](Node& rNode) {
+            const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
+
+            // rotate forces stored in REACTION to global coordinates on conforming boundaries
+            if (mRotationTool.IsConformingSlip(rConstNode) ) {
+                mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rConstNode, true);
+            }
+        });
+        
     }
 
     /**
@@ -622,14 +648,11 @@ protected:
     unsigned int mBlockSize;
     MPMBoundaryRotationUtility<LocalSystemMatrixType,LocalSystemVectorType> mRotationTool;
 
-    void ClearConformingFrictionReaction() const
+    void ClearReactionVariable() const
     {
         block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
         {
-            const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
-
-            if( mRotationTool.IsConformingSlip(rConstNode) && rConstNode.GetValue(FRICTION_COEFFICIENT) > 0 )
-                rNode.FastGetSolutionStepValue(REACTION).clear();
+            rNode.FastGetSolutionStepValue(REACTION).clear();
         });
     }
 

@@ -34,6 +34,7 @@ namespace Testing
 
         // Variables addition
         model_part.AddNodalSolutionStepVariable(VELOCITY);
+        model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
         model_part.AddNodalSolutionStepVariable(DISTANCE);
 
         // Process info creation
@@ -47,6 +48,7 @@ namespace Testing
         model_part.GetProcessInfo().SetValue(CROSS_WIND_STABILIZATION_FACTOR, cross_wind_diff);
         p_conv_diff_settings->SetUnknownVariable(DISTANCE);
         p_conv_diff_settings->SetConvectionVariable(VELOCITY);
+        p_conv_diff_settings->SetMeshVelocityVariable(MESH_VELOCITY);
 
         // Set the element properties
         Properties::Pointer pElemProp = model_part.CreateNewProperties(0);
@@ -116,6 +118,7 @@ namespace Testing
 
         // Variables addition
         model_part.AddNodalSolutionStepVariable(VELOCITY);
+        model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
         model_part.AddNodalSolutionStepVariable(DISTANCE);
 
         // Process info creation
@@ -130,6 +133,7 @@ namespace Testing
         model_part.GetProcessInfo().SetValue(TIME_INTEGRATION_THETA, 1.0);
         p_conv_diff_settings->SetUnknownVariable(DISTANCE);
         p_conv_diff_settings->SetConvectionVariable(VELOCITY);
+        p_conv_diff_settings->SetMeshVelocityVariable(MESH_VELOCITY);
 
         // Set the element properties
         Properties::Pointer pElemProp = model_part.CreateNewProperties(0);
@@ -198,6 +202,7 @@ namespace Testing
 
         // Variables addition
         model_part.AddNodalSolutionStepVariable(VELOCITY);
+        model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
         model_part.AddNodalSolutionStepVariable(DISTANCE);
 
         // Process info creation
@@ -211,6 +216,7 @@ namespace Testing
         model_part.GetProcessInfo().SetValue(CROSS_WIND_STABILIZATION_FACTOR, cross_wind_diff);
         p_conv_diff_settings->SetUnknownVariable(DISTANCE);
         p_conv_diff_settings->SetConvectionVariable(VELOCITY);
+        p_conv_diff_settings->SetMeshVelocityVariable(MESH_VELOCITY);
 
         // Set the element properties
         Properties::Pointer pElemProp = model_part.CreateNewProperties(0);

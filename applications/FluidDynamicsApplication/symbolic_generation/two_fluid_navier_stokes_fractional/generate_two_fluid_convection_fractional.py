@@ -4,7 +4,7 @@ from KratosMultiphysics.sympy_fe_utilities import *
 
 ## Settings explanation
 # DIMENSION TO COMPUTE:
-# This symbolic generator is valid for both 2D and 3D cases. Since the element has been programed with a dimension template in Kratos,
+# This symbolic generator is valid for both 2D and 3D cases. Since the element has been programmed with a dimension template in Kratos,
 # it is advised to set the dim_to_compute flag as "Both". In this case the generated .cpp file will contain both 2D and 3D implementations.
 # LINEARISATION SETTINGS:
 # FullNR considers the convective velocity as "v-vmesh", hence v is taken into account in the derivation of the LHS and RHS.
@@ -70,7 +70,7 @@ for dim in dim_vector:
     bdf0 = sympy.Symbol('bdf0')
     bdf1 = sympy.Symbol('bdf1')
     bdf2 = sympy.Symbol('bdf2')
-    acceleration = (bdf0*vfrac + bdf1*vn+bdf2*vnn) # This acceleration is calculated in a differnt way of a bdf2 since it is considered in the fractional splitting.
+    acceleration = (bdf0*vfrac + bdf1*vn+bdf2*vnn) # This acceleration is calculated in a different way of a bdf2 since it is considered in the fractional splitting.
     vconv_gauss = vconv.transpose()*N
     vconv_gauss_norm = 0.0
     for i in range(0, dim):
@@ -92,10 +92,10 @@ for dim in dim_vector:
     # Convective term definition
     convective_term = (vconv_gauss.transpose()*grad_vfrac)
 
-    # Accelerated convection definitoin
+    # Accelerated convection definition
     # "an = dv_n/dt +v_n*grad_v_old"
     if adding_acceleration:
-        # dv_d/dt    TODO:It is posible to use a BDF2
+        # dv_d/dt    TODO:It is possible to use a BDF2
         accel_n = (vn-vnn)/dt
         accel_gauss_n = accel_n.transpose()*N
         # Convective past term definition vn*gradv_n

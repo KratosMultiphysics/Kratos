@@ -43,7 +43,7 @@ MCStrainSofteningPlasticFlowRule::MCStrainSofteningPlasticFlowRule(YieldCriterio
 
 }
 
-//********* ASSIGMENT OPERATOR
+//********* ASSIGNMENT OPERATOR
 MCStrainSofteningPlasticFlowRule& MCStrainSofteningPlasticFlowRule::operator=(MCStrainSofteningPlasticFlowRule const& rOther)
 {
     MCPlasticFlowRule::operator=(rOther);

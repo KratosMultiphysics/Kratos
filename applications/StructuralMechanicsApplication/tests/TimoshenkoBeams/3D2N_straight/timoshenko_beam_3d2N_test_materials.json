@@ -1,0 +1,26 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Beam_beam",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "TimoshenkoBeamElasticConstitutiveLaw3D"
+            },
+            "Variables"        : {
+                "DENSITY"           : 7850.0,
+                "YOUNG_MODULUS"     : 206900000000.0,
+                "POISSON_RATIO"     : 0.29,
+
+                "CROSS_AREA"        : 0.01,
+
+                "IT"                : 0.008,
+                "I22"               : 0.005,
+                "I33"               : 0.004,
+
+                "AREA_EFFECTIVE_Y"  : 0.0083,
+                "AREA_EFFECTIVE_Z"  : 0.0083
+            },
+            "Tables"           : null
+        }
+    }]
+}

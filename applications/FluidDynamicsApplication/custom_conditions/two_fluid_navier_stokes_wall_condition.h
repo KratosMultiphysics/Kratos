@@ -287,7 +287,7 @@ protected:
     //  * @brief Computes the right-hand side of the Navier slip contribution as e.g. described in BEHR2004
     //  * The (Navier) slip length is read as a nodal variable.
     //  * If a smaller value is set, tangential velocities lead to a higher tangential traction.
-    //  * Though only tangential velocities should appear, a tangetial projection is added.
+    //  * Though only tangential velocities should appear, a tangential projection is added.
     //  * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
     //  * @param rRightHandSideVector reference to the RHS vector
     //  * @param rDataStruct reference to a struct to hand over data
@@ -300,7 +300,7 @@ protected:
     //  * @brief Computes the left-hand side of the Navier slip contribution as e.g. described in BEHR2004
     //  * The (Navier) slip length is read as a nodal variable.
     //  * If a smaller value is set, tangential velocities lead to a higher tangential traction.
-    //  * Though only tangential velocities should appear, a tangetial projection is added.
+    //  * Though only tangential velocities should appear, a tangential projection is added.
     //  * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
     //  * @param rLeftHandSideMatrix reference to the LHS matrix
     //  * @param rDataStruct reference to a struct to hand over data

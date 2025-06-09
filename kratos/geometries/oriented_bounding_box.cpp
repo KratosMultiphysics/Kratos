@@ -60,7 +60,7 @@ OrientedBoundingBox<2>::OrientedBoundingBox(
     )
 {
     // Check the intersection of each edge of the object bounding box against the intersecting object bounding box
-    NodeType geometry_low_node, geometry_high_node;
+    Point geometry_low_node, geometry_high_node;
     rGeometry.BoundingBox(geometry_low_node, geometry_high_node);
 
     // Creating OBB
@@ -90,7 +90,7 @@ OrientedBoundingBox<3>::OrientedBoundingBox(
 {
     if (BuildFromBoundingBox || rGeometry.WorkingSpaceDimension() == rGeometry.LocalSpaceDimension()) {
         // Check the intersection of each face of the object bounding box against the intersecting object bounding box
-        NodeType geometry_low_node, geometry_high_node;
+        Point geometry_low_node, geometry_high_node;
         rGeometry.BoundingBox(geometry_low_node, geometry_high_node);
 
         // Creating OBB

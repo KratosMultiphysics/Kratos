@@ -173,7 +173,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
                 self.normal_variation = CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE
 
     def ExecuteInitialize(self):
-        """ This method is executed at the begining to initialize the process
+        """ This method is executed at the beginning to initialize the process
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -493,6 +493,6 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
                     if self.slip_step_reset_counter >= self.slip_step_reset_frequency:
                         KM.VariableUtils().SetFlag(KM.SLIP, False, self._get_process_model_part().Nodes)
                         self.slip_step_reset_counter = 0
-                else: # If zero never reseted, if negative will consider the direction of the WEIGHTED_SLIP
+                else: # If zero never reset, if negative will consider the direction of the WEIGHTED_SLIP
                     if self.slip_step_reset_frequency < 0: # Update using the slip direction directly (a la PureSlip style)
                         KM.MortarUtilities.ComputeNodesTangentModelPart(self._get_process_model_part(), CSMA.WEIGHTED_SLIP, 1.0, True)

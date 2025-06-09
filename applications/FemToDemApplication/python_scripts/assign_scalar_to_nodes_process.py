@@ -3,7 +3,7 @@ import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 
 
-## This proces sets the value of a scalar variable
+## This process sets the value of a scalar variable
 ## Note that in some cases can be a vector of scalars (used in conditions with multiple nodes)
 import sys
 from math import *

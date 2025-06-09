@@ -580,9 +580,9 @@ void ShellThinElement3D3N<TKinematics>::InitializeCalculationData(CalculationDat
     const double LL32 = x32*x32 + y32*y32;
     const double LL13 = x13*x13 + y13*y13;
 
-    // Note: here we compute the avarage thickness,
+    // Note: here we compute the average thickness,
     // since L is constant over the element.
-    // Now it is not necessary to compute the avarage
+    // Now it is not necessary to compute the average
     // because the current implementation of the cross section
     // doesn't have a variable thickness
     // (for example as a function of the spatial coordinates...).
@@ -604,7 +604,7 @@ void ShellThinElement3D3N<TKinematics>::InitializeCalculationData(CalculationDat
     // it is dArea because it will
     // multiply section stress resultants
     // and section constitutive matrices
-    // that already take into accout the
+    // that already take into account the
     // thickness
 
     const SizeType num_gps = this->GetNumberOfGPs();

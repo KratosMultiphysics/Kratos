@@ -168,7 +168,7 @@ public:
         if (mmax_dist!=0.0)
             max_dist=mmax_dist;
 
-        //coeffcients that define linear distribution from minimal to maximal mesh size
+        //coefficients that define linear distribution from minimal to maximal mesh size
         double coef=(h_max-h_min)/(0.75*max_dist-h_min);
         double c=h_min-coef*h_min;
 
