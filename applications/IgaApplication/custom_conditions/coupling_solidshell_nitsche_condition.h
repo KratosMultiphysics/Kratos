@@ -365,9 +365,9 @@ private:
     ///@name Member Variables
     ///@{
     
-    //
+    // Shell base vactors and theta3
+    std::vector<array_1d<double, 3>> _A1, _A2, _A3;
     std::vector<double> _theta3;
-    std::vector<Matrix> _OutOfPlaneDeformations;
     // Components of the metric coefficient tensor on the contravariant basis
     std::vector<array_1d<double, 6>> m_A_ab_covariant_vector_master; // Solid has 6.
     std::vector<array_1d<double, 3>> m_A_ab_covariant_vector_slave;
@@ -399,12 +399,19 @@ private:
         IndexType IntegrationPointIndex,
         const KinematicVariablesShell& rCurrentConfiguraitonKinematicVariablesShell);
 
-    void CalculateOutOfPlaneDeformationContributionShell(
-        IndexType IntegrationPointIndex,
-        Matrix& rOutOfPlaneDeformationsContribution,
-        const KinematicVariablesShell& rReferenceConfiguraitonKinematicVariables,
-        const Matrix& rShapeFunctionGradientValues, 
-        const double theta3);
+    void OutOfPlaneDeformationFirstVariation(
+        Matrix& OutOfPlaneDeformationWholeMatrix,
+        const size_t& mat_size,
+        const double theta,
+        const array_1d<double, 3>& A1,
+        const array_1d<double, 3>& A2,
+        const Matrix& shape_functions_gradients_slave);
+
+    array_1d<double, 3> Calculate_Phi_r_cross_A3(
+        const array_1d<double, 3>& N_theta1,
+        const array_1d<double, 3>& N_theta2,
+        const array_1d<double, 3>& A1,
+        const array_1d<double, 3>& A2);
 
     void CalculateKinematicsShell(
         IndexType IntegrationPointIndex,

@@ -68,6 +68,19 @@ namespace Kratos
             r_geometry_master.DeterminantOfJacobian(determinant_jacobian_vector);
         }
 
+        const SizeType r_number_of_integration_points_slave = r_geometry_slave.IntegrationPointsNumber();
+        if (r_number_of_integration_points_slave != integration_points.size()) {
+            std::cout << " # of integration points slave is different than master for a quadrature point" << std::endl;
+        }
+        if (_g1.size() != r_number_of_integration_points_slave)
+            _g1.resize(r_number_of_integration_points_slave);
+        if (_g2.size() != r_number_of_integration_points_slave)
+            _g2.resize(r_number_of_integration_points_slave);
+        if (_g3.size() != r_number_of_integration_points_slave)
+            _g3.resize(r_number_of_integration_points_slave);
+        if (_theta3.size() != r_number_of_integration_points_slave)
+            _theta3.resize(r_number_of_integration_points_slave);
+
         for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
         {
             Matrix N_master = r_geometry_master.ShapeFunctionsValues();
@@ -87,148 +100,83 @@ namespace Kratos
                     H(2, index + 2) = N_master(point_number, i);
             }
 
+            Matrix J;
+            r_geometry_slave.Jacobian(J, point_number);
+            // Minas: Start: calculate global coordinates of integration point
+            GeometryType::CoordinatesArrayType  MasterIPGlobalCoordinates, SlaveIPGlobalCoordinates;
+            r_geometry_master.GlobalCoordinates(MasterIPGlobalCoordinates, point_number);
+            r_geometry_slave.GlobalCoordinates(SlaveIPGlobalCoordinates, point_number);
+            double norm_g1_cross_g2;
+            if (CalculateStiffnessMatrixFlag) {
+                // compute the actual base vectors of slave
+                _g1[point_number] = column(J, 0);
+                _g2[point_number] = column(J, 1);
+
+                array_1d<double, 3> g1_cross_g2;
+                MathUtils<double>::CrossProduct(g1_cross_g2, _g1[point_number], _g2[point_number]);
+                norm_g1_cross_g2 = norm_2(g1_cross_g2);
+                _g3[point_number] = g1_cross_g2 / norm_g1_cross_g2;
+
+                // Comppute Theta3
+                array_1d<double, 3> distance;
+                distance[0] =  MasterIPGlobalCoordinates[0] - SlaveIPGlobalCoordinates[0] - _g3[point_number][0] * _theta3[point_number];
+                distance[1] =  MasterIPGlobalCoordinates[1] - SlaveIPGlobalCoordinates[1] - _g3[point_number][1] * _theta3[point_number];
+                distance[2] =  MasterIPGlobalCoordinates[2] - SlaveIPGlobalCoordinates[2] - _g3[point_number][2] * _theta3[point_number];
+                _theta3[point_number] = inner_prod(distance, _g3[point_number]) / inner_prod(_g3[point_number], _g3[point_number]);
+
+                // Check that SlavePoint + theta3 * A3 = MasterPoint 
+                array_1d<double, 3> check_distance;
+                check_distance = SlaveIPGlobalCoordinates + _g3[point_number] * _theta3[point_number] - MasterIPGlobalCoordinates;
+                double check01 = norm_2(distance);
+                double check02 = norm_2(check_distance);
+
+                double thickness = GetProperties().GetValue(THICKNESS);
+                if (abs(_theta3[point_number]) > thickness / 2) {
+                    std::cout << "Theta3 > thickness/2" << std::endl;
+                    KRATOS_ERROR;
+                }
+                if (norm_2(check_distance) > 1E-6) {
+                    array_1d<double, 3> g3 = _g3[point_number];
+                    double theta3 = _theta3[point_number];
+                    std::cout << "Theta3 caclulation is wrong " << norm_2(distance) <<  std::endl;
+                    KRATOS_ERROR;
+                }
+            }
+
+            Matrix OutOfPlaneDeformationFirstVariationMatrix = zero_matrix(3, 3 * number_of_nodes_slave);
+            OutOfPlaneDeformationFirstVariation(
+                OutOfPlaneDeformationFirstVariationMatrix,
+                3 * number_of_nodes_slave,
+                _theta3[point_number],
+                _g1[point_number],
+                _g2[point_number],
+                r_geometry_slave.ShapeFunctionsLocalGradients()[point_number]);
+
             for (IndexType i = 0; i < number_of_nodes_slave; ++i)
             {
-                // Minas: Start: calculate global coordinates of integration point
-                GeometryType::CoordinatesArrayType  MasterIPGlobalCoordinates, SlaveIPGlobalCoordinates;
-                r_geometry_master.GlobalCoordinates(MasterIPGlobalCoordinates, point_number);
-                r_geometry_slave.GlobalCoordinates(SlaveIPGlobalCoordinates, point_number);
-
-                Matrix J;
-                r_geometry_slave.Jacobian(J, point_number);
-
-                // Get Gradient of Shape Functions for slave geometry
-                const IntegrationMethod integration_method_slave = r_geometry_slave.GetDefaultIntegrationMethod();
-                const Matrix& shape_functions_gradients_slave = r_geometry_slave.ShapeFunctionsLocalGradients()[point_number];
-
-                Matrix a3x_g1g3B2_g2g3B1 = zero_matrix(3, 3);
-                if (CalculateStiffnessMatrixFlag) {
-                    // compute the actual base vectors of slave
-                    array_1d<double, 3> g1, g2, g3;
-
-                    g1 = column(J, 0);
-                    g2 = column(J, 1);
-                    store_g1(g1, i);
-                    store_g2(g2, i);               
-          
-                }
-
-                array_1d<double, 3> g1, g2, g3;
-                g1 = _g1[i];
-                g2 = _g2[i];
-
-                MathUtils<double>::CrossProduct(g3, g1, g2);
-                double norm_g1xg2 = norm_2(g3);
-                g3 = g3 / norm_2(g3);
-
-                Matrix g3_cross_product_matrix(3, 3, 0);
-                g3_cross_product_matrix(0, 1) = -g3(2);
-                g3_cross_product_matrix(1, 0) = g3(2);
-                g3_cross_product_matrix(0, 2) = -g3(1);
-                g3_cross_product_matrix(2, 0) = g3(1);
-                g3_cross_product_matrix(1, 2) = -g3(0);
-                g3_cross_product_matrix(2, 1) = g3(0);
-               
-                Matrix g1g3(3, 3, 0);
-                for (int ii = 0; ii < 3; ++ii) {
-                    for (int jj = 0; jj < 3; ++jj)
-                        g1g3(ii, jj) = g1(ii) * g3(jj);
-                }
-                //print_matrix_3x3(g1g3, "g1g3 :");
-                Matrix g2g3(3, 3, 0);
-                for (int ii = 0; ii < 3; ++ii) {
-                    for (int jj = 0; jj < 3; ++jj)
-                        g2g3(ii, jj) = g2(ii) * g3(jj);
-                }
-
-                Matrix B1(3, 3, 0), B2(3, 3, 0);
-                B1(0, 0) = shape_functions_gradients_slave(i, 0);
-                B1(1, 1) = shape_functions_gradients_slave(i, 0);
-                B1(2, 2) = shape_functions_gradients_slave(i, 0);
-
-                B2(0, 0) = shape_functions_gradients_slave(i, 1);
-                B2(1, 1) = shape_functions_gradients_slave(i, 1);
-                B2(2, 2) = shape_functions_gradients_slave(i, 1);
-                
-                Matrix g1g3B2 = prod(g1g3, B2);
-                Matrix g2g3B1 = prod(g2g3, B1);
-
-
-                Matrix g1g3B2_g2g3B1 = g1g3B2 - g2g3B1;
-                a3x_g1g3B2_g2g3B1 = prod(g3_cross_product_matrix, g1g3B2_g2g3B1) / norm_g1xg2;
-
-                if (CalculateStiffnessMatrixFlag) {
-                    // Minas Comppute Theta3
-                    double theta3 = (MasterIPGlobalCoordinates(0) - SlaveIPGlobalCoordinates(0)) * g3(0) +
-                        (MasterIPGlobalCoordinates(1) - SlaveIPGlobalCoordinates(1)) * g3(1) +
-                        (MasterIPGlobalCoordinates(2) - SlaveIPGlobalCoordinates(2)) * g3(2);
-                    
-                    theta3 = theta3 / norm_2(g3) / norm_2(g3);
-                    store_theta3(theta3, i);
-
-                    // Minas that SlavePoint + theta3 * A3 = MasterPoint 
-                    double diff71 = SlaveIPGlobalCoordinates(0) + g3(0) * theta3 - MasterIPGlobalCoordinates(0);
-                    double diff72 = SlaveIPGlobalCoordinates(1) + g3(1) * theta3 - MasterIPGlobalCoordinates(1);
-                    double diff73 = SlaveIPGlobalCoordinates(2) + g3(2) * theta3 - MasterIPGlobalCoordinates(2);
-                    bool check71 = abs(diff71) < 1E-10;
-                    bool check72 = abs(diff72) < 1E-10;
-                    bool check73 = abs(diff73) < 1E-10;
-
-                    double thickness = GetProperties().GetValue(THICKNESS);
-                    if (abs(theta3) > thickness / 2) { 
-                        std::cout << "Theta3 > thickness/2" << std::endl; 
-                    }
-                    if (check71 == false || check72 == false || check73 == false) {
-                        std::cout << "Theta3 caclulation iw wrong" << std::endl;
-                    }
-                    KRATOS_ERROR_IF(abs(theta3) > thickness / 2) << "Theta 3 > 1" << std::endl;;
-                    KRATOS_ERROR_IF(check71 == false || check72 == false || check73 == false) << "Something happened with theta 3" << std::endl;
-                }
-                double theta3 = _theta3[i];
-                Matrix final_matrix = - a3x_g1g3B2_g2g3B1 * theta3;
-                
-                /* Following code just for checking at random values
-                //if ( (i == 8 || i == 0 || i == 4) && Id() == 550) {
-                //    if (CalculateStiffnessMatrixFlag) {
-                //        KRATOS_INFO("Condition Id() :  ") << Id() <<  
-                //                    " | LHS : Node number =  " << i << 
-                //                    " | N_slave(point_number, i) = " << N_slave(point_number, i) << 
-                //                    " | shape_functions_gradients_slave(i,0)[point_number] = " << shape_functions_gradients_slave(i,0) << std::endl;
-                //                    print_matrix_3x3(final_matrix, "LHS final_matrix :");
-                //    }
-
-                //    if (CalculateResidualVectorFlag) {
-                //        KRATOS_INFO("Condition Id() :  ") << Id() <<
-                //            " | RHS : Node number =  " << i <<
-                //            " | N_slave(point_number, i) = " << N_slave(point_number, i) <<
-                //            " | shape_functions_gradients_slave(i,0)[point_number] = " << shape_functions_gradients_slave(i, 0) << std::endl;
-                //            print_matrix_3x3(final_matrix, "RHS final_matrix :");
-
-                //    }
-                //} */
-
                 IndexType index = 3 * (i + number_of_nodes_master);
                 if (Is(IgaFlags::FIX_DISPLACEMENT_X)) {
-                    H(0, index + 0) = - N_slave(point_number, i) - final_matrix(0, 0);
-                    H(0, index + 1) =                            - final_matrix(0, 1);
-                    H(0, index + 2) =                            - final_matrix(0, 2);
-                } 
+                    H(0, index + 0) = -N_slave(point_number, i) - OutOfPlaneDeformationFirstVariationMatrix(0, 3 * i + 0);
+                    H(0, index + 1) = -OutOfPlaneDeformationFirstVariationMatrix(0, 3 * i + 1);
+                    H(0, index + 2) = -OutOfPlaneDeformationFirstVariationMatrix(0, 3 * i + 2);
+
+                }
                 if (Is(IgaFlags::FIX_DISPLACEMENT_Y)) {
-                    H(1, index + 0) =                            - final_matrix(1, 0);
-                    H(1, index + 1) = - N_slave(point_number, i) - final_matrix(1, 1);
-                    H(1, index + 2) =                            - final_matrix(1, 2);
+                    H(1, index + 0) = -OutOfPlaneDeformationFirstVariationMatrix(1, 3 *  i + 0);
+                    H(1, index + 1) = -N_slave(point_number, i) - OutOfPlaneDeformationFirstVariationMatrix(1, 3 * i + 1);
+                    H(1, index + 2) = -OutOfPlaneDeformationFirstVariationMatrix(1, 3 *  i + 2);
                 }
                 if (Is(IgaFlags::FIX_DISPLACEMENT_Z)) {
-                    H(2, index + 0) =                            - final_matrix(2, 0)   ;
-                    H(2, index + 1) =                            - final_matrix(2, 1)   ;
-                    H(2, index + 2) = - N_slave(point_number, i) - final_matrix(2, 2)   ;
+                    H(2, index + 0) = -OutOfPlaneDeformationFirstVariationMatrix(2, 3 * i + 0);
+                    H(2, index + 1) = -OutOfPlaneDeformationFirstVariationMatrix(2, 3 * i + 1);
+                    H(2, index + 2) = -N_slave(point_number, i) - OutOfPlaneDeformationFirstVariationMatrix(2, 3 * i + 2);
                 }
-                
-               
             }
 
             // Differential area
-            const double penalty_integration = penalty * (2*integration_points[point_number].Weight()) * determinant_jacobian_vector[point_number];
+            const double penalty_integration = penalty * (integration_points[point_number].Weight()) * determinant_jacobian_vector[point_number];
+            double check_weight = integration_points[point_number].Weight(); 
+            double check_det = determinant_jacobian_vector[point_number];
 
             // Assembly
             if (CalculateStiffnessMatrixFlag) {
@@ -259,26 +207,6 @@ namespace Kratos
         }
 
         KRATOS_CATCH("")
-    }
-
-    void CouplingSolidShellPenaltyCondition::store_g1(array_1d<double, 3>& g1, const IndexType& pointnumber_Node) {
-        _g1[pointnumber_Node] = g1;
-    }
-
-    void CouplingSolidShellPenaltyCondition::store_g2(array_1d<double, 3>& g2, const IndexType& pointnumber_Node) {
-        _g2[pointnumber_Node] = g2;
-    }
-    void CouplingSolidShellPenaltyCondition::store_theta3(double theta3, const IndexType& pointnumber_Node) {
-        _theta3[pointnumber_Node] = theta3;
-    }
-
-    void CouplingSolidShellPenaltyCondition::print_matrix_3x3(Matrix& rMatrix, std::string nameMatrix) {
-        KRATOS_INFO(nameMatrix) << rMatrix(0, 0) << " " << rMatrix(0, 1) << " " << rMatrix(0, 2) << std::endl
-            << rMatrix(1, 0) << " " << rMatrix(1, 1) << " " << rMatrix(1, 2) << std::endl
-            << rMatrix(2, 0) << " " << rMatrix(2, 1) << " " << rMatrix(2, 2) << std::endl;
-    }
-    void CouplingSolidShellPenaltyCondition::print_vector_3(array_1d<double, 3>& vector, std::string nameMatrix){
-        KRATOS_INFO(nameMatrix) << vector(0) << " | " << vector(1) << " | " << vector(2) << std::endl;
     }
 
     void CouplingSolidShellPenaltyCondition::DeterminantOfJacobianInitial(
@@ -319,6 +247,52 @@ namespace Kratos
             rDeterminantOfJacobian[pnt] = norm_2(a_1 * local_tangent[0] + a_2 * local_tangent[1]);
         }
     }
+
+    void CouplingSolidShellPenaltyCondition::OutOfPlaneDeformationFirstVariation(
+        Matrix& OutOfPlaneDeformationWholeMatrix,
+        const size_t& mat_size,
+        const double theta3,
+        const array_1d<double, 3>& A1,
+        const array_1d<double, 3>& A2,
+        const Matrix& ShapeFunctionsGradientsValues) {
+
+        for (size_t r = 0; r < mat_size; r++) { // row
+            // local node number kr and dof direction dirr
+            size_t kr = r / 3;
+            size_t dirr = r % 3;
+
+            array_1d<double, 3> N_theta1_r(3, 0), N_theta2_r(3, 0), N_basis_function(3, 0);
+            N_theta1_r[dirr] = ShapeFunctionsGradientsValues(kr, 0);
+            N_theta2_r[dirr] = ShapeFunctionsGradientsValues(kr, 1);
+            array_1d<double, 3> Phi_r_cross_Α3 = Calculate_Phi_r_cross_A3(N_theta1_r, N_theta2_r,A1,A2);
+
+            OutOfPlaneDeformationWholeMatrix(0, r) = theta3 * Phi_r_cross_Α3[0];
+            OutOfPlaneDeformationWholeMatrix(1, r) = theta3 * Phi_r_cross_Α3[1];
+            OutOfPlaneDeformationWholeMatrix(2, r) = theta3 * Phi_r_cross_Α3[2];
+           
+        }
+
+    }
+
+    array_1d<double, 3> CouplingSolidShellPenaltyCondition::Calculate_Phi_r_cross_A3(
+        const array_1d<double, 3>& N_theta1_r, 
+        const array_1d<double, 3>& N_theta2_r,
+        const array_1d<double, 3>& A1, 
+        const array_1d<double, 3>& A2) {
+        // A1_cross_A2, A1_cross_A2 norm
+        array_1d<double, 3> A1_cross_A2, A3, Phi, Phi_r_cross_A3;
+        MathUtils<double>::CrossProduct(A1_cross_A2, A1, A2);
+        double norm_A1_cross_A2 = norm_2(A1_cross_A2);
+        A3 = A1_cross_A2 / norm_A1_cross_A2;
+        
+        double phi1 = (1 / norm_A1_cross_A2) * inner_prod(N_theta2_r, A3);
+        double phi2 = - (1 / norm_A1_cross_A2) * inner_prod(N_theta1_r, A3);
+        Phi = phi1 * A1 + phi2 * A2;
+
+        MathUtils<double>::CrossProduct(Phi_r_cross_A3, Phi, A3);
+        return Phi_r_cross_A3;
+    }
+
 
     int CouplingSolidShellPenaltyCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
     {

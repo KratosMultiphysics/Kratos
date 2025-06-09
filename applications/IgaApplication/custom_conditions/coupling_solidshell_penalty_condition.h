@@ -67,10 +67,6 @@ public:
         GeometryType::Pointer pGeometry) :
         Condition(NewId, pGeometry)
     {
-
-        _g1.resize(pGeometry->GetGeometryPart(1).size());
-        _g2.resize(pGeometry->GetGeometryPart(1).size());
-        _theta3.resize(pGeometry->GetGeometryPart(1).size());
     };
     
     /// Constructor with Id, geometry and property : exaclty as CouplingPenaltyCondition
@@ -80,9 +76,6 @@ public:
         PropertiesType::Pointer pProperties) :
         Condition(NewId, pGeometry, pProperties)
     {   
-        _g1.resize(pGeometry->GetGeometryPart(1).size());
-        _g2.resize(pGeometry->GetGeometryPart(1).size());
-        _theta3.resize(pGeometry->GetGeometryPart(1).size());
 
     };
 
@@ -207,6 +200,20 @@ public:
         const GeometryType& rGeometry,
         Vector& rDeterminantOfJacobian);
 
+    void OutOfPlaneDeformationFirstVariation(
+        Matrix& OutOfPlaneDeformationWholeMatrix,
+        const size_t& mat_size,
+        const double theta,
+        const array_1d<double, 3>& A1,
+        const array_1d<double, 3>& A2,
+        const Matrix& shape_functions_gradients_slave);
+
+    array_1d<double, 3> Calculate_Phi_r_cross_A3(
+        const array_1d<double, 3>& N_theta1, 
+        const array_1d<double, 3>& N_theta2,
+        const array_1d<double, 3>& A1, 
+        const array_1d<double, 3>& A2);
+
 
     ///@}
     ///@name Check
@@ -242,12 +249,7 @@ public:
 
 private:
 
-    void print_matrix_3x3(Matrix& rMatrix, std::string nameMatrix);
-    void print_vector_3(array_1d<double, 3>& vector, std::string nameMatrix);
-    void store_g1(array_1d<double, 3>& g1, const IndexType& pointnumber_Node);
-    void store_g2(array_1d<double, 3>& g2, const IndexType& pointnumber_Node);
-    void store_theta3(double theta3, const IndexType& pointnumber_Node);
-    std::vector<array_1d<double, 3>> _g1, _g2;
+    std::vector<array_1d<double, 3>> _g1, _g2, _g3;
     std::vector<double> _theta3;
     
 
