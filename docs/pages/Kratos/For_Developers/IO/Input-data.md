@@ -126,11 +126,271 @@ Begin SubModelPart SubModelPartName
 End SubModelPart
 ```
 
-Each block starts with a Begin statement following by the block name and ends with the End statement again following by the block name. Some block may have some additional parameter like id or variable in their definitions.
+## Block details
 
-## ModelPartData Block
-### Example
-Here is an example of mdpa file:
+The **MDPA (Model Part Data)** file format as shown employs a block-based structure to organize all the necessary information for a simulation, including mesh data, material properties, boundary conditions, and solver settings. Each block is delineated by `Begin` and `End` statements, ensuring a clear and organized file structure. Some block may have some additional parameter like id or variable in their definitions. In detal:
+
+### **ModelPartData**
+
+This block is used to define global variables and parameters for the entire model part. These can include settings for the simulation, such as time step, or flags to control solver behavior.
+
+```c++
+Begin ModelPartData
+  // VARIABLE_NAME value
+  TIME_STEPS 1000
+  SOLVER_TOLERANCE 1e-6
+End ModelPartData
+```
+
+* **VARIABLE_NAME**: The name of the global parameter.
+* **value**: The value assigned to the parameter.
+
+---
+
+### **Table**
+
+Tables are used to define time-dependent data or other functional relationships. For instance, a table can specify how a load varies over time.
+
+```c++
+Begin Table table_id variable1 variable2 
+  // table_x table_y
+  0.0 0.0
+  1.0 10.0
+  2.0 5.0
+End Table
+```
+
+* **table_id**: A unique integer identifier for the table.
+* **variable1, variable2**: The names of the variables represented by the columns in the table (e.g., TIME LOAD).
+* **table_x, table_y**: The data points defining the relationship.
+
+---
+
+### **Properties**
+
+This block defines the material properties and other physical characteristics that will be assigned to elements. Each `Properties` block is given a unique ID so that it can be referenced by elements.
+
+```c++
+Begin Properties 1
+  // VARIABLE_NAME value
+  DENSITY 7850.0
+  YOUNG_MODULUS 2.1e11
+  POISSON_RATIO 0.3
+End Properties
+```
+
+* **properties_id**: A unique integer identifier for this set of properties.
+* **VARIABLE_NAME**: The name of the material property (e.g., DENSITY, YOUNG_MODULUS).
+* **value**: The value of the material property.
+
+---
+
+### **Nodes**
+
+The `Nodes` block defines the spatial coordinates of the points that make up the mesh.
+
+```c++
+Begin Nodes
+  // id   X Y Z
+  1   0.0 0.0 0.0
+  2   1.0 0.0 0.0
+  3   1.0 1.0 0.0
+End Nodes
+```
+
+* **id**: A unique integer identifier for the node.
+* **X, Y, Z**: The coordinates of the node in 3D space. For 2D simulations, the Z coordinate is often set to 0.
+
+---
+
+### **Geometries**
+
+Geometries define geometric entities (like lines, surfaces, or volumes) based on a collection of nodes. This block is often used for pre-processing and is not always directly used by the solver.
+
+```c++
+Begin Geometries geometry_name
+  // id  n1 n2  n3  ...
+  1   1 2 3
+End Geometries
+```
+
+* **geometry_name**: The name of the geometry type (e.g., `Triangle2D3N`).
+* **id**: A unique integer identifier for the geometry.
+* **n1, n2, n3, ...**: The IDs of the nodes that form the geometry.
+
+---
+
+### **Elements**
+
+Elements are the fundamental building blocks of the computational domain. They connect nodes to form the mesh and have assigned material properties.
+
+```c++
+Begin Elements element_name
+  // id prop_id  n1 n2  n3  ...
+  1 1 1 2 3
+End Elements
+```
+
+* **element_name**: The name of the element type (e.g., `ShellThin`, `Solid3D4N`).
+* **id**: A unique integer identifier for the element.
+* **prop_id**: The ID of the `Properties` block that defines the material for this element.
+* **n1, n2, n3, ...**: The IDs of the nodes that form the element's connectivity.
+
+---
+
+### **Conditions**
+
+Conditions are used to apply loads, boundary conditions, and other constraints to the model. They are similar to elements but typically represent surfaces or points where external interactions occur.
+
+```c++
+Begin Conditions condition_name 
+  // id prop_id  n1 n2  n3  ...
+  1 1 4 5 6
+End Conditions
+```
+
+* **condition_name**: The name of the condition type (e.g., `PointLoad`, `SurfacePressure`).
+* **id**: A unique integer identifier for the condition.
+* **prop_id**: The ID of the `Properties` block associated with this condition (if any).
+* **n1, n2, n3, ...**: The IDs of the nodes to which the condition is applied.
+
+---
+
+### **Constraints**
+
+This block defines kinematic constraints between degrees of freedom in the model, such as rigid links or prescribed relationships between nodal displacements.
+
+```c++
+Begin Constraints constraint_name dependent_variable independent_variables
+  // id const_value vector_of_relation id_dependent_node id_indepents_nodes
+  1 0.0 [2,1.0,-0.5] 10 12 15
+End Constraints
+```
+
+* **constraint_name**: A name for the constraint type.
+* **dependent_variable**: The degree of freedom of the dependent node.
+* **independent_variables**: The degrees of freedom of the independent nodes.
+* **id**: A unique integer identifier for the constraint.
+* **const_value**: A constant value in the constraint equation.
+* **vector_of_relation**: The coefficients that define the linear relationship between the dependent and independent variables.
+* **id_dependent_node**: The ID of the node whose degree of freedom is constrained.
+* **id_indepents_nodes**: The IDs of the nodes that constrain the dependent node.
+
+---
+
+### **NodalData**
+
+This block assigns initial conditions or prescribed values to specific degrees of freedom of the nodes.
+
+```c++
+Begin NodalData VARIABLE_NAME
+  //  id is_fixed value
+  1   1   0.0      // This node's variable is fixed to 0.0
+  5   0   10.5     // This node's variable has an initial value of 10.5
+End NodalData
+```
+
+* **VARIABLE_NAME**: The name of the nodal variable (e.g., `DISPLACEMENT_X`, `TEMPERATURE`).
+* **id**: The ID of the node.
+* **is_fixed**: A boolean (1 for true, 0 for false) indicating whether the degree of freedom is fixed to the specified value. If `is_fixed` is 1, the solver will enforce this value throughout the analysis.
+* **value**: The initial or prescribed value for the variable.
+
+---
+
+### **ElementalData**
+
+Used to assign specific data or initial values to elements, which are not part of the material properties.
+
+```c++
+Begin ElementalData VARIABLE_NAME
+  //  id value
+  101  1.25
+End ElementalData
+```
+
+* **VARIABLE_NAME**: The name of the variable to be assigned to the elements (e.g., `INITIAL_STRESS`).
+* **id**: The ID of the element.
+* **value**: The value to be assigned to the element's variable.
+
+---
+
+### **ConditionalData**
+
+Similar to `ElementalData`, this block assigns specific data to conditions.
+
+```c++
+Begin ConditionalData VARIABLE_NAME
+  //  id value
+  201  -9.81
+End ConditionalData
+```
+
+* **VARIABLE_NAME**: The name of the variable associated with the conditions (e.g., `PRESSURE`).
+* **id**: The ID of the condition.
+* **value**: The value to be assigned to the condition's variable.
+
+---
+
+### **Mesh**
+
+The `Mesh` block allows for the organization of the model into different sub-regions or meshes. This is particularly useful for complex models or multi-physics simulations.
+
+```c++
+Begin Mesh 1
+  Begin MeshData
+    //VARIABLE_NAME value
+  End MeshData
+  Begin MeshNodes
+    1
+    2
+  End MeshNodes
+  Begin MeshElements
+    1
+  End MeshElements
+  Begin MeshConditions
+    1
+  End MeshConditions
+End Mesh
+```
+
+* **mesh_id**: A non-zero integer identifier for the mesh.
+* **MeshData**: Contains data specific to this mesh.
+* **MeshNodes**, **MeshElements**, **MeshConditions**: Lists the IDs of the nodes, elements, and conditions that belong to this mesh.
+
+---
+
+### **SubModelPart**
+
+This provides a powerful way to create a hierarchical structure within the model. A `SubModelPart` can contain its own data, tables, nodes, elements, and even other `SubModelPart`s, allowing for a nested organization of the simulation domain. This is useful for defining complex boundary conditions, contact pairs, or different material regions.
+
+```c++
+Begin SubModelPart PartName
+  Begin SubModelPartData
+    // VARIABLE_NAME value 
+  End SubModelPartData
+  Begin SubModelPartNodes
+    // node_id
+    10
+    11
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    // element_id
+    101
+  End SubModelPartElements
+  Begin SubModelPart SubSubPartName
+    Begin SubModelPartNodes
+      // node_id
+      10
+    End SubModelPartNodes
+  End SubModelPart
+End SubModelPart
+```
+
+* **SubModelPartName**: The name of the sub-model part.
+* The blocks within `SubModelPart` serve to define the components (nodes, elements, etc.) that belong to this specific sub-region of the model. The hierarchical nature allows for a very detailed and organized model definition.
+
+## Example
+Here is an example of `mdpa` file:
 
 ```c++
 Begin ModelPartData
