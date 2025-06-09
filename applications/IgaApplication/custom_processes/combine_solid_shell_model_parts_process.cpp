@@ -28,7 +28,8 @@ namespace Kratos
 		// 1. Get (trimming) curve from shell model part that lies on the coupling inerface of the shell
 		// Should be done before CombineModelParts(), because CombineModelParts() reorders geometry IDs
 		ModelPart& IgaModelPart = _Model.GetModelPart("IgaModelPart");
-		Geometry<Node>& ShellCurveOnCouplingInterface = IgaModelPart.GetGeometry(6);
+		double coupled_brep_id = _Parameters["coupled_brep_id"].GetDouble();
+		Geometry<Node>& ShellCurveOnCouplingInterface = IgaModelPart.GetGeometry(coupled_brep_id);
 
 		// 2. Get integration points of the solid part model lying on the coupling inerface
 		ModelPart& SolidModelPart_NeumannBC = _Model.GetModelPart("NurbsMesh").GetSubModelPart("Neumann_BC");
@@ -63,7 +64,6 @@ namespace Kratos
 			std::vector<array_1d<double, 3>> derivatives(3);
 			ShellCurveOnCouplingInterface.GlobalSpaceDerivatives(derivatives, local_slave_coords, 0);
 			CoordinatesArrayType& rProjectedPointGlobalCoordinates = derivatives[0];
-
 			ii += 1;
 		}
 
