@@ -96,7 +96,7 @@ public:
 
             //filling the first neighbours list
             indices.push_back(index_i);
-            for( auto i =	neighb_nodes.begin();
+            for( auto i = neighb_nodes.begin();
                     i != neighb_nodes.end(); i++)
             {
 
@@ -226,13 +226,11 @@ public:
         else
         {
             //simple checks to verify blocks are effectively respected
-            if(rA.size1()%block_size != 0 || rA.size2()%block_size != 0)
-                KRATOS_THROW_ERROR(std::logic_error,"the number of rows is not a multiple of block_size. Can not use the block deflation","")
-                if(rA.nnz()%block_size != 0)
-                    KRATOS_THROW_ERROR(std::logic_error,"the number of non zeros is not a multiple of block_size. Can not use the block deflation","")
+            KRATOS_ERROR_IF(rA.size1()%block_size != 0 || rA.size2()%block_size != 0) << "The number of rows is not a multiple of block_size. Can not use the block deflation" <<  std::endl;
+            KRATOS_ERROR_IF(rA.nnz()%block_size != 0) << "The number of non zeros is not a multiple of block_size. Can not use the block deflation" << std::endl;
 
-                    //construct Ascalar
-                    SparseMatrixType Ascalar;
+            //construct Ascalar
+            SparseMatrixType Ascalar;
             ConstructScalarMatrix(rA.size1(),block_size,rA.index1_data().begin(), rA.index2_data().begin(), Ascalar);
 
             //deflate it using the standard methods
@@ -265,11 +263,9 @@ public:
     //y = W*x;
     static void ApplyW(const std::vector<int>& w, const SparseVectorType& x, SparseVectorType& y)
     {
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(w.size()); i++)
-        {
+        IndexPartition<std::size_t>(w.size()).for_each([&](std::size_t i) {
             y[i] = x[w[i]];
-        }
+        });
     }
 
     //W is the deflation matrix, stored as a single vector of indices
@@ -278,17 +274,15 @@ public:
     //y = Wtranspose*x;
     static void ApplyWtranspose(const std::vector<int>& w, const SparseVectorType& x, SparseVectorType& y)
     {
-        //first set to zero the destination vector
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(y.size()); i++) {
+        // First set to zero the destination vector
+        IndexPartition<std::size_t>(y.size()).for_each([&](std::size_t i) {
             y[i] = 0.0;
-        }
+        });
 
-        //now apply the Wtranspose
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(w.size()); i++) {
+        // Now apply the Wtranspose
+        IndexPartition<std::size_t>(w.size()).for_each([&](std::size_t i) {
             AtomicAdd(y[w[i]], x[i]);
-        }
+        });
     }
 
     //*******************************************************************************
@@ -298,13 +292,11 @@ public:
         KRATOS_TRY
 
         double* abegin = Ah.value_data().begin();
-        int size = Ah.value_data().size();
-        #pragma omp parallel for
-        for (int i = 0; i < size; i++)
-        {
-            *(abegin+i) = 0.0;
-        }
-//	TSparseSpaceType::SetToZero(Ah);
+        const int size = Ah.value_data().size();
+        IndexPartition<int>(size).for_each([&](int i) {
+            *(p_abegin+i) = 0.0;
+        });
+        // TSparseSpaceType::SetToZero(Ah);
 
         // Now building Ah
         SparseMatrixType::const_iterator1 a_iterator = rA.begin1();
