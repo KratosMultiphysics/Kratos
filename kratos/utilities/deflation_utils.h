@@ -294,7 +294,7 @@ public:
         double* abegin = Ah.value_data().begin();
         const int size = Ah.value_data().size();
         IndexPartition<int>(size).for_each([&](int i) {
-            *(p_abegin+i) = 0.0;
+            *(abegin+i) = 0.0;
         });
         // TSparseSpaceType::SetToZero(Ah);
 
