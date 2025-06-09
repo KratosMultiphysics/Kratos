@@ -649,7 +649,7 @@ public:
      * @param[in] CollapsePrismElements If the prisms elements are going to be collapsed
      */
     virtual void GenerateMeshDataFromModelPart(
-        ModelPart& rModelPart,
+        const ModelPart& rModelPart,
         std::unordered_map<IndexType,std::vector<std::string>>& rColors,
         ColorsMapType& rColorMapCondition,
         ColorsMapType& rColorMapElement,
@@ -666,7 +666,7 @@ public:
      * @param[in,out] rRefElement The elements of reference
      */
     virtual void GenerateReferenceMaps(
-        ModelPart& rModelPart,
+        const ModelPart& rModelPart,
         const ColorsMapType& rColorMapCondition,
         const ColorsMapType& rColorMapElement,
         std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
@@ -677,7 +677,7 @@ public:
      * @brief This method generates solution (metric) data from an existing model part
      * @param[in,out] rModelPart The model part of interest to study
      */
-    virtual void GenerateSolDataFromModelPart(ModelPart& rModelPart);
+    virtual void GenerateSolDataFromModelPart(const ModelPart& rModelPart);
 
     /**
      * @brief This method generates solution (metric) data from an existing model part

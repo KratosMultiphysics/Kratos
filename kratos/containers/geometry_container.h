@@ -84,6 +84,13 @@ public:
         : mGeometries(NewGeometries)
     {}
 
+    /// Components const Constructor
+    GeometryContainer(
+        GeometriesMapType const& NewGeometries)
+        : mGeometries(NewGeometries)
+    {}
+
+
     /// Destructor
     ~GeometryContainer() = default;
 

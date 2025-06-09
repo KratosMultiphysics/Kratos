@@ -632,6 +632,11 @@ public:
         return mTables;
     }
 
+    TablesContainerType const & Tables() const
+    {
+        return mTables;
+    }
+
     TablesContainerType::ContainerType& TablesArray()
     {
         return mTables.GetContainer();
@@ -979,6 +984,11 @@ public:
      * (janosch, in agreement with pooyan)
      */
     PropertiesContainerType& rProperties(IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).Properties();
+    }
+
+    const PropertiesContainerType& rProperties(IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).Properties();
     }

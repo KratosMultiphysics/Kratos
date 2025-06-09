@@ -129,7 +129,7 @@ void MmgIO<TMMGLibrary>::ReadModelPart(ModelPart& rModelPart)
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
-void MmgIO<TMMGLibrary>::WriteModelPart(ModelPart& rModelPart)
+void MmgIO<TMMGLibrary>::WriteModelPart(const ModelPart& rModelPart)
 {
     KRATOS_TRY;
 

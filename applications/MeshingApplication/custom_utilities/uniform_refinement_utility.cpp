@@ -119,8 +119,8 @@ void UniformRefinementUtility::Refine(int& rFinalRefinementLevel)
     mNodesTags.clear();
     mElementsTags.clear();
     mConditionsTags.clear();
-    AssignUniqueModelPartCollectionTagUtility collections_utility(mrModelPart);
-    collections_utility.ComputeTags(mNodesTags, mConditionsTags, mElementsTags, mCollections);
+    AssignUniqueModelPartCollectionTagUtility collections_utility;
+    collections_utility.ComputeTags(mrModelPart, mNodesTags, mConditionsTags, mElementsTags, mCollections);
 
     IndexIndexVectorMapType tag_nodes, tag_elements, tag_conditions;
 
