@@ -1,5 +1,4 @@
 import re
-from tkinter import messagebox, scrolledtext
 from ui_logger import log_message
 
 class MdpaEditor:
@@ -20,7 +19,6 @@ class MdpaEditor:
             return f"{variable_value:.4f}"
         return replacer
 
-
     def update_maximum_strain(self, maximum_strain):
         pattern = r'\$maximum_strain\b'
         prescribed_displacement = -maximum_strain / 100
@@ -31,7 +29,7 @@ class MdpaEditor:
             log_message("Could not update maximum strain.", "Warning")
         else:
             self.raw_text = new_text
-        MdpaEditor.save(self)
+            MdpaEditor.save(self)
 
     def update_initial_effective_cell_pressure(self, initial_effective_cell_pressure):
         pattern = r'\$initial_effective_cell_pressure\b'
@@ -42,7 +40,7 @@ class MdpaEditor:
             log_message("Could not update initial effective cell pressure.", "Warning")
         else:
             self.raw_text = new_text
-        MdpaEditor.save(self)
+            MdpaEditor.save(self)
 
     def update_first_timestep(self, num_steps):
         first_timestep = 1.0 / num_steps
@@ -54,7 +52,7 @@ class MdpaEditor:
             log_message("Could not apply the first time step.", "Warning")
         else:
             self.raw_text = new_text
-        MdpaEditor.save(self)
+            MdpaEditor.save(self)
 
     def update_end_time(self, end_time):
         pattern = r'\$end_time\b'
@@ -66,6 +64,6 @@ class MdpaEditor:
             log_message("Could not update the end time.", "Warning")
         else:
             self.raw_text = new_text
-        MdpaEditor.save(self)
+            MdpaEditor.save(self)
 
 

@@ -45,10 +45,10 @@ class ProjectParameterEditor:
 
     def update_time_step_properties(self, number_of_step, end_time):
         new_time_step = end_time / number_of_step
-        ProjectParameterEditor._update_property(self, 'time_step', new_time_step)
+        self._update_property('time_step', new_time_step)
 
     def update_end_time_properties(self, end_time):
-        ProjectParameterEditor._update_property(self, 'end_time', end_time)
+        self._update_property('end_time', end_time)
 
     def update_initial_stress_vector(self,  initial_effective_cell_pressure):
         new_stress_values = [-initial_effective_cell_pressure] * 3 + [0.0]

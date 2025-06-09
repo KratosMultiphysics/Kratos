@@ -6,7 +6,7 @@ import numpy as np
 from material_editor import MaterialEditor
 from project_parameter_editor import ProjectParameterEditor
 from mdpa_editor import MdpaEditor
-from triaxial import TriaxialTest, TriaxialTestRunner
+from triaxial import TriaxialTestRunner
 
 from triaxial_plots import plot_delta_sigma, plot_volumetric_strain, plot_sigma, plot_p_q, plot_mohr_coulomb_circle
 
@@ -32,19 +32,19 @@ def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_tim
     material_editor = MaterialEditor(json_file_path)
 
     if dll_path:
-        material_editor._update_material_properties({
+        material_editor.update_material_properties({
             "IS_FORTRAN_UDSM": True,
             "UMAT_PARAMETERS": umat_parameters,
             "UDSM_NAME": dll_path,
             "UDSM_NUMBER": index
         })
-        material_editor._set_constitutive_law("SmallStrainUDSM2DPlaneStrainLaw")
+        material_editor.set_constitutive_law("SmallStrainUDSM2DPlaneStrainLaw")
     else:
-        material_editor._update_material_properties({
+        material_editor.update_material_properties({
             "YOUNG_MODULUS": umat_parameters[0],
             "POISSON_RATIO": umat_parameters[1]
         })
-        material_editor._set_constitutive_law("GeoLinearElasticPlaneStrain2DLaw")
+        material_editor.set_constitutive_law("GeoLinearElasticPlaneStrain2DLaw")
 
     project_editor = ProjectParameterEditor(project_param_path)
     project_editor.update_time_step_properties(num_steps, end_time)
@@ -59,7 +59,7 @@ def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_tim
 
     output_files = [os.path.join(tmp_folder, 'gid_output', "triaxial.post.res")]
     runner = TriaxialTestRunner(output_files, tmp_folder)
-    reshaped_values_by_time, vertical_strain, volumetric_strain, von_mise_stress, mean_effective_stresses = runner.run()
+    reshaped_values_by_time, vertical_strain, volumetric_strain, von_mises_stress, mean_effective_stresses = runner.run()
 
     cohesion = None
     friction_angle = None
@@ -95,5 +95,5 @@ def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_tim
     plot_delta_sigma(axes[0], vertical_strain, sigma_diff)
     plot_volumetric_strain(axes[1], vertical_strain, volumetric_strain)
     plot_sigma(axes[2], sigma1_list, sigma3_list)
-    plot_p_q(axes[3], mean_effective_stresses, von_mise_stress)
+    plot_p_q(axes[3], mean_effective_stresses, von_mises_stress)
     plot_mohr_coulomb_circle(axes[4], sigma1_list[-1], sigma3_list[-1], cohesion, friction_angle)

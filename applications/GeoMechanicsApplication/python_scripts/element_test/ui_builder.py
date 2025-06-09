@@ -5,7 +5,7 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import threading
 
-from set_triaxial_test import run_triaxial_simulation
+from run_triaxial_simulation import run_triaxial_simulation
 from ui_logger import init_log_widget, log_message, clear_log
 from ui_udsm_parser import input_parameters_format_to_unicode
 import traceback
@@ -47,7 +47,7 @@ class GeotechTestUI:
         if self.is_running:
             return
         self.is_running = True
-        self._freeze_gui()
+        self._disable_gui()
         threading.Thread(target=self._run_simulation, daemon=True).start()
 
     def _init_frames(self):
@@ -285,7 +285,7 @@ class GeotechTestUI:
             log_message(traceback.format_exc(), "error")
 
         finally:
-            self.root.after(0, self._unfreeze_gui)
+            self.root.after(0, self._enable_gui)
             self.is_running = False
 
     def _enable_run_button(self):
@@ -304,10 +304,10 @@ class GeotechTestUI:
         for widget in self.external_widgets:
             widget.configure(state=state)
 
-    def _freeze_gui(self):
+    def _disable_gui(self):
         self._set_widget_state(self.left_frame, "disabled")
 
-    def _unfreeze_gui(self):
+    def _enable_gui(self):
         self._set_widget_state(self.left_frame, "normal")
         self.run_button.config(state="normal")
 

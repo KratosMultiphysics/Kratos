@@ -65,7 +65,6 @@ class TriaxialTestRunner:
                 parameters.append(Kratos.Parameters(file.read()))
         return parameters
 
-
     def _execute_analysis_stages(self, parameters):
         model = Kratos.Model()
         stages = [GeoMechanicsAnalysis(model, p) for p in parameters]
@@ -92,16 +91,16 @@ class TriaxialTestRunner:
         values = item["values"]
         if result_name == "CAUCHY_STRESS_TENSOR":
             stress.append(item)
-        elif result_name == "MEAN_EFFECTIVE_STRESS" and self._is_tri3(values):
+        elif result_name == "MEAN_EFFECTIVE_STRESS" and self._is_tri3_element_gp(values):
             mean_stress.append(item)
-        elif result_name == "VON_MISES_STRESS" and self._is_tri3(values):
+        elif result_name == "VON_MISES_STRESS" and self._is_tri3_element_gp(values):
             von_mises.append(item)
         elif result_name == "DISPLACEMENT":
             displacement.append(item)
         elif result_name == "ENGINEERING_STRAIN_TENSOR":
             strain.append(item)
 
-    def _is_tri3(self, values):
+    def _is_tri3_element_gp(self, values):
         return isinstance(values, list) and all("value" in v and isinstance(v["value"], list) and len(v["value"]) == 3 for v in values)
 
     def _extract_stress_tensors(self, stress_results):
