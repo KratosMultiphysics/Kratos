@@ -147,7 +147,7 @@ End Table
 Begin Properties 1
   DENSITY 3.4E-5  //scalar
   THICKNESS 19.5
-  VOLUME_ACCELERATION [3] (0.00,0.00,9.8) //vector
+  VOLUME_ACCELERATION  (0.00,0.00,9.8) //vector
   LOCAL_INERTIA [3,3] ((0, 0.27,0.27),(0.087,0,0.27),(0.075,0.23,0)) // matrix
 
   Begin Table TEMPERATURE VISCOSITY
@@ -227,7 +227,7 @@ Begin ElementalData TEMPERATURE
 End ElementalData
 
 Begin ElementalData VELOCITY
-  1 [3] (1.0, 2.0, 3.0)
+  1  (1.0, 2.0, 3.0)
 End ElementalData
 
 Begin ElementalData CAUCHY_STRESS_TENSOR
@@ -252,6 +252,14 @@ Begin SubModelPart Inlets
     1
     1800
   End SubModelPartConditions
+
+  Begin SubModelPartGeometries
+    // No geometry added
+  End SubModelPartGeometries
+  
+  Begin SubModelPartConstraints
+    1
+  End SubModelPartConstraints
 
   Begin SubModelPart Inlet1
     Begin SubModelPartNodes
@@ -287,26 +295,155 @@ Begin SubModelPart Outlet
 End SubModelPart // Outlet
 ```
 
-The old format for data file is still supported due to the backward compatibility but without further improvement. The old format description can be found here
+The old format for data file is still supported due to the backward compatibility but without further improvement.
 
 # Importing your meshes from a different code
 
-If you want to import your mesh from a different code, there is an initial support for *.mdpa* format file in the utility [meshio](https://github.com/nschloe/meshio). The list of compatible meshes are:
+If you want to import your mesh from a different code, there is an initial support for *.mdpa* format file in the utility [meshio](https://github.com/nschloe/meshio).
 
- * [Abaqus](http://abaqus.software.polimi.it/v6.14/index.html)
- * [ANSYS msh](http://www.afs.enea.it/fluent/Public/Fluent-Doc/PDF/chp03.pdf)
- * [DOLFIN XML](http://manpages.ubuntu.com/manpages/wily/man1/dolfin-convert.1.html)
- * [Exodus](https://cubit.sandia.gov/public/13.2/help_manual/WebHelp/finite_element_model/exodus/block_specification.htm)
- * [H5M](https://www.mcs.anl.gov/~fathom/moab-docs/h5mmain.html)
- * [Medit](https://people.sc.fsu.edu/~jburkardt/data/medit/medit.html)
- * [MED/Salome](http://docs.salome-platform.org/latest/dev/MEDCoupling/med-file.html)
- * [Gmsh](http://gmsh.info/doc/texinfo/gmsh.html#File-formats)
- * [OFF](http://segeval.cs.princeton.edu/public/off_format.html)
- * [PERMAS](http://www.intes.de)
- * [STL](https://en.wikipedia.org/wiki/STL_(file_format))
- * [VTK](https://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf)
- * [VTU](https://www.vtk.org/Wiki/VTK_XML_Formats)
- * [XDMF](http://www.xdmf.org/index.php/XDMF_Model_and_Format)
+## File Formats
+
+The list of compatible meshes are:
+
+  * **Abaqus (.inp)**
+
+      * **Description:** The Abaqus input file (`.inp`) is a text-based file containing all instructions, data, and parameters to define and run a simulation in the Abaqus Finite Element Analysis (FEA) software. It uses a keyword-based syntax to define model geometry, materials, properties, analysis steps, loads, and output requests. Some advanced simulations might only be executable via `.inp` files.
+      * **Link:** While a single official specification URL is not provided, general information can be found through resources like [CAE Assistant](https://caeassistant.com/blog/how-to-open-run-input-file-abaqus-video/) and [Engssoft](https://www.engssoft.com/abaqus-inp-files/).
+
+  * **ANSYS msh (.msh)**
+
+      * **Description:** The ANSYS `.msh` file format is primarily used by ANSYS Fluent and other ANSYS meshing tools. It stores mesh data, including node coordinates, connectivity, and zone information (e.g., wall, fluid) for Computational Fluid Dynamics (CFD) and other analyses. It's essentially a subset of an ANSYS Fluent case file (`.cas`).
+      * **Link:** Specific details are typically within ANSYS documentation. General information can be found at [ANSYS Help](https://ansyshelp.ansys.com/public/Views/Secured/corp/v251/en/wb_msh/msh_export_fluent.html).
+
+  * **AVS-UCD (.avs,.inp)**
+
+      * **Description:** The AVS UCD (Unstructured Cell Data) format stores unstructured cell data (points, lines, triangles, quads, tetrahedra, etc.) and associated scalar or vector data for visualization, commonly in structural analysis and CFD. It can be ASCII or binary. Note: the `.inp` extension can conflict with Abaqus; `.ucd` is also common.
+      * **Link:** Documentation snippets can be found at [LBL Archive](https://dav.lbl.gov/archive/NERSC/Software/express/help6.1/help/reference/dvmac/UCD_Form.htm) and [Debian Manpages](https://debian.man.ac.uk/.f/pub/cgu/iavsc/express/source/data_io/wr_ucd/wr_ucd.html).
+
+  * **CGNS (.cgns)**
+
+      * **Description:** The CFD General Notation System (CGNS) is a standard for storing and retrieving Computational Fluid Dynamics (CFD) analysis data. It's designed to be general, portable, extensible, and self-descriptive, facilitating data exchange and archiving. It uses either ADF or HDF5 as its low-level data format.
+      * **Link:** The official website is [CGNS.org](http://www.cgns.org). Further documentation can be found at [CGNS GitHub Docs](http://cgns.github.io/CGNS_docs_current/sids/index.html).
+
+  * **DOLFIN XML (.xml)**
+
+      * **Description:** This XML-based format is used by DOLFIN, part of the FEniCS Project, for solving partial differential equations (PDEs) with the finite element method (FEM). It stores mesh geometry (vertices, cells) and function data (solutions). PyVista can read these files via `meshio`.
+      * **Link:** The FEniCS Project documentation is the primary source. An example of the structure can be seen in discussions like [FEniCS Project Discourse](https://fenicsproject.discourse.group/t/getting-information-from-xml-file-with-dof-index/13925).
+
+  * **Exodus (.e,.exo)**
+
+      * **Description:** Exodus is a model developed at Sandia National Laboratories for storing finite element analysis data (mesh, material properties, loads, results). It is built on the NetCDF file format, making it self-describing and machine-independent.
+      * **Link:** The primary source is Sandia National Laboratories. The [GitHub repository](https://github.com/sandialabs/exodusii) provides information.
+
+  * **FLAC3D (.f3grid)**
+
+      * **Description:** This is the native grid file format for FLAC3D, a geotechnical analysis software. It can be ASCII or binary and is capable of preserving metadata like group assignments and extra variable assignments to zones, faces, and gridpoints.
+      * **Link:** Documentation is available from Itasca Consulting Group Inc., for example, [Itasca FLAC3D Docs](https://docs.itascacg.com/flac3d700/flac3d/docproject/source/modeling/problemsolving/gridgeneration.html).
+
+  * **H5M (.h5m)**
+
+      * **Description:** H5M is MOAB's (Mesh-Oriented datABase) native file format, built on HDF5. It stores mesh entities (vertices, elements, sets) and arbitrary metadata (tags) using a unique entity ID space.
+      * **Link:** [MOAB H5M Documentation](https://www.mcs.anl.gov/~fathom/moab-docs/h5mmain.html).
+
+  * **Medit (.mesh,.meshb)**
+
+      * **Description:** File format used by the Medit program (by Pascal Frey) to define 2D or 3D meshes (triangles, quadrilaterals, tetrahedra, hexahedra) for FEM. It can be ASCII (`.mesh`) or binary (`.meshb`) and includes sections for vertices, elements, and optional reference markers. Note: There's also a "meditmesh" format specific to Medit (the company) software, which is different.
+      * **Link:** [Medit File Format Description](https://people.sc.fsu.edu/~jburkardt/data/medit/medit.html). The original specification is in Pascal Frey's technical report RT-0253, INRIA.
+
+  * **MED/Salome (.med)**
+
+      * **Description:** MED (Modèle d'Échange de Données) is the standard file format for meshes and fields within the SALOME platform, based on HDF5. It stores meshes (nodes, various element types including polygons/polyhedra) and fields (data associated with mesh entities).
+      * **Link:** Information is available at [SALOME MED GitHub](https://github.com/SalomePlatform/med) and [Spack Packages](https://packages.spack.io/package.html?name=salome-med).
+
+  * **Nastran (bulk data,.bdf,.fem,.nas)**
+
+      * **Description:** The Nastran Bulk Data File (BDF) is a widely used ASCII input format for Nastran FEA software. It defines the model using "cards" or entries for geometry, elements, materials, loads, and constraints. It supports fixed-format and free-format fields.
+      * **Link:** Documentation from MSC Software, NEi Nastran, or Autodesk Nastran are primary sources. Examples include [Autodesk Nastran Help](https://help.autodesk.com/view/NINCAD/2025/ENU/?guid=GUID-42B54ACB-FBE3-47CA-B8FE-475E7AD91A00) and [Strand7 Documentation](https://www.strand7.com/strand7r3help/Content/Topics/FileFormats/FileFormatsNASTRANFileBulkDataEntries.htm?TocPath=File%20Formats|NASTRAN%20File|_____4).
+
+  * **Netgen (.vol,.vol.gz)**
+
+      * **Description:** Native mesh file format for Netgen, an automatic 3D tetrahedral mesh generator. `.vol` stores volumetric mesh data, including nodes, elements (typically tetrahedra), and surface patch information crucial for boundary definitions. `.vol.gz` is a gzip-compressed version.
+      * **Link:** Netgen/NGSolve documentation is the primary source. Some information is available at [CalculiX Documentation](https://web.mit.edu/calculix_v2.7/CalculiX/cgx_2.7/doc/cgx/node204.html) and [FFEA Readthedocs](https://ffea.readthedocs.io/en/stable/surftovoltut.html).
+
+  * **Neuroglancer precomputed format**
+
+      * **Description:** A directory-based format for visualizing large-scale volumetric image data (e.g., electron microscopy) in the Neuroglancer web viewer. It uses an `info` JSON file for metadata and stores image data in chunked, multi-resolution subdirectories.
+      * **Link:** Specification details are on [Neuroglancer GitHub](https://github.com/google/neuroglancer/blob/master/src/neuroglancer/datasource/precomputed/volume.md#info-json-file-specification).
+
+  * **Gmsh (.msh)**
+
+      * **Description:** Native ASCII mesh file format for Gmsh, an open-source 3D FEM mesh generator. It's organized into sections (e.g., `$MeshFormat`, `$Nodes`, `$Elements`) and supports various element types and post-processing data.
+      * **Link:** [Gmsh File Formats](http://gmsh.info/doc/texinfo/gmsh.html#File-formats).
+
+  * **OBJ (.obj)**
+
+      * **Description:** A plain text (ASCII) file format for 3D geometry, storing vertices, texture coordinates, vertex normals, and polygonal faces. Material properties are typically defined in a separate `.mtl` file.
+      * **Link:** Originally by Wavefront Technologies. Widely documented, e.g., [Adobe's OBJ Page](https://www.adobe.com/products/substance3d/discover/what-are-obj-files.html).
+
+  * **OFF (.off)**
+
+      * **Description:** Object File Format (OFF) is a simple ASCII format for 2D or 3D polygonal models, listing vertices and faces. Often used in computational geometry.
+      * **Link:** [Princeton University OFF Format](http://segeval.cs.princeton.edu/public/off_format.html).
+
+  * **PERMAS (.post,.post.gz,.dato,.dato.gz)**
+
+      * **Description:** File extensions associated with PERMAS FEA software. `.dato` (or `.dat`) likely refers to model input data files, and `.post` to post-processing/results files. These are proprietary to PERMAS.
+      * **Link:** [Intes.de](http://www.intes.de).
+
+  * **PLY (.ply)**
+
+      * **Description:** Polygon File Format (or Stanford Triangle Format) designed for 3D scanned data and general polygonal models. It has an ASCII header defining elements (vertices, faces) and their properties (coordinates, color, normals), followed by ASCII or binary data.
+      * **Link:** Originated at Stanford University Graphics Lab. [Wikipedia](https://en.wikipedia.org/wiki/PLY_\(file_format\)) and [Gatech PLY Information](https://sites.cc.gatech.edu/projects/large_models/ply.html) are key resources.
+
+  * **STL (.stl)**
+
+      * **Description:** STereoLithography (or Standard Triangle Language) format describes 3D surface geometry as a triangular mesh. It exists in ASCII and more common binary forms. Widely used for 3D printing, it does not natively support color or materials.
+      * **Link:** Original specification "StereoLithography Interface Specification, 3D Systems, Inc., October 1989". Information available at [Library of Congress](https://www.loc.gov/preservation/digital/formats/fdd/fdd000505.shtml) and [Adobe STL File](https://www.adobe.com/creativecloud/file-types/image/vector/stl-file.html).
+
+  * **Tecplot (.dat)**
+
+      * **Description:** Tecplot ASCII data file (`.dat`) for the Tecplot visualization software. It organizes data into zones and can store geometry and associated scalar/vector field data. Tecplot also supports binary (`.plt`) and Sub-Zone Load-on-demand (`.szplt`) formats.
+      * **Link:** Tecplot's official website ([tecplot.com](https://www.tecplot.com/)) is the primary source. Details from [Burkardt Tecplot](https://people.math.sc.edu/Burkardt/data/tec/tec.html) and [Tecplot Data File Types](https://tecplot.com/2016/09/16/tecplot-data-file-types-dat-plt-szplt/).
+
+  * **TetGen (.node/.ele)**
+
+      * **Description:** ASCII file formats used by TetGen for tetrahedral mesh generation. `.node` files list 3D nodal coordinates with attributes and boundary markers. `.ele` files list tetrahedral elements with node connectivity and optional region attributes.
+      * **Link:** TetGen website (e.g., [WIAS-Berlin Tetgen](https://wias-berlin.de/software/tetgen/1.5/doc/manual/manual006.html) or [Tetgen.org](https://www.google.com/search?q=https://www.tetgen.org/)).
+
+  * **SVG (2D output only) (.svg)**
+
+      * **Description:** Scalable Vector Graphics (SVG) is an XML-based vector image format for 2D graphics. It's a W3C standard, scalable without quality loss, and widely used on the Web.
+      * **Link:** The [W3C website](https://www.w3.org/Graphics/SVG/). General information from [Adobe SVG File](https://www.adobe.com/creativecloud/file-types/image/vector/svg-file.html).
+
+  * **SU2 (.su2)**
+
+      * **Description:** Native ASCII mesh file format for the SU2 open-source CFD suite. It defines dimensionality, node coordinates, element connectivity (using VTK element type IDs), and boundary markers (tags).
+      * **Link:** [SU2 GitHub Documentation](https://su2code.github.io/docs/Mesh-File/).
+
+  * **UGRID (.ugrid)**
+
+      * **Description:** Stores 3D grid data, including boundary surface grids (triangles/quads) and optional polyhedral volume grids. Can be FORTRAN unformatted, C binary, or ASCII. Includes header, node coordinates, face/element connectivity, and optional records for IDs and boundary information.
+      * **Link:** Documentation from SimCenter at Mississippi State University: [UGRID File Type](https://www.simcenter.msstate.edu/software/documentation/ug_io/3d_grid_file_type_ugrid.html).
+
+  * **VTK (.vtk)**
+
+      * **Description:** The simple legacy VTK format for the Visualization Toolkit. It's ASCII or binary and consists of a version identifier, header, format type, dataset structure (e.g., `STRUCTURED_POINTS`, `UNSTRUCTURED_GRID`, `POLYDATA`), and dataset attributes (scalars, vectors, etc.).
+      * **Link:** [VTK File Formats](https://docs.vtk.org/en/latest/design_documents/VTKFileFormats.html).
+
+  * **VTU (.vtu)**
+
+      * **Description:** XML-based VTK format for `vtkUnstructuredGrid` data. It defines points, cells (connectivity, offsets, types), and associated point/cell data using `<DataArray>` elements. Supports ASCII, base64 binary, or appended binary data, with optional compression.
+      * **Link:** [VTK XML File Formats](https://docs.vtk.org/en/latest/design_documents/VTKFileFormats.html#xml-file-formats).
+
+  * **WKT (TIN) (.wkt)**
+
+      * **Description:** Well-Known Text is an OGC and ISO standard markup language for vector geometry objects and spatial reference systems. TIN (Triangulated Irregular Network) is one such geometry, representing a surface as a collection of non-overlapping triangles.
+      * **Link:** OGC and ISO specifications (e.g., ISO/IEC 13249-3:2016). General information at [Wikipedia Well-Known Text](https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry) and [LibGEOS WKT](https://libgeos.org/specifications/wkt/).
+
+  * **XDMF (.xdmf,.xmf)**
+
+      * **Description:** The eXtensible Data Model and Format separates metadata (in XML) from bulk numerical data (often in HDF5 or binary files). The XML describes the data model, structure, and pointers to the heavy data, facilitating exchange between HPC codes and visualization tools.
+      * **Link:** [XDMF Model and Format](http://www.xdmf.org/index.php/XDMF_Model_and_Format).
 
 ## Example
 
