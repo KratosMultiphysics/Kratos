@@ -6,7 +6,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import threading
 
 from set_triaxial_test import run_triaxial_simulation
-from ui_plot_manager import render_plots
 from ui_logger import init_log_widget, log_message, clear_log
 from ui_udsm_parser import input_parameters_format_to_unicode
 import traceback
@@ -52,7 +51,7 @@ class GeotechTestUI:
         threading.Thread(target=self._run_simulation, daemon=True).start()
 
     def _init_frames(self):
-        self.left_frame = ttk.Frame(self.parent, padding="10", width=700)
+        self.left_frame = ttk.Frame(self.parent, padding="10", width=615)
         self.left_frame.pack_propagate(False)
         self.left_frame.pack(side="left", fill="y", padx=10, pady=10)
 
@@ -180,11 +179,11 @@ class GeotechTestUI:
 
         self.c_label = ttk.Label(self.mohr_frame, text="Cohesion Index (1-based)")
         self.c_dropdown = ttk.Combobox(self.mohr_frame, textvariable=self.cohesion_var,
-                                       values=[str(i+1) for i in range(len(params))], state="readonly", width=10)
+                                       values=[str(i+1) for i in range(len(params))], state="readonly", width=2)
 
         self.phi_label = ttk.Label(self.mohr_frame, text="Friction Angle Index (1-based)")
         self.phi_dropdown = ttk.Combobox(self.mohr_frame, textvariable=self.phi_var,
-                                         values=[str(i+1) for i in range(len(params))], state="readonly", width=10)
+                                         values=[str(i+1) for i in range(len(params))], state="readonly", width=2)
 
     def _toggle_mohr_options(self):
         widgets = [self.c_label, self.c_dropdown, self.phi_label, self.phi_dropdown]
@@ -267,7 +266,7 @@ class GeotechTestUI:
             log_message("Calculating...", "info")
             self.root.update_idletasks()
 
-            figs = run_triaxial_simulation(
+            run_triaxial_simulation(
                 dll_path=self.dll_path or "",
                 index=index,
                 umat_parameters=[float(x) for x in umat_params],
@@ -275,9 +274,10 @@ class GeotechTestUI:
                 end_time=duration,
                 maximum_strain=eps_max,
                 initial_effective_cell_pressure=sigma_init,
-                cohesion_phi_indices=cohesion_phi_indices
+                cohesion_phi_indices=cohesion_phi_indices,
+                axes=self.axes
             )
-            self.root.after(0, lambda: render_plots(figs, self.axes, self.canvas))
+            self.canvas.draw()
             log_message("Simulation completed successfully.", "info")
 
         except Exception:

@@ -11,7 +11,7 @@ from triaxial import TriaxialTest, TriaxialTestRunner
 from triaxial_plots import plot_delta_sigma, plot_volumetric_strain, plot_sigma, plot_p_q, plot_mohr_coulomb_circle
 
 def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_time, maximum_strain, initial_effective_cell_pressure,
-                            cohesion_phi_indices=None):
+                            cohesion_phi_indices=None, axes=None):
     tmp_folder = tempfile.mkdtemp(prefix="triaxial_")
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -88,11 +88,12 @@ def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_tim
 
     sigma_diff = abs(np.array(sigma1_list) - np.array(sigma3_list))
 
-    figs = [
-        plot_delta_sigma(vertical_strain, sigma_diff),
-        plot_volumetric_strain(vertical_strain, volumetric_strain),
-        plot_sigma(sigma1_list, sigma3_list),
-        plot_p_q(mean_effective_stresses, von_mise_stress),
-        plot_mohr_coulomb_circle(sigma1_list[-1], sigma3_list[-1], cohesion=cohesion, friction_angle=friction_angle),
-    ]
-    return figs
+    if axes:
+        for ax in axes:
+            ax.clear()
+
+    plot_delta_sigma(axes[0], vertical_strain, sigma_diff)
+    plot_volumetric_strain(axes[1], vertical_strain, volumetric_strain)
+    plot_sigma(axes[2], sigma1_list, sigma3_list)
+    plot_p_q(axes[3], mean_effective_stresses, von_mise_stress)
+    plot_mohr_coulomb_circle(axes[4], sigma1_list[-1], sigma3_list[-1], cohesion, friction_angle)

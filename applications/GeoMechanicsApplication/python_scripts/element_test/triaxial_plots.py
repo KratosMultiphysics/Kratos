@@ -1,255 +1,71 @@
 import numpy as np
-import plotly.graph_objects as go
 
 
-def plot_sigma(sigma_1, sigma_3):
-    fig = go.Figure()
+def plot_sigma(ax, sigma_1, sigma_3):
+    ax.plot(sigma_3, sigma_1, '-', color='blue', label='σ₁ vs σ₃')
+    ax.set_title('σ₁ vs σ₃ Plot')
+    ax.set_xlabel('σ₃ (Principal Stress 3) [kN/m²]')
+    ax.set_ylabel('σ₁ (Principal Stress 1) [kN/m²]')
+    ax.grid(True)
 
-    fig.add_trace(go.Scatter(
-        x=sigma_3,
-        y=sigma_1,
-        mode='markers',
-        marker=dict(size=10, color='blue'),
-        name='σ₁ vs σ₃'
-    ))
+    min_val = 0
+    max_val_x = max(sigma_3)
+    max_val_y = min(sigma_1)
+    padding_x = 0.1 * (max_val_x - min_val)
+    padding_y = 0.1 * (max_val_y - min_val)
 
-    fig.update_layout(
-        title=dict(
-            text='σ₁ vs σ₃ Plot',
-            x=0.5,
-            xanchor='center',
-            yanchor='top'
-        ),
-        xaxis=dict(
-            title='σ₃ (Principal Stress 3) [kN/m²]',
-            showline=True,
-            autorange='reversed',
-            linewidth=2,
-            linecolor='black',
-            ticks='outside',
-            tickwidth=2,
-            tickcolor='black',
-            ticklen=5,
-            mirror=True
-        ),
-        yaxis=dict(
-            title=' σ₁ (Principal Stress 1) [kN/m²]',
-            showline=True,
-            autorange='reversed',
-            linewidth=2,
-            linecolor='black',
-            ticks='outside',
-            tickwidth=2,
-            tickcolor='black',
-            ticklen=5,
-            mirror=True
-        ),
-        template='plotly_white',
-    )
-    fig.update_layout(
-        xaxis=dict(rangemode='tozero'),
-        yaxis=dict(rangemode='tozero'),
-    )
-    return fig
+    ax.set_xlim(min_val, max_val_x + padding_x)
+    ax.set_ylim(min_val, max_val_y + padding_y)
+    ax.legend()
 
+def plot_delta_sigma(ax, vertical_strain, sigma_diff):
+    ax.plot(vertical_strain, sigma_diff, '-', color='blue', label='|σ₁ - σ₃|')
+    ax.set_title('|σ₁ - σ₃| vs Vertical Strain Plot')
+    ax.set_xlabel('Vertical Strain [-]')
+    ax.set_ylabel('|σ₁ - σ₃| [kN/m²]')
+    ax.grid(True)
+    ax.invert_xaxis()
+    ax.legend()
 
-def plot_delta_sigma(vertical_strain, sigma_diff):
-    fig = go.Figure()
+def plot_volumetric_strain(ax, vertical_strain, volumetric_strain):
+    ax.plot(vertical_strain, volumetric_strain, '-', color='blue', label='Volumetric Strain')
+    ax.set_title('Volumetric Strain vs Vertical Strain Plot')
+    ax.set_xlabel('Vertical Strain [-]')
+    ax.set_ylabel('Volumetric Strain [-]')
+    ax.grid(True)
+    ax.invert_xaxis()
+    ax.invert_yaxis()
+    ax.legend()
 
-    fig.add_trace(go.Scatter(
-        x=vertical_strain,
-        y=sigma_diff,
-        mode='markers',
-        marker=dict(size=10, color='blue'),
-        name='|σ₁ - σ₃|'
-    ))
-
-    fig.update_layout(
-        title=dict(
-            text='|σ₁ - σ₃| vs Vertical Strain Plot',
-            x=0.5,
-            xanchor='center',
-            yanchor='top'
-        ),
-        xaxis=dict(
-            title='Vertical Strain [-]',
-            autorange='reversed',
-            showline=True,
-            linewidth=2,
-            linecolor='black',
-            ticks='outside',
-            tickwidth=2,
-            tickcolor='black',
-            ticklen=5,
-            mirror=True
-        ),
-        yaxis=dict(
-            title='|σ₁ - σ₃| [kN/m²]',
-            showline=True,
-            linewidth=2,
-            linecolor='black',
-            ticks='outside',
-            tickwidth=2,
-            tickcolor='black',
-            ticklen=5,
-            mirror=True
-        ),
-        template='plotly_white'
-    )
-
-    fig.update_layout(
-        xaxis=dict(rangemode='tozero'),
-        yaxis=dict(rangemode='tozero')
-    )
-    return fig
-
-def plot_volumetric_strain(vertical_strain, volumetric_strain):
-    fig = go.Figure()
-
-    fig.add_trace(go.Scatter(
-        x=vertical_strain,
-        y=volumetric_strain,
-        mode='markers',
-        marker=dict(size=10, color='blue'),
-        name='Volumetric Strain'
-    ))
-
-    fig.update_layout(
-        title=dict(
-            text='Volumetric Strain vs Vertical Strain Plot',
-            x=0.5,
-            xanchor='center',
-            yanchor='top'
-        ),
-        xaxis=dict(
-            title='Vertical Strain [−]',
-            autorange='reversed',
-            showline=True,
-            linewidth=2,
-            linecolor='black',
-            ticks='outside',
-            tickwidth=2,
-            tickcolor='black',
-            ticklen=5,
-            mirror=True
-        ),
-        yaxis=dict(
-            title='Volumetric Strain [−]',
-            autorange='reversed',
-            showline=True,
-            linewidth=2,
-            linecolor='black',
-            ticks='outside',
-            tickwidth=2,
-            tickcolor='black',
-            ticklen=5,
-            mirror=True
-        ),
-        template='plotly_white'
-    )
-
-    fig.update_layout(
-        xaxis=dict(rangemode='tozero'),
-        yaxis=dict(rangemode='tozero')
-    )
-    return fig
-
-def plot_mohr_coulomb_circle(sigma_1, sigma_3, cohesion=None, friction_angle=None):
+def plot_mohr_coulomb_circle(ax, sigma_1, sigma_3, cohesion=None, friction_angle=None):
     center = (sigma_1 + sigma_3) / 2
     radius = (sigma_1 - sigma_3) / 2
     theta = np.linspace(0, np.pi, 200)
     sigma = center + radius * np.cos(theta)
-    tau = radius * np.sin(theta)
+    tau = -radius * np.sin(theta)
 
-    fig = go.Figure()
-
-    fig.add_trace(go.Scatter(
-        x=sigma,
-        y=tau,
-        mode='lines',
-        name='Mohr-Coulomb Circle',
-        line=dict(color='blue', width=2)
-    ))
+    ax.plot(sigma, tau, label='Mohr-Coulomb Circle', color='blue')
 
     if cohesion is not None and friction_angle is not None:
         phi_rad = np.radians(friction_angle)
         x_line = np.linspace(0, sigma_1, 200)
         y_line = x_line * np.tan(phi_rad) - cohesion
-        fig.add_trace(go.Scatter(
-            x=x_line,
-            y=y_line,
-            mode='lines',
-            name="Mobilized Shear Stress = σ' * tan(ϕ°) + c",
-            line=dict(color='red', width=2, dash='dash')
-        ))
+        ax.plot(x_line, -y_line, 'r--', label="Mobilized Shear = σ' tan(φ°) + c")
 
-    fig.update_layout(
-        title=dict(
-            text="Mohr-Coulomb Circle",
-            x=0.5,
-            xanchor='center',
-            yanchor='top'
-        ),
-        xaxis=dict(
-            title="σ' (Effective Stress) [kN/m²]",
-            showline=True,
-            linewidth=2,
-            linecolor='black',
-            ticks='outside',
-            tickwidth=2,
-            tickcolor='black',
-            ticklen=5,
-            mirror=True,
-            autorange=True
-        ),
-        yaxis=dict(
-            title="τ (Mobilized Shear Stress) [kN/m²]",
-            showline=True,
-            linewidth=2,
-            linecolor='black',
-            ticks='outside',
-            tickwidth=2,
-            tickcolor='black',
-            ticklen=5,
-            mirror=True,
-            autorange=False,
-            range=[0, -2*np.max(np.abs(tau))]
-        ),
-        template='plotly_white',
-        xaxis_scaleanchor="y"
-    )
-    return fig
+    ax.set_title("Mohr-Coulomb Circle")
+    ax.set_xlabel("Effective Stress σ' [kN/m²]")
+    ax.set_ylabel("Mobilized Shear Stress τ [kN/m²]")
+    ax.grid(True)
+    ax.invert_xaxis()
+    ax.set_xlim(left=0, right= 1.2*np.max(sigma_1))
+    ax.set_ylim(bottom=0, top = -0.6*np.max(sigma_1))
+    ax.legend(loc='upper left')
 
-def plot_p_q(p_list, q_list):
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=p_list,
-        y=q_list,
-        mode='markers+lines',
-        name="p' vs q",
-        marker=dict(size=8, color='blue')
-    ))
-
-    fig.update_layout(
-        title=dict(text="Mean Effective Stress vs Deviatoric Stress", x=0.5),
-        xaxis=dict(
-            title="p' (Mean Effective Stress) [kN/m²]",
-            autorange='reversed',
-            showline=True,
-            mirror=True,
-            linecolor='black'
-        ),
-        yaxis=dict(
-            title="q (Deviatoric Stress) [kN/m²]",
-            showline=True,
-            mirror=True,
-            linecolor='black'
-        ),
-        template='plotly_white'
-    )
-
-    fig.update_layout(
-        xaxis=dict(rangemode='tozero'),
-        yaxis=dict(rangemode='tozero')
-    )
-    return fig
+def plot_p_q(ax, p_list, q_list):
+    ax.plot(p_list, q_list, '-', color='blue', label="p' vs q")
+    ax.set_title("Mean Effective Stress vs Deviatoric Stress")
+    ax.set_xlabel("p' (Mean Effective Stress) [kN/m²]")
+    ax.set_ylabel("q (Deviatoric Stress) [kN/m²]")
+    ax.grid(True)
+    ax.invert_xaxis()
+    ax.legend()
