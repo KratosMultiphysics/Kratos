@@ -238,7 +238,7 @@ namespace Kratos
 
 				if (it == 0)
 				{
-					ComputeNodalVolumeAndAssignFlagToElementType(); // it assings NODAL_VOLUME to fluid and SOLID_NODAL_VOLUME to solid. Interface nodes have both
+					ComputeNodalVolumeAndAssignFlagToElementType(); // it assigns NODAL_VOLUME to fluid and SOLID_NODAL_VOLUME to solid. Interface nodes have both
 					this->InitializeNonLinearIterations();			// it fills SOLID_NODAL_SFD_NEIGHBOURS for solids and NODAL_SFD_NEIGHBOURS for fluids
 				}
 				CalcNodalStrainsAndStresses(); // it computes stresses and strains for fluid and solid nodes
@@ -767,7 +767,7 @@ namespace Kratos
 		void SetNeighboursOrderToSolidNode(ModelPart::NodeIterator itNode)
 		{
 			NodeWeakPtrVectorType &neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
-			unsigned int neighbourNodes = neighb_nodes.size() + 1; // +1 becausealso the node itself must be considered as nieghbor node
+			unsigned int neighbourNodes = neighb_nodes.size() + 1; // +1 because the node itself must also be considered as a neighbor node
 			Vector &rNodeOrderedNeighbours = itNode->FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS_ORDER);
 
 			if (rNodeOrderedNeighbours.size() != neighbourNodes)
@@ -1644,7 +1644,7 @@ namespace Kratos
 
 				if (neighSize > 0)
 				{
-					for (unsigned int i = 0; i < neighSize - 1; i++) // neigh_nodes has one cell less than nodalSFDneighboursId becuase this has also the considered node ID at the beginning
+					for (unsigned int i = 0; i < neighSize - 1; i++) // neigh_nodes has one cell less than nodalSFDneighboursId because this has also the considered node ID at the beginning
 					{
 						dNdXi = rNodalSFDneigh[firstRow];
 						dNdYi = rNodalSFDneigh[firstRow + 1];
@@ -1791,7 +1791,7 @@ namespace Kratos
 
 				if (neighSize > 0)
 				{
-					for (unsigned int i = 0; i < neighSize - 1; i++) // neigh_nodes has one cell less than nodalSFDneighboursId becuase this has also the considered node ID at the beginning
+					for (unsigned int i = 0; i < neighSize - 1; i++) // neigh_nodes has one cell less than nodalSFDneighboursId because this has also the considered node ID at the beginning
 					{
 						unsigned int other_neigh_nodes_id = nodalSFDneighboursId[i + 1];
 						for (unsigned int k = 0; k < neighNodesSize; k++)

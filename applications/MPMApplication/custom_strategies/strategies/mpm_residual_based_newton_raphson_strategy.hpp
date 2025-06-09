@@ -327,7 +327,7 @@ public:
 
 private:
     /**
-     * @brief Auxilliary function to perform a single Newton-Rhapson iteration. For use in the SolveSolutionStep
+     * @brief Auxiliary function to perform a single Newton-Rhapson iteration. For use in the SolveSolutionStep
      */
     void inline SolveSolutionStepIteration(typename TSchemeType::Pointer p_scheme,
                                     typename TBuilderAndSolverType::Pointer p_builder_and_solver,
