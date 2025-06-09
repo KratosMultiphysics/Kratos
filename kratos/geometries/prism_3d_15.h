@@ -839,9 +839,7 @@ private:
         ) const override
     {
         // Ensure size is correct
-        if (rResult.size() != 15) {
-            rResult.resize(15, false);
-        }
+        rResult.resize(15, false);
 
         // Get the coordinates
         const double x = rCoordinates[0];
