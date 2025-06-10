@@ -69,6 +69,29 @@ SolidIGAElement::~SolidIGAElement()
 void SolidIGAElement:: Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMaterial();
+
+    // calculate the integration weight
+    const auto& r_geometry = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+   
+    Matrix InvJ0(2,2);
+    GeometryType::JacobiansType J0;
+    r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+
+    double DetJ0;
+    Matrix Jacobian = ZeroMatrix(2,2);
+    Jacobian(0,0) = J0[0](0,0);
+    Jacobian(0,1) = J0[0](0,1);
+    Jacobian(1,0) = J0[0](1,0);
+    Jacobian(1,1) = J0[0](1,1);
+
+    // Calculating inverse jacobian and jacobian determinant
+    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+
+    const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
+    const double int_to_reference_weight = r_integration_points[0].Weight() * std::abs(DetJ0) * thickness;
+
+    SetValue(INTEGRATION_WEIGHT, int_to_reference_weight);
 }
 
 
@@ -427,30 +450,6 @@ void SolidIGAElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInf
 }
 
 void SolidIGAElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
-    
-    // calculate the integration weight
-    const auto& r_geometry = GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
-   
-    Matrix InvJ0(2,2);
-    GeometryType::JacobiansType J0;
-    r_geometry.Jacobian(J0,this->GetIntegrationMethod());
-
-    double DetJ0;
-    Matrix Jacobian = ZeroMatrix(2,2);
-    Jacobian(0,0) = J0[0](0,0);
-    Jacobian(0,1) = J0[0](0,1);
-    Jacobian(1,0) = J0[0](1,0);
-    Jacobian(1,1) = J0[0](1,1);
-
-    // Calculating inverse jacobian and jacobian determinant
-    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
-
-    const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
-    const double int_to_reference_weight = r_integration_points[0].Weight() * std::abs(DetJ0) * thickness;
-
-    SetValue(INTEGRATION_WEIGHT, int_to_reference_weight);
-
     ConstitutiveLaw::Parameters constitutive_law_parameters(
         GetGeometry(), GetProperties(), rCurrentProcessInfo);
 

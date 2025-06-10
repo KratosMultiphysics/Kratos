@@ -25,6 +25,56 @@ namespace Kratos
 void SupportSolidIGACondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMaterial();
+
+    // calculate the integration weight
+    const auto& r_geometry = GetGeometry();
+    // reading integration points and local gradients
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+
+    // Initialize Jacobian
+    Matrix InvJ0(3,3);
+    GeometryType::JacobiansType J0;
+    r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+
+    // Compute the normals
+    array_1d<double, 3> tangent_parameter_space;
+    array_1d<double, 3> normal_physical_space;
+    array_1d<double, 3> normal_parameter_space;
+
+    r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space
+    double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
+    
+    normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
+    normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT)
+    normal_parameter_space[2] = 0.0;
+
+    // compute complete jacobian transformation including parameter->physical space transformation
+    double DetJ0;
+    Matrix Jacobian = ZeroMatrix(3,3);
+    Jacobian(0,0) = J0[0](0,0);
+    Jacobian(0,1) = J0[0](0,1);
+    Jacobian(1,0) = J0[0](1,0);
+    Jacobian(1,1) = J0[0](1,1);
+    Jacobian(2,2) = 1.0;
+
+    // Calculating inverse jacobian and jacobian determinant
+    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+
+    Vector add_factor = prod(Jacobian, tangent_parameter_space); //additional factor to the determinant of the jacobian for the parameter->physical space transformation
+    add_factor[2] = 0.0; 
+    DetJ0 = norm_2(add_factor);
+
+    // compute the normal of the physical space
+    normal_physical_space = prod(trans(InvJ0),normal_parameter_space);
+    normal_physical_space[2] = 0.0;
+    normal_physical_space /= norm_2(normal_physical_space);
+    SetValue(NORMAL, normal_physical_space);
+
+    const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
+
+    const double IntToReferenceWeight = r_integration_points[0].Weight() * std::abs(DetJ0) * thickness;
+
+    SetValue(INTEGRATION_WEIGHT, IntToReferenceWeight);
 }
 
 
@@ -616,58 +666,7 @@ void SupportSolidIGACondition::CalculateRightHandSide(
     }
 
     void SupportSolidIGACondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
-
-        // calculate the integration weight
-        const auto& r_geometry = GetGeometry();
-        // reading integration points and local gradients
-        const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
-
-        // Initialize Jacobian
-        Matrix InvJ0(3,3);
-        GeometryType::JacobiansType J0;
-        r_geometry.Jacobian(J0,this->GetIntegrationMethod());
-
-        // Compute the normals
-        array_1d<double, 3> tangent_parameter_space;
-        array_1d<double, 3> normal_physical_space;
-        array_1d<double, 3> normal_parameter_space;
-
-        r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space
-        double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
-        
-        normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
-        normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT)
-        normal_parameter_space[2] = 0.0;
-
-        // compute complete jacobian transformation including parameter->physical space transformation
-        double DetJ0;
-        Matrix Jacobian = ZeroMatrix(3,3);
-        Jacobian(0,0) = J0[0](0,0);
-        Jacobian(0,1) = J0[0](0,1);
-        Jacobian(1,0) = J0[0](1,0);
-        Jacobian(1,1) = J0[0](1,1);
-        Jacobian(2,2) = 1.0;
-
-        // Calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
-
-        Vector add_factor = prod(Jacobian, tangent_parameter_space); //additional factor to the determinant of the jacobian for the parameter->physical space transformation
-        add_factor[2] = 0.0; 
-        DetJ0 = norm_2(add_factor);
-
-        // compute the normal of the physical space
-        normal_physical_space = prod(trans(InvJ0),normal_parameter_space);
-        normal_physical_space[2] = 0.0;
-        normal_physical_space /= norm_2(normal_physical_space);
-        SetValue(NORMAL, normal_physical_space);
-
-        const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
-
-        const double IntToReferenceWeight = r_integration_points[0].Weight() * std::abs(DetJ0) * thickness;
-
-        SetValue(INTEGRATION_WEIGHT, IntToReferenceWeight);
         //--------------------------------------------------------------------------------------------
-
         // calculate the constitutive law response
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetGeometry(), GetProperties(), rCurrentProcessInfo);
