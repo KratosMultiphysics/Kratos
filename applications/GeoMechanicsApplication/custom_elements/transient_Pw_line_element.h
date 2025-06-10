@@ -322,8 +322,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    std::vector<RetentionLaw::Pointer> GetRetentionLawVector() const { return mRetentionLawVector; }
-
 private:
     std::vector<CalculationContribution>  mContributions;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;

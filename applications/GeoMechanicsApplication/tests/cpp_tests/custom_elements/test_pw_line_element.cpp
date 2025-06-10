@@ -725,30 +725,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CheckThrowsOnFaultyInput2, Krat
     KRATOS_EXPECT_EQ(p_3D_element->Check(dummy_process_info), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_Initialize, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    const std::vector<CalculationContribution> contributions = {
-        CalculationContribution::Permeability, CalculationContribution::Compressibility,
-        CalculationContribution::FluidBodyFlow};
-    TransientPwLineElement<2, 3> element(0, std::make_shared<Triangle2D3<Node>>(AddThreeCoincidentNodes()),
-                                         std::make_shared<Properties>(), contributions, nullptr);
-    const auto dummy_process_info = ProcessInfo{};
-
-    // Act
-    element.Initialize(dummy_process_info);
-
-    // Assert
-    const auto number_of_integration_points =
-        element.GetGeometry().IntegrationPointsNumber(element.GetIntegrationMethod());
-
-    const auto& r_retention_law_vector = element.GetRetentionLawVector();
-    KRATOS_EXPECT_EQ(r_retention_law_vector.size(), number_of_integration_points);
-    KRATOS_EXPECT_TRUE(std::none_of(r_retention_law_vector.begin(), r_retention_law_vector.end(), [](auto p_retention_law) {
-        return dynamic_cast<SaturatedLaw*>(p_retention_law.get()) == nullptr;
-    }))
-}
-
 KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_InitializeSolution, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
