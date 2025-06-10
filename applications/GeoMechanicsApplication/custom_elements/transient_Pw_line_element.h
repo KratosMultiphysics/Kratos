@@ -313,7 +313,7 @@ public:
             GeoElementUtilities::FillPermeabilityMatrix(permeability_matrix, this->GetProperties());
             std::fill_n(rOutput.begin(), number_of_integration_points, permeability_matrix);
         } else {
-            for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
+            for (unsigned int i = 0; i < number_of_integration_points; ++i) {
                 rOutput[i].resize(TDim, TDim, false);
                 noalias(rOutput[i]) = ZeroMatrix(TDim, TDim);
             }
