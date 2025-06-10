@@ -741,11 +741,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_Initialize, KratosGeoMechanicsF
     // Assert
     const auto number_of_integration_points =
         element.GetGeometry().IntegrationPointsNumber(element.GetIntegrationMethod());
-    const auto& r_constitutive_law_vector = element.GetConstitutiveLawVector();
-    KRATOS_EXPECT_EQ(r_constitutive_law_vector.size(), number_of_integration_points);
-    for (const auto& constitutive_law : r_constitutive_law_vector) {
-        KRATOS_EXPECT_EQ(constitutive_law, nullptr);
-    }
 
     const auto& r_retention_law_vector = element.GetRetentionLawVector();
     KRATOS_EXPECT_EQ(r_retention_law_vector.size(), number_of_integration_points);

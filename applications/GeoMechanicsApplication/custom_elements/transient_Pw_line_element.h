@@ -94,12 +94,6 @@ public:
 
     void Initialize(const ProcessInfo&) override
     {
-        if (GetGeometry().LocalSpaceDimension() != 1) {
-            mConstitutiveLawVector.resize(GetGeometry().IntegrationPointsNumber(GetIntegrationMethod()));
-            for (auto& constitutive_law : mConstitutiveLawVector) {
-                constitutive_law = nullptr;
-            }
-        }
         mRetentionLawVector.resize(GetGeometry().IntegrationPointsNumber(GetIntegrationMethod()));
 
         for (auto& r_retention_law : mRetentionLawVector) {
@@ -328,17 +322,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    std::vector<ConstitutiveLaw::Pointer> GetConstitutiveLawVector() const
-    {
-        return mConstitutiveLawVector;
-    }
-
     std::vector<RetentionLaw::Pointer> GetRetentionLawVector() const { return mRetentionLawVector; }
 
 private:
     std::vector<CalculationContribution>  mContributions;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     std::vector<RetentionLaw::Pointer>    mRetentionLawVector;
 
     void CheckProperties() const
