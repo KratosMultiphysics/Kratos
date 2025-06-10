@@ -41,7 +41,7 @@ public:
 
     virtual void ValidateParameters();
 
-    virtual void Apply() const = 0;
+    virtual void Execute() = 0;
 
 protected:
 
