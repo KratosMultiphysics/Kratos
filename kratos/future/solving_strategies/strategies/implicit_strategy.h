@@ -55,7 +55,7 @@ namespace Kratos::Future
  * @author Ruben Zorrilla
  * @author Riccardo Rossi
  */
-template <class TMatrixType, class TVectorType, class TSparseGraphType>
+template <class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
 class ImplicitStrategy : public Strategy
 {
 public:
@@ -66,16 +66,16 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ImplicitStrategy);
 
     // Scheme pointer type definition
-    using SchemePointerType = typename ImplicitScheme<TMatrixType, TVectorType, TSparseGraphType>::Pointer;
+    using SchemePointerType = typename ImplicitScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>::Pointer;
 
     // Linear solver pointer definition
-    using LinearSolverPointerType = typename Future::LinearSolver<TMatrixType, TVectorType>::Pointer;
+    using LinearSolverPointerType = typename Future::LinearSolver<TSparseMatrixType, TSystemVectorType>::Pointer;
 
     /// Index type definition
-    using IndexType = typename TMatrixType::IndexType;
+    using IndexType = typename TSparseMatrixType::IndexType;
 
     /// Data type definition
-    using DataType = typename TMatrixType::DataType;
+    using DataType = typename TSparseMatrixType::DataType;
 
     /// DOFs array type definition
     using DofsArrayType = typename ModelPart::DofsArrayType;
@@ -84,13 +84,13 @@ public:
     using EffectiveDofsMapType = std::unordered_map<typename Dof<DataType>::Pointer, IndexType>;
 
     /// Matrix type definition
-    using SystemMatrixType = TMatrixType;
+    using SystemMatrixType = TSparseMatrixType;
 
     /// Matrix pointer type definition
-    using SystemMatrixPointerType = typename TMatrixType::Pointer;
+    using SystemMatrixPointerType = typename TSparseMatrixType::Pointer;
 
     /// Vector type definition
-    using SystemVectorType = TVectorType;
+    using SystemVectorType = TSystemVectorType;
 
     /// Vector type definition
     using SystemVectorPointerType = typename SystemVectorType::Pointer;
@@ -179,7 +179,7 @@ public:
         ModelPart &rModelPart,
         Parameters ThisParameters) const override
     {
-        return Kratos::make_shared<ImplicitStrategy<TMatrixType, TVectorType, TSparseGraphType>>(rModelPart, ThisParameters);
+        return Kratos::make_shared<ImplicitStrategy<TSparseMatrixType, TSystemVectorType, TSparseGraphType>>(rModelPart, ThisParameters);
     }
 
     void Initialize() override
@@ -197,7 +197,7 @@ public:
         KRATOS_TRY
 
         // Call the scheme InitializeSolutionStep
-        pGetScheme()->InitializeSolutionStep(mDofSet, mEffectiveDofSet, mEffectiveDofIdMap, mpA, mpEffectiveLhs, mpb, mpEffectiveRhs, mpdx, mpEffectiveDx, mConstraintsRelationMatrix, mConstraintsConstantVector, mReformDofsAtEachStep);
+        pGetScheme()->InitializeSolutionStep(mpDofSet, mpEffectiveDofSet, mEffectiveDofIdMap, mLinearSystemContainer, mReformDofsAtEachStep);
 
         KRATOS_CATCH("")
     }
@@ -207,7 +207,7 @@ public:
         KRATOS_TRY
 
         // Call the time scheme predict (note that this also updates the mesh if needed)
-        pGetScheme()->Predict(mDofSet, mEffectiveDofSet, mEffectiveDofIdMap, *mpA, *mpb, *mpdx, *mpEffectiveDx, mConstraintsRelationMatrix, mConstraintsConstantVector);
+        pGetScheme()->Predict(mpDofSet, mpEffectiveDofSet, mEffectiveDofIdMap, mLinearSystemContainer);
 
         KRATOS_CATCH("")
     }
@@ -222,7 +222,7 @@ public:
         KRATOS_TRY;
 
         // Finalisation of the solution step (operations to be done after achieving convergence)
-        pGetScheme()->FinalizeSolutionStep(*mpA, *mpdx, *mpb);
+        pGetScheme()->FinalizeSolutionStep(mLinearSystemContainer);
 
         // Reset flags for next step
         mStiffnessMatrixIsBuilt = false; // By default we always rebuilt (if not implement a derived strategy)
@@ -245,28 +245,7 @@ public:
         }
 
         // Clearing the system of equations
-        if (mpA != nullptr) {
-            mpA->Clear();
-        }
-        if (mpdx != nullptr) {
-            mpdx->Clear();
-        }
-        if (mpb != nullptr) {
-            mpb->Clear();
-        }
-        if (mpEffectiveRhs != nullptr) {
-            mpEffectiveRhs->Clear();
-        }
-        if (mpEffectiveLhs != nullptr) {
-            mpEffectiveLhs->Clear();
-        }
-        if (mpEffectiveDx != nullptr) {
-            mpEffectiveDx->Clear();
-        }
-
-        // Clear the constraint-related arrays
-        mConstraintsRelationMatrix.Clear();
-        mConstraintsConstantVector.Clear();
+        mLinearSystemContainer.Clear();
 
         // Clearing scheme
         // Note that this resets the DOF set
@@ -287,7 +266,7 @@ public:
         //TODO: this should probably go to the Scheme check (based on previous comment)
         // If reactions are to be calculated, we check if all the dofs have reactions defined
         if (mComputeReactions) {
-            for (auto& r_dof : mDofSet) {
+            for (auto& r_dof : *mpDofSet) {
                 KRATOS_ERROR_IF_NOT(r_dof.HasReaction())
                     << "Reaction variable not set for the following: " << std::endl
                     << "- Node: "<< r_dof.Id() << std::endl
@@ -302,7 +281,7 @@ public:
 
     void CalculateOutputData() override
     {
-        pGetScheme()->CalculateOutputData(*mpA, *mpdx, *mpb);
+        pGetScheme()->CalculateOutputData(mLinearSystemContainer);
     }
 
     Parameters GetDefaultParameters() const override
@@ -412,103 +391,113 @@ public:
         return mpLinearSolver;
     }
 
-    /**
-     * @brief This method returns the LHS matrix
-     * @return The LHS matrix
-     */
-    SystemMatrixType& GetSystemMatrix()
+    // /**
+    //  * @brief This method returns the LHS matrix
+    //  * @return The LHS matrix
+    //  */
+    // SystemMatrixType& GetSystemMatrix()
+    // {
+    //     return *mpA;
+    // }
+
+    // /**
+    //  * @brief This method returns the LHS matrix
+    //  * @return The LHS matrix
+    //  */
+    // typename SystemMatrixType::Pointer pGetSystemMatrix()
+    // {
+    //     return mpA;
+    // }
+
+    // /**
+    //  * @brief This method returns the effective LHS matrix
+    //  * @return The effective LHS matrix
+    //  */
+    // SystemMatrixPointerType pGetEffectiveSystemMatrix()
+    // {
+    //     return mpEffectiveLhs;
+    // }
+
+    // /**
+    //  * @brief This method returns the RHS vector
+    //  * @return The RHS vector
+    //  */
+    // SystemVectorType& GetSystemVector()
+    // {
+    //     return *mpb;
+    // }
+
+    // /**
+    //  * @brief This method returns the RHS vector
+    //  * @return The RHS vector
+    //  */
+    // typename SystemVectorType::Pointer pGetSystemVector()
+    // {
+    //     return mpb;
+    // }
+
+    // /**
+    //  * @brief This method returns the effective RHS vector
+    //  * @return The effective RHS vector
+    //  */
+    // typename TSystemVectorType::Pointer pGetEffectiveSystemVector()
+    // {
+    //     return mpEffectiveRhs;
+    // }
+
+    // /**
+    //  * @brief This method returns the constraints constant vector (i.e., b)
+    //  * @return Pointer to the constaints constant vector
+    //  */
+    // SystemVectorType& GetConstraintsConstantVector()
+    // {
+    //     return mConstraintsConstantVector;
+    // }
+
+    // /**
+    //  * @brief This method returns the constraints relation matrix (i.e., T)
+    //  * @return Pointer to the constraints relation matrix
+    //  */
+    // SystemMatrixType& GetConstraintsRelationMatrix()
+    // {
+    //     return mConstraintsRelationMatrix;
+    // }
+
+    // /**
+    //  * @brief This method returns the solution vector
+    //  * @return The Dx vector
+    //  */
+    // SystemVectorType& GetSolutionVector()
+    // {
+    //     return *mpdx;
+    // }
+
+    // /**
+    //  * @brief This method returns the solution vector
+    //  * @return The Dx vector
+    //  */
+    // typename SystemVectorType::Pointer pGetSolutionVector()
+    // {
+    //     return mpdx;
+    // }
+
+    // /**
+    //  * @brief This method returns the effective solution vector
+    //  * @return The effective Dx vector
+    //  */
+    // typename SystemVectorType::Pointer pGetEffectiveSolutionVector()
+    // {
+    //     return mpEffectiveDx;
+    // }
+
+    LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& GetLinearSystemContainer()
     {
-        return *mpA;
+        return mLinearSystemContainer;
     }
 
-    /**
-     * @brief This method returns the LHS matrix
-     * @return The LHS matrix
-     */
-    typename SystemMatrixType::Pointer pGetSystemMatrix()
+    const LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& GetLinearSystemContainer() const
     {
-        return mpA;
-    }
-
-    /**
-     * @brief This method returns the effective LHS matrix
-     * @return The effective LHS matrix
-     */
-    SystemMatrixPointerType pGetEffectiveSystemMatrix()
-    {
-        return mpEffectiveLhs;
-    }
-
-    /**
-     * @brief This method returns the RHS vector
-     * @return The RHS vector
-     */
-    SystemVectorType& GetSystemVector()
-    {
-        return *mpb;
-    }
-
-    /**
-     * @brief This method returns the RHS vector
-     * @return The RHS vector
-     */
-    typename SystemVectorType::Pointer pGetSystemVector()
-    {
-        return mpb;
-    }
-
-    /**
-     * @brief This method returns the effective RHS vector
-     * @return The effective RHS vector
-     */
-    typename TVectorType::Pointer pGetEffectiveSystemVector()
-    {
-        return mpEffectiveRhs;
-    }
-
-    /**
-     * @brief This method returns the constraints constant vector (i.e., b)
-     * @return Pointer to the constaints constant vector
-     */
-    SystemVectorType& GetConstraintsConstantVector()
-    {
-        return mConstraintsConstantVector;
-    }
-
-    /**
-     * @brief This method returns the constraints relation matrix (i.e., T)
-     * @return Pointer to the constraints relation matrix
-     */
-    SystemMatrixType& GetConstraintsRelationMatrix()
-    {
-        return mConstraintsRelationMatrix;
-    }
-
-    /**
-     * @brief This method returns the solution vector
-     * @return The Dx vector
-     */
-    SystemVectorType& GetSolutionVector()
-    {
-        return *mpdx;
-    }
-
-    /**
-     * @brief This method returns the solution vector
-     * @return The Dx vector
-     */
-    typename SystemVectorType::Pointer pGetSolutionVector()
-    {
-        return mpdx;
-    }
-
-    /**
-     * @brief This method returns the effective solution vector
-     * @return The effective Dx vector
-     */
-    typename SystemVectorType::Pointer pGetEffectiveSolutionVector()
-    {
-        return mpEffectiveDx;
+        return mLinearSystemContainer;
     }
 
     /**
@@ -516,7 +505,7 @@ public:
      */
     DofsArrayType& GetDofSet()
     {
-        return mDofSet;
+        return *mpDofSet;
     }
 
     /**
@@ -524,7 +513,7 @@ public:
      */
     const DofsArrayType& GetDofSet() const
     {
-        return mDofSet;
+        return *mpDofSet;
     }
 
     /**
@@ -532,7 +521,7 @@ public:
      */
     DofsArrayType& GetEffectiveDofSet()
     {
-        return mEffectiveDofSet;
+        return *mpEffectiveDofSet;
     }
 
     /**
@@ -540,7 +529,7 @@ public:
      */
     const DofsArrayType &GetEffectiveDofSet() const
     {
-        return mEffectiveDofSet;
+        return *mpEffectiveDofSet;
     }
     /**
      * @brief It allows to get the map of effective DOFs
@@ -611,8 +600,10 @@ public:
      */
     double GetResidualNorm()
     {
-        if (mpb->size() != 0) {
-            return mpb->Norm();
+        auto p_rhs = mLinearSystemContainer.pRhs;
+        KRATOS_ERROR_IF(p_rhs == nullptr) << "Right hand side vector is not set. Residual cannot be computed." << std::endl;
+        if (p_rhs->size() != 0) {
+            return p_rhs->Norm();
         } else {
             return 0.0;
         }
@@ -686,9 +677,9 @@ protected:
      */
     virtual void EchoInfo()
     {
-        const auto& r_A = *mpA;
-        const auto& r_b = *mpb;
-        const auto& r_dx = *mpdx;
+        const auto& r_A = mLinearSystemContainer.pLhs;
+        const auto& r_b = mLinearSystemContainer.pRhs;
+        const auto& r_dx = *mLinearSystemContainer.pDx;
 
         if (GetEchoLevel() == 3) { //if it is needed to print the debug info
             KRATOS_INFO("LHS") << "LHS = " << r_A << std::endl;
@@ -732,27 +723,13 @@ private:
 
     LinearSolverPointerType mpLinearSolver = nullptr; /// The pointer to the linear solver
 
-    DofsArrayType mDofSet; /// The set containing the DOFs of the system
+    DofsArrayType::Pointer mpDofSet; /// The set containing the DOFs of the system
 
-    DofsArrayType mEffectiveDofSet; /// The PVS containing the effective DOFs of the system
+    DofsArrayType::Pointer mpEffectiveDofSet; /// The PVS containing the effective DOFs of the system
 
     EffectiveDofsMapType mEffectiveDofIdMap; /// The pointer to ids map containing the effective DOFs of the system
 
-    SystemVectorPointerType mpdx = nullptr; /// The incremement in the solution //TODO: use naming convention
-
-    SystemVectorPointerType mpb = nullptr; /// The RHS vector of the system of equations //TODO: use naming convention (mpRHS)
-
-    SystemMatrixPointerType mpA = nullptr; /// The LHS matrix of the system of equations //TODO: use naming convention (mpLHS)
-
-    SystemMatrixPointerType mpEffectiveLhs = Kratos::make_shared<TMatrixType>(); /// The LHS matrix of the system of equations
-
-    SystemVectorPointerType mpEffectiveRhs = Kratos::make_shared<TVectorType>(); /// The RHS vector of the system of equations
-
-    SystemVectorPointerType mpEffectiveDx = Kratos::make_shared<TVectorType>(); /// The effective solution increment for the constrained system
-
-    SystemMatrixType mConstraintsRelationMatrix; // Constraints relation matrix
-
-    SystemVectorType mConstraintsConstantVector; // Constraints constant vector
+    LinearSystemContainer<TSparseMatrixType, TSystemVectorType> mLinearSystemContainer;
 
     int mEchoLevel;
 

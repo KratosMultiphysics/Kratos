@@ -167,17 +167,17 @@ public:
         auto& r_dof_set = this->GetDofSet();
         auto& r_eff_dof_set = this->GetEffectiveDofSet();
         auto& r_eff_dof_map = this->GetEffectiveDofIdMap();
-        auto p_lhs = this->pGetSystemMatrix();
-        auto p_rhs = this->pGetSystemVector();
-        auto p_dx = this->pGetSolutionVector();
-        auto p_eff_lhs = this->pGetEffectiveSystemMatrix();
-        auto p_eff_rhs = this->pGetEffectiveSystemVector();
-        auto p_eff_dx = this->pGetEffectiveSolutionVector();
-        auto& r_T = this->GetConstraintsRelationMatrix();
-        auto& r_b = this->GetConstraintsConstantVector();
+        auto& r_linear_system_container = this->GetLinearSystemContainer();
+
+        // Get system arrays
+        auto p_dx = r_linear_system_container.pDx;
+        auto p_rhs = r_linear_system_container.pRhs;
+        auto p_lhs = r_linear_system_container.pLhs;
+        auto p_constraints_T = r_linear_system_container.pConstraintsT;
+        auto p_constraints_q = r_linear_system_container.pConstraintsQ;
 
         // Initialize non-linear iteration (once as this is a linear strategy)
-	    p_scheme->InitializeNonLinIteration(*p_lhs, *p_dx, *p_rhs);
+        p_scheme->InitializeNonLinIteration(r_linear_system_container);
 
         if (!(this->GetStiffnessMatrixIsBuilt())) {
             // Initialize values
@@ -187,20 +187,28 @@ public:
 
             // Build the local system and apply the Dirichlet conditions
             p_scheme->Build(*p_lhs, *p_rhs);
-            p_scheme->BuildMasterSlaveConstraints(r_dof_set, r_eff_dof_map, r_T, r_b);
-            p_scheme->ApplyMasterSlaveConstraints(p_lhs, p_eff_lhs, p_rhs, p_eff_rhs, p_dx, p_eff_dx, r_T, r_b);
-            p_scheme->ApplyDirichletConditions(r_eff_dof_set, r_eff_dof_map, *p_eff_lhs, *p_eff_rhs);
+            // p_scheme->ApplyMasterSlaveConstraints(p_lhs, p_eff_lhs, p_rhs, p_eff_rhs, p_dx, p_eff_dx, r_T, r_b);
+            // p_scheme->ApplyDirichletConditions(r_eff_dof_set, r_eff_dof_map, *p_eff_lhs, *p_eff_rhs);
+            p_scheme->BuildLinearSystemConstraints(r_dof_set, r_eff_dof_map, r_linear_system_container);
+            p_scheme->ApplyLinearSystemConstraints(r_eff_dof_set, r_eff_dof_map, r_linear_system_container);
             this->SetStiffnessMatrixIsBuilt(true);
         } else {
-            // Initialize values
-            p_rhs->SetValue(0.0);
-            p_dx->SetValue(0.0);
+            //FIXME: Do the RHS-only one!!!!
 
-            // Build the RHS and apply the Dirichlet conditions
-            p_scheme->Build(*p_rhs);
-            p_scheme->ApplyMasterSlaveConstraints(p_rhs, p_eff_rhs, p_dx, p_eff_dx, r_T, r_b);
-            p_scheme->ApplyDirichletConditions(r_eff_dof_set, r_eff_dof_map, *p_eff_rhs);
+            // // Initialize values
+            // p_rhs->SetValue(0.0);
+            // p_dx->SetValue(0.0);
+
+            // // Build the RHS and apply the Dirichlet conditions
+            // p_scheme->Build(*p_rhs);
+            // p_scheme->ApplyMasterSlaveConstraints(p_rhs, p_eff_rhs, p_dx, p_eff_dx, r_T, r_b);
+            // p_scheme->ApplyDirichletConditions(r_eff_dof_set, r_eff_dof_map, *p_eff_rhs);
         }
+
+        // Get the effective arrays to solve the system
+        auto p_eff_dx = r_linear_system_container.pEffectiveDx;
+        auto p_eff_rhs = r_linear_system_container.pEffectiveRhs;
+        auto p_eff_lhs = r_linear_system_container.pEffectiveLhs;
 
         // Solve the system
         const auto& rp_linear_solver = this->pGetLinearSolver();
@@ -213,10 +221,10 @@ public:
         this->EchoInfo();
 
         // Update results (note that this also updates the mesh if needed)
-        p_scheme->Update(r_dof_set, r_eff_dof_map, *p_lhs, *p_rhs, *p_dx, *p_eff_dx, r_T);
+        p_scheme->Update(r_dof_set, r_eff_dof_map, r_linear_system_container);
 
         // Finalize current (unique) non linear iteration
-        p_scheme->FinalizeNonLinIteration(*p_lhs, *p_dx, *p_rhs);
+        p_scheme->FinalizeNonLinIteration(r_linear_system_container);
 
         // Calculate reactions if required //TODO: Think on the constraints in here!!!
         if (this->GetComputeReactions()) {
