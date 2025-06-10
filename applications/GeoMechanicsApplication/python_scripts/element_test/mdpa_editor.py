@@ -1,6 +1,7 @@
 import re
 from ui_logger import log_message
 
+
 class MdpaEditor:
     def __init__(self, mdpa_path):
         self.mdpa_path = mdpa_path
@@ -65,5 +66,3 @@ class MdpaEditor:
         else:
             self.raw_text = new_text
             MdpaEditor.save(self)
-
-

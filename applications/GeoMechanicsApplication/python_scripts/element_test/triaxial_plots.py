@@ -7,17 +7,15 @@ def plot_sigma(ax, sigma_1, sigma_3):
     ax.set_xlabel('σ₃ (Principal Stress 3) [kN/m²]')
     ax.set_ylabel('σ₁ (Principal Stress 1) [kN/m²]')
     ax.grid(True)
+    ax.locator_params(nbins=8)
 
     min_val = 0
     max_val_x = max(sigma_3)
     max_val_y = min(sigma_1)
     padding_x = 0.1 * (max_val_x - min_val)
     padding_y = 0.1 * (max_val_y - min_val)
-
     ax.set_xlim(min_val, max_val_x + padding_x)
     ax.set_ylim(min_val, max_val_y + padding_y)
-
-    ax.set_xticks(np.linspace(min_val, max_val_x, num=6))
 
 def plot_delta_sigma(ax, vertical_strain, sigma_diff):
     ax.plot(vertical_strain, sigma_diff, '-', color='blue', label='|σ₁ - σ₃|')
@@ -26,7 +24,7 @@ def plot_delta_sigma(ax, vertical_strain, sigma_diff):
     ax.set_ylabel('|σ₁ - σ₃| [kN/m²]')
     ax.grid(True)
     ax.invert_xaxis()
-    ax.set_xticks(np.linspace(np.min(vertical_strain), np.max(vertical_strain), num=6))
+    ax.locator_params(nbins=8)
 
 def plot_volumetric_strain(ax, vertical_strain, volumetric_strain):
     ax.plot(vertical_strain, volumetric_strain, '-', color='blue', label='Volumetric Strain')
@@ -36,7 +34,7 @@ def plot_volumetric_strain(ax, vertical_strain, volumetric_strain):
     ax.grid(True)
     ax.invert_xaxis()
     ax.invert_yaxis()
-    ax.set_xticks(np.linspace(np.min(vertical_strain), np.max(vertical_strain), num=6))
+    ax.locator_params(nbins=8)
 
 def plot_mohr_coulomb_circle(ax, sigma_1, sigma_3, cohesion=None, friction_angle=None):
     center = (sigma_1 + sigma_3) / 2
@@ -69,4 +67,4 @@ def plot_p_q(ax, p_list, q_list):
     ax.set_ylabel("q (Deviatoric Stress) [kN/m²]")
     ax.grid(True)
     ax.invert_xaxis()
-    ax.set_xticks(np.linspace(np.min(p_list), np.max(p_list), num=6))
+    ax.locator_params(nbins=8)

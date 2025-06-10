@@ -7,8 +7,8 @@ from material_editor import MaterialEditor
 from project_parameter_editor import ProjectParameterEditor
 from mdpa_editor import MdpaEditor
 from triaxial import TriaxialTestRunner
-
 from triaxial_plots import plot_delta_sigma, plot_volumetric_strain, plot_sigma, plot_p_q, plot_mohr_coulomb_circle
+
 
 def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_time, maximum_strain, initial_effective_cell_pressure,
                             cohesion_phi_indices=None, axes=None):
@@ -60,9 +60,6 @@ def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_tim
     output_files = [os.path.join(tmp_folder, 'gid_output', "triaxial.post.res")]
     runner = TriaxialTestRunner(output_files, tmp_folder)
     reshaped_values_by_time, vertical_strain, volumetric_strain, von_mises_stress, mean_effective_stresses = runner.run()
-
-    cohesion = None
-    friction_angle = None
 
     if cohesion_phi_indices:
         c_idx, phi_idx = cohesion_phi_indices

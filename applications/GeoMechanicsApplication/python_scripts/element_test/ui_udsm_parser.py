@@ -110,7 +110,6 @@ def input_parameters_format_to_unicode(text: str) -> str:
 
     return text
 
-
 def udsm_parser(dll_path):
     dll_lib = ctypes.CDLL(dll_path, winmode=0)
 

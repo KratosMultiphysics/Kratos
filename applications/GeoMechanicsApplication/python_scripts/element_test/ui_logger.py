@@ -20,4 +20,3 @@ def clear_log():
         _log_widget.config(state="normal")
         _log_widget.delete("1.0", "end")
         _log_widget.config(state="disabled")
-
