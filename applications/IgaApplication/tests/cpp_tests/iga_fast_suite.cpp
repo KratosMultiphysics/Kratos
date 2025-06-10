@@ -7,8 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Andrea Gorgi
-//
+//  Main authors:   Carlos Roig
+//                  Andrea Gorgi
 
 #include "iga_fast_suite.h"
 #include "iga_application.h"

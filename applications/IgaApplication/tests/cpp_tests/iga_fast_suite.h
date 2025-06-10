@@ -6,8 +6,8 @@
 //
 //  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Andrea Gorgi
-//
+//  Main authors:   Carlos Roig
+//                  Andrea Gorgi
 
 #pragma once
 
