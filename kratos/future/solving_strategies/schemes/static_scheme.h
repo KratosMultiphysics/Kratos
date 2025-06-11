@@ -240,24 +240,16 @@ public:
                 //TODO: Then we have a method to initialize all the standard arrays from the graph. In here we can make also initializations of the mass and damping matrix with the same graph
                 //TODO: Then we initialize the effective ones by passing the effective DOF set and effective DOFIdMap.
 
-                // Set up the sparse matrix graph
-                // std::cin.get();
+                // Set up the sparse matrix graph (note that the sparse graph will be destroyed when leaving this scope)
                 BuiltinTimer sparse_matrix_graph_time;
                 TSparseGraphType sparse_matrix_graph(eq_system_size);
                 this->SetUpSparseMatrixGraph(sparse_matrix_graph);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up sparse matrix graph time: " << sparse_matrix_graph_time << std::endl;
 
                 // Allocating the system vectors to their correct sizes
-                // std::cin.get();
                 BuiltinTimer system_matrix_resize_time;
                 this->ResizeAndInitializeVectors(sparse_matrix_graph, pDofSet, pEffectiveDofSet, rLinearSystemContainer);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
-
-                // Clearing the sparse matrix graph
-                // std::cin.get();
-                sparse_matrix_graph.Clear();
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Sparse matrix graph cleared." << std::endl;
-                // std::cin.get();
             } else {
                 // Set up the equation ids (note that this needs to be always done as the fixity may have changed and this can affect some build types)
                 BuiltinTimer setup_system_time;

@@ -16,6 +16,8 @@
 // System includes
 
 // External includes
+#include <algorithm>
+#include <execution>
 
 // Project includes
 #include "containers/csr_matrix.h"
@@ -504,6 +506,173 @@ public:
         rLHS.FinalizeAssemble();
 
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Build w/ safe assemble time: " << timer << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;
+
+        Timer::Stop("BuildWithSafeAssemble");
+    }
+
+    virtual void BuildWithThreadLocal(
+        TSparseMatrixType& rLHS,
+        TSystemVectorType& rRHS)
+    {
+        Timer::Start("BuildWithSafeAssemble");
+
+        const auto timer = BuiltinTimer();
+
+        // Getting conditions and elements to be assembled
+        const auto& r_process_info = mpModelPart->GetProcessInfo();
+
+
+        // Initialize RHS and LHS assembly
+        rRHS.BeginAssemble();
+        rLHS.BeginAssemble();
+
+        thread_local Matrix LocalMatrix;
+        thread_local Vector LocalVector;
+        thread_local Element::EquationIdVectorType LocalEqIds;
+
+        const auto& r_elems = mpModelPart->Elements();
+        auto elems_begin = std::begin(r_elems.GetContainer());
+        auto elems_end = std::end(r_elems.GetContainer());
+        // auto elems_begin = r_elems.begin();
+        // auto elems_end = r_elems.end();
+
+        std::for_each(std::execution::par_unseq, elems_begin, elems_end,
+            [&](auto& it_elem) {
+                // const bool assemble = CalculateLocalSystemContribution(*it_elem, aux_tls, r_process_info);
+
+                if (it_elem->IsActive()) {
+                    // Calculate local RHS contribution
+                    it_elem->CalculateLocalSystem(LocalMatrix, LocalVector, r_process_info);
+
+                    // Get the positions in the global system
+                    it_elem->EquationIdVector(LocalEqIds, r_process_info);
+
+                    rRHS.Assemble(LocalVector, LocalEqIds);
+                    // rRHS.SafeAssemble(LocalVector, LocalEqIds);
+                    rLHS.Assemble(LocalMatrix, LocalEqIds);
+                    // rLHS.SafeAssemble(LocalMatrix, LocalEqIds);
+                } else {
+                    LocalEqIds.clear();
+                    LocalVector.clear();
+                    LocalMatrix.clear();
+                }
+            }
+        );
+
+        const auto& r_conds = mpModelPart->Conditions();
+        auto conds_begin = std::begin(r_conds.GetContainer());
+        auto conds_end = std::end(r_conds.GetContainer());
+        std::for_each(std::execution::par_unseq, conds_begin, conds_end,
+            [&](auto& it_cond) {
+                // const bool assemble = CalculateLocalSystemContribution(*it_cond, aux_tls, r_process_info);
+
+                if (it_cond->IsActive()) {
+                    // Calculate local RHS contribution
+                    it_cond->CalculateLocalSystem(LocalMatrix, LocalVector, r_process_info);
+
+                    // Get the positions in the global system
+                    it_cond->EquationIdVector(LocalEqIds, r_process_info);
+
+                    // rRHS.SafeAssemble(LocalVector, LocalEqIds);
+                    rRHS.Assemble(LocalVector, LocalEqIds);
+                    // rLHS.SafeAssemble(LocalMatrix, LocalEqIds);
+                    rLHS.Assemble(LocalMatrix, LocalEqIds);
+                } else {
+                    LocalEqIds.clear();
+                    LocalVector.clear();
+                    LocalMatrix.clear();
+                }
+            }
+        );
+
+        // Finalize RHS and LHS assembly
+        rRHS.FinalizeAssemble();
+        rLHS.FinalizeAssemble();
+
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Build w/ thread local time: " << timer << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;
+
+        Timer::Stop("BuildWithSafeAssemble");
+    }
+
+    virtual void BuildWithLocalAllocation(
+        TSparseMatrixType& rLHS,
+        TSystemVectorType& rRHS)
+    {
+        Timer::Start("BuildWithSafeAssemble");
+
+        const auto timer = BuiltinTimer();
+
+        // Getting conditions and elements to be assembled
+        const auto& r_process_info = mpModelPart->GetProcessInfo();
+
+
+        // Initialize RHS and LHS assembly
+        rRHS.BeginAssemble();
+        rLHS.BeginAssemble();
+
+        const auto& r_elems = mpModelPart->Elements();
+        auto elems_begin = std::begin(r_elems.GetContainer());
+        auto elems_end = std::end(r_elems.GetContainer());
+        // auto elems_begin = r_elems.begin();
+        // auto elems_end = r_elems.end();
+
+        std::for_each(std::execution::par_unseq, elems_begin, elems_end,
+            [&](auto& it_elem) {
+                // const bool assemble = CalculateLocalSystemContribution(*it_elem, aux_tls, r_process_info);
+
+                if (it_elem->IsActive()) {
+
+                    Matrix LocalMatrix;
+                    Vector LocalVector;
+                    Element::EquationIdVectorType LocalEqIds;
+
+                    // Calculate local RHS contribution
+                    it_elem->CalculateLocalSystem(LocalMatrix, LocalVector, r_process_info);
+
+                    // Get the positions in the global system
+                    it_elem->EquationIdVector(LocalEqIds, r_process_info);
+
+                    rRHS.Assemble(LocalVector, LocalEqIds);
+                    // rRHS.SafeAssemble(LocalVector, LocalEqIds);
+                    rLHS.Assemble(LocalMatrix, LocalEqIds);
+                    // rLHS.SafeAssemble(LocalMatrix, LocalEqIds);
+                }
+            }
+        );
+
+        const auto& r_conds = mpModelPart->Conditions();
+        auto conds_begin = std::begin(r_conds.GetContainer());
+        auto conds_end = std::end(r_conds.GetContainer());
+        std::for_each(std::execution::par_unseq, conds_begin, conds_end,
+            [&](auto& it_cond) {
+                // const bool assemble = CalculateLocalSystemContribution(*it_cond, aux_tls, r_process_info);
+
+                if (it_cond->IsActive()) {
+                    Matrix LocalMatrix;
+                    Vector LocalVector;
+                    Element::EquationIdVectorType LocalEqIds;
+
+                    // Calculate local RHS contribution
+                    it_cond->CalculateLocalSystem(LocalMatrix, LocalVector, r_process_info);
+
+                    // Get the positions in the global system
+                    it_cond->EquationIdVector(LocalEqIds, r_process_info);
+
+                    // rRHS.SafeAssemble(LocalVector, LocalEqIds);
+                    rRHS.Assemble(LocalVector, LocalEqIds);
+                    // rLHS.SafeAssemble(LocalMatrix, LocalEqIds);
+                    rLHS.Assemble(LocalMatrix, LocalEqIds);
+                }
+            }
+        );
+
+        // Finalize RHS and LHS assembly
+        rRHS.FinalizeAssemble();
+        rLHS.FinalizeAssemble();
+
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Build w/ local allocation time: " << timer << std::endl;
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;
 
         Timer::Stop("BuildWithSafeAssemble");
@@ -1521,3 +1690,4 @@ private:
 }; // Class Scheme
 
 } // namespace Kratos::Future.
+

@@ -431,8 +431,8 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
     // Set up the test model part
     Model test_model;
     auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
-    const std::size_t num_elems_x = 1500;
-    const std::size_t num_elems_y = 1500;
+    const std::size_t num_elems_x = 2500;
+    const std::size_t num_elems_y = 2500;
     const double elem_size_x = 1.0;
     const double elem_size_y = 1.0;
 
@@ -468,17 +468,43 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
     auto p_lhs = linear_system_container.pLhs;
     auto p_rhs = linear_system_container.pRhs;
 
+    sleep(30);
+
     BuiltinTimer timer_build;
-    p_scheme->Build(*p_lhs, *p_rhs);
+    for(unsigned int i=0; i<20; ++i)
+        p_scheme->Build(*p_lhs, *p_rhs);
     std::cout << "Build time: " << timer_build << std::endl;
+
 
     p_lhs->SetValue(0.0);
     p_rhs->SetValue(0.0);
 
+    sleep(30);
+
     BuiltinTimer timer_build_safe;
+    for(unsigned int i=0; i<20; ++i)
     p_scheme->BuildWithSafeAssemble(*p_lhs, *p_rhs);
     std::cout << "Build w/ safe assemble time: " << timer_build_safe << std::endl;
 
+    p_lhs->SetValue(0.0);
+    p_rhs->SetValue(0.0);
+
+    sleep(30);
+
+    BuiltinTimer timer_build_thread_local;
+    for(unsigned int i=0; i<20; ++i)
+    p_scheme->BuildWithThreadLocal(*p_lhs, *p_rhs);
+    std::cout << "Build w/ thread local: " << timer_build_thread_local << std::endl;
+
+    p_lhs->SetValue(0.0);
+    p_rhs->SetValue(0.0);
+
+    sleep(30);
+
+    BuiltinTimer timer_build_local_allocation;
+    for(unsigned int i=0; i<20; ++i)
+        p_scheme->BuildWithLocalAllocation(*p_lhs, *p_rhs);
+    std::cout << "Build w/ local allocation: " << timer_build_local_allocation << std::endl;
 
     // // Check resultant matrices
     // const double tol = 1.0e-12;

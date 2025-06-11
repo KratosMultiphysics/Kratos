@@ -28,7 +28,7 @@ if(${KRATOS_USE_FUTURE} MATCHES ON)
     add_definitions( -DKRATOS_USE_FUTURE )
     message(WARNING "You are using sources from Kratos::Future. This is not recommended for stability.")
     ## TODO: Change this in the future (no pun intended) and make it part of the interface target in a different folder.
-    FILE(GLOB_RECURSE KRATOS_FUTURE_PYTHON_SOURCES "future/python/*.cpp") 
+    FILE(GLOB_RECURSE KRATOS_FUTURE_PYTHON_SOURCES "future/python/*.cpp")
     FILE(GLOB_RECURSE KRATOS_FUTURE_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/future/tests/cpp_tests/*.cpp)
     kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_FUTURE}" EXCEPTIONS "${KRATOS_FUTURE_PYTHON_SOURCES}" "${KRATOS_FUTURE_TEST_SOURCES}")
 endif(${KRATOS_USE_FUTURE} MATCHES ON)
@@ -63,11 +63,11 @@ file(GLOB KRATOS_EXPRESSION_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/expression/*.cpp
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     include(GoogleTest)
 
-    file(GLOB_RECURSE KRATOS_TEST_UTILITIES_SOURCES 
+    file(GLOB_RECURSE KRATOS_TEST_UTILITIES_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp
     )
 
-    file(GLOB_RECURSE KRATOS_TEST_SOURCES 
+    file(GLOB_RECURSE KRATOS_TEST_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/testing/*.cpp
     )
@@ -88,7 +88,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Kratos benchmark sources. Disabled by default
 if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_BENCHMARK_SOURCES 
+    file(GLOB_RECURSE KRATOS_BENCHMARK_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/*.cpp
     )
 
@@ -133,7 +133,7 @@ if(${CMAKE_COMPILER_IS_GNUCXX})
     endif()
 endif()
 
-target_link_libraries(KratosCore PUBLIC ${KRATOS_EXTERNAL_LIBRARIES})
+target_link_libraries(KratosCore PUBLIC ${KRATOS_EXTERNAL_LIBRARIES} TBB::tbb)
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 
 # Set batch size in the unity build

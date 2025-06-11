@@ -247,14 +247,14 @@ public:
 
         // Set the system arrays
         // Note that the graph-based constructor does both resizing and initialization
-        auto p_lhs = Kratos::make_shared<TSparseMatrixType>(rSparseGraph);
-        rLinearSystemContainer.pLhs.swap(p_lhs);
-
         auto p_dx = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
         rLinearSystemContainer.pDx.swap(p_dx);
 
         auto p_rhs = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
         rLinearSystemContainer.pRhs.swap(p_rhs);
+
+        auto p_lhs = Kratos::make_shared<TSparseMatrixType>(rSparseGraph);
+        rLinearSystemContainer.pLhs.swap(p_lhs);
 
         //FIXME: I think we should separate these
         // Set the effective arrays

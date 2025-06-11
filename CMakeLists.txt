@@ -53,6 +53,9 @@ set (KratosMultiphysics_MAJOR_VERSION 10)
 set (KratosMultiphysics_MINOR_VERSION 2)
 set (KratosMultiphysics_PATCH_VERSION 1)
 
+find_package(TBB REQUIRED)
+message("-- *******************************************************}")
+
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
   message("-- No KRATOS_SOURCE_DIR is defined, using: ${CMAKE_SOURCE_DIR}")
@@ -344,7 +347,7 @@ if(KRATOS_BUILD_TESTING MATCHES ON)
 
   # restore the current directory's old `COMPILE_OPTIONS`
   set_directory_properties(PROPERTIES COMPILE_OPTIONS "${kratos_root_compile_options}")
-endif(KRATOS_BUILD_TESTING MATCHES ON) 
+endif(KRATOS_BUILD_TESTING MATCHES ON)
 
 # Benchmarking
 if(KRATOS_BUILD_BENCHMARK MATCHES ON)
