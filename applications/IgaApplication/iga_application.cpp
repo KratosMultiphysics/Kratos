@@ -95,6 +95,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SbmLaplacianConditionDirichlet", mSbmLaplacianConditionDirichlet)
     KRATOS_REGISTER_CONDITION("SbmLaplacianConditionNeumann", mSbmLaplacianConditionNeumann)
     KRATOS_REGISTER_CONDITION("SupportSolidIGACondition", mSupportSolidIGACondition)
+    KRATOS_REGISTER_CONDITION("LoadSolidIGACondition", mLoadSolidIGACondition)
 
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
