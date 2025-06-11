@@ -325,7 +325,11 @@ public:
 
     static void Mult(const compressed_matrix<TDataType>& rA, const VectorType& rX, VectorType& rY)
     {
+#ifndef _OPENMP
+        axpy_prod(rA, rX, rY, true);
+#else
         ParallelProductNoAdd(rA, rX, rY);
+#endif
     }
 
     template< class TOtherMatrixType >
@@ -904,33 +908,113 @@ private:
     ///@name Private Operators
     ///@{
 
-    //y = A*x in parallel (note: original was y+=A*x, but implementation was y=A*x)
-    static void ParallelProductNoAdd(const MatrixType& A, const VectorType& rIn, VectorType& rOut)
+#ifdef _OPENMP
+    /**
+    * @brief Computes the matrix-vector product y = A*x for a sparse matrix A without adding to the result.
+    * @details This function calculates the product of a compressed sparse row (CSR) matrix 'A'
+    * and a vector 'rIn'. The result is stored in 'rOut', overwriting its previous content.
+    * The computation is parallelized over the rows of the matrix.
+    * @param A The input sparse matrix in CSR format.
+    * @param rIn The input vector.
+    * @param rOut The output vector where the result is stored.
+    */
+    static void ParallelProductNoAdd(
+        const MatrixType& rA,
+        const VectorType& rIn,
+        VectorType& rOut
+        )
     {
-        const unsigned int number_of_rows = A.size1(); // Total rows to process
+        const unsigned int number_of_rows = rA.size1(); // Total number of rows in matrix A
+
+        // Ensure the output vector has the correct size.
         if (rOut.size() != number_of_rows) {
             rOut.resize(number_of_rows, false);
         }
 
-        const auto& A_index1_data = A.index1_data();
-        const auto& A_index2_data = A.index2_data();
-        const auto& A_value_data = A.value_data();
+        // Create partition
+        DenseVector<unsigned int> partition;
+        unsigned int number_of_threads = omp_get_max_threads();
+        unsigned int number_of_initialized_rows = rA.filled1() - 1;
+        CreatePartition(number_of_threads, number_of_initialized_rows, partition);
 
-        IndexPartition<unsigned int>(number_of_rows).for_each([&](unsigned int i_row){
-            TDataType t = TDataType();
-            // Correctly access row information for compressed matrix A
-            // The iterators row_begin, index2_begin, value_begin were specific to the old partitioning.
-            // We need to get the correct start and end for column indices and values for row i_row.
-            const unsigned int row_start_idx = A_index1_data[i_row];
-            const unsigned int row_end_idx = A_index1_data[i_row+1];
+        // Parallel loop
+        #pragma omp parallel
+        {
+            const int thread_id = omp_get_thread_num();
+            const int number_of_rows = partition[thread_id + 1] - partition[thread_id];
+            auto row_iter_begin = rA.index1_data().begin() + partition[thread_id];
+            auto index_2_begin = rA.index2_data().begin() + *row_iter_begin;
+            auto value_begin = rA.value_data().begin() + *row_iter_begin;
 
-            for (unsigned int k = row_start_idx; k < row_end_idx; ++k) {
-                const unsigned int j_col = A_index2_data[k];
-                t += A_value_data[k] * rIn[j_col];
-            }
-            rOut[i_row] = t;
-        });
+            PartialProductNoAdd(number_of_rows,
+                                row_iter_begin,
+                                index_2_begin,
+                                value_begin,
+                                rIn,
+                                partition[thread_id],
+                                rOut
+                                );
+        }
     }
+
+    /**
+     * @brief Partitions a range of rows for multi-threaded processing.
+     * @details This function divides a total number of rows into contiguous segments, each 
+     * approximately equal in size, for distribution among multiple threads.
+     * The first partition starts at row 0 and the last partition ends at row NumberOfRows.
+     * Each intermediate partition index is set to the cumulative sum of a fixed partition size,
+     * computed as the integer division of NumberOfRows by NumberOfThreads.
+     * @param NumberOfThreads The number of threads to partition the rows among.
+     * @param NumberOfRows The total number of rows to be partitioned.
+     * @param rPartitions A vector that will contain the partition indices. It will be resized 
+     *                    to NumberOfThreads + 1, where rPartitions[0] is 0 and 
+     *                    rPartitions[NumberOfThreads] is NumberOfRows.
+     */
+    static void CreatePartition(
+        const unsigned int NumberOfThreads,
+        const int NumberOfRows,
+        DenseVector<unsigned int>& rPartitions
+        )
+    {
+        rPartitions.resize(NumberOfThreads + 1);
+        const int partition_size = NumberOfRows / NumberOfThreads;
+        rPartitions[0] = 0;
+        rPartitions[NumberOfThreads] = NumberOfRows;
+        for (unsigned int i = 1; i < NumberOfThreads; i++) {
+            rPartitions[i] = rPartitions[i - 1] + partition_size;
+        }
+    }
+
+
+    /**
+     * @brief Calculates partial product resetting to zero the output before
+     */
+    static void PartialProductNoAdd(
+        const int NumberOfRows,
+        typename compressed_matrix<TDataType>::index_array_type::const_iterator itRowBegin,
+        typename compressed_matrix<TDataType>::index_array_type::const_iterator itIndex2Begin,
+        typename compressed_matrix<TDataType>::value_array_type::const_iterator itValueBegin,
+        const VectorType& rInputVector,
+        const unsigned int OutputBeginIndex,
+        VectorType& rOutputVector
+        )
+    {
+        int rowSize;
+        int outputIndex = OutputBeginIndex;
+        auto rowIt = itRowBegin;
+        for (int k = 0; k < NumberOfRows; k++) {
+            rowSize = *(rowIt + 1) - *rowIt;
+            rowIt++;
+            TDataType t = TDataType();
+
+            for (int i = 0; i < rowSize; i++) {
+                t += *itValueBegin++ * (rInputVector[*itIndex2Begin++]);
+            }
+
+            rOutputVector[outputIndex++] = t;
+        }
+    }
+#endif
 
     ///@}
     ///@name Private Operations
