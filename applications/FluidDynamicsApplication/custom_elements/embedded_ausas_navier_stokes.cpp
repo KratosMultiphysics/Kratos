@@ -17,7 +17,7 @@ namespace Kratos {
 template<>
 void EmbeddedAusasNavierStokes<3>::EquationIdVector(
     EquationIdVectorType& rResult,
-    const ProcessInfo& rCurrentProcessInfo) const 
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -43,7 +43,7 @@ void EmbeddedAusasNavierStokes<3>::EquationIdVector(
 template<>
 void EmbeddedAusasNavierStokes<2>::EquationIdVector(
     EquationIdVectorType& rResult,
-    const ProcessInfo& rCurrentProcessInfo) const 
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -68,7 +68,7 @@ void EmbeddedAusasNavierStokes<2>::EquationIdVector(
 template<>
 void EmbeddedAusasNavierStokes<3>::GetDofList(
     DofsVectorType& ElementalDofList,
-    const ProcessInfo& rCurrentProcessInfo) const 
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -94,7 +94,7 @@ void EmbeddedAusasNavierStokes<3>::GetDofList(
 template<>
 void EmbeddedAusasNavierStokes<2>::GetDofList(
     DofsVectorType& ElementalDofList,
-    const ProcessInfo& rCurrentProcessInfo) const 
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -1042,7 +1042,7 @@ void EmbeddedAusasNavierStokes<3>::ComputeGaussPointRHSContribution(
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
-    const double crhs0 =             N[0]*p[0] + N[1]*p[1] + N[2]*p[2] + N[3]*p[3];
+     const double crhs0 =             N[0]*p[0] + N[1]*p[1] + N[2]*p[2] + N[3]*p[3];
 const double crhs1 =             rho*(N[0]*f(0,0) + N[1]*f(1,0) + N[2]*f(2,0) + N[3]*f(3,0));
 const double crhs2 =             rho*(N[0]*(bdf0*v(0,0) + bdf1*vn(0,0) + bdf2*vnn(0,0)) + N[1]*(bdf0*v(1,0) + bdf1*vn(1,0) + bdf2*vnn(1,0)) + N[2]*(bdf0*v(2,0) + bdf1*vn(2,0) + bdf2*vnn(2,0)) + N[3]*(bdf0*v(3,0) + bdf1*vn(3,0) + bdf2*vnn(3,0)));
 const double crhs3 =             DN(0,0)*v(0,0);
