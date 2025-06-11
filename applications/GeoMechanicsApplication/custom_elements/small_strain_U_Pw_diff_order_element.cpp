@@ -203,15 +203,28 @@ Vector SmallStrainUPwDiffOrderElement::GetPressures(const size_t n_nodes) const
     return pressure;
 }
 
-void set_average_of_pair_pressure(Geometry<Node>&                               rGeometry,
-                                  const Vector&                                 rPressure,
-                                  const std::vector<std::pair<size_t, size_t>>& index_pairs,
-                                  size_t                                        dest_offset = 0)
+void set_arithmetic_average_pressure(Geometry<Node>&                               rGeometry,
+                                     const Vector&                                 rPressure,
+                                     const std::vector<std::pair<size_t, size_t>>& index_pairs,
+                                     size_t                                        dest_offset = 0)
 {
     for (size_t i = 0; i < index_pairs.size(); ++i) {
         GeoElementUtilities::ThreadSafeNodeWrite(
             rGeometry[dest_offset + i], WATER_PRESSURE,
             0.5 * (rPressure[index_pairs[i].first] + rPressure[index_pairs[i].second]));
+    }
+}
+
+void set_arithmetic_average_pressure(Geometry<Node>& rGeometry,
+                                     const Vector&   rPressure,
+                                     const std::vector<std::tuple<size_t, size_t, size_t, size_t>>& indices,
+                                     size_t dest_offset = 0)
+{
+    for (size_t i = 0; i < indices.size(); ++i) {
+        GeoElementUtilities::ThreadSafeNodeWrite(
+            rGeometry[dest_offset + i], WATER_PRESSURE,
+            0.25 * (rPressure[std::get<0>(indices[i])] + rPressure[std::get<1>(indices[i])] +
+                    rPressure[std::get<2>(indices[i])] + rPressure[std::get<3>(indices[i])]));
     }
 }
 
@@ -229,23 +242,23 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
     {
         const Vector                                 pressure = GetPressures(3);
         const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 0}};
-        set_average_of_pair_pressure(r_geom, pressure, pairs, 3);
+        set_arithmetic_average_pressure(r_geom, pressure, pairs, 3);
         break;
     }
     case 8: // 2D Q8P4
     {
         const Vector                                 pressure = GetPressures(4);
         const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 3}, {3, 0}};
-        set_average_of_pair_pressure(r_geom, pressure, pairs, 4);
+        set_arithmetic_average_pressure(r_geom, pressure, pairs, 4);
         break;
     }
     case 9: // 2D Q9P4
     {
         const Vector                                 pressure = GetPressures(4);
         const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 3}, {3, 0}};
-        set_average_of_pair_pressure(r_geom, pressure, pairs, 4);
-        GeoElementUtilities::ThreadSafeNodeWrite(
-            r_geom[8], WATER_PRESSURE, 0.25 * (pressure[0] + pressure[1] + pressure[2] + pressure[3]));
+        set_arithmetic_average_pressure(r_geom, pressure, pairs, 4);
+        const std::vector<std::tuple<size_t, size_t, size_t, size_t>>& indices = {{0, 1, 2, 3}};
+        set_arithmetic_average_pressure(r_geom, pressure, indices, 8);
         break;
     }
     case 10: // 3D T10P4  //2D T10P6
@@ -254,7 +267,7 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
             const Vector                                 pressure = GetPressures(4);
             const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 0},
                                                                      {0, 3}, {1, 3}, {2, 3}};
-            set_average_of_pair_pressure(r_geom, pressure, pairs, 4);
+            set_arithmetic_average_pressure(r_geom, pressure, pairs, 4);
         } else if (n_dim == 2) {
             constexpr double c1 = 1.0 / 9.0;
             const Vector     p  = GetPressures(6);
@@ -313,57 +326,50 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
     }
     case 20: // 3D H20P8
     {
-        const Vector pressure = GetPressures(8);
-        // edges -- bottom (8,11)
-        const std::vector<std::pair<size_t, size_t>> pairs = {{0, 1},
-                                                              {1, 2},
-                                                              {2, 3},
-                                                              {3, 0},
-                                                              // edges -- middle(12,15)
-                                                              {4, 0},
-                                                              {5, 1},
-                                                              {6, 2},
-                                                              {7, 3},
-                                                              // edges -- top(16,19)
-                                                              {4, 5},
-                                                              {5, 6},
-                                                              {6, 7},
-                                                              {7, 4}};
-        set_average_of_pair_pressure(r_geom, pressure, pairs, 8);
+        const Vector                                 pressure = GetPressures(8);
+        const std::vector<std::pair<size_t, size_t>> pairs =
+            // edges -- bottom
+            {{0, 1},
+             {1, 2},
+             {2, 3},
+             {3, 0},
+             // edges -- middle
+             {4, 0},
+             {5, 1},
+             {6, 2},
+             {7, 3},
+             // edges -- top
+             {4, 5},
+             {5, 6},
+             {6, 7},
+             {7, 4}};
+        set_arithmetic_average_pressure(r_geom, pressure, pairs, 8);
         break;
     }
     case 27: // 3D H27P8
     {
-        const Vector pressure = GetPressures(8);
-        // edges -- bottom (8,11)
-        const std::vector<std::pair<size_t, size_t>> pairs = {{0, 1},
-                                                              {1, 2},
-                                                              {2, 3},
-                                                              {3, 0},
-                                                              // edges -- middle(12,15)
-                                                              {4, 0},
-                                                              {5, 1},
-                                                              {6, 2},
-                                                              {7, 3},
-                                                              // edges -- top(16,19)
-                                                              {4, 5},
-                                                              {5, 6},
-                                                              {6, 7},
-                                                              {7, 0}};
-        set_average_of_pair_pressure(r_geom, pressure, pairs, 8);
+        const Vector                                 pressure = GetPressures(8);
+        const std::vector<std::pair<size_t, size_t>> pairs =
+            // edges -- bottom
+            {{0, 1},
+             {1, 2},
+             {2, 3},
+             {3, 0},
+             // edges -- middle
+             {4, 0},
+             {5, 1},
+             {6, 2},
+             {7, 3},
+             // edges -- top
+             {4, 5},
+             {5, 6},
+             {6, 7},
+             {7, 0}};
+        set_arithmetic_average_pressure(r_geom, pressure, pairs, 8);
         // face centers
-        GeoElementUtilities::ThreadSafeNodeWrite(
-            r_geom[20], WATER_PRESSURE, 0.25 * (pressure[0] + pressure[1] + pressure[2] + pressure[3]));
-        GeoElementUtilities::ThreadSafeNodeWrite(
-            r_geom[21], WATER_PRESSURE, 0.25 * (pressure[0] + pressure[1] + pressure[4] + pressure[5]));
-        GeoElementUtilities::ThreadSafeNodeWrite(
-            r_geom[22], WATER_PRESSURE, 0.25 * (pressure[1] + pressure[2] + pressure[5] + pressure[6]));
-        GeoElementUtilities::ThreadSafeNodeWrite(
-            r_geom[23], WATER_PRESSURE, 0.25 * (pressure[2] + pressure[3] + pressure[6] + pressure[7]));
-        GeoElementUtilities::ThreadSafeNodeWrite(
-            r_geom[24], WATER_PRESSURE, 0.25 * (pressure[3] + pressure[0] + pressure[7] + pressure[4]));
-        GeoElementUtilities::ThreadSafeNodeWrite(
-            r_geom[25], WATER_PRESSURE, 0.25 * (pressure[4] + pressure[5] + pressure[6] + pressure[7]));
+        const std::vector<std::tuple<size_t, size_t, size_t, size_t>>& indices = {
+            {0, 1, 2, 3}, {0, 1, 4, 5}, {1, 2, 5, 6}, {2, 3, 6, 7}, {3, 0, 7, 4}, {4, 5, 6, 7}};
+        set_arithmetic_average_pressure(r_geom, pressure, indices, 20);
         // element center
         GeoElementUtilities::ThreadSafeNodeWrite(
             r_geom[26], WATER_PRESSURE,
