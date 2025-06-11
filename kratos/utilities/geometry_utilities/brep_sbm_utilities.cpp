@@ -129,22 +129,6 @@ void BrepSbmUtilities<TNodeType>::CreateBrepSurfaceSbmIntegrationPoints(
     }
 };
 
-///@} // Kratos Classes
-template<class TNodeType>
-int BrepSbmUtilities<TNodeType>::FindKnotSpans1D(
-    const std::vector<double>& rSpans, 
-    const double coord) {
-    
-    for (IndexType i_row = 1; i_row < rSpans.size(); ++i_row) {
-        if (rSpans[i_row] > coord) {
-            return i_row-1;
-        }
-    }
-    
-    // If the coordinate lies at or beyond the last span boundary, return the last span index
-    return rSpans.size()-1;
-}
-
 // 
 template<class TNodeType>
 void BrepSbmUtilities<TNodeType>::CreateBrepVolumeSbmIntegrationPoints(
@@ -284,6 +268,22 @@ void BrepSbmUtilities<TNodeType>::CreateBrepVolumeSbmIntegrationPoints(
         } 
     }
 };
+
+
+template<class TNodeType>
+int BrepSbmUtilities<TNodeType>::FindKnotSpans1D(
+    const std::vector<double>& rSpans, 
+    const double coord) {
+    
+    for (IndexType i_row = 1; i_row < rSpans.size(); ++i_row) {
+        if (rSpans[i_row] > coord) {
+            return i_row-1;
+        }
+    }
+    
+    // If the coordinate lies at or beyond the last span boundary, return the last span index
+    return rSpans.size()-1;
+}
 
 template class KRATOS_API(KRATOS_CORE) BrepSbmUtilities<Node>;
 } // namespace Kratos.
