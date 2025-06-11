@@ -219,7 +219,7 @@ public:
     static void SetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
     {
         for (std::size_t i = 0; i < rM.size1(); i++) {
-	        rM(i,j) = rX[i];
+            rM(i,j) = rX[i];
         }
     }
 
