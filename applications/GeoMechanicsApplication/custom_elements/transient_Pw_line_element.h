@@ -323,9 +323,9 @@ public:
     }
 
 private:
-    std::vector<CalculationContribution>  mContributions;
-    IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
-    std::vector<RetentionLaw::Pointer>    mRetentionLawVector;
+    std::vector<CalculationContribution> mContributions;
+    IntegrationCoefficientsCalculator    mIntegrationCoefficientsCalculator;
+    std::vector<RetentionLaw::Pointer>   mRetentionLawVector;
 
     void CheckProperties() const
     {
