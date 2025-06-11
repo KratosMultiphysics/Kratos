@@ -51,6 +51,7 @@ public:
     using BaseType::CreateQuadraturePointGeometries;
     using BaseType::pGetPoint;
     using BaseType::GetPoint;
+    using BaseType::SpansLocalSpace;
 
     static constexpr IndexType VOLUME_INDEX = -1;
 
