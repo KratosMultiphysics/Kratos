@@ -149,6 +149,8 @@ namespace Testing {
           return "Kratos_Nurbs_Volume";
         case GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface:
           return "Kratos_Nurbs_Curve_On_Surface";
+        case GeometryData::KratosGeometryType::Kratos_Nurbs_Surface_On_Volume:
+          return "Kratos_Nurbs_Surface_On_Volume";
         case GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume:
           return "Kratos_Surface_In_Nurbs_Volume";
         case GeometryData::KratosGeometryType::Kratos_Brep_Curve:
