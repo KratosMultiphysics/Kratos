@@ -246,7 +246,7 @@ public:
     {
         const int size = static_cast<int>(rX.size());
 
-        TDataType total = IndexPartition<int>(size).for_each<SumReduction<TDataType>>([&, size](int i){
+        TDataType total = IndexPartition<int>(size).for_each<SumReduction<TDataType>>([&](int i){
             return rX[i] * rY[i];
         });
 
@@ -381,7 +381,7 @@ public:
         } else if (A == -1.00) {
             const int size = rX.size();
 
-            IndexPartition<int>(size).for_each([&, size](int i){
+            IndexPartition<int>(size).for_each([&](int i){
                 rX[i] = -rX[i];
             });
         } else {
