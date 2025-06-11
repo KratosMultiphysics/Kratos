@@ -25,6 +25,7 @@
 #include "custom_elements/shell_5p_hierarchic_element.h"
 #include "custom_elements/shell_5p_element.h"
 #include "custom_elements/laplacian_IGA_element.h"
+#include "custom_elements/solid_iga_element.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -39,6 +40,9 @@
 #include "custom_conditions/support_laplacian_condition.h"
 #include "custom_conditions/sbm_laplacian_condition_neumann.h"
 #include "custom_conditions/sbm_laplacian_condition_dirichlet.h"
+#include "custom_conditions/support_solid_iga_condition.h"
+#include "custom_conditions/load_solid_iga_condition.h"
+
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
@@ -127,6 +131,7 @@ private:
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
     const LaplacianIGAElement mLaplacianIGAElement;
+    const SolidIGAElement mSolidIGAElement;
 
     //Conditions
     const OutputCondition mOutputCondition;
@@ -141,6 +146,9 @@ private:
     const SupportLaplacianCondition mSupportLaplacianCondition;
     const SbmLaplacianConditionDirichlet mSbmLaplacianConditionDirichlet;
     const SbmLaplacianConditionNeumann mSbmLaplacianConditionNeumann;
+    const SupportSolidIGACondition mSupportSolidIGACondition;
+    const LoadSolidIGACondition mLoadSolidIGACondition;
+
 
     // Modelers
     const IgaModeler mIgaModeler;

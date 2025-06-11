@@ -30,6 +30,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mLaplacianIGAElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mSolidIGAElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mOutputCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadCondition(0, Condition::GeometryType::Pointer(
@@ -54,6 +56,10 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSbmLaplacianConditionNeumann(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportSolidIGACondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mLoadSolidIGACondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
 {
 }
 
@@ -75,6 +81,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
     KRATOS_REGISTER_ELEMENT("LaplacianIGAElement", mLaplacianIGAElement)
+    KRATOS_REGISTER_ELEMENT("SolidIGAElement", mSolidIGAElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)
@@ -89,6 +96,9 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SupportLaplacianCondition", mSupportLaplacianCondition)
     KRATOS_REGISTER_CONDITION("SbmLaplacianConditionDirichlet", mSbmLaplacianConditionDirichlet)
     KRATOS_REGISTER_CONDITION("SbmLaplacianConditionNeumann", mSbmLaplacianConditionNeumann)
+    KRATOS_REGISTER_CONDITION("SupportSolidIGACondition", mSupportSolidIGACondition)
+    KRATOS_REGISTER_CONDITION("LoadSolidIGACondition", mLoadSolidIGACondition)
+
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
     KRATOS_REGISTER_MODELER("IgaModelerSbm", mIgaModelerSbm);
