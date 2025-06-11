@@ -388,7 +388,7 @@ public:
             const int size = rX.size();
             const double factor = A; // Ensure A is captured correctly by the lambda
 
-            IndexPartition<int>(size).for_each([&, size, factor](int i){
+            IndexPartition<int>(size).for_each([&, factor](int i){
                 rX[i] *= factor;
             });
         }
