@@ -527,6 +527,26 @@ void ModelPartIO::ReadConstraints(
     KRATOS_CATCH("")
 }
 
+std::size_t ModelPartIO::ReadConstraintsConnectivities(ConnectivitiesContainerType& rConstraintsConnectivities)
+{
+    KRATOS_TRY
+    std::size_t number_of_constraints = 0;
+    ResetInput();
+    std::string word;
+    while(true) {
+        ReadWord(word);
+        if(mpStream->eof())
+            break;
+        ReadBlockName(word);
+        if(word == "Constraints")
+            number_of_constraints += ReadConstraintsConnectivitiesBlock(rConstraintsConnectivities);
+        else
+            SkipBlock(word);
+    }
+    return number_of_constraints;
+    KRATOS_CATCH("")
+}
+
 void ModelPartIO::WriteConstraints(MasterSlaveConstraintContainerType const& rConstraintContainer)
 {
     // We are going to proceed like the following, we are going to iterate over all the constraints and compare with the components, we will save the type and we will compare until we get that the type of constraint has changed
@@ -770,6 +790,7 @@ void ModelPartIO::ReadInitialValues(ModelPart& rThisModelPart)
     auto& r_this_elements = rThisModelPart.Elements();
     auto& r_this_conditions = rThisModelPart.Conditions();
     auto& r_this_constraints = rThisModelPart.MasterSlaveConstraints();
+    auto& r_this_geometries = rThisModelPart.Geometries();
 
     ResetInput();
     std::string word;
@@ -778,14 +799,16 @@ void ModelPartIO::ReadInitialValues(ModelPart& rThisModelPart)
         if(mpStream->eof())
             break;
         ReadBlockName(word);
-        if(word == "NodalData")
+        if (word == "NodalData")
             ReadNodalDataBlock(rThisModelPart);
-        else if(word == "ElementalData")
+        else if (word == "ElementalData")
             ReadElementalDataBlock(r_this_elements);
-        else if(word == "ConditionalData")
+        else if (word == "ConditionalData")
             ReadConditionalDataBlock(r_this_conditions);
-        else if(word == "ConstraintalData")
+        else if (word == "ConstraintalData")
             ReadConstraintDataBlock(r_this_constraints);
+        else if (word == "GeometricalData")
+            ReadGeometryDataBlock(r_this_geometries);
         else
             SkipBlock(word);
     }
@@ -909,6 +932,7 @@ void ModelPartIO::WriteModelPart(ModelPart& rThisModelPart)
         WriteDataBlock(rThisModelPart.Elements(), "Element");
         WriteDataBlock(rThisModelPart.Conditions(),"Condition");
         WriteDataBlock(rThisModelPart.MasterSlaveConstraints(),"Constraint");
+        WriteDataBlock(rThisModelPart.Geometries(), "Geometric");
     }
 //     WriteCommunicatorDataBlock(); // TODO: FINISH ME
 //     WriteMeshBlock(rThisModelPart); // TODO: FINISH ME
@@ -944,6 +968,8 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
             FillNodalConnectivitiesFromElementBlock(rAuxConnectivities);
         } else if (word == "Conditions") {
             FillNodalConnectivitiesFromConditionBlock(rAuxConnectivities);
+        } else if (word == "Constraints") {
+            FillNodalConnectivitiesFromConstraintBlock(rAuxConnectivities);
         } else {
             SkipBlock(word);
         }
@@ -988,12 +1014,13 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
 
 std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
     ConnectivitiesContainerType& rAuxConnectivities,
-    std::unordered_set<SizeType> &rElementsIds,
-    std::unordered_set<SizeType> &rConditionsIds)
+    std::unordered_set<SizeType>& rElementsIds,
+    std::unordered_set<SizeType>& rConditionsIds
+    )
 {
     KRATOS_TRY
 
-    //Fill the auxiliary vector by reading elemental and conditional connectivities
+    // Fill the auxiliary vector by reading elemental and conditional connectivities
     ResetInput();
     std::string word;
     while(true) {
@@ -1008,11 +1035,15 @@ std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
             // the nodes before reading elements/conditions.
             ScanNodeBlock();
         } else if (word == "Geometries") {
-            FillNodalConnectivitiesFromGeometryBlockInList(rAuxConnectivities, rElementsIds);
+            KRATOS_WARNING("ModelPartIO") << "Reading Geometries is not supported in this function. Skipping." << std::endl;
+            SkipBlock(word);
         } else if (word == "Elements") {
             FillNodalConnectivitiesFromElementBlockInList(rAuxConnectivities, rElementsIds);
         } else if (word == "Conditions") {
             FillNodalConnectivitiesFromConditionBlockInList(rAuxConnectivities, rConditionsIds);
+        } else if (word == "Constraints") {
+            KRATOS_WARNING("ModelPartIO") << "Reading Constraints is not supported in this function. Skipping." << std::endl;
+            SkipBlock(word);
         } else {
             SkipBlock(word);
         }
@@ -1026,6 +1057,55 @@ std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
     //         << "The node is a hanging node, not connected to any element or condition\n"
     //         << "The nodes are not consecutively numbered. This can be avoided by using the \"ReorderConsecutiveModelPartIO\"" << std::endl;
     // }
+
+    // Sort each entry in the auxiliary connectivities vector, remove duplicates
+    for (auto it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++) {
+        std::sort(it->begin(),it->end());
+        std::vector<SizeType>::iterator unique_end = std::unique(it->begin(),it->end());
+        it->resize(unique_end - it->begin());
+    }
+    const SizeType num_nodes = rAuxConnectivities.size();
+
+    return num_nodes;
+    KRATOS_CATCH("")
+}
+
+std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
+    ConnectivitiesContainerType& rAuxConnectivities,
+    std::unordered_set<SizeType>& rElementsIds,
+    std::unordered_set<SizeType>& rConditionsIds,
+    std::unordered_set<SizeType>& rConstraintIds,
+    std::unordered_set<SizeType>& rGeometriesIds
+    )
+{
+    KRATOS_TRY
+
+    // Fill the auxiliary vector by reading elemental and conditional connectivities
+    ResetInput();
+    std::string word;
+    while(true) {
+        ReadWord(word);
+        if(mpStream->eof())
+            break;
+        ReadBlockName(word);
+        if (word == "Nodes") {
+            // This call does nothing useful for ModelPartIO itself
+            // but, if a derived class reorders nodes, it gives
+            // a chance to the derived class to process and renumber
+            // the nodes before reading elements/conditions.
+            ScanNodeBlock();
+        } else if (word == "Geometries") {
+            FillNodalConnectivitiesFromGeometryBlockInList(rAuxConnectivities, rGeometriesIds);
+        } else if (word == "Elements") {
+            FillNodalConnectivitiesFromElementBlockInList(rAuxConnectivities, rElementsIds);
+        } else if (word == "Conditions") {
+            FillNodalConnectivitiesFromConditionBlockInList(rAuxConnectivities, rConditionsIds);
+        } else if (word == "Constraints") {
+            FillNodalConnectivitiesFromConstraintBlockInList(rAuxConnectivities, rConstraintIds);
+        } else {
+            SkipBlock(word);
+        }
+    }
 
     // Sort each entry in the auxiliary connectivities vector, remove duplicates
     for (auto it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++) {
@@ -1247,9 +1327,91 @@ void ModelPartIO::FillNodalConnectivitiesFromConditionBlockInList(
     }
 
     KRATOS_CATCH("");
-
 }
 
+void ModelPartIO::FillNodalConnectivitiesFromConstraintBlockInList(
+    ConnectivitiesContainerType& rNodalConnectivities,
+    std::unordered_set<SizeType>& rConstraintIds
+    )
+{
+    KRATOS_TRY;
+
+    SizeType id;
+    SizeType node_id;
+    SizeType position;
+    SizeType used_size = rNodalConnectivities.size();
+    SizeType reserved_size = (rNodalConnectivities.capacity() > 0) ? rNodalConnectivities.capacity() : 1;
+
+    std::string word;
+    std::string constraint_name;
+
+    ReadWord(constraint_name);
+    if(!KratosComponents<MasterSlaveConstraint>::Has(constraint_name)) {
+        std::stringstream buffer;
+        buffer << "Constraint " << constraint_name << " is not registered in Kratos.";
+        buffer << " Please check the spelling of the constraint name and see if the application containing it is registered correctly.";
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;
+    }
+
+    // Reading the number of master dofs
+    std::string current_line;
+    std::getline(*mpStream, current_line);
+    const auto words = StringUtilities::SplitStringIntoAVector(current_line);
+
+    // The first word is the slave variable, the second and following ones are the master variables
+    SizeType number_of_master_dofs = words.size() - 1;
+
+    ConnectivitiesContainerType::value_type temp_constraint_nodes;
+
+    while(!mpStream->eof()) {
+        ReadWord(word); // Reading the constraint id or End
+        if(CheckEndBlock("Constraints", word)) {
+            break;
+        }
+
+        ExtractValue(word, id);
+        temp_constraint_nodes.clear();
+
+        // Reading the slave node id
+        ReadWord(word);
+        ExtractValue(word, node_id);
+        temp_constraint_nodes.push_back(ReorderedNodeId(node_id));
+
+        // Read master node ids
+        for(SizeType i = 0; i < number_of_master_dofs; i++) {
+            ReadWord(word); // Reading the master node id
+            ExtractValue(word, node_id);
+            temp_constraint_nodes.push_back(ReorderedNodeId(node_id));
+        }
+
+        // End of line
+        std::getline(*mpStream, current_line);
+
+        if (rConstraintIds.find(ReorderedConstraintId(id)) != rConstraintIds.end()) {
+            for (SizeType i = 0; i < temp_constraint_nodes.size(); i++) {
+                position = temp_constraint_nodes[i]-1; // Ids start from 1, position in rNodalConnectivities starts from 0
+                if (position >= used_size) {
+                    used_size = position+1;
+                    if (position >= reserved_size) {
+                        reserved_size = (used_size > reserved_size) ? 2*used_size : 2*reserved_size;
+                        rNodalConnectivities.reserve(reserved_size);
+                    }
+                    rNodalConnectivities.resize(used_size);
+                }
+
+                for (SizeType j = 0; j < i; j++) {
+                    rNodalConnectivities[position].push_back(temp_constraint_nodes[j]);
+                }
+                for (SizeType j = i+1; j < temp_constraint_nodes.size(); j++) {
+                    rNodalConnectivities[position].push_back(temp_constraint_nodes[j]);
+                }
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
+}
 
 void ModelPartIO::DivideInputToPartitions(
     SizeType NumberOfPartitions,
@@ -1340,28 +1502,46 @@ void ModelPartIO::DivideInputToPartitionsImpl(
             DividePropertiesBlock(rOutputFiles);
         else if(word == "Nodes")
             DivideNodesBlock(rOutputFiles, rPartitioningInfo.NodesAllPartitions);
-        // else if(word == "Geometries")
-            // DivideGeometriesBlock(rOutputFiles, rPartitioningInfo.GeometriesAllPartitions);
+        else if(word == "Geometries")
+            DivideGeometriesBlock(rOutputFiles, rPartitioningInfo.GeometriesAllPartitions);
         else if(word == "Elements")
             DivideElementsBlock(rOutputFiles, rPartitioningInfo.ElementsAllPartitions);
         else if(word == "Conditions")
             DivideConditionsBlock(rOutputFiles, rPartitioningInfo.ConditionsAllPartitions);
+        else if(word == "Constraints")
+            DivideConstraintsBlock(rOutputFiles, rPartitioningInfo.ConstraintsAllPartitions);
         else if(word == "NodalData")
             DivideNodalDataBlock(rOutputFiles, rPartitioningInfo.NodesAllPartitions);
         else if(word == "ElementalData")
             DivideElementalDataBlock(rOutputFiles, rPartitioningInfo.ElementsAllPartitions);
         else if(word == "ConditionalData")
             DivideConditionalDataBlock(rOutputFiles, rPartitioningInfo.ConditionsAllPartitions);
+        else if (word == "ConstraintalData")
+            DivideConstraintDataBlock(rOutputFiles, rPartitioningInfo.ConstraintsAllPartitions);
         else if (word == "Mesh")
-            DivideMeshBlock(rOutputFiles, rPartitioningInfo.NodesAllPartitions, rPartitioningInfo.ElementsAllPartitions, rPartitioningInfo.ConditionsAllPartitions);
+            DivideMeshBlock(rOutputFiles, rPartitioningInfo.NodesAllPartitions, rPartitioningInfo.ElementsAllPartitions, rPartitioningInfo.ConditionsAllPartitions, rPartitioningInfo.ConstraintsAllPartitions);
         else if (word == "SubModelPart")
-            DivideSubModelPartBlock(rOutputFiles, rPartitioningInfo.NodesAllPartitions, rPartitioningInfo.ElementsAllPartitions, rPartitioningInfo.ConditionsAllPartitions);
-
+            DivideSubModelPartBlock(rOutputFiles, rPartitioningInfo.NodesAllPartitions, rPartitioningInfo.ElementsAllPartitions, rPartitioningInfo.ConditionsAllPartitions, rPartitioningInfo.ConstraintsAllPartitions, rPartitioningInfo.GeometriesAllPartitions);
     }
 
     WritePartitionIndices(rOutputFiles, rPartitioningInfo.NodesPartitions, rPartitioningInfo.NodesAllPartitions);
 
-    WriteCommunicatorData(rOutputFiles, NumberOfPartitions, rPartitioningInfo.Graph, rPartitioningInfo.NodesPartitions, rPartitioningInfo.ElementsPartitions, rPartitioningInfo.ConditionsPartitions, rPartitioningInfo.NodesAllPartitions, rPartitioningInfo.ElementsAllPartitions, rPartitioningInfo.ConditionsAllPartitions);
+    // Writing the communicator data
+    WriteCommunicatorData(
+        rOutputFiles,
+        NumberOfPartitions,
+        rPartitioningInfo.Graph,
+        rPartitioningInfo.NodesPartitions,
+        rPartitioningInfo.ElementsPartitions,
+        rPartitioningInfo.ConditionsPartitions,
+        rPartitioningInfo.ConstraintsPartitions,
+        rPartitioningInfo.GeometriesPartitions,
+        rPartitioningInfo.NodesAllPartitions,
+        rPartitioningInfo.ElementsAllPartitions,
+        rPartitioningInfo.ConditionsAllPartitions,
+        rPartitioningInfo.ConstraintsAllPartitions,
+        rPartitioningInfo.GeometriesAllPartitions
+    );
 
     KRATOS_INFO("ModelPartIO") << "  [Total Lines Read : " << mNumberOfLines<<"]" << std::endl;
 
@@ -2360,14 +2540,14 @@ void ModelPartIO::ReadConstraintsBlock(
         const std::size_t number_of_words = words.size();
 
         // Read the slave node id
-        word = words[number_of_words - number_of_master_dofs - 1];
+        word = words[number_of_words - number_of_master_dofs - 1]; // Reading slave id
         ExtractValue(word, node_id);
         p_slave_node= *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
 
         // Then we retrieve the master nodes
         temp_master_nodes.clear();
         for(SizeType i = 0 ; i < number_of_master_dofs ; i++) {
-            word = words[number_of_words - (number_of_master_dofs - i)];
+            word = words[number_of_words - (number_of_master_dofs - i)]; // Reading master id
             ExtractValue(word, node_id);
             temp_master_nodes[i] = *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
         }
@@ -2979,6 +3159,103 @@ void ModelPartIO::ReadConditionalVectorialVariableData(ConditionsContainerType& 
     KRATOS_CATCH("")
 }
 
+void ModelPartIO::ReadGeometryDataBlock(GeometriesMapType& rThisGeometries)
+{
+    KRATOS_TRY
+
+    std::string variable_name;
+
+    ReadWord(variable_name);
+
+    if(KratosComponents<Variable<double> >::Has(variable_name)) {
+        ReadGeometryScalarVariableData(rThisGeometries, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));
+    } else if(KratosComponents<Variable<bool> >::Has(variable_name)) {
+        ReadGeometryScalarVariableData(rThisGeometries, static_cast<Variable<bool> const& >(KratosComponents<Variable<bool> >::Get(variable_name)));
+    } else if(KratosComponents<Variable<int> >::Has(variable_name)) {
+        ReadGeometryScalarVariableData(rThisGeometries, static_cast<Variable<int> const& >(KratosComponents<Variable<int> >::Get(variable_name)));
+    } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
+        ReadGeometryVectorialVariableData(rThisGeometries, static_cast<Variable<array_1d<double, 3> > const& >(KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name)), Vector(3));
+    } else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name)) {
+        ReadGeometryVectorialVariableData(rThisGeometries, static_cast<Variable<Quaternion<double> > const& >(KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)), Vector(4));
+    } else if(KratosComponents<Variable<Matrix> >::Has(variable_name)) {
+        ReadGeometryVectorialVariableData(rThisGeometries, static_cast<Variable<Matrix > const& >(KratosComponents<Variable<Matrix> >::Get(variable_name)), Matrix(3,3));
+    } else if(KratosComponents<Variable<Vector> >::Has(variable_name)) {
+        ReadGeometryVectorialVariableData(rThisGeometries, static_cast<Variable<Vector > const& >(KratosComponents<Variable<Vector> >::Get(variable_name)), Vector(3));
+    } else {
+        std::stringstream buffer;
+        buffer << variable_name << " is not a valid variable!!!" << std::endl;
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;
+    }
+
+    KRATOS_CATCH("")
+}
+
+template<class TVariableType>
+void ModelPartIO::ReadGeometryScalarVariableData(GeometriesMapType& rThisGeometries, const TVariableType& rVariable)
+{
+    KRATOS_TRY
+
+    SizeType id;
+    typename TVariableType::Type geometry_value;
+
+    std::string value;
+
+    while(!mpStream->eof()) {
+        ReadWord(value); // reading id
+        if(CheckEndBlock("GeometryData", value)) {
+            break;
+        }
+
+        ExtractValue(value, id);
+
+        // Reading geometry_value
+        ReadWord(value);
+        ExtractValue(value, geometry_value);
+
+        auto it_result = rThisGeometries.find(ReorderedGeometryId(id));
+        if (it_result != rThisGeometries.end()) {
+            it_result->GetValue(rVariable) = geometry_value;
+        } else {
+            KRATOS_WARNING("ModelPartIO")  << "WARNING! Assigning " << rVariable.Name() << " to not existing geometry #" << id << " [Line " << mNumberOfLines << " ]" << std::endl;
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+template<class TVariableType, class TDataType>
+void ModelPartIO::ReadGeometryVectorialVariableData(GeometriesMapType& rThisGeometries, const TVariableType& rVariable, TDataType Dummy)
+{
+    KRATOS_TRY
+
+    SizeType id;
+    TDataType geometry_value;
+
+    std::string value;
+
+    while(!mpStream->eof()) {
+        ReadWord(value); // reading id
+        if(CheckEndBlock("GeometryData", value)) {
+            break;
+        }
+
+        ExtractValue(value, id);
+
+        // Reading geometry_value
+        ReadVectorialValue(geometry_value);
+
+        auto it_result = rThisGeometries.find(ReorderedGeometryId(id));
+        if(it_result != rThisGeometries.end()) {
+            it_result->GetValue(rVariable) = geometry_value;
+        } else {
+            KRATOS_WARNING("ModelPartIO")  << "WARNING! Assigning " << rVariable.Name() << " to not existing geometry #" << id << " [Line " << mNumberOfLines << " ]" << std::endl;
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
 void ModelPartIO::ReadConstraintDataBlock(MasterSlaveConstraintContainerType& rThisConstraints)
 {
     KRATOS_TRY
@@ -3037,7 +3314,7 @@ void ModelPartIO::ReadConstraintScalarVariableData(MasterSlaveConstraintContaine
         if (it_result != rThisConstraints.end()) {
             it_result->GetValue(rVariable) = constraint_value;
         } else {
-            KRATOS_WARNING("ModelPartIO")  << "WARNING! Assigning " << rVariable.Name() << " to not existing master-slave constraint #" << id << " [Line " << mNumberOfLines << " ]" << std::endl;
+            KRATOS_WARNING("ModelPartIO")  << "WARNING! Assigning " << rVariable.Name() << " to not existing constraint #" << id << " [Line " << mNumberOfLines << " ]" << std::endl;
         }
     }
 
@@ -3069,7 +3346,7 @@ void ModelPartIO::ReadConstraintVectorialVariableData(MasterSlaveConstraintConta
         if(it_result != rThisConstraints.end()) {
             it_result->GetValue(rVariable) = constraint_value;
         } else {
-            KRATOS_WARNING("ModelPartIO")  << "WARNING! Assigning " << rVariable.Name() << " to not existing master-slave constraint #" << id << " [Line " << mNumberOfLines << " ]" << std::endl;
+            KRATOS_WARNING("ModelPartIO")  << "WARNING! Assigning " << rVariable.Name() << " to not existing constraint #" << id << " [Line " << mNumberOfLines << " ]" << std::endl;
         }
     }
 
@@ -3248,6 +3525,118 @@ ModelPartIO::SizeType ModelPartIO::ReadConditionsConnectivitiesBlock(Connectivit
         }
         number_of_connectivities++;
     }
+
+    return number_of_connectivities;
+
+    KRATOS_CATCH("")
+}
+
+ModelPartIO::SizeType ModelPartIO::ReadConstraintsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities)
+{
+    KRATOS_TRY
+
+    SizeType id;
+    SizeType node_id;
+    SizeType number_of_connectivities = 0;
+
+    std::string word;
+    std::string constraint_name;
+
+    // Reading the constraint type and checking its registration
+    ReadWord(constraint_name);
+    if(!KratosComponents<MasterSlaveConstraint>::Has(constraint_name)) {
+        std::stringstream buffer;
+        buffer << "Constraint " << constraint_name << " is not registered in Kratos.";
+        buffer << " Please check the spelling of the constraint name and see if the application containing it is registered correctly.";
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;
+    }
+
+    // Reading the number of master dofs
+    std::string current_line;
+    std::getline(*mpStream, current_line);
+    const auto words = StringUtilities::SplitStringIntoAVector(current_line);
+
+    // The first word is the slave variable, the second and following ones are the master variables
+    SizeType number_of_master_dofs = words.size() - 1;
+
+    if (number_of_master_dofs == 0) {
+        // We save the current position of the stream
+        std::streampos position = mpStream->tellg();
+
+        // There are two options: either the constraint is 1x0 or it is 1xN and all the variables are the same
+        std::getline(*mpStream, current_line);
+        const std::size_t count = StringUtilities::CountValuesUntilCharacter(current_line, "]");
+
+        // Use a string stream to easily extract tokens
+        std::size_t count_total = 0;
+        std::istringstream iss(current_line);
+        std::string token;
+        while (iss >> token) {
+            count_total++;
+        }
+
+        // The number of master dofs is the total count minus the count of the slave variable minus one (for the slave variable itself), minus the token which is the end of the block ("]")
+        number_of_master_dofs = count_total - count - 1 - 1;
+
+        // We set the stream to the previous position
+        mpStream->seekg(position);
+    }
+
+    KRATOS_INFO("ModelPartIO") << "  [Reading Constraints connectivities: " << constraint_name << "]" << std::endl;
+
+    // Temporary container for the connectivity (list of node IDs)
+    ConnectivitiesContainerType::value_type temp_constraint_nodes;
+
+    while(!mpStream->eof()) {
+        ReadWord(word); // Read the constraint id or the end keyword
+        if(CheckEndBlock("Constraints", word)) {
+            break;
+        }
+
+        // Constraint id
+        ExtractValue(word, id);
+
+        // Retrieve the line
+        std::getline(*mpStream, current_line);
+        std::istringstream iss(current_line);
+        std::vector<std::string> words;
+
+        // Tokenize the string
+        while (iss >> word) {
+            words.push_back(word);
+        }
+        const std::size_t number_of_words = words.size();
+
+        // Clear temporary connectivity vector
+        temp_constraint_nodes.clear();
+
+        // Reading a slave node id
+        word = words[number_of_words - number_of_master_dofs - 1]; // Reading slave id
+        ExtractValue(word, node_id);
+        temp_constraint_nodes.push_back(ReorderedNodeId(node_id));
+
+        // Read master node ids
+        for(SizeType i = 0; i < number_of_master_dofs; i++) {
+            word = words[number_of_words - (number_of_master_dofs - i)]; // Reading master id
+            ExtractValue(word, node_id);
+            temp_constraint_nodes.push_back(ReorderedNodeId(node_id));
+        }
+
+        // Determine the correct index in the connectivity container
+        const int index = ReorderedConstraintId(id) - 1;
+        if(index == static_cast<int>(rThisConnectivities.size())) {
+            rThisConnectivities.push_back(temp_constraint_nodes);
+        } else if(index < static_cast<int>(rThisConnectivities.size())) {
+            rThisConnectivities[index] = temp_constraint_nodes;
+        } else {
+            rThisConnectivities.resize(index + 1);
+            rThisConnectivities[index] = temp_constraint_nodes;
+        }
+        number_of_connectivities++;
+    }
+
+    KRATOS_INFO("ModelPartIO") << number_of_connectivities << " master slave constraints connectivities read] [Type: " << constraint_name << "]" << std::endl;
 
     return number_of_connectivities;
 
@@ -3443,6 +3832,110 @@ void ModelPartIO::FillNodalConnectivitiesFromConditionBlock(ConnectivitiesContai
                 rNodalConnectivities[position].push_back(temp_condition_nodes[j]);
             for (SizeType j = i+1; j < n_nodes_in_cond; j++)
                 rNodalConnectivities[position].push_back(temp_condition_nodes[j]);
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+void ModelPartIO::FillNodalConnectivitiesFromConstraintBlock(ConnectivitiesContainerType& rNodalConnectivities)
+{
+    KRATOS_TRY;
+
+    SizeType node_id;
+    std::string word;
+    std::string constraint_name;
+
+    // Read the constraint type and check its registration
+    ReadWord(constraint_name);
+    if(!KratosComponents<MasterSlaveConstraint>::Has(constraint_name)) {
+        std::stringstream buffer;
+        buffer << "Constraint " << constraint_name << " is not registered in Kratos.";
+        buffer << " Please check the spelling of the constraint name and see if the application containing it is registered correctly.";
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;
+    }
+
+    // Reading the number of master dofs
+    std::string current_line;
+    std::getline(*mpStream, current_line);
+    const auto words = StringUtilities::SplitStringIntoAVector(current_line);
+
+    // The first word is the slave variable, the second and following ones are the master variables
+    SizeType number_of_master_dofs = words.size() - 1;
+
+    if (number_of_master_dofs == 0) {
+        // We save the current position of the stream
+        std::streampos position = mpStream->tellg();
+
+        // There are two options: either the constraint is 1x0 or it is 1xN and all the variables are the same
+        std::getline(*mpStream, current_line);
+        const std::size_t count = StringUtilities::CountValuesUntilCharacter(current_line, "]");
+
+        // Use a string stream to easily extract tokens
+        std::size_t count_total = 0;
+        std::istringstream iss(current_line);
+        std::string token;
+        while (iss >> token) {
+            count_total++;
+        }
+
+        // The number of master dofs is the total count minus the count of the slave variable minus one (for the slave variable itself), minus the token which is the end of the block ("]")
+        number_of_master_dofs = count_total - count - 1 - 1;
+
+        // We set the stream to the previous position
+        mpStream->seekg(position);
+    }
+
+    // Temporary container for node IDs in the constraint
+    ConnectivitiesContainerType::value_type temp_constraint_nodes;
+
+    // Read constraint entries until the end of the block is encountered
+    while(!mpStream->eof()) {
+        ReadWord(word); // Read the constraint id or the end keyword
+        if(CheckEndBlock("Constraints", word)) {
+            break;
+        }
+
+        // Retrieve the line
+        std::getline(*mpStream, current_line);
+        std::istringstream iss(current_line);
+        std::vector<std::string> words;
+
+        // Tokenize the string
+        while (iss >> word) {
+            words.push_back(word);
+        }
+        const std::size_t number_of_words = words.size();
+
+        // Reading a slave node id
+        word = words[number_of_words - number_of_master_dofs - 1]; // Reading slave id
+        ExtractValue(word, node_id);
+        temp_constraint_nodes.push_back(ReorderedNodeId(node_id));
+
+        // Read master node ids
+        for(SizeType i = 0; i < number_of_master_dofs; i++) {
+            word = words[number_of_words - (number_of_master_dofs - i)]; // Reading master id
+            ExtractValue(word, node_id);
+            temp_constraint_nodes.push_back(ReorderedNodeId(node_id));
+        }
+
+        // For each node in the constraint, add connectivities to all the other nodes in the same constraint
+        for(SizeType i = 0; i < temp_constraint_nodes.size(); i++) {
+            // Compute the zero-indexed position for this node (ids start from 1)
+            SizeType position = temp_constraint_nodes[i] - 1;
+
+            // Ensure the nodal connectivities container is large enough
+            if(position >= rNodalConnectivities.size()) {
+                rNodalConnectivities.resize(position + 1);
+            }
+
+            // Add all other nodes from this constraint as connectivity
+            for(SizeType j = 0; j < temp_constraint_nodes.size(); j++) {
+                if(j != i) { // Skip the current node itself
+                    rNodalConnectivities[position].push_back(temp_constraint_nodes[j]);
+                }
+            }
         }
     }
 
@@ -4209,17 +4702,17 @@ void ModelPartIO::ReadSubModelPartConstraintsBlock(
 {
     KRATOS_TRY
 
-    SizeType geometry_id;
+    SizeType constraint_id;
     std::string word;
     std::vector<SizeType> ordered_ids;
 
     while (!mpStream->eof()) {
-        ReadWord(word); // Reading the geometry id or End
+        ReadWord(word); // Reading the constraint id or End
         if (CheckEndBlock("SubModelPartConstraints", word))
             break;
 
-        ExtractValue(word, geometry_id);
-        ordered_ids.push_back(geometry_id);
+        ExtractValue(word, constraint_id);
+        ordered_ids.push_back(constraint_id);
     }
     std::sort(ordered_ids.begin(), ordered_ids.end());
     rSubModelPart.AddMasterSlaveConstraints(ordered_ids);
@@ -4554,6 +5047,129 @@ void ModelPartIO::DivideConditionsBlock(OutputFilesContainerType& OutputFiles,
     KRATOS_CATCH("")
 }
 
+void ModelPartIO::DivideConstraintsBlock(
+    OutputFilesContainerType& rOutputFiles,
+    const PartitionIndicesContainerType& rConstraintsAllPartitions
+    )
+{
+    KRATOS_TRY
+
+    std::string word;
+    std::string constraint_name;
+
+    ReadWord(constraint_name);
+    if(!KratosComponents<MasterSlaveConstraint>::Has(constraint_name)) {
+        std::stringstream buffer;
+        buffer << "Constraint " << constraint_name << " is not registered in Kratos.";
+        buffer << " Please check the spelling of the constraint name and see if the application containing it is registered correctly.";
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;
+        return;
+    }
+
+    // Reading the number of master dofs
+    std::string current_line;
+    std::getline(*mpStream, current_line);
+    const auto words = StringUtilities::SplitStringIntoAVector(current_line);
+
+    std::string header = "Begin Constraints\t" +  constraint_name;
+    for (const auto& var : words) {
+        header += "\t" + var;
+    }
+    WriteInAllFiles(rOutputFiles, header);
+
+    // The first word is the slave variable, the second and following ones are the master variables
+    SizeType number_of_master_dofs = words.size() - 1;
+    if (number_of_master_dofs == 0) {
+        // We save the current position of the stream
+        std::streampos position = mpStream->tellg();
+
+        // There are two options: either the constraint is 1x0 or it is 1xN and all the variables are the same
+        std::getline(*mpStream, current_line);
+        const std::size_t count = StringUtilities::CountValuesUntilCharacter(current_line, "]");
+
+        // Use a string stream to easily extract tokens
+        std::size_t count_total = 0;
+        std::istringstream iss(current_line);
+        std::string token;
+        while (iss >> token) {
+            count_total++;
+        }
+
+        // The number of master dofs is the total count minus the count of the slave variable minus one (for the slave variable itself), minus the token which is the end of the block ("]")
+        number_of_master_dofs = count_total - count - 1 - 1;
+
+        // We set the stream to the previous position
+        mpStream->seekg(position);
+    }
+
+    SizeType id;
+    SizeType node_id;
+
+    while(!mpStream->eof()) {
+        ReadWord(word); // Reading the constraint id or End
+        if(CheckEndBlock("Constraints", word)) {
+            break;
+        }
+
+        ExtractValue(word,id);
+        if(ReorderedConstraintId(id) > rConstraintsAllPartitions.size()) {
+            std::stringstream buffer;
+            buffer << "Invalid constraint id : " << id;
+            buffer << " [Line " << mNumberOfLines << " ]";
+            KRATOS_ERROR << buffer.str() << std::endl;
+        }
+
+        std::stringstream constraint_data;
+        constraint_data << '\n' << ReorderedConstraintId(id) << '\t'; // id
+
+        // Retrieve the line
+        std::getline(*mpStream, current_line);
+        std::istringstream iss(current_line);
+        std::vector<std::string> words;
+
+        // Tokenize the string
+        while (iss >> word) {
+            words.push_back(word);
+        }
+        const std::size_t number_of_words = words.size();
+
+        // Append the constant value and the coefficient vector
+        for (std::size_t i = 0; i < number_of_words - number_of_master_dofs - 1; ++i) {
+            constraint_data << words[i] << '\t';
+        }
+
+        // Reading the slave node id;
+        word = words[number_of_words - number_of_master_dofs - 1]; // Reading slave id
+        ExtractValue(word, node_id);
+        constraint_data << ReorderedNodeId(node_id) << '\t'; // slave node id
+
+        // Read master node ids
+        for(SizeType i = 0 ; i < number_of_master_dofs ; i++) {
+            word = words[number_of_words - (number_of_master_dofs - i)]; // Reading master id
+            ExtractValue(word, node_id);
+            constraint_data << ReorderedNodeId(node_id) << '\t'; // master node id
+        }
+
+        for(SizeType i = 0 ; i < rConstraintsAllPartitions[ReorderedConstraintId(id)-1].size() ; i++) {
+            SizeType partition_id = rConstraintsAllPartitions[ReorderedConstraintId(id)-1][i];
+            if(partition_id > rOutputFiles.size()) {
+                std::stringstream buffer;
+                buffer << "Invalid partition id : " << partition_id;
+                buffer << " for constraint " << id << " [Line " << mNumberOfLines << " ]";
+                KRATOS_ERROR << buffer.str() << std::endl;
+            }
+
+            *(rOutputFiles[partition_id]) << constraint_data.str();
+        }
+
+    }
+
+    WriteInAllFiles(rOutputFiles, "\nEnd Constraints\n");
+
+    KRATOS_CATCH("")
+}
+
 void ModelPartIO::DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
                             PartitionIndicesContainerType const& NodesAllPartitions)
 {
@@ -4721,12 +5337,14 @@ void ModelPartIO::DivideVectorialVariableData(OutputFilesContainerType& OutputFi
         SizeType index = 0;
         if (BlockName == "NodalData"){
             index = ReorderedNodeId(id);
-        } else if (BlockName == "ElementalData"){
+        } else if (BlockName == "ElementalData") {
             index = ReorderedElementId(id);
-        } else if (BlockName == "ConditionalData"){
+        } else if (BlockName == "ConditionalData") {
             index = ReorderedConditionId(id);
-        } else if (BlockName == "ConstraintalData"){
+        } else if (BlockName == "ConstraintalData") {
             index = ReorderedConstraintId(id);
+        } else if (BlockName == "GeometricalData") {
+            index = ReorderedGeometryId(id);
         } else{
             KRATOS_ERROR << "Invalid block name :" << BlockName << std::endl;
         }
@@ -4851,6 +5469,8 @@ void ModelPartIO::DivideScalarVariableData(OutputFilesContainerType& OutputFiles
             index = ReorderedConditionId(id);
         } else if(BlockName == "ConstraintalData") {
             index = ReorderedConstraintId(id);
+        } else if (BlockName == "GeometricalData") {
+            index = ReorderedGeometryId(id);
         } else {
             KRATOS_ERROR << "Invalid block name :" << BlockName << std::endl;
         }
@@ -4932,10 +5552,60 @@ void ModelPartIO::DivideConditionalDataBlock(OutputFilesContainerType& OutputFil
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::DivideMeshBlock(OutputFilesContainerType& OutputFiles,
-                                        PartitionIndicesContainerType const& NodesAllPartitions,
-                                        PartitionIndicesContainerType const& ElementsAllPartitions,
-                                        PartitionIndicesContainerType const& ConditionsAllPartitions)
+void ModelPartIO::DivideConstraintDataBlock(
+    OutputFilesContainerType& rOutputFiles,
+    const PartitionIndicesContainerType& rConstraintsAllPartitions
+    )
+{
+    KRATOS_TRY
+
+    std::string word, variable_name;
+
+    WriteInAllFiles(rOutputFiles, "Begin ConstraintalData ");
+
+    ReadWord(variable_name);
+
+    WriteInAllFiles(rOutputFiles, variable_name);
+    WriteInAllFiles(rOutputFiles, "\n");
+
+    if(KratosComponents<Variable<double> >::Has(variable_name)) {
+        DivideScalarVariableData(rOutputFiles, rConstraintsAllPartitions, "ConstraintalData");
+    } else if(KratosComponents<Variable<bool> >::Has(variable_name)) {
+        DivideScalarVariableData(rOutputFiles, rConstraintsAllPartitions, "ConstraintalData");
+    } else if(KratosComponents<Variable<int> >::Has(variable_name)) {
+        DivideScalarVariableData(rOutputFiles, rConstraintsAllPartitions, "ConstraintalData");
+    } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
+        DivideVectorialVariableData<Vector>(rOutputFiles, rConstraintsAllPartitions, "ConstraintalData");
+    } else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name)) {
+        DivideVectorialVariableData<Vector>(rOutputFiles, rConstraintsAllPartitions, "ConstraintalData");
+    } else if(KratosComponents<Variable<Vector> >::Has(variable_name)) {
+        DivideVectorialVariableData<Vector>(rOutputFiles, rConstraintsAllPartitions, "ConstraintalData");
+    } else if(KratosComponents<Variable<Matrix> >::Has(variable_name)) {
+        DivideVectorialVariableData<Matrix>(rOutputFiles, rConstraintsAllPartitions, "ConstraintalData");
+    } else if(KratosComponents<VariableData>::Has(variable_name)) {
+        std::stringstream buffer;
+        buffer << variable_name << " is not supported to be read by this IO or the type of variable is not registered correctly" << std::endl;
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;
+    } else {
+        std::stringstream buffer;
+        buffer << variable_name << " is not a valid variable!!!" << std::endl;
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;
+    }
+
+    WriteInAllFiles(rOutputFiles, "End ConstraintalData\n");
+
+    KRATOS_CATCH("")
+}
+
+void ModelPartIO::DivideMeshBlock(
+    OutputFilesContainerType& rOutputFiles,
+    const PartitionIndicesContainerType& rNodesAllPartitions,
+    const PartitionIndicesContainerType& rElementsAllPartitions,
+    const PartitionIndicesContainerType& rConditionsAllPartitions,
+    const PartitionIndicesContainerType& rConstraintsAllPartitions
+    )
 {
     KRATOS_TRY
 
@@ -4945,38 +5615,44 @@ void ModelPartIO::DivideMeshBlock(OutputFilesContainerType& OutputFiles,
     word += "\n";
 
 
-    WriteInAllFiles(OutputFiles, "Begin Mesh " + word);
+    WriteInAllFiles(rOutputFiles, "Begin Mesh " + word);
 
-    while(!mpStream->eof())
-    {
+    while(!mpStream->eof()) {
         ReadWord(word);
 
-        if(CheckEndBlock("Mesh", word))
+        if(CheckEndBlock("Mesh", word)) {
             break;
+        }
 
         ReadBlockName(word);
         if(word == "MeshData")
-            DivideMeshDataBlock(OutputFiles);
+            DivideMeshDataBlock(rOutputFiles);
         else if(word == "MeshNodes")
-            DivideMeshNodesBlock(OutputFiles, NodesAllPartitions);
+            DivideMeshNodesBlock(rOutputFiles, rNodesAllPartitions);
         else if(word == "MeshElements")
-            DivideMeshElementsBlock(OutputFiles, ElementsAllPartitions);
+            DivideMeshElementsBlock(rOutputFiles, rElementsAllPartitions);
         else if(word == "MeshConditions")
-            DivideMeshConditionsBlock(OutputFiles, ConditionsAllPartitions);
+            DivideMeshConditionsBlock(rOutputFiles, rConditionsAllPartitions);
+        else if (word == "MeshConstraints")
+            DivideMeshConstraintsBlock(rOutputFiles, rConstraintsAllPartitions);
         else
             SkipBlock(word);
     }
 
-    WriteInAllFiles(OutputFiles, "End Mesh\n");
+    WriteInAllFiles(rOutputFiles, "End Mesh\n");
 
     KRATOS_CATCH("")
 
 }
 
-void ModelPartIO::DivideSubModelPartBlock(OutputFilesContainerType& OutputFiles,
-    PartitionIndicesContainerType const& NodesAllPartitions,
-    PartitionIndicesContainerType const& ElementsAllPartitions,
-    PartitionIndicesContainerType const& ConditionsAllPartitions)
+void ModelPartIO::DivideSubModelPartBlock(
+    OutputFilesContainerType& rOutputFiles,
+    const PartitionIndicesContainerType& rNodesAllPartitions,
+    const PartitionIndicesContainerType& rElementsAllPartitions,
+    const PartitionIndicesContainerType& rConditionsAllPartitions,
+    const PartitionIndicesContainerType& rConstraintsAllPartitions,
+    const PartitionIndicesContainerType& rGeometriesAllPartitions
+    )
 {
     KRATOS_TRY
 
@@ -4985,34 +5661,37 @@ void ModelPartIO::DivideSubModelPartBlock(OutputFilesContainerType& OutputFiles,
 
     word += "\n";
 
+    WriteInAllFiles(rOutputFiles, "Begin SubModelPart " + word);
 
-    WriteInAllFiles(OutputFiles, "Begin SubModelPart " + word);
-
-    while (!mpStream->eof())
-    {
+    while (!mpStream->eof()){
         ReadWord(word);
 
-        if (CheckEndBlock("SubModelPart", word))
+        if (CheckEndBlock("SubModelPart", word)) {
             break;
+        }
 
         ReadBlockName(word);
         if (word == "SubModelPartData")
-            DivideSubModelPartDataBlock(OutputFiles);
+            DivideSubModelPartDataBlock(rOutputFiles);
         else if (word == "SubModelPartTables")
-            DivideSubModelPartTableBlock(OutputFiles);
+            DivideSubModelPartTableBlock(rOutputFiles);
         else if (word == "SubModelPartNodes")
-            DivideSubModelPartNodesBlock(OutputFiles, NodesAllPartitions);
+            DivideSubModelPartNodesBlock(rOutputFiles, rNodesAllPartitions);
         else if (word == "SubModelPartElements")
-            DivideSubModelPartElementsBlock(OutputFiles, ElementsAllPartitions);
+            DivideSubModelPartElementsBlock(rOutputFiles, rElementsAllPartitions);
         else if (word == "SubModelPartConditions")
-            DivideSubModelPartConditionsBlock(OutputFiles, ConditionsAllPartitions);
+            DivideSubModelPartConditionsBlock(rOutputFiles, rConditionsAllPartitions);
+        else if (word == "SubModelPartConstraints")
+            DivideSubModelPartConstraintsBlock(rOutputFiles, rConstraintsAllPartitions);
+        else if (word == "SubModelPartGeometries")
+            DivideSubModelPartGeometriesBlock(rOutputFiles, rGeometriesAllPartitions);
         else if (word == "SubModelPart")
-            DivideSubModelPartBlock(OutputFiles, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
+            DivideSubModelPartBlock(rOutputFiles, rNodesAllPartitions, rElementsAllPartitions, rConditionsAllPartitions, rConstraintsAllPartitions, rGeometriesAllPartitions);
         else
             SkipBlock(word);
     }
 
-    WriteInAllFiles(OutputFiles, "End SubModelPart\n");
+    WriteInAllFiles(rOutputFiles, "End SubModelPart\n");
 
     KRATOS_CATCH("")
 }
@@ -5174,6 +5853,53 @@ void ModelPartIO::DivideMeshConditionsBlock(OutputFilesContainerType& OutputFile
     }
 
     WriteInAllFiles(OutputFiles, "End MeshConditions\n");
+
+    KRATOS_CATCH("")
+}
+
+void ModelPartIO::DivideMeshConstraintsBlock(
+    OutputFilesContainerType& OutputFiles,
+    const PartitionIndicesContainerType& rConstraintsAllPartitions
+    )
+{
+    KRATOS_TRY
+
+    std::string word;
+
+    WriteInAllFiles(OutputFiles, "Begin MeshConstraints \n");
+
+    SizeType id;
+
+    while(!mpStream->eof()) {
+        ReadWord(word);
+
+        if(CheckEndBlock("MeshConstraints", word)) {
+            break;
+        }
+
+        ExtractValue(word, id);
+
+        if(ReorderedConstraintId(id) > rConstraintsAllPartitions.size()) {
+            std::stringstream buffer;
+            buffer << "Invalid constraint id : " << id;
+            buffer << " [Line " << mNumberOfLines << " ]";
+            KRATOS_ERROR << buffer.str() << std::endl;
+        }
+
+        for(SizeType i = 0 ; i < rConstraintsAllPartitions[ReorderedConstraintId(id)-1].size() ; i++) {
+            SizeType partition_id = rConstraintsAllPartitions[ReorderedConstraintId(id)-1][i];
+            if(partition_id > OutputFiles.size()) {
+                std::stringstream buffer;
+                buffer << "Invalid partition id : " << partition_id;
+                buffer << " for constraint " << id << " [Line " << mNumberOfLines << " ]";
+                KRATOS_ERROR << buffer.str() << std::endl;
+            }
+
+            *(OutputFiles[partition_id]) << ReorderedConstraintId(id) << std::endl;
+        }
+    }
+
+    WriteInAllFiles(OutputFiles, "End MeshConstraints\n");
 
     KRATOS_CATCH("")
 }
@@ -5353,6 +6079,102 @@ void ModelPartIO::DivideSubModelPartConditionsBlock(OutputFilesContainerType& Ou
     KRATOS_CATCH("")
 }
 
+void ModelPartIO::DivideSubModelPartConstraintsBlock(
+    OutputFilesContainerType& rOutputFiles,
+    const PartitionIndicesContainerType& rConstraintsAllPartitions
+    )
+{
+    KRATOS_TRY
+
+    std::string word;
+
+    WriteInAllFiles(rOutputFiles, "Begin SubModelPartConstraints \n");
+
+    SizeType id;
+
+    while (!mpStream->eof()) {
+        ReadWord(word);
+
+        if (CheckEndBlock("SubModelPartConstraints", word)) {
+            break;
+        }
+
+        ExtractValue(word, id);
+
+        if (ReorderedConstraintId(id) > rConstraintsAllPartitions.size()) {
+            std::stringstream buffer;
+            buffer << "Invalid constraint id : " << id;
+            buffer << " [Line " << mNumberOfLines << " ]";
+            KRATOS_ERROR << buffer.str() << std::endl;
+        }
+
+        for (SizeType i = 0; i < rConstraintsAllPartitions[ReorderedConstraintId(id) - 1].size(); i++) {
+            SizeType partition_id = rConstraintsAllPartitions[ReorderedConstraintId(id) - 1][i];
+            if (partition_id > rOutputFiles.size()) {
+                std::stringstream buffer;
+                buffer << "Invalid partition id : " << partition_id;
+                buffer << " for constraint " << id << " [Line " << mNumberOfLines << " ]";
+                KRATOS_ERROR << buffer.str() << std::endl;
+            }
+
+            *(rOutputFiles[partition_id]) << ReorderedConstraintId(id) << std::endl;
+        }
+
+    }
+
+    WriteInAllFiles(rOutputFiles, "End SubModelPartConstraints\n");
+
+    KRATOS_CATCH("")
+}
+
+void ModelPartIO::DivideSubModelPartGeometriesBlock(
+    OutputFilesContainerType& rOutputFiles,
+    const PartitionIndicesContainerType& rGeometriesAllPartitions
+    )
+{
+    KRATOS_TRY
+
+    std::string word;
+
+    WriteInAllFiles(rOutputFiles, "Begin SubModelPartGeometries \n");
+
+    SizeType id;
+
+    while (!mpStream->eof()) {
+        ReadWord(word);
+
+        if (CheckEndBlock("SubModelPartGeometries", word)) {
+            break;
+        }
+
+        ExtractValue(word, id);
+
+        if (ReorderedGeometryId(id) > rGeometriesAllPartitions.size()) {
+            std::stringstream buffer;
+            buffer << "Invalid geometry id : " << id;
+            buffer << " [Line " << mNumberOfLines << " ]";
+            KRATOS_ERROR << buffer.str() << std::endl;
+        }
+
+        for (SizeType i = 0; i < rGeometriesAllPartitions[ReorderedGeometryId(id) - 1].size(); i++) {
+            SizeType partition_id = rGeometriesAllPartitions[ReorderedGeometryId(id) - 1][i];
+            if (partition_id > rOutputFiles.size()) {
+                std::stringstream buffer;
+                buffer << "Invalid partition id : " << partition_id;
+                buffer << " for geometry " << id << " [Line " << mNumberOfLines << " ]";
+                KRATOS_ERROR << buffer.str() << std::endl;
+            }
+
+            *(rOutputFiles[partition_id]) << ReorderedGeometryId(id) << std::endl;
+        }
+
+    }
+
+    WriteInAllFiles(rOutputFiles, "End SubModelPartGeometries\n");
+
+    KRATOS_CATCH("")
+}
+
 void ModelPartIO::WritePartitionIndices(OutputFilesContainerType& OutputFiles, PartitionIndicesType const&  NodesPartitions, PartitionIndicesContainerType const& NodesAllPartitions)
 {
     WriteInAllFiles(OutputFiles, "Begin NodalData PARTITION_INDEX\n");
@@ -5375,21 +6197,26 @@ void ModelPartIO::WritePartitionIndices(OutputFilesContainerType& OutputFiles, P
         }
     }
 
-
     WriteInAllFiles(OutputFiles, "End NodalData \n");
-
 }
 
-void ModelPartIO::WriteCommunicatorData(OutputFilesContainerType& OutputFiles, SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
-                            PartitionIndicesType const& NodesPartitions,
-                            PartitionIndicesType const& ElementsPartitions,
-                            PartitionIndicesType const& ConditionsPartitions,
-                            PartitionIndicesContainerType const& NodesAllPartitions,
-                            PartitionIndicesContainerType const& ElementsAllPartitions,
-                            PartitionIndicesContainerType const& ConditionsAllPartitions)
+void ModelPartIO::WriteCommunicatorData(
+    OutputFilesContainerType& OutputFiles,
+    SizeType NumberOfPartitions,
+    GraphType const& DomainsColoredGraph,
+    PartitionIndicesType const& NodesPartitions,
+    PartitionIndicesType const& ElementsPartitions,
+    PartitionIndicesType const& ConditionsPartitions,
+    PartitionIndicesType const& ConstraintsPartitions,
+    PartitionIndicesType const& GeometriesPartitions,
+    PartitionIndicesContainerType const& NodesAllPartitions,
+    PartitionIndicesContainerType const& ElementsAllPartitions,
+    PartitionIndicesContainerType const& ConditionsAllPartitions,
+    PartitionIndicesContainerType const& rConstraintsAllPartitions,
+    PartitionIndicesContainerType const& GeometriesAllPartitions
+    )
 {
     WriteInAllFiles(OutputFiles, "Begin CommunicatorData \n");
-
 
     // Writing the domains neighbours
     WriteInAllFiles(OutputFiles, "NEIGHBOURS_INDICES    ");
@@ -5773,8 +6600,9 @@ void ModelPartIO::ScanNodeBlock()
 
 void ModelPartIO::ReadSubModelPartElementsAndConditionsIds(
     std::string const& rModelPartName,
-    std::unordered_set<SizeType> &rElementsIds,
-    std::unordered_set<SizeType> &rConditionsIds)
+    std::unordered_set<SizeType>& rElementsIds,
+    std::unordered_set<SizeType>& rConditionsIds
+    )
 {
     KRATOS_TRY
     ResetInput();
@@ -5812,7 +6640,74 @@ void ModelPartIO::ReadSubModelPartElementsAndConditionsIds(
     }
 
     KRATOS_CATCH("")
+}
 
+void ModelPartIO::ReadSubModelPartEntitiesIds(
+    std::string const& rModelPartName,
+    std::unordered_set<SizeType>& rElementsIds,
+    std::unordered_set<SizeType>& rConditionsIds,
+    std::unordered_set<SizeType>& rConstraintIds,
+    std::unordered_set<SizeType>& rGeometriesIds
+    )
+{
+    KRATOS_TRY
+    ResetInput();
+    std::string word;
+    bool read_entities = false;
+    while(true) {
+        ReadWord(word);
+        if(mpStream->eof()) {
+            break;
+        }
+        if (word == "SubModelPartElements" && read_entities){
+            while(!mpStream->eof()) {
+                ReadWord(word); // Reading the element id or End
+                if(CheckEndBlock("SubModelPartElements", word)) {
+                    break;
+                }
+                SizeType element_id;
+                ExtractValue(word,element_id);
+                rElementsIds.insert(ReorderedElementId(element_id));
+            }
+        } else if (word == "SubModelPartConditions"  && read_entities) {
+            while(!mpStream->eof()) {
+                ReadWord(word); // Reading the condition id or End
+                if(CheckEndBlock("SubModelPartConditions", word)) {
+                    break;
+                }
+                SizeType condition_id;
+                ExtractValue(word,condition_id);
+                rConditionsIds.insert(ReorderedConditionId(condition_id));
+            }
+            read_entities = false;
+        } else if (word == "SubModelPartConstraints"  && read_entities) {
+            while(!mpStream->eof()) {
+                ReadWord(word); // Reading the condition id or End
+                if(CheckEndBlock("SubModelPartConstraints", word)) {
+                    break;
+                }
+                SizeType constraint_id;
+                ExtractValue(word,constraint_id);
+                rConstraintIds.insert(ReorderedConstraintId(constraint_id));
+            }
+            read_entities = false;
+        } else if (word == "SubModelPartGeometries"  && read_entities) {
+            while(!mpStream->eof()) {
+                ReadWord(word); // Reading the condition id or End
+                if(CheckEndBlock("SubModelPartGeometries", word)) {
+                    break;
+                }
+                SizeType geometry_id;
+                ExtractValue(word,geometry_id);
+                rGeometriesIds.insert(ReorderedGeometryId(geometry_id));
+            }
+            read_entities = false;
+        } else if (word == rModelPartName) {
+            read_entities = true;
+        }
+    }
+
+    KRATOS_CATCH("")
 }
 
 ModelPartIO::SizeType ModelPartIO::ReorderedNodeId(ModelPartIO::SizeType NodeId)
