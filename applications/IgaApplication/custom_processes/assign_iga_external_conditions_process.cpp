@@ -21,7 +21,10 @@ namespace Kratos
 {
 
 AssignIgaExternalConditionsProcess::AssignIgaExternalConditionsProcess(
-    Model& rModel, Parameters ThisParameters) : mpModel(&rModel), mParameters(ThisParameters)
+    Model& rModel,
+    Parameters ThisParameters)
+    : mpModel(&rModel)
+    , mParameters(ThisParameters)
 {
     ThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
 
