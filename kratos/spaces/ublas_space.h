@@ -205,21 +205,21 @@ public:
     template<typename TColumnType>
     static void GetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
     {
-	if (rX.size() != rM.size1()) {
-	    rX.resize(rM.size1(), false);
-	}
+        if (rX.size() != rM.size1()) {
+            rX.resize(rM.size1(), false);
+        }
 
-	for (std::size_t i = 0; i < rM.size1(); i++) {
-	    rX[i] = rM(i, j);
-	}
+        for (std::size_t i = 0; i < rM.size1(); i++) {
+            rX[i] = rM(i, j);
+        }
     }
-	
+
     // This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
     template<typename TColumnType>
     static void SetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
     {
         for (std::size_t i = 0; i < rM.size1(); i++) {
-	    rM(i,j) = rX[i];
+	        rM(i,j) = rX[i];
         }
     }
 
