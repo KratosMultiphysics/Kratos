@@ -256,9 +256,13 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid3D(
     if (mParameters.Has("number_of_inner_loops"))
         snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
     
-    // Create the surrogate_sub_model_part for inner and outer // TODO: extend this in 3D
-    SnakeSbmProcess snake_sbm_process(*mpModel, snake_parameters);
-    snake_sbm_process.Execute();
+    KRATOS_ERROR << "The NurbsGeometryModelerSbm is not yet implemented for 3D. " 
+        << "Please use the 2D version or implement the 3D version." << std::endl;
+
+    // TODO: NEXT PR SnakeSbmProcess in 3D
+    // // Create the surrogate_sub_model_part for inner and outer // TODO: extend this in 3D
+    // SnakeSbmProcess snake_sbm_process(*mpModel, snake_parameters);
+    // snake_sbm_process.Execute();
 
     // Create the breps for the outer sbm boundary // TODO: extend this in 3D
     CreateBrepsSbmUtilities<Node, Point> CreateBrepsSbmUtilities(mEchoLevel);
