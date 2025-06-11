@@ -29,7 +29,7 @@
 #include <mach/mach.h>
 
 #elif defined(KRATOS_COMPILED_IN_WINDOWS)
-#ifdef NOMINMAX
+#ifndef NOMINMAX
 #define NOMINMAX
 #endif
 #include <windows.h>
