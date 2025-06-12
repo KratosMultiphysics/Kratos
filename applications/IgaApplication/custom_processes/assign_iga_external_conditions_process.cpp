@@ -66,7 +66,7 @@ void AssignIgaExternalConditionsProcess::ExecuteInitialize(){
                     if (!(parameters[i_var].Has("direction") && parameters[i_var].Has("modulus"))) 
                         KRATOS_ERROR << "ERROR in assign_iga_external_conditions_process. ""direction"" or ""modulus"" not defined in assign_by_direction. \n";
 
-                    KRATOS_ERROR_IF_NOT(parameters.Has("variable_name"))
+                    KRATOS_ERROR_IF_NOT(parameters[i_var].Has("variable_name"))
                         << "ERROR in assign_iga_external_conditions_process. \"variable_name\" not defined in assign_by_direction. \n";
 
                     std::string variable_name = parameters[i_var]["variable_name"].GetString();
@@ -191,7 +191,7 @@ void AssignIgaExternalConditionsProcess::ExecuteInitializeSolutionStep(){
                     if (!(parameters[i_var].Has("direction") && parameters[i_var].Has("modulus"))) 
                         KRATOS_ERROR << "ERROR in assign_iga_external_conditions_process. ""direction"" or ""modulus"" not defined in assign_by_direction. \n";
 
-                    KRATOS_ERROR_IF_NOT(parameters.Has("variable_name"))
+                    KRATOS_ERROR_IF_NOT(parameters[i_var].Has("variable_name"))
                         << "ERROR in assign_iga_external_conditions_process. \"variable_name\" not defined in assign_by_direction. \n";
 
                     std::string variable_name = parameters[i_var]["variable_name"].GetString();
