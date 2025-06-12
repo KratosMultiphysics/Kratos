@@ -131,7 +131,7 @@ private:
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
     const LaplacianIGAElement mLaplacianIGAElement;
-    const SolidElement mSolidIGAElement;
+    const SolidElement mSolidElement;
 
     //Conditions
     const OutputCondition mOutputCondition;
@@ -146,8 +146,8 @@ private:
     const SupportLaplacianCondition mSupportLaplacianCondition;
     const SbmLaplacianConditionDirichlet mSbmLaplacianConditionDirichlet;
     const SbmLaplacianConditionNeumann mSbmLaplacianConditionNeumann;
-    const SupportSolidCondition mSupportSolidIGACondition;
-    const LoadSolidCondition mLoadSolidIGACondition;
+    const SupportSolidCondition mSupportSolidCondition;
+    const LoadSolidCondition mLoadSolidCondition;
 
 
     // Modelers
