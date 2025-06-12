@@ -262,7 +262,7 @@ protected:
     void Initialize()
     {
         KRATOS_TRY;
-
+        
         BuildMappingMatrix();
 
         KRATOS_CATCH("");
@@ -371,7 +371,7 @@ private:
             VariableUtils().UpdateCurrentToInitialConfiguration(mrModelPartOrigin.Nodes());
             VariableUtils().UpdateCurrentToInitialConfiguration(mrModelPartDestination.Nodes());
         }
-
+        
         AssignInterfaceEquationIds(); // Has to be done ever time in case of overlapping interfaces!
 
         auto p_interface_comm = Kratos::make_unique<InterfaceCommunicatorType>(
@@ -397,7 +397,7 @@ private:
             mpInterfaceVectorContainerDestination->GetModelPart(),
             mMapperLocalSystems,
             echo_level);
-
+        
         if (use_initial_configuration) {
             MapperUtilities::RestoreCurrentConfiguration(mrModelPartOrigin);
             MapperUtilities::RestoreCurrentConfiguration(mrModelPartDestination);
@@ -426,9 +426,6 @@ private:
 
         mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
 
-        KRATOS_WATCH(*mpMappingMatrix)
-        KRATOS_WATCH(mpInterfaceVectorContainerOrigin->GetVector())
-
         TSparseSpace::Mult(
             *mpMappingMatrix,
             mpInterfaceVectorContainerOrigin->GetVector(),
@@ -446,8 +443,6 @@ private:
         KRATOS_TRY;
 
         mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
-
-        KRATOS_WATCH(mpInterfaceVectorContainerDestination->GetVector())
 
         TSparseSpace::TransposeMult(
             *mpMappingMatrix,

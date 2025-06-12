@@ -53,11 +53,19 @@ public:
 
     InterfaceObject::ConstructionType GetInterfaceObjectType() const override
     {
-        return InterfaceObject::ConstructionType::Node_Coords;
+        return InterfaceObject::ConstructionType::Geometry_Center;
     }
 
     void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
 
+    // Shape function values for the local system evaluated in the coordinates of the gauss point
+    void GetValue(std::vector<double>& rValue,
+                  const InfoType ValueType) const override
+    {
+        rValue = mShapeFunctionValues;
+    }
+    
+    // Nearest neighbor ids (control point ids) for the local system
     void GetValue(std::vector<int>& rValue,
                   const InfoType ValueType) const override
     {
@@ -70,9 +78,16 @@ public:
         rValue = mNearestNeighborDistance;
     }
 
-private:
+    void GetValue(IndexType& rValue,
+                  const InfoType ValueType) const override
+    {
+        rValue = mNumberOfNearestNeighbors;
+    }
 
+private:
+    std::vector<double> mShapeFunctionValues;
     std::vector<int> mNearestNeighborId = {};
+    IndexType mNumberOfNearestNeighbors = 0;
     double mNearestNeighborDistance = std::numeric_limits<double>::max();
 
     friend class Serializer;
@@ -123,10 +138,10 @@ private:
 
 };
 
-/// Nearest Neighbor Mapper
-/** This class implements the Nearest Neighbor Mapping technique.
-* Each node on the destination side gets assigned is's closest neighbor on the other side of the interface.
-* In the mapping phase every node gets assigned the value of it's neighbor
+/// Nearest Neighbor Mapper for IGA-FEM simulations 
+/** This class implements the Nearest Neighbor Mapping technique for IBRA-FEM partitioned simulations.
+* Each node on the destination side (FEM side) gets assigned is's closest integration point (neighbor) on the other side of the interface (IGA side).
+* Once the nearest integration point is found, the shape function values of the integration point are used to interpolate the values from the IGA side to the FEM side.
 * For information abt the available echo_levels and the JSON default-parameters
 * look into the class description of the MapperCommunicator
 */
@@ -166,20 +181,27 @@ public:
     {
         KRATOS_TRY;
 
+        KRATOS_ERROR_IF(!JsonParameters.Has("is_origin_iga") || JsonParameters["is_origin_iga"].GetBool() != true)
+            << "NearestNeighborMapperIGA expects the origin model part to be IGA.\n"
+            << "Please set \"is_origin_iga\": true in the mapper settings." << std::endl;
+
         auto check_has_nodes = [](const ModelPart& rModelPart){
             if (rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
                 KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfNodes() == 0) << "No nodes exist in ModelPart \"" << rModelPart.FullName() << "\"" << std::endl;
             }
         };
-        check_has_nodes(rModelPartOrigin);
+
+        auto check_has_conditions = [](const ModelPart& rModelPart){
+            if (rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
+                KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfConditions() == 0) << "No conditions exist in ModelPart \"" << rModelPart.FullName() << "\"" << std::endl;
+            }
+        };
+
+        check_has_conditions(rModelPartOrigin);
         check_has_nodes(rModelPartDestination);
 
-        KRATOS_WATCH("Starting validating the input")
         this->ValidateInput();
-        KRATOS_WATCH("Finishing validating the input")
-        KRATOS_WATCH("Starting mapper initialization")
         this->Initialize();
-        KRATOS_WATCH("Finishing mapper initialization")
 
         KRATOS_CATCH("");
     }
@@ -246,21 +268,22 @@ private:
         const Communicator& rModelPartCommunicator,
         std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems) override
     {
-        // MapperUtilities::CreateMapperLocalSystemsFromNodes(
-        //     NearestNeighborLocalSystemIGA(nullptr),
-        //     rModelPartCommunicator,
-        //     rLocalSystems);
+        MapperUtilities::CreateMapperLocalSystemsFromNodes(
+            NearestNeighborLocalSystemIGA(nullptr),
+            rModelPartCommunicator,
+            rLocalSystems);
     }
 
     MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const override
     {
-        // return Kratos::make_unique<NearestNeighborInterfaceInfoIGA>();
+        return Kratos::make_unique<NearestNeighborInterfaceInfoIGA>();
     }
 
     Parameters GetMapperDefaultSettings() const override
     {
         return Parameters( R"({
             "search_settings"              : {},
+            "is_origin_iga"               : true,
             "use_initial_configuration"    : false,
             "echo_level"                   : 0,
             "print_pairing_status_to_file" : false,
