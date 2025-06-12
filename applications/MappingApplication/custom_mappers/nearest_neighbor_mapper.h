@@ -177,12 +177,8 @@ public:
         check_has_nodes(rModelPartOrigin);
         check_has_nodes(rModelPartDestination);
 
-        KRATOS_WATCH("Starting validating the input")
         this->ValidateInput();
-        KRATOS_WATCH("Finishing validating the input")
-        KRATOS_WATCH("Starting mapper initialization")
         this->Initialize();
-        KRATOS_WATCH("Finishing mapper initialization")
 
         KRATOS_CATCH("");
     }
