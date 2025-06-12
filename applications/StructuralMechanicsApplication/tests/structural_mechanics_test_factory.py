@@ -88,6 +88,9 @@ class LinearTruss2D3NTest(StructuralMechanicsTestFactory):
 class LinearTruss3DTest(StructuralMechanicsTestFactory):
     file_name = "LinearTruss3D/linear_3d_truss_test"
 
+class TimoshenkoBeam3D2NTest(StructuralMechanicsTestFactory):
+    file_name = "TimoshenkoBeams/3D2N_straight/timoshenko_beam_3d2N_test"
+
 class TimoshenkoBeam2D2NTest(StructuralMechanicsTestFactory):
     file_name = "TimoshenkoBeams/2D2N/timoshenko_beam_2d2N_test"
 

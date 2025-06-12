@@ -6,12 +6,6 @@
         "end_time": 1,
         "echo_level": 0
     },
-    "sensor_settings": {
-        "perturbation_size": 1e-8,
-        "adapt_perturbation_size": true,
-        "p_coefficient": 4,
-        "@include_json": "auxiliary_files_2/sensor_data.json"
-    },
     "solver_settings": {
         "solver_type": "adjoint_static",
         "analysis_type": "linear",
@@ -22,6 +16,10 @@
         },
         "compute_reactions": false,
         "move_mesh_flag": false,
+        "response_function_settings": {
+            "perturbation_size": 1e-8,
+            "adapt_perturbation_size": true
+        },
         "sensitivity_settings": {
             "sensitivity_model_part_name": "Parts_Solid_full",
             "element_data_value_sensitivity_variables": [

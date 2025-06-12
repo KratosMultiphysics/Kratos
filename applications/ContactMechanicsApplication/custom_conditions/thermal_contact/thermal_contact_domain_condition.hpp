@@ -125,7 +125,7 @@ protected:
        //The stabilization parameter and penalty parameter
         double          StabilizationFactor;
 
-        //Contact condition conectivities
+        //Contact condition connectivities
         std::vector<unsigned int> nodes;
         std::vector<unsigned int> order;
         std::vector<unsigned int> slaves;
