@@ -58,6 +58,10 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportSolidIGACondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mLoadSolidIGACondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSbmSolidIGACondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
 {
 }
 
@@ -96,6 +100,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SbmLaplacianConditionNeumann", mSbmLaplacianConditionNeumann)
     KRATOS_REGISTER_CONDITION("SupportSolidIGACondition", mSupportSolidIGACondition)
     KRATOS_REGISTER_CONDITION("LoadSolidIGACondition", mLoadSolidIGACondition)
+    KRATOS_REGISTER_CONDITION("SbmSolidIGACondition", mSbmSolidIGACondition)
 
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
@@ -178,6 +183,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(KNOT_VECTOR_V)
     KRATOS_REGISTER_VARIABLE(KNOT_SPAN_SIZES)
     KRATOS_REGISTER_VARIABLE(PARAMETER_SPACE_CORNERS)
+    KRATOS_REGISTER_VARIABLE(PROJECTION_NODE)
 
     //BC variables
     KRATOS_REGISTER_VARIABLE(MODULUS)

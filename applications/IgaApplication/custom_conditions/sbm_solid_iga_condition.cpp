@@ -17,68 +17,20 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/support_solid_iga_condition.h"
+#include "custom_conditions/sbm_solid_iga_condition.h"
 
 namespace Kratos
 {
 
-void SupportSolidIGACondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void SbmSolidIGACondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMaterial();
-
-    // calculate the integration weight
-    const auto& r_geometry = GetGeometry();
-    // reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
-
-    // Initialize Jacobian
-    Matrix InvJ0(3,3);
-    GeometryType::JacobiansType J0;
-    r_geometry.Jacobian(J0,this->GetIntegrationMethod());
-
-    // Compute the normals
-    array_1d<double, 3> tangent_parameter_space;
-    array_1d<double, 3> normal_physical_space;
-    array_1d<double, 3> normal_parameter_space;
-
-    r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space
-    double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
-    
-    normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
-    normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT)
-    normal_parameter_space[2] = 0.0;
-
-    // compute complete jacobian transformation including parameter->physical space transformation
-    double DetJ0;
-    Matrix Jacobian = ZeroMatrix(3,3);
-    Jacobian(0,0) = J0[0](0,0);
-    Jacobian(0,1) = J0[0](0,1);
-    Jacobian(1,0) = J0[0](1,0);
-    Jacobian(1,1) = J0[0](1,1);
-    Jacobian(2,2) = 1.0;
-
-    // Calculating inverse jacobian and jacobian determinant
-    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
-
-    Vector add_factor = prod(Jacobian, tangent_parameter_space); //additional factor to the determinant of the jacobian for the parameter->physical space transformation
-    add_factor[2] = 0.0; 
-    DetJ0 = norm_2(add_factor);
-
-    // compute the normal of the physical space
-    normal_physical_space = prod(trans(InvJ0),normal_parameter_space);
-    normal_physical_space[2] = 0.0;
-    normal_physical_space /= norm_2(normal_physical_space);
-    SetValue(NORMAL, normal_physical_space);
-
-    const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
-
-    const double IntToReferenceWeight = r_integration_points[0].Weight() * std::abs(DetJ0) * thickness;
-
-    SetValue(INTEGRATION_WEIGHT, IntToReferenceWeight);
+    InitializeMemberVariables();
+    InitializeSbmMemberVariables();
 }
 
 
-void SupportSolidIGACondition::InitializeMaterial()
+void SbmSolidIGACondition::InitializeMaterial()
 {
     KRATOS_TRY
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
@@ -96,7 +48,119 @@ void SupportSolidIGACondition::InitializeMaterial()
 
 }
 
-void SupportSolidIGACondition::CalculateLocalSystem(
+void SbmSolidIGACondition::InitializeMemberVariables()
+{
+    // Compute class memeber variables
+    const auto& r_geometry = this->GetGeometry();
+    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
+    
+    // Initialize DN_DX
+    mDim = r_DN_De[0].size2();
+    
+    Vector mesh_size_uv = this->GetValue(KNOT_SPAN_SIZES);
+    double h = std::min(mesh_size_uv[0], mesh_size_uv[1]);
+
+    if (mDim == 3) {h = std::min(h,  mesh_size_uv[2]);}
+    
+    // Compute basis function order (Note: it is not allow to use different orders in different directions)
+    if (mDim == 3) {
+        mBasisFunctionsOrder = std::cbrt(r_DN_De[0].size1()) - 1;
+    } else {
+        mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
+    }
+
+    double penalty = GetProperties()[PENALTY_FACTOR];
+
+    // https://doi.org/10.1016/j.cma.2023.116301 (A penalty-free Shifted Boundary Method of arbitrary order)
+    mNitschePenalty = 1.0;   // = 1.0 -> Penalty approach
+                                    // = -1.0 -> Free-penalty approach
+    if (penalty == -1.0) {
+        mPenalty = 0.0;
+        mNitschePenalty = -1.0;
+    } 
+    else 
+    {
+        // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
+        mPenalty = mBasisFunctionsOrder * mBasisFunctionsOrder * penalty / h;
+    }
+    // Compute the normals
+    mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
+    mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
+    mNormalPhysicalSpace = mNormalParameterSpace;
+
+    SetValue(NORMAL, mNormalPhysicalSpace);
+
+    // calculate the integration weight
+    // reading integration point
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+
+    // Initialize Jacobian
+    Matrix InvJ0(3,3);
+    GeometryType::JacobiansType J0;
+    r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+
+    // Compute the local tangents
+    array_1d<double, 3> tangent_parameter_space;
+
+    r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space
+    double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
+
+    // compute complete jacobian transformation including parameter->physical space transformation
+    double DetJ0;
+    Matrix Jacobian = ZeroMatrix(3,3);
+    Jacobian(0,0) = J0[0](0,0);
+    Jacobian(0,1) = J0[0](0,1);
+    Jacobian(1,0) = J0[0](1,0);
+    Jacobian(1,1) = J0[0](1,1);
+    Jacobian(2,2) = 1.0;
+
+    // Calculating inverse jacobian and jacobian determinant
+    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+
+    Vector add_factor = prod(Jacobian, tangent_parameter_space); //additional factor to the determinant of the jacobian for the parameter->physical space transformation
+    add_factor[2] = 0.0; 
+    DetJ0 = norm_2(add_factor);
+
+    const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
+
+    const double int_to_reference_weight = r_integration_points[0].Weight() * std::abs(DetJ0) * thickness;
+
+    SetValue(INTEGRATION_WEIGHT, int_to_reference_weight);
+}
+
+void SbmSolidIGACondition::InitializeSbmMemberVariables()
+{
+    const auto& r_geometry = this->GetGeometry();
+
+    if (this->GetValue(PROJECTION_NODE) != nullptr) {
+        mpProjectionNode = this->GetValue(PROJECTION_NODE).get();
+    }
+    else
+    {
+        // Retrieve projection
+        Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
+        // Find the closest node in condition
+        int closestNodeId;
+        if (mDim > 2) {
+            double incumbent_dist = 1e16;
+            // Loop over the three nodes of the closest skin element
+            for (unsigned int i = 0; i < 3; i++) {
+                if (norm_2(candidate_closest_skin_segment_1.GetGeometry()[i]-r_geometry.Center()) < incumbent_dist) {
+                    incumbent_dist = norm_2(candidate_closest_skin_segment_1.GetGeometry()[i]-r_geometry.Center());
+                    closestNodeId = i;
+                }
+            }
+        } else {
+            closestNodeId = 0;
+        }
+        mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
+    }
+
+    mDistanceVector.resize(3);
+    noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
+}
+
+void SbmSolidIGACondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -119,7 +183,7 @@ void SupportSolidIGACondition::CalculateLocalSystem(
     KRATOS_CATCH("")
 }
 
-void SupportSolidIGACondition::CalculateLeftHandSide(
+void SbmSolidIGACondition::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
 )
@@ -133,12 +197,10 @@ void SupportSolidIGACondition::CalculateLeftHandSide(
     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
     const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-    const unsigned int dim = r_DN_De[0].size2();
-    const SizeType mat_size = number_of_control_points * dim;
+    const SizeType mat_size = number_of_control_points * mDim;
     const double int_to_reference_weight = GetValue(INTEGRATION_WEIGHT);
-    const double penalty = GetProperties()[PENALTY_FACTOR];
 
-    KRATOS_ERROR_IF(dim != 2) << "SolidIGAElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
+    KRATOS_ERROR_IF(mDim != 2) << "SbmSolidIGACondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
 
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != mat_size)
@@ -165,9 +227,6 @@ void SupportSolidIGACondition::CalculateLeftHandSide(
 
     // Calculating inverse jacobian and jacobian determinant
     MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
-
-    // retrieve the normal of the physical space
-    array_1d<double, 3> normal_physical_space = GetValue(NORMAL);
     
     // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
     Matrix sub_inv_jacobian = ZeroMatrix(2,2);
@@ -177,7 +236,7 @@ void SupportSolidIGACondition::CalculateLeftHandSide(
     sub_inv_jacobian(1,1) = InvJ0(1,1);
     noalias(DN_DX) = prod(r_DN_De[0],sub_inv_jacobian);
 
-    Matrix B = ZeroMatrix(dim,mat_size);
+    Matrix B = ZeroMatrix(mDim,mat_size);
     CalculateB(B, DN_DX);
 
     // Obtain the tangent costitutive law matrix
@@ -205,26 +264,23 @@ void SupportSolidIGACondition::CalculateLeftHandSide(
     mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy); 
 
     const Matrix& r_D = Values.GetConstitutiveMatrix();
-    const Vector& r_stress_vector = Values.GetStressVector();
 
     // Differential area
-    double penalty_integration = penalty * int_to_reference_weight;
+    double penalty_integration = mPenalty * int_to_reference_weight;
 
     // Collins, Lozinsky & Scovazzi innovation
-    double nitsche_penalty = 1.0;  // = 1 -> Penalty approach
+    double nitsche_penalty = -1.0;  // = 1 -> Penalty approach
                                         // = -1 -> Free-penalty approach
-    if (penalty == -1.0) {
+    if (mPenalty == -1.0) {
         penalty_integration = 0.0;
         nitsche_penalty = -1.0;
     }
 
-
     const Matrix DB = prod(r_D,B);
-    Vector old_displacement = ZeroVector(2);
-    for (IndexType i = 0; i < number_of_control_points; ++i) {
-        old_displacement[0] += N(0,i) * old_displacement_coefficient_vector[2*i];
-        old_displacement[1] += N(0,i) * old_displacement_coefficient_vector[2*i + 1];
-    }
+
+    // compute Taylor expansion contribution: H_sum_vec
+    Vector H_sum_vec = ZeroVector(number_of_control_points);
+    ComputeTaylorExpansionContribution (H_sum_vec);
 
     // Assembly
     if (this->Has(DIRECTION)){
@@ -242,14 +298,14 @@ void SupportSolidIGACondition::CalculateLeftHandSide(
                         const int jglob = 2*j+jdim;
 
                         // PENALTY TERM
-                        rLeftHandSideMatrix(iglob, jglob) -= N(0,i)*N(0,j)* penalty_integration * direction[idim] * direction[jdim];
+                        rLeftHandSideMatrix(iglob, jglob) -= N(0,i)*H_sum_vec(j)* penalty_integration * direction[idim] * direction[jdim];
 
                         // FLUX 
                         // [sigma(u) \dot n] \dot n * (-w \dot n)
                         //*********************************************** */
                         Vector sigma_u_n = ZeroVector(3);
-                        sigma_u_n[0] = DB(0, jglob)*normal_physical_space[0] + DB(2, jglob)*normal_physical_space[1];
-                        sigma_u_n[1] = DB(2, jglob)*normal_physical_space[0] + DB(1, jglob)*normal_physical_space[1];
+                        sigma_u_n[0] = DB(0, jglob)*mNormalPhysicalSpace[0] + DB(2, jglob)*mNormalPhysicalSpace[1];
+                        sigma_u_n[1] = DB(2, jglob)*mNormalPhysicalSpace[0] + DB(1, jglob)*mNormalPhysicalSpace[1];
 
                         double sigma_u_n_dot_direction = inner_prod(sigma_u_n, direction);
 
@@ -259,12 +315,12 @@ void SupportSolidIGACondition::CalculateLeftHandSide(
                         // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
                         // //*********************************************** */
                         Vector sigma_w_n = ZeroVector(3);
-                        sigma_w_n[0] = (DB(0, iglob)* normal_physical_space[0] + DB(2, iglob)* normal_physical_space[1]);
-                        sigma_w_n[1] = (DB(2, iglob)* normal_physical_space[0] + DB(1, iglob)* normal_physical_space[1]);
-                        
+                        sigma_w_n[0] = (DB(0, iglob)* mNormalPhysicalSpace[0] + DB(2, iglob)* mNormalPhysicalSpace[1]);
+                        sigma_w_n[1] = (DB(2, iglob)* mNormalPhysicalSpace[0] + DB(1, iglob)* mNormalPhysicalSpace[1]);
 
                         double sigma_w_n_dot_direction = inner_prod(sigma_w_n, direction);
-                        rLeftHandSideMatrix(iglob, jglob) -= nitsche_penalty*N(0,j) * sigma_w_n_dot_direction * direction[jdim] * int_to_reference_weight;
+
+                        rLeftHandSideMatrix(iglob, jglob) -= nitsche_penalty*H_sum_vec(j) * sigma_w_n_dot_direction * direction[jdim] * int_to_reference_weight;
                     }
 
                 }
@@ -282,11 +338,11 @@ void SupportSolidIGACondition::CalculateLeftHandSide(
                     const int iglob = 2*i+idim;
 
                     // PENALTY TERM
-                    rLeftHandSideMatrix(2*i+idim, 2*j+idim) -= N(0,i)*N(0,j)* penalty_integration;
+                    rLeftHandSideMatrix(iglob, 2*j+idim) -= N(0,i)*H_sum_vec(j)* penalty_integration;
 
                     Vector sigma_w_n = ZeroVector(3);
-                    sigma_w_n[0] = (DB(0, iglob)* normal_physical_space[0] + DB(2, iglob)* normal_physical_space[1]);
-                    sigma_w_n[1] = (DB(2, iglob)* normal_physical_space[0] + DB(1, iglob)* normal_physical_space[1]);
+                    sigma_w_n[0] = (DB(0, iglob)* mNormalPhysicalSpace[0] + DB(2, iglob)* mNormalPhysicalSpace[1]);
+                    sigma_w_n[1] = (DB(2, iglob)* mNormalPhysicalSpace[0] + DB(1, iglob)* mNormalPhysicalSpace[1]);
 
                     for (IndexType jdim = 0; jdim < 2; jdim++) {
                         const int id2 = (id1+2)%3;
@@ -295,24 +351,22 @@ void SupportSolidIGACondition::CalculateLeftHandSide(
                         // FLUX 
                         // [sigma(u) \dot n] \dot n * (-w \dot n)
                         //*********************************************** */
-                        rLeftHandSideMatrix(iglob, jglob) -= N(0,i)*(DB(id1, jglob)* normal_physical_space[0] + DB(id2, jglob)* normal_physical_space[1]) * int_to_reference_weight;
+                        rLeftHandSideMatrix(iglob, jglob) -= N(0,i)*(DB(id1, jglob)* mNormalPhysicalSpace[0] + DB(id2, jglob)* mNormalPhysicalSpace[1]) * int_to_reference_weight;
 
                         // // PENALTY FREE g_n = 0
                         // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
                         // //*********************************************** */
-                        rLeftHandSideMatrix(iglob, jglob) -= nitsche_penalty*N(0,j)*sigma_w_n[jdim] * int_to_reference_weight;
+                        rLeftHandSideMatrix(iglob, jglob) -= nitsche_penalty*H_sum_vec(j)*sigma_w_n[jdim] * int_to_reference_weight;
                     }
 
                 }
             }
         }
     }
-    
     KRATOS_CATCH("")
 }
 
-
-void SupportSolidIGACondition::CalculateRightHandSide(
+void SbmSolidIGACondition::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
 )
@@ -326,12 +380,10 @@ void SupportSolidIGACondition::CalculateRightHandSide(
     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
     const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-    const unsigned int dim = r_DN_De[0].size2();
-    const SizeType mat_size = number_of_control_points * dim;
+    const SizeType mat_size = number_of_control_points * mDim;
     const double int_to_reference_weight = GetValue(INTEGRATION_WEIGHT);
-    const double penalty = GetProperties()[PENALTY_FACTOR];
 
-    KRATOS_ERROR_IF(dim != 2) << "SolidIGAElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
+    KRATOS_ERROR_IF(mDim != 2) << "SbmSolidIGACondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
 
     // resizing as needed the RHS
     if(rRightHandSideVector.size() != mat_size)
@@ -359,9 +411,6 @@ void SupportSolidIGACondition::CalculateRightHandSide(
     // Calculating inverse jacobian and jacobian determinant
     MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
 
-    // retrieve the normal of the physical space
-    array_1d<double, 3> normal_physical_space = GetValue(NORMAL);
-    
     // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
     Matrix sub_inv_jacobian = ZeroMatrix(2,2);
     sub_inv_jacobian(0,0) = InvJ0(0,0);
@@ -370,7 +419,7 @@ void SupportSolidIGACondition::CalculateRightHandSide(
     sub_inv_jacobian(1,1) = InvJ0(1,1);
     noalias(DN_DX) = prod(r_DN_De[0],sub_inv_jacobian);
 
-    Matrix B = ZeroMatrix(dim,mat_size);
+    Matrix B = ZeroMatrix(mDim,mat_size);
     CalculateB(B, DN_DX);
 
     // Obtain the tangent costitutive law matrix
@@ -401,12 +450,12 @@ void SupportSolidIGACondition::CalculateRightHandSide(
     const Vector& r_stress_vector = Values.GetStressVector();
 
     // Differential area
-    double penalty_integration = penalty * int_to_reference_weight;
+    double penalty_integration = mPenalty * int_to_reference_weight;
 
     // Collins, Lozinsky & Scovazzi innovation
-    double nitsche_penalty = 1.0;  // = 1 -> Penalty approach
+    double nitsche_penalty = -1.0;  // = 1 -> Penalty approach
                                         // = -1 -> Free-penalty approach
-    if (penalty == -1.0) {
+    if (mPenalty == -1.0) {
         penalty_integration = 0.0;
         nitsche_penalty = -1.0;
     }
@@ -414,12 +463,18 @@ void SupportSolidIGACondition::CalculateRightHandSide(
     // Assembly
 
     const Matrix DB = prod(r_D,B);
+    // compute Taylor expansion contribution: H_sum_vec
+    Vector H_sum_vec = ZeroVector(number_of_control_points);
+    ComputeTaylorExpansionContribution (H_sum_vec);
+    
+    Matrix H_sum = ZeroMatrix(1, number_of_control_points);
+    noalias(row(H_sum, 0)) = H_sum_vec;
+
     Vector old_displacement = ZeroVector(2);
     for (IndexType i = 0; i < number_of_control_points; ++i) {
-        old_displacement[0] += N(0,i) * old_displacement_coefficient_vector[2*i];
-        old_displacement[1] += N(0,i) * old_displacement_coefficient_vector[2*i + 1];
+        old_displacement[0] += H_sum(0,i) * old_displacement_coefficient_vector[2*i];
+        old_displacement[1] += H_sum(0,i) * old_displacement_coefficient_vector[2*i + 1];
     }
-
 
     if (this->Has(DIRECTION)){
         // ASSIGN BC BY DIRECTION
@@ -441,8 +496,8 @@ void SupportSolidIGACondition::CalculateRightHandSide(
                 // // rhs -> [\sigma_1(w) \dot n] \dot n (-g_{n,0})
                 // //*********************************************** */
                 Vector sigma_w_n = ZeroVector(3);
-                sigma_w_n[0] = (DB(0, iglob)* normal_physical_space[0] + DB(2, iglob)* normal_physical_space[1]);
-                sigma_w_n[1] = (DB(2, iglob)* normal_physical_space[0] + DB(1, iglob)* normal_physical_space[1]);
+                sigma_w_n[0] = (DB(0, iglob)* mNormalPhysicalSpace[0] + DB(2, iglob)* mNormalPhysicalSpace[1]);
+                sigma_w_n[1] = (DB(2, iglob)* mNormalPhysicalSpace[0] + DB(1, iglob)* mNormalPhysicalSpace[1]);
 
                 double sigma_w_n_dot_direction = inner_prod(sigma_w_n, direction);
 
@@ -454,8 +509,8 @@ void SupportSolidIGACondition::CalculateRightHandSide(
 
                 // FLUX
                 Vector old_stress_normal = ZeroVector(3);
-                old_stress_normal[0] = r_stress_vector[0]*normal_physical_space[0] + r_stress_vector[2]*normal_physical_space[1];
-                old_stress_normal[1] = r_stress_vector[2]*normal_physical_space[0] + r_stress_vector[1]*normal_physical_space[1];
+                old_stress_normal[0] = r_stress_vector[0]*mNormalPhysicalSpace[0] + r_stress_vector[2]*mNormalPhysicalSpace[1];
+                old_stress_normal[1] = r_stress_vector[2]*mNormalPhysicalSpace[0] + r_stress_vector[1]*mNormalPhysicalSpace[1];
 
                 double old_stress_normal_dot_direction = inner_prod(old_stress_normal, direction);
                 rRightHandSideVector(iglob) += N(0,i) * old_stress_normal_dot_direction * direction[idim] * int_to_reference_weight;
@@ -466,7 +521,7 @@ void SupportSolidIGACondition::CalculateRightHandSide(
         // ASSIGN BC BY COMPONENTS 
         //--------------------------------------------------------------------------------------------
 
-        Vector u_D = this->GetValue(DISPLACEMENT);
+        Vector u_D = mpProjectionNode->GetValue(DISPLACEMENT);
 
         for (IndexType i = 0; i < number_of_control_points; i++) {
 
@@ -476,8 +531,8 @@ void SupportSolidIGACondition::CalculateRightHandSide(
                 rRightHandSideVector[iglob] -= N(0,i)*(u_D-old_displacement)[idim]* penalty_integration;
 
                 Vector sigma_w_n = ZeroVector(3);
-                sigma_w_n[0] = (DB(0, iglob)* normal_physical_space[0] + DB(2, iglob)* normal_physical_space[1]);
-                sigma_w_n[1] = (DB(2, iglob)* normal_physical_space[0] + DB(1, iglob)* normal_physical_space[1]);
+                sigma_w_n[0] = (DB(0, iglob)* mNormalPhysicalSpace[0] + DB(2, iglob)* mNormalPhysicalSpace[1]);
+                sigma_w_n[1] = (DB(2, iglob)* mNormalPhysicalSpace[0] + DB(1, iglob)* mNormalPhysicalSpace[1]);
 
                 for (IndexType jdim = 0; jdim < 2; jdim++) {
                     rRightHandSideVector(iglob) -= nitsche_penalty*(u_D[jdim]-old_displacement[jdim])*sigma_w_n[jdim] * int_to_reference_weight;
@@ -486,11 +541,10 @@ void SupportSolidIGACondition::CalculateRightHandSide(
                 // residual terms
                 // FLUX
                 Vector old_stress_normal = ZeroVector(3);
-                old_stress_normal[0] = r_stress_vector[0]*normal_physical_space[0] + r_stress_vector[2]*normal_physical_space[1];
-                old_stress_normal[1] = r_stress_vector[2]*normal_physical_space[0] + r_stress_vector[1]*normal_physical_space[1];
+                old_stress_normal[0] = r_stress_vector[0]*mNormalPhysicalSpace[0] + r_stress_vector[2]*mNormalPhysicalSpace[1];
+                old_stress_normal[1] = r_stress_vector[2]*mNormalPhysicalSpace[0] + r_stress_vector[1]*mNormalPhysicalSpace[1];
 
                 rRightHandSideVector(iglob) += N(0,i) * old_stress_normal[idim] * int_to_reference_weight;
-
             }
         }
     }
@@ -498,14 +552,14 @@ void SupportSolidIGACondition::CalculateRightHandSide(
     KRATOS_CATCH("")
 }
 
-    int SupportSolidIGACondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+    int SbmSolidIGACondition::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
             << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyLaplacianCondition" << std::endl;
         return 0;
     }
 
-    void SupportSolidIGACondition::EquationIdVector(
+    void SbmSolidIGACondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -524,7 +578,7 @@ void SupportSolidIGACondition::CalculateRightHandSide(
         }
     }
 
-    void SupportSolidIGACondition::GetDofList(
+    void SbmSolidIGACondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -543,7 +597,7 @@ void SupportSolidIGACondition::CalculateRightHandSide(
     };
 
 
-    void SupportSolidIGACondition::GetSolutionCoefficientVector(
+    void SbmSolidIGACondition::GetSolutionCoefficientVector(
         Vector& rValues) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
@@ -562,7 +616,7 @@ void SupportSolidIGACondition::CalculateRightHandSide(
         }
     }
 
-    void SupportSolidIGACondition::CalculateB(
+    void SbmSolidIGACondition::CalculateB(
         Matrix& rB, 
         Matrix& r_DN_DX) const
     {
@@ -586,7 +640,7 @@ void SupportSolidIGACondition::CalculateRightHandSide(
     }
 
 
-    void SupportSolidIGACondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+    void SbmSolidIGACondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -601,9 +655,9 @@ void SupportSolidIGACondition::CalculateRightHandSide(
         // Initialize Jacobian
         GeometryType::JacobiansType J0;
         // Initialize DN_DX
-        const unsigned int dim = 2;
+        const unsigned int mDim = 2;
         Matrix DN_DX(number_of_control_points,2);
-        Matrix InvJ0(dim,dim);
+        Matrix InvJ0(mDim,mDim);
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());
@@ -629,8 +683,6 @@ void SupportSolidIGACondition::CalculateRightHandSide(
 
         CalculateB(B, DN_DX);
 
-        array_1d<double, 3> normal_physical_space = GetValue(NORMAL);
-
         // GET STRESS VECTOR
         ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
 
@@ -655,8 +707,8 @@ void SupportSolidIGACondition::CalculateRightHandSide(
         const Vector sigma = Values.GetStressVector();
         Vector sigma_n(2);
 
-        sigma_n[0] = sigma[0]*normal_physical_space[0] + sigma[2]*normal_physical_space[1];
-        sigma_n[1] = sigma[2]*normal_physical_space[0] + sigma[1]*normal_physical_space[1];
+        sigma_n[0] = sigma[0]*mNormalPhysicalSpace[0] + sigma[2]*mNormalPhysicalSpace[1];
+        sigma_n[1] = sigma[2]*mNormalPhysicalSpace[0] + sigma[1]*mNormalPhysicalSpace[1];
 
         SetValue(NORMAL_STRESS, sigma_n);
 
@@ -666,13 +718,94 @@ void SupportSolidIGACondition::CalculateRightHandSide(
         // //---------------------
     }
 
-    void SupportSolidIGACondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
-        //--------------------------------------------------------------------------------------------
-        // calculate the constitutive law response
-        ConstitutiveLaw::Parameters constitutive_law_parameters(
-            GetGeometry(), GetProperties(), rCurrentProcessInfo);
+void SbmSolidIGACondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
+    //--------------------------------------------------------------------------------------------
+    // calculate the constitutive law response
+    ConstitutiveLaw::Parameters constitutive_law_parameters(
+        GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-        mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+    mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+}
+
+void SbmSolidIGACondition::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
+{
+    const auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_control_points = r_geometry.PointsNumber();
+    const Matrix& N = r_geometry.ShapeFunctionsValues();
+
+    if (H_sum_vec.size() != number_of_control_points)
+    {
+        H_sum_vec = ZeroVector(number_of_control_points);
     }
+
+    // Compute all the derivatives of the basis functions involved
+    std::vector<Matrix> shape_function_derivatives(mBasisFunctionsOrder);
+    for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
+        shape_function_derivatives[n-1] = r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod());
+    }
+    
+    for (IndexType i = 0; i < number_of_control_points; ++i)
+    {
+        // Reset for each node
+        double H_taylor_term = 0.0; 
+
+        if (mDim == 2) {
+            for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
+                // Retrieve the appropriate derivative for the term
+                Matrix& r_shape_function_derivatives = shape_function_derivatives[n-1];
+                for (IndexType k = 0; k <= n; k++) {
+                    IndexType n_k = n - k;
+                    double derivative = r_shape_function_derivatives(i,k); 
+                    // Compute the Taylor term for this derivative
+                    H_taylor_term += ComputeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
+                }
+            }
+        } else {
+            // 3D
+            for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
+                Matrix& r_shape_function_derivatives = shape_function_derivatives[n-1];
+                
+                int countDerivativeId = 0;
+                // Loop over blocks of derivatives in x
+                for (IndexType k_x = n; k_x >= 0; k_x--) {
+                    // Loop over the possible derivatives in y
+                    for (IndexType k_y = n - k_x; k_y >= 0; k_y--) {
+                        
+                        // derivatives in z
+                        IndexType k_z = n - k_x - k_y;
+                        double derivative = r_shape_function_derivatives(i,countDerivativeId); 
+
+                        H_taylor_term += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x, mDistanceVector[1], k_y, mDistanceVector[2], k_z);
+                        countDerivativeId++;
+                    }
+                }
+            }
+        }
+        H_sum_vec(i) = H_taylor_term + N(0,i);
+    }
+}
+
+// Function to compute a single term in the Taylor expansion
+double SbmSolidIGACondition::ComputeTaylorTerm(
+    const double derivative, 
+    const double dx, 
+    const IndexType n_k, 
+    const double dy, 
+    const IndexType k)
+{
+    return derivative * std::pow(dx, n_k) * std::pow(dy, k) / (MathUtils<double>::Factorial(k) * MathUtils<double>::Factorial(n_k));    
+}
+
+double SbmSolidIGACondition::ComputeTaylorTerm3D(
+    const double derivative, 
+    const double dx, 
+    const IndexType k_x, 
+    const double dy, 
+    const IndexType k_y, 
+    const double dz, 
+    const IndexType k_z)
+{   
+    return derivative * std::pow(dx, k_x) * std::pow(dy, k_y) * std::pow(dz, k_z) / (MathUtils<double>::Factorial(k_x) * MathUtils<double>::Factorial(k_y) * MathUtils<double>::Factorial(k_z));    
+}
 
 } // Namespace Kratos
