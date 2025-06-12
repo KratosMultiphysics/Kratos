@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
 //                   José Ignacio Aliaga Estellés
@@ -35,15 +35,15 @@ private:
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GinkgoSolver);
 
-    typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
+    using BaseType = LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>;
 
-    typedef typename TSparseSpaceType::MatrixType MatrixType;
+    using MatrixType = typename TSparseSpaceType::MatrixType;
 
-    typedef typename TSparseSpaceType::VectorType VectorType;
+    using VectorType = typename TSparseSpaceType::VectorType;
 
-    typedef typename TSparseSpaceType::DataType DataType;
+    using DataType = typename TSparseSpaceType::DataType;
 
-    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+    using DenseMatrixType = typename TDenseSpaceType::MatrixType;
 
     using vec = gko::matrix::Dense<double>;
     using mtx = gko::matrix::Csr<double, TIndexType>;
@@ -286,7 +286,7 @@ public:
         auto precond = gko::preconditioner::Ilu<gko::solver::LowerTrs<double, TIndexType>,gko::solver::UpperTrs<double, TIndexType>, false, TIndexType>::build()
                 .with_factorization_factory(fact)
                 .with_l_solver_factory(gko::solver::LowerTrs<double,TIndexType>::build().with_algorithm(gko::solver::trisolve_algorithm::syncfree).on(exec))                 
-		        .with_u_solver_factory(gko::solver::UpperTrs<double,TIndexType>::build().with_algorithm(gko::solver::trisolve_algorithm::syncfree).on(exec))                 
+                .with_u_solver_factory(gko::solver::UpperTrs<double,TIndexType>::build().with_algorithm(gko::solver::trisolve_algorithm::syncfree).on(exec))                 
                 .on(exec);
 
         auto iteration_stop = gko::share(
@@ -329,15 +329,15 @@ public:
 
         // A
         std::cout << "creating mtx_data" << std::endl;
-				mtx_data gko_mtx_data{gko::dim<2>{rA.size1(),rA.size2()}};
+        mtx_data gko_mtx_data{gko::dim<2>{rA.size1(),rA.size2()}};
         std::cout << "nnz = " << rA.value_data().size() << std::endl;
-    		for (auto i = 0; i < rA.size1(); i++) {
-    				for (auto j = rA.index1_data()[i]; j < rA.index1_data()[i+1]; j++) {
-        				gko_mtx_data.nonzeros.emplace_back(i, rA.index2_data()[j], rA.value_data()[j]);
-    				}
-    		}
+        for (auto i = 0; i < rA.size1(); i++) {
+                for (auto j = rA.index1_data()[i]; j < rA.index1_data()[i+1]; j++) {
+                    gko_mtx_data.nonzeros.emplace_back(i, rA.index2_data()[j], rA.value_data()[j]);
+                }
+        }
         std::cout << "reading matrix" << std::endl;
-    		gko_rA->read(gko_mtx_data);
+        gko_rA->read(gko_mtx_data);
 
         // // A
         // auto values_ref_debug = gko_rA->get_values();

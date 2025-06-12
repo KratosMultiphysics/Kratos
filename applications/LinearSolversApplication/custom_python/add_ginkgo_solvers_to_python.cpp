@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
 //
@@ -21,26 +21,22 @@
 #include "custom_python/add_ginkgo_solvers_to_python.h"
 #include "custom_solvers/ginkgo_solver.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void AddGinkgoSolversToPython(pybind11::module& m)
 {
-	typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
+    using SpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
+    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using LinearSolverType = LinearSolver<SpaceType,  LocalSpaceType>;
 
     namespace py = pybind11;
 
-    typedef GinkgoSolver<SpaceType,  LocalSpaceType> GinkgoSolverType;
+    using GinkgoSolverType = GinkgoSolver<SpaceType,  LocalSpaceType>;
     py::class_<GinkgoSolverType, GinkgoSolverType::Pointer, LinearSolverType>(m,"GinkgoSolver")
         .def(py::init<Parameters>())
         .def("__str__", PrintObject<LinearSolverType>)
         .def("CleanSolve", &GinkgoSolverType::CleanSolve)
         ;
-
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.
