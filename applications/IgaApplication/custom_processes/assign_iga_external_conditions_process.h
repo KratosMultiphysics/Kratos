@@ -39,6 +39,9 @@ public:
 
     using IndexType = std::size_t;
     using SizeType = std::size_t;
+    typedef Node                                             NodeType;
+    typedef Geometry<NodeType>                                  GeometryType;
+    typedef GeometryType::Pointer                               GeometryPointerType;
 
     /// Pointer definition of AssignIgaExternalConditionsProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignIgaExternalConditionsProcess);
@@ -132,6 +135,31 @@ private:
         const std::vector<std::string>& values_string,
         const ProcessInfo& r_process_info,
         const double time);
+
+    /**
+     * @brief Set the Variable Value To Element object
+     * 
+     * @param rVariableName 
+     * @param value 
+     * @param p_element 
+     */
+    void SetVariableValueToElement(
+        const std::string& rVariableName,
+        const double& value,
+        Element::Pointer p_element);
+
+    
+    /**
+     * @brief Set the variable value to condition
+     * 
+     * @param rVariableName 
+     * @param value
+     * @param p_condition 
+     */
+    void SetVariableValueToCondition(
+        const std::string& rVariableName,
+        const double& value,
+        Condition::Pointer p_condition);
 
     ///@}
     ///@name Input and output
