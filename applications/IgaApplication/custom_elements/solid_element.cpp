@@ -19,12 +19,12 @@
 #include "includes/convection_diffusion_settings.h"
 
 // Application includes
-#include "custom_elements/solid_iga_element.h"
+#include "custom_elements/solid_element.h"
 
 namespace Kratos
 {
 
-SolidIGAElement::SolidIGAElement(
+SolidElement::SolidElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
     : Element(
@@ -33,7 +33,7 @@ SolidIGAElement::SolidIGAElement(
 {
 }
 
-SolidIGAElement::SolidIGAElement(
+SolidElement::SolidElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties)
@@ -44,29 +44,29 @@ SolidIGAElement::SolidIGAElement(
 {
 }
 
-Element::Pointer SolidIGAElement::Create(
+Element::Pointer SolidElement::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<SolidIGAElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<SolidElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
-Element::Pointer SolidIGAElement::Create(
+Element::Pointer SolidElement::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<SolidIGAElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<SolidElement>(NewId, pGeom, pProperties);
 }
 
 // Deconstructor
 
-SolidIGAElement::~SolidIGAElement()
+SolidElement::~SolidElement()
 {
 }
 
-void SolidIGAElement:: Initialize(const ProcessInfo& rCurrentProcessInfo)
+void SolidElement:: Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMaterial();
 
@@ -95,7 +95,7 @@ void SolidIGAElement:: Initialize(const ProcessInfo& rCurrentProcessInfo)
 }
 
 
-void SolidIGAElement::InitializeMaterial()
+void SolidElement::InitializeMaterial()
 {
     KRATOS_TRY
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
@@ -113,7 +113,7 @@ void SolidIGAElement::InitializeMaterial()
 
 }
 
-void SolidIGAElement::CalculateLocalSystem(
+void SolidElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -126,7 +126,7 @@ void SolidIGAElement::CalculateLocalSystem(
     KRATOS_CATCH("")
 }
 
-void SolidIGAElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+void SolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -142,7 +142,7 @@ void SolidIGAElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     const SizeType mat_size = number_of_control_points * dim;
     const double int_to_reference_weight = GetValue(INTEGRATION_WEIGHT);
 
-    KRATOS_ERROR_IF(dim != 2) << "SolidIGAElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
+    KRATOS_ERROR_IF(dim != 2) << "SolidElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
 
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != mat_size)
@@ -207,7 +207,7 @@ void SolidIGAElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     KRATOS_CATCH("")
 }
 
-void SolidIGAElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
+void SolidElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -223,7 +223,7 @@ void SolidIGAElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
     const SizeType mat_size = number_of_control_points * dim;
     const double int_to_reference_weight = GetValue(INTEGRATION_WEIGHT);
 
-    KRATOS_ERROR_IF(dim != 2) << "SolidIGAElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
+    KRATOS_ERROR_IF(dim != 2) << "SolidElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
     
     // resizing as needed the RHS
     if(rRightHandSideVector.size() != mat_size)
@@ -300,7 +300,7 @@ void SolidIGAElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
     KRATOS_CATCH("")
 }
 
-void SolidIGAElement::EquationIdVector(
+void SolidElement::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -323,7 +323,7 @@ void SolidIGAElement::EquationIdVector(
         KRATOS_CATCH("")
     };
 
-    void SolidIGAElement::GetDofList(
+    void SolidElement::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -345,7 +345,7 @@ void SolidIGAElement::EquationIdVector(
 
 
 
-int SolidIGAElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+int SolidElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     // Verify that the constitutive law exists
     if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
@@ -368,14 +368,14 @@ int SolidIGAElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 }
 
 
-Element::IntegrationMethod SolidIGAElement::GetIntegrationMethod() const
+Element::IntegrationMethod SolidElement::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
 
 
 
-void SolidIGAElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void SolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     ConstitutiveLaw::Parameters constitutive_law_parameters(
         GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -449,7 +449,7 @@ void SolidIGAElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInf
     // //---------------------
 }
 
-void SolidIGAElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
+void SolidElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
     ConstitutiveLaw::Parameters constitutive_law_parameters(
         GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
@@ -458,7 +458,7 @@ void SolidIGAElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessI
 
 
 
-void SolidIGAElement::CalculateOnIntegrationPoints(
+void SolidElement::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
@@ -479,7 +479,7 @@ void SolidIGAElement::CalculateOnIntegrationPoints(
         KRATOS_WARNING("VARIABLE PRINT STILL NOT IMPLEMENTED N THE IGA FRAMEWORK");
     }
 }
-void SolidIGAElement::CalculateOnIntegrationPoints(
+void SolidElement::CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3 >>& rVariable,
         std::vector<array_1d<double, 3 >>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
@@ -502,7 +502,7 @@ void SolidIGAElement::CalculateOnIntegrationPoints(
 }
 
 
-void SolidIGAElement::CalculateB(
+void SolidElement::CalculateB(
         Matrix& rB, 
         Matrix& r_DN_DX) const
     {
@@ -527,7 +527,7 @@ void SolidIGAElement::CalculateB(
 
 
 
-void SolidIGAElement::GetSolutionCoefficientVector(
+void SolidElement::GetSolutionCoefficientVector(
         Vector& rValues) const
     {
         const SizeType number_of_control_points = GetGeometry().size();

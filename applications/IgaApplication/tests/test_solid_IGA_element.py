@@ -20,7 +20,7 @@ class SolidIGAElementTests(KratosUnittest.TestCase):
         props.SetValue(KM.CONSTITUTIVE_LAW, law)
         # Geometria del punto di quadratura
         geometry = TestCreationUtility.GetQuadraturePointGeometry(model_part, polynomial_degree, integration_point)
-        element = model_part.CreateNewElement("SolidIGAElement", 1, geometry, props)
+        element = model_part.CreateNewElement("SolidElement", 1, geometry, props)
 
         bf = KM.Vector(3)
         bf[0] = 30.0

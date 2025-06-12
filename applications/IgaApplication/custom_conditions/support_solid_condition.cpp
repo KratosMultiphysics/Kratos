@@ -17,12 +17,12 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/support_solid_iga_condition.h"
+#include "custom_conditions/support_solid_condition.h"
 
 namespace Kratos
 {
 
-void SupportSolidIGACondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void SupportSolidCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMaterial();
 
@@ -78,7 +78,7 @@ void SupportSolidIGACondition::Initialize(const ProcessInfo& rCurrentProcessInfo
 }
 
 
-void SupportSolidIGACondition::InitializeMaterial()
+void SupportSolidCondition::InitializeMaterial()
 {
     KRATOS_TRY
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
@@ -96,7 +96,7 @@ void SupportSolidIGACondition::InitializeMaterial()
 
 }
 
-void SupportSolidIGACondition::CalculateLocalSystem(
+void SupportSolidCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -119,7 +119,7 @@ void SupportSolidIGACondition::CalculateLocalSystem(
     KRATOS_CATCH("")
 }
 
-void SupportSolidIGACondition::CalculateLeftHandSide(
+void SupportSolidCondition::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
 )
@@ -138,7 +138,7 @@ void SupportSolidIGACondition::CalculateLeftHandSide(
     const double int_to_reference_weight = GetValue(INTEGRATION_WEIGHT);
     const double penalty = GetProperties()[PENALTY_FACTOR];
 
-    KRATOS_ERROR_IF(dim != 2) << "SolidIGAElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
+    KRATOS_ERROR_IF(dim != 2) << "SolidElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
 
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != mat_size)
@@ -205,6 +205,7 @@ void SupportSolidIGACondition::CalculateLeftHandSide(
     mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy); 
 
     const Matrix& r_D = Values.GetConstitutiveMatrix();
+    const Vector& r_stress_vector = Values.GetStressVector();
 
     // Differential area
     double penalty_integration = penalty * int_to_reference_weight;
@@ -217,7 +218,13 @@ void SupportSolidIGACondition::CalculateLeftHandSide(
         nitsche_penalty = -1.0;
     }
 
+
     const Matrix DB = prod(r_D,B);
+    Vector old_displacement = ZeroVector(2);
+    for (IndexType i = 0; i < number_of_control_points; ++i) {
+        old_displacement[0] += N(0,i) * old_displacement_coefficient_vector[2*i];
+        old_displacement[1] += N(0,i) * old_displacement_coefficient_vector[2*i + 1];
+    }
 
     // Assembly
     if (this->Has(DIRECTION)){
@@ -305,7 +312,7 @@ void SupportSolidIGACondition::CalculateLeftHandSide(
 }
 
 
-void SupportSolidIGACondition::CalculateRightHandSide(
+void SupportSolidCondition::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
 )
@@ -324,7 +331,7 @@ void SupportSolidIGACondition::CalculateRightHandSide(
     const double int_to_reference_weight = GetValue(INTEGRATION_WEIGHT);
     const double penalty = GetProperties()[PENALTY_FACTOR];
 
-    KRATOS_ERROR_IF(dim != 2) << "SolidIGAElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
+    KRATOS_ERROR_IF(dim != 2) << "SolidElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
 
     // resizing as needed the RHS
     if(rRightHandSideVector.size() != mat_size)
@@ -418,7 +425,8 @@ void SupportSolidIGACondition::CalculateRightHandSide(
         // ASSIGN BC BY DIRECTION
         //--------------------------------------------------------------------------------------------
         Vector direction = this->GetValue(DIRECTION);
-        double displacement_module = this->GetValue(MODULUS);
+        const Vector displacement = this->GetValue(DISPLACEMENT); //already direction
+        const double displacement_module = norm_2(displacement);
 
         const double old_displacement_direction = inner_prod(old_displacement, direction);
             
@@ -490,14 +498,14 @@ void SupportSolidIGACondition::CalculateRightHandSide(
     KRATOS_CATCH("")
 }
 
-    int SupportSolidIGACondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+    int SupportSolidCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
             << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyLaplacianCondition" << std::endl;
         return 0;
     }
 
-    void SupportSolidIGACondition::EquationIdVector(
+    void SupportSolidCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -516,7 +524,7 @@ void SupportSolidIGACondition::CalculateRightHandSide(
         }
     }
 
-    void SupportSolidIGACondition::GetDofList(
+    void SupportSolidCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -535,7 +543,7 @@ void SupportSolidIGACondition::CalculateRightHandSide(
     };
 
 
-    void SupportSolidIGACondition::GetSolutionCoefficientVector(
+    void SupportSolidCondition::GetSolutionCoefficientVector(
         Vector& rValues) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
@@ -554,7 +562,7 @@ void SupportSolidIGACondition::CalculateRightHandSide(
         }
     }
 
-    void SupportSolidIGACondition::CalculateB(
+    void SupportSolidCondition::CalculateB(
         Matrix& rB, 
         Matrix& r_DN_DX) const
     {
@@ -578,7 +586,7 @@ void SupportSolidIGACondition::CalculateRightHandSide(
     }
 
 
-    void SupportSolidIGACondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+    void SupportSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -658,7 +666,7 @@ void SupportSolidIGACondition::CalculateRightHandSide(
         // //---------------------
     }
 
-    void SupportSolidIGACondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
+    void SupportSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
         //--------------------------------------------------------------------------------------------
         // calculate the constitutive law response
         ConstitutiveLaw::Parameters constitutive_law_parameters(

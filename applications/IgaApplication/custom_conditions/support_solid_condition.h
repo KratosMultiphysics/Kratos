@@ -25,16 +25,16 @@
 
 namespace Kratos
 {
-/// Condition for Neumann condition
-class KRATOS_API(IGA_APPLICATION) LoadSolidIGACondition
+/// Condition for penalty support condition
+class KRATOS_API(IGA_APPLICATION) SupportSolidCondition
     : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer definition of LoadSolidIGACondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LoadSolidIGACondition);
+    /// Counted pointer definition of SupportSolidCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SupportSolidCondition);
 
     /// Size types
     using SizeType = std::size_t;
@@ -47,14 +47,14 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Constructor with Id and geometry
-    LoadSolidIGACondition(
+    SupportSolidCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {};
 
     /// Constructor with Id, geometry and property
-    LoadSolidIGACondition(
+    SupportSolidCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -62,11 +62,11 @@ public:
     {};
 
     /// Default constructor
-    LoadSolidIGACondition() : Condition()
+    SupportSolidCondition() : Condition()
     {};
 
     /// Destructor
-    virtual ~LoadSolidIGACondition() override
+    virtual ~SupportSolidCondition() override
     {};
 
     ///@}
@@ -80,7 +80,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<LoadSolidIGACondition>(
+        return Kratos::make_intrusive<SupportSolidCondition>(
             NewId, pGeom, pProperties);
     };
 
@@ -91,7 +91,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<LoadSolidIGACondition>(
+        return Kratos::make_intrusive<SupportSolidCondition>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -185,14 +185,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "\"LoadSolidIGACondition\" #" << Id();
+        buffer << "\"SupportSolidCondition\" #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "\"LoadSolidIGACondition\" #" << Id();
+        rOStream << "\"SupportSolidCondition\" #" << Id();
     }
 
     /// Print object's data.

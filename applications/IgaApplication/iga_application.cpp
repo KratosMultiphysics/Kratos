@@ -81,7 +81,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
     KRATOS_REGISTER_ELEMENT("LaplacianIGAElement", mLaplacianIGAElement)
-    KRATOS_REGISTER_ELEMENT("SolidIGAElement", mSolidIGAElement)
+    KRATOS_REGISTER_ELEMENT("SolidElement", mSolidIGAElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)
@@ -96,8 +96,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SupportLaplacianCondition", mSupportLaplacianCondition)
     KRATOS_REGISTER_CONDITION("SbmLaplacianConditionDirichlet", mSbmLaplacianConditionDirichlet)
     KRATOS_REGISTER_CONDITION("SbmLaplacianConditionNeumann", mSbmLaplacianConditionNeumann)
-    KRATOS_REGISTER_CONDITION("SupportSolidIGACondition", mSupportSolidIGACondition)
-    KRATOS_REGISTER_CONDITION("LoadSolidIGACondition", mLoadSolidIGACondition)
+    KRATOS_REGISTER_CONDITION("SupportSolidCondition", mSupportSolidIGACondition)
+    KRATOS_REGISTER_CONDITION("LoadSolidCondition", mLoadSolidIGACondition)
 
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);

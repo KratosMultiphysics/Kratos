@@ -5,7 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from test_creation_utility import TestCreationUtility
 
-class TestSupportSolidIGACondition(KratosUnittest.TestCase):
+class TestSupportSimmetrySolidIGACondition(KratosUnittest.TestCase):
 
     def create_condition(self, model_part, degree, integration_point):
         # Define properties
@@ -28,7 +28,7 @@ class TestSupportSolidIGACondition(KratosUnittest.TestCase):
 
         return condition
 
-    def test_SupportSolidIGAConditionP3(self):
+    def test_SupportSimmetrySolidIGAConditionP3(self):
         model = KM.Model()
         model_part = model.CreateModelPart("ModelPart")
         model_part.SetBufferSize(2)
@@ -49,6 +49,12 @@ class TestSupportSolidIGACondition(KratosUnittest.TestCase):
         u_D[1] = -0.5
         u_D[2] = 0.0
         condition.SetValue(KM.DISPLACEMENT, u_D)
+
+        direction = KM.Vector(3)
+        direction[0] = 0.36
+        direction[1] = 0.64
+        direction[2] = 0.0
+        condition.SetValue(KM.DIRECTION, direction)
 
         # Add degrees of freedom
         for node in model_part.Nodes:

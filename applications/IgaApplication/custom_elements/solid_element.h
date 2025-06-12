@@ -46,7 +46,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class KRATOS_API(IGA_APPLICATION) SolidIGAElement : public Element
+class KRATOS_API(IGA_APPLICATION) SolidElement : public Element
 {
 protected:
     /**
@@ -84,8 +84,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of SolidIGAElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SolidIGAElement);
+    /// Counted pointer of SolidElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SolidElement);
 
     // static constexpr std::size_t NumNodes = TDim + 1;
 
@@ -96,17 +96,17 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Default constructor.
-    SolidIGAElement(
+    SolidElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
-    SolidIGAElement(
+    SolidElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~SolidIGAElement();
+    virtual ~SolidElement();
 
     ///@}
     ///@name Operators
@@ -175,7 +175,7 @@ public:
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    SolidIGAElement() : Element()
+    SolidElement() : Element()
     {
     }
 
@@ -201,7 +201,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "SolidIGAElement #" << Id();
+        buffer << "SolidElement #" << Id();
         return buffer.str();
     }
 
@@ -342,7 +342,7 @@ private:
 
     ///@}
 
-}; // Class SolidIGAElement
+}; // Class SolidElement
 
 ///@}
 

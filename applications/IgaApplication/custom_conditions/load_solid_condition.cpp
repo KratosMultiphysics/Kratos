@@ -17,12 +17,12 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/load_solid_iga_condition.h"
+#include "custom_conditions/load_solid_condition.h"
 
 namespace Kratos
 {
 
-void LoadSolidIGACondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void LoadSolidCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMaterial();
 
@@ -78,7 +78,7 @@ void LoadSolidIGACondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 }
 
 
-void LoadSolidIGACondition::InitializeMaterial()
+void LoadSolidCondition::InitializeMaterial()
 {
     KRATOS_TRY
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
@@ -96,7 +96,7 @@ void LoadSolidIGACondition::InitializeMaterial()
 
 }
 
-void LoadSolidIGACondition::CalculateLocalSystem(
+void LoadSolidCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -119,7 +119,7 @@ void LoadSolidIGACondition::CalculateLocalSystem(
     KRATOS_CATCH("")
 }
 
-void LoadSolidIGACondition::CalculateLeftHandSide(
+void LoadSolidCondition::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
 )
@@ -133,7 +133,7 @@ void LoadSolidIGACondition::CalculateLeftHandSide(
     const unsigned int dim = r_DN_De[0].size2();
     const SizeType mat_size = number_of_control_points * dim;
 
-    KRATOS_ERROR_IF(dim != 2) << "SolidIGAElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
+    KRATOS_ERROR_IF(dim != 2) << "SolidElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
 
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != mat_size)
@@ -144,7 +144,7 @@ void LoadSolidIGACondition::CalculateLeftHandSide(
 }
 
 
-void LoadSolidIGACondition::CalculateRightHandSide(
+void LoadSolidCondition::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
 )
@@ -162,7 +162,7 @@ void LoadSolidIGACondition::CalculateRightHandSide(
     const SizeType mat_size = number_of_control_points * dim;
     const double int_to_reference_weight = GetValue(INTEGRATION_WEIGHT);
 
-    KRATOS_ERROR_IF(dim != 2) << "SolidIGAElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
+    KRATOS_ERROR_IF(dim != 2) << "SolidElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
 
     // resizing as needed the RHS
     if(rRightHandSideVector.size() != mat_size)
@@ -237,14 +237,14 @@ void LoadSolidIGACondition::CalculateRightHandSide(
     KRATOS_CATCH("")
 }
 
-    int LoadSolidIGACondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+    int LoadSolidCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
             << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyLaplacianCondition" << std::endl;
         return 0;
     }
 
-    void LoadSolidIGACondition::EquationIdVector(
+    void LoadSolidCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -263,7 +263,7 @@ void LoadSolidIGACondition::CalculateRightHandSide(
         }
     }
 
-    void LoadSolidIGACondition::GetDofList(
+    void LoadSolidCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -282,7 +282,7 @@ void LoadSolidIGACondition::CalculateRightHandSide(
     };
 
 
-    void LoadSolidIGACondition::GetSolutionCoefficientVector(
+    void LoadSolidCondition::GetSolutionCoefficientVector(
         Vector& rValues) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
@@ -301,7 +301,7 @@ void LoadSolidIGACondition::CalculateRightHandSide(
         }
     }
 
-    void LoadSolidIGACondition::CalculateB(
+    void LoadSolidCondition::CalculateB(
         Matrix& rB, 
         Matrix& r_DN_DX) const
     {
@@ -325,7 +325,7 @@ void LoadSolidIGACondition::CalculateRightHandSide(
     }
 
 
-    void LoadSolidIGACondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+    void LoadSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -405,7 +405,7 @@ void LoadSolidIGACondition::CalculateRightHandSide(
         // //---------------------
     }
 
-    void LoadSolidIGACondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
+    void LoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
         //--------------------------------------------------------------------------------------------
         // calculate the constitutive law response
         ConstitutiveLaw::Parameters constitutive_law_parameters(
