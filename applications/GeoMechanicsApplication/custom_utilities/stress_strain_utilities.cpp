@@ -219,4 +219,22 @@ Vector StressStrainUtilities::RotatePrincipalStresses(const Vector& rPrincipalSt
     return MathUtils<>::StressTensorToVector(rotated_stress_matrix, StressVectorSize);
 }
 
+Vector StressStrainUtilities::TransformPrincipalStressesToSigmaTau(const Vector& rPrincipalStresses)
+{
+    auto result = Vector{2};
+    result[0]   = 0.5 * (rPrincipalStresses[0] + rPrincipalStresses[2]);
+    result[1]   = 0.5 * (rPrincipalStresses[0] - rPrincipalStresses[2]);
+    return result;
+}
+
+Vector StressStrainUtilities::TransformSigmaTauToPrincipalStresses(const Vector& rSigmaTau,
+                                                                   const Vector& rPrincipalStresses)
+{
+    auto result = Vector{3};
+    result[0]   = rSigmaTau[0] + rSigmaTau[1];
+    result[1]   = rPrincipalStresses[1];
+    result[2]   = rSigmaTau[0] - rSigmaTau[1];
+    return result;
+}
+
 } // namespace Kratos

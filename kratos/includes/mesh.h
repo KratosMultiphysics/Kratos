@@ -822,6 +822,11 @@ public:
         return mpMasterSlaveConstraints;
     }
 
+    void SetMasterSlaveConstraints(typename MasterSlaveConstraintContainerType::Pointer pOtherMasterSlaveConstraints)
+    {
+        mpMasterSlaveConstraints = pOtherMasterSlaveConstraints;
+    }
+
     typename MasterSlaveConstraintContainerType::ContainerType& MasterSlaveConstraintsArray()
     {
         return mpMasterSlaveConstraints->GetContainer();

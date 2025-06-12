@@ -109,6 +109,11 @@ class TestComputeCenterOfGravity(KratosUnittest.TestCase):
         elem3.SetValue(KratosMultiphysics.NODAL_MASS,112.234)
         elem4.SetValue(KratosMultiphysics.NODAL_MASS,78.234)
 
+        elem1.Initialize(mp.ProcessInfo)
+        elem2.Initialize(mp.ProcessInfo)
+        elem3.Initialize(mp.ProcessInfo)
+        elem4.Initialize(mp.ProcessInfo)
+
         cog_process = StructuralMechanicsApplication.ComputeCenterOfGravityProcess(mp)
         cog_process.Execute()
         center_of_gravity = mp.ProcessInfo[StructuralMechanicsApplication.CENTER_OF_GRAVITY]

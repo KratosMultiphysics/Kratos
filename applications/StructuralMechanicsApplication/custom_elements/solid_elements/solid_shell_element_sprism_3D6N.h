@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "integration/quadrature.h"
 #include "base_solid_element.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
@@ -73,32 +74,47 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( QUADRATIC_ELEMENT );        // True means quadratic in-plane behaviour
     KRATOS_DEFINE_LOCAL_FLAG( EXPLICIT_RHS_COMPUTATION ); // True means elastic behaviour for stabilization
 
-    ///Reference type definition for constitutive laws
-    typedef ConstitutiveLaw ConstitutiveLawType;
+    /// Reference type definition for constitutive laws
+    using ConstitutiveLawType = ConstitutiveLaw;
 
-    ///Pointer type for constitutive laws
-    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+    /// Pointer type for constitutive laws
+    using ConstitutiveLawPointerType = ConstitutiveLawType::Pointer;
 
-    ///StressMeasure from constitutive laws
-    typedef ConstitutiveLawType::StressMeasure StressMeasureType;
-
-    ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-
-    /// This is the definition of the node.
-    typedef Node NodeType;
+    /// StressMeasure from constitutive laws
+    using StressMeasureType = ConstitutiveLawType::StressMeasure;
 
     /// The base element type
-    typedef BaseSolidElement BaseType;
+    using BaseType = BaseSolidElement;
 
     /// The definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
-    // The vector containing the weak pointers to the nodes
-    typedef GlobalPointersVector<NodeType> WeakPointerVectorNodesType;
+    /// The definition of the geometry type
+    using GeometryType = Geometry<Node>;
+
+    /// The definition of the coordinates array type
+    using CoordinatesArrayType = GeometryType::CoordinatesArrayType;
+
+    /// The vector containing the weak pointers to the nodes
+    using WeakPointerVectorNodesType = GlobalPointersVector<Node>;
+
+    /// The definition of the integration points array type
+    using IntegrationPointsArrayType = GeometryType::IntegrationPointsArrayType;
+
+    /// The integration points array type
+    using IntegrationPointsContainerType = GeometryType::IntegrationPointsContainerType;
+
+    /// A third order tensor used as shape functions' values container.
+    using ShapeFunctionsValuesContainerType = GeometryType::ShapeFunctionsValuesContainerType;
+
+    /// A third order tensor to hold shape functions'  gradients. ShapefunctionsGradients function return this type as its result.
+    using ShapeFunctionsGradientsType = GeometryType::ShapeFunctionsGradientsType;
+
+    /// A fourth order tensor used as shape functions' local gradients container in geometry.
+    using ShapeFunctionsLocalGradientsContainerType = GeometryType::ShapeFunctionsLocalGradientsContainerType;
 
     /// Counted pointer of SolidShellElementSprism3D6N
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SolidShellElementSprism3D6N);
@@ -108,21 +124,21 @@ public:
     ///@{
 
     /**
-     * @brief This enum is defined in oder to difereniate between initial (TL) and current (UL) configuration
+     * @brief This enum is defined in oder to differentiate between initial (TL) and current (UL) configuration
      */
     enum class Configuration {INITIAL = 0, CURRENT = 1};
 
     /**
-     * @brief To differtiate between center, lower part and upper part
+     * @brief To differentiate between center, lower part and upper part
      */
     enum class GeometricLevel {LOWER = 0, CENTER = 5, UPPER = 9};
 
     /**
-     * @brief To differtiate between the different possible orthogonal bases
+     * @brief To differentiate between the different possible orthogonal bases
      * @details Then:
-     * - 0- If X is the prefered normal vector
-     * - 1- If Y is the prefered normal vector
-     * - 2- If Z is the prefered normal vector
+     * - 0- If X is the preferred normal vector
+     * - 1- If Y is the preferred normal vector
+     * - 2- If Z is the preferred normal vector
      */
     enum class OrthogonalBaseApproach {X = 0, Y = 1, Z = 2};
 
@@ -130,26 +146,42 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /* A private default constructor necessary for serialization */
+    //// A private default constructor necessary for serialization
     SolidShellElementSprism3D6N();
 
-    /* Constructor using an array of nodes */
-    SolidShellElementSprism3D6N(IndexType NewId, GeometryType::Pointer pGeometry);
+    /**
+     * @brief Constructor using an array of nodes
+     * @param NewId The Id of the new created element
+     * @param pGeometry The pointer to the geometry of the element
+     */
+    SolidShellElementSprism3D6N(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry
+        );
 
-    /* Constructor using an array of nodes with properties */
-    SolidShellElementSprism3D6N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    /**
+     * @brief Constructor using an array of nodes with properties
+     * @param NewId The Id of the new created element
+     * @param pGeometry The pointer to the geometry of the element
+     * @param pProperties The pointer to the properties of the element
+     */
+    SolidShellElementSprism3D6N(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties
+        );
 
-    /* Copy constructor */
+    /// Copy constructor
     SolidShellElementSprism3D6N(SolidShellElementSprism3D6N const& rOther);
 
-    /* Destructor */
+    /// Destructor
     ~SolidShellElementSprism3D6N() override;
 
     ///@}
     ///@name Operators
     ///@{
-    ///
-    /* Assignment operator */
+
+    /// Assignment operator
     SolidShellElementSprism3D6N& operator=(SolidShellElementSprism3D6N const& rOther);
 
     ///@}
@@ -172,25 +204,25 @@ public:
     /**
      * @brief Creates a new element
      * @param NewId The Id of the new created element
-     * @param ThisNodes The array containing nodes
+     * @param rNodes The array containing nodes
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
     Element::Pointer Create(
         IndexType NewId,
-        NodesArrayType const& ThisNodes,
+        NodesArrayType const& rNodes,
         PropertiesType::Pointer pProperties
         ) const override;
 
     /**
      * Clones the selected element variables, creating a new one
      * @param NewId the ID of the new element
-     * @param ThisNodes the nodes of the new element
+     * @param rNodes the nodes of the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Clone(
         IndexType NewId,
-        NodesArrayType const& ThisNodes
+        NodesArrayType const& rNodes
         ) const override;
 
     /**
@@ -297,9 +329,9 @@ public:
       * @param rCurrentProcessInfo the current process info instance
       */
     void CalculateDampingMatrix(
-            MatrixType& rDampingMatrix,
-            const ProcessInfo& rCurrentProcessInfo
-            ) override;
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
     /**
       * @brief This is called during the assembling process in order
@@ -416,7 +448,7 @@ public:
     /**
      * @brief Set a double  Value on the Element Constitutive Law
      * @param rVariable The internal variables in the element
-     * @param rValues Values of the ContstitutiveLaw
+     * @param rValues Values of the ConstitutiveLaw
      * @param rCurrentProcessInfo The current process info instance
      */
     void SetValuesOnIntegrationPoints(
@@ -428,7 +460,7 @@ public:
     /**
      * @brief Set a Vector Value on the Element Constitutive Law
      * @param rVariable The internal variables in the element
-     * @param rValues Values of the ContstitutiveLaw
+     * @param rValues Values of the ConstitutiveLaw
      * @param rCurrentProcessInfo The current process info instance
      */
     void SetValuesOnIntegrationPoints(
@@ -440,7 +472,7 @@ public:
     /**
      * @brief Set a Matrix Value on the Element Constitutive Law
      * @param rVariable The internal variables in the element
-     * @param rValues Values of the ContstitutiveLaw
+     * @param rValues Values of the ConstitutiveLaw
      * @param rCurrentProcessInfo The current process info instance
      */
     void SetValuesOnIntegrationPoints(
@@ -452,7 +484,7 @@ public:
     /**
     * @brief Set a Constitutive Law Value
     * @param rVariable The internal variables in the element
-    * @param rValues Values of the ContstitutiveLaw
+    * @param rValues Values of the ConstitutiveLaw
     * @param rCurrentProcessInfo The current process info instance
     */
     void SetValuesOnIntegrationPoints(
@@ -460,6 +492,15 @@ public:
         const std::vector<ConstitutiveLaw::Pointer>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
+
+    /**
+     * @brief Returns the used integration method
+     * @return Integration method of the used Geometry
+     */
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override
+    {
+        return static_cast<GeometryData::IntegrationMethod>(mIntegrationOrder);
+    }
 
     //****************** CHECK VALUES *****************//
     /**
@@ -470,30 +511,6 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    // Turn back information as a string.
-    std::string Info() const override
-    {
-        std::stringstream buffer;
-        buffer << "SPRISM Element #" << Id();
-        return buffer.str();
-    }
-
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "SPRISM Element #" << Id();
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-      GetGeometry().PrintData(rOStream);
-    }
 
     //*********** STARTING - ENDING  METHODS **********//
 
@@ -527,9 +544,34 @@ public:
       */
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-protected:
+    ///@}
+    ///@name Input and output
+    ///@{
 
+    // Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "SPRISM Element #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "SPRISM Element #" << Id();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+      GetGeometry().PrintData(rOStream);
+    }
+
+    ///@}
+protected:
     ///@name Protected definitions
+    ///@{
 
     /**
     * @class CartesianDerivatives
@@ -547,7 +589,7 @@ protected:
         // Gauss nodes
         array_1d<BoundedMatrix<double, 6, 1 >, 6> TransversalCartesianDerivativesGauss;
 
-        /* Inverse of the Jaconians */
+        /* Inverse of the Jacobians */
         BoundedMatrix<double, 2, 2 > JInvPlaneLower;
         BoundedMatrix<double, 2, 2 > JInvPlaneUpper;
 
@@ -556,7 +598,7 @@ protected:
         */
         void clear()
         {
-            for (IndexType i = 0; i < 6; i++) {
+            for (unsigned int i = 0; i < 6; i++) {
                 noalias(InPlaneCartesianDerivativesGauss[i]) = ZeroMatrix(2, 4);
                 noalias(TransversalCartesianDerivativesGauss[i]) = ZeroMatrix(6, 1);
             }
@@ -744,12 +786,11 @@ protected:
     };
 
     /**
-     * This struct is used in the component wise calculation only
+     * @brief This struct is used in the component wise calculation only
      * is defined here and is used to declare a member variable in the component wise elements
      * private pointers can only be accessed by means of set and get functions
      * this allows to set and not copy the local system variables
      */
-
     struct LocalSystemComponents
     {
     private:
@@ -795,7 +836,6 @@ protected:
     };
 
     ///@{
-
     ///@name Protected static Member Variables
     ///@{
 
@@ -844,27 +884,30 @@ protected:
     /**
      * @brief Check if the node has a neighbour:
      * @param Index The index of the node
-     * @param NeighbourNode The neighbours nodes
+     * @param rNeighbourNode The neighbours nodes
      * @return A boolean that indicates if the node has a neighbour
      */
     bool HasNeighbour(
         const IndexType Index,
-        const NodeType& NeighbourNode
-        ) const ;
+        const Node& rNeighbourNode
+        ) const;
 
     /**
      * @brief Calculates the number of active neighbours:
-     * @param pNeighbourNodes The neighbours nodes
+     * @param rNeighbourNodes The neighbours nodes
      * @return An integer with the number of neighbours of the node
      */
-    std::size_t NumberOfActiveNeighbours(const GlobalPointersVector< NodeType >& pNeighbourNodes) const;
+    std::size_t NumberOfActiveNeighbours(const GlobalPointersVector<Node>& rNeighbourNodes) const;
 
     /**
-     * @brief  It gets the nodal coordinates, according to the configutaion
+     * @brief  It gets the nodal coordinates, according to the configuration
+     * @param rNodesCoordinates The nodal coordinates
+     * @param rNeighbourNodes The neighbours nodes
+     * @param ThisConfiguration The configuration (initial or current)
      */
     void GetNodalCoordinates(
-        BoundedMatrix<double, 12, 3 >& NodesCoord,
-        const GlobalPointersVector< NodeType >& pNeighbourNodes,
+        BoundedMatrix<double, 12, 3 >& rNodesCoordinates,
+        const GlobalPointersVector<Node>& rNeighbourNodes,
         const Configuration ThisConfiguration
         ) const;
 
@@ -875,6 +918,8 @@ protected:
 
     /**
      * @brief Calculate the necessary components for the Kinematic calculus
+     * @param rCommonComponents The common components
+     * @param rCartesianDerivatives The cartesian derivatives
      */
     void CalculateCommonComponents(
         CommonComponents& rCommonComponents,
@@ -883,11 +928,12 @@ protected:
 
     /**
      * @brief Calculates the Local Coordinates System
+     * @param rOrthogonalBase The orthogonal base
      * @param ThisOrthogonalBaseApproach The chosen approximation
      * @param ThisAngle Angle of rotation of the element
      */
     void CalculateLocalCoordinateSystem(
-        OrthogonalBase& ThisOrthogonalBase,
+        OrthogonalBase& rOrthogonalBase,
         const OrthogonalBaseApproach ThisOrthogonalBaseApproach,
         const double ThisAngle
         );
@@ -899,11 +945,11 @@ protected:
 
     /**
      * @brief Calculate the local derivatives of the element for a given coordinates
-     * @param LocalDerivativePatch The local derivatives of the element
+     * @param rLocalDerivativePatch The local derivatives of the element
      * @param rLocalCoordinates The local coordinates
      */
     void ComputeLocalDerivatives(
-        BoundedMatrix<double, 6, 3 >& LocalDerivativePatch,
+        BoundedMatrix<double, 6, 3>& rLocalDerivativePatch,
         const array_1d<double, 3>& rLocalCoordinates
         );
 
@@ -913,205 +959,209 @@ protected:
      * @param NodeGauss The Gauss node index
      */
     void ComputeLocalDerivativesQuadratic(
-        BoundedMatrix<double, 4, 2 >& rLocalDerivativePatch,
-        const IndexType NodeGauss
+        BoundedMatrix<double, 4, 2>& rLocalDerivativePatch,
+        const unsigned int NodeGauss
         );
 
     /**
      * @brief Calculate the Jacobian and his inverse
-     * @param J The Jacobian of the element
-     * @param Jinv The inverse of the Jacobian
-     * @param detJ Determinant of the Jacobian
-     * @param rPointNumber The integration point index
+     * @param rJ The Jacobian of the element
+     * @param rJinv The inverse of the Jacobian
+     * @param rDetJ Determinant of the Jacobian
+     * @param PointNumber The integration point index
      * @param ZetaGauss The transversal local coordinates
      */
     void CalculateJacobianCenterGauss(
-        GeometryType::JacobiansType& J,
-        std::vector< Matrix >& Jinv,
-        Vector& detJ,
-        const IndexType rPointNumber,
+        GeometryType::JacobiansType& rJ,
+        std::vector<Matrix>& rJinv,
+        Vector& rDetJ,
+        const unsigned int PointNumber,
         const double ZetaGauss
         );
 
     /**
      * @brief Calculate the Jacobian
-     * @param detJ Determinant of the Jacobian
-     * @param J The Jacobian of the element
-     * @param LocalDerivativePatch The local derivatives of the element
-     * @param NodesCoord The matrix with the coordinates of the nodes of the element
+     * @param rDetJ Determinant of the Jacobian
+     * @param rJ The Jacobian of the element
+     * @param rLocalDerivativePatch The local derivatives of the element
+     * @param rNodesCoordinates The matrix with the coordinates of the nodes of the element
      * @param rLocalCoordinates The local coordinates
      */
     void CalculateJacobian(
-        double& detJ,
-        BoundedMatrix<double, 3, 3 >& J,
-        BoundedMatrix<double, 6, 3 >& LocalDerivativePatch,
-        const BoundedMatrix<double, 12, 3 >& NodesCoord,
+        double& rDetJ,
+        BoundedMatrix<double, 3, 3 >& rJ,
+        BoundedMatrix<double, 6, 3 >& rLocalDerivativePatch,
+        const BoundedMatrix<double, 12, 3 >& rNodesCoordinates,
         const array_1d<double, 3>& rLocalCoordinates
         );
 
     /**
      * @brief Calculate the Jacobian and its inverse
-     * @param J The Jacobian of the element
-     * @param Jinv The inverse of the Jacobian
-     * @param LocalDerivativePatch The local derivatives of the element
-     * @param NodesCoord The matrix with the coordinates of the nodes of the element
+     * @param rJ The Jacobian of the element
+     * @param rJinv The inverse of the Jacobian
+     * @param rLocalDerivativePatch The local derivatives of the element
+     * @param rNodesCoordinates The matrix with the coordinates of the nodes of the element
      * @param rLocalCoordinates The local coordinates
      */
     void CalculateJacobianAndInv(
-        BoundedMatrix<double, 3, 3 >& J,
-        BoundedMatrix<double, 3, 3 >& Jinv,
-        BoundedMatrix<double, 6, 3 >& LocalDerivativePatch,
-        const BoundedMatrix<double, 3, 6 >& NodesCoord,
+        BoundedMatrix<double, 3, 3 >& rJ,
+        BoundedMatrix<double, 3, 3 >& rJinv,
+        BoundedMatrix<double, 6, 3 >& rLocalDerivativePatch,
+        const BoundedMatrix<double, 3, 6 >& rNodesCoordinates,
         const array_1d<double, 3>& rLocalCoordinates
         );
 
     /**
      * @brief Calculate the Jacobian and his inverse
-     * @param J The Jacobian of the element
-     * @param Jinv The inverse of the Jacobian
-     * @param NodesCoord The matrix with the coordinates of the nodes of the element
+     * @param rJ The Jacobian of the element
+     * @param rJinv The inverse of the Jacobian
+     * @param rNodesCoordinates The matrix with the coordinates of the nodes of the element
      * @param rLocalCoordinates The local coordinates
      */
     void CalculateJacobianAndInv(
-        BoundedMatrix<double, 3, 3 >& J,
-        BoundedMatrix<double, 3, 3 >& Jinv,
-        const BoundedMatrix<double, 3, 6 >& NodesCoord,
+        BoundedMatrix<double, 3, 3>& rJ,
+        BoundedMatrix<double, 3, 3>& rJinv,
+        const BoundedMatrix<double, 3, 6>& rNodesCoordinates,
         const array_1d<double, 3>& rLocalCoordinates
         );
 
     /**
      * @brief Calculate the Cartesian derivatives in the Gauss points, for the plane
-     * @param CartesianDerivativesCenter The cartesian derivatives in the plane
+     * @param rCartesianDerivativesCenter The cartesian derivatives in the plane
+     * @param rOrthogonalBase The orthogonal base
      * @param Part The enum that indicates upper or lower face
      */
     void CalculateCartesianDerivativesOnCenterPlane(
-        BoundedMatrix<double, 2, 4 >& CartesianDerivativesCenter,
-        const OrthogonalBase& ThisOrthogonalBase,
+        BoundedMatrix<double, 2, 4 >& rCartesianDerivativesCenter,
+        const OrthogonalBase& rOrthogonalBase,
         const GeometricLevel Part
         );
 
     /**
      * @brief Calculate the Cartesian derivatives in the Gauss points, for the plane
+     * @param rInPlaneCartesianDerivativesGauss The cartesian derivatives in the plane
+     * @param rNodesCoordinates The matrix with the coordinates of the nodes of the element
+     * @param rOrthogonalBase The orthogonal base
      * @param NodeGauss Number of Gauss node calculated
      * @param Part The index that indicates upper or lower face
-     * @param NodesCoord The matrix with the coordinates of the nodes of the element
-     * @param InPlaneCartesianDerivativesGauss The cartesian derivatives in the plane
      */
     void CalculateCartesianDerOnGaussPlane(
-        BoundedMatrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss,
-        const BoundedMatrix<double, 12, 3 > & NodesCoord,
-        const OrthogonalBase& ThisOrthogonalBase,
-        const IndexType NodeGauss,
+        BoundedMatrix<double, 2, 4 >& rInPlaneCartesianDerivativesGauss,
+        const BoundedMatrix<double, 12, 3 >& rNodesCoordinates,
+        const OrthogonalBase& rOrthogonalBase,
+        const unsigned int NodeGauss,
         const GeometricLevel Part
         );
 
     /**
      * @brief Calculate the Cartesian derivatives in the Gauss points, for the transversal direction
-     * @param NodesCoord The matrix with the coordinates of the nodes of the element
-     * @param TransversalCartesianDerivativesGauss The cartesian derivatives in the transversal direction
+     * @param rNodesCoordinates The matrix with the coordinates of the nodes of the element
+     * @param rTransversalCartesianDerivativesGauss The cartesian derivatives in the transversal direction
+     * @param rOrthogonalBase The orthogonal base
      * @param rLocalCoordinates The local coordinates
      */
     void CalculateCartesianDerOnGaussTrans(
-        BoundedMatrix<double, 6, 1 > & TransversalCartesianDerivativesGauss,
-        const BoundedMatrix<double, 12, 3 > & NodesCoord,
-        const OrthogonalBase& ThisOrthogonalBase,
+        BoundedMatrix<double, 6, 1 >& rTransversalCartesianDerivativesGauss,
+        const BoundedMatrix<double, 12, 3 >& rNodesCoordinates,
+        const OrthogonalBase& rOrthogonalBase,
         const array_1d<double, 3>& rLocalCoordinates
         );
 
     /**
      * @brief Calculate the Cartesian derivatives in the center, for the transversal direction
      * @param rCartesianDerivatives The class containing the cartesian derivatives
-     * @param NodesCoord The matrix with the coordinates of the nodes of the element
+     * @param rNodesCoordinates The matrix with the coordinates of the nodes of the element
      * @param Part 0 for center node of the element, 1 for upper part and 2 for lower part
      */
     void CalculateCartesianDerOnCenterTrans(
         CartesianDerivatives& rCartesianDerivatives,
-        const BoundedMatrix<double, 12, 3 >& NodesCoord,
-        const OrthogonalBase& ThisOrthogonalBase,
+        const BoundedMatrix<double, 12, 3 >& rNodesCoordinates,
+        const OrthogonalBase& rOrthogonalBase,
         const GeometricLevel Part
         );
 
     /**
-     * Calculate the components of the deformation gradient in the plane, for the Gauss nodes:
-     * @param InPlaneGradientFGauss The components of the deformation gradient in the plane, for the gauss node
-     * @param InPlaneCartesianDerivativesGauss The cartesian derivatives of a Gauss node in the plane
-     * @param NodesCoord The coordinates of the nodes of the element
+     * @briefd Calculate the components of the deformation gradient in the plane, for the Gauss nodes:
+     * @param rInPlaneGradientFGauss The components of the deformation gradient in the plane, for the gauss node
+     * @param rInPlaneCartesianDerivativesGauss The cartesian derivatives of a Gauss node in the plane
+     * @param rNodesCoordinates The coordinates of the nodes of the element
      * @param NodeGauss Number of Gauss node calculated
      * @param Part The enum that indicates upper or lower face
      */
     void CalculateInPlaneGradientFGauss(
-        BoundedMatrix<double, 3, 2 >& InPlaneGradientFGauss,
-        const BoundedMatrix<double, 2, 4 >& InPlaneCartesianDerivativesGauss,
-        const BoundedMatrix<double, 12, 3 >& NodesCoord,
-        const IndexType NodeGauss,
+        BoundedMatrix<double, 3, 2>& rInPlaneGradientFGauss,
+        const BoundedMatrix<double, 2, 4>& rInPlaneCartesianDerivativesGauss,
+        const BoundedMatrix<double, 12, 3>& rNodesCoordinates,
+        const unsigned int NodeGauss,
         const GeometricLevel Part
         );
 
     /**
      * Calculate the transversal components of the deformation gradient, in the Gauss points:
-     * @param TransverseGradientF The transversal components of the deformation gradient
-     * @param TransversalCartesianDerivativesGauss The transversal cartesian derivatives
-     * @param NodesCoord The coordinates of the nodes of the element
+     * @param rTransverseGradientF The transversal components of the deformation gradient
+     * @param rTransversalCartesianDerivativesGauss The transversal cartesian derivatives
+     * @param rNodesCoordinates The coordinates of the nodes of the element
      */
     void CalculateTransverseGradientF(
-        array_1d<double, 3 >& TransverseGradientF,
-        const BoundedMatrix<double, 6, 1 >& TransversalCartesianDerivativesGauss,
-        const BoundedMatrix<double, 12, 3 >& NodesCoord
+        array_1d<double, 3>& rTransverseGradientF,
+        const BoundedMatrix<double, 6, 1>& rTransversalCartesianDerivativesGauss,
+        const BoundedMatrix<double, 12, 3>& rNodesCoordinates
         );
 
     /**
      * @brief Calculate the transversal components of the deformation gradient, in each one of the faces:
      * @param rTransverseGradientIsoParametric Auxilar components of the deformation gradient
-     * @param NodesCoord The coordinates of the nodes of the element
+     * @param rNodesCoordinates The coordinates of the nodes of the element
      * @param Part The enum that indicates if calculate upper or lower components
      */
     void CalculateTransverseGradientFinP(
         TransverseGradientIsoParametric& rTransverseGradientIsoParametric,
-        const BoundedMatrix<double, 12, 3 >& NodesCoord,
+        const BoundedMatrix<double, 12, 3>& rNodesCoordinates,
         const GeometricLevel Part
         );
 
     /**
      * @brief Construction of the membrane deformation tangent matrix:
-     * @param BMembrane Membrane component of the deformation tangent matrix
-     * @param CMembrane Membrane component of the Cauchy tensor
-     * @param InPlaneCartesianDerivativesGauss The in-plane cartesian derivatives of the Gauss points
-     * @param InPlaneGradientFGauss The in-plane deformation gradient components
+     * @param rBMembrane Membrane component of the deformation tangent matrix
+     * @param rCMembrane Membrane component of the Cauchy tensor
+     * @param rInPlaneCartesianDerivativesGauss The in-plane cartesian derivatives of the Gauss points
+     * @param rInPlaneGradientFGauss The in-plane deformation gradient components
      * @param NodeGauss Number of Gauss node calculated
      */
     void CalculateAndAddBMembrane(
-        BoundedMatrix<double, 3, 18 >& BMembrane,
-        BoundedMatrix<double, 3, 1 >& CMembrane,
-        const BoundedMatrix<double, 2, 4 >& InPlaneCartesianDerivativesGauss,
-        const BoundedMatrix<double, 3, 2 >& InPlaneGradientFGauss,
-        const IndexType NodeGauss
+        BoundedMatrix<double, 3, 18 >& rBMembrane,
+        BoundedMatrix<double, 3, 1 >& rCMembrane,
+        const BoundedMatrix<double, 2, 4 >& rInPlaneCartesianDerivativesGauss,
+        const BoundedMatrix<double, 3, 2 >& rInPlaneGradientFGauss,
+        const unsigned int NodeGauss
         );
 
     /**
      * @brief Construction of the in-plane geometric stiffness matrix:
-     * @param Kgeometricmembrane Membrane component of the stiffness matrix
+     * @param rKgeometricmembrane Membrane component of the stiffness matrix
      * @param rCartesianDerivatives Cartesian derivatives auxiliary struct
+     * @param rSMembrane The membrane components of the PK2 tensor
      * @param Part The enum that indicates upper or lower face
      */
     void CalculateAndAddMembraneKgeometric(
-        BoundedMatrix<double, 36, 36 >& Kgeometricmembrane,
+        BoundedMatrix<double, 36, 36 >& rKgeometricmembrane,
         const CartesianDerivatives& rCartesianDerivatives,
-        const array_1d<double, 3 >& SMembrane,
+        const array_1d<double, 3 >& rSMembrane,
         const GeometricLevel Part
         );
 
     /**
      * @brief Construction of the shear deformation tangent matrix:
-     * @param BShear Shear component of the deformation tangent matrix
-     * @param CShear Shear components of the Cauchy tensor
+     * @param rBShear Shear component of the deformation tangent matrix
+     * @param rCShear Shear components of the Cauchy tensor
      * @param rCartesianDerivatives Cartesian derivatives auxiliary struct
      * @param rTransverseGradient Local deformation gradient components for each Gauss point
      * @param rTransverseGradientIsoParametric Local deformation gradient components in the isogeometric space
      * @param Part The enum that indicates upper or lower face
      */
     void CalculateAndAddBShear(
-        BoundedMatrix<double, 2, 18 >& BShear,
-        BoundedMatrix<double, 2, 1 >& CShear,
+        BoundedMatrix<double, 2, 18>& rBShear,
+        BoundedMatrix<double, 2, 1>& rCShear,
         const CartesianDerivatives& rCartesianDerivatives,
         const TransverseGradient& rTransverseGradient,
         const TransverseGradientIsoParametric& rTransverseGradientIsoParametric,
@@ -1120,54 +1170,61 @@ protected:
 
     /**
      * @brief Construction of the shear geometric contribution to the stiffness matrix:
-     * @param Kgeometricshear The shear geometric contribution to the stiffness matrix
+     * @param rKgeometricshear The shear geometric contribution to the stiffness matrix
      * @param rCartesianDerivatives Cartesian derivatives auxiliary struct
-     * @param SShear The shear components of the PK2 tensor
+     * @param rSShear The shear components of the PK2 tensor
      * @param Part The enum that indicates upper or lower face
      */
     void CalculateAndAddShearKgeometric(
-        BoundedMatrix<double, 36, 36 >& Kgeometricshear,
+        BoundedMatrix<double, 36, 36 >& rKgeometricshear,
         const CartesianDerivatives& rCartesianDerivatives,
-        const array_1d<double, 2 >& SShear,
+        const array_1d<double, 2 >& rSShear,
         const GeometricLevel Part
         );
 
     /**
      * @brief Construction of the transversal deformation tangent matrix:
-     * @param BNormal Transversal deformation tangent matrix
-     * @param TransversalCartesianDerivativesGaussCenter Transversal cartesian derivatives in the central point of the element
-     * @param TransversalDeformationGradientF Transversal components of the deformation gradient in the central point of the element
+     * @param rBNormal Transversal deformation tangent matrix
+     * @param rCNormal Transversal component of the Cauchy tensor
+     * @param rTransversalCartesianDerivativesGaussCenter Transversal cartesian derivatives in the central point of the element
+     * @param rTransversalDeformationGradientF Transversal components of the deformation gradient in the central point of the element
      */
     void CalculateAndAddBNormal(
-        BoundedMatrix<double, 1, 18 >& BNormal,
-        double& CNormal,
-        const BoundedMatrix<double, 6, 1 >& TransversalCartesianDerivativesGaussCenter,
-        const array_1d<double, 3 >& TransversalDeformationGradientF
+        BoundedMatrix<double, 1, 18>& rBNormal,
+        double& rCNormal,
+        const BoundedMatrix<double, 6, 1>& rTransversalCartesianDerivativesGaussCenter,
+        const array_1d<double, 3>& rTransversalDeformationGradientF
         );
 
     /**
      * @brief Construction of the transversal geometric contribution to the stiffness matrix:
-     * @param Kgeometricnormal The transversal geometric contribution to the stiffness matrix
-     * @param TransversalCartesianDerivativesGaussCenter Transversal cartesian derivatives in the central point of the element
+     * @param rKgeometricnormal The transversal geometric contribution to the stiffness matrix
+     * @param rTransversalCartesianDerivativesGaussCenter Transversal cartesian derivatives in the central point of the element
      * @param SNormal Enhanced transversal component of the PK2 tensor
      */
     void CalculateAndAddNormalKgeometric(
-        BoundedMatrix<double, 36, 36 >& Kgeometricnormal,
-        const BoundedMatrix<double, 6, 1 >& TransversalCartesianDerivativesGaussCenter,
+        BoundedMatrix<double, 36, 36>& rKgeometricnormal,
+        const BoundedMatrix<double, 6, 1>& rTransversalCartesianDerivativesGaussCenter,
         const double SNormal
         );
 
     /**
      * @brief Calculates the vector of current position
-     * @return VectorCurrentPosition: Vector of current position
+     * @param rVectorCurrentPosition The vector containing the current positions.
      */
-    BoundedMatrix<double, 36, 1 > GetVectorCurrentPosition();
+    void GetVectorCurrentPosition(BoundedMatrix<double, 36, 1>& rVectorCurrentPosition);
 
     /**
-     * Calculates the vector of previous position
-     * @return VectorCurrentPosition: Vector of previous position
+     * @brief Calculates the vector of previous positions of the element nodes.
+     * @param rVectorPreviousPosition The vector containing the previous positions.
      */
-    BoundedMatrix<double, 36, 1 > GetVectorPreviousPosition();
+    void GetVectorPreviousPosition(BoundedMatrix<double, 36, 1>& rVectorPreviousPosition);
+
+    /**
+     * @brief Calculates the vector of delta displacements
+     * @param rDeltaDisplacement The vector containing the delta displacements.
+     */
+    void GetDeltaDisplacement(BoundedMatrix<double, 36, 1>& rDeltaDisplacement);
 
     /**
      * @brief Integrates stresses in zeta using the Gauss Quadrature
@@ -1202,19 +1259,19 @@ protected:
      * @brief Calculation and addition of the matrix of the LHS
      * @param rLocalSystem The local system of equations
      * @param rVariables The internal variables in the element
-     * @param rValues Values of the ContstitutiveLaw
+     * @param rConstitutiveValues Values of the ConstitutiveLaw
      * @param rEAS The components of the EAS stabilization
-     * @param AlphaEAS The internal variable for the EAS
+     * @param rAlphaEAS The internal variable for the EAS
      */
     void CalculateAndAddLHS(
         LocalSystemComponents& rLocalSystem,
         GeneralVariables& rVariables,
-        ConstitutiveLaw::Parameters& rValues,
+        ConstitutiveLaw::Parameters& rConstitutiveValues,
         const StressIntegratedComponents& rIntegratedStress,
         const CommonComponents& rCommonComponents,
         const CartesianDerivatives& rCartesianDerivatives,
         const EASComponents& rEAS,
-        double& AlphaEAS
+        double& rAlphaEAS
         );
 
     /**
@@ -1223,7 +1280,7 @@ protected:
      * @param rVariables The internal variables in the element
      * @param rVolumeForce The force due to the acceleration of the body
      * @param rEAS The components of the EAS stabilization
-     * @param AlphaEAS The internal variable for the EAS
+     * @param rAlphaEAS The internal variable for the EAS
      */
     void CalculateAndAddRHS(
         LocalSystemComponents& rLocalSystem,
@@ -1232,7 +1289,7 @@ protected:
         const StressIntegratedComponents& rIntegratedStress,
         const CommonComponents& rCommonComponents,
         const EASComponents& rEAS,
-        double& AlphaEAS
+        double& rAlphaEAS
         );
 
     /**
@@ -1271,12 +1328,12 @@ protected:
      * @brief Update the RHS of the system with the EAS and the internal variable alpha
      * @param rRHSFull The full internal forces vector
      * @param rEAS The components of the EAS stabilization
-     * @param AlphaEAS The internal variable for the EAS
+     * @param rAlphaEAS The internal variable for the EAS
      */
     void ApplyEASRHS(
         BoundedMatrix<double, 36, 1 >& rRHSFull,
         const EASComponents& rEAS,
-        double& AlphaEAS
+        double& rAlphaEAS
         );
 
     /**
@@ -1301,19 +1358,19 @@ protected:
         const StressIntegratedComponents& rIntegratedStress,
         const CommonComponents& rCommonComponents,
         const EASComponents& rEAS,
-        double& AlphaEAS
+        double& rAlphaEAS
         );
 
     /**
      * @brief Set Variables of the Element to the Parameters of the Constitutive Law
      * @param rVariables The internal variables in the element
-     * @param rValues Values of the ContstitutiveLaw
-     * @param rPointNumber The integration point index
+     * @param rValues Values of the ConstitutiveLaw
+     * @param PointNumber The integration point index
      */
     void SetGeneralVariables(
         GeneralVariables& rVariables,
         ConstitutiveLaw::Parameters& rValues,
-        const IndexType rPointNumber
+        const unsigned int PointNumber
         );
 
     /**
@@ -1332,21 +1389,21 @@ protected:
      * @brief This method computes the delta position matrix necessary for UL formulation
      * @param rDeltaPosition The matrix that contents the increase of displacements
      */
-    void CalculateDeltaPosition(Matrix & rDeltaPosition);
+    void CalculateDeltaPosition(Matrix& rDeltaPosition);
 
     /**
      * @brief Calculate Element Kinematics
      * @param rVariables The internal variables in the element
      * @param rIntegrationPoints The integration points of the prism
-     * @param rPointNumber The integration point index
+     * @param PointNumber The integration point index
      * @param AlphaEAS The internal variable for the EAS
      * @param ZetaGauss The zeta coordinate for the Gauss Quadrature
      */
     void CalculateKinematics(
         GeneralVariables& rVariables,
         const CommonComponents& rCommonComponents,
-        const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
-        const IndexType rPointNumber,
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        const unsigned int PointNumber,
         const double AlphaEAS,
         const double ZetaGauss
         );
@@ -1355,11 +1412,11 @@ protected:
      * @brief Calculate Fbar from Cbar
      * @details Assuming that the rotation matrix of the polar decomposition of the F_bar is the same of the polar decomposition of F
      * @param rVariables The internal variables in the element
-     * @param rPointNumber The integration point index
+     * @param PointNumber The integration point index
      */
     void CbartoFbar(
         GeneralVariables& rVariables,
-        const int rPointNumber
+        const unsigned int PointNumber
         );
 
     /**
@@ -1379,26 +1436,26 @@ protected:
      * @brief Initialize Element General Variables
      * @param rVariables The internal variables in the element
      */
-    void InitializeGeneralVariables(GeneralVariables & rVariables);
+    void InitializeGeneralVariables(GeneralVariables& rVariables);
 
     /**
      * @brief Finalize Element Internal Variables
      * @param rVariables The internal variables in the element
-     * @param rPointNumber The integration point index
+     * @param PointNumber The integration point index
      */
     void FinalizeStepVariables(
-        GeneralVariables & rVariables,
-        const IndexType rPointNumber
+        GeneralVariables& rVariables,
+        const unsigned int PointNumber
         );
 
     /**
      * @brief Get the Historical Deformation Gradient to calculate aTransverseGradientFter finalize the step
      * @param rVariables The internal variables in the element
-     * @param rPointNumber The integration point index
+     * @param PointNumber The integration point index
      */
     void GetHistoricalVariables(
         GeneralVariables& rVariables,
-        const IndexType rPointNumber
+        const unsigned int PointNumber
         );
 
     /**
@@ -1426,24 +1483,26 @@ protected:
     ///@}
     ///@name Protected  Access
     ///@{
+
     ///@}
     ///@name Protected Inquiry
     ///@{
+
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    ///@}
 
+    ///@}
 private:
-
-    ///@name Static Member Variables
-    ///@{
-    ///@}
     ///@name Member Variables
     ///@{
+
+    int mIntegrationOrder = 0; /// Integration order
+
     ///@}
     ///@name Private Operators
     ///@{
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -1461,9 +1520,9 @@ private:
         std::vector<TType>& rOutput
         )
     {
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+        const IntegrationPointsArrayType& r_integration_points = msGeometryData.IntegrationPoints(this->GetIntegrationMethod());
 
-        for ( IndexType point_number = 0; point_number <integration_points.size(); ++point_number ) {
+        for (unsigned int point_number = 0; point_number <r_integration_points.size(); ++point_number ) {
             mConstitutiveLawVector[point_number]->GetValue( rVariable,rOutput[point_number]);
         }
     }
@@ -1488,16 +1547,15 @@ private:
         this->InitializeGeneralVariables(general_variables);
 
         /* Create constitutive law parameters: */
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters cl_values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
         /* Set constitutive law flags: */
-        Flags &ConstitutiveLawOptions = Values.GetOptions();
-
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        Flags& r_constitutive_law_options = cl_values.GetOptions();
+        r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+        r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
         /* Reading integration points */
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+        const IntegrationPointsArrayType& r_integration_points = msGeometryData.IntegrationPoints( this->GetIntegrationMethod() );
 
         double& alpha_eas = this->GetValue(ALPHA_EAS);
 
@@ -1511,30 +1569,88 @@ private:
         this->CalculateCommonComponents(common_components, this_cartesian_derivatives);
 
         // Reading integration points
-        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
-            const double zeta_gauss = 2.0 * integration_points[point_number].Z() - 1.0;
+        for (unsigned int point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+            const double zeta_gauss = 2.0 * r_integration_points[point_number].Z() - 1.0;
 
             // Compute element kinematics C, F ...
-            this->CalculateKinematics(general_variables, common_components, integration_points, point_number, alpha_eas, zeta_gauss);
+            this->CalculateKinematics(general_variables, common_components, r_integration_points, point_number, alpha_eas, zeta_gauss);
 
             // To take in account previous step writing
-            if( mFinalizedStep )
+            if (mFinalizedStep) {
                 this->GetHistoricalVariables(general_variables,point_number);
+            }
 
             // Set general variables to constitutivelaw parameters
-            this->SetGeneralVariables(general_variables,Values,point_number);
+            this->SetGeneralVariables(general_variables, cl_values, point_number);
 
-            rOutput[point_number] = mConstitutiveLawVector[point_number]->CalculateValue( Values, rVariable, rOutput[point_number] );
+            rOutput[point_number] = mConstitutiveLawVector[point_number]->CalculateValue( cl_values, rVariable, rOutput[point_number] );
         }
     }
+
+    /**
+     * @brief Retrieves all integration points associated with the solid shell element.
+     * @details This static function constructs and returns a container holding the integration points used in the solid shell element's numerical integration process. The integration points are intended to be generated via specific quadrature rules tailored to prism elements.
+     * @return IntegrationPointsContainerType A container with all the integration points required for this element.
+     */
+    static const IntegrationPointsContainerType AllIntegrationPoints();
+
+    /**
+     * @brief Calculates the values of all shape function in all integration points.
+     * @details Integration points are expected to be given in local coordinates
+     * @param ThisMethod the current integration method
+     * @return the matrix of values of every shape function in each integration point
+     */
+    static Matrix CalculateShapeFunctionsIntegrationPointsValues(const int ThisMethod);
+
+    /**
+     * @brief Generates a container with precomputed shape functions values.
+     * @details This function evaluates and collects the shape function values at integration points
+     * for various Gauss integration methods.
+     * The results are stored in a ShapeFunctionsValuesContainerType, with each element
+     * corresponding to the shape function values for a specific Gauss integration method.
+     * @return ShapeFunctionsValuesContainerType containing the shape functions values
+     *         evaluated at the respective integration points.
+     */
+    static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues();
+
+    /**
+     * @brief Calculates the local gradients of all shape functions in all integration points.
+     * @details Integration points are expected to be given in local coordinates
+     * @param ThisMethod the current integration method
+     * @return The vector of the gradients of all shape functions in each integration point
+     */
+    static ShapeFunctionsGradientsType
+    CalculateShapeFunctionsIntegrationPointsLocalGradients(const int ThisMethod);
+
+    /**
+     * @brief Computes and returns a container with local gradients for shape functions.
+     * @details This function calculates the local gradients of the shape functions used by the element at various integration points determined by different Gauss integration methods. It generates the local gradients for each of the predefined integration methods (GI_GAUSS_1 to GI_GAUSS_5) and stores them in a container.
+     * @return ShapeFunctionsLocalGradientsContainerType A container holding the local gradients for each
+     * integration point corresponding to the different Gauss integration methods.
+     */
+    static const ShapeFunctionsLocalGradientsContainerType AllShapeFunctionsLocalGradients();
+
+    ///@}
+    ///@name Static Member Variables
+    ///@{
+
+    inline static const GeometryDimension msGeometryDimension = GeometryDimension(3, 3); /// Dimension of the geometry
+    inline static const GeometryData msGeometryData = GeometryData(
+        &msGeometryDimension,
+        static_cast<GeometryData::IntegrationMethod>(0),
+        AllIntegrationPoints(),
+        AllShapeFunctionsValues(),
+        AllShapeFunctionsLocalGradients()
+        ); /// Geometry data
 
     ///@}
     ///@name Private  Access
     ///@{
-    ///@}
+
     ///@}
     ///@name Serialization
     ///@{
+
     friend class Serializer;
 
     /**
@@ -1544,16 +1660,169 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-    // Constructor
+    ///@}
 
 }; // class SolidShellElementSprism3D6N.
+
+/* For the formulation SPRISM we just consider one integration point in the plane */
+
+class PrismGaussLegendreIntegrationPointsInAxis1
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(PrismGaussLegendreIntegrationPointsInAxis1);
+
+    using SizeType = std::size_t;
+
+    static const unsigned int Dimension = 3;
+
+    using IntegrationPointType = IntegrationPoint<3>;
+
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 11>;
+
+    using PointType = IntegrationPointType::PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 2;
+    }
+
+    static const IntegrationPointsArrayType& IntegrationPoints();
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Prism Gauss-Legendre quadrature 2, 1 point in plane";
+        return buffer.str();
+    }
+}; // Class PrismGaussLegendreIntegrationPointsInAxis1
+
+class PrismGaussLegendreIntegrationPointsInAxis2
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(PrismGaussLegendreIntegrationPointsInAxis2);
+
+    using SizeType = std::size_t;
+
+    static const unsigned int Dimension = 3;
+
+    using IntegrationPointType = IntegrationPoint<3>;
+
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 11>;
+
+    using PointType = IntegrationPointType::PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 3;
+    }
+
+    static const IntegrationPointsArrayType& IntegrationPoints();
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Prism Gauss-Legendre quadrature 3, 1 point in plane";
+        return buffer.str();
+    }
+}; // Class PrismGaussLegendreIntegrationPointsInAxis2
+
+class PrismGaussLegendreIntegrationPointsInAxis3
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(PrismGaussLegendreIntegrationPointsInAxis3);
+
+    using SizeType = std::size_t;
+
+    static const unsigned int Dimension = 3;
+
+    using IntegrationPointType = IntegrationPoint<3>;
+
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 11>;
+
+    using PointType = IntegrationPointType::PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 5;
+    }
+
+    static const IntegrationPointsArrayType& IntegrationPoints();
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Prism Gauss-Legendre quadrature 5, 1 point in plane";
+        return buffer.str();
+    }
+}; // Class PrismGaussLegendreIntegrationPointsInAxis3
+
+class PrismGaussLegendreIntegrationPointsInAxis4
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(PrismGaussLegendreIntegrationPointsInAxis4);
+
+    using SizeType = std::size_t;
+
+    static const unsigned int Dimension = 3;
+
+    using IntegrationPointType = IntegrationPoint<3>;
+
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 11>;
+
+    using PointType = IntegrationPointType::PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 7;
+    }
+
+    static const IntegrationPointsArrayType& IntegrationPoints();
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Prism Gauss-Legendre quadrature 7, 1 point in plane";
+        return buffer.str();
+    }
+}; // Class PrismGaussLegendreIntegrationPointsInAxis4
+
+class PrismGaussLegendreIntegrationPointsInAxis5
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(PrismGaussLegendreIntegrationPointsInAxis5);
+
+    using SizeType = std::size_t;
+
+    static const unsigned int Dimension = 3;
+
+    using IntegrationPointType = IntegrationPoint<3>;
+
+    using IntegrationPointsArrayType = std::array<IntegrationPointType, 11>;
+
+    using PointType = IntegrationPointType::PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 11;
+    }
+
+    static const IntegrationPointsArrayType& IntegrationPoints();
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Prism Gauss-Legendre quadrature 11, 1 point in plane";
+        return buffer.str();
+    }
+}; // Class PrismGaussLegendreIntegrationPointsInAxis5
 
 ///@}
 ///@name Type Definitions
 ///@{
+
 ///@}
 ///@name Input and output
 ///@{
-///@}
 
+///@}
 } // namespace Kratos.
