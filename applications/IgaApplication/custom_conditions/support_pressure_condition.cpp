@@ -99,7 +99,7 @@ void SupportPressureCondition::CalculateRightHandSide(
         }
         
         // Neumann condition for the velocity
-        Vector t_N = this->GetValue(VELOCITY_COMPONENT_GRADIENT);
+        Vector t_N = this->GetValue(NORMAL_STRESS);
 
         for (IndexType idim = 0; idim < mDim; idim++) {
             rRightHandSideVector((mDim+1)*j+idim) += N(0,j) * t_N[idim] * mIntegrationWeight;

@@ -32,8 +32,10 @@ namespace
         auto p_quadrature_point = TestCreationUtility::GetQuadraturePointGeometryOnCurve(
             rModelPart, PolynomialDegree, IntegrationPoint);
         p_quadrature_point->SetValue(PRESSURE, 2500.0);
-        p_quadrature_point->SetValue(VELOCITY_COMPONENT_GRADIENT_X, 1000.0);
-        p_quadrature_point->SetValue(VELOCITY_COMPONENT_GRADIENT_Y, -1000.0);
+        Vector normal_stress = ZeroVector(2);
+        normal_stress[0] = 1000.0; // Normal stress in x-direction
+        normal_stress[1] = -1000.0; // Normal stress in y-direction
+        p_quadrature_point->SetValue(NORMAL_STRESS, normal_stress);
 
         Vector mesh_size(2); 
         mesh_size[0] = 0.1;  
