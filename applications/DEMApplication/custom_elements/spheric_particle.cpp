@@ -72,6 +72,8 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
 SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes)
     : DiscreteElement(NewId, ThisNodes), mRealMass(0)
 {
+    std::cout << "here" << std::endl;
+    exit(0);
     mRadius = 0;
     mRealMass = 0;
     mStressTensor = NULL;

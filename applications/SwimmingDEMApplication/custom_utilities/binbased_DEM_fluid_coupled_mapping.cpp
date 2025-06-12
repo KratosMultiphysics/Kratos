@@ -66,7 +66,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
         exit(1);
     }
 
-    #pragma omp parallel for firstprivate(results, shape_function_values_at_point)
+    // #pragma omp parallel for firstprivate(results, shape_function_values_at_point)
     for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); ++i){
         NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
         Node::Pointer p_particle = *(i_particle.base());
@@ -1399,7 +1399,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
 {
     // Geometry of the element of the origin model part
     Geometry<Node >& geom = p_elem->GetGeometry();
-    double NumNodes = geom.size();
+    unsigned int NumNodes = geom.size();
     Vector N_fast = ZeroVector(NumNodes);
 
     N_fast[NumNodes-1] = 1.0;
