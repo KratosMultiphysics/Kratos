@@ -14,6 +14,7 @@ from truss_element_tests import TrussElementTests as TTrussElementTests
 from test_solid_IGA_element import test_SolidIGAElementP3 as TSolidIGAElementP3
 # Structural Conditions test - python based
 from applications.IgaApplication.tests.test_support_solid_IGA_condition import test_SupportSolidIGAConditionP3 as TSupportSolidIGAConditionP3
+from applications.IgaApplication.tests.test_support_simmetry_solid_IGA_condition import test_SupportSimmetrySolidIGAConditionP3 as TSupportSimmetrySolidIGAConditionP3
 from applications.IgaApplication.tests.test_load_solid_IGA_condition import test_LoadSolidIGAConditionP3 as TLoadSolidIGAConditionP3
 # Membrane tests
 from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
@@ -79,6 +80,7 @@ def AssembleTestSuites():
         TSolidIGAElementP3,
         # Structural Conditions tests
         TSupportSolidIGAConditionP3,
+        TSupportSimmetrySolidIGAConditionP3,
         TLoadSolidIGAConditionP3,
         # Membrane tests
         MembraneSinglePatchFourPointSailLinearStatic,

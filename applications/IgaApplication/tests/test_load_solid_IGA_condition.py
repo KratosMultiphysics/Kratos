@@ -22,7 +22,7 @@ class TestLoadSolidIGACondition(KratosUnittest.TestCase):
         geometry = TestCreationUtility.GetQuadraturePointGeometryOnCurve(model_part, degree, integration_point)
 
         # Create the condition and add it to the model part
-        condition = model_part.CreateNewCondition("LoadSolidIGACondition", 1, geometry, props)
+        condition = model_part.CreateNewCondition("LoadSolidCondition", 1, geometry, props)
 
         force_vector = KM.Vector(3)
         force_vector[0] = -12.0
