@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "containers/model.h"
 #include "includes/variables.h"
 #include "includes/debug_helpers.h"
@@ -110,7 +110,7 @@ void ConductShellDampingMatrixTest(std::string const& rElementName, const Matrix
     //     }
     // }
 
-    KRATOS_CHECK_MATRIX_NEAR(lhs, rRefMatrix, 1e-8);
+    KRATOS_EXPECT_MATRIX_NEAR(lhs, rRefMatrix, 1e-8);
 
     KRATOS_CATCH("ConductShellDampingMatrixTest");
 }
@@ -142,7 +142,7 @@ void ConductShellMassMatrixTest(std::string const& rElementName, const Matrix& r
     //     }
     // }
 
-    KRATOS_CHECK_MATRIX_NEAR(lhs, rRefMatrix, 1e-8);
+    KRATOS_EXPECT_MATRIX_NEAR(lhs, rRefMatrix, 1e-8);
 
     KRATOS_CATCH("ConductShellMassMatrixTest");
 }

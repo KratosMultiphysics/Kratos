@@ -14,6 +14,7 @@
 #define KRATOS_DIVIDE_TRIANGLE_2D_3_UTILS
 
 // System includes
+#include <bitset>
 
 // External includes
 
@@ -163,7 +164,7 @@ public:
     virtual IndexedPointGeometryPointerType GenerateIntersectionLine(
         const int I0,
         const int I1);
-    
+
 private:
     ///@name Static Member Variables
     ///@{
@@ -171,6 +172,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    std::bitset<3> mNodeIsCut{0x0}; // If the cut passes through a node, store this information here
 
     ///@}
     ///@name Serialization
@@ -191,6 +194,8 @@ private:
     ///@}
     ///@name Private Inquiry
     ///@{
+
+    bool NodeIsInterface(int NodeKey) const;
 
     ///@}
     ///@name Un accessible methods

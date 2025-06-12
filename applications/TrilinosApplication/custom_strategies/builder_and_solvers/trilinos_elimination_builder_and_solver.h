@@ -617,7 +617,7 @@ public:
                 {
                     unsigned int key = remote_keys[i_color][counter++];
 
-                    Node<3>::DofsContainerType::iterator i_dof;
+                    Node::DofsContainerType::iterator i_dof;
                     for (i_dof = it->GetDofs().begin() ; i_dof !=  it->GetDofs().end() ; i_dof++)
                         if ((*i_dof)->GetVariable().Key() == key)
                             break;
@@ -727,7 +727,7 @@ public:
                 {
                     unsigned int key = remote_keys[i_color][counter++];
 
-                    Node<3>::DofsContainerType::iterator i_dof;
+                    Node::DofsContainerType::iterator i_dof;
                     for (i_dof = it->GetDofs().begin() ; i_dof !=  it->GetDofs().end() ; i_dof++)
                         if ((*i_dof)->GetVariable().Key() == key)
                             break;

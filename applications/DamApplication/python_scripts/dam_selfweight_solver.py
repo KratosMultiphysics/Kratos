@@ -105,13 +105,14 @@ class DamSelfweightSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         # Add variables for post-processing
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_CAUCHY_STRESS_TENSOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.INITIAL_NODAL_CAUCHY_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Vi_POSITIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Viii_POSITIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_YOUNG_MODULUS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.INITIAL_STRESS_TENSOR)
 
         ## Thermal variables
         thermal_settings = KratosMultiphysics.ConvectionDiffusionSettings()
@@ -227,7 +228,7 @@ class DamSelfweightSolver(object):
 
         self.Selfweight_Solver.Solve()
 
-    # solve :: sequencial calls
+    # solve :: sequential calls
 
     def InitializeStrategy(self):
         if self.settings["mechanical_solver_settings"]["clear_storage"].GetBool():
@@ -247,7 +248,7 @@ class DamSelfweightSolver(object):
     def FinalizeSolutionStep(self):
         self.Selfweight_Solver.FinalizeSolutionStep()
 
-    # solve :: sequencial calls
+    # solve :: sequential calls
 
     def SetEchoLevel(self, level):
 

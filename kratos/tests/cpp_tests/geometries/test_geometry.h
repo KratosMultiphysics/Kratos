@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
 //                   Vicente Mataix Ferrandiz
@@ -31,7 +31,7 @@ namespace Kratos {
 namespace Testing {
 
     // Adding some typedef
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;

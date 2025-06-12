@@ -308,10 +308,10 @@ class GenericConstitutiveLawIntegratorDamage
      */
     static void GetInitialUniaxialThreshold(
         ConstitutiveLaw::Parameters& rValues,
-        double& rThreshold
+        double& rInitialThreshold
         )
     {
-        TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, rThreshold);
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, rInitialThreshold);
     }
 
     /**
@@ -327,11 +327,11 @@ class GenericConstitutiveLawIntegratorDamage
     /**
      * @brief This method returns the derivative of the yield surface
      * @param rStressVector The stress vector
-     * @param rFlux The derivative of the yield surface
+     * @param rYieldDerivative The derivative of the yield surface
      */
     static void CalculateYieldSurfaceDerivative(
         const array_1d<double, VoigtSize>& rStressVector,
-        array_1d<double, VoigtSize>& rFlux,
+        array_1d<double, VoigtSize>& rYieldDerivative,
         ConstitutiveLaw::Parameters& rValues
     )
     {
@@ -339,7 +339,7 @@ class GenericConstitutiveLawIntegratorDamage
         double J2;
         const double I1 = rStressVector[0] + rStressVector[1] + rStressVector[2];
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rStressVector, I1, deviator, J2);
-        YieldSurfaceType::CalculateYieldSurfaceDerivative(rStressVector, deviator, J2, rFlux, rValues);
+        YieldSurfaceType::CalculateYieldSurfaceDerivative(rStressVector, deviator, J2, rYieldDerivative, rValues);
     }
 
     ///@}

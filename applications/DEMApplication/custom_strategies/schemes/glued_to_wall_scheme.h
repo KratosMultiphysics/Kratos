@@ -51,8 +51,8 @@ namespace Kratos {
         void SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override;
         void SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
-        void Move(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) override;
-        void Rotate(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) override;
+        void Move(Node & i, const double delta_t, const double force_reduction_factor, const int StepFlag) override;
+        void Rotate(Node & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) override;
 
         Condition* pGetCondition() {
             return mCondition;

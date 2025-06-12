@@ -84,16 +84,16 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
 
 void  AddContainersToPython(pybind11::module& m)
 {
-    typedef Variable<array_1d<double, 3> > Array1DVariable3;
-    typedef Variable<array_1d<double, 4> > Array1DVariable4;
-    typedef Variable<array_1d<double, 6> > Array1DVariable6;
-    typedef Variable<array_1d<double, 9> > Array1DVariable9;
+    using Array1DVariable3 = Variable<array_1d<double, 3> >;
+    using Array1DVariable4 = Variable<array_1d<double, 4> >;
+    using Array1DVariable6 = Variable<array_1d<double, 6> >;
+    using Array1DVariable9 = Variable<array_1d<double, 9> >;
 
     py::class_<VariableData>(m, "VariableData" )
     .def("Name", &VariableData::Name, py::return_value_policy::copy)
     .def("Key", &VariableData::Key)
     .def("GetSourceVariable", &VariableData::GetSourceVariable)
-    .def("GetComponentIndex()", &VariableData::GetComponentIndex)
+    .def("GetComponentIndex", &VariableData::GetComponentIndex)
     .def("IsComponent", &VariableData::IsComponent)
     .def("__str__", PrintObject<VariableData>)
     ;
@@ -299,6 +299,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VISCOSITY_WATER )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ERROR_RATIO )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TIME_STEPS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PENALTY_COEFFICIENT )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SCALAR_LAGRANGE_MULTIPLIER )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TIME_INTEGRATION_THETA )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SHAPE_FUNCTIONS_VECTOR)
@@ -316,6 +317,9 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ACCELERATION )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, VELOCITY )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DISPLACEMENT )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DISPLACEMENT_SUBSCALE )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DISPLACEMENT_PROJECTION )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DISPLACEMENT_PROJECTION_REACTION )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ROTATION )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DELTA_ROTATION )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, REACTION_MOMENT )
@@ -371,6 +375,9 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, KINETIC_ENERGY )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VOLUMETRIC_STRAIN )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VOLUMETRIC_STRAIN_SUBSCALE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VOLUMETRIC_STRAIN_PROJECTION )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VOLUMETRIC_STRAIN_PROJECTION_REACTION )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOCAL_INERTIA_TENSOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOCAL_AXES_MATRIX )

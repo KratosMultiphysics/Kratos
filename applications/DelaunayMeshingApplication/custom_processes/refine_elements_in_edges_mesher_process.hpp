@@ -99,12 +99,12 @@ class RefineElementsInEdgesMesherProcess
       this->SelectFullBoundaryEdgedElements(mrModelPart, BoundaryEdgedElements);
 
       //2.- Select Inside Faces to refine
-      std::vector<Geometry< Node<3> > > ListOfFacesToSplit;
+      std::vector<Geometry< Node > > ListOfFacesToSplit;
       this->SelectFacesToSplit(BoundaryEdgedElements,ListOfFacesToSplit);
 
 
       //3.- Create and insert new nodes
-      std::vector<Node<3>::Pointer>  ListOfNewNodes;
+      std::vector<Node::Pointer>  ListOfNewNodes;
       this->GenerateNewNodes(mrModelPart,ListOfNewNodes,ListOfFacesToSplit);
 
       //4.- Insert new nodes to model part
@@ -186,7 +186,7 @@ class RefineElementsInEdgesMesherProcess
     ModelPart::ElementsContainerType& rElements = rModelPart.Elements();
     for(auto i_elem(rElements.begin()); i_elem != rElements.end(); ++i_elem)
     {
-      Geometry< Node<3> >& rGeometry = i_elem->GetGeometry();
+      Geometry< Node >& rGeometry = i_elem->GetGeometry();
 
       is_full_boundary = true;
       for(unsigned int i=0; i<rGeometry.size(); ++i)
@@ -207,7 +207,7 @@ class RefineElementsInEdgesMesherProcess
   }
 
   void SelectFacesToSplit(ModelPart::ElementsContainerType& rBoundaryEdgedElements,
-                          std::vector<Geometry< Node<3> > >& rListOfFacesToSplit)
+                          std::vector<Geometry< Node > >& rListOfFacesToSplit)
   {
     KRATOS_TRY
 
@@ -226,7 +226,7 @@ class RefineElementsInEdgesMesherProcess
         {
           accepted_face = true;
 
-          Geometry< Node<3> >& rGeometry = i_elem.GetGeometry();
+          Geometry< Node >& rGeometry = i_elem.GetGeometry();
 
           rGeometry.NodesInFaces(lpofa);
           rGeometry.NumberNodesInFaces(lnofa);
@@ -276,7 +276,7 @@ class RefineElementsInEdgesMesherProcess
           }
 
           if( accepted_face ){
-            Geometry<Node<3> > InsideFace(FaceNodes);
+            Geometry<Node > InsideFace(FaceNodes);
             rListOfFacesToSplit.push_back(InsideFace);
 
             //set TO_SPLIT to make the insertion unique
@@ -306,8 +306,8 @@ class RefineElementsInEdgesMesherProcess
   }
 
   void GenerateNewNodes(ModelPart& rModelPart,
-                        std::vector<Node<3>::Pointer>& rListOfNewNodes,
-                        std::vector<Geometry<Node<3> > >& rListOfFacesToSplit)
+                        std::vector<Node::Pointer>& rListOfNewNodes,
+                        std::vector<Geometry<Node > >& rListOfFacesToSplit)
   {
     KRATOS_TRY
 
@@ -315,7 +315,7 @@ class RefineElementsInEdgesMesherProcess
 
     MeshDataTransferUtilities DataTransferUtilities;
 
-    Node<3>::Pointer pNode;
+    Node::Pointer pNode;
 
     //center
     double xc = 0;
@@ -326,7 +326,7 @@ class RefineElementsInEdgesMesherProcess
     double radius = 0;
 
     //assign data to dofs
-    Node<3>::DofsContainerType& ReferenceDofs = rModelPart.Nodes().front().GetDofs();
+    Node::DofsContainerType& ReferenceDofs = rModelPart.Nodes().front().GetDofs();
 
     VariablesList& VariablesList = rModelPart.GetNodalSolutionStepVariablesList();
 
@@ -357,7 +357,7 @@ class RefineElementsInEdgesMesherProcess
 
 
       //create a new node
-      pNode = Kratos::make_intrusive< Node<3> >( id, xc, yc, zc );
+      pNode = Kratos::make_intrusive< Node >( id, xc, yc, zc );
 
       //giving model part variables list to the node
       pNode->SetSolutionStepVariablesList(&VariablesList);
@@ -368,8 +368,8 @@ class RefineElementsInEdgesMesherProcess
       //generating the dofs
       for(auto& i_dof : ReferenceDofs)
       {
-        Node<3>::DofType& rDof = *i_dof;
-        Node<3>::DofType::Pointer pNewDof = pNode->pAddDof( rDof );
+        Node::DofType& rDof = *i_dof;
+        Node::DofType::Pointer pNewDof = pNode->pAddDof( rDof );
 
         // in rigid edges set it fix has no sense:
         (pNewDof)->FreeDof();
@@ -421,7 +421,7 @@ class RefineElementsInEdgesMesherProcess
     KRATOS_CATCH( "" )
   }
 
-  void SetNewNodeVariables(ModelPart& rModelPart, Node<3>::Pointer& pNode)
+  void SetNewNodeVariables(ModelPart& rModelPart, Node::Pointer& pNode)
   {
     KRATOS_TRY
 
@@ -445,7 +445,7 @@ class RefineElementsInEdgesMesherProcess
     KRATOS_CATCH( "" )
   }
 
-  void SetNodesToModelPart(ModelPart& rModelPart, std::vector<Node<3>::Pointer>& rListOfNewNodes)
+  void SetNodesToModelPart(ModelPart& rModelPart, std::vector<Node::Pointer>& rListOfNewNodes)
   {
     KRATOS_TRY
 

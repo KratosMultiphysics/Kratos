@@ -12,9 +12,9 @@
 
 // System includes
 #include <algorithm>
-#include <thread>
 #include <chrono>
 #include <set>
+#include <thread>
 
 // External includes
 

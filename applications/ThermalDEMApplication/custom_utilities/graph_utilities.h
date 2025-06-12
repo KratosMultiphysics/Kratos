@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#ifndef GRAPH_UTILITIES_H_INCLUDED
-#define	GRAPH_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 #include <iostream>
@@ -32,44 +31,59 @@ namespace Kratos
       ~GraphUtilities();
 
       // Public methods
-      void ExecuteInitialize(bool ParticleTempMin,
+      void ExecuteInitialize(bool ParticleTempAll,
+                             bool ParticleTempMin,
                              bool ParticleTempMax,
                              bool ParticleTempAvg,
+                             bool ParticleTempAvgVol,
                              bool ParticleTempDev,
-                             bool ModelTempAvg,
-                             bool ParticleHeatFluxContributions,
-                             bool ParticleHeatGenContributions,
-                             bool ParticleEnergyContributions);
+                             bool EnergyMechanical,
+                             bool EnergyDissipated,
+                             bool EnergyThermal,
+                             bool HeatFluxContributions,
+                             bool HeatGenValues,
+                             bool HeatGenContributions);
       void ExecuteFinalizeSolutionStep(ModelPart& rModelPart);
       void ExecuteFinalize(void);
 
     protected:
 
       // Protected attributes
+      bool mGraph_ParticleTempAll;
       bool mGraph_ParticleTempMin;
       bool mGraph_ParticleTempMax;
       bool mGraph_ParticleTempAvg;
+      bool mGraph_ParticleTempAvgVol;
       bool mGraph_ParticleTempDev;
-      bool mGraph_ModelTempAvg;
-      bool mGraph_ParticleHeatFluxContributions;
-      bool mGraph_ParticleHeatGenContributions;
-      bool mGraph_ParticleEnergyContributions;
+      bool mGraph_EnergyMechanical;
+      bool mGraph_EnergyDissipated;
+      bool mGraph_EnergyThermal;
+      bool mGraph_HeatFluxContributions;
+      bool mGraph_HeatGenValues;
+      bool mGraph_HeatGenContributions;
 
-      std::ofstream mFile_ParticleTempMin;
-      std::ofstream mFile_ParticleTempMax;
-      std::ofstream mFile_ParticleTempAvg;
-      std::ofstream mFile_ParticleTempDev;
-      std::ofstream mFile_ModelTempAvg;
-      std::ofstream mFile_ParticleHeatFluxContributions;
-      std::ofstream mFile_ParticleHeatGenContributions;
-      std::ofstream mFile_ParticleEnergyContributions;
+      std::ofstream mFile_ParticleTempAll;        // Temperature of all particles
+      std::ofstream mFile_ParticleTempMin;        // Minimum particle temperature
+      std::ofstream mFile_ParticleTempMax;        // Maximum particle temperature
+      std::ofstream mFile_ParticleTempAvg;        // Average particle temperature
+      std::ofstream mFile_ParticleTempAvgVol;     // Volume-average particle temperature
+      std::ofstream mFile_ParticleTempDev;        // Std dev particle temperature
+      std::ofstream mFile_EnergyMechanical;       // Mechanical energy components (current)
+      std::ofstream mFile_EnergyDissipated;       // Dissipated energy components (accumulated)
+      std::ofstream mFile_EnergyThermal;          // Accumulated thermal energy generation components (U[J]=Q[W]*t[s])
+      std::ofstream mFile_HeatFluxContributions;  // Relative contributions of heat flux components
+      std::ofstream mFile_HeatGenValues;          // Current values of heat generation components (Q[W])
+      std::ofstream mFile_HeatGenContributions;   // Relative contributions of current values heat generation components (%)
 
     private:
+
+      // Private methods
+      void OpenFiles(void);
+      void CloseFiles(void);
+      void WriteGraphs(ModelPart& rModelPart);
 
       // Assignment operator
       GraphUtilities& operator=(GraphUtilities const& rOther);
 
   }; // Class GraphUtilities
 } // namespace Kratos
-
-#endif // GRAPH_UTILITIES_H_INCLUDED

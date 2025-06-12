@@ -1,7 +1,7 @@
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 class FluidAnalysisWithoutSolution(FluidDynamicsAnalysis):
-    """A fluid dynamics analyis variant that skips calls to solver.Predict() and solver.SolveSolutionStep().
+    """A fluid dynamics analysis variant that skips calls to solver.Predict() and solver.SolveSolutionStep().
        To be used in testing, it allows skipping the actual solution of the problem.
     """
 

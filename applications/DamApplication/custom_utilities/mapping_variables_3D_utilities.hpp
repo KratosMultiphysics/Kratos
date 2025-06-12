@@ -533,7 +533,6 @@ private:
         UtilityVariables& rAuxVariables,
         ModelPart& rModelPart)
     {
-
         // Compute X, Y and Z limits of the current geometry
         unsigned int NumThreads = ParallelUtilities::GetNumThreads();
         std::vector<double> X_max_partition(NumThreads);

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 license: HDF5Application/license.txt
+//  License:        BSD License
+//                  license: HDF5Application/license.txt
 //
 //  Main author:    Michael Andre, https://github.com/msandre
 //
@@ -14,8 +14,7 @@
  *  @brief Methods for storing and retrieving a data value container in an HDF5 file.
  */
 
-#if !defined(KRATOS_HDF5_DATA_VALUE_CONTAINER_IO_H_INCLUDED)
-#define KRATOS_HDF5_DATA_VALUE_CONTAINER_IO_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -37,13 +36,17 @@ namespace Internals
 ///@addtogroup HDF5Application
 ///@{
 
-void KRATOS_API(HDF5_APPLICATION) ReadDataValueContainer(File& rFile, std::string const& rPrefix, DataValueContainer& rData);
+void KRATOS_API(HDF5_APPLICATION) ReadDataValueContainer(
+    File& rFile,
+    const std::string& rPrefix,
+    DataValueContainer& rData);
 
-void KRATOS_API(HDF5_APPLICATION) WriteDataValueContainer(File& rFile, std::string const& rPrefix, DataValueContainer const& rData);
+void KRATOS_API(HDF5_APPLICATION) WriteDataValueContainer(
+    File& rFile,
+    const std::string& rPrefix,
+    const DataValueContainer& rData);
 
-///@} addtogroup
+///@}
 } // namespace Internals.
 } // namespace HDF5.
 } // namespace Kratos.
-
-#endif // KRATOS_HDF5_DATA_VALUE_CONTAINER_IO_H_INCLUDED defined

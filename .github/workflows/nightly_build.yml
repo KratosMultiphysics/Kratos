@@ -6,7 +6,7 @@ on:
     - '.github/workflows/nightly_build.yml'
     - '.github/workflows/configure.sh'
     - '.github/workflows/configure.cmd'
-    - '.github/workflows/centos_configure.sh'
+    - '.github/workflows/rocky_configure.sh'
 
   schedule:
     - cron:  '0 1 * * *'
@@ -31,15 +31,16 @@ jobs:
         compiler: [gcc, clang]
     env:
       KRATOS_BUILD_TYPE: Release
-      OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
-      OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
+      KRATOS_CI_CORES: 4                              # Current limits are 4 CPU and 16 GB Ram
+      OMPI_MCA_rmaps_base_oversubscribe: 1            # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
+      OMPI_MCA_btl_vader_single_copy_mechanism: none  # suppressing some annoying OpenMPI messages
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Installing dependencies
       shell: bash
@@ -52,19 +53,90 @@ jobs:
         if [ ${{ matrix.compiler }} = gcc ]; then
           export CC=/usr/bin/gcc-12
           export CXX=/usr/bin/g++-12
-          export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF"
           export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=/usr/bin/clang-14
           export CXX=/usr/bin/clang++-14
-          export KRATOS_CMAKE_OPTIONS_FLAGS="-DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/"
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF"
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
         fi
         source /opt/intel/oneapi/setvars.sh
-        cp .github/workflows/configure.sh configure.sh # maybe use different configure script in the future
+        cp .github/workflows/configure_core.sh configure.sh
         bash configure.sh
+        rm -r ${GITHUB_WORKSPACE}/build
+
+    - name: Build Dependencies
+      shell: bash
+      run: |
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export CC=/usr/bin/gcc-12
+          export CXX=/usr/bin/g++-12
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
+          export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers"
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export CC=/usr/bin/clang-14
+          export CXX=/usr/bin/clang++-14
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/" 
+        else
+          echo 'Unsupported compiler: ${{ matrix.compiler }}'
+          exit 1
+        fi
+        source /opt/intel/oneapi/setvars.sh
+        cp .github/workflows/configure_dependencies.sh configure.sh
+        bash configure.sh
+        rm -r ${GITHUB_WORKSPACE}/build
+
+    - name: Build Core Apps
+      shell: bash
+      run: |
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export CC=/usr/bin/gcc-12
+          export CXX=/usr/bin/g++-12
+          export KRATOS_CMAKE_OPTIONS_FLAGS=""
+          export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers"
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export CC=/usr/bin/clang-14
+          export CXX=/usr/bin/clang++-14
+          export KRATOS_CMAKE_OPTIONS_FLAGS=""
+        else
+          echo 'Unsupported compiler: ${{ matrix.compiler }}'
+          exit 1
+        fi
+        source /opt/intel/oneapi/setvars.sh
+        cp .github/workflows/configure_core_applications.sh configure.sh
+        bash configure.sh
+        rm -r ${GITHUB_WORKSPACE}/build
+
+    - name: Build Research Apps
+      shell: bash
+      run: |
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export CC=/usr/bin/gcc-12
+          export CXX=/usr/bin/g++-12
+          export KRATOS_CMAKE_OPTIONS_FLAGS=""
+          export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers"
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export CC=/usr/bin/clang-14
+          export CXX=/usr/bin/clang++-14
+          export KRATOS_CMAKE_OPTIONS_FLAGS=""
+        else
+          echo 'Unsupported compiler: ${{ matrix.compiler }}'
+          exit 1
+        fi
+        source /opt/intel/oneapi/setvars.sh
+        cp .github/workflows/configure_research_applications.sh configure.sh
+        bash configure.sh
+        rm -r ${GITHUB_WORKSPACE}/build       
+
+    - name: Running C++ tests
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
+        python3 kratos/python_scripts/testing/run_cpp_tests.py
 
     - name: Running tests
       shell: bash
@@ -72,7 +144,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
-        python3 kratos/python_scripts/testing/run_tests.py -l nightly -c python3
+        python3 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3
 
     - name: Running Python MPI tests (2 Cores)
       shell: bash
@@ -81,7 +153,7 @@ jobs:
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 2
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 2
 
     - name: Running Python MPI tests (3 Cores)
       shell: bash
@@ -90,7 +162,7 @@ jobs:
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 3
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 3
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
@@ -99,24 +171,24 @@ jobs:
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 4
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4
 
 
   windows-nightly:
-    runs-on: windows-2022
+    runs-on: windows-2019
     env:
       KRATOS_BUILD_TYPE: Custom
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.8'
 
     - name: Download boost
       run: |
-        $url = "https://boostorg.jfrog.io/artifactory/main/release/1.74.0/source/boost_1_74_0.tar.gz"
+        $url = "https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.gz"
         (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
         7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
         7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
@@ -136,20 +208,26 @@ jobs:
         copy .\.github\workflows\configure.cmd
         configure.cmd
 
+    - name: Running C++ tests
+      run: |
+        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+        python kratos/python_scripts/testing/run_cpp_tests.py
+
     - name: Running nightly tests
       shell: cmd
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/python_scripts/testing/run_tests.py -l nightly -c python
+        python kratos/python_scripts/testing/run_python_tests.py -l nightly -c python
 
-  centos-nightly:
+  rocky-nightly:
     runs-on: ubuntu-latest
     env:
       KRATOS_BUILD_TYPE: Custom
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-centos7:latest
+      image: kratosmultiphysics/kratos-image-ci-rockylinux-8:latest
       options: --user 1001
 
     steps:
@@ -162,11 +240,17 @@ jobs:
 
     - name: Build
       run: |
-        cp .github/workflows/centos_configure.sh centos_configure.sh
-        bash centos_configure.sh
+        cp .github/workflows/rocky_configure.sh rocky_configure.sh
+        bash rocky_configure.sh
+
+    - name: Running C++ tests
+      run: |
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3.8 kratos/python_scripts/testing/run_cpp_tests.py
 
     - name: Running nightly tests
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3.8 kratos/python_scripts/testing/run_tests.py -l nightly -c python3.8
+        python3.8 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3.8

@@ -2,7 +2,7 @@
 // this_coro.hpp
 // ~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2021 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -73,7 +73,7 @@ __declspec(selectany) cancellation_state_t cancellation_state;
 /// of the current coroutine.
 /**
  * Let <tt>P</tt> be the cancellation slot associated with the current
- * coroutine's `co_spawn` completion handler. Assigns a new
+ * coroutine's @ref co_spawn completion handler. Assigns a new
  * asio::cancellation_state object <tt>S</tt>, constructed as
  * <tt>S(P)</tt>, into the current coroutine's cancellation state object.
  *
@@ -95,7 +95,7 @@ reset_cancellation_state();
 /// of the current coroutine.
 /**
  * Let <tt>P</tt> be the cancellation slot associated with the current
- * coroutine's `co_spawn` completion handler. Assigns a new
+ * coroutine's @ref co_spawn completion handler. Assigns a new
  * asio::cancellation_state object <tt>S</tt>, constructed as <tt>S(P,
  * std::forward<Filter>(filter))</tt>, into the current coroutine's
  * cancellation state object.
@@ -120,7 +120,7 @@ reset_cancellation_state(ASIO_MOVE_ARG(Filter) filter);
 /// of the current coroutine.
 /**
  * Let <tt>P</tt> be the cancellation slot associated with the current
- * coroutine's `co_spawn` completion handler. Assigns a new
+ * coroutine's @ref co_spawn completion handler. Assigns a new
  * asio::cancellation_state object <tt>S</tt>, constructed as <tt>S(P,
  * std::forward<InFilter>(in_filter),
  * std::forward<OutFilter>(out_filter))</tt>, into the current coroutine's
@@ -193,9 +193,9 @@ template <typename Filter>
 struct reset_cancellation_state_1_t
 {
   template <typename F>
-  ASIO_CONSTEXPR reset_cancellation_state_1_t(
-      ASIO_MOVE_ARG(F) filter)
-    : filter(ASIO_MOVE_CAST(F)(filter))
+  explicit ASIO_CONSTEXPR reset_cancellation_state_1_t(
+      ASIO_MOVE_ARG(F) filt)
+    : filter(ASIO_MOVE_CAST(F)(filt))
   {
   }
 
@@ -216,9 +216,9 @@ struct reset_cancellation_state_2_t
 {
   template <typename F1, typename F2>
   ASIO_CONSTEXPR reset_cancellation_state_2_t(
-      ASIO_MOVE_ARG(F1) in_filter, ASIO_MOVE_ARG(F2) out_filter)
-    : in_filter(ASIO_MOVE_CAST(F1)(in_filter)),
-      out_filter(ASIO_MOVE_CAST(F2)(out_filter))
+      ASIO_MOVE_ARG(F1) in_filt, ASIO_MOVE_ARG(F2) out_filt)
+    : in_filter(ASIO_MOVE_CAST(F1)(in_filt)),
+      out_filter(ASIO_MOVE_CAST(F2)(out_filt))
   {
   }
 
@@ -256,8 +256,8 @@ throw_if_cancelled()
 
 struct throw_if_cancelled_1_t
 {
-  ASIO_CONSTEXPR throw_if_cancelled_1_t(bool value)
-    : value(value)
+  explicit ASIO_CONSTEXPR throw_if_cancelled_1_t(bool val)
+    : value(val)
   {
   }
 

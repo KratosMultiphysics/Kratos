@@ -7,19 +7,19 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla, Eduard Gómez
+//  Main authors:    Ruben Zorrilla
+//                   Eduard Gomez
 //
 //
 
-#if !defined(KRATOS_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA)
-#define KRATOS_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA
+#pragma once
 
-/* System includes */
+// System includes
 #include <numeric>
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "factories/factory.h"
@@ -68,24 +68,24 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // The base solving strategy class definition
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
+    /// The base solving strategy class definition
+    using SolvingStrategyType = SolvingStrategy<TSparseSpace, TDenseSpace>;
 
-    // The base class definition
-    typedef ExplicitSolvingStrategy<TSparseSpace, TDenseSpace> BaseType;
+    /// The base class definition
+    using BaseType = ExplicitSolvingStrategy<TSparseSpace, TDenseSpace>;
 
     /// The definition of the current class
-    typedef ExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, TButcherTableau> ClassType;
+    using ClassType = ExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, TButcherTableau>;
 
-    // The explicit builder and solver definition
-    typedef typename BaseType::ExplicitBuilderType ExplicitBuilderType;
+    /// The explicit builder and solver definition
+    using ExplicitBuilderType = typename BaseType::ExplicitBuilderType;
 
     /// The DOF type
-    typedef typename BaseType::DofType DofType;
+    using DofType = typename BaseType::DofType;
 
     /// The local vector definition
-    typedef typename TDenseSpace::VectorType LocalSystemVectorType;
-    typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
+    using LocalSystemVectorType = typename TDenseSpace::VectorType;
+    using LocalSystemMatrixType = typename TDenseSpace::MatrixType;
 
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolvingStrategyRungeKutta);
@@ -304,7 +304,7 @@ protected:
                 if (!it_dof->IsFixed()) {
                     const double mass = r_lumped_mass_vector(i_dof);
                     const MatrixRow<LocalSystemMatrixType> substeps_k = row(rk_K, i_dof);
-                    r_u = r_u_old + (dt / mass) * inner_prod(weights, substeps_k);
+                    r_u = r_u_old + (dt / mass) * std::inner_product(weights.begin(), weights.end(), substeps_k.begin(), 0.0);
                 } else {
                     r_u = u_n(i_dof);
                 }
@@ -366,7 +366,8 @@ protected:
 
         // Fetch this substeps's values from tableau
         const double integration_theta = mButcherTableau.GetIntegrationTheta(SubStepIndex);
-        const auto alphas = mButcherTableau.GetMatrixRow(SubStepIndex); // Runge kutta matrix row
+        const auto alphas_begin = mButcherTableau.GetMatrixRowBegin(SubStepIndex); // Runge kutta matrix row begin
+        const auto alphas_end = mButcherTableau.GetMatrixRowEnd(SubStepIndex); // Runge kutta matrix row end
 
         // Set the RUNGE_KUTTA_STEP value. This has to be done prior to the InitializeRungeKuttaStep()
         r_process_info.GetValue(RUNGE_KUTTA_STEP) = SubStepIndex;
@@ -388,7 +389,7 @@ protected:
                 if (!it_dof->IsFixed()) {
                     const double mass = r_lumped_mass_vector(i_dof);
                     const auto k = row(rIntermediateStepResidualVectors, i_dof);
-                    r_u = r_u_old + (dt / mass) * std::inner_product(alphas.begin, alphas.end, k.begin(), 0.0);
+                    r_u = r_u_old + (dt / mass) * std::inner_product(alphas_begin, alphas_end, k.begin(), 0.0);
                     /*                            ^~~~~~~~~~~~~~~~~~
                      * Using std::inner_product instead of boost's inner_prod because it allows us to
                      * chose a begin and, more importantly, an end.
@@ -522,5 +523,3 @@ using ExplicitSolvingStrategyRungeKutta1 = ExplicitSolvingStrategyRungeKutta<TSp
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA  defined */

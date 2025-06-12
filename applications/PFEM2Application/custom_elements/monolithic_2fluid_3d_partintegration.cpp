@@ -786,7 +786,7 @@ namespace Kratos
 		const unsigned int TDim=3;
 
 		double Area;
-		Geometry<Node<3> >& geom = this->GetGeometry();
+		Geometry<Node >& geom = this->GetGeometry();
 		BoundedMatrix<double, (TDim+1), TDim > DN_DX;
 		array_1d<double, (TDim+1) > N;
 		GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Area);
@@ -973,7 +973,7 @@ namespace Kratos
 			ExtendedDampMatrix += viscosities(division)*volumes(division)*prod(B_matrix, temp_matrix );
 		}
 
-		//now we put it all toghether in the big matrix:
+		//now we put it all together in the big matrix:
 		for (unsigned int i=0; i!=(5); i++) //4 nodes + 1dof in the new virtual node
 			for (unsigned int j=0; j!=(5); j++) //4 nodes + 1dof in the new virtual node
 				for (unsigned int k=0; k!=(3); k++) //x,y,(z)

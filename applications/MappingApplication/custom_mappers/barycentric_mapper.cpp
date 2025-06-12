@@ -22,7 +22,7 @@
 #include "mapping_application_variables.h"
 
 namespace Kratos {
-typedef Node<3> NodeType;
+typedef Node NodeType;
 typedef Geometry<NodeType> GeometryType;
 
 namespace { // anonymous namespace
@@ -216,7 +216,7 @@ void BarycentricInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInter
 
     mNumSearchResults++;
 
-    const Node<3>& r_node = *rInterfaceObject.pGetBaseNode();
+    const Node& r_node = *rInterfaceObject.pGetBaseNode();
 
     PointWithId point(
         r_node.GetValue(INTERFACE_EQUATION_ID),
@@ -262,7 +262,7 @@ void BarycentricLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 {
     KRATOS_TRY
 
-    KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
+    KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not initialized!" << std::endl;
 
     if (mInterfaceInfos.size() < 1) {
         ResizeToZero(rLocalMappingMatrix, rOriginIds, rDestinationIds, rPairingStatus);
@@ -332,7 +332,7 @@ void BarycentricLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 
 void BarycentricLocalSystem::PairingInfo(std::ostream& rOStream, const int EchoLevel) const
 {
-    KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
+    KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not initialized!" << std::endl;
 
     rOStream << "BarycentricLocalSystem based on " << mpNode->Info();
     if (EchoLevel > 3) {

@@ -12,12 +12,7 @@
 //
 //
 
-
-
-#if !defined(KRATOS_COMMUNICATOR_H_INCLUDED )
-#define  KRATOS_COMMUNICATOR_H_INCLUDED
-
-
+#pragma once
 
 // System includes
 #include <string>
@@ -81,7 +76,7 @@ public:
 
     typedef unsigned int SizeType;
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
 
     typedef Properties PropertiesType;
 
@@ -610,5 +605,3 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 
 
 } // namespace Kratos.
-
-#endif // KRATOS_COMMUNICATOR_H_INCLUDED  defined

@@ -156,7 +156,7 @@ class DamAnalysis(AnalysisStage):
 
         # Initialize processes
         for process in self_list_of_processes:
-            process.ExecuteInitialize()
+            process.ExecuteBeforeSolutionLoop()
 
         # Set TIME and DELTA_TIME and fill the previous steps of the buffer with the initial conditions
         self_time = self.time - (self.buffer_size-1) * self.delta_time
@@ -232,7 +232,7 @@ class DamAnalysis(AnalysisStage):
 
         # Initialize processes
         for self.process in self.list_of_processes:
-            self.process.ExecuteInitialize()
+            self.process.ExecuteBeforeSolutionLoop()
 
         for self.output_process in self.list_of_output_processes:
             self.output_process.ExecuteInitialize()
@@ -253,7 +253,7 @@ class DamAnalysis(AnalysisStage):
 
             if self.type_of_results == "Mechanical":
                 self.post_model_part_mechanical.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-                self.post_model_part_mechanical.AddNodalSolutionStepVariable(KratosDam.NODAL_CAUCHY_STRESS_TENSOR)
+                self.post_model_part_mechanical.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
                 self.aux_file_name_mechanical = self.file_name_mechanical.replace('.mdpa','')
                 KratosMultiphysics.ModelPartIO(self.aux_file_name_mechanical).ReadModelPart(self.post_model_part_mechanical)
 
@@ -269,7 +269,7 @@ class DamAnalysis(AnalysisStage):
 
             if self.type_of_results == "Thermo-Mechanical":
                 self.post_model_part_mechanical.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-                self.post_model_part_mechanical.AddNodalSolutionStepVariable(KratosDam.NODAL_CAUCHY_STRESS_TENSOR)
+                self.post_model_part_mechanical.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
                 self.aux_file_name_mechanical = self.file_name_mechanical.replace('.mdpa','')
                 KratosMultiphysics.ModelPartIO(self.aux_file_name_mechanical).ReadModelPart(self.post_model_part_mechanical)
 

@@ -39,7 +39,7 @@ public:
 
     typedef long double                                RealType;
 
-    typedef Node<3>                                    NodeType;
+    typedef Node                                    NodeType;
 
     typedef Geometry<NodeType>                     GeometryType;
 

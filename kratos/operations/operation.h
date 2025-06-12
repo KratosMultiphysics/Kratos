@@ -149,8 +149,8 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    KRATOS_REGISTRY_ADD_PROTOTYPE("Operations.KratosMultiphysics", Operation)
-    KRATOS_REGISTRY_ADD_PROTOTYPE("Operations.All", Operation)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Operations.KratosMultiphysics", Operation, Operation)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Operations.All", Operation, Operation)
 
     ///@}
 }; // Class Operation

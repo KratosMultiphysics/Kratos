@@ -76,11 +76,11 @@ void MonolithicAutoSlipInlet3D::GetDofList(DofsVectorType& rElementalDofList,
 }
 
 
-// protected funcions
+// protected functions
 
 void MonolithicAutoSlipInlet3D::CalculateNormal(array_1d<double,3>& An )
 {
-    Geometry<Node<3> >& pGeometry = this->GetGeometry();
+    Geometry<Node >& pGeometry = this->GetGeometry();
 
     array_1d<double,3> v1,v2;
     v1[0] = pGeometry[1].X() - pGeometry[0].X();

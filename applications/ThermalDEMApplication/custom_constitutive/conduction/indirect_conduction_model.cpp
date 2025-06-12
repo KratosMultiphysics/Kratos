@@ -14,7 +14,7 @@
 #include "indirect_conduction_model.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   IndirectConductionModel::IndirectConductionModel() {}
   IndirectConductionModel::~IndirectConductionModel() {}
 

@@ -41,14 +41,14 @@ void Bentonite_Force_Based_Inlet::FixInjectionConditions(Element* p_element, Ele
 
 void Bentonite_Force_Based_Inlet::UpdateInjectionForce(Element* p_element)
 {
-    Node<3>& node = p_element->GetGeometry()[0];
+    Node& node = p_element->GetGeometry()[0];
     node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = GetInjectionForce(p_element);
 }
 
 void Bentonite_Force_Based_Inlet::FixInjectorConditions(Element* p_element)
 {    //AddRandomPerpendicularComponentToGivenVector(mInjectionForce, 60); // the max angle should be an INPUT
 
-    Node<3>& node = p_element->GetGeometry()[0];
+    Node& node = p_element->GetGeometry()[0];
     node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = GetInjectionForce(p_element);
 }
 

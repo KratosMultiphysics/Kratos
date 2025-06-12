@@ -43,7 +43,7 @@ typedef ModelPart::NodesContainerType NodesContainerType;
 typedef ModelPart::ElementsContainerType ElementsContainerType;
 typedef ModelPart::MeshType::GeometryType::PointsArrayType PointsArrayType;
 
-typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
 typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
 ///@}
 ///@name  Enum's
@@ -223,7 +223,7 @@ public:
               if (dimension == 2)
               {
 
-                Triangle2D3<Node<3>> firstGeom(newNode, vertices(0), vertices(1));
+                Triangle2D3<Node> firstGeom(newNode, vertices(0), vertices(1));
                 rElementId = MesherUtilities::GetMaxElementId(mrModelPart) + 1;
                 Element::Pointer newElement = i_elem->Create(rElementId, firstGeom, pProp);
                 newElement->Set(ACTIVE, true);
@@ -232,7 +232,7 @@ public:
                 newElement->Initialize(rCurrentProcessInfo);
                 rComputingModelPart.AddElement(newElement);
 
-                Triangle2D3<Node<3>> secondGeom(newNode, vertices(2), vertices(0));
+                Triangle2D3<Node> secondGeom(newNode, vertices(2), vertices(0));
                 rElementId = MesherUtilities::GetMaxElementId(mrModelPart) + 1;
                 newElement = i_elem->Create(rElementId, secondGeom, pProp);
                 newElement->Set(ACTIVE, true);
@@ -241,7 +241,7 @@ public:
                 newElement->Initialize(rCurrentProcessInfo);
                 rComputingModelPart.AddElement(newElement);
 
-                Triangle2D3<Node<3>> thirdGeom(newNode, vertices(1), vertices(2));
+                Triangle2D3<Node> thirdGeom(newNode, vertices(1), vertices(2));
                 rElementId = MesherUtilities::GetMaxElementId(mrModelPart) + 1;
                 newElement = i_elem->Create(rElementId, thirdGeom, pProp);
                 newElement->Set(ACTIVE, true);
@@ -253,7 +253,7 @@ public:
               else if (dimension == 3)
               {
 
-                Tetrahedra3D4<Node<3>> firstGeom(newNode, vertices(1), vertices(2), vertices(3));
+                Tetrahedra3D4<Node> firstGeom(newNode, vertices(1), vertices(2), vertices(3));
                 rElementId = MesherUtilities::GetMaxElementId(mrModelPart) + 1;
                 Element::Pointer newElement = i_elem->Create(rElementId, firstGeom, pProp);
                 newElement->Set(ACTIVE, true);
@@ -262,7 +262,7 @@ public:
                 newElement->Initialize(rCurrentProcessInfo);
                 rComputingModelPart.AddElement(newElement);
 
-                Tetrahedra3D4<Node<3>> secondGeom(vertices(0), newNode, vertices(2), vertices(3));
+                Tetrahedra3D4<Node> secondGeom(vertices(0), newNode, vertices(2), vertices(3));
                 rElementId = MesherUtilities::GetMaxElementId(mrModelPart) + 1;
                 newElement = i_elem->Create(rElementId, secondGeom, pProp);
                 newElement->Set(ACTIVE, true);
@@ -271,7 +271,7 @@ public:
                 newElement->Initialize(rCurrentProcessInfo);
                 rComputingModelPart.AddElement(newElement);
 
-                Tetrahedra3D4<Node<3>> thirdGeom(vertices(0), vertices(1), newNode, vertices(3));
+                Tetrahedra3D4<Node> thirdGeom(vertices(0), vertices(1), newNode, vertices(3));
                 rElementId = MesherUtilities::GetMaxElementId(mrModelPart) + 1;
                 newElement = i_elem->Create(rElementId, thirdGeom, pProp);
                 newElement->Set(ACTIVE, true);
@@ -280,7 +280,7 @@ public:
                 newElement->Initialize(rCurrentProcessInfo);
                 rComputingModelPart.AddElement(newElement);
 
-                Tetrahedra3D4<Node<3>> fourthGeom(vertices(0), vertices(1), vertices(2), newNode);
+                Tetrahedra3D4<Node> fourthGeom(vertices(0), vertices(1), vertices(2), newNode);
                 rElementId = MesherUtilities::GetMaxElementId(mrModelPart) + 1;
                 newElement = i_elem->Create(rElementId, fourthGeom, pProp);
                 newElement->Set(ACTIVE, true);
@@ -363,7 +363,7 @@ public:
     for (ModelPart::NodeType::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
     {
       ModelPart::NodeType::DofType &rDof = **iii;
-      Node<3>::DofType::Pointer p_new_dof = newNode->pAddDof(rDof);
+      Node::DofType::Pointer p_new_dof = newNode->pAddDof(rDof);
       (p_new_dof)->FreeDof();
     }
 
@@ -395,7 +395,7 @@ public:
       NodeWeakPtrVectorType &rN = newNode->GetValue(NEIGHBOUR_NODES);
       for (unsigned int spn = 0; spn < numNodes; spn++)
       {
-        this->AddUniquePointer<Node<3>>(rN, i_elem->GetGeometry()(spn));
+        this->AddUniquePointer<Node>(rN, i_elem->GetGeometry()(spn));
       }
 
       i_mp->Nodes().push_back(newNode);

@@ -1,0 +1,106 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "test_kratos",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 1,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "solver_settings"  : {
+        "time_stepping"                        : {
+            "time_step" : 1.1
+        },
+        "solver_type"                          : "Static",
+        "model_part_name"                      : "Structure",
+        "domain_size"                          : 2,
+        "echo_level"                           : 1,
+        "analysis_type"                        : "non_linear",
+        "model_import_settings"                : {
+            "input_type"     : "mdpa",
+            "input_filename" : "TimoshenkoBeams/2D3N_straight/timoshenko_beam_2d3N_test"
+        },
+        "material_import_settings"             : {
+            "materials_filename" : "TimoshenkoBeams/2D3N_straight/timoshenko_beam_2d3N_test_materials.json"
+        },
+        "line_search"                          : false,
+        "convergence_criterion"                : "residual_criterion",
+        "displacement_relative_tolerance"      : 0.0001,
+        "displacement_absolute_tolerance"      : 1e-9,
+        "residual_relative_tolerance"          : 0.0001,
+        "residual_absolute_tolerance"          : 1e-9,
+        "max_iteration"                        : 10,
+        "use_old_stiffness_in_first_iteration" : false,
+        "rotation_dofs"                        : true,
+        "volumetric_strain_dofs"               : false
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.ROTATION_Rotation_Auto1",
+                "variable_name"   : "ROTATION",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight2D_Self_weight_Auto1",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [0.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,-1.0,0.0]
+            }
+        }],
+        "list_other_processes"     : [],
+        "json_check_process" : [
+            {
+                "python_module"   : "from_json_check_result_process",
+                "kratos_module" : "KratosMultiphysics",
+                "help"                  : "",
+                "process_name"          : "FromJsonCheckResultProcess",
+                "Parameters"            : {
+                    "check_variables"              : ["DISPLACEMENT", "ROTATION"],
+                    "gauss_points_check_variables" : ["BENDING_MOMENT","SHEAR_FORCE", "AXIAL_FORCE","AXIAL_STRAIN", "BENDING_STRAIN", "SHEAR_STRAIN"],
+                    "input_file_name"              : "TimoshenkoBeams/2D3N_straight/timoshenko_beam_2d3N_test_results.json",
+                    "model_part_name"              : "Structure.test",
+                    "time_frequency"               : 1.0
+                }
+        }]
+    // "_json_output_process" : [
+    // {
+    //    "python_module"   : "json_output_process",
+    //    "kratos_module" : "KratosMultiphysics",
+    //    "process_name"          : "JsonOutputProcess",
+    //    "Parameters"            : {
+    //        "output_variables"              : ["DISPLACEMENT", "ROTATION"],
+    //        "gauss_points_output_variables" : ["BENDING_MOMENT","SHEAR_FORCE", "AXIAL_FORCE","AXIAL_STRAIN", "BENDING_STRAIN", "SHEAR_STRAIN"],
+    //        "output_file_name"              : "TimoshenkoBeams/2D3N_straight/timoshenko_beam_2d3N_test_results.json",
+    //        "model_part_name"               : "Structure.test",
+    //        "time_frequency"                : 1.0
+    //    }
+    // }]
+    },
+    "output_processes" : {
+    },
+    "analysis_stage"   : "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis"
+}

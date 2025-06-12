@@ -5,14 +5,13 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_TABLE_H_INCLUDED )
-#define  KRATOS_TABLE_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -81,22 +80,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    Table() : mData()
-    {
-    }
-
-    /// Destructor.
-    virtual ~Table()
-    {
-    }
-
-    /// Assignment operator.
-    Table& operator=(Table const& rOther)
-    {
-        mData = rOther.mData;
-        return *this;
-    }
+    virtual ~Table() = default;
 
     ///@}
     ///@name Operators
@@ -304,6 +288,26 @@ public:
     {
     }
 
+    const std::string& NameOfX() const
+    {
+        return mNameOfX;
+    }
+
+    const std::string& NameOfY() const
+    {
+        return mNameOfY;
+    }
+
+    void SetNameOfX(const std::string& name)
+    {
+        mNameOfX = name;
+    }
+
+    void SetNameOfY(const std::string& name)
+    {
+        mNameOfY = name;
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -358,6 +362,8 @@ private:
     ///@{
 
     TableContainerType mData;
+    std::string mNameOfX;
+    std::string mNameOfY;
 
     ///@}
     ///@name Private Operators
@@ -418,9 +424,6 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Copy constructor.
-    Table(Table const& rOther);
-
 
     ///@}
 
@@ -452,38 +455,17 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    Table() : mData()
-    {
-    }
-
-
-    /// Copy constructor.
-    Table(Table const& rOther): mData(rOther.mData)
-    {
-
-    }
+    Table() = default;
 
     /// Matrix constructor. the template parameter must have (i,j) access operator and  size1 methods defined.
     template<class TMatrixType>
-    Table(TMatrixType const& ThisMatrix): mData()
+    explicit Table(TMatrixType const& ThisMatrix): mData()
     {
         for(unsigned int i = 0 ; i < ThisMatrix.size1() ; i++)
             PushBack(ThisMatrix(i,0), ThisMatrix(i,1));
     }
 
-    /// Destructor.
-    virtual ~Table()
-    {
-    }
-
-
-    /// Assignment operator.
-    Table& operator=(Table const& rOther)
-    {
-        mData = rOther.mData;
-        return *this;
-    }
+    virtual ~Table() = default;
 
 
     ///@}
@@ -666,15 +648,13 @@ public:
 
         TResultType result;
         if(X <= mData[0].first)
-            //return Interpolate(X, mData[0].first, mData[0].second[0], mData[1].first, mData[1].second[0], result);
-            return 0.0;
+            return InterpolateDerivative(mData[0].first, mData[0].second[0], mData[1].first, mData[1].second[0], result);
 
         for(std::size_t i = 1 ; i < size ; i++)
             if(X <= mData[i].first)
                 return InterpolateDerivative( mData[i-1].first, mData[i-1].second[0], mData[i].first, mData[i].second[0], result);
 
-        // If it lies outside the table values we will return 0.0.
-        return 0.0;
+        return InterpolateDerivative(mData[size-2].first, mData[size-2].second[0], mData[size-1].first, mData[size-1].second[0], result);
     }
      TResultType& InterpolateDerivative( TArgumentType const& X1, TResultType const& Y1, TArgumentType const& X2, TResultType const& Y2, TResultType& Result) const
     {
@@ -746,6 +726,26 @@ public:
             rOStream << mData[i].first << "\t\t" << mData[i].second[0] << std::endl;
     }
 
+    const std::string& NameOfX() const
+    {
+        return mNameOfX;
+    }
+
+    const std::string& NameOfY() const
+    {
+        return mNameOfY;
+    }
+
+    void SetNameOfX(const std::string& name)
+    {
+        mNameOfX = name;
+    }
+
+    void SetNameOfY(const std::string& name)
+    {
+        mNameOfY = name;
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -764,6 +764,8 @@ private:
     ///@{
 
     TableContainerType mData;
+    std::string mNameOfX;
+    std::string mNameOfY;
 
     ///@}
     ///@name Private Operators
@@ -862,7 +864,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_TABLE_H_INCLUDED  defined 
-
-

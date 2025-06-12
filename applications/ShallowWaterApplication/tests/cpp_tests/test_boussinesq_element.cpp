@@ -131,7 +131,7 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D3N_FlatBottom, ShallowWaterApplicat
 
     double tolerance = 1e-6;
     Vector increment = prod(M,derivatives) -RHS;
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(increment, ZeroVector(9), tolerance);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(increment, ZeroVector(9), tolerance);
 }
 
 /**
@@ -216,7 +216,7 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D4N_FlatBottom, ShallowWaterApplicat
 
     double tolerance = 1e-6;
     Vector increment = prod(M,derivatives) -RHS;
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(increment, ZeroVector(12), tolerance);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(increment, ZeroVector(12), tolerance);
 }
 
 } // namespace Testing

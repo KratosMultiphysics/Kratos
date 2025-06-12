@@ -21,6 +21,7 @@
 // External includes
 
 // Project includes
+#include "includes/checks.h"
 #include "includes/lock_object.h"
 #include "utilities/openmp_utils.h"
 

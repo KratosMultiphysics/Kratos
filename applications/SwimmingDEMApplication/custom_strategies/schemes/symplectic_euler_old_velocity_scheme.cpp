@@ -8,7 +8,7 @@ namespace Kratos {
 
 void SymplecticEulerOldVelocityScheme::UpdateTranslationalVariables(
         int StepFlag,
-        Node < 3 > & i,
+        Node & i,
         array_1d<double, 3 >& coor,
         array_1d<double, 3 >& displ,
         array_1d<double, 3 >& delta_displ,

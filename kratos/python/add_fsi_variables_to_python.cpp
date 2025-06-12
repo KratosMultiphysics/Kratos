@@ -11,7 +11,6 @@
 //                  Ruben Zorrilla
 //
 
-
 // System includes
 
 // External includes
@@ -21,14 +20,11 @@
 #include "includes/fsi_variables.h"
 #include "python/add_fsi_variables_to_python.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
-void  AddFSIVariablesToPython(pybind11::module& m)
+void AddFSIVariablesToPython(pybind11::module& m)
 {
 
   //registering variables in python
@@ -59,5 +55,4 @@ void  AddFSIVariablesToPython(pybind11::module& m)
   KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,NEGATIVE_MAPPED_VECTOR_VARIABLE);
 
 }
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.

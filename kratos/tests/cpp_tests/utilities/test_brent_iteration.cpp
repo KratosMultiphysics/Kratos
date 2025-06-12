@@ -32,11 +32,11 @@ namespace Kratos {
             double checkTol = 1e-3;
 
             // Standard operation
-            KRATOS_CHECK_NEAR(BrentIteration::FindRoot(Internals::Brent_Test_Function1,1.0,3.0,iterTol,maxIter),2.0,checkTol);
+            KRATOS_EXPECT_NEAR(BrentIteration::FindRoot(Internals::Brent_Test_Function1,1.0,3.0,iterTol,maxIter),2.0,checkTol);
 
             // Passing solution as input
-            KRATOS_CHECK_NEAR(BrentIteration::FindRoot(Internals::Brent_Test_Function1,2.0,3.0,iterTol,maxIter),2.0,checkTol);
-            KRATOS_CHECK_NEAR(BrentIteration::FindRoot(Internals::Brent_Test_Function1,1.0,2.0,iterTol,maxIter),2.0,checkTol);
+            KRATOS_EXPECT_NEAR(BrentIteration::FindRoot(Internals::Brent_Test_Function1,2.0,3.0,iterTol,maxIter),2.0,checkTol);
+            KRATOS_EXPECT_NEAR(BrentIteration::FindRoot(Internals::Brent_Test_Function1,1.0,2.0,iterTol,maxIter),2.0,checkTol);
 
             // Wrong input: initial guesses on the same side of root
             try {
@@ -44,7 +44,7 @@ namespace Kratos {
                 KRATOS_THROW_ERROR(Exception,"Test Failed: BrentIteration did not throw expected error","");
             }
             catch (Exception& e) {
-                KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(std::string(e.what()), "Error in BrentIteration::FindRoot: The images of both initial guesses have the same sign.");
+                KRATOS_EXPECT_HAS_SUBSTRING(std::string(e.what()), "Error in BrentIteration::FindRoot: The images of both initial guesses have the same sign.");
             }
 
         }

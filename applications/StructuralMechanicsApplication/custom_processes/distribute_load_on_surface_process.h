@@ -29,11 +29,14 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// Process to create the animated Eigenvectors
-/** This process distributes a load on surface load conditions belonging to a modelpart.
- *  The load is distributed according to the surface area.
+/** 
+ * @class DistributeLoadOnSurfaceProcess
+ * @brief This process distributes a load on surface load conditions belonging to a modelpart
+ * @details The load is distributed according to the surface area.
+ * @author Armin Geiser
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DistributeLoadOnSurfaceProcess : public Process
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DistributeLoadOnSurfaceProcess 
+    : public Process
 {
 public:
     ///@name Type Definitions
@@ -83,8 +86,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
-    Parameters mParameters;
+    ModelPart& mrModelPart; /// The model part
+    Parameters mParameters; /// The parameters
 
     ///@}
     ///@name Private Operations

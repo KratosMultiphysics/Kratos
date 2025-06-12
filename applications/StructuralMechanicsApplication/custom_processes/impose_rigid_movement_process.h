@@ -54,7 +54,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ImposeRigidMovementProcess);
 
     /// General type definitions
-    typedef Node<3>                                                      NodeType;
+    typedef Node                                                      NodeType;
 
     /// General containers type definitions
     typedef ModelPart::MasterSlaveConstraintContainerType ConstraintContainerType;

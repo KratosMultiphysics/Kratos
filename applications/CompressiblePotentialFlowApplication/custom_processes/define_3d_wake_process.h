@@ -32,7 +32,7 @@ public:
     /// Pointer definition of Define3DWakeProcess
     KRATOS_CLASS_POINTER_DEFINITION(Define3DWakeProcess);
 
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
 
     ///@}
     ///@name Life Cycle
@@ -90,7 +90,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    // The airfoil model part conatining the trailing edge
+    // The airfoil model part containing the trailing edge
     ModelPart& mrTrailingEdgeModelPart;
     ModelPart& mrBodyModelPart;
     ModelPart& mrStlWakeModelPart;

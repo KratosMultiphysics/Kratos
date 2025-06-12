@@ -133,7 +133,7 @@ namespace Kratos
 
 
 			//loop in elements to change their ID to their position in the array. Easier to get information later.
-			//DO NOT PARALELIZE THIS! IT MUST BE SERIAL!!!!!!!!!!!!!!!!!!!!!!
+			//DO NOT PARALLELIZE THIS! IT MUST BE SERIAL!!!!!!!!!!!!!!!!!!!!!!
 			/*
 			ModelPart::ElementsContainerType::iterator ielembegin = mcalculation_model_part.ElementsBegin();
 			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
@@ -201,7 +201,7 @@ namespace Kratos
 					//const int & elem_id = ielem->Id();
 					ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 					Element::Pointer pelement(*ielem.base());
-					Geometry<Node<3> >& geom = ielem->GetGeometry();
+					Geometry<Node >& geom = ielem->GetGeometry();
 
 					ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
 					int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_PARTICLES);
@@ -236,7 +236,7 @@ namespace Kratos
 
 	///this function should find the element into which a given node is located
 	///and return a pointer to the element and the vector containing the
-	///shape functions that define the postion within the element
+	///shape functions that define the position within the element
 	///if "false" is devolved the element is not found
 	bool FindNodeOnMesh( //int last_element,
 						 array_1d<double,3>& position,
@@ -253,7 +253,7 @@ namespace Kratos
 	    //before using the bin to search for possible elements we check first the last element in which the particle was.
 
 		//ModelPart::ElementsContainerType::iterator i = mr_model_part.ElementsBegin()+last_element;
-		Geometry<Node<3> >& geom_default = pelement->GetGeometry(); //(*(i))->GetGeometry();
+		Geometry<Node >& geom_default = pelement->GetGeometry(); //(*(i))->GetGeometry();
 		bool is_found_1 = CalculatePosition(geom_default,coords[0],coords[1],coords[2],N);
 		if(is_found_1 == true)
 		{
@@ -274,7 +274,7 @@ namespace Kratos
 			if (N[i]<0.0)
 			{
 				checked_element=i;
-				Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
+				Geometry<Node >& geom = neighb_elems[i].GetGeometry();
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],aux_N);
 				if (is_found_2)
 				{
@@ -291,7 +291,7 @@ namespace Kratos
 		{
 			if(neighb_elems(i).get()!=nullptr)
 			{
-				Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
+				Geometry<Node >& geom = neighb_elems[i].GetGeometry();
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
@@ -312,7 +312,7 @@ namespace Kratos
 			{
 				//std::cout<< "KIIIIIIIIIIIIII" << std::endl;
 				//KRATOS_WATCH((*(result_begin+i))->Id());
-				Geometry<Node<3> >& geom = (*(result_begin+i))->GetGeometry();
+				Geometry<Node >& geom = (*(result_begin+i))->GetGeometry();
 
 
 				//find local position
@@ -340,7 +340,7 @@ namespace Kratos
 	//***************************************
         //***************************************
 
-        inline bool CalculatePosition(Geometry<Node < 3 > >&geom,
+        inline bool CalculatePosition(Geometry<Node >&geom,
                 const double xc, const double yc, const double zc,
                 array_1d<double, 3 > & N
                 )
@@ -377,7 +377,7 @@ namespace Kratos
 	        //***************************************
         //***************************************
 
-        inline bool CalculatePosition(Geometry<Node < 3 > >&geom,
+        inline bool CalculatePosition(Geometry<Node >&geom,
                 const double xc, const double yc, const double zc,
                 array_1d<double, 4 > & N
                 )

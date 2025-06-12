@@ -1,0 +1,110 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   0.0000000000   0.0000000000   0.0000000000
+    2   0.5000000000   0.0000000000   0.0000000000
+    3   0.0000000000   0.5000000000   0.0000000000
+    4   0.5000000000   0.5000000000   0.0000000000
+    5   1.0000000000   0.0000000000   0.0000000000
+    6   0.0000000000   1.0000000000   0.0000000000
+    7   1.0000000000   0.5000000000   0.0000000000
+    8   0.5000000000   1.0000000000   0.0000000000
+    9   1.0000000000   1.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements ShellThinElement3D3N// GUI group identifier: volume
+        1          0     1     2     3 
+        2          0     5     7     2 
+        3          0     9     8     7 
+        4          0     6     3     8 
+        5          0     3     2     4 
+        6          0     4     2     7 
+        7          0     4     7     8 
+        8          0     4     8     3
+End Elements
+
+Begin Conditions LineLoadCondition3D2N// GUI group identifier: right
+    2 0 5 7
+    3 0 7 9
+End Conditions
+
+Begin SubModelPart Parts_Mat_1 
+    Begin SubModelPartNodes
+        2
+        3
+        4
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        5
+    End SubModelPartElements
+End SubModelPart 
+
+Begin SubModelPart Parts_Solid_full
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+    End SubModelPartElements
+End SubModelPart
+
+Begin SubModelPart Parts_Solid_volume // Group volume // Subtree Parts_Solid
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+            6
+            7
+            8
+    End SubModelPartElements
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_left // Group left // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+            3
+            6
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart LineLoad2D_right // Group right // Subtree LineLoad2D
+    Begin SubModelPartNodes
+            5
+            7
+            9
+    End SubModelPartNodes
+    Begin SubModelPartConditions
+            2
+            3
+    End SubModelPartConditions
+End SubModelPart

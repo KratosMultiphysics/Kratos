@@ -58,7 +58,7 @@ public:
     ///Tensor order 1 definition
     //typedef BoundedVector<double, 3>                PointType;
     typedef array_1d<double, 3>                           PointType;
-    typedef GlobalPointersVector<Node<3> >       NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node >       NodeWeakPtrVectorType;
     typedef GlobalPointersVector<Element>     ElementWeakPtrVectorType;
     typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
     ///@{
@@ -355,7 +355,7 @@ public:
      * it is designed so that rLHSvariables and rRHSvariables are passed TO the condition
      * thus telling what is the desired output
      * @param rLeftHandSideMatrices: container with the output left hand side matrices
-     * @param rLHSVariables: paramter describing the expected LHSs
+     * @param rLHSVariables: parameter describing the expected LHSs
      * @param rRightHandSideVectors: container for the desired RHS output
      * @param rRHSVariables: parameter describing the expected RHSs
      */

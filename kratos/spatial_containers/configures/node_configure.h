@@ -70,7 +70,7 @@ public:
     * @param PointerType Pointer to nodes of doubles with 3 coordinates (Dimension = 3)
     */
     typedef Point                   PointType;
-    typedef Node<3>                 ObjectType;
+    typedef Node                 ObjectType;
     typedef ObjectType::Pointer     PointerType;
 
     /** Additional types needed by the bins.
@@ -204,7 +204,7 @@ public:
         return true;
     }
 
-    /** @brief Tests the intersection of one object with a boundingbox descrived by 'rLowPoint' and 'rHighPoint'.
+    /** @brief Tests the intersection of one object with a boundingbox described by 'rLowPoint' and 'rHighPoint'.
     * @details For this configuation file, tests if one point is inside the boundingbox
     * described by 'rLowPoint' and 'rHighPoint' within a Epsilon tolerance range.
     * @param rObject Point of the tests.
@@ -227,7 +227,7 @@ public:
         return true;
     }
 
-    /** @brief Tests the intersection of one object with a boundingbox descrived by 'rLowPoint' and 'rHighPoint'.
+    /** @brief Tests the intersection of one object with a boundingbox described by 'rLowPoint' and 'rHighPoint'.
     * @details For this configuation file, tests if one point extended by radius is inside the boundingbox
     * described by 'rLowPoint' and 'rHighPoint' within a Epsilon tolerance range.
     * @param rObject Point of the tests.

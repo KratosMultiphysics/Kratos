@@ -150,7 +150,7 @@ def CreateXdmfSpatialGrid(h5_model_part):
         else:
             for name, value in current_h5_item.items():
                 cell_type = TopologyCellType(
-                    value.attrs["Dimension"], value.attrs["NumberOfNodes"])
+                    value.attrs["WorkingSpaceDimension"], value.attrs["NumberOfNodes"])
                 connectivities = HDF5UniformDataItem(value["Connectivities"])
                 topology = UniformMeshTopology(cell_type, connectivities)
                 sgrid.add_grid(UniformGrid(spatial_grid_name + "." + name, geom, topology))
@@ -544,7 +544,10 @@ def WriteMultifileTemporalAnalysisToXdmf(ospath, h5path_to_mesh, h5path_to_resul
     ET.ElementTree(xdmf.create_xml_element()).write(pat + ".xdmf")
 
 
-def CreateXdmfTemporalGridFromSinglefile(h5_file_name, h5path_pattern_to_mesh, h5path_pattern_to_results):
+def CreateXdmfTemporalGridFromSinglefile(h5_file_name,
+                                         h5path_pattern_to_mesh,
+                                         h5path_pattern_to_results,
+                                         require_results: bool = False):
     """Return an XDMF Grid object for a list of temporal results in a single HDF5 file.
 
     Keyword arguments:
@@ -592,26 +595,44 @@ def CreateXdmfTemporalGridFromSinglefile(h5_file_name, h5path_pattern_to_mesh, h
         output_results_dict = {}
         file_.visit(lambda x : GetMatchingGroupNames(output_results_dict, x, h5path_patterns_to_results, h5path_pattern_to_results_wild_cards))
 
-        if len(output_results_dict.keys()) == 0:
+        if not output_results_dict:
             raise RuntimeError("No results data is found in the given hdf5 file matching the given pattern [ file_name = {:s}, pattern = {:s} ].".format(h5_file_name, h5path_pattern_to_results))
 
-        for k, v in output_results_dict.items():
-            if k in output_meshes_dict:
-                sgrid = CreateXdmfSpatialGrid(file_[output_meshes_dict[k]])
+        compound_dict = {}
+        for key in output_meshes_dict:
+            compound_dict[key] = (True, False)
+        for key in output_results_dict:
+            if key in compound_dict:
+                compound_dict[key][1] = True
+            else:
+                compound_dict[key] = (False, True)
 
+        sgrid = None
+        for key, (has_mesh, has_results) in compound_dict.items():
             current_sgrid = SpatialGrid()
-            for g in sgrid.grids:
-                current_sgrid.add_grid(UniformGrid(g.name, g.geometry, g.topology))
+            if has_mesh:
+                sgrid = CreateXdmfSpatialGrid(file_[output_meshes_dict[key]])
+                for g in sgrid.grids:
+                    current_sgrid.add_grid(UniformGrid(g.name, g.geometry, g.topology))
 
-            for result in XdmfResults(file_[v]):
-                current_sgrid.add_attribute(result)
+            if has_results:
+                if sgrid is None:
+                    raise RuntimeError(f"No mesh found for results at {key}")
+                for g in sgrid.grids:
+                    current_sgrid.add_grid(UniformGrid(g.name, g.geometry, g.topology))
+                for result in XdmfResults(file_[output_results_dict[key]]):
+                    current_sgrid.add_attribute(result)
 
-            tgrid.add_grid(Time(k), current_sgrid)
+            if has_results or not (require_results and not has_results):
+                tgrid.add_grid(Time(key), current_sgrid)
 
     return tgrid
 
 
-def WriteSinglefileTemporalAnalysisToXdmf(h5_file_name, h5path_pattern_to_mesh, h5path_pattern_to_results):
+def WriteSinglefileTemporalAnalysisToXdmf(h5_file_name,
+                                          h5path_pattern_to_mesh,
+                                          h5path_pattern_to_results,
+                                          require_results: bool = False):
     """Write XDMF metadata for a temporal analysis from single HDF5 file.
 
     Keyword arguments:
@@ -626,9 +647,11 @@ def WriteSinglefileTemporalAnalysisToXdmf(h5_file_name, h5path_pattern_to_mesh, 
     if (h5path_pattern_to_results.startswith("/")):
         h5path_pattern_to_results = h5path_pattern_to_results[1:]
 
-    temporal_grid = CreateXdmfTemporalGridFromSinglefile(
-        h5_file_name, h5path_pattern_to_mesh, h5path_pattern_to_results)
+    temporal_grid = CreateXdmfTemporalGridFromSinglefile(h5_file_name,
+                                                         h5path_pattern_to_mesh,
+                                                         h5path_pattern_to_results,
+                                                         require_results = require_results)
     domain = Domain(temporal_grid)
     xdmf = Xdmf(domain)
     # Write the XML tree containing the XDMF metadata to the file.
-    ET.ElementTree(xdmf.create_xml_element()).write(h5_file_name[:h5_file_name.rfind(".")] + ".xdmf")    
+    ET.ElementTree(xdmf.create_xml_element()).write(h5_file_name[:h5_file_name.rfind(".")] + ".xdmf")

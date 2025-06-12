@@ -11,8 +11,7 @@
 //                   Vicente Mataix Ferrandiz
 //                   Alejandro Cornejo
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_FEMDEM_ELEMENT_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_FEMDEM_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -67,8 +66,8 @@ public:
     ///base type: an GeometricalObject that automatically has a unique number
     typedef GenericTotalLagrangianFemDemElement<TDim,TyieldSurf> BaseType;
 
-    ///definition of node type (default is: Node<3>)
-    typedef Node < 3 > NodeType;
+    ///definition of node type (default is: Node)
+    typedef Node NodeType;
 
     /**
      * Properties are used to store any parameters
@@ -302,4 +301,3 @@ template<unsigned int TDim, unsigned int TyieldSurf> constexpr SizeType GenericS
 ///@}
 
 } // namespace Kratos.
-#endif

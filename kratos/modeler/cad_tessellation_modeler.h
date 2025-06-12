@@ -47,7 +47,7 @@ public:
 
     typedef std::size_t SizeType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef Point EmbeddedNodeType;
 
@@ -55,9 +55,9 @@ public:
 
     typedef PointerVector<EmbeddedNodeType> ContainerEmbeddedNodeType;
 
-    typedef BrepSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepSurfaceType;
+    typedef BrepSurface<ContainerNodeType, false, ContainerEmbeddedNodeType> BrepSurfaceType;
 
-    typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
+    typedef BrepCurveOnSurface<ContainerNodeType, false, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
 
     ///@}
     ///@name Life Cycle

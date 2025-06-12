@@ -48,7 +48,7 @@ namespace Kratos
  * @class ContactResidualBasedEliminationBuilderAndSolver
  * @ingroup ContactStructuralMechanicsApplication
  * @brief Current class provides an implementation for contact builder and solving operations. (elimination)
- * @details The RHS is constituted by the unbalanced loads (residual). Degrees of freedom are reordered putting the restrained degrees of freedom at the end of the system ordered in reverse order with respect to the DofSet and not considered the inactive ones. Imposition of the dirichlet conditions is naturally dealt with as the residual already contains this information. Calculation of the reactions involves a cost very similiar to the calculation of the total residual
+ * @details The RHS is constituted by the unbalanced loads (residual). Degrees of freedom are reordered putting the restrained degrees of freedom at the end of the system ordered in reverse order with respect to the DofSet and not considered the inactive ones. Imposition of the dirichlet conditions is naturally dealt with as the residual already contains this information. Calculation of the reactions involves a cost very similar to the calculation of the total residual
  * @author Vicente Mataix Ferrandiz
  * @tparam TSparseSpace The sparse matrix system considered
  * @tparam TDenseSpace The dense matrix system
@@ -69,35 +69,32 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ContactResidualBasedEliminationBuilderAndSolver);
 
     /// Builder and solver base class
-    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseBuilderAndSolverType;
+    using BaseBuilderAndSolverType = BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
 
-    /// Definitions dependent of the base class
-    typedef ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > BaseType;
+    /// Definitions dependent on the base class
+    using BaseType = ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
 
     /// The definition of the current class
-    typedef ContactResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+    using ClassType = ContactResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
 
     /// Base types definitions
-    typedef typename BaseType::TSchemeType TSchemeType;
-    typedef typename BaseType::TDataType TDataType;
-    typedef typename BaseType::DofsArrayType DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
-    /// The node type
-    typedef Node<3> NodeType;
+    using TSchemeType = typename BaseType::TSchemeType;
+    using TDataType = typename BaseType::TDataType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
     /// The definition of the dof type
-    typedef typename ModelPart::DofType DofType;
+    using DofType = typename ModelPart::DofType;
 
     /// The size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// The index type
-    typedef std::size_t IndexType;
+    using IndexType= std::size_t;
 
     /// Index set definition
-    typedef std::unordered_set<IndexType> IndexSetType;
+    using IndexSetType = std::unordered_set<IndexType>;
 
     ///@}
     ///@name Enum's

@@ -10,24 +10,16 @@
 //  Main authors:    Vahid Galavi
 //
 
-
-#ifndef KRATOS_DEACTIVATE_CONDITIONS_ON_INACTIVE_ELEMENTS_PROCESS
-#define KRATOS_DEACTIVATE_CONDITIONS_ON_INACTIVE_ELEMENTS_PROCESS
-
-// System includes
-
-// External includes
+#pragma once
 
 // Project includes
 #include "includes/model_part.h"
 #include "processes/process.h"
 
-
 namespace Kratos
 {
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Kratos Classes
@@ -40,8 +32,7 @@ namespace Kratos
  * @note Allways neighbour elements should be found before calling this process, otherwise an error will be given.
  * @author Vahid Galavi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) DeactivateConditionsOnInactiveElements
-    : public Process
+class KRATOS_API(GEO_MECHANICS_APPLICATION) DeactivateConditionsOnInactiveElements : public Process
 {
 public:
     ///@name Type Definitions
@@ -58,23 +49,18 @@ public:
     /**
      * @param rModelPart The model part to check.
      */
-    DeactivateConditionsOnInactiveElements( ModelPart& rModelPart ):  Process(),
-            mrModelPart(rModelPart)
+    explicit DeactivateConditionsOnInactiveElements(ModelPart& rModelPart)
+        : Process(), mrModelPart(rModelPart)
     {
     }
 
-    /// Destructor.
-    ~DeactivateConditionsOnInactiveElements() override {}
+    DeactivateConditionsOnInactiveElements(const DeactivateConditionsOnInactiveElements&) = delete;
+    DeactivateConditionsOnInactiveElements& operator=(DeactivateConditionsOnInactiveElements&) = delete;
+    ~DeactivateConditionsOnInactiveElements() override = default;
 
     ///@}
     ///@name Operators
     ///@{
-
-    /// This operator is provided to call the process as a function and simply calls the Execute method.
-    void operator()()
-    {
-        Execute();
-    }
 
     ///@}
     ///@name Operations
@@ -87,34 +73,19 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "DeactivateConditionsOnInactiveElements";
-    }
-
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "DeactivateConditionsOnInactiveElements";
-    }
+    std::string Info() const override { return "DeactivateConditionsOnInactiveElements"; }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        this->PrintInfo(rOStream);
-    }
-
+    void PrintData(std::ostream& rOStream) const override { this->PrintInfo(rOStream); }
 
     ///@}
     ///@name Friends
@@ -140,12 +111,6 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    DeactivateConditionsOnInactiveElements& operator=(DeactivateConditionsOnInactiveElements const& rOther);
-
-    /// Copy constructor.
-    DeactivateConditionsOnInactiveElements(DeactivateConditionsOnInactiveElements const& rOther);
-
     ///@}
 
 }; // Class Process
@@ -159,14 +124,11 @@ private:
 ///@name Input and output
 ///@{
 
-
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  DeactivateConditionsOnInactiveElements& rThis);
+inline std::istream& operator>>(std::istream& rIStream, DeactivateConditionsOnInactiveElements& rThis);
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const DeactivateConditionsOnInactiveElements& rThis)
+inline std::ostream& operator<<(std::ostream& rOStream, const DeactivateConditionsOnInactiveElements& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -174,9 +136,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
     return rOStream;
 }
+
 ///@}
 
 } // namespace Kratos
-
-
-#endif // KRATOS_DEACTIVATE_CONDITIONS_ON_INACTIVE_ELEMENTS_PROCESS

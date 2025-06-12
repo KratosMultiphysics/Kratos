@@ -20,7 +20,7 @@
 
 // System includes
 
-// Extrenal includes
+// Extrernal includes
 
 // Project includes
 #include "includes/variables.h"
@@ -57,8 +57,8 @@ public:
     typedef std::vector<Matrix> Matrix_Order_Tensor;
     typedef std::vector<Vector> Vector_Order_Tensor;
     typedef std::vector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
-    typedef Node < 3 > PointType;
-    typedef Node < 3 > ::Pointer PointPointerType;
+    typedef Node PointType;
+    typedef Node ::Pointer PointPointerType;
     typedef std::vector<PointType::Pointer> PointVector;
     typedef PointVector::iterator PointIterator;
 
@@ -174,7 +174,7 @@ public:
 
     /**
     * It calculates the new edges of the new elements
-    * first it calculates the new edges correspondign to the lower face (as a triangle),
+    * first it calculates the new edges correspondingn to the lower face (as a triangle),
     * later it added to the upper face
     * @param geom: The prism element geometry
     * @param edge_ids: The ids of the edges
@@ -186,17 +186,6 @@ public:
         const compressed_matrix<int>& Coord,
         int* edge_ids,
         std::vector<int> & aux
-        );
-
-    /**
-    * This process renumerates the elements and nodes
-    * @param New_Elements: Pointers to the new elements created
-    * @return this_model_part: The model part of the model (it is the input too)
-    */
-
-    virtual void RenumeringElementsAndNodes(
-        ModelPart& this_model_part,
-        PointerVector< Element >& New_Elements
         );
 
     /**
@@ -248,7 +237,8 @@ protected:
 
         ModelPart& mModelPart;       /// The model part to be refined
         int mCurrentRefinementLevel; /// The current refinement level
-
+        std::unordered_map<std::size_t, unsigned int> mMapNodeIdToPos;
+        std::vector<std::size_t> mMapPosToNodeId;
     ///@}
     ///@name Protected Operators
     ///@{
@@ -266,9 +256,9 @@ protected:
             if (it->GetValue(SPLIT_ELEMENT)) {
                 auto& r_geom = it->GetGeometry(); // Nodes of the element
                 for (unsigned int i = 0; i < r_geom.size(); i++) {
-                    int index_i = r_geom[i].Id() - 1;
+                    int index_i = mMapNodeIdToPos[r_geom[i].Id()];
                     for (unsigned int j = 0; j < r_geom.size(); j++) {
-                        int index_j = r_geom[j].Id() - 1;
+                        int index_j = mMapNodeIdToPos[r_geom[j].Id()];
                         if (index_j > index_i)
                         {
                             rCoord(index_i, index_j) = -2;

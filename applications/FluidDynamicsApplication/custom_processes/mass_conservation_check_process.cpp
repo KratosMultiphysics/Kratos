@@ -142,7 +142,7 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
 
 void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveVolume, double& negativeVolume, double& interfaceArea ){
 
-    // initalisation (necessary because no reduction for type reference)
+    // initialisation (necessary because no reduction for type reference)
     double pos_vol = 0.0;
     double neg_vol = 0.0;
     double int_area = 0.0;
@@ -569,7 +569,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         w_gauss_neg_side,                   // includes the weights of the GAUSS points (!!!)
                         GeometryData::IntegrationMethod::GI_GAUSS_2);          // second order Gauss integration
 
-                    // interating velocity over the negative area of the condition
+                    // iterating velocity over the negative area of the condition
                     for ( unsigned int i_gauss = 0; i_gauss < w_gauss_neg_side.size(); i_gauss++){
                         const array_1d<double,3>& N = row(r_shape_functions, i_gauss);
                         array_1d<double,3> interpolated_velocity = ZeroVector(3);
@@ -577,7 +577,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                             noalias( interpolated_velocity ) += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(VELOCITY);
                         }
                         // abs() is necessary because the auxiliary Triangle2D3 geometry could possibly be inverted
-                        // the normal still comes from the oiginal triangle
+                        // the normal still comes from the original triangle
                         inflow_over_boundary -= std::abs( w_gauss_neg_side[i_gauss] ) * inner_prod( normal, interpolated_velocity );
                     }
                 }
@@ -608,7 +608,7 @@ void MassConservationCheckProcess::ShiftDistanceField( double deltaDist ){
 
 
 
-void MassConservationCheckProcess::CalculateNormal2D(array_1d<double,3>& An, const Geometry<Node<3> >& pGeometry){
+void MassConservationCheckProcess::CalculateNormal2D(array_1d<double,3>& An, const Geometry<Node >& pGeometry){
 
     An[0] =   pGeometry[1].Y() - pGeometry[0].Y();
     An[1] = - (pGeometry[1].X() - pGeometry[0].X());
@@ -617,7 +617,7 @@ void MassConservationCheckProcess::CalculateNormal2D(array_1d<double,3>& An, con
 
 
 
-void MassConservationCheckProcess::CalculateNormal3D(array_1d<double,3>& An, const Geometry<Node<3> >& pGeometry){
+void MassConservationCheckProcess::CalculateNormal3D(array_1d<double,3>& An, const Geometry<Node >& pGeometry){
 
     array_1d<double,3> v1,v2;
     v1[0] = pGeometry[1].X() - pGeometry[0].X();
@@ -635,7 +635,7 @@ void MassConservationCheckProcess::CalculateNormal3D(array_1d<double,3>& An, con
 
 
 /// Function to convert Triangle3D3N into Triangle2D3N which can be handled by the splitting utilitity
-Triangle2D3<Node<3>>::Pointer MassConservationCheckProcess::GenerateAuxTriangle( const Geometry<Node<3> >& rGeom ){
+Triangle2D3<Node>::Pointer MassConservationCheckProcess::GenerateAuxTriangle( const Geometry<Node >& rGeom ){
 
     // Generating auxiliary "Triangle2D3" because the original geometry is "Triangle3D3"
 
@@ -667,18 +667,18 @@ Triangle2D3<Node<3>>::Pointer MassConservationCheckProcess::GenerateAuxTriangle(
                             std::abs(coord1_transformed[2] - coord3_transformed[2])<1.0e-7 );
 
     // creating auxiliary nodes based on the transformed position
-    Node<3UL>::Pointer node1 = Kratos::make_intrusive<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 2, coord1_transformed[0], coord1_transformed[1] );
-    Node<3UL>::Pointer node2 = Kratos::make_intrusive<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 3, coord2_transformed[0], coord2_transformed[1] );
-    Node<3UL>::Pointer node3 = Kratos::make_intrusive<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 4, coord3_transformed[0], coord3_transformed[1] );
+    Node::Pointer node1 = Kratos::make_intrusive<Kratos::Node>( mrModelPart.Nodes().size() + 2, coord1_transformed[0], coord1_transformed[1] );
+    Node::Pointer node2 = Kratos::make_intrusive<Kratos::Node>( mrModelPart.Nodes().size() + 3, coord2_transformed[0], coord2_transformed[1] );
+    Node::Pointer node3 = Kratos::make_intrusive<Kratos::Node>( mrModelPart.Nodes().size() + 4, coord3_transformed[0], coord3_transformed[1] );
 
     // finally creating the desired Triangle2D3 based on the nodes
-    Triangle2D3<Node<3>>::Pointer aux_2D_triangle = Kratos::make_shared< Triangle2D3<Node<3> > >( node1, node2, node3 );
+    Triangle2D3<Node>::Pointer aux_2D_triangle = Kratos::make_shared< Triangle2D3<Node > >( node1, node2, node3 );
     return aux_2D_triangle;
 }
 
 
 
-void MassConservationCheckProcess::GenerateAuxLine( const Geometry<Node<3> >& rGeom,
+void MassConservationCheckProcess::GenerateAuxLine( const Geometry<Node >& rGeom,
                                                     const Vector& distance,
                                                     Line3D2<IndexedPoint>::Pointer& p_aux_line,
                                                     array_1d<double, 3>& aux_velocity1,

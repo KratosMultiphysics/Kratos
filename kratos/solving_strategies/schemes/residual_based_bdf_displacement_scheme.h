@@ -191,7 +191,7 @@ public:
         const std::array<const Variable<ComponentType>*, 3> vel_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};
         const std::array<const Variable<ComponentType>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &ACCELERATION_Z};
 
-        block_for_each(rModelPart.Nodes(), fixed, [&](Node<3>& rNode, std::array<bool,3>& rFixedTLS){
+        block_for_each(rModelPart.Nodes(), fixed, [&](Node& rNode, std::array<bool,3>& rFixedTLS){
             for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
                 rFixedTLS[i_dim] = false;
             }

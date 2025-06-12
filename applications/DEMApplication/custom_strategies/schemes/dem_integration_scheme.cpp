@@ -24,27 +24,27 @@ namespace Kratos {
         pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 
-    void DEMIntegrationScheme::Move(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
+    void DEMIntegrationScheme::Move(Node & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
         if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) return;
         CalculateTranslationalMotionOfNode(i, delta_t, force_reduction_factor, StepFlag);
     }
 
-    void DEMIntegrationScheme::Rotate(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
+    void DEMIntegrationScheme::Rotate(Node & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
         if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) return;
         CalculateRotationalMotionOfSphereNode(i, delta_t, moment_reduction_factor, StepFlag);
     }
 
-    void DEMIntegrationScheme::MoveRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
+    void DEMIntegrationScheme::MoveRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
         CalculateTranslationalMotionOfNode(i, delta_t, force_reduction_factor, StepFlag);
         rigid_body_element->UpdateLinearDisplacementAndVelocityOfNodes();
     }
 
-    void DEMIntegrationScheme::RotateRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
+    void DEMIntegrationScheme::RotateRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
         CalculateRotationalMotionOfRigidBodyElementNode(i, delta_t, moment_reduction_factor, StepFlag);
         rigid_body_element->UpdateAngularDisplacementAndVelocityOfNodes();
     }
 
-    void DEMIntegrationScheme::CalculateTranslationalMotionOfNode(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
+    void DEMIntegrationScheme::CalculateTranslationalMotionOfNode(Node & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
         array_1d<double, 3 >& vel = i.FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3 >& displ = i.FastGetSolutionStepValue(DISPLACEMENT);
         array_1d<double, 3 >& delta_displ = i.FastGetSolutionStepValue(DELTA_DISPLACEMENT);
@@ -67,7 +67,7 @@ namespace Kratos {
         UpdateTranslationalVariables(StepFlag, i, coor, displ, delta_displ, vel, initial_coor, force, force_reduction_factor, mass, delta_t, Fix_vel);
     }
 
-    void DEMIntegrationScheme::CalculateRotationalMotionOfSphereNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
+    void DEMIntegrationScheme::CalculateRotationalMotionOfSphereNode(Node & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
 
         double moment_of_inertia               = i.FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
         array_1d<double, 3 >& angular_velocity = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
@@ -87,7 +87,7 @@ namespace Kratos {
         CalculateNewRotationalVariablesOfSpheres(StepFlag, i, moment_of_inertia, angular_velocity, torque, moment_reduction_factor, rotated_angle, delta_rotation, delta_t, Fix_Ang_vel);
     }
 
-    void DEMIntegrationScheme::CalculateRotationalMotionOfRigidBodyElementNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
+    void DEMIntegrationScheme::CalculateRotationalMotionOfRigidBodyElementNode(Node & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
 
         array_1d<double, 3 >& moments_of_inertia = i.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
         array_1d<double, 3 >& angular_velocity   = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
@@ -111,7 +111,7 @@ namespace Kratos {
 
     void DEMIntegrationScheme::UpdateTranslationalVariables(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 array_1d<double, 3 >& coor,
                 array_1d<double, 3 >& displ,
                 array_1d<double, 3 >& delta_displ,
@@ -128,7 +128,7 @@ namespace Kratos {
 
     void DEMIntegrationScheme::CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 const double moment_of_inertia,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& torque,
@@ -142,7 +142,7 @@ namespace Kratos {
 
     void DEMIntegrationScheme::CalculateNewRotationalVariablesOfRigidBodyElements(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 const array_1d<double, 3 > moments_of_inertia,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& torque,
@@ -157,7 +157,7 @@ namespace Kratos {
 
     void DEMIntegrationScheme::UpdateRotationalVariables(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 array_1d<double, 3 >& angular_velocity,
@@ -169,7 +169,7 @@ namespace Kratos {
 
     void DEMIntegrationScheme::UpdateRotationalVariables(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 const double& moment_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
@@ -183,7 +183,7 @@ namespace Kratos {
 
     void DEMIntegrationScheme::UpdateRotationalVariables(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,

@@ -51,22 +51,22 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13GetGeometryType, KratosCoreGeometriesFastSu
 {
     auto geomRegular = GenerateRegularPyramid3D13();
 
-    KRATOS_CHECK_EQUAL(geomRegular->GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Pyramid);
-    KRATOS_CHECK_EQUAL(geomRegular->GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Pyramid3D13);
+    KRATOS_EXPECT_EQ(geomRegular->GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Pyramid);
+    KRATOS_EXPECT_EQ(geomRegular->GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Pyramid3D13);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13EdgesNumber, KratosCoreGeometriesFastSuite)
 {
     auto geomRegular = GenerateRegularPyramid3D13();
 
-    KRATOS_CHECK_EQUAL(geomRegular->EdgesNumber(), 8);
+    KRATOS_EXPECT_EQ(geomRegular->EdgesNumber(), 8);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13FacesNumber, KratosCoreGeometriesFastSuite)
 {
     auto geomRegular = GenerateRegularPyramid3D13();
 
-    KRATOS_CHECK_EQUAL(geomRegular->FacesNumber(), 5);
+    KRATOS_EXPECT_EQ(geomRegular->FacesNumber(), 5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13Volume, KratosCoreGeometriesFastSuite)
@@ -74,7 +74,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13Volume, KratosCoreGeometriesFastSuite)
     //KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geomRegular = GenerateRegularPyramid3D13();
 
-    KRATOS_CHECK_NEAR(geomRegular->Volume(), 2.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geomRegular->Volume(), 2.0, TOLERANCE);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13Center, KratosCoreGeometriesFastSuite)
@@ -83,7 +83,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13Center, KratosCoreGeometriesFastSuite)
 
     array_1d<double, 3> center{0, 0, 4.5/13};
 
-    KRATOS_CHECK_VECTOR_NEAR(geomRegular->Center(), center, TOLERANCE);
+    KRATOS_EXPECT_VECTOR_NEAR(geomRegular->Center(), center, TOLERANCE);
 }
 
 /** Checks the inside test for a given point respect to the pyramid
@@ -106,11 +106,11 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13IsInside, KratosCoreGeometriesFastSuite)
 
     Point LocalCoords;
 
-    KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
-    KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
-    KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside2, LocalCoords, EPSILON));
-    KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
-    KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
+    KRATOS_EXPECT_TRUE(geom->IsInside(PointInside, LocalCoords, EPSILON));
+    KRATOS_EXPECT_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
+    KRATOS_EXPECT_FALSE(geom->IsInside(PointOutside2, LocalCoords, EPSILON));
+    KRATOS_EXPECT_TRUE(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
+    KRATOS_EXPECT_TRUE(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
 }
 
 /** Checks the point local coordinates for a given point respect to the
@@ -129,9 +129,9 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13PointLocalCoordinates, KratosCoreGeometries
     array_1d<double, 3> centre_local_coords;
     geom->PointLocalCoordinates(centre_local_coords, centre);
 
-    KRATOS_CHECK_NEAR(centre_local_coords(0), 0.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(centre_local_coords(1), 0.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(centre_local_coords(2), -0.538461538, TOLERANCE);
+    KRATOS_EXPECT_NEAR(centre_local_coords(0), 0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(centre_local_coords(1), 0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(centre_local_coords(2), -0.538461538, TOLERANCE);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13ShapeFunctionsValues, KratosCoreGeometriesFastSuite)
@@ -141,19 +141,19 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13ShapeFunctionsValues, KratosCoreGeometriesF
     coord[0] = 1.0 / 2.0;
     coord[1] = 1.0 / 4.0;
     coord[2] = 1.0 / 16.0;
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), -0.146942, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), -0.203934, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), -0.230026, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(3, coord), -0.169373, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(4, coord), 0.0332031, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(5, coord), 0.149345, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(6, coord), 0.242043, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(7, coord), 0.190544, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(8, coord), 0.139046, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(9, coord), 0.0933838, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(10, coord), 0.280151, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(11, coord), 0.466919, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(12, coord), 0.15564, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(0, coord), -0.146942, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(1, coord), -0.203934, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(2, coord), -0.230026, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(3, coord), -0.169373, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(4, coord), 0.0332031, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(5, coord), 0.149345, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(6, coord), 0.242043, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(7, coord), 0.190544, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(8, coord), 0.139046, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(9, coord), 0.0933838, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(10, coord), 0.280151, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(11, coord), 0.466919, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(12, coord), 0.15564, TOLERANCE);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite)
@@ -171,57 +171,57 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13ShapeFunctionsLocalGradients, KratosCoreGeo
 
     gradient = geom->ShapeFunctionsLocalGradients(gradient, centre_local_coords);
 
-    KRATOS_CHECK_NEAR(gradient(0,0), +0.0443787, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(0,1), +0.0443787, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(0,2), -0.00961538, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(0,0), +0.0443787, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(0,1), +0.0443787, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(0,2), -0.00961538, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(1,0), -0.0443787, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(1,1), +0.0443787, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(1,2), -0.00961538, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(1,0), -0.0443787, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(1,1), +0.0443787, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(1,2), -0.00961538, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(2,0), -0.0443787, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(2,1), -0.0443787, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(2,2), -0.00961538, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(2,0), -0.0443787, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(2,1), -0.0443787, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(2,2), -0.00961538, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(3,0), +0.0443787, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(3,1), -0.0443787, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(3,2), -0.00961538, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(3,0), +0.0443787, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(3,1), -0.0443787, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(3,2), -0.00961538, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(4,0), 0.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(4,1), 0.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(4,2), -0.0384615, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(4,0), 0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(4,1), 0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(4,2), -0.0384615, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(5,0),  0.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(5,1), -0.295858, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(5,2), -0.25, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(5,0),  0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(5,1), -0.295858, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(5,2), -0.25, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(6,0),  0.295858, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(6,1),  0.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(6,2), -0.25, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(6,0),  0.295858, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(6,1),  0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(6,2), -0.25, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(7,0),  0.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(7,1), +0.295858, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(7,2), -0.25, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(7,0),  0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(7,1), +0.295858, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(7,2), -0.25, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(8,0), -0.295858, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(8,1),  0.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(8,2), -0.25, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(8,0), -0.295858, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(8,1),  0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(8,2), -0.25, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(9,0), -0.177515, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(9,1), -0.177515, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(9,2), +0.269231, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(9,0), -0.177515, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(9,1), -0.177515, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(9,2), +0.269231, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(10,0), +0.177515, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(10,1), -0.177515, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(10,2), +0.269231, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(10,0), +0.177515, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(10,1), -0.177515, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(10,2), +0.269231, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(11,0), +0.177515, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(11,1), +0.177515, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(11,2), +0.269231, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(11,0), +0.177515, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(11,1), +0.177515, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(11,2), +0.269231, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(12,0), -0.177515, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(12,1), +0.177515, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(12,2), +0.269231, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(12,0), -0.177515, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(12,1), +0.177515, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(12,2), +0.269231, TOLERANCE);
 
 }
 
@@ -234,7 +234,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13GaussPoint1, KratosCoreGeometriesFastSuite)
 
     const double expected_vol = 2.0;
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1), expected_vol, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1);
 }
 
@@ -247,7 +247,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13GaussPoint2, KratosCoreGeometriesFastSuite)
 
     const double expected_vol = 2.0;
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2), expected_vol, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2);
 }
 
@@ -260,7 +260,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13GaussPoint3, KratosCoreGeometriesFastSuite)
 
     const double expected_vol = 2.0;
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3), expected_vol, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3);
 }
 
@@ -273,7 +273,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13GaussPoint4, KratosCoreGeometriesFastSuite)
 
     const double expected_vol = 2.0;
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4), expected_vol, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4);
 }
 
@@ -286,7 +286,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D13GaussPoint5, KratosCoreGeometriesFastSuite)
 
     const double expected_vol = 2.0;
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5), expected_vol, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5);
 }
 

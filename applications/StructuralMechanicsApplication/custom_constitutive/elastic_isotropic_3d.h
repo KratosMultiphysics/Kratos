@@ -142,7 +142,7 @@ public:
     }
 
     /**
-     * @brief Returns the stress measure of this constitutive law (by default 2st Piola-Kirchhoff stress in voigt notation)
+     * @brief Returns the stress measure of this constitutive law (by default 2nd Piola-Kirchhoff stress in voigt notation)
      * @return the expected stress measure
      */
     StressMeasure GetStressMeasure() override
@@ -359,6 +359,16 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
 
+
+    /** @brief General information identifying this instance. */
+    std::string Info() const override;
+
+    /**
+     * @brief General information identifying this instance.
+     * @param rOstream The stream where the info will be printed.
+     */
+    void PrintInfo(std::ostream& rOStream) const override;
+
 protected:
 
     ///@name Protected static Member Variables
@@ -377,7 +387,7 @@ protected:
     ///@{
 
     /**
-    * @brief It checks the size of the constitutive matrix rConstitutiveMatrix and resize it if neccessary
+    * @brief It checks the size of the constitutive matrix rConstitutiveMatrix and resize it if necessary
     * @param rConstitutiveMatrix The constitutive matrix
     */
     void CheckClearElasticMatrix(VoigtSizeMatrixType& rConstitutiveMatrix);

@@ -21,7 +21,7 @@
 #include "geometries/geometry.h"
 
 #include "includes/cfd_variables.h"
-#include "custom_utilities/fluid_element_data.h"
+#include "data_containers/fluid_element_data.h"
 #include "fluid_dynamics_application_variables.h"
 
 
@@ -50,7 +50,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-// Forward decalration of auxiliary class
+// Forward declaration of auxiliary class
 namespace Internals {
 template <class TElementData, bool TDataKnowsAboutTimeIntegration>
 class FluidElementTimeIntegrationDetail;
@@ -66,8 +66,8 @@ public:
     /// Pointer definition of FluidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FluidElement);
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -106,7 +106,7 @@ public:
 
     static constexpr unsigned int NumNodes = TElementData::NumNodes;
 
-    static constexpr unsigned int BlockSize = Dim + 1;
+    static constexpr unsigned int BlockSize = TElementData::BlockSize;
 
     static constexpr unsigned int LocalSize = NumNodes * BlockSize;
 
@@ -118,7 +118,7 @@ public:
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
      * @param NewId Index number of the new element (optional)
      */
@@ -138,7 +138,7 @@ public:
      */
     FluidElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
@@ -175,7 +175,7 @@ public:
     /**
      * Returns a pointer to a new FluidElement element, created using given input
      * @param NewId the ID of the new element
-     * @param pGeom a pointer to the geomerty to be used to create the element
+     * @param pGeom a pointer to the geometry to be used to create the element
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
@@ -430,13 +430,13 @@ protected:
      */
     virtual void CalculateStrainRate(TElementData& rData) const;
 
-    /// Determine integration point weights and shape funcition derivatives from the element's geometry.
+    /// Determine integration point weights and shape function derivatives from the element's geometry.
     virtual void CalculateGeometryData(Vector& rGaussWeights,
                                        Matrix& rNContainer,
                                        ShapeFunctionDerivativesArrayType& rDN_DX) const;
 
     /**
-     * @brief Write the convective operator evaluated at this point (for each nodal funciton) to an array
+     * @brief Write the convective operator evaluated at this point (for each nodal function) to an array
      * Evaluate the convective operator for each node's shape function at an arbitrary point
      * @param rResult Output vector
      * @param rConvVel Convective velocity evaluated at the integration point

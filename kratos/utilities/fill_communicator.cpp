@@ -10,6 +10,11 @@
 //  Main authors:    Ruben Zorrilla
 //
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "includes/model_part.h"
 #include "includes/data_communicator.h"
 #include "includes/fill_communicator.h"
@@ -24,8 +29,8 @@ FillCommunicator::FillCommunicator(ModelPart& rModelPart)
 
 FillCommunicator::FillCommunicator(
     ModelPart& rModelPart,
-    const DataCommunicator& rDataComm)
-    : mrDataComm(rDataComm), mrBaseModelPart(rModelPart)
+    const DataCommunicator& rDataCommunicator)
+    : mrDataComm(rDataCommunicator), mrBaseModelPart(rModelPart)
 {}
 
 void FillCommunicator::Execute()

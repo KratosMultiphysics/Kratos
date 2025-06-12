@@ -45,7 +45,7 @@ namespace Kratos
 	typedef ModelPart::ElementsContainerType ElementsContainerType;
 	typedef ModelPart::MeshType::GeometryType::PointsArrayType PointsArrayType;
 
-	typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+	typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
 	typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
 
 	///@}
@@ -284,7 +284,7 @@ namespace Kratos
 									}
 									else
 									{
-										// I will not unactive the element if the free-surface node is sorrounded by rigd nodes only
+										// I will not unactive the element if the free-surface node is surrounded by rigid nodes only
 										NodeWeakPtrVectorType &rN = itElem->GetGeometry()[j].GetValue(NEIGHBOUR_NODES);
 										unsigned int rigidNodes = 0;
 										unsigned int freeSurfaceNodes = 0;
@@ -322,7 +322,7 @@ namespace Kratos
 				if (elementRigidNodes == numNodes)
 				{
 					wallElementsEliminationCriteria = true;
-					Geometry<Node<3>> wallElementNodes = itElem->GetGeometry();
+					Geometry<Node> wallElementNodes = itElem->GetGeometry();
 					this->SetPressureToIsolatedWallNodes(wallElementNodes);
 				}
 			}
@@ -341,7 +341,7 @@ namespace Kratos
 				if (elementRigidNodes == numNodes)
 				{
 					wallElementsEliminationCriteria = true;
-					Geometry<Node<3>> wallElementNodes = itElem->GetGeometry();
+					Geometry<Node> wallElementNodes = itElem->GetGeometry();
 					this->SetPressureToIsolatedWallNodes(wallElementNodes);
 				}
 			}

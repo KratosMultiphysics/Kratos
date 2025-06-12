@@ -65,7 +65,11 @@ class kernel {
                 size_t smem_per_thread = 0,
                 const std::string &options = ""
               )
+#if BOOST_VERSION >= 107600
+            : K(boost::dll::import_symbol<detail::kernel_api>(build_sources(q, src, options), name)),
+#else
             : K(boost::dll::import<detail::kernel_api>(build_sources(q, src, options), name)),
+#endif
               grid(num_workgroups(q)), smem_size(smem_per_thread)
         {
             stack.reserve(256);
@@ -76,7 +80,11 @@ class kernel {
                std::function<size_t(size_t)> smem,
                const std::string &options = ""
                )
+#if BOOST_VERSION >= 107600
+            : K(boost::dll::import_symbol<detail::kernel_api>(build_sources(q, src, options), name)),
+#else
             : K(boost::dll::import<detail::kernel_api>(build_sources(q, src, options), name)),
+#endif
               grid(num_workgroups(q)), smem_size(smem(1))
         {
             stack.reserve(256);
@@ -87,7 +95,11 @@ class kernel {
                const std::string &name,
                size_t smem_per_thread = 0
                )
+#if BOOST_VERSION >= 107600
+            : K(boost::dll::import_symbol<detail::kernel_api>(P, name)),
+#else
             : K(boost::dll::import<detail::kernel_api>(P, name)),
+#endif
               grid(num_workgroups(q)), smem_size(smem_per_thread)
         {
             stack.reserve(256);
@@ -98,7 +110,11 @@ class kernel {
                const std::string &name,
                std::function<size_t(size_t)> smem
                )
+#if BOOST_VERSION >= 107600
+            : K(boost::dll::import_symbol<detail::kernel_api>(P, name)),
+#else
             : K(boost::dll::import<detail::kernel_api>(P, name)),
+#endif
               grid(num_workgroups(q)), smem_size(smem(1))
         {
             stack.reserve(256);
@@ -167,9 +183,10 @@ class kernel {
             return config(num_workgroups(q), 1);
         }
 
-        kernel& config(ndrange blocks, ndrange threads) {
+        kernel& config(ndrange blocks, ndrange threads, size_t shared_memory = 0) {
             precondition(threads == ndrange(), "Maximum workgroup size for the JIT backend is 1");
             grid = blocks;
+            if (shared_memory) smem_size = shared_memory;
             return *this;
         }
 

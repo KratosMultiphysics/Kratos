@@ -39,10 +39,10 @@ KRATOS_TEST_CASE_IN_SUITE(SubpropertiesInterface, KratosCoreFastSuite)
     p1->AddSubProperties(p12);
     p11->AddSubProperties(p111);
 
-    KRATOS_CHECK(p1->HasSubProperties(11));
-    KRATOS_CHECK(p11->HasSubProperties(111));
-    KRATOS_CHECK(r_model_part.HasProperties("1.11"));
-    KRATOS_CHECK(r_model_part.HasProperties("1.11.111"));
+    KRATOS_EXPECT_TRUE(p1->HasSubProperties(11));
+    KRATOS_EXPECT_TRUE(p11->HasSubProperties(111));
+    KRATOS_EXPECT_TRUE(r_model_part.HasProperties("1.11"));
+    KRATOS_EXPECT_TRUE(r_model_part.HasProperties("1.11.111"));
 
     // Add a new one
     // Note that i am creating a new property "1", belonging to 1.12 IT IS DIFFERENT FROM p1
@@ -50,20 +50,20 @@ KRATOS_TEST_CASE_IN_SUITE(SubpropertiesInterface, KratosCoreFastSuite)
 
     p1->SetValue(YOUNG_MODULUS,1.0);
     p11->SetValue(YOUNG_MODULUS,11.0);
-    KRATOS_CHECK_EQUAL(p1->GetSubProperties(11).GetValue(YOUNG_MODULUS), 11.0);
-    KRATOS_CHECK_EQUAL(r_model_part.GetProperties("1.11").GetValue(YOUNG_MODULUS), 11.0);
+    KRATOS_EXPECT_EQ(p1->GetSubProperties(11).GetValue(YOUNG_MODULUS), 11.0);
+    KRATOS_EXPECT_EQ(r_model_part.GetProperties("1.11").GetValue(YOUNG_MODULUS), 11.0);
     
     r_model_part.GetProperties("1.11.111").SetValue(YOUNG_MODULUS,111.0);
-    KRATOS_CHECK_EQUAL(p111->GetValue(YOUNG_MODULUS), 111.0);
+    KRATOS_EXPECT_EQ(p111->GetValue(YOUNG_MODULUS), 111.0);
 
     //1.12.1 is different from 1, even though it has the same index
     r_model_part.GetProperties("1.12.1").SetValue(YOUNG_MODULUS,12345.0);
-    KRATOS_CHECK_EQUAL(r_model_part.GetProperties("1.12.1").GetValue(YOUNG_MODULUS), 12345.0);
+    KRATOS_EXPECT_EQ(r_model_part.GetProperties("1.12.1").GetValue(YOUNG_MODULUS), 12345.0);
 
     r_model_part.GetProperties("1.12").GetSubProperties(1).SetValue(YOUNG_MODULUS,12345.0);
-    KRATOS_CHECK_EQUAL(r_model_part.GetProperties("1.12").GetSubProperties(1).GetValue(YOUNG_MODULUS), 12345.0);
+    KRATOS_EXPECT_EQ(r_model_part.GetProperties("1.12").GetSubProperties(1).GetValue(YOUNG_MODULUS), 12345.0);
 
-    KRATOS_CHECK_EQUAL(p1->GetValue(YOUNG_MODULUS), 1.0);
+    KRATOS_EXPECT_EQ(p1->GetValue(YOUNG_MODULUS), 1.0);
 
     std::size_t found = 0;
     for(const auto& prop_it : p1->GetSubProperties())
@@ -72,7 +72,7 @@ KRATOS_TEST_CASE_IN_SUITE(SubpropertiesInterface, KratosCoreFastSuite)
         else
             KRATOS_ERROR << "the property with Id " << prop_it.Id() << " should not exist in the first layer";
 
-    KRATOS_CHECK_EQUAL(found,2);
+    KRATOS_EXPECT_EQ(found,2);
         
 }
 

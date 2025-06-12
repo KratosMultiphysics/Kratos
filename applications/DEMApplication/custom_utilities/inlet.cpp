@@ -279,7 +279,7 @@ namespace Kratos {
         int dimension = r_process_info[DOMAIN_SIZE];
 
         typedef ElementsArrayType::iterator ElementIterator;
-        // This vector collects the ids of the particles that have been dettached
+        // This vector collects the ids of the particles that have been detached
         // so that their id can be removed from the mOriginInletSubmodelPartIndexes map
         std::vector<int> ids_to_remove;
 
@@ -293,7 +293,7 @@ namespace Kratos {
             if (elem_it->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
 
             SphericParticle& spheric_particle = dynamic_cast<SphericParticle&>(*elem_it);
-            Node<3>& r_node = spheric_particle.GetGeometry()[0];
+            Node& r_node = spheric_particle.GetGeometry()[0];
 
             bool have_just_stopped_touching = true;
 
@@ -301,7 +301,7 @@ namespace Kratos {
                 SphericParticle* p_neighbour_particle = spheric_particle.mNeighbourElements[i];
                 if(p_neighbour_particle == NULL) continue;
 
-                Node<3>& neighbour_node = p_neighbour_particle->GetGeometry()[0];
+                Node& neighbour_node = p_neighbour_particle->GetGeometry()[0];
 
                 const double indentation = CalculateNormalizedIndentation(spheric_particle, *p_neighbour_particle);
                 const bool indentation_is_significant_for_release = indentation > mNormalizedMaxIndentationForRelease*spheric_particle.GetInteractionRadius();
@@ -335,7 +335,7 @@ namespace Kratos {
             }
         }
 
-        // removing dettached particle ids from map
+        // removing detached particle ids from map
         #pragma omp critical
         {
             ids_to_remove.insert(ids_to_remove.end(), ids_to_remove_partial.begin(), ids_to_remove_partial.end());
@@ -346,11 +346,11 @@ namespace Kratos {
         }
     }
 
-    } //Dettach
+    } //Detach
 
     void DEM_Inlet::UpdateInjectedParticleVelocity(Element& particle, Element& injector_element)
     {
-        Node<3>& central_node = particle.GetGeometry()[0];
+        Node& central_node = particle.GetGeometry()[0];
         const array_1d<double, 3 >& ejection_velocity = mInletModelPart.GetSubModelPart(mOriginInletSubmodelPartIndexes[particle.Id()])[VELOCITY];
         const array_1d<double, 3 >& injector_velocity = injector_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3 >& velocity = central_node.FastGetSolutionStepValue(VELOCITY);
@@ -367,7 +367,7 @@ namespace Kratos {
     {
         UpdateInjectedParticleVelocity(*p_element, *p_injector_element);
 
-        Node<3>& node = p_element->GetGeometry()[0];
+        Node& node = p_element->GetGeometry()[0];
         node.pGetDof(VELOCITY_X)->FixDof();
         node.pGetDof(VELOCITY_Y)->FixDof();
         node.pGetDof(VELOCITY_Z)->FixDof();
@@ -391,7 +391,7 @@ namespace Kratos {
             SphericParticle& spheric_particle = dynamic_cast<SphericParticle&>(rElement);
 
             if (!(*(spheric_particle.mpInlet))[DENSE_INLET]) return;
-                Node<3>& node = spheric_particle.GetGeometry()[0];
+                Node& node = spheric_particle.GetGeometry()[0];
 
             if (!node.Is(DEMFlags::CUMULATIVE_ZONE)) return;
 
@@ -417,7 +417,7 @@ namespace Kratos {
 
     void DEM_Inlet::RemoveInjectionConditions(Element& element, int dimension)
     {
-        Node<3>& node = element.GetGeometry()[0];
+        Node& node = element.GetGeometry()[0];
         node.Set(DEMFlags::FIXED_VEL_X, false);
         node.Set(DEMFlags::FIXED_VEL_Y, false);
         node.Set(DEMFlags::FIXED_VEL_Z, false);
@@ -493,14 +493,14 @@ namespace Kratos {
 
                 for (unsigned int j = 0; j < r_cluster.GetSpheres().size(); j++) { //loop over the spheres of the cluster
                     SphericParticle* spheric_particle = r_cluster.GetSpheres()[j];
-                    Node<3>& node_it = spheric_particle->GetGeometry()[0];
+                    Node& node_it = spheric_particle->GetGeometry()[0];
                     spheric_particle->Set(NEW_ENTITY, 0);
                     node_it.Set(NEW_ENTITY, 0);
                 }
             }
         }
 
-        // removing dettached particle ids from map
+        // removing detached particle ids from map
         #pragma omp critical
         {
             ids_to_remove.insert(ids_to_remove.end(), ids_to_remove_partial.begin(), ids_to_remove_partial.end());
@@ -622,7 +622,7 @@ namespace Kratos {
                     if (all_elements[i]->IsNot(ACTIVE) && !OneNeighbourInjectorIsInjecting(all_elements[i])) {
                         valid_elements[valid_elements_length] = all_elements[i];
                         valid_elements_length++;
-                    } // (push_back) //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted.
+                    } // (push_back) //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reset.
                 }
 
                  if (valid_elements_length < number_of_particles_to_insert) {
@@ -666,7 +666,9 @@ namespace Kratos {
 
                 const double mass_that_should_have_been_inserted_so_far = mass_flow * (current_time - inlet_start_time);
 
-                std::uniform_int_distribution<> distrib(0, valid_elements_length - 1);
+                if (valid_elements_length >= 1){
+                    std::uniform_int_distribution<> distrib(0, valid_elements_length - 1);
+                }
 
                 int i=0;
                 for (i = 0; i < number_of_particles_to_insert; i++) {
@@ -740,7 +742,7 @@ namespace Kratos {
                         }
                     }
 
-                    valid_elements[random_pos]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted.
+                    valid_elements[random_pos]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reset.
                     valid_elements[random_pos]->GetGeometry()[0].Set(ACTIVE);
                     valid_elements[random_pos] = valid_elements[valid_elements_length - 1]; //Last position overwrites random_pos
                     valid_elements_length--; //we remove last position and next random_pos has one less option

@@ -114,12 +114,12 @@ public:
     * @brief This method checks the values of a sparse vector with the given serial vector
     * @param vector The matrix to check
     * @param vector The reference matrix
-    * @param Tolerance The tolerance considered
+    * @param NegligibleValueThreshold The tolerance considered
     */
     static void CheckSparseVectorFromLocalVector(
         const TrilinosVectorType& rA,
         const TrilinosLocalVectorType& rB,
-        const double Tolerance = 1e-8
+        const double NegligibleValueThreshold = 1e-8
         );
 
     /**
@@ -127,25 +127,41 @@ public:
     * @param rb The vector to check
     * @param rIndexes The indices
     * @param rValues The values
-    * @param Tolerance The tolerance considered
+    * @param NegligibleValueThreshold The tolerance considered
     */
     static void CheckSparseVector(
         const TrilinosVectorType& rb,
         const std::vector<int>& rIndexes,
         const std::vector<double>& rValues,
-        const double Tolerance = 1e-8
+        const double NegligibleValueThreshold = 1e-8
         );
 
     /**
     * @brief This method checks the values of a sparse matrix with the given serial matrix
     * @param rA The matrix to check
     * @param rB The reference matrix
-    * @param Tolerance The tolerance considered
+    * @param NegligibleValueThreshold The tolerance considered
     */
     static void CheckSparseMatrixFromLocalMatrix(
         const TrilinosSparseMatrixType& rA,
         const TrilinosLocalMatrixType& rB,
-        const double Tolerance = 1e-8
+        const double NegligibleValueThreshold = 1e-8
+        );
+
+    /**
+    * @brief This method checks the values of a sparse matrix with the given indices and values
+    * @param rA The matrix to check
+    * @param rRowIndexes The row indices
+    * @param rColumnIndexes The column indices
+    * @param rB The reference matrix
+    * @param NegligibleValueThreshold The tolerance considered
+    */
+    static void CheckSparseMatrixFromLocalMatrix(
+        const TrilinosSparseMatrixType& rA,
+        const std::vector<int>& rRowIndexes,
+        const std::vector<int>& rColumnIndexes,
+        const TrilinosLocalMatrixType& rB,
+        const double NegligibleValueThreshold = 1e-8
         );
 
     /**
@@ -154,14 +170,14 @@ public:
     * @param rRowIndexes The row indices
     * @param rColumnIndexes The column indices
     * @param rValues The values
-    * @param Tolerance The tolerance considered
+    * @param NegligibleValueThreshold The tolerance considered
     */
     static void CheckSparseMatrix(
         const TrilinosSparseMatrixType& rA,
         const std::vector<int>& rRowIndexes,
         const std::vector<int>& rColumnIndexes,
         const std::vector<double>& rValues,
-        const double Tolerance = 1e-8
+        const double NegligibleValueThreshold = 1e-8
         );
 
     /**
@@ -181,7 +197,7 @@ public:
         const bool PrintValues = false,
         const double ThresholdIncludeHardZeros = -1
         );
-        
+
     /**
     * @brief This method generates a sparse matrix from a set of row, columns and values
     * @param rDataCommunicator The data communicator considered
@@ -200,6 +216,7 @@ public:
         const std::vector<double>& rValues,
         const Epetra_Map* pMap =  nullptr
         );
+
     ///@}
 
 }; /// class TrilinosCPPTestUtilities

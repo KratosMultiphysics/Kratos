@@ -61,11 +61,22 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/VexCLBoostTargets.cmake")
 add_library(Common INTERFACE)
 add_library(VexCL::Common ALIAS Common)
 
+target_compile_features(Common INTERFACE
+    cxx_auto_type
+    cxx_nullptr
+    cxx_rvalue_references
+    cxx_right_angle_brackets
+    cxx_static_assert
+    cxx_variadic_templates
+    cxx_decltype
+)
+
 if (VEXCL_AMD_SI_WORKAROUND)
     target_compile_definitions(Common INTERFACE VEXCL_AMD_SI_WORKAROUND)
 endif()
 
 target_include_directories(Common INTERFACE
+    ${Boost_INCLUDE_DIRS}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
     )
@@ -91,6 +102,7 @@ target_compile_options(Common INTERFACE
     $<$<CXX_COMPILER_ID:GNU>:-Wno-deprecated-declarations>
     $<$<CXX_COMPILER_ID:GNU>:-Wno-ignored-attributes>
     $<$<CXX_COMPILER_ID:GNU>:-Wno-unused-local-typedefs>
+    $<$<CXX_COMPILER_ID:GNU>:-Wno-variadic-macros>
     # Clang
     $<$<CXX_COMPILER_ID:Clang>:$<BUILD_INTERFACE:-Wall>>
     $<$<CXX_COMPILER_ID:Clang>:-Wno-missing-braces>
@@ -117,11 +129,23 @@ find_package(OpenCL)
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/VexCLOpenCLTarget.cmake")
 
 if(OpenCL_FOUND)
+    set(CL_HPP_TARGET_OPENCL_VERSION 120 CACHE STRING "Target OpenCL version")
+    set(CL_HPP_MINIMUM_OPENCL_VERSION 120 CACHE STRING "Minimum OpenCL version")
+
     add_library(OpenCL INTERFACE)
     add_library(VexCL::OpenCL ALIAS OpenCL)
 
     target_link_libraries(OpenCL INTERFACE Common OpenCL::OpenCL)
     target_compile_definitions(OpenCL INTERFACE VEXCL_BACKEND_OPENCL)
+    target_compile_definitions(OpenCL INTERFACE CL_TARGET_OPENCL_VERSION=${CL_HPP_TARGET_OPENCL_VERSION})
+    target_compile_definitions(OpenCL INTERFACE CL_HPP_TARGET_OPENCL_VERSION=${CL_HPP_TARGET_OPENCL_VERSION})
+    target_compile_definitions(OpenCL INTERFACE CL_HPP_MINIMUM_OPENCL_VERSION=${CL_HPP_MINIMUM_OPENCL_VERSION})
+
+    find_file(OPENCL_HPP CL/opencl.hpp HINTS ${OpenCL_INCLUDE_DIRS})
+    message(STATUS " -- ${OPENCL_HPP} --")
+    if(OPENCL_HPP)
+        target_compile_definitions(OpenCL INTERFACE VEXCL_HAVE_OPENCL_HPP)
+    endif()
 
     target_compile_options(Common INTERFACE
         $<$<CXX_COMPILER_ID:GNU>:-Wno-catch-value>
@@ -129,7 +153,7 @@ if(OpenCL_FOUND)
 
     message(STATUS "Found VexCL::OpenCL")
 
-    if (NOT "${Boost_VERSION}" STRLESS "106100")
+    if ("${Boost_VERSION}" VERSION_GREATER_EQUAL "1.61.0")
         add_library(Compute INTERFACE)
         add_library(VexCL::Compute ALIAS Compute)
 
@@ -152,8 +176,8 @@ if(CUDA_FOUND)
     message(STATUS "Found VexCL::CUDA")
 endif()
 
-if (NOT "${Boost_VERSION}" STRLESS "106100")
-
+find_path(Boost_DLL NAMES boost/dll PATHS ${Boost_INCLUDE_DIRS})
+if (Boost_DLL)
     if(OpenCL_INCLUDE_DIR)
         add_library(JIT INTERFACE)
         target_include_directories(JIT INTERFACE "${OpenCL_INCLUDE_DIR}")
@@ -226,7 +250,14 @@ if (VEXCL_MASTER_PROJECT)
     option(VEXCL_BUILD_TESTS    OFF)
     option(VEXCL_BUILD_EXAMPLES OFF)
 
-    set(VEXCL_BACKEND "OpenCL" CACHE STRING "Select VexCL backend (OpenCL/CUDA/Compute/JIT/All)")
+    foreach(target OpenCL CUDA Compute JIT)
+        if (TARGET ${target})
+            set(VEXCL_BACKEND "${target}" CACHE STRING "Select VexCL backend (OpenCL/CUDA/Compute/JIT/All)")
+            break()
+        endif()
+    endforeach()
+    message(STATUS "Selected backend: ${VEXCL_BACKEND}")
+
     set_property(CACHE VEXCL_BACKEND PROPERTY STRINGS "All" "OpenCL" "CUDA" "Compute" "JIT")
 
     if("${VEXCL_BACKEND}" STREQUAL "OpenCL")

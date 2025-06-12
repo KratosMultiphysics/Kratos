@@ -170,9 +170,7 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
 
                 if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                    this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_Kirchhoff);
-                } else {
-                    BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
+                    this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_Kirchhoff, plastic_strain);
                 }
             }
         }
@@ -314,7 +312,8 @@ template<class TConstLawIntegratorType>
 void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
     CalculateTangentTensor(
         ConstitutiveLaw::Parameters& rValues,
-        const ConstitutiveLaw::StressMeasure& rStressMeasure
+        const ConstitutiveLaw::StressMeasure& rStressMeasure,
+        const Vector& rPlasticStrain
         )
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
@@ -330,6 +329,10 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
     } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
         // Calculates the Tangent Constitutive Tensor by perturbation (second order)
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 2);
+    } else if (tangent_operator_estimation == TangentOperatorEstimation::Secant) {
+        const Vector num = prod(rValues.GetConstitutiveMatrix(), rPlasticStrain);
+        const double denom = inner_prod(rValues.GetStrainVector(), num);
+        noalias(rValues.GetConstitutiveMatrix()) -= outer_prod(num, num) / denom;
     }
 }
 

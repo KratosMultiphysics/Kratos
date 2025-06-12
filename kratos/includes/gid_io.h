@@ -12,8 +12,7 @@
 //                   Pooyan Dadvand
 //
 
-#if !defined(KRATOS_GID_OUTPUT_H_INCLUDED)
-#define  KRATOS_GID_OUTPUT_H_INCLUDED
+#pragma once
 
 // System includes
 #include <iostream>
@@ -582,12 +581,10 @@ public:
         //initializing gauss points containers
         if ( mWriteConditions != WriteConditionsOnly )
         {
-            int i=0;
             for ( auto element_iterator = rThisMesh.ElementsBegin(); element_iterator != rThisMesh.ElementsEnd(); ++element_iterator )
             {
                 for ( auto it = mGidGaussPointContainers.begin();  it != mGidGaussPointContainers.end(); it++ )
                 {
-                    i++;
                     if ( it->AddElement( element_iterator ) )
                         break;
                 }
@@ -1558,5 +1555,3 @@ inline std::ostream& operator << (std::ostream& rOStream, const GidIO<>& rThis)
 }// namespace Kratos.
 
 ///@}
-
-#endif // KRATOS_GID_OUTPUT_H_INCLUDED  defined

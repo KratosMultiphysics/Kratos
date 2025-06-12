@@ -55,11 +55,11 @@ class ElementalNeighboursSearchProcess
   typedef  ModelPart::NodesContainerType NodesContainerType;
   typedef  ModelPart::ElementsContainerType ElementsContainerType;
 
-  typedef Node<3>::WeakPointer NodeWeakPtrType;
+  typedef Node::WeakPointer NodeWeakPtrType;
   typedef Element::WeakPointer ElementWeakPtrType;
   typedef Condition::WeakPointer ConditionWeakPtrType;
 
-  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Node > NodeWeakPtrVectorType;
   typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
   typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
   ///@}
@@ -248,7 +248,7 @@ class ElementalNeighboursSearchProcess
     for(auto i_nelem(nElements.begin()); i_nelem != nElements.end(); ++i_nelem)
     {
       //look for the nodes of the neighbour faces
-      Geometry<Node<3> >& nGeometry = i_nelem->GetGeometry();
+      Geometry<Node >& nGeometry = i_nelem->GetGeometry();
       if(nGeometry.LocalSpaceDimension() == 1){
         for(unsigned int node_i = 0; node_i < nGeometry.size(); ++node_i)
         {
@@ -272,7 +272,7 @@ class ElementalNeighboursSearchProcess
     for(auto i_nelem(nElements.begin()); i_nelem != nElements.end(); ++i_nelem)
     {
       //look for the nodes of the neighbour faces
-      Geometry<Node<3> >& nGeometry = i_nelem->GetGeometry();
+      Geometry<Node >& nGeometry = i_nelem->GetGeometry();
       if(nGeometry.LocalSpaceDimension() == 2){
         for(unsigned int node_i = 0; node_i < nGeometry.size(); ++node_i)
         {
@@ -295,7 +295,7 @@ class ElementalNeighboursSearchProcess
     for(auto i_nelem(nElements.begin()); i_nelem != nElements.end(); ++i_nelem)
     {
       //look for the nodes of the neighbour faces
-      Geometry<Node<3> >& nGeometry = i_nelem->GetGeometry();
+      Geometry<Node >& nGeometry = i_nelem->GetGeometry();
       if(nGeometry.LocalSpaceDimension() == 3){
         for(unsigned int node_i = 0; node_i < nGeometry.size(); ++node_i)
         {
@@ -317,7 +317,7 @@ class ElementalNeighboursSearchProcess
   }
 
 
-  void ResetFlagOptions (Node<3>& rNode)
+  void ResetFlagOptions (Node& rNode)
   {
     rNode.Reset(BOUNDARY);
   }
@@ -415,7 +415,7 @@ class ElementalNeighboursSearchProcess
     CleanElementNeighbours();
 
 
-    //*************  Neigbours of nodes  ************//
+    //*************  Neighbours of nodes  ************//
     //add the neighbour elements to all the nodes in the mesh
     for(auto i_elem(rElements.begin()); i_elem != rElements.end(); ++i_elem)
     {
@@ -426,7 +426,7 @@ class ElementalNeighboursSearchProcess
       }
     }
 
-    //*************  Neigbours of elements  *********//
+    //*************  Neighbours of elements  *********//
     //add the neighbour elements to all the elements in the mesh
 
     unsigned int search_performed = false;
@@ -437,7 +437,7 @@ class ElementalNeighboursSearchProcess
       for(auto i_elem(rElements.begin()); i_elem != rElements.end(); ++i_elem)
       {
         //face nodes
-        Geometry<Node<3> >& rGeometry = i_elem->GetGeometry();
+        Geometry<Node >& rGeometry = i_elem->GetGeometry();
 
         if( rGeometry.FacesNumber() == 3 ){
 
@@ -517,7 +517,7 @@ class ElementalNeighboursSearchProcess
       for(auto i_elem(rElements.begin()); i_elem != rElements.end(); ++i_elem)
       {
         //face nodes
-        Geometry<Node<3> >& rGeometry = i_elem->GetGeometry();
+        Geometry<Node >& rGeometry = i_elem->GetGeometry();
 
         if(rGeometry.FacesNumber() == 4){
 
@@ -583,7 +583,7 @@ class ElementalNeighboursSearchProcess
             {
               i_elem->Set(BOUNDARY);
 
-              Geometry<Node<3> >& rGeometry = (i_elem)->GetGeometry();
+              Geometry<Node >& rGeometry = (i_elem)->GetGeometry();
 
               DenseMatrix<unsigned int> lpofa; //points that define the faces
               rGeometry.NodesInFaces(lpofa);
@@ -626,7 +626,7 @@ class ElementalNeighboursSearchProcess
     CleanElementNeighbours();
 
 
-    //*************  Neigbours of nodes  ************//
+    //*************  Neighbours of nodes  ************//
     //add the neighbour elements to all the nodes in the mesh
     for(auto i_elem(rElements.begin()); i_elem != rElements.end(); ++i_elem)
     {
@@ -639,7 +639,7 @@ class ElementalNeighboursSearchProcess
       }
     }
 
-    //*************  Neigbours of elements  *********//
+    //*************  Neighbours of elements  *********//
     //add the neighbour elements to all the elements in the mesh
     //loop over faces
 
@@ -692,7 +692,7 @@ class ElementalNeighboursSearchProcess
 
         auto& nElements = rNodes[ipoin].GetValue(NEIGHBOUR_ELEMENTS);
 
-        for(auto& i_nelem : nElements)  //loop over elements surronding a point
+        for(auto& i_nelem : nElements)  //loop over elements surrounding a point
         {
           jelem=i_nelem.Id();
           unsigned int ielem =rElements[el].Id();

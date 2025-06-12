@@ -525,6 +525,12 @@ public:
     bool IsArray() const;
 
     /**
+     * @brief This method checks if the parameter is an array of strings
+     * @return True if it is a string array, false otherwise
+     */
+    bool IsStringArray() const;
+
+    /**
      * @brief This method checks if the parameter is a vector
      * @return True if it is a vector, false otherwise
      */

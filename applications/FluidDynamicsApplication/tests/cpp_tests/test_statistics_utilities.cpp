@@ -12,14 +12,15 @@
 //
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/cfd_variables.h"
 
+// Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/statistics_record.h"
 #include "custom_utilities/statistics_data.h"
 #include "custom_utilities/statistics_utilities.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 namespace Testing  {
@@ -44,10 +45,10 @@ void TestStatisticsUtilitiesInitializeModelPart(
 
     // Nodal data
     Element& r_element = *(rModelPart.ElementsBegin());
-    Geometry< Node<3> >& r_geometry = r_element.GetGeometry();
+    Geometry< Node >& r_geometry = r_element.GetGeometry();
 
     for (unsigned int i = 0; i < 4; i++) {
-        Node<3>& r_node = r_geometry[i];
+        Node& r_node = r_geometry[i];
         r_node.FastGetSolutionStepValue(PRESSURE) = 10.0;
         r_node.FastGetSolutionStepValue(VELOCITY_X) = 1.0;
         r_node.FastGetSolutionStepValue(VELOCITY_Y) = 2.0;
@@ -96,12 +97,12 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesUsage, FluidDynamicsApplicationFastS
     std::vector<double> obtained_output = p_turbulence_statistics->OutputForTest(model_part.Elements());
 
     //std::cout << "Expected size " << expected_output.size() << " obtained size " << obtained_output.size() << std::endl;
-    KRATOS_CHECK_EQUAL(expected_output.size(), obtained_output.size());
+    KRATOS_EXPECT_EQ(expected_output.size(), obtained_output.size());
 
     for (unsigned int i = 0; i < expected_output.size(); i++)
     {
         //std::cout << "i: " << i << " expected " << expected_output[i] << " obtained " << obtained_output[i] << std::endl;
-        KRATOS_CHECK_NEAR(expected_output[i],obtained_output[i], 1e-12);
+        KRATOS_EXPECT_NEAR(expected_output[i],obtained_output[i], 1e-12);
     }
 }
 
@@ -179,12 +180,12 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesSecondThirdOrder, FluidDynamicsAppli
     std::vector<double> obtained_output = p_turbulence_statistics->OutputForTest(model_part.Elements());
 
     //std::cout << "Expected size " << expected_output.size() << " obtained size " << obtained_output.size() << std::endl;
-    KRATOS_CHECK_EQUAL(expected_output.size(), obtained_output.size());
+    KRATOS_EXPECT_EQ(expected_output.size(), obtained_output.size());
 
     for (unsigned int i = 0; i < expected_output.size(); i++)
     {
         //std::cout << "i: " << i << " expected " << expected_output[i] << " obtained " << obtained_output[i] << std::endl;
-        KRATOS_CHECK_NEAR(expected_output[i],obtained_output[i], 1e-12);
+        KRATOS_EXPECT_NEAR(expected_output[i],obtained_output[i], 1e-12);
     }
 }
 

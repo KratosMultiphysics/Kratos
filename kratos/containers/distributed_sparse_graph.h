@@ -83,7 +83,7 @@ public:
 
     /// constructor.
     DistributedSparseGraph(const IndexType LocalSize,
-                           DataCommunicator& rComm)
+                           const DataCommunicator& rComm)
     :
       mpComm(&rComm),
       mLocalGraph(LocalSize)

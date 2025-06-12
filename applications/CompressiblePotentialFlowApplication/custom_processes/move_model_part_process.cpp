@@ -62,7 +62,7 @@ void MoveModelPartProcess::Execute()
     Matrix rotation_matrix = ZeroMatrix(4,4);
     GeometricalTransformationUtilities::CalculateRotationMatrix(mRotationAngle, rotation_matrix, mRotationAxis, mRotationPoint);
 
-    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
+    block_for_each(mrModelPart.Nodes(), [&](Node& rNode)
     {
         auto &r_coordinates = rNode.Coordinates();
         for (std::size_t i_dim = 0; i_dim < r_coordinates.size(); i_dim++){

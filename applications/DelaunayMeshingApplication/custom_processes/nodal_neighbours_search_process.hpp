@@ -57,7 +57,7 @@ class NodalNeighboursSearchProcess
   typedef  ModelPart::NodesContainerType NodesContainerType;
   typedef  ModelPart::ElementsContainerType ElementsContainerType;
 
-  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Node > NodeWeakPtrVectorType;
   typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
   typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
   ///@}
@@ -346,7 +346,7 @@ class NodalNeighboursSearchProcess
           if( rGeometry[i].Id() != i_node.Id() )
           {
             NodeWeakPtrVectorType& nNodes = i_node.GetValue(NEIGHBOUR_NODES);
-            AddUniquePointer<Node<3> >(nNodes, rGeometry(i));
+            AddUniquePointer<Node >(nNodes, rGeometry(i));
           }
         }
       }
@@ -482,7 +482,7 @@ class NodalNeighboursSearchProcess
       for(unsigned int spn=0; spn<PSharedN[rpn]; ++spn)
       {
         //std::cout<<" ShNodes "<<PSurroundN[rpn][spn]<<std::endl;
-        AddUniquePointer<Node<3> >(nNodes, rNodes(PSurroundN[rpn][spn]));
+        AddUniquePointer<Node >(nNodes, rNodes(PSurroundN[rpn][spn]));
       }
     }
 

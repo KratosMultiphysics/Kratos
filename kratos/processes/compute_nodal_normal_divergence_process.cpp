@@ -48,7 +48,7 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
     if (tls.J0.size1() != dimension || tls.J0.size2() != local_space_dimension_first_element)
         tls.J0.resize(dimension, local_space_dimension_first_element);
 
-    std::function<array_1d<double,3>(const Node<3>&, const Variable<array_1d<double,3>>&)> get_vector_field;
+    std::function<array_1d<double,3>(const Node&, const Variable<array_1d<double,3>>&)> get_vector_field;
     if (mNonHistoricalOriginVariable) {
         if (mNormalizeDivergence) {
             get_vector_field = GetNonHistoricalNormalVectorField;
@@ -202,7 +202,7 @@ ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveA
 template<>
 void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsHistoricalVariable>::ClearDivergence()
 {
-    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+    block_for_each(mrModelPart.Nodes(), [&](Node& rNode){
             rNode.SetValue(*mpAreaVariable, 0.0);
             rNode.FastGetSolutionStepValue(*mpDivergenceVariable) = 0.0;
         });
@@ -214,7 +214,7 @@ void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::
 template <>
 void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsNonHistoricalVariable>::ClearDivergence()
 {
-    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+    block_for_each(mrModelPart.Nodes(), [&](Node& rNode){
             rNode.SetValue(*mpAreaVariable, 0.0);
             rNode.SetValue(*mpDivergenceVariable, 0.0);
         });
@@ -270,7 +270,7 @@ void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::
 template <>
 void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsHistoricalVariable>::PonderateDivergence()
 {
-    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+    block_for_each(mrModelPart.Nodes(), [&](Node& rNode){
             rNode.FastGetSolutionStepValue(*mpDivergenceVariable) /=
                 rNode.GetValue(*mpAreaVariable);
         });
@@ -282,7 +282,7 @@ void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::
 template <>
 void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsNonHistoricalVariable>::PonderateDivergence()
 {
-    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+    block_for_each(mrModelPart.Nodes(), [&](Node& rNode){
             rNode.GetValue(*mpDivergenceVariable) /=
                 rNode.GetValue(*mpAreaVariable);
         });
@@ -293,7 +293,7 @@ void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::
 
 template <bool THistorical>
 array_1d<double,3> ComputeNodalNormalDivergenceProcess<THistorical>::GetHistoricalNormalVectorField(
-    const Node<3>& rNode,
+    const Node& rNode,
     const Variable<array_1d<double,3>>& rVariable)
 {
     const auto& vector_field = rNode.FastGetSolutionStepValue(rVariable);
@@ -306,7 +306,7 @@ array_1d<double,3> ComputeNodalNormalDivergenceProcess<THistorical>::GetHistoric
 
 template <bool THistorical>
 array_1d<double,3> ComputeNodalNormalDivergenceProcess<THistorical>::GetNonHistoricalNormalVectorField(
-    const Node<3>& rNode,
+    const Node& rNode,
     const Variable<array_1d<double,3>>& rVariable)
 {
     const auto& vector_field = rNode.GetValue(rVariable);
@@ -319,7 +319,7 @@ array_1d<double,3> ComputeNodalNormalDivergenceProcess<THistorical>::GetNonHisto
 
 template <bool THistorical>
 array_1d<double,3> ComputeNodalNormalDivergenceProcess<THistorical>::GetHistoricalVectorField(
-    const Node<3>& rNode,
+    const Node& rNode,
     const Variable<array_1d<double,3>>& rVariable)
 {
     return rNode.FastGetSolutionStepValue(rVariable);
@@ -327,7 +327,7 @@ array_1d<double,3> ComputeNodalNormalDivergenceProcess<THistorical>::GetHistoric
 
 template <bool THistorical>
 array_1d<double,3> ComputeNodalNormalDivergenceProcess<THistorical>::GetNonHistoricalVectorField(
-    const Node<3>& rNode,
+    const Node& rNode,
     const Variable<array_1d<double,3>>& rVariable)
 {
     return rNode.GetValue(rVariable);

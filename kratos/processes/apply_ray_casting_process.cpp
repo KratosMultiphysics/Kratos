@@ -130,14 +130,14 @@ namespace Kratos
 
         auto apply_nodal_functor = CreateApplyNodalFunction();
 
-        block_for_each(ModelPart1.Nodes(), [&](Node<3>& rNode){
+        block_for_each(ModelPart1.Nodes(), [&](Node& rNode){
             const double ray_distance = this->DistancePositionInSpace(rNode);
             apply_nodal_functor(rNode,ray_distance);
         });
     }
 
     template<std::size_t TDim>
-    double ApplyRayCastingProcess<TDim>::DistancePositionInSpace(const Node<3> &rNode)
+    double ApplyRayCastingProcess<TDim>::DistancePositionInSpace(const Node &rNode)
     {
         array_1d<double,TDim> distances;
         unsigned int n_ray_pos(0), n_ray_neg(0);
@@ -489,9 +489,9 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
-    std::function<void(Node<3>&, const double)> ApplyRayCastingProcess<TDim>::CreateApplyNodalFunction() const
+    std::function<void(Node&, const double)> ApplyRayCastingProcess<TDim>::CreateApplyNodalFunction() const
     {
-        return [this](Node<3>& rNode, const double RayDistance) {
+        return [this](Node& rNode, const double RayDistance) {
             double& r_node_distance = mDistanceGetterFunctor(rNode, *mpDistanceVariable);
             if (RayDistance * r_node_distance < 0.0) {
                 r_node_distance = -r_node_distance;
@@ -500,7 +500,7 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
-    std::function<double&(Node<3>& rNode, const Variable<double>& rDistanceVariable)> ApplyRayCastingProcess<TDim>::CreateDistanceGetterFunctor() const
+    std::function<double&(Node& rNode, const Variable<double>& rDistanceVariable)> ApplyRayCastingProcess<TDim>::CreateDistanceGetterFunctor() const
     {
         NodeScalarGetFunctionType distance_getter_functor;
         const std::string database = mSettings["distance_database"].GetString();

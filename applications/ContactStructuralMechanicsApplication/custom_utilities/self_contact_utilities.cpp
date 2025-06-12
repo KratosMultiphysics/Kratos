@@ -139,7 +139,7 @@ void ComputeSelfContactPairing(
 
     // First loop over the conditions to check the pairs
     for(auto& p_cond : ordered_conditions) {
-        // The slave geoemtry
+        // The slave geometry
         auto& r_slave_geometry = p_cond->GetGeometry();
 
         // Checking if already set
@@ -328,7 +328,7 @@ void NotPredefinedMasterSlave(ModelPart& rModelPart)
     block_for_each(r_conditions_array, [&](Condition& rCond) {
         if (rCond.Is(SLAVE)) {
             GeometryType& r_geometry = rCond.GetGeometry();
-            for (NodeType& r_node : r_geometry) {
+            for (Node& r_node : r_geometry) {
                 r_node.SetLock();
                 r_node.Set(SLAVE, true);
                 r_node.UnSetLock();
@@ -336,7 +336,7 @@ void NotPredefinedMasterSlave(ModelPart& rModelPart)
         }
         if (rCond.Is(MASTER)) {
             GeometryType& r_geometry = rCond.GetGeometry();
-            for (NodeType& r_node : r_geometry) {
+            for (Node& r_node : r_geometry) {
                 r_node.SetLock();
                 r_node.Set(MASTER, true);
                 r_node.UnSetLock();

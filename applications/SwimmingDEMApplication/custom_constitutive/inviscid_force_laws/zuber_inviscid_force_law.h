@@ -11,7 +11,7 @@ namespace Kratos {
     class KRATOS_API(SWIMMING_DEM_APPLICATION) ZuberInviscidForceLaw : public AutonHuntPrudhommeInviscidForceLaw {
 
     public:
-        typedef Node <3> NodeType;
+        typedef Node NodeType;
         KRATOS_CLASS_POINTER_DEFINITION(ZuberInviscidForceLaw);
 
         // TODO: make mDoApplyFaxenCorrections an option
@@ -29,7 +29,7 @@ namespace Kratos {
 
     protected:
 
-        double GetVirtualMassCoefficient(Geometry<Node<3> >& r_geometry,
+        double GetVirtualMassCoefficient(Geometry<Node >& r_geometry,
                                          const array_1d<double, 3>& minus_slip_acc) override;
     private:
 

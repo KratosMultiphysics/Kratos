@@ -57,6 +57,7 @@ constexpr int GetMinorVersion() {
 
 KRATOS_API_EXPORT std::string GetPatchVersion();
 KRATOS_API_EXPORT std::string GetCommit();
+KRATOS_API_EXPORT std::string GetBranchName();
 KRATOS_API_EXPORT std::string GetBuildType();
 KRATOS_API_EXPORT std::string GetVersionString();
 KRATOS_API_EXPORT std::string GetOSName();

@@ -619,7 +619,7 @@ class SettleModelStructureProcess
             {
 
               bool node_belongs_to_condition = false;
-              Geometry< Node<3 > > & rjGeom = j_cond->GetGeometry();
+              Geometry< Node > & rjGeom = j_cond->GetGeometry();
 
               if ( j_cond->Is(NEW_ENTITY) ){
                 for ( unsigned int j = 0; j < rjGeom.size() ; ++j) {
@@ -740,7 +740,7 @@ class SettleModelStructureProcess
     //Add Contact modelparts to main modelpart  flags: ( CONTACT ) in contact model parts keep only nodes and contact conditions // after that a contact search will be needed
 
     //if contact condition has the same geometry size as an elements printing ids will coincide,
-    //renumber conditions with rElemId instead of rCondId :: in order to ensure it check maximun and apply it
+    //renumber conditions with rElemId instead of rCondId :: in order to ensure it check maximum and apply it
     unsigned int rContactId = rCondId;
     if( rElemId > rCondId )
       rContactId = rElemId;

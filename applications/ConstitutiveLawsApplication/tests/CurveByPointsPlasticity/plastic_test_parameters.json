@@ -1,0 +1,121 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "tensile",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 30
+    },
+    "solver_settings"  : {
+        "solver_type"                     : "Static",
+        "model_part_name"                 : "Structure",
+        "domain_size"                     : 3,
+        "echo_level"                      : 0,
+        "analysis_type"                   : "non_linear",
+        "model_import_settings"           : {
+            "input_type"     : "mdpa",
+            "input_filename" : "CurveByPointsPlasticity/plastic_test"
+        },
+        "material_import_settings"        : {
+            "materials_filename" : "CurveByPointsPlasticity/plastic_test_materials.json"
+        },
+        "time_stepping"                   : {
+            "time_step" : 0.2
+        },
+		"use_old_stiffness_in_first_iteration": true,
+        "line_search"                     : false,
+        "convergence_criterion"           : "residual_criterion",
+        "displacement_relative_tolerance" : 0.0001,
+        "displacement_absolute_tolerance" : 1e-9,
+        "residual_relative_tolerance"     : 1e-4,
+        "residual_absolute_tolerance"     : 1e-9,
+        "max_iteration"                   : 40,
+        "rotation_dofs"                   : false,
+        "volumetric_strain_dofs"          : false
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto_fixed",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto_x_z",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,false,true],
+                "value"           : [0.0,null,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto_x_y",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,false],
+                "value"           : [0.0,0.0,null]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto_x",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,false,false],
+                "value"           : [0.0,null,null]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto_imposed",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,false,false],
+                "value"           : ["1e-4*t",null,null]
+            }
+        }],
+        "loads_process_list"       : [],
+        "list_other_processes"     : [],
+        "json_check_process" : [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "gauss_points_check_variables" : ["PLASTIC_DISSIPATION","UNIAXIAL_STRESS"],
+                "input_file_name"              : "CurveByPointsPlasticity/plastic_test_results.json",
+                "model_part_name"              : "Structure.Parts_Solid_Solid_Auto1",
+                "time_frequency"               : 0.2
+            }
+        }]
+    }
+}
+		//"_json_output_process" : [
+		//{
+		//	"python_module"   : "json_output_process",
+		//	"kratos_module" : "KratosMultiphysics",
+		//	"help"                  : "",
+		//	"process_name"          : "JsonOutputProcess",
+		//	"Parameters"            : {
+		//		"gauss_points_output_variables" : ["PLASTIC_DISSIPATION","UNIAXIAL_STRESS"],
+		//		"output_file_name"              : "CurveByPointsPlasticity/plastic_test_results.json",
+		//		"model_part_name"               : "Structure.Parts_Solid_Solid_Auto1",
+		//		"time_frequency"                : 0.2
+		//	}
+		//}]

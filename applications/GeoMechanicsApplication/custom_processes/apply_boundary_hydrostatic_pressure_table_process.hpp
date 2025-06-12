@@ -11,8 +11,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_APPLY_BOUNDARY_HYDROSTATIC_PRESSURE_TABLE_PROCESS )
-#define  KRATOS_GEO_APPLY_BOUNDARY_HYDROSTATIC_PRESSURE_TABLE_PROCESS
+#pragma once
 
 #include "includes/table.h"
 
@@ -24,120 +23,52 @@ namespace Kratos
 
 class ApplyBoundaryHydrostaticPressureTableProcess : public ApplyConstantBoundaryHydrostaticPressureProcess
 {
-
 public:
-
     KRATOS_CLASS_POINTER_DEFINITION(ApplyBoundaryHydrostaticPressureTableProcess);
 
     /// Defining a table with double argument and result type as table type.
-    typedef Table<double,double> TableType;
+    using TableType = Table<double, double>;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Constructor
-    ApplyBoundaryHydrostaticPressureTableProcess(ModelPart& model_part,
-                                                 Parameters rParameters
-                                                 ) : ApplyConstantBoundaryHydrostaticPressureProcess(model_part, rParameters)
+    ApplyBoundaryHydrostaticPressureTableProcess(ModelPart& model_part, Parameters rParameters)
+        : ApplyConstantBoundaryHydrostaticPressureProcess(model_part, rParameters)
     {
         KRATOS_TRY
 
         unsigned int TableId = rParameters["table"].GetInt();
-        mpTable = model_part.pGetTable(TableId);
-        mTimeUnitConverter = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
+        mpTable              = model_part.pGetTable(TableId);
+        mTimeUnitConverter   = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
 
         KRATOS_CATCH("")
     }
 
-    ///------------------------------------------------------------------------------------
-
-    /// Destructor
-    ~ApplyBoundaryHydrostaticPressureTableProcess() override {}
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Execute method is used to execute the ApplyBoundaryHydrostaticPressureTableProcess algorithms.
-    void Execute() override
-    {
-    }
+    ApplyBoundaryHydrostaticPressureTableProcess(const ApplyBoundaryHydrostaticPressureTableProcess&) = delete;
+    ApplyBoundaryHydrostaticPressureTableProcess& operator=(const ApplyBoundaryHydrostaticPressureTableProcess&) = delete;
+    ~ApplyBoundaryHydrostaticPressureTableProcess() override = default;
 
     /// this function will be executed at every time step BEFORE performing the solve phase
     void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY
 
-        if (mrModelPart.NumberOfNodes() > 0) {
-            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
-            const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
-            const double deltaH = mpTable->GetValue(Time);
+        const auto& r_variable = KratosComponents<Variable<double>>::Get(GetVariableName());
+        const auto  time       = GetModelPart().GetProcessInfo()[TIME] / mTimeUnitConverter;
+        const auto  delta_h    = mpTable->GetValue(time);
 
-            block_for_each(mrModelPart.Nodes(), [&deltaH, &var, this](Node<3>& rNode){
-                const double distance = mReferenceCoordinate - rNode.Coordinates()[mGravityDirection];
-                const double pressure = mSpecificWeight * (distance + deltaH);
-
-                if (pressure > 0.0) {
-                    rNode.FastGetSolutionStepValue(var) = pressure;
-                } else {
-                    rNode.FastGetSolutionStepValue(var) = 0.0;
-                }
-            });
-        }
-
+        block_for_each(GetModelPart().Nodes(), [&delta_h, &r_variable, this](Node& rNode) {
+            const auto distance = GetReferenceCoordinate() - rNode.Coordinates()[GetGravityDirection()];
+            const auto pressure                        = GetSpecificWeight() * (distance + delta_h);
+            rNode.FastGetSolutionStepValue(r_variable) = std::max(pressure, 0.0);
+        });
         KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "ApplyBoundaryHydrostaticPressureTableProcess";
-    }
-
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "ApplyBoundaryHydrostaticPressureTableProcess";
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-protected:
-
-    /// Member Variables
-
-    TableType::Pointer mpTable;
-    double mTimeUnitConverter;
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    std::string Info() const override { return "ApplyBoundaryHydrostaticPressureTableProcess"; }
 
 private:
+    /// Member Variables
+    TableType::Pointer mpTable;
+    double             mTimeUnitConverter;
+};
 
-    /// Assignment operator.
-    ApplyBoundaryHydrostaticPressureTableProcess& operator=(ApplyBoundaryHydrostaticPressureTableProcess const& rOther);
-
-    /// Copy constructor.
-    //ApplyBoundaryHydrostaticPressureTableProcess(ApplyBoundaryHydrostaticPressureTableProcess const& rOther);
-}; // Class ApplyBoundaryHydrostaticPressureTableProcess
-
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  ApplyBoundaryHydrostaticPressureTableProcess& rThis);
-
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ApplyBoundaryHydrostaticPressureTableProcess& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
-
-
-} // namespace Kratos.
-
-#endif /* KRATOS_GEO_APPLY_BOUNDARY_BOUNDARY_HYDROSTATIC_PRESSURE_TABLE_PROCESS defined */
+} // namespace Kratos

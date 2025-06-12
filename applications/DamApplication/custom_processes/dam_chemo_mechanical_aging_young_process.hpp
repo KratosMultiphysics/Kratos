@@ -64,7 +64,7 @@ class DamChemoMechanicalAgingYoungProcess : public Process
         rParameters["initial_porosity"];
         rParameters["max_chemical_porosity"];
 
-        // Now validate agains defaults -- this also ensures no type mismatch
+        // Now validate against defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mVariableName = rParameters["variable_name"].GetString();
@@ -95,7 +95,7 @@ class DamChemoMechanicalAgingYoungProcess : public Process
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-    void ExecuteInitialize() override
+    void ExecuteBeforeSolutionLoop() override
     {
         KRATOS_TRY;
 

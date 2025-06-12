@@ -68,7 +68,7 @@ public:
     typedef std::size_t                                     IndexType;
 
     /// Geometric type definitions
-    typedef Node<3>                                          NodeType;
+    typedef Node                                          NodeType;
     typedef Geometry<NodeType>                           GeometryType;
 
     /// The definition of the containers
@@ -261,7 +261,7 @@ private:
         );
 
     /**
-     * @brief After we have transfer the information from the previous modelpart we initilize the elements
+     * @brief After we have transfer the information from the previous modelpart we initialize the elements
      */
     void InitializeElements();
 

@@ -48,7 +48,7 @@ namespace Kratos
  * @class ContactResidualBasedEliminationBuilderAndSolverWithConstraints
  * @ingroup ContactStructuralMechanicsApplication
  * @brief Current class provides an implementation for contact builder and solving operations. (elimination)
- * @details The RHS is constituted by the unbalanced loads (residual). Degrees of freedom are reordered putting the restrained degrees of freedom at the end of the system ordered in reverse order with respect to the DofSet and not considered the inactive ones. Imposition of the dirichlet conditions is naturally dealt with as the residual already contains this information. Calculation of the reactions involves a cost very similiar to the calculation of the total residual
+ * @details The RHS is constituted by the unbalanced loads (residual). Degrees of freedom are reordered putting the restrained degrees of freedom at the end of the system ordered in reverse order with respect to the DofSet and not considered the inactive ones. Imposition of the dirichlet conditions is naturally dealt with as the residual already contains this information. Calculation of the reactions involves a cost very similar to the calculation of the total residual
  * @author Vicente Mataix Ferrandiz
  * @tparam TSparseSpace The sparse matrix system considered
  * @tparam TDenseSpace The dense matrix system
@@ -69,52 +69,51 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ContactResidualBasedEliminationBuilderAndSolverWithConstraints);
 
     /// Builder and solver base class
-    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseBuilderAndSolverType;
+    using BaseBuilderAndSolverType = BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
 
-    /// Definitions dependent of the base class
-    typedef ResidualBasedEliminationBuilderAndSolverWithConstraints< TSparseSpace, TDenseSpace, TLinearSolver > BaseType;
+    /// Definitions dependent on the base class
+    using BaseType = ResidualBasedEliminationBuilderAndSolverWithConstraints<TSparseSpace, TDenseSpace, TLinearSolver>;
 
     /// The definition of the current class
-    typedef ContactResidualBasedEliminationBuilderAndSolverWithConstraints<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+    using ClassType = ContactResidualBasedEliminationBuilderAndSolverWithConstraints<TSparseSpace, TDenseSpace, TLinearSolver>;
 
     /// Base types definitions
-    typedef typename BaseType::TSchemeType TSchemeType;
-    typedef typename BaseType::TDataType TDataType;
-    typedef typename BaseType::DofsArrayType DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-    typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
-    typedef typename BaseType::NodeType NodeType;
-    typedef typename BaseType::NodesArrayType NodesArrayType;
-    typedef typename BaseType::ElementsArrayType ElementsArrayType;
-    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
+    using TSchemeType = typename BaseType::TSchemeType;
+    using TDataType = typename BaseType::TDataType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
+    using TSystemMatrixPointerType = typename BaseType::TSystemMatrixPointerType;
+    using TSystemVectorPointerType = typename BaseType::TSystemVectorPointerType;
+    using NodesArrayType = typename BaseType::NodesArrayType;
+    using ElementsArrayType = typename BaseType::ElementsArrayType;
+    using ConditionsArrayType = typename BaseType::ConditionsArrayType;
 
     /// General containers type definitions
-    typedef ModelPart::MasterSlaveConstraintContainerType ConstraintContainerType;
+    using ConstraintContainerType = ModelPart::MasterSlaveConstraintContainerType;
 
     /// Additional definitions
-    typedef typename BaseType::ElementsContainerType ElementsContainerType;
-    typedef typename BaseType::EquationIdVectorType EquationIdVectorType;
-    typedef typename BaseType::DofsVectorType DofsVectorType;
+    using ElementsContainerType = typename BaseType::ElementsContainerType;
+    using EquationIdVectorType = typename BaseType::EquationIdVectorType;
+    using DofsVectorType = typename BaseType::DofsVectorType;
 
     /// DoF types definition
-    typedef typename BaseType::DofType DofType;
-    typedef typename BaseType::DofPointerType DofPointerType;
+    using DofType = typename BaseType::DofType;
+    using DofPointerType = typename BaseType::DofPointerType;
 
     /// The DoF pointer vector type definition
-    typedef std::vector<typename DofType::Pointer> DofPointerVectorType;
+    using DofPointerVectorType = std::vector<typename DofType::Pointer>;
 
     /// The size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// The index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// Index set definition
-    typedef std::unordered_set<IndexType> IndexSetType;
+    using IndexSetType = std::unordered_set<IndexType>;
 
     ///@}
     ///@name Enum's
@@ -196,7 +195,7 @@ public:
     /**
      * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
      * and condition its Dofs.
-     * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the
+     * @details The list of dofs is stores inside the BuilderAndSolver as it is closely connected to the
      * way the matrix and RHS are built
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
@@ -270,7 +269,7 @@ protected:
 
     /**
      * @brief Builds the list of the DofSets involved in the problem by "asking" to each element and condition its Dofs.
-     * @details Equivalent to the ResidualBasedEliminationBuilderAndSolver but with constraints. The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the way the matrix and RHS are built
+     * @details Equivalent to the ResidualBasedEliminationBuilderAndSolver but with constraints. The list of dofs is stores inside the BuilderAndSolver as it is closely connected to the way the matrix and RHS are built
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      */

@@ -44,15 +44,15 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GetGeometryType, KratosCoreGeometriesFastSui
 {
     auto geomRegular = GenerateRegularPyramid3D5();
 
-    KRATOS_CHECK_EQUAL(geomRegular->GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Pyramid);
-    KRATOS_CHECK_EQUAL(geomRegular->GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Pyramid3D5);
+    KRATOS_EXPECT_EQ(geomRegular->GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Pyramid);
+    KRATOS_EXPECT_EQ(geomRegular->GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Pyramid3D5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5EdgesNumber, KratosCoreGeometriesFastSuite)
 {
     auto geomRegular = GenerateRegularPyramid3D5();
 
-    KRATOS_CHECK_EQUAL(geomRegular->EdgesNumber(), 8);
+    KRATOS_EXPECT_EQ(geomRegular->EdgesNumber(), 8);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GenerateEdges, KratosCoreGeometriesFastSuite)
@@ -61,59 +61,59 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GenerateEdges, KratosCoreGeometriesFastSuite
     auto edges = geom->GenerateEdges();
 
     // Edge 1
-    KRATOS_CHECK_EQUAL(edges[0].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
-    KRATOS_CHECK_EQUAL(edges[0].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Line3D2);
-    KRATOS_CHECK_VECTOR_EQUAL(edges[0].GetPoint( 0 ).Coordinates(), geom->GetPoint( 0 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(edges[0].GetPoint( 1 ).Coordinates(), geom->GetPoint( 1 ).Coordinates());
+    KRATOS_EXPECT_EQ(edges[0].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
+    KRATOS_EXPECT_EQ(edges[0].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Line3D2);
+    KRATOS_EXPECT_VECTOR_EQ(edges[0].GetPoint( 0 ).Coordinates(), geom->GetPoint( 0 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(edges[0].GetPoint( 1 ).Coordinates(), geom->GetPoint( 1 ).Coordinates());
 
     // Edge 2
-    KRATOS_CHECK_EQUAL(edges[1].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
-    KRATOS_CHECK_EQUAL(edges[1].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Line3D2);
-    KRATOS_CHECK_VECTOR_EQUAL(edges[1].GetPoint( 0 ).Coordinates(), geom->GetPoint( 1 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(edges[1].GetPoint( 1 ).Coordinates(), geom->GetPoint( 2 ).Coordinates());
+    KRATOS_EXPECT_EQ(edges[1].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
+    KRATOS_EXPECT_EQ(edges[1].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Line3D2);
+    KRATOS_EXPECT_VECTOR_EQ(edges[1].GetPoint( 0 ).Coordinates(), geom->GetPoint( 1 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(edges[1].GetPoint( 1 ).Coordinates(), geom->GetPoint( 2 ).Coordinates());
 
     // Edge 3
-    KRATOS_CHECK_EQUAL(edges[2].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
-    KRATOS_CHECK_EQUAL(edges[2].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Line3D2);
-    KRATOS_CHECK_VECTOR_EQUAL(edges[2].GetPoint( 0 ).Coordinates(), geom->GetPoint( 2 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(edges[2].GetPoint( 1 ).Coordinates(), geom->GetPoint( 3 ).Coordinates());
+    KRATOS_EXPECT_EQ(edges[2].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
+    KRATOS_EXPECT_EQ(edges[2].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Line3D2);
+    KRATOS_EXPECT_VECTOR_EQ(edges[2].GetPoint( 0 ).Coordinates(), geom->GetPoint( 2 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(edges[2].GetPoint( 1 ).Coordinates(), geom->GetPoint( 3 ).Coordinates());
 
     // Edge 4
-    KRATOS_CHECK_EQUAL(edges[3].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
-    KRATOS_CHECK_EQUAL(edges[3].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Line3D2);
-    KRATOS_CHECK_VECTOR_EQUAL(edges[3].GetPoint( 0 ).Coordinates(), geom->GetPoint( 3 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(edges[3].GetPoint( 1 ).Coordinates(), geom->GetPoint( 0 ).Coordinates());
+    KRATOS_EXPECT_EQ(edges[3].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
+    KRATOS_EXPECT_EQ(edges[3].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Line3D2);
+    KRATOS_EXPECT_VECTOR_EQ(edges[3].GetPoint( 0 ).Coordinates(), geom->GetPoint( 3 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(edges[3].GetPoint( 1 ).Coordinates(), geom->GetPoint( 0 ).Coordinates());
 
     // Edge 5
-    KRATOS_CHECK_EQUAL(edges[4].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
-    KRATOS_CHECK_EQUAL(edges[4].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Line3D2);
-    KRATOS_CHECK_VECTOR_EQUAL(edges[4].GetPoint( 0 ).Coordinates(), geom->GetPoint( 0 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(edges[4].GetPoint( 1 ).Coordinates(), geom->GetPoint( 4 ).Coordinates());
+    KRATOS_EXPECT_EQ(edges[4].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
+    KRATOS_EXPECT_EQ(edges[4].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Line3D2);
+    KRATOS_EXPECT_VECTOR_EQ(edges[4].GetPoint( 0 ).Coordinates(), geom->GetPoint( 0 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(edges[4].GetPoint( 1 ).Coordinates(), geom->GetPoint( 4 ).Coordinates());
 
     // Edge 6
-    KRATOS_CHECK_EQUAL(edges[5].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
-    KRATOS_CHECK_EQUAL(edges[5].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Line3D2);
-    KRATOS_CHECK_VECTOR_EQUAL(edges[5].GetPoint( 0 ).Coordinates(), geom->GetPoint( 1 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(edges[5].GetPoint( 1 ).Coordinates(), geom->GetPoint( 4 ).Coordinates());
+    KRATOS_EXPECT_EQ(edges[5].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
+    KRATOS_EXPECT_EQ(edges[5].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Line3D2);
+    KRATOS_EXPECT_VECTOR_EQ(edges[5].GetPoint( 0 ).Coordinates(), geom->GetPoint( 1 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(edges[5].GetPoint( 1 ).Coordinates(), geom->GetPoint( 4 ).Coordinates());
 
     // Edge 7
-    KRATOS_CHECK_EQUAL(edges[6].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
-    KRATOS_CHECK_EQUAL(edges[6].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Line3D2);
-    KRATOS_CHECK_VECTOR_EQUAL(edges[6].GetPoint( 0 ).Coordinates(), geom->GetPoint( 2 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(edges[6].GetPoint( 1 ).Coordinates(), geom->GetPoint( 4 ).Coordinates());
+    KRATOS_EXPECT_EQ(edges[6].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
+    KRATOS_EXPECT_EQ(edges[6].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Line3D2);
+    KRATOS_EXPECT_VECTOR_EQ(edges[6].GetPoint( 0 ).Coordinates(), geom->GetPoint( 2 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(edges[6].GetPoint( 1 ).Coordinates(), geom->GetPoint( 4 ).Coordinates());
 
     // Edge 8
-    KRATOS_CHECK_EQUAL(edges[7].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
-    KRATOS_CHECK_EQUAL(edges[7].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Line3D2);
-    KRATOS_CHECK_VECTOR_EQUAL(edges[7].GetPoint( 0 ).Coordinates(), geom->GetPoint( 3 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(edges[7].GetPoint( 1 ).Coordinates(), geom->GetPoint( 4 ).Coordinates());
+    KRATOS_EXPECT_EQ(edges[7].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
+    KRATOS_EXPECT_EQ(edges[7].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Line3D2);
+    KRATOS_EXPECT_VECTOR_EQ(edges[7].GetPoint( 0 ).Coordinates(), geom->GetPoint( 3 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(edges[7].GetPoint( 1 ).Coordinates(), geom->GetPoint( 4 ).Coordinates());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5FacesNumber, KratosCoreGeometriesFastSuite)
 {
     auto geomRegular = GenerateRegularPyramid3D5();
 
-    KRATOS_CHECK_EQUAL(geomRegular->FacesNumber(), 5);
+    KRATOS_EXPECT_EQ(geomRegular->FacesNumber(), 5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GenerateFaces, KratosCoreGeometriesFastSuite)
@@ -122,47 +122,47 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GenerateFaces, KratosCoreGeometriesFastSuite
     auto faces = geom->GenerateFaces();
 
     // Face 1
-    KRATOS_CHECK_EQUAL(faces[0].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Triangle);
-    KRATOS_CHECK_EQUAL(faces[0].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Triangle3D3);
-    KRATOS_CHECK_VECTOR_EQUAL(faces[0].GetPoint( 0 ).Coordinates(), geom->GetPoint( 0 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(faces[0].GetPoint( 1 ).Coordinates(), geom->GetPoint( 1 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(faces[0].GetPoint( 2 ).Coordinates(), geom->GetPoint( 4 ).Coordinates());
+    KRATOS_EXPECT_EQ(faces[0].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Triangle);
+    KRATOS_EXPECT_EQ(faces[0].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Triangle3D3);
+    KRATOS_EXPECT_VECTOR_EQ(faces[0].GetPoint( 0 ).Coordinates(), geom->GetPoint( 0 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(faces[0].GetPoint( 1 ).Coordinates(), geom->GetPoint( 1 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(faces[0].GetPoint( 2 ).Coordinates(), geom->GetPoint( 4 ).Coordinates());
 
     // Face 2
-    KRATOS_CHECK_EQUAL(faces[1].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Triangle);
-    KRATOS_CHECK_EQUAL(faces[1].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Triangle3D3);
-    KRATOS_CHECK_VECTOR_EQUAL(faces[1].GetPoint( 0 ).Coordinates(), geom->GetPoint( 1 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(faces[1].GetPoint( 1 ).Coordinates(), geom->GetPoint( 2 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(faces[1].GetPoint( 2 ).Coordinates(), geom->GetPoint( 4 ).Coordinates());
+    KRATOS_EXPECT_EQ(faces[1].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Triangle);
+    KRATOS_EXPECT_EQ(faces[1].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Triangle3D3);
+    KRATOS_EXPECT_VECTOR_EQ(faces[1].GetPoint( 0 ).Coordinates(), geom->GetPoint( 1 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(faces[1].GetPoint( 1 ).Coordinates(), geom->GetPoint( 2 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(faces[1].GetPoint( 2 ).Coordinates(), geom->GetPoint( 4 ).Coordinates());
 
     // Face 3
-    KRATOS_CHECK_EQUAL(faces[2].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Quadrilateral);
-    KRATOS_CHECK_EQUAL(faces[2].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4);
-    KRATOS_CHECK_VECTOR_EQUAL(faces[2].GetPoint( 0 ).Coordinates(), geom->GetPoint( 0 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(faces[2].GetPoint( 1 ).Coordinates(), geom->GetPoint( 1 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(faces[2].GetPoint( 2 ).Coordinates(), geom->GetPoint( 2 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(faces[2].GetPoint( 3 ).Coordinates(), geom->GetPoint( 3 ).Coordinates());
+    KRATOS_EXPECT_EQ(faces[2].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Quadrilateral);
+    KRATOS_EXPECT_EQ(faces[2].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4);
+    KRATOS_EXPECT_VECTOR_EQ(faces[2].GetPoint( 0 ).Coordinates(), geom->GetPoint( 0 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(faces[2].GetPoint( 1 ).Coordinates(), geom->GetPoint( 1 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(faces[2].GetPoint( 2 ).Coordinates(), geom->GetPoint( 2 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(faces[2].GetPoint( 3 ).Coordinates(), geom->GetPoint( 3 ).Coordinates());
 
     // Face 4
-    KRATOS_CHECK_EQUAL(faces[3].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Triangle);
-    KRATOS_CHECK_EQUAL(faces[3].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Triangle3D3);
-    KRATOS_CHECK_VECTOR_EQUAL(faces[3].GetPoint( 0 ).Coordinates(), geom->GetPoint( 2 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(faces[3].GetPoint( 1 ).Coordinates(), geom->GetPoint( 3 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(faces[3].GetPoint( 2 ).Coordinates(), geom->GetPoint( 4 ).Coordinates());
+    KRATOS_EXPECT_EQ(faces[3].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Triangle);
+    KRATOS_EXPECT_EQ(faces[3].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Triangle3D3);
+    KRATOS_EXPECT_VECTOR_EQ(faces[3].GetPoint( 0 ).Coordinates(), geom->GetPoint( 2 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(faces[3].GetPoint( 1 ).Coordinates(), geom->GetPoint( 3 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(faces[3].GetPoint( 2 ).Coordinates(), geom->GetPoint( 4 ).Coordinates());
 
     // Face 5
-    KRATOS_CHECK_EQUAL(faces[4].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Triangle);
-    KRATOS_CHECK_EQUAL(faces[4].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Triangle3D3);
-    KRATOS_CHECK_VECTOR_EQUAL(faces[4].GetPoint( 0 ).Coordinates(), geom->GetPoint( 3 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(faces[4].GetPoint( 1 ).Coordinates(), geom->GetPoint( 0 ).Coordinates());
-    KRATOS_CHECK_VECTOR_EQUAL(faces[4].GetPoint( 2 ).Coordinates(), geom->GetPoint( 4 ).Coordinates());
+    KRATOS_EXPECT_EQ(faces[4].GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Triangle);
+    KRATOS_EXPECT_EQ(faces[4].GetGeometryType(), GeometryData::KratosGeometryType::Kratos_Triangle3D3);
+    KRATOS_EXPECT_VECTOR_EQ(faces[4].GetPoint( 0 ).Coordinates(), geom->GetPoint( 3 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(faces[4].GetPoint( 1 ).Coordinates(), geom->GetPoint( 0 ).Coordinates());
+    KRATOS_EXPECT_VECTOR_EQ(faces[4].GetPoint( 2 ).Coordinates(), geom->GetPoint( 4 ).Coordinates());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5Volume, KratosCoreGeometriesFastSuite)
 {
     auto geomRegular = GenerateRegularPyramid3D5();
 
-    KRATOS_CHECK_NEAR(geomRegular->Volume(), 2.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geomRegular->Volume(), 2.0, TOLERANCE);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5Center, KratosCoreGeometriesFastSuite)
@@ -171,7 +171,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5Center, KratosCoreGeometriesFastSuite)
 
     array_1d<double, 3> center{0, 0, 0.3};
 
-    KRATOS_CHECK_VECTOR_NEAR(geomRegular->Center(), center, TOLERANCE);
+    KRATOS_EXPECT_VECTOR_NEAR(geomRegular->Center(), center, TOLERANCE);
 }
 
 /** Checks the inside test for a given point respect to the pyramid
@@ -194,11 +194,11 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5IsInside, KratosCoreGeometriesFastSuite)
 
     Point LocalCoords;
 
-    KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
-    KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
-    KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside2, LocalCoords, EPSILON));
-    KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
-    KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
+    KRATOS_EXPECT_TRUE(geom->IsInside(PointInside, LocalCoords, EPSILON));
+    KRATOS_EXPECT_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
+    KRATOS_EXPECT_FALSE(geom->IsInside(PointOutside2, LocalCoords, EPSILON));
+    KRATOS_EXPECT_TRUE(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
+    KRATOS_EXPECT_TRUE(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
 }
 
 /** Checks the point local coordinates for a given point respect to the
@@ -217,9 +217,9 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5PointLocalCoordinates, KratosCoreGeometriesF
     array_1d<double, 3> centre_local_coords;
     geom->PointLocalCoordinates(centre_local_coords, centre);
 
-    KRATOS_CHECK_NEAR(centre_local_coords(0), 0.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(centre_local_coords(1), 0.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(centre_local_coords(2), -0.6, TOLERANCE);
+    KRATOS_EXPECT_NEAR(centre_local_coords(0), 0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(centre_local_coords(1), 0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(centre_local_coords(2), -0.6, TOLERANCE);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5ShapeFunctionsValues, KratosCoreGeometriesFastSuite)
@@ -229,11 +229,11 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5ShapeFunctionsValues, KratosCoreGeometriesFa
     coord[0] = 1.0 / 2.0;
     coord[1] = 1.0 / 4.0;
     coord[2] = 1.0 / 16.0;
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), 0.0439453, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.131836, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), 0.219727, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(3, coord), 0.0732422, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(4, coord), 0.53125, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(0, coord), 0.0439453, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(1, coord), 0.131836, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(2, coord), 0.219727, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(3, coord), 0.0732422, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(4, coord), 0.53125, TOLERANCE);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite)
@@ -251,25 +251,25 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5ShapeFunctionsLocalGradients, KratosCoreGeom
 
     gradient = geom->ShapeFunctionsLocalGradients(gradient, centre_local_coords);
 
-    KRATOS_CHECK_NEAR(gradient(0,0), -0.2, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(0,1), -0.2, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(0,2), -0.125, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(0,0), -0.2, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(0,1), -0.2, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(0,2), -0.125, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(1,0), +0.2, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(1,1), -0.2, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(1,2), -0.125, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(1,0), +0.2, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(1,1), -0.2, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(1,2), -0.125, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(2,0), +0.2, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(2,1), +0.2, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(2,2), -0.125, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(2,0), +0.2, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(2,1), +0.2, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(2,2), -0.125, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(3,0), -0.2, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(3,1), +0.2, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(3,2), -0.125, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(3,0), -0.2, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(3,1), +0.2, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(3,2), -0.125, TOLERANCE);
 
-    KRATOS_CHECK_NEAR(gradient(4,0), 0.00, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(4,1), 0.00, TOLERANCE);
-    KRATOS_CHECK_NEAR(gradient(4,2), +0.5, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(4,0), 0.00, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(4,1), 0.00, TOLERANCE);
+    KRATOS_EXPECT_NEAR(gradient(4,2), +0.5, TOLERANCE);
 }
 
 /** Tests the area using 'GI_GAUSS_1' integration method.
@@ -281,7 +281,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint1, KratosCoreGeometriesFastSuite)
 
     const double expected_vol = 2.0;
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1), expected_vol, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_1);
 }
 
@@ -294,7 +294,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint2, KratosCoreGeometriesFastSuite)
 
     const double expected_vol = 2.0;
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2), expected_vol, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_2);
 }
 
@@ -307,7 +307,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint3, KratosCoreGeometriesFastSuite)
 
     const double expected_vol = 2.0;
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3), expected_vol, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_3);
 }
 
@@ -320,7 +320,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint4, KratosCoreGeometriesFastSuite)
 
     const double expected_vol = 2.0;
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4), expected_vol, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_4);
 }
 
@@ -333,8 +333,24 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint5, KratosCoreGeometriesFastSuite)
 
     const double expected_vol = 2.0;
 
-    KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5), expected_vol, TOLERANCE);
+    KRATOS_EXPECT_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5);
+}
+
+/** Checks if CalculateDistance is correct.
+ * Checks if CalculateDistance is correct.
+ */
+KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5CalculateDistance, KratosCoreGeometriesFastSuite)
+{
+    auto geom = GenerateRegularPyramid3D5();
+
+    Point point1(0.0, 0.0, 0.5);
+    KRATOS_EXPECT_DOUBLE_EQ(geom->CalculateDistance(point1), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geom->CalculateDistance(point1), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point1));
+
+    Point point2(0.0, 0.0, -0.5);
+    KRATOS_EXPECT_DOUBLE_EQ(geom->CalculateDistance(point2), 0.5);
+    KRATOS_EXPECT_DOUBLE_EQ(geom->CalculateDistance(point2), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point2));
 }
 
 } // namespace Kratos::Testing.

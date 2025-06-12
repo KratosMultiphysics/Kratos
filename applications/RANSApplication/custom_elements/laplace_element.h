@@ -37,7 +37,7 @@ public:
 
     using BaseType = Element;
 
-    /// Node type (default is: Node<3>)
+    /// Node type (default is: Node)
     using NodeType = BaseType::NodeType;
 
     /// Geometry type (using with given NodeType)

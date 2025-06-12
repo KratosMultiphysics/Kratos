@@ -136,7 +136,7 @@ public:
      * @brief Computes the nodal (continuous) distance field
      * This method firstly computes the elemental distances, getting the
      * minimum absolute value between the neighbouring elements for each node.
-     * Finally, a raycasting operation is performed to distingish between positive
+     * Finally, a raycasting operation is performed to distinguish between positive
      * and negative distance values thanks to the obtained signed ray distance.
      * @param rIntersectedObjects array containing pointers to the intersecting objects
      */
@@ -163,7 +163,7 @@ public:
      * @return double the nodal distance of the node of interest
      */
     double CalculateDistanceToNode(
-        Node<3> &rNode,
+        Node &rNode,
         PointerVector<GeometricalObject> &rIntersectedObjects,
         const double Epsilon);
 

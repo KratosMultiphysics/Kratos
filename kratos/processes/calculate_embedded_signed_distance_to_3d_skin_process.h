@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Ruben Zorrilla
@@ -13,9 +13,7 @@
 //                   Johannes Wolf
 //
 
-#if !defined(KRATOS_CALCULATE_EMBEDDED_SIGNED_DISTANCE_TO_3D_SKIN_PROCESS_H_INCLUDED )
-#define  KRATOS_CALCULATE_EMBEDDED_SIGNED_DISTANCE_TO_3D_SKIN_PROCESS_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <string>
@@ -33,6 +31,8 @@
 #include "includes/model_part.h"
 #include "geometries/geometry_data.h"
 #include "utilities/openmp_utils.h"
+#include "processes/calculate_distance_to_skin_process.h"
+#include "processes/calculate_discontinuous_distance_to_skin_process.h"
 
 namespace Kratos {
 
@@ -224,7 +224,7 @@ public:
         this->SetMaximumAndMinimumDistanceValues(max_distance, min_distance);
 
         // Bound the distance value in the non splitted nodes
-        block_for_each(mrFluidModelPart.Nodes(), [&](Node<3>& rNode){
+        block_for_each(mrFluidModelPart.Nodes(), [&](Node& rNode){
             if(rNode.IsNot(TO_SPLIT))
             {
                 double& rnode_distance = rNode.FastGetSolutionStepValue(DISTANCE);
@@ -242,7 +242,7 @@ public:
 
             if(itFluidElement->Is(TO_SPLIT))
             {
-                Geometry<Node<3>>& rGeom = itFluidElement->GetGeometry();
+                Geometry<Node>& rGeom = itFluidElement->GetGeometry();
                 for (unsigned int i=0; i<rGeom.size(); ++i)
                 {
                     rGeom[i].Set(TO_SPLIT, true);
@@ -375,5 +375,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_CALCULATE_EMBEDDED_SIGNED_DISTANCE_TO_3D_SKIN_PROCESS_H_INCLUDED  defined

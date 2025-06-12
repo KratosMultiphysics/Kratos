@@ -50,6 +50,8 @@ namespace Testing
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=3.
     KRATOS_TEST_CASE_IN_SUITE(IgaShell3pElementP3, KratosIgaFastSuite)
     {
+        KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStress2DLaw")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
@@ -78,22 +80,24 @@ namespace Testing
         const std::array<double, 24> expected_RHS{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
         }
         for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-          KRATOS_CHECK_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
+          KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
         }
     }
 
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=4.
     KRATOS_TEST_CASE_IN_SUITE(IgaShell3pElementP4, KratosIgaFastSuite)
     {
+        KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStress2DLaw")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
@@ -122,22 +126,24 @@ namespace Testing
         const std::array<double, 30> expected_RHS{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
         }
         for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-          KRATOS_CHECK_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
+          KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
         }
     }
 
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=5.
     KRATOS_TEST_CASE_IN_SUITE(IgaShell3pElementP5, KratosIgaFastSuite)
     {
+        KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStress2DLaw")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
@@ -166,22 +172,24 @@ namespace Testing
         const std::array<double, 36> expected_RHS{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0};
 
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
         }
         for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-          KRATOS_CHECK_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
+          KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
         }
     }
 
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=3 (with initial displacement)
     KRATOS_TEST_CASE_IN_SUITE(IgaShell3pElementP3Disp, KratosIgaFastSuite)
     {
+        KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStress2DLaw")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
@@ -227,22 +235,24 @@ namespace Testing
         const std::array<double, 24> expected_RHS{0.00288270349253658,-5.01616466158904E-019,-0.00356240255755486,-0.00245407306041304,4.27030896326048E-019,0.0068602471039795,-0.000412697326582426,7.16876543642762E-020,-0.00303195284468141,-0.000015933105541118,2.77054484483851E-021,-0.000265891701743228,0.000772418072843557,-1.34407727017432E-019,-0.000954542888411407,-0.000657566894704647,1.14422583813703E-019,0.00183819767138927,-0.000110581915376244,1.93676639663235E-020,-0.000812409316221627,-0.0000042692627626624,7.44849861145786E-022,-0.0000712454667562347};
 
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
         }
         for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-          KRATOS_CHECK_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
+          KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
         }
     }
 
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=4 (with initial displacement)
     KRATOS_TEST_CASE_IN_SUITE(IgaShell3pElementP4Disp, KratosIgaFastSuite)
     {
+        KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStress2DLaw")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
@@ -295,22 +305,24 @@ namespace Testing
         const std::array<double, 30> expected_RHS{0.00122350899926589,4.38914350736193E-019,-0.00485294650587845,-0.00104424916932567,-3.68996506433975E-019,0.00922852914943032,-0.00017050573885069,-6.03670529118336E-020,-0.00390959070272845,-0.00000861159892182329,-3.0489111467248E-021,-0.000454234809910648,-0.0000001424921677044,-5.04270550557E-023,-0.0000117571309127747,0.000327838248285506,1.10335557272313E-019,-0.00130034309716154,-0.000279805721617685,-9.97812144781241E-020,0.0024727769329169,-0.0000456868750299144,-1.61753030771727E-020,-0.00104757167153232,-0.00000230747097664328,-8.16953279559158E-022,-0.000121711850489663,-0.0000000381806612641542,-1.35177502776037E-023,-0.00000315031373338496};
 
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
         }
         for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-          KRATOS_CHECK_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
+          KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
         }
     }
 
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=5 (with initial displacement)
     KRATOS_TEST_CASE_IN_SUITE(IgaShell3pElementP5Disp, KratosIgaFastSuite)
     {
+        KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStress2DLaw")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
@@ -366,16 +378,16 @@ namespace Testing
         const std::array<double, 36> expected_RHS{0.000585170698120203,6.72831526014287E-019,-0.0058885688201771,-0.000504588969498596,-5.79645602453129E-019,0.0111599251128885,-0.0000764214415484539,-8.79029646111829E-020,-0.00467558539023508,-0.00000406484806731851,-4.67273747790602E-021,-0.000574449008272016,-0.0000000946181724570153,-1.08792339679098E-022,-0.0000210706013290123,-0.000000000820833375518662,-9.43670366120384E-025,-0.00000025129287524706,0.000156796015995663,1.80284664037728E-019,-0.00157783725994144,-0.000135204206886802,-1.55991059780199E-019,0.00299029292159018,-0.0000204770635473305,-2.35113103357035E-020,-0.00125281932945626,-0.0000010891727569932,-1.2533755475277E-021,-0.000153923147859347,-0.0000000253528628991659,-2.91508195597068E-023,-0.00000564585061014701,-0.000000000219941640090738,-2.53016761580773E-025,-0.0000000673337229861447};
 
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
         }
         for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-          KRATOS_CHECK_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
+          KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
         }
     }
 }

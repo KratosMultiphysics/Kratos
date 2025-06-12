@@ -69,7 +69,7 @@ EntitiesEraseProcess<TEntity>::EntitiesEraseProcess(
 /***********************************************************************************/
 
 template<>
-void EntitiesEraseProcess<Node<3>>::Execute()
+void EntitiesEraseProcess<Node>::Execute()
 {
     KRATOS_TRY;
 
@@ -167,7 +167,7 @@ const Parameters EntitiesEraseProcess<TEntity>::GetDefaultParameters() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class EntitiesEraseProcess<Node<3>>;
+template class EntitiesEraseProcess<Node>;
 template class EntitiesEraseProcess<Element>;
 template class EntitiesEraseProcess<Condition>;
 template class EntitiesEraseProcess<MasterSlaveConstraint>;

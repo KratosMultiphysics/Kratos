@@ -98,32 +98,35 @@ void WssStatisticsUtilities::CalculateWSS(
 
 void WssStatisticsUtilities::CalculateOSI(ModelPart &rModelPart)
 {
-    KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(STEP)) << "'STEP' is not present in '" << rModelPart.FullName() << "' ProcessInfo container." << std::endl;
-    const unsigned int step = rModelPart.GetProcessInfo()[STEP];
-    block_for_each(rModelPart.Nodes(), [&step](NodeType& rNode){
+    const double abs_tol = std::numeric_limits<double>::epsilon();
+    KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(TIME)) << "'TIME' is not present in '" << rModelPart.FullName() << "' ProcessInfo container." << std::endl;
+    KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(DELTA_TIME)) << "'DELTA_TIME' is not present in '" << rModelPart.FullName() << "' ProcessInfo container." << std::endl;
+    const double time = rModelPart.GetProcessInfo()[TIME];
+    const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
+    block_for_each(rModelPart.Nodes(), [&time, &delta_time, &abs_tol](NodeType& rNode){
+
         // Accumulate the current step contribution to the Oscillatory Shear Index (OSI)
         // Note that this requires the tangential WSS to be already computed (see CalculateWSS)
         auto& r_temporal_osi = rNode.GetValue(TEMPORAL_OSI);
         const auto& r_wss_tang_stress = rNode.GetValue(WSS_TANGENTIAL_STRESS);
-        r_temporal_osi += (r_wss_tang_stress - r_temporal_osi)/step;
+        r_temporal_osi += r_wss_tang_stress*delta_time;
 
         // Calculates the sum of the WSS magnitudes for all time steps
         double& r_twss = rNode.GetValue(TWSS);
         double& r_tawss = rNode.GetValue(TAWSS);
-        r_twss += (norm_2(r_wss_tang_stress) - r_twss)/step;
-        r_tawss = norm_2(r_temporal_osi / step);
+        r_twss += norm_2(r_wss_tang_stress)*delta_time;
+        r_tawss = r_twss / time;
 
         // Calculate OSI and OSI-dependent magnitudes
         double& r_osi = rNode.GetValue(OSI);
-        r_osi = r_tawss / r_twss > 1.0 ? 0.0 : 0.5 * (1.0 - r_tawss/r_twss);
-        if (r_twss > 1.0e-12) {
-            if (std::abs(r_osi - 0.5) < 1.0e-12) {
-                rNode.GetValue(RRT) = 0.0;
-            } else {
-                rNode.GetValue(RRT) = 1.0 / ((1.0 - 2.0*r_osi) * r_twss);
+        const double temp_osi_norm = norm_2(r_temporal_osi);
+        r_osi = temp_osi_norm / r_twss > 1.0 ? 0.0 : 0.5 * (1.0 - temp_osi_norm/r_twss);
+        if (r_tawss > abs_tol) {
+            rNode.GetValue(ECAP) = r_osi / r_tawss;
+            if (std::abs(r_osi - 0.5) > abs_tol) {
+                rNode.GetValue(RRT) = 1.0 / ((1.0 - 2.0*r_osi) * r_tawss);
             }
         }
-        rNode.GetValue(ECAP) = r_osi / r_twss;
     });
 }
 

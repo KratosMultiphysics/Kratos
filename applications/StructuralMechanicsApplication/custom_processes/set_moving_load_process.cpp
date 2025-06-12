@@ -39,7 +39,8 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
             "load"            : [0.0, 1.0, 0.0],
             "direction"       : [1,1,1],
             "velocity"        : 1,
-            "origin"          : [0.0, 0.0, 0.0]
+            "origin"          : [0.0, 0.0, 0.0],
+            "offset"          : 0.0
         }  )"
     );
     
@@ -73,7 +74,6 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
     KRATOS_ERROR_IF(!is_all_string && !is_all_number) << "'load' has to be a vector of numbers, or an array with strings" << std::endl;
 
 }
-
 
 std::vector<IndexType> SetMovingLoadProcess::FindNonRepeatingIndices(const std::vector<IndexType> IndicesVector)
 {
@@ -151,46 +151,44 @@ bool SetMovingLoadProcess::IsConditionReversed(const Condition& rCondition, cons
 }
 
 
-
-std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::ConditionsContainerType& rUnsortedConditions, Condition& rFirstCondition)
+void SetMovingLoadProcess::SortConditionIds(Condition& rFirstCondition)
 {
 
-    std::vector<Condition> unsorted_conditions_v(rUnsortedConditions.begin(), rUnsortedConditions.end());
+    const std::vector<Condition> unsorted_conditions_v(mrModelPart.Conditions().begin(), mrModelPart.Conditions().end());
 
-    std::vector<Condition> sorted_conditions;
-    std::vector<int> visited_indices;
-    GeometricalObject::GeometryType& r_geom_first = rFirstCondition.GetGeometry();
-    std::set<IndexType> node_id_vector{ r_geom_first[0].Id(),r_geom_first[1].Id() };
+    mSortedConditionsIds.clear();
+    std::unordered_set<int> visited_indices;
+    const GeometricalObject::GeometryType& r_geom_first = rFirstCondition.GetGeometry();
+    std::vector<IndexType> node_id_vector{ r_geom_first[0].Id(),r_geom_first[1].Id() };
 
     bool is_cond_reversed = mIsCondReversedVector[0];
-    while (visited_indices.size() != unsorted_conditions_v.size()){
-        for (IndexType i =0; i< unsorted_conditions_v.size(); i++){
-            Condition& r_cond = unsorted_conditions_v[i];
-            GeometricalObject::GeometryType& r_geom = r_cond.GetGeometry();
-
+    while (visited_indices.size() != unsorted_conditions_v.size()) {
+        for (IndexType i = 0; i < unsorted_conditions_v.size(); i++) {
 
             // check if current index is already added to sorted condition vector
-            if (!std::count(visited_indices.begin(), visited_indices.end(), i)){
+            if (!visited_indices.count(i)) {
+                const Condition& r_cond = unsorted_conditions_v[i];
+                const GeometricalObject::GeometryType& r_geom = r_cond.GetGeometry();
+
                 // check if geom has a shared node with previous geom
-                if (node_id_vector.find(r_geom.Points()[0].Id()) != node_id_vector.end() || node_id_vector.find(r_geom.Points()[1].Id()) != node_id_vector.end()){
-                    if (sorted_conditions.size() == 0){
+                if (std::find(node_id_vector.begin(), node_id_vector.end(), r_geom.Points()[0].Id()) != node_id_vector.end() || std::find(node_id_vector.begin(), node_id_vector.end(), r_geom.Points()[1].Id()) != node_id_vector.end()) {
+                    if (mSortedConditionsIds.size() == 0) {
                         // check if both nodes of geom are equal to nodes in start element, only do this to add the first element in the sorted conditions vector
-                        if (node_id_vector.find(r_geom[0].Id()) != node_id_vector.end() && node_id_vector.find(r_geom.Points()[1].Id()) != node_id_vector.end()){
+                        if (std::find(node_id_vector.begin(), node_id_vector.end(), r_geom.Points()[0].Id()) != node_id_vector.end() && std::find(node_id_vector.begin(), node_id_vector.end(), r_geom.Points()[1].Id()) != node_id_vector.end()) {
                             node_id_vector = { r_geom[0].Id(),r_geom[1].Id() };
-                            sorted_conditions.push_back(r_cond);
-                            visited_indices.push_back(i);
+                            mSortedConditionsIds.push_back(r_cond.Id());
+                            visited_indices.insert(i);
                         }
                     } else {
                         // sort nodes in condition, such that new node is connected to previous condition
-                        std::set<IndexType>::iterator prev_id;
-                        if (is_cond_reversed){
-                            prev_id = node_id_vector.begin();
+                        IndexType prev_id;
+                        if (is_cond_reversed) {
+                            prev_id = node_id_vector[0];
                         } else {
-                            prev_id = node_id_vector.end();
-                            --prev_id;
+                            prev_id = node_id_vector[1];
                         }
 
-                        if (*prev_id != r_geom.Points()[0].Id()){
+                        if (prev_id != r_geom.Points()[0].Id()) {
                             is_cond_reversed = true;
                             mIsCondReversedVector.push_back(is_cond_reversed);
                         } else {
@@ -200,18 +198,15 @@ std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::Condition
 
                         // add condition to sorted conditions vector
                         node_id_vector = { r_geom[0].Id(),r_geom[1].Id() };
-                        sorted_conditions.push_back(r_cond);
-                        visited_indices.push_back(i);
+                        mSortedConditionsIds.push_back(r_cond.Id());
+                        visited_indices.insert(i);
                     }
                 }
             }
-            
+
         }
     }
-
-    return sorted_conditions;
 }
-
 
 std::vector<Condition> SetMovingLoadProcess::FindEndConditions()
 {
@@ -263,8 +258,8 @@ void SetMovingLoadProcess::InitializeDistanceLoadInSortedVector()
 {
     double global_distance = 0;
     // loop over sorted conditions
-    for (IndexType i = 0; i < mSortedConditions.size(); ++i){
-        auto& r_cond = mSortedConditions[i];
+    for (IndexType i = 0; i < mSortedConditionsIds.size(); ++i){
+        auto& r_cond = this->mrModelPart.GetCondition(mSortedConditionsIds[i]);
         auto& r_geom = r_cond.GetGeometry();
         const double element_length = r_geom.Length();
 
@@ -276,12 +271,13 @@ void SetMovingLoadProcess::InitializeDistanceLoadInSortedVector()
         // if origin point is within the current condition, set the global distance of the load, else continue the loop
         if (r_geom.IsInside(origin_point, local_point)){
             const double local_to_global_distance = (local_point[0] + 1) / 2 * element_length;
-
             if (mIsCondReversedVector[i]){
                 mCurrentDistance = global_distance + element_length - local_to_global_distance;
             } else {
                 mCurrentDistance = global_distance + local_to_global_distance;
             }
+            mCurrentDistance += mParameters["offset"].GetDouble();
+            return;
         }
 
         // add element length of current condition to the global distance
@@ -326,7 +322,7 @@ void SetMovingLoadProcess::ExecuteInitialize()
         // get the two line condition elements at both sides of the model part
         std::vector<Condition> end_conditions = FindEndConditions();
 
-        // find start condition 
+        // find start condition
         const Point center_1 = end_conditions[0].GetGeometry().Center();
         const Point center_2 = end_conditions[1].GetGeometry().Center();
         Condition& r_first_cond = GetFirstCondition(center_1, center_2, direction, end_conditions);
@@ -334,7 +330,7 @@ void SetMovingLoadProcess::ExecuteInitialize()
         // Initialise vector which indicates if nodes in condition are in direction of movement
         mIsCondReversedVector.clear();
         mIsCondReversedVector.push_back(IsConditionReversed(r_first_cond, direction));
-        mSortedConditions = SortConditions(mrModelPart.Conditions(), r_first_cond);
+        this->SortConditionIds(r_first_cond);
 
         InitializeDistanceLoadInSortedVector();
     }
@@ -365,13 +361,16 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
     bool is_moving_load_added = false;
 
     // loop over sorted conditions vector
-    for (IndexType i = 0; i < mSortedConditions.size(); ++i) {
-        auto& r_cond = mSortedConditions[i];
+    for (IndexType i = 0; i < mSortedConditionsIds.size(); ++i) {
+        auto& r_cond = mrModelPart.GetCondition(mSortedConditionsIds[i]);
         auto& r_geom = r_cond.GetGeometry();
         const double element_length = r_geom.Length();
 
         // if moving load is located at current condition element, apply moving load, else apply a zero load
-        if ((distance_cond + element_length >= mCurrentDistance) && (distance_cond <= mCurrentDistance) && !is_moving_load_added){
+        if (distance_cond + element_length >= mCurrentDistance - std::numeric_limits<double>::epsilon() && 
+            distance_cond <= mCurrentDistance + std::numeric_limits<double>::epsilon() && 
+            !is_moving_load_added){
+
             double local_distance;
             if (mIsCondReversedVector[i]){
                 local_distance = distance_cond + element_length - mCurrentDistance;
@@ -417,7 +416,7 @@ void SetMovingLoadProcess::ExecuteFinalizeSolutionStep()
 void SetMovingLoadProcess::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Process);
-    rSerializer.save("SortedConditions", mSortedConditions);
+    rSerializer.save("SortedConditionsIds", mSortedConditionsIds);
     rSerializer.save("IsCondReversedVector", mIsCondReversedVector);
     rSerializer.save("UseLoadFunction", mUseLoadFunction);
     rSerializer.save("UseVelocityFunction", mUseVelocityFunction);
@@ -428,7 +427,7 @@ void SetMovingLoadProcess::save(Serializer& rSerializer) const
 void SetMovingLoadProcess::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Process);
-    rSerializer.load("SortedConditions", mSortedConditions);
+    rSerializer.load("SortedConditionsIds", mSortedConditionsIds);
     rSerializer.load("IsCondReversedVector", mIsCondReversedVector);
     rSerializer.load("UseLoadFunction", mUseLoadFunction);
     rSerializer.load("UseVelocityFunction", mUseVelocityFunction);

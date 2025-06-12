@@ -214,7 +214,7 @@ std::tuple<std::vector<double>, std::vector<double>> GeometryUtilities::ComputeD
 {
     KRATOS_TRY;
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
     typedef NodeType::Pointer NodeTypePointer;
     typedef std::vector<NodeType::Pointer> NodeVector;
     typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
@@ -351,7 +351,7 @@ void GeometryUtilities::CalculateNodalAreasFromConditions()
     VariableUtils().SetHistoricalVariableToZero(NODAL_AREA, mrModelPart.Nodes());
 
     //calculating the normals and summing up at nodes
-    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
+    block_for_each(mrModelPart.Nodes(), [&](Node& rNode)
     {
         const array_1d<double,3> normal = rNode.FastGetSolutionStepValue(NORMAL);
         rNode.FastGetSolutionStepValue(NODAL_AREA) = MathUtils<double>::Norm3(normal);

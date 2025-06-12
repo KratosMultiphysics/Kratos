@@ -118,7 +118,7 @@ public:
         young_modulus = elemProperties[YOUNG_MODULUS];
         poisson_ratio = elemProperties[POISSON_RATIO];
 
-        Geometry<Node<3>> &rGeom = itElem->GetGeometry();
+        Geometry<Node> &rGeom = itElem->GetGeometry();
         const SizeType NumNodes = rGeom.PointsNumber();
         for (SizeType i = 0; i < NumNodes; ++i)
         {

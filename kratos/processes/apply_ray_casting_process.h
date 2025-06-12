@@ -51,6 +51,9 @@ public:
     /// Pointer definition of ApplyRayCastingProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyRayCastingProcess);
 
+    KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Processes.KratosMultiphysics", Process, ApplyRayCastingProcess, TDim)
+    KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Processes.All", Process, ApplyRayCastingProcess, TDim)
+
     //TODO: These using statements have been included to make the old functions able to compile. It is still pending to update them.
     using ConfigurationType = Internals::DistanceSpatialContainersConfigure;
     using CellType = OctreeBinaryCell<ConfigurationType>;
@@ -96,7 +99,7 @@ public:
         const double RelativeTolerance);
 
     /**
-     * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
+     * @brief Construct a new Apply Ray Casting Process object using an already created search structure
      *
      * @param TheFindIntersectedObjectsProcess reference to the already created search structure
      * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size
@@ -105,8 +108,8 @@ public:
         FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
         Parameters ThisParameters = Parameters());
 
-	/**
-     * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
+    /**
+     * @brief Construct a new Apply Ray Casting Process object using an already created search structure
      *
      * @param TheFindIntersectedObjectsProcess reference to the already created search structure
      * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size
@@ -127,8 +130,11 @@ public:
     ///@name Deleted
     ///@{
 
-    /// Default constructor.
-    ApplyRayCastingProcess() = delete;
+    /// Default constructor, needed for registry
+    ApplyRayCastingProcess()
+    {
+        mIsSearchStructureAllocated = false; //used in dtor
+    }
 
     /// Copy constructor.
     ApplyRayCastingProcess(ApplyRayCastingProcess const& rOther) = delete;
@@ -150,7 +156,7 @@ public:
      * @param rNode reference to the node of interest
      * @return double raycasting distance value computed
      */
-    virtual double DistancePositionInSpace(const Node<3> &rNode);
+    virtual double DistancePositionInSpace(const Node &rNode);
 
     /**
      * @brief Get the ray intersecting objects and its distance
@@ -319,6 +325,7 @@ protected:
     ///@}
     ///@name Un accessible methods
     ///@{
+
 
 
     ///@}

@@ -47,8 +47,8 @@ public:
     typedef vector<Matrix> Matrix_Order_Tensor;
     typedef vector<Vector> Vector_Order_Tensor;
     typedef vector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
-    typedef Node < 3 > PointType;
-    typedef Node < 3 > ::Pointer PointPointerType;
+    typedef Node PointType;
+    typedef Node ::Pointer PointPointerType;
     typedef std::vector<PointType::Pointer> PointVector;
     typedef PointVector::iterator PointIterator;
 
@@ -140,7 +140,7 @@ public:
         int aux_ids;
         for (ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin(); it != this_model_part.ConditionsEnd(); it++)
         {
-            Geometry<Node < 3 > >& geom = it->GetGeometry();
+            Geometry<Node >& geom = it->GetGeometry();
             if (geom.size()==3)
             {
                 ++number_of_local_conditions; //conditions are always owned
@@ -276,14 +276,14 @@ public:
 
                 ModelPart::NodesContainerType::iterator it_node = this_model_part.Nodes().begin()+index; //CHANGE THIS! this only work if the nodes in the original model part are consecutive. or??
 
-                //Node < 3 > ::Pointer pnode = new_model_part.CreateNewNode(node_number, it_node->X(), it_node->Y(), it_node->Z());  //recordar que es el nueevo model part!!
-                Node < 3 >::Pointer pnode = Node < 3 > ::Pointer (new Node < 3 >(node_number, it_node->X(), it_node->Y(), it_node->Z()));
+                //Node ::Pointer pnode = new_model_part.CreateNewNode(node_number, it_node->X(), it_node->Y(), it_node->Z());  //recordar que es el nueevo model part!!
+                Node::Pointer pnode = Node ::Pointer (new Node(node_number, it_node->X(), it_node->Y(), it_node->Z()));
                 pnode->SetSolutionStepVariablesList(&(new_model_part.GetNodalSolutionStepVariablesList()));
 
                 pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
                 pnode->GetValue(FATHER_NODES).resize(0);
-                pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node.base() ) );       // we keep the same size despite we only need one. to have everyhing with the same size
-                pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node.base() ) );
+                pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( *it_node.base() ) );       // we keep the same size despite we only need one. to have everyhing with the same size
+                pnode->GetValue(FATHER_NODES).push_back( Node::WeakPointer( *it_node.base() ) );
                 pnode-> GetValue(WEIGHT_FATHER_NODES) = 1.0;  //
                 pnode->X0() = it_node->X0();
                 pnode->Y0() = it_node->Y0();
@@ -307,7 +307,7 @@ public:
 
         for(ModelPart::ConditionsContainerType::iterator i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++) //looping all the conditions
         {
-            Geometry<Node<3> >&geom = i_condition->GetGeometry(); //current condition(nodes, etc)
+            Geometry<Node >&geom = i_condition->GetGeometry(); //current condition(nodes, etc)
             if (geom.size()==3)
             {
                 for(unsigned int i = 0; i < i_condition->GetGeometry().size() ; i++)         //looping the nodes
@@ -316,7 +316,7 @@ public:
                     int local_position = (*pmy_ov_map).LID(position); //changing from global id to local id
                     triangle_nodes[i]=local_IDs_ov[local_position] ; // saving the i nodeId
                 } //nodes id saved. now we have to create the element.
-                Triangle3D3<Node<3> > geometry(
+                Triangle3D3<Node > geometry(
                     new_model_part.Nodes()(triangle_nodes[0]),  //condition to be added
                     new_model_part.Nodes()(triangle_nodes[1]),
                     new_model_part.Nodes()(triangle_nodes[2])
@@ -460,7 +460,7 @@ public:
         int aux_ids[4];
         for (ModelPart::ElementsContainerType::iterator it = this_model_part.ElementsBegin(); it != this_model_part.ElementsEnd(); it++)
         {
-            Geometry<Node < 3 > >& geom = it->GetGeometry();
+            Geometry<Node >& geom = it->GetGeometry();
             for (unsigned int i = 0; i < geom.size(); i++)
                 aux_ids[i] = geom[i].Id() - 1;
 
@@ -469,7 +469,7 @@ public:
         }
         for (ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin(); it != this_model_part.ConditionsEnd(); it++)
         {
-            Geometry<Node < 3 > >& geom = it->GetGeometry();
+            Geometry<Node >& geom = it->GetGeometry();
             for (unsigned int i = 0; i < geom.size(); i++)
                 aux_ids[i] = geom[i].Id() - 1;
 
@@ -537,7 +537,7 @@ public:
             number_of_cuts = 0;
             exact_nodes = 0;
             outside_nodes = 0;
-            Geometry<Node < 3 > >&geom = it->GetGeometry(); //geometry of the element
+            Geometry<Node >&geom = it->GetGeometry(); //geometry of the element
             for (unsigned int i = 0; i < it->GetGeometry().size(); i++) //size = 4 ; nodes per element. NOTICE WE'LL BE LOOPING THE EDGES TWICE. THIS IS A WASTE OF TIME BUT MAKES IT EASIER TO IDENTITY ELEMENTS. LOOK BELOW.
                 //when we have a triangle inside a thetraedra, its edges (or nodes) must be cut 3 times by the plane. if we loop all 2 times we can have a counter. when it's = 6 then we have a triangle. when tetraedras are cutted 8 times then we have 2 triangles (or a cuatrilateral, the same)
             {
@@ -855,7 +855,7 @@ public:
         new_model_part.AddNodalSolutionStepVariable(FATHER_NODES);
         new_model_part.AddNodalSolutionStepVariable(WEIGHT_FATHER_NODES);
 
-        PointerVector< Node < 3 > > new_nodes;
+        PointerVector< Node > new_nodes;
 
         MPI_Barrier(MPI_COMM_WORLD);
         if ((father_node_ids.size())!=0)
@@ -912,13 +912,13 @@ public:
                         else
                             Coordinate_New_Node[i][index] = Coord_Node_1[index]; //when both nodes are the same it doesnt make any sense to interpolate
 
-                    //Node < 3 > ::Pointer pnode = new_model_part.CreateNewNode(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]);  //recordar que es el nueevo model part!!
-                    Node < 3 >::Pointer pnode = Node < 3 > ::Pointer (new Node < 3 >(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]));
+                    //Node ::Pointer pnode = new_model_part.CreateNewNode(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]);  //recordar que es el nueevo model part!!
+                    Node::Pointer pnode = Node ::Pointer (new Node(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]));
                     pnode->SetSolutionStepVariablesList(&(new_model_part.GetNodalSolutionStepVariablesList()));
                     pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
                     pnode->GetValue(FATHER_NODES).resize(0);
-                    pnode->GetValue(FATHER_NODES).push_back(Node < 3 > ::WeakPointer(*it_node1.base()));
-                    pnode->GetValue(FATHER_NODES).push_back(Node < 3 > ::WeakPointer(*it_node2.base()));
+                    pnode->GetValue(FATHER_NODES).push_back(Node ::WeakPointer(*it_node1.base()));
+                    pnode->GetValue(FATHER_NODES).push_back(Node ::WeakPointer(*it_node2.base()));
                     pnode-> GetValue(WEIGHT_FATHER_NODES) = weight;
 
                     pnode->X0() = weight * (it_node2->X0()) + (1.0 - weight) * it_node1->X0();
@@ -1023,7 +1023,7 @@ public:
                 double Volume;
                 BoundedMatrix<double, 4, 3> DN_DX;
                 array_1d<double, 4 > N;
-                Geometry< Node < 3 > >& geom = it->GetGeometry();
+                Geometry< Node >& geom = it->GetGeometry();
                 GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
                 for (int I = 0; I < 4; I++)
                 {
@@ -1043,7 +1043,7 @@ public:
                 //checking element conectivities
                 for (unsigned int i = 0; i < it->GetGeometry().size(); i++)
                 {
-                    Geometry<Node < 3 > >&geom = it->GetGeometry(); //i node of the element
+                    Geometry<Node >&geom = it->GetGeometry(); //i node of the element
                     for (unsigned int j = 0; j < it->GetGeometry().size(); j++) //j node of the element
                     {
                         new_node = true; //by default it's a new node
@@ -1091,7 +1091,7 @@ public:
                 }
 
                 //generate new Elements
-                Triangle3D3<Node < 3 > > geom(
+                Triangle3D3<Node > geom(
                     new_model_part.Nodes()(TriangleNodesArray[0]),
                     new_model_part.Nodes()(TriangleNodesArray[1]),
                     new_model_part.Nodes()(TriangleNodesArray[2])
@@ -1111,7 +1111,7 @@ public:
                 //checking conectivities to find nodes
                 for (unsigned int i = 0; i < it->GetGeometry().size(); i++) //nodo i
                 {
-                    Geometry<Node < 3 > >&geom = it->GetGeometry();
+                    Geometry<Node >&geom = it->GetGeometry();
                     for (unsigned int j = 0; j < it->GetGeometry().size(); j++) //nodo j
                     {
                         new_node = true;
@@ -1244,7 +1244,7 @@ public:
                         nodes_for_2triang[index * 3 + 1] = temp_int;
                     }
 
-                    Triangle3D3<Node < 3 > > geom(
+                    Triangle3D3<Node > geom(
                         new_model_part.Nodes()(nodes_for_2triang[index * 3 + 0]),
                         new_model_part.Nodes()(nodes_for_2triang[index * 3 + 1]),
                         new_model_part.Nodes()(nodes_for_2triang[index * 3 + 2])

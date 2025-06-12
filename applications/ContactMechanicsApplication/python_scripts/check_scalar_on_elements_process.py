@@ -15,7 +15,6 @@ class CheckScalarOnElementsProcess(KratosMultiphysics.Process, KratosUnittest.Te
 
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "mesh_id"         : 0,
                 "model_part_name" : "please_specify_model_part_name",
                 "variable_name"   : "SPECIFY_VARIABLE_NAME",
                 "tolerance_rank"  : 3
@@ -33,20 +32,19 @@ class CheckScalarOnElementsProcess(KratosMultiphysics.Process, KratosUnittest.Te
 
     def ExecuteInitialize(self):
         self.model_part = self.model[self.settings["model_part_name"].GetString()]
-        self.mesh = self.model_part.GetMesh(self.settings["mesh_id"].GetInt())
 
     def ExecuteInitializeSolutionStep(self):
         pass
 
     def ExecuteFinalizeSolutionStep(self):
-        FirstElement = self.mesh.Elements[1]
+        FirstElement = self.model_part.Elements[1]
 
         SomeProcessInfo = KratosMultiphysics.ProcessInfo()
         VariableValue = FirstElement.CalculateOnIntegrationPoints( self.variable, SomeProcessInfo)
         VariableValue = VariableValue[0]
 
 
-        for elem in self.mesh.Elements:
+        for elem in self.model_part.Elements:
             ThisValue = elem.CalculateOnIntegrationPoints( self.variable, SomeProcessInfo)
             ThisValue = ThisValue[0]
             for i in range(0, VariableValue.Size1()):

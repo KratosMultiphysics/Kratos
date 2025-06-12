@@ -113,7 +113,7 @@ public:
     typedef Element::DofsVectorType DofsVectorType;
 
     /// DoF types definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef typename NodeType::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
 

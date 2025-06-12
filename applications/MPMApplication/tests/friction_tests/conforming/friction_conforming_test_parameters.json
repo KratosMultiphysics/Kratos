@@ -1,0 +1,142 @@
+{
+    "problem_data": {
+        "problem_name": "friction_conforming_test",
+        "parallel_type": "OpenMP",
+        "echo_level": 0,
+        "start_time": 0.0,
+        "end_time": 2
+    },
+    "solver_settings": {
+        "time_stepping": {
+            "time_step": 0.1
+        },
+        "solver_type": "Dynamic",
+        "model_part_name": "MPM_Material",
+        "domain_size": 2,
+        "echo_level": 0,
+        "analysis_type": "non_linear",
+        "time_integration_method": "implicit",
+        "scheme_type": "newmark",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "friction_tests/conforming/friction_conforming_test_Body"
+        },
+        "material_import_settings": {
+            "materials_filename": "friction_tests/conforming/friction_conforming_test_materials.json"
+        },
+        "convergence_criterion": "residual_criterion",
+        "displacement_relative_tolerance": 0.0001,
+        "displacement_absolute_tolerance": 1e-09,
+        "residual_relative_tolerance": 0.0001,
+        "residual_absolute_tolerance": 1e-09,
+        "max_iteration": 20,
+        "grid_model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "friction_tests/conforming/friction_conforming_test_Grid"
+        },
+        "pressure_dofs": false,
+        "linear_solver_settings": {
+            "solver_type": "LinearSolversApplication.sparse_lu"
+        },
+        "auxiliary_variables_list": [
+            "NORMAL",
+            "IS_STRUCTURE"
+        ]
+    },
+    "processes": {
+        "constraints_process_list": [],
+        "loads_process_list": [
+            {
+                "python_module": "apply_mpm_particle_neumann_condition_process",
+                "kratos_module": "KratosMultiphysics.MPMApplication",
+                "Parameters": {
+                    "model_part_name": "Background_Grid.PointLoad2D_normal_load",
+                    "variable_name": "POINT_LOAD",
+                    "modulus": 1000.0,
+                    "direction": [
+                        0.0,
+                        -1.0,
+                        0.0
+                    ]
+                }
+            },
+            {
+                "python_module": "apply_mpm_particle_neumann_condition_process",
+                "kratos_module": "KratosMultiphysics.MPMApplication",
+                "Parameters": {
+                    "model_part_name": "Background_Grid.PointLoad2D_transverse_load",
+                    "variable_name": "POINT_LOAD",
+                    "modulus": "300*t",
+                    "direction": [
+                        1.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            }
+        ],
+        "list_other_processes": [
+            {
+                "python_module": "apply_mpm_slip_boundary_process",
+                "kratos_module": "KratosMultiphysics.MPMApplication",
+                "process_name": "ApplyMPMSlipBoundaryProcess",
+                "Parameters": {
+                    "tangential_penalty_factor": 100000000.0,
+                    "friction_coefficient": 0.3,
+                    "option": "flip_normal",
+                    "model_part_name": "Background_Grid.Slip2D_ground"
+                }
+            },
+            {
+                "python_module"   : "mpm_from_json_check_result_process",
+                "kratos_module" : "KratosMultiphysics.MPMApplication",
+                "help"                  : "",
+                "process_name"          : "MPMFromJsonCheckResultProcess",
+                "Parameters"            : {
+                    "check_variables"   : ["MP_ACCELERATION"],
+                    "input_file_name"   : "friction_tests/conforming/friction_conforming_test_results.json",
+                    "model_part_name"   : "MPM_Material",
+                    "time_frequency"    : 0.09
+                }
+            },
+            {
+                "python_module"   : "from_json_check_result_process",
+                "kratos_module" : "KratosMultiphysics",
+                "help"                  : "",
+                "process_name"          : "FromJsonCheckResultProcess",
+                "Parameters"            : {
+                    "check_variables"  : ["REACTION"],
+                    "input_file_name"  : "friction_tests/conforming/friction_conforming_test_results2.json",
+                    "model_part_name"   : "Background_Grid.Slip2D_ground",
+                    "time_frequency"   : 0.09
+                }
+            }
+        ]
+    },
+    "print_output_processes": [
+        {
+            "python_module"   : "mpm_json_output_process",
+            "kratos_module" : "KratosMultiphysics.MPMApplication",
+            "help"                  : "",
+            "process_name"          : "MPMJsonOutputProcess",
+            "Parameters"            : {
+                "gauss_points_output_variables"  : ["MP_ACCELERATION"],
+                "output_file_name"               : "friction_tests/conforming/friction_conforming_test_results.json",
+                "model_part_name"                : "MPM_Material",
+                "time_frequency"                 : 0.1
+            }
+        },
+        {
+            "python_module"   : "json_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "JsonOutputProcess",
+            "Parameters"            : {
+                "output_variables"  : ["REACTION"],
+                "output_file_name"  : "friction_tests/conforming/friction_conforming_test_results2.json",
+                "model_part_name"   : "Background_Grid.Slip2D_ground",
+                "time_frequency"    : 0.1
+            }
+        }
+    ]
+}

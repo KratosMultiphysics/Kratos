@@ -16,7 +16,7 @@
 
 // Project includes
 #include "containers/variable.h"
-#include "containers/container_expression/container_data_io.h"
+#include "expression/container_data_io.h"
 #include "includes/model_part.h"
 
 // Application includes

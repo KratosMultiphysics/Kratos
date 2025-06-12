@@ -50,15 +50,15 @@ KRATOS_TEST_CASE_IN_SUITE(LinearMasterSlaveConstraintTests, KratosCoreFastSuite)
         c1->CalculateLocalSystem(transformation_matrix, constant_vector, process_info);
 
 
-        KRATOS_CHECK_EQUAL(master_vector.size(), 1);
-        KRATOS_CHECK_EQUAL(slave_vector.size(), 1);
+        KRATOS_EXPECT_EQ(master_vector.size(), 1);
+        KRATOS_EXPECT_EQ(slave_vector.size(), 1);
 
-        KRATOS_CHECK_EQUAL(transformation_matrix.size1(), 1);
-        KRATOS_CHECK_EQUAL(transformation_matrix.size2(), 1);
-        KRATOS_CHECK_EQUAL(constant_vector.size(), 1);
+        KRATOS_EXPECT_EQ(transformation_matrix.size1(), 1);
+        KRATOS_EXPECT_EQ(transformation_matrix.size2(), 1);
+        KRATOS_EXPECT_EQ(constant_vector.size(), 1);
 
-        KRATOS_CHECK_DOUBLE_EQUAL(transformation_matrix(0,0), 1.0); // TODO: Check -> comparison between two doubles ??
-        KRATOS_CHECK_DOUBLE_EQUAL(constant_vector(0), 0.0);
+        KRATOS_EXPECT_DOUBLE_EQ(transformation_matrix(0,0), 1.0); // TODO: Check -> comparison between two doubles ??
+        KRATOS_EXPECT_DOUBLE_EQ(constant_vector(0), 0.0);
 }
 
 }

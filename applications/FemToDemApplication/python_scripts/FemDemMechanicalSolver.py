@@ -26,7 +26,7 @@ class FemDemMechanicalSolver(object):
     _create_builder_and_solver
     _create_mechanical_solver
 
-    The mechanical_solver, builder_and_solver, etc. should alway be retrieved
+    The mechanical_solver, builder_and_solver, etc. should always be retrieved
     using the getter functions _get_mechanical_solver, _get_builder_and_solver,
     etc. from this base class.
 
@@ -49,7 +49,7 @@ class FemDemMechanicalSolver(object):
             "delta_time_refresh"         : 1000,
             "max_delta_time"             : 1.0e0,
             "fraction_delta_time"        : 0.333333333333333333333333333333333333,
-	    "analysis_type": "Non-Linear",
+            "analysis_type": "Non-Linear",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",

@@ -82,7 +82,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(GenericFiniteStrainKinematicPlasticity);
 
     /// The node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
@@ -315,7 +315,8 @@ protected:
      */
     void CalculateTangentTensor(
         ConstitutiveLaw::Parameters &rValues,
-        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
+        const ConstitutiveLaw::StressMeasure& rStressMeasure,
+        const Vector& rPlasticStrain
         );
 
     ///@}

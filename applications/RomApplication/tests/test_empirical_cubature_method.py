@@ -27,11 +27,12 @@ class TestEmpiricalCubatureMethod(KratosUnittest.TestCase):
             TestMatrix = synthetic_matrix(degree) #Get a synthetic matrix (During the training of a ROM model, this is a matrix of residuals projected onto a basis)
             TestMatrixBasis = calculate_basis(TestMatrix)
             ElementSelector = EmpiricalCubatureMethod()
-            ElementSelector.SetUp(TestMatrixBasis, constrain_sum_of_weights=False)
-            ElementSelector.Initialize()
-            ElementSelector.Calculate()
-
-            self.assertEqual( len(ElementSelector.z) , degree + 1) #for a polynomial of degree n, n+1 points are to be selected
+            ElementSelector.SetUp(TestMatrixBasis, InitialCandidatesSet = np.array([0]), constrain_sum_of_weights=False)
+            ElementSelector.Run()
+            if ElementSelector.success is not True:
+                ElementSelector.SetUp(TestMatrixBasis, InitialCandidatesSet = None, constrain_sum_of_weights=False)
+                ElementSelector.Run()
+            self.assertEqual( np.size(ElementSelector.z) , degree + 1) #for a polynomial of degree n, n+1 points are to be selected
     # Cleaning
     kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
 

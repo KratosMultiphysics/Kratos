@@ -4,14 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 license: HDF5Application/license.txt
+//  License:        BSD License
+//                  license: HDF5Application/license.txt
 //
 //  Main author:    Michael Andre, https://github.com/msandre
+//                  Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_HDF5_POINTS_DATA_H_INCLUDED)
-#define KRATOS_HDF5_POINTS_DATA_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -20,19 +20,15 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/array_1d.h"
 
 // Application includes
+#include "custom_io/hdf5_file.h"
 #include "hdf5_application_define.h"
 
 namespace Kratos
 {
 namespace HDF5
 {
-
-class File;
-struct WriteInfo;
-
 namespace Internals
 {
 ///@addtogroup HDF5Application
@@ -41,42 +37,51 @@ namespace Internals
 ///@{
 
 /// A class representing points in a mesh.
+/**
+ * @tparam TContainerDataIO A IO class which have the @p ContainerType defined in public scope
+ *                          with @p SetValue, @p GetValue methods implemented.
+*/
+template<class TContainerDataIO>
 class PointsData
 {
 public:
     ///@name Type Definitions
     ///@{
+
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(PointsData);
 
     ///@}
     ///@name Life Cycle
     ///@{
+
+    PointsData(
+        const std::string& rPrefix,
+        File::Pointer mpFile);
+
     ///@}
     ///@name Operations
     ///@{
 
-    inline unsigned size() const
-    {
-        return mIds.size();
-    }
+    Parameters Read(
+        typename TContainerDataIO::ContainerType& rContainer,
+        const TContainerDataIO& rContainerDataIO);
 
-    void ReadData(File& rFile, const std::string& rPath, unsigned StartIndex, unsigned BlockSize);
+    void Write(
+        const typename TContainerDataIO::ContainerType& rContainer,
+        const TContainerDataIO& rContainerDataIO,
+        const Parameters Attributes);
 
-    void WriteData(File& rFile, const std::string& rPath, WriteInfo& rInfo);
-
-    void CreateNodes(NodesContainerType& rNodes);
-
-    // Fill data from nodes.
-    void SetData(NodesContainerType const& rNodes);
-
-    void Clear();
     ///@}
-private:
-    ///@name Member Variables
+
+protected:
+    ///@name Protected member Variables
     ///@{
-    Vector<int> mIds;
-    Vector<array_1d<double, 3>> mCoords;
+
+    File::Pointer mpFile;
+
+    std::string mPrefix;
+
     ///@}
 }; // class PointsData
 
@@ -85,5 +90,3 @@ private:
 } // namespace Internals.
 } // namespace HDF5.
 } // namespace Kratos.
-
-#endif // KRATOS_HDF5_POINTS_DATA_H_INCLUDED defined

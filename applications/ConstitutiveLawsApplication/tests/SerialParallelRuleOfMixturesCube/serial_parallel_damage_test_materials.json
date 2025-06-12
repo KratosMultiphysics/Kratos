@@ -4,7 +4,7 @@
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "SerialParallelRuleOfMixturesLaw",
+                "name" : "SerialParallelRuleOfMixturesLaw3D",
                 "combination_factors"          : [0.7, 0.3],
                 "parallel_behaviour_directions" : [1,0,0,0,0,0]
             },

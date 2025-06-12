@@ -81,7 +81,7 @@ void ConservativeElementSteadyStateTest(
     ShallowWaterTestsUtilities::CalculateAndAssembleRHS(model_part, rhs);
 
     // Check the RHS values. Since it is a steady solution the RHS must be zero
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(rhs, ZeroVector(9), rTolerance);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(rhs, ZeroVector(9), rTolerance);
 }
 
 void ConservativeElementSteadyStateTestParts(
@@ -116,7 +116,7 @@ void ConservativeElementSteadyStateTestParts(
     ShallowWaterTestsUtilities::CalculateAndAssembleRHS(model_part, rhs);
 
     // Check the RHS values. Since it is a steady solution the RHS must be zero
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(rhs, ZeroVector(9), rTolerance);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(rhs, ZeroVector(9), rTolerance);
 }
 
 /**

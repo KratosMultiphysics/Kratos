@@ -230,28 +230,28 @@ void OptimizationUtilities::AssembleVector( ModelPart& rModelPart,
     Vector& rVector,
     const Variable<double> &rVariable)
 {
-    AuxiliarModelPartUtilities(rModelPart).GetScalarData<Vector>(rVariable, DataLocation::NodeHistorical, rVector);
+    AuxiliarModelPartUtilities(rModelPart).GetScalarData<Vector>(rVariable, Globals::DataLocation::NodeHistorical, rVector);
 }
 
 void OptimizationUtilities::AssembleVector( ModelPart& rModelPart,
     Vector& rVector,
     const Variable<array_3d> &rVariable)
 {
-    AuxiliarModelPartUtilities(rModelPart).GetVectorData<Vector>(rVariable, DataLocation::NodeHistorical, rVector);
+    AuxiliarModelPartUtilities(rModelPart).GetVectorData<Vector>(rVariable, Globals::DataLocation::NodeHistorical, rVector);
 }
 
 void OptimizationUtilities::AssignVectorToVariable(ModelPart& rModelPart,
     const Vector& rVector,
     const Variable<double> &rVariable)
 {
-    AuxiliarModelPartUtilities(rModelPart).SetScalarData<Vector>(rVariable, DataLocation::NodeHistorical, rVector);
+    AuxiliarModelPartUtilities(rModelPart).SetScalarData<Vector>(rVariable, Globals::DataLocation::NodeHistorical, rVector);
 }
 
 void OptimizationUtilities::AssignVectorToVariable(ModelPart& rModelPart,
     const Vector& rVector,
     const Variable<array_3d> &rVariable)
 {
-    AuxiliarModelPartUtilities(rModelPart).SetVectorData<Vector>(rVariable, DataLocation::NodeHistorical, rVector);
+    AuxiliarModelPartUtilities(rModelPart).SetVectorData<Vector>(rVariable, Globals::DataLocation::NodeHistorical, rVector);
 }
 
 void OptimizationUtilities::AssembleMatrix(ModelPart& rModelPart,

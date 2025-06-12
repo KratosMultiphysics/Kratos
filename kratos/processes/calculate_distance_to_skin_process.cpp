@@ -185,7 +185,7 @@ namespace Kratos
 
     template<std::size_t TDim>
     double CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToNode(
-        Node<3> &rNode,
+        Node &rNode,
         PointerVector<GeometricalObject>& rIntersectedObjects,
         const double Epsilon)
     {
@@ -232,7 +232,7 @@ namespace Kratos
             if (element.Is(TO_SPLIT)) {
                 const auto& r_elemental_distances = element.GetValue(r_elemental_dist_variable);
                 for (int i = 0; i < number_of_tetrahedra_points; i++) {
-                    Node<3>& r_node = element.GetGeometry()[i];
+                    Node& r_node = element.GetGeometry()[i];
                     double& r_distance = rGetDistanceFunction(r_node, *mpDistanceVariable);
                     if (std::abs(r_distance) > std::abs(r_elemental_distances[i])){
                         r_distance = r_elemental_distances[i];

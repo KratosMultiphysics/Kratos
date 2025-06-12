@@ -1,0 +1,39 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Solid_Solid_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "ThermalLinearPlaneStrain"
+                
+            },
+            "Variables"        : {
+                "DENSITY"       : 7850.0,
+                "YOUNG_MODULUS" : 2.1e11,
+                "POISSON_RATIO" : 0.29,
+                "THERMAL_EXPANSION_COEFFICIENT" : 7.2e-6,
+                "REFERENCE_TEMPERATURE" : 22.5
+            },
+            "Tables"           : {
+                "TEMPERATURE_vs_E" : {
+                        "input_variable"  : "TEMPERATURE",
+                        "output_variable" : "YOUNG_MODULUS",
+                        "data"            : [[-1,   2.1e11],
+                                             [3500, 2.1e8 ],
+                                             [1e6,  2.1e8 ]]
+                    }
+            },
+        "accessors"        : {
+            "accessor_table_T_E" : {
+                "accessor_type"  : "table_accessor",
+                "properties" : {
+                    "table_input_variable"      : "TEMPERATURE",
+                    "table_output_variable"     : "YOUNG_MODULUS",
+                    "table_input_variable_type" : "node_historical"
+
+				}
+            }
+        }
+        }
+    }]
+}

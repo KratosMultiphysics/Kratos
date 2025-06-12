@@ -67,7 +67,7 @@ void TransferStructuresSkinToDem(ModelPart& r_source_model_part, ModelPart& r_de
     // Adding conditions
     for (unsigned int i = 0; i < source_conditions.size(); i++) {
         ModelPart::ConditionsContainerType::iterator it = r_source_model_part.ConditionsBegin() + i;
-        Geometry< Node<3> >::Pointer p_geometry =  it->pGetGeometry();
+        Geometry< Node >::Pointer p_geometry =  it->pGetGeometry();
         Condition::Pointer cond;
         if (dimension == 2) {
             cond = Condition::Pointer(new RigidEdge2D(id, p_geometry, props));
@@ -357,7 +357,7 @@ void ComputeTriaxialSandProduction(ModelPart& dem_model_part, ModelPart& outer_w
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-/// Turn back information as a stemplate<class T, std::size_t dim> tring.
+/// Turn back information as a stemplate<class T, std::size_t dim> string.
 
 virtual std::string Info() const
 {

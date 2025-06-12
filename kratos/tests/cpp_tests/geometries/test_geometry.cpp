@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:     BSD License
+//               Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
 //                   Vicente Mataix Ferrandiz
@@ -60,6 +60,8 @@ namespace Testing {
           return "GI_EXTENDED_GAUSS_4";
         case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 :
           return "GI_EXTENDED_GAUSS_5";
+        case GeometryData::IntegrationMethod::GI_LOBATTO_1 :
+          return "GI_LOBATTO_1";
         case GeometryData::IntegrationMethod::NumberOfIntegrationMethods :
           return "NumberOfIntegrationMethods";
       };
@@ -418,7 +420,7 @@ namespace Testing {
                 }
             }
 
-            KRATOS_CHECK(succesful);
+            KRATOS_EXPECT_TRUE(succesful);
         }
     }
 
@@ -426,40 +428,40 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(GeometryIdSelfAssigned, KratosCoreGeometriesFastSuite) {
         auto this_geometry = Geometry<Point>();
 
-        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdGeneratedFromString());
-        KRATOS_CHECK(this_geometry.IsIdSelfAssigned());
+        KRATOS_EXPECT_FALSE(this_geometry.IsIdGeneratedFromString());
+        KRATOS_EXPECT_TRUE(this_geometry.IsIdSelfAssigned());
 
         this_geometry.SetId(2);
-        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdGeneratedFromString());
-        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdSelfAssigned());
+        KRATOS_EXPECT_FALSE(this_geometry.IsIdGeneratedFromString());
+        KRATOS_EXPECT_FALSE(this_geometry.IsIdSelfAssigned());
 
         this_geometry.SetId("ThisGeometry");
-        KRATOS_CHECK(this_geometry.IsIdGeneratedFromString());
-        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdSelfAssigned());
+        KRATOS_EXPECT_TRUE(this_geometry.IsIdGeneratedFromString());
+        KRATOS_EXPECT_FALSE(this_geometry.IsIdSelfAssigned());
     }
 
     /// Test geometry Id with name
     KRATOS_TEST_CASE_IN_SUITE(GeometryName, KratosCoreGeometriesFastSuite) {
         auto this_geometry = Geometry<Point>("Geometry1");
 
-        KRATOS_CHECK(this_geometry.IsIdGeneratedFromString());
-        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdSelfAssigned());
-        KRATOS_CHECK_EQUAL(this_geometry.Id(), Geometry<Point>::GenerateId("Geometry1"));
+        KRATOS_EXPECT_TRUE(this_geometry.IsIdGeneratedFromString());
+        KRATOS_EXPECT_FALSE(this_geometry.IsIdSelfAssigned());
+        KRATOS_EXPECT_EQ(this_geometry.Id(), Geometry<Point>::GenerateId("Geometry1"));
     }
 
     /// Test geometry Id
     KRATOS_TEST_CASE_IN_SUITE(GeometryId, KratosCoreGeometriesFastSuite) {
         auto this_geometry = Geometry<Point>(1);
 
-        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdGeneratedFromString());
-        KRATOS_CHECK_IS_FALSE(this_geometry.IsIdSelfAssigned());
-        KRATOS_CHECK_EQUAL(this_geometry.Id(), 1);
+        KRATOS_EXPECT_FALSE(this_geometry.IsIdGeneratedFromString());
+        KRATOS_EXPECT_FALSE(this_geometry.IsIdSelfAssigned());
+        KRATOS_EXPECT_EQ(this_geometry.Id(), 1);
 
         // Check for higher Id.
         auto this_geometry_2 = Geometry<Point>(717);
-        KRATOS_CHECK_IS_FALSE(this_geometry_2.IsIdGeneratedFromString());
-        KRATOS_CHECK_IS_FALSE(this_geometry_2.IsIdSelfAssigned());
-        KRATOS_CHECK_EQUAL(this_geometry_2.Id(), 717);
+        KRATOS_EXPECT_FALSE(this_geometry_2.IsIdGeneratedFromString());
+        KRATOS_EXPECT_FALSE(this_geometry_2.IsIdSelfAssigned());
+        KRATOS_EXPECT_EQ(this_geometry_2.Id(), 717);
     }
 } // namespace Testing.
 } // namespace Kratos.

@@ -14,7 +14,6 @@
 #define CO_SIM_IO_LOCAL_SOCKET_COMMUNICATION_INCLUDED
 
 // System includes
-#include <thread>
 
 // Project includes
 #include "includes/communication/base_socket_communication.hpp"

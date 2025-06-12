@@ -175,38 +175,17 @@ public:
         {
 
             noalias(DeltaDisp) = (i)->FastGetSolutionStepValue(DISPLACEMENT) - (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            //KRATOS_WATCH( i->Id() )
             array_1d<double, 3 > & CurrentVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 0);
             array_1d<double, 3 > & OldVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 1);
 
             array_1d<double, 3 > & CurrentAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
             array_1d<double, 3 > & OldAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
-
             UpdateVelocity(CurrentVelocity, DeltaDisp, OldVelocity, OldAcceleration);
 
             UpdateAcceleration(CurrentAcceleration, DeltaDisp, OldVelocity, OldAcceleration);
-            //KRATOS_WATCH( (i)->FastGetSolutionStepValue(DISPLACEMENT) )
-            //KRATOS_WATCH( (i)->FastGetSolutionStepValue(DISPLACEMENT,1) )
-            //KRATOS_WATCH( DeltaDisp )
-            //KRATOS_WATCH( OldVelocity )
-            //KRATOS_WATCH( CurrentVelocity )
-            //std::cout << "after update" << std::endl;
-
-            //std::cout  << std::endl;
 
         }
-
-
-        //          //updating time derivatives
-        //          for (it2=rDofSet.begin(); it2 != rDofSet.end(); ++it2)
-        //          {
-        ////                Dof::VariableType dof_variable = (*it2)->GetVariable();
-        //  //              if ((*it2)->HasTimeDerivative())
-        //                      mpModel->Value((*it2)->GetTimeDerivative(), *it2) = Dt(**it2, CurrentTime, DeltaTime);
-        //  //              if ((*it2)->HasSecondTimeDerivative())
-        //                      mpModel->Value((*it2)->GetSecondTimeDerivative(), *it2) = Dtt(**it2, CurrentTime, DeltaTime);
-        //          }
 
         KRATOS_CATCH( "" )
 
@@ -233,16 +212,12 @@ public:
         for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
                 i != r_model_part.NodesEnd(); ++i)
         {
-            //KRATOS_WATCH( i->Id())
-            //KRATOS_WATCH( i->FastGetSolutionStepValue(DISPLACEMENT) )
-            //KRATOS_WATCH( i->FastGetSolutionStepValue(VELOCITY) )
-            //KRATOS_WATCH( i->FastGetSolutionStepValue(ACCELERATION) )
+
             array_1d<double, 3 > & OldVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 1);
             array_1d<double, 3 > & OldDisp = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
             //predicting displacement = OldDisplacement + OldVelocity * DeltaTime;
             //ATTENTION::: the prediction is performed only on free nodes
             array_1d<double, 3 > & CurrentDisp = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-            //KRATOS_WATCH( "1" )
 
             if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
                 (CurrentDisp[0]) = OldDisp[0] + DeltaTime * OldVelocity[0];
@@ -251,19 +226,14 @@ public:
             if (i->HasDofFor(DISPLACEMENT_Z))
                 if (i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false)
                     (CurrentDisp[2]) = OldDisp[2] + DeltaTime * OldVelocity[2];
-            //KRATOS_WATCH( "2" )
 
             //updating time derivatives ::: please note that displacements and its time derivatives
             //can not be consistently fixed separately
             noalias(DeltaDisp) = CurrentDisp - OldDisp;
             array_1d<double, 3 > & OldAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
-            //KRATOS_WATCH( DeltaDisp )
 
             array_1d<double, 3 > & CurrentVelocity = (i)->FastGetSolutionStepValue(VELOCITY);
             array_1d<double, 3 > & CurrentAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION);
-            //KRATOS_WATCH( CurrentVelocity )
-            //KRATOS_WATCH( CurrentAcceleration )
-
 
             UpdateVelocity(CurrentVelocity, DeltaDisp, OldVelocity, OldAcceleration);
 
@@ -297,23 +267,17 @@ public:
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
         //Initializing the non linear iteration for the current element
-        //KRATOS_WATCH( LHS_Contribution )
         //basic operations for the element considered
         rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
         rCurrentElement.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
         rCurrentElement.CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
         rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
-        //KRATOS_WATCH( LHS_Contribution )
-        //KRATOS_WATCH( RHS_Contribution )
-        //KRATOS_WATCH( mMass )
-        //KRATOS_WATCH( mDamp )
         //adding the dynamic contributions (statics is already included)
 
         AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
         AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
-        //KRATOS_WATCH( LHS_Contribution )
-        //KRATOS_WATCH( RHS_Contribution )
+
         KRATOS_CATCH( "" )
 
     }
@@ -334,7 +298,6 @@ public:
         rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
         //adding the dynamic contributions (static is already included)
-
         AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
     }
@@ -355,7 +318,6 @@ public:
         rCurrentCondition.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
         rCurrentCondition.CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
         rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
-
 
         AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
@@ -509,8 +471,6 @@ protected:
     std::vector< Matrix >mMass;
     std::vector< Matrix >mDamp;
     std::vector< Vector >mvel;
-    //std::vector< Vector >macc;
-    //std::vector< Vector >maccold;
 
     double mdamping_factor;
 
@@ -563,19 +523,9 @@ protected:
         // adding mass contribution to the dynamic stiffness
         if (M.size1() != 0) // if M matrix declared
         {
-            //              noalias(LHS_Contribution) += mam*M;
-            //          }
-            //
-            //          //adding  damping contribution
-            //          if(D.size1() != 0) // if M matrix declared
-            //          {
             noalias(LHS_Contribution) += (mdamping_factor * ma1) * M;
         }
     }
-
-
-
-
 
     //****************************************************************************
 
@@ -595,22 +545,6 @@ protected:
         {
             int k = OpenMPUtils::ThisThread();
             const auto& r_const_elem_ref = rCurrentElement;
-            /*              rCurrentElement-
-            >GetSecondDerivativesVector(RelaxationAuxiliaryies::macc,0);
-                            (RelaxationAuxiliaryies::macc) *= (1.00-mAlphaBossak);
-                            rCurrentElement-
-            >GetSecondDerivativesVector(RelaxationAuxiliaryies::maccold,1);
-                            noalias(RelaxationAuxiliaryies::macc) += mAlphaBossak *
-            RelaxationAuxiliaryies::maccold;
-
-                            noalias(RHS_Contribution) -= prod(M,
-            RelaxationAuxiliaryies::macc );*/
-            /*          }
-
-                        //adding damping contribution
-                        //damping contribution
-                        if (D.size1() != 0)
-                        {*/
             r_const_elem_ref.GetFirstDerivativesVector(mvel[k], 0);
             noalias(RHS_Contribution) -= mdamping_factor * prod(M, mvel[k]);
         }
@@ -628,23 +562,6 @@ protected:
         if (M.size1() != 0)
         {
             int k = OpenMPUtils::ThisThread();
-            /*              rCurrentCondition-
-            >GetSecondDerivativesVector(RelaxationAuxiliaryies::macc,0);
-                            (RelaxationAuxiliaryies::macc) *= (1.00-mAlphaBossak);
-                            rCurrentCondition-
-            >GetSecondDerivativesVector(RelaxationAuxiliaryies::maccold,1);
-                            noalias(RelaxationAuxiliaryies::macc) += mAlphaBossak *
-            RelaxationAuxiliaryies::maccold;
-
-                            noalias(RHS_Contribution) -= prod(M,
-            RelaxationAuxiliaryies::macc );*/
-            /*          }
-
-                        //adding damping contribution
-                        //damping contribution - here we use daming matrix = MAss
-            MAtrix * mdamping_factor
-                        if (D.size1() != 0)
-                        {*/
             const auto& r_const_cond_ref = rCurrentCondition;
             r_const_cond_ref.GetFirstDerivativesVector(mvel[k], 0);
             noalias(RHS_Contribution) -= mdamping_factor * prod(M, mvel[k]);

@@ -12,7 +12,7 @@
 //
 
 #include "two_fluid_navier_stokes_alpha_method.h"
-#include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
+#include "data_containers/two_fluid_navier_stokes_alpha_method/two_fluid_navier_stokes_alpha_method_data.h"
 
 namespace Kratos
 {
@@ -88,7 +88,7 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::CalculateOnIntegrationPoints
         // Iterate over integration points to evaluate the artificial viscosity at each Gauss point
         for (unsigned int g = 0; g < number_of_gauss_points; ++g){
             this->UpdateIntegrationPointData(data, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
-            rOutput[g] = CalculateArtificialDynamicViscositySpecialization(data);
+            rOutput[g] = this->GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
         }
     }
     else{
@@ -96,6 +96,33 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::CalculateOnIntegrationPoints
     }
 }
 
+template <class TElementData>
+void TwoFluidNavierStokesAlphaMethod<TElementData>::Calculate(
+    const Variable<double> &rVariable,
+    double &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    // Create new temporary data container
+    TElementData data;
+    data.Initialize(*this, rCurrentProcessInfo);
+
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_derivatives;
+    this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+    const unsigned int number_of_gauss_points = gauss_weights.size();
+    rOutput = 0.0;
+    if (rVariable == ARTIFICIAL_DYNAMIC_VISCOSITY){
+        // Iterate over integration points to evaluate the artificial viscosity at each Gauss point
+        for (unsigned int g = 0; g < number_of_gauss_points; ++g)
+        {
+            this->UpdateIntegrationPointData(data, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
+            rOutput += CalculateArtificialDynamicViscositySpecialization(data);
+        }
+        rOutput /= number_of_gauss_points;
+    }
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Inquiry
 

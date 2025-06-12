@@ -17,10 +17,10 @@
 
 // Project includes
 #include "includes/process_info.h"
-#include "testing/testing.h"
 #include "containers/model.h"
 
 // Application includes
+#include "tests/cpp_tests/constitutive_laws_fast_suite.h"
 
 // Hyperelastic behaviours
 #include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_isotropic_kirchhoff_3d.h"
@@ -51,12 +51,8 @@
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-namespace Testing
-{
-// We test the associated plasticity Constitutive laws...
-typedef Node<3> NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrainInternalVariables, KratosConstitutiveLawsFastSuite)
 {
@@ -70,11 +66,11 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrainInt
     ModelPart& r_test_model_part = current_model.CreateModelPart("Main");
     MC cl = MC();
 
-    KRATOS_CHECK_IS_FALSE(cl.Has(UNIAXIAL_STRESS));  // = False
-    KRATOS_CHECK_IS_FALSE(cl.Has(EQUIVALENT_PLASTIC_STRAIN));  // = False
-    KRATOS_CHECK(cl.Has(PLASTIC_DISSIPATION));  // = True
-    KRATOS_CHECK(cl.Has(PLASTIC_STRAIN_VECTOR));  // = True
-    KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // = True
+    KRATOS_EXPECT_FALSE(cl.Has(UNIAXIAL_STRESS));  // = False
+    KRATOS_EXPECT_FALSE(cl.Has(EQUIVALENT_PLASTIC_STRAIN));  // = False
+    KRATOS_EXPECT_TRUE(cl.Has(PLASTIC_DISSIPATION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(PLASTIC_STRAIN_VECTOR));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(INTERNAL_VARIABLES));  // = True
 
     Vector internal_variables_w(7);
     internal_variables_w[0] = 0.0;
@@ -88,14 +84,14 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrainInt
     Vector internal_variables_r;  // CL should internally resize it to 6
     cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
 
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 7., 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[3], 0.3, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[4], 0.4, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[5], 0.5, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[6], 0.6, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r.size(), 7., 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[3], 0.3, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[4], 0.4, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[5], 0.5, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[6], 0.6, 1.e-5);  // = True
 
 }
 
@@ -117,12 +113,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, K
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_3 = r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-    NodeType::Pointer p_node_4 = r_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    Node::Pointer p_node_1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_node_2 = r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    Node::Pointer p_node_3 = r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    Node::Pointer p_node_4 = r_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
 
-    auto geometry = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    auto geometry = Tetrahedra3D4<Node>(p_node_1, p_node_2, p_node_3, p_node_4);
 
     stress_vector = ZeroVector(6);
     strain_vector = ZeroVector(6);
@@ -197,10 +193,10 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, K
 
     // Check the results
     const double tolerance = 1.0e-4;
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(MCres, TestMC, tolerance);
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(VMres, TestVM, tolerance);
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(DPres, TestDP, tolerance);
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(Tres,  TestT,  tolerance);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(MCres, TestMC, tolerance);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(VMres, TestVM, tolerance);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(DPres, TestDP, tolerance);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Tres,  TestT,  tolerance);
 }
 
 /**
@@ -220,12 +216,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticitySmallStrain, KratosCon
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_3 = r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-    NodeType::Pointer p_node_4 = r_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    Node::Pointer p_node_1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_node_2 = r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    Node::Pointer p_node_3 = r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    Node::Pointer p_node_4 = r_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
 
-    auto geometry = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    auto geometry = Tetrahedra3D4<Node>(p_node_1, p_node_2, p_node_3, p_node_4);
 
     stress_vector = ZeroVector(6);
     strain_vector = ZeroVector(6);
@@ -361,29 +357,29 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticitySmallStrain, KratosCon
     const double tolerance = 1.0e-4;
     for (std::size_t i = 0; i < 6 ; i++) {
         for (std::size_t j = 0; j < 6 ; j++) {
-            KRATOS_CHECK(!std::isnan(TestMC(i, j)));
+            KRATOS_EXPECT_TRUE(!std::isnan(TestMC(i, j)));
             if (std::abs(MCres(i, j)) > 0.0) {
                 const double value = std::abs((MCres(i, j) - TestMC(i, j))/MCres(i, j));
                 KRATOS_WARNING_IF("TestPlasticity", value > tolerance) << "MohrCoulomb:: Value( " << i << ", " << j << ") :" << value << " is greater than tolerance: " << tolerance << std::endl;
-                KRATOS_CHECK_LESS_EQUAL(value, tolerance);
+                KRATOS_EXPECT_LE(value, tolerance);
             }
-            KRATOS_CHECK(!std::isnan(VMres(i, j)));
+            KRATOS_EXPECT_TRUE(!std::isnan(VMres(i, j)));
             if (std::abs(VMres(i, j)) > 0.0) {
                 const double value = std::abs((VMres(i, j) - TestVM(i, j))/VMres(i, j));
                 KRATOS_WARNING_IF("TestPlasticity", value > tolerance) << "VonMises:: Value( " << i << ", " << j << ") :" << value << " is greater than tolerance: " << tolerance << std::endl;
-                KRATOS_CHECK_LESS_EQUAL(value, tolerance);
+                KRATOS_EXPECT_LE(value, tolerance);
             }
-            KRATOS_CHECK(!std::isnan(DPres(i, j)));
+            KRATOS_EXPECT_TRUE(!std::isnan(DPres(i, j)));
             if (std::abs(DPres(i, j)) > 0.0) {
                 const double value = std::abs((DPres(i, j) - TestDP(i, j))/DPres(i, j));
                 KRATOS_WARNING_IF("TestPlasticity", value > tolerance) << "DruckerPrager:: Value( " << i << ", " << j << ") :" << value << " is greater than tolerance: " << tolerance << std::endl;
-                KRATOS_CHECK_LESS_EQUAL(value, tolerance);
+                KRATOS_EXPECT_LE(value, tolerance);
             }
-            KRATOS_CHECK(!std::isnan(TestT(i, j)));
+            KRATOS_EXPECT_TRUE(!std::isnan(TestT(i, j)));
             if (std::abs(Tres(i, j)) > 0.0) {
                 const double value = std::abs((Tres(i, j) - TestT(i, j))/Tres(i, j));
                 KRATOS_WARNING_IF("TestPlasticity", value > tolerance) << "Tresca:: Value( " << i << ", " << j << ") :" << value << " is greater than tolerance: " << tolerance << std::endl;
-                KRATOS_CHECK_LESS_EQUAL(value, tolerance);
+                KRATOS_EXPECT_LE(value, tolerance);
             }
         }
     }
@@ -412,12 +408,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrain, KratosCo
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_3 = r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-    NodeType::Pointer p_node_4 = r_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    Node::Pointer p_node_1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_node_2 = r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    Node::Pointer p_node_3 = r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    Node::Pointer p_node_4 = r_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
 
-    auto geometry = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    auto geometry = Tetrahedra3D4<Node>(p_node_1, p_node_2, p_node_3, p_node_4);
 
     stress_vector = ZeroVector(6);
     strain_vector = ZeroVector(6);
@@ -536,10 +532,10 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrain, KratosCo
 
     // Check the results
     const double tolerance = 0.1e6;
-    KRATOS_CHECK_VECTOR_NEAR(MCres, TestMC, tolerance)
-    KRATOS_CHECK_VECTOR_NEAR(VMres, TestVM, tolerance)
-    KRATOS_CHECK_VECTOR_NEAR(DPres, TestDP, tolerance)
-    KRATOS_CHECK_VECTOR_NEAR(Tres,  TestT, tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(MCres, TestMC, tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(VMres, TestVM, tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(DPres, TestDP, tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(Tres,  TestT, tolerance)
 }
-} // namespace Testing
-} // namespace Kratos
+
+} // namespace Kratos::Testing

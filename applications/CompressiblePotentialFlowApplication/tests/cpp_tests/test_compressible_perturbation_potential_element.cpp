@@ -156,7 +156,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePerturbationPotentialFlowElementRHS, Compr
 
     std::vector<double> reference{131.4361747323354,-113.768439084114,-17.66773564822145};
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-13);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CompressiblePerturbationPotentialFlowElementRHSClamping, CompressiblePotentialApplicationFastSuite) {
@@ -177,7 +177,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePerturbationPotentialFlowElementRHSClampin
 
     std::vector<double> reference{205.3219372530133,-190.7662916232804,-14.55564562973297};
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-13);
 }
 
 // /** Checks the CompressiblePerturbationPotentialFlowElement.
@@ -205,7 +205,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePerturbationPotentialFlowElementLHS, Compr
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 3 + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 3 + j], 1e-16);
         }
     }
 }
@@ -232,7 +232,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePerturbationPotentialFlowElementLHSClampin
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 3 + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 3 + j], 1e-16);
         }
     }
 }
@@ -349,7 +349,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingCompressiblePerturbationPotentialFlowElementLHS, C
 
     ComputeElementalSensitivities(model_part, LHS_finite_diference, LHS_analytical, potential);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PingCompressiblePerturbationPotentialFlowElementLHSClamping, CompressiblePotentialApplicationFastSuite) {
@@ -367,7 +367,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingCompressiblePerturbationPotentialFlowElementLHSCla
 
     ComputeElementalSensitivities(model_part, LHS_finite_diference, LHS_analytical, potential);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementRHS, CompressiblePotentialApplicationFastSuite) {
@@ -393,7 +393,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementRHS, C
 
     std::vector<double> reference{127.1146544469925,109.025,-85.1375,23.8875,-154.8303022595422,10.56213263248122};
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-13);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementRHSClamping, CompressiblePotentialApplicationFastSuite) {
@@ -419,7 +419,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementRHSCla
 
     std::vector<double> reference{171.8439523046275,11.025,-5.5125,5.5125,-161.6550003638144,-14.55564562973297};
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-13);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WakeStructureCompressiblePerturbationPotentialFlowElementRHS, CompressiblePotentialApplicationFastSuite) {
@@ -448,7 +448,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeStructureCompressiblePerturbationPotentialFlowElem
 
     std::vector<double> reference{127.1146544469925,109.025,-16.14852237508765,23.8875,-154.8303022595422,7.921599474360912};
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-13);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WakeStructureCompressiblePerturbationPotentialFlowElementRHSClamping, CompressiblePotentialApplicationFastSuite) {
@@ -477,7 +477,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeStructureCompressiblePerturbationPotentialFlowElem
 
     std::vector<double> reference{171.8439523046275,11.025,-4.730584829663217,5.5125,-161.6550003638144,-10.91673422229973};
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-13);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
@@ -506,7 +506,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementLHS, C
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[6 * i + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[6 * i + j], 1e-16);
         }
     }
 }
@@ -538,7 +538,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementLHSCla
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[6 * i + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[6 * i + j], 1e-16);
         }
     }
 }
@@ -574,7 +574,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeStructureCompressiblePerturbationPotentialFlowElem
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[6 * i + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[6 * i + j], 1e-16);
         }
     }
 }
@@ -610,7 +610,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeStructureCompressiblePerturbationPotentialFlowElem
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS(i, j), reference[6 * i + j], 1e-16);
+            KRATOS_EXPECT_NEAR(LHS(i, j), reference[6 * i + j], 1e-16);
         }
     }
 }
@@ -630,7 +630,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeCompressiblePerturbationPotentialFlowElementLH
 
     ComputeWakeElementalSensitivities(model_part, LHS_finite_diference, LHS_analytical, potential);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PingWakeCompressiblePerturbationPotentialFlowElementLHSClamping, CompressiblePotentialApplicationFastSuite) {
@@ -648,7 +648,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeCompressiblePerturbationPotentialFlowElementLH
 
     ComputeWakeElementalSensitivities(model_part, LHS_finite_diference, LHS_analytical, potential);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePerturbationPotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
@@ -671,7 +671,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePerturbationPotentialFlow
 
     PrintTestElementInfo(model_part);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePerturbationPotentialFlowElementLHSClamping, CompressiblePotentialApplicationFastSuite) {
@@ -694,7 +694,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePerturbationPotentialFlow
 
     PrintTestElementInfo(model_part);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 } // namespace Testing

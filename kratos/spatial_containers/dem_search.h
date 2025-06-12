@@ -75,7 +75,7 @@ class RadiusPoint
       RadiusPoint() {}
       virtual ~RadiusPoint(){}
 
-      void Initialize(SpatialSearch::ElementPointerType baseElem)
+      void Initialize(Element::Pointer baseElem)
       {
           for(std::size_t i = 0; i < Dimension; i++)
               coord[i] = baseElem->GetGeometry()[0][i];
@@ -85,7 +85,7 @@ class RadiusPoint
 //           mRadius = baseElem->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
       }
 
-      void Initialize(SpatialSearch::ElementPointerType baseElem, double Radius)
+      void Initialize(Element::Pointer baseElem, double Radius)
       {
           for(std::size_t i = 0; i < Dimension; i++)
               coord[i] = baseElem->GetGeometry()[0][i];
@@ -104,7 +104,7 @@ class RadiusPoint
       double       & operator[](std::size_t i)       {return coord[i];}
       double const & operator[](std::size_t i) const {return coord[i];}
 
-      SpatialSearch::ElementPointerType pNaseElem;
+      Element::Pointer pNaseElem;
 
       void operator=(Point const& Other){
          for(std::size_t i = 0; i < Dimension; i++)

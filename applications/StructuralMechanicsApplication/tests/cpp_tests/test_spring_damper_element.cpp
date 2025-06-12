@@ -11,10 +11,10 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "structural_mechanics_application_variables.h"
 
-#include "custom_elements/spring_damper_element.hpp"
+#include "custom_elements/nodal_elements/spring_damper_element.hpp"
 
 namespace Kratos::Testing {
 
@@ -163,7 +163,7 @@ namespace Kratos::Testing {
         expected_lhs(5, 5) = 4.0;
 
         // Assert Lhs
-        KRATOS_CHECK_MATRIX_NEAR(expected_lhs, calculated_lhs, 1e-10);
+        KRATOS_EXPECT_MATRIX_NEAR(expected_lhs, calculated_lhs, 1e-10);
 
         // Set expected rhs
         Vector expected_rhs = ZeroVector(number_of_dofs);
@@ -175,7 +175,7 @@ namespace Kratos::Testing {
         expected_rhs(5) = 4.0 * 7.0;
 
         // Assert rhs
-        KRATOS_CHECK_VECTOR_NEAR(expected_rhs, calculated_rhs, 1e-10);
+        KRATOS_EXPECT_VECTOR_NEAR(expected_rhs, calculated_rhs, 1e-10);
     }
 
 
@@ -220,7 +220,7 @@ namespace Kratos::Testing {
         expected_damping_matrix(5, 5) = 10.0;
 
         // Assert
-        KRATOS_CHECK_MATRIX_NEAR(expected_damping_matrix, calculated_damping_matrix, 1e-10);
+        KRATOS_EXPECT_MATRIX_NEAR(expected_damping_matrix, calculated_damping_matrix, 1e-10);
 
     }
 
@@ -280,7 +280,7 @@ namespace Kratos::Testing {
         expected_lhs(11, 5) = -13.0;
 
         // Assert Lhs
-        KRATOS_CHECK_MATRIX_NEAR(expected_lhs, calculated_lhs, 1e-10);
+        KRATOS_EXPECT_MATRIX_NEAR(expected_lhs, calculated_lhs, 1e-10);
 
         // Set expected rhs
         Vector expected_rhs = ZeroVector(number_of_dofs);
@@ -298,7 +298,7 @@ namespace Kratos::Testing {
         expected_rhs(11) = 13.0 * 10.0;
 
         // Assert rhs
-        KRATOS_CHECK_VECTOR_NEAR(expected_rhs, calculated_rhs, 1e-10);
+        KRATOS_EXPECT_VECTOR_NEAR(expected_rhs, calculated_rhs, 1e-10);
     }
 
 
@@ -357,7 +357,7 @@ namespace Kratos::Testing {
         expected_damping_matrix(11, 5) = -19.0;
 
         // Assert damping matrix
-        KRATOS_CHECK_MATRIX_NEAR(expected_damping_matrix, calculated_damping_matrix, 1e-10);
+        KRATOS_EXPECT_MATRIX_NEAR(expected_damping_matrix, calculated_damping_matrix, 1e-10);
 
     }
 }

@@ -10,68 +10,38 @@
 //  Main authors:    Vahid Galavi
 //
 
-/* System includes */
-#include <iostream>
-
-/* External includes */
-
 /* Project includes */
-#include "custom_retention/saturated_law.h"
+#include "custom_retention/retention_law.h"
+#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
 
-//-------------------------------------------------------------------------------------------------
-void RetentionLaw::
-    InitializeMaterial(const Properties& rMaterialProperties,
-                       const GeometryType& rElementGeometry,
-                       const Vector& rShapeFunctionsValues)
+double& RetentionLaw::CalculateValue(Parameters& rParameters, const Variable<double>& rThisVariable, double& rValue) const
 {
-    // nothing
+    if (rThisVariable == DEGREE_OF_SATURATION) {
+        rValue = CalculateSaturation(rParameters);
+    } else if (rThisVariable == EFFECTIVE_SATURATION) {
+        rValue = CalculateEffectiveSaturation(rParameters);
+    } else if (rThisVariable == BISHOP_COEFFICIENT) {
+        rValue = CalculateBishopCoefficient(rParameters);
+    } else if (rThisVariable == DERIVATIVE_OF_SATURATION) {
+        rValue = CalculateDerivativeOfSaturation(rParameters);
+    } else if (rThisVariable == RELATIVE_PERMEABILITY) {
+        rValue = CalculateRelativePermeability(rParameters);
+    }
+
+    return rValue;
 }
 
-//-------------------------------------------------------------------------------------------------
-void RetentionLaw::Initialize(Parameters &rParameters)
-{
-    // nothing
-}
-
-//-------------------------------------------------------------------------------------------------
-void RetentionLaw::InitializeSolutionStep(Parameters &rParameters)
-{
-    // nothing
-}
-
-//-------------------------------------------------------------------------------------------------
-void RetentionLaw::FinalizeSolutionStep(Parameters &rParameters)
-{
-    // nothing
-}
-
-//-------------------------------------------------------------------------------------------------
-void RetentionLaw::Finalize(Parameters &rParameters)
-{
-    // nothing
-}
-
-//-------------------------------------------------------------------------------------------------
-void RetentionLaw::ResetMaterial(const Properties &rMaterialProperties,
-                                 const GeometryType &rElementGeometry,
-                                 const Vector &rShapeFunctionsValues)
-{
-    // nothing
-}
-
-//-------------------------------------------------------------------------------------------------
 void RetentionLaw::save(Serializer& rSerializer) const
 {
     // there is no member variables to be saved
 }
 
-//-------------------------------------------------------------------------------------------------
 void RetentionLaw::load(Serializer& rSerializer)
 {
     // there is no member variables to be loaded
 }
 
-} /* namespace Kratos.*/
+} // namespace Kratos

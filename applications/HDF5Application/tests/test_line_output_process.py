@@ -2,10 +2,10 @@
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as KratosUtils
 from KratosMultiphysics import KratosUnittest as UnitTest
+from KratosMultiphysics.testing.utilities import ReadModelPart
 
 # HDF5 imports
 from KratosMultiphysics.HDF5Application.line_output_process import Factory as LineOutputProcessFactory
-from KratosMultiphysics.testing.utilities import ReadModelPart
 from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
 
 # STD imports
@@ -64,7 +64,8 @@ class TestLineOutputProcess(UnitTest.TestCase):
             # Check output file structure
             root = "/test_line_output_{}".format(parameters["model_part_name"].GetString())
             self.assertTrue(file.IsGroup(root))
-            self.assertTrue(file.IsDataSet(root + "/POSITION"))
+            self.assertTrue(file.IsDataSet(root + "/Ids"))
+            self.assertTrue(file.IsDataSet(root + "/Coordinates"))
 
 
     @property

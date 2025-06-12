@@ -65,7 +65,7 @@ public:
 
     // Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
      * @param NewId Index number of the new element (optional)
      */

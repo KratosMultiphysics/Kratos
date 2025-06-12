@@ -6,7 +6,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_io im
 
 # CoSimulation imports
 from KratosMultiphysics.CoSimulationApplication import CoSimIO
-
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 def Create(*args):
     return KratosCoSimIO(*args)
@@ -57,7 +57,7 @@ class KratosCoSimIO(CoSimulationIO):
 
         info = CoSimIO.Info()
         info.SetString("connection_name", self.connection_name)
-        info.SetString("identifier", model_part_name.replace(".", "-")) # TODO chec if better solution can be found
+        info.SetString("identifier", model_part_name.replace(".", "-")) # TODO check if better solution can be found
 
         CoSimIO.ImportMesh(info, self.model[model_part_name], self.data_communicator) # TODO this can also be geometry at some point
 
@@ -66,7 +66,7 @@ class KratosCoSimIO(CoSimulationIO):
 
         info = CoSimIO.Info()
         info.SetString("connection_name", self.connection_name)
-        info.SetString("identifier", model_part_name.replace(".", "-")) # TODO chec if better solution can be found
+        info.SetString("identifier", model_part_name.replace(".", "-")) # TODO check if better solution can be found
 
         CoSimIO.ExportMesh(info, self.model[model_part_name]) # TODO this can also be geometry at some point
 
@@ -114,7 +114,7 @@ class KratosCoSimIO(CoSimulationIO):
             raise NotImplementedError('Exporting interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
 
     def PrintInfo(self):
-        print("This is the KratosCoSimIO")
+        cs_tools.cs_print_info("KratosCoSimIO", "This is the KratosCoSimIO")
 
     def Check(self):
         pass
@@ -129,10 +129,10 @@ class KratosCoSimIO(CoSimulationIO):
 
 def GetDataLocation(location_str):
     location_map = {
-        "node_historical"     : CoSimIO.DataLocation.NodeHistorical,
-        "node_non_historical" : CoSimIO.DataLocation.NodeNonHistorical,
-        "element"             : CoSimIO.DataLocation.Element,
-        "condition"           : CoSimIO.DataLocation.Condition,
-        "model_part"          : CoSimIO.DataLocation.ModelPart
+        "node_historical"     : KM.Globals.DataLocation.NodeHistorical,
+        "node_non_historical" : KM.Globals.DataLocation.NodeNonHistorical,
+        "element"             : KM.Globals.DataLocation.Element,
+        "condition"           : KM.Globals.DataLocation.Condition,
+        "model_part"          : KM.Globals.DataLocation.ModelPart
     }
     return location_map[location_str]

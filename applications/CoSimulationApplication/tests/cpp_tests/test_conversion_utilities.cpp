@@ -17,16 +17,16 @@
 // Project includes
 #include "includes/model_part.h"
 #include "containers/model.h"
-#include "testing/testing.h"
+#include "tests/cpp_tests/co_simulation_fast_suite.h"
 #include "custom_utilities/conversion_utilities.h"
 
 // Utilities
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(ElementalDataToNodalDataForce, KratosCosimulationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ElementalDataToNodalDataForce, KratosCoSimulationFastSuite)
 {
     // Creating a Model
     Model model;
@@ -55,8 +55,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementalDataToNodalDataForce, KratosCosimulationFastS
         r_elem.SetValue(FORCE, force_value);
     }
 
-    // ConversionUtilities::ConvertElementalDataToNodalData(test_model_part);
-    ConversionUtilities::ConvertElementalDataToNodalData(test_model_part, FORCE, FORCE);
+    ConversionUtilities::ConvertElementalDataToNodalDataTranspose(test_model_part, FORCE, FORCE);
 
     // Converted Values at Nodes
     Vector nodal_force_values(18);
@@ -72,7 +71,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementalDataToNodalDataForce, KratosCosimulationFastS
     // Expected Values at Nodes
     array_1d<double, 18> expected_values {3, 2 ,0, 6, 4, 0, 6, 4 ,0, 3, 2 ,0, 3, 2 ,0, 3, 2 ,0};
 
-    KRATOS_CHECK_VECTOR_NEAR(nodal_force_values, expected_values, 1.0e-12)
+    KRATOS_EXPECT_VECTOR_NEAR(nodal_force_values, expected_values, 1.0e-12)
 }
 
 } // namespace Testing

@@ -46,6 +46,8 @@ class DeprecationManager:
             parameters[new_variable_name].SetString(parameters[old_variable_name].GetString())
         elif parameters[old_variable_name].IsBool():
             parameters[new_variable_name].SetBool(parameters[old_variable_name].GetBool())
+        elif parameters[old_variable_name].IsStringArray():
+            parameters[new_variable_name].SetStringArray(parameters[old_variable_name].GetStringArray())
         else:
             pass
 

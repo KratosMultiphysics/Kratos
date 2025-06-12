@@ -316,7 +316,7 @@ private:
     ///@name Private Operators
     ///@{
 
-    bool MatchTransferFlags(const Node<3>::Pointer& pNode)
+    bool MatchTransferFlags(const Node::Pointer& pNode)
     {
 
       for(unsigned int i = 0; i<mrTransferFlags.size(); i++)
@@ -329,7 +329,7 @@ private:
 
     }
 
-    void AssignFlags(const Node<3>::Pointer& pNode)
+    void AssignFlags(const Node::Pointer& pNode)
     {
 
       for(unsigned int i = 0; i<mrAssignFlags.size(); i++)

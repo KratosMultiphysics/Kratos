@@ -125,7 +125,7 @@ ModelPart& FillModel(Model& model)
     mpart.GetNode(3).FastGetSolutionStepValue(TEMPERATURE) = 300;
 
     // Elements
-    using LineType = Line2D2<Node<3>>;
+    using LineType = Line2D2<Node>;
     auto pProperties = mpart.pGetProperties(0);
     for(std::size_t i=1; i<=2; ++i)
     {
@@ -135,8 +135,8 @@ ModelPart& FillModel(Model& model)
     }
 
     // Basis
-    const auto phi_1 = [](Node<3> const&){ return 1.0; };
-    const auto phi_2 = [](Node<3> const& r_node){ return r_node.X(); };
+    const auto phi_1 = [](Node const&){ return 1.0; };
+    const auto phi_2 = [](Node const& r_node){ return r_node.X(); };
     Matrix phi_3 = ZeroMatrix(1,3);
     // Setting the 3rd mode to be the residual
     phi_3(0,0) = 0.5;
@@ -216,16 +216,16 @@ KRATOS_TEST_CASE_IN_SUITE(PetrovGalerkinROMBuilderAndSolver, RomApplicationFastS
     const auto dx = BuildAndSolve(model_part, p_scheme, romBnS);
     const auto& dq = model_part.GetValue(ROM_SOLUTION_INCREMENT);
 
-    KRATOS_CHECK_NEAR(model_part.ElementsBegin()->GetValue(HROM_WEIGHT), 1, 1e-8);
-    KRATOS_CHECK_EQUAL(romBnS.GetEquationSystemSize(), 3);
+    KRATOS_EXPECT_NEAR(model_part.ElementsBegin()->GetValue(HROM_WEIGHT), 1, 1e-8);
+    KRATOS_EXPECT_EQ(romBnS.GetEquationSystemSize(), 3);
 
-    KRATOS_CHECK_NEAR(dq(0), 1.0 , 1e-8);
-    KRATOS_CHECK_NEAR(dq(1), 0.5 , 1e-8);
+    KRATOS_EXPECT_NEAR(dq(0), 1.0 , 1e-8);
+    KRATOS_EXPECT_NEAR(dq(1), 0.5 , 1e-8);
 
     // Testing free dofs
-    KRATOS_CHECK_EQUAL(dx.size(), 3);
-    KRATOS_CHECK_NEAR(dx(1), 1.5 , 1e-8);
-    KRATOS_CHECK_NEAR(dx(2), 2.0 , 1e-8);
+    KRATOS_EXPECT_EQ(dx.size(), 3);
+    KRATOS_EXPECT_NEAR(dx(1), 1.5 , 1e-8);
+    KRATOS_EXPECT_NEAR(dx(2), 2.0 , 1e-8);
 }
 
 }

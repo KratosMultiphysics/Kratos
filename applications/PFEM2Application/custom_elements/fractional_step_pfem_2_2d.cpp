@@ -218,7 +218,7 @@ namespace Kratos
         BoundedMatrix<double, TDim+1, TDim+1 > Laplacian_matrix;
         //BoundedMatrix<double, TNumNodes*2, 2> N_vel_matrix; //useless to calculate it, it's simply the DN_DX matrix multiplied by 1/3, arranged in a different shape.
 
-        Geometry<Node<3> >& geom = this->GetGeometry();
+        Geometry<Node >& geom = this->GetGeometry();
 
         GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Area);
         //KRATOS_WATCH(Area);
@@ -489,7 +489,7 @@ namespace Kratos
 					BoundedMatrix<double, (TDim+1), TDim > DN_DX;
 					array_1d<double, (TDim+1) > N;
 					double Area;
-					Geometry<Node<3> >& geom = this->GetGeometry();
+					Geometry<Node >& geom = this->GetGeometry();
 					GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Area);
 
 					double density =1.0;
@@ -692,7 +692,7 @@ namespace Kratos
 					BoundedMatrix<double, (TDim+1), TDim > DN_DX;
 					array_1d<double, (TDim+1) > N;
 					double Area;
-					Geometry<Node<3> >& geom = this->GetGeometry();
+					Geometry<Node >& geom = this->GetGeometry();
 					//const unsigned int LocalSize = geom.size()*2;
 					unsigned int TNumNodes = geom.size();
 					//BoundedMatrix<double, (2+1),1 > enrich_rhs;

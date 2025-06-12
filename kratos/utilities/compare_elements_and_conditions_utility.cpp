@@ -4,11 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main author: Carlos Roig
-//               Vicente Mataix Ferrandiz
+//  Main author:     Carlos Roig
+//                   Vicente Mataix Ferrandiz
 //
 
 
@@ -24,13 +24,14 @@
 namespace Kratos
 {
 void CompareElementsAndConditionsUtility::GetRegisteredName(
-    const Geometry<Node<3>>& rGeometry, 
-    std::string& rName)
+    const Geometry<Node>& rGeometry,
+    std::string& rName
+    )
 {
     KRATOS_TRY;
 
-    for(auto const& component: KratosComponents<Geometry<Node<3>>>::GetComponents()) {
-        if (Geometry<Node<3>>::IsSame(*(component.second), rGeometry)) {
+    for(auto const& component: KratosComponents<Geometry<Node>>::GetComponents()) {
+        if (Geometry<Node>::IsSame(*(component.second), rGeometry)) {
             rName = component.first;
             return;
         }
@@ -46,7 +47,9 @@ void CompareElementsAndConditionsUtility::GetRegisteredName(
 
 void CompareElementsAndConditionsUtility::GetRegisteredName(
     const Element& rElement,
-    std::string& rName) {
+    std::string& rName
+    )
+{
     KRATOS_TRY;
 
     for(auto const& component: KratosComponents<Element>::GetComponents()) {
@@ -66,7 +69,8 @@ void CompareElementsAndConditionsUtility::GetRegisteredName(
 
 void CompareElementsAndConditionsUtility::GetRegisteredName(
     const Condition& rCondition,
-    std::string& rName)
+    std::string& rName
+    )
 {
     KRATOS_TRY;
 
@@ -81,6 +85,29 @@ void CompareElementsAndConditionsUtility::GetRegisteredName(
 
     KRATOS_CATCH("");
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void CompareElementsAndConditionsUtility::GetRegisteredName(
+    const MasterSlaveConstraint& rMasterSlaveConstraint,
+    std::string& rName
+    )
+{
+    KRATOS_TRY;
+
+    for (const auto& r_component : KratosComponents<MasterSlaveConstraint>::GetComponents()) {
+        if (typeid(*(r_component.second)) == typeid(rMasterSlaveConstraint)) {
+            rName = r_component.first;
+            return;
+        }
+    }
+
+    KRATOS_ERROR << "MasterSlaveConstraint \"" << typeid(rMasterSlaveConstraint).name() << "\" not found!" << std::endl;
+
+    KRATOS_CATCH("");
+}
+
 
 } // namespace Kratos.
 

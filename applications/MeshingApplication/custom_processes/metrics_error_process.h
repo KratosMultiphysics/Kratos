@@ -46,7 +46,7 @@ namespace Kratos
 /**
  * @class MetricErrorProcess
  * @ingroup MeshingApplication
- * @brief This class is can be used to compute the metrics of the model part with a error already computed
+ * @brief This class can be used to compute the metrics of the model part with a error already computed
  * @author Vicente Mataix Ferrandiz
  * @author Anna Rehr
  */
@@ -64,7 +64,7 @@ public:
     typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
 
         /// The definition of the node type
-    typedef Node <3>                                                                NodeType;
+    typedef Node                                                                NodeType;
 
     /// Definition of the iterators
     typedef GlobalPointersVector< Element >::iterator                         WeakElementItType;

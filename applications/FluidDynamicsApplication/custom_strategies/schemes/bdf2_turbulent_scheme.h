@@ -95,7 +95,7 @@ public:
     /// Constructor to use the formulation combined with a turbulence model.
     /**
      * The turbulence model is assumed to be implemented as a Kratos::Process.
-     * The model's Execute() method wil be called at the start of each
+     * The model's Execute() method will be called at the start of each
      * non-linear iteration.
      * @param pTurbulenceModel pointer to the turbulence model
      */
@@ -775,7 +775,7 @@ protected:
         }
     }
 
-    void AssemblePeriodicContributionToProjections(Geometry< Node<3> >& rGeometry)
+    void AssemblePeriodicContributionToProjections(Geometry< Node >& rGeometry)
     {
         unsigned int nodes_in_cond = rGeometry.PointsNumber();
 
@@ -807,7 +807,7 @@ protected:
         }
     }
 
-    void CorrectContributionsOnPeriodicNode(Node<3>& rNode)
+    void CorrectContributionsOnPeriodicNode(Node& rNode)
     {
         //TODO: This needs to be done in another manner as soon as we start using non-historical NODAL_AREA
         if (rNode.GetValue(NODAL_AREA) != 0.0) // Only periodic nodes will have a non-historical NODAL_AREA set.

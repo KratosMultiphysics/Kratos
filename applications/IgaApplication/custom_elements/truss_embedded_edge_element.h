@@ -43,7 +43,7 @@ public:
     typedef std::size_t IndexType;
 
     // GometryType
-    typedef Geometry<Node<3>> GeometryType;
+    typedef Geometry<Node> GeometryType;
 
     ///@}
     ///@name Life Cycle

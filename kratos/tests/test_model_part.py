@@ -2,6 +2,14 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 
 class TestModelPart(KratosUnittest.TestCase):
+    """
+    This class defines a set of unit tests for the ModelParts. ModelParts are hierarchical structures within the Kratos simulation framework that allow for organizing and managing various aspects of a computational model, such as nodes, elements, conditions, constraints, and subdomains.
+
+    The tests within this class cover a range of ModelPart-related operations, including the creation of ModelParts, retrieval of parent and root ModelParts, the creation and removal of sub-model parts, and verification of ModelPart hierarchy and structure.
+
+    By running these tests, it is possible to ensure that the ModelPart management features in KratosMultiphysics are functioning as expected, facilitating the setup and manipulation of complex computational models for various engineering and scientific simulations.
+    """
+
     def test_model_part_sub_model_parts(self):
         current_model = KratosMultiphysics.Model()
 
@@ -726,7 +734,7 @@ class TestModelPart(KratosUnittest.TestCase):
 
         ### here we test adding a list of nodes at once
         #now add node 4 and 5 to the model_part1 by Id - here it fails since we did not yet add node 4
-        with self.assertRaisesRegex(RuntimeError, "Error: while adding nodes to submodelpart, the node with Id 4 does not exist in the root model part"):
+        with self.assertRaisesRegex(RuntimeError, "Error: while adding nodes to submodelpart Main.sub1, the node with Id 4 does not exist in the root model part"):
             sub1.AddNodes([4,5])
 
         model_part1.AddNode( n4, 0 )
@@ -775,7 +783,7 @@ class TestModelPart(KratosUnittest.TestCase):
 
         ### here we test adding a list of conditions at once
         #now add node 4 and 5 to the model_part1 by Id - here it fails since we did not yet add node 4
-        with self.assertRaisesRegex(RuntimeError, "Error: the condition with Id 4 does not exist in the root model part"):
+        with self.assertRaisesRegex(RuntimeError, "Error: while adding conditions to submodelpart Main.sub1, the condition with Id 4 does not exist in the root model part"):
             sub1.AddConditions([4,5])
 
         model_part1.AddCondition( c4, 0 )
@@ -823,7 +831,7 @@ class TestModelPart(KratosUnittest.TestCase):
 
        ### here we test adding a list of elements at once
         #now add node 4 and 5 to the model_part1 by Id - here it fails since we did not yet add node 4
-        with self.assertRaisesRegex(RuntimeError, "Error: the element with Id 4 does not exist in the root model part"):
+        with self.assertRaisesRegex(RuntimeError, "Error: while adding elements to submodelpart Main.sub1, the element with Id 4 does not exist in the root model part"):
             sub1.AddElements([4,5])
 
         model_part1.AddElement( e4, 0 )
@@ -910,6 +918,8 @@ class TestModelPart(KratosUnittest.TestCase):
 
         c1 = KratosMultiphysics.MasterSlaveConstraint(10)
         model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, n1, KratosMultiphysics.PRESSURE, n2, KratosMultiphysics.PRESSURE, 0.5, 0.0)
+        self.assertTrue(model_part.HasMasterSlaveConstraint(1))
+        self.assertFalse(model_part.HasMasterSlaveConstraint(2))
 
         model_part.AddMasterSlaveConstraint(c1)
 
@@ -925,6 +935,8 @@ class TestModelPart(KratosUnittest.TestCase):
         subsub1 = sub1.CreateSubModelPart("subsub1")
 
         ss1 = subsub1.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, n1, KratosMultiphysics.PRESSURE, n2, KratosMultiphysics.PRESSURE, 0.5, 0.0)
+        self.assertTrue(model_part.HasMasterSlaveConstraint(1))
+        self.assertTrue(model_part.HasMasterSlaveConstraint(2))
 
         self.assertTrue(ss1 in subsub1.MasterSlaveConstraints)
         self.assertTrue(ss1 in sub1.MasterSlaveConstraints)
@@ -993,4 +1005,5 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfNodes(0), 4)
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

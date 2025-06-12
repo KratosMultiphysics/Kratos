@@ -4,11 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    
-//
+//  Main author:     Carlos Roig
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -18,15 +18,14 @@
 // Project includes
 #include "testing/testing.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
-
 #include "includes/element.h"
 #include "includes/condition.h"
+#include "includes/master_slave_constraint.h"
 #include "includes/kratos_components.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/quadrilateral_2d_4.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 class CustomElement : public Element
 {
@@ -74,23 +73,23 @@ KRATOS_TEST_CASE_IN_SUITE(IsSame_Element_Element, KratosCoreFastSuite)
     const Element& r_custom_element_2d_3n_1 = *p_custom_element_2d_3n_1;
     auto p_custom_element_2d_3n_2 = CreateCustomElement2D3N(2);
     // same element type, same geometry type.
-    KRATOS_CHECK(GeometricalObject::IsSame(r_custom_element_2d_3n_1, *p_custom_element_2d_3n_2));
-    KRATOS_CHECK(GeometricalObject::IsSame(&r_custom_element_2d_3n_1, &(*p_custom_element_2d_3n_2)));
-    KRATOS_CHECK(GeometricalObject::IsSame(*p_custom_element_2d_3n_2, r_custom_element_2d_3n_1));
-    KRATOS_CHECK(GeometricalObject::IsSame(&(*p_custom_element_2d_3n_2), &r_custom_element_2d_3n_1));
+    KRATOS_EXPECT_TRUE(GeometricalObject::IsSame(r_custom_element_2d_3n_1, *p_custom_element_2d_3n_2));
+    KRATOS_EXPECT_TRUE(GeometricalObject::IsSame(&r_custom_element_2d_3n_1, &(*p_custom_element_2d_3n_2)));
+    KRATOS_EXPECT_TRUE(GeometricalObject::IsSame(*p_custom_element_2d_3n_2, r_custom_element_2d_3n_1));
+    KRATOS_EXPECT_TRUE(GeometricalObject::IsSame(&(*p_custom_element_2d_3n_2), &r_custom_element_2d_3n_1));
     // different element type, same geometry type.
     const Element& r_element_2d_3n = KratosComponents<Element>::Get("Element2D3N");
-    KRATOS_CHECK_IS_FALSE(GeometricalObject::IsSame(r_element_2d_3n, *p_custom_element_2d_3n_1));
-    KRATOS_CHECK_IS_FALSE(GeometricalObject::IsSame(&r_element_2d_3n, &(*p_custom_element_2d_3n_1)));
-    KRATOS_CHECK_IS_FALSE(GeometricalObject::IsSame(*p_custom_element_2d_3n_1, r_element_2d_3n));
-    KRATOS_CHECK_IS_FALSE(GeometricalObject::IsSame(&(*p_custom_element_2d_3n_1), &r_element_2d_3n));
+    KRATOS_EXPECT_FALSE(GeometricalObject::IsSame(r_element_2d_3n, *p_custom_element_2d_3n_1));
+    KRATOS_EXPECT_FALSE(GeometricalObject::IsSame(&r_element_2d_3n, &(*p_custom_element_2d_3n_1)));
+    KRATOS_EXPECT_FALSE(GeometricalObject::IsSame(*p_custom_element_2d_3n_1, r_element_2d_3n));
+    KRATOS_EXPECT_FALSE(GeometricalObject::IsSame(&(*p_custom_element_2d_3n_1), &r_element_2d_3n));
     // same element type, different geometry type.
     auto p_custom_element_2d_4n_3 = CreateCustomElement2D4N(3);
     const Element& r_custom_element_2d_4n_3 = *p_custom_element_2d_4n_3;
-    KRATOS_CHECK_IS_FALSE(GeometricalObject::IsSame(r_custom_element_2d_3n_1, r_custom_element_2d_4n_3));
-    KRATOS_CHECK_IS_FALSE(GeometricalObject::IsSame(&r_custom_element_2d_3n_1, &r_custom_element_2d_4n_3));
-    KRATOS_CHECK_IS_FALSE(GeometricalObject::IsSame(r_custom_element_2d_4n_3, r_custom_element_2d_3n_1));
-    KRATOS_CHECK_IS_FALSE(GeometricalObject::IsSame(&r_custom_element_2d_4n_3, &r_custom_element_2d_3n_1));
+    KRATOS_EXPECT_FALSE(GeometricalObject::IsSame(r_custom_element_2d_3n_1, r_custom_element_2d_4n_3));
+    KRATOS_EXPECT_FALSE(GeometricalObject::IsSame(&r_custom_element_2d_3n_1, &r_custom_element_2d_4n_3));
+    KRATOS_EXPECT_FALSE(GeometricalObject::IsSame(r_custom_element_2d_4n_3, r_custom_element_2d_3n_1));
+    KRATOS_EXPECT_FALSE(GeometricalObject::IsSame(&r_custom_element_2d_4n_3, &r_custom_element_2d_3n_1));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(IsSame_Condition_Condition, KratosCoreFastSuite)
@@ -99,23 +98,23 @@ KRATOS_TEST_CASE_IN_SUITE(IsSame_Condition_Condition, KratosCoreFastSuite)
     const Condition& r_custom_condition_2d_3n_1 = *p_custom_condition_2d_3n_1;
     auto p_custom_condition_2d_3n_2 = CreateCustomLineCondition2D3N(2);
     // same condition type, same geometry type.
-    KRATOS_CHECK(GeometricalObject::IsSame(r_custom_condition_2d_3n_1, *p_custom_condition_2d_3n_2));
-    KRATOS_CHECK(GeometricalObject::IsSame(&r_custom_condition_2d_3n_1, &(*p_custom_condition_2d_3n_2)));
-    KRATOS_CHECK(GeometricalObject::IsSame(*p_custom_condition_2d_3n_2, r_custom_condition_2d_3n_1));
-    KRATOS_CHECK(GeometricalObject::IsSame(&(*p_custom_condition_2d_3n_2), &r_custom_condition_2d_3n_1));
+    KRATOS_EXPECT_TRUE(GeometricalObject::IsSame(r_custom_condition_2d_3n_1, *p_custom_condition_2d_3n_2));
+    KRATOS_EXPECT_TRUE(GeometricalObject::IsSame(&r_custom_condition_2d_3n_1, &(*p_custom_condition_2d_3n_2)));
+    KRATOS_EXPECT_TRUE(GeometricalObject::IsSame(*p_custom_condition_2d_3n_2, r_custom_condition_2d_3n_1));
+    KRATOS_EXPECT_TRUE(GeometricalObject::IsSame(&(*p_custom_condition_2d_3n_2), &r_custom_condition_2d_3n_1));
     // different condition type, same geometry type.
     const Condition& r_condition_2d_3n = KratosComponents<Condition>::Get("LineCondition2D3N");
-    KRATOS_CHECK_IS_FALSE(GeometricalObject::IsSame(r_condition_2d_3n, *p_custom_condition_2d_3n_1));
-    KRATOS_CHECK_IS_FALSE(GeometricalObject::IsSame(&r_condition_2d_3n, &(*p_custom_condition_2d_3n_1)));
-    KRATOS_CHECK_IS_FALSE(GeometricalObject::IsSame(*p_custom_condition_2d_3n_1, r_condition_2d_3n));
-    KRATOS_CHECK_IS_FALSE(GeometricalObject::IsSame(&(*p_custom_condition_2d_3n_1), &r_condition_2d_3n));
+    KRATOS_EXPECT_FALSE(GeometricalObject::IsSame(r_condition_2d_3n, *p_custom_condition_2d_3n_1));
+    KRATOS_EXPECT_FALSE(GeometricalObject::IsSame(&r_condition_2d_3n, &(*p_custom_condition_2d_3n_1)));
+    KRATOS_EXPECT_FALSE(GeometricalObject::IsSame(*p_custom_condition_2d_3n_1, r_condition_2d_3n));
+    KRATOS_EXPECT_FALSE(GeometricalObject::IsSame(&(*p_custom_condition_2d_3n_1), &r_condition_2d_3n));
     // same condition type, different geometry type.
     auto p_custom_condition_2d_4n_3 = CreateCustomCondition2D4N(3);
     const Condition& r_custom_condition_2d_4n_3 = *p_custom_condition_2d_4n_3;
-    KRATOS_CHECK_IS_FALSE(GeometricalObject::IsSame(r_custom_condition_2d_3n_1, r_custom_condition_2d_4n_3));
-    KRATOS_CHECK_IS_FALSE(GeometricalObject::IsSame(&r_custom_condition_2d_3n_1, &r_custom_condition_2d_4n_3));
-    KRATOS_CHECK_IS_FALSE(GeometricalObject::IsSame(r_custom_condition_2d_4n_3, r_custom_condition_2d_3n_1));
-    KRATOS_CHECK_IS_FALSE(GeometricalObject::IsSame(&r_custom_condition_2d_4n_3, &r_custom_condition_2d_3n_1));
+    KRATOS_EXPECT_FALSE(GeometricalObject::IsSame(r_custom_condition_2d_3n_1, r_custom_condition_2d_4n_3));
+    KRATOS_EXPECT_FALSE(GeometricalObject::IsSame(&r_custom_condition_2d_3n_1, &r_custom_condition_2d_4n_3));
+    KRATOS_EXPECT_FALSE(GeometricalObject::IsSame(r_custom_condition_2d_4n_3, r_custom_condition_2d_3n_1));
+    KRATOS_EXPECT_FALSE(GeometricalObject::IsSame(&r_custom_condition_2d_4n_3, &r_custom_condition_2d_3n_1));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GetRegisteredNameElement, KratosCoreFastSuite)
@@ -124,13 +123,13 @@ KRATOS_TEST_CASE_IN_SUITE(GetRegisteredNameElement, KratosCoreFastSuite)
     const Element& r_element_2d_3n = KratosComponents<Element>::Get("Element2D3N");
     std::string component_name;
     CompareElementsAndConditionsUtility::GetRegisteredName(r_element_2d_3n, component_name);
-    KRATOS_CHECK_EQUAL(component_name, "Element2D3N");
+    KRATOS_EXPECT_EQ(component_name, "Element2D3N");
     CompareElementsAndConditionsUtility::GetRegisteredName(&r_element_2d_3n, component_name);
-    KRATOS_CHECK_EQUAL(component_name, "Element2D3N");
+    KRATOS_EXPECT_EQ(component_name, "Element2D3N");
     CompareElementsAndConditionsUtility::GetRegisteredName(r_element_2d_3n, component_name);
-    KRATOS_CHECK_NOT_EQUAL(component_name, "Element");
+    KRATOS_EXPECT_NE(component_name, "Element");
     CompareElementsAndConditionsUtility::GetRegisteredName(&r_element_2d_3n, component_name);
-    KRATOS_CHECK_NOT_EQUAL(component_name, "Element");
+    KRATOS_EXPECT_NE(component_name, "Element");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GetRegisteredNameCondition, KratosCoreFastSuite)
@@ -139,14 +138,28 @@ KRATOS_TEST_CASE_IN_SUITE(GetRegisteredNameCondition, KratosCoreFastSuite)
     const Condition& r_condition_2d_3n = KratosComponents<Condition>::Get("LineCondition2D3N");
     std::string component_name;
     CompareElementsAndConditionsUtility::GetRegisteredName(r_condition_2d_3n, component_name);
-    KRATOS_CHECK_EQUAL(component_name, "LineCondition2D3N");
+    KRATOS_EXPECT_EQ(component_name, "LineCondition2D3N");
     CompareElementsAndConditionsUtility::GetRegisteredName(&r_condition_2d_3n, component_name);
-    KRATOS_CHECK_EQUAL(component_name, "LineCondition2D3N");
+    KRATOS_EXPECT_EQ(component_name, "LineCondition2D3N");
     CompareElementsAndConditionsUtility::GetRegisteredName(r_condition_2d_3n, component_name);
-    KRATOS_CHECK_NOT_EQUAL(component_name, "Condition");
+    KRATOS_EXPECT_NE(component_name, "Condition");
     CompareElementsAndConditionsUtility::GetRegisteredName(&r_condition_2d_3n, component_name);
-    KRATOS_CHECK_NOT_EQUAL(component_name, "Condition");
+    KRATOS_EXPECT_NE(component_name, "Condition");
 }
 
-}  // namespace Testing.
-}  // namespace Kratos.
+KRATOS_TEST_CASE_IN_SUITE(GetRegisteredNameMasterSlaveConstraint, KratosCoreFastSuite)
+{
+    // MasterSlaveConstraint name
+    const MasterSlaveConstraint& r_master_slave_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
+    std::string component_name;
+    CompareElementsAndConditionsUtility::GetRegisteredName(r_master_slave_constraint, component_name);
+    KRATOS_EXPECT_EQ(component_name, "LinearMasterSlaveConstraint");
+    CompareElementsAndConditionsUtility::GetRegisteredName(&r_master_slave_constraint, component_name);
+    KRATOS_EXPECT_EQ(component_name, "LinearMasterSlaveConstraint");
+    CompareElementsAndConditionsUtility::GetRegisteredName(r_master_slave_constraint, component_name);
+    KRATOS_EXPECT_NE(component_name, "MasterSlaveConstraint");
+    CompareElementsAndConditionsUtility::GetRegisteredName(&r_master_slave_constraint, component_name);
+    KRATOS_EXPECT_NE(component_name, "MasterSlaveConstraint");
+}
+
+}  // namespace Kratos::Testing.

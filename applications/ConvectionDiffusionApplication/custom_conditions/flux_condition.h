@@ -46,7 +46,7 @@ class IntegrationData
 public:
 
     IntegrationData(
-        Geometry< Node<3> >& rGeometry,
+        Geometry< Node >& rGeometry,
         const Variable<double>& rFluxVar
         ):
         mGaussPoint(0),
@@ -149,11 +149,11 @@ public:
 
     FluxCondition(
         IndexType NewId,
-        Geometry< Node<3> >::Pointer pGeometry);
+        Geometry< Node >::Pointer pGeometry);
 
     FluxCondition(
         IndexType NewId,
-        Geometry< Node<3> >::Pointer pGeometry,
+        Geometry< Node >::Pointer pGeometry,
         Properties::Pointer pProperties);
 
     /// Destructor.

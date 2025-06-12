@@ -21,6 +21,7 @@
 // External includes
 
 // Project includes
+#include "includes/element.h"
 
 namespace Kratos
 {
@@ -65,7 +66,7 @@ public:
     using PointType = Point;
 
     /// The node definition
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     /// The geometry definition
     using GeometryType = Geometry<NodeType>;

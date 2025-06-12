@@ -61,7 +61,7 @@ public:
     ///Type definition for quaternion
     typedef Quaternion<double>                            QuaternionType;
     ///Type for nodes
-    typedef Node<3>                                             NodeType;
+    typedef Node                                             NodeType;
     ///Type for nodes container
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
     ///Type of vector
@@ -241,7 +241,7 @@ protected:
 
 
     /**
-      * Calculation of the Tangent Intertia Matrix
+      * Calculation of the Tangent Inertia Matrix
       */
     void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
                                    ElementVariables& rVariables) override;

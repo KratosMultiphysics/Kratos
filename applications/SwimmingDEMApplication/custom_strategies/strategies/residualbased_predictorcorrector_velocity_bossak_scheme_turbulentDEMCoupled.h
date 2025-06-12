@@ -240,7 +240,7 @@ public:
         double delta_time_inv = 1.0 / delta_time;
 
         //for(int k = 0; k<static_cast<int>(r_model_part.Nodes().size()); k++)
-        block_for_each(r_model_part.Nodes(), [&](Node<3>& rNode)
+        block_for_each(r_model_part.Nodes(), [&](Node& rNode)
         {
         const double fluid_fraction = rNode.FastGetSolutionStepValue(FLUID_FRACTION);
         const double fluid_fraction_old = rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD);
@@ -273,7 +273,7 @@ public:
         TSystemVectorType &b) override
     {
         //for(int k = 0; k<static_cast<int>(rModelPart.Nodes().size()); k++)
-        block_for_each(r_model_part.Nodes(), [&](Node<3>& rNode)
+        block_for_each(r_model_part.Nodes(), [&](Node& rNode)
         {
             rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD) = rNode.FastGetSolutionStepValue(FLUID_FRACTION);
         });

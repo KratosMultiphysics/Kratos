@@ -50,7 +50,7 @@ typename DivideTriangle3D3<TPointType>::IndexedPointGeometryPointerType DivideTr
         this->mAuxPointsContainer(I1));
 }
 
-template class DivideTriangle3D3<Node<3>>;
+template class DivideTriangle3D3<Node>;
 template class DivideTriangle3D3<IndexedPoint>;
 
 };

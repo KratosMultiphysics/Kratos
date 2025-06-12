@@ -23,118 +23,140 @@
 #include "includes/define.h"
 #include "includes/data_communicator.h"
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE(...)         \
+bool SynchronizeShape(__VA_ARGS__&) const override;                                     \
+bool SynchronizeShape(                                                                  \
+    const __VA_ARGS__& rSendValue, const int SendDestination, const int SendTag,        \
+    __VA_ARGS__& rRecvValue, const int RecvSource, const int RecvTag) const override;   \
+
+#endif
+
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE(type)                                      \
-type Sum(const type rLocalValue, const int Root) const override;                                                  \
-std::vector<type> Sum(const std::vector<type>& rLocalValues, const int Root) const override;                      \
-void Sum(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues, const int Root) const override; \
-type Min(const type rLocalValue, const int Root) const override;                                                  \
-std::vector<type> Min(const std::vector<type>& rLocalValues, const int Root) const override;                      \
-void Min(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues, const int Root) const override; \
-type Max(const type rLocalValue, const int Root) const override;                                                  \
-std::vector<type> Max(const std::vector<type>& rLocalValues, const int Root) const override;                      \
-void Max(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues, const int Root) const override; \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE(...)                                                         \
+__VA_ARGS__ Sum(const __VA_ARGS__& rLocalValue, const int Root) const override;                                                     \
+std::vector<__VA_ARGS__> Sum(const std::vector<__VA_ARGS__>& rLocalValues, const int Root) const override;                          \
+void Sum(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues, const int Root) const override;     \
+__VA_ARGS__ Min(const __VA_ARGS__& rLocalValue, const int Root) const override;                                                     \
+std::vector<__VA_ARGS__> Min(const std::vector<__VA_ARGS__>& rLocalValues, const int Root) const override;                          \
+void Min(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues, const int Root) const override;     \
+__VA_ARGS__ Max(const __VA_ARGS__& rLocalValue, const int Root) const override;                                                     \
+std::vector<__VA_ARGS__> Max(const std::vector<__VA_ARGS__>& rLocalValues, const int Root) const override;                          \
+void Max(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues, const int Root) const override;     \
 
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE(type)                      \
-type SumAll(const type rLocalValue) const override;                                                  \
-std::vector<type> SumAll(const std::vector<type>& rLocalValues) const override;                      \
-void SumAll(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const override; \
-type MinAll(const type rLocalValue) const override;                                                  \
-std::vector<type> MinAll(const std::vector<type>& rLocalValues) const override;                      \
-void MinAll(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const override; \
-type MaxAll(const type rLocalValue) const override;                                                  \
-std::vector<type> MaxAll(const std::vector<type>& rLocalValues) const override;                      \
-void MaxAll(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const override; \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE(...)                                      \
+__VA_ARGS__ SumAll(const __VA_ARGS__& rLocalValue) const override;                                                  \
+std::vector<__VA_ARGS__> SumAll(const std::vector<__VA_ARGS__>& rLocalValues) const override;                       \
+void SumAll(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const override;  \
+__VA_ARGS__ MinAll(const __VA_ARGS__& rLocalValue) const override;                                                  \
+std::vector<__VA_ARGS__> MinAll(const std::vector<__VA_ARGS__>& rLocalValues) const override;                       \
+void MinAll(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const override;  \
+__VA_ARGS__ MaxAll(const __VA_ARGS__& rLocalValue) const override;                                                  \
+std::vector<__VA_ARGS__> MaxAll(const std::vector<__VA_ARGS__>& rLocalValues) const override;                       \
+void MaxAll(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const override;  \
 
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(...)                                  \
+std::pair<__VA_ARGS__, int> MinLocAll(const __VA_ARGS__& rLocalValue) const override;                               \
+std::pair<__VA_ARGS__, int> MaxLocAll(const __VA_ARGS__& rLocalValue) const override;
+#endif
+
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE(type)                         \
-type ScanSum(const type rLocalValue) const override;                                                  \
-std::vector<type> ScanSum(const std::vector<type>& rLocalValues) const override;                      \
-void ScanSum(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const override; \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE(...)                                            \
+__VA_ARGS__ ScanSum(const __VA_ARGS__& rLocalValue) const override;                                                     \
+std::vector<__VA_ARGS__> ScanSum(const std::vector<__VA_ARGS__>& rLocalValues) const override;                          \
+void ScanSum(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const override;     \
 
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(type)               \
-type SendRecvImpl(                                                                           \
-    const type SendValue, const int SendDestination, const int SendTag,                      \
-    const int RecvSource, const int RecvTag) const override;                                 \
-std::vector<type> SendRecvImpl(const std::vector<type>& rSendValues,                         \
-    const int SendDestination, const int SendTag,                                            \
-    const int RecvSource, const int RecvTag) const override;                                 \
-void SendRecvImpl(                                                                           \
-    const type SendValue, const int SendDestination, const int SendTag,                      \
-    type& RecvValue, const int RecvSource, const int RecvTag) const override;                \
-void SendRecvImpl(                                                                           \
-    const std::vector<type>& rSendValues, const int SendDestination, const int SendTag,      \
-    std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag) const override; \
-void SendImpl(const std::vector<type>& rSendValues,                                          \
-    const int SendDestination, const int SendTag = 0) const override;                        \
-void RecvImpl(std::vector<type>& rRecvValues,                                                \
-    const int RecvSource, const int RecvTag = 0) const override;                             \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(...)                       \
+__VA_ARGS__ SendRecvImpl(                                                                           \
+    const __VA_ARGS__& SendValue, const int SendDestination, const int SendTag,                     \
+    const int RecvSource, const int RecvTag) const override;                                        \
+std::vector<__VA_ARGS__> SendRecvImpl(const std::vector<__VA_ARGS__>& rSendValues,                  \
+    const int SendDestination, const int SendTag,                                                   \
+    const int RecvSource, const int RecvTag) const override;                                        \
+void SendRecvImpl(                                                                                  \
+    const __VA_ARGS__& SendValue, const int SendDestination, const int SendTag,                     \
+    __VA_ARGS__& RecvValue, const int RecvSource, const int RecvTag) const override;                \
+void SendRecvImpl(                                                                                  \
+    const std::vector<__VA_ARGS__>& rSendValues, const int SendDestination, const int SendTag,      \
+    std::vector<__VA_ARGS__>& rRecvValues, const int RecvSource, const int RecvTag) const override; \
+void SendImpl(const __VA_ARGS__& rSendValues,                                                       \
+    const int SendDestination, const int SendTag = 0) const override;                               \
+void SendImpl(const std::vector<__VA_ARGS__>& rSendValues,                                          \
+    const int SendDestination, const int SendTag = 0) const override;                               \
+void RecvImpl(__VA_ARGS__& rRecvValues,                                                             \
+    const int RecvSource, const int RecvTag = 0) const override;                                    \
+void RecvImpl(std::vector<__VA_ARGS__>& rRecvValues,                                                \
+    const int RecvSource, const int RecvTag = 0) const override;                                    \
 
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(type)         \
-void BroadcastImpl(type& rBuffer, const int SourceRank) const override;                 \
-void BroadcastImpl(std::vector<type>& rBuffer, const int SourceRank) const override;    \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(...)                  \
+void BroadcastImpl(__VA_ARGS__& rBuffer, const int SourceRank) const override;                  \
+void BroadcastImpl(std::vector<__VA_ARGS__>& rBuffer, const int SourceRank) const override;     \
 
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE(type)               \
-std::vector<type> Scatter(                                                                  \
-    const std::vector<type>& rSendValues, const int SourceRank) const override;             \
-void Scatter(                                                                               \
-    const std::vector<type>& rSendValues, std::vector<type>& rRecvValues,                   \
-    const int SourceRank) const override;                                                   \
-std::vector<type> Scatterv(                                                                 \
-    const std::vector<std::vector<type>>& rSendValues, const int SourceRank) const override;\
-void Scatterv(                                                                              \
-    const std::vector<type>& rSendValues,                                                   \
-    const std::vector<int>& rSendCounts, const std::vector<int>& rSendOffsets,              \
-    std::vector<type>& rRecvValues, const int SourceRank) const override;                   \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE(...)                        \
+std::vector<__VA_ARGS__> Scatter(                                                                   \
+    const std::vector<__VA_ARGS__>& rSendValues, const int SourceRank) const override;              \
+void Scatter(                                                                                       \
+    const std::vector<__VA_ARGS__>& rSendValues, std::vector<__VA_ARGS__>& rRecvValues,             \
+    const int SourceRank) const override;                                                           \
+std::vector<__VA_ARGS__> Scatterv(                                                                  \
+    const std::vector<std::vector<__VA_ARGS__>>& rSendValues, const int SourceRank) const override; \
+void Scatterv(                                                                                      \
+    const std::vector<__VA_ARGS__>& rSendValues,                                                    \
+    const std::vector<int>& rSendCounts, const std::vector<int>& rSendOffsets,                      \
+    std::vector<__VA_ARGS__>& rRecvValues, const int SourceRank) const override;                    \
 
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE(type)                                \
-std::vector<type> Gather(const std::vector<type>& rSendValues, const int DestinationRank) const override;   \
-void Gather(                                                                                                \
-    const std::vector<type>& rSendValues, std::vector<type>& rRecvValues,                                   \
-    const int DestinationRank) const override;                                                              \
-std::vector<std::vector<type>> Gatherv(                                                                     \
-    const std::vector<type>& rSendValues, const int DestinationRank) const override;                        \
-void Gatherv(const std::vector<type>& rSendValues,                                                          \
-        std::vector<type>& rRecvValues,                                                                     \
-        const std::vector<int>& rRecvCounts,                                                                \
-        const std::vector<int>& rRecvOffsets,                                                               \
-        const int DestinationRank) const override;                                                          \
-std::vector<type> AllGather(const std::vector<type>& rSendValues) const override;                           \
-void AllGather(const std::vector<type>& rSendValues, std::vector<type>& rRecvValues) const override;        \
-
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE(...)                                             \
+std::vector<__VA_ARGS__> Gather(const std::vector<__VA_ARGS__>& rSendValues, const int DestinationRank) const override; \
+void Gather(                                                                                                            \
+    const std::vector<__VA_ARGS__>& rSendValues, std::vector<__VA_ARGS__>& rRecvValues,                                 \
+    const int DestinationRank) const override;                                                                          \
+std::vector<std::vector<__VA_ARGS__>> Gatherv(                                                                          \
+    const std::vector<__VA_ARGS__>& rSendValues, const int DestinationRank) const override;                             \
+void Gatherv(const std::vector<__VA_ARGS__>& rSendValues,                                                               \
+        std::vector<__VA_ARGS__>& rRecvValues,                                                                          \
+        const std::vector<int>& rRecvCounts,                                                                            \
+        const std::vector<int>& rRecvOffsets,                                                                           \
+        const int DestinationRank) const override;                                                                      \
+std::vector<__VA_ARGS__> AllGather(const std::vector<__VA_ARGS__>& rSendValues) const override;                         \
+void AllGather(const std::vector<__VA_ARGS__>& rSendValues, std::vector<__VA_ARGS__>& rRecvValues) const override;      \
+std::vector<std::vector<__VA_ARGS__>> AllGatherv(const std::vector<__VA_ARGS__>& rSendValues) const  override;          \
+void AllGatherv(const std::vector<__VA_ARGS__>& rSendValues, std::vector<__VA_ARGS__>& rRecvValues,                     \
+    const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets) const override;
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(type)   \
-KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE(type)    \
-KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE(type) \
-KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE(type)   \
-KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE(type)   \
-KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE(type)    \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(...)     \
+KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE(__VA_ARGS__)     \
+KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE(__VA_ARGS__)  \
+KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE(__VA_ARGS__)    \
+KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE(__VA_ARGS__)    \
+KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE(__VA_ARGS__)     \
+KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE(__VA_ARGS__) \
 
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(type)   \
-KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(type)  \
-KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(type) \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(...)   \
+KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(__VA_ARGS__)  \
+KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_BROADCAST_INTERFACE_FOR_TYPE(__VA_ARGS__) \
 
 #endif
 
@@ -189,19 +211,26 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
 
     void Barrier() const override;
 
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(char)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(int)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(unsigned int)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(long unsigned int)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(double)
-    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE(char)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(array_1d<double, 3>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(array_1d<double, 4>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(array_1d<double, 6>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(array_1d<double, 9>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(Vector)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(Matrix)
+
+    // MinLoc and MaxLoc AllReduce operations
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(char)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(unsigned int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(long unsigned int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(double)
 
     // Reduce operations
-
-    array_1d<double,3> Sum(const array_1d<double,3>& rLocalValue, const int Root) const override;
-
-    array_1d<double,3> Min(const array_1d<double,3>& rLocalValue, const int Root) const override;
-
-    array_1d<double,3> Max(const array_1d<double,3>& rLocalValue, const int Root) const override;
 
     bool AndReduce(
         const bool Value,
@@ -222,12 +251,6 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
         const int Root) const override;
 
     // Allreduce operations
-
-    array_1d<double,3> SumAll(const array_1d<double,3>& rLocalValue) const override;
-
-    array_1d<double,3> MinAll(const array_1d<double,3>& rLocalValue) const override;
-
-    array_1d<double,3> MaxAll(const array_1d<double,3>& rLocalValue) const override;
 
     bool AndReduceAll(const bool Value) const override;
 
@@ -251,15 +274,51 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     ///@name Inquiry
     ///@{
 
+    /**
+     * @brief Get the parallel rank for this DataCommunicator.
+     * @details This function serves as a wrapper for MPI_Comm_rank.
+     * @return The parallel rank of the current process.
+     */
     int Rank() const override;
 
+    /**
+     * @brief Get the parallel size of this DataCommunicator.
+     * @details This function serves as a wrapper for MPI_Comm_size.
+     * @return The parallel size of the communicator.
+     */
     int Size() const override;
 
+    /**
+     * @brief Check whether this DataCommunicator is aware of parallelism.
+     * @return True if the DataCommunicator is distributed, otherwise false.
+     */
     bool IsDistributed() const override;
 
+    /**
+     * @brief Check whether this DataCommunicator involves the current rank.
+     * @details In MPI, if the rank is not involved in communication, the communicator is MPI_COMM_NULL and is not a valid argument for most MPI calls.
+     * @return True if the DataCommunicator is defined on the current rank, otherwise false.
+     */
     bool IsDefinedOnThisRank() const override;
 
+    /**
+     * @brief Check whether this DataCommunicator is MPI_COMM_NULL for the current rank.
+     * @details In MPI, if the rank is not involved in communication, the communicator is MPI_COMM_NULL and is not a valid argument for most MPI calls.
+     * @return True if the DataCommunicator is MPI_COMM_NULL, otherwise false.
+     */
     bool IsNullOnThisRank() const override;
+
+    /**
+     * @brief Get a sub-data communicator.
+     * @details This function returns a sub-data communicator based on the provided ranks and a new communicator name.
+     * @param rRanks               The ranks to include in the sub-communicator.
+     * @param rNewCommunicatorName The name of the new sub-communicator.
+     * @return The sub-data communicator.
+     */
+    const DataCommunicator& GetSubDataCommunicator(
+        const std::vector<int>& rRanks,
+        const std::string& rNewCommunicatorName
+        ) const override;
 
     ///@}
     ///@name Helper functions for error checking in MPI
@@ -290,10 +349,17 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
 
   protected:
 
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(char)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(int)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(unsigned int)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(long unsigned int)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(double)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(array_1d<double, 3>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(array_1d<double, 4>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(array_1d<double, 6>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(array_1d<double, 9>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(Vector)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(Matrix)
 
     // Broadcast operations
 
@@ -325,6 +391,16 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
 
     void CheckMPIErrorCode(const int ierr, const std::string& MPICallName) const;
 
+    template<class TDataType> bool SynchronizeShapeDetail(TDataType& rValue) const;
+
+    template<class TDataType> bool SynchronizeShapeDetail(
+        const TDataType& rSendValue,
+        const int SendDestination,
+        const int SendTag,
+        TDataType& rRecvValue,
+        const int RecvSource,
+        const int RecvTag) const;
+
     template<class TDataType> void ReduceDetail(
         const TDataType& rLocalValues,
         TDataType& rReducedValues,
@@ -352,6 +428,20 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     template<class TDataType> std::vector<TDataType> AllReduceDetailVector(
         const std::vector<TDataType>& rLocalValues,
         MPI_Op Operation) const;
+
+    /**
+    * @brief Performs an AllReduce operation with location information (the partition where the reduced value was found).
+    * @details This function performs an AllReduce operation on a pair of data and an integer location using the specified MPI operation. The AllReduce operation combines the data from all processes and stores the result in the pair's first element. The location information (integer) is the partition where the reduced value was found.
+    * @tparam TDataType The data type of the pair's first element.
+    * @param rLocalValues A pair containing the local data and location information to be reduced.
+    * @param Operation The MPI operation to use for the reduction.
+    * @return A pair where the first element contains the result of the AllReduce operation, and the second element is the partition where the reduced value was found.
+    */
+    template<class TDataType>
+    std::pair<TDataType, int> AllReduceDetailWithLocation(
+        const std::pair<TDataType, int>& rLocalValues,
+        MPI_Op Operation
+        ) const;
 
     template<class TDataType> void ScanDetail(
         const TDataType& rLocalValues,
@@ -423,6 +513,15 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     template<class TDataType> std::vector<TDataType> AllGatherDetail(
         const std::vector<TDataType>& rSendValues) const;
 
+    template<class TDataType>
+    void AllGathervDetail(
+        const TDataType& rSendValues, TDataType& rRecvValues,
+        const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets) const;
+
+    template<class TDataType>
+    std::vector<std::vector<TDataType>> AllGathervDetail(
+        const std::vector<TDataType>& rSendValues) const;
+
     bool IsEqualOnAllRanks(const int LocalValue) const;
 
     bool IsValidRank(const int Rank) const;
@@ -436,6 +535,11 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
         const TDataType& rSendValues, TDataType& rRecvValues,
         const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets,
         const int RecvRank) const;
+
+    template<class TDataType>
+    void ValidateAllGathervInput(
+        const TDataType& rSendValues, TDataType& rRecvValues,
+        const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets) const;
 
     template<class TDataType> void PrepareScattervBuffers(
         const std::vector<std::vector<TDataType>>& rInputMessage,
@@ -452,12 +556,26 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
         std::vector<int>& rMessageDistances,
         const int DestinationRank) const;
 
+    template<class TDataType>
+    void PrepareAllGathervBuffers(
+        const std::vector<TDataType>& rGathervInput,
+        std::vector<TDataType>& rGathervMessage,
+        std::vector<int>& rMessageLengths,
+        std::vector<int>& rMessageDistances) const;
+
     template<class TDataType> void PrepareGathervReturn(
         const std::vector<TDataType>& rGathervMessage,
         const std::vector<int>& rMessageLengths,
         const std::vector<int>& rMessageDistances,
         std::vector<std::vector<TDataType>>& rOutputMessage,
         const int DestinationRank) const;
+
+    template<class TDataType>
+    void PrepareAllGathervReturn(
+        const std::vector<TDataType>& rGathervMessage,
+        const std::vector<int>& rMessageLengths,
+        const std::vector<int>& rMessageDistances,
+        std::vector<std::vector<TDataType>>& rOutputMessage) const;
 
     template<class TValue> inline MPI_Datatype MPIDatatype(const TValue&) const;
 

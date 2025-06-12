@@ -17,9 +17,10 @@
 
 // Project includes
 #include "includes/process_info.h"
-#include "testing/testing.h"
 #include "containers/model.h"
+
 // Application includes
+#include "tests/cpp_tests/constitutive_laws_fast_suite.h"
 
 // Constitutive law
 #include "custom_constitutive/small_strains/viscous/viscous_generalized_maxwell.h"
@@ -27,12 +28,8 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "constitutive_laws_application_variables.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-namespace Testing
-{
-// We test the associated plasticity Constitutive laws...
-typedef Node<3> NodeType;
 
 /**
 * Check the correct calculation of the integrated stress with the CL's
@@ -46,11 +43,11 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwellInternalVariables, KratosConstit
 
     ViscousGeneralizedMaxwell<ElasticIsotropic3D> cl = ViscousGeneralizedMaxwell<ElasticIsotropic3D>();
 
-    KRATOS_CHECK_IS_FALSE(cl.Has(INTEGRATED_STRESS_TENSOR));  // = False, in order to use CalculateValue())
+    KRATOS_EXPECT_FALSE(cl.Has(INTEGRATED_STRESS_TENSOR));  // = False, in order to use CalculateValue())
 
     // This constitutive law does not use internal variables
     // TODO (marandra): check that this is compatible con API
-    KRATOS_CHECK_IS_FALSE(cl.Has(INTERNAL_VARIABLES));  // = False
+    KRATOS_EXPECT_FALSE(cl.Has(INTERNAL_VARIABLES));  // = False
 }
 
 
@@ -64,12 +61,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwell, KratosConstitutiveLawsFastSuit
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    Node::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    Node::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    Node::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
 
-    Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    Tetrahedra3D4<Node> Geom = Tetrahedra3D4<Node>(p_node_1, p_node_2, p_node_3, p_node_4);
 
     stress_vector = ZeroVector(6);
     strain_vector = ZeroVector(6);
@@ -112,7 +109,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwell, KratosConstitutiveLawsFastSuit
     test_maxwell_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    KRATOS_CHECK_VECTOR_NEAR(test_maxwell_stress, maxwell_res, 0.0001e6);
+    KRATOS_EXPECT_VECTOR_NEAR(test_maxwell_stress, maxwell_res, 0.0001e6);
 }
-} // namespace Testing
-} // namespace Kratos
+
+} // namespace Kratos::Testing

@@ -55,7 +55,7 @@ std::array<array_1d<double,3>,2> ForceAndTorqueUtils::SumForceAndTorque(
 
     auto force_and_moment = block_for_each<CompoundReduction>(
         rModelPart.GetCommunicator().LocalMesh().Nodes(),
-        [&](const Node<3>& rNode) -> CompoundTuple {
+        [&](const Node& rNode) -> CompoundTuple {
             // {{fx, fy, fz},{mx, my, mz}}
             CompoundTuple force_and_moment_nodal;
             array_1d<double,3>& r_force = std::get<0>(force_and_moment_nodal);
@@ -95,13 +95,13 @@ std::array<array_1d<double,3>,2> ForceAndTorqueUtils::ComputeEquivalentForceAndT
         SumReduction<array_1d<double,3>>
     >;
 
-    std::function<CompoundTuple(const Node<3>&)> compute_force_and_moment;
+    std::function<CompoundTuple(const Node&)> compute_force_and_moment;
 
     // Check whether nodes have the torque variable and set the lambda accordingly.
     // Note: multiple node types within the model part are not supported.
     //       In that case, this check would have to performed for each node.
     if (rModelPart.HasNodalSolutionStepVariable(rTorqueVariable)) {
-        compute_force_and_moment = [&](const Node<3>& rNode) -> CompoundTuple
+        compute_force_and_moment = [&](const Node& rNode) -> CompoundTuple
         {
             // {{fx, fy, fz},{mx, my, mz}}
             CompoundTuple force_and_moment_nodal;
@@ -120,7 +120,7 @@ std::array<array_1d<double,3>,2> ForceAndTorqueUtils::ComputeEquivalentForceAndT
         };
     }
     else {
-        compute_force_and_moment = [&](const Node<3>& rNode) -> CompoundTuple
+        compute_force_and_moment = [&](const Node& rNode) -> CompoundTuple
         {
             // {{fx, fy, fz},{mx, my, mz}}
             CompoundTuple force_and_moment_nodal;

@@ -177,7 +177,7 @@ public:
     ShapeFunctionsThirdDerivativesType;
 
     /**
-             * Type of the normal vector used for normal to edges in geomety.
+             * Type of the normal vector used for normal to edges in geometry.
      */
     typedef typename BaseType::NormalType NormalType;
 
@@ -259,7 +259,7 @@ public:
      * Copy constructor from a geometry with other point type.
      * Construct this geometry as a copy of given geometry which
      * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
+     * TOtherPointType* must be implicitly convertible to this
      * geometry PointType.
      *
      * @note This copy constructor don't copy the points and new
@@ -277,14 +277,34 @@ public:
      */
     ~Quadrilateral3D8() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Quadrilateral;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order;
     }
 
     /**
@@ -399,7 +419,7 @@ public:
     }
 
     /** This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
+     * this geometry depending on its dimension. For one dimensional
      * geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
      *
@@ -433,7 +453,7 @@ public:
     }
 
     /** This method calculates and returns length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
+     * this geometry depending on its dimension. For one dimensional
      * geometry it returns its length, for two dimensional it gives area
      * and for three dimensional geometries it gives its volume.
      *
@@ -551,7 +571,7 @@ public:
             this->GlobalCoordinates( CurrentGlobalCoords, rResult );
             noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
 
-            //Caluclate Inverse of Jacobian
+            //Calculate Inverse of Jacobian
             noalias(J) = ZeroMatrix(2, 2);
 
             //derivatives of shape functions
@@ -614,7 +634,7 @@ public:
      */
     /**
      * Jacobians for given  method.
-     * This method claculates the jacobian matrices in all
+     * This method calculates the jacobian matrices in all
      * integrations points of given integration method.
      *
      * @param ThisMethod integration method which jacobians has to
@@ -672,7 +692,7 @@ public:
 
     /**
      * Jacobians for given  method.
-     * This method claculates the jacobian matrices in all
+     * This method calculates the jacobian matrices in all
      * integrations points of given integration method.
      *
      * @param ThisMethod integration method which jacobians has to
@@ -736,7 +756,7 @@ public:
      */
     /**
      * Jacobian in specific integration point of given integration
-     * method. This method calculate jacobian matrix in given
+     * method. This method calculates jacobian matrix in given
      * integration point of given integration method.
      *
      * @param IntegrationPointIndex index of integration point which jacobians has to
@@ -836,7 +856,7 @@ public:
     /**
      * @brief This method gives you number of all edges of this geometry.
      * @details For example, for a hexahedron, this would be 12
-     * @return SizeType containes number of this geometry edges.
+     * @return SizeType contains number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
      * @see GenerateEdges()
@@ -853,7 +873,7 @@ public:
      * @brief This method gives you all edges of this geometry.
      * @details This method will gives you all the edges with one dimension less than this geometry.
      * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
-     * @return GeometriesArrayType containes this geometry edges.
+     * @return GeometriesArrayType contains this geometry edges.
      * @see EdgesNumber()
      * @see Edge()
      */
@@ -1001,11 +1021,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian\t : " << jacobian;
+        }
     }
 
     /**

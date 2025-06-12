@@ -1,34 +1,14 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
+from KratosMultiphysics.testing.utilities import ReadModelPart
 
-if KratosMultiphysics.IsDistributedRun():
-    import KratosMultiphysics.mpi as KratosMPI
+# STL imports
+import pathlib
 
-def SetParameters(name, use_memory="false"):
-    parameters = """{
-        "echo_level" : 0,
-        "model_import_settings" : {
-            "input_type" : "mdpa",
-            "input_filename" :\""""+ name.replace("\\","/") +"""\",
-            "partition_in_memory" : """ + use_memory + """
-        }
-    }"""
 
-    return parameters
-
-def ImportModelPart(model_part, import_settings):
-
-    if KratosMultiphysics.IsDistributedRun():
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        # Construct the Trilinos import model part utility
-        distributed_model_part_importer = KratosMPI.distributed_import_model_part_utility.DistributedImportModelPartUtility(model_part, import_settings)
-        # Execute the Metis partitioning and reading
-        distributed_model_part_importer.ImportModelPart()
-        distributed_model_part_importer.CreateCommunicators()
-    else:
-        import_flags = KratosMultiphysics.ModelPartIO.READ
-        KratosMultiphysics.ModelPartIO(import_settings['model_import_settings']['input_filename'].GetString(), import_flags).ReadModelPart(model_part)
+def GetFilePath(file_name):
+    return pathlib.Path(__file__).absolute().parent / file_name
 
 class TestCombineModelPartModeler(KratosUnittest.TestCase):
 
@@ -36,7 +16,6 @@ class TestCombineModelPartModeler(KratosUnittest.TestCase):
         self.comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
         self.file_name = "combine_model_part_modeler"
         self.work_folder = "auxiliar_files_for_python_unittest/combine_model_part_modeler"
-        self.parameters = SetParameters(self.file_name, use_memory="false")
         self.size = self.comm.Size()
         self.rank = self.comm.Rank()
 
@@ -78,6 +57,8 @@ class TestCombineModelPartModeler(KratosUnittest.TestCase):
                 "materials_filename" : "auxiliar_files_for_python_unittest/combine_model_part_modeler/material.json"
             }
         }''')
+        full_path = GetFilePath(material_settings["Parameters"]["materials_filename"].GetString())
+        material_settings["Parameters"]["materials_filename"].SetString(str(full_path))
         KratosMultiphysics.ReadMaterialsUtility(material_settings,model_part.GetModel())
         settings = KratosMultiphysics.Parameters('''{
             "combined_model_part_name" : "thermal_model_part",
@@ -167,7 +148,7 @@ class TestCombineModelPartModeler(KratosUnittest.TestCase):
         self.assertEqual(self.model["thermal_model_part.submodelpart_solid.contact_solid2liquid"].GetCommunicator().GlobalNumberOfNodes(), 11)
         self.assertEqual(self.model["thermal_model_part.submodelpart_solid.contact_solid2liquid"].GetCommunicator().GlobalNumberOfElements(), 0)
         self.assertEqual(self.model["thermal_model_part.submodelpart_solid.contact_solid2liquid"].GetCommunicator().GlobalNumberOfConditions(), 10)
-        
+
         #Solid2Air
         self.assertEqual(self.model["thermal_model_part.submodelpart_solid.contact_solid2air.contact_chiller_62-2air"].GetCommunicator().GlobalNumberOfNodes(), 0)
         self.assertEqual(self.model["thermal_model_part.submodelpart_solid.contact_solid2air.contact_chiller_62-2air"].GetCommunicator().GlobalNumberOfElements(), 0)
@@ -189,16 +170,12 @@ class TestCombineModelPartModeler(KratosUnittest.TestCase):
 
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
 
-        if self.comm.IsDistributed():
-            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        
         # Define buffer size
         model_part.SetBufferSize(3)
-        
+
         # Read mdpa -- Hexa box with X=[-0.25,0.25], Y=[-0.25,0.25], Z=[-0.5,0.5]
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-            import_settings = KratosMultiphysics.Parameters(self.parameters)
-            ImportModelPart(model_part, import_settings)
+            ReadModelPart(self.file_name, model_part)
 
 
         return model_part

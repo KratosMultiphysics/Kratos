@@ -180,8 +180,6 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::InitializeSolutionSte
         this->ComputeEdgeNeighbours(rCurrentProcessInfo);
         this->SetValue(RECOMPUTE_NEIGHBOURS, false);
     }
-
-    this->InitializeInternalVariablesAfterMapping();
 }
 
 /***********************************************************************************/
@@ -225,11 +223,11 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIt
         // Compute element kinematics B, F, DN_DX ...
         CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
 
-        // Compute material reponse
+        // Compute material response
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this->GetStressMeasure());
     }
-    this->SetValue(STRESS_VECTOR, this_constitutive_variables.StressVector);
-    this->SetValue(STRAIN_VECTOR, this_constitutive_variables.StrainVector);
+    this->SetValue(FEMDEM_STRESS_VECTOR, this_constitutive_variables.StressVector);
+    this->SetValue(FEMDEM_STRAIN_VECTOR, this_constitutive_variables.StrainVector);
 
     KRATOS_CATCH("")
 }
@@ -259,18 +257,18 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
     // Resizing as needed the LHS
     const SizeType mat_size = number_of_nodes * dimension;
 
-    if (CalculateStiffnessMatrixFlag == true) { // Calculation of the matrix is required
-        if (rLeftHandSideMatrix.size1() != mat_size)
+    if (CalculateStiffnessMatrixFlag) { // Calculation of the matrix is required
+        if (rLeftHandSideMatrix.size1() != mat_size )
             rLeftHandSideMatrix.resize(mat_size, mat_size, false);
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
     }
+    rLeftHandSideMatrix.clear();
 
     // Resizing as needed the RHS
-    if (CalculateResidualVectorFlag == true) { // Calculation of the matrix is required
+    if (CalculateResidualVectorFlag) { // Calculation of the matrix is required
         if (rRightHandSideVector.size() != mat_size )
             rRightHandSideVector.resize(mat_size, false);
-        noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
     }
+    rRightHandSideVector.clear();
 
     // Reading integration points
     const auto& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
@@ -303,7 +301,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
         // Compute element kinematics B, F, DN_DX ...
         this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-        // Compute material reponse
+        // Compute material response
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this->GetStressMeasure());
 
         // Calculating weights for integration on the reference configuration
@@ -400,7 +398,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
         // Compute element kinematics B, F, DN_DX ...
         this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-        // Compute material reponse
+        // Compute material response
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this->GetStressMeasure());
 
         // Call the constitutive law to update material variables
@@ -842,8 +840,8 @@ Vector GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateSmoothedCo
         for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
             noalias(average_stress_edge) = rThisConstVars.StressVector;
             noalias(average_strain_edge) = rThisConstVars.StrainVector;
-            this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-            this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+            this->CalculateAverageVariableOnEdge(this, FEMDEM_STRESS_VECTOR, average_stress_edge, edge);
+            this->CalculateAverageVariableOnEdge(this, FEMDEM_STRAIN_VECTOR, average_strain_edge, edge);
 
             if (!SaveIntVars) {
                 damages_edges[edge] = mDamages[edge];
@@ -1143,29 +1141,6 @@ double GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateElementalD
     Vector two_max_values;
     ConstitutiveLawUtilities<VoigtSize>::Get2MaxValues(two_max_values, rEdgeDamages[0], rEdgeDamages[1], rEdgeDamages[2]);
     return 0.5*(two_max_values[0] + two_max_values[1]);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::InitializeInternalVariablesAfterMapping()
-{
-    // After the mapping, the thresholds of the edges (are equal to 0.0) are imposed equal to the IP threshold
-    const double element_threhsold = mThreshold;
-    if (norm_2(mThresholds) < tolerance) {
-        for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-            mThresholds[edge] = element_threhsold;
-        }
-    }
-
-    // IDEM with the edge damages
-    const double damage_element = mDamage;
-    if (norm_2(mDamages) < tolerance) {
-        for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-            mDamages[edge] = damage_element;
-        }
-    }
 }
 
 /***********************************************************************************/
@@ -1915,8 +1890,8 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegratePerturbedStr
     for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
         average_stress_edge = r_perturbed_predictive_stress;
         average_strain_edge = rPerturbedStrainVector;
-        this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-        this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+        this->CalculateAverageVariableOnEdge(this, FEMDEM_STRESS_VECTOR, average_stress_edge, edge);
+        this->CalculateAverageVariableOnEdge(this, FEMDEM_STRAIN_VECTOR, average_strain_edge, edge);
 
         double damage_edge = mDamages[edge];
         double threshold = mThresholds[edge];
@@ -2103,7 +2078,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateOnIntegratio
             CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
             //call the constitutive law to update material variables
-            // Compute material reponse
+            // Compute material response
             CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
 
             if ( rOutput[point_number].size() != strain_size )

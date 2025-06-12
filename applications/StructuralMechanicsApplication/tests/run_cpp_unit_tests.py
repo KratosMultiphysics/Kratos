@@ -1,9 +1,8 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.StructuralMechanicsApplication import *
+import subprocess
 
 def run():
-    Tester.SetVerbosity(Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
-    Tester.RunTestSuite("KratosStructuralMechanicsFastSuite")
+    subprocess.run(["./test/KratosStructuralMechanicsCoreTest"])
+
 
 if __name__ == '__main__':
     run()

@@ -79,7 +79,6 @@ class KratosGeoMechanicsExcavationTests(KratosUnittest.TestCase):
         simulation = test_helper.run_kratos(file_path)
 
         displacements = test_helper.get_displacement(simulation)
-        coordinates = test_helper.get_nodal_coordinates(simulation)
 
         bottom_nodes = [5, 7, 9, 12]
         # check if bottom nodes are not moving

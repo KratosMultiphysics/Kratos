@@ -35,7 +35,7 @@ SimpleContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SimpleContactSearc
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void SimpleContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
-    NodeType& rNode,
+    Node& rNode,
     const double CommonEpsilon,
     const double ScaleFactor
     )

@@ -15,7 +15,7 @@
 
 // Project includes
 //#include "includes/gid_io.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "containers/model.h"
 #include "spaces/ublas_space.h"
 #include "structural_mechanics_application_variables.h"
@@ -133,15 +133,15 @@ KRATOS_TEST_CASE_IN_SUITE(PatchTestMPCPlateTension, KratosStructuralMechanicsFas
     // std::cout << "u7y=" << pnode7->GetSolutionStepValue(DISPLACEMENT_Y) << std::endl;
     // std::cout << "u8y=" << pnode8->GetSolutionStepValue(DISPLACEMENT_Y) << std::endl;
 
-    KRATOS_CHECK_GREATER(std::abs(pnode8->GetSolutionStepValue(DISPLACEMENT_X)),0);
-    KRATOS_CHECK_DOUBLE_EQUAL(pnode8->GetSolutionStepValue(DISPLACEMENT_X),pnode5->GetSolutionStepValue(DISPLACEMENT_X));
-    KRATOS_CHECK_DOUBLE_EQUAL(pnode8->GetSolutionStepValue(DISPLACEMENT_X),pnode7->GetSolutionStepValue(DISPLACEMENT_X));
-    KRATOS_CHECK_DOUBLE_EQUAL(pnode3->GetSolutionStepValue(DISPLACEMENT_X),pnode6->GetSolutionStepValue(DISPLACEMENT_X));
-    KRATOS_CHECK_DOUBLE_EQUAL(pnode6->GetSolutionStepValue(DISPLACEMENT_X),pnode2->GetSolutionStepValue(DISPLACEMENT_X));
+    KRATOS_EXPECT_GT(std::abs(pnode8->GetSolutionStepValue(DISPLACEMENT_X)),0);
+    KRATOS_EXPECT_DOUBLE_EQ(pnode8->GetSolutionStepValue(DISPLACEMENT_X),pnode5->GetSolutionStepValue(DISPLACEMENT_X));
+    KRATOS_EXPECT_DOUBLE_EQ(pnode8->GetSolutionStepValue(DISPLACEMENT_X),pnode7->GetSolutionStepValue(DISPLACEMENT_X));
+    KRATOS_EXPECT_DOUBLE_EQ(pnode3->GetSolutionStepValue(DISPLACEMENT_X),pnode6->GetSolutionStepValue(DISPLACEMENT_X));
+    KRATOS_EXPECT_DOUBLE_EQ(pnode6->GetSolutionStepValue(DISPLACEMENT_X),pnode2->GetSolutionStepValue(DISPLACEMENT_X));
 
-    KRATOS_CHECK_DOUBLE_EQUAL(pnode4->GetSolutionStepValue(DISPLACEMENT_Y),pnode7->GetSolutionStepValue(DISPLACEMENT_Y));
-    KRATOS_CHECK_DOUBLE_EQUAL(pnode7->GetSolutionStepValue(DISPLACEMENT_Y),pnode3->GetSolutionStepValue(DISPLACEMENT_Y));
-    KRATOS_CHECK_DOUBLE_EQUAL(pnode8->GetSolutionStepValue(DISPLACEMENT_Y),pnode6->GetSolutionStepValue(DISPLACEMENT_Y));
+    KRATOS_EXPECT_DOUBLE_EQ(pnode4->GetSolutionStepValue(DISPLACEMENT_Y),pnode7->GetSolutionStepValue(DISPLACEMENT_Y));
+    KRATOS_EXPECT_DOUBLE_EQ(pnode7->GetSolutionStepValue(DISPLACEMENT_Y),pnode3->GetSolutionStepValue(DISPLACEMENT_Y));
+    KRATOS_EXPECT_DOUBLE_EQ(pnode8->GetSolutionStepValue(DISPLACEMENT_Y),pnode6->GetSolutionStepValue(DISPLACEMENT_Y));
 }
 
 } // namespace Testing

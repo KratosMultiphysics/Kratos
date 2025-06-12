@@ -2,15 +2,17 @@ import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from  KratosMultiphysics.deprecation_management import DeprecationManager
 
-def Factory(settings, model):
+def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model) -> KratosMultiphysics.OutputProcess:
+    if not isinstance(model, KratosMultiphysics.Model):
+        raise Exception("expected input shall be a Model object, encapsulating a json string")
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return VtkOutputProcess(model, settings["Parameters"])
 
 
 class VtkOutputProcess(KratosMultiphysics.OutputProcess):
-    def __init__(self, model, settings):
-        super().__init__()
+    def __init__(self, model: KratosMultiphysics.Model, settings: KratosMultiphysics.Parameters) -> None:
+        KratosMultiphysics.OutputProcess.__init__(self)
 
         model_part_name = settings["model_part_name"].GetString()
         self.model_part = model[model_part_name]
@@ -33,14 +35,10 @@ class VtkOutputProcess(KratosMultiphysics.OutputProcess):
                     kratos_utils.DeleteDirectoryIfExisting(output_path)
             self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
-        self.output_interval = settings["output_interval"].GetDouble()
-        self.output_control = settings["output_control_type"].GetString()
-        self.next_output = 0.0
-
-        self.__ScheduleNextOutput() # required here esp for restart
+        self.__controller = KratosMultiphysics.OutputController(model, settings)
 
     # This function can be extended with new deprecated variables as they are generated
-    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings: KratosMultiphysics.Parameters) -> None:
         # Defining a string to help the user understand where the warnings come from (in case any is thrown)
         context_string = type(self).__name__
 
@@ -62,27 +60,12 @@ class VtkOutputProcess(KratosMultiphysics.OutputProcess):
         if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
             DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
-    def PrintOutput(self):
+    def Check(self) -> int:
+        return self.__controller.Check()
+
+    def PrintOutput(self) -> None:
         self.vtk_io.PrintOutput()
+        self.__controller.Update()
 
-        self.__ScheduleNextOutput()
-
-    def IsOutputStep(self):
-        if self.output_control == "time":
-            return self.__GetTime() >= self.next_output
-        else:
-            return self.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.next_output
-
-    def __ScheduleNextOutput(self):
-        if self.output_interval > 0.0: # Note: if == 0, we'll just always print
-            if self.output_control == "time":
-                while self.next_output <= self.__GetTime():
-                    self.next_output += self.output_interval
-            else:
-                while self.next_output <= self.model_part.ProcessInfo[KratosMultiphysics.STEP]:
-                    self.next_output += self.output_interval
-
-    def __GetTime(self):
-        # remove rounding errors that mess with the comparison
-        # e.g. 1.99999999999999999 => 2.0
-        return float("{0:.12g}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]))
+    def IsOutputStep(self) -> bool:
+        return self.__controller.Evaluate()
