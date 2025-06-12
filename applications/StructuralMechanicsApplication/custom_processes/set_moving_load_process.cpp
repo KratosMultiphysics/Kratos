@@ -122,7 +122,7 @@ Condition& SetMovingLoadProcess::GetFirstConditionFromCoord(const double FirstCo
 
 Condition& SetMovingLoadProcess::GetFirstCondition(const Point FirstPoint, const Point SecondPoint, const array_1d<int,3> Direction, std::vector<Condition>& rEndConditions)
 {
-    constexpr double tolerance = std::numeric_limits<double>::epsilon() * 1000;
+    constexpr double tolerance = std::numeric_limits<double>::epsilon() * 1000.0;
 
     // sort on x-coord, if x coords are equal, sort on y coord, if y coord is equal sort on z-coord
     if (std::abs(FirstPoint[0] - SecondPoint[0]) > tolerance){
@@ -138,7 +138,7 @@ Condition& SetMovingLoadProcess::GetFirstCondition(const Point FirstPoint, const
 
 bool SetMovingLoadProcess::IsConditionReversed(const Condition& rCondition, const array_1d<int, 3> Direction)
 {
-    constexpr double tolerance = std::numeric_limits<double>::epsilon() * 1000;
+    constexpr double tolerance = std::numeric_limits<double>::epsilon() * 1000.0;
 
     auto& r_points = rCondition.GetGeometry().Points();
     if (std::abs(r_points[0].X0() - r_points[1].X0()) > tolerance){
