@@ -124,7 +124,7 @@ public:
         QuadratureMethod ThisQuadratureMethod)
     {
         if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
-            return IntegrationMethod(NumberOfIntegrationPointsPerSpan);
+            return GeometryData::IntegrationMethod(NumberOfIntegrationPointsPerSpan - 1);
         } else if (ThisQuadratureMethod == QuadratureMethod::LOBATTO) {
             KRATOS_ERROR_IF(NumberOfIntegrationPointsPerSpan != 2) << "Only 2-point per span Lobatto quadrature is available in KRATOS core." << std::endl;
             return IntegrationMethod::GI_LOBATTO_1;
