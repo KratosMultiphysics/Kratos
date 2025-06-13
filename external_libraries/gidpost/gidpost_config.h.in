@@ -1,4 +1,1 @@
-#define GP_VERSION_MAJOR @GP_VERSION_MAJOR@
-#define GP_VERSION_MINOR @GP_VERSION_MINOR@
-
-#cmakedefine HDF5
+#cmakedefine ENABLE_HDF5
