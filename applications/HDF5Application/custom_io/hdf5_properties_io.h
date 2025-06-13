@@ -37,15 +37,12 @@ namespace Internals
 ///@addtogroup HDF5Application
 ///@{
 
+const std::string Delimiter = ":__ENDPROP__:";
+
 void ReadProperties(
     File& rFile,
     const std::string& rPrefix,
     PropertiesContainerType& rProperties);
-
-void WriteProperties(
-    File& rFile,
-    const std::string& rPrefix,
-    const Properties& rProperties);
 
 void WriteProperties(
     File& rFile,
