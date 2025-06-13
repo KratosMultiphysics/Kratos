@@ -130,7 +130,6 @@ void SupportSolidCondition::CalculateLeftHandSide(
     const unsigned int number_of_control_points = r_geometry.size();
 
      // reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
     const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const unsigned int dim = r_DN_De[0].size2();
@@ -205,7 +204,6 @@ void SupportSolidCondition::CalculateLeftHandSide(
     mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy); 
 
     const Matrix& r_D = Values.GetConstitutiveMatrix();
-    const Vector& r_stress_vector = Values.GetStressVector();
 
     // Differential area
     double penalty_integration = penalty * int_to_reference_weight;
@@ -323,7 +321,6 @@ void SupportSolidCondition::CalculateRightHandSide(
     const unsigned int number_of_control_points = r_geometry.size();
 
      // reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
     const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const unsigned int dim = r_DN_De[0].size2();
