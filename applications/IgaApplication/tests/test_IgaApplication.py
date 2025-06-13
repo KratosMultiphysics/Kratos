@@ -11,11 +11,8 @@ from iga_test_factory import SinglePatchTest as SinglePatchTest
 # Truss tests - python based
 from truss_element_tests import TrussElementTests as TTrussElementTests
 # Structural Elements test - python based
-from test_solid_IGA_element import test_SolidIGAElementP2 as TSolidIGAElementP2
-# Structural Conditions test - python based
-from applications.IgaApplication.tests.test_support_solid_IGA_condition import test_SupportSolidIGAConditionP2 as TSupportSolidIGAConditionP2
-from applications.IgaApplication.tests.test_support_simmetry_solid_IGA_condition import test_SupportSimmetrySolidIGAConditionP2 as TSupportSimmetrySolidIGAConditionP2
-from applications.IgaApplication.tests.test_load_solid_IGA_condition import test_LoadSolidIGAConditionP2 as TLoadSolidIGAConditionP2
+from test_solid_IGA_element import SolidIGAElementTests as TSolidIGAElementTests
+
 # Membrane tests
 from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
 from iga_test_factory import MembraneSinglePatchFourPointSailNonLinearStatic as MembraneSinglePatchFourPointSailNonLinearStatic
@@ -77,11 +74,7 @@ def AssembleTestSuites():
         # Truss tests
         TTrussElementTests,
         # Structural Elements tests
-        TSolidIGAElementP2,
-        # Structural Conditions tests
-        TSupportSolidIGAConditionP2,
-        TSupportSimmetrySolidIGAConditionP2,
-        TLoadSolidIGAConditionP2,
+        TSolidIGAElementTests,
         # Membrane tests
         MembraneSinglePatchFourPointSailLinearStatic,
         MembraneSinglePatchFourPointSailNonLinearStatic,
