@@ -69,6 +69,7 @@ public:
      *               5. Condition container with gauss point data values
      *               6. Element container gauss point data values
      *               7. Vertex container
+     *               8. PropertiesContainer
      *
      *          This supports following variable types:
      *              - int
@@ -86,10 +87,14 @@ public:
      *          keys. Followings are list of reserved keys:
      *              - "__data_dimension"
      *              - "__data_shape"
+     *              - "__data_availability"
      *              - "__container_type"
      *              - "__data_name"
      *              - "__data_location"
      *              - "__mesh_location"
+     *
+     * @throws Runtime error when any one of the given components are not found in at least one entity
+     *         in at least on rank.
      *
      * @todo Remove the rLegacySuffix once the python side is properly fixed.
      *
@@ -190,6 +195,7 @@ private:
     const static inline std::vector<std::string> ReservedAttributeKeys = {
                                             "__data_dimension",
                                             "__data_shape",
+                                            "__data_availability",
                                             "__container_type",
                                             "__data_name",
                                             "__data_location",
