@@ -92,7 +92,7 @@ class SolidIGAElementTests(KratosUnittest.TestCase):
 
         tolerance = 1e-4
 
-        # Confront LHS
+        # Compare LHS
         self.assertEqual(lhs.Size1(), len(expected_LHS))
         self.assertEqual(lhs.Size2(), len(expected_LHS[0]))
 
@@ -100,7 +100,7 @@ class SolidIGAElementTests(KratosUnittest.TestCase):
             for j in range(lhs.Size2()):
                 self.assertAlmostEqual(lhs[i, j], expected_LHS[i][j], delta=tolerance)
 
-        # Confronto RHS
+        # Compare RHS
         self.assertEqual(rhs.Size(), len(expected_RHS))
         for i in range(rhs.Size()):
             self.assertAlmostEqual(rhs[i], expected_RHS[i], delta=tolerance)
