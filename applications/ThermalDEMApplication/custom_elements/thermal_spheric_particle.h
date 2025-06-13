@@ -36,10 +36,10 @@ namespace Kratos
       typedef ParticleWeakVectorType::ptr_iterator    ParticleWeakIteratorType_ptr;
       typedef GlobalPointersVector<Element>::iterator ParticleWeakIteratorType;
 
-      typedef Node                             NodeType;
+      typedef Node                                NodeType;
       typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
       typedef std::size_t                         IndexType;
-      typedef Geometry<Node>                   GeometryType;
+      typedef Geometry<Node>                      GeometryType;
       typedef Properties                          PropertiesType;
 
       // Definitions
@@ -80,7 +80,7 @@ namespace Kratos
       void ComputeHeatFluxWithNeighbor     (const ProcessInfo& r_process_info);
       void ComputeInteractionProps         (const ProcessInfo& r_process_info);
       void StoreBallToBallContactInfo      (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
-      void StoreBallToRigidFaceContactInfo (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
+      void StoreBallToRigidFaceContactInfo (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding, double identation) override;
       void Move                            (const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) override;
 
       // Finalization methods
@@ -216,9 +216,10 @@ namespace Kratos
       double       mInitialTemperature;  // temperature from the beginning of the simulation
       double       mPreviousTemperature; // temperature from the beginning of the step
       bool         mIsTimeToSolve;       // flag to solve thermal problem in current step
-      bool         mHasMotion;           // flag to solve mechanical behavior (forces and displacements)
+      bool         mComputeForces;       // flag to solve mechanical behavior by computing forces
+      bool         mComputeMotion;       // flag to solve mechanical behavior by computing motion (and forces, as a pre-requisite)
       bool         mHasFixedTemperature; // flag for constant temperature
-      bool         mHasVariableRadius;   // flag for temperature-dependent radius
+      bool         mHasTempDependRadius; // flag for temperature-dependent radius
       bool         mStoreContactParam;   // flag to store contact parameters with neighbors when solving the mechanical problem
 
       // Heat flux components
