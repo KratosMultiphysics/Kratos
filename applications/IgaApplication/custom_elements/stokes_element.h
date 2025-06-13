@@ -21,6 +21,7 @@
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
+#include "iga_application_variables.h"
 
 
 namespace Kratos

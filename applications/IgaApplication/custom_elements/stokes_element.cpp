@@ -381,7 +381,7 @@ void StokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHandSideMa
         CalculateBDerivativeDy(B_derivative_y, DDN_DDe);
 
         // Computed using the Gauss Points in the same knot span
-        Vector divergence_of_sigma = this->GetValue(RECOVERED_STRESS);
+        Vector divergence_of_sigma = this->GetValue(DIVERGENCE_STRESS);
 
         // initilize the div(sigma) matrix 2x(2n)
         Vector div_sigma_1 = ZeroVector(mDim*number_of_points);
