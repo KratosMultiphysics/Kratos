@@ -15,6 +15,7 @@
 #include "geometries/nurbs_surface_geometry.h"
 
 #include "iga_application_variables.h"
+#include "iga_fast_suite.h"
 
 namespace Kratos
 {

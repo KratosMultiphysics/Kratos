@@ -17,6 +17,7 @@
 #include "custom_conditions/sbm_laplacian_condition_dirichlet.h"
 #include "custom_conditions/sbm_laplacian_condition_neumann.h"
 #include "includes/convection_diffusion_settings.h"
+#include "iga_fast_suite.h"
 
 namespace Kratos::Testing
 {

@@ -7,28 +7,24 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Richard Faasse
-//
+//  Main authors:   Carlos Roig
+//                  Andrea Gorgi
 
-// External includes
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
-
-// Project includes
-#include "testing/testing.h"
+#include "iga_fast_suite.h"
 #include "iga_application.h"
 
-int main(int argc, char* argv[]) 
+namespace Kratos::Testing
 {
-    ::testing::InitGoogleTest(&argc, argv);
 
-    Kratos::Testing::mApplicationInitializerList.push_back([](std::vector<Kratos::KratosApplication::Pointer> & rRegisteredApplications, Kratos::Kernel & rKernel) {
-      if (!rKernel.IsImported("IgaApplication")) {
-        auto pApplication = std::make_shared<Kratos::KratosIgaApplication>();
-        rKernel.ImportApplication(pApplication);
-        rRegisteredApplications.push_back(std::move(pApplication));
-      }
-    });
-
-    return RUN_ALL_TESTS();
+KratosIgaFastSuite::KratosIgaFastSuite() : KratosCoreFastSuite()
+{
+    mpIgaApp = std::make_shared<KratosIgaApplication>();
+    this->ImportApplicationIntoKernel(mpIgaApp);
 }
+
+KratosIgaFast5PSuite::KratosIgaFast5PSuite() : KratosCoreFastSuite() {
+    mpIgaApp = std::make_shared<KratosIgaApplication>();
+    this->ImportApplicationIntoKernel(mpIgaApp);
+}
+
+} // namespace Kratos::Testing

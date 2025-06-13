@@ -4,26 +4,39 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Richard Faasse
-//
+//  Main authors:   Carlos Roig
+//                  Andrea Gorgi
 
 #pragma once
 
-#include "iga_application.h"
 #include "testing/testing.h"
 
-namespace Kratos::Testing {
+namespace Kratos
+{
+class KratosIgaApplication;
+} // namespace Kratos
 
-class KratosIgaFastSuite : public KratosCoreFastSuite {
+namespace Kratos::Testing
+{
+
+class KratosIgaFastSuite : public KratosCoreFastSuite
+{
 public:
-  KratosIgaFastSuite();
+    KratosIgaFastSuite();
 
 private:
-  KratosIgaApplication::Pointer mpIgaApp;
-  //  KratosLinearSolversApplication::Pointer mpLinearSolversApp;
+    std::shared_ptr<KratosIgaApplication>  mpIgaApp;
+};
+
+class KratosIgaFast5PSuite : public KratosCoreFastSuite
+{
+public:
+    KratosIgaFast5PSuite();
+
+private:
+    std::shared_ptr<KratosIgaApplication>  mpIgaApp;
 };
 
 } // namespace Kratos::Testing
