@@ -20,7 +20,7 @@ class TestCase(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    def _initialize_model_part(self, model_part):
+    def _initialize_model_part(self, model_part: ModelPart):
         num_tri_elems = 10 # Use enough elements for detecting possible openmp issues.
         num_quad_elems = 15
         num_tri_conds = 5
@@ -145,6 +145,15 @@ class TestCase(KratosUnittest.TestCase):
                 gl_strain_tensor[i,j] = random.random()
         model_part.ProcessInfo[GREEN_LAGRANGE_STRAIN_TENSOR] = gl_strain_tensor # matrix
 
+        for i in range(4):
+            prop = model_part.GetProperties()[i]
+            prop.SetValue(DISTANCE, random.random())
+            prop.SetValue(PRESSURE, random.random())
+            new_sub_prop: Properties = model_part.CreateNewProperties(5 + i)
+            new_sub_prop.SetValue(DISTANCE, random.random())
+            new_sub_prop.SetValue(ACCELERATION, Vector([random.random(), random.random(), random.random()]))
+            prop.AddSubProperties(new_sub_prop)
+
     def _get_file(self):
         params = Parameters("""
         {
@@ -263,6 +272,18 @@ class TestCase(KratosUnittest.TestCase):
             for i in range(read_matrix.Size1()):
                 for j in range(read_matrix.Size2()):
                     self.assertEqual(read_matrix[i,j], write_matrix[i,j])
+
+            # check properties
+            prop_write: Properties
+            prop_read: Properties
+            for i in range(4):
+                prop_write = write_model_part.GetProperties()[i]
+                prop_read = read_model_part.GetProperties()[i]
+                self.assertEqual(prop_write.GetValue(DISTANCE), prop_read.GetValue(DISTANCE))
+                self.assertEqual(prop_write.GetValue(PRESSURE), prop_read.GetValue(PRESSURE))
+                self.assertEqual(prop_write.GetSubProperties(5 + i).GetValue(DISTANCE), prop_read.GetSubProperties(5 + i).GetValue(DISTANCE))
+                self.assertVectorAlmostEqual(prop_write.GetSubProperties(5 + i).GetValue(ACCELERATION), prop_read.GetSubProperties(5 + i).GetValue(ACCELERATION))
+
 
     def test_RecursiveSubModelParts(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
