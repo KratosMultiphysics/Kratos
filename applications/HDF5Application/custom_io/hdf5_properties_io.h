@@ -45,5 +45,5 @@ void WriteProperties(
     const std::string& rPrefix,
     const PropertiesContainerType& rProperties);
 
-///@} addtogroup
+///@}
 } // namespace Kratos::HDF5::Internals
