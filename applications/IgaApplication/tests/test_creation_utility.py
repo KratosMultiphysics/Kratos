@@ -3,64 +3,41 @@ import KratosMultiphysics.IgaApplication as IGA
 
 class TestCreationUtility:
 
-    @staticmethod
-    def GenerateNurbsSurface(model_part, polynomial_degree):
-        p = polynomial_degree
-        q = 1  
+    def GenerateNurbsSurfaceP2(model_part):
+        p = 2
+        q = 2
         
-        knot_u = KM.Vector(2 * (p + 1))
-        for i in range((p + 1), 2 * (p + 1)):
-            knot_u[i] = 1.0
+        knot_u = KM.Vector(6)
+        knot_u[0] = 0.0
+        knot_u[1] = 0.0
+        knot_u[2] = 0.0
+        knot_u[3] = 1.0
+        knot_u[4] = 1.0
+        knot_u[5] = 1.0
 
-        knot_v = KM.Vector(4)
+        knot_v = KM.Vector(6)
         knot_v[0] = 0.0
         knot_v[1] = 0.0
-        knot_v[2] = 1.0
+        knot_v[2] = 0.0
         knot_v[3] = 1.0
+        knot_v[4] = 1.0
+        knot_v[5] = 1.0
 
         points = KM.NodesVector()
 
-        if p == 3:
-            points.append(model_part.CreateNewNode(1, 0.0, -0.05, 0.0))
-            points.append(model_part.CreateNewNode(2, 0.333333333333333, -0.05, 0.0))
-            points.append(model_part.CreateNewNode(3, 0.666666666666667, -0.05, 0.0))
-            points.append(model_part.CreateNewNode(4, 1.0, -0.05, 0.0))
-            points.append(model_part.CreateNewNode(5, 0.0, 0.05, 0.0))
-            points.append(model_part.CreateNewNode(6, 0.333333333333333, 0.05, 0.0))
-            points.append(model_part.CreateNewNode(7, 0.666666666666667, 0.05, 0.0))
-            points.append(model_part.CreateNewNode(8, 1.0, 0.05, 0.0))
-
-        elif p == 4:
-            points.append(model_part.CreateNewNode(1, 0.0, -0.05, 0.0))
-            points.append(model_part.CreateNewNode(2, 0.25, -0.05, 0.0))
-            points.append(model_part.CreateNewNode(3, 0.5, -0.05, 0.0))
-            points.append(model_part.CreateNewNode(4, 0.75, -0.05, 0.0))
-            points.append(model_part.CreateNewNode(5, 1.0, -0.05, 0.0))
-            points.append(model_part.CreateNewNode(6, 0.0, 0.05, 0.0))
-            points.append(model_part.CreateNewNode(7, 0.25, 0.05, 0.0))
-            points.append(model_part.CreateNewNode(8, 0.5, 0.05, 0.0))
-            points.append(model_part.CreateNewNode(9, 0.75, 0.05, 0.0))
-            points.append(model_part.CreateNewNode(10, 1.0, 0.05, 0.0))
-
-        elif p == 5:
-            points.append(model_part.CreateNewNode(1, 0.0, -0.05, 0.0))
-            points.append(model_part.CreateNewNode(2, 0.2, -0.05, 0.0))
-            points.append(model_part.CreateNewNode(3, 0.4, -0.05, 0.0))
-            points.append(model_part.CreateNewNode(4, 0.6, -0.05, 0.0))
-            points.append(model_part.CreateNewNode(5, 0.8, -0.05, 0.0))
-            points.append(model_part.CreateNewNode(6, 1.0, -0.05, 0.0))
-            points.append(model_part.CreateNewNode(7, 0.0, 0.05, 0.0))
-            points.append(model_part.CreateNewNode(8, 0.2, 0.05, 0.0))
-            points.append(model_part.CreateNewNode(9, 0.4, 0.05, 0.0))
-            points.append(model_part.CreateNewNode(10, 0.6, 0.05, 0.0))
-            points.append(model_part.CreateNewNode(11, 0.8, 0.05, 0.0))
-            points.append(model_part.CreateNewNode(12, 1.0, 0.05, 0.0))
-
-        else:
-            raise ValueError(f"Polynomial degree {p} not supported in this test utility.")
+        # 4x4 control points grid (u in rows, v in cols)
+        id = 1
+        for i in range(5):  # v direction
+            for j in range(5):  # u direction
+                x = j * 1.0
+                y = i * 1.0
+                z = 0.0
+                points.append(model_part.CreateNewNode(id, x, y, z))
+                id += 1
 
         surface = KM.NurbsSurfaceGeometry3D(points, p, q, knot_u, knot_v)
         return surface
+
 
     @staticmethod
     def GetQuadraturePointGeometry(model_part, polynomial_degree, integration_point):
@@ -73,7 +50,7 @@ class TestCreationUtility:
         return geom_vector[0]
     
     @staticmethod
-    def GetQuadraturePointGeometryOnCurve(model_part, polynomial_degree, integration_point):
+    def GetQuadraturePointGeometryOnCurveP2(model_part, polynomial_degree, integration_point):
         # Create the embedded curve (parametric in 2D, embedded in surface)
         points_curve = KM.NodesVector()
         points_curve.append(KM.Node(1, 0.0, 0.05, 0.0))
@@ -90,7 +67,7 @@ class TestCreationUtility:
         curve = KM.NurbsCurveGeometry2D(points_curve, degree_curve, knot_vector_curve)
 
         # Generate the NURBS surface
-        surface = TestCreationUtility.GenerateNurbsSurface(model_part, 3)
+        surface = TestCreationUtility.GenerateNurbsSurfaceP2(model_part)
         surface.SetId(1)
         model_part.AddGeometry(surface)
 
