@@ -26,15 +26,15 @@
 namespace Kratos
 {
 /// Condition for penalty support condition
-class KRATOS_API(IGA_APPLICATION) SupportSolidIGACondition
+class KRATOS_API(IGA_APPLICATION) SbmSolidCondition
     : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer definition of SupportSolidIGACondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SupportSolidIGACondition);
+    /// Counted pointer definition of SbmSolidCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SbmSolidCondition);
 
     /// Size types
     using SizeType = std::size_t;
@@ -47,14 +47,14 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Constructor with Id and geometry
-    SupportSolidIGACondition(
+    SbmSolidCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {};
 
     /// Constructor with Id, geometry and property
-    SupportSolidIGACondition(
+    SbmSolidCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -62,11 +62,11 @@ public:
     {};
 
     /// Default constructor
-    SupportSolidIGACondition() : Condition()
+    SbmSolidCondition() : Condition()
     {};
 
     /// Destructor
-    virtual ~SupportSolidIGACondition() override
+    virtual ~SbmSolidCondition() override
     {};
 
     ///@}
@@ -80,7 +80,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<SupportSolidIGACondition>(
+        return Kratos::make_intrusive<SbmSolidCondition>(
             NewId, pGeom, pProperties);
     };
 
@@ -91,7 +91,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<SupportSolidIGACondition>(
+        return Kratos::make_intrusive<SbmSolidCondition>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -185,14 +185,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "\"SupportSolidIGACondition\" #" << Id();
+        buffer << "\"SbmSolidCondition\" #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "\"SupportSolidIGACondition\" #" << Id();
+        rOStream << "\"SbmSolidCondition\" #" << Id();
     }
 
     /// Print object's data.
@@ -245,9 +245,66 @@ void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 //@}
+/**
+ * @brief 
+ * 
+ */
+void InitializeMemberVariables();
+
+/**
+ * @brief 
+ * 
+ */
+void InitializeSbmMemberVariables();
+
+/**
+ * @brief 
+ * 
+ * @param H_sum_vec 
+ */
+void ComputeTaylorExpansionContribution(Vector& H_sum_vec);
+
+/**
+ * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
+ * @param derivative 
+ * @param dx 
+ * @param k 
+ * @param dy 
+ * @param n_k 
+ * @return double 
+ */
+double ComputeTaylorTerm(
+    double derivative, 
+    double dx, IndexType k, 
+    double dy, IndexType n_k);
+
+/**
+ * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 3D
+ * @param derivative 
+ * @param dx 
+ * @param k 
+ * @param dy 
+ * @param n_k 
+ * @return double 
+ */
+double ComputeTaylorTerm3D(
+    double derivative, 
+    double dx, IndexType k_x, 
+    double dy, IndexType k_y, 
+    double dz, IndexType k_z);
+
 ///@name Protected member Variables
 ///@{
-ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+    ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+    // sbm variables
+    array_1d<double, 3> mNormalParameterSpace;
+    array_1d<double, 3> mNormalPhysicalSpace;
+    Vector mDistanceVector;
+    unsigned int mDim;
+    double mPenalty;
+    double mNitschePenalty;
+    IndexType mBasisFunctionsOrder;
+    NodeType* mpProjectionNode;
 
 ///@}
 

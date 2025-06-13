@@ -19,7 +19,7 @@ def run_modelers(current_model, modelers_list):
     for modeler in list_of_modelers:
         modeler.SetupModelPart()
 
-class TestSupportSolidIGACondition(KratosUnittest.TestCase):
+class TestSbmSolidIGACondition(KratosUnittest.TestCase):
 
     def test_iga_modeler_outer_sbm(self):
         current_model = KM.Model()
@@ -67,7 +67,7 @@ class TestSupportSolidIGACondition(KratosUnittest.TestCase):
                             "geometry_type": "SurfaceEdge",
                             "iga_model_part": "SBM_Support_outer",
                             "type": "condition",
-                            "name": "SbmSolidIGACondition",
+                            "name": "SbmSolidCondition",
                             "shape_function_derivatives_order": 4, 
                             "sbm_parameters": {
                                 "is_inner" : false
@@ -90,7 +90,7 @@ class TestSupportSolidIGACondition(KratosUnittest.TestCase):
             node.SetValue(KM.DISPLACEMENT_X, node.X+node.Y)
             node.SetValue(KM.DISPLACEMENT_Y, 123.4)
 
-        self.assertEqual(iga_model_part.GetConditions()[24].Info(), "\"SbmSolidIGACondition\" #24")
+        self.assertEqual(iga_model_part.GetConditions()[24].Info(), "\"SbmSolidCondition\" #24")
         condition = iga_model_part.GetCondition(24) 
 
         properties_settings = KM.Parameters("""{

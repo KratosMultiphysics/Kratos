@@ -135,7 +135,6 @@ void SolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     const unsigned int number_of_control_points = r_geometry.size();
 
      // reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
     const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const unsigned int dim = r_DN_De[0].size2();
@@ -216,7 +215,6 @@ void SolidElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
     const unsigned int number_of_control_points = r_geometry.size();
 
     // reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
     const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const unsigned int dim = r_DN_De[0].size2();
@@ -385,9 +383,6 @@ void SolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     // compute and set stress solution at the integration point
     const auto& r_geometry = GetGeometry();
     const SizeType number_of_control_points = r_geometry.size();
-
-    // Shape function values
-    const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
     GeometryType::JacobiansType J0;
     r_geometry.Jacobian(J0,this->GetIntegrationMethod());     

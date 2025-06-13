@@ -17,12 +17,12 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/sbm_solid_iga_condition.h"
+#include "custom_conditions/sbm_solid_condition.h"
 
 namespace Kratos
 {
 
-void SbmSolidIGACondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void SbmSolidCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMaterial();
     InitializeMemberVariables();
@@ -30,7 +30,7 @@ void SbmSolidIGACondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 }
 
 
-void SbmSolidIGACondition::InitializeMaterial()
+void SbmSolidCondition::InitializeMaterial()
 {
     KRATOS_TRY
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
@@ -48,7 +48,7 @@ void SbmSolidIGACondition::InitializeMaterial()
 
 }
 
-void SbmSolidIGACondition::InitializeMemberVariables()
+void SbmSolidCondition::InitializeMemberVariables()
 {
     // Compute class memeber variables
     const auto& r_geometry = this->GetGeometry();
@@ -103,7 +103,6 @@ void SbmSolidIGACondition::InitializeMemberVariables()
     array_1d<double, 3> tangent_parameter_space;
 
     r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space
-    double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
 
     // compute complete jacobian transformation including parameter->physical space transformation
     double DetJ0;
@@ -128,7 +127,7 @@ void SbmSolidIGACondition::InitializeMemberVariables()
     SetValue(INTEGRATION_WEIGHT, int_to_reference_weight);
 }
 
-void SbmSolidIGACondition::InitializeSbmMemberVariables()
+void SbmSolidCondition::InitializeSbmMemberVariables()
 {
     const auto& r_geometry = this->GetGeometry();
 
@@ -160,7 +159,7 @@ void SbmSolidIGACondition::InitializeSbmMemberVariables()
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
 }
 
-void SbmSolidIGACondition::CalculateLocalSystem(
+void SbmSolidCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -183,7 +182,7 @@ void SbmSolidIGACondition::CalculateLocalSystem(
     KRATOS_CATCH("")
 }
 
-void SbmSolidIGACondition::CalculateLeftHandSide(
+void SbmSolidCondition::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
 )
@@ -194,13 +193,12 @@ void SbmSolidIGACondition::CalculateLeftHandSide(
     const unsigned int number_of_control_points = r_geometry.size();
 
      // reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
     const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const SizeType mat_size = number_of_control_points * mDim;
     const double int_to_reference_weight = GetValue(INTEGRATION_WEIGHT);
 
-    KRATOS_ERROR_IF(mDim != 2) << "SbmSolidIGACondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
+    KRATOS_ERROR_IF(mDim != 2) << "SbmSolidCondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
 
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != mat_size)
@@ -366,7 +364,7 @@ void SbmSolidIGACondition::CalculateLeftHandSide(
     KRATOS_CATCH("")
 }
 
-void SbmSolidIGACondition::CalculateRightHandSide(
+void SbmSolidCondition::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
 )
@@ -377,13 +375,12 @@ void SbmSolidIGACondition::CalculateRightHandSide(
     const unsigned int number_of_control_points = r_geometry.size();
 
      // reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
     const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const SizeType mat_size = number_of_control_points * mDim;
     const double int_to_reference_weight = GetValue(INTEGRATION_WEIGHT);
 
-    KRATOS_ERROR_IF(mDim != 2) << "SbmSolidIGACondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
+    KRATOS_ERROR_IF(mDim != 2) << "SbmSolidCondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
 
     // resizing as needed the RHS
     if(rRightHandSideVector.size() != mat_size)
@@ -466,14 +463,11 @@ void SbmSolidIGACondition::CalculateRightHandSide(
     // compute Taylor expansion contribution: H_sum_vec
     Vector H_sum_vec = ZeroVector(number_of_control_points);
     ComputeTaylorExpansionContribution (H_sum_vec);
-    
-    Matrix H_sum = ZeroMatrix(1, number_of_control_points);
-    noalias(row(H_sum, 0)) = H_sum_vec;
 
-    Vector old_displacement = ZeroVector(2);
+    Vector old_displacement = ZeroVector(3);
     for (IndexType i = 0; i < number_of_control_points; ++i) {
-        old_displacement[0] += H_sum(0,i) * old_displacement_coefficient_vector[2*i];
-        old_displacement[1] += H_sum(0,i) * old_displacement_coefficient_vector[2*i + 1];
+        old_displacement[0] += H_sum_vec(i) * old_displacement_coefficient_vector[2*i];
+        old_displacement[1] += H_sum_vec(i) * old_displacement_coefficient_vector[2*i + 1];
     }
 
     if (this->Has(DIRECTION)){
@@ -552,14 +546,14 @@ void SbmSolidIGACondition::CalculateRightHandSide(
     KRATOS_CATCH("")
 }
 
-    int SbmSolidIGACondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+    int SbmSolidCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
             << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyLaplacianCondition" << std::endl;
         return 0;
     }
 
-    void SbmSolidIGACondition::EquationIdVector(
+    void SbmSolidCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -578,7 +572,7 @@ void SbmSolidIGACondition::CalculateRightHandSide(
         }
     }
 
-    void SbmSolidIGACondition::GetDofList(
+    void SbmSolidCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -597,7 +591,7 @@ void SbmSolidIGACondition::CalculateRightHandSide(
     };
 
 
-    void SbmSolidIGACondition::GetSolutionCoefficientVector(
+    void SbmSolidCondition::GetSolutionCoefficientVector(
         Vector& rValues) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
@@ -616,7 +610,7 @@ void SbmSolidIGACondition::CalculateRightHandSide(
         }
     }
 
-    void SbmSolidIGACondition::CalculateB(
+    void SbmSolidCondition::CalculateB(
         Matrix& rB, 
         Matrix& r_DN_DX) const
     {
@@ -640,7 +634,7 @@ void SbmSolidIGACondition::CalculateRightHandSide(
     }
 
 
-    void SbmSolidIGACondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+    void SbmSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -718,7 +712,7 @@ void SbmSolidIGACondition::CalculateRightHandSide(
         // //---------------------
     }
 
-void SbmSolidIGACondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
+void SbmSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
     //--------------------------------------------------------------------------------------------
     // calculate the constitutive law response
     ConstitutiveLaw::Parameters constitutive_law_parameters(
@@ -727,7 +721,7 @@ void SbmSolidIGACondition::InitializeSolutionStep(const ProcessInfo& rCurrentPro
     mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 }
 
-void SbmSolidIGACondition::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
+void SbmSolidCondition::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
 {
     const auto& r_geometry = this->GetGeometry();
     const SizeType number_of_control_points = r_geometry.PointsNumber();
@@ -786,7 +780,7 @@ void SbmSolidIGACondition::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
 }
 
 // Function to compute a single term in the Taylor expansion
-double SbmSolidIGACondition::ComputeTaylorTerm(
+double SbmSolidCondition::ComputeTaylorTerm(
     const double derivative, 
     const double dx, 
     const IndexType n_k, 
@@ -796,7 +790,7 @@ double SbmSolidIGACondition::ComputeTaylorTerm(
     return derivative * std::pow(dx, n_k) * std::pow(dy, k) / (MathUtils<double>::Factorial(k) * MathUtils<double>::Factorial(n_k));    
 }
 
-double SbmSolidIGACondition::ComputeTaylorTerm3D(
+double SbmSolidCondition::ComputeTaylorTerm3D(
     const double derivative, 
     const double dx, 
     const IndexType k_x, 

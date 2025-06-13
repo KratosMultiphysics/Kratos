@@ -102,7 +102,6 @@ void SupportSolidCondition::CalculateLocalSystem(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
     const SizeType mat_size = GetGeometry().size() * 2;
 
     if (rRightHandSideVector.size() != mat_size)
@@ -112,7 +111,6 @@ void SupportSolidCondition::CalculateLocalSystem(
     if (rLeftHandSideMatrix.size1() != mat_size)
         rLeftHandSideMatrix.resize(mat_size, mat_size);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
-
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
     CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
 
@@ -130,7 +128,6 @@ void SupportSolidCondition::CalculateLeftHandSide(
     const unsigned int number_of_control_points = r_geometry.size();
 
      // reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
     const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const unsigned int dim = r_DN_De[0].size2();
@@ -205,7 +202,6 @@ void SupportSolidCondition::CalculateLeftHandSide(
     mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy); 
 
     const Matrix& r_D = Values.GetConstitutiveMatrix();
-    const Vector& r_stress_vector = Values.GetStressVector();
 
     // Differential area
     double penalty_integration = penalty * int_to_reference_weight;
@@ -220,7 +216,7 @@ void SupportSolidCondition::CalculateLeftHandSide(
 
 
     const Matrix DB = prod(r_D,B);
-    Vector old_displacement = ZeroVector(2);
+    Vector old_displacement = ZeroVector(3);
     for (IndexType i = 0; i < number_of_control_points; ++i) {
         old_displacement[0] += N(0,i) * old_displacement_coefficient_vector[2*i];
         old_displacement[1] += N(0,i) * old_displacement_coefficient_vector[2*i + 1];
@@ -318,12 +314,10 @@ void SupportSolidCondition::CalculateRightHandSide(
 )
 {
     KRATOS_TRY
-
     const auto& r_geometry = GetGeometry();
     const unsigned int number_of_control_points = r_geometry.size();
 
      // reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
     const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const unsigned int dim = r_DN_De[0].size2();
@@ -414,12 +408,11 @@ void SupportSolidCondition::CalculateRightHandSide(
     // Assembly
 
     const Matrix DB = prod(r_D,B);
-    Vector old_displacement = ZeroVector(2);
+    Vector old_displacement = ZeroVector(3);
     for (IndexType i = 0; i < number_of_control_points; ++i) {
         old_displacement[0] += N(0,i) * old_displacement_coefficient_vector[2*i];
         old_displacement[1] += N(0,i) * old_displacement_coefficient_vector[2*i + 1];
     }
-
 
     if (this->Has(DIRECTION)){
         // ASSIGN BC BY DIRECTION
@@ -494,7 +487,6 @@ void SupportSolidCondition::CalculateRightHandSide(
             }
         }
     }
-
     KRATOS_CATCH("")
 }
 

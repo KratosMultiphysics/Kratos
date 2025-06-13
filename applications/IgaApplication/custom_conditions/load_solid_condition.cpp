@@ -155,7 +155,6 @@ void LoadSolidCondition::CalculateRightHandSide(
     const unsigned int number_of_control_points = r_geometry.size();
 
      // reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
     const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const unsigned int dim = r_DN_De[0].size2();

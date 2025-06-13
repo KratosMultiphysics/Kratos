@@ -30,7 +30,7 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mLaplacianIGAElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
-    , mSolidIGAElement(0, Element::GeometryType::Pointer(
+    , mSolidElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mOutputCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
@@ -56,9 +56,9 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSbmLaplacianConditionNeumann(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mSupportSolidIGACondition(0, Condition::GeometryType::Pointer(
+    , mSupportSolidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mLoadSolidIGACondition(0, Condition::GeometryType::Pointer(
+    , mLoadSolidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
 {
 }
@@ -81,7 +81,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
     KRATOS_REGISTER_ELEMENT("LaplacianIGAElement", mLaplacianIGAElement)
-    KRATOS_REGISTER_ELEMENT("SolidElement", mSolidIGAElement)
+    KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)
@@ -96,8 +96,10 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SupportLaplacianCondition", mSupportLaplacianCondition)
     KRATOS_REGISTER_CONDITION("SbmLaplacianConditionDirichlet", mSbmLaplacianConditionDirichlet)
     KRATOS_REGISTER_CONDITION("SbmLaplacianConditionNeumann", mSbmLaplacianConditionNeumann)
-    KRATOS_REGISTER_CONDITION("SupportSolidCondition", mSupportSolidIGACondition)
-    KRATOS_REGISTER_CONDITION("LoadSolidCondition", mLoadSolidIGACondition)
+    KRATOS_REGISTER_CONDITION("SupportSolidCondition", mSupportSolidCondition)
+    KRATOS_REGISTER_CONDITION("LoadSolidCondition", mLoadSolidCondition)
+    KRATOS_REGISTER_CONDITION("SbmSolidCondition", mSbmSolidCondition)
+    KRATOS_REGISTER_CONDITION("SbmLoadSolidCondition", mSbmLoadSolidCondition)
 
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
@@ -180,10 +182,6 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(KNOT_VECTOR_V)
     KRATOS_REGISTER_VARIABLE(KNOT_SPAN_SIZES)
     KRATOS_REGISTER_VARIABLE(PARAMETER_SPACE_CORNERS)
-    KRATOS_REGISTER_VARIABLE(PROJECTION_NODE)
-
-    //BC variables
-    KRATOS_REGISTER_VARIABLE(MODULUS)
 }
 
 }  // namespace Kratos
