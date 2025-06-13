@@ -1948,6 +1948,7 @@ TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses
         if (bGlobal) {
             const Matrix& RG = referenceCoordinateSystem.Orientation();
             noalias(aux33) = prod(trans(RG), iValue);
+            KRATOS_WATCH(aux33)
             noalias(iValue) = prod(aux33, RG);
         }
     } // Gauss Loop
