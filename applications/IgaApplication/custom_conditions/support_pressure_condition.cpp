@@ -220,9 +220,8 @@ void SupportPressureCondition::GetDofList(
 };
 
 
-void SupportPressureCondition::GetValuesVector(
-        Vector& rValues,
-        int Step) const
+void SupportPressureCondition::GetSolutionCoefficientVector(
+        Vector& rValues) const
 {
     const SizeType number_of_control_points = GetGeometry().size();
     const SizeType mat_size = number_of_control_points * 2;

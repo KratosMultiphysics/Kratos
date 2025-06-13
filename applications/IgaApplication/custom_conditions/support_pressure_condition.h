@@ -186,7 +186,7 @@ public:
         pGetGeometry()->PrintData(rOStream);
     }
 
-    void GetValuesVector(Vector& rValues, int Step = 0) const override;
+    void GetSolutionCoefficientVector(Vector& rValues) const;
 
     ///@}
 
