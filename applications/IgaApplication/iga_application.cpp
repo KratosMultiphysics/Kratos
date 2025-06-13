@@ -91,6 +91,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SbmLaplacianConditionNeumann", mSbmLaplacianConditionNeumann)
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
+    KRATOS_REGISTER_MODELER("IgaModelerSbm", mIgaModelerSbm);
     KRATOS_REGISTER_MODELER("RefinementModeler", mRefinementModeler);
     KRATOS_REGISTER_MODELER("NurbsGeometryModeler", mNurbsGeometryModeler);
     KRATOS_REGISTER_MODELER("NurbsGeometryModelerSbm", mNurbsGeometryModelerSbm);
@@ -167,6 +168,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(CONDITION_NAME)
     KRATOS_REGISTER_VARIABLE(KNOT_VECTOR_U)
     KRATOS_REGISTER_VARIABLE(KNOT_VECTOR_V)
+    KRATOS_REGISTER_VARIABLE(KNOT_VECTOR_W)
     KRATOS_REGISTER_VARIABLE(KNOT_SPAN_SIZES)
     KRATOS_REGISTER_VARIABLE(PARAMETER_SPACE_CORNERS)
 }

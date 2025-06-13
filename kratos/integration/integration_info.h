@@ -123,41 +123,15 @@ public:
         SizeType NumberOfIntegrationPointsPerSpan,
         QuadratureMethod ThisQuadratureMethod)
     {
-        switch (NumberOfIntegrationPointsPerSpan) {
-        case 1:
-            if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
-                return IntegrationMethod::GI_GAUSS_1;
-            }
-            else {
-                return IntegrationMethod::GI_LOBATTO_1;
-            }
-            break;
-        case 2:
-            if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
-                return IntegrationMethod::GI_GAUSS_2;
-            }
-            break;
-        case 3:
-            if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
-                return IntegrationMethod::GI_GAUSS_3;
-            }
-            break;
-        case 4:
-            if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
-                return IntegrationMethod::GI_GAUSS_4;
-            }
-            break;
-        case 5:
-            if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
-                return IntegrationMethod::GI_GAUSS_5;
-            }
-            break;
-        case 0:
-            return IntegrationMethod::NumberOfIntegrationMethods;
-            break;
+        if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
+            return GeometryData::IntegrationMethod(NumberOfIntegrationPointsPerSpan - 1);
+        } else if (ThisQuadratureMethod == QuadratureMethod::LOBATTO) {
+            KRATOS_ERROR_IF(NumberOfIntegrationPointsPerSpan != 2) << "Only 2-point per span Lobatto quadrature is available in KRATOS core." << std::endl;
+            return IntegrationMethod::GI_LOBATTO_1;
         }
+
         KRATOS_WARNING("Evaluation of Integration Method")
-            << "Chosen combination of number of points per span and quadrature method does not has a corresponding IntegrationMethod in the KRATOS core."
+            << "Chosen combination of number of points per span and quadrature method does not have a corresponding IntegrationMethod in the KRATOS core."
             << "NumberOfIntegrationPointsPerSpan: " << NumberOfIntegrationPointsPerSpan << std::endl;
         return IntegrationMethod::NumberOfIntegrationMethods;
     }
