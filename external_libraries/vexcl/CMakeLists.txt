@@ -1,10 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
-
-if(${CMAKE_VERSION} VERSION_LESS 3.12)
-    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
-else()
-    cmake_policy(VERSION 3.12)
-endif()
+cmake_minimum_required(VERSION 3.12...4.0)
 
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, default to RelWithDebInfo")
@@ -125,9 +119,6 @@ target_compile_definitions(Common INTERFACE
 #----------------------------------------------------------------------------
 find_package(OpenCL)
 
-# Ensure all targets are available
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/VexCLOpenCLTarget.cmake")
-
 if(OpenCL_FOUND)
     set(CL_HPP_TARGET_OPENCL_VERSION 120 CACHE STRING "Target OpenCL version")
     set(CL_HPP_MINIMUM_OPENCL_VERSION 120 CACHE STRING "Minimum OpenCL version")
@@ -164,16 +155,40 @@ if(OpenCL_FOUND)
     endif()
 endif()
 
-find_package(CUDA)
-if(CUDA_FOUND)
-    add_library(CUDA INTERFACE)
-    add_library(VexCL::CUDA ALIAS CUDA)
+# find_package(CUDA) has been deprecated since CMake 3.10,
+# but checking for CUDA availability without enabling language
+# support for it (using FindCUDAToolkit) was only added in
+# CMake 3.17. To use the deprecated method in versions < 3.17,
+# CMP0146 must be set.
+if (${CMAKE_VERSION} VERSION_LESS 3.17)
+    # Use the deprecated find_package(CUDA) to check for
+    # CUDA availability.
+    cmake_policy(SET CMP0146 NEW)
+    find_package(CUDA)
+    if (CUDA_FOUND)
+        add_library(CUDA INTERFACE)
+        add_library(VexCL::CUDA ALIAS CUDA)
 
-    target_include_directories(CUDA INTERFACE "${CUDA_INCLUDE_DIRS}")
-    target_link_libraries(CUDA INTERFACE Common "${CUDA_CUDA_LIBRARY}")
-    target_compile_definitions(CUDA INTERFACE VEXCL_BACKEND_CUDA)
+        target_include_directories(CUDA INTERFACE "${CUDA_INCLUDE_DIRS}")
+        target_link_libraries(CUDA INTERFACE Common "${CUDA_CUDA_LIBRARY}")
+        target_compile_definitions(CUDA INTERFACE VEXCL_BACKEND_CUDA)
 
-    message(STATUS "Found VexCL::CUDA")
+        message(STATUS "Found VexCL::CUDA")
+    endif()
+else()
+    # Check for CUDA availability using FindCUDAToolkit and add
+    # support for the CUDA language if it is successful.
+    find_package(CUDAToolkit)
+    if (CUDAToolkit_FOUND)
+        enable_language(CUDA)
+        add_library(CUDA INTERFACE)
+        add_library(VexCL::CUDA ALIAS CUDA)
+
+        target_link_libraries(CUDA INTERFACE Common CUDA::toolkit CUDA::cuda_driver)
+        target_compile_definitions(CUDA INTERFACE VEXCL_BACKEND_CUDA)
+
+        message(STATUS "Found VexCL::CUDA")
+    endif()
 endif()
 
 find_path(Boost_DLL NAMES boost/dll PATHS ${Boost_INCLUDE_DIRS})
@@ -344,12 +359,6 @@ if (VEXCL_MASTER_PROJECT)
         )
 
     configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/VexCLOpenCLTarget.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/cmake/VexCLOpenCLTarget.cmake"
-        COPYONLY
-        )
-
-    configure_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/VexCLBoostTargets.cmake"
         "${CMAKE_CURRENT_BINARY_DIR}/cmake/VexCLBoostTargets.cmake"
         COPYONLY
@@ -372,7 +381,6 @@ if (VEXCL_MASTER_PROJECT)
       FILES
         ${CMAKE_CURRENT_BINARY_DIR}/cmake/VexCLConfig.cmake
         ${CMAKE_CURRENT_SOURCE_DIR}/cmake/VexCLTools.cmake
-        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/VexCLOpenCLTarget.cmake
         ${CMAKE_CURRENT_SOURCE_DIR}/cmake/VexCLBoostTargets.cmake
       DESTINATION
         share/vexcl/cmake
