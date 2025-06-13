@@ -307,7 +307,7 @@ private:
         Matrix& B_derivative_y,
         const ShapeDerivativesType& r_DDN_DDX) const;
 
-    void GetValuesVector(
+    void GetSolutionCoefficientVector(
         Vector& rValues) const;
 
     ///@}

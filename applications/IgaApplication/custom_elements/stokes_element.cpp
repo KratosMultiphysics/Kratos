@@ -456,7 +456,7 @@ void StokesElement::ApplyConstitutiveLaw(
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     Vector old_displacement(number_of_nodes*mDim);
-    GetValuesVector(old_displacement);
+    GetSolutionCoefficientVector(old_displacement);
     Vector old_strain = prod(rB,old_displacement);
     rValues.SetStrainVector(old_strain);
     rValues.SetStressVector(rConstitutiveVariables.StressVector);
@@ -663,7 +663,7 @@ Vector StokesElement::CalculateStressAtIntegrationPoint(
 }
 
 
-void StokesElement::GetValuesVector(
+void StokesElement::GetSolutionCoefficientVector(
         Vector& rValues) const
 {
     const SizeType number_of_control_points = GetGeometry().size();
