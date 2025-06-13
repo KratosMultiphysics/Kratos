@@ -218,7 +218,7 @@ void SupportSolidCondition::CalculateLeftHandSide(
 
 
     const Matrix DB = prod(r_D,B);
-    Vector old_displacement = ZeroVector(2);
+    Vector old_displacement = ZeroVector(3);
     for (IndexType i = 0; i < number_of_control_points; ++i) {
         old_displacement[0] += N(0,i) * old_displacement_coefficient_vector[2*i];
         old_displacement[1] += N(0,i) * old_displacement_coefficient_vector[2*i + 1];
@@ -411,12 +411,11 @@ void SupportSolidCondition::CalculateRightHandSide(
     // Assembly
 
     const Matrix DB = prod(r_D,B);
-    Vector old_displacement = ZeroVector(2);
+    Vector old_displacement = ZeroVector(3);
     for (IndexType i = 0; i < number_of_control_points; ++i) {
         old_displacement[0] += N(0,i) * old_displacement_coefficient_vector[2*i];
         old_displacement[1] += N(0,i) * old_displacement_coefficient_vector[2*i + 1];
     }
-
 
     if (this->Has(DIRECTION)){
         // ASSIGN BC BY DIRECTION

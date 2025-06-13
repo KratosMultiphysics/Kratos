@@ -19,7 +19,7 @@ class TestLoadSolidIGACondition(KratosUnittest.TestCase):
         props.SetValue(KM.CONSTITUTIVE_LAW, law)
 
         # Create quadrature point geometry on a curve
-        geometry = TestCreationUtility.GetQuadraturePointGeometryOnCurve(model_part, degree, integration_point)
+        geometry = TestCreationUtility.GetQuadraturePointGeometryOnCurveP2(model_part, integration_point)
 
         # Create the condition and add it to the model part
         condition = model_part.CreateNewCondition("LoadSolidCondition", 1, geometry, props)
@@ -32,7 +32,7 @@ class TestLoadSolidIGACondition(KratosUnittest.TestCase):
 
         return condition
 
-    def test_LoadSolidIGAConditionP3(self):
+    def test_LoadSolidIGAConditionP2(self):
         model = KM.Model()
         model_part = model.CreateModelPart("ModelPart")
         model_part.SetBufferSize(2)
@@ -69,7 +69,7 @@ class TestLoadSolidIGACondition(KratosUnittest.TestCase):
 
         # Check the RHS
         expected_RHS = [
-            -0.293744,0.0905711,-0.440616,0.135857,-0.220308,0.0679283,-0.036718,0.0113214,-0.0154602,0.0047669,-0.0231903,0.00715035,-0.0115952,0.00357517,-0.00193253,0.000595862
+            -0.837171,0.258128,-0.837171,0.258128,-0.209293,0.0645319,-0.0881232,0.0271713,-0.0881232,0.0271713,-0.0220308,0.00679283,-0.00231903,0.000715035,-0.00231903,0.000715035,-0.000579758,0.000178759
         ]
         tolerance = 1e-4
 

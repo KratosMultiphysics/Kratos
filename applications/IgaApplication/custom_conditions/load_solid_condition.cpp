@@ -201,31 +201,6 @@ void LoadSolidCondition::CalculateRightHandSide(
 
     Vector g_N = this->GetValue(FORCE); 
 
-
-    // FIXME:
-    // double nu = this->GetProperties().GetValue(POISSON_RATIO);
-    // double E = this->GetProperties().GetValue(YOUNG_MODULUS);
-    // // When "analysis_type" is "linear" temper = 0
-    // Vector GP_parameter_coord = r_geometry.Center();
-    // const double x = GP_parameter_coord[0];
-    // const double y = GP_parameter_coord[1];
-
-    // array_1d<double, 3> tangent_parameter_space;
-    // array_1d<double, 3> normal_parameter_space;
-
-    // r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space
-    // double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
-    
-    // normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
-    // normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT)
-    // normal_parameter_space[2] = 0.0;
-
-    // // g_N[0] = E/(1+nu)*(-sin(x)*sinh(y)) * normal_parameter_space[0] + E/(1+nu)*(cos(x)*cosh(y)) * normal_parameter_space[1]; 
-    // // g_N[1] = E/(1+nu)*(cos(x)*cosh(y)) * normal_parameter_space[0] + E/(1+nu)*(sin(x)*sinh(y)) * normal_parameter_space[1]; 
-
-    // g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * normal_physical_space[0]; 
-    // g_N[1] = E/(1-nu)*(sin(x)*sinh(y))  * normal_physical_space[1]; 
-
     for (IndexType i = 0; i < number_of_control_points; i++) {
         for (IndexType zdim = 0; zdim < 2; zdim++) {
             
