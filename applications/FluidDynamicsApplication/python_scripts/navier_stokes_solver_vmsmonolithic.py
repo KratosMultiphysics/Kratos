@@ -366,7 +366,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
         elif scheme_type == "bdf2":
             self.min_buffer_size = 3
         elif scheme_type == "steady":
-            self.min_buffer_size = 2
+            self.min_buffer_size = 1
             self._SetUpSteadySimulation()
         else:
             msg  = "Unknown time_scheme option found in project parameters:\n"
