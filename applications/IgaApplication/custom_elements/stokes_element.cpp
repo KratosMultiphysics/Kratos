@@ -381,7 +381,7 @@ void StokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHandSideMa
         CalculateBDerivativeDy(B_derivative_y, DDN_DDe);
 
         // Computed using the Gauss Points in the same knot span
-        Vector divergence_of_sigma = this->GetValue(RECOVERED_STRESS);
+        Vector divergence_of_sigma = this->GetValue(DIVERGENCE_STRESS);
 
         // initilize the div(sigma) matrix 2x(2n)
         Vector div_sigma_1 = ZeroVector(mDim*number_of_points);
@@ -456,7 +456,7 @@ void StokesElement::ApplyConstitutiveLaw(
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     Vector old_displacement(number_of_nodes*mDim);
-    GetValuesVector(old_displacement);
+    GetSolutionCoefficientVector(old_displacement);
     Vector old_strain = prod(rB,old_displacement);
     rValues.SetStrainVector(old_strain);
     rValues.SetStressVector(rConstitutiveVariables.StressVector);
@@ -663,7 +663,7 @@ Vector StokesElement::CalculateStressAtIntegrationPoint(
 }
 
 
-void StokesElement::GetValuesVector(
+void StokesElement::GetSolutionCoefficientVector(
         Vector& rValues) const
 {
     const SizeType number_of_control_points = GetGeometry().size();

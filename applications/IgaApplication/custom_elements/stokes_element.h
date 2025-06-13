@@ -21,6 +21,7 @@
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
+#include "iga_application_variables.h"
 
 
 namespace Kratos
@@ -307,7 +308,7 @@ private:
         Matrix& B_derivative_y,
         const ShapeDerivativesType& r_DDN_DDX) const;
 
-    void GetValuesVector(
+    void GetSolutionCoefficientVector(
         Vector& rValues) const;
 
     ///@}

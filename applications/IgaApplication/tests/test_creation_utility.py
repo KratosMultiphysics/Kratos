@@ -40,8 +40,8 @@ class TestCreationUtility:
 
 
     @staticmethod
-    def GetQuadraturePointGeometry(model_part, integration_point):
-        surface = TestCreationUtility.GenerateNurbsSurfaceP2(model_part,)
+    def GetQuadraturePointGeometryP2(model_part, integration_point):
+        surface = TestCreationUtility.GenerateNurbsSurfaceP2(model_part)
         surface.SetId(1)
         geom_vector = KM.GeometriesVector()
         surface.CreateQuadraturePointGeometries(geom_vector, 3, [integration_point])
@@ -50,7 +50,7 @@ class TestCreationUtility:
         return geom_vector[0]
     
     @staticmethod
-    def GetQuadraturePointGeometryOnCurveP2(model_part, polynomial_degree, integration_point):
+    def GetQuadraturePointGeometryOnCurveP2(model_part, integration_point):
         # Create the embedded curve (parametric in 2D, embedded in surface)
         points_curve = KM.NodesVector()
         points_curve.append(KM.Node(1, 0.0, 0.05, 0.0))
