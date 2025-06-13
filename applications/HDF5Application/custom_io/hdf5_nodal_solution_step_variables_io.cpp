@@ -67,8 +67,7 @@ void ReadAndAssignVariablesList(
     }
 
     // Add the variables to the variables list.
-    for (const auto& r_name : ordered_variable_names)
-    {
+    for (const auto& r_name : ordered_variable_names) {
         if (KratosComponents<VariableData>::Has(r_name)) {
             const VariableData& rVARIABLE = KratosComponents<VariableData>::Get(r_name);
             r_variables_list.Add(rVARIABLE);
