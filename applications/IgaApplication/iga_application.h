@@ -40,6 +40,7 @@
 #include "custom_conditions/support_laplacian_condition.h"
 #include "custom_conditions/sbm_laplacian_condition_neumann.h"
 #include "custom_conditions/sbm_laplacian_condition_dirichlet.h"
+#include "custom_conditions/support_fluid_condition.h"
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
@@ -143,6 +144,7 @@ private:
     const SupportLaplacianCondition mSupportLaplacianCondition;
     const SbmLaplacianConditionDirichlet mSbmLaplacianConditionDirichlet;
     const SbmLaplacianConditionNeumann mSbmLaplacianConditionNeumann;
+    const SupportFluidCondition mSupportFluidCondition;
 
     // Modelers
     const IgaModeler mIgaModeler;
