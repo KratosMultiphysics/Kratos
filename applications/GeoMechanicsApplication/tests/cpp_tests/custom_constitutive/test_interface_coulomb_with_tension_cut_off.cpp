@@ -366,8 +366,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Check, KratosGeoMech
         "Error: GEO_FRICTION_ANGLE is not defined for property 3")
     properties.SetValue(GEO_FRICTION_ANGLE, -30.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: value of GEO_FRICTION_ANGLE for property 3 is out of range: -30 is not in (0.0, 90.0)")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "Error: value of GEO_FRICTION_ANGLE for property 3 is out of range: -30 is not in (0.0, 90.0)")
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(

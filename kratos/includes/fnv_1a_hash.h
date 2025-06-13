@@ -13,8 +13,7 @@
 //
 //
 
-#if !defined(KRATOS_FNV_1A_HASH_H_INCLUDED)
-#define KRATOS_FNV_1A_HASH_H_INCLUDED
+#pragma once
 
 namespace Kratos {
 ///@addtogroup Kratos Core
@@ -159,5 +158,3 @@ public:
 ///@} addtogroup block
 
 } // namespace Kratos.
-
-#endif // KRATOS_FNV_1A_HASH_H_INCLUDED  defined

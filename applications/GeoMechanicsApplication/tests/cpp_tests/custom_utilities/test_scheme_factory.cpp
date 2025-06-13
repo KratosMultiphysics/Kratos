@@ -60,9 +60,9 @@ KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSchemeTypeOrSolutionTypeAreNot
     }
     )";
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        SchemeFactoryType::Create(Parameters{parameters}),
-        "Specified solution_type/scheme_type is not supported, aborting")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(SchemeFactoryType::Create(Parameters{parameters}),
+                                      "Specified combination of solution_type (NotSupported) and "
+                                      "scheme_type (NotSupported) is not supported, aborting")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CreateScheme_ReturnsCorrectScheme_ForBackwardEulerQuasiStatic,
