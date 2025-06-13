@@ -8,7 +8,7 @@ from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import C
 import os
 import subprocess
 
-
+@KratosUnittest.skipIf(os.name == 'nt', "This test is skipped in windows due to random errors in CI.")
 class TestKratosCoSimIO(KratosUnittest.TestCase):
 
     def test_Connect_Disconnect(self):
