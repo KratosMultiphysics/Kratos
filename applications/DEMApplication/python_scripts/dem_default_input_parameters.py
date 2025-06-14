@@ -39,6 +39,15 @@ def GetDefaultInputParameters():
             "GravityY"                         : 0.0,
             "GravityZ"                         : -9.81,
             "EnergyCalculationOption"          : false,
+            "AdjustBondContactAreaOption"      : false,
+            "AdjustBondContactAreaSettings"        : {
+                "BondContactAreaLognormalMedian"   : 0.0,
+                "BondContactAreaLognormalStdDev"   : 1.0,
+                "BondContactAreaUpperBound"        : 0.0,
+                "BondContactAreaSmallPercentage"   : 10.0,
+                "BondContactAreaSmallMinimum"      : 0.0,
+                "BondContactAreaSmallMaximum"      : 1.0
+            },
             "PotentialEnergyReferencePointX"   : 0.0,
             "PotentialEnergyReferencePointY"   : 0.0,
             "PotentialEnergyReferencePointZ"   : 0.0,

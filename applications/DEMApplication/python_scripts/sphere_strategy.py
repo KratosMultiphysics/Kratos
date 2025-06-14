@@ -218,7 +218,19 @@ class ExplicitStrategy():
 
         if "EnergyCalculationOption" in DEM_parameters.keys():
             self.energy_calculation_option = DEM_parameters["EnergyCalculationOption"].GetBool()
-        
+
+        self.adjust_bond_contact_area_option = False
+        if "AdjustBondContactAreaOption" in DEM_parameters.keys():
+            self.adjust_bond_contact_area_option = DEM_parameters["AdjustBondContactAreaOption"].GetBool()
+
+        if self.adjust_bond_contact_area_option:
+            self.bond_contact_area_lognormal_median = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaLognormalMedian"].GetDouble()
+            self.bond_contact_area_lognormal_std_dev = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaLognormalStdDev"].GetDouble()
+            self.bond_contact_area_upper_bound = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaUpperBound"].GetDouble()
+            self.bond_contact_area_small_percentage = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaSmallPercentage"].GetDouble()
+            self.bond_contact_area_small_minimum = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaSmallMinimum"].GetDouble()
+            self.bond_contact_area_small_maximum = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaSmallMaximum"].GetDouble()
+
         # PRINTING VARIABLES
         self.print_export_id = DEM_parameters["PostExportId"].GetBool()
         self.print_export_skin_sphere = 0
@@ -336,6 +348,16 @@ class ExplicitStrategy():
         self.spheres_model_part.ProcessInfo.SetValue(RADIUS_EXPANSION_RATE_MIN, self.radius_expansion_rate_min)
 
         self.spheres_model_part.ProcessInfo.SetValue(ENERGY_CALCULATION_OPTION, self.energy_calculation_option)
+
+        #Bond contact area
+        self.spheres_model_part.ProcessInfo.SetValue(ADJUST_BOND_CONTACT_AREA_OPTION, self.adjust_bond_contact_area_option)
+        if self.adjust_bond_contact_area_option:
+            self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_LOGNORMAL_MEDIAN, self.bond_contact_area_lognormal_median)
+            self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_LOGNORMAL_STD_DEV, self.bond_contact_area_lognormal_std_dev)
+            self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_UPPER_BOUND, self.bond_contact_area_upper_bound)
+            self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_SMALL_PERCENTAGE, self.bond_contact_area_small_percentage)
+            self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_SMALL_MINIMUM, self.bond_contact_area_small_minimum)
+            self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_SMALL_MAXIMUM, self.bond_contact_area_small_maximum)
 
         # SEARCH-RELATED
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT, self.search_increment)
