@@ -69,7 +69,7 @@ class MonolithicSolver(object):
                 "max_iteration": 10
             },
             "linear_solver_settings":{
-                "solver_type": "ExternalSolversApplication.super_lu",
+                "solver_type": "amgcl",
                 "max_iteration": 500,
                 "tolerance": 1e-9,
                 "scaling": false,

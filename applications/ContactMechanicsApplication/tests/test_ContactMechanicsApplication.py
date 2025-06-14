@@ -32,8 +32,8 @@ def AssembleTestSuites():
 
     # ALL TESTS
     all_suite = suites['all']
-
     all_suite.addTests(night_suite)
+    all_suite.addTests(small_suite)
     all_suite.addTests(validation_suite)
 
     return suites

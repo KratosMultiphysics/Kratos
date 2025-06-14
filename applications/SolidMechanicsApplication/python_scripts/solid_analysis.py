@@ -22,7 +22,7 @@ class Solution(AnalysisStage):
         sys.stdout.flush()
 
         # Measure process time
-        self.t0p = timer.clock()
+        self.t0p = timer.process_time()
 
         # Measure wall time
         self.t0w = timer.time()
@@ -180,7 +180,7 @@ class Solution(AnalysisStage):
         # self._solver.FinalizeSolutionStep()
 
         iterations = self.process_info[KratosMultiphysics.NL_ITERATION_NUMBER]
-        print("  (-ITER:"+str(iterations)+" CPU:%.2f" % round((timer.clock()-clock_time), 2)+"s-)")
+        print("  (-ITER:"+str(iterations)+" CPU:%.2f" % round((timer.process_time()-clock_time), 2)+"s-)")
 
         #self._stop_time_measuring(clock_time, "Solve Step", self.report)
 
@@ -250,7 +250,7 @@ class Solution(AnalysisStage):
         # self._solver.InfoCheck() # InfoCheck not implemented yet.
 
         # Measure process time
-        tfp = timer.clock()
+        tfp = timer.process_time()
 
         # Measure wall time
         tfw = timer.time()
@@ -510,12 +510,12 @@ class Solution(AnalysisStage):
 
     def _start_time_measuring(self):
         # Measure process time
-        time_ip = timer.clock()
+        time_ip = timer.process_time()
         return time_ip
 
     def _stop_time_measuring(self, time_ip, process, report):
         # Measure process time
-        time_fp = timer.clock()
+        time_fp = timer.process_time()
         if report:
             used_time = time_fp - time_ip
             print(self._class_prefix()+" [ %.2f" % round(used_time, 2), "s", process, " ] ")
