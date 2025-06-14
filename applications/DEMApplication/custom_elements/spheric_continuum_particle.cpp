@@ -256,34 +256,27 @@ namespace Kratos {
         bool do_adjust_bond_contact_area = true;
         if (do_adjust_bond_contact_area) {
             
-            const double lognormal_median = 2365e-12;
-            const double lognormal_std_dev = 0.8;
-            double upper_bound = 1.0e-8; // This is the upper bound for the bond contact area
+            const double bond_contact_area_lognormal_median = r_process_info[BOND_CONTACT_AREA_LOGNORMAL_MEDIAN];
+            const double bond_contact_area_lognormal_std_dev = r_process_info[BOND_CONTACT_AREA_LOGNORMAL_STD_DEV];
+            const double bond_contact_area_upper_bound = r_process_info[BOND_CONTACT_AREA_UPPER_BOUND]; // This is the upper bound for the bond contact area
+            const double bond_contact_area_small_percentage = r_process_info[BOND_CONTACT_AREA_SMALL_PERCENTAGE];
+            const double bond_contact_area_small_minimum = r_process_info[BOND_CONTACT_AREA_SMALL_MINIMUM];
+            const double bond_contact_area_small_maximum = r_process_info[BOND_CONTACT_AREA_SMALL_MAXIMUM];
 
-            double mu = std::log(lognormal_median);
+            double mu = std::log(bond_contact_area_lognormal_median);
 
             std::random_device rd;
             std::mt19937 gen(rd());
 
-            std::lognormal_distribution<> lognorm(mu, lognormal_std_dev);
+            std::lognormal_distribution<> lognorm(mu, bond_contact_area_lognormal_std_dev);
             do {
                 bond_contact_area = lognorm(gen);
-            } while (bond_contact_area > upper_bound);
-
-            const double bond_contact_area_small_percentage = 0.08;
-            const double bond_contact_area_small_minimum = 1.0e-12;
-            const double bond_contact_area_small_maximum = 2.0e-10;
-            const double bond_contact_area_small_percentage_2 = 0.04;
-            const double bond_contact_area_small_minimum_2 = 2.0e-10;
-            const double bond_contact_area_small_maximum_2 = 4.0e-10;
+            } while (bond_contact_area > bond_contact_area_upper_bound);
 
             double my_random_value = static_cast<double>(rand()) / RAND_MAX;
             if (my_random_value < bond_contact_area_small_percentage) {
                 bond_contact_area = my_random_value * (bond_contact_area_small_maximum - bond_contact_area_small_minimum) + bond_contact_area_small_minimum;
-            } else if (my_random_value < (bond_contact_area_small_percentage_2 + bond_contact_area_small_percentage))
-            {
-                bond_contact_area = my_random_value * (bond_contact_area_small_maximum_2 - bond_contact_area_small_minimum_2) + bond_contact_area_small_minimum_2;
-            }
+            } 
         }
     }
 
