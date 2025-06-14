@@ -117,7 +117,8 @@ namespace Kratos
                                                     const double other_search_radius,
                                                     const double my_radius,
                                                     const double other_radius,
-                                                    double& bond_contact_area);
+                                                    double& bond_contact_area,
+                                                    const ProcessInfo& r_process_info);
         virtual void CalculateBondVolume(const double distance,
                                         const double my_radius,
                                         const double other_radius,

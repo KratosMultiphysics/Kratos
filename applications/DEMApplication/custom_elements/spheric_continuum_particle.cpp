@@ -97,7 +97,12 @@ namespace Kratos {
 
             //calculate the initial conatct area
             double ini_bond_contact_area = 0.0;
-            CalculateInitialBondContactArea(distance, GetSearchRadius(), neighbour_iterator->GetSearchRadius(), GetRadius(), neighbour_iterator->GetRadius(), ini_bond_contact_area);
+            CalculateInitialBondContactArea(distance, GetSearchRadius(), 
+                                            neighbour_iterator->GetSearchRadius(), 
+                                            GetRadius(), 
+                                            neighbour_iterator->GetRadius(), 
+                                            ini_bond_contact_area,
+                                            r_process_info);
             mIniBondContactArea[static_cast<int>(neighbour_iterator->Id())] = ini_bond_contact_area;
 
             //TODO: This implementation is right only when all the particles are cememnted.
@@ -213,7 +218,8 @@ namespace Kratos {
                                                                 const double other_search_radius,
                                                                 const double my_radius,
                                                                 const double other_radius,
-                                                                double& bond_contact_area) 
+                                                                double& bond_contact_area,
+                                                                const ProcessInfo& r_process_info) 
     {
         const double dis_squared = distance * distance;
         const double my_search_r_squared = my_search_radius * my_search_radius;
@@ -253,8 +259,8 @@ namespace Kratos {
         }*/
 
         //TODO: temporary code 
-        bool do_adjust_bond_contact_area = true;
-        if (do_adjust_bond_contact_area) {
+        bool adjust_bond_contact_area = r_process_info[ADJUST_BOND_CONTACT_AREA_OPTION];
+        if (adjust_bond_contact_area) {
             
             const double bond_contact_area_lognormal_median = r_process_info[BOND_CONTACT_AREA_LOGNORMAL_MEDIAN];
             const double bond_contact_area_lognormal_std_dev = r_process_info[BOND_CONTACT_AREA_LOGNORMAL_STD_DEV];
