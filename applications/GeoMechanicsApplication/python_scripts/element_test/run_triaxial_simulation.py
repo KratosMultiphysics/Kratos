@@ -47,15 +47,16 @@ def run_triaxial_simulation(dll_path, index, umat_parameters, num_steps, end_tim
         material_editor.set_constitutive_law("GeoLinearElasticPlaneStrain2DLaw")
 
     project_editor = ProjectParameterEditor(project_param_path)
-    project_editor.update_time_step_properties(num_steps, end_time)
-    project_editor.update_end_time_properties(end_time)
-    project_editor.update_initial_stress_vector(initial_effective_cell_pressure)
+    project_editor.update_property('time_step', end_time / num_steps)
+    project_editor.update_property('end_time', end_time)
+    initial_uniform_stress_value = [-initial_effective_cell_pressure] * 3 + [0.0]
+    project_editor.update_nested_value("apply_initial_uniform_stress_field", "value", initial_uniform_stress_value)
 
     mdpa_editor = MdpaEditor(mdpa_path)
     mdpa_editor.update_maximum_strain(maximum_strain)
     mdpa_editor.update_initial_effective_cell_pressure(initial_effective_cell_pressure)
     mdpa_editor.update_end_time(end_time)
-    mdpa_editor.update_first_timestep(num_steps)
+    mdpa_editor.update_first_timestep(num_steps, end_time)
 
     output_files = [os.path.join(tmp_folder, 'gid_output', "triaxial.post.res")]
     runner = TriaxialTestRunner(output_files, tmp_folder)
