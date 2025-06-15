@@ -16,6 +16,7 @@
 #include "custom_utilities/create_breps_sbm_utilities.h"
 #include "includes/kratos_parameters.h"
 #include "custom_modelers/nurbs_geometry_modeler.h"
+#include "iga_fast_suite.h"
 
 namespace Kratos::Testing
 {

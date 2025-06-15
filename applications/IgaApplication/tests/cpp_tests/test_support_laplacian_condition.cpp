@@ -16,6 +16,7 @@
 #include "test_creation_utility.h"
 #include "custom_conditions/support_laplacian_condition.h"
 #include "includes/convection_diffusion_settings.h"
+#include "iga_fast_suite.h"
 
 namespace Kratos::Testing
 {
