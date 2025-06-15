@@ -157,8 +157,7 @@
                         "nodal_results"               : ["DISPLACEMENT","WATER_PRESSURE"],
                         "nodal_nonhistorical_results" : [],
                         "gauss_point_results"         : ["CAUCHY_STRESS_TENSOR","VON_MISES_STRESS","MEAN_EFFECTIVE_STRESS","ENGINEERING_STRAIN_TENSOR"]
-                    },
-                    "point_data_configuration"  : []
+                    }
                 },
                 "output_name"            : "gid_output/triaxial"
             }

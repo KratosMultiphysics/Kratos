@@ -9,9 +9,9 @@ Begin Table 2 TIME DISPLACEMENT_Y
   $end_time $maximum_strain
 End Table
 
-
 Begin Properties 0
 End Properties
+
 Begin Nodes
     1   0.0000000000   1.0000000000   0.0000000000
     2   0.5000000000   1.0000000000   0.0000000000
@@ -23,7 +23,6 @@ Begin Nodes
     8   0.5000000000   0.0000000000   0.0000000000
     9   1.0000000000   0.0000000000   0.0000000000
 End Nodes
-
 
 Begin Elements SmallStrainUPwDiffOrderAxisymmetricElement2D6N// GUI group identifier: Soil
         1          0     1     5     9     3     8     4 
@@ -41,6 +40,7 @@ Begin SubModelPart Fixed_base // Group Fixed_base // Subtree DISPLACEMENT
             9
     End SubModelPartNodes
 End SubModelPart
+
 Begin SubModelPart Fixed_side // Group Fixed_side // Subtree DISPLACEMENT
     Begin SubModelPartNodes
             1
@@ -48,6 +48,7 @@ Begin SubModelPart Fixed_side // Group Fixed_side // Subtree DISPLACEMENT
             5
     End SubModelPartNodes
 End SubModelPart
+
 Begin SubModelPart Soil // Group Soil // Subtree Parts_Soil
     Begin SubModelPartNodes
             1
@@ -65,6 +66,7 @@ Begin SubModelPart Soil // Group Soil // Subtree Parts_Soil
             2
     End SubModelPartElements
 End SubModelPart
+
 Begin SubModelPart Lateral_load // Group Lateral_load // Subtree Lateral_load
     Begin SubModelPartTables
             1
@@ -78,6 +80,7 @@ Begin SubModelPart Lateral_load // Group Lateral_load // Subtree Lateral_load
             1
     End SubModelPartConditions
 End SubModelPart
+
 Begin SubModelPart Top_displacement // Group Top_displacement // Subtree DISPLACEMENT
     Begin SubModelPartTables
             2
