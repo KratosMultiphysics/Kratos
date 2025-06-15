@@ -1,4 +1,5 @@
 import numpy as np
+from ui_logger import log_message
 
 
 def plot_sigma(ax, sigma_1, sigma_3):
@@ -37,6 +38,8 @@ def plot_volumetric_strain(ax, vertical_strain, volumetric_strain):
     ax.locator_params(nbins=8)
 
 def plot_mohr_coulomb_circle(ax, sigma_1, sigma_3, cohesion=None, friction_angle=None):
+    if np.isclose(sigma_1, sigma_3):
+        log_message("σ₁ is equal to σ₃. Mohr circle collapses to a point.", "warn")
     center = (sigma_1 + sigma_3) / 2
     radius = (sigma_1 - sigma_3) / 2
     theta = np.linspace(0, np.pi, 200)
