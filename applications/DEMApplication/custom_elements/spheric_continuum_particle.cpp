@@ -280,7 +280,7 @@ namespace Kratos {
             } while (bond_contact_area > bond_contact_area_upper_bound);
 
             double my_random_value = static_cast<double>(rand()) / RAND_MAX;
-            if (my_random_value < bond_contact_area_small_percentage) {
+            if (my_random_value < bond_contact_area_small_percentage / 100.0) {
                 bond_contact_area = my_random_value * (bond_contact_area_small_maximum - bond_contact_area_small_minimum) + bond_contact_area_small_minimum;
             } 
         }
