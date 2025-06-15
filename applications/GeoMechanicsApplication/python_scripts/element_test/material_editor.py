@@ -8,10 +8,7 @@ class MaterialEditor:
 
     def _convert_type(self, value_string):
         try:
-            if '.' in value_string or 'e' in value_string.lower():
                 return float(value_string)
-            else:
-                return int(value_string)
         except ValueError:
             return value_string
 
