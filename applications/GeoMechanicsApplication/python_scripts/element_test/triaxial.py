@@ -125,7 +125,7 @@ class TriaxialTestRunner:
             values = result["values"]
             if not values:
                 continue
-            eps_xx, eps_yy, eps_zz = values[0]["value"][0][:3]
+            eps_xx, eps_yy, eps_zz, eps_xy = values[0]["value"][0][:4]
             vol.append(eps_xx + eps_yy + eps_zz)
             yy.append(eps_yy)
         return yy, vol
