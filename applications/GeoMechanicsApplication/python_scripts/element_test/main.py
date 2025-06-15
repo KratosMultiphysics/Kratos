@@ -13,7 +13,7 @@ def main():
     try:
         create_menu()
     except ImportError as e:
-        print(f"[ERROR] Could not run GUI: {e}")
+        print(f"[ERROR] Could not run GUI: {e}. Make sure the GeoMechanicsApplication is built and installed correctly.")
         sys.exit(1)
 
 if __name__ == "__main__":
