@@ -109,13 +109,7 @@ namespace Kratos
             VectorType& rRightHandSideVector,
             const ProcessInfo& rCurrentProcessInfo) override
         {
-            const SizeType mat_size = GetGeometry().size() * 2;
-
-            if (rRightHandSideVector.size() != mat_size)
-                rRightHandSideVector.resize(mat_size);
-            noalias(rRightHandSideVector) = ZeroVector(mat_size);
-
-            MatrixType left_hand_side_matrix = ZeroMatrix(mat_size, mat_size);
+            MatrixType left_hand_side_matrix;
 
             CalculateAll(left_hand_side_matrix, rRightHandSideVector,
                 rCurrentProcessInfo, false, true);
@@ -131,13 +125,7 @@ namespace Kratos
             MatrixType& rLeftHandSideMatrix,
             const ProcessInfo& rCurrentProcessInfo) override
         {
-            const SizeType mat_size = GetGeometry().size() * 2;
-
             VectorType right_hand_side_vector;
-
-            if (rLeftHandSideMatrix.size1() != mat_size && rLeftHandSideMatrix.size2())
-                rLeftHandSideMatrix.resize(mat_size, mat_size);
-            noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
             CalculateAll(rLeftHandSideMatrix, right_hand_side_vector,
                 rCurrentProcessInfo, true, false);
@@ -156,16 +144,6 @@ namespace Kratos
             VectorType& rRightHandSideVector,
             const ProcessInfo& rCurrentProcessInfo) override
         {
-            const SizeType mat_size = GetGeometry().size() * 1;
-
-            if (rRightHandSideVector.size() != mat_size)
-                rRightHandSideVector.resize(mat_size);
-            noalias(rRightHandSideVector) = ZeroVector(mat_size);
-
-            if (rLeftHandSideMatrix.size1() != mat_size)
-                rLeftHandSideMatrix.resize(mat_size, mat_size);
-            noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
-
             CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
                 rCurrentProcessInfo, true, true);
         }
