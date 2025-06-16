@@ -8,7 +8,7 @@ class MaterialEditor:
 
     def _convert_type(self, value_string):
         try:
-                return float(value_string)
+            return float(value_string)
         except ValueError:
             return value_string
 

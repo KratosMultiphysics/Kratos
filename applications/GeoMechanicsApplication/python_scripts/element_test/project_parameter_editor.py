@@ -19,9 +19,8 @@ class ProjectParameterEditor:
 
             loads_list = data.get("processes", {}).get("loads_process_list", [])
             for process in loads_list:
-                if (
-                        process.get("python_module") == module_name
-                        and key in process.get("Parameters", {})
+                if (process.get("python_module") == module_name
+                    and key in process.get("Parameters", {})
                 ):
                     process["Parameters"][key] = new_list
                     break
@@ -41,5 +40,5 @@ class ProjectParameterEditor:
         if count == 0:
             messagebox.showwarning("Warning", f"Could not find '{property_name}' to update.")
         elif count > 1:
-            messagebox.showwarning("Warning", f"Multiple occurrences of '{property_name}' found. Updated all {count}, which may lead to ambiguity.")
+            messagebox.showwarning("Warning", f"Multiple occurrences of '{property_name}' found. Updated all {count}.")
         self._write_back()

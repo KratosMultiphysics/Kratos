@@ -38,7 +38,7 @@ class TriaxialTest:
             friction_angle = umat_parameters[3]
             return cohesion, friction_angle
         except KeyError:
-            raise KeyError("Cohesion and Friction angle  not found in the UMAT_PARAMETERS.")
+            raise KeyError("Cohesion and Friction angle not found in the UMAT_PARAMETERS.")
 
 class TriaxialTestRunner:
     def __init__(self, output_file_paths, work_dir):
