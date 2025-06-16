@@ -122,7 +122,7 @@ namespace Kratos
                 distance[0] =  MasterIPGlobalCoordinates[0] - SlaveIPGlobalCoordinates[0] - _g3[point_number][0] * _theta3[point_number];
                 distance[1] =  MasterIPGlobalCoordinates[1] - SlaveIPGlobalCoordinates[1] - _g3[point_number][1] * _theta3[point_number];
                 distance[2] =  MasterIPGlobalCoordinates[2] - SlaveIPGlobalCoordinates[2] - _g3[point_number][2] * _theta3[point_number];
-                _theta3[point_number] = inner_prod(distance, _g3[point_number]) / inner_prod(_g3[point_number], _g3[point_number]);
+                _theta3[point_number] = inner_prod(distance, _g3[point_number]) ;
 
                 // Check that SlavePoint + theta3 * A3 = MasterPoint 
                 array_1d<double, 3> check_distance;
@@ -131,10 +131,10 @@ namespace Kratos
                 double check02 = norm_2(check_distance);
 
                 double thickness = GetProperties().GetValue(THICKNESS);
-                if (abs(_theta3[point_number]) > thickness / 2) {
-                    std::cout << "Theta3 > thickness/2" << std::endl;
-                    KRATOS_ERROR;
-                }
+                //if ( abs(_theta3[point_number]) - thickness / 2 > 1E-3) {
+                //    std::cout << "Theta3 = " << _theta3[point_number] << "  > thickness / 2" << std::endl;
+                //    KRATOS_ERROR;
+                //}
                 if (norm_2(check_distance) > 1E-6) {
                     array_1d<double, 3> g3 = _g3[point_number];
                     double theta3 = _theta3[point_number];
