@@ -343,10 +343,11 @@ void UPwSmallStrainElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(const 
     KRATOS_TRY
 
     if (rVariable == CAUCHY_STRESS_VECTOR) {
-        KRATOS_ERROR_IF(rValues.size() != mStressVector.size())
+        KRATOS_ERROR_IF(rValues.size() != this->GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod))
             << "Unexpected number of values for "
                "UPwSmallStrainElement::SetValuesOnIntegrationPoints"
             << std::endl;
+        mStressVector.resize(rValues.size());
         std::copy(rValues.begin(), rValues.end(), mStressVector.begin());
     } else {
         KRATOS_ERROR_IF(rValues.size() < mConstitutiveLawVector.size())
@@ -578,7 +579,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
     rOutput.resize(number_of_integration_points);
 
     if (rVariable == CAUCHY_STRESS_VECTOR) {
-        for (unsigned int integration_point = 0; integration_point < mConstitutiveLawVector.size();
+        for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
             rOutput[integration_point].resize(mStressVector[integration_point].size(), false);
             rOutput[integration_point] = mStressVector[integration_point];
