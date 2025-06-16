@@ -170,38 +170,36 @@ protected:
 
     virtual void CalculateTau(double& TauOne,
                               double& TauTwo,
-                              const double h_element_size,
-                              double mu_effective);
+                              double MuEffective);
 
     double ElementSize();
 
     void AddMomentumTerms(MatrixType &rLHS,
             VectorType &rRHS,
-            const array_1d<double,3>& BodyForce,
+            const array_1d<double,3>& rBodyForce,
             const double TauTwo,
-            const ShapeFunctionsType &N,
-            const ShapeDerivativesType &DN_DX,
+            const ShapeFunctionsType &rN,
+            const ShapeDerivativesType &rDN_DX,
             const double Weigth,
-            const Matrix& r_D,
-            Vector& r_stress_vector);
+            const Matrix& rD,
+            Vector& rStressVector);
 
     void AddContinuityTerms(MatrixType &rLHS,
             VectorType &rRHS,
-            const array_1d<double,3>& BodyForce,
+            const array_1d<double,3>& rBodyForce,
             const double TauOne,
-            const ShapeFunctionsType &N,
-            const ShapeDerivativesType &DN_DX,
+            const ShapeFunctionsType &rN,
+            const ShapeDerivativesType &rDN_DX,
             const double Weight);
 
     void AddSecondOrderStabilizationTerms(MatrixType &rLHS,
             VectorType &rRHS,
-            const array_1d<double,3>& BodyForce,
+            const array_1d<double,3>& rBodyForce,
             const double TauOne,
-            const ShapeFunctionsType &N,
-            const ShapeDerivativesType &DN_DX,
+            const ShapeFunctionsType &rN,
+            const ShapeDerivativesType &rDN_DX,
             const double Weight,
-            const Matrix& r_D,
-            Vector& r_stress_vector);
+            const Matrix& rD);
     
     Vector CalculateStressAtIntegrationPoint(const ProcessInfo& rCurrentProcessInfo);
     
@@ -301,11 +299,11 @@ private:
         const ShapeDerivativesType& r_DN_DX) const;
     
     void CalculateBDerivativeDx(
-        Matrix& B_derivative_x,
+        Matrix& BDerivativeDx,
         const ShapeDerivativesType& r_DDN_DDX) const;
     
     void CalculateBDerivativeDy(
-        Matrix& B_derivative_y,
+        Matrix& BDerivativeDy,
         const ShapeDerivativesType& r_DDN_DDX) const;
 
     void GetSolutionCoefficientVector(
