@@ -63,7 +63,7 @@ const std::vector<std::string>& UserModFunctionNames()
 {
     auto generate_names = []() {
         using namespace std::string_literals;
-        auto       result         = std::vector<std::string>{"user_mod"s};
+        auto result = std::vector<std::string>{"User_Mod"s, "User_mod"s, "USER_MOD"s, "user_mod"s};
         const auto gfortran_names = GFortranNamesOf(result);
         result.insert(result.end(), gfortran_names.begin(), gfortran_names.end());
         return result;
