@@ -211,7 +211,7 @@ void StokesElement::AddMomentumTerms(MatrixType &rLHS,
 {
     const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
     const unsigned int block_size = mDim+1;
-    auto r_geometry = GetGeometry();
+    auto &r_geometry = GetGeometry();
 
     Matrix B = ZeroMatrix(3,number_of_nodes*mDim);
     CalculateB(B, rDN_DX);
@@ -292,7 +292,7 @@ void StokesElement::AddContinuityTerms(MatrixType &rLHS,
 {
     const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
     const unsigned int block_size = mDim+1;
-    auto r_geometry = GetGeometry();
+    auto &r_geometry = GetGeometry();
 
     unsigned int first_row = 0;
     unsigned int first_col = 0;
@@ -362,7 +362,7 @@ void StokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHandSideMa
 {
     const unsigned int number_of_points = this->GetGeometry().PointsNumber();
     const unsigned int block_size = mDim+1;
-    auto r_geometry = GetGeometry();
+    auto &r_geometry = GetGeometry();
 
     // Add third order term of the stabilization
     if (mBasisFunctionsOrder > 1) {
