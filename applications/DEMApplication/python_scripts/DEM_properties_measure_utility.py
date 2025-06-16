@@ -213,3 +213,6 @@ class DEMPropertiesMeasureUtility:
             
     def MeasureTotalSpheresVolume(self):
         return self.SphericElementGlobalPhysicsCalculator.CalculateTotalVolume(self.spheres_model_part)
+    
+    def RemoveRigidBodyMotion(self):
+        self.SphericElementGlobalPhysicsCalculator.RemoveRigidBodyMotion(self.spheres_model_part)

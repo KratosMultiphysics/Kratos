@@ -891,6 +891,9 @@ class DEMAnalysisStage(AnalysisStage):
 
     def MeasureTotalSpheresVolume(self):
         return self.DEMPropertiesMeasureUtility.MeasureTotalSpheresVolume()
+    
+    def RemoveRigidBodyMotion(self):
+        self.DEMPropertiesMeasureUtility.RemoveRigidBodyMotion()
 
 if __name__ == "__main__":
     with open("ProjectParametersDEM.json",'r') as parameter_file:
