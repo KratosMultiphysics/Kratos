@@ -314,7 +314,7 @@ def SetHistoricalNonUniformSolutionScalar(conditions, variable):
         val = 12*sin(geometry.Center().X) + geometry.Center().Y*15 + 22*geometry.Center().Z
         condition.SetSolutionStepValue(variable, val)
 
-def SetHistoricalNonUnformSolutionVector(nodes, variable):
+def SetHistoricalNonUniformSolutionVector(nodes, variable):
     for node in nodes:
         val_1 = 12*sin(node.X0) + node.Y0*15
         val_2 = 33*cos(node.X0) + node.Y0*5
