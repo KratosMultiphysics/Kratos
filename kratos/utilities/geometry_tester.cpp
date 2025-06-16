@@ -505,22 +505,12 @@ bool GeometryTesterUtility::StreamTestHexahedra3D27N(
     if( !VerifyAreaByIntegration( geometry, GeometryData::IntegrationMethod::GI_GAUSS_3, expected_vol, rErrorMessage) ) successful=false;
     if( !VerifyAreaByIntegration( geometry, GeometryData::IntegrationMethod::GI_GAUSS_4, expected_vol, rErrorMessage) ) successful=false;
     if( !VerifyAreaByIntegration( geometry, GeometryData::IntegrationMethod::GI_GAUSS_5, expected_vol, rErrorMessage) ) successful=false;
-//         if( !VerifyAreaByIntegration( geometry, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1, expected_vol, rErrorMessage) ) successful=false;
-//         if( !VerifyAreaByIntegration( geometry, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2, expected_vol, rErrorMessage) ) successful=false;
-//         if( !VerifyAreaByIntegration( geometry, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3, expected_vol, rErrorMessage) ) successful=false;
-//         if( !VerifyAreaByIntegration( geometry, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4, expected_vol, rErrorMessage) ) successful=false;
-//         if( !VerifyAreaByIntegration( geometry, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5, expected_vol, rErrorMessage) ) successful=false;
 
     VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_1, rErrorMessage);
     VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_2, rErrorMessage);
     VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_3, rErrorMessage);
     VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_4, rErrorMessage);
     VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_5, rErrorMessage);
-//         VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1, rErrorMessage);
-//         VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2, rErrorMessage);
-//         VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3, rErrorMessage);
-//         VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4, rErrorMessage);
-//         VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5, rErrorMessage);
 
     array_1d<double,3> point_in(3,1.0/3.0);
     if( !VerifyShapeFunctionsSecondDerivativesValues(geometry,point_in,rErrorMessage) ) successful = false;
@@ -1134,16 +1124,6 @@ std::string GeometryTesterUtility::GetIntegrationName(
         return std::string("GI_GAUSS_4");
     case GeometryData::IntegrationMethod::GI_GAUSS_5 :
         return std::string("GI_GAUSS_5");
-    case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 :
-        return std::string("GI_EXTENDED_GAUSS_1");
-    case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 :
-        return std::string("GI_EXTENDED_GAUSS_2");
-    case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 :
-        return std::string("GI_EXTENDED_GAUSS_3");
-    case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 :
-        return std::string("GI_EXTENDED_GAUSS_4");
-    case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 :
-        return std::string("GI_EXTENDED_GAUSS_5");
     case GeometryData::IntegrationMethod::GI_LOBATTO_1 :
         return std::string("GI_LOBATTO_1");
     case GeometryData::IntegrationMethod::NumberOfIntegrationMethods :

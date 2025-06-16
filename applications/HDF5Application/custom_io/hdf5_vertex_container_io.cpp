@@ -23,22 +23,31 @@ namespace Kratos
 namespace HDF5
 {
 
-VertexContainerCoordinateIO::VertexContainerCoordinateIO(
-    Parameters Settings,
-    File::Pointer pFile)
-    : mpFile(pFile)
+namespace Internals
 {
-    KRATOS_TRY
-
+std::string AddMissingAndGetPrefix(Parameters Settings)
+{
     Parameters default_params(R"(
         {
-            "prefix"           : "",
-            "write_vertex_ids" : false
+            "prefix": ""
         })");
 
     Settings.AddMissingParameters(default_params);
-    mWriteIDs = Settings["write_vertex_ids"].GetBool();
-    mPathPrefix = Settings["prefix"].GetString();
+    return Settings["prefix"].GetString();
+}
+}
+
+VertexContainerCoordinateIO::VertexContainerCoordinateIO(
+    Parameters Settings,
+    File::Pointer pFile)
+    : BaseType(Internals::AddMissingAndGetPrefix(Settings), pFile)
+{
+    KRATOS_TRY
+
+    const std::string prefix = Settings["prefix"].Get<std::string>();
+    KRATOS_ERROR_IF(!prefix.empty() && prefix.back() == '/')
+        << "The prefix for vertex coordinates assumed to be a group hence no need to have an ending \"/\" [ prefix = \""
+        << Settings["prefix"].GetString() << "\" ].\n";
 
     KRATOS_CATCH("");
 }
@@ -47,85 +56,29 @@ void VertexContainerCoordinateIO::Write(
     const Detail::VertexContainerType& rVertices,
     Parameters Attributes)
 {
-    if (mWriteIDs) {
-        WriteWithIDs(rVertices, Attributes);
-    } else {
-        WriteWithoutIDs(rVertices, Attributes);
-    }
+    BaseType::Write(rVertices, Internals::VertexIO{}, Attributes);
 }
 
-
-void VertexContainerCoordinateIO::WriteWithIDs(
-    const Detail::VertexContainerType& rVertices,
-    Parameters Attributes)
-{
-    KRATOS_TRY
-
-    const std::string path = mPathPrefix + "/POSITION";
-
-    // Collect vertex coordinates into a buffer
-    Matrix<double> buffer;
-    buffer.resize(rVertices.size(), 4,  false);
-
-    IndexPartition<IndexType>(rVertices.size()).for_each([&rVertices, &buffer](const auto Index) {
-        const auto& rVertex = *(rVertices.begin() + Index);
-
-        for (std::size_t i_component=0; i_component < 3; ++i_component) {
-            buffer(Index, i_component) = rVertex[i_component];
-        }
-
-        buffer(Index, 3) = rVertex.GetID();
-    });
-
-    // Write buffer to the requested path
-    WriteInfo write_info;
-    mpFile->WriteDataSet(path, buffer, write_info);
-    mpFile->WriteAttribute(path, Attributes);
-
-    KRATOS_CATCH("");
-}
-
-void VertexContainerCoordinateIO::WriteWithoutIDs(
-    const Detail::VertexContainerType& rVertices,
-    Parameters Attributes)
-{
-    KRATOS_TRY
-
-    const std::string path = mPathPrefix + "/POSITION";
-
-    // Collect vertex coordinates into a buffer
-    Matrix<double> buffer;
-    buffer.resize(rVertices.size(), 3,  false);
-
-    IndexPartition<IndexType>(rVertices.size()).for_each([&rVertices, &buffer](const auto Index) {
-        const auto& rVertex = *(rVertices.begin() + Index);
-
-        for (std::size_t i_component=0; i_component < 3; ++i_component) {
-            buffer(Index, i_component) = rVertex[i_component];
-        }
-    });
-
-    // Write buffer to the requested path
-    WriteInfo write_info;
-    mpFile->WriteDataSet(path, buffer, write_info);
-    mpFile->WriteAttribute(path, Attributes);
-
-    KRATOS_CATCH("");
-}
-
-VertexContainerVariableIO::VertexContainerVariableIO(
+template<class TVertexDataIOType>
+VertexContainerVariableIO<TVertexDataIOType>::VertexContainerVariableIO(
     Parameters Settings,
     File::Pointer pFile)
     : BaseType(Settings, pFile)
 {
 }
 
-void VertexContainerVariableIO::Write(
+template<class TVertexDataIOType>
+void VertexContainerVariableIO<TVertexDataIOType>::Write(
     const Detail::VertexContainerType& rVertices,
-    Parameters Atttributes)
+    const TVertexDataIOType& rVertexDataIO,
+    const Parameters Atttributes)
 {
-    BaseType::Write(rVertices, Internals::VertexValueIO{}, Atttributes);
+    BaseType::Write(rVertices, rVertexDataIO, Atttributes);
 }
+
+// template instantiations
+template class KRATOS_API(HDF5_APPLICATION) VertexContainerVariableIO<Internals::VertexHistoricalValueIO>;
+template class KRATOS_API(HDF5_APPLICATION) VertexContainerVariableIO<Internals::VertexNonHistoricalValueIO>;
 
 } // namespace HDF5
 } // namespace Kratos

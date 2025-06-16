@@ -33,7 +33,7 @@ namespace Kratos
 
 ///@name Kratos Classes
 ///@{
-template<class TNodeType = Node, class TEmbeddedNodeType = Point>
+template<class TNodeType = Node, class TEmbeddedNodeType = Point, bool TShiftedBoundary = true>
 class CreateBrepsSbmUtilities : public IO
 {
     public:
@@ -58,8 +58,8 @@ class CreateBrepsSbmUtilities : public IO
     using NurbsSurfaceGeometryType = NurbsSurfaceGeometry<3, PointerVector<TNodeType>>;
     using NurbsSurfaceGeometryPointerType = typename NurbsSurfaceGeometryType::Pointer;
 
-    using BrepSurfaceType = BrepSurface<ContainerNodeType, true, ContainerEmbeddedNodeType>;
-    using BrepCurveOnSurfaceType = BrepCurveOnSurface<ContainerNodeType, true, ContainerEmbeddedNodeType>;
+    using BrepSurfaceType = BrepSurface<ContainerNodeType, TShiftedBoundary, ContainerEmbeddedNodeType>;
+    using BrepCurveOnSurfaceType = BrepCurveOnSurface<ContainerNodeType, TShiftedBoundary, ContainerEmbeddedNodeType>;
 
     using BrepCurveOnSurfaceLoopType = DenseVector<typename BrepCurveOnSurfaceType::Pointer>;
     using BrepCurveOnSurfaceLoopArrayType = DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>>;
@@ -142,8 +142,9 @@ private:
 
         BrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
 
+        // Set to FALSE the TShiftedBoundary flag
         auto p_brep_surface =
-            Kratos::make_shared<BrepSurfaceType>(
+            Kratos::make_shared<BrepSurface<ContainerNodeType, false, ContainerEmbeddedNodeType>>(
                 pSurface, 
                 outer_loops,
                 inner_loops,

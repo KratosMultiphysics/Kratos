@@ -197,6 +197,22 @@ namespace StringUtilities
         );
 
     /**
+     * @brief Counts space-separated values in a string until a token with a specific character is found.
+     * @details It reads tokens separated by whitespace from the input string. The count
+     * includes tokens encountered *before* a token that starts with the `rStopCharacter`.
+     * If no token starts with `rStopCharacter`, all tokens are counted.
+     * If `rStopCharacter` is an empty string, it's considered to match the beginning of any token,
+     * so the function will return 0 (as the "stop" condition is met before the first token).
+     * @param rInputString The string containing values to be counted.
+     * @param rStopCharacter The character that indicates a token at which counting should stop.
+     * @return The number of values counted before encountering a token with `rStopCharacter`.
+     */
+    [[nodiscard]] std::size_t KRATOS_API(KRATOS_CORE) CountValuesUntilCharacter(
+        const std::string& rInputString,
+        const std::string& rStopCharacter = ""
+        );
+
+    /**
      * @brief Prints the data of an object of type TClass to the given output stream with indentation.
      * @param rOStream The output stream where the data will be printed.
      * @param rThisClass The object of type TClass whose data will be printed.
