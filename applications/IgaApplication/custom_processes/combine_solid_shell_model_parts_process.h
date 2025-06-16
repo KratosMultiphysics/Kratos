@@ -142,7 +142,14 @@ private:
 
     void Cylinder270_projection(const Geometry<Node>& ShellCurveOnCouplingInterface,
         CoordinatesArrayType& integration_points_global_coords_vector, 
-        CoordinatesArrayType& local_slave_coords);
+        CoordinatesArrayType& local_slave_coords,
+        const std::vector<double>& rSpans); 
+
+    void AccurateProjection(const Geometry<Node>& ShellCurveOnCouplingInterface,
+        const CoordinatesArrayType& integration_points_global_coords_vector,
+        CoordinatesArrayType& local_slave_coords,
+        const double& thickness,
+        const std::vector<double>& rSpans); // TBD: Check and deledete if not needed
 
     ///@}
 
