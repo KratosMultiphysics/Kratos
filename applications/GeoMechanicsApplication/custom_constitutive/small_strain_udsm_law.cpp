@@ -493,16 +493,15 @@ bool SmallStrainUDSMLaw::loadUDSMLinux(const Properties& rMaterialProperties)
     // resolve function GetStateVarCount address
     mpGetStateVarCount = (f_GetStateVarCount)dlsym(lib_handle, "getstatevarcount");
 
-    mpUserMod = (f_UserMod)dlsym(lib_handle, "user_mod");
+    for (const auto& r_function_name : UserModFunctionNames()) {
+        mpUserMod = (f_UserMod)dlsym(lib_handle, r_function_name.c_str());
+
+        if (mpUserMod) break;
+    }
+
     if (!mpUserMod) {
-        mpUserMod = (f_UserMod)dlsym(lib_handle, "user_mod_");
-        if (!mpUserMod) {
-            KRATOS_INFO("Error in loadUDSMLinux")
-                << "cannot load function User_Mod in the specified UDSM: " << rMaterialProperties[UDSM_NAME]
-                << std::endl;
-            KRATOS_ERROR << "cannot load function User_Mod in the specified UDSM "
-                         << rMaterialProperties[UDSM_NAME] << std::endl;
-        }
+        KRATOS_ERROR << "Cannot load function 'User_Mod' in the specified UDSM "
+                     << rMaterialProperties[UDSM_NAME] << std::endl;
     }
 
     return true;
