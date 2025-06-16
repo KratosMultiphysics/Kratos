@@ -12,6 +12,8 @@ from iga_test_factory import SinglePatchTest as SinglePatchTest
 from truss_element_tests import TrussElementTests as TTrussElementTests
 # Structural Elements test - python based
 from test_solid_IGA_element import SolidIGAElementTests as TSolidIGAElementTests
+# Sbm Structural Elements test
+from sbm_solid_tests import SbmSolidTests as TSbmSolidTests
 
 # Membrane tests
 from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
@@ -75,6 +77,8 @@ def AssembleTestSuites():
         TTrussElementTests,
         # Structural Elements tests
         TSolidIGAElementTests,
+        # Sbm Elements tests
+        TSbmSolidTests,
         # Membrane tests
         MembraneSinglePatchFourPointSailLinearStatic,
         MembraneSinglePatchFourPointSailNonLinearStatic,
