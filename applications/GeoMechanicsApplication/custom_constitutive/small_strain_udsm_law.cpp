@@ -50,10 +50,25 @@ array_1d<double, props_size> MakePropsVector(const Vector& rUMatParameters)
     return result;
 }
 
-const std::vector<std::string>& GetUserModFunctionNames()
+std::vector<std::string> GFortranNamesOf(const std::vector<std::string>& rFunctionNames)
 {
-    using namespace std::string_literals;
-    static auto result = std::vector<std::string>{"user_mod"s};
+    auto result = std::vector<std::string>{};
+    result.reserve(rFunctionNames.size());
+    auto append_underscore = [](const auto& rFunctionName) { return rFunctionName + '_'; };
+    std::transform(rFunctionNames.begin(), rFunctionNames.end(), std::back_inserter(result), append_underscore);
+    return result;
+}
+
+const std::vector<std::string>& UserModFunctionNames()
+{
+    auto generate_names = []() {
+        using namespace std::string_literals;
+        auto       result         = std::vector<std::string>{"user_mod"s};
+        const auto gfortran_names = GFortranNamesOf(result);
+        result.insert(result.end(), gfortran_names.begin(), gfortran_names.end());
+        return result;
+    };
+    static const auto result = generate_names();
     return result;
 }
 
@@ -540,19 +555,14 @@ bool SmallStrainUDSMLaw::loadUDSMWindows(const Properties& rMaterialProperties)
     // resolve function GetStateVarCount address
     mpGetStateVarCount = (f_GetStateVarCount)GetProcAddress(hGetProcIDDLL, "getstatevarcount");
 
-    for (const auto& r_function_name : GetUserModFunctionNames()) {
+    for (const auto& r_function_name : UserModFunctionNames()) {
         mpUserMod = (f_UserMod)GetProcAddress(hGetProcIDDLL, r_function_name.c_str());
-
-        if (!mpUserMod) {
-            const auto extended_function_name = r_function_name + '_';
-            mpUserMod = (f_UserMod)GetProcAddress(hGetProcIDDLL, extended_function_name.c_str());
-        }
 
         if (mpUserMod) break;
     }
 
     if (!mpUserMod) {
-        KRATOS_ERROR << "cannot load function 'USER_MOD' in the specified UDSM "
+        KRATOS_ERROR << "Cannot load function 'User_Mod' in the specified UDSM "
                      << rMaterialProperties[UDSM_NAME] << std::endl;
     }
 
