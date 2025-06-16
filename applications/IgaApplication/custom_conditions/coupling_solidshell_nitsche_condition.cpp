@@ -419,7 +419,6 @@ namespace Kratos
         const ConfigurationType& rConfiguration
     )
     {
-        KRATOS_TRY; 
         const auto& r_geometry = GetGeometry().GetGeometryPart(1);
 
         // pass/call this ShapeFunctionsLocalGradients[pnt]
@@ -488,20 +487,19 @@ namespace Kratos
         rKinematicVariables.b_ab_covariant[1] = H(0, 1) * rKinematicVariables.a3[0] + H(1, 1) * rKinematicVariables.a3[1] + H(2, 1) * rKinematicVariables.a3[2];
         rKinematicVariables.b_ab_covariant[2] = H(0, 2) * rKinematicVariables.a3[0] + H(1, 2) * rKinematicVariables.a3[1] + H(2, 2) * rKinematicVariables.a3[2];
 
-        // Check Numbers
-        if (Id() == 550) {
-            if (rConfiguration == ConfigurationType::Reference) {
-                std::cout << "CalculateKinematicsShell :: Shell :: Reference Congiguration" << std::endl;
-                std::cout << "Contravatiants: n1  = ( " << rKinematicVariables.n_contravariant[0] << " | n2:  " << rKinematicVariables.n_contravariant[1] << std::endl;
-            }
-            else if (rConfiguration == ConfigurationType::Current)
-            {
-                std::cout << "CalculateKinematicsShell :: Shell :: Current Congiguration" << std::endl;
-            }
-            std::cout << "A1 = ( " << g1[0] << " | " << g1[1] << " | " << g1[2] << " )" << std::endl;
-            std::cout << "A2 = ( " << g2[0] << " | " << g2[1] << " | " << g2[2] << " )" << std::endl;
-        }
-        KRATOS_CATCH("")
+        //// Check Numbers
+        //if (Id() == 550) {
+        //    if (rConfiguration == ConfigurationType::Reference) {
+        //        std::cout << "CalculateKinematicsShell :: Shell :: Reference Congiguration" << std::endl;
+        //        std::cout << "Contravatiants: n1  = ( " << rKinematicVariables.n_contravariant[0] << " | n2:  " << rKinematicVariables.n_contravariant[1] << std::endl;
+        //    }
+        //    else if (rConfiguration == ConfigurationType::Current)
+        //    {
+        //        std::cout << "CalculateKinematicsShell :: Shell :: Current Congiguration" << std::endl;
+        //    }
+        //    std::cout << "A1 = ( " << g1[0] << " | " << g1[1] << " | " << g1[2] << " )" << std::endl;
+        //    std::cout << "A2 = ( " << g2[0] << " | " << g2[1] << " | " << g2[2] << " )" << std::endl;
+        //}
     }
 
     void CouplingSolidShellNitscheCondition::CalculateKinematicsSolid( 
@@ -601,20 +599,20 @@ namespace Kratos
         rKinematicVariables.n_contravariant[1] = beta(1, 0) * n_covariant[0] + beta(1, 1) * n_covariant[1] + beta(1, 2) * n_covariant[2];
         rKinematicVariables.n_contravariant[2] = beta(2, 0) * n_covariant[0] + beta(2, 1) * n_covariant[1] + beta(2, 2) * n_covariant[2];
 
-        // Check Numbers
-        if (Id() == 550) {
-            if (rConfiguration == ConfigurationType::Reference) {
-                std::cout << "CalculateKinematicsSolid :: Solid :: Reference Congiguration" << std::endl;
-                std::cout << "Contravatiants: n1:   " << rKinematicVariables.n_contravariant[0] << " | n2:  " << rKinematicVariables.n_contravariant[1] << " | n3:  " << rKinematicVariables.n_contravariant[2] << std::endl;
-            }
-            else if (rConfiguration == ConfigurationType::Current)
-            {
-                std::cout << "CalculateKinematicsSolid :: Current Congiguration" << std::endl;
-            }
-            std::cout << "G1 = ( " << g1[0] << " | " << g1[1] << " | " << g1[2] << " )" << std::endl;
-            std::cout << "G2 = ( " << g2[0] << " | " << g2[1] << " | " << g2[2] << " )" << std::endl;
-            std::cout << "G3 = ( " << g3[0] << " | " << g3[1] << " | " << g3[2] << " )" << std::endl;
-        }
+        //// Check 
+        //if (Id() == 550) {
+        //    if (rConfiguration == ConfigurationType::Reference) {
+        //        std::cout << "CalculateKinematicsSolid :: Solid :: Reference Congiguration" << std::endl;
+        //        std::cout << "Contravatiants: n1:   " << rKinematicVariables.n_contravariant[0] << " | n2:  " << rKinematicVariables.n_contravariant[1] << " | n3:  " << rKinematicVariables.n_contravariant[2] << std::endl;
+        //    }
+        //    else if (rConfiguration == ConfigurationType::Current)
+        //    {
+        //        std::cout << "CalculateKinematicsSolid :: Current Congiguration" << std::endl;
+        //    }
+        //    std::cout << "G1 = ( " << g1[0] << " | " << g1[1] << " | " << g1[2] << " )" << std::endl;
+        //    std::cout << "G2 = ( " << g2[0] << " | " << g2[1] << " | " << g2[2] << " )" << std::endl;
+        //    std::cout << "G3 = ( " << g3[0] << " | " << g3[1] << " | " << g3[2] << " )" << std::endl;
+        //}
 
         KRATOS_CATCH("")
     }
@@ -792,25 +790,24 @@ namespace Kratos
         noalias(rThisConstitutiveVariablesSolid.StressVector) = prod(
             trans(rThisConstitutiveVariablesSolid.ConstitutiveMatrix), rThisConstitutiveVariablesSolid.StrainVector);
 
-        if (Id() == 550) {
-            auto & C = rThisConstitutiveVariablesSolid.ConstitutiveMatrix;
-            std::cout << "Solid :: ConstitutiveMatrix size :" << C.size1() << " | " << C.size2() << std::endl;
-            for (int ii = 0; ii < C.size1(); ii++) {
-                for (int jj = 0; jj < C.size2(); jj++) {
-                    std::cout << C(ii, jj) << " | ";
-                    
-                }
-                 std::cout << std::endl;
-                
-            }
-             auto & E = rThisConstitutiveVariablesSolid.StrainVector;
-            std::cout << "Solid :: Strains size :" << E.size() << std::endl;
-            for (int ii = 0; ii < E.size(); ii++) {
-                std::cout << E(ii) << " | ";
-                
-            }
-            
-        }
+        //if (Id() == 550) {
+        //    auto & C = rThisConstitutiveVariablesSolid.ConstitutiveMatrix;
+        //    std::cout << "Solid :: ConstitutiveMatrix size :" << C.size1() << " | " << C.size2() << std::endl;
+        //    for (int ii = 0; ii < C.size1(); ii++) {
+        //        for (int jj = 0; jj < C.size2(); jj++) {
+        //            std::cout << C(ii, jj) << " | ";
+        //            
+        //        }
+        //         std::cout << std::endl;
+        //        
+        //    }
+        //     auto & E = rThisConstitutiveVariablesSolid.StrainVector;
+        //    std::cout << "Solid :: Strains size :" << E.size() << std::endl;
+        //    for (int ii = 0; ii < E.size(); ii++) {
+        //        std::cout << E(ii) << " | ";
+        //    }
+        //    std::cout << std::endl;
+        //}
     }
 
     void CouplingSolidShellNitscheCondition::CalculateHessian(
@@ -1015,6 +1012,10 @@ namespace Kratos
             dE_curvilinear[1] = r_DN_De(kr, 1)*rActualKinematic.a2(dirr);
             dE_curvilinear[2] = 0.5*(r_DN_De(kr, 0)*rActualKinematic.a2(dirr) + rActualKinematic.a1(dirr)*r_DN_De(kr, 1));
            
+            // check if new way of caclulateing the strains is same as the existed one
+            if (abs(dE_curvilinear[0] - e11_r) > 1E-8 || abs(dE_curvilinear[1] - e22_r) > 1E-8 || abs(dE_curvilinear[2] - e12_r) > 1E-8 ) {
+                std::cout << "dE_curvilinear is not ccalculated correctly" << std::endl;
+            }
            
             // Kindl 3.36 for first variation
             dE_curvilinear[0] = e11_r + theta3 * k11_r;
