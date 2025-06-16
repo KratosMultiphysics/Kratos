@@ -209,7 +209,7 @@ namespace Kratos
             pGetGeometry()->PrintData(rOStream);
         }
 
-        void GetValuesVector(Vector& rValues) const;
+        void GetSolutionCoefficientVector(Vector& rValues) const;
 
         ///@}
 
