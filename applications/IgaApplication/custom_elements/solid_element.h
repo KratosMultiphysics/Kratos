@@ -254,6 +254,20 @@ protected:
 
     void InitializeMaterial();
 
+    /**
+     * @brief Compute the constitutive law response for the given strain vector.
+     * 
+     * @param matSize 
+     * @param rStrain 
+     * @param rValues 
+     * @param rConstitutiVariables 
+     */
+    void ApplyConstitutiveLaw(
+        SizeType matSize, 
+        Vector& rStrain, 
+        ConstitutiveLaw::Parameters& rValues,
+        ConstitutiveVariables& rConstitutiveVariables);
+
 
     ///@}
     ///@name Protected member Variables
