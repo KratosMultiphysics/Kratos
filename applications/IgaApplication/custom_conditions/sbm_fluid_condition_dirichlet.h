@@ -257,7 +257,7 @@ namespace Kratos
          * @param n_k 
          * @return double 
          */
-        double computeTaylorTerm(
+        double ComputeTaylorTerm(
             double derivative, 
             double dx, IndexType k, 
             double dy, IndexType n_k);
