@@ -66,7 +66,8 @@ KRATOS_TEST_CASE_IN_SUITE(MMGIO1, KratosMeshingApplicationFastSuite)
 
     // Compute read/write
     Parameters params = Parameters(R"({ "echo_level" : 0 })" );
-    MmgIO<MMGLibrary::MMG2D> mmg_io(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_2d"}));
+    std::filesystem::path file_path = std::filesystem::current_path() / "mmg_output_2d";
+    MmgIO<MMGLibrary::MMG2D> mmg_io(file_path.string());
     mmg_io.WriteModelPart(r_model_part);
 
     Model this_aux_model;
@@ -81,11 +82,11 @@ KRATOS_TEST_CASE_IN_SUITE(MMGIO1, KratosMeshingApplicationFastSuite)
         KRATOS_EXPECT_TRUE(r_aux_model_part.HasSubModelPart(r_sub_model_part_name));
     }
 
-    std::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_2d.mesh"})).c_str());
-    std::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_2d.sol"})).c_str());
-    std::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_2d.json"})).c_str());
-    std::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_2d.cond.ref.json"})).c_str());
-    std::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_2d.elem.ref.json"})).c_str());
+    std::filesystem::remove(std::filesystem::current_path() / "mmg_output_2d.mesh");
+    std::filesystem::remove(std::filesystem::current_path() / "mmg_output_2d.sol");
+    std::filesystem::remove(std::filesystem::current_path() / "mmg_output_2d.json");
+    std::filesystem::remove(std::filesystem::current_path() / "mmg_output_2d.cond.ref.json");
+    std::filesystem::remove(std::filesystem::current_path() / "mmg_output_2d.elem.ref.json");
 }
 
 /**
@@ -129,7 +130,8 @@ KRATOS_TEST_CASE_IN_SUITE(MMGIO2, KratosMeshingApplicationFastSuite)
 
     // Compute read/write
     Parameters params = Parameters(R"({ "echo_level" : 0 })" );
-    MmgIO<MMGLibrary::MMG3D> mmg_io(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_3d"}));
+    std::filesystem::path file_path = std::filesystem::current_path() / "mmg_output_3d";
+    MmgIO<MMGLibrary::MMG3D> mmg_io(file_path.string());
     mmg_io.WriteModelPart(r_model_part);
 
     Model this_aux_model;
@@ -144,11 +146,11 @@ KRATOS_TEST_CASE_IN_SUITE(MMGIO2, KratosMeshingApplicationFastSuite)
         KRATOS_EXPECT_TRUE(r_aux_model_part.HasSubModelPart(r_sub_model_part_name));
     }
 
-    std::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_3d.mesh"})).c_str());
-    std::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_3d.sol"})).c_str());
-    std::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_3d.json"})).c_str());
-    std::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_3d.cond.ref.json"})).c_str());
-    std::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "mmg_output_3d.elem.ref.json"})).c_str());
+    std::filesystem::remove(std::filesystem::current_path() / "mmg_output_3d.mesh");
+    std::filesystem::remove(std::filesystem::current_path() / "mmg_output_3d.sol");
+    std::filesystem::remove(std::filesystem::current_path() / "mmg_output_3d.json");
+    std::filesystem::remove(std::filesystem::current_path() / "mmg_output_3d.cond.ref.json");
+    std::filesystem::remove(std::filesystem::current_path() / "mmg_output_3d.elem.ref.json");
 }
 
 }  // namespace Kratos::Testing.
