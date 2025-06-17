@@ -69,7 +69,7 @@ void SupportPressureCondition::CalculateRightHandSide(
 
     const auto& r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
+    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
     
     Matrix DN_DX(number_of_nodes,mDim);
 
@@ -87,7 +87,7 @@ void SupportPressureCondition::CalculateRightHandSide(
     // Matrix DB = prod(r_D,B);
     const Matrix& N = r_geometry.ShapeFunctionsValues();
     // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-    noalias(DN_DX) = DN_De[0]; // prod(DN_De[point_number],InvJ0);
+    noalias(DN_DX) = r_DN_De[0];
 
     double p_D = this->GetValue(PRESSURE);
 
@@ -132,7 +132,7 @@ void SupportPressureCondition::InitializeMemberVariables()
 
     KRATOS_ERROR_IF(mDim == 3) << "SupportPressureCondition is not implemented in 3D. Current dimension: " << mDim << std::endl;
     // Integration
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
     GeometryType::JacobiansType J0;
     Matrix InvJ0(mDim,mDim);
     r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
@@ -150,7 +150,7 @@ void SupportPressureCondition::InitializeMemberVariables()
     Vector add_factor = prod(Jacobian, tangent_parameter_space);
     add_factor[2] = 0.0;
     DetJ0 = norm_2(add_factor);
-    mIntegrationWeight = integration_points[0].Weight() * std::abs(DetJ0);
+    mIntegrationWeight = r_integration_points[0].Weight() * std::abs(DetJ0);
 }
 
 void SupportPressureCondition::CalculateB(

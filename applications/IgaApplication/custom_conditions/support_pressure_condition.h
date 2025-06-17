@@ -153,15 +153,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) const override;
 
-    /// Calculates left (K) and right (u) hand sides, according to the flags
-    void CalculateAll(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag
-    );
-
     ///@}
     ///@name Input and output
     ///@{
