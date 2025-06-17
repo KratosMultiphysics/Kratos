@@ -160,16 +160,6 @@ public:
     void GetSolutionCoefficientVector(
         Vector& rValues) const;
 
-
-    /**
-     * @brief Calculate the B matrix for the element in the two-dimensional case.
-     * 
-     * @param rB B matrix to be calculated
-     * @param r_DN_DX The shape function derivatives in the global coordinate system
-     */
-    void CalculateB(
-        Matrix& rB,
-        Matrix& r_DN_DX) const;
     ///@}
     ///@name Check
     ///@{
@@ -256,6 +246,31 @@ void InitializeMemberVariables();
  * 
  */
 void InitializeSbmMemberVariables();
+
+/**
+ * @brief Calculate the B matrix for the element in the two-dimensional case.
+ * 
+ * @param rB B matrix to be calculated
+ * @param r_DN_DX The shape function derivatives in the global coordinate system
+ */
+void CalculateB(
+    Matrix& rB,
+    Matrix& r_DN_DX) const;
+
+/**
+ * @brief Compute the constitutive law response for the given strain vector.
+ * 
+ * @param matSize 
+ * @param rStrain 
+ * @param rValues 
+ * @param rConstitutiVariables 
+ */
+void ApplyConstitutiveLaw(
+        SizeType matSize, 
+        Vector& rStrain, 
+        ConstitutiveLaw::Parameters& rValues,
+        ConstitutiveVariables& rConstitutiVariables);
+
 
 /**
  * @brief 

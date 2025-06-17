@@ -258,25 +258,13 @@ void SbmLoadSolidCondition::CalculateLeftHandSide(
     // Obtain the tangent costitutive law matrix
     ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
 
-    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
-    // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions=Values.GetOptions();
-
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-    ConstitutiveVariables this_constitutive_variables(strain_size);
-    
     Vector old_displacement_coefficient_vector(mat_size);
     GetSolutionCoefficientVector(old_displacement_coefficient_vector);
     Vector old_strain = prod(B,old_displacement_coefficient_vector);
-    
-    Values.SetStrainVector(old_strain);
-    Values.SetStressVector(this_constitutive_variables.StressVector);
-    Values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
-    mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy); 
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+    ConstitutiveVariables this_constitutive_variables(strain_size);
+    ApplyConstitutiveLaw(mat_size, old_strain, Values, this_constitutive_variables);
 
     const Matrix& r_D = Values.GetConstitutiveMatrix();
 
@@ -383,39 +371,28 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
     CalculateB(B_sum, grad_H_sum);
 
     // Obtain the tangent costitutive law matrix
+
     ConstitutiveLaw::Parameters values_surrogate(r_geometry, GetProperties(), rCurrentProcessInfo);
 
-    const SizeType strain_size_surrogate = mpConstitutiveLaw->GetStrainSize();
-    // Set constitutive law flags:
-    Flags& constitutive_law_options_surrogate = values_surrogate.GetOptions();
-    constitutive_law_options_surrogate.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    constitutive_law_options_surrogate.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    constitutive_law_options_surrogate.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-    ConstitutiveVariables this_constitutive_variables_surrogate(strain_size_surrogate);
     Vector old_displacement_coefficient_vector(mat_size);
     GetSolutionCoefficientVector(old_displacement_coefficient_vector);
     Vector old_strain = prod(B,old_displacement_coefficient_vector);
-    values_surrogate.SetStrainVector(old_strain);
-    values_surrogate.SetStressVector(this_constitutive_variables_surrogate.StressVector);
-    values_surrogate.SetConstitutiveMatrix(this_constitutive_variables_surrogate.D);
-    mpConstitutiveLaw->CalculateMaterialResponse(values_surrogate, ConstitutiveLaw::StressMeasure_Cauchy); 
+
+    const SizeType strain_size_surrogate = mpConstitutiveLaw->GetStrainSize();
+    ConstitutiveVariables this_constitutive_variables_surrogate(strain_size_surrogate);
+    ApplyConstitutiveLaw(mat_size, old_strain, values_surrogate, this_constitutive_variables_surrogate);
+
     const Matrix& r_D = values_surrogate.GetConstitutiveMatrix();
     const Vector& r_stress_vector = values_surrogate.GetStressVector();
-
+    
     // obtain the old stress vector on the true boundary (on the projection node)
     ConstitutiveLaw::Parameters values_true(r_geometry, GetProperties(), rCurrentProcessInfo);
-    const SizeType strain_size_true = mpConstitutiveLaw->GetStrainSize();
-    // Set constitutive law flags:
-    Flags& constitutive_law_options_true = values_true.GetOptions();
-    constitutive_law_options_true.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    constitutive_law_options_true.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    constitutive_law_options_true.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-    ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
+
     Vector old_strain_on_true = prod(B_sum,old_displacement_coefficient_vector);
-    values_true.SetStrainVector(old_strain_on_true);
-    values_true.SetStressVector(this_constitutive_variables_true.StressVector);
-    values_true.SetConstitutiveMatrix(this_constitutive_variables_true.D);
-    mpConstitutiveLaw->CalculateMaterialResponse(values_true, ConstitutiveLaw::StressMeasure_Cauchy); 
+
+    const SizeType strain_size_true = mpConstitutiveLaw->GetStrainSize();
+    ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
+    ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
 
     const Vector& r_stress_vector_on_true = values_true.GetStressVector();
 
@@ -423,9 +400,8 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
     const Matrix DB = prod(r_D,B);
     const Matrix DB_sum = prod(r_D, B_sum); //
 
-
-    Vector g_N = mpProjectionNode->GetValue(FORCE);
-
+    Vector g_N = ZeroVector(3);
+    g_N = mpProjectionNode->GetValue(FORCE);
     Vector normal_stress_old = ZeroVector(3);
     normal_stress_old[0] = (r_stress_vector[0] * mNormalPhysicalSpace[0] + r_stress_vector[2] * mNormalPhysicalSpace[1]);
     normal_stress_old[1] = (r_stress_vector[2] * mNormalPhysicalSpace[0] + r_stress_vector[1] * mNormalPhysicalSpace[1]);
@@ -542,6 +518,24 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
             rB(1, r) = r_DN_DX(kr,1) * dirr;
             rB(2, r) = r_DN_DX(kr,0) * (dirr) + r_DN_DX(kr,1) * (1-dirr);
         }
+    }
+
+    void SbmLoadSolidCondition::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
+                                        ConstitutiveVariables& rConstitutiVariables)
+    {
+        const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+        // Set constitutive law flags:
+        Flags& ConstitutiveLawOptions=rValues.GetOptions();
+
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        
+        rValues.SetStrainVector(rStrain);
+        rValues.SetStressVector(rConstitutiVariables.StressVector);
+        rValues.SetConstitutiveMatrix(rConstitutiVariables.D);
+
+        mpConstitutiveLaw->CalculateMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_Cauchy); 
     }
 
 
