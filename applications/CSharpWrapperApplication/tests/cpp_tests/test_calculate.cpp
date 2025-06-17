@@ -191,7 +191,7 @@ namespace Kratos {
 //             KRATOS_EXPECT_NEAR(y[3], 1.0, float_epsilon);
 //             KRATOS_EXPECT_NEAR(z[3], 0.0, float_epsilon);
 
-            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.mdpa"})).c_str());
+            std::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.mdpa"})).c_str());
         }
 
         /**
@@ -297,8 +297,8 @@ namespace Kratos {
 //             KRATOS_EXPECT_NEAR(y[3], 1.0, float_epsilon);
 //             KRATOS_EXPECT_NEAR(z[3], 0.0, float_epsilon);
 
-            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.mdpa"})).c_str());
-            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.json"})).c_str());
+            std::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.mdpa"})).c_str());
+            std::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.json"})).c_str());
         }
 
     } // namespace Testing

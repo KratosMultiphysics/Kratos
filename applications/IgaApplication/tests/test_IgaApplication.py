@@ -52,6 +52,8 @@ from test_modelers_sbm import TestModelersSbm as TTestModelersSbm
 from test_import_nurbs_modeler import TestImportNurbsModeler as TTestImportNurbsModeler
 # Processes tests
 from test_map_nurbs_volume_results_to_embedded_geometry_process import TestMapNurbsVolumeResultsToEmbeddedGeometryProcess as TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess
+# Fluid Element and Conditions tests
+from test_stokes_element import FluidTests as TTestFluid
 
 has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 
@@ -101,7 +103,9 @@ def AssembleTestSuites():
         # Modelers
         TTestModelers,
         TTestModelersSbm,
-        TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess
+        TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess,
+        # Fluid
+        TTestFluid
     ]))
 
     if has_linear_solvers_application:
