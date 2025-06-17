@@ -20,7 +20,7 @@
         "echo_level"                         : 1,
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "triaxial"
+            "input_filename" : "mesh"
         },
         "material_import_settings"           : {
             "materials_filename" : "MaterialParameters.json"
@@ -159,7 +159,7 @@
                         "gauss_point_results"         : ["CAUCHY_STRESS_TENSOR","VON_MISES_STRESS","MEAN_EFFECTIVE_STRESS","ENGINEERING_STRAIN_TENSOR"]
                     }
                 },
-                "output_name"            : "gid_output/triaxial"
+                "output_name"            : "gid_output/output"
             }
         }]
     }
