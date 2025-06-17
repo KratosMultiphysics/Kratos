@@ -238,7 +238,7 @@ void SupportSolidCondition::CalculateLeftHandSide(
                         const int jglob = 2*j+jdim;
 
                         // PENALTY TERM
-                        rLeftHandSideMatrix(iglob, jglob) -= N(0,i)*N(0,j)* penalty_integration * direction[idim] * direction[jdim];
+                        rLeftHandSideMatrix(iglob, jglob) += N(0,i)*N(0,j)* penalty_integration * direction[idim] * direction[jdim];
 
                         // FLUX 
                         // [sigma(u) \dot n] \dot n * (-w \dot n)
@@ -278,7 +278,7 @@ void SupportSolidCondition::CalculateLeftHandSide(
                     const int iglob = 2*i+idim;
 
                     // PENALTY TERM
-                    rLeftHandSideMatrix(2*i+idim, 2*j+idim) -= N(0,i)*N(0,j)* penalty_integration;
+                    rLeftHandSideMatrix(2*i+idim, 2*j+idim) += N(0,i)*N(0,j)* penalty_integration;
 
                     Vector sigma_w_n = ZeroVector(3);
                     sigma_w_n[0] = (DB(0, iglob)* normal_physical_space[0] + DB(2, iglob)* normal_physical_space[1]);
@@ -377,7 +377,6 @@ void SupportSolidCondition::CalculateRightHandSide(
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
     ConstitutiveVariables this_constitutive_variables(strain_size);
     
@@ -418,8 +417,8 @@ void SupportSolidCondition::CalculateRightHandSide(
         // ASSIGN BC BY DIRECTION
         //--------------------------------------------------------------------------------------------
         Vector direction = this->GetValue(DIRECTION);
-        const Vector displacement = this->GetValue(DISPLACEMENT); //already direction
-        const double displacement_module = norm_2(displacement);
+        const Vector displacement = this->GetValue(DISPLACEMENT); //already times direction
+        const double displacement_module = inner_prod(displacement, direction);
 
         const double old_displacement_direction = inner_prod(old_displacement, direction);
             
@@ -428,7 +427,7 @@ void SupportSolidCondition::CalculateRightHandSide(
             for (IndexType idim = 0; idim < 2; idim++) {
                 const int iglob = 2*i+idim;
 
-                rRightHandSideVector(iglob) -= N(0,i) * direction[idim] * (displacement_module-old_displacement_direction) * penalty_integration;
+                rRightHandSideVector(iglob) += N(0,i) * direction[idim] * (displacement_module-old_displacement_direction) * penalty_integration;
 
                 // // PENALTY FREE g_n = 0
                 // // rhs -> [\sigma_1(w) \dot n] \dot n (-g_{n,0})
@@ -466,7 +465,7 @@ void SupportSolidCondition::CalculateRightHandSide(
             for (IndexType idim = 0; idim < 2; idim++) {
                 const int iglob = 2*i+idim;
 
-                rRightHandSideVector[iglob] -= N(0,i)*(u_D-old_displacement)[idim]* penalty_integration;
+                rRightHandSideVector[iglob] += N(0,i)*(u_D-old_displacement)[idim]* penalty_integration;
 
                 Vector sigma_w_n = ZeroVector(3);
                 sigma_w_n[0] = (DB(0, iglob)* normal_physical_space[0] + DB(2, iglob)* normal_physical_space[1]);
