@@ -25,6 +25,7 @@
 #include "custom_elements/shell_5p_hierarchic_element.h"
 #include "custom_elements/shell_5p_element.h"
 #include "custom_elements/laplacian_IGA_element.h"
+#include "custom_elements/stokes_element.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -127,6 +128,7 @@ private:
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
     const LaplacianIGAElement mLaplacianIGAElement;
+    const StokesElement mStokesElement;
 
     //Conditions
     const OutputCondition mOutputCondition;
