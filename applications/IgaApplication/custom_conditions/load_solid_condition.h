@@ -254,6 +254,8 @@ void ApplyConstitutiveLaw(
 ///@{
 void InitializeMaterial();
 
+void InitializeMemberVariables();
+
 void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
@@ -262,6 +264,7 @@ void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 ///@name Protected member Variables
 ///@{
 ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+unsigned int mDim; /// The dimension of the condition 
 
 ///@}
 

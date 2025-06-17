@@ -25,9 +25,36 @@ namespace Kratos
 void LoadSolidCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMaterial();
+    InitializeMemberVariables();
+}
 
+
+void LoadSolidCondition::InitializeMaterial()
+{
+    KRATOS_TRY
+    if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
+        const GeometryType& r_geometry = GetGeometry();
+        const Properties& r_properties = GetProperties();
+        const auto& N_values = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+
+        mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        mpConstitutiveLaw->InitializeMaterial( r_properties, r_geometry, row(N_values , 0 ));
+
+    } else
+        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
+
+    KRATOS_CATCH( "" );
+
+}
+
+void LoadSolidCondition::InitializeMemberVariables()
+{
     // calculate the integration weight
     const auto& r_geometry = GetGeometry();
+    // Initialize the dimension
+    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+    mDim = r_DN_De[0].size2();
+    KRATOS_ERROR_IF(mDim != 2) << "LoadSOlidCOndiyion momentarily only supports 2D elements, but the current condition has dimension " << mDim << std::endl;
     // reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
 
@@ -77,25 +104,6 @@ void LoadSolidCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
     SetValue(INTEGRATION_WEIGHT, integration_weight);
 }
 
-
-void LoadSolidCondition::InitializeMaterial()
-{
-    KRATOS_TRY
-    if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
-        const GeometryType& r_geometry = GetGeometry();
-        const Properties& r_properties = GetProperties();
-        const auto& N_values = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
-
-        mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-        mpConstitutiveLaw->InitializeMaterial( r_properties, r_geometry, row(N_values , 0 ));
-
-    } else
-        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
-
-    KRATOS_CATCH( "" );
-
-}
-
 void LoadSolidCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
@@ -129,11 +137,7 @@ void LoadSolidCondition::CalculateLeftHandSide(
     const auto& r_geometry = GetGeometry();
     const unsigned int number_of_control_points = r_geometry.size();
 
-    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-    const unsigned int dim = r_DN_De[0].size2();
-    const SizeType mat_size = number_of_control_points * dim;
-
-    KRATOS_ERROR_IF(dim != 2) << "SolidElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
+    const SizeType mat_size = number_of_control_points * mDim;
 
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != mat_size)
@@ -156,12 +160,8 @@ void LoadSolidCondition::CalculateRightHandSide(
 
      // reading integration points and local gradients
     const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
-    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-    const unsigned int dim = r_DN_De[0].size2();
-    const SizeType mat_size = number_of_control_points * dim;
+    const SizeType mat_size = number_of_control_points * mDim;
     const double integration_weight = GetValue(INTEGRATION_WEIGHT);
-
-    KRATOS_ERROR_IF(dim != 2) << "SolidElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
 
     // resizing as needed the RHS
     if(rRightHandSideVector.size() != mat_size)
@@ -324,6 +324,8 @@ void LoadSolidCondition::CalculateRightHandSide(
         mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 
         //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
+        //TODO: build a CalculateOnIntegrationPoints method
+        //--------------------------------------------------------------------------------------------
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_control_points = r_geometry.size();
         const SizeType mat_size = number_of_control_points * 2;
@@ -331,9 +333,8 @@ void LoadSolidCondition::CalculateRightHandSide(
         // Initialize Jacobian
         GeometryType::JacobiansType J0;
         // Initialize DN_DX
-        const unsigned int dim = 2;
         Matrix DN_DX(number_of_control_points,2);
-        Matrix InvJ0(dim,dim);
+        Matrix InvJ0(mDim,mDim);
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());

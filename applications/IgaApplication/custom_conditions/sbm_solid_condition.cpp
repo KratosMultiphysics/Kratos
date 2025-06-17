@@ -56,6 +56,8 @@ void SbmSolidCondition::InitializeMemberVariables()
     
     // Initialize DN_DX
     mDim = r_DN_De[0].size2();
+
+    KRATOS_ERROR_IF(mDim != 2) << "SbmSolidCondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
     
     Vector mesh_size_uv = this->GetValue(KNOT_SPAN_SIZES);
     double h = std::min(mesh_size_uv[0], mesh_size_uv[1]);
@@ -105,7 +107,7 @@ void SbmSolidCondition::InitializeMemberVariables()
     r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space
 
     // compute complete jacobian transformation including parameter->physical space transformation
-    double DetJ0;
+    double detJ0;
     Matrix Jacobian = ZeroMatrix(3,3);
     Jacobian(0,0) = J0[0](0,0);
     Jacobian(0,1) = J0[0](0,1);
@@ -114,15 +116,15 @@ void SbmSolidCondition::InitializeMemberVariables()
     Jacobian(2,2) = 1.0;
 
     // Calculating inverse jacobian and jacobian determinant
-    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,detJ0);
 
     Vector add_factor = prod(Jacobian, tangent_parameter_space); //additional factor to the determinant of the jacobian for the parameter->physical space transformation
     add_factor[2] = 0.0; 
-    DetJ0 = norm_2(add_factor);
+    detJ0 = norm_2(add_factor);
 
     const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
 
-    const double int_to_reference_weight = r_integration_points[0].Weight() * std::abs(DetJ0) * thickness;
+    const double int_to_reference_weight = r_integration_points[0].Weight() * std::abs(detJ0) * thickness;
 
     SetValue(INTEGRATION_WEIGHT, int_to_reference_weight);
 }
@@ -186,12 +188,10 @@ void SbmSolidCondition::CalculateLeftHandSide(
     const unsigned int number_of_control_points = r_geometry.size();
 
      // reading integration points and local gradients
-    const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const SizeType mat_size = number_of_control_points * mDim;
     const double int_to_reference_weight = GetValue(INTEGRATION_WEIGHT);
-
-    KRATOS_ERROR_IF(mDim != 2) << "SbmSolidCondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
 
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != mat_size)
@@ -208,16 +208,16 @@ void SbmSolidCondition::CalculateLeftHandSide(
     r_geometry.Jacobian(J0,this->GetIntegrationMethod());
 
     // compute complete jacobian transformation including parameter->physical space transformation
-    double DetJ0;
-    Matrix Jacobian = ZeroMatrix(3,3);
-    Jacobian(0,0) = J0[0](0,0);
-    Jacobian(0,1) = J0[0](0,1);
-    Jacobian(1,0) = J0[0](1,0);
-    Jacobian(1,1) = J0[0](1,1);
-    Jacobian(2,2) = 1.0;
+    double detJ0;
+    Matrix jacobian = ZeroMatrix(3,3);
+    jacobian(0,0) = J0[0](0,0);
+    jacobian(0,1) = J0[0](0,1);
+    jacobian(1,0) = J0[0](1,0);
+    jacobian(1,1) = J0[0](1,1);
+    jacobian(2,2) = 1.0;
 
     // Calculating inverse jacobian and jacobian determinant
-    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+    MathUtils<double>::InvertMatrix(jacobian,InvJ0,detJ0);
     
     // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
     Matrix sub_inv_jacobian = ZeroMatrix(2,2);
@@ -276,7 +276,7 @@ void SbmSolidCondition::CalculateLeftHandSide(
                         const int jglob = 2*j+jdim;
 
                         // PENALTY TERM
-                        rLeftHandSideMatrix(iglob, jglob) += N(0,i)*H_sum_vec(j)* penalty_integration * direction[idim] * direction[jdim];
+                        rLeftHandSideMatrix(iglob, jglob) += r_N(0,i)*H_sum_vec(j)* penalty_integration * direction[idim] * direction[jdim];
 
                         // FLUX 
                         // [sigma(u) \dot n] \dot n * (-w \dot n)
@@ -287,7 +287,7 @@ void SbmSolidCondition::CalculateLeftHandSide(
 
                         double sigma_u_n_dot_direction = inner_prod(sigma_u_n, direction);
 
-                        rLeftHandSideMatrix(iglob, jglob) -= N(0,i) * sigma_u_n_dot_direction * direction[idim] * int_to_reference_weight;
+                        rLeftHandSideMatrix(iglob, jglob) -= r_N(0,i) * sigma_u_n_dot_direction * direction[idim] * int_to_reference_weight;
 
                         // // PENALTY FREE g_n = 0
                         // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
@@ -316,7 +316,7 @@ void SbmSolidCondition::CalculateLeftHandSide(
                     const int iglob = 2*i+idim;
 
                     // PENALTY TERM
-                    rLeftHandSideMatrix(iglob, 2*j+idim) += N(0,i)*H_sum_vec(j)* penalty_integration;
+                    rLeftHandSideMatrix(iglob, 2*j+idim) += r_N(0,i)*H_sum_vec(j)* penalty_integration;
 
                     Vector sigma_w_n = ZeroVector(3);
                     sigma_w_n[0] = (DB(0, iglob)* mNormalPhysicalSpace[0] + DB(2, iglob)* mNormalPhysicalSpace[1]);
@@ -329,7 +329,7 @@ void SbmSolidCondition::CalculateLeftHandSide(
                         // FLUX 
                         // [sigma(u) \dot n] \dot n * (-w \dot n)
                         //*********************************************** */
-                        rLeftHandSideMatrix(iglob, jglob) -= N(0,i)*(DB(id1, jglob)* mNormalPhysicalSpace[0] + DB(id2, jglob)* mNormalPhysicalSpace[1]) * int_to_reference_weight;
+                        rLeftHandSideMatrix(iglob, jglob) -= r_N(0,i)*(DB(id1, jglob)* mNormalPhysicalSpace[0] + DB(id2, jglob)* mNormalPhysicalSpace[1]) * int_to_reference_weight;
 
                         // // PENALTY FREE g_n = 0
                         // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
@@ -355,13 +355,11 @@ void SbmSolidCondition::CalculateRightHandSide(
     const unsigned int number_of_control_points = r_geometry.size();
 
      // reading integration points and local gradients
-    const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const SizeType mat_size = number_of_control_points * mDim;
     const double int_to_reference_weight = GetValue(INTEGRATION_WEIGHT);
-
-    KRATOS_ERROR_IF(mDim != 2) << "SbmSolidCondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
-
+    
     // resizing as needed the RHS
     if(rRightHandSideVector.size() != mat_size)
         rRightHandSideVector.resize(mat_size,false);
@@ -377,7 +375,7 @@ void SbmSolidCondition::CalculateRightHandSide(
     r_geometry.Jacobian(J0,this->GetIntegrationMethod());
 
     // compute complete jacobian transformation including parameter->physical space transformation
-    double DetJ0;
+    double detJ0;
     Matrix Jacobian = ZeroMatrix(3,3);
     Jacobian(0,0) = J0[0](0,0);
     Jacobian(0,1) = J0[0](0,1);
@@ -386,7 +384,7 @@ void SbmSolidCondition::CalculateRightHandSide(
     Jacobian(2,2) = 1.0;
 
     // Calculating inverse jacobian and jacobian determinant
-    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,detJ0);
 
     // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
     Matrix sub_inv_jacobian = ZeroMatrix(2,2);
@@ -451,7 +449,7 @@ void SbmSolidCondition::CalculateRightHandSide(
             for (IndexType idim = 0; idim < 2; idim++) {
                 const int iglob = 2*i+idim;
 
-                rRightHandSideVector(iglob) += N(0,i) * direction[idim] * (displacement_module-old_displacement_direction) * penalty_integration;
+                rRightHandSideVector(iglob) += r_N(0,i) * direction[idim] * (displacement_module-old_displacement_direction) * penalty_integration;
 
                 // // PENALTY FREE g_n = 0
                 // // rhs -> [\sigma_1(w) \dot n] \dot n (-g_{n,0})
@@ -474,7 +472,7 @@ void SbmSolidCondition::CalculateRightHandSide(
                 old_stress_normal[1] = r_stress_vector[2]*mNormalPhysicalSpace[0] + r_stress_vector[1]*mNormalPhysicalSpace[1];
 
                 double old_stress_normal_dot_direction = inner_prod(old_stress_normal, direction);
-                rRightHandSideVector(iglob) += N(0,i) * old_stress_normal_dot_direction * direction[idim] * int_to_reference_weight;
+                rRightHandSideVector(iglob) += r_N(0,i) * old_stress_normal_dot_direction * direction[idim] * int_to_reference_weight;
             }
         }
     }
@@ -489,7 +487,7 @@ void SbmSolidCondition::CalculateRightHandSide(
             for (IndexType idim = 0; idim < 2; idim++) {
                 const int iglob = 2*i+idim;
 
-                rRightHandSideVector[iglob] += N(0,i)*(u_D-old_displacement)[idim]* penalty_integration;
+                rRightHandSideVector[iglob] += r_N(0,i)*(u_D-old_displacement)[idim]* penalty_integration;
 
                 Vector sigma_w_n = ZeroVector(3);
                 sigma_w_n[0] = (DB(0, iglob)* mNormalPhysicalSpace[0] + DB(2, iglob)* mNormalPhysicalSpace[1]);
@@ -505,7 +503,7 @@ void SbmSolidCondition::CalculateRightHandSide(
                 old_stress_normal[0] = r_stress_vector[0]*mNormalPhysicalSpace[0] + r_stress_vector[2]*mNormalPhysicalSpace[1];
                 old_stress_normal[1] = r_stress_vector[2]*mNormalPhysicalSpace[0] + r_stress_vector[1]*mNormalPhysicalSpace[1];
 
-                rRightHandSideVector(iglob) += N(0,i) * old_stress_normal[idim] * int_to_reference_weight;
+                rRightHandSideVector(iglob) += r_N(0,i) * old_stress_normal[idim] * int_to_reference_weight;
             }
         }
     }
@@ -626,6 +624,8 @@ void SbmSolidCondition::CalculateRightHandSide(
         mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 
         //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
+        //TODO: build a CalculateOnIntegrationPoints method
+        //--------------------------------------------------------------------------------------------
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_control_points = r_geometry.size();
         const SizeType mat_size = number_of_control_points * 2;
@@ -639,7 +639,7 @@ void SbmSolidCondition::CalculateRightHandSide(
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());
-        double DetJ0;
+        double detJ0;
         // MODIFIED
         Vector old_displacement(mat_size);
         GetSolutionCoefficientVector(old_displacement);
@@ -651,7 +651,7 @@ void SbmSolidCondition::CalculateRightHandSide(
         Jacobian(1,1) = J0[0](1,1);
 
         // Calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,detJ0);
 
         // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[0],InvJ0);
@@ -708,7 +708,7 @@ void SbmSolidCondition::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
 {
     const auto& r_geometry = this->GetGeometry();
     const SizeType number_of_control_points = r_geometry.PointsNumber();
-    const Matrix& N = r_geometry.ShapeFunctionsValues();
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
     if (H_sum_vec.size() != number_of_control_points)
     {
@@ -758,7 +758,7 @@ void SbmSolidCondition::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
                 }
             }
         }
-        H_sum_vec(i) = H_taylor_term + N(0,i);
+        H_sum_vec(i) = H_taylor_term + r_N(0,i);
     }
 }
 
