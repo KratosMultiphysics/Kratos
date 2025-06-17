@@ -428,6 +428,47 @@ void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& r
             cell_type = VtkDefinitions::KratosVtkGeometryTypes.at(r_kratos_cell);
         } else {
             const auto& r_kratos_cell = r_entity.GetGeometry().GetGeometryType();
+            switch (r_kratos_cell) {
+                case GeometryData::KratosGeometryType::Kratos_Nurbs_Curve:
+                    KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Nurbs_Curve" << std::endl;
+                    return;
+                case GeometryData::KratosGeometryType::Kratos_Nurbs_Surface:
+                    KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Nurbs_Surface" << std::endl;
+                    return;
+                case GeometryData::KratosGeometryType::Kratos_Nurbs_Volume:
+                    KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Nurbs_Volume" << std::endl;
+                    return;
+                case GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface:
+                    KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Nurbs_Curve_On_Surface" << std::endl;
+                    return;
+                case GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume:
+                    KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Surface_In_Nurbs_Volume" << std::endl;
+                    return;
+                case GeometryData::KratosGeometryType::Kratos_Brep_Curve:
+                    KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Brep_Curve" << std::endl;
+                    return;
+                case GeometryData::KratosGeometryType::Kratos_Brep_Surface:
+                    KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Brep_Surface" << std::endl;
+                    return;
+                case GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface:
+                    KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Brep_Curve_On_Surface" << std::endl;
+                    return;
+                case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry:
+                    KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Quadrature_Point_Geometry" << std::endl;
+                    return;
+                case GeometryData::KratosGeometryType::Kratos_Coupling_Geometry:
+                    KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Coupling_Geometry" << std::endl;
+                    return;
+                case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry:
+                    KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Quadrature_Point_Curve_On_Surface_Geometry" << std::endl;
+                    return;
+                case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry:
+                    KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Quadrature_Point_Surface_In_Volume_Geometry" << std::endl;
+                    return;
+                default:
+                    // For any other geometry type, do nothing and continue execution
+                    break; 
+            }
             KRATOS_ERROR << "Modelpart contains elements or conditions with "
              << "geometries for which no VTK-output is implemented!" << std::endl
              << "Cell type: " << static_cast<int>(r_kratos_cell) << std::endl;
