@@ -90,7 +90,7 @@ namespace Kratos
         ) const override
         {
             return Kratos::make_intrusive<SupportFluidCondition>(
-                NewId, GetGeometry().Create(ThisNodes), pProperties);
+                NewId, GetGeometry().Create(rThisNodes), pProperties);
         };
 
         void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
