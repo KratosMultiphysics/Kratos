@@ -72,9 +72,9 @@ void LoadSolidCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
     const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
 
-    const double IntToReferenceWeight = r_integration_points[0].Weight() * std::abs(DetJ0) * thickness;
+    const double integration_weight = r_integration_points[0].Weight() * std::abs(DetJ0) * thickness;
 
-    SetValue(INTEGRATION_WEIGHT, IntToReferenceWeight);
+    SetValue(INTEGRATION_WEIGHT, integration_weight);
 }
 
 
@@ -159,7 +159,7 @@ void LoadSolidCondition::CalculateRightHandSide(
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const unsigned int dim = r_DN_De[0].size2();
     const SizeType mat_size = number_of_control_points * dim;
-    const double int_to_reference_weight = GetValue(INTEGRATION_WEIGHT);
+    const double integration_weight = GetValue(INTEGRATION_WEIGHT);
 
     KRATOS_ERROR_IF(dim != 2) << "SolidElement momentarily only supports 2D elements, but the current element has dimension " << dim << std::endl;
 
@@ -201,35 +201,10 @@ void LoadSolidCondition::CalculateRightHandSide(
 
     Vector g_N = this->GetValue(FORCE); 
 
-
-    // FIXME:
-    // double nu = this->GetProperties().GetValue(POISSON_RATIO);
-    // double E = this->GetProperties().GetValue(YOUNG_MODULUS);
-    // // When "analysis_type" is "linear" temper = 0
-    // Vector GP_parameter_coord = r_geometry.Center();
-    // const double x = GP_parameter_coord[0];
-    // const double y = GP_parameter_coord[1];
-
-    // array_1d<double, 3> tangent_parameter_space;
-    // array_1d<double, 3> normal_parameter_space;
-
-    // r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space
-    // double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
-    
-    // normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
-    // normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT)
-    // normal_parameter_space[2] = 0.0;
-
-    // // g_N[0] = E/(1+nu)*(-sin(x)*sinh(y)) * normal_parameter_space[0] + E/(1+nu)*(cos(x)*cosh(y)) * normal_parameter_space[1]; 
-    // // g_N[1] = E/(1+nu)*(cos(x)*cosh(y)) * normal_parameter_space[0] + E/(1+nu)*(sin(x)*sinh(y)) * normal_parameter_space[1]; 
-
-    // g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * normal_physical_space[0]; 
-    // g_N[1] = E/(1-nu)*(sin(x)*sinh(y))  * normal_physical_space[1]; 
-
     for (IndexType i = 0; i < number_of_control_points; i++) {
         for (IndexType zdim = 0; zdim < 2; zdim++) {
             
-            rRightHandSideVector[2*i+zdim] += N(0,i)*g_N[zdim] * int_to_reference_weight;
+            rRightHandSideVector[2*i+zdim] += N(0,i)*g_N[zdim] * integration_weight;
 
         }
     }
@@ -323,6 +298,24 @@ void LoadSolidCondition::CalculateRightHandSide(
         }
     }
 
+    void LoadSolidCondition::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
+                                        ConstitutiveVariables& rConstitutiVariables)
+    {
+        const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+        // Set constitutive law flags:
+        Flags& ConstitutiveLawOptions=rValues.GetOptions();
+
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        
+        rValues.SetStrainVector(rStrain);
+        rValues.SetStressVector(rConstitutiVariables.StressVector);
+        rValues.SetConstitutiveMatrix(rConstitutiVariables.D);
+
+        mpConstitutiveLaw->CalculateMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_Cauchy); 
+    }
+
 
     void LoadSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
@@ -346,7 +339,6 @@ void LoadSolidCondition::CalculateRightHandSide(
         const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());
         double DetJ0;
-        // MODIFIED
         Vector old_displacement(mat_size);
         GetSolutionCoefficientVector(old_displacement);
         
@@ -362,7 +354,6 @@ void LoadSolidCondition::CalculateRightHandSide(
         // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[0],InvJ0);
 
-        // MODIFIED
         Matrix B = ZeroMatrix(3,mat_size);
 
         CalculateB(B, DN_DX);
@@ -371,24 +362,11 @@ void LoadSolidCondition::CalculateRightHandSide(
 
         // GET STRESS VECTOR
         ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
+        Vector old_strain = prod(B,old_displacement);
 
         const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
-        // Set constitutive law flags:
-        Flags& ConstitutiveLawOptions=Values.GetOptions();
-
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
         ConstitutiveVariables this_constitutive_variables(strain_size);
-
-        Vector old_strain = prod(B,old_displacement);
-    
-        Values.SetStrainVector(old_strain);
-        Values.SetStressVector(this_constitutive_variables.StressVector);
-        Values.SetConstitutiveMatrix(this_constitutive_variables.D);
-        mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+        ApplyConstitutiveLaw(mat_size, old_strain, Values, this_constitutive_variables);
 
         const Vector sigma = Values.GetStressVector();
         Vector sigma_n(2);

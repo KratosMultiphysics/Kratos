@@ -178,26 +178,13 @@ void SolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     // Obtain the tangent costitutive law matrix
     ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
 
-    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
-    // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions=Values.GetOptions();
-
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-    ConstitutiveVariables this_constitutive_variables(strain_size);
-    
     Vector old_displacement(mat_size);
     GetSolutionCoefficientVector(old_displacement);
     Vector old_strain = prod(B,old_displacement);
-    
-    Values.SetStrainVector(old_strain);
-    Values.SetStressVector(this_constitutive_variables.StressVector);
-    Values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
-    mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy); 
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+    ConstitutiveVariables this_constitutive_variables(strain_size);
+    ApplyConstitutiveLaw(mat_size, old_strain, Values, this_constitutive_variables);
 
     const Matrix& r_D = Values.GetConstitutiveMatrix();
 
@@ -255,31 +242,15 @@ void SolidElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
     Matrix B = ZeroMatrix(3,mat_size);
     CalculateB(B, DN_DX);
 
-    //---------- MODIFIED ----------------------------------------------------------------
     ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
-
-    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
-    // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions=Values.GetOptions();
-
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-    ConstitutiveVariables this_constitutive_variables(strain_size);
 
     Vector old_displacement(mat_size);
     GetSolutionCoefficientVector(old_displacement);
     Vector old_strain = prod(B,old_displacement);
-    
-    // Values.SetStrainVector(this_constitutive_variables.StrainVector);
-    Values.SetStrainVector(old_strain);
 
-    Values.SetStressVector(this_constitutive_variables.StressVector);
-    Values.SetConstitutiveMatrix(this_constitutive_variables.D);
-
-    mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy); 
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+    ConstitutiveVariables this_constitutive_variables(strain_size);
+    ApplyConstitutiveLaw(mat_size, old_strain, Values, this_constitutive_variables);
 
     const Vector& r_stress_vector = Values.GetStressVector();
     //-----------------------------------------------------------------------------------
@@ -540,5 +511,23 @@ void SolidElement::GetSolutionCoefficientVector(
             rValues[index + 1] = displacement[1];
         }
     }
+
+void SolidElement::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
+                                        ConstitutiveVariables& rConstitutiVariables)
+{
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=rValues.GetOptions();
+
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    
+    rValues.SetStrainVector(rStrain);
+    rValues.SetStressVector(rConstitutiVariables.StressVector);
+    rValues.SetConstitutiveMatrix(rConstitutiVariables.D);
+
+    mpConstitutiveLaw->CalculateMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_Cauchy); 
+}
 
 } // Namespace Kratos

@@ -11,11 +11,8 @@ from iga_test_factory import SinglePatchTest as SinglePatchTest
 # Truss tests - python based
 from truss_element_tests import TrussElementTests as TTrussElementTests
 # Structural Elements test - python based
-from test_solid_IGA_element import test_SolidIGAElementP3 as TSolidIGAElementP3
-# Structural Conditions test - python based
-from applications.IgaApplication.tests.test_support_solid_IGA_condition import test_SupportSolidIGAConditionP3 as TSupportSolidIGAConditionP3
-from applications.IgaApplication.tests.test_support_simmetry_solid_IGA_condition import test_SupportSimmetrySolidIGAConditionP3 as TSupportSimmetrySolidIGAConditionP3
-from applications.IgaApplication.tests.test_load_solid_IGA_condition import test_LoadSolidIGAConditionP3 as TLoadSolidIGAConditionP3
+from test_solid_IGA_element import SolidIGAElementTests as TSolidIGAElementTests
+
 # Membrane tests
 from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
 from iga_test_factory import MembraneSinglePatchFourPointSailNonLinearStatic as MembraneSinglePatchFourPointSailNonLinearStatic
@@ -55,6 +52,8 @@ from test_modelers_sbm import TestModelersSbm as TTestModelersSbm
 from test_import_nurbs_modeler import TestImportNurbsModeler as TTestImportNurbsModeler
 # Processes tests
 from test_map_nurbs_volume_results_to_embedded_geometry_process import TestMapNurbsVolumeResultsToEmbeddedGeometryProcess as TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess
+# Fluid Element and Conditions tests
+from test_stokes_element import FluidTests as TTestFluid
 
 has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 
@@ -77,11 +76,7 @@ def AssembleTestSuites():
         # Truss tests
         TTrussElementTests,
         # Structural Elements tests
-        TSolidIGAElementP3,
-        # Structural Conditions tests
-        TSupportSolidIGAConditionP3,
-        TSupportSimmetrySolidIGAConditionP3,
-        TLoadSolidIGAConditionP3,
+        TSolidIGAElementTests,
         # Membrane tests
         MembraneSinglePatchFourPointSailLinearStatic,
         MembraneSinglePatchFourPointSailNonLinearStatic,
@@ -108,7 +103,9 @@ def AssembleTestSuites():
         # Modelers
         TTestModelers,
         TTestModelersSbm,
-        TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess
+        TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess,
+        # Fluid
+        TTestFluid
     ]))
 
     if has_linear_solvers_application:

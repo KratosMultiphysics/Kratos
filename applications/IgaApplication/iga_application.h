@@ -26,6 +26,7 @@
 #include "custom_elements/shell_5p_element.h"
 #include "custom_elements/laplacian_IGA_element.h"
 #include "custom_elements/solid_element.h"
+#include "custom_elements/stokes_element.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -134,6 +135,7 @@ private:
     const Shell5pElement mShell5pElement;
     const LaplacianIGAElement mLaplacianIGAElement;
     const SolidElement mSolidElement;
+    const StokesElement mStokesElement;
 
     //Conditions
     const OutputCondition mOutputCondition;

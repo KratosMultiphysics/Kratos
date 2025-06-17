@@ -240,14 +240,31 @@ struct ConstitutiveVariables
 ///@{
 void InitializeMaterial();
 
+void InitializeMemberVariables();
+
 void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+/**
+ * @brief Compute the constitutive law response for the given strain vector.
+ * 
+ * @param matSize 
+ * @param rStrain 
+ * @param rValues 
+ * @param rConstitutiVariables 
+ */
+void ApplyConstitutiveLaw(
+        SizeType matSize, 
+        Vector& rStrain, 
+        ConstitutiveLaw::Parameters& rValues,
+        ConstitutiveVariables& rConstitutiVariables);
 
 //@}
 ///@name Protected member Variables
 ///@{
 ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+unsigned int mDim; /// The dimension of the condition 
 
 ///@}
 
