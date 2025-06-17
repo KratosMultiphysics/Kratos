@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/matrix_market_interface.h"
 #include "includes/kratos_filesystem.h"
@@ -986,8 +985,8 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverRealSystem, KratosContactStructura
     const bool read_b = Kratos::ReadMatrixMarketVector(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "b_testing_condensation.rhs"}).c_str(), b);
 
     // Removing files
-    Kratos::filesystem::remove(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "A_testing_condensation.mm"}));
-    Kratos::filesystem::remove(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "b_testing_condensation.rhs"}));
+    std::filesystem::remove(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "A_testing_condensation.mm"}));
+    std::filesystem::remove(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "b_testing_condensation.rhs"}));
 
     if (read_a && read_b) {
         // We solve the reference system
