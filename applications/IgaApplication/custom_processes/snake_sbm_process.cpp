@@ -225,7 +225,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     }
     else if (rSkinModelPartInitial.Geometries().size()>0) // if the skin model part is defined by nurbs geometries
     {
-        const int n_initial_points_for_side = 5000;
+        //TODO: decrease the number when the closest point projection for the NURBS is optimized in the IgaSbmModeler
+        const int n_initial_points_for_side = 5000; 
         int first_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;
         const SizeType n_boundary_curves = rSkinModelPartInitial.NumberOfGeometries();
         bool new_inner_loop = true;
@@ -535,6 +536,8 @@ void SnakeSbmProcess::SnakeStepNurbs(
             if (is_passing_through_diagonal)
             {
                 SizeType count_split = 0;
+                // while the split still gives a line that pass through the diagonal vertex
+                // count_split < 5 is arbitrary, but usually we don't need more than 2-3 iterations if the line is not passing exaclty on the diagonal vertex
                 while (((knot_span_u_point_split == rKnotSpansUV[0][0] && knot_span_v_point_split == rKnotSpansUV[1][0]) ||
                         (knot_span_u_point_split == rKnotSpansUV[0][1] && knot_span_v_point_split == rKnotSpansUV[1][1]) )
                         && (count_split < 5))
@@ -547,16 +550,14 @@ void SnakeSbmProcess::SnakeStepNurbs(
                     knot_span_v_point_split = (xy_true_boundary_split[1]-rStartingPosition[1]) / rKnotStepUV[1] ;
                 }
                 // if the true skin exactly or almost exactly pass trough a diagonal vertex 
+                // -> we mark an arbitrary knot span (the one with the x of the first point and the y of the second point) as cut.
+                // it will be almost non cut, and likely ultimately excluded by the choice of lambda in the MarkKnotSpansAvailable
                 if ((knot_span_u_point_split == rKnotSpansUV[0][0] && knot_span_v_point_split == rKnotSpansUV[1][0]) ||
                     (knot_span_u_point_split == rKnotSpansUV[0][1] && knot_span_v_point_split == rKnotSpansUV[1][1]))
-                    {
-                        
-                        knot_span_u_point_split = rKnotSpansUV[0][0];
-                        knot_span_v_point_split = rKnotSpansUV[1][1];
-
-                        KRATOS_ERROR_IF_NOT(is_passing_through_diagonal) << "ERROR, SOMETHING WRONG IN THE SNAKE STEP FOR PASS THROUGH DIAGONAL"
-                                                    << rKnotSpansUV << std::endl;
-                    }
+                {
+                    knot_span_u_point_split = rKnotSpansUV[0][0];
+                    knot_span_v_point_split = rKnotSpansUV[1][1];
+                }
             }
 
             if (knot_span_u_point_split == int (rKnotSpansAvailable[IdMatrix][0].size())) knot_span_u_point_split--;
