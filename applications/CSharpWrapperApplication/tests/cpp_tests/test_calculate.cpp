@@ -86,8 +86,8 @@ namespace Kratos {
             })");
             const std::string &r_json_text = json_parameters.PrettyPrintJsonString();
             std::filebuf buffer;
-            file_path = std::filesystem::current_path() / "file.json";
-            buffer.open(file_path.string().c_str(), std::ios::out);
+            std::filesystem::path file_path_json = std::filesystem::current_path() / "file.json";
+            buffer.open(file_path_json.string().c_str(), std::ios::out);
             std::ostream os(&buffer);
             os << r_json_text;
             buffer.close();

@@ -69,8 +69,8 @@ void CreateAuxiliaryFiles()
     const std::string rhs = "%%MatrixMarket matrix array real general\n16 1\n0\n0\n0\n-5.1725e+07\n0\n-1.0345e+08\n0\n-5.1725e+07\n0\n-1.0345e+08\n0\n-6.23386e+08\n0\n-6.23386e+08\n0\n0\n";
 
     std::filebuf buffer_rhs;
-    file_path = std::filesystem::current_path() / "b_testing_condensation.rhs";
-    buffer_rhs.open(file_path.string().c_str(),std::ios::out);
+    std::filesystem::path file_path_json = std::filesystem::current_path() / "b_testing_condensation.rhs";
+    buffer_rhs.open(file_path_json.string().c_str(),std::ios::out);
     std::ostream os_rhs(&buffer_rhs);
     os_rhs << rhs;
     buffer_rhs.close();
