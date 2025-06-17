@@ -70,6 +70,14 @@ Begin Conditions LineCondition2D2N
 1948 1        973        974
 End Conditions
 
+Begin Constraints LinearMasterSlaveConstraint DISPLACEMENT_X
+1 0.0 [0.5] 1 2
+End Constraints
+
+Begin Constraints LinearMasterSlaveConstraint DISPLACEMENT_X
+2 0.0 [0.25, 0.25] 1 3 972
+End Constraints
+
 Begin NodalData BOUNDARY
 1
 2
