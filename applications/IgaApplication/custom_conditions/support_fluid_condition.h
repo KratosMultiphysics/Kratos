@@ -85,7 +85,7 @@ namespace Kratos
         /// Create with Id, pointer to geometry and pointer to property
         Condition::Pointer Create(
             IndexType NewId,
-            NodesArrayType const& ThisNodes,
+            NodesArrayType const& rThisNodes,
             PropertiesType::Pointer pProperties
         ) const override
         {

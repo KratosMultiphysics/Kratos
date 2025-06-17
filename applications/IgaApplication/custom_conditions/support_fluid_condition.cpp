@@ -41,7 +41,7 @@ void SupportFluidCondition::CalculateAll(
     const SizeType number_of_nodes = r_geometry.size();
 
     // Integration
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
     const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
 
     Matrix DN_DX(number_of_nodes,mDim);
@@ -95,8 +95,8 @@ void SupportFluidCondition::CalculateAll(
     determinant_factor[2] = 0.0; // 2D case
     const double det_J0 = norm_2(determinant_factor);
     
-    double penalty_integration = mPenalty * integration_points[0].Weight() * std::abs(det_J0);
-    const double integration_weight = integration_points[0].Weight() * std::abs(det_J0);
+    double penalty_integration = mPenalty * r_integration_points[0].Weight() * std::abs(det_J0);
+    const double integration_weight = r_integration_points[0].Weight() * std::abs(det_J0);
 
     // Compute the pressure & velocity at the previous iteration
     double pressure_current_iteration = 0.0;
