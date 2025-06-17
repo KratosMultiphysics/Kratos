@@ -523,7 +523,6 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
     void SbmLoadSolidCondition::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
                                         ConstitutiveVariables& rConstitutiVariables)
     {
-        const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
         // Set constitutive law flags:
         Flags& ConstitutiveLawOptions=rValues.GetOptions();
 
