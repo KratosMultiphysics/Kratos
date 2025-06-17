@@ -94,38 +94,13 @@ void SbmFluidConditionDirichlet::CalculateAll(
     const double penalty_integration = mPenalty * integration_points[0].Weight() * std::abs(det_J0);
     const double integration_weight = integration_points[0].Weight() * std::abs(det_J0);
 
-    // Compute all the derivatives of the basis functions involved
-    for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
-        mShapeFunctionDerivatives.push_back(r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod()));
-    }
-
-    for (IndexType i = 0; i < number_of_nodes; ++i)
-    {
-        // Reset for each node
-        double H_taylor_term = 0.0; 
-
-        if (mDim == 2) {
-            for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
-                // Retrieve the appropriate derivative for the term
-                Matrix& r_shape_function_derivatives = mShapeFunctionDerivatives[n-1];
-                for (IndexType k = 0; k <= n; k++) {
-                    IndexType n_k = n - k;
-                    double derivative = r_shape_function_derivatives(i,k); 
-                    // Compute the Taylor term for this derivative
-                    H_taylor_term += computeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
-                }
-            }
-        }
-        mHsum(0,i) = H_taylor_term + H(0,i);
-    }
-
     // Compute the pressure & velocity at the previous iteration
-    double pressure_current_iteration = 0.0;
-    Vector velocity_current_iteration = ZeroVector(2);
+    double pressure_old_iteration = 0.0;
+    Vector velocity_old_iteration = ZeroVector(2);
     for(unsigned int j = 0; j < number_of_nodes; ++j) {
-        pressure_current_iteration    += r_geometry[j].GetSolutionStepValue(PRESSURE) * H(0,j);
-        velocity_current_iteration[0] += r_geometry[j].GetSolutionStepValue(VELOCITY_X) * mHsum(0,j);
-        velocity_current_iteration[1] += r_geometry[j].GetSolutionStepValue(VELOCITY_Y) * mHsum(0,j);
+        pressure_old_iteration    += r_geometry[j].GetSolutionStepValue(PRESSURE) * H(0,j);
+        velocity_old_iteration[0] += r_geometry[j].GetSolutionStepValue(VELOCITY_X) * mHsum(0,j);
+        velocity_old_iteration[1] += r_geometry[j].GetSolutionStepValue(VELOCITY_Y) * mHsum(0,j);
     }
 
     Vector n_tensor(2);
@@ -136,7 +111,7 @@ void SbmFluidConditionDirichlet::CalculateAll(
     Matrix stress_old = ZeroMatrix(2, 2);
     stress_old(0, 0) = r_stress_vector[0];      stress_old(0, 1) = r_stress_vector[2];      
     stress_old(1, 0) = r_stress_vector[2];      stress_old(1, 1) = r_stress_vector[1];         
-    Vector traction_current_iteration = prod(stress_old, n_tensor); // This results in a 2x1 vector.
+    Vector traction_old_iteration = prod(stress_old, n_tensor); // This results in a 2x1 vector.
 
     for (IndexType i = 0; i < number_of_nodes; i++) {
         for (IndexType j = 0; j < number_of_nodes; j++) {
@@ -159,8 +134,7 @@ void SbmFluidConditionDirichlet::CalculateAll(
                     rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= H(0, i) * traction(idim) * integration_weight;
                     
                     // skew-symmetric Nitsche term
-                    rLeftHandSideMatrix(3*j+jdim, 3*i+idim) += H(0, i) * traction(idim) * integration_weight;
-
+                    rLeftHandSideMatrix(3*j+jdim, 3*i+idim) += mHsum(0, i) * traction(idim) * integration_weight;
                 }
 
                 // integration by parts PRESSURE
@@ -169,14 +143,14 @@ void SbmFluidConditionDirichlet::CalculateAll(
             }
         }
 
-        // --- RHS corresponding term ---
+        // --- RHS corresponding terms ---
         for (IndexType idim = 0; idim < 2; idim++) {
             // Penalty term for the velocity
-            rRightHandSideVector(3*i+idim) -= mHsum(0,i)* velocity_current_iteration[idim] * penalty_integration;
+            rRightHandSideVector(3*i+idim) -= mHsum(0,i)* velocity_old_iteration[idim] * penalty_integration;
             // integration by parts velocity
-            rRightHandSideVector(3*i+idim) += H(0,i) * traction_current_iteration(idim) * integration_weight;
+            rRightHandSideVector(3*i+idim) += H(0,i) * traction_old_iteration(idim) * integration_weight;
             // integration by parts PRESSURE
-            rRightHandSideVector(3*i+idim) -= pressure_current_iteration * ( H(0,i) * mNormalParameterSpace[idim] ) * integration_weight;
+            rRightHandSideVector(3*i+idim) -= pressure_old_iteration * ( H(0,i) * mNormalParameterSpace[idim] ) * integration_weight;
         
             // skew-symmetric Nitsche term
             Matrix DB_contribution = ZeroMatrix(2, 2); // Extract the 2x2 block for the control point i from the DB_voigt.
@@ -186,10 +160,11 @@ void SbmFluidConditionDirichlet::CalculateAll(
             DB_contribution(1, 1) = DB_voigt(1, 2*i+idim); 
             // Compute the traction vector: sigma * n.
             Vector traction = prod(DB_contribution, n_tensor);
-            rRightHandSideVector(3*i+idim) -= velocity_current_iteration[idim] * traction(idim) * integration_weight;
+            rRightHandSideVector(3*i+idim) -= velocity_old_iteration[idim] * traction(idim) * integration_weight;
         }
     }
-            
+    
+    // Get the projection node velocity
     const Vector u_D = mpProjectionNode->GetValue(VELOCITY);
 
     for (IndexType i = 0; i < number_of_nodes; i++) {
@@ -255,6 +230,8 @@ void SbmFluidConditionDirichlet::InitializeMemberVariables()
 void SbmFluidConditionDirichlet::InitializeSbmMemberVariables()
 {
     const auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+
     // Retrieve projection
     Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
     // Find the closest node in condition
@@ -275,6 +252,33 @@ void SbmFluidConditionDirichlet::InitializeSbmMemberVariables()
 
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
+
+    // Compute all the derivatives of the basis functions involved
+    for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
+        mShapeFunctionDerivatives.push_back(r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod()));
+    }
+    const Matrix& H = r_geometry.ShapeFunctionsValues();
+
+    // Compute the Hsum matrix
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        // Reset for each node
+        double H_taylor_term = 0.0; 
+
+        if (mDim == 2) {
+            for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
+                // Retrieve the appropriate derivative for the term
+                Matrix& r_shape_function_derivatives = mShapeFunctionDerivatives[n-1];
+                for (IndexType k = 0; k <= n; k++) {
+                    IndexType n_k = n - k;
+                    double derivative = r_shape_function_derivatives(i,k); 
+                    // Compute the Taylor term for this derivative
+                    H_taylor_term += computeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
+                }
+            }
+        }
+        mHsum(0,i) = H_taylor_term + H(0,i);
+    }
 }
 
 void SbmFluidConditionDirichlet::CalculateB(
