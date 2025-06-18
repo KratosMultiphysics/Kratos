@@ -47,8 +47,8 @@ The `CsrMatrix` can be created in several ways, depending on whether the sparsit
 
     // Populate Agraph based on connectivities (e.g., from a mesh)
     // This part is highly dependent on how 'connectivities' are defined and added.
-    // For example, if connectivities = {{0,1}, {1,2}, {0,2}} for a 3-node graph:
-    std::vector<std::vector<Kratos::CsrMatrix<double>::IndexType>> connectivities_example = {{0,1},{1,2},{0,2}};
+    // For example, if connectivities = { {0,1}, {1,2}, {0,2} } for a 3-node graph:
+    std::vector<std::vector<Kratos::CsrMatrix<double>::IndexType>> connectivities_example = { {0,1}, {1,2}, {0,2} };
     for(const auto& c : connectivities_example) {
         Agraph.AddEntries(c); // Add symmetric entries for each connectivity
     }
