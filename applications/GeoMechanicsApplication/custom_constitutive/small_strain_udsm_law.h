@@ -98,7 +98,7 @@ public:
 
     // This constitutive law cannot be moved using the default semantics provided by the compiler
     // due to the C-style multidimensional array. We'll disable the move operations for now.
-    SmallStrainUDSMLaw(SmallStrainUDSMLaw&&) noexcept = delete;
+    SmallStrainUDSMLaw(SmallStrainUDSMLaw&&) noexcept            = delete;
     SmallStrainUDSMLaw& operator=(SmallStrainUDSMLaw&&) noexcept = delete;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;

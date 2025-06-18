@@ -91,7 +91,7 @@ void SbmLoadSolidCondition::InitializeMemberVariables()
     r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space
 
     // compute complete jacobian transformation including parameter->physical space transformation
-    double DetJ0;
+    double detJ0;
     Matrix Jacobian = ZeroMatrix(3,3);
     Jacobian(0,0) = J0[0](0,0);
     Jacobian(0,1) = J0[0](0,1);
@@ -100,15 +100,15 @@ void SbmLoadSolidCondition::InitializeMemberVariables()
     Jacobian(2,2) = 1.0;
 
     // Calculating inverse jacobian and jacobian determinant
-    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,detJ0);
 
     Vector add_factor = prod(Jacobian, tangent_parameter_space); //additional factor to the determinant of the jacobian for the parameter->physical space transformation
     add_factor[2] = 0.0; 
-    DetJ0 = norm_2(add_factor);
+    detJ0 = norm_2(add_factor);
 
     const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
 
-    const double int_to_reference_weight = r_integration_points[0].Weight() * std::abs(DetJ0) * thickness;
+    const double int_to_reference_weight = r_integration_points[0].Weight() * std::abs(detJ0) * thickness;
 
     SetValue(INTEGRATION_WEIGHT, int_to_reference_weight);
 }
@@ -211,7 +211,7 @@ void SbmLoadSolidCondition::CalculateLeftHandSide(
     const unsigned int number_of_control_points = r_geometry.size();
 
      // reading integration points and local gradients
-    const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const SizeType mat_size = number_of_control_points * mDim;
     const double int_to_reference_weight = GetValue(INTEGRATION_WEIGHT);
@@ -233,7 +233,7 @@ void SbmLoadSolidCondition::CalculateLeftHandSide(
     r_geometry.Jacobian(J0,this->GetIntegrationMethod());
 
     // compute complete jacobian transformation including parameter->physical space transformation
-    double DetJ0;
+    double detJ0;
     Matrix Jacobian = ZeroMatrix(3,3);
     Jacobian(0,0) = J0[0](0,0);
     Jacobian(0,1) = J0[0](0,1);
@@ -242,7 +242,7 @@ void SbmLoadSolidCondition::CalculateLeftHandSide(
     Jacobian(2,2) = 1.0;
 
     // Calculating inverse jacobian and jacobian determinant
-    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,detJ0);
     
     // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
     Matrix sub_inv_jacobian = ZeroMatrix(2,2);
@@ -292,10 +292,10 @@ void SbmLoadSolidCondition::CalculateLeftHandSide(
                     const int jglob = 2*j+jdim;
 
                     // FLUX STANDARD TERM
-                    rLeftHandSideMatrix(iglob, jglob) -= N(0,i)*(DB(id1, jglob)* mNormalPhysicalSpace[0] + DB(id2, jglob)* mNormalPhysicalSpace[1]) * int_to_reference_weight;
+                    rLeftHandSideMatrix(iglob, jglob) -= r_N(0,i)*(DB(id1, jglob)* mNormalPhysicalSpace[0] + DB(id2, jglob)* mNormalPhysicalSpace[1]) * int_to_reference_weight;
                 
                     // SBM TERM
-                    rLeftHandSideMatrix(iglob, jglob) += N(0,i)*(DB_sum(id1, jglob)* mTrueNormal[0] + DB_sum(id2, jglob)* mTrueNormal[1]) 
+                    rLeftHandSideMatrix(iglob, jglob) += r_N(0,i)*(DB_sum(id1, jglob)* mTrueNormal[0] + DB_sum(id2, jglob)* mTrueNormal[1]) 
                                                         * int_to_reference_weight * mTrueDotSurrogateNormal;
                 }
             }
@@ -317,7 +317,7 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
     const unsigned int number_of_control_points = r_geometry.size();
 
      // reading integration points and local gradients
-    const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const SizeType mat_size = number_of_control_points * mDim;
     const double int_to_reference_weight = GetValue(INTEGRATION_WEIGHT);
@@ -339,7 +339,7 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
     r_geometry.Jacobian(J0,this->GetIntegrationMethod());
 
     // compute complete jacobian transformation including parameter->physical space transformation
-    double DetJ0;
+    double detJ0;
     Matrix Jacobian = ZeroMatrix(3,3);
     Jacobian(0,0) = J0[0](0,0);
     Jacobian(0,1) = J0[0](0,1);
@@ -348,7 +348,7 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
     Jacobian(2,2) = 1.0;
 
     // Calculating inverse jacobian and jacobian determinant
-    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,detJ0);
 
     // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
     Matrix sub_inv_jacobian = ZeroMatrix(2,2);
@@ -404,15 +404,15 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
     double E = this->GetProperties().GetValue(YOUNG_MODULUS);
     Vector g_N = ZeroVector(3);
 
-    const double x = mpProjectionNode->X();
-    const double y = mpProjectionNode->Y();
+    // const double x = mpProjectionNode->X();
+    // const double y = mpProjectionNode->Y();
 
-    // // cosinusoidal
-    g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[0]; 
-    g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[1]; 
+    // // // cosinusoidal
+    // g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[0]; 
+    // g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[1]; 
 
 
-    // g_N = mpProjectionNode->GetValue(FORCE);
+    g_N = mpProjectionNode->GetValue(FORCE);
     Vector normal_stress_old = ZeroVector(3);
     normal_stress_old[0] = (r_stress_vector[0] * mNormalPhysicalSpace[0] + r_stress_vector[2] * mNormalPhysicalSpace[1]);
     normal_stress_old[1] = (r_stress_vector[2] * mNormalPhysicalSpace[0] + r_stress_vector[1] * mNormalPhysicalSpace[1]);
@@ -430,15 +430,15 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
             sigma_w_n[1] = (DB(2, iglob)* mNormalPhysicalSpace[0] + DB(1, iglob)* mNormalPhysicalSpace[1]);
 
             // External load term
-            rRightHandSideVector[2*i+idim] += N(0,i) * g_N[idim] * mTrueDotSurrogateNormal * int_to_reference_weight;
+            rRightHandSideVector[2*i+idim] += r_N(0,i) * g_N[idim] * mTrueDotSurrogateNormal * int_to_reference_weight;
 
             // Residual terms
             // FLUX STANDARD TERM
             
-            rRightHandSideVector(iglob) += N(0,i) * normal_stress_old[idim] * int_to_reference_weight;
+            rRightHandSideVector(iglob) += r_N(0,i) * normal_stress_old[idim] * int_to_reference_weight;
         
             // // SBM TERM
-            rRightHandSideVector(iglob) -= N(0,i)*normal_stress_true_old[idim] * int_to_reference_weight * mTrueDotSurrogateNormal;
+            rRightHandSideVector(iglob) -= r_N(0,i)*normal_stress_true_old[idim] * int_to_reference_weight * mTrueDotSurrogateNormal;
         }
     }
     KRATOS_CATCH("")
@@ -534,7 +534,6 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
     void SbmLoadSolidCondition::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
                                         ConstitutiveVariables& rConstitutiVariables)
     {
-        const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
         // Set constitutive law flags:
         Flags& ConstitutiveLawOptions=rValues.GetOptions();
 
@@ -556,8 +555,10 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
             GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
         mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
-
+        
         //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
+        //TODO: build a CalculateOnIntegrationPoints method
+        //--------------------------------------------------------------------------------------------
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_control_points = r_geometry.size();
         const SizeType mat_size = number_of_control_points * 2;
@@ -571,7 +572,7 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());
-        double DetJ0;
+        double detJ0;
         // MODIFIED
         Vector old_displacement(mat_size);
         GetSolutionCoefficientVector(old_displacement);
@@ -583,7 +584,7 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         Jacobian(1,1) = J0[0](1,1);
 
         // Calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,detJ0);
 
         // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[0],InvJ0);
