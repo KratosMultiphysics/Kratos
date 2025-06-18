@@ -10,6 +10,14 @@ LINEAR_ELASTIC = "Linear Elastic Model"
 
 def create_menu():
     root = tk.Tk()
+
+    try:
+        icon_path = os.path.join(os.path.dirname(__file__), "assets", "icon.png")
+        icon_img = tk.PhotoImage(file=icon_path)
+        root.iconphoto(True, icon_img)
+    except Exception  as e:
+        print(f"Error loading icon: {e}")
+
     root.title("Triaxial Test")
     root.state('zoomed')
     root.resizable(True, True)

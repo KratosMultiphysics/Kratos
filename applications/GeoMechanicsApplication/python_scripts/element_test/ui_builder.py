@@ -1,3 +1,4 @@
+import os
 import math
 import tkinter as tk
 from tkinter import ttk, scrolledtext
@@ -135,13 +136,20 @@ class GeotechTestUI:
         self.test_selector_frame.pack(fill="x", pady=(10, 5))
 
         self.test_buttons = {}
-        for test_name in ["Triaxial", "Direct Shear", "Oedometer"]:
+        self.test_images = {
+            "Triaxial": tk.PhotoImage(file=os.path.join(os.path.dirname(__file__), "assets", "triaxial.png")),
+            "Direct Shear": tk.PhotoImage(file=os.path.join(os.path.dirname(__file__), "assets", "direct_shear.png"))
+        }
+
+        for test_name in ["Triaxial", "Direct Shear"]:
             btn = tk.Button(
                 self.test_selector_frame,
                 text=test_name,
-                font=("Arial", 8, "bold"),
-                width=10,
-                height=10,
+                image=self.test_images[test_name],
+                compound="top",
+                font=("Arial", 10, "bold"),
+                width=100,
+                height=100,
                 relief="raised",
                 command=lambda name=test_name: self._switch_test(name)
             )
@@ -207,7 +215,7 @@ class GeotechTestUI:
 
         for name, button in self.test_buttons.items():
             if name == test_name:
-                button.config(relief="sunken", bg="#d9d9d9", state="disabled")
+                button.config(relief="sunken", bg="SystemButtonFace", state="normal")
             else:
                 button.config(relief="raised", bg="SystemButtonFace", state="normal")
 
@@ -223,15 +231,6 @@ class GeotechTestUI:
                 [FL2_UNIT_LABEL, PERCENTAGE_UNIT_LABEL, WITHOUT_UNIT_LABEL, SECONDS_UNIT_LABEL],
                 {INIT_PRESSURE_LABEL: "100", MAX_STRAIN_LABEL: "10",
                  NUM_STEPS_LABEL: "100", DURATION_LABEL: "1.0"}
-            )
-        elif test_name == "Oedometer":
-            self._init_plot_canvas(num_plots=5)
-            self.oedometer_widgets = self._create_entries(
-                self.test_input_frame,
-                "Oedometer Input Data",
-                [DURATION_LABEL, STRESS_INC_LABEL, NUM_STEPS_LABEL],
-                [FL2_UNIT_LABEL, FL2_UNIT_LABEL, WITHOUT_UNIT_LABEL],
-                {DURATION_LABEL: "1.0", STRESS_INC_LABEL: "100", NUM_STEPS_LABEL: "100"}
             )
         elif test_name == "Direct Shear":
             self._init_plot_canvas(num_plots=4)
