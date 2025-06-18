@@ -37,8 +37,8 @@ void ComputeSurrogateBoundaryData::ValidateParameters()
     parameters.ValidateAndAssignDefaults(GetDefaultParameters());
 }
 
-void ComputeSurrogateBoundaryData::Apply() const
-{   
+void ComputeSurrogateBoundaryData::Execute()
+{
     /// The data of every node in the voxel mesh, with its corresponging SB information
     std::vector<SurrogateBoundaryNode> surrogate_boundary_data;
 
@@ -55,7 +55,7 @@ void ComputeSurrogateBoundaryData::Apply() const
     array_1d<std::size_t, 3> number_of_divisions = GetNumberOfDivisions();
     surrogate_boundary_data.resize(number_of_divisions[0]*number_of_divisions[1]*number_of_divisions[2]);
 
-    // Compute colors for every node. 
+    // Compute colors for every node.
     array_1d< std::size_t, 3 > min_ray_position{0,0,0};
     auto colors = GetMeshColors();
     colors.InitializeRays(min_ray_position, number_of_divisions, "nodes");
@@ -70,28 +70,28 @@ void ComputeSurrogateBoundaryData::Apply() const
     colors.CalculateNodalRayColors(min_ray_position, number_of_divisions, inside_color, outside_color);
 
     // Compute distance vector and signed distance for every node.
-    for (std::size_t i = 0; i < number_of_divisions[0]; i++) 
+    for (std::size_t i = 0; i < number_of_divisions[0]; i++)
     {
-        for (std::size_t j = 0; j < number_of_divisions[1]; j++) 
+        for (std::size_t j = 0; j < number_of_divisions[1]; j++)
         {
-            for (std::size_t k = 0; k < number_of_divisions[2]; k++) 
+            for (std::size_t k = 0; k < number_of_divisions[2]; k++)
             {
                 const std::size_t node_index = GetNodeIndex(i,j,k);
-                if (colors.GetNodalColor(i,j,k) == inside_color) 
+                if (colors.GetNodalColor(i,j,k) == inside_color)
                 {
                     surrogate_boundary_data[node_index].IsInside() = true;
                 }
 
                 auto& nodal_data = GetNodalData(i,j,k);
                 auto node_pointer = nodal_data.pGetNode();
-                if (node_pointer) 
+                if (node_pointer)
                 {
                     surrogate_boundary_data[node_index].IsActive() = true;
                     surrogate_boundary_data[node_index].SetNodePointer(node_pointer);
 
                     Point point = *node_pointer;
                     GeometricalObjectsBins::ResultType search_result = elements_bin.SearchNearest(point);
-                    if (!search_result.IsObjectFound()) 
+                    if (!search_result.IsObjectFound())
                     {
                         search_result = conditions_bin.SearchNearest(point);
                     }
@@ -101,39 +101,39 @@ void ComputeSurrogateBoundaryData::Apply() const
                         GeometryPtrType geometry = p_result->pGetGeometry();
                         const PointsArrayType& points = geometry->Points();
                         Point closest_point = NearestPointUtilities::TriangleNearestPoint(point, points[0],points[1],points[2]);
-                        
-                        for (std::size_t ii = 0; ii < 3; ii++) 
+
+                        for (std::size_t ii = 0; ii < 3; ii++)
                         {
                             surrogate_boundary_data[node_index].GetVectorDistance()[ii] = point[ii] - closest_point[ii];
                         }
                     } else {
                         KRATOS_WARNING("SurrogateBoundaryModeler") << "Input geometry has no elements or conditions. Unable to compute distance to skin." << std::endl;
-                    } 
-                    
+                    }
+
                     double d = norm_2(surrogate_boundary_data[node_index].GetVectorDistance());
-                    if (colors.GetNodalColor(i,j,k) == inside_color) 
+                    if (colors.GetNodalColor(i,j,k) == inside_color)
                     {
                         surrogate_boundary_data[node_index].GetSignedDistance() = -d;
                     } else {
                         surrogate_boundary_data[node_index].GetSignedDistance() = d;
                     }
                 }
-            } 
-        }  
+            }
+        }
     }
 
     std::ofstream output_file(output_path);
-    
+
     // Check if the file was opened successfully
     if (output_file.is_open()) {
         output_file <<  PrintSurrogateBoundaryData(surrogate_boundary_data);
         output_file.close();
-    } else  
+    } else
         KRATOS_WARNING("ComputeSurrogateBoundaryData") << "Data could not be saved in file" << std::endl;
-} 
+}
 
 /// Print object's data.
-std::string ComputeSurrogateBoundaryData::PrintSurrogateBoundaryData(std::vector<SurrogateBoundaryNode>& rSurrogateBoundaryData) const 
+std::string ComputeSurrogateBoundaryData::PrintSurrogateBoundaryData(std::vector<SurrogateBoundaryNode>& rSurrogateBoundaryData) const
 {
     std::stringstream rOStream;
     const auto n = GetNumberOfDivisions();
@@ -141,10 +141,10 @@ std::string ComputeSurrogateBoundaryData::PrintSurrogateBoundaryData(std::vector
     rOStream << "=== Meshing Data ===" << std::endl;
     rOStream << "NumberOfDivisions: " << n[0] << " " << n[1] << " " << n[2] << std::endl;
 
-    rOStream << "VoxelSize: " 
-            << GetKeyPlanes(0)[1] - GetKeyPlanes(0)[0] << " " 
-            << GetKeyPlanes(1)[1] - GetKeyPlanes(1)[0] << " " 
-            << GetKeyPlanes(2)[1] - GetKeyPlanes(2)[0] << " " 
+    rOStream << "VoxelSize: "
+            << GetKeyPlanes(0)[1] - GetKeyPlanes(0)[0] << " "
+            << GetKeyPlanes(1)[1] - GetKeyPlanes(1)[0] << " "
+            << GetKeyPlanes(2)[1] - GetKeyPlanes(2)[0] << " "
             << std::endl;
 
     rOStream << "=== Node Data ===" << std::endl;
