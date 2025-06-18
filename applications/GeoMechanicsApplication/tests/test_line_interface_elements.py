@@ -135,5 +135,32 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
 
         os.chdir(initial_cwd)
 
+    def assert_results_of_multi_stage_test_with_reset_displacement(self, stage, displacement_vector):
+        expected_displacement_vectors = [[0.0, 0.0, 0.0]] * 3  # the first three nodes have been fixed
+        expected_displacement_vectors += [displacement_vector] * 3  # the last three nodes have prescribed non-zero displacements
+        self.assertVectorsAlmostEqual(test_helper.get_displacement(stage), expected_displacement_vectors)
+
+        expected_normal_relative_displacement = displacement_vector[1]
+        expected_tangential_relative_displacement = displacement_vector[0]
+        expected_relative_displacement_vectors = [[expected_normal_relative_displacement, expected_tangential_relative_displacement]] * 3
+        self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, Kratos.STRAIN)[0],
+                                      expected_relative_displacement_vectors)
+
+    def test_multi_stage_3_plus_3_line_interface_element_with_neumann_conditions_and_reset_displacements(self):
+        file_path = test_helper.get_file_path(os.path.join('line_interface_elements', 'Neumann_multi_stage_reset_displacements'))
+
+        initial_directory = os.getcwd()
+        os.chdir(file_path)
+
+        project_parameters_file_names = ['ProjectParameters_stage1.json', 'ProjectParameters_stage2.json']
+        expected_displacement_vectors_of_loaded_side = [[-8.8933333333333332e-5, -2.22e-5, 0.0], [-2.0e-4--8.8933333333333332e-5, -4.44e-5--2.22e-5, 0.0]]
+        for file_name, displacement_vector in zip(project_parameters_file_names, expected_displacement_vectors_of_loaded_side):
+            stage = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, file_name))
+            stage.Run()
+
+            self.assert_results_of_multi_stage_test_with_reset_displacement(stage, displacement_vector)
+
+        os.chdir(initial_directory)
+
 if __name__ == '__main__':
     KratosUnittest.main()

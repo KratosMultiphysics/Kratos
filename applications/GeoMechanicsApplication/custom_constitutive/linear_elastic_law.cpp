@@ -155,16 +155,20 @@ int GeoLinearElasticLaw::Check(const Properties&   rMaterialProperties,
                                const ProcessInfo&  rCurrentProcessInfo) const
 {
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS))
-        << "YOUNG_MODULUS is not available in material parameters" << std::endl;
+        << "YOUNG_MODULUS is not available in the parameters of material "
+        << rMaterialProperties.Id() << "." << std::endl;
     KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0)
-        << "YOUNG_MODULUS is invalid value " << std::endl;
+        << "The value of YOUNG_MODULUS (" << rMaterialProperties[YOUNG_MODULUS]
+        << ") should be positive in material " << rMaterialProperties.Id() << "." << std::endl;
 
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO))
-        << "POISSON_RATIO is not available in material parameters" << std::endl;
+        << "POISSON_RATIO is not available in the parameters of material "
+        << rMaterialProperties.Id() << "." << std::endl;
 
-    const double& nu = rMaterialProperties[POISSON_RATIO];
-    KRATOS_ERROR_IF((nu > 0.499 && nu < 0.501) || (nu < -0.999 && nu > -1.01))
-        << "POISSON_RATIO has invalid value " << std::endl;
+    const auto nu = rMaterialProperties[POISSON_RATIO];
+    KRATOS_ERROR_IF(nu < -1.0 || nu >= 0.5) << "The value of POISSON_RATIO (" << nu
+                                            << ") should be in the range [-1.0, 0.5> in material "
+                                            << rMaterialProperties.Id() << "." << std::endl;
 
     return 0;
 }

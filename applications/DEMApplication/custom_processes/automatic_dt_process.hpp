@@ -54,7 +54,7 @@ public:
                 "correction_factor" : 5.0e-3
             }  )" );
 
-        // Now validate agains defaults -- this also ensures no type mismatch
+        // Now validate against defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mCorrectionFactor = rParameters["correction_factor"].GetDouble();

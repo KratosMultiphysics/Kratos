@@ -95,11 +95,15 @@ template< std::size_t TDim, std::size_t TNumNodes >
 void MovingLoadCondition<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     const double local_x_coord = this->GetValue(MOVING_LOAD_LOCAL_DISTANCE);
+    constexpr double tolerance = std::numeric_limits<double>::epsilon() * 1000.0;
 
     // check if cond should be calculated
     mIsMovingLoad = false;
     for (IndexType i = 0; i < TDim; ++i) {
-        if (std::abs(this->GetValue(POINT_LOAD)[i]) > std::numeric_limits<double>::epsilon() && local_x_coord <= this->GetGeometry().Length() && local_x_coord >= 0.0) {
+        if (std::abs(this->GetValue(POINT_LOAD)[i]) > tolerance &&
+            local_x_coord <= this->GetGeometry().Length() + tolerance &&
+            local_x_coord >= 0.0 - tolerance) {
+
             mIsMovingLoad = true;
         }
     }

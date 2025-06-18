@@ -114,7 +114,7 @@ public:
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
      * @param NewId Index number of the new element (optional)
      */
@@ -134,7 +134,7 @@ public:
      */
     QSVMSDEMCoupled(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
@@ -172,7 +172,7 @@ public:
     /**
      * Returns a pointer to a new FluidElement element, created using given input
      * @param NewId the ID of the new element
-     * @param pGeom a pointer to the geomerty to be used to create the element
+     * @param pGeom a pointer to the geometry to be used to create the element
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
@@ -262,11 +262,15 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-        int mInterpolationOrder = 1;
-        DenseVector <BoundedMatrix<double,Dim,Dim>> mViscousResistanceTensor;
-        // Velocity subscale history, stored at integration points
-        DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
-        DenseVector< array_1d<double,Dim> > mPreviousVelocity;
+    // Velocity subscale history, stored at integration points
+    DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
+    DenseVector< array_1d<double,Dim> > mPreviousVelocity;
+    DenseVector <BoundedMatrix<double,Dim,Dim>> mViscousResistanceTensor;
+    int mInterpolationOrder = 1;
+    std::vector<double> mPorosity;
+    std::vector<double> mPorosityRate;
+    std::vector<Vector> mPorosityGradient;
+    std::vector<Vector> mBodyForce;
 
     ///@}
     ///@name Protected Operators
@@ -346,6 +350,12 @@ protected:
     void SubscalePressure(
         const TElementData& rData,
         double &rPressureSubscale) const override;
+
+    array_1d<double,3> FullConvectiveVelocity(const TElementData& rData) const;
+
+    void Calculate(
+        const Variable<Matrix>& rVariable,
+        Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Protected  Access

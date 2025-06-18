@@ -52,6 +52,7 @@ void AssertNodeIdsOfGeometry(const Geometry<Node>::Pointer&  rGeometryPtr,
     KRATOS_EXPECT_NE(rGeometryPtr, nullptr);
 
     auto node_ids = std::vector<std::size_t>{};
+    node_ids.reserve(rGeometryPtr->size());
     std::transform(rGeometryPtr->begin(), rGeometryPtr->end(), std::back_inserter(node_ids),
                    [](const auto& rNode) { return rNode.Id(); });
     KRATOS_EXPECT_VECTOR_EQ(node_ids, rExpectedNodeIds)

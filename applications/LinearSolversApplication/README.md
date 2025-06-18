@@ -1,3 +1,5 @@
+@anchor LinearSolversApplicationMainPage
+
 # LinearSolversApplication
 
 The *LinearSolversApplication* is a thin wrapper for the [Eigen linear algebra library](http://eigen.tuxfamily.org/index.php?title=Main_Page).

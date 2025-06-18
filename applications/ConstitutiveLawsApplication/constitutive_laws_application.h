@@ -66,7 +66,8 @@
 #include "custom_constitutive/small_strains/plastic_damage/generic_small_strain_plastic_damage_model.h"
 #include "custom_constitutive/small_strains/damage/generic_small_strain_orthotropic_damage.h"
 #include "custom_constitutive/composites/serial_parallel_rule_of_mixtures_law.h"
-#include "custom_constitutive/small_strains/anisotropy_orthotropy/generic_anisotropic_3d_law.h"
+#include "custom_constitutive/small_strains/anisotropy_orthotropy/generic_anisotropic_law.h"
+#include "custom_constitutive/small_strains/anisotropy_orthotropy/generic_anisotropic_plane_stress_2d_law.h"
 #include "custom_constitutive/small_strains/linear/multi_linear_elastic_1d_law.h"
 #include "custom_constitutive/small_strains/linear/multi_linear_isotropic_plane_stress_2d.h"
 #include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage_plane_stress.h"
@@ -300,7 +301,8 @@ private:
     const MultiLinearIsotropicPlaneStress2D mMultiLinearIsotropicPlaneStress2D;
 
     // Damage and plasticity laws
-    const SerialParallelRuleOfMixturesLaw mSerialParallelRuleOfMixturesLaw;
+    const SerialParallelRuleOfMixturesLaw<3> mSerialParallelRuleOfMixturesLaw3D;
+    const SerialParallelRuleOfMixturesLaw<2> mSerialParallelRuleOfMixturesLaw2D;
     const SmallStrainIsotropicPlasticityFactory mSmallStrainIsotropicPlasticityFactory;
     const SmallStrainKinematicPlasticityFactory mSmallStrainKinematicPlasticityFactory;
     const FiniteStrainIsotropicPlasticityFactory mFiniteStrainIsotropicPlasticityFactory;
@@ -623,7 +625,9 @@ private:
 	const ParallelRuleOfMixturesLaw<2> mParallelRuleOfMixturesLaw2D;
 
     // Anisotropic law
-    const GenericAnisotropic3DLaw mGenericAnisotropic3DLaw;
+    const GenericAnisotropicLaw<2> mGenericAnisotropicPlaneStrain2DLaw;
+    const GenericAnisotropicLaw<3> mGenericAnisotropic3DLaw;
+    const GenericAnisotropicPlaneStress2DLaw mGenericAnisotropicPlaneStress2DLaw;
 
     const AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>> mAssociativePlasticDamageModel3DVonMises;
     const AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>> mAssociativePlasticDamageModel3DDruckerPrager;

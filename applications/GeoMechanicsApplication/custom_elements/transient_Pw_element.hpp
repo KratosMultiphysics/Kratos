@@ -19,7 +19,6 @@
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -45,7 +44,6 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
     using BaseType::mConstitutiveLawVector;
-    using BaseType::mIsInitialised;
     using BaseType::mRetentionLawVector;
 
     using ElementVariables = typename BaseType::ElementVariables;
@@ -53,14 +51,20 @@ public:
     explicit TransientPwElement(IndexType NewId = 0) : BaseType(NewId) {}
 
     /// Constructor using an array of nodes
-    TransientPwElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy))
+    TransientPwElement(IndexType                          NewId,
+                       const NodesArrayType&              ThisNodes,
+                       std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                       std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
     /// Constructor using Geometry
-    TransientPwElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : BaseType(NewId, pGeometry, std::move(pStressStatePolicy))
+    TransientPwElement(IndexType                          NewId,
+                       GeometryType::Pointer              pGeometry,
+                       std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                       std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : BaseType(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -68,8 +72,9 @@ public:
     TransientPwElement(IndexType                          NewId,
                        GeometryType::Pointer              pGeometry,
                        PropertiesType::Pointer            pProperties,
-                       std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                       std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                       std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -137,9 +142,9 @@ protected:
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
 
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint) override;
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int) override;
 
-    void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber) override;
+    void CalculateKinematics(ElementVariables& rVariables, unsigned int IntegrationPointIndex) override;
 
     void CalculateAndAddCompressibilityMatrix(MatrixType&             rLeftHandSideMatrix,
                                               const ElementVariables& rVariables) override;

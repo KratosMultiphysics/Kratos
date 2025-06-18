@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(KRATOS_THERMAL_DEM_APPLICATION_VARIABLES_H_INCLUDED)
-#define KRATOS_THERMAL_DEM_APPLICATION_VARIABLES_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -90,5 +89,3 @@ namespace Kratos
       KRATOS_DEFINE_LOCAL_APPLICATION_FLAG(THERMAL_DEM_APPLICATION, IS_SINTERING);
   };
 } // namespace Kratos
-
-#endif // KRATOS_THERMAL_DEM_APPLICATION_VARIABLES_H_INCLUDED defined

@@ -180,7 +180,7 @@ class HRomTrainingUtility(object):
             err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
             raise Exception(err_msg)
 
-        np_res_mat = np.array(res_mat, copy=False)
+        np_res_mat = np.asarray(res_mat)
         self.time_step_residual_matrix_container.append(np_res_mat)
 
     def GetJacobianPhiMultiplication(self, computing_model_part):

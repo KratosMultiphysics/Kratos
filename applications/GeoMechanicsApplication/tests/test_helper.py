@@ -11,9 +11,9 @@ sys.path.append(os.path.join('..', 'python_scripts'))
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 
 
-def get_file_path(fileName):
+def get_file_path(filename):
     import os
-    return os.path.join(os.path.dirname(__file__), fileName)
+    return os.path.join(os.path.dirname(__file__), filename)
 
 
 def make_geomechanics_analysis(model, project_parameters_file_path):
@@ -377,9 +377,8 @@ def get_force(simulation):
     model_part = simulation._list_of_output_processes[0].model_part
     elements = model_part.Elements
 
-    Force = [element.CalculateOnIntegrationPoints(
+    return [element.CalculateOnIntegrationPoints(
         Kratos.FORCE, model_part.ProcessInfo)[0] for element in elements]
-    return Force
 
 
 def get_moment(simulation):
@@ -687,3 +686,30 @@ class GiDOutputFileReader:
             return result
         else:
             return element_results
+
+
+def read_coordinates_from_post_msh_file(file_path, node_ids=None):
+    node_map = {}
+
+    with open(file_path, "r") as post_msh_file:
+        reading_coordinates = False
+        for line in post_msh_file:
+            line = line.strip()
+            if line == "Coordinates":
+                reading_coordinates = True
+                continue
+
+            if line == "End Coordinates":
+                reading_coordinates = False
+
+            if reading_coordinates:
+                numbers = line.split()  # [node ID, x, y, z]
+                node_map[int(numbers[0])] = tuple([float(number) for number in numbers[1:]])
+
+    if node_ids is None:
+        return list(node_map.values())
+
+    result = []
+    for id in node_ids:
+        result.append(node_map[id])
+    return result

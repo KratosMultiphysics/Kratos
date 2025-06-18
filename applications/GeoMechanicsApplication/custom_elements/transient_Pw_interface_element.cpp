@@ -27,7 +27,8 @@ Element::Pointer TransientPwInterfaceElement<TDim, TNumNodes>::Create(IndexType 
                                                                       PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new TransientPwInterfaceElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties,
+        this->GetStressStatePolicy().Clone(), this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -35,8 +36,9 @@ Element::Pointer TransientPwInterfaceElement<TDim, TNumNodes>::Create(IndexType 
                                                                       GeometryType::Pointer pGeom,
                                                                       PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new TransientPwInterfaceElement(NewId, pGeom, pProperties,
-                                                            this->GetStressStatePolicy().Clone()));
+    return Element::Pointer(new TransientPwInterfaceElement(
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(),
+        this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -146,33 +148,13 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixTyp
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo&)
 {
-    KRATOS_TRY
-
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-
-    // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < mRetentionLawVector.size(); ++GPoint) {
-        // Initialize retention law
-        mRetentionLawVector[GPoint]->InitializeSolutionStep(RetentionParameters);
-    }
-
-    KRATOS_CATCH("")
+    // Intentionally empty
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo&)
 {
-    KRATOS_TRY
-
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-
-    // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < mRetentionLawVector.size(); ++GPoint) {
-        // retention law
-        mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
-    }
-
-    KRATOS_CATCH("")
+    // Intentionally empty
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

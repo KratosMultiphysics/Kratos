@@ -167,6 +167,67 @@ public:
     }
 
     /**
+     * @brief Returns the local coordinates of a given arbitrary point for a given linear triangle
+     * @param rGeometry The geometry to be considered
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    template<class TGeometryType>
+    static inline typename TGeometryType::CoordinatesArrayType& PointLocalCoordinatesStraightEdgesTriangle(
+        const TGeometryType& rGeometry,
+        typename TGeometryType::CoordinatesArrayType& rResult,
+        const typename TGeometryType::CoordinatesArrayType& rPoint
+        )
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Triangle) <<
+             "Geometry should be a triangle in order to use PointLocalCoordinatesStraightEdgesTriangle" << std::endl;
+
+        noalias(rResult) = ZeroVector(3);
+
+        array_1d<double, 3> tangent_xi  = rGeometry.GetPoint(1) - rGeometry.GetPoint(0);
+        tangent_xi /= norm_2(tangent_xi);
+        array_1d<double, 3> tangent_eta = rGeometry.GetPoint(2) - rGeometry.GetPoint(0);
+        tangent_eta /= norm_2(tangent_eta);
+
+        const auto center = rGeometry.Center();
+
+        BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
+        for (IndexType i = 0; i < 3; ++i) {
+            rotation_matrix(0, i) = tangent_xi[i];
+            rotation_matrix(1, i) = tangent_eta[i];
+        }
+
+        typename TGeometryType::CoordinatesArrayType aux_point_to_rotate, destination_point_rotated;
+        noalias(aux_point_to_rotate) = rPoint - center.Coordinates();
+        noalias(destination_point_rotated) = prod(rotation_matrix, aux_point_to_rotate) + center.Coordinates();
+
+        array_1d<typename TGeometryType::CoordinatesArrayType, 3> points_rotated;
+        for (IndexType i = 0; i < 3; ++i) {
+            noalias(aux_point_to_rotate) = rGeometry.GetPoint(i).Coordinates() - center.Coordinates();
+            noalias(points_rotated[i]) = prod(rotation_matrix, aux_point_to_rotate) + center.Coordinates();
+        }
+
+        // Compute the Jacobian matrix and its determinant
+        BoundedMatrix<double, 2, 2> J;
+        J(0,0) = points_rotated[1][0] - points_rotated[0][0];
+        J(0,1) = points_rotated[2][0] - points_rotated[0][0];
+        J(1,0) = points_rotated[1][1] - points_rotated[0][1];
+        J(1,1) = points_rotated[2][1] - points_rotated[0][1];
+        const double det_J = J(0,0)*J(1,1) - J(0,1)*J(1,0);
+
+        const double eta = (J(1,0)*(points_rotated[0][0] - destination_point_rotated[0]) +
+                            J(0,0)*(destination_point_rotated[1] - points_rotated[0][1])) / det_J;
+        const double xi  = (J(1,1)*(destination_point_rotated[0] - points_rotated[0][0]) +
+                            J(0,1)*(points_rotated[0][1] - destination_point_rotated[1])) / det_J;
+
+        rResult(0) = xi;
+        rResult(1) = eta;
+
+        return rResult;
+    }
+
+    /**
      * @brief This function is designed to compute the shape function derivatives, shape functions and volume in 3D
      * @param rGeometry it is the array of nodes. It is expected to be a tetrahedra
      * @param rDN_DX a stack matrix of size 4*3 to store the shape function's derivatives

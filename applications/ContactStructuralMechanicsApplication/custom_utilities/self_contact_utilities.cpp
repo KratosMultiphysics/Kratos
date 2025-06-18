@@ -139,7 +139,7 @@ void ComputeSelfContactPairing(
 
     // First loop over the conditions to check the pairs
     for(auto& p_cond : ordered_conditions) {
-        // The slave geoemtry
+        // The slave geometry
         auto& r_slave_geometry = p_cond->GetGeometry();
 
         // Checking if already set

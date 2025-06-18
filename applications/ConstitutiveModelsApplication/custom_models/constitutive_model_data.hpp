@@ -436,7 +436,7 @@ namespace Kratos
       const SizeType&       GetVoigtSize                   () const {return  mVoigtSize;};
       const VoigtIndexType& GetVoigtIndexTensor            () const {return  mIndexVoigtTensor;};
 
-      //Acces non const Data
+      //Access non const Data
       ConstitutiveLawData& rConstitutiveLawData            () {return mConstitutiveLawData;};
       MatrixType&          rStrainMatrix                   () {return StrainMatrix;};
       MatrixType&          rStressMatrix                   () {return StressMatrix;};
