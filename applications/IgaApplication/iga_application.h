@@ -43,6 +43,8 @@
 #include "custom_conditions/sbm_laplacian_condition_dirichlet.h"
 #include "custom_conditions/support_solid_condition.h"
 #include "custom_conditions/load_solid_condition.h"
+#include "custom_conditions/sbm_solid_condition.h"
+#include "custom_conditions/sbm_load_solid_condition.h"
 
 
 //modelers
@@ -150,6 +152,8 @@ private:
     const SbmLaplacianConditionNeumann mSbmLaplacianConditionNeumann;
     const SupportSolidCondition mSupportSolidCondition;
     const LoadSolidCondition mLoadSolidCondition;
+    const SbmSolidCondition mSbmSolidCondition;
+    const SbmLoadSolidCondition mSbmLoadSolidCondition;
 
 
     // Modelers

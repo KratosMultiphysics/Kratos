@@ -25,16 +25,16 @@
 
 namespace Kratos
 {
-/// Condition for Neumann condition
-class KRATOS_API(IGA_APPLICATION) LoadSolidCondition
+/// Condition for penalty support condition
+class KRATOS_API(IGA_APPLICATION) SbmSolidCondition
     : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer definition of LoadSolidCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LoadSolidCondition);
+    /// Counted pointer definition of SbmSolidCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SbmSolidCondition);
 
     /// Size types
     using SizeType = std::size_t;
@@ -47,14 +47,14 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Constructor with Id and geometry
-    LoadSolidCondition(
+    SbmSolidCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {};
 
     /// Constructor with Id, geometry and property
-    LoadSolidCondition(
+    SbmSolidCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -62,11 +62,11 @@ public:
     {};
 
     /// Default constructor
-    LoadSolidCondition() : Condition()
+    SbmSolidCondition() : Condition()
     {};
 
     /// Destructor
-    virtual ~LoadSolidCondition() override
+    virtual ~SbmSolidCondition() override
     {};
 
     ///@}
@@ -80,7 +80,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<LoadSolidCondition>(
+        return Kratos::make_intrusive<SbmSolidCondition>(
             NewId, pGeom, pProperties);
     };
 
@@ -91,7 +91,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<LoadSolidCondition>(
+        return Kratos::make_intrusive<SbmSolidCondition>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -160,6 +160,7 @@ public:
     void GetSolutionCoefficientVector(
         Vector& rValues) const;
 
+
     ///@}
     ///@name Check
     ///@{
@@ -175,14 +176,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "\"LoadSolidCondition\" #" << Id();
+        buffer << "\"SbmSolidCondition\" #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "\"LoadSolidCondition\" #" << Id();
+        rOStream << "\"SbmSolidCondition\" #" << Id();
     }
 
     /// Print object's data.
@@ -194,7 +195,6 @@ public:
     ///@}
 
 protected:
-
 
 /**
  * Internal variables used in the constitutive calculations
@@ -226,6 +226,28 @@ struct ConstitutiveVariables
     }
 };
 
+///@name Protected static Member Variables
+///@{
+void InitializeMaterial();
+
+void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+//@}
+/**
+ * @brief 
+ * 
+ */
+void InitializeMemberVariables();
+
+/**
+ * @brief 
+ * 
+ */
+void InitializeSbmMemberVariables();
+
+
 /**
  * @brief Calculate the B matrix for the element in the two-dimensional case.
  * 
@@ -250,21 +272,54 @@ void ApplyConstitutiveLaw(
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveVariables& rConstitutiVariables);
 
-///@name Protected static Member Variables
-///@{
-void InitializeMaterial();
+/**
+ * @brief 
+ * 
+ * @param H_sum_vec 
+ */
+void ComputeTaylorExpansionContribution(Vector& H_sum_vec);
 
-void InitializeMemberVariables();
+/**
+ * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
+ * @param derivative 
+ * @param dx 
+ * @param k 
+ * @param dy 
+ * @param n_k 
+ * @return double 
+ */
+double ComputeTaylorTerm(
+    double derivative, 
+    double dx, IndexType k, 
+    double dy, IndexType n_k);
 
-void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+/**
+ * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 3D
+ * @param derivative 
+ * @param dx 
+ * @param k 
+ * @param dy 
+ * @param n_k 
+ * @return double 
+ */
+double ComputeTaylorTerm3D(
+    double derivative, 
+    double dx, IndexType k_x, 
+    double dy, IndexType k_y, 
+    double dz, IndexType k_z);
 
-void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-//@}
 ///@name Protected member Variables
 ///@{
-ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
-unsigned int mDim; /// The dimension of the condition 
+    ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+    // sbm variables
+    array_1d<double, 3> mNormalParameterSpace;
+    array_1d<double, 3> mNormalPhysicalSpace;
+    Vector mDistanceVector;
+    unsigned int mDim;
+    double mPenalty;
+    double mNitschePenalty;
+    IndexType mBasisFunctionsOrder;
+    NodeType* mpProjectionNode;
 
 ///@}
 
