@@ -108,9 +108,9 @@ template<class TContainerType>
         return_type mValue;
 
         /// access to reduced value
-        return_type GetValue() const
+        [[nodiscard]] return_type&& GetValue()
         {
-            return mValue;
+            return std::move(mValue);
         }
 
         /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
