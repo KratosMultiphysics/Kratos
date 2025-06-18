@@ -212,7 +212,14 @@ class TestCase(KratosUnittest.TestCase):
                 else:
                     element.SetValue(BOSSAK_ALPHA, 4.0)
 
-            self.assertEqual(Utilities.GetListOfAvailableVariables(model_part.Elements, data_communicator), ['BOSSAK_ALPHA', 'DENSITY', 'DISTANCE', 'RADIUS'])
+            if data_communicator.Size() == 2:
+                # if this test was run with 2 processes in mpi, the last rank will be
+                # empty by design, hence there wont be any entities with DISTANCE and RADIUS.
+                # so the following check is done. Otherwise, if we check for "DISTANCE" and RADIUS,
+                # then an error saying there are no entities having those variables will be thrown.
+                self.assertEqual(Utilities.GetListOfAvailableVariables(model_part.Elements, data_communicator), ['BOSSAK_ALPHA', 'DENSITY'])
+            else:
+                self.assertEqual(Utilities.GetListOfAvailableVariables(model_part.Elements, data_communicator), ['BOSSAK_ALPHA', 'DENSITY', 'DISTANCE', 'RADIUS'])
 
     def test_HDF5PropertiesIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -288,8 +295,9 @@ class TestCase(KratosUnittest.TestCase):
             params = Parameters("""
             {
                 "prefix" : "/ResultsData",
-                "list_of_variables" : ["DENSITY", "DISPLACEMENT", "RADIUS", "BOSSAK_ALPHA", "DISTANCE", "TEMPERATURE"]
+                "list_of_variables" : []
             }""")
+            params["list_of_variables"].SetStringArray(Utilities.GetListOfAvailableVariables(write_model_part.Elements, write_model_part.GetCommunicator().GetDataCommunicator()))
             hdf5_file = self._get_file(write_model_part.GetCommunicator().GetDataCommunicator())
             data_value_io = HDF5ElementDataValueIO(params, hdf5_file)
             data_value_io.Write(write_model_part)
