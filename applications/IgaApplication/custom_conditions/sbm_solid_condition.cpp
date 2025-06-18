@@ -130,30 +130,23 @@ void SbmSolidCondition::InitializeMemberVariables()
 void SbmSolidCondition::InitializeSbmMemberVariables()
 {
     const auto& r_geometry = this->GetGeometry();
-
-    if (this->GetValue(PROJECTION_NODE) != nullptr) {
-        mpProjectionNode = this->GetValue(PROJECTION_NODE).get();
-    }
-    else
-    {
-        // Retrieve projection
-        Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
-        // Find the closest node in condition
-        int closestNodeId;
-        if (mDim > 2) {
-            double incumbent_dist = 1e16;
-            // Loop over the three nodes of the closest skin element
-            for (unsigned int i = 0; i < 3; i++) {
-                if (norm_2(candidate_closest_skin_segment_1.GetGeometry()[i]-r_geometry.Center()) < incumbent_dist) {
-                    incumbent_dist = norm_2(candidate_closest_skin_segment_1.GetGeometry()[i]-r_geometry.Center());
-                    closestNodeId = i;
-                }
+    // Retrieve projection
+    Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
+    // Find the closest node in condition
+    int closestNodeId;
+    if (mDim > 2) {
+        double incumbent_dist = 1e16;
+        // Loop over the three nodes of the closest skin element
+        for (unsigned int i = 0; i < 3; i++) {
+            if (norm_2(candidate_closest_skin_segment_1.GetGeometry()[i]-r_geometry.Center()) < incumbent_dist) {
+                incumbent_dist = norm_2(candidate_closest_skin_segment_1.GetGeometry()[i]-r_geometry.Center());
+                closestNodeId = i;
             }
-        } else {
-            closestNodeId = 0;
         }
-        mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
+    } else {
+        closestNodeId = 0;
     }
+    mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
 
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
@@ -240,25 +233,13 @@ void SbmSolidCondition::CalculateLeftHandSide(
     // Obtain the tangent costitutive law matrix
     ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
 
-    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
-    // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions=Values.GetOptions();
-
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-    ConstitutiveVariables this_constitutive_variables(strain_size);
-    
     Vector old_displacement_coefficient_vector(mat_size);
     GetSolutionCoefficientVector(old_displacement_coefficient_vector);
     Vector old_strain = prod(B,old_displacement_coefficient_vector);
-    
-    Values.SetStrainVector(old_strain);
-    Values.SetStressVector(this_constitutive_variables.StressVector);
-    Values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
-    mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy); 
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+    ConstitutiveVariables this_constitutive_variables(strain_size);
+    ApplyConstitutiveLaw(mat_size, old_strain, Values, this_constitutive_variables);
 
     const Matrix& r_D = Values.GetConstitutiveMatrix();
 
@@ -295,7 +276,7 @@ void SbmSolidCondition::CalculateLeftHandSide(
                         const int jglob = 2*j+jdim;
 
                         // PENALTY TERM
-                        rLeftHandSideMatrix(iglob, jglob) -= N(0,i)*H_sum_vec(j)* penalty_integration * direction[idim] * direction[jdim];
+                        rLeftHandSideMatrix(iglob, jglob) += N(0,i)*H_sum_vec(j)* penalty_integration * direction[idim] * direction[jdim];
 
                         // FLUX 
                         // [sigma(u) \dot n] \dot n * (-w \dot n)
@@ -335,7 +316,7 @@ void SbmSolidCondition::CalculateLeftHandSide(
                     const int iglob = 2*i+idim;
 
                     // PENALTY TERM
-                    rLeftHandSideMatrix(iglob, 2*j+idim) -= N(0,i)*H_sum_vec(j)* penalty_integration;
+                    rLeftHandSideMatrix(iglob, 2*j+idim) += N(0,i)*H_sum_vec(j)* penalty_integration;
 
                     Vector sigma_w_n = ZeroVector(3);
                     sigma_w_n[0] = (DB(0, iglob)* mNormalPhysicalSpace[0] + DB(2, iglob)* mNormalPhysicalSpace[1]);
@@ -421,26 +402,13 @@ void SbmSolidCondition::CalculateRightHandSide(
     // Obtain the tangent costitutive law matrix
     ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
 
-    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
-    // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions=Values.GetOptions();
-
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-    ConstitutiveVariables this_constitutive_variables(strain_size);
-    
     Vector old_displacement_coefficient_vector(mat_size);
     GetSolutionCoefficientVector(old_displacement_coefficient_vector);
     Vector old_strain = prod(B,old_displacement_coefficient_vector);
-    
-    Values.SetStrainVector(old_strain);
-    Values.SetStressVector(this_constitutive_variables.StressVector);
-    Values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
-    mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy); 
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+    ConstitutiveVariables this_constitutive_variables(strain_size);
+    ApplyConstitutiveLaw(mat_size, old_strain, Values, this_constitutive_variables);
 
     const Matrix& r_D = Values.GetConstitutiveMatrix();
     const Vector& r_stress_vector = Values.GetStressVector();
@@ -474,7 +442,7 @@ void SbmSolidCondition::CalculateRightHandSide(
         //--------------------------------------------------------------------------------------------
         Vector direction = this->GetValue(DIRECTION);
         const Vector displacement = this->GetValue(DISPLACEMENT); //already direction
-        const double displacement_module = norm_2(displacement);
+        const double displacement_module = inner_prod(displacement, direction);
 
         const double old_displacement_direction = inner_prod(old_displacement, direction);
             
@@ -483,7 +451,7 @@ void SbmSolidCondition::CalculateRightHandSide(
             for (IndexType idim = 0; idim < 2; idim++) {
                 const int iglob = 2*i+idim;
 
-                rRightHandSideVector(iglob) -= N(0,i) * direction[idim] * (displacement_module-old_displacement_direction) * penalty_integration;
+                rRightHandSideVector(iglob) += N(0,i) * direction[idim] * (displacement_module-old_displacement_direction) * penalty_integration;
 
                 // // PENALTY FREE g_n = 0
                 // // rhs -> [\sigma_1(w) \dot n] \dot n (-g_{n,0})
@@ -521,7 +489,7 @@ void SbmSolidCondition::CalculateRightHandSide(
             for (IndexType idim = 0; idim < 2; idim++) {
                 const int iglob = 2*i+idim;
 
-                rRightHandSideVector[iglob] -= N(0,i)*(u_D-old_displacement)[idim]* penalty_integration;
+                rRightHandSideVector[iglob] += N(0,i)*(u_D-old_displacement)[idim]* penalty_integration;
 
                 Vector sigma_w_n = ZeroVector(3);
                 sigma_w_n[0] = (DB(0, iglob)* mNormalPhysicalSpace[0] + DB(2, iglob)* mNormalPhysicalSpace[1]);
@@ -632,6 +600,24 @@ void SbmSolidCondition::CalculateRightHandSide(
         }
     }
 
+    void SbmSolidCondition::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
+                                        ConstitutiveVariables& rConstitutiVariables)
+    {
+        const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+        // Set constitutive law flags:
+        Flags& ConstitutiveLawOptions=rValues.GetOptions();
+
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        
+        rValues.SetStrainVector(rStrain);
+        rValues.SetStressVector(rConstitutiVariables.StressVector);
+        rValues.SetConstitutiveMatrix(rConstitutiVariables.D);
+
+        mpConstitutiveLaw->CalculateMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_Cauchy); 
+    }
+
 
     void SbmSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
@@ -685,7 +671,6 @@ void SbmSolidCondition::CalculateRightHandSide(
 
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
         ConstitutiveVariables this_constitutive_variables(strain_size);
