@@ -212,8 +212,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
         #The part below reads the temperature dependent viscosity
         table1=mat["Tables"]["Table1"]
-
- 
+         
         input_var = KratosMultiphysics.KratosGlobals.GetVariable(table1["input_variable"].GetString())
         output_var = KratosMultiphysics.KratosGlobals.GetVariable(table1["output_variable"].GetString())
 
@@ -247,11 +246,23 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         #print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
         #print(self.values_aux[4].GetDouble())
         #wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
-
+        #viscosity
         self.new_table_aux = KratosMultiphysics.PiecewiseLinearTable()
-
         for i in range(table1["data"].size()):
             self.new_table_aux.AddRow(table1["data"][i][0].GetDouble(), table1["data"][i][1].GetDouble())
+            
+            
+        #conductivity
+        table2=mat["Tables"]["Table2"]
+        self.new_table_aux2 = KratosMultiphysics.PiecewiseLinearTable()    
+        for i in range(table2["data"].size()):
+            self.new_table_aux2.AddRow(table2["data"][i][0].GetDouble(), table2["data"][i][1].GetDouble())
+            
+        #specific heat
+        table3=mat["Tables"]["Table3"]    
+        self.new_table_aux3 = KratosMultiphysics.PiecewiseLinearTable()    
+        for i in range(table3["data"].size()):
+            self.new_table_aux3.AddRow(table3["data"][i][0].GetDouble(), table3["data"][i][1].GetDouble())
 
 
     def AddVariables(self):
@@ -433,7 +444,19 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
             mu=self.new_table_aux.GetValue(T)
             node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY,0,mu/rho)
 
-
+    def CalculateConductivityaux(self):
+        import math
+        for node in self.fluid_solver.main_model_part.Nodes:
+            T = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            conductivity=self.new_table_aux2.GetValue(T)
+            node.SetSolutionStepValue(KratosMultiphysics.CONDUCTIVITY,0,conductivity)
+            
+    def CalculateSpecificHeataux(self):
+        import math
+        for node in self.fluid_solver.main_model_part.Nodes:
+            T = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            specificheat=self.new_table_aux3.GetValue(T)
+            node.SetSolutionStepValue(KratosMultiphysics.SPECIFIC_HEAT,0,specificheat)
              
 
     def cleaning_submodelparts(self):
@@ -684,6 +707,12 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         
         #This function evaluate the viscosity
         self.CalculateViscosityaux()
+        
+        #This function evaluate the conductivity
+        self.CalculateConductivityaux()
+        
+        #This function evaluate the specific heat capacity
+        self.CalculateSpecificHeataux()
         
         #If only thermal calculation is needed, then "fluid_is_converged = True" 
         fluid_is_converged = self.fluid_solver.SolveSolutionStep()
