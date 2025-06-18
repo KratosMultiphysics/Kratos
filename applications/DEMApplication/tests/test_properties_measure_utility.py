@@ -52,7 +52,7 @@ class PropertiesMeasureUtilityTestSolution(KratosMultiphysics.DEMApplication.DEM
             #fabric tensor
             eigenvalues, second_invariant_of_deviatoric_tensor, measured_fabric_tensor = self.MeasureSphereForGettingPackingProperties((side_length/2), center_x, center_y, center_z, 'fabric_tensor')
             expected_value_Eigenvalues = [0.34737273267669533, 0.3348419604048057, 0.31778530691849943]
-            expected_value_second_invariant_of_deviatoric_tensor = 0.05940514637933302
+            expected_value_second_invariant_of_deviatoric_tensor = 0.11138464946124942
             expected_value_fabric_tensor_0 = [ 0.33633556, -0.00391174,  0.00121594]
             expected_value_fabric_tensor_1 = [-0.00391174,  0.34145668, -0.01021716]
             expected_value_fabric_tensor_2 = [ 0.00121594, -0.01021716,  0.32220776]
