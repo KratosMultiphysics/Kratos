@@ -10,6 +10,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from iga_test_factory import SinglePatchTest as SinglePatchTest
 # Truss tests - python based
 from truss_element_tests import TrussElementTests as TTrussElementTests
+# Structural Elements test - python based
+from test_solid_IGA_element import SolidIGAElementTests as TSolidIGAElementTests
+
 # Membrane tests
 from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
 from iga_test_factory import MembraneSinglePatchFourPointSailNonLinearStatic as MembraneSinglePatchFourPointSailNonLinearStatic
@@ -72,6 +75,8 @@ def AssembleTestSuites():
         SinglePatchTest,
         # Truss tests
         TTrussElementTests,
+        # Structural Elements tests
+        TSolidIGAElementTests,
         # Membrane tests
         MembraneSinglePatchFourPointSailLinearStatic,
         MembraneSinglePatchFourPointSailNonLinearStatic,
