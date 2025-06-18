@@ -41,6 +41,7 @@
 #include "custom_conditions/support_laplacian_condition.h"
 #include "custom_conditions/sbm_laplacian_condition_neumann.h"
 #include "custom_conditions/sbm_laplacian_condition_dirichlet.h"
+#include "custom_conditions/support_pressure_condition.h"
 #include "custom_conditions/support_solid_condition.h"
 #include "custom_conditions/load_solid_condition.h"
 #include "custom_conditions/sbm_solid_condition.h"
@@ -150,6 +151,7 @@ private:
     const SupportLaplacianCondition mSupportLaplacianCondition;
     const SbmLaplacianConditionDirichlet mSbmLaplacianConditionDirichlet;
     const SbmLaplacianConditionNeumann mSbmLaplacianConditionNeumann;
+    const SupportPressureCondition mSupportPressureCondition;
     const SupportSolidCondition mSupportSolidCondition;
     const LoadSolidCondition mLoadSolidCondition;
     const SbmSolidCondition mSbmSolidCondition;
