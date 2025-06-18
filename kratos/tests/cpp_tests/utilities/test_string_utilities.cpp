@@ -382,4 +382,52 @@ KRATOS_TEST_CASE_IN_SUITE(CountValuesUntilPrefix, KratosCoreFastSuite)
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CountValuesUntilCharacter, KratosCoreFastSuite)
+{
+    // Test case 1: Basic functionality
+    {
+        std::string input = "value1 value2 value3";
+        std::string character = "value2";
+        std::size_t expected_count = 1;
+        std::size_t actual_count = StringUtilities::CountValuesUntilCharacter(input, character);
+        KRATOS_EXPECT_EQ(actual_count, expected_count);
+    }
+
+    // Test case 2: Character not found
+    {
+        std::string input = "value1\tvalue2\tvalue3";
+        std::string character = "value4";
+        std::size_t expected_count = 3;
+        std::size_t actual_count = StringUtilities::CountValuesUntilCharacter(input, character);
+        KRATOS_EXPECT_EQ(actual_count, expected_count);
+    }
+
+    // Test case 3: Empty input
+    {
+        std::string input = "";
+        std::string character = "value1";
+        std::size_t expected_count = 0;
+        std::size_t actual_count = StringUtilities::CountValuesUntilCharacter(input, character);
+        KRATOS_EXPECT_EQ(actual_count, expected_count);
+    }
+
+    // Test case 4: Empty prefix
+    {
+        std::string input = "value1 value2 value3";
+        std::string character = "";
+        std::size_t expected_count = 0;
+        std::size_t actual_count = StringUtilities::CountValuesUntilCharacter(input, character);
+        KRATOS_EXPECT_EQ(actual_count, expected_count);
+    }
+
+    // Test case 5: Case that will fail with CountValuesUntilPrefix
+    {
+        std::string input = "value1 value2 [value3]";
+        std::string character = "]";
+        std::size_t expected_count = 2;
+        std::size_t actual_count = StringUtilities::CountValuesUntilCharacter(input, character);
+        KRATOS_EXPECT_EQ(actual_count, expected_count);
+    }
+}
+
 } // namespace Kratos::Testing
