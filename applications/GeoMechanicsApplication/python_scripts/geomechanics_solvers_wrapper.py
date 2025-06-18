@@ -32,8 +32,7 @@ def CreateSolverByParameters(model, custom_settings, parallelism):
         raise Exception(err_msg)
 
     module_full_name = 'KratosMultiphysics.GeoMechanicsApplication.' + solver_module_name
-    solver = import_module(module_full_name).CreateSolver(model, custom_settings)
-    return solver
+    return import_module(module_full_name).CreateSolver(model, custom_settings)
 
 
 def CreateSolver(model, custom_settings):

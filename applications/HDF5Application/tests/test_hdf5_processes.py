@@ -43,9 +43,9 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.patcher10 = patch(
             'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionDataValueIO', autospec=True)
         self.patcher11 = patch(
-            'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ElementGaussPointOutput', autospec=True)
+            'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ElementGaussPointIO', autospec=True)
         self.patcher12 = patch(
-            'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionGaussPointOutput', autospec=True)
+            'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionGaussPointIO', autospec=True)
         self.HDF5File = self.patcher1.start()
         self.HDF5ModelPartIO = self.patcher2.start()
         self.HDF5NodalSolutionStepDataIO = self.patcher3.start()
@@ -56,8 +56,8 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.HDF5NodalFlagValueIO = self.patcher8.start()
         self.HDF5ConditionFlagValueIO = self.patcher9.start()
         self.HDF5ConditionDataValueIO = self.patcher10.start()
-        self.HDF5ElementGaussPointOutput = self.patcher11.start()
-        self.HDF5ConditionGaussPointOutput = self.patcher12.start()
+        self.HDF5ElementGaussPointIO = self.patcher11.start()
+        self.HDF5ConditionGaussPointIO = self.patcher12.start()
 
     def tearDown(self):
         self.patcher1.stop()
@@ -187,14 +187,14 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.HDF5ElementFlagValueIO.return_value.WriteElementFlags.assert_called_with(
             self.model_part.Elements)
 
-        self.assertEqual(self.HDF5ElementGaussPointOutput.call_count, 1)
-        self.assertEqual(self.HDF5ElementGaussPointOutput.call_args[0][0]['prefix'].GetString(
+        self.assertEqual(self.HDF5ElementGaussPointIO.call_count, 1)
+        self.assertEqual(self.HDF5ElementGaussPointIO.call_args[0][0]['prefix'].GetString(
         ), '/ResultsData/ElementGaussPointValues')
         self.assertEqual(
-            self.HDF5ElementGaussPointOutput.call_args[0][0]['list_of_variables'].size(), 0)
+            self.HDF5ElementGaussPointIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
-            self.HDF5ElementGaussPointOutput.return_value.WriteElementGaussPointValues.call_count, 1)
-        self.HDF5ElementGaussPointOutput.return_value.WriteElementGaussPointValues.assert_called_with(
+            self.HDF5ElementGaussPointIO.return_value.WriteElementGaussPointValues.call_count, 1)
+        self.HDF5ElementGaussPointIO.return_value.WriteElementGaussPointValues.assert_called_with(
             self.model_part.Elements, self.model_part.GetCommunicator().GetDataCommunicator(), self.model_part.ProcessInfo)
 
         self.assertEqual(self.HDF5ConditionDataValueIO.call_count, 1)
@@ -217,14 +217,14 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.HDF5ConditionFlagValueIO.return_value.WriteConditionFlags.assert_called_with(
             self.model_part.Conditions)
 
-        self.assertEqual(self.HDF5ConditionGaussPointOutput.call_count, 1)
-        self.assertEqual(self.HDF5ConditionGaussPointOutput.call_args[0][0]['prefix'].GetString(
+        self.assertEqual(self.HDF5ConditionGaussPointIO.call_count, 1)
+        self.assertEqual(self.HDF5ConditionGaussPointIO.call_args[0][0]['prefix'].GetString(
         ), '/ResultsData/ConditionGaussPointValues')
         self.assertEqual(
-            self.HDF5ConditionGaussPointOutput.call_args[0][0]['list_of_variables'].size(), 0)
+            self.HDF5ConditionGaussPointIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
-            self.HDF5ConditionGaussPointOutput.return_value.WriteConditionGaussPointValues.call_count, 1)
-        self.HDF5ConditionGaussPointOutput.return_value.WriteConditionGaussPointValues.assert_called_with(
+            self.HDF5ConditionGaussPointIO.return_value.WriteConditionGaussPointValues.call_count, 1)
+        self.HDF5ConditionGaussPointIO.return_value.WriteConditionGaussPointValues.assert_called_with(
             self.model_part.Conditions, self.model_part.GetCommunicator().GetDataCommunicator(), self.model_part.ProcessInfo)
 
     def test_MultipleMeshTemporalOutputProcess(self):

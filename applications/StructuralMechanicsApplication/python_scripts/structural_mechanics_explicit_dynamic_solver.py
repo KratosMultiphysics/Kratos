@@ -82,7 +82,7 @@ class ExplicitMechanicalSolver(MechanicalSolver):
         # Using the base Initialize
         super().Initialize()
 
-        # Initilize delta_time
+        # Initialize delta_time
         self.delta_time_settings = KratosMultiphysics.Parameters("""{}""")
         self.delta_time_settings.AddValue("time_step_prediction_level", self.settings["time_step_prediction_level"])
         self.delta_time_settings.AddValue("max_delta_time", self.settings["max_delta_time"])

@@ -4,13 +4,14 @@ import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
-from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
 
 class TestTemperatureDetectionAdjointResponseFunction(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("Test")
+        cls.sensor_model_part = cls.model.CreateModelPart("SensorModelPart")
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DISPLACEMENT)
 
         cls.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
@@ -66,12 +67,12 @@ class TestTemperatureDetectionAdjointResponseFunction(kratos_unittest.TestCase):
             }""")
         ]
 
-        cls.sensors = GetSensors(cls.model_part, parameters)
+        cls.sensors = CreateSensors(cls.sensor_model_part, cls.model_part, parameters)
 
-        cls.adjoint_response_function = KratosSI.Sensors.MeasurementResidualResponseFunction(3.0)
+        cls.adjoint_response_function = KratosSI.Responses.MeasurementResidualResponseFunction(3.0)
 
         for i, sensor in enumerate(cls.sensors):
-            sensor.SetValue(KratosSI.SENSOR_MEASURED_VALUE, i * 15 - 10)
+            sensor.GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, i * 15 - 10)
             cls.adjoint_response_function.AddSensor(sensor)
 
         cls.adjoint_response_function.Initialize()
@@ -84,7 +85,7 @@ class TestTemperatureDetectionAdjointResponseFunction(kratos_unittest.TestCase):
     def test_CalculateValue(self):
         value = 0.0
         for sensor in self.sensors:
-            value += (0.5 * sensor.GetWeight() * (sensor.CalculateValue(self.model_part) - sensor.GetValue(KratosSI.SENSOR_MEASURED_VALUE)) ** 2) ** 3.0
+            value += (0.5 * sensor.GetWeight() * (sensor.CalculateValue(self.model_part) - sensor.GetNode().GetValue(KratosSI.SENSOR_MEASURED_VALUE)) ** 2) ** 3.0
         self.assertAlmostEqual(self.ref_value, value ** (1 / 3), 5)
 
     def test_CalculateGradient(self):
@@ -121,6 +122,7 @@ class TestTemperatureDetectionAdjointResponseFunction(kratos_unittest.TestCase):
             self.assertAlmostEqual(global_fd_x_sensitivities[node_id], analytical_x_sensitivities[node_id], 5)
             self.assertAlmostEqual(global_fd_y_sensitivities[node_id], analytical_y_sensitivities[node_id], 5)
 
+@kratos_unittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class TestTemperatureDetectionResponse(kratos_unittest.TestCase):
     def test_TemperatureResponse(self):
         with kratos_unittest.WorkFolderScope(".", __file__):
@@ -152,8 +154,9 @@ class TestTemperatureDetectionResponse(kratos_unittest.TestCase):
                 node.SetSolutionStepValue(Kratos.TEMPERATURE,   nodal_temp + delta)
                 sensitivity = ((response.CalculateValue() - ref_value) / delta)
                 self.assertAlmostEqual(gradients[index], sensitivity, 8)
-                node.SetSolutionStepValue(Kratos.TEMPERATURE,  nodal_temp) 
+                node.SetSolutionStepValue(Kratos.TEMPERATURE,  nodal_temp)
 
+@kratos_unittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class TestTemperatureDetectionResponseStrainSensor(kratos_unittest.TestCase):
     def test_TemperatureResponse(self):
         with kratos_unittest.WorkFolderScope(".", __file__):
@@ -185,7 +188,7 @@ class TestTemperatureDetectionResponseStrainSensor(kratos_unittest.TestCase):
                 node.SetSolutionStepValue(Kratos.TEMPERATURE,   nodal_temp + delta)
                 sensitivity = ((response.CalculateValue() - ref_value) / delta)
                 self.assertAlmostEqual(gradients[index], sensitivity, 8)
-                node.SetSolutionStepValue(Kratos.TEMPERATURE,  nodal_temp) 
+                node.SetSolutionStepValue(Kratos.TEMPERATURE,  nodal_temp)
 
 if __name__ == "__main__":
     kratos_unittest.main()

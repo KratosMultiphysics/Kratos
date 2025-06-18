@@ -171,7 +171,7 @@ ModelPart& CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel)
 
     auto element = make_intrusive<SmallStrainUPwDiffOrderElement>(
         1, Kratos::make_shared<Triangle2D6<Node>>(node_pointers), r_result.CreateNewProperties(0),
-        std::make_unique<PlaneStrainStressState>());
+        std::make_unique<PlaneStrainStressState>(), nullptr);
 
     r_result.AddElement(element);
 
@@ -195,7 +195,7 @@ ModelPart& CreateModelPartWithASingle3D10NUPwDiffOrderElement(Model& rModel)
 
     auto element = make_intrusive<SmallStrainUPwDiffOrderElement>(
         1, Kratos::make_shared<Tetrahedra3D10<Node>>(node_pointers),
-        r_result.CreateNewProperties(0), std::make_unique<ThreeDimensionalStressState>());
+        r_result.CreateNewProperties(0), std::make_unique<ThreeDimensionalStressState>(), nullptr);
 
     r_result.AddElement(element);
 

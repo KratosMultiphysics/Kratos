@@ -138,7 +138,7 @@ class HexahedraNewtonRaphsonStrategy
         BaseType::mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
             new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(BaseType::mpLinearSolver));
 
-        // Set flags to start correcty the calculations
+        // Set flags to start correctly the calculations
         BaseType::mSolutionStepIsInitialized = false;
         BaseType::mInitializeWasPerformed = false;
 
@@ -208,7 +208,7 @@ class HexahedraNewtonRaphsonStrategy
         // Setting up the default builder and solver
         BaseType::mpBuilderAndSolver = pNewBuilderAndSolver;
 
-        // Set flags to start correcty the calculations
+        // Set flags to start correctly the calculations
         BaseType::mSolutionStepIsInitialized = false;
         BaseType::mInitializeWasPerformed = false;
 

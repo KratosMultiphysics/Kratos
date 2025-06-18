@@ -40,18 +40,16 @@ SparseContainersTestUtilities::ElementConnectivityType SparseContainersTestUtili
     ElementConnectivityType connectivities((IndexEnd-IndexBegin)*BlockSize);
 
     #pragma omp parallel for
-    for(int i=static_cast<int>(IndexBegin); i<static_cast<int>(IndexEnd);++i)
+    for(int i = 0; i < static_cast<int>(IndexEnd - IndexBegin); ++i)
     {
         connectivities[i].resize(NodesInElem*BlockSize);
         std::mt19937 gen(i);
-        //std::uniform_int_distribution<> dis(0,NDof-1);
         std::normal_distribution<> dis{
             static_cast<double>(NDof/(IndexEnd-IndexBegin)*i),
             static_cast<double>(StandardDev)
             };
 
         for(int j = 0; j<static_cast<int>(NodesInElem); ++j){
-            //IndexType eq_id = dis(gen)*BlockSize;
             IndexType eq_id;
             bool acceptable = false;
             while(!acceptable){

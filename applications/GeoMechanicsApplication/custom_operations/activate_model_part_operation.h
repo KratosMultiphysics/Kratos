@@ -80,7 +80,7 @@ public:
     ///@name Operations
     ///@{
 
-    Operation::Pointer Create(Model& rModel, Parameters ThisParameters) const override;
+    Operation::Pointer Create(Model& rModel, Parameters Settings) const override;
 
     void Execute() override;
 

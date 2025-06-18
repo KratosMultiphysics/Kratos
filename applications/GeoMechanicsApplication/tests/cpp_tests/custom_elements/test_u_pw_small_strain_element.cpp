@@ -184,7 +184,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_IntegrationMethod, KratosGeoMech
         std::make_shared<Triangle2D3<Node>>(ModelSetupUtilities::Create2D3NTriangleGeometry());
     const auto                        p_properties = std::make_shared<Properties>();
     const UPwSmallStrainElement<2, 3> element(0, p_geometry, p_properties,
-                                              std::make_unique<PlaneStrainStressState>());
+                                              std::make_unique<PlaneStrainStressState>(), nullptr);
 
     // Act and Assert
     KRATOS_EXPECT_EQ(element.GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_2);
