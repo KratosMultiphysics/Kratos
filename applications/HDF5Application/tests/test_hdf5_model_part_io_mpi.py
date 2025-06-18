@@ -5,6 +5,7 @@ from KratosMultiphysics.HDF5Application import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import random, math
+import pathlib
 
 class ControlledExecutionScope:
     def __init__(self, scope):
