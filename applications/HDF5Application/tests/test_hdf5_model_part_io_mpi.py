@@ -191,7 +191,7 @@ class TestCase(KratosUnittest.TestCase):
         return HDF5NodalFlagValueIO(params, hdf5_file)
 
     def test_GetListOfAvailableVariables(self):
-        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with ControlledExecutionScope(pathlib.Path(__file__).absolute().parent):
             current_model = Model()
             model_part = current_model.CreateModelPart("write")
             KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(model_part, Testing.GetDefaultDataCommunicator())
