@@ -621,7 +621,7 @@ void CopyToContiguousArray(
         << "Contiguous array size = " << Size << ", number of entities = "
         << rContainer.size() << ", data stride = " << Stride << " ].";
 
-    typename TContainerDataIO::template TLSType<component_type> tls;
+    typename TContainerDataIO::template TLSType<component_type> tls{};
     IndexPartition<unsigned int>(rContainer.size()).for_each(tls, [&rAvailability, &rContainer, &rComponent, &rContainerDataIO, pBegin, Stride](const auto Index, auto& rTLS) {
         (void)(&rAvailability); // <== suppress unused capture errors (GCC disregards uses where constexpr if conditions do not apply)
         TDataType const* p_value_begin;
