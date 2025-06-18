@@ -33,8 +33,6 @@ namespace Kratos::HDF5::Internals
 ///@addtogroup HDF5Application
 ///@{
 
-const std::string Delimiter = ":__ENDPROP__:";
-
 void ReadProperties(
     File& rFile,
     const std::string& rPrefix,
