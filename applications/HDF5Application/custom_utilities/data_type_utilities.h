@@ -130,7 +130,7 @@ template<class TContainerType>
     const auto& key_variable_names_map = block_for_each<MapReduction>(rContainer, map_type(), [](const auto& rEntity, auto& rTLS) -> map_type& {
         const auto& r_data = rEntity.GetData();
         for (auto it = r_data.begin(); it != r_data.end(); ++it) {
-            rTls.emplace(it->first->Key(), it->first->Name());
+            rTLS.emplace(it->first->Key(), it->first->Name());
         }
 
         return rTLS;
