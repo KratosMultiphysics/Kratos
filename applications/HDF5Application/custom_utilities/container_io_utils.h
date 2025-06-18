@@ -678,7 +678,14 @@ void CopyFromContiguousDataArray(
     const auto stride = value_type_traits::Size(tls_prototype);
 
     IndexPartition<unsigned int>(rContainer.size()).for_each(tls_prototype, [&rAvailability, &rContainer, &rComponent, &rContainerDataIO, pBegin, stride](const auto Index, auto& rTLS) {
-        (void)(&rAvailability); // <== suppress unused capture errors (GCC disregards uses where constexpr if conditions do not apply)
+        // <== suppress unused capture errors (GCC disregards uses where constexpr if conditions do not apply)
+        (void)(&rAvailability);
+        (void)(&rContainer);
+        (void)(&rComponent);
+        (void)(&rContainerDataIO);
+        (void)(&pBegin);
+        (void)(&stride);
+
         if constexpr(TContainerDataIO::DataAvailability == Internals::DataAvailabilityStatesList::INCONCLUSIVE) {
             if (rAvailability[Index]) {
                 TDataType * p_value_begin = value_type_traits::GetContiguousData(rTLS);
