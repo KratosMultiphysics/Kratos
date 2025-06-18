@@ -127,7 +127,7 @@ template<class TContainerType>
     };
 
     // collect all the unique key, variable names map from all the entities
-    const auto& key_variable_names_map = block_for_each<MapReduction>(rContainer, map_type(), [](auto& rEntity, auto& rTLS) {
+    const auto& key_variable_names_map = block_for_each<MapReduction>(rContainer, map_type(), [](const auto& rEntity, auto& rTLS) -> map_type& {
         const auto& r_data = rEntity.GetData();
         for (auto it = r_data.begin(); it != r_data.end(); ++it) {
             auto itr = rTLS.find(it->first->Key());
