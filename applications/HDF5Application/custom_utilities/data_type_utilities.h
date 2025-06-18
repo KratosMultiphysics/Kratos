@@ -114,7 +114,7 @@ template<class TContainerType>
         }
 
         /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
-        void LocalReduce(map_type rValue){
+        void LocalReduce(map_type& rValue){
             mValue.merge(rValue);
         }
 
