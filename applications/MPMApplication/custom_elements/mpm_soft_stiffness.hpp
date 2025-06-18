@@ -1,408 +1,747 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:         BSD License
-//                   license: StructuralMechanicsApplication/license.txt
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
 //
-//  Main authors:    
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 
-#pragma once
+
+#if !defined(KRATOS_SOFT_STIFFNESS_H_INCLUDED )
+#define  KRATOS_SOFT_STIFFNESS_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
+#include "includes/define.h"
 #include "includes/element.h"
+#include "includes/serializer.h"
+#include "includes/ublas_interface.h"
+#include "includes/variables.h"
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
+///@name Kratos Globals
+///@{
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name  Enum's
+///@{
+///@}
+///@name  Functions
+///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MPMSoftStiffnessElement
+/// Large Displacement Lagrangian Element for 3D and 2D geometries. (base class)
+
+/**
+ * Implements a Large Displacement Lagrangian definition for structural analysis.
+ * This works for arbitrary geometries in 3D and 2D (base class)
+ */
+
+class MPMSoftStiffness
     : public Element
-  {
-  public:
+{
+public:
 
-    // Counted pointer of MPMSoftStiffnessElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MPMSoftStiffnessElement);
+    ///@name Type Definitions
+    ///@{
+    ///Reference type definition for constitutive laws
+    typedef ConstitutiveLaw ConstitutiveLawType;
+    ///Pointer type for constitutive laws
+    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+    ///StressMeasure from constitutive laws
+    typedef ConstitutiveLawType::StressMeasure StressMeasureType;
+    ///Type definition for integration methods
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    // Constructor using an array of nodes
-    MPMSoftStiffnessElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
-    // Constructor using an array of nodes with properties
-    MPMSoftStiffnessElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    /// Counted pointer of LargeDisplacementElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMSoftStiffness );
+    ///@}
 
-    // Destructor
-    ~MPMSoftStiffnessElement() = default;
-
-
-
-    enum class VoigtType {
-      Strain,
-      Stress
-    };
-
-    enum class ConfigurationType {
-      Current,
-      Reference
-    };
-
-    // Name Operations
+protected:
 
     /**
-     * @brief Creates a new element
-     * @param NewId The Id of the new created element
-     * @param pGeom The pointer to the geometry of the element
-     * @param pProperties The pointer to property
-     * @return The pointer to the created element
+     * Flags related to the element computation
      */
-    Element::Pointer Create(
-        IndexType NewId,
-        GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties
-        ) const override;
+
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
+
+    struct MaterialPointVariables
+    {
+    public:
+        // Material Point Position
+        CoordinatesArrayType xg;
+        // MP_MASS
+        double mass;
+        // MP_DENSITY
+        double density;
+        // MP_VOLUME
+        double volume;
+
+        // MP_DISPLACEMENT
+        array_1d<double, 3> displacement;
+        // MP_VELOCITY
+        array_1d<double, 3> velocity;
+        // MP_ACCELERATION
+        array_1d<double, 3> acceleration;
+
+        // MP_VOLUME_ACCELERATION
+        array_1d<double, 3> volume_acceleration;
+
+        // MP_CAUCHY_STRESS_VECTOR
+        Vector cauchy_stress_vector;
+        // MP_ALMANSI_STRAIN_VECTOR
+        Vector almansi_strain_vector;
+
+        // MP_DELTA_PLASTIC_STRAIN
+        double delta_plastic_strain;
+        // MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN
+        double delta_plastic_volumetric_strain;
+        // MP_DELTA_PLASTIC_DEVIATORIC_STRAIN
+        double delta_plastic_deviatoric_strain;
+        // MP_EQUIVALENT_PLASTIC_STRAIN
+        double equivalent_plastic_strain;
+        // MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN
+        double accumulated_plastic_volumetric_strain;
+        // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
+        double accumulated_plastic_deviatoric_strain;
+
+        explicit MaterialPointVariables()
+        {
+            // MP_MASS
+            mass = 1.0;
+            // MP_DENSITY
+            density = 1.0;
+            // MP_VOLUME
+            volume = 1.0;
+
+            // MP_DELTA_PLASTIC_STRAIN
+            delta_plastic_strain = 1.0;
+            // MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN
+            delta_plastic_volumetric_strain = 1.0;
+            // MP_DELTA_PLASTIC_DEVIATORIC_STRAIN
+            delta_plastic_deviatoric_strain = 1.0;
+            // MP_EQUIVALENT_PLASTIC_STRAIN
+            equivalent_plastic_strain = 1.0;
+            // MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN
+            accumulated_plastic_volumetric_strain = 1.0;
+            // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
+            accumulated_plastic_deviatoric_strain = 1.0;
+        }
+
+    private:
+
+        ///@}
+        ///@name Serialization
+        ///@{
+        friend class Serializer;
+
+        void save( Serializer& rSerializer ) const
+        {
+            rSerializer.save("xg",xg);
+            rSerializer.save("mass",mass);
+            rSerializer.save("density",density);
+            rSerializer.save("volume",volume);
+            rSerializer.save("displacement",displacement);
+            rSerializer.save("velocity",velocity);
+            rSerializer.save("acceleration",acceleration);
+            rSerializer.save("volume_acceleration",volume_acceleration);
+            rSerializer.save("cauchy_stress_vector",cauchy_stress_vector);
+            rSerializer.save("almansi_strain_vector",almansi_strain_vector);
+            rSerializer.save("delta_plastic_strain",delta_plastic_strain);
+            rSerializer.save("delta_plastic_volumetric_strain",delta_plastic_volumetric_strain);
+            rSerializer.save("delta_plastic_deviatoric_strain",delta_plastic_deviatoric_strain);
+            rSerializer.save("equivalent_plastic_strain",equivalent_plastic_strain);
+            rSerializer.save("accumulated_plastic_volumetric_strain",accumulated_plastic_volumetric_strain);
+            rSerializer.save("accumulated_plastic_deviatoric_strain",accumulated_plastic_deviatoric_strain);
+        }
+
+        void load( Serializer& rSerializer )
+        {
+            rSerializer.load("xg",xg);
+            rSerializer.load("mass",mass);
+            rSerializer.load("density",density);
+            rSerializer.load("volume",volume);
+            rSerializer.load("displacement",displacement);
+            rSerializer.load("velocity",velocity);
+            rSerializer.load("acceleration",acceleration);
+            rSerializer.load("volume_acceleration",volume_acceleration);
+            rSerializer.load("cauchy_stress_vector",cauchy_stress_vector);
+            rSerializer.load("almansi_strain_vector",almansi_strain_vector);
+            rSerializer.load("delta_plastic_strain",delta_plastic_strain);
+            rSerializer.load("delta_plastic_volumetric_strain",delta_plastic_volumetric_strain);
+            rSerializer.load("delta_plastic_deviatoric_strain",delta_plastic_deviatoric_strain);
+            rSerializer.load("equivalent_plastic_strain",equivalent_plastic_strain);
+            rSerializer.load("accumulated_plastic_volumetric_strain",accumulated_plastic_volumetric_strain);
+            rSerializer.load("accumulated_plastic_deviatoric_strain",accumulated_plastic_deviatoric_strain);
+        }
+        ///@}
+    };
 
     /**
-     * @brief Creates a new element
-     * @param NewId The Id of the new created element
-     * @param ThisNodes The array containing nodes
-     * @param pProperties The pointer to property
-     * @return The pointer to the created element
+     * Parameters to be used in the Element as they are. Direct interface to Parameters Struct
      */
-    Element::Pointer Create(
-        IndexType NewId,
-        NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties
-        ) const override;
 
-    void EquationIdVector(
-      EquationIdVectorType& rResult,
-      const ProcessInfo& rCurrentProcessInfo) const override;
+    struct GeneralVariables
+    {
+    public:
 
-    void GetDofList(
-      DofsVectorType& ElementalDofList,
-      const ProcessInfo& rCurrentProcessInfo) const override;
+        StressMeasureType StressMeasure;
 
+        // For axisymmetric use only
+        double  CurrentRadius;
+        double  ReferenceRadius;
+
+        // General variables for large displacement use
+        double  detF;
+        double  detF0;
+        double  detFT;
+        Vector  StrainVector;
+        Vector  StressVector;
+        Matrix  B;
+        Matrix  F;
+        Matrix  FT;
+        Matrix  F0;
+        Matrix  DN_DX;
+        Matrix  ConstitutiveMatrix;
+
+        // Variables including all integration points
+        Matrix CurrentDisp;
+    };
+
+public:
+
+
+    ///@name Life Cycle
+    ///@{
+
+    /// Empty constructor needed for serialization
+    MPMSoftStiffness();
+
+
+    /// Default constructors
+    MPMSoftStiffness(IndexType NewId, GeometryType::Pointer pGeometry);
+
+    MPMSoftStiffness(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+
+    ///Copy constructor
+    MPMSoftStiffness(MPMSoftStiffness const& rOther);
+
+    /// Destructor.
+    ~MPMSoftStiffness() override;
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// Assignment operator.
+    MPMSoftStiffness& operator=(MPMSoftStiffness const& rOther);
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * creates a new element pointer
+     * @param NewId: the ID of the new element
+     * @param ThisNodes: the nodes of the new element
+     * @param pProperties: the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
+
+    /**
+     * clones the selected element variables, creating a new one
+     * @param NewId: the ID of the new element
+     * @param ThisNodes: the nodes of the new element
+     * @param pProperties: the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
+
+
+    //************* GETTING METHODS
+
+    /**
+     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
+     */
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
+
+    /**
+     * Sets on rResult the ID's of the element degrees of freedom
+     */
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+
+    /**
+     * Sets on rValues the nodal displacements
+     */
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
+
+    /**
+     * Sets on rValues the nodal velocities
+     */
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
+
+    /**
+     * Sets on rValues the nodal accelerations
+     */
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const  override;
+
+    //************* STARTING - ENDING  METHODS
+
+    /**
+      * Called to initialize the element.
+      * Must be called before any calculation is done
+      */
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide(
-      MatrixType& rLeftHandSideMatrix,
-      const ProcessInfo& rCurrentProcessInfo) override;
+    /**
+     * Called at the beginning of each solution step
+     */
+    virtual void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(
-      VectorType& rRightHandSideVector,
-      const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLocalSystem(
-      MatrixType& rLeftHandSideMatrix,
-      VectorType& rRightHandSideVector,
-      const ProcessInfo& rCurrentProcessInfo) override;
+    /**
+     * Called at the end of each solution step
+     */
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    void GetValuesVector(
-      Vector& rValues,
-      int Step = 0) const override;
+    //************* COMPUTING  METHODS
 
-    void GetFirstDerivativesVector(
-      Vector& rValues,
-      int Step = 0) const override;
 
-    void GetSecondDerivativesVector(
-      Vector& rValues,
-      int Step = 0) const override;
+    /**
+     * this is called during the assembling process in order
+     * to calculate all elemental contributions to the global system
+     * matrix and the right hand side
+     * @param rLeftHandSideMatrix: the elemental left hand side matrix
+     * @param rRightHandSideVector: the elemental right hand side
+     * @param rCurrentProcessInfo: the current process info instance
+     */
 
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+      * this is called during the assembling process in order
+      * to calculate the elemental right hand side vector only
+      * @param rRightHandSideVector: the elemental right hand side vector
+      * @param rCurrentProcessInfo: the current process info instance
+      */
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental left hand side vector only
+     * @param rLeftHandSideVector: the elemental left hand side vector
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix,
+                                const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+      * this is called during the assembling process in order
+      * to calculate the elemental mass matrix
+      * @param rMassMatrix: the elemental mass matrix
+      * @param rCurrentProcessInfo: the current process info instance
+      */
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
+                             const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+      * this is called during the assembling process in order
+      * to calculate the elemental damping matrix
+      * @param rDampingMatrix: the elemental damping matrix
+      * @param rCurrentProcessInfo: the current process info instance
+      */
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
+                                const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    void AddExplicitContribution(const VectorType& rRHSVector,
+                                 const Variable<VectorType>& rRHSVariable,
+                                 const Variable<array_1d<double, 3> >& rDestinationVariable,
+                                 const ProcessInfo& rCurrentProcessInfo) override;
+
+    //************************************************************************************
+    //************************************************************************************
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo
+     */
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void CalculateOnIntegrationPoints(
-      const Variable<array_1d<double, 3>>& rVariable,
-      std::vector<array_1d<double, 3>>& rOutput,
-      const ProcessInfo& rCurrentProcessInfo) override;
 
+    ///@}
+    ///@name Access
+    ///@{
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
-      const ProcessInfo& rCurrentProcessInfo) override;
+    ///@}
+    ///@name Inquiry
+    ///@{
+    ///@}
+    ///@name Input and output
+    ///@{
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "MPM Element #" << Id();
+        return buffer.str();
+    }
 
-    void CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
-      const ProcessInfo& rCurrentProcessInfo) const;
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "MPM Element #" << Id();
+    }
 
-    void CalculateLumpedMassVector(
-      VectorType& rMassVector,
-      const ProcessInfo& rCurrentProcessInfo) const override;
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        GetGeometry().PrintData(rOStream);
+    }
 
-    void AddExplicitContribution(
-      const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-      const Variable<array_1d<double, 3>>& rDestinationVariable,
-      const ProcessInfo& rCurrentProcessInfo) override;
+    ///@}
+    ///@name Access Get Values
+    ///@{
 
-    void AddExplicitContribution(
-      const VectorType& rRHSVector,
-      const Variable<VectorType>& rRHSVariable,
-      const Variable<double >& rDestinationVariable,
-      const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+        std::vector<bool>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void Calculate(const Variable<Matrix>& rVariable,
-      Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+        std::vector<int>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void Calculate(const Variable<double>& rVariable,
-     double& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-      const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    const Parameters GetSpecifications() const override;
+    ///@}
+    ///@name Access Set Values
+    ///@{
 
-  private:
-     /**
-     * @brief Calculates the covariant base vectors
-     * @param rBaseVectors The base vectors to be calculated
-     * @param rShapeFunctionGradientValues Current shapefunction gradients
-     * @param Configuration Reference/Current
+    void SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
+        const std::vector<int>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
+        const std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+        const std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
+        const std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    MaterialPointVariables mMP;
+
+    /**
+     * Container for historical total elastic deformation measure F0 = dx/dX
      */
-    void CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
-     const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration) const;
-
-      /**
-     * @brief Calculates the covariant metric
-     * @param rMetric The metric to be calculated
-     * @param rBaseVectorCovariant Covariant base vectors
+    Matrix mDeformationGradientF0;
+    /**
+     * Container for the total deformation gradient determinants
      */
-    void CovariantMetric(Matrix& rMetric,const array_1d<Vector,2>& rBaseVectorCovariant);
+    double mDeterminantF0;
 
-     /**
-     * @brief Calculates the contra variant base vectors
-     * @param rBaseVectors The base vectors to be calculated
-     * @param rContraVariantMetric Contra variant metric
-     * @param rCovariantBaseVectors Covariant base vectors
+    /**
+     * Container for constitutive law instances on each integration point
      */
-    void ContraVariantBaseVectors(array_1d<Vector,2>& rBaseVectors,const Matrix& rContraVariantMetric,
-      const array_1d<Vector,2> rCovariantBaseVectors);
+    ConstitutiveLaw::Pointer mConstitutiveLawVector;
 
-      /**
-     * @brief Calculates the contra variant metric
-     * @param rMetric The metric to be calculated
-     * @param rCovariantMetric Covariant metric
+
+    /**
+     * Finalize and Initialize label
      */
-    void ContravariantMetric(Matrix& rMetric,const Matrix& rCovariantMetric);
+    bool mFinalizedStep;
 
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-      /**
-     * @brief Calculates 1st derivative of the current covariant base vectors
-     * @param rBaseVectors The derived base bectors
-     * @param rShapeFunctionGradientValues Current shapefunction gradients
-     * @param DofR current degree of freedom 1
+    virtual SizeType GetNumberOfDofs() {
+        return GetGeometry().WorkingSpaceDimension();
+    }
+
+    /**
+     * Calculates the elemental contributions
+     * \f$ K^e = w\,B^T\,D\,B \f$ and
+     * \f$ r^e \f$
      */
-    void DeriveCurrentCovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
-     const Matrix& rShapeFunctionGradientValues, const SizeType DofR);
+    virtual void CalculateElementalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag);
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-      /**
-     * @brief Calculates 2nd derivative of the current covariant metric
-     * @param rMetric The derived metric
-     * @param rShapeFunctionGradientValues Current shapefunction gradients
-     * @param DofR current degree of freedom 1
-     * @param DofS current degree of freedom 2
+    /**
+     * Calculation and addition of the matrices of the LHS
      */
-    void Derivative2CurrentCovariantMetric(Matrix& rMetric,
-      const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS);
 
+    virtual void CalculateAndAddLHS(
+        MatrixType& rLeftHandSideMatrix,
+        GeneralVariables& rVariables,
+        const double& rIntegrationWeight,
+        const ProcessInfo& rCurrentProcessInfo);
 
-      /**
-     * @brief Calculates the determinant of the Jacobian for mapping between parameter and physical space
-     * @param rDetJacobi The determinant of the Jacobian
-     * @param rReferenceBaseVectors Reference base vectors
+    /**
+     * Calculation and addition of the vectors of the RHS
      */
-    void JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors) const;
+
+    virtual void CalculateAndAddRHS(
+        VectorType& rRightHandSideVector,
+        GeneralVariables& rVariables,
+        Vector& rVolumeForce,
+        const double& rIntegrationWeight,
+        const ProcessInfo& rCurrentProcessInfo);
 
 
-      /**
-     * @brief Calculates 2nd derivative of the green lagrange strain
-     * @param rStrain The derived strain
-     * @param rShapeFunctionGradientValues Current shapefunction gradients
-     * @param DofR current degree of freedom 1
-     * @param DofS current degree of freedom 2
-     * @param rTransformationMatrix local coordinate system transformation
+    /**
+     * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
      */
-    void Derivative2StrainGreenLagrange(Vector& rStrain,
-      const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS,
-      const Matrix& rTransformationMatrix);
 
+    virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+                                     GeneralVariables& rVariables,
+                                     const double& rIntegrationWeight);
 
-
-      /**
-     * @brief Calculates 1st derivative of the green lagrange strain
-     * @param rStrain The derived strain
-     * @param rShapeFunctionGradientValues Current shapefunction gradients
-     * @param DofR current degree of freedom 1
-     * @param rCurrentCovariantBaseVectors current covariant base vectors
-     * @param rTransformationMatrix local coordinate system transformation
+    /**
+     * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
-    void DerivativeStrainGreenLagrange(Vector& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
-      const array_1d<Vector,2> rCurrentCovariantBaseVectors, const Matrix& rTransformationMatrix);
+    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+                                     GeneralVariables& rVariables,
+                                     const double& rIntegrationWeight,
+                                     const bool IsAxisymmetric = false);
 
 
-      /**
-     * @brief Calculates green lagrange strain
-     * @param rStrain The strain
-     * @param rReferenceCoVariantMetric reference covariant metric
-     * @param rCurrentCoVariantMetric current covariant metric
-     * @param rTransformationMatrix local coordinate system transformation
+    /**
+     * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
-    void StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
-       const Matrix& rTransformationMatrix);
+    virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+            GeneralVariables& rVariables,
+            Vector& rVolumeForce,
+            const double& rIntegrationWeight);
 
-      /**
-     * @brief Calculates the piola-kirchhoff-2 stress
-     * @param rStress The stress
-     * @param rReferenceContraVariantMetric reference contra variant metric
-     * @param rReferenceCoVariantMetric reference covariant metric
-     * @param rCurrentCoVariantMetric current covariant metric
-     * @param rTransformedBaseVectors local coordinate system
-     * @param rTransformationMatrix local coordinate system transformation
-     * @param rIntegrationPointNumber current integration point number
+
+    /**
+      * Calculation of the Internal Forces Vector. Fi = B * sigma
+      */
+    virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+            GeneralVariables & rVariables,
+            const double& rIntegrationWeight);
+
+    /// Calculation of the Explicit Stresses from velocity gradient.
+    virtual void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
+        GeneralVariables& rVariables);
+
+
+    /**
+     * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    void MaterialResponse(Vector& rStress,
-      const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
-      const array_1d<Vector,2>& rTransformedBaseVectors, const Matrix& rTransformationMatrix, const SizeType& rIntegrationPointNumber,
-      Matrix& rTangentModulus,const ProcessInfo& rCurrentProcessInfo);
+    virtual void SetGeneralVariables(GeneralVariables& rVariables,
+                                     ConstitutiveLaw::Parameters& rValues, const Vector& rN);
 
 
-      /**
-     * @brief Adds pre-stress to a given stress vector
-     * @param rStress The stress
-     * @param rTransformedBaseVectors local coordinate system
+    /**
+     * Initialize Material Properties on the Constitutive Law
      */
-    void AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>& rTransformedBaseVectors);
+    virtual void InitializeMaterial (const ProcessInfo& rCurrentProcessInfo);
 
-      /**
-     * @brief Calculates 1st derivative of the current covariant metric
-     * @param rMetric The derived metric
-     * @param rShapeFunctionGradientValues Current shapefunction gradients
-     * @param DofR current degree of freedom 1
-     * @param rCurrentCovariantBaseVectors current covariant base vectors
+
+    /**
+     * Reset the Constitutive Law Parameters
      */
-    void DerivativeCurrentCovariantMetric(Matrix& rMetric,
-      const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const array_1d<Vector,2> rCurrentCovariantBaseVectors);
+    void ResetConstitutiveLaw() override;
 
 
-      /**
-     * @brief Calculates the internal forces
-     * @param rInternalForces The internal forces
-     * @param ThisMethod numerical integration method
+    /**
+     * Clear Nodal Forces
      */
-    void InternalForces(Vector& rInternalForces,const IntegrationMethod& ThisMethod,const ProcessInfo& rCurrentProcessInfo);
+    void ClearNodalForces ();
 
-
-      /**
-     * @brief Calculates the stiffness matrix
-     * @param rStiffnessMatrix The stiffness matrix
-     * @param ThisMethod numerical integration method
+    /**
+     * Calculate Element Kinematics
      */
-    void TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod& ThisMethod,const ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
-      /**
-     * @brief Calculates initial stress part of the total stiffness matrix
-     * @param rEntryIJ the matrix entry to be calculated
-     * @param rStressVector Current stress
-     * @param rPositionI current degree of freedom 1
-     * @param rPositionJ current degree of freedom 2
-     * @param rShapeFunctionGradientValues Current shapefunction gradients
-     * @param rTransformationMatrix local coordinate system transformation
+    /**
+     * Calculation of the Current Displacement
      */
-    void InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
-      const Vector& rStressVector,
-      const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
-      const Matrix& rTransformationMatrix);
+    Matrix& CalculateCurrentDisp(Matrix & rCurrentDisp, const ProcessInfo& rCurrentProcessInfo);
 
-
-
-      /**
-     * @brief Calculates material part of the total stiffness matrix
-     * @param rEntryIJ the matrix entry to be calculated
-     * @param rMaterialTangentModulus material tangent modulus
-     * @param rPositionI current degree of freedom 1
-     * @param rPositionJ current degree of freedom 2
-     * @param rShapeFunctionGradientValues Current shapefunction gradients
-     * @param rCurrentCovariantBaseVectors current covariant base vectors
-     * @param rTransformationMatrix local coordinate system transformation
+    /**
+     * Correct Precision Errors (for rigid free movements)
      */
-    void MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
-      const Matrix& rMaterialTangentModulus,
-      const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
-      const array_1d<Vector,2>& rCurrentCovariantBaseVectors,const Matrix& rTransformationMatrix);
+    void DecimalCorrection(Vector& rVector);
 
 
-
-      /**
-     * @brief Transform strains to a given local coordinate system
-     * @param rStrains the strains in the given local coordinate system
-     * @param rReferenceStrains the strains in the reference coordinate system
-     * @param rTransformationMatrix local coordinate system transformation
+    /**
+     * Initialize Element General Variables
      */
-    void TransformStrains(Vector& rStrains, Vector& rReferenceStrains, const Matrix& rTransformationMatrix);
+    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
-      /**
-     * @brief Creates a given local coordinate system
-     * @param rBaseVectors the new local coordinate system
-     * @param rLocalBaseVectors the base coordinate system
+    /**
+      * Finalize Element Internal Variables
+      */
+    virtual void FinalizeStepVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+      * Update the position of the MP or Gauss point when Finalize Element Internal Variables is called
+      */
+
+    virtual void UpdateGaussPoint(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    void TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
-     const array_1d<Vector,2>& rLocalBaseVectors);
+    virtual void GetHistoricalVariables( GeneralVariables& rVariables);
 
 
-      /**
-     * @brief Creates the transformation matrix for a given local coordinate system
-     * @param rTransformationMatrix the transformation matrix
-     * @param rTransformedBaseVectors local coordinate system
-     * @param rLocalReferenceBaseVectors the base coordinate system
+    /**
+     * Calculation of the Green Lagrange Strain Vector
      */
-    template <class T>
-    void InPlaneTransformationMatrix(Matrix& rTransformationMatrix, const array_1d<Vector,2>& rTransformedBaseVectors,
-      const T& rLocalReferenceBaseVectors);
+    virtual void CalculateGreenLagrangeStrain(const Matrix& rF,
+            Vector& rStrainVector);
 
-
-      /**
-     * @brief Calculates the principal vectors
-     * @param rPrincipalVector the principal vectors
-     * @param rNonPrincipalVector reference state
+    /**
+     * Calculation of the Almansi Strain Vector
      */
-    void PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector);
+    virtual void CalculateAlmansiStrain(const Matrix& rF,
+                                        Vector& rStrainVector);
 
 
-    void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
-        std::vector< Vector >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    /**
+     * Calculation of the Deformation Matrix  BL
+     */
+    virtual void CalculateDeformationMatrix(Matrix& rB,
+                                            const Matrix& rDN_DX,
+                                            const Matrix& rN,
+                                            const bool IsAxisymmetric = false);
 
-    void DeformationGradient(Matrix& rDeformationGradient, double& rDetDeformationGradient,
-       const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase);
+    /**
+     * Calculation of the Integration Weight
+     */
+    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
 
 
-    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector,const ProcessInfo& rCurrentProcessInfo) const;
+    /**
+     * Calculation of the Volume Change of the Element
+     */
+    virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
 
-    void ReferenceLumpingFactors(Vector& rResult) const;
 
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
-    double CalculateReferenceArea() const;
+    /// Calculation of the Deformation Gradient F
+    void CalculateDeformationGradient(const Matrix& rDN_DX, Matrix& rF, Matrix& rDeltaPosition,
+        const bool IsAxisymmetric = false);
+
+    ///@name Protected LifeCycle
+    ///@{
+    ///@}
+
+private:
+
+    ///@name Static Member Variables
+    ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+    ///@}
 
     ///@}
     ///@name Serialization
     ///@{
-
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    MPMSoftStiffnessElement() = default;
 
     void save(Serializer& rSerializer) const override;
 
     void load(Serializer& rSerializer) override;
 
+
+    ///@name Private Inquiry
+    ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
     ///@}
 
-  };	// class MPMSoftStiffnessElement.
+}; // Class MPMSoftStiffness
 
-}	// namespace Kratos.
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name Input and output
+///@{
+///@}
+
+} // namespace Kratos.
+#endif // KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED  defined

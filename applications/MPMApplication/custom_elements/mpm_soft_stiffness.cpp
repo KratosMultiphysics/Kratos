@@ -1,1516 +1,1802 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:         BSD License
-//                   license: StructuralMechanicsApplication/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Klaus B. Sautter
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 
+
 // System includes
+#include <omp.h>
+#include <sstream>
 
 // External includes
 
 // Project includes
-#include "includes/checks.h"
+#include "includes/define.h"
+#include "custom_elements/mpm_updated_lagrangian.hpp"
 #include "utilities/math_utils.h"
-#include "mpm_soft_stiffness.hpp"
-#include "structural_mechanics_application_variables.h"
-#include "custom_utilities/structural_mechanics_math_utilities.hpp"
-#include "custom_utilities/structural_mechanics_element_utilities.h"
-#include "utilities/integration_utilities.h"
-#include "utilities/atomic_utilities.h"
+#include "includes/constitutive_law.h"
+#include "mpm_application_variables.h"
+#include "includes/checks.h"
+#include "custom_utilities/mpm_energy_calculation_utility.h"
+#include "custom_utilities/mpm_explicit_utilities.h"
+#include "custom_utilities/mpm_math_utilities.h"
 
 namespace Kratos
 {
 
-// Constructor
-MPMSoftStiffnessElement::MPMSoftStiffnessElement( IndexType NewId, GeometryType::Pointer pGeometry )
+/**
+ * Flags related to the element computation
+ */
+KRATOS_CREATE_LOCAL_FLAG( MPMSoftStiffness, COMPUTE_RHS_VECTOR,                 0 );
+KRATOS_CREATE_LOCAL_FLAG( MPMSoftStiffness, COMPUTE_LHS_MATRIX,                 1 );
+KRATOS_CREATE_LOCAL_FLAG( MPMSoftStiffness, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
+KRATOS_CREATE_LOCAL_FLAG( MPMSoftStiffness, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
+
+//******************************CONSTRUCTOR*******************************************
+//************************************************************************************
+
+MPMSoftStiffness::MPMSoftStiffness( )
+    : Element( )
+    , mMP()
+{
+    //DO NOT CALL IT: only needed for Register and Serialization!!!
+}
+//******************************CONSTRUCTOR*******************************************
+//************************************************************************************
+MPMSoftStiffness::MPMSoftStiffness( IndexType NewId, GeometryType::Pointer pGeometry )
     : Element( NewId, pGeometry )
+    , mMP()
 {
-
+    //DO NOT ADD DOFS HERE!!!
 }
 
-// Constructor
-MPMSoftStiffnessElement::MPMSoftStiffnessElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+//******************************CONSTRUCTOR*******************************************
+//************************************************************************************
+
+MPMSoftStiffness::MPMSoftStiffness( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : Element( NewId, pGeometry, pProperties )
+    , mMP()
 {
+    mFinalizedStep = true;
+
 
 }
+//******************************COPY CONSTRUCTOR**************************************
+//************************************************************************************
 
-//***********************************************************************************
-//***********************************************************************************
-
-Element::Pointer MPMSoftStiffnessElement::Create(
-    IndexType NewId,
-    NodesArrayType const& rThisNodes,
-    PropertiesType::Pointer pProperties) const
-
+MPMSoftStiffness::MPMSoftStiffness( MPMSoftStiffness const& rOther)
+    :Element(rOther)
+    ,mMP(rOther.mMP)
+    ,mDeformationGradientF0(rOther.mDeformationGradientF0)
+    ,mDeterminantF0(rOther.mDeterminantF0)
+    ,mConstitutiveLawVector(rOther.mConstitutiveLawVector)
+    ,mFinalizedStep(rOther.mFinalizedStep)
 {
-    return Kratos::make_intrusive< MPMSoftStiffnessElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
-//***********************************************************************************
-//***********************************************************************************
+//******************************ASSIGNMENT OPERATOR***********************************
+//************************************************************************************
 
-Element::Pointer MPMSoftStiffnessElement::Create(
-    IndexType NewId,
-    GeometryType::Pointer pGeom,
-    PropertiesType::Pointer pProperties) const
-
+MPMSoftStiffness&  MPMSoftStiffness::operator=(MPMSoftStiffness const& rOther)
 {
-    return Kratos::make_intrusive< MPMSoftStiffnessElement >(NewId, pGeom, pProperties);
+    Element::operator=(rOther);
+
+    mMP = rOther.mMP;
+
+    mDeformationGradientF0.clear();
+    mDeformationGradientF0 = rOther.mDeformationGradientF0;
+
+    mDeterminantF0 = rOther.mDeterminantF0;
+    mConstitutiveLawVector = rOther.mConstitutiveLawVector;
+
+    return *this;
+}
+
+//*********************************OPERATIONS*****************************************
+//************************************************************************************
+
+Element::Pointer MPMSoftStiffness::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
+{
+    return Element::Pointer( new MPMSoftStiffness( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+}
+
+Element::Pointer MPMSoftStiffness::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_intrusive< MPMSoftStiffness >(NewId, pGeom, pProperties);
+}
+
+//************************************CLONE*******************************************
+//************************************************************************************
+
+Element::Pointer MPMSoftStiffness::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+{
+    MPMSoftStiffness NewElement (NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+
+    NewElement.mMP = mMP;
+
+    NewElement.mConstitutiveLawVector = mConstitutiveLawVector->Clone();
+
+    NewElement.mDeformationGradientF0 = mDeformationGradientF0;
+
+    NewElement.mDeterminantF0 = mDeterminantF0;
+
+    return Element::Pointer( new MPMSoftStiffness(NewElement) );
+}
+
+//*******************************DESTRUCTOR*******************************************
+//************************************************************************************
+MPMSoftStiffness::~MPMSoftStiffness()
+{
 }
 
 
-//***********************************************************************************
-//***********************************************************************************
+//************************************************************************************
+//************************************************************************************
 
-void MPMSoftStiffnessElement::EquationIdVector(
-    EquationIdVectorType& rResult,
-    const ProcessInfo& rCurrentProcessInfo) const
+void MPMSoftStiffness::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-  KRATOS_TRY;
-
-  SizeType num_nodes, local_size;
-  SizeType local_index = 0;
-
-  num_nodes = GetGeometry().size();
-  local_size = num_nodes * 3;
-
-  const SizeType d_pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
-
-  if (rResult.size() != local_size)
-      rResult.resize(local_size, false);
-
-  for (SizeType i_node = 0; i_node < num_nodes; ++i_node)
-  {
-      rResult[local_index++] = this->GetGeometry()[i_node].GetDof(DISPLACEMENT_X, d_pos).EquationId();
-      rResult[local_index++] = this->GetGeometry()[i_node].GetDof(DISPLACEMENT_Y, d_pos + 1).EquationId();
-      rResult[local_index++] = this->GetGeometry()[i_node].GetDof(DISPLACEMENT_Z, d_pos + 2).EquationId();
-  }
-
-  KRATOS_CATCH("")
-}
-
-//***********************************************************************************
-//***********************************************************************************
-
-void MPMSoftStiffnessElement::GetDofList(
-    DofsVectorType& rElementalDofList,
-    const ProcessInfo& rCurrentProcessInfo) const
-{
-    SizeType num_nodes, local_size;
-    num_nodes = GetGeometry().size();
-    local_size = num_nodes * 3;
-
-    if (rElementalDofList.size() != local_size)
-        rElementalDofList.resize(local_size);
-
-    SizeType local_index = 0;
-
-    for (SizeType i_node = 0; i_node < num_nodes; ++i_node)
-    {
-        rElementalDofList[local_index++] = this->GetGeometry()[i_node].pGetDof(DISPLACEMENT_X);
-        rElementalDofList[local_index++] = this->GetGeometry()[i_node].pGetDof(DISPLACEMENT_Y);
-        rElementalDofList[local_index++] = this->GetGeometry()[i_node].pGetDof(DISPLACEMENT_Z);
-    }
-}
-
-//***********************************************************************************
-//***********************************************************************************
-
-void MPMSoftStiffnessElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
+    KRATOS_TRY
 
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
+        // Initialize parameters
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        mDeterminantF0 = 1;
+        mDeformationGradientF0 = IdentityMatrix(dimension);
 
-        //Constitutive Law initialisation
-        if ( mConstitutiveLawVector.size() != integration_points.size() )
-            mConstitutiveLawVector.resize( integration_points.size() );
-
-        if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
-            const GeometryType& r_geometry = GetGeometry();
-            const Properties& r_properties = GetProperties();
-            const auto& N_values = r_geometry.ShapeFunctionsValues(GetIntegrationMethod());
-            for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-                mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-                mConstitutiveLawVector[point_number]->InitializeMaterial( r_properties, r_geometry, row(N_values , point_number ));
-            }
-        } else {
-            KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
-        }
-
+        // Initialize constitutive law and materials
+        InitializeMaterial(rCurrentProcessInfo);
     }
+
     KRATOS_CATCH( "" )
 }
 
-//***********************************************************************************
-//***********************************************************************************
+//************************************************************************************
+//************************************************************************************
 
-void MPMSoftStiffnessElement::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix,
-    const ProcessInfo& rCurrentProcessInfo)
-
-{
-    TotalStiffnessMatrix(rLeftHandSideMatrix,GetGeometry().GetDefaultIntegrationMethod(),rCurrentProcessInfo);
-}
-
-//***********************************************************************************
-//***********************************************************************************
-
-void MPMSoftStiffnessElement::CalculateRightHandSide(
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
-
+void MPMSoftStiffness::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType system_size = number_of_nodes * dimension;
+    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+    const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+        ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+        : false;
+    const SizeType def_grad_dim = (is_axisymmetric)
+        ? 3
+        : dimension;
 
-    Vector internal_forces = ZeroVector(system_size);
-    InternalForces(internal_forces,GetGeometry().GetDefaultIntegrationMethod(),rCurrentProcessInfo);
-    rRightHandSideVector.resize(system_size);
-    noalias(rRightHandSideVector) = ZeroVector(system_size);
-    noalias(rRightHandSideVector) -= internal_forces;
-    CalculateAndAddBodyForce(rRightHandSideVector,rCurrentProcessInfo);
+    rVariables.detF  = 1;
+
+    rVariables.detF0 = 1;
+
+    rVariables.detFT = 1;
+
+    rVariables.B.resize(strain_size, number_of_nodes * dimension, false );
+
+    rVariables.F.resize(def_grad_dim, def_grad_dim, false );
+
+    rVariables.F0.resize(def_grad_dim, def_grad_dim, false );
+
+    rVariables.FT.resize(def_grad_dim, def_grad_dim, false );
+
+    rVariables.ConstitutiveMatrix.resize(strain_size, strain_size, false );
+
+    rVariables.StrainVector.resize(strain_size, false );
+
+    rVariables.StressVector.resize(strain_size, false );
+
+    rVariables.DN_DX.resize( number_of_nodes, dimension, false );
+
+    // CurrentDisp is the unknown variable. It represents the nodal delta displacement. When it is predicted is equal to zero.
+    rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
 }
+//************************************************************************************
+//************************************************************************************
 
-//***********************************************************************************
-//***********************************************************************************
-
-void MPMSoftStiffnessElement::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
-
+void MPMSoftStiffness::SetGeneralVariables(GeneralVariables& rVariables,
+        ConstitutiveLaw::Parameters& rValues, const Vector& rN)
 {
-    CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
-    CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
-}
+    GeometryType& r_geometry = GetGeometry();
 
+    // Variables.detF is the determinant of the incremental total deformation gradient
+    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
 
-//***********************************************************************************
-//***********************************************************************************
-
-void MPMSoftStiffnessElement::GetValuesVector(
-    Vector& rValues,
-    int Step) const
-{
-    const SizeType number_of_nodes = GetGeometry().size();
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType mat_size = number_of_nodes * dimension;
-
-    if (rValues.size() != mat_size)
-        rValues.resize(mat_size, false);
-
-    for (SizeType i = 0; i < number_of_nodes; i++)
+    // Check if detF is negative (element is inverted)
+    if(rVariables.detF<0)
     {
-        const array_1d<double, 3>& disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-        const SizeType index = i * 3;
-        rValues[index] = disp[0];
-        rValues[index + 1] = disp[1];
-        rValues[index + 2] = disp[2];
-    }
-}
+        KRATOS_INFO("MPMSoftStiffness")<<" Element: "<<this->Id()<<std::endl;
+        KRATOS_INFO("MPMSoftStiffness")<<" Element position: "<< mMP.xg <<std::endl;
+        KRATOS_INFO("MPMSoftStiffness")<<" Element velocity: "<< mMP.velocity <<std::endl;
+        const unsigned int number_of_nodes = r_geometry.PointsNumber();
+        KRATOS_INFO("MPMSoftStiffness") << " Shape functions: " << r_geometry.ShapeFunctionsValues() << std::endl;
+        KRATOS_INFO("MPMSoftStiffness") << " Quadrature points: " << r_geometry.IntegrationPointsNumber() << std::endl;
+        KRATOS_INFO("MPMSoftStiffness") << " Parent geometry ID: " << r_geometry.GetGeometryParent(0).Id() << std::endl;
+        KRATOS_INFO("MPMSoftStiffness") << " Parent geometry number of points: " << r_geometry.GetGeometryParent(0).PointsNumber() << std::endl;
 
-//***********************************************************************************
-//***********************************************************************************
-
-void MPMSoftStiffnessElement::GetFirstDerivativesVector(
-    Vector& rValues,
-    int Step) const
-{
-    const SizeType number_of_nodes = GetGeometry().size();
-    const SizeType mat_size = number_of_nodes * 3;
-
-    if (rValues.size() != mat_size)
-        rValues.resize(mat_size, false);
-
-    for (SizeType i = 0; i < number_of_nodes; i++)
-    {
-        const array_1d<double, 3>& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
-        const SizeType index = i * 3;
-        rValues[index] = vel[0];
-        rValues[index + 1] = vel[1];
-        rValues[index + 2] = vel[2];
-    }
-
-}
-
-//***********************************************************************************
-//***********************************************************************************
-
-void MPMSoftStiffnessElement::GetSecondDerivativesVector(
-    Vector& rValues,
-    int Step) const
-{
-    const SizeType number_of_nodes = GetGeometry().size();
-    const SizeType mat_size = number_of_nodes * 3;
-
-    if (rValues.size() != mat_size)
-        rValues.resize(mat_size, false);
-
-    for (SizeType i = 0; i < number_of_nodes; i++)
-    {
-        const array_1d<double, 3>& acc = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
-        const SizeType index = i * 3;
-        rValues[index] = acc[0];
-        rValues[index + 1] = acc[1];
-        rValues[index + 2] = acc[2];
-    }
-}
-
-template <class T>
-void MPMSoftStiffnessElement::InPlaneTransformationMatrix(Matrix& rTransformationMatrix, const array_1d<Vector,2>& rTransformedBaseVectors,
-    const T& rLocalReferenceBaseVectors)
-{
-    const double e_g_11 = inner_prod(rTransformedBaseVectors[0],rLocalReferenceBaseVectors[0]);
-    const double e_g_12 = inner_prod(rTransformedBaseVectors[0],rLocalReferenceBaseVectors[1]);
-    const double e_g_21 = inner_prod(rTransformedBaseVectors[1],rLocalReferenceBaseVectors[0]);
-    const double e_g_22 = inner_prod(rTransformedBaseVectors[1],rLocalReferenceBaseVectors[1]);
-    rTransformationMatrix = ZeroMatrix(3);
-    rTransformationMatrix(0,0) = e_g_11*e_g_11;
-    rTransformationMatrix(0,1) = e_g_12*e_g_12;
-    rTransformationMatrix(0,2) = 2.0*e_g_11*e_g_12;
-    rTransformationMatrix(1,0) = e_g_21*e_g_21;
-    rTransformationMatrix(1,1) = e_g_22*e_g_22;
-    rTransformationMatrix(1,2) = 2.0*e_g_21*e_g_22;
-    rTransformationMatrix(2,0) = e_g_11*e_g_21;
-    rTransformationMatrix(2,1) = e_g_12*e_g_22;
-    rTransformationMatrix(2,2) = (e_g_11*e_g_22) + (e_g_12*e_g_21);
-}
-
-void MPMSoftStiffnessElement::TransformStrains(Vector& rStrains,
-  Vector& rReferenceStrains, const Matrix& rTransformationMatrix)
-{
-    // use contravariant basevectors here
-    // transform base vecs needs only G3 which is equal for co and contra if it is orthogonal
-    // tranform strains needs contra-variant !
-    rStrains = ZeroVector(3);
-    rReferenceStrains[2]/=2.0; // extract E12 from voigt strain vector
-    noalias(rStrains) = prod(rTransformationMatrix,rReferenceStrains);
-    rStrains[2]*=2.0; // include E12 and E21 for voigt strain vector
-}
-
-void MPMSoftStiffnessElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>& rTransformedBaseVectors){
-
-    Vector pre_stress = ZeroVector(3);
-    if (GetProperties().Has(PRESTRESS_VECTOR)){
-        pre_stress = GetProperties()(PRESTRESS_VECTOR);
-
-        if (Has(LOCAL_PRESTRESS_AXIS_1) && Has(LOCAL_PRESTRESS_AXIS_2)){
-
-            array_1d<array_1d<double,3>,2> local_prestress_axis;
-            local_prestress_axis[0] = GetValue(LOCAL_PRESTRESS_AXIS_1)/MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_1));
-            local_prestress_axis[1] = GetValue(LOCAL_PRESTRESS_AXIS_2)/MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_2));
-
-            Matrix transformation_matrix = ZeroMatrix(3);
-            InPlaneTransformationMatrix(transformation_matrix,rTransformedBaseVectors,local_prestress_axis);
-            pre_stress = prod(transformation_matrix,pre_stress);
-
-        } else if (Has(LOCAL_PRESTRESS_AXIS_1)) {
-
-            Vector base_3 = ZeroVector(3);
-            MathUtils<double>::UnitCrossProduct(base_3, rTransformedBaseVectors[0], rTransformedBaseVectors[1]);
-
-            array_1d<array_1d<double,3>,2> local_prestress_axis;
-            local_prestress_axis[0] = GetValue(LOCAL_PRESTRESS_AXIS_1)/MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_1));
-
-            MathUtils<double>::UnitCrossProduct(local_prestress_axis[1], base_3, local_prestress_axis[0]);
-
-            Matrix transformation_matrix = ZeroMatrix(3);
-            InPlaneTransformationMatrix(transformation_matrix,rTransformedBaseVectors,local_prestress_axis);
-            pre_stress = prod(transformation_matrix,pre_stress);
-        }
-    }
-    noalias(rStress) += pre_stress;
-}
-
-void MPMSoftStiffnessElement::MaterialResponse(Vector& rStress,
-    const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
-    const array_1d<Vector,2>& rTransformedBaseVectors,const Matrix& rTransformationMatrix,const SizeType& rIntegrationPointNumber,
-    Matrix& rTangentModulus,const ProcessInfo& rCurrentProcessInfo)
-{
-    Vector strain_vector = ZeroVector(3);
-    noalias(rStress) = ZeroVector(3);
-    StrainGreenLagrange(strain_vector,rReferenceCoVariantMetric,
-        rCurrentCoVariantMetric,rTransformationMatrix);
-
-    // do this to consider the pre-stress influence in the check of the membrane state in the claw
-    Vector initial_stress = ZeroVector(3);
-    if (Has(MEMBRANE_PRESTRESS)){
-        const Matrix& r_stress_input = GetValue(MEMBRANE_PRESTRESS);
-        initial_stress += column(r_stress_input,rIntegrationPointNumber);
-    } else {
-        AddPreStressPk2(initial_stress,rTransformedBaseVectors);
-    }
-    rStress += initial_stress;
-
-    ConstitutiveLaw::Parameters element_parameters(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-    element_parameters.SetStrainVector(strain_vector);
-    element_parameters.SetStressVector(rStress);
-    element_parameters.SetConstitutiveMatrix(rTangentModulus);
-    element_parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
-    element_parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    mConstitutiveLawVector[rIntegrationPointNumber]->CalculateMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
-
-    // do this to include the pre-stress in the actual stress state
-    // rStress is reset in the claw and thus does not consider the initial stress anymore
-    rStress += initial_stress;
-}
-
-void MPMSoftStiffnessElement::StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
-    const Matrix& rTransformationMatrix)
-{
-    Matrix strain_matrix = 0.50 * (rCurrentCoVariantMetric-rReferenceCoVariantMetric);
-    Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix,3);
-    TransformStrains(rStrain,reference_strain,rTransformationMatrix);
-}
-
-void MPMSoftStiffnessElement::DerivativeStrainGreenLagrange(Vector& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
-    const array_1d<Vector,2> rCurrentCovariantBaseVectors, const Matrix& rTransformationMatrix)
-{
-    Matrix current_covariant_metric_derivative = ZeroMatrix(2);
-    DerivativeCurrentCovariantMetric(current_covariant_metric_derivative,rShapeFunctionGradientValues,DofR,rCurrentCovariantBaseVectors);
-    Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
-    Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative,3);
-    TransformStrains(rStrain,reference_strain,rTransformationMatrix);
-}
-
-void MPMSoftStiffnessElement::Derivative2StrainGreenLagrange(Vector& rStrain,
- const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS,
- const Matrix& rTransformationMatrix)
-{
-    Matrix current_covariant_metric_derivative = ZeroMatrix(2);
-    Derivative2CurrentCovariantMetric(current_covariant_metric_derivative,rShapeFunctionGradientValues,DofR,DofS);
-
-    Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
-
-    Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative,3);
-    TransformStrains(rStrain,reference_strain,rTransformationMatrix);
-}
-
-void MPMSoftStiffnessElement::JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors) const
-{
-    Vector3 g3 = ZeroVector(3);
-    MathUtils<double>::CrossProduct(g3, rReferenceBaseVectors[0], rReferenceBaseVectors[1]);
-    rDetJacobi = MathUtils<double>::Norm(g3);
-    KRATOS_ERROR_IF(rDetJacobi<std::numeric_limits<double>::epsilon()) << "det of Jacobi smaller 0 for element with id" << Id() << std::endl;
-}
-
-void MPMSoftStiffnessElement::DerivativeCurrentCovariantMetric(Matrix& rMetric,
-      const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const array_1d<Vector,2> rCurrentCovariantBaseVectors)
-{
-    rMetric = ZeroMatrix(2);
-    array_1d<Vector,2> derivative_covariant_base_vectors;
-    DeriveCurrentCovariantBaseVectors(derivative_covariant_base_vectors,rShapeFunctionGradientValues,DofR);
-
-
-    for (SizeType i=0;i<2;++i){
-        for (SizeType j=0;j<2;++j){
-            rMetric(i,j) = inner_prod(derivative_covariant_base_vectors[i],rCurrentCovariantBaseVectors[j]);
-            rMetric(i,j) += inner_prod(derivative_covariant_base_vectors[j],rCurrentCovariantBaseVectors[i]);
-        }
-    }
-}
-
-void MPMSoftStiffnessElement::Derivative2CurrentCovariantMetric(Matrix& rMetric,
-      const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS)
-{
-    rMetric = ZeroMatrix(2);
-    array_1d<Vector,2> derivative_covariant_base_vectors_dur;
-    DeriveCurrentCovariantBaseVectors(derivative_covariant_base_vectors_dur,rShapeFunctionGradientValues,DofR);
-    array_1d<Vector,2> derivative_covariant_base_vectors_dus;
-    DeriveCurrentCovariantBaseVectors(derivative_covariant_base_vectors_dus,rShapeFunctionGradientValues,DofS);
-
-    for (SizeType i=0;i<2;++i){
-        for (SizeType j=0;j<2;++j){
-            rMetric(i,j) = inner_prod(derivative_covariant_base_vectors_dur[i],derivative_covariant_base_vectors_dus[j]);
-            rMetric(i,j) += inner_prod(derivative_covariant_base_vectors_dus[i],derivative_covariant_base_vectors_dur[j]);
-        }
-    }
-}
-
-void MPMSoftStiffnessElement::DeriveCurrentCovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
-     const Matrix& rShapeFunctionGradientValues, const SizeType DofR)
-{
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType dof_nr = DofR%dimension;
-    const SizeType node_nr = (DofR-dof_nr)/dimension;
-    for (SizeType i=0;i<2;++i){
-        rBaseVectors[i] = ZeroVector(dimension);
-        rBaseVectors[i][dof_nr] = rShapeFunctionGradientValues(node_nr, i);
-    }
-}
-
-void MPMSoftStiffnessElement::CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
-     const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration) const
-{
-    // pass/call this ShapeFunctionsLocalGradients[pnt]
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType number_of_nodes = GetGeometry().size();
-    Vector g1 = ZeroVector(dimension);
-    Vector g2 = ZeroVector(dimension);
-
-    Vector current_displacement = ZeroVector(dimension*number_of_nodes);
-    if (rConfiguration==ConfigurationType::Current) GetValuesVector(current_displacement);
-
-
-    for (SizeType i=0;i<number_of_nodes;++i){
-        g1[0] += (GetGeometry().GetPoint( i ).X0()+current_displacement[i*dimension]) * rShapeFunctionGradientValues(i, 0);
-        g1[1] += (GetGeometry().GetPoint( i ).Y0()+current_displacement[(i*dimension)+1]) * rShapeFunctionGradientValues(i, 0);
-        g1[2] += (GetGeometry().GetPoint( i ).Z0()+current_displacement[(i*dimension)+2]) * rShapeFunctionGradientValues(i, 0);
-
-        g2[0] += (GetGeometry().GetPoint( i ).X0()+current_displacement[i*dimension]) * rShapeFunctionGradientValues(i, 1);
-        g2[1] += (GetGeometry().GetPoint( i ).Y0()+current_displacement[(i*dimension)+1]) * rShapeFunctionGradientValues(i, 1);
-        g2[2] += (GetGeometry().GetPoint( i ).Z0()+current_displacement[(i*dimension)+2]) * rShapeFunctionGradientValues(i, 1);
-    }
-    rBaseVectors[0] = g1;
-    rBaseVectors[1] = g2;
-}
-
-void MPMSoftStiffnessElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,2>& rBaseVectorCovariant)
-{
-    rMetric = ZeroMatrix(2);
-    for (SizeType i=0;i<2;++i){
-        for (SizeType j=0;j<2;++j){
-            rMetric(i,j) = inner_prod(rBaseVectorCovariant[i],rBaseVectorCovariant[j]);
-        }
-    }
-}
-
-void MPMSoftStiffnessElement::ContravariantMetric(Matrix& rMetric,const Matrix& rCovariantMetric)
-{
-    rMetric = ZeroMatrix(2);
-    rMetric(0,0) = rCovariantMetric(1,1);
-    rMetric(1,1) = rCovariantMetric(0,0);
-    rMetric(0,1) = -1.0*rCovariantMetric(1,0);
-    rMetric(1,0) = -1.0*rCovariantMetric(0,1);
-    rMetric /= (rCovariantMetric(1,1)*rCovariantMetric(0,0)) - (rCovariantMetric(1,0)*rCovariantMetric(0,1));
-}
-
-void MPMSoftStiffnessElement::ContraVariantBaseVectors(array_1d<Vector,2>& rBaseVectors,const Matrix& rContraVariantMetric,
-    const array_1d<Vector,2> rCovariantBaseVectors)
-{
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    rBaseVectors[0] = ZeroVector(dimension);
-    rBaseVectors[1] = ZeroVector(dimension);
-
-    rBaseVectors[0] = rContraVariantMetric(0,0)*rCovariantBaseVectors[0] + rContraVariantMetric(0,1)*rCovariantBaseVectors[1];
-    rBaseVectors[1] = rContraVariantMetric(1,0)*rCovariantBaseVectors[0] + rContraVariantMetric(1,1)*rCovariantBaseVectors[1];
-}
-
-void MPMSoftStiffnessElement::InternalForces(Vector& rInternalForces,const IntegrationMethod& ThisMethod,const ProcessInfo& rCurrentProcessInfo)
-{
-    const auto& r_geom = GetGeometry();
-    const SizeType dimension = r_geom.WorkingSpaceDimension();
-    const SizeType number_of_nodes = r_geom.size();
-    const SizeType number_dofs = dimension*number_of_nodes;
-    rInternalForces = ZeroVector(number_dofs);
-
-    const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
-
-    const double thickness = GetProperties()[THICKNESS];
-
-    array_1d<Vector,2> current_covariant_base_vectors;
-    array_1d<Vector,2> reference_covariant_base_vectors;
-    array_1d<Vector,2> reference_contravariant_base_vectors;
-
-    array_1d<Vector,2> transformed_base_vectors;
-
-    Matrix covariant_metric_current = ZeroMatrix(3);
-    Matrix covariant_metric_reference = ZeroMatrix(3);
-    Matrix contravariant_metric_reference = ZeroMatrix(3);
-    Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
-    double detJ = 0.0;
-    Vector stress = ZeroVector(3);
-    Vector derivative_strain = ZeroVector(3);
-
-    for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
-        // getting information for integration
-        const double integration_weight_i = r_integration_points[point_number].Weight();
-        const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-
-        CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Current);
-        CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
-
-        CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
-        CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
-        ContravariantMetric(contravariant_metric_reference,covariant_metric_reference);
-
-        ContraVariantBaseVectors(reference_contravariant_base_vectors,contravariant_metric_reference,reference_covariant_base_vectors);
-
-        TransformBaseVectors(transformed_base_vectors,reference_contravariant_base_vectors);
-
-        InPlaneTransformationMatrix(inplane_transformation_matrix_material,transformed_base_vectors,reference_contravariant_base_vectors);
-
-
-        JacobiDeterminante(detJ,reference_covariant_base_vectors);
-        Matrix material_tangent_modulus = ZeroMatrix(dimension);
-        MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
-            transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
-            rCurrentProcessInfo);
-
-        for (SizeType dof_r=0;dof_r<number_dofs;++dof_r)
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            DerivativeStrainGreenLagrange(derivative_strain,shape_functions_gradients_i,
-                dof_r,current_covariant_base_vectors,inplane_transformation_matrix_material);
-            rInternalForces[dof_r] += inner_prod(stress,derivative_strain)*detJ*integration_weight_i*thickness;
-        }
-    }
-}
+            const array_1d<double, 3> & current_position      = r_geometry[i].Coordinates();
+            const array_1d<double, 3> & current_displacement  = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3> & previous_displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 
-void MPMSoftStiffnessElement::ReferenceLumpingFactors(Vector& rResult) const
-{
-    const auto& r_geom = GetGeometry();
-    const SizeType number_of_nodes = r_geom.size();
-    const IntegrationMethod integration_method = r_geom.GetDefaultIntegrationMethod();
-    const GeometryType::IntegrationPointsArrayType& r_integrations_points = r_geom.IntegrationPoints( integration_method );
-    const Matrix& r_Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
-
-
-    array_1d<Vector,2> reference_covariant_base_vectors;
-    double detJ = 0.0;
-    // Iterate over the integration points
-    double domain_size = 0.0;
-    for ( IndexType point_number = 0; point_number < r_integrations_points.size(); ++point_number ) {
-        const Vector& rN = row(r_Ncontainer,point_number);
-        const Matrix& shape_functions_gradients_i = r_geom.ShapeFunctionsLocalGradients(integration_method)[point_number];
-        CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
-
-        JacobiDeterminante(detJ,reference_covariant_base_vectors);
-        const double integration_weight = r_integrations_points[point_number].Weight() * detJ;
-
-        // Computing domain size
-        domain_size += integration_weight;
-
-        for ( IndexType i = 0; i < number_of_nodes; ++i ) {
-            rResult[i] += rN[i] * integration_weight;
-        }
-    }
-
-    // Divide by the domain size
-    for ( IndexType i = 0; i < number_of_nodes; ++i ) {
-        rResult[i] /= domain_size;
-    }
-}
-
-
-void MPMSoftStiffnessElement::MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
-    const Matrix& rMaterialTangentModulus,const SizeType& rPositionI,
-    const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
-    const array_1d<Vector,2>& rCurrentCovariantBaseVectors, const Matrix& rTransformationMatrix)
- {
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-
-    Vector strain_derivative = ZeroVector(dimension);
-    DerivativeStrainGreenLagrange(strain_derivative,rShapeFunctionGradientValues,rPositionI,
-        rCurrentCovariantBaseVectors,rTransformationMatrix);
-
-    Vector stress_derivative = prod(rMaterialTangentModulus,strain_derivative);
-
-    DerivativeStrainGreenLagrange(strain_derivative,rShapeFunctionGradientValues,rPositionJ,
-        rCurrentCovariantBaseVectors,rTransformationMatrix);
-
-    rEntryIJ += inner_prod(stress_derivative,strain_derivative);
- }
-
-void MPMSoftStiffnessElement::InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
- const Vector& rStressVector, const SizeType& rPositionI,
- const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
- const Matrix& rTransformationMatrix)
- {
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-
-    Vector strain_derivative_2 = ZeroVector(dimension);
-    Derivative2StrainGreenLagrange(strain_derivative_2,rShapeFunctionGradientValues,rPositionI,rPositionJ,
-        rTransformationMatrix);
-    rEntryIJ += inner_prod(rStressVector,strain_derivative_2);
- }
-
-
-void MPMSoftStiffnessElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod& ThisMethod,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    const auto& r_geom = GetGeometry();
-    const SizeType dimension = r_geom.WorkingSpaceDimension();
-    const SizeType number_of_nodes = r_geom.size();
-    const SizeType number_dofs = dimension*number_of_nodes;
-    rStiffnessMatrix = ZeroMatrix(number_dofs);
-
-    const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
-
-    const double thickness = GetProperties()[THICKNESS];
-
-    array_1d<Vector,2> current_covariant_base_vectors;
-    array_1d<Vector,2> reference_covariant_base_vectors;
-    array_1d<Vector,2> reference_contravariant_base_vectors;
-    array_1d<Vector,2> transformed_base_vectors;
-
-    Matrix covariant_metric_current = ZeroMatrix(3);
-    Matrix covariant_metric_reference = ZeroMatrix(3);
-    Matrix contravariant_metric_reference = ZeroMatrix(3);
-    Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
-    double detJ = 0.0;
-    double temp_stiffness_entry;
-    Vector stress = ZeroVector(3);
-
-    for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
-        // getting information for integration
-        const double integration_weight_i = r_integration_points[point_number].Weight();
-        const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-
-        CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Current);
-        CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
-
-        CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
-        CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
-        ContravariantMetric(contravariant_metric_reference,covariant_metric_reference);
-
-        ContraVariantBaseVectors(reference_contravariant_base_vectors,contravariant_metric_reference,reference_covariant_base_vectors);
-
-        TransformBaseVectors(transformed_base_vectors,reference_contravariant_base_vectors);
-
-        InPlaneTransformationMatrix(inplane_transformation_matrix_material,transformed_base_vectors,reference_contravariant_base_vectors);
-
-        JacobiDeterminante(detJ,reference_covariant_base_vectors);
-
-        Matrix material_tangent_modulus = ZeroMatrix(dimension);
-        MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
-            transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
-            rCurrentProcessInfo);
-
-
-        for (SizeType dof_s=0;dof_s<number_dofs;++dof_s){
-            for (SizeType dof_r=0;dof_r<number_dofs;++dof_r){
-
-                //do not calculate symmetric entries
-                if(dof_s>dof_r){
-                    if (point_number==(r_integration_points.size()-1)) rStiffnessMatrix(dof_s,dof_r) = rStiffnessMatrix(dof_r,dof_s);
-                }
-                else{
-                    temp_stiffness_entry = 0.0;
-                    MaterialStiffnessMatrixEntryIJ(temp_stiffness_entry,
-                        material_tangent_modulus,dof_s,dof_r,shape_functions_gradients_i,
-                        current_covariant_base_vectors,inplane_transformation_matrix_material);
-                    InitialStressStiffnessMatrixEntryIJ(temp_stiffness_entry,
-                        stress,dof_s,dof_r,shape_functions_gradients_i,
-                        inplane_transformation_matrix_material);
-                    rStiffnessMatrix(dof_s,dof_r) += temp_stiffness_entry*detJ*integration_weight_i*thickness;
-                }
-            }
-        }
-    }
-}
-
-void MPMSoftStiffnessElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
-     const array_1d<Vector,2>& rLocalBaseVectors){
-
-    // create local cartesian coordinate system aligned to global material vectors (orthotropic)
-    if (Has(LOCAL_MATERIAL_AXIS_1) && Has(LOCAL_MATERIAL_AXIS_2)){
-        rBaseVectors[0] = GetValue(LOCAL_MATERIAL_AXIS_1)/MathUtils<double>::Norm(GetValue(LOCAL_MATERIAL_AXIS_1));
-        rBaseVectors[1] = GetValue(LOCAL_MATERIAL_AXIS_2)/MathUtils<double>::Norm(GetValue(LOCAL_MATERIAL_AXIS_2));
-    } else if (Has(LOCAL_MATERIAL_AXIS_1)) {
-        Vector base_3 = ZeroVector(3);
-        MathUtils<double>::UnitCrossProduct(base_3, rLocalBaseVectors[0], rLocalBaseVectors[1]);
-
-        rBaseVectors[0] = GetValue(LOCAL_MATERIAL_AXIS_1)/MathUtils<double>::Norm(GetValue(LOCAL_MATERIAL_AXIS_1));
-        MathUtils<double>::UnitCrossProduct(rBaseVectors[1], base_3, rBaseVectors[0]);
-
-    } else {
-        // create local cartesian coordinate system
-        rBaseVectors[0] = ZeroVector(3);
-        rBaseVectors[1] = ZeroVector(3);
-        rBaseVectors[0] = rLocalBaseVectors[0] / MathUtils<double>::Norm(rLocalBaseVectors[0]);
-        rBaseVectors[1] = rLocalBaseVectors[1] - (inner_prod(rLocalBaseVectors[1],rBaseVectors[0]) * rBaseVectors[0]);
-        rBaseVectors[1] /= MathUtils<double>::Norm(rBaseVectors[1]);
-    }
-}
-
-void MPMSoftStiffnessElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
-                        std::vector< Vector >& rOutput,
-                        const ProcessInfo& rCurrentProcessInfo)
-{
-    // element with two nodes can only represent results at one node
-    const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
-    const SizeType& write_points_number =
-        GetGeometry().IntegrationPointsNumber(integration_method);
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-
-    if (rOutput.size() != write_points_number) {
-        rOutput.resize(write_points_number);
-    }
-
-    const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(integration_method);
-
-
-    if (rVariable==PK2_STRESS_VECTOR || rVariable==PRINCIPAL_PK2_STRESS_VECTOR || rVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
-        Vector stress = ZeroVector(3);
-        array_1d<Vector,2> current_covariant_base_vectors;
-        array_1d<Vector,2> reference_covariant_base_vectors;
-        array_1d<Vector,2> reference_contravariant_base_vectors;
-
-        array_1d<Vector,2> transformed_base_vectors;
-
-        Matrix covariant_metric_current = ZeroMatrix(3);
-        Matrix covariant_metric_reference = ZeroMatrix(3);
-        Matrix contravariant_metric_reference = ZeroMatrix(3);
-        Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
-
-        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
-
-            if (rOutput[point_number].size() != 3) {
-                rOutput[point_number].resize(3);
-            }
-
-            // getting information for integration
-            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-
-            CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Current);
-            CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
-
-            CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
-            CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
-            ContravariantMetric(contravariant_metric_reference,covariant_metric_reference);
-
-            ContraVariantBaseVectors(reference_contravariant_base_vectors,contravariant_metric_reference,reference_covariant_base_vectors);
-
-            TransformBaseVectors(transformed_base_vectors,reference_contravariant_base_vectors);
-
-            InPlaneTransformationMatrix(inplane_transformation_matrix_material,transformed_base_vectors,reference_contravariant_base_vectors);
-
-
-            if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
-                    Vector strain_vector = ZeroVector(3);
-                    StrainGreenLagrange(strain_vector,covariant_metric_reference,
-                    covariant_metric_current,inplane_transformation_matrix_material);
-                    strain_vector[2] /= 2.0;
-                    noalias(rOutput[point_number]) = strain_vector;
-            }
-            else {
-                Matrix material_tangent_modulus = ZeroMatrix(dimension);
-                MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
-                    transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
-                    rCurrentProcessInfo);
-
-                if (rVariable==PRINCIPAL_PK2_STRESS_VECTOR){
-                    Vector principal_stresses = ZeroVector(2);
-
-                    if (rOutput[point_number].size() != 2) {
-                        rOutput[point_number].resize(2);
-                    }
-
-
-                    PrincipalVector(principal_stresses,stress);
-                    noalias(rOutput[point_number]) = principal_stresses;
-                }  else {
-                    noalias(rOutput[point_number]) = stress;
-                }
-            }
-
+            KRATOS_INFO("MPMSoftStiffness")<<" NODE ["<<r_geometry[i].Id()<<"]: (Current position: "<<current_position<<") "<<std::endl;
+            KRATOS_INFO("MPMSoftStiffness")<<" ---Current Disp: "<<current_displacement<<" (Previour Disp: "<<previous_displacement<<")"<<std::endl;
         }
 
-    }  else if (rVariable==CAUCHY_STRESS_VECTOR || rVariable==PRINCIPAL_CAUCHY_STRESS_VECTOR){
-
-        Vector stress = ZeroVector(3);
-        array_1d<Vector,2> current_covariant_base_vectors;
-        array_1d<Vector,2> current_contravariant_base_vectors;
-        array_1d<Vector,2> reference_covariant_base_vectors;
-        array_1d<Vector,2> reference_contravariant_base_vectors;
-
-        array_1d<Vector,2> transformed_base_vectors;
-
-        Matrix covariant_metric_current = ZeroMatrix(3);
-        Matrix covariant_metric_reference = ZeroMatrix(3);
-        Matrix contravariant_metric_reference = ZeroMatrix(3);
-        Matrix contravariant_metric_current = ZeroMatrix(3);
-        Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
-
-        Matrix deformation_gradient = ZeroMatrix(3);
-        double det_deformation_gradient = 0.0;
-
-        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
-
-
-            if (rOutput[point_number].size() != 3) {
-                rOutput[point_number].resize(3);
-            }
-
-            // getting information for integration
-            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-
-            CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Current);
-            CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
-
-            CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
-            CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
-            ContravariantMetric(contravariant_metric_reference,covariant_metric_reference);
-            ContravariantMetric(contravariant_metric_current,covariant_metric_current);
-
-            ContraVariantBaseVectors(reference_contravariant_base_vectors,contravariant_metric_reference,reference_covariant_base_vectors);
-            ContraVariantBaseVectors(current_contravariant_base_vectors,contravariant_metric_current,current_covariant_base_vectors);
-
-            TransformBaseVectors(transformed_base_vectors,reference_contravariant_base_vectors);
-
-
-            InPlaneTransformationMatrix(inplane_transformation_matrix_material,
-                transformed_base_vectors,reference_contravariant_base_vectors);
-
-            Matrix material_tangent_modulus = ZeroMatrix(dimension);
-            MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
-                transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
-                rCurrentProcessInfo);
-
-
-            DeformationGradient(deformation_gradient,det_deformation_gradient,current_covariant_base_vectors,reference_contravariant_base_vectors);
-
-
-            Matrix stress_matrix_local_cs = MathUtils<double>::StressVectorToTensor(stress);
-
-            // transform stresses to original bases
-            Matrix stress_matrix = ZeroMatrix(3);
-            for (SizeType i=0;i<2;++i){
-                for (SizeType j=0;j<2;++j){
-                    stress_matrix += outer_prod(transformed_base_vectors[i],transformed_base_vectors[j]) * stress_matrix_local_cs(i,j);
-                }
-            }
-
-
-            // calculate cauchy (this needs to be done in the original base)
-            Matrix temp_stress_matrix = prod(deformation_gradient,stress_matrix);
-            Matrix temp_stress_matrix_2 = prod(temp_stress_matrix,trans(deformation_gradient));
-            Matrix cauchy_stress_matrix = temp_stress_matrix_2 / det_deformation_gradient;
-
-
-            // transform stresses to local orthogonal base
-            Matrix local_stress = ZeroMatrix(2);
-            for (SizeType i=0;i<2;++i){
-                for (SizeType j=0;j<2;++j){
-                    local_stress(i,j) = inner_prod(transformed_base_vectors[i],prod(cauchy_stress_matrix,transformed_base_vectors[j]));
-                }
-            }
-            stress = MathUtils<double>::StressTensorToVector(local_stress,3);
-
-
-            if (rVariable==PRINCIPAL_CAUCHY_STRESS_VECTOR){
-                Vector principal_stresses = ZeroVector(2);
-
-                if (rOutput[point_number].size() != 2) {
-                    rOutput[point_number].resize(2);
-                }
-
-                PrincipalVector(principal_stresses,stress);
-                rOutput[point_number] = principal_stresses;
-            }  else {
-                rOutput[point_number] = stress;
-            }
-        }
-    }
-}
-
-
-void MPMSoftStiffnessElement::DeformationGradient(Matrix& rDeformationGradient, double& rDetDeformationGradient,
-     const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase)
-{
-    // attention: this is not in the local orthonogal coordinate system
-
-    // calculate out of plane local vectors (membrane has no thickness change so g3 and G3 are normalized)
-    Vector current_cov_3 = ZeroVector(3);
-    MathUtils<double>::UnitCrossProduct(current_cov_3,rCurrentCovariantBase[0],rCurrentCovariantBase[1]);
-
-    Vector reference_contra_3 = ZeroVector(3);
-    MathUtils<double>::UnitCrossProduct(reference_contra_3,rReferenceContraVariantBase[0],rReferenceContraVariantBase[1]);
-
-    // calculate deformation gradient
-    rDeformationGradient = ZeroMatrix(3);
-    for (SizeType i=0;i<2;++i){
-        rDeformationGradient += outer_prod(rCurrentCovariantBase[i],rReferenceContraVariantBase[i]);
-    }
-
-    // add contribution of out of plane base vectors
-    rDeformationGradient += outer_prod(current_cov_3,reference_contra_3);
-
-
-    // calculate det(F)
-    rDetDeformationGradient = MathUtils<double>::Det(rDeformationGradient);
-}
-
-void MPMSoftStiffnessElement::CalculateOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-
-    KRATOS_TRY
-    // element with two nodes can only represent results at one node
-    const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
-    const SizeType& write_points_number =
-        GetGeometry().IntegrationPointsNumber(integration_method);
-    if (rOutput.size() != write_points_number) {
-        rOutput.resize(write_points_number);
-    }
-
-    if (rVariable == LOCAL_AXIS_1 || rVariable == LOCAL_AXIS_2 || rVariable == LOCAL_AXIS_3) {
-
-        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
-        const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(integration_method);
-
-        int which_axis = 0;
-        if (rVariable == LOCAL_AXIS_2) which_axis = 1;
-
-        array_1d<Vector,2> reference_covariant_base_vectors;
-        array_1d<Vector,2> reference_contravariant_base_vectors;
-        Matrix covariant_metric_reference = ZeroMatrix(3);
-        Matrix contravariant_metric_reference = ZeroMatrix(3);
-        array_1d<Vector,2> transformed_base_vectors;
-
-        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
-
-            if (rOutput[point_number].size() != 3) {
-                rOutput[point_number].resize(3);
-            }
-
-            // getting information for integration
-            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-
-            CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
-            CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
-            ContravariantMetric(contravariant_metric_reference,covariant_metric_reference);
-            ContraVariantBaseVectors(reference_contravariant_base_vectors,contravariant_metric_reference,reference_covariant_base_vectors);
-            TransformBaseVectors(transformed_base_vectors,reference_contravariant_base_vectors);
-
-            if (rVariable == LOCAL_AXIS_3){
-                Vector base_vec_3 = ZeroVector(3);
-                MathUtils<double>::UnitCrossProduct(base_vec_3,transformed_base_vectors[0],transformed_base_vectors[1]);
-
-                for (SizeType i =0; i<3; ++i) {
-                    rOutput[point_number][i] = base_vec_3[i];
-                }
-            }
-            else {
-                for (SizeType i =0; i<3; ++i) {
-                    rOutput[point_number][i] = transformed_base_vectors[which_axis][i];
-                }
-            }
-        }
-    }
-
-    KRATOS_CATCH("")
-}
-
-void MPMSoftStiffnessElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
-        rOutput = ZeroMatrix(3);
-        array_1d<Vector,2> base_vectors_current_cov;
-        const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
-        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
-        const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(integration_method);
-
-        Vector base_1 = ZeroVector(3);
-        Vector base_2 = ZeroVector(3);
-        Vector base_3 = ZeroVector(3);
-
-        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
-            const double integration_weight_i = r_integration_points[point_number].Weight();
-            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-            CovariantBaseVectors(base_vectors_current_cov,shape_functions_gradients_i,ConfigurationType::Reference);
-            base_1 += base_vectors_current_cov[0]*integration_weight_i;
-            base_2 += base_vectors_current_cov[1]*integration_weight_i;
-        }
-
-        MathUtils<double>::UnitCrossProduct(base_3, base_1, base_2);
-
-        column(rOutput,0) = base_1;
-        column(rOutput,1) = base_2;
-        column(rOutput,2) = base_3;
-    }
-    else if (rVariable == MEMBRANE_PRESTRESS) {
-        std::vector< Vector > prestress_matrix;
-        CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,prestress_matrix,rCurrentProcessInfo);
-        const auto& r_integration_points = GetGeometry().IntegrationPoints(GetGeometry().GetDefaultIntegrationMethod());
-
-        rOutput = ZeroMatrix(3,r_integration_points.size());
-
-        // each column represents 1 GP
-        for (SizeType i=0;i<r_integration_points.size();++i){
-            column(rOutput,i) = prestress_matrix[i];
-        }
-    }
-}
-
-void MPMSoftStiffnessElement::Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rVariable == STRAIN_ENERGY) {
-        const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
-        const auto& r_geom = GetGeometry();
-
-        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(integration_method);
-        const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(integration_method);
-
-        array_1d<Vector,2> current_covariant_base_vectors;
-        array_1d<Vector,2> reference_covariant_base_vectors;
-        array_1d<Vector,2> reference_contravariant_base_vectors;
-
-        array_1d<Vector,2> transformed_base_vectors;
-
-        Matrix covariant_metric_current = ZeroMatrix(3);
-        Matrix covariant_metric_reference = ZeroMatrix(3);
-        Matrix contravariant_metric_reference = ZeroMatrix(3);
-        Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
-        double detJ = 0.0;
-        rOutput = 0.0; // total strain energy
-        Vector strain_vector = ZeroVector(3);
-        Vector stress_vector = ZeroVector(3);
-
-
-        ConstitutiveLaw::Parameters element_parameters(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-        element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-        element_parameters.SetStressVector(stress_vector);
-
-        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
-            // reset gauss point strain
-            double strain_energy_gp = 0.0; // strain energy per gauss point
-
-            // getting information for integration
-            const double integration_weight_i = r_integration_points[point_number].Weight();
-            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-
-
-            CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Current);
-            CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
-            CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
-            CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
-
-            ContravariantMetric(contravariant_metric_reference,covariant_metric_reference);
-            ContraVariantBaseVectors(reference_contravariant_base_vectors,contravariant_metric_reference,reference_covariant_base_vectors);
-
-            TransformBaseVectors(transformed_base_vectors,reference_contravariant_base_vectors);
-            InPlaneTransformationMatrix(inplane_transformation_matrix_material,transformed_base_vectors,reference_contravariant_base_vectors);
-            JacobiDeterminante(detJ,reference_covariant_base_vectors);
-
-            StrainGreenLagrange(strain_vector,covariant_metric_reference,covariant_metric_current,inplane_transformation_matrix_material);
-
-            // add strain energy from material law
-            element_parameters.SetStrainVector(strain_vector);
-            mConstitutiveLawVector[point_number]->CalculateValue(element_parameters,STRAIN_ENERGY,strain_energy_gp);
-
-
-            Vector pre_stress_vector = ZeroVector(3);
-            AddPreStressPk2(pre_stress_vector,transformed_base_vectors);
-
-            // add strain energy from pre_stress -> constant
-            strain_energy_gp += inner_prod(strain_vector,pre_stress_vector);
-
-            // integrate over reference domain
-            strain_energy_gp *= detJ*integration_weight_i;
-
-            // sum up the gauss point contributions
-            rOutput += strain_energy_gp;
-        }
-        rOutput *= GetProperties()[THICKNESS];
-    }
-    else if (rVariable == KINETIC_ENERGY) {
-        const auto& r_geom = GetGeometry();
-        const SizeType number_dofs = r_geom.WorkingSpaceDimension()*r_geom.size();
-
-        Matrix mass_matrix = ZeroMatrix(number_dofs,number_dofs);
-        CalculateMassMatrix(mass_matrix,rCurrentProcessInfo);
-        Vector current_nodal_velocities = ZeroVector(number_dofs);
-        GetFirstDerivativesVector(current_nodal_velocities);
-        rOutput = 0.50 * inner_prod(current_nodal_velocities,prod(mass_matrix,current_nodal_velocities));
-    }
-    else if (rVariable == ENERGY_DAMPING_DISSIPATION) {
-        const auto& r_geom = GetGeometry();
-        const SizeType number_dofs = r_geom.WorkingSpaceDimension()*r_geom.size();
-
-        // Attention! this is only the current state and must be integrated over time (*dt)
-        Matrix damping_matrix = ZeroMatrix(number_dofs,number_dofs);
-        CalculateDampingMatrix(damping_matrix,rCurrentProcessInfo);
-        Vector current_nodal_velocities = ZeroVector(number_dofs);
-        GetFirstDerivativesVector(current_nodal_velocities);
-        rOutput = inner_prod(current_nodal_velocities,prod(damping_matrix,current_nodal_velocities));
-    }
-    else if (rVariable == EXTERNAL_ENERGY) {
-        // Dead Load contribution to external energy
-        const auto& r_geom = GetGeometry();
-        const SizeType number_dofs = r_geom.WorkingSpaceDimension()*r_geom.size();
-
-        Vector dead_load_rhs = ZeroVector(number_dofs);
-        CalculateAndAddBodyForce(dead_load_rhs, rCurrentProcessInfo);
-        Vector current_nodal_displacements = ZeroVector(number_dofs);
-        GetValuesVector(current_nodal_displacements, 0);
-        rOutput = inner_prod(dead_load_rhs,current_nodal_displacements);
-    }
-}
-
-void MPMSoftStiffnessElement::CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
-    const ProcessInfo& rCurrentProcessInfo) const
-{
-    KRATOS_TRY;
-    const auto& r_geom = GetGeometry();
-    const SizeType number_of_nodes = r_geom.size();
-    const SizeType dimension = r_geom.WorkingSpaceDimension();
-    const SizeType number_dofs = dimension*number_of_nodes;
-
-    if (number_of_nodes == 3){
-        // consistent mass matrix for triangular element can be easily pre-computed
-        const BoundedMatrix<double, 3, 3> fill_matrix = CalculateReferenceArea()*(IdentityMatrix(3)/12.0);
-        for (SizeType i=0; i<3; ++i){
-            for (SizeType j=0; j<3; ++j){
-                    project(rMassMatrix, range((i*3),((i+1)*3)),range((j*3),((j+1)*3))) += fill_matrix;
-                }
-        }
-        for (SizeType i=0; i<number_dofs; ++i) rMassMatrix(i,i) *= 2.0;
-    }
-    else {
-        const IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
-
-        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(integration_method);
-        const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(integration_method);
-        const Matrix& rNcontainer = r_geom.ShapeFunctionsValues(integration_method);
-        array_1d<Vector,2> reference_covariant_base_vectors;
-
-        double detJ = 0.0;
-
-
-
-        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
-
-            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-            CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
-            JacobiDeterminante(detJ,reference_covariant_base_vectors);
-
-            const double integration_weight = r_integration_points[point_number].Weight();
-            const Vector& rN = row(rNcontainer,point_number);
-
-
-            for ( IndexType i = 0; i < number_of_nodes; ++i ) {
-                    const SizeType index_i = i * dimension;
-
-                    for ( IndexType j = 0; j < number_of_nodes; ++j ) {
-                        const SizeType index_j = j * dimension;
-                        const double NiNj_weight = rN[i] * rN[j] * integration_weight * detJ;
-
-                        for ( IndexType k = 0; k < dimension; ++k )
-                            rMassMatrix( index_i + k, index_j + k ) += NiNj_weight;
-                    }
-                }
-        }
-    }
-
-    rMassMatrix *= GetProperties()[THICKNESS]*StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
-    KRATOS_CATCH("");
-}
-
-void MPMSoftStiffnessElement::CalculateMassMatrix(MatrixType& rMassMatrix,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    const auto& r_geom = GetGeometry();
-
-    // LUMPED MASS MATRIX
-    const SizeType number_of_nodes = r_geom.size();
-    const SizeType mat_size = number_of_nodes * 3;
-
-    if (rMassMatrix.size1() != mat_size) {
-        rMassMatrix.resize(mat_size, mat_size, false);
-    }
-    noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
-
-
-    if (StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo) ){
-        Vector lumped_mass_vector = ZeroVector(mat_size);
-        CalculateLumpedMassVector(lumped_mass_vector,rCurrentProcessInfo);
-        for (SizeType i=0;i<mat_size;++i) rMassMatrix(i,i) = lumped_mass_vector[i];
-    }
-    else {
-        // CONSISTENT MASS MATRIX
-        CalculateConsistentMassMatrix(rMassMatrix,rCurrentProcessInfo);
-    }
-
-    KRATOS_CATCH("")
-}
-
-void MPMSoftStiffnessElement::CalculateLumpedMassVector(
-    VectorType& rLumpedMassVector,
-    const ProcessInfo& rCurrentProcessInfo) const
-{
-    KRATOS_TRY
-    auto& r_geom = GetGeometry();
-    const SizeType dimension = r_geom.WorkingSpaceDimension();
-    const SizeType number_of_nodes = r_geom.size();
-    const SizeType local_size = dimension*number_of_nodes;
-
-    if (rLumpedMassVector.size() != local_size) {
-        rLumpedMassVector.resize(local_size, false);
-    }
-
-    const double total_mass = CalculateReferenceArea() * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
-
-    Vector lump_fact =  ZeroVector(number_of_nodes);
-    ReferenceLumpingFactors(lump_fact);
-
-    for (SizeType i = 0; i < number_of_nodes; ++i) {
-        const double temp = lump_fact[i] * total_mass;
-
-        for (SizeType j = 0; j < 3; ++j)
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            const SizeType index = i * 3 + j;
-            rLumpedMassVector[index] = temp;
-        }
-    }
-    KRATOS_CATCH("")
-}
-
-void MPMSoftStiffnessElement::AddExplicitContribution(
-    const VectorType& rRHSVector,
-    const Variable<VectorType>& rRHSVariable,
-    const Variable<double >& rDestinationVariable,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    auto& r_geom = GetGeometry();
-    const SizeType dimension = r_geom.WorkingSpaceDimension();
-    const SizeType number_of_nodes = r_geom.size();
-    const SizeType local_size = dimension*number_of_nodes;
-
-    if (rDestinationVariable == NODAL_MASS) {
-        VectorType element_mass_vector(local_size);
-        CalculateLumpedMassVector(element_mass_vector, rCurrentProcessInfo);
-
-        for (SizeType i = 0; i < number_of_nodes; ++i) {
-            double& r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
-            int index = i * dimension;
-
-            AtomicAdd(r_nodal_mass, element_mass_vector(index));
-        }
-    }
-
-    KRATOS_CATCH("")
-}
-
-void MPMSoftStiffnessElement::CalculateDampingMatrix(
-    MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
-        *this,
-        rDampingMatrix,
-        rCurrentProcessInfo,
-        GetGeometry().WorkingSpaceDimension()*GetGeometry().size());
-}
-
-const Parameters MPMSoftStiffnessElement::GetSpecifications() const
-{
-    const Parameters specifications = Parameters(R"({
-        "time_integration"           : ["static","implicit","explicit"],
-        "framework"                  : "lagrangian",
-        "symmetric_lhs"              : true,
-        "positive_definite_lhs"      : true,
-        "output"                     : {
-            "gauss_point"            : [],
-            "nodal_historical"       : ["DISPLACEMENT","ROTATION","VELOCITY","ACCELERATION"],
-            "nodal_non_historical"   : [],
-            "entity"                 : []
-        },
-        "required_variables"         : ["DISPLACEMENT","ROTATION"],
-        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z","ROTATION_X","ROTATION_Y","ROTATION_Z"],
-        "flags_used"                 : [],
-        "compatible_geometries"      : ["Triangle3D3", "Quadrilateral3D4"],
-        "element_integrates_in_time" : false,
-        "compatible_constitutive_laws": {
-            "type"        : ["PlaneStress"],
-            "dimension"   : ["3D"],
-            "strain_size" : [3]
-        },
-        "required_polynomial_degree_of_geometry" : 1,
-        "documentation"   : "This element implements a pre-stressed membrane formulation."
-    })");
-
-    return specifications;
-}
-
-void MPMSoftStiffnessElement::AddExplicitContribution(
-    const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-    const Variable<array_1d<double, 3>>& rDestinationVariable,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    auto& r_geom = GetGeometry();
-    const SizeType dimension = r_geom.WorkingSpaceDimension();
-    const SizeType number_of_nodes = r_geom.size();
-    const SizeType local_size = dimension*number_of_nodes;
-
-    if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
-
-        Vector damping_residual_contribution = ZeroVector(local_size);
-        Vector current_nodal_velocities = ZeroVector(local_size);
-        GetFirstDerivativesVector(current_nodal_velocities);
-        Matrix damping_matrix;
-        CalculateDampingMatrix(damping_matrix, rCurrentProcessInfo);
-        // current residual contribution due to damping
-        noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
-
-        for (SizeType i = 0; i < number_of_nodes; ++i) {
-            SizeType index = dimension * i;
-            array_1d<double, 3>& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
-            for (size_t j = 0; j < dimension; ++j) {
-                AtomicAdd(r_force_residual[j], (rRHSVector[index + j] - damping_residual_contribution[index + j]));
-            }
-        }
-    } else if (rDestinationVariable == NODAL_INERTIA) {
-
-        // Getting the vector mass
-        VectorType mass_vector(local_size);
-        CalculateLumpedMassVector(mass_vector, rCurrentProcessInfo);
-
-        for (SizeType i = 0; i < number_of_nodes; ++i) {
-            double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
-            SizeType index = i * dimension;
-
-            AtomicAdd(r_nodal_mass, mass_vector[index]);
-        }
-    }
-
-    KRATOS_CATCH("")
-}
-
-void MPMSoftStiffnessElement::CalculateAndAddBodyForce(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) const
-{
-    KRATOS_TRY
-    auto& r_geom = GetGeometry();
-    const SizeType dimension = r_geom.WorkingSpaceDimension();
-    const SizeType number_of_nodes = r_geom.size();
-    const SizeType local_size = dimension*number_of_nodes;
-
-    if (r_geom[0].SolutionStepsDataHas(VOLUME_ACCELERATION)){
-
-        Vector lumped_mass_vector = ZeroVector(local_size);
-        CalculateLumpedMassVector(lumped_mass_vector,rCurrentProcessInfo);
-
-        for (SizeType i = 0; i < number_of_nodes; ++i) {
-            for (SizeType j = 0; j < 3; ++j)
+            if( r_geometry[i].SolutionStepsDataHas(CONTACT_FORCE) )
             {
-                const SizeType index = i * 3 + j;
-                rRightHandSideVector[index] += lumped_mass_vector[index] * r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION)[j];
+                const array_1d<double, 3 > & PreContactForce = r_geometry[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
+                const array_1d<double, 3 > & ContactForce = r_geometry[i].FastGetSolutionStepValue(CONTACT_FORCE);
+                KRATOS_INFO("MPMSoftStiffness")<<" ---Contact_Force: (Pre:"<<PreContactForce<<", Current:"<<ContactForce<<") "<<std::endl;
+            }
+            else
+            {
+                KRATOS_INFO("MPMSoftStiffness")<<" ---Contact_Force: NULL "<<std::endl;
+            }
+        }
+
+        KRATOS_ERROR << "MPM UPDATED LAGRANGIAN DISPLACEMENT ELEMENT INVERTED: |F|<0  detF = " << rVariables.detF << std::endl;
+    }
+
+    rVariables.detFT = rVariables.detF * rVariables.detF0;
+    rVariables.FT    = prod( rVariables.F, rVariables.F0 );
+
+    rValues.SetDeterminantF(rVariables.detFT);
+    rValues.SetDeformationGradientF(rVariables.FT);
+    rValues.SetStrainVector(rVariables.StrainVector);
+    rValues.SetStressVector(rVariables.StressVector);
+    rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
+    rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
+    rValues.SetShapeFunctionsValues(rN);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void MPMSoftStiffness::CalculateElementalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo,
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag)
+{
+    KRATOS_TRY
+
+    // Create and initialize element variables:
+    GeneralVariables Variables;
+    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+    const Vector& r_N = row(GetGeometry().ShapeFunctionsValues(), 0);
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+        : false;
+
+    // Create constitutive law parameters:
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+    // Set constitutive law flags:
+    Flags &ConstitutiveLawOptions=Values.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+    if (!is_explicit)
+    {
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+
+        // Compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematics(Variables, rCurrentProcessInfo);
+
+        // Set general variables to constitutivelaw parameters
+        this->SetGeneralVariables(Variables, Values, r_N);
+
+        // Calculate Material Response
+        /* NOTE:
+        The function below will call CalculateMaterialResponseCauchy() by default and then (may)
+        call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
+        mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
+
+        /* NOTE:
+        The material points will have constant mass as defined at the beginning.
+        However, the density and volume (integration weight) are changing every time step.*/
+        // Update MP_Density
+        mMP.density = (GetProperties()[DENSITY]) / Variables.detFT;
+    }
+
+    // The MP_Volume (integration weight) is evaluated
+    mMP.volume = mMP.mass / mMP.density;
+
+    if (CalculateStiffnessMatrixFlag && !is_explicit) // if calculation of the matrix is required
+    {
+        // Contributions to stiffness matrix calculated on the reference configuration
+        this->CalculateAndAddLHS(
+            rLeftHandSideMatrix,
+            Variables,
+            mMP.volume,
+            rCurrentProcessInfo);
+    }
+
+    if (CalculateResidualVectorFlag) // if calculation of the vector is required
+    {
+        // Contribution to forces (in residual term) are calculated
+        Vector volume_force = mMP.volume_acceleration * mMP.mass;
+        this->CalculateAndAddRHS(
+            rRightHandSideVector,
+            Variables,
+            volume_force,
+            mMP.volume,
+            rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH( "" )
+}
+//*********************************COMPUTE KINEMATICS*********************************
+//************************************************************************************
+
+
+void MPMSoftStiffness::CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+
+{
+    KRATOS_TRY
+
+    // Define the stress measure
+    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
+
+    // Calculating the reference jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n/d£]
+    Matrix Jacobian;
+    GetGeometry().Jacobian(Jacobian, 0);
+
+    // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
+    Matrix InvJ;
+    double detJ;
+    MathUtils<double>::InvertMatrix( Jacobian, InvJ, detJ);
+
+    // Calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
+    Matrix jacobian;
+    GetGeometry().Jacobian(jacobian, 0, GetGeometry().GetDefaultIntegrationMethod(), -1.0 * rVariables.CurrentDisp);
+
+    // Calculating the inverse of the jacobian and the parameters needed [d£/(dx_n+1)]
+    Matrix Invj;
+    MathUtils<double>::InvertMatrix( jacobian, Invj, detJ); //overwrites detJ
+
+    // Compute cartesian derivatives [dN/dx_n+1]
+    const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
+    rVariables.DN_DX = prod(r_DN_De, Invj); //overwrites DX now is the current position dx
+
+    const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+        ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+        : false;
+
+    rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
+    this->CalculateDeformationGradient(rVariables.DN_DX, rVariables.F, rVariables.CurrentDisp, is_axisymmetric);
+
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+
+    if (is_axisymmetric) {
+        rVariables.CurrentRadius = MPMMathUtilities<double>::CalculateRadius(r_N, GetGeometry());
+        rVariables.ReferenceRadius = MPMMathUtilities<double>::CalculateRadius(r_N, GetGeometry(), Initial);
+    }
+
+    // Determinant of the previous Deformation Gradient F_n
+    rVariables.detF0 = mDeterminantF0;
+    rVariables.F0    = mDeformationGradientF0;
+
+    // Compute the deformation matrix B
+    this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX, r_N, is_axisymmetric);
+
+    KRATOS_CATCH( "" )
+}
+//************************************************************************************
+
+void MPMSoftStiffness::CalculateDeformationMatrix(Matrix& rB,
+        const Matrix& rDN_DX, const Matrix& rN, const bool IsAxisymmetric)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    rB.clear(); // Set all components to zero
+
+    if (IsAxisymmetric)
+    {
+        const double radius = MPMMathUtilities<double>::CalculateRadius(rN, GetGeometry());
+
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            const unsigned int index = dimension * i;
+
+            rB(0, index + 0) = rDN_DX(i, 0);
+            rB(1, index + 1) = rDN_DX(i, 1);
+            rB(2, index + 0) = rN(0, i) / radius;
+            rB(3, index + 0) = rDN_DX(i, 1);
+            rB(3, index + 1) = rDN_DX(i, 0);
+        }
+    }
+    else if( dimension == 2 )
+    {
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            unsigned int index = 2 * i;
+            rB( 0, index + 0 ) = rDN_DX( i, 0 );
+            rB( 1, index + 1 ) = rDN_DX( i, 1 );
+            rB( 2, index + 0 ) = rDN_DX( i, 1 );
+            rB( 2, index + 1 ) = rDN_DX( i, 0 );
+        }
+    }
+    else if( dimension == 3 )
+    {
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            unsigned int index = 3 * i;
+
+            rB( 0, index + 0 ) = rDN_DX( i, 0 );
+            rB( 1, index + 1 ) = rDN_DX( i, 1 );
+            rB( 2, index + 2 ) = rDN_DX( i, 2 );
+
+            rB( 3, index + 0 ) = rDN_DX( i, 1 );
+            rB( 3, index + 1 ) = rDN_DX( i, 0 );
+
+            rB( 4, index + 1 ) = rDN_DX( i, 2 );
+            rB( 4, index + 2 ) = rDN_DX( i, 1 );
+
+            rB( 5, index + 0 ) = rDN_DX( i, 2 );
+            rB( 5, index + 2 ) = rDN_DX( i, 0 );
+        }
+    }
+    else
+    {
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
+    }
+
+    KRATOS_CATCH( "" )
+}
+//************************************************************************************
+//************************************************************************************
+
+void MPMSoftStiffness::CalculateAndAddRHS(
+    VectorType& rRightHandSideVector,
+    GeneralVariables& rVariables,
+    Vector& rVolumeForce,
+    const double& rIntegrationWeight,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+    this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
+
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+        : false;
+    if (is_explicit)
+    {
+        MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(rCurrentProcessInfo ,
+            *this, mMP.cauchy_stress_vector, mMP.volume,
+            mConstitutiveLawVector->GetStrainSize(), rRightHandSideVector);
+    }
+    else
+    {
+        // Operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
+        this->CalculateAndAddInternalForces(rRightHandSideVector, rVariables, rIntegrationWeight);
+    }
+}
+
+//************************************************************************************
+//*********************Calculate the contribution of external force*******************
+
+void MPMSoftStiffness::CalculateAndAddExternalForces(
+    VectorType& rRightHandSideVector,
+        GeneralVariables& rVariables,
+        Vector& rVolumeForce,
+        const double& rIntegrationWeight)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        int index = dimension * i;
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            rRightHandSideVector[index + j] += r_N(0, i) * rVolumeForce[j];
+        }
+    }
+
+    KRATOS_CATCH( "" )
+}
+//************************************************************************************
+//************************************************************************************
+
+void MPMSoftStiffness::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+        GeneralVariables & rVariables,
+        const double& rIntegrationWeight)
+{
+    KRATOS_TRY
+
+    VectorType internal_forces = rIntegrationWeight * prod( trans( rVariables.B ), rVariables.StressVector );
+    noalias( rRightHandSideVector ) -= internal_forces;
+
+    KRATOS_CATCH( "" )
+}
+//************************************************************************************
+//************************************************************************************
+
+void MPMSoftStiffness::CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
+    GeneralVariables& rVariables)
+{
+    KRATOS_TRY
+
+    // Create constitutive law parameters:
+    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+    // Define the stress measure
+    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
+
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions = Values.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+    // use element provided strain incremented from velocity gradient
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+
+    // Compute explicit element kinematics, strain is incremented here.
+    Matrix Jacobian;
+    GetGeometry().Jacobian(Jacobian, 0);
+    Matrix InvJ;
+    double detJ;
+    MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+    Matrix r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
+    rVariables.DN_DX = prod(r_DN_De, InvJ); // cartesian gradients
+
+    MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this,
+        mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize());
+
+    rVariables.StressVector = mMP.cauchy_stress_vector;
+    rVariables.StrainVector = mMP.almansi_strain_vector;
+
+    // Update gradient deformation
+    rVariables.F0 = mDeformationGradientF0; // total member def grad NOT including this increment
+    rVariables.FT = prod(rVariables.F, rVariables.F0); // total def grad including this increment
+    rVariables.detF = MathUtils<double>::Det(rVariables.F); // det of current increment
+    rVariables.detF0 = MathUtils<double>::Det(rVariables.F0); // det of def grad NOT including this increment
+    rVariables.detFT = MathUtils<double>::Det(rVariables.FT); // det of total def grad including this increment
+    mDeformationGradientF0 = rVariables.FT; // update member internal total grad def
+    mDeterminantF0 = rVariables.detFT; // update member internal total grad def det
+
+    // Update MP volume
+    if (rCurrentProcessInfo.GetValue(IS_COMPRESSIBLE))
+    {
+        mMP.density = (GetProperties()[DENSITY]) / rVariables.detFT;
+        mMP.volume = mMP.mass / mMP.density;
+    }
+
+    rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
+
+    // Set general variables to constitutivelaw parameters
+    const Vector& r_N_vec = row(r_N, 0);
+    this->SetGeneralVariables(rVariables, Values, r_N_vec);
+
+    // Calculate Material Response
+    /* NOTE:
+    The function below will call CalculateMaterialResponseCauchy() by default and then (may)
+    call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
+    mConstitutiveLawVector->CalculateMaterialResponse(Values, rVariables.StressMeasure);
+
+    KRATOS_CATCH("")
+}
+//************************************************************************************
+//************************************************************************************
+
+void MPMSoftStiffness::CalculateAndAddLHS(
+    MatrixType& rLeftHandSideMatrix,
+    GeneralVariables& rVariables,
+    const double& rIntegrationWeight,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const bool is_ignore_geometric_stiffness = (rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
+        ? rCurrentProcessInfo.GetValue(IGNORE_GEOMETRIC_STIFFNESS)
+        : false;
+
+    // Operation performed: add K_material to the rLefsHandSideMatrix
+    this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+
+    // Operation performed: add K_geometry to the rLefsHandSideMatrix
+    if (!is_ignore_geometric_stiffness)
+    {
+        const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+            ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+            : false;
+        this->CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight, is_axisymmetric);
+    }
+}
+//************************************************************************************
+//************************************************************************************
+
+void MPMSoftStiffness::CalculateAndAddKuum(
+    MatrixType& rLeftHandSideMatrix,
+    GeneralVariables& rVariables,
+    const double& rIntegrationWeight)
+{
+    KRATOS_TRY
+
+    noalias( rLeftHandSideMatrix ) += prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) );
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void MPMSoftStiffness::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+        GeneralVariables& rVariables,
+        const double& rIntegrationWeight, const bool IsAxisymmetric)
+{
+    KRATOS_TRY
+
+    if (IsAxisymmetric)
+    {
+        // Axisymmetric geometric matrix
+        double alpha_1;
+        double alpha_2;
+        double alpha_3;
+
+        const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+
+        const unsigned int number_of_nodes = GetGeometry().size();
+        unsigned int index_i = 0;
+        const double radius = MPMMathUtilities<double>::CalculateRadius(r_N, GetGeometry());
+
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            unsigned int index_j = 0;
+            for (unsigned int j = 0; j < number_of_nodes; j++)
+            {
+                alpha_1 = rVariables.DN_DX(j, 0) * (rVariables.DN_DX(i, 0) * rVariables.StressVector[0] + rVariables.DN_DX(i, 1) * rVariables.StressVector[3]);
+                alpha_2 = rVariables.DN_DX(j, 1) * (rVariables.DN_DX(i, 0) * rVariables.StressVector[3] + rVariables.DN_DX(i, 1) * rVariables.StressVector[1]);
+                alpha_3 = r_N(0, i) * r_N(0, j) * rVariables.StressVector[2] * (1.0 / radius * radius);
+
+                rLeftHandSideMatrix(index_i, index_j) += (alpha_1 + alpha_2 + alpha_3) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_i + 1, index_j + 1) += (alpha_1 + alpha_2) * rIntegrationWeight;
+
+                index_j += 2;
+            }
+            index_i += 2;
+        }
+    }
+    else
+    {
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        Matrix stress_tensor = MathUtils<double>::StressVectorToTensor(rVariables.StressVector);
+        Matrix reduced_Kg = prod(rVariables.DN_DX, rIntegrationWeight * Matrix(prod(stress_tensor, trans(rVariables.DN_DX))));
+        MathUtils<double>::ExpandAndAddReducedMatrix(rLeftHandSideMatrix, reduced_Kg, dimension);
+    }
+
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************CALCULATE VOLUME CHANGE*************************
+//************************************************************************************
+
+double& MPMSoftStiffness::CalculateVolumeChange( double& rVolumeChange, GeneralVariables& rVariables )
+{
+    KRATOS_TRY
+
+    rVolumeChange = 1.0 / (rVariables.detF * rVariables.detF0);
+
+    return rVolumeChange;
+
+    KRATOS_CATCH( "" )
+}
+
+void MPMSoftStiffness::CalculateDeformationGradient(const Matrix& rDN_DX, Matrix& rF, Matrix& rDisplacement,
+    const bool IsAxisymmetric)
+{
+    KRATOS_TRY
+
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    if (IsAxisymmetric)
+    {
+        // Compute radius
+        const double current_radius = MPMMathUtilities<double>::CalculateRadius(GetGeometry().ShapeFunctionsValues(), GetGeometry());
+        const double initial_radius = MPMMathUtilities<double>::CalculateRadius(GetGeometry().ShapeFunctionsValues(), GetGeometry(), Initial);
+
+        rF = IdentityMatrix(3);
+
+        if (dimension == 2)
+        {
+            for (IndexType i = 0; i < GetGeometry().PointsNumber(); ++i)
+            {
+                rF(0, 0) += rDisplacement(i, 0) * rDN_DX(i, 0);
+                rF(0, 1) += rDisplacement(i, 0) * rDN_DX(i, 1);
+                rF(1, 0) += rDisplacement(i, 1) * rDN_DX(i, 0);
+                rF(1, 1) += rDisplacement(i, 1) * rDN_DX(i, 1);
+            }
+
+            rF(2, 2) = current_radius / initial_radius;
+        }
+        else KRATOS_ERROR << "Dimension given is wrong!" << std::endl;
+    }
+    else
+    {
+        /* NOTE::
+    Deformation Gradient F [(dx_n+1 - dx_n)/dx_n] is to be updated in constitutive law parameter as total deformation gradient.
+    The increment of total deformation gradient can be evaluated in 2 ways, which are:
+    1. By: noalias( rVariables.F ) = prod( jacobian, InvJ);
+    2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee
+
+    (NOTICE: Here, we are using method no. 2)*/
+
+    // METHOD 1: Update Deformation gradient: F [dx_n+1/dx_n] = [dx_n+1/d£] [d£/dx_n]
+    // noalias( rVariables.F ) = prod( jacobian, InvJ);
+
+    // METHOD 2: Update Deformation gradient: F_ij = δ_ij + u_i,j
+
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        Matrix I = IdentityMatrix(dimension);
+        Matrix gradient_displacement = ZeroMatrix(dimension, dimension);
+        gradient_displacement = prod(trans(rDisplacement), rDN_DX);
+        noalias(rF) = (I + gradient_displacement);
+    }
+    KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+void MPMSoftStiffness::CalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    MatrixType left_hand_side_matrix = Matrix(0, 0);
+
+    const SizeType mat_size = GetNumberOfDofs() * GetGeometry().size();
+    if (rRightHandSideVector.size() != mat_size) {
+        rRightHandSideVector.resize(mat_size, false);
+    }
+    rRightHandSideVector = ZeroVector(mat_size);
+
+    CalculateElementalSystem(left_hand_side_matrix, rRightHandSideVector,
+        rCurrentProcessInfo, false, true);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+
+void MPMSoftStiffness::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    VectorType right_hand_side_vector = Vector(0);
+
+    const SizeType mat_size = GetNumberOfDofs() * GetGeometry().size();
+    if (rLeftHandSideMatrix.size1() != mat_size && rLeftHandSideMatrix.size2() != mat_size) {
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+    }
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+
+    CalculateElementalSystem(
+        rLeftHandSideMatrix, right_hand_side_vector,
+        rCurrentProcessInfo, true, false);
+}
+//************************************************************************************
+//************************************************************************************
+
+
+void MPMSoftStiffness::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType mat_size = GetNumberOfDofs() * GetGeometry().size();
+    if (rLeftHandSideMatrix.size1() != mat_size && rLeftHandSideMatrix.size2() != mat_size) {
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+    }
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+
+    if (rRightHandSideVector.size() != mat_size) {
+        rRightHandSideVector.resize(mat_size, false);
+    }
+    rRightHandSideVector = ZeroVector(mat_size);
+
+    CalculateElementalSystem(
+        rLeftHandSideMatrix, rRightHandSideVector,
+        rCurrentProcessInfo, true, true);
+}
+
+//*******************************************************************************************
+//*******************************************************************************************
+void MPMSoftStiffness::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
+{
+    /* NOTE:
+    In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
+    This function is called by the base scheme class.*/
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+
+    mFinalizedStep = false;
+
+    const bool is_explicit_central_difference = (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)
+        : false;
+
+    // Calculating shape functions
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+    array_1d<double,3> nodal_momentum = ZeroVector(3);
+    array_1d<double,3> nodal_inertia  = ZeroVector(3);
+
+    // Here MP contribution in terms of momentum, inertia and mass are added
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        for (unsigned int j = 0; j < dimension; j++)
+        {
+            nodal_momentum[j] = r_N(0, i) * mMP.velocity[j] * mMP.mass;
+            nodal_inertia[j] = r_N(0, i) * mMP.acceleration[j] * mMP.mass;
+        }
+
+        // Add in the predictor velocity increment for central difference explicit
+        // This is the 'previous grid acceleration', which is actually
+        // be the initial material point acceleration mapped to the grid.
+        if (is_explicit_central_difference) {
+            const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
+            for (unsigned int j = 0; j < dimension; j++) {
+                nodal_momentum[j] += 0.5 * delta_time * (r_N(0, i) * mMP.acceleration[j]) * mMP.mass;
+            }
+        }
+
+        r_geometry[i].SetLock();
+        r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
+        r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)  += nodal_inertia;
+        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * mMP.mass;
+        r_geometry[i].UnSetLock();
+    }
+}
+
+////************************************************************************************
+////************************************************************************************
+
+void MPMSoftStiffness::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+        : false;
+
+    KRATOS_ERROR_IF(is_explicit)
+    << "FinalizeSolutionStep for explicit time integration is done in the scheme";
+
+    // Create and initialize element variables:
+    GeneralVariables Variables;
+    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+    const Vector& r_N = row(GetGeometry().ShapeFunctionsValues(), 0);
+
+    // Create constitutive law parameters:
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+    // Set constitutive law flags:
+    Flags &ConstitutiveLawOptions=Values.GetOptions();
+
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+
+    // Compute element kinematics B, F, DN_DX ...
+    this->CalculateKinematics(Variables, rCurrentProcessInfo);
+
+    // Set general variables to constitutivelaw parameters
+    this->SetGeneralVariables(Variables,Values, r_N);
+
+    // Call the constitutive law to update material variables
+    mConstitutiveLawVector->FinalizeMaterialResponse(Values, Variables.StressMeasure);
+
+    // Call the element internal variables update
+    this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
+
+    mFinalizedStep = true;
+
+    KRATOS_CATCH( "" )
+}
+
+
+////************************************************************************************
+////************************************************************************************
+
+void MPMSoftStiffness::FinalizeStepVariables( GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+{
+    // Update internal (historical) variables
+    mDeterminantF0         = rVariables.detF* rVariables.detF0;
+    mDeformationGradientF0 = prod(rVariables.F, rVariables.F0);
+
+    mMP.cauchy_stress_vector = rVariables.StressVector;
+    mMP.almansi_strain_vector = rVariables.StrainVector;
+
+    // Delta Plastic Strains
+    if (mConstitutiveLawVector->Has(MP_DELTA_PLASTIC_STRAIN))
+        mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_STRAIN, mMP.delta_plastic_strain );
+    if (mConstitutiveLawVector->Has(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN))
+        mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, mMP.delta_plastic_volumetric_strain);
+    if (mConstitutiveLawVector->Has(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN))
+        mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, mMP.delta_plastic_deviatoric_strain);
+
+    // Total Plastic Strain
+    if (mConstitutiveLawVector->Has(MP_EQUIVALENT_PLASTIC_STRAIN))
+        mConstitutiveLawVector->GetValue(MP_EQUIVALENT_PLASTIC_STRAIN, mMP.equivalent_plastic_strain );
+    if (mConstitutiveLawVector->Has(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN))
+        mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, mMP.accumulated_plastic_volumetric_strain);
+    if (mConstitutiveLawVector->Has(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN))
+        mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, mMP.accumulated_plastic_deviatoric_strain);
+
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+        : false;
+    if (!is_explicit) this->UpdateGaussPoint(rVariables, rCurrentProcessInfo);
+}
+
+//************************************************************************************
+//************************************************************************************
+/**
+ * The position of the Gauss points/Material points is updated
+ */
+
+void MPMSoftStiffness::UpdateGaussPoint( GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    const array_1d<double,3> & MP_PreviousAcceleration = mMP.acceleration;
+    const array_1d<double,3> & MP_PreviousVelocity = mMP.velocity;
+
+    array_1d<double,3> delta_xg = ZeroVector(3);
+    array_1d<double,3> MP_acceleration = ZeroVector(3);
+    array_1d<double,3> MP_velocity = ZeroVector(3);
+    const double delta_time = rCurrentProcessInfo[DELTA_TIME];
+
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        if (r_N(0, i) > std::numeric_limits<double>::epsilon())
+        {
+            auto r_geometry = GetGeometry();
+            array_1d<double, 3 > nodal_acceleration = ZeroVector(3);
+            if (r_geometry[i].SolutionStepsDataHas(ACCELERATION))
+                nodal_acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION);
+
+            for ( unsigned int j = 0; j < dimension; j++ )
+            {
+                delta_xg[j] += r_N(0, i) * rVariables.CurrentDisp(i,j);
+                MP_acceleration[j] += r_N(0, i) * nodal_acceleration[j];
+
+                /* NOTE: The following interpolation techniques have been tried:
+                    MP_velocity[j]      += rVariables.N[i] * nodal_velocity[j];
+                    MP_acceleration[j]  += nodal_inertia[j]/(rVariables.N[i] * MP_mass * MP_number);
+                    MP_velocity[j]      += nodal_momentum[j]/(rVariables.N[i] * MP_mass * MP_number);
+                    MP_velocity[j]      += delta_time * rVariables.N[i] * nodal_acceleration[j];
+                */
+            }
+        }
+
+    }
+
+    /* NOTE:
+    Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
+    This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/
+    mMP.velocity = MP_PreviousVelocity + 0.5 * delta_time * (MP_acceleration + MP_PreviousAcceleration);
+
+    /* NOTE: The following interpolation techniques have been tried:
+        MP_acceleration = 4/(delta_time * delta_time) * delta_xg - 4/delta_time * MP_PreviousVelocity;
+        MP_velocity = 2.0/delta_time * delta_xg - MP_PreviousVelocity;
+    */
+
+    // Update the MP Position
+    const array_1d<double,3>& new_xg = mMP.xg + delta_xg ;
+    mMP.xg = new_xg;
+
+    // Update the MP Acceleration
+    mMP.acceleration = MP_acceleration;
+
+    // Update the MP total displacement
+    mMP.displacement += delta_xg;
+
+    KRATOS_CATCH( "" )
+}
+
+
+void MPMSoftStiffness::InitializeMaterial(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    GeneralVariables Variables;
+
+    if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
+    {
+        mConstitutiveLawVector = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
+        mConstitutiveLawVector->InitializeMaterial(
+            GetProperties(), GetGeometry(), N);
+
+        mMP.almansi_strain_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
+        mMP.cauchy_stress_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
+
+        // Resize the deformation gradient if we are axisymmetric
+        if (mConstitutiveLawVector->GetStrainSize() == 4) mDeformationGradientF0 = IdentityMatrix(3);
+    }
+    else
+        KRATOS_ERROR <<  "A constitutive law needs to be specified for the element with ID: " << this->Id() << std::endl;
+
+    KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void MPMSoftStiffness::ResetConstitutiveLaw()
+{
+    KRATOS_TRY
+    GeneralVariables Variables;
+
+    if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
+    {
+        mConstitutiveLawVector->ResetMaterial(
+            GetProperties(),
+            GetGeometry(),
+            row(GetGeometry().ShapeFunctionsValues(), 0));
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+
+//*************************COMPUTE CURRENT DISPLACEMENT*******************************
+//************************************************************************************
+/*
+This function convert the computed nodal displacement into matrix of (number_of_nodes, dimension)
+*/
+Matrix& MPMSoftStiffness::CalculateCurrentDisp(Matrix & rCurrentDisp, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+
+    rCurrentDisp = ZeroMatrix(number_of_nodes, dimension);
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        const array_1d<double, 3 > & current_displacement  = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            rCurrentDisp(i,j) = current_displacement[j];
+        }
+    }
+
+    return rCurrentDisp;
+
+    KRATOS_CATCH( "" )
+}
+
+
+//*************************COMPUTE ALMANSI STRAIN*************************************
+//************************************************************************************
+// Almansi Strain: E = 0.5 (I - U^(-2))
+void MPMSoftStiffness::CalculateAlmansiStrain(const Matrix& rF,
+        Vector& rStrainVector )
+{
+    KRATOS_TRY
+
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    // Left Cauchy-Green Calculation
+    Matrix left_cauchy_green = prod( rF, trans( rF ) );
+
+    // Calculating the inverse of the jacobian
+    Matrix inv_left_cauchy_green ( dimension, dimension );
+    double det_b=0;
+    MathUtils<double>::InvertMatrix( left_cauchy_green, inv_left_cauchy_green, det_b);
+
+    if( dimension == 2 )
+    {
+        // Almansi Strain Calculation
+        rStrainVector[0] = 0.5 * (  1.00 - inv_left_cauchy_green( 0, 0 ) );
+        rStrainVector[1] = 0.5 * (  1.00 - inv_left_cauchy_green( 1, 1 ) );
+        rStrainVector[2] = - inv_left_cauchy_green( 0, 1 ); // xy
+    }
+    else if( dimension == 3 )
+    {
+
+        // Almansi Strain Calculation
+        if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
+        rStrainVector[0] = 0.5 * (  1.00 - inv_left_cauchy_green( 0, 0 ) );
+        rStrainVector[1] = 0.5 * (  1.00 - inv_left_cauchy_green( 1, 1 ) );
+        rStrainVector[2] = 0.5 * (  1.00 - inv_left_cauchy_green( 2, 2 ) );
+        rStrainVector[3] = - inv_left_cauchy_green( 0, 1 ); // xy
+        rStrainVector[4] = - inv_left_cauchy_green( 1, 2 ); // yz
+        rStrainVector[5] = - inv_left_cauchy_green( 0, 2 ); // xz
+    }
+    else
+    {
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
+    }
+
+    KRATOS_CATCH( "" )
+}
+//*************************COMPUTE GREEN-LAGRANGE STRAIN*************************************
+//************************************************************************************
+// Green-Lagrange Strain: E = 0.5 * (U^2 - I) = 0.5 * (C - I)
+void MPMSoftStiffness::CalculateGreenLagrangeStrain(
+    const Matrix& rF,
+    Vector& rStrainVector)
+{
+    KRATOS_TRY
+
+    const unsigned int dimension  = GetGeometry().WorkingSpaceDimension();
+
+    // Right Cauchy-Green Calculation
+    Matrix C ( dimension, dimension );
+    noalias( C ) = prod( trans( rF ), rF );
+
+    if( dimension == 2 )
+    {
+        // Green Lagrange Strain Calculation
+        if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
+        rStrainVector[0] = 0.5 * ( C( 0, 0 ) - 1.00 );
+        rStrainVector[1] = 0.5 * ( C( 1, 1 ) - 1.00 );
+        rStrainVector[2] = C( 0, 1 ); // xy
+    }
+    else if( dimension == 3 )
+    {
+        // Green Lagrange Strain Calculation
+        if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
+        rStrainVector[0] = 0.5 * ( C( 0, 0 ) - 1.00 );
+        rStrainVector[1] = 0.5 * ( C( 1, 1 ) - 1.00 );
+        rStrainVector[2] = 0.5 * ( C( 2, 2 ) - 1.00 );
+        rStrainVector[3] = C( 0, 1 ); // xy
+        rStrainVector[4] = C( 1, 2 ); // yz
+        rStrainVector[5] = C( 0, 2 ); // xz
+    }
+    else
+    {
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+
+
+//************************************************************************************
+//************************************************************************************
+
+double& MPMSoftStiffness::CalculateIntegrationWeight(double& rIntegrationWeight)
+{
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    if( dimension == 2 )
+        rIntegrationWeight *= GetProperties()[THICKNESS];
+
+    return rIntegrationWeight;
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void MPMSoftStiffness::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo ) const
+{
+    const GeometryType& r_geometry = GetGeometry();
+    int number_of_nodes = r_geometry.size();
+    int dimension = r_geometry.WorkingSpaceDimension();
+    unsigned int matrix_size = number_of_nodes * dimension;
+
+    if ( rResult.size() != matrix_size )
+        rResult.resize( matrix_size, false );
+
+    for ( int i = 0; i < number_of_nodes; i++ )
+    {
+        int index = i * dimension;
+        rResult[index] = r_geometry[i].GetDof( DISPLACEMENT_X ).EquationId();
+        rResult[index + 1] = r_geometry[i].GetDof( DISPLACEMENT_Y ).EquationId();
+
+        if ( dimension == 3 )
+            rResult[index + 2] = r_geometry[i].GetDof( DISPLACEMENT_Z ).EquationId();
+    }
+
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void MPMSoftStiffness::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& CurrentProcessInfo ) const
+{
+    const GeometryType& r_geometry = GetGeometry();
+    rElementalDofList.resize( 0 );
+
+    for ( unsigned int i = 0; i < r_geometry.size(); i++ )
+    {
+        rElementalDofList.push_back( r_geometry[i].pGetDof( DISPLACEMENT_X ) );
+        rElementalDofList.push_back( r_geometry[i].pGetDof( DISPLACEMENT_Y ) );
+
+        if ( r_geometry.WorkingSpaceDimension() == 3 )
+        {
+            rElementalDofList.push_back( r_geometry[i].pGetDof( DISPLACEMENT_Z ) );
+        }
+    }
+
+}
+
+
+//************************************************************************************
+//*******************DAMPING MATRIX***************************************************
+
+void MPMSoftStiffness::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    //0.-Initialize the DampingMatrix:
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    //resizing as needed the LHS
+    unsigned int matrix_size;
+    if (rCurrentProcessInfo.GetValue(IS_MIXED_FORMULATION)) {
+        matrix_size = number_of_nodes * (dimension + 1);
+    }
+    else {
+        matrix_size = number_of_nodes * dimension;
+    }
+
+
+    if ( rDampingMatrix.size1() != matrix_size )
+        rDampingMatrix.resize( matrix_size, matrix_size, false );
+
+    noalias( rDampingMatrix ) = ZeroMatrix(matrix_size, matrix_size);
+
+    //1.-Get Damping Coefficients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    double alpha = 0;
+    if( GetProperties().Has(RAYLEIGH_ALPHA) )
+    {
+        alpha = GetProperties()[RAYLEIGH_ALPHA];
+    }
+    else if( rCurrentProcessInfo.Has(RAYLEIGH_ALPHA) )
+    {
+        alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
+    }
+
+    double beta  = 0;
+    if( GetProperties().Has(RAYLEIGH_BETA) )
+    {
+        beta = GetProperties()[RAYLEIGH_BETA];
+    }
+    else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) )
+    {
+        beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+    }
+
+    //2.-Calculate StiffnessMatrix:
+    if (std::abs(beta) > 1e-12){
+        MatrixType StiffnessMatrix  = Matrix();
+        this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
+        //4.1.-Compose the Damping Matrix:
+        //Rayleigh Damping Matrix: alpha*M + beta*K
+        rDampingMatrix += beta  * StiffnessMatrix;
+    }
+
+    //3.-Calculate MassMatrix:
+    if (std::abs(alpha) > 1e-12){
+        MatrixType MassMatrix  = Matrix();
+        this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
+        //4.2.-Compose the Damping Matrix:
+        //Rayleigh Damping Matrix: alpha*M + beta*K
+        rDampingMatrix  += alpha * MassMatrix;
+    }
+
+    KRATOS_CATCH( "" )
+}
+void MPMSoftStiffness::AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, const Variable<array_1d<double, 3>>& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    if (rRHSVariable == RESIDUAL_VECTOR &&
+        rDestinationVariable == FORCE_RESIDUAL) {
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+        const unsigned int number_of_nodes = r_geometry.PointsNumber();
+
+        for (size_t i = 0; i < number_of_nodes; ++i) {
+            size_t index = dimension * i;
+            array_1d<double, 3>& r_force_residual = r_geometry[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+            for (size_t j = 0; j < dimension; ++j) {
+                r_force_residual[j] += rRHSVector[index + j];
             }
         }
     }
 
     KRATOS_CATCH("")
 }
+//************************************************************************************
+//****************MASS MATRIX*********************************************************
 
-double MPMSoftStiffnessElement::CalculateReferenceArea() const
+void MPMSoftStiffness::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
-    KRATOS_TRY;
-    const auto& r_geom = GetGeometry();
-    const IntegrationMethod integration_method = GetIntegrationMethod();
+    KRATOS_TRY
 
-    const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(integration_method);
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(integration_method);
-    array_1d<Vector,2> reference_covariant_base_vectors;
+    // Call the values of the shape function for the single element
+    Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
 
-    double detJ = 0.0;
-    double ref_area = 0.0;
+    const bool is_lumped_mass_matrix = (rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX))
+        ? rCurrentProcessInfo.GetValue(COMPUTE_LUMPED_MASS_MATRIX)
+        : true;
 
-    for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType matrix_size = dimension * number_of_nodes;
 
-        const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-        CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
-        JacobiDeterminante(detJ,reference_covariant_base_vectors);
-        const double integration_weight = r_integration_points[point_number].Weight();
+    if ( rMassMatrix.size1() != matrix_size || rMassMatrix.size2() != matrix_size)
+        rMassMatrix.resize( matrix_size, matrix_size, false );
+    rMassMatrix = ZeroMatrix(matrix_size, matrix_size);
 
-        ref_area += integration_weight * detJ;
+    if (!is_lumped_mass_matrix) {
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            for (IndexType j = 0; j < number_of_nodes; ++j) {
+                for (IndexType k = 0; k < dimension; ++k)
+                {
+                    const IndexType index_i = i * dimension + k;
+                    const IndexType index_j = j * dimension + k;
+                    rMassMatrix(index_i, index_j) = N[i] * N[j] * mMP.mass;
+                }
+            }
+        }
+    } else {
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            for (IndexType k = 0; k < dimension; ++k)
+            {
+                const IndexType index = i * dimension + k;
+                rMassMatrix(index, index) = N[i] * mMP.mass;
+            }
+        }
     }
-    return ref_area;
-    KRATOS_CATCH("");
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void MPMSoftStiffness::GetValuesVector( Vector& values, int Step ) const
+{
+    const GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    unsigned int matrix_size = number_of_nodes * dimension;
+
+    if ( values.size() != matrix_size ) values.resize( matrix_size, false );
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        unsigned int index = i * dimension;
+        values[index] = r_geometry[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
+        values[index + 1] = r_geometry[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
+
+        if ( dimension == 3 )
+            values[index + 2] = r_geometry[i].FastGetSolutionStepValue( DISPLACEMENT_Z, Step );
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void MPMSoftStiffness::GetFirstDerivativesVector( Vector& values, int Step ) const
+{
+    const GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    unsigned int matrix_size = number_of_nodes * dimension;
+
+    if ( values.size() != matrix_size ) values.resize( matrix_size, false );
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        unsigned int index = i * dimension;
+        values[index] = r_geometry[i].FastGetSolutionStepValue( VELOCITY_X, Step );
+        values[index + 1] = r_geometry[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
+
+        if ( dimension == 3 )
+            values[index + 2] = r_geometry[i].FastGetSolutionStepValue( VELOCITY_Z, Step );
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void MPMSoftStiffness::GetSecondDerivativesVector( Vector& values, int Step ) const
+{
+    const GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    unsigned int matrix_size = number_of_nodes * dimension;
+
+    if ( values.size() != matrix_size ) values.resize( matrix_size, false );
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        unsigned int index = i * dimension;
+        values[index] = r_geometry[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
+        values[index + 1] = r_geometry[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
+
+        if ( dimension == 3 )
+            values[index + 2] = r_geometry[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
+    }
+}
+//************************************************************************************
+//************************************************************************************
+
+void MPMSoftStiffness::GetHistoricalVariables( GeneralVariables& rVariables )
+{
+    //Deformation Gradient F ( set to identity )
+    unsigned int size =  rVariables.F.size1();
+    rVariables.detF  = 1;
+    rVariables.F     = IdentityMatrix(size);
+
+    rVariables.detF0 = mDeterminantF0;
+    rVariables.F0    = mDeformationGradientF0;
 }
 
 
+//*************************DECIMAL CORRECTION OF STRAINS******************************
+//************************************************************************************
 
-void MPMSoftStiffnessElement::PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector)
+void MPMSoftStiffness::DecimalCorrection(Vector& rVector)
 {
-    // make sure to divide rNonPrincipalVector[2]/2 if strains are passed
-    rPrincipalVector = ZeroVector(2);
-    rPrincipalVector[0] = 0.50 * (rNonPrincipalVector[0]+rNonPrincipalVector[1]) + std::sqrt(0.25*(std::pow(rNonPrincipalVector[0]-rNonPrincipalVector[1],2.0)) + std::pow(rNonPrincipalVector[2],2.0));
-    rPrincipalVector[1] = 0.50 * (rNonPrincipalVector[0]+rNonPrincipalVector[1]) - std::sqrt(0.25*(std::pow(rNonPrincipalVector[0]-rNonPrincipalVector[1],2.0)) + std::pow(rNonPrincipalVector[2],2.0));
-}
+    KRATOS_TRY
 
-//***********************************************************************************
-//***********************************************************************************
-int MPMSoftStiffnessElement::Check(const ProcessInfo& rCurrentProcessInfo) const
-{
-    KRATOS_TRY;
-    const double numerical_limit = std::numeric_limits<double>::epsilon();
-    const SizeType number_of_nodes = this->GetGeometry().size();
-    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
-
-    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo[DOMAIN_SIZE]==3) << "DOMAIN_SIZE in element " << Id() << " is not 3" << std::endl;
-    KRATOS_ERROR_IF_NOT(dimension==3) << "dimension in element " << Id() << " is not 3" << std::endl;
-
-    if (GetProperties().Has(THICKNESS) == false ||
-            GetProperties()[THICKNESS] <= numerical_limit) {
-        KRATOS_ERROR << "THICKNESS not provided for element " << Id()
-                     << std::endl;
+    for ( unsigned int i = 0; i < rVector.size(); i++ )
+    {
+        if( rVector[i]*rVector[i]<1e-24 )
+        {
+            rVector[i]=0;
+        }
     }
 
-    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for ( SizeType i = 0; i < number_of_nodes; i++ ) {
-        const Node &r_node = this->GetGeometry()[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)
+    KRATOS_CATCH( "" )
+}
 
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_node)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, r_node)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, r_node)
+
+///@}
+///@name Access Get Values
+///@{
+
+void MPMSoftStiffness::CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+    std::vector<bool>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == CALCULATE_EXPLICIT_MP_STRESS)
+    {
+        GeneralVariables Variables;
+        this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+        this->CalculateExplicitStresses(rCurrentProcessInfo, Variables);
+        this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
+        rValues[0] = true;
+    }
+    else if (rVariable == EXPLICIT_MAP_GRID_TO_MP)
+    {
+        MPMExplicitUtilities::UpdateGaussPointExplicit(rCurrentProcessInfo, *this);
+        rValues[0] = true;
+    }
+    else if (rVariable == CALCULATE_MUSL_VELOCITY_FIELD)
+    {
+        MPMExplicitUtilities::CalculateMUSLGridVelocity(rCurrentProcessInfo, *this);
+        rValues[0] = true;
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void MPMSoftStiffness::CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+    std::vector<int>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_MATERIAL_ID) {
+        rValues[0] = GetProperties().Id();
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void MPMSoftStiffness::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_DENSITY) {
+        rValues[0] = mMP.density;
+    }
+    else if (rVariable == MP_MASS) {
+        rValues[0] = mMP.mass;
+    }
+    else if (rVariable == MP_VOLUME) {
+        rValues[0] = mMP.volume;
+    }
+    else if (rVariable == MP_POTENTIAL_ENERGY) {
+        rValues[0] = MPMEnergyCalculationUtility::CalculatePotentialEnergy(*this);
+    }
+    else if (rVariable == MP_KINETIC_ENERGY) {
+        rValues[0] = MPMEnergyCalculationUtility::CalculateKineticEnergy(*this);
+    }
+    else if (rVariable == MP_STRAIN_ENERGY) {
+        rValues[0] = MPMEnergyCalculationUtility::CalculateStrainEnergy(*this);
+    }
+    else if (rVariable == MP_TOTAL_ENERGY) {
+        rValues[0] = MPMEnergyCalculationUtility::CalculateTotalEnergy(*this);
+    }
+    else if (rVariable == MP_HARDENING_RATIO || rVariable == MP_EQUIVALENT_STRESS ||
+        rVariable == MP_EQUIVALENT_PLASTIC_STRAIN || rVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE ||
+        rVariable == MP_TEMPERATURE) {
+        rValues[0] = mConstitutiveLawVector->GetValue(rVariable, rValues[0]);
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void MPMSoftStiffness::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > >& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_COORD || rVariable == MPC_COORD) {
+        rValues[0] = mMP.xg;
+    }
+    else if (rVariable == MP_DISPLACEMENT) {
+        rValues[0] = mMP.displacement;
+    }
+    else if (rVariable == MP_VELOCITY) {
+        rValues[0] = mMP.velocity;
+    }
+    else if (rVariable == MP_ACCELERATION) {
+        rValues[0] = mMP.acceleration;
+    }
+    else if (rVariable == MP_VOLUME_ACCELERATION) {
+        rValues[0] = mMP.volume_acceleration;
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void MPMSoftStiffness::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+    std::vector<Vector>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_CAUCHY_STRESS_VECTOR) {
+        rValues[0] = mMP.cauchy_stress_vector;
+    }
+    else if (rVariable == MP_ALMANSI_STRAIN_VECTOR) {
+        rValues[0] = mMP.almansi_strain_vector;
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+///@}
+///@name Access Set Values
+///@{
+
+void MPMSoftStiffness::SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
+    const std::vector<int>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+}
+
+void MPMSoftStiffness::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
+    const std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MP_MASS) {
+        mMP.mass = rValues[0];
+    }
+    else if (rVariable == MP_DENSITY) {
+        mMP.density = rValues[0];
+    }
+    else if (rVariable == MP_VOLUME) {
+        mMP.volume = rValues[0];
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void MPMSoftStiffness::SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    const std::vector<array_1d<double, 3 > >& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MP_COORD || rVariable == MPC_COORD) {
+        mMP.xg = rValues[0];
+    }
+    else if (rVariable == MP_DISPLACEMENT) {
+        mMP.displacement = rValues[0];
+    }
+    else if (rVariable == MP_VELOCITY) {
+        mMP.velocity = rValues[0];
+    }
+    else if (rVariable == MP_ACCELERATION) {
+        mMP.acceleration = rValues[0];
+    }
+    else if (rVariable == MP_VOLUME_ACCELERATION) {
+        mMP.volume_acceleration = rValues[0];
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void MPMSoftStiffness::SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
+    const std::vector<Vector>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MP_CAUCHY_STRESS_VECTOR) {
+        mMP.cauchy_stress_vector = rValues[0];
+    }
+    else if (rVariable == MP_ALMANSI_STRAIN_VECTOR) {
+        mMP.almansi_strain_vector = rValues[0];
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+///@}
+
+/**
+ * This function provides the place to perform checks on the completeness of the input.
+ * It is designed to be called only once (or anyway, not often) typically at the beginning
+ * of the calculations, so to verify that nothing is missing from the input
+ * or that no common error is found.
+ * @param rCurrentProcessInfo
+ */
+int  MPMSoftStiffness::Check( const ProcessInfo& rCurrentProcessInfo ) const
+{
+    KRATOS_TRY
+
+    Element::Check(rCurrentProcessInfo);
+
+    const GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+
+    // Verify compatibility with the constitutive law
+    ConstitutiveLaw::Features LawFeatures;
+
+    this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
+
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT) : false;
+
+    bool correct_strain_measure = false;
+    for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
+    {
+        if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Deformation_Gradient) correct_strain_measure = true;
+        if (is_explicit && LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Velocity_Gradient) correct_strain_measure = true;
+
+    }
+    if (true)
+    {
+
+    }
+
+    KRATOS_ERROR_IF(correct_strain_measure == false ) << "Constitutive law is not compatible with the element type: Large Displacements " << std::endl;
+
+    // Verify that the dofs exist
+    for ( IndexType i = 0; i < number_of_nodes; i++ ) {
+        const NodeType &rnode = this->GetGeometry()[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
+
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
     }
 
     // Verify that the constitutive law exists
-    KRATOS_ERROR_IF_NOT(this->GetProperties().Has( CONSTITUTIVE_LAW ))
-        << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
-
-    if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
-        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-            mConstitutiveLawVector[point_number]->Check(GetProperties(),GetGeometry(),rCurrentProcessInfo);
-            const SizeType strain_size = mConstitutiveLawVector[point_number]->GetStrainSize();
-            KRATOS_ERROR_IF( strain_size != 3) << "Wrong constitutive law used. This is a membrane element! "
-                << "Expected strain size is 3 (el id = " << this->Id() << ")" << std::endl;
+    if( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false)
+    {
+        KRATOS_ERROR << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
+    }
+    else
+    {
+        // Verify that the constitutive law has the correct dimension
+        if ( dimension == 2 )
+        {
+            KRATOS_ERROR_IF_NOT(this->GetProperties().Has( THICKNESS )) << "THICKNESS not provided for element " << this->Id() << std::endl;
         }
-    } else KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
+        else
+        {
+            KRATOS_ERROR_IF_NOT(this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() == 6) << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) " << this->Id() << std::endl;
+        }
 
-    // Verify that the constitutive law has the correct dimension
-
+        // Check constitutive law
+        this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), r_geometry, rCurrentProcessInfo );
+    }
 
     return 0;
-    KRATOS_CATCH("");
+
+    KRATOS_CATCH( "" );
 }
 
-void MPMSoftStiffnessElement::save(Serializer& rSerializer) const
-    {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-      rSerializer.save("mConstitutiveLawVector", mConstitutiveLawVector);
-    }
+void MPMSoftStiffness::save( Serializer& rSerializer ) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
 
-    void MPMSoftStiffnessElement::load(Serializer& rSerializer)
-    {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-      rSerializer.load("mConstitutiveLawVector", mConstitutiveLawVector);
-    }
+    rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
+    rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
+    rSerializer.save("DeterminantF0",mDeterminantF0);
+    rSerializer.save("MP",mMP);
+}
+
+void MPMSoftStiffness::load( Serializer& rSerializer )
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
+    rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
+    rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
+    rSerializer.load("DeterminantF0",mDeterminantF0);
+    rSerializer.load("MP",mMP);
+}
 
 
+} // Namespace Kratos
 
-//***********************************************************************************
-//***********************************************************************************
-} // Namespace Kratos.
