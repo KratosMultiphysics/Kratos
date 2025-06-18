@@ -33,10 +33,21 @@ namespace HDF5
 namespace Internals
 {
 
+/**
+ * @brief This enum is used to indicate whether a given variable in a list of entities are always available,
+ *        always not available, or not sure about the availability.
+ *          The entity containers which this will be used are:
+ *              Nodes, Conditions, Elements
+ *
+ *        CONSISTENTLY_AVAILABLE: This refers the given variable is available in all of the entities. (Eg. Nodal solution step variable, or nodal data value container variable
+ *                                 having all the nodes the same variable)
+ *        CONSISTENTLY_UNAVAILABLE: This refers non of the entities has the given variable. (Eg. nodal data value container variable, where non of the nodes has the variable)
+ *        INCONCLUSIVE: This refers some of the entities has the value defined, but not all.
+ */
 enum DataAvailabilityStatesList
 {
     CONSISTENTLY_AVAILABLE = 0,
-    CONSISTENTLY_NOT_AVAILABLE = 1,
+    CONSISTENTLY_UNAVAILABLE  = 1,
     INCONCLUSIVE = 2
 };
 
@@ -272,7 +283,7 @@ public:
     template<class TDataType>
     using ComponentType = TDataType;
 
-    constexpr static DataAvailabilityStatesList DataAvailability = DataAvailabilityStatesList::CONSISTENTLY_NOT_AVAILABLE;
+    constexpr static DataAvailabilityStatesList DataAvailability = DataAvailabilityStatesList::CONSISTENTLY_UNAVAILABLE ;
 
     ///@}
     ///@name Life cycle
@@ -325,7 +336,7 @@ public:
     template<class TDataType>
     using ComponentType = TDataType;
 
-    constexpr static DataAvailabilityStatesList DataAvailability = DataAvailabilityStatesList::CONSISTENTLY_NOT_AVAILABLE;
+    constexpr static DataAvailabilityStatesList DataAvailability = DataAvailabilityStatesList::CONSISTENTLY_UNAVAILABLE ;
 
     ///@}
     ///@name Public operations
@@ -382,7 +393,7 @@ public:
     template<class TDataType>
     using ComponentType = Vector<typename DataTypeTraits<TDataType>::PrimitiveType>;
 
-    constexpr static DataAvailabilityStatesList DataAvailability = DataAvailabilityStatesList::CONSISTENTLY_NOT_AVAILABLE;
+    constexpr static DataAvailabilityStatesList DataAvailability = DataAvailabilityStatesList::CONSISTENTLY_UNAVAILABLE ;
 
     ///@}
     ///@name Life cycle

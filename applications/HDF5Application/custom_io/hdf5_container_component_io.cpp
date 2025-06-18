@@ -253,7 +253,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
         Vector<bool> availability(rLocalContainer.size(), true);
         Internals::DataAvailabilityStatesList container_data_availability = TContainerDataIO::DataAvailability;
 
-        // check for the availability. Here we do not check for the case CONSISTENTLY_NOT_AVAILABLE
+        // check for the availability. Here we do not check for the case CONSISTENTLY_UNAVAILABLE
         // because there is no point hence, the HasValue method will always return zeros.
         // These cases are used in GaussPointIO or VertexIO where the values
         // are always computed on the fly. Not retrieved from a memory location.
@@ -332,7 +332,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
             mpFile->WriteDataSet(r_data_set_path + "_availability", availability, rInfo);
             Attributes.AddString("__data_availability", "inconclusive");
         } else {
-            Attributes.AddString("__data_availability", (container_data_availability == Internals::DataAvailabilityStatesList::CONSISTENTLY_AVAILABLE ? "consistently_available" : "consistently_not_available"));
+            Attributes.AddString("__data_availability", (container_data_availability == Internals::DataAvailabilityStatesList::CONSISTENTLY_AVAILABLE ? "consistently_available" : "CONSISTENTLY_UNAVAILABLE "));
         }
 
         // now write the attributes
@@ -386,7 +386,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Rea
 
         // there is no need to read data sets which cannot be set, hence can ignore the whole block
         Vector<bool> availability(BlockSize, true);
-        if (data_availability != "consistently_not_available") {
+        if (data_availability != "CONSISTENTLY_UNAVAILABLE ") {
             if constexpr(value_type_traits::IsDynamic) {
                 std::vector<unsigned int> shape;
                 Internals::GetShapeFromAttributes(shape, attributes);
