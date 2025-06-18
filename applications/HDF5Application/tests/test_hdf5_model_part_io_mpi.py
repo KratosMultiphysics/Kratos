@@ -88,9 +88,6 @@ class TestCase(KratosUnittest.TestCase):
         num_proc = data_communicator.Size()
         my_pid = data_communicator.Rank()
 
-        # create the properties here in all ranks, since all ranks should collectively write it
-        model_part.CreateNewProperties(1)
-
         # the last rank is kept empty for empty rank check
         if my_pid != num_proc - 1:
             partition_index = self.__create_entities(model_part, my_pid, num_proc - 1)
@@ -202,19 +199,65 @@ class TestCase(KratosUnittest.TestCase):
 
             data_communicator: DataCommunicator = model_part.GetCommunicator().GetDataCommunicator()
 
-            my_rank = data_communicator.Rank()
+            my_pid = data_communicator.Rank()
             element: Element
             for element in model_part.Elements:
-                if my_rank % 2 == 0 and element.Id % 2 == 0:
+                if my_pid % 2 == 0 and element.Id % 2 == 0:
                     element.SetValue(DENSITY, 1.0)
-                elif my_rank % 2 == 1 and element.Id % 2 == 1:
+                elif my_pid % 2 == 1 and element.Id % 2 == 1:
                     element.SetValue(DISTANCE, 2.0)
-                elif my_rank % 2 == 1 and element.Id % 2 == 0:
+                elif my_pid % 2 == 1 and element.Id % 2 == 0:
                     element.SetValue(RADIUS, 3.0)
                 else:
                     element.SetValue(BOSSAK_ALPHA, 4.0)
 
             self.assertEqual(Utilities.GetListOfAvailableVariables(model_part.Elements, data_communicator), ['BOSSAK_ALPHA', 'DENSITY', 'DISTANCE', 'RADIUS'])
+
+    def test_HDF5PropertiesIO(self):
+        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            current_model = Model()
+            write_model_part = current_model.CreateModelPart("write")
+            KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(write_model_part, Testing.GetDefaultDataCommunicator())
+
+            number_of_properties = 100
+            data_communicator: DataCommunicator = write_model_part.GetCommunicator().GetDataCommunicator()
+            num_proc = data_communicator.Size()
+            my_pid = data_communicator.Rank()
+
+            # the last rank is kept empty for empty rank check
+            for prop_index in range(number_of_properties):
+                # last rank does not have any properties
+                if (prop_index % (my_pid + 1) == 0 and my_pid != num_proc - 1):
+                    props: Properties = write_model_part.CreateNewProperties(prop_index + 1)
+                    if (prop_index % 2 == 0): props.SetValue(DISTANCE, prop_index)
+                    if (prop_index % 3 == 0): props.SetValue(VELOCITY, Vector([prop_index, prop_index + 1, prop_index + 2]))
+
+                    sub_props: Properties = write_model_part.CreateNewProperties(props.Id + number_of_properties)
+                    if (prop_index % 4 == 0): sub_props.SetValue(DENSITY, prop_index * 2)
+                    if (prop_index % 5 == 0): sub_props.SetValue(ACCELERATION, Vector([prop_index * 2, prop_index * 2 + 1, prop_index * 2 + 2]))
+                    props.AddSubProperties(sub_props)
+
+            hdf5_file = self._get_file(write_model_part.GetCommunicator().GetDataCommunicator())
+            HDF5PropertiesIO.Write(hdf5_file, "/Properties", write_model_part.Properties)
+
+            # check if the last rank does not have any properties
+            self.assertEqual(len(write_model_part.Properties) == 0, my_pid == num_proc - 1)
+
+            read_model_part = current_model.CreateModelPart("read")
+            KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(read_model_part, Testing.GetDefaultDataCommunicator())
+            HDF5PropertiesIO.Read(hdf5_file, "/Properties", read_model_part.Properties)
+
+            write_prop: Properties
+            for write_prop, read_prop in zip(write_model_part.Properties, read_model_part.Properties):
+                for var in [DISTANCE, VELOCITY_X, VELOCITY_Y, VELOCITY_Z, DENSITY, ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z]:
+                    if (write_prop.Has(var)): self.assertEqual(write_prop[var], read_prop[var])
+
+                if (write_prop.Id <= number_of_properties):
+                    self.assertTrue(write_prop.HasSubProperties(write_prop.Id + number_of_properties))
+                    sub_write_prop = write_prop.GetSubProperties(write_prop.Id + number_of_properties)
+                    sub_read_prop = read_prop.GetSubProperties(write_prop.Id + number_of_properties)
+                    for var in [DISTANCE, VELOCITY_X, VELOCITY_Y, VELOCITY_Z, DENSITY, ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z]:
+                        if (sub_write_prop.Has(var)): self.assertEqual(sub_write_prop[var], sub_read_prop[var])
 
     def test_HDF5ElementDataAndFlags(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -225,18 +268,18 @@ class TestCase(KratosUnittest.TestCase):
 
             data_communicator: DataCommunicator = write_model_part.GetCommunicator().GetDataCommunicator()
 
-            my_rank = data_communicator.Rank()
+            my_pid = data_communicator.Rank()
             element: Element
             for element in write_model_part.Elements:
                 element.SetValue(TEMPERATURE, random.random())
                 element.Set(STRUCTURE, element.Id % 2)
-                if my_rank % 2 == 0 and element.Id % 2 == 0:
+                if my_pid % 2 == 0 and element.Id % 2 == 0:
                     element.SetValue(DENSITY, 1.0)
                     element.Set(SLIP, True)
-                elif my_rank % 2 == 1 and element.Id % 2 == 1:
+                elif my_pid % 2 == 1 and element.Id % 2 == 1:
                     element.SetValue(DISPLACEMENT, Vector([random.random(), random.random(), random.random()]))
                     element.SetValue(DISTANCE, random.random())
-                elif my_rank % 2 == 1 and element.Id % 2 == 0:
+                elif my_pid % 2 == 1 and element.Id % 2 == 0:
                     element.SetValue(RADIUS, 3.0)
                 else:
                     element.SetValue(BOSSAK_ALPHA, 4.0)
