@@ -30,8 +30,8 @@ public:
     KratosGeoMechanicsFastSuite();
 
 private:
-   std::shared_ptr<KratosGeoMechanicsApplication>  mpGeoApp;
-   std::shared_ptr<KratosLinearSolversApplication> mpLinearSolversApp;
+    std::shared_ptr<KratosGeoMechanicsApplication>  mpGeoApp;
+    std::shared_ptr<KratosLinearSolversApplication> mpLinearSolversApp;
 };
 
 class KratosGeoMechanicsFastSuiteWithoutKernel : public KratosCoreFastSuiteWithoutKernel

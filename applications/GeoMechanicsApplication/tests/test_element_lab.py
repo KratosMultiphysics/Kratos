@@ -32,11 +32,14 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         stages = test_helper.get_separated_stages(directory_names)
 
         effective_stresses_stages = [None] * n_stages
+        initial_directory = os.getcwd()
+
         # run stages and get results
         for idx, stage in enumerate(stages):
             os.chdir(directory_names[idx])
             stage.Run()
             effective_stresses_stages[idx] = test_helper.get_cauchy_stress_tensor(stage)
+        os.chdir(initial_directory)
 
         # Assert
         stage_nr = 0

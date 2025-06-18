@@ -154,7 +154,6 @@
             "fluid_pressure_type": "Uniform",
             "value":           [1000,0.0]
         }
-    }],
-        "auxiliar_process_list": []
+    }]
     }
 }

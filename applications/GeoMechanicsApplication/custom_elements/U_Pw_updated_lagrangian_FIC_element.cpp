@@ -22,27 +22,26 @@
 namespace Kratos
 {
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::Create(IndexType NewId,
                                                                          NodesArrayType const& ThisNodes,
                                                                          PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwUpdatedLagrangianFICElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties,
+        this->GetStressStatePolicy().Clone(), this->CloneIntegrationCoefficientModifier()));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::Create(IndexType NewId,
                                                                          GeometryType::Pointer pGeom,
                                                                          PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwUpdatedLagrangianFICElement(
-        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(),
+        this->CloneIntegrationCoefficientModifier()));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                    VectorType& rRightHandSideVector,
@@ -157,7 +156,6 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
@@ -170,7 +168,6 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
     }
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo)
@@ -190,8 +187,6 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
             rVariable, rOutput, rCurrentProcessInfo);
     }
 }
-
-//----------------------------------------------------------------------------------------
 
 template class UPwUpdatedLagrangianFICElement<2, 3>;
 template class UPwUpdatedLagrangianFICElement<2, 4>;

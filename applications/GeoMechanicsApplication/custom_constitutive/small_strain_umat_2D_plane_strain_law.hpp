@@ -73,8 +73,10 @@ public:
     ConstitutiveLaw::Pointer Clone() const override;
 
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    using SmallStrainUMAT3DLaw::GetValue;
 
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
+    using SmallStrainUMAT3DLaw::SetValue;
 
     /**
      * @brief Dimension of the law:
@@ -97,13 +99,6 @@ public:
      * @return the expected stress measure
      */
     StressMeasure GetStressMeasure() override { return StressMeasure_Cauchy; }
-
-    /**
-     * @brief It calculates the strain vector
-     * @param rValues The internal values of the law
-     * @param rStrainVector The strain vector in Voigt notation
-     */
-    void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector) override;
 
     ///@}
     ///@name Inquiry

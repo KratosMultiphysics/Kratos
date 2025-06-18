@@ -10,13 +10,11 @@
 //  Main author:     Jordi Cotela
 //
 
-#ifndef KRATOS_MPI_NORMAL_CALCULATION_UTILITIES_H
-#define KRATOS_MPI_NORMAL_CALCULATION_UTILITIES_H
+#pragma once
 
 // System includes
 
 // External includes
-
 
 // Project includes
 #include "includes/model_part.h"
@@ -269,5 +267,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MPI_NORMAL_CALCULATION_UTILITIES_H

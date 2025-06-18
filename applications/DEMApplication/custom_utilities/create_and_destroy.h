@@ -276,6 +276,7 @@ public:
     void MarkParticlesForErasingGivenBoundingBox(ModelPart& r_model_part, array_1d<double, 3> low_point, array_1d<double, 3> high_point);
     void MarkParticlesForErasingGivenCylinder(ModelPart& r_model_part, array_1d<double, 3 > center, array_1d<double, 3 > axis_vector, const double radius);
     void MarkContactElementsForErasing(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
+    void MarkContactElementsForErasingContinuum(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
 
     template<class TParticleType>
     void DestroyParticlesOutsideBoundingBox(ModelPart& r_model_part);
@@ -298,7 +299,7 @@ public:
     unsigned int* pGetCurrentMaxNodeId();
     void SetMaxNodeId(unsigned int id);
 
-    /// Turn back information as a stemplate<class T, std::size_t dim> tring.
+    /// Turn back information as a stemplate<class T, std::size_t dim> string.
     virtual std::string Info() const;
 
     /// Print information about this object.

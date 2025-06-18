@@ -95,7 +95,7 @@ matrix_container = MatrixContainer2D()
 
 matrix_container.ConstructCSRVector(fluid_model_part)
 matrix_container.BuildCSRData(fluid_model_part)
-print("contructed matrix_containers")
+print("constructed matrix_containers")
 
 convection_solver = PureConvectionEdgeBased2D(matrix_container, fluid_model_part)
 print("solver")

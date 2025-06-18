@@ -15,6 +15,7 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/model_part.h"
+#include "solid_mechanics_fast_suite.h"
 
 namespace Kratos {
 

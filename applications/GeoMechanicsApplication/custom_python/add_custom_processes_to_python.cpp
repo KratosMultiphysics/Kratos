@@ -23,7 +23,7 @@
 #include "custom_processes/apply_boundary_phreatic_line_pressure_table_process.hpp"
 #include "custom_processes/apply_boundary_phreatic_surface_pressure_table_process.hpp"
 #include "custom_processes/apply_c_phi_reduction_process.h"
-#include "custom_processes/apply_component_table_process.hpp"
+#include "custom_processes/apply_component_table_process.h"
 #include "custom_processes/apply_constant_boundary_hydrostatic_pressure_process.hpp"
 #include "custom_processes/apply_constant_boundary_phreatic_line_pressure_process.hpp"
 #include "custom_processes/apply_constant_boundary_phreatic_surface_pressure_process.hpp"
@@ -33,7 +33,9 @@
 #include "custom_processes/apply_constant_phreatic_multi_line_pressure_process.h"
 #include "custom_processes/apply_constant_phreatic_surface_pressure_process.hpp"
 #include "custom_processes/apply_excavation_process.h"
+#include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
 #include "custom_processes/apply_hydrostatic_pressure_table_process.hpp"
+#include "custom_processes/apply_initial_uniform_stress_field.h"
 #include "custom_processes/apply_k0_procedure_process.h"
 #include "custom_processes/apply_normal_load_table_process.h"
 #include "custom_processes/apply_phreatic_line_pressure_table_process.hpp"
@@ -175,6 +177,14 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<CalculateIncrementalDisplacementProcess, CalculateIncrementalDisplacementProcess::Pointer, Process>(
         m, "CalculateIncrementalDisplacementProcess")
+        .def(py::init<ModelPart&, const Parameters&>());
+
+    py::class_<ApplyFinalStressesOfPreviousStageToInitialState, ApplyFinalStressesOfPreviousStageToInitialState::Pointer, Process>(
+        m, "ApplyFinalStressesOfPreviousStageToInitialState")
+        .def(py::init<ModelPart&, const Parameters&>());
+
+    py::class_<ApplyInitialUniformStressField, ApplyInitialUniformStressField::Pointer, Process>(
+        m, "ApplyInitialUniformStressField")
         .def(py::init<ModelPart&, const Parameters&>());
 }
 

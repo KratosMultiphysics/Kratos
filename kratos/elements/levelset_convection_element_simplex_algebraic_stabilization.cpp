@@ -90,6 +90,7 @@ namespace Kratos
         const auto& p_conv_diff_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const auto& r_unknown_var = p_conv_diff_settings->GetUnknownVariable();
         const auto& r_conv_var = p_conv_diff_settings->GetConvectionVariable();
+        const auto& r_mesh_conv_var = p_conv_diff_settings->GetMeshVelocityVariable();
         const auto& r_grad_var = p_conv_diff_settings->GetGradientVariable();
 
         //getting data for the given geometry
@@ -115,8 +116,8 @@ namespace Kratos
             phi[i] = r_node.FastGetSolutionStepValue(r_unknown_var);
             phi_old[i] = r_node.FastGetSolutionStepValue(r_unknown_var,1);
 
-            v[i] = r_node.FastGetSolutionStepValue(r_conv_var);
-            vold[i] = r_node.FastGetSolutionStepValue(r_conv_var,1);
+            v[i] = r_node.FastGetSolutionStepValue(r_conv_var) - r_node.FastGetSolutionStepValue(r_mesh_conv_var);
+            vold[i] = r_node.FastGetSolutionStepValue(r_conv_var,1) - r_node.FastGetSolutionStepValue(r_mesh_conv_var,1);
 
             x_mean_tmp += r_node.Coordinates();
             x_node[i] = r_node.Coordinates();

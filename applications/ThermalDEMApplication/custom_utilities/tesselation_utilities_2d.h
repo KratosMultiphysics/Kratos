@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#ifndef TESSELATION_UTILITIES_2D_H_INCLUDED
-#define	TESSELATION_UTILITIES_2D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -78,5 +77,3 @@ namespace Kratos
 
   }; // Class TesselationUtilities2D
 } // namespace Kratos
-
-#endif // TESSELATION_UTILITIES_2D_H_INCLUDED

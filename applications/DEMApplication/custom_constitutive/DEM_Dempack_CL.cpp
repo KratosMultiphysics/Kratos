@@ -21,7 +21,7 @@ namespace Kratos {
         mHistoryDamage              = 0.0; //cumulated_damage
         mHistoryDegradation         = 1.0; //degradation factor for G reducing in Dempack;
         mHistoryDisp                = 0.0; //displacement;
-        mHistoryShearFlag           = 0.0; //shear limit achived;
+        mHistoryShearFlag           = 0.0; //shear limit achieved;
     KRATOS_CATCH("")
     }
 
@@ -510,9 +510,8 @@ namespace Kratos {
                     double equiv_poisson, 
                     double indentation,
                     double indentation_particle,
-                    double LocalElasticContactForce[3],
                     double normalLocalContactForce,
-                    double GlobalElasticContactForces[3],
+                    double GlobalContactForce[3],
                     double LocalCoordSystem_2[3],
                     const int i_neighbor_count) 
     {
@@ -531,12 +530,11 @@ namespace Kratos {
                                         ElasticLocalRotationalMoment, 
                                         ViscoLocalRotationalMoment, 
                                         equiv_poisson, 
-                                        indentation, 
-                                        LocalElasticContactForce);
+                                        indentation);
         }             
 
         DemContact::ComputeParticleContactMoments(normalLocalContactForce,
-                                                GlobalElasticContactForces,
+                                                GlobalContactForce,
                                                 LocalCoordSystem_2,
                                                 element,
                                                 neighbor,
@@ -555,8 +553,7 @@ namespace Kratos {
                                                     double ElasticLocalRotationalMoment[3],
                                                     double ViscoLocalRotationalMoment[3],
                                                     double equiv_poisson,
-                                                    double indentation,
-                                                    double LocalElasticContactForce[3]) {}  //ComputeParticleRotationalMoments
+                                                    double indentation) {}  //ComputeParticleRotationalMoments
 
 
 

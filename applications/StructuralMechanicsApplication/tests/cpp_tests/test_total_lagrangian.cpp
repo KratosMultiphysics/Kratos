@@ -13,7 +13,7 @@
 #include "containers/model.h"
 #include "structural_mechanics_fast_suite.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_elements/total_lagrangian.h"
+#include "custom_elements/solid_elements/total_lagrangian.h"
 
 namespace Kratos
 {

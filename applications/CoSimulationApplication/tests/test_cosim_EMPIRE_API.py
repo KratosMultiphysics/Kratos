@@ -231,7 +231,7 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         # make sure that the file was deleted
         self.assertFalse(os.path.isfile(array_file_name))
 
-        # writting a file with the wrong size, this should throw a proper error
+        # writing a file with the wrong size, this should throw a proper error
         with open(array_file_name, 'w') as array_file:
             array_file.write(str(array_size+2)+"\n")
         with self.assertRaisesRegex(RuntimeError, 'The received size for array "{}" is different from what is expected:\n    Expected size: {}\n    Received size: {}'.format(array_file_name, array_size, array_size+2)):

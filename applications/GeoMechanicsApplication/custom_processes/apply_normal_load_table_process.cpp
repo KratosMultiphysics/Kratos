@@ -15,7 +15,7 @@
 #include "apply_boundary_hydrostatic_pressure_table_process.hpp"
 #include "apply_boundary_phreatic_line_pressure_table_process.hpp"
 #include "apply_boundary_phreatic_surface_pressure_table_process.hpp"
-#include "apply_component_table_process.hpp"
+#include "apply_component_table_process.h"
 #include "custom_utilities/parameters_utilities.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"

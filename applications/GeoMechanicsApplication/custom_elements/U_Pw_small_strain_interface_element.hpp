@@ -18,7 +18,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_base_element.hpp"
-#include "custom_utilities/interface_element_utilities.hpp"
+#include "custom_utilities/interface_element_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -49,16 +49,18 @@ public:
     /// Constructor using an array of nodes
     UPwSmallStrainInterfaceElement(IndexType                          NewId,
                                    const NodesArrayType&              ThisNodes,
-                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy))
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
     /// Constructor using Geometry
     UPwSmallStrainInterfaceElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
-                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy))
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -66,8 +68,9 @@ public:
     UPwSmallStrainInterfaceElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
                                    PropertiesType::Pointer            pProperties,
-                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
         /// Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
@@ -105,7 +108,7 @@ public:
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>&    rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     using UPwBaseElement::CalculateOnIntegrationPoints;
 
 protected:

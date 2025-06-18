@@ -18,7 +18,7 @@ std::vector<ProcessParameters> JsonProcessInfoParser::GetProcessList(const Param
 {
     std::vector<ProcessParameters> result;
     const std::vector<std::string> process_list_names = {
-        "constraints_process_list", "loads_process_list", "auxiliar_process_list"};
+        "constraints_process_list", "loads_process_list", "auxiliary_process_list"};
 
     for (const auto& process_list_name : process_list_names) {
         const auto processes_for_list = AddProcessesForList(process_list_name, rProcessParameters);

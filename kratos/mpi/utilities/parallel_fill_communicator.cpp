@@ -208,7 +208,7 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
     // Get number of processors.
     const int num_processors = mrDataComm.Size();
     // Find all ghost nodes on this process and mark the corresponding neighbour process for communication.
-    vector<bool> receive_from_neighbour(num_processors, false);
+    DenseVector<bool> receive_from_neighbour(num_processors, false);
     for (const auto& rNode : rModelPart.Nodes())
     {
         const int partition_index = rNode.FastGetSolutionStepValue(PARTITION_INDEX);

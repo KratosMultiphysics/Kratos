@@ -135,11 +135,16 @@ public:
     void Clear()
     {
         mGraph.clear();
-        mLocks.clear();
+        mLocks = decltype(mLocks)(mGraph.size());
     }
 
     inline IndexType Size() const{
         return mGraph.size();
+    }
+
+    bool IsEmpty() const
+    {
+        return mGraph.empty();
     }
 
     bool Has(const IndexType I, const IndexType J) const

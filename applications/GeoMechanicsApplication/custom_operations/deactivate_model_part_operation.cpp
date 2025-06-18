@@ -27,18 +27,14 @@
 namespace Kratos
 {
 
-DeactivateModelPartOperation::DeactivateModelPartOperation(
-    Model& rModel,
-    const Parameters rSettings)
-    : Operation()
-    , mpModelPart(&rModel.GetModelPart(rSettings["model_part_name"].GetString()))
-{}
-
-Operation::Pointer DeactivateModelPartOperation::Create(
-    Model &rModel,
-    Parameters Parameters) const
+DeactivateModelPartOperation::DeactivateModelPartOperation(Model& rModel, const Parameters& rSettings)
+    : Operation(), mpModelPart(&rModel.GetModelPart(rSettings["model_part_name"].GetString()))
 {
-    return Kratos::make_shared<DeactivateModelPartOperation>(rModel, Parameters);
+}
+
+Operation::Pointer DeactivateModelPartOperation::Create(Model& rModel, Parameters Settings) const
+{
+    return Kratos::make_shared<DeactivateModelPartOperation>(rModel, Settings);
 }
 
 void DeactivateModelPartOperation::Execute()
@@ -49,9 +45,8 @@ void DeactivateModelPartOperation::Execute()
     VariableUtils().SetFlag(ACTIVE, false, mpModelPart->Elements());
 
     // Reset the elements' constitutive law (e.g., excavation)
-    block_for_each(mpModelPart->Elements(), [](Element &rElement) {
-        rElement.ResetConstitutiveLaw();
-    });
+    block_for_each(mpModelPart->Elements(),
+                   [](Element& rElement) { rElement.ResetConstitutiveLaw(); });
 
     // Deactivate the nodes of the model part
     VariableUtils().SetFlag(ACTIVE, false, mpModelPart->Nodes());
@@ -62,4 +57,4 @@ void DeactivateModelPartOperation::Execute()
     KRATOS_CATCH("")
 }
 
-}
+} // namespace Kratos

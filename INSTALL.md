@@ -6,11 +6,13 @@
     - [Specific Application Dependencies](#specific-application-dependencies)
   - [Basic Configuration](#basic-configuration)
   - [Configuration scripts examples](#configuration-scripts-examples)
-    - [Linux/WSL](#gnulinux)
+    - [GNU/Linux](#gnulinux)
     - [Windows](#windows)
       - [Visual Studio](#visual-studio)
         - [Windows Visual Studio compilation configuration](#windows-visual-studio-compilation-configuration)
-    - [MinGW](#mingw)
+      - [MinGW](#mingw)
+        - [Using MINGW64 (legacy)](#using-mingw64-legacy)
+        - [Using UCRT64 (*Universal C Runtime*)](#using-ucrt64-universal-c-runtime)
     - [MacOS](#macos)
   - [Adding Applications](#adding-applications)
   - [Post Compilation](#post-compilation)
@@ -51,15 +53,15 @@ git clone https://github.com/KratosMultiphysics/Kratos Kratos
 ## Kratos Dependencies
 
 ### Kratos Core Dependencies
-  These are the basic dependecies needed to compile the *Kratos* Core and most of the *Kratos* applications.
+  These are the basic dependencies needed to compile the *Kratos* Core and most of the *Kratos* applications.
   * Python3-dev
   * C++17 compiler
   * CMake
   * Boost (dependencies are header-only, no compilation of boost libraries required)
 
-Additionaly, Visual Studio is required to compile in *Windows*.
+Additionally, Visual Studio is required to compile in *Windows*.
 
-- #### Linux/WSL installation
+- #### GNU/Linux-WSL installation
 
     The command below will install all the packages needed.
 
@@ -74,11 +76,11 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
     - Visual Studio
 
-        *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*. The minimium required version is *Visual Studio 2019* or higher (please ensure that version is at least 16.8 or MSVC version is at least 19.24).
+        *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*. The minimum required version is *Visual Studio 2019* or higher (please ensure that version is at least 16.8 or MSVC version is at least 19.24).
 
         * [Download Visual Studio](https://visualstudio.microsoft.com/en/thank-you-downloading-visual-studio/?sku=Community&rel=16)
 
-        Since *Visual Studio* is a multi-language IDE, some distributions come without C++ compiler. Please, make sure that you can create a C++ project before continuing, in case C++ packages were missing you will be prompt to download them. You can install the **Desktop development with C++** workload with the Visual Studio Installer to acquire all necessary depencencies to compile C++ projects.
+        Since *Visual Studio* is a multi-language IDE, some distributions come without C++ compiler. Please, make sure that you can create a C++ project before continuing, in case C++ packages were missing you will be prompt to download them. You can install the **Desktop development with C++** workload with the Visual Studio Installer to acquire all necessary dependencies to compile C++ projects.
 
         When compiling *Kratos* in *Windows*, please take into consideration the [Windows Visual Studio compilation configuration](#Windows-Visual-Studio-compilation-configuration).
 
@@ -105,16 +107,93 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
         Extract boost, and note the path as it will be needed in the configure stage to set the environmental variable `BOOST_ROOT`.
 
-- #### MinGW
-  MingGw compilation details are hidden by default to avoid confusion, please click the button below to show them.
+    - Alternative dependencies installation (Hidden by default to avoid confusion, please click the button below to show them)
+        <details>
+
+        - *VCpkg*:
+
+          VCpkg is a cross-platform package manager for C++ libraries, simplifying dependency management by handling installation and integration with different compilers. It supports *Windows*, *Linux*, and *macOS*. See [official website](https://vcpkg.io/en/index.html), [*GitHub*](https://github.com/microsoft/vcpkg) and the [Official VCpkg Documentation](https://vcpkg.io/en/index.html). 
+
+          Open PowerShell and run:
+
+          ```powershell
+          git clone https://github.com/microsoft/vcpkg.git
+          cd vcpkg
+          .\bootstrap-vcpkg.bat
+          ```
+
+          This initializes *VCpkg* and compiles it for use. To install a package, use:
+
+          ```powershell
+          vcpkg install <package-name>
+          ```
+
+          To specify a target architecture (triplet), use:
+
+          ```powershell
+          vcpkg install boost:x64-windows
+          ```
+
+          Common triplets:
+          - **x86-windows** (Static CRT)
+          - **x64-windows** (Static CRT, 64-bit)
+          - **x64-linux** (64-bit Linux)
+          - **arm64-windows** (ARM64 Windows)
+
+          To integrate VCpkg with CMake:
+          ```powershell
+          cmake -DCMAKE_TOOLCHAIN_FILE=<path-to-vcpkg>/scripts/buildsystems/vcpkg.cmake ..
+          ```
+
+          For *Visual Studio/MSBuild*, enable automatic integration:
+
+          ```powershell
+          vcpkg integrate install
+          ```
+
+          This makes installed libraries available in all *Visual Studio* projects.
+
+          To update the package manager itself:
+
+          ```powershell
+          git pull
+          ./bootstrap-vcpkg.bat
+          ```
+
+          To upgrade installed packages:
+      
+          ```powershell
+          vcpkg upgrade
+          ```
+
+          To remove a package:
+
+          ```powershell
+          vcpkg remove <package-name>
+          ```
+
+          To install some dependencies:
+
+          - *Python*:
+          ```powershell
+          vcpkg install python3:x64-windows
+          ```
+
+          - *Boost*: For example not only *Boost* header, but some precompiled libraries.
+          ```powershell
+          vcpkg install boost-chrono:x64-windows boost-date-time:x64-windows boost-filesystem:x64-windows boost-program-options:x64-windows boost-system:x64-windows boost-thread:x64-windows boost-test:x64-windows boost-ublas:x64-windows
+          ```
+        </details>
+- #### MinGW (Windows Unix like environment)
+  *MingGw* compilation details are hidden by default to avoid confusion, please click the button below to show them.
   <details>
     <summary>Show MinGW compilation details</summary>
 
     *MinGW* means minimal GNU for *Windows*. There are different manners of installing, the simplest one using *MSYS2*.
 
-    - MSYS2
+    - *MSYS2*
 
-        First, we download *MSYS2* in the following [link](https://www.msys2.org/). This will install *MinGW*, which allows to easiy install packages *a la* Arch-Linux (Pacman package manager). We install it, and with it the first thing we do is to update as follows ([in the *MSYS2* bash](https://www.msys2.org/docs/terminals/)):
+        First, we download *MSYS2* in the following [link](https://www.msys2.org/). This will install *MinGW*, which allows to easily install packages *a la* Arch-Linux (Pacman package manager). We install it, and with it the first thing we do is to update as follows ([in the *MSYS2* bash](https://www.msys2.org/docs/terminals/)):
         ![](https://www.msys2.org/docs/mintty.png) ![](https://www.msys2.org/docs/launchers.png)
 
         ```Shell
@@ -141,7 +220,7 @@ Additionaly, Visual Studio is required to compile in *Windows*.
         You will need a series of packages with some *Kratos* dependencies. These include the compilers (*GCC*,*Clang/LLVM*), *CMake*, *Blas and Lapack* libraries and the *OpenMP* support. The command below will install all the packages needed. The command below will install all the packages needed.
 
         ```Shell
-        pacman -S mingw64/mingw-w64-x86_64-lapack mingw64/mingw-w64-x86_64-openblas mingw64/mingw-w64-x86_64-cmake mingw64/mingw-w64-x86_64-clang mingw64/mingw-w64-x86_64-gcc mingw64/mingw-w64-x86_64-gcc-fortran mingw-w64-x86_64-make mingw64/mingw-w64-x86_64-openmp mingw64/mingw-w64-x86_64-dlfcn
+        pacman -S mingw64/mingw-w64-x86_64-lapack mingw64/mingw-w64-x86_64-openblas mingw64/mingw-w64-x86_64-cmake mingw64/mingw-w64-x86_64-clang mingw64/mingw-w64-x86_64-gcc mingw64/mingw-w64-x86_64-gcc-fortran mingw-w64-x86_64-make mingw64/mingw-w64-x86_64-openmp mingw64/mingw-w64-x86_64-dlfcn mingw64/mingw-w64-x86_64-llvm-openmp
         ```
 
     - Python
@@ -162,15 +241,16 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
     ##### Using UCRT64
 
-    UCRT (Universal C Runtime) is a newer version which is also used by Microsoft Visual Studio by default, see https://www.msys2.org/docs/environments/. It should work and behave as if the code was compiled with MSVC.
+    **UCRT** (*Universal C Runtime*) is a newer version which is also used by Microsoft Visual Studio by default, see [*MSYS2*](https://www.msys2.org/docs/environments/). It should work and behave as if the code was compiled with **MSVC**.
 
-    - Better compatibility with MSVC, both at build time and at run time.
-    - It only ships by default on Windows 10 and for older versions you have to provide it yourself or depend on the user having it installed.
+    - Better compatibility with **MSVC**, both at build time and at run time.
+    - It only ships by default on *Windows 10/11* and for older versions you have to provide it yourself or depend on the user having it installed.
+    - Remember that to properly work, you will need to define the `PATH` for the binary folder of *MSYS2*, usually at `C:\msys2\ucrt64\bin`.
 
-    If using UCRT64 the dependencies will be like:
+    If using **UCRT64** the dependencies will be like:
 
     ```Shell
-    pacman -S ucrt64/mingw-w64-ucrt-x86_64-lapack ucrt64/mingw-w64-ucrt-x86_64-openblas ucrt64/mingw-w64-ucrt-x86_64-cmake ucrt64/mingw-w64-ucrt-x86_64-clang ucrt64/mingw-w64-ucrt-x86_64-gcc ucrt64/mingw-w64-ucrt-x86_64-gcc-fortran mingw-w64-ucrt-x86_64-make ucrt64/mingw-w64-ucrt-x86_64-openmp ucrt64/mingw-w64-ucrt-x86_64-dlfcn ucrt64/mingw-w64-ucrt-x86_64-boost
+    pacman -S ucrt64/mingw-w64-ucrt-x86_64-lapack ucrt64/mingw-w64-ucrt-x86_64-openblas ucrt64/mingw-w64-ucrt-x86_64-cmake ucrt64/mingw-w64-ucrt-x86_64-clang ucrt64/mingw-w64-ucrt-x86_64-gcc ucrt64/mingw-w64-ucrt-x86_64-gcc-fortran mingw-w64-ucrt-x86_64-make ucrt64/mingw-w64-ucrt-x86_64-openmp ucrt64/mingw-w64-ucrt-x86_64-dlfcn ucrt64/mingw-w64-ucrt-x86_64-boost ucrt64/mingw-w64-ucrt-x86_64-llvm-openmp ucrt64/mingw-w64-ucrt-x86_64-lld
     ```
   </details>
 
@@ -190,11 +270,11 @@ Compilation Type. Options are `Release`,`RelWithDebInfo`,`Debug`,`FullDebug`,`Cu
 
 **Release**: Full Release with maximum optimization options and no debug Info.
 
-**RelWithDebInfo**: Full Release with optimization and debug info. Adecuate to debug simple problems without losing performance.
+**RelWithDebInfo**: Full Release with optimization and debug info. Adequate to debug simple problems without losing performance.
 
 **Debug**: Debug build with no optimization flags.
 
-**FullDebug**: Debug build with no optimization flags, extended debug info and extremly low performance.
+**FullDebug**: Debug build with no optimization flags, extended debug info and extremely low performance.
 
 **Custom**: No flags are automatically added.
 
@@ -270,7 +350,7 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 # Configure
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" -DUSE_MPI=OFF -DUSE_EIGEN_MKL=OFF
 
-# Buid
+# Build
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j4
 ```
 
@@ -345,6 +425,8 @@ cmake -G"Visual Studio 15 2017" -A x64 -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KR
 ```
 #### MinGW
 
+##### Using MINGW64 (legacy)
+
 In the case of *MinGW* two scripts are required, one is the *Command Prompt* for *Windows*:
 
 ```cmd
@@ -409,12 +491,112 @@ cmake ..                                                                        
 -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                            \
 -DUSE_MPI=OFF                                                                                       \
 -DKRATOS_SHARED_MEMORY_PARALLELIZATION="${KRATOS_SHARED_MEMORY_PARALLELIZATION}"                    \
--DKRATOS_GENERATE_PYTHON_STUBS=ON                                                                   \
 -DUSE_EIGEN_MKL=OFF
 
-# Buid
+# Build
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
 ```
+
+##### Using UCRT64 (*Universal C Runtime*)
+
+In the case of *MinGW* two scripts are required, one is the *Command Prompt* for *Windows*:
+
+```cmd
+cls
+
+@REM Set variables
+if not defined KRATOS_SOURCE set KRATOS_SOURCE=%~dp0..
+if not defined KRATOS_BUILD set KRATOS_BUILD=%KRATOS_SOURCE%/build
+
+@REM Set basic configuration
+if not defined KRATOS_BUILD_TYPE set KRATOS_BUILD_TYPE=Release
+@REM Decomment the following in case of considering MKL
+@REM if not defined MKLROOT set MKLROOT=C:\PROGRA~2\Intel\oneAPI\mkl\latest\
+
+@REM rem setting environment variables for using intel MKL
+@REM call "%MKLROOT%\env\vars.bat" intel64 lp64
+
+:: you may want to decomment this the first time you compile
+@REM Clean
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
+del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
+
+sh %KRATOS_BUILD%\configure_MINGW_UCRT64.sh
+```
+
+And the second is the bash script that will be called by the former script (it is similar to the one in *GNU/Linux*):
+
+```console
+# Function to add apps
+add_app () {
+    export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
+}
+
+# Set compiler
+export CC=${CC:-clang}
+export CXX=${CXX:-clang++}
+
+# Set variables
+export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
+# export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
+export KRATOS_SHARED_MEMORY_PARALLELIZATION=${KRATOS_SHARED_MEMORY_PARALLELIZATION:-"OpenMP"}
+
+# Set basic configuration
+export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"C:/Windows/py.exe"}
+
+export CMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS:-"OFF"}
+#export KRATOS_CMAKE_CXX_FLAGS="-Wno-maybe-uninitialized -Wignored-qualifiers"
+
+# Set applications to compile
+export KRATOS_APPLICATIONS=
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
+add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
+add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
+
+# Set compilation tool
+export COMPILATION_TOOL=${COMPILATION_TOOL:-"Ninja"}
+
+# Determine the folder where the compiler is located
+export MSYS_BIN_FOLDER=$(dirname $(which ${CXX}))
+
+# Set CMake strip
+export CMAKE_STRIP=${CMAKE_STRIP:-"${MSYS_BIN_FOLDER}/strip.exe"}
+
+# Configure
+cmake ..                                                                                            \
+-G "${COMPILATION_TOOL}"                                                                            \
+-DCMAKE_INSTALL_PREFIX="${KRATOS_SOURCE}/bin/${KRATOS_BUILD_TYPE}"                                  \
+-DCMAKE_BUILD_TYPE="${KRATOS_BUILD_TYPE}"                                                           \
+-H"${KRATOS_SOURCE}"                                                                                \
+-B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                            \
+-DCMAKE_STRIP="${CMAKE_STRIP}"                                                                      \
+-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}                                                                    \
+-DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS}"                                    \
+-DCMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS}                                    \
+-DKRATOS_BUILD_TESTING=ON                                                                           \
+-DKRATOS_SHARED_MEMORY_PARALLELIZATION="${KRATOS_SHARED_MEMORY_PARALLELIZATION}"                    \
+-DUSE_EIGEN_MKL=OFF
+
+# Build
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
+
+# Manually install the python ddl, located in the python binary folder
+# Determine the location of the Python DLL
+PYTHON_VERSION=$(${PYTHON_EXECUTABLE} -c "import sys; print(''.join(sys.version.split('.')[:2]))")
+PYTHON_DLL=$(${PYTHON_EXECUTABLE} -c "import sys; print(sys.base_prefix)")/python${PYTHON_VERSION}.dll
+
+# Check if the Python DLL exists
+if [ -f "${PYTHON_DLL}" ]; then
+    # Install the Python DLL to the desired location
+    cp "${PYTHON_DLL}" "${KRATOS_SOURCE}/bin/${KRATOS_BUILD_TYPE}/libs"
+    echo "Python DLL ${PYTHON_DLL} installed at ${KRATOS_SOURCE}/bin/${KRATOS_BUILD_TYPE}/libs"
+else
+    echo "Python DLL not found at ${PYTHON_DLL}"
+    exit 1
+fi
+```
+
 ### MacOS
 
 ```console
@@ -456,7 +638,7 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
  -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 -L/usr/local/opt/llvm/lib" \
  -DUSE_EIGEN_MKL=OFF
 
-# Buid
+# Build
 /Applications/CMake.app/Contents/bin/cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j3
 
 ```
@@ -538,16 +720,16 @@ We provide several flavours in order to parallelize *Kratos* compilation. We hav
 
 *GNU/Linux* builds should automatically make use of the maximum number of threads in your computer which is passed to the compiler in the `-j$(nproc)` flag on the last line of the configure file:
 ```
-# Buid
+# Build
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
 ```
 
 If your *GNU/Linux* flavour does not support the `$(nproc)` shortcut or you simply want to tune this value to some of your liking, you can change it:
 ```
-# Buid (This will make it compile with 2 threads)
+# Build (This will make it compile with 2 threads)
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
 ```
-**Warning**: Please be carefull while mixing parallel builds with unitay builds. See [below](#unitary-builds)
+**Warning**: Please be careful while mixing parallel builds with unitay builds. See [below](#unitary-builds)
 
 #### Windows
 
@@ -563,7 +745,7 @@ rem set KRATOS_PARALLEL_BUILD_FLAG=/MPX
 
 This will pass the `/MPX` option directly to `CL.exe`, where `X` is the number of threads you want to use.
 
-If you preffer to interact directly with `MSBuild.exe` you can use either of this options in the cmake build command:
+If you prefer to interact directly with `MSBuild.exe` you can use either of this options in the cmake build command:
 - `/p:CL_MPcount=X`: Enable multiples cpp to be compiled in parallel
 - `/m:x`: Enable multiple applications to be compiled in parallel
 
@@ -601,7 +783,7 @@ Build directory for *Kratos*. Makefiles, vsprojects and other artifacts will be 
 Path where your applications are located. This variable is not necessary but it helps to organize the list of applications to be compiled. It defaults to `Kratos/Applications`
 
 `KRATOS_INSTALL_PYTHON_USING_LINKS=ON/OFF`
-Controls wether the python files are installed by making copies or creating symlinks to the files in the source directory. This options is specially usefull if you are developing python files and don't want to reinstall every time you touch a script.
+Controls whether the python files are installed by making copies or creating symlinks to the files in the source directory. This options is specially useful if you are developing python files and don't want to reinstall every time you touch a script.
 
 Using this option in *Windows* requires elevated privileges (you must run the script as admin)
 
@@ -625,10 +807,10 @@ User defined flags for the C compiler.
 User defined flags for the C++ compiler.
 
 `-DBOOST_ROOT=String`
-Root directory for boost. Overrided by `BOOST_ROOT` environmental variable if defined.
+Root directory for boost. Overridden by `BOOST_ROOT` environmental variable if defined.
 
 `-DPYTHON_EXECUTABLE=String`
-Python executable to be used. It is recommended to set this option if more than one version of python is present in the system (For example while using ubuntu). Overrided by `PYTHON_EXECUTABLE` environmental variable if defined.
+Python executable to be used. It is recommended to set this option if more than one version of python is present in the system (For example while using ubuntu). Overridden by `PYTHON_EXECUTABLE` environmental variable if defined.
 
 `-DKRATOS_BUILD_TESTING=ON/OFF`
 Enables(Default) or Disables the compilation of the C++ unitary tests for *Kratos* and Applications.
@@ -655,7 +837,7 @@ cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property
 Instead of the regular install target.
 
 Please, beware that using this flag along with a parallel compilation may cause a **VERY LARGE** use of RAM as we hardcoded *Kratos* compilation so unitary builds try to make as many unitary targets as threads are usable.
-We recommed you to disable parallel compilation unless you know what you are doing.
+We recommend you to disable parallel compilation unless you know what you are doing.
 
 ### Parallelism
 

@@ -164,7 +164,6 @@ class TestCombinedResponseFunction(kratos_unittest.TestCase):
         v7_shape, v7_rho, data = get_data()
         self.resp_7.CalculateGradient(data)
 
-        print(v6_shape.Evaluate())
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(v6_shape - v1_shape * 2.1 - v2_shape * 3.1 - v3_shape * 4.1), 0.0)
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(v6_rho - v1_rho * 2.1 - v2_rho * 3.1 - v3_rho * 4.1), 0.0)
 

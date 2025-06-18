@@ -60,7 +60,7 @@ public:
     {
     }
 
-    void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& A, TSystemVectorType& Dx, TSystemVectorType& b) override
+    void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rb) override
     {
         KRATOS_TRY
 
@@ -81,7 +81,7 @@ public:
                 rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE)    = 0.0;
             });
 
-            this->FinalizeSolutionStepActiveEntities(rModelPart, A, Dx, b);
+            this->FinalizeSolutionStepActiveEntities(rModelPart, rA, rDx, rb);
 
             // Compute smoothed nodal variables
             block_for_each(rModelPart.Nodes(), [](Node& rNode) {
@@ -99,7 +99,7 @@ public:
                 }
             });
         } else {
-            this->FinalizeSolutionStepActiveEntities(rModelPart, A, Dx, b);
+            this->FinalizeSolutionStepActiveEntities(rModelPart, rA, rDx, rb);
         }
 
         KRATOS_CATCH("")
@@ -131,6 +131,24 @@ protected:
 
     [[nodiscard]] double GetTheta() const { return mTheta.value(); }
 
+    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
+            // For the Newmark schemes the second derivatives should be updated before calculating the first derivatives
+            this->UpdateVectorSecondTimeDerivative(rNode);
+            this->UpdateVectorFirstTimeDerivative(rNode);
+
+            for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
+                this->UpdateScalarTimeDerivative(rNode, r_first_order_scalar_variable.instance,
+                                                 r_first_order_scalar_variable.first_time_derivative);
+            }
+        });
+
+        KRATOS_CATCH("")
+    }
+
     void UpdateScalarTimeDerivative(Node& rNode, const Variable<double>& variable, const Variable<double>& dt_variable) const
     {
         if (rNode.IsFixed(dt_variable)) return;
@@ -149,7 +167,7 @@ protected:
         for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
             if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
 
-            const auto updated_first_derivative =
+            const array_1d<double, 3> updated_first_derivative =
                 rNode.FastGetSolutionStepValue(r_second_order_vector_variable.first_time_derivative, 1) +
                 (1.0 - GetGamma()) * this->GetDeltaTime() *
                     rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 1) +
@@ -166,7 +184,7 @@ protected:
         for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
             if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
 
-            const auto updated_second_time_derivative =
+            const array_1d<double, 3> updated_second_time_derivative =
                 ((rNode.FastGetSolutionStepValue(r_second_order_vector_variable.instance, 0) -
                   rNode.FastGetSolutionStepValue(r_second_order_vector_variable.instance, 1)) -
                  this->GetDeltaTime() * rNode.FastGetSolutionStepValue(
