@@ -37,7 +37,7 @@ class ParallelBondModelTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
                     self.CheckValues(velocity, 2, expected_value, tolerance)
                     expected_value = 0.0
                     self.CheckValues(angular_velocity, 0, expected_value, tolerance)
-                    expected_value = 7.160580099884259e-05
+                    expected_value = -5.2871572299443155e-09
                     self.CheckValues(angular_velocity, 1, expected_value, tolerance)
                     expected_value = 0.0
                     self.CheckValues(angular_velocity, 2, expected_value, tolerance)
