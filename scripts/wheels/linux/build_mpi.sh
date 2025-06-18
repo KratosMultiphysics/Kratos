@@ -1,6 +1,6 @@
 #!/bin/bash
 PYTHONS=("38" "39" "310" "311" "312" "313")
-export KRATOS_VERSION="10.2.2"
+export KRATOS_VERSION="10.2.3"
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 export KRATOS_ROOT="/workspace/kratos/Kratos"
