@@ -34,13 +34,6 @@ Matrix PlaneStrainStressState::CalculateBMatrix(const Matrix& rDN_DX, const Vect
     return result;
 }
 
-double PlaneStrainStressState::CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
-                                                               double DetJ,
-                                                               const Geometry<Node>&) const
-{
-    return rIntegrationPoint.Weight() * DetJ;
-}
-
 Vector PlaneStrainStressState::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
 {
     return ConvertStrainTensorToVector(StressStrainUtilities::CalculateGreenLagrangeStrainTensor(rDeformationGradient));

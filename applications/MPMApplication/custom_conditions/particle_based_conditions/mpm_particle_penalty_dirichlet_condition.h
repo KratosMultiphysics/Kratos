@@ -93,18 +93,6 @@ public:
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * Called at the begining at each nonlinear iteration
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called for non-linear analysis at the end of the iteration process
-     */
-    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    /**
      * Called at the end of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -183,7 +171,10 @@ protected:
     ///@}
     ///@name Protected Inquiry
     ///@{
-    virtual void CalculateInterfaceContactForce(const ProcessInfo& rCurrentProcessInfo );
+
+    /// Calculate intermediate reaction forces of Penalty condition at the background grid nodes 
+    /// which are used to calcualte the reaction forces at the BPs
+    void CalculateNodalReactions(const ProcessInfo& rCurrentProcessInfo ) override;
 
 
     ///@}

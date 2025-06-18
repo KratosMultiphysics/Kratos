@@ -130,25 +130,25 @@ void MassResponseUtils::CalculateGradient(
             // clears the existing values
             block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(DENSITY_SENSITIVITY, 0.0); });
 
-            // computes density sensitivty and store it within each elements' properties
+            // computes density sensitivity and store it within each elements' properties
             CalculateMassDensityGradient(rGradientComputedModelPart, DENSITY_SENSITIVITY);
         } else if (*pVariable == THICKNESS) {
             // clears the existing values
             block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(THICKNESS_SENSITIVITY, 0.0); });
 
-            // computes density sensitivty and store it within each elements' properties
+            // computes density sensitivity and store it within each elements' properties
             CalculateMassThicknessGradient(rGradientComputedModelPart, THICKNESS_SENSITIVITY);
         } else if (*pVariable == CROSS_AREA) {
             // clears the existing values
             block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(CROSS_AREA_SENSITIVITY, 0.0); });
 
-            // computes density sensitivty and store it within each elements' properties
+            // computes density sensitivity and store it within each elements' properties
             CalculateMassCrossAreaGradient(rGradientComputedModelPart, CROSS_AREA_SENSITIVITY);
         } else if (*pVariable == SHAPE) {
             // clears the existing values
             VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, rGradientRequiredModelPart.Nodes());
 
-            // computes density sensitivty and store it within each elements' properties
+            // computes density sensitivity and store it within each elements' properties
             CalculateMassShapeGradient(rGradientComputedModelPart, SHAPE_SENSITIVITY, PerturbationSize);
         } else {
             KRATOS_ERROR

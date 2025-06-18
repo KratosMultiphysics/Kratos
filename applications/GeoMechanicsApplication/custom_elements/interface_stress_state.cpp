@@ -40,13 +40,6 @@ Matrix InterfaceStressState::CalculateBMatrix(const Matrix&, const Vector& rN, c
     return result;
 }
 
-double InterfaceStressState::CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
-                                                             double DetJ,
-                                                             const Geometry<Node>&) const
-{
-    return rIntegrationPoint.Weight() * DetJ;
-}
-
 Vector InterfaceStressState::CalculateGreenLagrangeStrain(const Matrix&) const
 {
     KRATOS_ERROR << "For interfaces, it is not possible to calculate the Green-Lagrange "

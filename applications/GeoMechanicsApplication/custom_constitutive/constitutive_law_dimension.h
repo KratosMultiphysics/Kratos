@@ -20,6 +20,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 class ConstitutiveLawDimension
 {
 public:
@@ -31,6 +33,11 @@ public:
     [[nodiscard]] virtual std::size_t                               GetDimension() const  = 0;
     [[nodiscard]] virtual std::size_t GetNumberOfNormalComponents() const                 = 0;
     [[nodiscard]] virtual Flags       GetSpatialType() const                              = 0;
+
+private:
+    friend class Serializer;
+    virtual void save(Serializer& rSerializer) const = 0;
+    virtual void load(Serializer& rSerializer)       = 0;
 };
 
 } // namespace Kratos

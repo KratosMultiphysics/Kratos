@@ -71,7 +71,7 @@ for dim, v_n_nodes, p_n_nodes in zip(dim_vector, v_nodes_vector, p_nodes_vector)
     ## Stress vector definition
     stress = DefineVector('r_stress',strain_size)
 
-    ## Other simbols definition
+    ## Other symbol definitions
     h = sympy.Symbol('h', positive = True)                        # Element characteristic size
     stab_c1 = sympy.Symbol('stab_c1', positive = True)            # Stabilization first constant
     stab_c2 = sympy.Symbol('stab_c2', positive = True)            # Stabilization second constant
