@@ -16,6 +16,7 @@
 #include "custom_processes/snake_sbm_process.h"
 #include "includes/kratos_parameters.h"
 #include "iga_application_variables.h"
+#include "geometries/nurbs_curve_geometry.h"
 #include "iga_fast_suite.h"
 
 namespace Kratos::Testing
@@ -478,5 +479,167 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessInnerOuter, KratosIgaFastSuite)
     }
 
 }
+
+
+
+// Tests the SnakeSbmProcess with an inner geometry
+KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessNurbsInner, KratosIgaFastSuite)
+{
+    
+    Model model;
+    ModelPart& iga_model_part = model.CreateModelPart("iga_model_part");
+
+    ModelPart& surrogate_sub_model_part_inner = iga_model_part.CreateSubModelPart("surrogate_inner");
+    iga_model_part.CreateSubModelPart("surrogate_outer");
+
+    ModelPart& skin_model_part_inner_initial = model.CreateModelPart("skin_model_part_inner_initial");
+    model.CreateModelPart("skin_model_part_outer_initial");
+
+    skin_model_part_inner_initial.CreateNewProperties(0);
+
+    // First arc of the circle
+    {
+        PointerVector<Node> control_points;
+        std::string condition_name = "SupportSolidCondition";
+        std::string layer_name = "left";
+
+        control_points.push_back(Node::Pointer(new Node(1, 0.0,
+                    0.9999999999999984,
+                    0.0)));
+        control_points.push_back(Node::Pointer(new Node(2, -1.7320508075688767,
+                    0.9999999999999984,
+                    0.0)));
+        control_points.push_back(Node::Pointer(new Node(3,  -0.8660254037844387,
+                    -0.4999999999999998,
+                    0.0)));
+        control_points.push_back(Node::Pointer(new Node(4,  -2.449293598294706e-16,
+                    -1.9999999999999996,
+                    0.0)));
+        control_points.push_back(Node::Pointer(new Node(5,  0.8660254037844384,
+                    -0.5000000000000004,
+                    0.0)));
+        control_points.push_back(Node::Pointer(new Node(6,  1.7320508075688776,
+                    0.9999999999999984,
+                    0.0)));
+        control_points.push_back(Node::Pointer(new Node(7,  2.4492935982947064e-16,
+                    0.9999999999999984,
+                    0.0)));
+
+        std::vector<double> weights_vector_temp = {1.0,
+                0.5000000000000001,
+                1.0,
+                0.5000000000000001,
+                1.0,
+                0.5000000000000001,
+                1.0};
+        int polynomial_degree = 2;
+        std::vector<double> knot_vector_temp = {0.0,
+                0.0,
+                0.0,
+                0.3333333333333333,
+                0.3333333333333333,
+                0.6666666666666666,
+                0.6666666666666666,
+                1.0,
+                1.0,
+                1.0};
+
+        Vector weights_vector(weights_vector_temp.size());
+        for (std::size_t i = 0; i < weights_vector_temp.size(); ++i) 
+            weights_vector[i] = weights_vector_temp[i];
+        
+        Vector knot_vector(knot_vector_temp.size());
+        for (std::size_t i = 0; i < knot_vector_temp.size(); ++i) 
+            knot_vector[i] = knot_vector_temp[i];
+
+        // Create the NURBS curve geometry
+        using NurbsCurveGeometryPointerType = NurbsCurveGeometry<2, PointerVector<Node>>::Pointer;
+        NurbsCurveGeometryPointerType p_curve(new NurbsCurveGeometry<2, PointerVector<Node>>(
+                                                            control_points,
+                                                            polynomial_degree,
+                                                            knot_vector, 
+                                                            weights_vector)); 
+            
+        // link the boundary condition and layer name to the nurbs curve 
+        p_curve->SetValue(CONDITION_NAME, condition_name);
+        p_curve->SetValue(IDENTIFIER, layer_name);
+
+        p_curve->SetId(0);
+        skin_model_part_inner_initial.AddGeometry(p_curve);
+    }
+
+    ModelPart& skin_model_part = model.CreateModelPart("skin_model_part");
+    skin_model_part.CreateSubModelPart("inner");
+    skin_model_part.CreateSubModelPart("outer");
+    
+    const std::vector<double> list_knot_u = {-2.0, -1.6, -1.2, -0.8, -0.4, 0.0, 0.4, 0.8, 1.2, 1.6, 2.0};
+    const std::vector<double> list_knot_v = {-2.0, -1.6, -1.2, -0.8, -0.4, 0.0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4, 2.8, 3.2, 3.6, 4.0};
+
+    Vector unique_knot_vector_u(list_knot_u.size());
+    Vector unique_knot_vector_v(list_knot_v.size());
+
+    // Fill the vectors using a loop
+    for (std::size_t i = 0; i < list_knot_u.size(); ++i) 
+        unique_knot_vector_u[i] = list_knot_u[i];
+    for (std::size_t i = 0; i < list_knot_v.size(); ++i) 
+        unique_knot_vector_v[i] = list_knot_v[i];
+
+    Kratos::Parameters snake_parameters(R"(
+        {
+            "model_part_name" : "iga_model_part",
+            "skin_model_part_inner_initial_name" : "skin_model_part_inner_initial",
+            "skin_model_part_outer_initial_name" : "skin_model_part_outer_initial",
+            "skin_model_part_name" : "skin_model_part",
+            "echo_level" : 0,
+            "lambda_inner" : 0.5,
+            "number_of_inner_loops": 1
+        }
+    )");
+
+    SnakeSbmProcess snake_sbm_process(model, snake_parameters);
+
+    iga_model_part.SetValue(KNOT_VECTOR_U, unique_knot_vector_u);
+    iga_model_part.SetValue(KNOT_VECTOR_V, unique_knot_vector_v);
+
+    snake_sbm_process.Execute() ;
+    
+    const double tolerance = 1.0e-6;
+
+    // Expected coordinates of nodes (modify according to actual expected values)
+    std::vector<std::array<double, 3>> expected_coordinates = {
+            {-0.8, -0.4, 0},
+            {0.8, -0.4, 0},
+            {-0.8, 0, 0},
+            {0.8, 0, 0},
+            {-0.8, 0.4, 0},
+            {0.8, 0.4, 0},
+            {-0.8, 0.8, 0},
+            {0.8, 0.8, 0},
+            {-0.8, -0.8, 0},
+            {-0.8, 0.8, 0},
+            {-0.4, -0.8, 0},
+            {-0.4, 0.8, 0},
+            {0, -0.8, 0},
+            {0, 0.8, 0},
+            {0.4, -0.8, 0},
+            {0.4, 0.8, 0}
+    };
+    
+    // Ensure the number of nodes matches expectation
+    KRATOS_EXPECT_NEAR(surrogate_sub_model_part_inner.NumberOfConditions(), expected_coordinates.size(), tolerance);
+    
+    // Iterate over nodes and compare coordinates
+    unsigned int i = 0;
+    for (auto& cond : surrogate_sub_model_part_inner.Conditions()) {
+        std::array<double, 3> node_coords = {cond.GetGeometry()[0].X(), cond.GetGeometry()[0].Y(), cond.GetGeometry()[0].Z()};
+
+        // Compare each coordinate
+        KRATOS_EXPECT_NEAR(expected_coordinates[i][0], node_coords[0], tolerance);
+        KRATOS_EXPECT_NEAR(expected_coordinates[i][1], node_coords[1], tolerance);
+        KRATOS_EXPECT_NEAR(expected_coordinates[i][2], node_coords[2], tolerance);
+        i++;
+    }
+}
+
 
 }
