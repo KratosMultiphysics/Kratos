@@ -152,14 +152,13 @@ template<class TContainerType>
 
     std::vector<std::string> result;
     for (const auto& r_serialized_char_array : global_serialized_char_array) {
-        std::stringstream temp;
-        for (const auto current_char : r_serialized_char_array) {
-            if (current_char != ';') {
-                temp << current_char;
-            } else {
-                result.push_back(temp.str());
-                temp.str(std::string()); // clear the string stream
-            }
+        auto it_last_delimiter = r_serialized_char_array.begin();
+        while (it_last_delimiter != r_serialized_char_array.end()) {
+            const auto it_next_delimiter = std::find(it_last_delimiter, r_serialized_char_array.end(), ';');
+            result.emplace_back(it_last_delimiter, it_next_delimiter);
+            it_last_delimiter = it_next_delimiter == r_serialized_char_array.end()
+                                ? r_serialized_char_array.end()
+                                : it_next_delimiter + 1;
         }
     }
 
