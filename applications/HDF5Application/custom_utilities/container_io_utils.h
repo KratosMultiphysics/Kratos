@@ -612,6 +612,7 @@ void CopyToContiguousArray(
 
     typename TContainerDataIO::template TLSType<component_type> tls;
     IndexPartition<unsigned int>(rContainer.size()).for_each(tls, [&rAvailability, &rContainer, &rComponent, &rContainerDataIO, pBegin, Stride](const auto Index, auto& rTLS) {
+        (void)(&rAvailability); // <== suppress unused capture errors (GCC disregards uses where constexpr if conditions do not apply)
         TDataType const* p_value_begin;
         if constexpr(TContainerDataIO::DataAvailability == Internals::DataAvailabilityStatesList::INCONCLUSIVE) {
             auto p_subrange_begin = pBegin + Index * Stride;
