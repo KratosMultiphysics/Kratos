@@ -4,8 +4,7 @@
 //       _/ // /_/ / ___ |
 //      /___/\____/_/  |_| Application
 
-#if !defined(KRATOS_IGA_APPLICATION_H_INCLUDED)
-#define  KRATOS_IGA_APPLICATION_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -25,6 +24,7 @@
 #include "custom_elements/shell_5p_hierarchic_element.h"
 #include "custom_elements/shell_5p_element.h"
 #include "custom_elements/laplacian_IGA_element.h"
+#include "custom_elements/solid_element.h"
 #include "custom_elements/stokes_element.h"
 
 //conditions
@@ -42,6 +42,12 @@
 #include "custom_conditions/sbm_laplacian_condition_dirichlet.h"
 #include "custom_conditions/support_fluid_condition.h"
 #include "custom_conditions/sbm_fluid_condition_dirichlet.h"
+#include "custom_conditions/support_pressure_condition.h"
+#include "custom_conditions/support_solid_condition.h"
+#include "custom_conditions/load_solid_condition.h"
+#include "custom_conditions/sbm_solid_condition.h"
+#include "custom_conditions/sbm_load_solid_condition.h"
+
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
@@ -130,6 +136,7 @@ private:
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
     const LaplacianIGAElement mLaplacianIGAElement;
+    const SolidElement mSolidElement;
     const StokesElement mStokesElement;
 
     //Conditions
@@ -147,6 +154,12 @@ private:
     const SbmLaplacianConditionNeumann mSbmLaplacianConditionNeumann;
     const SupportFluidCondition mSupportFluidCondition;
     const SbmFluidConditionDirichlet mSbmFluidConditionDirichlet;
+    const SupportPressureCondition mSupportPressureCondition;
+    const SupportSolidCondition mSupportSolidCondition;
+    const LoadSolidCondition mLoadSolidCondition;
+    const SbmSolidCondition mSbmSolidCondition;
+    const SbmLoadSolidCondition mSbmLoadSolidCondition;
+
 
     // Modelers
     const IgaModeler mIgaModeler;
