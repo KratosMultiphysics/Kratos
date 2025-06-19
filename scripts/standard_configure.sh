@@ -26,8 +26,11 @@ export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 # export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set basic configuration
-export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"Release"}
-export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3"}
+#export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"RelWithDebInfo"}
+#export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/home/maxfried/miniforge3/envs/kratos/bin/python"}
+
+export KRATOS_BUILD_TYPE="Debug"
+export PYTHON_EXECUTABLE="/usr/bin/python3-dbg"
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=

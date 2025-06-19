@@ -247,8 +247,15 @@ namespace Kratos
         const auto& r_integration_points = r_geometry.IntegrationPoints();
 
         if (rOutput.size() != r_integration_points.size())
-        {
+        { 
             rOutput.resize(r_integration_points.size());
+        }
+
+        if (rVariable == INTEGRATION_COORDINATES)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                rOutput[point_number] = r_integration_points[point_number].Coordinates();
+            }
         }
 
         if (rVariable==PK2_STRESS)
