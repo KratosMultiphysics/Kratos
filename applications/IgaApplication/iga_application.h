@@ -153,8 +153,8 @@ private:
     const SbmLaplacianConditionDirichlet mSbmLaplacianConditionDirichlet;
     const SbmLaplacianConditionNeumann mSbmLaplacianConditionNeumann;
     const SupportFluidCondition mSupportFluidCondition;
-    const SbmFluidConditionDirichlet mSbmFluidConditionDirichlet;
     const SupportPressureCondition mSupportPressureCondition;
+    const SbmFluidConditionDirichlet mSbmFluidConditionDirichlet;
     const SupportSolidCondition mSupportSolidCondition;
     const LoadSolidCondition mLoadSolidCondition;
     const SbmSolidCondition mSbmSolidCondition;
