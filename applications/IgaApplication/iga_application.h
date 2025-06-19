@@ -186,5 +186,3 @@ private:
 ///@}
 
 } // namespace Kratos
-
-#endif // !defined(KRATOS_IGA_APPLICATION_H_INCLUDED)
