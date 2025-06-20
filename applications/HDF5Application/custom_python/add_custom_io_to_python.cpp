@@ -31,6 +31,7 @@
 #include "custom_io/hdf5_data_value_container_io.h"
 #include "custom_io/hdf5_vertex_container_io.h"
 #include "custom_io/hdf5_container_component_io.h"
+#include "custom_io/hdf5_properties_io.h"
 
 #include "custom_utilities/container_io_utils.h"
 
@@ -370,6 +371,10 @@ void AddCustomIOToPython(pybind11::module& m)
             py::arg("vertices"),
             py::arg("attributes") = Parameters("""{}"""))
         ;
+
+    auto hdf5_properties_io = m.def_submodule("HDF5PropertiesIO");
+    hdf5_properties_io.def("Read", &HDF5::Internals::ReadProperties, py::arg("hdf5_file"), py::arg("prefix"), py::arg("list_of_properties"));
+    hdf5_properties_io.def("Write", &HDF5::Internals::WriteProperties, py::arg("hdf5_file"), py::arg("prefix"), py::arg("list_of_properties"));
 
 #ifdef KRATOS_USING_MPI
     py::class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, HDF5::ModelPartIO>
