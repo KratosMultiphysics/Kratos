@@ -141,7 +141,7 @@ std::string ComputeSurrogateBoundaryData::PrintSurrogateBoundaryData(std::vector
     rOStream << "=== Meshing Data ===" << std::endl;
     rOStream << "NumberOfDivisions: " << n[0] << " " << n[1] << " " << n[2] << std::endl;
 
-    rOStream << "VoxelSize: " 
+    rOStream << "BoxSize: " 
             << (GetKeyPlanes(0)[1] - GetKeyPlanes(0)[0])*n[0] << " " 
             << (GetKeyPlanes(1)[1] - GetKeyPlanes(1)[0])*n[1] << " " 
             << (GetKeyPlanes(2)[1] - GetKeyPlanes(2)[0])*n[2] << " " 
