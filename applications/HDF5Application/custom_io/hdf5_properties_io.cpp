@@ -41,8 +41,7 @@ void ReadProperties(
 
     KRATOS_ERROR_IF_NOT(rProperties.empty()) << "The properties container is not empty.";
 
-    IndexType start_index, block_size;
-    std::tie(start_index, block_size) = StartIndexAndBlockSize(rFile, rPrefix + "/Properties/");
+    const auto [start_index, block_size] = StartIndexAndBlockSize(rFile, rPrefix + "/Properties/");
 
     std::string serialized_data;
     rFile.ReadDataSet(rPrefix + "/Properties/ListOfProperties", serialized_data, start_index, block_size);
