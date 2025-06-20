@@ -6,6 +6,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import test_helper
 from KratosMultiphysics.project import Project
 import importlib
+import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 
 class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
     """
@@ -113,7 +114,7 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
         comparison_data = [("test_stage1.post.res", 50.0),
                            ("test_stage2.post.res", 100.0)]
         number_of_stages = len(comparison_data)
-        test_helper.run_stages(file_path, number_of_stages)
+        run_multiple_stages.run_stages(file_path, number_of_stages)
 
         time = 1.0
         bottom_node_ids = [1, 2, 6, 11, 17, 25, 34, 46, 59, 75, 90]
