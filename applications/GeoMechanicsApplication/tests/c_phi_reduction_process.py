@@ -2,6 +2,7 @@ import os
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis import GeoMechanicsAnalysis
+import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 
 import test_helper
 
@@ -22,7 +23,7 @@ class KratosGeoMechanicsCPhiReductionProcess(KratosUnittest.TestCase):
 
         # get the parameter file names for all stages
         file_path = test_helper.get_file_path('C-Phi_reduction_process')
-        test_helper.run_stages(file_path, 2)
+        run_multiple_stages.run_stages(file_path, 2)
 
         # read results
         reader = test_helper.GiDOutputFileReader()

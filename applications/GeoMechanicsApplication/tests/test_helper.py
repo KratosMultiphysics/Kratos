@@ -45,19 +45,6 @@ def run_kratos(file_path, model=None):
     os.chdir(cwd)
     return simulation
 
-def run_stages(project_path,n_stages):
-    """
-    Run all construction stages
-
-    :param project_path:
-    :param n_stages:
-    :return:
-    """
-    cwd = os.getcwd()
-    stages = get_stages(project_path,n_stages)
-    [stage.Run() for stage in stages]
-    os.chdir(cwd)
-    return stages
 
 def get_stages(project_path,n_stages):
     """
