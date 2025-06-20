@@ -277,7 +277,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
         } else if constexpr(TContainerDataIO::DataAvailability == Internals::DataAvailabilityStatesList::CONSISTENTLY_AVAILABLE) {
             // the component should be consistently available through out the rContainer. Hence, we only check the first entity.
             KRATOS_ERROR_IF_NOT(mpFile->GetDataCommunicator().AndReduceAll(rLocalContainer.empty() || (!rLocalContainer.empty() && rContainerDataIO.HasValue(rLocalContainer.front(), r_component))))
-                << "None of the entities in the container have the \"" << rComponentName << "\" defined.";
+                << "None of the entities in the container have \"" << rComponentName << "\" defined.";
         }
 
         if constexpr(value_type_traits::Dimension == 0) {
