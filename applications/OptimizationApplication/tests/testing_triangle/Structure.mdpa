@@ -1,0 +1,11 @@
+Begin Properties 0
+End Properties
+Begin Nodes
+	1	0.0000000000	0.0000000000	0.000000000
+	2	10.0000000000	0.0000000000	0.000000000
+	3	0.0000000000	10.0000000000	0.000000000
+End Nodes
+
+Begin Elements ShellThinElement3D3N
+	1 0 1 2 3
+End Elements

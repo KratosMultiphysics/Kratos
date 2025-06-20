@@ -1,0 +1,10 @@
+Begin Properties 0
+End Properties
+Begin Nodes
+	1	0.0000000000	0.0000000000	0.000000000
+	2	10.0000000000	20.0000000000	0.000000000
+End Nodes
+
+Begin Elements LineElement2D2N
+	1 0 1 2
+End Elements

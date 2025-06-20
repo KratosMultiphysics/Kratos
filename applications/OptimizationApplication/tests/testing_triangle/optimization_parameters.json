@@ -1,0 +1,117 @@
+{
+    "problem_data": {
+        "parallel_type": "OpenMP",
+        "echo_level": 0
+    },
+    "model_parts": [
+        {
+            "settings": {
+                "model_part_name": "Structure",
+                "domain_size": 3,
+                "input_filename": "Structure"
+            }
+        }
+    ],
+    "analyses": [],
+    "responses": [
+        {
+            "name": "triangle_sides",
+            "type": "triangle_sides_response_function",
+            "settings": {}
+        },
+        {
+            "name": "triangle_mass",
+            "type": "triangle_mass_response_function",
+            "settings": {
+                "evaluated_model_part_names": [
+                    "Structure"
+                ]
+            }
+        }
+    ],
+    "controls": [
+        {
+            "name": "shape_control",
+            "type": "shape.vertex_morphing_shape_control",
+            "settings": {
+                "controlled_model_part_names": [
+                    "Structure"
+                ],
+                "filter_settings": {
+                    "filter_type": "explicit_filter",
+                    "filter_function_type": "linear",
+                    "max_nodes_in_filter_radius": 100000,
+                    "echo_level": 0,
+                    "filter_radius_settings": {
+                        "filter_radius_type": "constant",
+                        "filter_radius": 0.000001
+                    },
+                    "filtering_boundary_conditions": {
+                        "damping_type": "nearest_entity",
+                        "damping_function_type": "cosine",
+                        "damped_model_part_settings": {}
+                    }
+                }
+            }
+        }
+    ],
+    "algorithm_settings": {
+        "type": "algorithm_gradient_projection",
+        "settings": {
+            "echo_level": 0,
+            "line_search": {
+                "type": "const_step",
+                "init_step": 0.2,
+                "gradient_scaling": "inf_norm"
+            },
+            "conv_settings": {
+                "type": "max_iter",
+                "max_iter": 100
+            },
+            "linear_solver_settings": {
+                "solver_type": "LinearSolversApplication.dense_col_piv_householder_qr"
+            },
+            "correction_size": 0.2
+        },
+        "controls": [
+            "shape_control"
+        ],
+        "objective": {
+            "response_name": "triangle_sides",
+            "type": "minimization",
+            "scaling": 1.0
+        },
+        "constraints": [
+            {
+                "response_name": "triangle_mass",
+                "type": ">=",
+                "scaling": 1.0,
+                "scaled_ref_value": 25.0,
+                "violation_scaling": 5.0
+            }
+        ]
+    },
+    "processes": {
+        "kratos_processes": {},
+        "optimization_data_processes": {
+            "output_processes": [
+                {
+                    "type": "optimization_problem_ascii_output_process",
+                    "module": "KratosMultiphysics.OptimizationApplication.processes",
+                    "settings": {
+                        "output_file_name": "summary.csv",
+                        "write_kratos_version": false,
+                        "write_time_stamp": false
+                    }
+                },
+                 {
+                    "type": "optimization_problem_vtu_output_process",
+                    "module": "KratosMultiphysics.OptimizationApplication.processes",
+                    "settings": {
+                        "file_name": "<model_part_full_name>_<step>"
+                    }
+                }
+            ]
+        }
+    }
+}

@@ -1,0 +1,95 @@
+{
+    "problem_data": {
+        "parallel_type": "OpenMP",
+        "echo_level": 0
+    },
+    "model_parts": [
+        {
+            "settings": {
+                "model_part_name": "Structure",
+                "domain_size": 3,
+                "input_filename": "Structure"
+            }
+        }
+    ],
+    "analyses": [],
+    "responses": [
+        {
+            "name": "distance",
+            "type": "distance_response_function",
+            "settings": {}
+        }
+    ],
+    "controls": [
+        {
+            "name": "shape_control",
+            "type": "shape.vertex_morphing_shape_control",
+            "settings": {
+                "controlled_model_part_names": [
+                    "Structure"
+                ],
+                "filter_settings": {
+                    "filter_type": "explicit_filter",
+                    "filter_function_type": "linear",
+                    "max_nodes_in_filter_radius": 100000,
+                    "echo_level": 0,
+                    "filter_radius_settings": {
+                        "filter_radius_type": "constant",
+                        "filter_radius": 0.000001
+                    },
+                    "filtering_boundary_conditions": {
+                        "damping_type": "nearest_entity",
+                        "damping_function_type": "cosine",
+                        "damped_model_part_settings": {}
+                    }
+                }
+            }
+        }
+    ],
+    "algorithm_settings": {
+        "type": "algorithm_steepest_descent",
+        "settings": {
+            "echo_level": 0,
+            "line_search": {
+                "type": "const_step",
+                "init_step": 0.1,
+                "gradient_scaling": "none"
+            },
+            "conv_settings": {
+                "type": "max_iter",
+                "max_iter": 100
+            }
+        },
+        "controls": [
+            "shape_control"
+        ],
+        "objective": {
+            "response_name": "distance",
+            "type": "minimization",
+            "scaling": 1.0
+        }
+    },
+    "processes": {
+        "kratos_processes": {},
+        "optimization_data_processes": {
+            "output_processes": [
+                {
+                    "type": "optimization_problem_ascii_output_process",
+                    "module": "KratosMultiphysics.OptimizationApplication.processes",
+                    "settings": {
+                        "output_file_name": "summary.csv",
+                        "write_kratos_version": false,
+                        "write_time_stamp": false
+                    }
+                },
+                 {
+                    "type": "optimization_problem_vtu_output_process",
+                    "module": "KratosMultiphysics.OptimizationApplication.processes",
+                    "settings": {
+                        "file_name": "<model_part_full_name>_<step>"
+                    }
+                }
+            ]
+        }
+    }
+}
