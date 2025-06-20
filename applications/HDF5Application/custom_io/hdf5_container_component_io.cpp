@@ -267,7 +267,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
             const auto& availability_global_counts_pair = mpFile->GetDataCommunicator().SumAll(std::vector<IndexType>{std::get<0>(availability_local_counts_pair), std::get<1>(availability_local_counts_pair), rLocalContainer.size()});
 
             KRATOS_ERROR_IF(availability_global_counts_pair[1] == availability_global_counts_pair[2])
-                << "None of the entities in the container have the \"" << rComponentName << "\" defined.";
+                << "None of the entities in the container have \"" << rComponentName << "\" defined.";
 
             if (availability_global_counts_pair[0] == availability_global_counts_pair[2]) {
                 // even though the container type may or may not have entities without the component, all the entities
