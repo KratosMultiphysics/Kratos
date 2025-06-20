@@ -16,6 +16,7 @@
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/hydraulic_discharge.hpp"
 #include "custom_utilities/linear_nodal_extrapolator.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/output_utilities.hpp"
@@ -126,7 +127,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ResetHydraulicDischarge()
 
     // Reset hydraulic discharge
     for (auto& r_node : this->GetGeometry()) {
-        ThreadSafeNodeWrite(r_node, HYDRAULIC_DISCHARGE, 0.0);
+        GeoElementUtilities::ThreadSafeNodeWrite(r_node, HYDRAULIC_DISCHARGE, 0.0);
     }
 
     KRATOS_CATCH("")
@@ -137,10 +138,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateHydraulicDischarge(const P
 {
     KRATOS_TRY
 
-    std::vector<array_1d<double, 3>> FluidFlux;
-    this->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, FluidFlux, rCurrentProcessInfo);
+    std::vector<array_1d<double, 3>> fluid_flux;
+    this->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_flux, rCurrentProcessInfo);
 
-    const GeometryType& r_geometry = this->GetGeometry();
+    GeometryType& r_geometry = this->GetGeometry();
     const IndexType number_of_integration_points = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         r_geometry.IntegrationPoints(mThisIntegrationMethod);
@@ -155,23 +156,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateHydraulicDischarge(const P
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
 
-    for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
-        noalias(Variables.GradNpT) = Variables.DN_DXContainer[integration_point];
-        Variables.detJ             = Variables.detJContainer[integration_point];
-
-        Variables.IntegrationCoefficient = integration_coefficients[integration_point];
-
-        for (unsigned int node = 0; node < TNumNodes; ++node) {
-            double HydraulicDischarge = 0;
-            for (unsigned int iDir = 0; iDir < TDim; ++iDir) {
-                HydraulicDischarge += Variables.GradNpT(node, iDir) * FluidFlux[integration_point][iDir];
-            }
-
-            HydraulicDischarge *= Variables.IntegrationCoefficient;
-            HydraulicDischarge += r_geometry[node].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE);
-            ThreadSafeNodeWrite(this->GetGeometry()[node], HYDRAULIC_DISCHARGE, HydraulicDischarge);
-        }
-    }
+    HydraulicDischarge<TDim, TNumNodes>::CalculateHydraulicDischarge(
+        fluid_flux, integration_coefficients, Variables.DN_DXContainer, mThisIntegrationMethod, r_geometry);
 
     KRATOS_CATCH("")
 }
@@ -547,10 +533,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
             deformation_gradients, b_matrices, Variables.DisplacementVector,
             Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
 
-        const auto fluid_fluxes =
-            CalculateFluidFluxes(GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(
-                                     strain_vectors, this->GetProperties()),
-                                 rCurrentProcessInfo);
+        const auto fluid_fluxes = GeoTransportEquationUtilities::CalculateFluidFluxes<TDim, TNumNodes>(
+            this->GetGeometry(), this->GetIntegrationMethod(), this->GetProperties(), mRetentionLawVector,
+            GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(
+                strain_vectors, this->GetProperties()));
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
             GeoElementUtilities::FillArray1dOutput(rOutput[integration_point], fluid_fluxes[integration_point]);
@@ -955,46 +941,6 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDegreesOfSa
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::CalculateFluidFluxes(
-    const std::vector<double>& rPermeabilityUpdateFactors, const ProcessInfo& rCurrentProcessInfo)
-{
-    const GeometryType& r_geometry = this->GetGeometry();
-    const IndexType     number_of_integration_points =
-        r_geometry.IntegrationPointsNumber(this->GetIntegrationMethod());
-
-    std::vector<array_1d<double, TDim>> fluid_fluxes;
-    fluid_fluxes.reserve(number_of_integration_points);
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-    const PropertiesType& r_properties = this->GetProperties();
-
-    auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
-        GeoTransportEquationUtilities::CalculateFluidPressures(Variables.NContainer, Variables.PressureVector));
-    std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
-                   rPermeabilityUpdateFactors.cbegin(), relative_permeability_values.begin(),
-                   std::multiplies<>{});
-
-    for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
-        this->CalculateKinematics(Variables, integration_point);
-
-        GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-            Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, integration_point);
-
-        Variables.RelativePermeability = relative_permeability_values[integration_point];
-
-        array_1d<double, TDim> GradPressureTerm = prod(trans(Variables.GradNpT), Variables.PressureVector);
-        GradPressureTerm += PORE_PRESSURE_SIGN_FACTOR * r_properties[DENSITY_WATER] * Variables.BodyAcceleration;
-
-        fluid_fluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
-                               Variables.RelativePermeability *
-                               prod(Variables.PermeabilityMatrix, GradPressureTerm));
-    }
-
-    return fluid_fluxes;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(ElementVariables& rVariables,
                                                                         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1280,19 +1226,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateRelativePermeabilityValues(
     const std::vector<double>& rFluidPressures) const
 {
-    KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mRetentionLawVector.size());
-
-    auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
-
-    auto result = std::vector<double>{};
-    result.reserve(rFluidPressures.size());
-    std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   std::back_inserter(result),
-                   [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
-        retention_law_params.SetFluidPressure(FluidPressure);
-        return pRetentionLaw->CalculateRelativePermeability(retention_law_params);
-    });
-    return result;
+    return RetentionLaw::CalculateRelativePermeabilityValues(
+        mRetentionLawVector, this->GetProperties(), rFluidPressures);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
