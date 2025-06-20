@@ -392,42 +392,66 @@ private:
         std::make_unique<ThreeDimensionalStressState>()};
 
     // Steady-State one-phase flow elements:
-    const SteadyStatePwElement<2, 3> mSteadyStatePwElement2D3N{
-        0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        std::make_unique<PlaneStrainStressState>()};
-    const SteadyStatePwElement<2, 4> mSteadyStatePwElement2D4N{
-        0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<PlaneStrainStressState>()};
-    const SteadyStatePwElement<2, 6> mSteadyStatePwElement2D6N{
-        0, Kratos::make_shared<Triangle2D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<PlaneStrainStressState>()};
-    const SteadyStatePwElement<2, 8> mSteadyStatePwElement2D8N{
-        0, Kratos::make_shared<Quadrilateral2D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<PlaneStrainStressState>()};
-    const SteadyStatePwElement<2, 9> mSteadyStatePwElement2D9N{
-        0, Kratos::make_shared<Quadrilateral2D9<NodeType>>(Element::GeometryType::PointsArrayType(9)),
-        std::make_unique<PlaneStrainStressState>()};
-    const SteadyStatePwElement<2, 10> mSteadyStatePwElement2D10N{
-        0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        std::make_unique<PlaneStrainStressState>()};
-    const SteadyStatePwElement<2, 15> mSteadyStatePwElement2D15N{
-        0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
-        std::make_unique<PlaneStrainStressState>()};
-    const SteadyStatePwElement<3, 4> mSteadyStatePwElement3D4N{
-        0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<ThreeDimensionalStressState>()};
-    const SteadyStatePwElement<3, 8> mSteadyStatePwElement3D8N{
-        0, Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
-    const SteadyStatePwElement<3, 10> mSteadyStatePwElement3D10N{
-        0, Kratos::make_shared<Tetrahedra3D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        std::make_unique<ThreeDimensionalStressState>()};
-    const SteadyStatePwElement<3, 20> mSteadyStatePwElement3D20N{
-        0, Kratos::make_shared<Hexahedra3D20<NodeType>>(Element::GeometryType::PointsArrayType(20)),
-        std::make_unique<ThreeDimensionalStressState>()};
-    const SteadyStatePwElement<3, 27> mSteadyStatePwElement3D27N{
-        0, Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
-        std::make_unique<ThreeDimensionalStressState>()};
+    const TransientPwLineElement<2, 3> mSteadyStatePwElement2D3N{
+        0,
+        Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
+        {CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow},
+        nullptr};
+    const TransientPwLineElement<2, 4> mSteadyStatePwElement2D4N{
+        0,
+        Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
+        {CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow},
+        nullptr};
+    const TransientPwLineElement<2, 6> mSteadyStatePwElement2D6N{
+        0,
+        Kratos::make_shared<Triangle2D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
+        {CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow},
+        nullptr};
+    const TransientPwLineElement<2, 8> mSteadyStatePwElement2D8N{
+        0,
+        Kratos::make_shared<Quadrilateral2D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
+        {CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow},
+        nullptr};
+    const TransientPwLineElement<2, 9> mSteadyStatePwElement2D9N{
+        0,
+        Kratos::make_shared<Quadrilateral2D9<NodeType>>(Element::GeometryType::PointsArrayType(9)),
+        {CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow},
+        nullptr};
+    const TransientPwLineElement<2, 10> mSteadyStatePwElement2D10N{
+        0,
+        Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
+        {CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow},
+        nullptr};
+    const TransientPwLineElement<2, 15> mSteadyStatePwElement2D15N{
+        0,
+        Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
+        {CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow},
+        nullptr};
+    const TransientPwLineElement<3, 4> mSteadyStatePwElement3D4N{
+        0,
+        Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
+        {CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow},
+        nullptr};
+    const TransientPwLineElement<3, 8> mSteadyStatePwElement3D8N{
+        0,
+        Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
+        {CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow},
+        nullptr};
+    const TransientPwLineElement<3, 10> mSteadyStatePwElement3D10N{
+        0,
+        Kratos::make_shared<Tetrahedra3D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
+        {CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow},
+        nullptr};
+    const TransientPwLineElement<3, 20> mSteadyStatePwElement3D20N{
+        0,
+        Kratos::make_shared<Hexahedra3D20<NodeType>>(Element::GeometryType::PointsArrayType(20)),
+        {CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow},
+        nullptr};
+    const TransientPwLineElement<3, 27> mSteadyStatePwElement3D27N{
+        0,
+        Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
+        {CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow},
+        nullptr};
 
     const SteadyStatePwInterfaceElement<2, 4> mSteadyStatePwInterfaceElement2D4N{
         0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
