@@ -21,7 +21,6 @@
 // strategies
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
-#include "custom_strategies/strategies/geo_mechanics_ramm_arc_length_strategy.hpp"
 #include "solving_strategies/strategies/solving_strategy.h"
 
 // builders and solvers
@@ -43,7 +42,7 @@
 namespace Kratos::Python
 {
 
-void AddCustomStrategiesToPython(pybind11::module& m)
+void AddCustomStrategiesToPython(const pybind11::module& m)
 {
     namespace py = pybind11;
 
@@ -71,8 +70,6 @@ void AddCustomStrategiesToPython(pybind11::module& m)
 
     using GeoMechanicsNewtonRaphsonStrategyType =
         GeoMechanicsNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
-    using GeoMechanicsRammArcLengthStrategyType =
-        GeoMechanicsRammArcLengthStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
     using GeoMechanicsNewtonRaphsonErosionProcessStrategyType =
         GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
@@ -118,12 +115,6 @@ void AddCustomStrategiesToPython(pybind11::module& m)
         m, "GeoMechanicsNewtonRaphsonErosionProcessStrategy")
         .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
                       BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool>());
-
-    py::class_<GeoMechanicsRammArcLengthStrategyType, typename GeoMechanicsRammArcLengthStrategyType::Pointer, BaseSolvingStrategyType>(
-        m, "GeoMechanicsRammArcLengthStrategy")
-        .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
-                      BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool>())
-        .def("UpdateLoads", &GeoMechanicsRammArcLengthStrategyType::UpdateLoads);
 
     using ResidualBasedBlockBuilderAndSolverWithMassAndDampingType =
         ResidualBasedBlockBuilderAndSolverWithMassAndDamping<SparseSpaceType, LocalSpaceType, LinearSolverType>;

@@ -11,8 +11,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_CONDITION_UTILITIES)
-#define KRATOS_CONDITION_UTILITIES
+#pragma once
 
 // Project includes
 #include "geo_mechanics_application_variables.h"
@@ -55,78 +54,47 @@ public:
     }
 
     static inline void GetDisplacementsVector(array_1d<double, 4>&         rDisplacementVector,
-                                              const Element::GeometryType& Geom)
+                                              const Element::GeometryType& rGeom)
     {
         // Line_2d_2
-        array_1d<double, 3> DisplacementAux;
-        unsigned int        index = 0;
-        for (unsigned int i = 0; i < 2; ++i) {
-            noalias(DisplacementAux)     = Geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            rDisplacementVector[index++] = DisplacementAux[0];
-            rDisplacementVector[index++] = DisplacementAux[1];
+        for (unsigned int node = 0; node < 2; ++node) {
+            std::copy_n(rGeom[node].FastGetSolutionStepValue(DISPLACEMENT).begin(), 2,
+                        rDisplacementVector.begin() + node * 2);
         }
     }
 
     static inline void GetDisplacementsVector(array_1d<double, 12>&        rDisplacementVector,
-                                              const Element::GeometryType& Geom)
+                                              const Element::GeometryType& rGeom)
     {
         // Quadrilateral_3d_4
-        array_1d<double, 3> DisplacementAux;
-        unsigned int        index = 0;
-        for (unsigned int i = 0; i < 4; ++i) {
-            noalias(DisplacementAux)     = Geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            rDisplacementVector[index++] = DisplacementAux[0];
-            rDisplacementVector[index++] = DisplacementAux[1];
-            rDisplacementVector[index++] = DisplacementAux[2];
-        }
-    }
-
-    template <unsigned int TNumNodes>
-    static inline void GetFaceLoadVector(array_1d<double, 3 * TNumNodes>& rFaceLoadVector,
-                                         const Element::GeometryType&     Geom)
-    {
-        // for 3D geometry
-        const unsigned int  TDim = 3;
-        array_1d<double, 3> FaceLoadAux;
-        unsigned int        index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            noalias(FaceLoadAux) = Geom[i].FastGetSolutionStepValue(SURFACE_LOAD);
-            for (unsigned int idim = 0; idim < TDim; ++idim) {
-                rFaceLoadVector[index++] = FaceLoadAux[idim];
-            }
-        }
-    }
-
-    template <unsigned int TNumNodes>
-    static inline void GetFaceLoadVector(array_1d<double, 2 * TNumNodes>& rFaceLoadVector,
-                                         const Element::GeometryType&     Geom)
-    {
-        // for 2D geometry
-        const unsigned int  TDim = 2;
-        array_1d<double, 3> FaceLoadAux;
-        unsigned int        index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            noalias(FaceLoadAux) = Geom[i].FastGetSolutionStepValue(LINE_LOAD);
-            for (unsigned int idim = 0; idim < TDim; ++idim) {
-                rFaceLoadVector[index++] = FaceLoadAux[idim];
-            }
+        for (unsigned int node = 0; node < 4; ++node) {
+            std::copy_n(rGeom[node].FastGetSolutionStepValue(DISPLACEMENT).begin(), 3,
+                        rDisplacementVector.begin() + node * 3);
         }
     }
 
     template <unsigned int TDim, unsigned int TNumNodes>
+    static inline void GetFaceLoadVector(array_1d<double, TDim * TNumNodes>& rFaceLoadVector,
+                                         const Element::GeometryType&        rGeom)
+    {
+        const auto& variable = TDim == 2u ? LINE_LOAD : SURFACE_LOAD;
+
+        for (unsigned int node = 0; node < TNumNodes; ++node) {
+            std::copy_n(rGeom[node].FastGetSolutionStepValue(variable).begin(), TDim,
+                        rFaceLoadVector.begin() + node * TDim);
+        }
+    }
+
     static double CalculateIntegrationCoefficient(const Matrix& rJacobian, double Weight)
     {
-        auto normal_vector = Vector{TDim, 0.0};
-
-        if constexpr (TDim == 2) {
-            normal_vector = column(rJacobian, 0);
-        } else if constexpr (TDim == 3) {
-            MathUtils<>::CrossProduct(normal_vector, column(rJacobian, 0), column(rJacobian, 1));
+        auto vector = Vector{rJacobian.size1(), 0.0};
+        if (rJacobian.size1() == 2) {
+            vector = column(rJacobian, 0);
+        } else if (rJacobian.size1() == 3) {
+            MathUtils<>::CrossProduct(vector, column(rJacobian, 0), column(rJacobian, 1));
         }
-        return Weight * MathUtils<>::Norm(normal_vector);
+        return Weight * MathUtils<>::Norm(vector);
     }
 
 }; /* Class ConditionUtilities*/
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_CONDITION_UTILITIES defined */

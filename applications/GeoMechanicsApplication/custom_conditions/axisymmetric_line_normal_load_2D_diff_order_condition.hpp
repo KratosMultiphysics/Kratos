@@ -27,11 +27,8 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) AxisymmetricLineNormalLoad2DDiffOrde
 public:
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType       = Node;
-    using GeometryType   = Geometry<NodeType>;
+    using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType     = Vector;
-    using MatrixType     = Matrix;
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymmetricLineNormalLoad2DDiffOrderCondition);
 
@@ -54,15 +51,11 @@ public:
     std::string Info() const override;
 
 protected:
-    // Member Variables
-
-    double CalculateIntegrationCoefficient(const IndexType                    PointNumber,
+    double CalculateIntegrationCoefficient(IndexType                          PointNumber,
                                            const GeometryType::JacobiansType& JContainer,
                                            const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const override;
 
 private:
-    // Serialization
-
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override

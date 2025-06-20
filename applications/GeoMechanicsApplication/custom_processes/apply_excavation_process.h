@@ -24,7 +24,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyExcavationProcess : public Proc
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyExcavationProcess);
 
-    ApplyExcavationProcess(ModelPart& rModelPart, const Parameters& rSettings);
+    ApplyExcavationProcess(ModelPart& rModelPart, const Parameters& rProcessSettings);
 
     ~ApplyExcavationProcess() override;
 

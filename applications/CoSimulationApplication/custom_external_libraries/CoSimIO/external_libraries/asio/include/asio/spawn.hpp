@@ -763,7 +763,7 @@ void spawn(ASIO_MOVE_ARG(Function) function,
  * This function is used to launch a new coroutine.
  *
  * @param handler A handler to be called when the coroutine exits. More
- * importantly, the handler provides an execution context (via the the handler
+ * importantly, the handler provides an execution context (via the handler
  * invocation hook) for the coroutine. The handler must have the signature:
  * @code void handler(); @endcode
  *

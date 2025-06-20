@@ -558,10 +558,18 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         ;
 
     //Sensitivity utilities
-    py::class_<SensitivityUtilities>(m,"SensitivityUtilities")
-        .def_static("AssignConditionDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>)
-        .def_static("AssignElementDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>)
-        ;
+    auto sensitivity_utilities = m.def_submodule("SensitivityUtilities");
+    sensitivity_utilities.def("AssignConditionDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>);
+    sensitivity_utilities.def("AssignElementDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>);
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<bool>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<int>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<double>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<array_1d<double, 3>>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<array_1d<double, 4>>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<array_1d<double, 6>>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<array_1d<double, 9>>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<Vector>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<Matrix>>, py::arg("variable"));
 
     //OpenMP utilities
     py::class_<OpenMPUtils >(m,"OpenMPUtils")

@@ -49,7 +49,7 @@ namespace Kratos
   }
 
 
-  //*******************************ASSIGMENT OPERATOR***********************************
+  //******************************ASSIGNMENT OPERATOR***********************************
   //************************************************************************************
 
   ContactDomainLM3DCondition&  ContactDomainLM3DCondition::operator=(ContactDomainLM3DCondition const& rOther)
@@ -160,7 +160,7 @@ namespace Kratos
     // }
 
 
-    //set conectivities a-b-c-d correspondence with 1-2-3-4 (local contact element):
+    //set connectivities a-b-c-d correspondence with 1-2-3-4 (local contact element):
     //nodes 1/2/3 and slave for FaceType (PATCH-A)
     //nodes 1/2 and 3/4 for EdgeType (PATCH-B)
 
@@ -842,7 +842,7 @@ namespace Kratos
 
   void ContactDomainLM3DCondition::CalculateContactFactor(const ProcessInfo& rCurrentProcessInfo )
   {
-    //Initilialize Tau for the stabilization
+    //Initialize Tau for the stabilization
     double alpha_stab = 0.1;
     alpha_stab = GetProperties()[TAU_STAB];
 
@@ -1267,7 +1267,7 @@ namespace Kratos
 
     //From total current gap compute multipliers:
 
-    //rVariables.Contact.Multiplier.Normal = EffectiveGap*(1./(2.0*rVariables.Contact.ContactFactor.Normal)); //posible computation of the Lagrange Multiplier
+    //rVariables.Contact.Multiplier.Normal = EffectiveGap*(1./(2.0*rVariables.Contact.ContactFactor.Normal)); //possible computation of the Lagrange Multiplier
     rVariables.Contact.Multiplier.Normal =rVariables.Contact.CurrentTensil.Normal;
     rVariables.Contact.Multiplier.Normal+=rVariables.Contact.CurrentGap.Normal*(1.0/(3.0*rVariables.Contact.ContactFactor.Normal));
 
@@ -1618,7 +1618,7 @@ namespace Kratos
 
     //From total current gap compute multipliers:
 
-    //rVariables.Contact.Multiplier.Normal = EffectiveGap*(1./(2.0*rVariables.Contact.ContactFactor.Normal)); //posible computation of the Lagrange Multiplier
+    //rVariables.Contact.Multiplier.Normal = EffectiveGap*(1./(2.0*rVariables.Contact.ContactFactor.Normal)); //possible computation of the Lagrange Multiplier
     rVariables.Contact.Multiplier.Normal =rVariables.Contact.CurrentTensil.Normal;
     rVariables.Contact.Multiplier.Normal+=rVariables.Contact.CurrentGap.Normal*(rVariables.Contact.Tangent.EquivalentHeigh/(3.0*rVariables.Contact.ContactFactor.Normal));
 

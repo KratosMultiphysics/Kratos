@@ -28,14 +28,14 @@ namespace Kratos
 /**
  * @class QuadraturePointGeometry
  * @ingroup KratosCore
- * @brief A sinlge quadrature point, that can be used for geometries without
+ * @brief A single quadrature point, that can be used for geometries without
  *        a predefined integration scheme, i.e. they can handle material point elements,
  *        isogeometric analysis elements or standard finite elements which are defined
  *        at a single quadrature point.
  *        This point defines a line segment described on a underlying surface.
  *        Shape functions and integration types have to be precomputed and are set from
  *        from outside.
- *        The parent pointer can provide the adress to the owner of this quadrature point.
+ *        The parent pointer can provide the address to the owner of this quadrature point.
  */
 template<class TPointType>
 class QuadraturePointCurveOnSurfaceGeometry

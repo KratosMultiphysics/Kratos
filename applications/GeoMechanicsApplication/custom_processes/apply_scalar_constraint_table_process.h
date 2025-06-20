@@ -34,9 +34,9 @@ public:
 
     using ProcessUniquePointer = std::unique_ptr<Process>;
 
-    void ExecuteInitialize() override;
-    void ExecuteInitializeSolutionStep() override;
-
+    void        ExecuteInitialize() override;
+    void        ExecuteInitializeSolutionStep() override;
+    void        ExecuteFinalize() override;
     std::string Info() const override;
 
 private:

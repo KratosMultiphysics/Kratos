@@ -17,11 +17,10 @@ class HighCycleFatigueAnalysis(StructuralMechanicsAnalysis):
         while self.KeepAdvancingSolutionLoop():
             self.time = self._GetSolver().AdvanceInTime(self.time)
             process = CLA.AdvanceInTimeHighCycleFatigueProcess(self._GetSolver().GetComputingModelPart(), self.project_parameters)
-            if self.project_parameters["fatigue"]["advancing_strategy"].GetBool():
-                process.Execute()
-                time_incr = self._GetSolver().GetComputingModelPart().ProcessInfo[CLA.TIME_INCREMENT]
-                self.time += time_incr
-                self._GetSolver().GetComputingModelPart().ProcessInfo[CLA.TIME_INCREMENT] = 0.0
+            process.Execute()
+            time_incr = self._GetSolver().GetComputingModelPart().ProcessInfo[CLA.TIME_INCREMENT]
+            self.time += time_incr
+            self._GetSolver().GetComputingModelPart().ProcessInfo[CLA.TIME_INCREMENT] = 0.0
             self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = self.time
             self.InitializeSolutionStep()
             self._GetSolver().Predict()

@@ -115,6 +115,21 @@ namespace {
         TestAllShapeFunctionsLocalGradients(*geom);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D6ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateReferenceTriangle3D6();
+        array_1d<double, 3> coord(3);
+        coord[0] = 0.5;
+        coord[1] = 0.125;
+        coord[2] = 0.0;
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(0, coord), -0.09375, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(1, coord), 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(2, coord), -0.09375, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(3, coord), 0.75, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(4, coord), 0.25, TOLERANCE);
+        KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(5, coord), 0.1875, TOLERANCE);
+        CrossCheckShapeFunctionsValues(*geom);
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D6LumpingFactorsRegularShape, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle3D6();
 
@@ -159,6 +174,60 @@ namespace {
 
         Point point2(0.0, 0.0, 0.5);
         KRATOS_EXPECT_DOUBLE_EQ(geom->CalculateDistance(point2), 0.5);
+    }
+
+    /*
+    * Computes point local coordinates from a given point.
+    * his triangle has straight edges so we can use the same
+    * implementation as the Triangle3D3
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D6PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+        Triangle3D6<Point> geom(
+            Kratos::make_shared<Point>(0.0, 0.0, 0.0),
+            Kratos::make_shared<Point>(1.0, 0.0, 0.0),
+            Kratos::make_shared<Point>(0.0, 1.0, 0.0),
+            Kratos::make_shared<Point>(0.5, 0.0, 0.0),
+            Kratos::make_shared<Point>(0.5, 0.5, 0.0),
+            Kratos::make_shared<Point>(0.0, 0.5, 0.0)
+        );
+
+        // Compute the global coordinates of the baricentre
+        array_1d<double, 3> baricentre;
+        baricentre[0] = 1.0/3.0; baricentre[1] = 1.0/3.0; baricentre[2] = 0.0;
+
+        // Compute the baricentre local coordinates
+        array_1d<double, 3> baricentre_local_coords;
+        geom.PointLocalCoordinates(baricentre_local_coords, baricentre);
+
+        KRATOS_EXPECT_NEAR(baricentre_local_coords(0), 1.0/3.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(baricentre_local_coords(1), 1.0/3.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(baricentre_local_coords(2), 0.0, TOLERANCE);
+    }
+
+    /*
+    * Computes point local coordinates from a given point.
+    * This triangle does not ghave straight edges so this will
+    * throw an exception
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D6PointLocalCoordinatesError, KratosCoreGeometriesFastSuite) {
+        Triangle3D6<Point> geom(
+            Kratos::make_shared<Point>(1.0, 0.0, 0.0),
+            Kratos::make_shared<Point>(0.0, 1.0, 0.0),
+            Kratos::make_shared<Point>(0.0, 0.0, 1.0),
+            Kratos::make_shared<Point>(0.6, 0.5, 0.0),
+            Kratos::make_shared<Point>(0.0, 0.5, 0.5),
+            Kratos::make_shared<Point>(0.5, 0.0, 0.5)
+        );
+
+        // Compute the global coordinates of the baricentre
+        array_1d<double, 3> baricentre;
+        baricentre[0] = 1.0/3.0; baricentre[1] = 1.0/3.0; baricentre[2] = 1.0/3.0;
+
+        // Compute the baricentre local coordinates
+        array_1d<double, 3> baricentre_local_coords;
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        geom.PointLocalCoordinates(baricentre_local_coords, baricentre),
+            "ERROR:: Attention, the Point Local Coordinates must be specialized for the current geometry");
     }
 
 } // namespace Kratos::Testing.

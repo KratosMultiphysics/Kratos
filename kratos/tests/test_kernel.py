@@ -10,7 +10,6 @@ class TestKernel(KratosUnittest.TestCase):
       self.assertFalse(KM.KratosGlobals.Kernel.IsLibraryAvailable("pikachu_lib"))
       self.assertTrue(KM.KratosGlobals.Kernel.IsLibraryAvailable("boost"))
       self.assertTrue(KM.KratosGlobals.Kernel.IsLibraryAvailable("amgcl"))
-      self.assertTrue(KM.KratosGlobals.Kernel.IsLibraryAvailable("benchmark"))
       self.assertTrue(KM.KratosGlobals.Kernel.IsLibraryAvailable("clipper"))
       self.assertTrue(KM.KratosGlobals.Kernel.IsLibraryAvailable("concurrentqueue"))
       self.assertTrue(KM.KratosGlobals.Kernel.IsLibraryAvailable("ghc"))

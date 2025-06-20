@@ -44,7 +44,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.DISPLACEMENT_edge",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,0.0]
@@ -55,7 +54,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.DISPLACEMENT_sample",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,false,false],
@@ -67,7 +65,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.ROTATION_edge",
             "variable_name"   : "ROTATION",
             "value"           : [0.0,0.0,0.0]

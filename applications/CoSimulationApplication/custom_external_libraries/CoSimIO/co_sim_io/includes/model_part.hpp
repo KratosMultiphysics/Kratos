@@ -13,7 +13,7 @@
 #ifndef CO_SIM_IO_MODEL_PART_INCLUDED
 #define CO_SIM_IO_MODEL_PART_INCLUDED
 
-/* This file contains the implementation of th  CoSimIO::ModelPart
+/* This file contains the implementation of the CoSimIO::ModelPart
 It serves as a data container when exchanging data
 Also it is used in order to be consistent with Kratos to reduce compatibility problems
 This is a simplified version of Kratos::ModelPart
@@ -432,11 +432,11 @@ private:
     std::unique_ptr<ModelPart> mpLocalModelPart;
     std::unique_ptr<ModelPart> mpGhostModelPart;
 
-    // this contains the the map of ModelPart with Ghost Nodes
+    // this contains the map of ModelPart with Ghost Nodes
     // for communication / synchronization the same is needed for the local nodes, i.e.
     // the ModelPart needs to know where its local nodes exist as ghost nodes
     // in Kratos this is computed with the ParallelFillCommunicator
-    // Here is can be added in the future if required
+    // It can be added here in the future if required
     PartitionModelPartsContainerType mPartitionModelParts;
 
     NodesContainerType::const_iterator FindNode(const IdType I_Id) const;

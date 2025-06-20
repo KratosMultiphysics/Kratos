@@ -113,6 +113,8 @@ public:
         }
     }
 
+    static void CheckPermeabilityProperties(const Element::PropertiesType& rProp, size_t Dimension);
+
     static void FillPermeabilityMatrix(BoundedMatrix<double, 1, 1>&   rPermeabilityMatrix,
                                        const Element::PropertiesType& Prop);
 
@@ -236,6 +238,9 @@ private:
             }
         }
     }
+
+    static int CheckPropertyExistsAndIsNotNegative(const Variable<double>&        rVariable,
+                                                   const Element::PropertiesType& rProp);
 
 }; /* Class GeoElementUtilities*/
 } /* namespace Kratos.*/

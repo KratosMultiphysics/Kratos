@@ -27,7 +27,6 @@
                                              30,
                                              0.0,
                                              1000],
-              "NUMBER_OF_UMAT_STATE_VARIABLES":  1,
               "STATE_VARIABLES"         :  [0.0]
          },
          "Tables": {}
@@ -58,7 +57,6 @@
                                              20,
                                              0.0,
                                              1000],
-              "NUMBER_OF_UMAT_STATE_VARIABLES":  1,
               "STATE_VARIABLES"         :  [0.0]
          },
          "Tables": {}

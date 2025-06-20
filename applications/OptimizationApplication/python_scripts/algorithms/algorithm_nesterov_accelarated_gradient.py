@@ -10,7 +10,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
 class AlgorithmNesterovAcceleratedGradient(AlgorithmSteepestDescent):
     """
-        Nesterov Accelerated Gradient method to solve unconstrainted optimization problems.
+        Nesterov Accelerated Gradient method to solve unconstrained optimization problems.
         The implementation is based on https://paperswithcode.com/method/nesterov-accelerated-gradient
         In current version to save one response evaluation, the f(x) is only calculated on the momentum points.
     """

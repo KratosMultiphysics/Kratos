@@ -21,7 +21,7 @@
 
 // Application includes
 #include "weakly_compressible_navier_stokes.h"
-#include "custom_elements/data_containers/weakly_compressible_navier_stokes/weakly_compressible_navier_stokes_data.h"
+#include "data_containers/weakly_compressible_navier_stokes/weakly_compressible_navier_stokes_data.h"
 
 namespace Kratos
 {
@@ -220,7 +220,7 @@ void WeaklyCompressibleNavierStokes<TElementData>::AddBoundaryTraction(
         }
     }
 
-    // Contribution coming fron the shear stress operator
+    // Contribution coming from the shear stress operator
     noalias(rData.lhs) = prod(N_aux_trans, aux_matrix_ACB);
 
     // Contribution coming from the pressure terms

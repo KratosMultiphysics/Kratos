@@ -586,5 +586,27 @@ namespace Testing {
         KRATOS_EXPECT_EQ(GeometryUtils::ProjectedIsInside(triangle, *p_node_3, aux), true);
         KRATOS_EXPECT_EQ(GeometryUtils::ProjectedIsInside(triangle, *p_node_4, aux), false);
     }
+
+    KRATOS_TEST_CASE_IN_SUITE(GeometryUtilsPointLocalCoordinatesStraightEdgesTriangle, KratosCoreGeometriesFastSuite) 
+    {
+        const double tolerance = 1.0e-9;
+        Triangle3D3<Point> geom(
+            Kratos::make_shared<Point>(0.0, 0.0, 0.0),
+            Kratos::make_shared<Point>(1.0, 0.0, 0.0),
+            Kratos::make_shared<Point>(0.0, 1.0, 0.0)
+        );
+
+        // Compute the global coordinates of the baricentre
+        array_1d<double, 3> baricentre;
+        baricentre[0] = 1.0/3.0; baricentre[1] = 1.0/3.0; baricentre[2] = 0.0;
+
+        // Compute the baricentre local coordinates
+        array_1d<double, 3> baricentre_local_coords;
+        GeometryUtils::PointLocalCoordinatesStraightEdgesTriangle(geom, baricentre_local_coords, baricentre);
+
+        KRATOS_EXPECT_NEAR(baricentre_local_coords(0), 1.0/3.0, tolerance);
+        KRATOS_EXPECT_NEAR(baricentre_local_coords(1), 1.0/3.0, tolerance);
+        KRATOS_EXPECT_NEAR(baricentre_local_coords(2), 0.0, tolerance);
+    }
 }  // namespace Testing.
 }  // namespace Kratos.
