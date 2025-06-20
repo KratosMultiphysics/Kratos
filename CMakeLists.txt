@@ -638,6 +638,11 @@ endif()
 
 # Compile Kratos Core
 if(${EXCLUDE_KRATOS_CORE} MATCHES OFF)
+  # Add the definitions if required for gidpost
+  set(HDF5_FOUND FALSE)
+  set(ENABLE_PARALLEL_EXAMPLE OFF)
+  set(ENABLE_HDF5 OFF)
+  set(ZLIB_FOUND TRUE)
   add_subdirectory(external_libraries/gidpost)
   add_subdirectory(kratos)
 endif()

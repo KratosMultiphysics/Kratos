@@ -37,9 +37,9 @@ acceptable.  Do NOT use for cryptographic purposes.
 --------------------------------------------------------------------
 */
 
-ub4 lookup( /* register ub1 *k,
+ub4 lookup( register ub1 *k,
                register ub4  length,
-               register ub4  level */);
+               register ub4  level);
 
 
 /*
@@ -64,8 +64,8 @@ Use to detect changes between revisions of documents, assuming nobody
 is trying to cause collisions.  Do NOT use for cryptography.
 --------------------------------------------------------------------
 */
-void  checksum( /* register ub1 *k,
+void  checksum( register ub1 *k,
                    register ub4  len,
-                   register ub4 *state */ );
+                   register ub4 *state);
 
 #endif
