@@ -546,7 +546,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         const auto strain_vectors        = StressStrainUtilities::CalculateStrains(
             deformation_gradients, b_matrices, Variables.DisplacementVector,
             Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
-
         const auto fluid_fluxes =
             CalculateFluidFluxes(GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(
                                      strain_vectors, this->GetProperties()),
@@ -967,13 +966,15 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    const PropertiesType& r_properties = this->GetProperties();
-
-    auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
-        GeoTransportEquationUtilities::CalculateFluidPressures(Variables.NContainer, Variables.PressureVector));
+    const PropertiesType& r_properties    = this->GetProperties();
+    const auto            fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+        Variables.NContainer, Variables.PressureVector);
+    auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
     std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
                    rPermeabilityUpdateFactors.cbegin(), relative_permeability_values.begin(),
                    std::multiplies<>{});
+
+    const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
 
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
         this->CalculateKinematics(Variables, integration_point);
@@ -981,13 +982,12 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, integration_point);
 
-        Variables.RelativePermeability = relative_permeability_values[integration_point];
-
         array_1d<double, TDim> GradPressureTerm = prod(trans(Variables.GradNpT), Variables.PressureVector);
         GradPressureTerm += PORE_PRESSURE_SIGN_FACTOR * r_properties[DENSITY_WATER] * Variables.BodyAcceleration;
 
         fluid_fluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
-                               Variables.RelativePermeability *
+                               relative_permeability_values[integration_point] *
+                               bishop_coefficients[integration_point] *
                                prod(Variables.PermeabilityMatrix, GradPressureTerm));
     }
 
@@ -1271,7 +1271,7 @@ array_1d<double, TNumNodes> UPwSmallStrainElement<TDim, TNumNodes>::CalculatePer
         rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
         rVariables.RelativePermeability, rVariables.IntegrationCoefficient);
 
-    return -prod(permeability_matrix, rVariables.PressureVector);
+    return -rVariables.BishopCoefficient * prod(permeability_matrix, rVariables.PressureVector);
 
     KRATOS_CATCH("")
 }
@@ -1298,7 +1298,9 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateRelativePer
 template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const
 {
-    KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mRetentionLawVector.size());
+    KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mRetentionLawVector.size())
+        << "Sizes of integration point pressures (" << rFluidPressures.size()
+        << ") and retention law vector (" << rFluidPressures.size() << ") do not match." << std::endl;
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
 
@@ -1444,10 +1446,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeProperties(ElementVariabl
 
     rVariables.IgnoreUndrained = r_properties[IGNORE_UNDRAINED];
     rVariables.UseHenckyStrain = r_properties.Has(USE_HENCKY_STRAIN) ? r_properties[USE_HENCKY_STRAIN] : false;
-
     rVariables.ConsiderGeometricStiffness =
         r_properties.Has(CONSIDER_GEOMETRIC_STIFFNESS) ? r_properties[CONSIDER_GEOMETRIC_STIFFNESS] : false;
-
     rVariables.DynamicViscosityInverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
     GeoElementUtilities::FillPermeabilityMatrix(rVariables.PermeabilityMatrix, r_properties);
 

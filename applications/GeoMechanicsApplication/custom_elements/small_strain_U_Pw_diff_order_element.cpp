@@ -574,14 +574,16 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         const auto strain_vectors        = StressStrainUtilities::CalculateStrains(
             deformation_gradients, b_matrices, Variables.DisplacementVector,
             Variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
-        auto relative_permeability_values =
-            CalculateRelativePermeabilityValues(GeoTransportEquationUtilities::CalculateFluidPressures(
-                Variables.NpContainer, Variables.PressureVector));
+        const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+            Variables.NpContainer, Variables.PressureVector);
+        auto relative_permeability_values = CalculateRelativePermeabilityValues(fluid_pressures);
         const auto permeability_update_factors =
             GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(strain_vectors, GetProperties());
         std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
                        permeability_update_factors.cbegin(), relative_permeability_values.begin(),
                        std::multiplies<>{});
+
+        const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
 
         // Loop over integration points
         const SizeType dimension = r_geometry.WorkingSpaceDimension();
@@ -599,8 +601,6 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                 }
             }
 
-            const auto relative_permeability = relative_permeability_values[g_point];
-
             Vector grad_pressure_term(dimension);
             noalias(grad_pressure_term) = prod(trans(Variables.DNp_DX), Variables.PressureVector);
             noalias(grad_pressure_term) +=
@@ -609,7 +609,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             // Compute fluid flux vector q [L/T]
             rOutput[g_point].clear();
             const auto fluid_flux = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
-                                    relative_permeability *
+                                    relative_permeability_values[g_point] * bishop_coefficients[g_point] *
                                     prod(Variables.IntrinsicPermeability, grad_pressure_term);
             std::copy_n(fluid_flux.begin(), dimension, rOutput[g_point].begin());
         }
@@ -1337,7 +1337,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityFlow(VectorType&
         -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse * rVariables.RelativePermeability *
         prod(rVariables.DNp_DX, Matrix(prod(rVariables.IntrinsicPermeability, trans(rVariables.DNp_DX)))) *
         rVariables.IntegrationCoefficient;
-    const Vector permeability_flow = -prod(permeability_matrix, rVariables.PressureVector);
+    const Vector permeability_flow =
+        -rVariables.BishopCoefficient * prod(permeability_matrix, rVariables.PressureVector);
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, permeability_flow);
 
     KRATOS_CATCH("")
