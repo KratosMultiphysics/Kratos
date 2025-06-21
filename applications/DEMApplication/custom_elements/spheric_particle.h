@@ -8,6 +8,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <map>
 
 // Project includes
 #include "includes/define.h"
@@ -15,6 +16,7 @@
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
 #include "custom_constitutive/DEM_rolling_friction_model.h"
+#include "custom_constitutive/DEM_global_damping.h"
 #include "custom_conditions/RigidFace.h"
 #include "custom_conditions/dem_wall.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"
@@ -95,6 +97,7 @@ bool mDomainIsPeriodic;
 double mDistance;
 double mRadiusSum;
 double mDt;
+double mTime;
 double mOtherRadius;
 double mIndentation;
 double mMyCoors[3];
@@ -189,6 +192,7 @@ void SetProgrammedDestructionTime(const double time);
 virtual double GetRadius();
 virtual void   SetRadius(double radius);
 virtual void   SetRadius();
+virtual void   SetRadius(bool is_radius_expansion, double radius_expansion_rate, double radius_multiplier_max, double radius_multiplier, double radius_multiplier_old);
 virtual double CalculateVolume();
 virtual double GetInteractionRadius(const int radius_index = 0);
 virtual void SetInteractionRadius(const double radius, const int radius_index = 0);
@@ -214,6 +218,7 @@ virtual double& GetElasticEnergy();
 virtual double& GetInelasticFrictionalEnergy();
 virtual double& GetInelasticViscodampingEnergy();
 virtual double& GetInelasticRollingResistanceEnergy();
+virtual double& GetMaxNormalBallToBallForceTimesRadius();
 
 PropertiesProxy* GetFastProperties();
 void   SetFastProperties(PropertiesProxy* pProps);
@@ -243,6 +248,7 @@ double mInelasticFrictionalEnergy;
 double mInelasticViscodampingEnergy;
 double mInelasticRollingResistanceEnergy;
 double mPartialRepresentativeVolume;
+double mMaxNormalBallToBallForceTimesRadius;
 
 std::vector<ParticleContactElement*> mBondElements;
 std::vector<SphericParticle*>     mNeighbourElements;
@@ -270,7 +276,7 @@ BoundedMatrix<double, 3, 3>* mDifferentialStrainTensor;
 
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
-virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalContactForce[3]);
+virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalContactForce[3], double GlobalContactForce[3]);
 
 std::unique_ptr<DEMDiscontinuumConstitutiveLaw> pCloneDiscontinuumConstitutiveLawWithNeighbour(SphericParticle* neighbour);
 
@@ -281,6 +287,8 @@ std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModel(SphericParti
 std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModelWithNeighbour(SphericParticle* neighbour);
 
 std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModelWithFEMNeighbour(Condition* neighbour);
+
+std::unique_ptr<DEMGlobalDampingModel> pCloneGlobalDampingModel(SphericParticle* element);
 
 protected:
 
@@ -337,17 +345,18 @@ virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternio
                                                                                 const double &other_radius,
                                                                                 const double &dt,
                                                                                 const array_1d<double, 3> &angl_vel,
-                                                                                SphericParticle* neighbour_iterator);
+                                                                                SphericParticle* neighbour_iterator,
+                                                                                ParticleDataBuffer & data_buffer);
 
 virtual void ComputeMoments(double normalLocalContactForce,
-                            double GlobalElasticContactForces[3],
+                            double GlobalContactForce[3],
                             double LocalCoordSystem_2[3],
                             SphericParticle* neighbour_iterator,
                             double indentation,
                             unsigned int i);
 
 virtual void ComputeMomentsWithWalls(double normalLocalContactForce,
-                            double GlobalElasticContactForces[3],
+                            double GlobalContactForce[3],
                             double LocalCoordSystem_2[3],
                             Condition* wall,
                             double indentation,
@@ -420,13 +429,13 @@ virtual void ComputeWear(double LocalRelVel[3],
 virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
 
 virtual void AddNeighbourContributionToStressTensor(const ProcessInfo& r_process_info,
-                                                    const double GlobalElasticContactForce[3],
+                                                    const double GlobalContactForce[3],
                                                     const double other_to_me_vect[3],
                                                     const double distance,
                                                     const double radius_sum,
                                                     SphericParticle* element);
 
-virtual void AddWallContributionToStressTensor(const double GlobalElasticContactForce[3],
+virtual void AddWallContributionToStressTensor(const double GlobalContactForce[3],
                                                const double other_to_me_vect[3],
                                                const double distance,
                                                const double contact_area);
@@ -436,18 +445,21 @@ virtual void ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& tot
 
 std::unique_ptr<DEMDiscontinuumConstitutiveLaw> mDiscontinuumConstitutiveLaw;
 std::unique_ptr<DEMRollingFrictionModel> mRollingFrictionModel;
+std::unique_ptr<DEMGlobalDampingModel> mGlobalDampingModel;
 
 double mInitializationTime;
+double mIndentationInitialOption;
+std::map<int, double> mIndentationInitial;
+std::map<int, double> mIndentationInitialWall;
 double mProgrammedDestructionTime=-1.0; // set to a negative value, so that when marked TO_ERASE, elimination is by default.
 double mRadius;
+double mInitialRadius;
 double mSearchRadius;
 double mRealMass;
 PropertiesProxy* mFastProperties;
 int mClusterId;
 DEMIntegrationScheme* mpTranslationalIntegrationScheme;
 DEMIntegrationScheme* mpRotationalIntegrationScheme;
-double mGlobalDamping;
-double mGlobalViscousDamping;
 double mBondedScalingFactor[3] = {0.0};
 
 private:
@@ -465,6 +477,7 @@ virtual void save(Serializer& rSerializer) const override
     rSerializer.save("mInelasticViscodampingEnergy", mInelasticViscodampingEnergy);
     rSerializer.save("mInelasticRollingResistanceEnergy", mInelasticRollingResistanceEnergy);
     rSerializer.save("mPartialRepresentativeVolume", mPartialRepresentativeVolume);
+    rSerializer.save("mMaxNormalBallToBallForceTimesRadius", mMaxNormalBallToBallForceTimesRadius);
     rSerializer.save("mBondElements", mBondElements);
     rSerializer.save("mNeighbourElements", mNeighbourElements);
     rSerializer.save("mContactingNeighbourIds", mContactingNeighbourIds);
@@ -495,8 +508,6 @@ virtual void save(Serializer& rSerializer) const override
     rSerializer.save("mSearchRadius", mSearchRadius);
     rSerializer.save("mRealMass", mRealMass);
     rSerializer.save("mClusterId", mClusterId);
-    rSerializer.save("mGlobalDamping",mGlobalDamping);
-    rSerializer.save("mGlobalViscousDamping",mGlobalViscousDamping);
 }
 
 virtual void load(Serializer& rSerializer) override
@@ -509,6 +520,7 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mInelasticViscodampingEnergy", mInelasticViscodampingEnergy);
     rSerializer.load("mInelasticRollingResistanceEnergy", mInelasticRollingResistanceEnergy);
     rSerializer.load("mPartialRepresentativeVolume", mPartialRepresentativeVolume);
+    rSerializer.load("mMaxNormalBallToBallForceTimesRadius", mMaxNormalBallToBallForceTimesRadius);
     rSerializer.load("mBondElements", mBondElements);
     rSerializer.load("mNeighbourElements", mNeighbourElements);
     rSerializer.load("mContactingNeighbourIds", mContactingNeighbourIds);
@@ -549,8 +561,6 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mSearchRadius", mSearchRadius);
     rSerializer.load("mRealMass", mRealMass);
     rSerializer.load("mClusterId", mClusterId);
-    rSerializer.load("mGlobalDamping",mGlobalDamping);
-    rSerializer.load("mGlobalViscousDamping",mGlobalViscousDamping);
 }
 
 }; // Class SphericParticle

@@ -33,7 +33,7 @@ namespace Kratos
 ///@{
 
     /// The size type definition
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -62,7 +62,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
     ///@{
 
     /// The index type definition
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// We define the dimension
     static constexpr SizeType Dimension = TVoigtSize == 6 ? 3 : 2;
@@ -71,25 +71,25 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
     static constexpr SizeType VoigtSize = TVoigtSize;
 
     /// The matrix type definition
-    typedef Matrix MatrixType;
+    using MatrixType = Matrix;
 
     /// the vector type definition
-    typedef Vector VectorType;
+    using VectorType = Vector;
 
     /// The definition of the bounded vector type
-    typedef array_1d<double, VoigtSize> BoundedVectorType;
+    using BoundedVectorType = array_1d<double, VoigtSize>;
 
     /// The definition of the bounded matrix type
-    typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
+    using BoundedMatrixType = BoundedMatrix<double, Dimension, Dimension>;
 
     /// The definition of the bounded matrix type
-    typedef BoundedMatrix<double, VoigtSize, VoigtSize> BoundedMatrixVoigtType;
+    using BoundedMatrixVoigtType = BoundedMatrix<double, VoigtSize, VoigtSize>;
 
     /// Node type definition
-    typedef Node NodeType;
+    using NodeType = Node;
 
     /// Geometry definitions
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
     /// The zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
@@ -433,7 +433,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler1(
         const double EulerAngle1,
-        BoundedMatrix<double, 3, 3>& rRotationOperator
+        BoundedMatrix<double, Dimension, Dimension>& rRotationOperator
         );
 
     /**
@@ -442,7 +442,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler2(
         const double EulerAngle2,
-        BoundedMatrix<double, 3, 3>& rRotationOperator
+        BoundedMatrix<double, Dimension, Dimension>& rRotationOperator
         );
 
     /**
@@ -451,7 +451,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler3(
         const double EulerAngle3,
-        BoundedMatrix<double, 3, 3>& rRotationOperator
+        BoundedMatrix<double, Dimension, Dimension>& rRotationOperator
         );
 
     /**
@@ -468,10 +468,31 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         const double EulerAngle1, // phi
         const double EulerAngle2, // theta
         const double EulerAngle3, // hi
-        BoundedMatrix<double, 3, 3>& rRotationOperator
+        BoundedMatrix<double, Dimension, Dimension>& rRotationOperator
         );
-    
-     /**
+
+    /**
+     * @brief This computes the elastic constituive matrix for a 3D elastic CL
+     */
+    static void CalculateOrthotropicElasticMatrix(
+        BoundedMatrixVoigtType &rElasticityTensor,
+        const Properties &rMaterialProperties);
+
+    /**
+     * @brief This computes the elastic constituive matrix for a 3D elastic CL
+     */
+    static void CalculateOrthotropicElasticMatrixPlaneStrain(
+        BoundedMatrixVoigtType &rElasticityTensor,
+        const Properties &rMaterialProperties);
+
+    /**
+     * @brief This computes the elastic constituive matrix for a 3D elastic CL
+     */
+    static void CalculateOrthotropicElasticMatrixPlaneStress(
+        BoundedMatrixVoigtType &rElasticityTensor,
+        const Properties &rMaterialProperties);
+
+    /**
      * @brief This computes the MacaullyBrackets of a double
      */
     static double MacaullyBrackets(const double Number);
@@ -483,7 +504,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         ConstitutiveLaw::StrainVectorType &rStrainVector,
         const double ReferenceTemperature,
         ConstitutiveLaw::Parameters &rParameters,
-        const bool IsPlaneStrain = false);
+        const bool IsPlaneStrain = false
+        );
 
     /**
      * @brief This retrieves an interpolated nodal variable to a GP
@@ -491,7 +513,34 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
     static double CalculateInGaussPoint(
         const Variable<double> &rVariableInput,
         ConstitutiveLaw::Parameters &rParameters,
-        unsigned int step = 0);
+        unsigned int step = 0
+        );
+
+    /**
+     * @brief This retrieves a double type variable checking the accessor
+     */
+    static double GetMaterialPropertyThroughAccessor(
+        const Variable<double>& rVariable,
+        ConstitutiveLaw::Parameters &rValues
+        );
+
+    /**
+     * @brief This retrieves a double type variable from a table if exists, assumes TEMPERATURE to be the independent variable
+     */
+    static double GetPropertyFromTemperatureTable(
+        const Variable<double>& rVariable,
+        ConstitutiveLaw::Parameters &rValues,
+        const double Temperature
+        );
+
+    /**
+     * @brief This method computes the tangent tensor
+     * @param rValues The constitutive law parameters and flags
+     */
+    static void CalculateTangentTensorByPerturbation(
+        ConstitutiveLaw::Parameters& rValues,
+        ConstitutiveLaw* pConstitutiveLaw,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy);
 
 }; // class AdvancedConstitutiveLawUtilities
 } // namespace Kratos

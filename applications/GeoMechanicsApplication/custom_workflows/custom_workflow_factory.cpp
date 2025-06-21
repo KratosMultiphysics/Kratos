@@ -29,4 +29,4 @@ KratosGeoSettlement* CustomWorkflowFactory::CreateKratosGeoSettlement()
                                    std::make_unique<TimeLoopExecutor>()};
 }
 
-}
+} // namespace Kratos

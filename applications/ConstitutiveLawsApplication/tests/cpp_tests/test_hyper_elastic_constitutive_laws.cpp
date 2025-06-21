@@ -20,7 +20,6 @@
 #include "geometries/triangle_2d_3.h"
 #include "includes/model_part.h"
 #include "includes/process_info.h"
-#include "testing/testing.h"
 
 // Application includes
 #include "constitutive_laws_application_variables.h"
@@ -29,10 +28,9 @@
 #include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 #include "custom_constitutive/finite_strains/hyperelasticity/hyper_elastic_simo_taylor_neo_hookean_plane_strain_2d.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "tests/cpp_tests/constitutive_laws_fast_suite.h"
 
-namespace Kratos
-{
-namespace Testing
+namespace Kratos::Testing
 {
 
 namespace
@@ -182,5 +180,4 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHyperElasticSimoTaylorNeoHookean3D, Kra
     KRATOS_EXPECT_VECTOR_NEAR(row(C_mat, 0), const_mat_row_0_result, 1.0e-5);
 }
 
-} // namespace Testing
-} // namespace Kratos
+} // namespace Kratos::Testing

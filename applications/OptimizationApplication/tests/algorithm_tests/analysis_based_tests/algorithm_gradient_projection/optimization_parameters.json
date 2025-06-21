@@ -8,7 +8,7 @@
             "settings": {
                 "model_part_name": "Structure",
                 "domain_size": 3,
-                "input_filename": "shell_test"
+                "input_filename": "../../../mdpas/algorithms_test_input/constraint/shell_test"
             }
         }
     ],
@@ -23,7 +23,7 @@
                 "analysis_module": "KratosMultiphysics.StructuralMechanicsApplication",
                 "analysis_type": "StructuralMechanicsAnalysis",
                 "analysis_settings": {
-                    "@include_json": "primal_parameters.json"
+                    "@include_json": "../../../mdpas/algorithms_test_input/constraint/primal_parameters.json"
                 },
                 "analysis_output_settings": {
                     "nodal_solution_step_data_variables": [
@@ -67,19 +67,22 @@
                     "Structure.Parts_Shell_structure"
                 ],
                 "filter_settings": {
-                    "type": "implicit",
-                    "radius": 0.2,
-                    "linear_solver_settings": {
-                        "solver_type": "LinearSolversApplication.amgcl"
-                    }
+                    "filter_type": "implicit_filter",
+                    "filter_radius": 0.2
                 },
                 "output_all_fields": false,
-                "beta_value": 25.0,
-                "initial_physical_thickness": 0.15,
                 "physical_thicknesses": [
                     0.1,
                     0.2
-                ]
+                ],
+                "thickness_projection_settings": {
+                    "type": "adaptive_sigmoidal_projection",
+                    "initial_value": 5,
+                    "max_value": 30,
+                    "increase_fac": 1.05,
+                    "update_period": 50,
+                    "penalty_factor": 1
+                }
             }
         }
     ],
@@ -115,7 +118,7 @@
                 "type": "<=",
                 "scaling": 1.0,
                 "scaled_ref_value": "initial_value",
-                "violation_scaling"   : 5.0
+                "violation_scaling": 5.0
             }
         ]
     },
@@ -130,7 +133,10 @@
                         "output_file_name": "summary.csv",
                         "write_kratos_version": false,
                         "write_time_stamp": false,
-                        "list_of_output_components": ["response_function.mass", "response_function.strain_energy"],
+                        "list_of_output_components": [
+                            "response_function.mass",
+                            "response_function.strain_energy"
+                        ],
                         "format_info": {
                             "int_length": 7,
                             "float_precision": 6,

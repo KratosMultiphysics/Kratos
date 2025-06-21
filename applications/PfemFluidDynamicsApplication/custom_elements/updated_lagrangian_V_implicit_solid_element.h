@@ -113,7 +113,7 @@ namespace Kratos
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
        * @param NewId Index number of the new element (optional)
        */
@@ -139,7 +139,7 @@ namespace Kratos
     {
     }
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
        * @param NewId Index of the new element
        * @param pGeometry Pointer to a geometry object
@@ -183,39 +183,6 @@ namespace Kratos
     }
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
-
-    /* virtual void Initialize(); */
-
-    void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
-                               const ProcessInfo &rCurrentProcessInfo) override
-    {
-      KRATOS_TRY;
-      KRATOS_THROW_ERROR(std::logic_error, "UpdatedLagrangianVImplicitSolidElement::CalculateLeftHandSide not implemented", "");
-      KRATOS_CATCH("");
-    }
-
-    void CalculateRightHandSide(VectorType &rRightHandSideVector,
-                                const ProcessInfo &rCurrentProcessInfo) override
-    {
-      KRATOS_TRY;
-      KRATOS_THROW_ERROR(std::logic_error, "UpdatedLagrangianVImplicitSolidElement::CalculateRightHandSide not implemented", "");
-      KRATOS_CATCH("");
-    }
-
-    // The following methods have different implementations depending on TDim
-    /// Provides the global indices for each one of this element's local rows
-    /**
-       * this determines the elemental equation ID vector for all elemental
-       * DOFs
-       * @param rResult A vector containing the global Id of each row
-       * @param rCurrentProcessInfo the current process info object (unused)
-       */
-
-    /// Returns a list of the element's Dofs
-    /**
-       * @param ElementalDofList the list of DOFs
-       * @param rCurrentProcessInfo the current process info instance
-       */
 
     ///@}
     ///@name Access
@@ -286,7 +253,7 @@ namespace Kratos
 
     /// Add integration point contribution to the mass matrix.
     /**
-       * A constistent mass matrix is used.
+       * A consistent mass matrix is used.
        * @param rMassMatrix The local matrix where the result will be added.
        * @param rN Elemental shape functions.
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.

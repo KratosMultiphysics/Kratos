@@ -17,13 +17,15 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
+
+// Application includes
 #include "custom_elements/symbolic_stokes.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 	namespace Testing {
@@ -819,7 +821,7 @@ namespace Kratos {
             KRATOS_EXPECT_VECTOR_NEAR(row(LHS, 0), LHS_row_0_expected, 1.0e-2);
         }
 
-        // /** Checks the SymbolicStokes3D6N element Calcualte method.
+        // /** Checks the SymbolicStokes3D6N element Calculate method.
         //  */
         KRATOS_TEST_CASE_IN_SUITE(ElementSymbolicStokes3D6NCalculate, FluidDynamicsApplicationFastSuite)
         {

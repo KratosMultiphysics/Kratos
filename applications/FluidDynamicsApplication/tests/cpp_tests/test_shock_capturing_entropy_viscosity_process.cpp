@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/gid_io.h"
 #include "includes/model_part.h"
@@ -27,6 +26,7 @@
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "custom_processes/shock_capturing_entropy_viscosity_process.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 namespace Testing {

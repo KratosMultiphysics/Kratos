@@ -14,7 +14,7 @@
 #include "direct_conduction_bob_complete.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   DirectConductionBOBComplete::DirectConductionBOBComplete() {}
   DirectConductionBOBComplete::~DirectConductionBOBComplete() {}
 

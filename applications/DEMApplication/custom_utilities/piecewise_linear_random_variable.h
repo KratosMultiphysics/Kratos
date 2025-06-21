@@ -32,7 +32,7 @@ public:
     double ProbabilityDensity(const double x);
     double GetMean() override;
 
-    /// Turn back information as a stemplate<class T, std::size_t dim> tring.
+    /// Turn back information as a stemplate<class T, std::size_t dim> string.
     std::string Info() const override
     {
         std::stringstream buffer;

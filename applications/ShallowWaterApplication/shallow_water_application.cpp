@@ -54,11 +54,11 @@ namespace Kratos
 
     void KratosShallowWaterApplication::Register()
     {
-        std::cout << " KRATOS      |          |   |                        " << std::endl;
-        std::cout << "        __|   _ \\  _` | |   |    _ \\        /      " << std::endl;
-        std::cout << "      \\__ `  |  | (   | |   |   (   |      /        " << std::endl;
-        std::cout << "      ____/ _| _|\\__,_|\\__|\\__|\\___/  _/ _/ WATER" << std::endl;
-        std::cout << "Initializing KratosShallowWaterApplication...        " << std::endl;
+        // std::cout << " KRATOS      |          |   |                        " << std::endl;
+        // std::cout << "        __|   _ \\  _` | |   |    _ \\        /      " << std::endl;
+        // std::cout << "      \\__ `  |  | (   | |   |   (   |      /        " << std::endl;
+        // std::cout << "      ____/ _| _|\\__,_|\\__|\\__|\\___/  _/ _/ WATER" << std::endl;
+        // std::cout << "Initializing KratosShallowWaterApplication...        " << std::endl;
 
         // Primary variables
         KRATOS_REGISTER_VARIABLE(HEIGHT)

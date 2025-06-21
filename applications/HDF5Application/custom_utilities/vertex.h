@@ -45,7 +45,6 @@ public:
      *  @param rPosition position attribute
      *  @param rLocator point locator exposing a FindElement member
      *  @param id vertex identifier (should be unique, but no checks are performed)
-     *  are used for interpolation.
      */
     Vertex(const array_1d<double,3>& rPosition,
            const PointLocatorAdaptor& rLocator,
@@ -76,6 +75,7 @@ public:
 
     /** Interpolate the requested variable
      *  @param rVariable variable to interpolate
+     *  @param rVariableGetter is an object having a method @ref GetValue(const Vertex&, const Variable<TValue>&, TLS&)
      *  @note throws an exception if the vertex was not located successfully upon construction
      */
     template <class TValue, class TVariableGetterType>

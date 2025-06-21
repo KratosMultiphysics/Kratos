@@ -12,26 +12,28 @@
 
 #include "apply_phreatic_multi_line_pressure_table_process.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
 
 ApplyPhreaticMultiLinePressureTableProcess::ApplyPhreaticMultiLinePressureTableProcess(ModelPart& model_part,
-Parameters rParameters
-) : ApplyConstantPhreaticMultiLinePressureProcess(model_part, rParameters)
+                                                                                       Parameters rParameters)
+    : ApplyConstantPhreaticMultiLinePressureProcess(model_part, rParameters)
 {
     KRATOS_TRY
 
-    for (auto value : rParameters["table"].GetVector())
-    {
+    KRATOS_ERROR_IF(HorizontalDirectionCoordinates().size() != rParameters["table"].GetVector().size())
+        << "Got " << HorizontalDirectionCoordinates().size() << " coordinates and "
+        << rParameters["table"].GetVector().size() << " table references. The number of coordinates "
+        << "and table references should be equal." << std::endl;
+
+    for (auto value : rParameters["table"].GetVector()) {
         const auto TableId = static_cast<unsigned int>(value);
-        if (TableId > 0)
-        {
+        if (TableId > 0) {
             auto pTable = model_part.pGetTable(TableId);
             mpTable.push_back(pTable);
-        }
-        else
-        {
+        } else {
             mpTable.push_back(nullptr);
         }
     }
@@ -45,32 +47,34 @@ void ApplyPhreaticMultiLinePressureTableProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
 
-        if (mrModelPart.NumberOfNodes() <= 0) {
-            return;
-        }
+    if (mrModelPart.NumberOfNodes() <= 0) {
+        return;
+    }
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(VariableName());
+    const Variable<double>& var = KratosComponents<Variable<double>>::Get(VariableName());
 
-        const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
-        std::vector<double> deltaH;
-        std::transform(mpTable.begin(), mpTable.end(), std::back_inserter(deltaH),
-                       [Time](auto element){return element ? element->GetValue(Time) : 0.0;});
+    const double        Time = mrModelPart.GetProcessInfo()[TIME] / mTimeUnitConverter;
+    std::vector<double> deltaH;
+    deltaH.reserve(mpTable.size());
+    std::transform(mpTable.begin(), mpTable.end(), std::back_inserter(deltaH),
+                   [Time](const auto& element) { return element ? element->GetValue(Time) : 0.0; });
 
-        block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node& rNode) {
-            const double pressure = CalculatePressure(rNode, deltaH);
-            if (IsSeepage()) {
-                if (pressure < PORE_PRESSURE_SIGN_FACTOR * PressureTensionCutOff()) {
-                    rNode.FastGetSolutionStepValue(var) = pressure;
-                    if (IsFixed()) rNode.Fix(var);
-                } else {
-                    if (IsFixedProvided()) rNode.Free(var);
-                }
-            } else {
+    block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node& rNode) {
+        const double pressure = CalculatePressure(rNode, deltaH);
+        if (IsSeepage()) {
+            if (pressure < PORE_PRESSURE_SIGN_FACTOR * PressureTensionCutOff()) {
+                rNode.FastGetSolutionStepValue(var) = pressure;
                 if (IsFixed()) rNode.Fix(var);
-                else if (IsFixedProvided()) rNode.Free(var);
-                rNode.FastGetSolutionStepValue(var) = std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * PressureTensionCutOff());
+            } else {
+                if (IsFixedProvided()) rNode.Free(var);
             }
-        });
+        } else {
+            if (IsFixed()) rNode.Fix(var);
+            else if (IsFixedProvided()) rNode.Free(var);
+            rNode.FastGetSolutionStepValue(var) =
+                std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * PressureTensionCutOff());
+        }
+    });
 
     KRATOS_CATCH("")
 }
@@ -80,9 +84,9 @@ std::string ApplyPhreaticMultiLinePressureTableProcess::Info() const
     return "ApplyPhreaticMultiLinePressureTableProcess";
 }
 
-void ApplyPhreaticMultiLinePressureTableProcess::PrintInfo(std::ostream &rOStream) const
+void ApplyPhreaticMultiLinePressureTableProcess::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "ApplyPhreaticMultiLinePressureTableProcess";
+    rOStream << Info();
 }
 
-}
+} // namespace Kratos

@@ -1,0 +1,14 @@
+@INCLUDE               = ../../../documents/doxyfile
+PROJECT_NAME           = KratosMultiphysics - Discrete Elements
+PROJECT_BRIEF          = A particles method for modeling the bulk behavior of granular materials and many geomaterials such as coal, ores, soil, rocks, aggregates, pellets, tablets and powders.
+PROJECT_LOGO           = ../../../documents/kratos_small.png
+LAYOUT_FILE            = ../../../html_layout.xml
+INPUT                  = ..                             \
+                         ../README.md
+EXCLUDE_PATTERNS       = */external_libraries/*         \
+                         */custom_external_libraries/*  \
+                         */tests/* *_test* *test_*
+HTML_EXTRA_STYLESHEET  = ../../../documents/doxygen-awesome.css
+TAGFILES               = ../../../documents/KratosCore.tag=../../../../documents/html
+GENERATE_TAGFILE       = DEMApplication.tag
+

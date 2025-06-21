@@ -11,42 +11,29 @@ def CreateSolver(model: KM.Model, custom_settings: KM.Parameters):
     return HelmholtzScalarSolver(model, custom_settings)
 
 class HelmholtzScalarSolver(HelmholtzSolverBase):
+    def GetSolvingVariable(self) -> KM.DoubleVariable:
+        return KOA.HELMHOLTZ_SCALAR
 
-    def AddVariables(self) -> None:
-        # Add variables required for the helmholtz filtering
-        self.GetOriginRootModelPart().AddNodalSolutionStepVariable(KOA.HELMHOLTZ_SCALAR)
-        KM.Logger.PrintInfo("::[HelmholtzScalarSolver]:: Variables ADDED.")
+    def _GetComputingModelPartName(self) -> str:
+        return self.GetOriginModelPart().FullName().replace(".", "_") + "_helmholtz_scalar"
 
-    def AddDofs(self) -> None:
-        KM.VariableUtils().AddDof(KOA.HELMHOLTZ_SCALAR, self.GetOriginRootModelPart())
-        KM.Logger.PrintInfo("::[HelmholtzScalarSolver]:: DOFs ADDED.")
+    def SetFilterRadius(self, filter_radius: float) -> None:
+        self.GetComputingModelPart().ProcessInfo.SetValue(KOA.HELMHOLTZ_RADIUS, filter_radius)
 
-    def PrepareModelPart(self) -> None:
-
-        if len(self.GetOriginModelPart().Conditions)>0 and len(self.GetOriginModelPart().Elements)>0:
-            KM.Logger.PrintWarning("::[HelmholtzScalarSolver]:: filter model part ", self.GetOriginModelPart().Name, " has both elements and conditions. Giving precedence to conditions ")
-
-        if len(self.GetOriginModelPart().Conditions)>0:
-           filter_container = self.GetOriginModelPart().Conditions
-        elif len(self.GetOriginModelPart().Elements)>0:
-           filter_container = self.GetOriginModelPart().Elements
-
-        is_surface_filter = self._IsSurfaceContainer(filter_container)
-        num_nodes = self._GetContainerTypeNumNodes(filter_container)
-
-        if is_surface_filter:
-            element_name = f"HelmholtzSurfaceElement3D{num_nodes}N"
+    def _FillComputingModelPart(self) -> None:
+        if self.GetOriginModelPart().NumberOfElements() > 0:
+            # here we have to replace the elements, while keeping the
+            # geometries the same. Hence using the ConnectivityPreserveModeller
+            container = self.GetOriginModelPart().Elements
+            num_nodes = self._GetContainerTypeNumNodes(container)
+            if self._IsSurfaceContainer(container):
+                KM.ConnectivityPreserveModeler().GenerateModelPart(self.GetOriginModelPart(), self.GetComputingModelPart(), f"HelmholtzSurfaceElement3D{num_nodes}N")
+            else:
+                KM.ConnectivityPreserveModeler().GenerateModelPart(self.GetOriginModelPart(), self.GetComputingModelPart(), f"HelmholtzSolidElement3D{num_nodes}N")
+        elif self.GetOriginModelPart().NumberOfConditions() > 0:
+            # here we have conditions in the origin model part. Now we have to create elements using
+            # the geometries of the conditions. There cannot be volume conditions in Kratos, therefore,
+            # there can be only surface conditions, hence only required to create surface elements.
+            KOA.OptAppModelPartUtils.GenerateModelPart(self.GetOriginModelPart().Conditions, self.GetComputingModelPart(), f"HelmholtzSurfaceElement3D{self._GetContainerTypeNumNodes(self.GetOriginModelPart().Conditions)}N")
         else:
-            element_name = f"HelmholtzSolidElement3D{num_nodes}N"
-
-        filter_properties = self.helmholtz_model_part.GetRootModelPart().CreateNewProperties(self.helmholtz_model_part.GetRootModelPart().NumberOfProperties()+1)
-        for node in self.GetOriginModelPart().Nodes:
-            self.helmholtz_model_part.AddNode(node)
-
-        elem_index = len(self.helmholtz_model_part.GetRootModelPart().Elements) + 1
-        for cond in filter_container:
-            element_nodes_ids = []
-            for node in cond.GetNodes():
-                element_nodes_ids.append(node.Id)
-            self.helmholtz_model_part.CreateNewElement(element_name, elem_index, element_nodes_ids, filter_properties)
-            elem_index += 1
+            raise RuntimeError(f"No elements or conditions found in {self.GetOriginModelPart()}.")

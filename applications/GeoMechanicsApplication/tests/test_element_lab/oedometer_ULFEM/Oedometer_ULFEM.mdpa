@@ -60,7 +60,7 @@ Begin SubModelPart Lateral_fixity
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart Bottom_fixity
+Begin SubModelPart Bottom_fixed
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes

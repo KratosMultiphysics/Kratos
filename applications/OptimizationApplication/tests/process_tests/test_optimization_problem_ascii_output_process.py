@@ -26,9 +26,7 @@ class TestOptimizationProblemAsciiOutputProcess(kratos_unittest.TestCase):
             pass
         def Finalize(self) -> None:
             pass
-        def GetAnalysisModelPart(self) -> Kratos.ModelPart:
-            return None
-        def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
+        def GetInfluencingModelPart(self) -> Kratos.ModelPart:
             return None
         def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
             return []
@@ -142,5 +140,4 @@ class TestOptimizationProblemAsciiOutputProcess(kratos_unittest.TestCase):
             }""")).Execute()
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

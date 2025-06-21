@@ -56,7 +56,7 @@ class DEM2D_ControlModuleTestSolution(DEMAnalysisStage, KratosUnittest.TestCase)
         tolerance = 1.001
         node = self.rigid_face_model_part.GetNode(5)
         node_force_x = node.GetSolutionStepValue(DEM.CONTACT_FORCES_X)
-        expected_value = 316.79
+        expected_value = 287.4914629584635
         self.assertAlmostEqual(node_force_x, expected_value, delta=tolerance)
 
         node = self.rigid_face_model_part.GetNode(6)

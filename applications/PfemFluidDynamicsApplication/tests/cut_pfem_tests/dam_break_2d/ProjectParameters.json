@@ -1,0 +1,151 @@
+{
+    "problem_data" : {
+        "problem_name"   : "dam_break_2d",
+        "start_time"     : 0.0,
+        "end_time"       : 0.006,
+        "echo_level"     : 0,
+        "parallel_type"  : "OpenMP",
+        "threads"        : 1,
+        "gravity_vector" : [0.0,-9.81,0.0]
+    },
+    "solver_settings"      : {
+        "solver_type"                        : "pfem_fluid_solver",
+        "model_part_name"                    : "PfemFluidModelPart",
+        "physics_type"                       : "fluid",
+        "domain_size"                        : 2,
+        "time_stepping"                      : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.006
+        },
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "dam_break_2d"
+        },
+        "maximum_pressure_iterations"        : 4,
+        "velocity_tolerance"                 : 0.0001,
+        "pressure_tolerance"                 : 0.0001,
+        "penalty_coefficient"		     : 10,
+        "echo_level"                         : 0,
+        "velocity_linear_solver_settings"    : {
+            "solver_type"         : "bicgstab",
+            "max_iteration"       : 2000,
+            "tolerance"           : 1e-5,
+            "preconditioner_type" : "ilu0",
+            "scaling"             : false
+        },
+        "pressure_linear_solver_settings"    : {
+            "solver_type"         : "bicgstab",
+            "max_iteration"       : 2000,
+            "tolerance"           : 1e-5,
+            "preconditioner_type" : "ilu0",
+            "scaling"             : false
+        },
+        "bodies_list"                        : [{
+            "body_type"  : "Fluid",
+            "body_name"  : "Body1",
+            "parts_list" : ["Parts_Parts_Auto1"]
+        },{
+            "body_type"  : "Rigid",
+            "body_name"  : "Body2",
+            "parts_list" : ["Parts_Parts_Auto2"]
+        }],
+        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
+        "constitutive_laws_list"             : ["Bingham2DLaw","None"],
+        "processes_sub_model_part_list"      : ["VELOCITY_Velocity_Auto1"],
+        "material_import_settings"           : {
+            "materials_filename" : "PFEMFluidMaterials.json"
+        }
+    },
+    "problem_process_list" : [{
+        "help"          : "This process applies meshing to the problem domains",
+        "kratos_module" : "KratosMultiphysics.PfemFluidDynamicsApplication",
+        "python_module" : "remesh_fluid_domains_process",
+        "process_name"  : "RemeshFluidDomainsProcess",
+        "Parameters"    : {
+            "model_part_name"                   : "PfemFluidModelPart",
+            "meshing_control_type"              : "step",
+            "meshing_frequency"                 : 1.0,
+            "write_totalVolumeBeforeMeshing"    : false,
+            "meshing_before_output"             : true,
+            "update_conditions_on_free_surface" : {
+                "update_conditions" : false
+            },
+            "meshing_domains"                   : [{
+                "model_part_name"           : "Body1",
+                "python_module"             : "fluid_meshing_domain",
+                "alpha_shape"               : 1.25,
+                "meshing_strategy"          : {
+                    "python_module"            : "fluid_meshing_strategy",
+                    "remesh"                   : true,
+                    "refine"                   : true,
+                    "refine_module"            : "KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_complete_mesher",
+                    "transfer"                 : false,
+                    "reference_element_type"   : "TwoStepUpdatedLagrangianVPFluidCutFemElement2D",
+                    "reference_condition_type" : "CompositeCondition2D2N"
+                },
+                "spatial_bounding_box"      : {
+                    "use_bounding_box" : false,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1000.0,
+                    "upper_point"      : [10,10,10],
+                    "lower_point"      : [-10,-10,-10]
+                },
+                "spatial_refining_box_list" : [{
+                    "use_refining_box"    : false,
+                    "transition_elements" : 4,
+                    "initial_time"        : 0.0,
+                    "final_time"          : 1000.0,
+                    "upper_point"         : [10,10,10],
+                    "lower_point"         : [-10,-10,-10]
+                }]
+            },{
+                "model_part_name"           : "Body2",
+                "python_module"             : "fluid_meshing_domain",
+                "alpha_shape"               : 1.25,
+                "meshing_strategy"          : {
+                    "python_module"            : "fluid_meshing_strategy",
+                    "remesh"                   : false,
+                    "refine"                   : false,
+                    "transfer"                 : false,
+                    "reference_element_type"   : "TwoStepUpdatedLagrangianVPFluidElement2D",
+                    "reference_condition_type" : "CompositeCondition2D2N"
+                },
+                "spatial_bounding_box"      : {
+                    "use_bounding_box" : false,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1000.0,
+                    "upper_point"      : [10,10,10],
+                    "lower_point"      : [-10,-10,-10]
+                },
+                "spatial_refining_box_list" : [{
+                    "use_refining_box"    : false,
+                    "transition_elements" : 4,
+                    "initial_time"        : 0.0,
+                    "final_time"          : 1000.0,
+                    "upper_point"         : [10,10,10],
+                    "lower_point"         : [-10,-10,-10]
+                }]
+            }]
+        }
+    }],
+    "processes"            : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "PfemFluidModelPart.VELOCITY_Velocity_Auto1",
+                "variable_name"   : "VELOCITY",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        }],
+        "loads_process_list" : [],
+        "auxiliar_process_list" : [],
+        "json_check_process_list" : []
+    },
+    "output_processes" : {
+        "gid_output" : []
+    }
+}

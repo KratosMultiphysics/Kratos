@@ -1,9 +1,6 @@
 # Import Kratos
 import KratosMultiphysics
 
-# Import CPP tests
-import run_cpp_unit_tests
-
 # Import kratos_utilities
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 has_CL_application = kratos_utilities.CheckIfApplicationsAvailable("ConstitutiveLawsApplication")
@@ -72,7 +69,7 @@ from SmallTests import TwoDSimplestWithFrictionPatchMatchingTestContact   as TTw
 from SmallTests import ThreeDSimplestPatchMatchingTestContact             as TThreeDSimplestPatchMatchingTestContact
 from SmallTests import ThreeDSimplestWithFrictionPatchMatchingTestContact as TThreeDSimplestWithFrictionPatchMatchingTestContact
 
-## NIGTHLY TESTS
+## NIGHTLY TESTS
 # Mesh tying tests
 from NightlyTests import SimplestPatchTestThreeDTriQuadMeshTying as TSimplestPatchTestThreeDTriQuadMeshTying
 from NightlyTests import SimplestPatchTestThreeDQuadTriMeshTying as TSimplestPatchTestThreeDQuadTriMeshTying
@@ -178,8 +175,8 @@ from ValidationTests import ALMBlockTestFrictionalContact                       
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
-    Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
+    Populates the test suites to run. At least, it should populate the suites:
+    "small", "nightly" and "all"
 
     Return
     ------
@@ -338,7 +335,7 @@ def AssembleTestSuites():
 
         ### BEGIN VALIDATION SUITE ###
 
-        # For very long tests that should not be in nighly and you can use to validate
+        # For very long tests that should not be in nightly and you can use to validate
         validationSuite = suites['validation']
         validationSuite.addTests(nightlySuite)
 
@@ -490,9 +487,9 @@ def AssembleTestSuites():
               TThreeDSimplestPatchMatchingSlopeTestContact,
               TThreeDPatchMatchingTestContact,
               TThreeDPatchNotMatchingTestContact,
-              #### NIGTHLY
+              #### NIGHTLY
               TALMTaylorPatchTestContact,
-              #####TALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
+              #####TALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memory error, correct it)
               TALMHertzSimpleSphereTestContact,
               TComponentsALMTaylorPatchTestContact,
               TALMPureFrictionalTestContact,
@@ -507,7 +504,7 @@ def AssembleTestSuites():
               TBeamContactWithFrictionTest,
               TPlateTest,  # TODO: Fix this
               ### VALIDATION
-              #####TComponentsALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
+              #####TComponentsALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memory error, correct it)
               TALMHertzSimpleTestContact,
               TALMHertzCompleteTestContact,
               TALMBeamsTestContact,
@@ -546,10 +543,6 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    run_cpp_unit_tests.run()
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
-
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

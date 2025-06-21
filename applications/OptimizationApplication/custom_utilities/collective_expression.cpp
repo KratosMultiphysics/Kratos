@@ -45,6 +45,17 @@ CollectiveExpression::CollectiveExpression(const CollectiveExpression& rOther)
     }
 }
 
+CollectiveExpression& CollectiveExpression::operator=(const CollectiveExpression& rOther)
+{
+    mExpressionPointersList.clear();
+    for (const auto& r_container_variable_data_holder : rOther.mExpressionPointersList) {
+        std::visit([this](const auto& v) {
+            mExpressionPointersList.push_back(v);
+        }, r_container_variable_data_holder);
+    }
+    return *this;
+}
+
 CollectiveExpression CollectiveExpression::Clone()  const
 {
     CollectiveExpression result;
@@ -132,66 +143,12 @@ std::string CollectiveExpression::Info() const
     return msg.str();
 }
 
-CollectiveExpression Scale(
-    const CollectiveExpression& rLeft,
-    const CollectiveExpression& rRight)
-{
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF_NOT(rLeft.IsCompatibleWith(rRight))
-        << "Unsupported collective variable data holders provided for "
-           "\"Scale\"."
-        << "\nLeft operand : " << rLeft << "\nRight operand: " << rRight << std::endl;
-
-    CollectiveExpression result = rLeft;
-    auto r_list_of_container_expressions = result.GetContainerExpressions();
-    const auto& r_right_container_expressions = rRight.GetContainerExpressions();
-    for (IndexType i = 0; i < r_list_of_container_expressions.size(); ++i) {
-        std::visit(
-            [&r_right_container_expressions, i](auto& pResult) {
-                auto p_right = std::get<std::decay_t<decltype(pResult)>>(
-                    r_right_container_expressions[i]);
-                pResult->SetExpression(Kratos::Scale(
-                    pResult->pGetExpression(), p_right->pGetExpression()));
-            },
-            r_list_of_container_expressions[i]);
-    }
-    return result;
-
-    KRATOS_CATCH("");
-}
-
-CollectiveExpression& CollectiveExpression::Scale(const CollectiveExpression& rOther)
-{
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF_NOT(IsCompatibleWith(rOther))
-        << "Unsupported collective variable data holders provided for "
-           "\"Scale\"."
-        << "\nLeft operand : " << *this << "\nRight operand: " << rOther << std::endl;
-
-    const auto& r_right_container_expressions = rOther.GetContainerExpressions();
-    for (IndexType i = 0; i < mExpressionPointersList.size(); ++i) {
-        std::visit(
-            [&r_right_container_expressions, i](auto& pContainerExpression) {
-                auto p_right = std::get<std::decay_t<decltype(pContainerExpression)>>(
-                    r_right_container_expressions[i]);
-                pContainerExpression->SetExpression(Kratos::Scale(
-                    pContainerExpression->pGetExpression(), p_right->pGetExpression()));
-            },
-            mExpressionPointersList[i]);
-    }
-    return *this;
-
-    KRATOS_CATCH("");
-}
-
 #define KRATOS_DEFINE_BINARY_COLLECTIVE_EXPRESSION_OPERATOR(OPERATOR_NAME)                    \
     CollectiveExpression OPERATOR_NAME(const CollectiveExpression& rLeft, const double Right) \
     {                                                                                         \
         KRATOS_TRY                                                                            \
                                                                                               \
-        CollectiveExpression result = rLeft;                                                  \
+        auto result = rLeft;                                                                  \
         auto r_list_of_container_expressions = result.GetContainerExpressions();              \
         for (IndexType i = 0; i < r_list_of_container_expressions.size(); ++i) {              \
             std::visit(                                                                       \
@@ -209,7 +166,7 @@ CollectiveExpression& CollectiveExpression::Scale(const CollectiveExpression& rO
     {                                                                                         \
         KRATOS_TRY                                                                            \
                                                                                               \
-        CollectiveExpression result = rRight;                                                 \
+        auto result = rRight;                                                                 \
         auto r_list_of_container_expressions = result.GetContainerExpressions();              \
         for (IndexType i = 0; i < r_list_of_container_expressions.size(); ++i) {              \
             std::visit(                                                                       \
@@ -235,7 +192,7 @@ CollectiveExpression& CollectiveExpression::Scale(const CollectiveExpression& rO
             << "\nLeft operand : " << rLeft << "\nRight operand: " << rRight                  \
             << std::endl;                                                                     \
                                                                                               \
-        CollectiveExpression result = rLeft;                                                  \
+        auto result = rLeft;                                                                  \
         auto r_list_of_container_expressions = result.GetContainerExpressions();              \
         const auto& r_right_container_expressions = rRight.GetContainerExpressions();         \
         for (IndexType i = 0; i < r_list_of_container_expressions.size(); ++i) {              \
@@ -306,13 +263,11 @@ KRATOS_DEFINE_BINARY_COLLECTIVE_EXPRESSION_OPERATOR(operator+)
 KRATOS_DEFINE_BINARY_COLLECTIVE_EXPRESSION_OPERATOR(operator-)
 KRATOS_DEFINE_BINARY_COLLECTIVE_EXPRESSION_OPERATOR(operator*)
 KRATOS_DEFINE_BINARY_COLLECTIVE_EXPRESSION_OPERATOR(operator/)
-KRATOS_DEFINE_BINARY_COLLECTIVE_EXPRESSION_OPERATOR(Power)
 
 KRATOS_DEFINE_UNARY_COLLECTIVE_EXPRESSION_OPERATOR(operator+=, operator+)
 KRATOS_DEFINE_UNARY_COLLECTIVE_EXPRESSION_OPERATOR(operator-=, operator-)
 KRATOS_DEFINE_UNARY_COLLECTIVE_EXPRESSION_OPERATOR(operator*=, operator*)
 KRATOS_DEFINE_UNARY_COLLECTIVE_EXPRESSION_OPERATOR(operator/=, operator/)
-KRATOS_DEFINE_UNARY_COLLECTIVE_EXPRESSION_OPERATOR(Power, Kratos::Power)
 
 #undef KRATOS_DEFINE_BINARY_COLLECTIVE_EXPRESSION_OPERATOR
 #undef KRATOS_DEFINE_UNARY_COLLECTIVE_EXPRESSION_OPERATOR

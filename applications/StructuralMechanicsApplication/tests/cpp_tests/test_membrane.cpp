@@ -11,9 +11,9 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 
-#include "custom_elements/membrane_element.hpp"
+#include "custom_elements/membrane_elements/membrane_element.hpp"
 
 namespace Kratos
 {

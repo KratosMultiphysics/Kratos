@@ -103,7 +103,7 @@ inline std::ostream& operator<<(std::ostream &os, CUresult rc) {
         VEXCL_CUDA_ERR2TXT(CUDA_ERROR_NOT_SUPPORTED);
         VEXCL_CUDA_ERR2TXT(CUDA_ERROR_UNKNOWN);
         default:
-            os << "Unknown error";
+            os << "Unknown error " << static_cast<int>(rc);
     }
 #undef VEXCL_CUDA_ERR2TXT
     return os << ")";

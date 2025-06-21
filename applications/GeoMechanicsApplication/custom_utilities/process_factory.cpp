@@ -21,10 +21,8 @@ ProcessFactory::ProductType ProcessFactory::Create(const std::string& rProcessCl
                                                    const Parameters&  rProcessSettings) const
 {
     auto pos = mCreatorMap.find(rProcessClassName);
-    if (pos == mCreatorMap.end())
-    {
-        if (mCallBackIfProcessIsUnknown != nullptr)
-        {
+    if (pos == mCreatorMap.end()) {
+        if (mCallBackIfProcessIsUnknown != nullptr) {
             mCallBackIfProcessIsUnknown(rProcessClassName);
         }
 
@@ -45,4 +43,4 @@ void ProcessFactory::SetCallBackWhenProcessIsUnknown(const std::function<void(co
     mCallBackIfProcessIsUnknown = function;
 }
 
-}
+} // namespace Kratos

@@ -33,6 +33,24 @@ namespace HDF5
 namespace Internals
 {
 
+/**
+ * @brief This enum is used to indicate whether a given variable in a list of entities are always available,
+ *        always not available, or not sure about the availability.
+ *          The entity containers which this will be used are:
+ *              Nodes, Conditions, Elements
+ *
+ *        CONSISTENTLY_AVAILABLE: This refers the given variable is available in all of the entities. (Eg. Nodal solution step variable, or nodal data value container variable
+ *                                 having all the nodes the same variable)
+ *        CONSISTENTLY_UNAVAILABLE: This refers non of the entities has the given variable. (Eg. nodal data value container variable, where non of the nodes has the variable)
+ *        INCONCLUSIVE: This refers some of the entities has the value defined, but not all.
+ */
+enum DataAvailabilityStatesList
+{
+    CONSISTENTLY_AVAILABLE = 0,
+    CONSISTENTLY_UNAVAILABLE  = 1,
+    INCONCLUSIVE = 2
+};
+
 class FlagIO
 {
 public:
@@ -43,7 +61,9 @@ public:
     using TLSType = char;
 
     template<class TDataType>
-    using ComponentDataType = char;
+    using ComponentType = char;
+
+    constexpr static DataAvailabilityStatesList DataAvailability = DataAvailabilityStatesList::INCONCLUSIVE;
 
     ///@}
     ///@name Public operations
@@ -67,6 +87,14 @@ public:
         rEntity.Set(rFlag, static_cast<bool>(rValue));
     }
 
+    template<class TEntityType>
+    inline bool HasValue(
+        const TEntityType& rEntity,
+        const Flags& rFlag) const
+    {
+        return rEntity.IsDefined(rFlag);
+    }
+
     ///@}
 };
 
@@ -80,7 +108,9 @@ public:
     using TLSType = char;
 
     template<class TDataType>
-    using ComponentDataType = TDataType;
+    using ComponentType = TDataType;
+
+    constexpr static DataAvailabilityStatesList DataAvailability = DataAvailabilityStatesList::CONSISTENTLY_AVAILABLE;
 
     ///@}
     ///@name Life cycle
@@ -94,7 +124,7 @@ public:
 
     template<class TDataType>
     inline const TDataType& GetValue(
-        const ModelPart::NodeType& rNode,
+        const Node& rNode,
         const Variable<TDataType>& rVariable,
         char& rTLS) const
     {
@@ -103,11 +133,19 @@ public:
 
     template<class TDataType>
     inline void SetValue(
-        ModelPart::NodeType& rNode,
+        Node& rNode,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue) const
     {
         rNode.FastGetSolutionStepValue(rVariable, mStepIndex) = rValue;
+    }
+
+    template<class TDataType>
+    inline bool HasValue(
+        const Node& rNode,
+        const Variable<TDataType>& rVariable) const
+    {
+        return rNode.SolutionStepsDataHas(rVariable);
     }
 
     ///@}
@@ -131,7 +169,9 @@ public:
     using TLSType = char;
 
     template<class TDataType>
-    using ComponentDataType = TDataType;
+    using ComponentType = TDataType;
+
+    constexpr static DataAvailabilityStatesList DataAvailability = DataAvailabilityStatesList::INCONCLUSIVE;
 
     ///@}
     ///@name Public operations
@@ -155,6 +195,14 @@ public:
         rEntity.SetValue(rVariable, rValue);
     }
 
+    template<class TEntityType, class TDataType>
+    inline bool HasValue(
+        const TEntityType& rEntity,
+        const Variable<TDataType>& rVariable) const
+    {
+        return rEntity.Has(rVariable);
+    }
+
     ///@}
 };
 
@@ -168,7 +216,9 @@ public:
     using TLSType = char;
 
     template<class TDataType>
-    using ComponentDataType = TDataType;
+    using ComponentType = TDataType;
+
+    constexpr static DataAvailabilityStatesList DataAvailability = DataAvailabilityStatesList::CONSISTENTLY_AVAILABLE;
 
     ///@}
     ///@name Life cycle
@@ -182,7 +232,7 @@ public:
 
     template<class TDataType>
     inline TDataType GetValue(
-        const ModelPart::NodeType& rNode,
+        const Node& rNode,
         const Variable<TDataType>& rVariable,
         char& rTLS) const
     {
@@ -195,11 +245,19 @@ public:
 
     template<class TDataType>
     inline void SetValue(
-        ModelPart::NodeType& rNode,
+        Node& rNode,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue) const
     {
         rNode.FastGetSolutionStepValue(rVariable) =  rValue;
+    }
+
+    template<class TDataType>
+    inline bool HasValue(
+        const Node& rNode,
+        const Variable<TDataType>& rVariable) const
+    {
+        return rNode.SolutionStepsDataHas(rVariable);
     }
 
     ///@}
@@ -223,7 +281,9 @@ public:
     using TLSType = char;
 
     template<class TDataType>
-    using ComponentDataType = TDataType;
+    using ComponentType = TDataType;
+
+    constexpr static DataAvailabilityStatesList DataAvailability = DataAvailabilityStatesList::CONSISTENTLY_UNAVAILABLE ;
 
     ///@}
     ///@name Life cycle
@@ -274,7 +334,9 @@ public:
     using TLSType = char;
 
     template<class TDataType>
-    using ComponentDataType = TDataType;
+    using ComponentType = TDataType;
+
+    constexpr static DataAvailabilityStatesList DataAvailability = DataAvailabilityStatesList::CONSISTENTLY_UNAVAILABLE ;
 
     ///@}
     ///@name Public operations
@@ -309,7 +371,7 @@ private:
     ///@}
 };
 
-class GaussPointValueIO
+class GaussPointIO
 {
 public:
     ///@name Calss definitions
@@ -325,60 +387,53 @@ public:
     ///@name Type definitions
     ///@{
 
-
     template<class TDataType>
     using TLSType = TLSStruct<TDataType>;
 
     template<class TDataType>
-    using ComponentDataType = Vector<typename DataTypeTraits<TDataType>::PrimitiveType>;
+    using ComponentType = Vector<typename DataTypeTraits<TDataType>::PrimitiveType>;
+
+    constexpr static DataAvailabilityStatesList DataAvailability = DataAvailabilityStatesList::CONSISTENTLY_UNAVAILABLE ;
 
     ///@}
     ///@name Life cycle
     ///@{
 
-    GaussPointValueIO(const ProcessInfo& rProcessInfo) : mrProcessInfo(rProcessInfo) {}
+    GaussPointIO(const ProcessInfo& rProcessInfo) : mrProcessInfo(rProcessInfo) {}
 
     ///@}
     ///@name Public operations
     ///@{
 
     template<class TEntityType, class TDataType>
-    inline const ComponentDataType<TDataType>& GetValue(
+    inline const ComponentType<TDataType>& GetValue(
         const TEntityType& rEntity,
         const Variable<TDataType>& rVariable,
         TLSType<TDataType>& rTLS) const
     {
-        // Since the array_1d<double, 4> and array_1d<double 9> interfaces are not present in
-        // elements and conditions.
-        if constexpr(!std::is_same_v<TDataType, array_1d<double, 4>> && !std::is_same_v<TDataType, array_1d<double, 9>>) {
+        using list_traits = DataTypeTraits<std::vector<TDataType>>;
 
-            using list_traits = DataTypeTraits<std::vector<TDataType>>;
+        using vector_traits = DataTypeTraits<Vector<typename list_traits::PrimitiveType>>;
 
-            using vector_traits = DataTypeTraits<Vector<typename list_traits::PrimitiveType>>;
+        const_cast<TEntityType&>(rEntity).CalculateOnIntegrationPoints(rVariable, rTLS.mList, mrProcessInfo);
 
-            const_cast<TEntityType&>(rEntity).CalculateOnIntegrationPoints(rVariable, rTLS.mList, mrProcessInfo);
-
-            const auto size = list_traits::Size(rTLS.mList);
-            if (rTLS.mVector.size() != size) {
-                rTLS.mVector.resize(size, false);
-            }
-
-            list_traits::CopyToContiguousData(vector_traits::GetContiguousData(rTLS.mVector), rTLS.mList);
-
-            return rTLS.mVector;
-        } else {
-            KRATOS_ERROR << "The gauss point interface in elements/conditions for Variable<array_1d<double, 4>> and Variable<array_1d<double, 9>> are not defined.";
-            return rTLS.mVector;
+        const auto size = list_traits::Size(rTLS.mList);
+        if (rTLS.mVector.size() != size) {
+            rTLS.mVector.resize(size, false);
         }
+
+        list_traits::CopyToContiguousData(vector_traits::GetContiguousData(rTLS.mVector), rTLS.mList);
+
+        return rTLS.mVector;
     }
 
     template<class TEntityType, class TDataType>
     inline void SetValue(
         TEntityType& rEntity,
         const Variable<TDataType>& rVariable,
-        const ComponentDataType<TDataType>& rValue) const
+        const ComponentType<TDataType>& rValue) const
     {
-        KRATOS_ERROR << "GaussPointValueIO does not support setting values from vertices";
+        KRATOS_ERROR << "GaussPointIO does not support setting values from vertices";
     }
 
     ///@}
@@ -427,7 +482,7 @@ public:
     ///@}
 };
 
-class VerticesIO
+class VertexIO
 {
 public:
     ///@name Type definitions
@@ -455,14 +510,14 @@ public:
         const IndexType Id,
         const array_1d<double, 3>& rCoordinates) const
     {
-        KRATOS_ERROR << "Reading vertices are not allowed.";
+        KRATOS_ERROR << "Reading vertices is not allowed.";
     }
 
     ///@}
 };
 
 template<class TContainerIOType>
-std::string GetContainerIOType()
+std::string GetContainerIOName()
 {
     if constexpr(std::is_same_v<TContainerIOType, HistoricalIO>) {
         return "HISTORICAL";
@@ -476,7 +531,7 @@ std::string GetContainerIOType()
         return "INTERPOLATED_HISTORICAL";
     } else if constexpr(std::is_same_v<TContainerIOType, VertexNonHistoricalValueIO>) {
         return "INTERPOLATED_NONHISTORICAL";
-    } else if constexpr(std::is_same_v<TContainerIOType, GaussPointValueIO>) {
+    } else if constexpr(std::is_same_v<TContainerIOType, GaussPointIO>) {
         return "GAUSS_POINT";
     } else {
         static_assert(!std::is_same_v<TContainerIOType, TContainerIOType>, "Unsupported container io type.");
@@ -484,7 +539,7 @@ std::string GetContainerIOType()
 }
 
 template<class TContainerType>
-std::string GetContainerType()
+std::string GetContainerName()
 {
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
         return "NODES";
@@ -494,6 +549,8 @@ std::string GetContainerType()
         return "ELEMENTS";
     } else if constexpr(std::is_same_v<TContainerType, Detail::VertexContainerType>) {
         return "VERTICES";
+    } else if constexpr(std::is_same_v<TContainerType, ModelPart::PropertiesContainerType>){
+        return "PROPERTIES";
     } else {
         static_assert(!std::is_same_v<TContainerType, TContainerType>, "Unsupported container type.");
     }
@@ -528,17 +585,20 @@ const auto& GetLocalContainer(const ModelPart& rModelPart)
 }
 
 template<class TContainerType, class TComponentType, class TContainerDataIO, class TDataType>
-void CopyToContiguousDataArray(
+void CopyToContiguousArray(
     const TContainerType& rContainer,
     const TComponentType& rComponent,
     const TContainerDataIO& rContainerDataIO,
-    TDataType* pBegin)
+    TDataType* pBegin,
+    const IndexType Size,
+    const IndexType Stride,
+    const Vector<bool>& rAvailability)
 {
     KRATOS_TRY
 
-    using component_data_type = typename Internals::template ComponentTraits<TComponentType>::ValueType;
+    using component_type = typename Internals::template ComponentTraits<TComponentType>::ValueType;
 
-    using value_type = typename TContainerDataIO::template ComponentDataType<component_data_type>;
+    using value_type = typename TContainerDataIO::template ComponentType<component_type>;
 
     using value_type_traits = DataTypeTraits<value_type>;
 
@@ -549,18 +609,42 @@ void CopyToContiguousDataArray(
         return;
     }
 
-    // get the first item for sizing.
-    typename TContainerDataIO::template TLSType<component_data_type> tls;
-    const auto& initial_value = rContainerDataIO.GetValue(rContainer.front(), rComponent, tls);
+    // size check when the rAvailability is used.
+    if constexpr(TContainerDataIO::DataAvailability == Internals::DataAvailabilityStatesList::INCONCLUSIVE) {
+        KRATOS_ERROR_IF_NOT(rAvailability.size() == rContainer.size())
+            << "The container size and the component availability size mismatch [ rContainer.size() = "
+            << rContainer.size() << ", availability vector size = " << rAvailability.size() << " ].\n";
+    }
 
-    // get the stride from the first element to support dynamic types.
-    const auto stride = value_type_traits::Size(initial_value);
+    KRATOS_ERROR_IF_NOT(Size == rContainer.size() * Stride)
+        << "The contiguous array size mismatch with data in the container [ "
+        << "Contiguous array size = " << Size << ", number of entities = "
+        << rContainer.size() << ", data stride = " << Stride << " ].";
 
-    IndexPartition<unsigned int>(rContainer.size()).for_each(tls, [&rContainer, &rComponent, &rContainerDataIO, pBegin, stride](const auto Index, auto& rTLS) {
-        const auto& value = rContainerDataIO.GetValue(*(rContainer.begin() + Index), rComponent, rTLS);
-        TDataType const* p_value_begin = value_type_traits::GetContiguousData(value);
-        auto p_array_start = pBegin + Index * stride;
-        std::copy(p_value_begin, p_value_begin + stride, p_array_start);
+    typename TContainerDataIO::template TLSType<component_type> tls{};
+    IndexPartition<unsigned int>(rContainer.size()).for_each(tls, [&rAvailability, &rContainer, &rComponent, &rContainerDataIO, pBegin, Stride](const auto Index, auto& rTLS) {
+        (void)(&rAvailability); // <== suppress unused capture errors (GCC disregards uses where constexpr if conditions do not apply)
+        TDataType const* p_value_begin;
+        if constexpr(TContainerDataIO::DataAvailability == Internals::DataAvailabilityStatesList::INCONCLUSIVE) {
+            auto p_subrange_begin = pBegin + Index * Stride;
+
+            if (rAvailability[Index]) {
+                // the component is available in the entity. Then get the value.
+                const auto& value = rContainerDataIO.GetValue(*(rContainer.begin() + Index), rComponent, rTLS);
+                p_value_begin = value_type_traits::GetContiguousData(value);
+                std::copy(p_value_begin, p_value_begin + Stride, p_subrange_begin);
+            } else {
+                // the component is not available. Put the default values of the primitive data type
+                std::fill_n(p_subrange_begin, Stride, TDataType{});
+            }
+
+        } else {
+            // the component is always available in the entity or it is always computed even if it is not available. Then get the value.
+            const auto& value = rContainerDataIO.GetValue(*(rContainer.begin() + Index), rComponent, rTLS);
+            p_value_begin = value_type_traits::GetContiguousData(value);
+            auto p_subrange_begin = pBegin + Index * Stride;
+            std::copy(p_value_begin, p_value_begin + Stride, p_subrange_begin);
+        }
     });
 
     KRATOS_CATCH("");
@@ -572,11 +656,12 @@ void CopyFromContiguousDataArray(
     const TComponentType& rComponent,
     const TContainerDataIO& rContainerDataIO,
     TDataType const* pBegin,
-    const std::vector<unsigned int>& rShape)
+    const std::vector<unsigned int>& rShape,
+    const Vector<bool>& rAvailability)
 {
     KRATOS_TRY
 
-    using value_type = typename TContainerDataIO::template ComponentDataType<typename Internals::template ComponentTraits<TComponentType>::ValueType>;
+    using value_type = typename TContainerDataIO::template ComponentType<typename Internals::template ComponentTraits<TComponentType>::ValueType>;
 
     using value_type_traits = DataTypeTraits<value_type>;
 
@@ -592,11 +677,30 @@ void CopyFromContiguousDataArray(
 
     const auto stride = value_type_traits::Size(tls_prototype);
 
-    IndexPartition<unsigned int>(rContainer.size()).for_each(tls_prototype, [&rContainer, &rComponent, &rContainerDataIO, pBegin, stride](const auto Index, auto& rTLS) {
-        TDataType * p_value_begin = value_type_traits::GetContiguousData(rTLS);
-        TDataType const * p_array_start = pBegin + Index * stride;
-        std::copy(p_array_start, p_array_start + stride, p_value_begin);
-        rContainerDataIO.SetValue(*(rContainer.begin() + Index), rComponent, rTLS);
+    IndexPartition<unsigned int>(rContainer.size()).for_each(tls_prototype, [&rAvailability, &rContainer, &rComponent, &rContainerDataIO, pBegin, stride](const auto Index, auto& rTLS) {
+        // <== suppress unused capture errors (GCC disregards uses where constexpr if conditions do not apply)
+        (void)(&rAvailability);
+        (void)(&rContainer);
+        (void)(&rComponent);
+        (void)(&rContainerDataIO);
+        (void)(&pBegin);
+        (void)(&stride);
+
+        if constexpr(TContainerDataIO::DataAvailability == Internals::DataAvailabilityStatesList::INCONCLUSIVE) {
+            if (rAvailability[Index]) {
+                TDataType * p_value_begin = value_type_traits::GetContiguousData(rTLS);
+                TDataType const * p_subrange_begin = pBegin + Index * stride;
+                std::copy(p_subrange_begin, p_subrange_begin + stride, p_value_begin);
+                rContainerDataIO.SetValue(*(rContainer.begin() + Index), rComponent, rTLS);
+            }
+        } else if constexpr(TContainerDataIO::DataAvailability == Internals::DataAvailabilityStatesList::CONSISTENTLY_AVAILABLE) {
+            TDataType * p_value_begin = value_type_traits::GetContiguousData(rTLS);
+            TDataType const * p_subrange_begin = pBegin + Index * stride;
+            std::copy(p_subrange_begin, p_subrange_begin + stride, p_value_begin);
+            rContainerDataIO.SetValue(*(rContainer.begin() + Index), rComponent, rTLS);
+        } else {
+            // do nothing
+        }
     });
 
     KRATOS_CATCH("");

@@ -322,9 +322,9 @@ public:
 
     /**
      * @brief Get the Default Settings object
-     * This method returns the default parameters for this proces.
+     * This method returns the default parameters for this process.
      * Note that it is required to be static since it is called during
-     * the construction of the object so no instantation exists yet.
+     * the construction of the object so no instantiation exists yet.
      * @return Parameters Default parameters json string
      */
     static Parameters StaticGetDefaultParameters()

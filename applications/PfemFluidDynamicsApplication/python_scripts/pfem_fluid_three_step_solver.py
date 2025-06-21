@@ -111,13 +111,16 @@ class PfemFluidThreeStepSolver(BaseSolver.PfemFluidSolver):
                                                                 self.settings["time_order"].GetInt(),
                                                                 self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
 
-        echo_level = self.settings["echo_level"].GetInt()
 
         # Set echo_level
+        echo_level = self.settings["echo_level"].GetInt()
         self.fluid_solver.SetEchoLevel(echo_level)
 
+        # Self initialize strategy
+        self.fluid_solver.Initialize()
+
         # Check if everything is assigned correctly
-        self.fluid_solver.Check()
+        self.fluid_solver.Check() #TODO: This must be done in the Check function
 
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)

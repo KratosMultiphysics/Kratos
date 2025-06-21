@@ -12,11 +12,15 @@
 
 #pragma once
 
+// System includes
 #include <string>
 #include <vector>
 #include <type_traits>
+
+// External includes
 #include "mpi.h"
 
+// Project includes
 #include "containers/array_1d.h"
 #include "containers/flags.h"
 #include "utilities/data_type_traits.h"
@@ -81,6 +85,46 @@ template<> struct MPIDataType<int64_t>
     static inline MPI_Datatype DataType()
     {
         return MPI_INT64_T;
+    }
+};
+
+template<> struct MPIDataType<std::pair<char, int>>
+{
+    static inline MPI_Datatype DataType()
+    {
+        return MPI_2INT;
+    }
+};
+
+template<> struct MPIDataType<std::pair<int, int>>
+{
+    static inline MPI_Datatype DataType()
+    {
+        return MPI_2INT;
+    }
+};
+
+template<> struct MPIDataType<std::pair<unsigned int, int>>
+{
+    static inline MPI_Datatype DataType()
+    {
+        return MPI_2INT;
+    }
+};
+
+template<> struct MPIDataType<std::pair<long unsigned int, int>>
+{
+    static inline MPI_Datatype DataType()
+    {
+        return MPI_LONG_INT;
+    }
+};
+
+template<> struct MPIDataType<std::pair<double, int>>
+{
+    static inline MPI_Datatype DataType()
+    {
+        return MPI_DOUBLE_INT;
     }
 };
 

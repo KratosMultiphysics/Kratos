@@ -31,6 +31,7 @@
 #include "custom_io/hdf5_data_value_container_io.h"
 #include "custom_io/hdf5_vertex_container_io.h"
 #include "custom_io/hdf5_container_component_io.h"
+#include "custom_io/hdf5_properties_io.h"
 
 #include "custom_utilities/container_io_utils.h"
 
@@ -309,7 +310,7 @@ void AddCustomIOToPython(pybind11::module& m)
     AddContainerComponentIOToPython<FlagContainerComponentIOWrapper<ModelPart::NodesContainerType>>(m, "HDF5NodalFlagValueIO");
     AddContainerComponentIOToPython<VariableContainerComponentIOWrapper<ModelPart::NodesContainerType, HDF5::Internals::NonHistoricalIO>>(m, "HDF5NodalDataValueIO");
 
-    using element_gauss_io = VariableContainerComponentIOWrapper<ModelPart::ElementsContainerType, HDF5::Internals::GaussPointValueIO>::ContainerIOType;
+    using element_gauss_io = VariableContainerComponentIOWrapper<ModelPart::ElementsContainerType, HDF5::Internals::GaussPointIO>::ContainerIOType;
     py::class_<element_gauss_io, element_gauss_io::Pointer>(m,"HDF5ElementGaussPointIO")
         // TODO: Remove th below custom init, and use the one without suffix.
         .def(py::init([](Parameters Settings, HDF5::File::Pointer pFile) {
@@ -317,20 +318,20 @@ void AddCustomIOToPython(pybind11::module& m)
         }))
         // .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("Write", [](element_gauss_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes) {
-                rSelf.Write(rModelPart, HDF5::Internals::GaussPointValueIO(rModelPart.GetProcessInfo()), Attributes);
+                rSelf.Write(rModelPart, HDF5::Internals::GaussPointIO(rModelPart.GetProcessInfo()), Attributes);
             },
             py::arg("model_part"),
             py::arg("attributes") = Parameters("""{}"""))
         .def("WriteElementGaussPointValues", [](element_gauss_io& rSelf, const ModelPart::ElementsContainerType& rContainer, const DataCommunicator& rDataCommunicator, const ProcessInfo& rProcessInfo) {
                 KRATOS_WARNING("DEPRECATION") << "Using deprecated \"WriteElementGaussPointValues\" method in \"HDF5ElementGaussPointIO\". Please use \"Write\" method instead.\n";
-                rSelf.Write(rContainer, HDF5::Internals::GaussPointValueIO(rProcessInfo), Parameters("""{}"""));
+                rSelf.Write(rContainer, HDF5::Internals::GaussPointIO(rProcessInfo), Parameters("""{}"""));
             },
             py::arg("elements"),
             py::arg("data_communicator"),
             py::arg("process_info"))
         ;
 
-    using condition_gauss_io = VariableContainerComponentIOWrapper<ModelPart::ConditionsContainerType, HDF5::Internals::GaussPointValueIO>::ContainerIOType;
+    using condition_gauss_io = VariableContainerComponentIOWrapper<ModelPart::ConditionsContainerType, HDF5::Internals::GaussPointIO>::ContainerIOType;
     py::class_<condition_gauss_io, condition_gauss_io::Pointer>(m,"HDF5ConditionGaussPointIO")
         // TODO: Remove th below custom init, and use the one without suffix.
         .def(py::init([](Parameters Settings, HDF5::File::Pointer pFile) {
@@ -338,13 +339,13 @@ void AddCustomIOToPython(pybind11::module& m)
         }))
         // .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("Write", [](condition_gauss_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes) {
-                rSelf.Write(rModelPart, HDF5::Internals::GaussPointValueIO(rModelPart.GetProcessInfo()), Attributes);
+                rSelf.Write(rModelPart, HDF5::Internals::GaussPointIO(rModelPart.GetProcessInfo()), Attributes);
             },
             py::arg("model_part"),
             py::arg("attributes") = Parameters("""{}"""))
         .def("WriteConditionGaussPointValues", [](condition_gauss_io& rSelf, const ModelPart::ConditionsContainerType& rContainer, const DataCommunicator& rDataCommunicator, const ProcessInfo& rProcessInfo) {
                 KRATOS_WARNING("DEPRECATION") << "Using deprecated \"WriteConditionGaussPointValues\" method in \"HDF5ConditionGaussPointIO\". Please use \"Write\" method instead.\n";
-                rSelf.Write(rContainer, HDF5::Internals::GaussPointValueIO(rProcessInfo), Parameters("""{}"""));
+                rSelf.Write(rContainer, HDF5::Internals::GaussPointIO(rProcessInfo), Parameters("""{}"""));
             },
             py::arg("conditions"),
             py::arg("data_communicator"),
@@ -377,11 +378,17 @@ void AddCustomIOToPython(pybind11::module& m)
             py::arg("attributes") = Parameters("""{}"""))
         ;
 
+    auto hdf5_properties_io = m.def_submodule("HDF5PropertiesIO");
+    hdf5_properties_io.def("Read", &HDF5::Internals::ReadProperties, py::arg("hdf5_file"), py::arg("prefix"), py::arg("list_of_properties"));
+    hdf5_properties_io.def("Write", &HDF5::Internals::WriteProperties, py::arg("hdf5_file"), py::arg("prefix"), py::arg("list_of_properties"));
+
 #ifdef KRATOS_USING_MPI
     py::class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, HDF5::ModelPartIO>(m,"HDF5PartitionedModelPartIO")
         .def(py::init([](HDF5::File::Pointer pFile, const std::string& rPrefix) {
                 KRATOS_WARNING("DEPRECATION") << "Using deprecated constructor in \"HDF5::PartitionedModelPartIO\". Please use (Parameters, HDF5File) constructor.\n";
-                return Kratos::make_shared<HDF5::PartitionedModelPartIO>(rPrefix, pFile);
+                auto parameters = Parameters(R"({"prefix": ""})");
+                parameters["prefix"].SetString(rPrefix);
+                return Kratos::make_shared<HDF5::PartitionedModelPartIO>(parameters, pFile);
             }), py::arg("prefix"), py::arg("hdf5_file"))
         .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         ;

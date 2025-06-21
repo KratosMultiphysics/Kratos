@@ -30,7 +30,7 @@
         "reform_dofs_at_each_step":           false,
         "nodal_smoothing":                    false,
         "block_builder":                      true,
-        "solution_type":                      "K0-Procedure",
+        "solution_type":                      "quasi_static",
         "scheme_type":                        "Backward_Euler",
         "reset_displacements":                true,
         "newmark_beta":                       0.25,
@@ -173,14 +173,15 @@
             "table":           [0,0,0]
         }
     }],
-    "auxiliar_process_list": [
+    "auxiliary_process_list": [
       {
         "python_module": "apply_k0_procedure_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name": "ApplyK0ProcedureProcess",
         "Parameters": {
           "model_part_name": "PorousDomain.porous_computational_model_part",
-          "variable_name": "CAUCHY_STRESS_TENSOR"
+          "variable_name": "CAUCHY_STRESS_TENSOR",
+          "use_standard_procedure": false
         }
       }
     ]}

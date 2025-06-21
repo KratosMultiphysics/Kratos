@@ -22,6 +22,7 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
+#include "utilities/string_utilities.h"
 
 namespace Kratos {
 
@@ -65,13 +66,6 @@ static const std::map<GeometryData::KratosGeometryType, med_geometry_type> Krato
 void CheckMEDErrorCode(const int ierr, const std::string& MEDCallName)
 {
     KRATOS_ERROR_IF(ierr < 0) << MEDCallName << " failed with error code " << ierr << "." << std::endl;
-}
-
-// The names in the MED-file often have trailing null-chars, which need to be removed
-// this can otherwise make debugging very tricky
-void RemoveTrailingNullChars(std::string& rInput)
-{
-    rInput.erase(std::find(rInput.begin(), rInput.end(), '\0'), rInput.end());
 }
 
 template<typename T>
@@ -329,8 +323,7 @@ auto GetGroupsByFamily(
         std::vector<std::string> group_names(num_groups);
         // split the goup names
         for (int i = 0; i < num_groups; i++) {
-            group_names[i] = c_group_names.substr(i * MED_LNAME_SIZE, MED_LNAME_SIZE);
-            RemoveTrailingNullChars(group_names[i]);
+            group_names[i] = StringUtilities::Trim(c_group_names.substr(i * MED_LNAME_SIZE, MED_LNAME_SIZE), /*RemoveNullChar=*/true);
         }
 
         groups_by_family[family_number] = std::move(group_names);
@@ -362,6 +355,9 @@ public:
         // read only by default, unless other settings are specified
         med_access_mode open_mode;
 
+        // Fix to allow windows conversion from whatever eldritch format is using to something convertible to c_str()
+        std::string med_file_mame{rFileName.string()};
+
         if (mIsReadMode) {
             open_mode = MED_ACC_RDONLY;
 
@@ -371,7 +367,9 @@ public:
             // basic checks if the file is compatible with the MED library
             med_bool hdf_ok;
             med_bool med_ok;
-            const med_err err = MEDfileCompatibility(rFileName.c_str(), &hdf_ok, &med_ok);
+
+            const med_err err = MEDfileCompatibility(med_file_mame.c_str(), &hdf_ok, &med_ok);
+
             CheckMEDErrorCode(err, "MEDfileCompatibility");
 
             KRATOS_ERROR_IF(err != 0) << "A problem occured while trying to check the compatibility of file " << rFileName << "!" << std::endl;
@@ -382,7 +380,7 @@ public:
             mMeshName = "Kratos_Mesh"; // Maybe could use the name of the ModelPart (this is what is displayed in Salome)
         }
 
-        mFileHandle = MEDfileOpen(rFileName.c_str(), open_mode);
+        mFileHandle = MEDfileOpen(med_file_mame.c_str(), open_mode);
         KRATOS_ERROR_IF(mFileHandle < 0) << "A problem occured while opening file " << rFileName << "!" << std::endl;
 
         if (mIsReadMode) {
@@ -419,7 +417,7 @@ public:
                 axis_unit.data());
             CheckMEDErrorCode(err, "MEDmeshInfo");
 
-            RemoveTrailingNullChars(mMeshName);
+            mMeshName = StringUtilities::Trim(mMeshName, /*RemoveNullChar=*/true);
             mDimension = space_dim;
         }
 

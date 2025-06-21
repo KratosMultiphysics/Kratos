@@ -62,10 +62,6 @@ def run_cpp_unit_tests():
 
 
 if __name__ == '__main__':
-    print("\nRunning cpp unit tests ...")
-    cpp_test_text = run_cpp_unit_tests()
-    print(cpp_test_text)
-    print("Finished running cpp unit tests!")
     print("\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
     print("Finished python tests!")

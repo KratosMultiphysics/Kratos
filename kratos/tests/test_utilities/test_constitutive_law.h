@@ -49,7 +49,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class  TestConstitutiveLaw
+class KRATOS_API(KRATOS_TEST_UTILS) TestConstitutiveLaw
     : public ConstitutiveLaw
 {
 public:

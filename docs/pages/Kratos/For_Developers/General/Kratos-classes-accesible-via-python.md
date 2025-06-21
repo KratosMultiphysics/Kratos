@@ -1,7 +1,7 @@
 ---
-title: Kratos classes accesible via python
+title: Kratos Classes Accesible via Python
 keywords: 
-tags: [Kratos-classes-accesible-via-python.md]
+tags: [Kratos Classes Accesible Python.md]
 sidebar: kratos_for_developers
 summary: 
 ---

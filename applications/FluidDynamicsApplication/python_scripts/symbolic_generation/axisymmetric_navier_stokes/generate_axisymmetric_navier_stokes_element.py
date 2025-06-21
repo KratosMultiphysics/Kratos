@@ -50,7 +50,7 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     ## Other data definitions
     f = DefineMatrix('f',n_nodes,dim)            # Forcing term
 
-    ## Other simbols definition
+    ## Other symbol definitions
     y = sympy.Symbol('y', positive = True)      # y-coordinate (radius)
     h = sympy.Symbol('h', positive = True)      # Element size
     dt  = sympy.Symbol('dt', positive = True)   # Time increment

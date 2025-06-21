@@ -1,0 +1,14 @@
+# Optimization problem ascii output
+# Kratos version: not_given
+# Timestamp     : not_specified
+# -----------------------------------------------
+# ------------ Start of step values -------------
+# Headers:
+#  STEP, damage_response:value
+      0,       2.148297976e-04
+      1,       2.050244371e-04
+      2,       1.955625238e-04
+      3,       1.864375950e-04
+      4,       1.776430946e-04
+      5,       1.691723531e-04
+# End of file

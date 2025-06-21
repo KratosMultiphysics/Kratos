@@ -43,18 +43,6 @@ PartitionedModelPartIO::PartitionedModelPartIO(
     KRATOS_CATCH("");
 }
 
-PartitionedModelPartIO::PartitionedModelPartIO(
-    const std::string& rPrefix,
-    File::Pointer pFile)
-    : ModelPartIO(rPrefix, pFile)
-{
-    KRATOS_TRY;
-
-    Check();
-
-    KRATOS_CATCH("");
-}
-
 bool PartitionedModelPartIO::ReadNodes(NodesContainerType& rNodes)
 {
     KRATOS_TRY;
@@ -100,6 +88,7 @@ void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     // Write ghost nodes.
     Internals::PointsData<Internals::NodesIO> ghost_points(mPrefix + "/Nodes/Ghost", mpFile);
     ghost_points.Write(ghost_nodes, Internals::NodesIO{}, Parameters(R"({})"));
+    WritePartitionIndex(mPrefix + "/Nodes/Ghost", ghost_nodes);
 
     // Write partition index
     WritePartitionIndex(mPrefix + "/Nodes/Ghost", ghost_nodes);

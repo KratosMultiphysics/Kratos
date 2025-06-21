@@ -28,7 +28,7 @@ namespace Kratos
 ///@{
 
     // The size type definition
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -62,13 +62,15 @@ public:
     ///@{
 
     /// The type of potential plasticity
-    typedef TPlasticPotentialType PlasticPotentialType;
+    using PlasticPotentialType = TPlasticPotentialType;
 
     /// The Plastic potential already defines the working simension size
     static constexpr SizeType Dimension = PlasticPotentialType::Dimension;
 
     /// The Plastic potential already defines the Voigt size
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
+
+    using BoundedVector = array_1d<double, VoigtSize>;
 
     /// Counted pointer of VonMisesYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(VonMisesYieldSurface);
@@ -109,18 +111,18 @@ public:
 
     /**
      * @brief This method the uniaxial equivalent stress
-     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rStressVector The stress vector
      * @param rStrainVector The StrainVector vector
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStress(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& rStressVector,
         const Vector& rStrainVector,
         double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        rEquivalentStress = ConstitutiveLawUtilities<VoigtSize>::CalculateVonMisesEquivalentStress(rPredictiveStressVector);
+        rEquivalentStress = ConstitutiveLawUtilities<VoigtSize>::CalculateVonMisesEquivalentStress(rStressVector);
     }
 
     /**
@@ -159,28 +161,30 @@ public:
         if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
             rAParameter = 1.00 / (fracture_energy * young_modulus / (CharacteristicLength * std::pow(yield_compression, 2)) - 0.5);
             KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
-        } else { // linear
+        } else if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Linear)) { // linear
             rAParameter = -std::pow(yield_compression, 2) / (2.0 * young_modulus * fracture_energy / CharacteristicLength);
+        } else {
+            rAParameter = 0.0;
         }
     }
 
     /**
      * @brief This method calculates the derivative of the plastic potential DG/DS
-     * @param StressVector The stress vector
+     * @param rStressVector The stress vector
      * @param Deviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rDerivativePlasticPotential The derivative of the plastic potential
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
-        const array_1d<double, VoigtSize>& rDeviator,
+        const BoundedVector& rStressVector,
+        const BoundedVector& rDeviator,
         const double J2,
-        array_1d<double, VoigtSize>& rDerivativePlasticPotential,
+        BoundedVector& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rPredictiveStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
     }
 
     /**
@@ -195,14 +199,14 @@ public:
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
-        const array_1d<double, VoigtSize>& rDeviator,
+        const BoundedVector& rPredictiveStressVector,
+        const BoundedVector& rDeviator,
         const double J2,
-        array_1d<double, VoigtSize>& rFFlux,
+        BoundedVector& rFFlux,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        array_1d<double, VoigtSize> second_vector;
+        BoundedVector second_vector;
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
         const double c2 = std::sqrt(3.0);
 
