@@ -319,7 +319,7 @@ class ProjectionDebugUtils:
 # This class is useful to keep track of cycles in loops. It is initialized by giving the number of steps per cycle,
 # the step at which the cycle starts and weather it is active or not (Tick() returns False in this case).
 # Tick() adds 1 to the general counter and to the cycle counter every time it is called, returning True when
-# the general counter is greater than the 'beginning_step' and cycling counter is back to the beggining of the cycle
+# the general counter is greater than the 'beginning_step' and cycling counter is back to the beginning of the cycle
 # (and it is active); and False otherwise.
 
 class Counter:
