@@ -1,15 +1,18 @@
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from numpy import tanh
 
+from applications.OptimizationApplication.python_scripts.utilities.component_data_view import ComponentDataView
 from applications.OptimizationApplication.python_scripts.utilities.union_utilities import ContainerExpressionTypes, SupportedSensitivityFieldVariableTypes
 
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
-        raise RuntimeError(f"SimpControl instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"LevelSetControl instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
     if not parameters.Has("settings"):
-        raise RuntimeError(f"SimpControl instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"LevelSetControl instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
     return LevelSetControl(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
 
 class LevelSetControl(Control):
@@ -28,10 +31,9 @@ class LevelSetControl(Control):
             "density_projection_settings"       : {},
             "young_modulus_projection_settings" : {},
             "filter_settings"                   : {},
-            "list_of_materials"                 : [
-                {
-                    "density"      : 1.0,
-                    "young_modulus": 1.0
+            "density"                           : 1.0,
+            "young_modulus"                     : 1.0,
+            "k"                                 : 1000.0                                 
                 }
             ]
         }""")
@@ -41,10 +43,12 @@ class LevelSetControl(Control):
 
         self.output_all_fields = parameters["output_all_fields"].GetBool()
         self.echo_level = parameters["echo_level"].GetInt()
+        self.k = parameters["k"].GetDouble()
+        self.young_modulus = parameters["young_modulus"].GetDouble()
+        self.density = parameters["density"].GetDouble()
 
         self.controlled_physical_variables = [Kratos.DENSITY, Kratos.YOUNG_MODULUS]
 
-        # self.materials = Materials(parameters["list_of_materials"].values())
 
         # self.density_projection = CreateProjection(parameters["density_projection_settings"], self.optimization_problem)
         # self.young_modulus_projection = CreateProjection(parameters["young_modulus_projection_settings"], self.optimization_problem)
@@ -124,56 +128,71 @@ class LevelSetControl(Control):
 
         # now compute response function total sensitivity w.r.t. phi
         ##### here I need to have H'(phi)*rho instead of d_density_d_phi
-        d_j_d_phi = d_j_d_variable * self.d_density_d_phi
+        ### or use d_density_d_phi as a filter?
+        d_j_d_phi = d_j_d_variable * self.d_young_modulus_d_phi
 
-        return self.filter.BackwardFilterIntegratedField(d_j_d_phi)
+        return d_j_d_phi
 
     def Update(self, control_field: ContainerExpressionTypes) -> bool:
-        if not IsSameContainerExpression(control_field, self.GetEmptyField()):
-            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
+        # if not IsSameContainerExpression(control_field, self.GetEmptyField()):
+        #     raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
 
-        update = control_field - self.control_phi
+        # level-set update: d_phi = ( -v * grad(phi) ) * d_t
+        # get norm of grad(phi)
+        phi_grad_norm = self._ComputeLevelSetGradientNorm(self.control_phi)
+
+        # get design velocity v, ÜKS OSA ON PUUDU
+        design_velocity = - self.d_young_modulus_d_phi
+
+        # get update value
+        update = design_velocity * phi_grad_norm
+
         if Kratos.Expression.Utils.NormL2(update) > 1e-15:
-            self.control_phi = control_field
+            self.control_phi = self.control_phi + update
             self._UpdateAndOutputFields(update)
-            self.filter.Update()
             return True
 
-            self.density_projection.Update()
-            self.young_modulus_projection.Update()
-            return True
-
-        self.density_projection.Update()
-        self.young_modulus_projection.Update()
         return False
 
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
-        # filter the control field
-        physical_phi_update = self.filter.ForwardFilterField(update)
-        self.simp_physical_phi = Kratos.Expression.Utils.Collapse(self.simp_physical_phi + physical_phi_update)
-
-        density = self.density_projection.ProjectForward(self.simp_physical_phi)
+        
+        # rho = H(phi)*rho
+        density = 1/2 * (1 + tanh(self.k * self.control_phi)) * self.density
         KratosOA.PropertiesVariableExpressionIO.Write(density, Kratos.DENSITY)
         if self.consider_recursive_property_update:
             KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(density.GetContainer(), Kratos.DENSITY)
         self.un_buffered_data.SetValue("DENSITY", density.Clone(), overwrite=True)
 
-        youngs_modulus = self.young_modulus_projection.ProjectForward(self.simp_physical_phi)
+        youngs_modulus = 1/2 * (1 + tanh(self.k * self.control_phi)) * self.young_modulus
         KratosOA.PropertiesVariableExpressionIO.Write(youngs_modulus, Kratos.YOUNG_MODULUS)
         if self.consider_recursive_property_update:
             KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(youngs_modulus.GetContainer(), Kratos.YOUNG_MODULUS)
         self.un_buffered_data.SetValue("YOUNG_MODULUS", youngs_modulus.Clone(), overwrite=True)
 
+        # calculate Dirac Delta function
+        d_H_d_phi = self.k / 2 *(1 - pow(tanh(self.k * self.control_phi), 2))
+
         # now calculate the total sensitivities of density w.r.t. phi
-        self.d_density_d_phi = self.density_projection.ForwardProjectionGradient(self.simp_physical_phi)
+        self.d_density_d_phi = d_H_d_phi * self.density
 
         # now calculate the total sensitivities of young modulus w.r.t. simp_physical_phi
-        self.d_young_modulus_d_phi = self.young_modulus_projection.ForwardProjectionGradient(self.simp_physical_phi)
+        self.d_young_modulus_d_phi = d_H_d_phi * self.young_modulus
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
-        un_buffered_data.SetValue(f"{self.GetName()}", self.simp_physical_phi.Clone(),overwrite=True)
+        un_buffered_data.SetValue(f"{self.GetName()}", self.control_phi.Clone(),overwrite=True)
         if self.output_all_fields:
-            un_buffered_data.SetValue(f"{self.GetName()}_update", physical_phi_update.Clone(), overwrite=True)
             un_buffered_data.SetValue(f"dDENSITY_d{self.GetName()}", self.d_density_d_phi.Clone(), overwrite=True)
             un_buffered_data.SetValue(f"dYOUNG_MODULUS_d{self.GetName()}", self.d_young_modulus_d_phi.Clone(), overwrite=True)
+
+
+    def _ComputeLevelSetGradientNorm(self, LSF: ContainerExpressionTypes) -> ContainerExpressionTypes:
+        # Compute gradient (vector expression)
+        LSF_grad = KratosOA.GradientComputationUtility().ComputeNodalGradient(self.model_part, LSF)
+
+        # Compute norm of the gradient
+        LFS_grad_norm = KratosOA.ContainerExpression[Kratos.ModelPart](self.model_part)
+        LFS_grad_norm.EvaluateNormOf(LSF_grad)
+
+        # Return the norm expression
+        return LFS_grad_norm
