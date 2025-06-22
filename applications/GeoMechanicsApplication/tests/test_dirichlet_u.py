@@ -8,15 +8,6 @@ class KratosGeoMechanicsDirichletUTests(KratosUnittest.TestCase):
     """
     This class contains a test for displacement Dirichlet boundary condition
     """
-
-    def setUp(self):
-        # Code here will be placed BEFORE every test in this TestCase.
-        pass
-
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
-
     def test_dirichlet_u(self):
         """
         4 element elongation test in 2 stages. The incremental elastic material should show 

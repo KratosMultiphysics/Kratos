@@ -10,15 +10,6 @@ class KratosGeoMechanicsBenchmarkSet2(KratosUnittest.TestCase):
     """
     This class contains benchmark tests which are checked with other FE software
     """
-
-    def setUp(self):
-        # Code here will be placed BEFORE every test in this TestCase.
-        pass
-
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
-
     def test_benchmark2_1(self):
         """
         In this benchmark a two stage model is tested, where a simple clay dike is put on top of a sand layer. The test is calculated using gravity loading. And UDSM-Mohr-Coulomb.

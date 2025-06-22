@@ -13,15 +13,6 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
     This class contains benchmark tests to test line loads (in 3D). 
     No analytical solution is defined. This is to check if find neighbour elements work when line elements are applied in 3D.
     """
-
-    def setUp(self):
-        # Code here will be placed BEFORE every test in this TestCase.
-        pass
-
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
-
     def total_reaction_y_from_file(self, output_file_path, time, node_ids):
         output_reader = test_helper.GiDOutputFileReader()
         output_data = output_reader.read_output_from(output_file_path)

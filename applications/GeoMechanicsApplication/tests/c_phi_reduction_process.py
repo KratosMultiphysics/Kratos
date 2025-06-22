@@ -10,15 +10,6 @@ class KratosGeoMechanicsCPhiReductionProcess(KratosUnittest.TestCase):
     """
     This class contains benchmark tests which are checked with the original solution
     """
-
-    def setUp(self):
-        # Code here will be placed BEFORE every test in this TestCase.
-        pass
-
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
-        
     def test_c_phi_reduction_process(self):
 
         # get the parameter file names for all stages

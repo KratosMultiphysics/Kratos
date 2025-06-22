@@ -9,15 +9,6 @@ class KratosGeoMechanicsTransientGroundWaterFlowTests(KratosUnittest.TestCase):
     """
     This class contains benchmark tests which are checked with the analytical solution
     """
-
-    def setUp(self):
-        # Code here will be placed BEFORE every test in this TestCase.
-        pass
-
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
-
     def test_Transient_Case_B1_2D3N(self):
         test_name = 'test_Transient_Case_B1_2D3N'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
