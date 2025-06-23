@@ -28,11 +28,8 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) LineNormalLoad2DDiffOrderCondition :
 public:
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType       = Node;
-    using GeometryType   = Geometry<NodeType>;
+    using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType     = Vector;
-    using MatrixType     = Matrix;
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LineNormalLoad2DDiffOrderCondition);
 
@@ -48,6 +45,7 @@ public:
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
+    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     std::string Info() const override;
 
@@ -55,11 +53,11 @@ protected:
     // Member Variables
 
     void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber) override;
-    double CalculateIntegrationCoefficient(const IndexType                    PointNumber,
+    double CalculateIntegrationCoefficient(IndexType                          PointNumber,
                                            const GeometryType::JacobiansType& JContainer,
                                            const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const override;
 
-    void CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables) override;
+    void CalculateAndAddConditionForce(Vector& rRightHandSideVector, ConditionVariables& rVariables) override;
 
 private:
     // Serialization

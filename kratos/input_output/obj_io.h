@@ -63,12 +63,6 @@ public:
     /// Definition of supported geometries
     static constexpr std::array<const char*, 2> SupportedGeometries = {"Triangle3D3", "Quadrilateral3D4"};
 
-    /// Geometries map type definition
-    using GeometriesMapType = ModelPart::GeometriesMapType;
-
-    /// The nodes array type definition
-    using NodesArrayType = Element::NodesArrayType;
-
     /// The index type definition
     using IndexType = std::size_t;
 
@@ -129,29 +123,6 @@ public:
      * @param rThisModelPart Const reference to the model part to write from.
      */
     void WriteModelPart(const ModelPart& rThisModelPart) override;
-
-    /**
-     * @brief This method clean up the problematic geometries (null area geometries) in the mesh.
-     * @details For the moment it will be assumed that the problematic geometries are triangles with two nodes in the same position. This means several this:
-     * - The triangle is degenerated, one of the nodes is redundant and should be cleaned up.
-     * - The triangle must be removed as well. The sides must be reconnected, so the mesh is water-tight.
-     * - The nodes and entities must be renumbered
-     * @param rThisModelPart Reference to the model part to clean up into.
-     * @param rEntityType The entity type to create in the model part. Can be "element", "condition" or "geometry".
-     * @param FirstNodeId The first node ID to create in the model part.
-     * @param FirstELementId The first element ID to create in the model part.
-     * @param FirstConditionId The first condition ID to create in the model part.
-     * @param AreaTolerance The tolerance to consider a geometry as problematic.
-     * @todo This could be moved to an independent utility. It is a temporary solution to clean up problematic geometries in the mesh that can be found in the OBJ files
-     */
-    static void CleanUpProblematicGeometriesInMesh(
-        ModelPart& rThisModelPart,
-        const std::string& rEntityType = "element",
-        const IndexType FirstNodeId = 1,
-        const IndexType FirstElementId = 1,
-        const IndexType FirstConditionId = 1,
-        const double AreaTolerance = 1.0e-6
-        );
 
     ///@}
     ///@name Input and output
@@ -257,48 +228,9 @@ private:
      */
     std::vector<std::string> Tokenize(const std::string& rLine);
 
-    /**
-     * @brief Clean up the problematic geometries (null area geometries) in the mesh.
-     * @details For the moment it will be assumed that the problematic geometries are triangles with two nodes in the same position. This means several this:
-     * - The triangle is degenerated, one of the nodes is redundant and should be cleaned up.
-     * - The triangle must be removed as well. The sides must be reconnected, so the mesh is water-tight.
-     * - The nodes and entities must be renumbered
-     * @param rThisModelPart Reference to the model part to clean up into.
-     * @param rEntityType The entity type to create in the model part. Can be "element", "condition" or "geometry".
-     * @param FirstNodeId The first node ID to create in the model part.
-     * @param FirstEntityId The first entity ID to create in the model part.
-     * @param AreaTolerance The tolerance to consider a geometry as problematic.
-     * @tparam TEntityType The entity type to create in the model part. Can be Element, Condition or Geometry.
-     */
-    template <typename TEntityType>
-    static void CleanUpProblematicGeometries(
-        ModelPart& rThisModelPart,
-        const IndexType FirstNodeId = 1,
-        const IndexType FirstEntityId = 1,
-        const double AreaTolerance = 1.0e-6
-        );
-
-    /// Helper function declarations
-
-    /**
-     * @brief Get the nodes of the model part.
-     * @param rThisModelPart Reference to the model part.
-     * @return The nodes of the model part.
-     * @tparam TEntityType The entity type to get from the model part. Can be Element,  Condition or Geometry.
-     */
-    template <typename TEntityType>
-    static void RemoveEntitiesAndNodes(ModelPart& rThisModelPart);
-
     ///@}
 
 }; // Class ObjIO
-
-// Helper function definitions specialization
-template <>
-void ObjIO::RemoveEntitiesAndNodes<Element>(ModelPart& rThisModelPart);
-
-template <>
-void ObjIO::RemoveEntitiesAndNodes<Condition>(ModelPart& rThisModelPart);
 
 ///@}
 ///@name Input and output

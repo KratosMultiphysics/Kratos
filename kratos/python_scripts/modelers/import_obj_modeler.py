@@ -105,9 +105,7 @@ class ImportOBJModeler(KratosMultiphysics.Modeler):
                 "open_mode"                       : "read",
                 "entity_type"                     : "element",
                 "decompose_quads_into_triangles"  : false,
-                "normal_as_historical"            : false,
-                "clean_up_problematic_geometries" : true,
-                "area_tolerance"                  : 1.0e-6
+                "normal_as_historical"            : false
             }
         }''')
         return default_settings

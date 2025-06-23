@@ -38,7 +38,7 @@
 #include "geometries/line_2d_2.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
-#include "geometries/line_gauss_lobatto_3d_2.h"
+#include "custom_geometries/line_gauss_lobatto_3d_2.h"
 
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
@@ -321,7 +321,7 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication()
                  Element::GeometryType::PointsArrayType(3))),
       mLargeDisplacementBeamSEMCElement3D2N(
           0, Kratos::make_shared< LineGaussLobatto3D2<Node > >(
-                 Element::GeometryType::PointsArrayType(2))), 
+                 Element::GeometryType::PointsArrayType(2))),
       mGeometricallyExactRodElement3D2N(
           0, Kratos::make_shared< Line3D2<Node > >(
                  Element::GeometryType::PointsArrayType(2))),

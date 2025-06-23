@@ -12,6 +12,7 @@
 //
 #include "three_dimensional_stress_state.h"
 #include "custom_utilities/stress_strain_utilities.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -41,12 +42,6 @@ Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix& rDN_DX,
     return result;
 }
 
-double ThreeDimensionalStressState::CalculateIntegrationCoefficient(
-    const Geometry<Node>::IntegrationPointType& rIntegrationPoint, double DetJ, const Geometry<Node>&) const
-{
-    return rIntegrationPoint.Weight() * DetJ;
-}
-
 Vector ThreeDimensionalStressState::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
 {
     return MathUtils<>::StrainTensorToVector(
@@ -65,6 +60,16 @@ SizeType ThreeDimensionalStressState::GetVoigtSize() const { return GetVoigtSize
 SizeType ThreeDimensionalStressState::GetStressTensorSize() const
 {
     return GetStressTensorSize3D();
+}
+
+void ThreeDimensionalStressState::save(Serializer&) const
+{
+    // No data members to be saved (yet)
+}
+
+void ThreeDimensionalStressState::load(Serializer&)
+{
+    // No data members to be loaded (yet)
 }
 
 } // namespace Kratos

@@ -13,19 +13,21 @@
 // Application includes
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include "utilities/math_utils.h"
+
 #include <cmath>
 
 namespace Kratos
 {
-
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType NewId,
                                                                      NodesArrayType const& ThisNodes,
                                                                      PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new SteadyStatePwPipingElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties,
+        this->GetStressStatePolicy().Clone(), this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -34,7 +36,8 @@ Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType  
                                                                      PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new SteadyStatePwPipingElement(NewId, pGeom, pProperties,
-                                                           this->GetStressStatePolicy().Clone()));
+                                                           this->GetStressStatePolicy().Clone(),
+                                                           this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -78,6 +81,12 @@ int SteadyStatePwPipingElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurre
     KRATOS_CATCH("")
 
     return ierr;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string SteadyStatePwPipingElement<TDim, TNumNodes>::Info() const
+{
+    return "SteadyStatePwPipingElement";
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -274,56 +283,29 @@ double SteadyStatePwPipingElement<3, 8>::CalculateHeadGradient(const PropertiesT
 }
 
 /// <summary>
-///  Calculate the particle diameter for the particles in the pipe. The particle diameter equals d70,
-/// when the unmodified sellmeijer piping rule is used.
-/// </summary>
-/// <param name="Prop"></param>
-/// <param name="Geom"></param>
-/// <returns></returns>
-template <unsigned int TDim, unsigned int TNumNodes>
-double SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateParticleDiameter(const PropertiesType& Prop)
-{
-    double diameter;
-
-    if (Prop[PIPE_MODIFIED_D]) diameter = 2.08e-4 * pow((Prop[PIPE_D_70] / 2.08e-4), 0.4);
-    else diameter = Prop[PIPE_D_70];
-    return diameter;
-}
-
-/// <summary>
 /// Calculates the equilibrium pipe height of a piping element according to Sellmeijers rule
 /// </summary>
-/// <param name="Prop"></param>
-/// <param name="Geom"></param>
+/// <param name="rProperties"></param>
+/// <param name="rGeometry"></param>
 /// <returns></returns>
 template <unsigned int TDim, unsigned int TNumNodes>
-double SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateEquilibriumPipeHeight(const PropertiesType& Prop,
-                                                                                   const GeometryType& Geom,
-                                                                                   double pipe_length)
+double SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateEquilibriumPipeHeight(
+    const PropertiesType& rProperties, const GeometryType& rGeometry, double PipeLength)
 {
-    const double modelFactor  = Prop[PIPE_MODEL_FACTOR];
-    const double eta          = Prop[PIPE_ETA];
-    const double theta        = Prop[PIPE_THETA];
-    const double SolidDensity = Prop[DENSITY_SOLID];
-    const double FluidDensity = Prop[DENSITY_WATER];
-
     // calculate head gradient over element
-    double dhdx = CalculateHeadGradient(Prop, Geom, pipe_length);
-
-    // calculate particle diameter
-    double particle_d = CalculateParticleDiameter(Prop);
-
-    // todo calculate slope of pipe, currently pipe is assumed to be horizontal
-    const double pipeSlope = 0;
+    const auto dhdx = CalculateHeadGradient(rProperties, rGeometry, PipeLength);
 
     // return infinite when dhdx is 0
-    if (dhdx < std::numeric_limits<double>::epsilon()) {
-        return 1e10;
-    }
+    if (dhdx < std::numeric_limits<double>::epsilon()) return 1e10;
 
-    return modelFactor * Globals::Pi / 3.0 * particle_d * (SolidDensity / FluidDensity - 1) * eta *
-           std::sin(MathUtils<>::DegreesToRadians(theta + pipeSlope)) /
-           std::cos(MathUtils<>::DegreesToRadians(theta)) / dhdx;
+    // todo calculate slope of pipe, currently pipe is assumed to be horizontal
+    constexpr auto pipe_slope = 0.0;
+
+    return rProperties[PIPE_MODEL_FACTOR] * Globals::Pi / 3.0 *
+           GeoTransportEquationUtilities::CalculateParticleDiameter(rProperties) *
+           (rProperties[DENSITY_SOLID] / rProperties[DENSITY_WATER] - 1) * rProperties[PIPE_ETA] *
+           std::sin(MathUtils<>::DegreesToRadians(rProperties[PIPE_THETA] + pipe_slope)) /
+           std::cos(MathUtils<>::DegreesToRadians(rProperties[PIPE_THETA])) / dhdx;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -341,5 +323,4 @@ bool SteadyStatePwPipingElement<TDim, TNumNodes>::InEquilibrium(const Properties
 template class SteadyStatePwPipingElement<2, 4>;
 template class SteadyStatePwPipingElement<3, 6>;
 template class SteadyStatePwPipingElement<3, 8>;
-
 } // Namespace Kratos

@@ -231,7 +231,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVecto
     element.EquationIdVector(equation_id_vector, dummy_process_info);
 
     // Assert
-    const std::vector<int> expected_ids = {1, 2, 3, 4, 5, 6, 7, 8};
+    const Element::EquationIdVectorType expected_ids = {1, 2, 3, 4, 5, 6, 7, 8};
     KRATOS_EXPECT_VECTOR_EQ(equation_id_vector, expected_ids)
 }
 

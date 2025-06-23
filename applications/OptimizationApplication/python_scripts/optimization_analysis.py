@@ -78,7 +78,7 @@ class OptimizationAnalysis:
             "type": "mdpa_model_part_controller",
             "module": "KratosMultiphysics.OptimizationApplication.model_part_controllers"
         }""")
-        for model_part_controller_settings in self.project_parameters["model_parts"]:
+        for model_part_controller_settings in self.project_parameters["model_parts"].values():
             model_part_controller_settings.AddMissingParameters(default_settings)
             model_part_controller: ModelPartController = OptimizationComponentFactory(self.model, model_part_controller_settings, self.optimization_problem)
             self.__list_of_model_part_controllers.append(model_part_controller)
@@ -87,7 +87,7 @@ class OptimizationAnalysis:
         default_settings = Kratos.Parameters("""{
             "module": "KratosMultiphysics.OptimizationApplication.execution_policies"
         }""")
-        for analyses_settings in self.project_parameters["analyses"]:
+        for analyses_settings in self.project_parameters["analyses"].values():
             analyses_settings.AddMissingParameters(default_settings)
             execution_policy = OptimizationComponentFactory(self.model, analyses_settings, self.optimization_problem)
             self.optimization_problem.AddComponent(execution_policy)
@@ -96,7 +96,7 @@ class OptimizationAnalysis:
         default_settings = Kratos.Parameters("""{
             "module": "KratosMultiphysics.OptimizationApplication.responses"
         }""")
-        for response_settings in self.project_parameters["responses"]:
+        for response_settings in self.project_parameters["responses"].values():
             response_settings.AddMissingParameters(default_settings)
             response_function: ResponseFunction = OptimizationComponentFactory(self.model, response_settings, self.optimization_problem)
             self.optimization_problem.AddComponent(response_function)
@@ -105,7 +105,7 @@ class OptimizationAnalysis:
         default_settings = Kratos.Parameters("""{
             "module" : "KratosMultiphysics.OptimizationApplication.controls"
         }""")
-        for control_settings in self.project_parameters["controls"]:
+        for control_settings in self.project_parameters["controls"].values():
             control_settings.AddMissingParameters(default_settings)
             control = OptimizationComponentFactory(self.model, control_settings, self.optimization_problem)
             self.optimization_problem.AddComponent(control)
@@ -129,7 +129,7 @@ class OptimizationAnalysis:
                 for process in factory.ConstructListOfProcesses(kratos_processes[process_type]):
                     self.optimization_problem.AddProcess(process_type, process)
             if optimization_data_processes.Has(process_type):
-                for process_settings in optimization_data_processes[process_type]:
+                for process_settings in optimization_data_processes[process_type].values():
                     process_settings.AddMissingParameters(optimization_data_process_default_settings)
                     process = OptimizationComponentFactory(self.model, process_settings, self.optimization_problem)
                     self.optimization_problem.AddProcess(process_type, process)

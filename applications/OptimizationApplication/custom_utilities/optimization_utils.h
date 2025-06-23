@@ -84,7 +84,13 @@ public:
     template<class TContainerType>
     static void CreateEntitySpecificPropertiesForContainer(
         ModelPart& rModelPart,
-        TContainerType& rContainer);
+        TContainerType& rContainer,
+        const bool IsRecursive);
+
+    template<class TContainerType, class TDataType>
+    static void UpdatePropertiesVariableWithRootValueRecursively(
+        TContainerType& rContainer,
+        const Variable<TDataType>& rVariable);
 
     template<class TDataType>
     static IndexType GetVariableDimension(

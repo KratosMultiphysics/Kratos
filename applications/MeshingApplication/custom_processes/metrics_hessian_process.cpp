@@ -443,7 +443,7 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
         TensorArrayType& r_metric = rNode.GetValue(r_tensor_variable);
 
         const double norm_metric = norm_2(r_metric);
-        if (norm_metric > 0.0) { // NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
+        if (norm_metric > 0.0) { // NOTE: This means we combine different metrics, at the same time means that the metric should be reset each time
             const TensorArrayType& r_old_metric = rNode.GetValue(r_tensor_variable);
             const TensorArrayType new_metric = ComputeHessianMetricTensor<TDim>(r_hessian, aux_variables);
 

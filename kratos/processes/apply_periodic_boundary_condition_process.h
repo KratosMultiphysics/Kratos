@@ -114,7 +114,7 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     /**
      * @brief   The function adds the linear master-slave constraint to mrMasterModelPart. This function is specifically for applying
      *          periodic conditions for vector variable. This distinction is because, for vector variables the variable should also be
-     *          transformed according to the transfromation specified in the settings.
+     *          transformed according to the transformation specified in the settings.
      * @param rSlaveNode The slave node which is to be connected to the rHostGeometry.
      * @param rHostedGeometry the Host geometry which has the rSlaveNode.
      * @param rWeights The weights with which the rSlaveNode is connected to the rHostedGeometry's nodes.
@@ -126,7 +126,7 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     /**
      * @brief   The function adds the linear master-slave constraint to mrMasterModelPart. This function is specifically for applying
      *          periodic conditions for scalar variable. This distinction is because, for scalar variables the variable need NOT be
-     *          transformed according to the transfromation specified in the settings.
+     *          transformed according to the transformation specified in the settings.
      * @param rSlaveNode The slave node which is to be connected to the rHostGeometry.
      * @param rHostedGeometry the Host geometry which has the rSlaveNode.
      * @param rWeights The weights with which the rSlaveNode is connected to the rHostedGeometry's nodes.

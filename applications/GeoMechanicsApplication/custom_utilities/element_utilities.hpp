@@ -113,6 +113,8 @@ public:
         }
     }
 
+    static void CheckPermeabilityProperties(const Element::PropertiesType& rProp, size_t Dimension);
+
     static void FillPermeabilityMatrix(BoundedMatrix<double, 1, 1>&   rPermeabilityMatrix,
                                        const Element::PropertiesType& Prop);
 
@@ -121,6 +123,8 @@ public:
 
     static void FillPermeabilityMatrix(BoundedMatrix<double, 3, 3>&   rPermeabilityMatrix,
                                        const Element::PropertiesType& Prop);
+
+    static Matrix FillPermeabilityMatrix(const Element::PropertiesType& Prop, std::size_t Dimension);
 
     static void InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
                               const BoundedMatrix<double, 2, 2>& InputMatrix,
@@ -234,6 +238,9 @@ private:
             }
         }
     }
+
+    static int CheckPropertyExistsAndIsNotNegative(const Variable<double>&        rVariable,
+                                                   const Element::PropertiesType& rProp);
 
 }; /* Class GeoElementUtilities*/
 } /* namespace Kratos.*/

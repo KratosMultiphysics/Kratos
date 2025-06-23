@@ -20,7 +20,7 @@
 
 // System includes
 
-// Extrenal includes
+// Extrernal includes
 
 // Project includes
 #include "includes/variables.h"
@@ -174,7 +174,7 @@ public:
 
     /**
     * It calculates the new edges of the new elements
-    * first it calculates the new edges correspondign to the lower face (as a triangle),
+    * first it calculates the new edges correspondingn to the lower face (as a triangle),
     * later it added to the upper face
     * @param geom: The prism element geometry
     * @param edge_ids: The ids of the edges

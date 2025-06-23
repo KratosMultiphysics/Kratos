@@ -1,0 +1,27 @@
+@startuml
+ :CalculatePipeHeightIncrement();
+ : iteration=0;
+ while (iteration < max iterations && !equilibrium && converged) is (true)
+ :converged = Recalculate();
+ if(converged) then
+ while(for each open pipe element) is (true)
+ :eq_height = CalculateEquilibriumPipeHeight();
+ if(PIPE_HEIGHT > eq_height) then
+ :Set PIPE_EROSION = true;
+ endif
+ if((!PIPE_EROSION || PIPE_HEIGHT > eq_height) &&
+                             PIPE_HEIGHT < amax) then
+ :Set PIPE_HEIGHT + pipe_height_increment;
+ :equilibrium = false;
+ endif
+ if ((!PIPE_EROSION && iteration > 1) &&
+    eq_height - PIPE_HEIGHT > DIFF_PIPE_HEIGHT) then
+        :equilibrium = true;
+        :Set PIPE_HEIGHT = 0;
+ endif
+ :Set DIFF_PIPE_HEIGHT = eq_height - PIPE_HEIGHT;
+ :iteration++;
+ endwhile
+ endif
+ endwhile
+@enduml

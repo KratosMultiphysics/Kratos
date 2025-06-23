@@ -16,6 +16,7 @@
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
 #include "custom_constitutive/DEM_rolling_friction_model.h"
+#include "custom_constitutive/DEM_global_damping.h"
 #include "custom_conditions/RigidFace.h"
 #include "custom_conditions/dem_wall.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"
@@ -287,6 +288,8 @@ std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModelWithNeighbour
 
 std::unique_ptr<DEMRollingFrictionModel> pCloneRollingFrictionModelWithFEMNeighbour(Condition* neighbour);
 
+std::unique_ptr<DEMGlobalDampingModel> pCloneGlobalDampingModel(SphericParticle* element);
+
 protected:
 
 virtual void ComputeBallToRigidFaceContactForceAndMoment(ParticleDataBuffer & data_buffer,
@@ -442,6 +445,7 @@ virtual void ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& tot
 
 std::unique_ptr<DEMDiscontinuumConstitutiveLaw> mDiscontinuumConstitutiveLaw;
 std::unique_ptr<DEMRollingFrictionModel> mRollingFrictionModel;
+std::unique_ptr<DEMGlobalDampingModel> mGlobalDampingModel;
 
 double mInitializationTime;
 double mIndentationInitialOption;
@@ -449,14 +453,13 @@ std::map<int, double> mIndentationInitial;
 std::map<int, double> mIndentationInitialWall;
 double mProgrammedDestructionTime=-1.0; // set to a negative value, so that when marked TO_ERASE, elimination is by default.
 double mRadius;
+double mInitialRadius;
 double mSearchRadius;
 double mRealMass;
 PropertiesProxy* mFastProperties;
 int mClusterId;
 DEMIntegrationScheme* mpTranslationalIntegrationScheme;
 DEMIntegrationScheme* mpRotationalIntegrationScheme;
-double mGlobalDamping;
-double mGlobalViscousDamping;
 double mBondedScalingFactor[3] = {0.0};
 
 private:
@@ -505,8 +508,6 @@ virtual void save(Serializer& rSerializer) const override
     rSerializer.save("mSearchRadius", mSearchRadius);
     rSerializer.save("mRealMass", mRealMass);
     rSerializer.save("mClusterId", mClusterId);
-    rSerializer.save("mGlobalDamping",mGlobalDamping);
-    rSerializer.save("mGlobalViscousDamping",mGlobalViscousDamping);
 }
 
 virtual void load(Serializer& rSerializer) override
@@ -560,8 +561,6 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mSearchRadius", mSearchRadius);
     rSerializer.load("mRealMass", mRealMass);
     rSerializer.load("mClusterId", mClusterId);
-    rSerializer.load("mGlobalDamping",mGlobalDamping);
-    rSerializer.load("mGlobalViscousDamping",mGlobalViscousDamping);
 }
 
 }; // Class SphericParticle

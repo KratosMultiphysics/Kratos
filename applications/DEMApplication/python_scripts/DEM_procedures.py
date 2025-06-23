@@ -619,7 +619,7 @@ class Procedures():
         dem_inlet_model_part.SetBufferSize(inlet_b_size)
         rigid_face_model_part.SetBufferSize(rigid_b_size)
 
-    def FindMaxNodeIdAccrossModelParts(self, creator_destructor, all_model_parts):
+    def FindMaxNodeIdAcrossModelParts(self, creator_destructor, all_model_parts):
 
         max_candidates = []
         max_candidates.append(creator_destructor.FindMaxNodeIdInModelPart(all_model_parts.Get("SpheresPart")))
@@ -826,28 +826,25 @@ class Procedures():
         creator_destructor.SetHighNode(b_box_high)
         creator_destructor.CalculateSurroundingBoundingBox(spheres_model_part, clusters_model_part, rigid_faces_model_part, dem_inlet_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)
 
-    def UpdateBoundingBox(self, spheres_model_part, creator_destructor):
+    def UpdateBoundingBox(self, spheres_model_part, creator_destructor, move_velocity):
 
         delta_time = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
-        #NStepSearch = self.DEM_parameters["NeighbourSearchFrequency"].GetInt()
-        #delta_time_real = delta_time * NStepSearch
-        move_velocity = self.DEM_parameters["BoundingBoxMoveVelocity"].GetDouble()
         
         b_box_low = Array3()
         b_box_high = Array3()
         control_bool_vector = self.DEM_parameters["BoundingBoxMoveOptionDetail"].GetVector()
         if control_bool_vector[0]:
-            self.b_box_minX += delta_time * move_velocity
+            self.b_box_minX += delta_time * move_velocity[0]
         if control_bool_vector[1]:
-            self.b_box_minY += delta_time * move_velocity
+            self.b_box_minY += delta_time * move_velocity[1]
         if control_bool_vector[2]:
-            self.b_box_minZ += delta_time * move_velocity
+            self.b_box_minZ += delta_time * move_velocity[2]
         if control_bool_vector[3]:
-            self.b_box_maxX -= delta_time * move_velocity
+            self.b_box_maxX -= delta_time * move_velocity[0]
         if control_bool_vector[4]:
-            self.b_box_maxY -= delta_time * move_velocity
+            self.b_box_maxY -= delta_time * move_velocity[1]
         if control_bool_vector[5]:
-            self.b_box_maxZ -= delta_time * move_velocity
+            self.b_box_maxZ -= delta_time * move_velocity[2]
         b_box_low[0] = self.b_box_minX
         b_box_low[1] = self.b_box_minY
         b_box_low[2] = self.b_box_minZ

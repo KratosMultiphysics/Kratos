@@ -20,7 +20,7 @@ Begin Nodes
  33  0.0000000000 7.0000000000 0.0000000000
 End Nodes
 
-Begin Elements Geo_UPwLineInterfacePlainStrainElement3Plus3N
+Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N
   1  1   1   3   2  11  13  12
  11  1  31  33  32  21  23  22
 End Elements

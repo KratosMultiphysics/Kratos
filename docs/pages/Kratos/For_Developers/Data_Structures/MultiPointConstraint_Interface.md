@@ -76,7 +76,7 @@ Carrying out the indicated matrix multiplications yields:
 
 ## Kratos interface (how to use it)
 
-The **MPC** are implemented in *Kratos* via the [*MasterSlaveConstraint* class](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/includes/master_slave_constraint.h), and particularly the linear kinematic relationship can be found in in the class [*LinearMasterSlaveConstraint* class](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/includes/linear_master_slave_constraint.h).
+The **MPC** are implemented in *Kratos* via the [*MasterSlaveConstraint* class](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/includes/master_slave_constraint.h), and particularly the linear kinematic relationship can be found in in the class [*LinearMasterSlaveConstraint* class](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/constraints/linear_master_slave_constraint.h).
 
 The *LinearMasterSlaveConstraint* is defined by the following:
 

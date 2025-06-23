@@ -138,7 +138,6 @@
             "absorbing_factors": [1,1],
 			"virtual_thickness": 1000
         }
-    }],
-        "auxiliar_process_list": []
+    }]
     }
 }
