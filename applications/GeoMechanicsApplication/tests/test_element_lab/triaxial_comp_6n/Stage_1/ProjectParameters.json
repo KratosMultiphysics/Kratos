@@ -16,7 +16,7 @@
             "input_filename":   "triaxial_comp_6n_stage1"
         },
         "material_import_settings":              {
-            "materials_filename":       "MaterialParameters_stage1.json"
+            "materials_filename":       "../MaterialParameters.json"
         },
         "time_stepping":              {
             "time_step":                0.1,

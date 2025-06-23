@@ -15,7 +15,7 @@
             "input_type":       "use_input_model_part"
         },
         "material_import_settings":              {
-            "materials_filename":       "MaterialParameters_stage2.json"
+            "materials_filename":       "../MaterialParameters.json"
         },
         "time_stepping":              {
             "time_step":                1e-5,
