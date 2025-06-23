@@ -1,6 +1,7 @@
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 import test_helper
 
 class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
@@ -23,40 +24,39 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         1) apply confining stress of -100 kPa
         2) apply deviatoric stress of -200 kPa
         """
-        test_name = 'triaxial_comp_6n'
-        project_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
+        project_path = test_helper.get_file_path(os.path.join('test_element_lab', 'triaxial_comp_6n'))
 
         n_stages = 2
-        directory_names = test_helper.get_separated_directory_names(project_path, n_stages)
-
-        stages = test_helper.get_separated_stages(directory_names)
-
-        initial_directory = os.getcwd()
-
-        # run stages and get results
-        for idx, stage in enumerate(stages):
-            os.chdir(directory_names[idx])
-            stage.Run()
-        os.chdir(initial_directory)
+        run_multiple_stages.run_stages(project_path, n_stages)
 
         reader = test_helper.GiDOutputFileReader()
 
         # Assert
-        output_data = reader.read_output_from(os.path.join(project_path, "Stage_1", "triaxial_comp_6n_stage1.post.res"))
+        output_data = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_stage1.post.res"))
         time = 1.0
-        for element_stress_vectors in reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", time, output_data):
-            for stress_vector in element_stress_vectors:
-                self.assertAlmostEqual(-100.0, stress_vector[0], 3)
-                self.assertAlmostEqual(-100.0, stress_vector[1], 3)
-                self.assertAlmostEqual(-100.0, stress_vector[2], 3)
+        stress_vectors_per_element = reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", time, output_data)
+        number_of_elements = 2
+        self.assertEqual(number_of_elements, len(stress_vectors_per_element))
 
-        output_data = reader.read_output_from(os.path.join(project_path, "Stage_2", "triaxial_comp_6n_stage2.post.res"))
-        time = 1.25
-        for element_stress_vectors in reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", time, output_data):
+        number_of_integration_points_per_element = 3
+        for element_stress_vectors in stress_vectors_per_element:
+            self.assertEqual(number_of_integration_points_per_element, len(element_stress_vectors))
             for stress_vector in element_stress_vectors:
-                self.assertAlmostEqual(-100.0, stress_vector[0], 2)
-                self.assertAlmostEqual(-300.0, stress_vector[1], 2)
-                self.assertAlmostEqual(-100.0, stress_vector[2], 2)
+                self.assertAlmostEqual(-100.0, stress_vector[0], 3)  # sigma_xx
+                self.assertAlmostEqual(-100.0, stress_vector[1], 3)  # sigma_yy
+                self.assertAlmostEqual(-100.0, stress_vector[2], 3)  # sigma_zz
+
+        output_data = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_stage2.post.res"))
+        time = 1.25
+        stress_vectors_per_element = reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", time, output_data)
+        self.assertEqual(number_of_elements, len(stress_vectors_per_element))
+
+        for element_stress_vectors in stress_vectors_per_element:
+            self.assertEqual(number_of_integration_points_per_element, len(element_stress_vectors))
+            for stress_vector in element_stress_vectors:
+                self.assertAlmostEqual(-100.0, stress_vector[0], 2)  # sigma_xx
+                self.assertAlmostEqual(-300.0, stress_vector[1], 2)  # sigma_yy
+                self.assertAlmostEqual(-100.0, stress_vector[2], 2)  # sigma_zz
 
 
     def test_oedometer_ULFEM(self):
