@@ -32,8 +32,8 @@ public:
     NearestNeighborInterfaceInfoIGA() {}
 
     explicit NearestNeighborInterfaceInfoIGA(const CoordinatesArrayType& rCoordinates,
-                                 const IndexType SourceLocalSystemIndex,
-                                 const IndexType SourceRank)
+                                             const IndexType SourceLocalSystemIndex,
+                                             const IndexType SourceRank)
         : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank) {}
 
     MapperInterfaceInfo::Pointer Create() const override
