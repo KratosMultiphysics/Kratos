@@ -60,6 +60,10 @@ class KRATOS_API(KRATOS_TEST_UTILS) KratosCoreFastSuite : public ::testing::Test
         std::vector<KratosApplication::Pointer> mRegisteredApplications;    // List of applications loaded by the suit. TODO: Remove once every test includes its own suit
 };
 
+class KRATOS_API(KRATOS_TEST_UTILS) KratosCoreFastSuiteWithoutKernel : public ::testing::Test
+{
+};
+
 // Define some suits that are needed by core tests
 class KratosSensitivityTestSuite : public KratosCoreFastSuite {};
 class KratosCoreGeometriesFastSuite : public KratosCoreFastSuite {};
@@ -69,6 +73,10 @@ class KratosCoreCouplingGeometriesFastSuite : public KratosCoreFastSuite {};
 class KratosExternalLibrariesFastSuite : public KratosCoreFastSuite {};
 class KratosNonRectangularJacobianFastSuite : public KratosCoreFastSuite {};
 class KratosCoreStressSuite : public KratosCoreFastSuite {};
+
+// Define test suits for legacy and future namespaces
+class KratosCoreFutureSuite : public KratosCoreFastSuite {};
+class KratosCoreLegacySuite : public KratosCoreFastSuite {};
 
 ////////////////////////////////////////////////////////////////////////////////////////
 //// ALL THIS CLASSES NEED TO BE REMOVED OR MOVED TO CORE_TEST_SUTES.H ONCE MERGED  ////
@@ -89,7 +97,7 @@ class MeshMovingApplicationFastSuite : public KratosCoreFastSuite {};
 class KratosMeshingApplicationFastSuite : public KratosCoreFastSuite {};
 class KratosRansFastSuite : public KratosCoreFastSuite {};
 class RomApplicationFastSuite : public KratosCoreFastSuite {};
-class KratosSolidMechanicsFastSuite : public KratosCoreFastSuite {};
+//class KratosSolidMechanicsFastSuite : public KratosCoreFastSuite {};
 class KratosStatisticsFastSuite : public KratosCoreFastSuite {};
 class KratosWindEngineeringFastSuite : public KratosCoreFastSuite {};
 class KratosMPMFastSuite : public KratosCoreFastSuite {};

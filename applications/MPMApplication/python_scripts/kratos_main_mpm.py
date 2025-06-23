@@ -1,10 +1,10 @@
 
 import KratosMultiphysics
-from KratosMultiphysics.MPMApplication.mpm_analysis import MPMAnalysis
+from KratosMultiphysics.MPMApplication.mpm_analysis import MpmAnalysis
 
 """
 For user-scripting it is intended that a new class is derived
-from MPMAnalysis to do modifications
+from MpmAnalysis to do modifications
 """
 
 if __name__ == "__main__":
@@ -13,5 +13,5 @@ if __name__ == "__main__":
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    simulation = MPMAnalysis(model,parameters)
+    simulation = MpmAnalysis(model,parameters)
     simulation.Run()

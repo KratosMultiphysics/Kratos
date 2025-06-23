@@ -165,6 +165,10 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void GenerateSubModelParts(
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelpart);
+
 
     ///@}
     ///@name Protected  Access

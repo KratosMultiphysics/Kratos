@@ -21,7 +21,6 @@ class StubLinearElasticLaw : public Kratos::GeoLinearElasticLaw
 {
 protected:
     void CalculateElasticMatrix(Matrix& rConstitutiveMatrix, Parameters& rValues) override;
-    void CalculateCauchyGreenStrain(Parameters& rValues, Vector& rStrainVector) override;
     void CalculatePK2Stress(const Vector& rStrainVector, Vector& rStressVector, Parameters& rValues) override;
 };
 

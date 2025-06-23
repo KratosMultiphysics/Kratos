@@ -1,5 +1,5 @@
 ---
-title: Multiphysics Example
+title: solver-level Multiphysics Example
 keywords: 
 tags: [multiphysics_example.md]
 sidebar: kratos_for_users
@@ -12,7 +12,7 @@ The main goal is to become familiar with key aspects of multiphysics simulations
 
 The first example will be used in a black-box manner to discuss the most important details related to setting up such cases and the corresponding parameters. The second example depicts how one could create own - so customized - mapping and solvers to further enhance existing capabilities.
 
-**Suggestion:** as soon as you are here, you should download the [source files](https://github.com/KratosMultiphysics/Documentation/blob/master/Workshops_files/Kratos_Workshop_2019/Sources/6_multiphysics/6_multiphysics.zip) and start running the respective simulations from the command line as explained in [Kratos input files and IO](https://github.com/KratosMultiphysics/Kratos/wiki/Kratos-input-files-and-IO) (section 2.2: _Run Kratos from the command line_) . As there are 2 examples intended to be shown, it would be sufficient if every other person would run one and the remaining participants the other, preferably in groups of two.
+**Suggestion:** as soon as you are here, you should download the [source files](https://github.com/KratosMultiphysics/Documentation/raw/refs/heads/master/Crash_Course/7_Multiphysics.zip) and start running the respective simulations from the command line as explained in [Kratos input files and IO](https://github.com/KratosMultiphysics/Kratos/wiki/Kratos-input-files-and-IO) (section 2.2: _Run Kratos from the command line_) . As there are 2 examples intended to be shown, it would be sufficient if every other person would run one and the remaining participants the other, preferably in groups of two.
 * Simulation 1: in `6_multiphysics\FSIBlackboxGeneric\MainKratos.py`
 * Simulation 2: in `6_multiphysics\FSICustomizedSDoFVortexShedding\MainKratosFSI.py`
 

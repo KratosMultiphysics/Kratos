@@ -16,7 +16,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
 class AlgorithmSteepestDescent(Algorithm):
     """
-        A classical steepest descent algorithm to solve unconstrainted optimization problems.
+        A classical steepest descent algorithm to solve unconstrained optimization problems.
     """
 
     @classmethod
@@ -42,6 +42,7 @@ class AlgorithmSteepestDescent(Algorithm):
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.master_control = MasterControl() # Need to fill it with controls
+        self._optimization_problem.AddComponent(self.master_control)
 
         for control_name in parameters["controls"].GetStringArray():
             control = optimization_problem.GetControl(control_name)
@@ -59,6 +60,7 @@ class AlgorithmSteepestDescent(Algorithm):
         self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
 
         self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
+        self._optimization_problem.AddComponent(self.__objective)
         self.__control_field = None
         self.__obj_val = None
 

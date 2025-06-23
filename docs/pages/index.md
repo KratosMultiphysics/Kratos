@@ -11,7 +11,7 @@ summary:
 
 _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface. More in [Overview](https://github.com/KratosMultiphysics/Kratos/wiki/Overview)
 
-**Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/wiki/Licence) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
+**Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/license.txt) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
 
 # Main Features
 **Kratos** is __multiplatform__ and available for __Windows, Linux__ (several distros) and __macOS__.
@@ -55,12 +55,12 @@ pip install KratosMultiphysics-all
 
 ## Tutorials
 {:.no_toc}
-* [Running an example from GiD](https://github.com/KratosMultiphysics/Kratos/wiki/Running-an-example-from-GiD)
-* [Kratos input files and I/O](https://github.com/KratosMultiphysics/Kratos/wiki/Kratos-input-files-and-IO)
-* [Data management](https://github.com/KratosMultiphysics/Kratos/wiki/Data-management)
-* [Solving strategies](https://github.com/KratosMultiphysics/Kratos/wiki/Solving-strategies)
-* [Manipulating solution values](https://github.com/KratosMultiphysics/Kratos/wiki/Manipulating-solution-values)
-* [Multiphysics](https://github.com/KratosMultiphysics/Kratos/wiki/Multiphysics-example)
+* [Running an example from GiD](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Running_An_Example_From_GiD.html)
+* [Kratos input files and I/O](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Kratos_Input_Files_And_Io.html)
+* [Data management](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Data_Management.html)
+* [Solving strategies](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Solving_Strategies.html)
+* [Manipulating solution values](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Developers/Tutorials/Manipulating-solution-values.html)
+* [Multiphysics](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/Tutorials/Multiphysics_Example.html)
 
 # Examples of use
 Kratos has been used for simulation of many different problems in a wide variety of disciplines ranging from wind over singular building to granular domain dynamics. Some examples and validation benchmarks simulated by Kratos can be found [here](https://kratosmultiphysics.github.io/Examples/)
@@ -124,7 +124,7 @@ Looking forward to seeing your logo here!
 # Special Thanks To
 ## In Kratos Core:
 {:.no_toc}
-- [Boost](http://www.boost.org/) for ublas
+- [Boost](http://www.boost.org/) for uBLAS
 - [pybind11](https://github.com/pybind/pybind11) for exposing C++ to python
 - [GidPost](https://www.gidhome.com/gid-plus/tools/476/gidpost/) providing output to [GiD](https://www.gidhome.com/)
 - [AMGCL](https://github.com/ddemidov/amgcl) for its highly scalable multigrid solver
@@ -145,7 +145,7 @@ Looking forward to seeing your logo here!
 Please, use the following references when citing Kratos in your work.
 - [Dadvand, P., Rossi, R. & Oñate, E. An Object-oriented Environment for Developing Finite Element Codes for Multi-disciplinary Applications. Arch Computat Methods Eng 17, 253–297 (2010). https://doi.org/10.1007/s11831-010-9045-2](https://doi.org/10.1007/s11831-010-9045-2)
 - [Dadvand, P., Rossi, R., Gil, M., Martorell, X., Cotela, J., Juanpere, E., Idelsohn, S., Oñate, E. (2013). Migration of a generic multi-physics framework to HPC environments. Computers & Fluids. 80. 301–309. 10.1016/j.compfluid.2012.02.004.](10.1016/j.compfluid.2012.02.004)
-- [Vicente Mataix Ferrándiz, Philipp Bucher, Rubén Zorrilla, Suneth Warnakulasuriya, Riccardo Rossi, Alejandro Cornejo, jcotela, Carlos Roig, Josep Maria, tteschemacher, Miguel Masó, Guillermo Casas, Marc Núñez, Pooyan Dadvand, Salva Latorre, Ignasi de Pouplana, Joaquín Irazábal González, AFranci, Ferran Arrufat, riccardotosi, Aditya Ghantasala, Klaus Bernd Sautter, Peter Wilson, dbaumgaertner, Bodhinanda Chandra, Armin Geiser, Inigo Lopez, lluís, jgonzalezusua, Javi Gárate. (2024). KratosMultiphysics/Kratos: Release 9.5 (v9.5). Zenodo. https://doi.org/10.5281/zenodo.3234644](https://zenodo.org/records/6926179)
+- [Vicente Mataix Ferrándiz, Philipp Bucher, Rubén Zorrilla, Suneth Warnakulasuriya, Riccardo Rossi, Alejandro Cornejo, jcotela, Carlos Roig, Josep Maria, tteschemacher, Miguel Masó, Guillermo Casas, Marc Núñez, Pooyan Dadvand, Salva Latorre, Ignasi de Pouplana, Joaquín Irazábal González, AFranci, Ferran Arrufat, riccardotosi, Aditya Ghantasala, Klaus Bernd Sautter, Peter Wilson, dbaumgaertner, Bodhinanda Chandra, Armin Geiser, Inigo Lopez, lluís, jgonzalezusua, Javi Gárate. (2024). KratosMultiphysics/Kratos: Release 10.1 (v10.1). Zenodo. https://doi.org/10.5281/zenodo.3234644](https://zenodo.org/records/6926179)
 
 # Activity
 

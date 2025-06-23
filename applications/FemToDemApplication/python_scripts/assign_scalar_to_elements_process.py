@@ -2,7 +2,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-## This proces sets the value of a scalar variable to conditions
+## This process sets the value of a scalar variable to conditions
 
 from KratosMultiphysics.SolidMechanicsApplication.assign_scalar_to_nodes_process import AssignScalarToNodesProcess
 

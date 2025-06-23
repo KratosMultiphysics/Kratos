@@ -64,7 +64,7 @@ namespace Kratos
 
             CppTestsUtilities::Create2DGeometry(r_model_part, "Element2D3N");
 
-            // We set the flag to check that is transfered
+            // We set the flag to check that is transferred
             for (auto& i_elem : r_model_part.Elements())
                 i_elem.Set(ACTIVE, true);
 
@@ -120,7 +120,7 @@ namespace Kratos
 
             CppTestsUtilities::Create3DGeometry(r_model_part, "Element3D4N");
 
-            // We set the flag to check that is transfered
+            // We set the flag to check that is transferred
             for (auto& i_elem : r_model_part.Elements())
                 i_elem.Set(ACTIVE, true);
 

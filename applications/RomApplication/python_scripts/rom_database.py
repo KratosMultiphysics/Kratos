@@ -85,7 +85,7 @@ class RomDatabase(object):
             "HROM_Weights": '''CREATE TABLE IF NOT EXISTS HROM_Weights
                         (id INTEGER PRIMARY KEY, tol_sol REAL, tol_res REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, file_name TEXT)''',
             "Neural_Network": '''CREATE TABLE IF NOT EXISTS Neural_Network
-                        (id INTEGER PRIMARY KEY, tol_sol REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, modes TEXT, layers_size TEXT, batch_size INTEGER, epochs INTEGER, scheduler TEXT, base_lr REAL, additional_params TEXT, model_number INTEGER, file_name TEXT)''',
+                        (id INTEGER PRIMARY KEY, tol_sol REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, modes TEXT, layers_size TEXT, batch_size INTEGER, epochs INTEGER, scheduler TEXT, base_lr REAL, additional_params TEXT, model_number INTEGER, NNgrad_regularisation_weight REAL, file_name TEXT)''',
             "QoI_FOM": '''CREATE TABLE IF NOT EXISTS QoI_FOM
                         (id INTEGER PRIMARY KEY, parameters TEXT, is_active INTEGER , file_name TEXT)''',
             "QoI_ROM": '''CREATE TABLE IF NOT EXISTS QoI_ROM
@@ -139,18 +139,18 @@ class RomDatabase(object):
         else:
             err_msg = f'Error: {self.identify_list_type(mu)}'
             raise Exception(err_msg)
-        tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, non_converged_fom_14_bool = self.get_curret_params()
+        tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, non_converged_fom_14_bool = self.get_curret_params()
         if table_name == 'FOM':
             hash_mu = self.hash_parameters(serialized_mu, table_name)
         elif table_name == 'ROM':
             if decoder_type=="ann_enhanced":
-                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, table_name)
+                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, table_name)
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, ann_params ,non_converged_fom_14_bool,table_name)
             else:
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool,table_name)
         elif table_name == 'HROM':
             if decoder_type=="ann_enhanced":
-                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, table_name)
+                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, table_name)
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type, decoder_type, ann_params, non_converged_fom_14_bool, table_name)
             else:
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, table_name)
@@ -178,18 +178,18 @@ class RomDatabase(object):
         elif table_name == "HROM_Weights":
             hash_mu= self.hash_parameters(serialized_mu, tol_sol,tol_res,projection_type, decoder_type, non_converged_fom_14_bool,table_name)
         elif table_name == "Neural_Network":
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, table_name)
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, table_name)
         elif table_name == "QoI_FOM":
             hash_mu = self.hash_parameters(serialized_mu, table_name)
         elif table_name == "QoI_ROM":
             if decoder_type=="ann_enhanced":
-                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, table_name)
+                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, table_name)
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol,projection_type,decoder_type, ann_params, non_converged_fom_14_bool, table_name)
             else:
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol,projection_type,decoder_type, non_converged_fom_14_bool, table_name)
         elif table_name == "QoI_HROM":
             if decoder_type=="ann_enhanced":
-                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, table_name)
+                ann_params = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, table_name)
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res,projection_type,decoder_type, ann_params, non_converged_fom_14_bool,table_name)
             else:
                 hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res,projection_type,decoder_type, non_converged_fom_14_bool,table_name)
@@ -224,9 +224,10 @@ class RomDatabase(object):
         nn_data11_double = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["lr_strategy"]["base_lr"].GetDouble()
         nn_data12_str = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["lr_strategy"]["additional_params"].WriteJsonString()
         nn_data13_int = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["model_number"].GetInt()
+        nn_data14_double = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["NN_gradient_regularisation_weight"].GetDouble()
         non_converged_fom_14_bool = self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool()
 
-        return tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, non_converged_fom_14_bool
+        return tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, non_converged_fom_14_bool
 
 
 
@@ -259,7 +260,7 @@ class RomDatabase(object):
             numpy_array: Numpy array to store.
         """
         file_name, serialized_mu = self.get_hashed_file_name_for_table(table_name, mu)
-        tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, non_converged_fom_14_bool = self.get_curret_params()
+        tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, non_converged_fom_14_bool = self.get_curret_params()
 
         queries = {
             'FOM': 'INSERT INTO {table} (parameters, file_name) VALUES (?, ?)',
@@ -276,7 +277,7 @@ class RomDatabase(object):
             'LeftBasis': 'INSERT INTO {table} (tol_sol, type_of_projection, type_of_decoder, using_non_converged_sols, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             'HROM_Elements': 'INSERT INTO {table} (tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?)',
             'HROM_Weights': 'INSERT INTO {table} (tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?)',
-            'Neural_Network': 'INSERT INTO {table} (tol_sol , modes , layers_size, batch_size, epochs, scheduler, base_lr, additional_params, model_number, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'Neural_Network': 'INSERT INTO {table} (tol_sol , modes , layers_size, batch_size, epochs, scheduler, base_lr, additional_params, model_number, NNgrad_regularisation_weight, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             'QoI_FOM': 'INSERT INTO {table} (parameters, file_name, is_active) VALUES (?, ?, ?)',
             'QoI_ROM': 'INSERT INTO {table} (parameters, tol_sol, type_of_projection, type_of_decoder, using_non_converged_sols, file_name, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)',
             'QoI_HROM': 'INSERT INTO {table} (parameters, tol_sol, tol_res, type_of_projection, type_of_decoder, using_non_converged_sols, file_name, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
@@ -308,7 +309,7 @@ class RomDatabase(object):
             elif table_name in ['HROM_Elements', 'HROM_Weights']:
                 cursor.execute(query, (tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
             elif table_name == 'Neural_Network':
-                cursor.execute(query, (tol_sol, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, file_name))
+                cursor.execute(query, (tol_sol, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, nn_data14_double, file_name))
             elif table_name == 'QoI_FOM':
                 if len(numpy_array) > 0:
                     cursor.execute(query, (serialized_mu, file_name, True))
@@ -454,7 +455,7 @@ class RomDatabase(object):
                     unavailable_cases.append(mu)
 
         if unavailable_cases:
-            print(f"Retrieved snapshots matrix does not contain {len(unavailable_cases)} cases: {unavailable_cases}")
+            print(f"Retrieved snapshots matrix for {table_name} does not contain {len(unavailable_cases)} cases: {unavailable_cases}")
 
         return np.block(SnapshotsMatrix) if SnapshotsMatrix else None
 

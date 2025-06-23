@@ -13,36 +13,33 @@
 #pragma once
 
 #include "includes/condition.h"
+#include <gmock/gmock.h>
 
-namespace Kratos::Testing {
+namespace Kratos::Testing
+{
 
-class SpyCondition : public Condition {
+class SpyCondition : public Condition
+{
 public:
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo) const override;
-
-    void GetDofList(DofsVectorType& rElementalDofList,
-                    const ProcessInfo& rCurrentProcessInfo) const override;
+    MOCK_METHOD(void, EquationIdVector, (EquationIdVectorType&, const ProcessInfo&), (const, override));
+    MOCK_METHOD(void, GetDofList, (DofsVectorType&, const ProcessInfo&), (const, override));
+    MOCK_METHOD(void, Initialize, (const ProcessInfo&), (override));
 
     bool IsSolutionStepInitialized() const;
     bool IsSolutionStepFinalized() const;
     bool IsNonLinIterationInitialized() const;
     bool IsNonLinIterationFinalized() const;
-    bool IsEquationIdRetrieved() const;
-    bool IsGetDofListCalled() const;
 
 private:
-    bool mSolutionStepInitialized = false;
-    bool mSolutionStepFinalized = false;
+    bool mSolutionStepInitialized    = false;
+    bool mSolutionStepFinalized      = false;
     bool mNonLinIterationInitialized = false;
-    bool mNonLinIterationFinalized = false;
-    mutable bool mIsEquationIdRetrieved = false;
-    mutable bool mIsGetDofListCalled = false;
+    bool mNonLinIterationFinalized   = false;
 };
 
-} // namespace Kratos
+} // namespace Kratos::Testing

@@ -34,9 +34,10 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0)
         self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option)
+        self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_V2_OPTION, self.clean_init_indentation_v2_option)
         self.model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, self.compute_stress_tensor_option)
 
-        # GLOBAL PHISICAL ASPECTS
+        # GLOBAL PHYSICAL ASPECTS
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
 
         # GLOBAL MATERIAL PROPERTIES

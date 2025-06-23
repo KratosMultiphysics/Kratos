@@ -69,7 +69,7 @@ class MaterialsAssignationUtility:
             if pair[1].IsString():
                 material_name_in_assignation_table = pair[1].GetString()
                 material_id = None
-                for material in list_of_materials:
+                for material in list_of_materials.values():
                     material_name_in_materials_list = material["material_name"].GetString()
                     if material_name_in_assignation_table == material_name_in_materials_list:
                         material_id = material["material_id"].GetInt()

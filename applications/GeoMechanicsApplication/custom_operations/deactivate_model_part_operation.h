@@ -61,9 +61,7 @@ public:
     /// @brief Model-parameters constructor.
     /// @param rModel Reference to the model container
     /// @param rSettings Input settings
-    DeactivateModelPartOperation(
-        Model& rModel,
-        const Parameters rSettings);
+    DeactivateModelPartOperation(Model& rModel, const Parameters& rSettings);
 
     /// Destructor
     ~DeactivateModelPartOperation() override = default;
@@ -82,9 +80,7 @@ public:
     ///@name Operations
     ///@{
 
-    Operation::Pointer Create(
-        Model& rModel,
-        Parameters ThisParameters) const override;
+    Operation::Pointer Create(Model& rModel, Parameters Settings) const override;
 
     void Execute() override;
 

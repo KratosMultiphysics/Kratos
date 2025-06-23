@@ -74,7 +74,7 @@ namespace Kratos
      * understood as the surface elements of the area of interest.
      * @param rModelPart ModelPart of the problem. Must have a set of conditions defining the "skin" of the domain
      * @param dimension Spatial dimension (2 or 3)
-     * @note Use this fuction instead of its overload taking a Conditions array for MPI applications,
+     * @note Use this function instead of its overload taking a Conditions array for MPI applications,
      * as it will take care of communication between partitions.
      */
 
@@ -581,7 +581,7 @@ namespace Kratos
       ModelPart::NodesContainerType &rNodes = rModelPart.Nodes();
       ModelPart::ElementsContainerType &rElements = rModelPart.Elements();
 
-      // Check if the neigbours search is already done and set
+      // Check if the neighbours search is already done and set
       bool neighsearch = false;
       unsigned int number_of_nodes = rElements.begin()->GetGeometry().PointsNumber();
       for (unsigned int i = 0; i < number_of_nodes; ++i)
@@ -1268,7 +1268,7 @@ namespace Kratos
           if (norm_2(rNormal) != 0)
             rNormal = rNormal / norm_2(rNormal);
 
-          for (unsigned int i_norm = 0; i_norm < NumberOfNeighbourNormals; ++i_norm) // loop over node neigbour faces
+          for (unsigned int i_norm = 0; i_norm < NumberOfNeighbourNormals; ++i_norm) // loop over node neighbour faces
           {
             if (FaceNormals[i_norm] != 1)
             { // not coincident normal
@@ -1617,7 +1617,7 @@ namespace Kratos
     //           //std::cout<<" modulus 1 "<<Normal.modulus()<<std::endl;
     //           Normal=Normal/norm_2(Normal);
     //           Normal*=1.2;
-    //           //Normal.write(" CORRRECTION ");
+    //           //Normal.write(" CORRECTION ");
     //           //std::cout<<" modulus 2 "<<Normal.modulus()<<std::endl;
     //         }
 
@@ -1631,7 +1631,7 @@ namespace Kratos
     //         if(norm_2(Normal)!=0)
     //           Normal=Normal/norm_2(Normal); //normalize normal *this/modulus();
 
-    //         for(unsigned int esnod=0;esnod<normals_size;++esnod)//loop over node neigbour faces
+    //         for(unsigned int esnod=0;esnod<normals_size;++esnod)//loop over node neighbour faces
     //           {
     //     	if (storenorm[esnod]!=1){
 

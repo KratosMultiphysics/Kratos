@@ -1,11 +1,11 @@
 import KratosMultiphysics
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
-from KratosMultiphysics.MPMApplication.mpm_analysis import MPMAnalysis
+from KratosMultiphysics.MPMApplication.mpm_analysis import MpmAnalysis
 
-class ParticleMechanicsAnalysis(MPMAnalysis):
+class ParticleMechanicsAnalysis(MpmAnalysis):
 
     def __init__(self, model, project_parameters):
-        IssueDeprecationWarning("MPMApplication:","`ParticleMechanicsAnalysis` is deprecated and replaced with `MPMAnalysis`")
+        IssueDeprecationWarning("MPMApplication:","`ParticleMechanicsAnalysis` is deprecated and replaced with `MpmAnalysis`")
         super().__init__(model, project_parameters)
 
 if __name__ == "__main__":

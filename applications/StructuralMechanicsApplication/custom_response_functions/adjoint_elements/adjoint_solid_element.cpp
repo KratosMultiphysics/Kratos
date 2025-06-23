@@ -20,7 +20,6 @@
 #include "utilities/indirect_scalar.h"
 
 // Application includes
-#include "custom_elements/total_lagrangian.h"
 #include "custom_response_functions/adjoint_elements/adjoint_solid_element.h"
 
 namespace Kratos

@@ -1,6 +1,6 @@
 {
     "side_bar_name": "kratos_testing",
-    "landing_page": "testing.md",
+    "landing_page": "General/testing_quick_start.md",
     "additional_menu_options": {
         "product": "Testing",
         "title": "sidebar"

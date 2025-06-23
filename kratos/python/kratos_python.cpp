@@ -78,6 +78,14 @@
 #include "add_globals_to_python.h"
 #include "add_geometry_data_to_python.h"
 
+#ifdef KRATOS_USE_FUTURE
+    #include "future/python/kratos_python.h"
+#endif
+
+#ifdef KRATOS_USE_LEGACY
+    #include "legacy/python/kratos_python.h"
+#endif
+
 namespace Kratos::Python
 {
 
@@ -156,6 +164,16 @@ PYBIND11_MODULE(Kratos, m)
     AddRegistryToPython(m);
     AddContainerExpressionToPython(m);
     AddGlobalsToPython(m);
+
+#ifdef KRATOS_USE_FUTURE
+    auto future = m.def_submodule("Future", "Kratos Future submodule containing experimental features");
+    Future::Python::AddFutureToPython(future);
+#endif
+
+#ifdef KRATOS_USE_LEGACY
+    auto legacy = m.def_submodule("Legacy", "Kratos Legacy submodule containing legacy features");
+    Legacy::Python::AddLegacyToPython(legacy);
+#endif
 
     m.def("Hello", Hello);
 }

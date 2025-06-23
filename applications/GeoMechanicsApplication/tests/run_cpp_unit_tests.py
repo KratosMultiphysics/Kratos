@@ -10,7 +10,7 @@ def run():
 
     command = [os.path.join("test", "KratosGeoMechanicsCoreTest")]
     if args.onlyFastSuite:
-        command.append("--gtest_filter=KratosGeoMechanicsFastSuite.*")
+        command.append("--gtest_filter=KratosGeoMechanicsFastSuite*")
 
     return subprocess.run(command).returncode
 

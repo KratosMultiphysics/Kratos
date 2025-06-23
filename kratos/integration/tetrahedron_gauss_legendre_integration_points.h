@@ -12,8 +12,7 @@
 //
 
 
-#if !defined(KRATOS_TETRAHEDRON_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED )
-#define  KRATOS_TETRAHEDRON_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -85,11 +84,12 @@ public:
 
     static const IntegrationPointsArrayType& IntegrationPoints()
     {
+        const double one_over_twenty_four = 1.0 / 24.0;
         static const IntegrationPointsArrayType s_integration_points{{
-            IntegrationPointType( 0.58541020,0.13819660,0.13819660 , 1.00 / 24.00 ),
-            IntegrationPointType( 0.13819660,0.58541020,0.13819660 , 1.00 / 24.00 ),
-            IntegrationPointType( 0.13819660,0.13819660,0.58541020 , 1.00 / 24.00 ),
-            IntegrationPointType( 0.13819660,0.13819660,0.13819660 , 1.00 / 24.00 )
+            IntegrationPointType( 0.58541020,0.13819660,0.13819660 , one_over_twenty_four ),
+            IntegrationPointType( 0.13819660,0.58541020,0.13819660 , one_over_twenty_four ),
+            IntegrationPointType( 0.13819660,0.13819660,0.58541020 , one_over_twenty_four ),
+            IntegrationPointType( 0.13819660,0.13819660,0.13819660 , one_over_twenty_four )
         }};
         return s_integration_points;
     }
@@ -274,7 +274,5 @@ public:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_TETRAHEDRON_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED  defined
 
 

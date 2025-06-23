@@ -5,13 +5,16 @@
         "Processes",
         "Utilities",
         "Debugging",
-        "Documentation_Guide",
         "Sequence_Diagrams",
         "Expressions",
+        "Spatial_Containers",
+        "Testing",
+        "Documentation_Guide",
         {
             "type": "external",
             "title": "Source Documentation",
             "url": "https://kratos-docs.onrender.com"
-        }
+        },
+        "Workshops"
     ]
 }

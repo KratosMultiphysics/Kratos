@@ -1,6 +1,7 @@
 # STD imports
 import sys
 import re
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -74,11 +75,17 @@ class KratosPythonCppLib:
 
     @staticmethod
     def GetCppLibModuleName(cpp_lib_path: Path) -> str:
-        loc = cpp_lib_path.name.find(".cpython")
-        if loc == -1:
-            return ""
+        if os.name == 'nt': # This means "Windows"
+            if cpp_lib_path.name.endswith(".pyd"):
+                return cpp_lib_path.name.split(".")[0]
+            else:
+                return ""
         else:
-            return cpp_lib_path.name[:loc]
+            loc = cpp_lib_path.name.find(".cpython")
+            if loc == -1:
+                return ""
+            else:
+                return cpp_lib_path.name[:loc]
 
 def GetCppLibs(kratos_libs_path: Path) -> 'list[KratosPythonCppLib]':
     # generate list of cpp modules
@@ -130,6 +137,14 @@ def SetPythonModulesForCppModules(list_of_python_cpp_libs: 'list[KratosPythonCpp
 
         if all([v.IsPythonModuleDefined() for v in list_of_python_cpp_libs]):
             break
+
+    # there may be python libraries which are not directly imported by any application.
+    # hence removing them from the stub generation
+    i = len(list_of_python_cpp_libs) - 1
+    while (i >= 0):
+        if not list_of_python_cpp_libs[i].IsPythonModuleDefined():
+            del list_of_python_cpp_libs[i]
+        i -= 1
 
     # first add dependencies based on the python module name
     for kratos_module in list_of_python_cpp_libs:
@@ -196,6 +211,7 @@ def Main():
     args: 'list[str]' = ["-o", str(kratos_library_path)]
     for k in list_of_cpp_libs:
         args.extend(["-p", k.GetCppLibModule()])
+    args.append("--include-docstrings")
     options = parse_options(args)
     generate_stubs(options)
 
@@ -213,7 +229,10 @@ if __name__ == "__main__":
     error_and_warning_outut_file = f"{sys.argv[1]}/stub_generation_errors_and_warnings.txt"
     if "--quiet" in sys.argv: # suppress output from Kratos imports
         args = [arg for arg in sys.argv if arg != "--quiet"]
-        subprocess.run([sys.executable] + args, stdout = subprocess.PIPE, stderr = sys.stderr, check=True)
+        proc = subprocess.run([sys.executable] + args, stdout = subprocess.PIPE, stderr = sys.stderr, check=True)
+        if proc.stderr is not None:
+            print(proc.stderr)
+
     else:
         Main()
         PostProcessGeneratedStubFiles()

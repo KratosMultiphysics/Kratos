@@ -403,6 +403,7 @@ namespace Kratos::Testing
         SparseSpaceType::MatrixPointerType pA; /// The LHS matrix of the system of equations
 
         pBuilderAndSolver->SetUpDofSet(pScheme, rModelPart);
+        KRATOS_EXPECT_TRUE(pBuilderAndSolver->GetDofSetIsInitializedFlag())
         pBuilderAndSolver->SetUpSystem(rModelPart);
         pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, pA, pDx, pb, rModelPart);
 
