@@ -170,7 +170,7 @@ void QSConvectionDiffusionExplicit<2,3>::CalculateMassMatrix(
     KRATOS_TRY;
 
     const unsigned int local_size = 3;
-    // Resize, intialize and fill the mass matrix for linear triangular elements
+    // Resize, initialize and fill the mass matrix for linear triangular elements
     if (rMassMatrix.size1() != local_size)
         rMassMatrix.resize(local_size, local_size, false);
     noalias(rMassMatrix) = ZeroMatrix(local_size, local_size);
@@ -195,7 +195,7 @@ void QSConvectionDiffusionExplicit<3,4>::CalculateMassMatrix(
     KRATOS_TRY;
 
     const unsigned int local_size = 4;
-    // Resize, intialize and fill the mass matrix for linear tetrahedral elements
+    // Resize, initialize and fill the mass matrix for linear tetrahedral elements
     if (rMassMatrix.size1() != local_size)
         rMassMatrix.resize(local_size, local_size, false);
     noalias(rMassMatrix) = ZeroMatrix(local_size, local_size);
@@ -343,7 +343,7 @@ void QSConvectionDiffusionExplicit<2,3>::QSCalculateRightHandSideInternal(
     const auto& tau = rData.tau;
     const auto& prj = rData.oss_projection;
     // Hardcoded shape functions gradients for linear triangular element
-    // This is explicitly done to minimize the matrix acceses
+    // This is explicitly done to minimize the matrix accesses
     // The notation DN_i_j means shape function for node i in dimension j
     const double& DN_DX_0_0 = rData.DN_DX(0, 0);
     const double& DN_DX_0_1 = rData.DN_DX(0, 1);
@@ -462,7 +462,7 @@ void QSConvectionDiffusionExplicit<3,4>::QSCalculateRightHandSideInternal(
     const auto& tau = rData.tau;
     const auto& prj = rData.oss_projection;
     // Hardcoded shape functions gradients for linear triangular element
-    // This is explicitly done to minimize the matrix acceses
+    // This is explicitly done to minimize the matrix accesses
     // The notation DN_i_j means shape function for node i in dimension j
     const double& DN_DX_0_0 = rData.DN_DX(0,0);
     const double& DN_DX_0_1 = rData.DN_DX(0,1);
@@ -650,7 +650,7 @@ void QSConvectionDiffusionExplicit<2,3>::QSCalculateOrthogonalSubgridScaleRHSInt
     const auto& explicit_step_coefficient = rData.explicit_step_coefficient;
     const auto& v = rData.convective_velocity;
     // Hardcoded shape functions gradients for linear triangular element
-    // This is explicitly done to minimize the matrix acceses
+    // This is explicitly done to minimize the matrix accesses
     // The notation DN_i_j means shape function for node i in dimension j
     const double& DN_DX_0_0 = rData.DN_DX(0, 0);
     const double& DN_DX_0_1 = rData.DN_DX(0, 1);
@@ -739,7 +739,7 @@ void QSConvectionDiffusionExplicit<3,4>::QSCalculateOrthogonalSubgridScaleRHSInt
     const auto& explicit_step_coefficient = rData.explicit_step_coefficient;
     const auto& v = rData.convective_velocity;
     // Hardcoded shape functions gradients for linear triangular element
-    // This is explicitly done to minimize the matrix acceses
+    // This is explicitly done to minimize the matrix accesses
     // The notation DN_i_j means shape function for node i in dimension j
     const double& DN_DX_0_0 = rData.DN_DX(0,0);
     const double& DN_DX_0_1 = rData.DN_DX(0,1);

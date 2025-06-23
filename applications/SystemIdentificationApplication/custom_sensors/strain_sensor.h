@@ -64,7 +64,7 @@ public:
     /// Constructor.
     StrainSensor(
         const std::string& rName,
-        const Point& rLocation,
+        Node::Pointer pNode,
         const Variable<Matrix>& rStrainVariable,
         const StrainType& rStrainType,
         const Element& rElement,
@@ -74,12 +74,22 @@ public:
     ~StrainSensor() override = default;
 
     ///@}
-    ///@name Operations
+    ///@name Static operations
     ///@{
+
+    static Sensor::Pointer Create(
+        ModelPart& rDomainModelPart,
+        ModelPart& rSensorModelPart,
+        const IndexType Id,
+        Parameters SensorParameters);
 
     static Parameters GetDefaultParameters();
 
-    const Parameters GetSensorParameters() const override;
+    ///@}
+    ///@name Operations
+    ///@{
+
+    Parameters GetSensorParameters() const override;
 
     double CalculateValue(ModelPart& rModelPart) override;
 
@@ -166,6 +176,8 @@ private:
     const IndexType mElementId;
 
     StrainType mStrainType;
+
+    IndexType mStrainIndex;
 
     Point mLocalPoint;
 

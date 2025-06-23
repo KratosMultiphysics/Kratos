@@ -47,7 +47,9 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
 
         self.coordinates_prefix_pattern = parameters["coordinates_prefix"].GetString()
         self.variables_prefix_pattern = parameters["variables_prefix"].GetString()
-        isHistorical = parameters["historical_value"].GetBool()
+
+        # TODO: This whole process will be re-organized in coming PRs.
+        self.is_historical = parameters["historical_value"].GetBool()
 
         # Create vertices
         self.vertices = HDF5Application.VertexContainer()
@@ -55,8 +57,7 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
             vertex = HDF5Application.Vertex.MakeShared(
                 position.GetVector(),
                 locator,
-                i_vertex,
-                isHistorical)
+                i_vertex)
             if vertex.IsLocated():
                 self.vertices.push_back(vertex)
 
@@ -102,7 +103,10 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
             if self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] and file.HasPath(prefix):
                 KratosMultiphysics.Logger.PrintWarning("[PointSetOutputProcess] Path exists", f"Skip writing vertex data to group: {prefix}")
             else:
-                HDF5Application.VertexContainerVariableIO(io_parameters, file).Write(self.vertices)
+                if self.is_historical:
+                    HDF5Application.VertexContainerHistoricalVariableIO(io_parameters, file).Write(self.vertices)
+                else:
+                    HDF5Application.VertexContainerNonHistoricalVariableIO(io_parameters, file).Write(self.vertices)
 
 
     @staticmethod

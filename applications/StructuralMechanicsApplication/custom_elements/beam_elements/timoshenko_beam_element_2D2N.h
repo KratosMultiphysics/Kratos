@@ -120,7 +120,7 @@ public:
     /**
      * @brief Indicates the amount of DoFs per node (u0, v, theta)
      */
-    IndexType GetDoFsPerNode() const
+    virtual IndexType GetDoFsPerNode() const
     {
         return 3;
     }
@@ -157,12 +157,12 @@ public:
      * @param xi The coordinate in the natural axes
      * @param rNodalValues The vector containing the nodal values in local axes
      */
-    void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double Length, const double Phi, const double xi, const VectorType &rNodalValues) const;
+    virtual void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double Length, const double Phi, const double xi, const VectorType &rNodalValues) const;
 
     /**
      * @brief Computes the length of the FE and returns it
      */
-    double CalculateLength() const
+    virtual double CalculateLength() const
     {
         return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
     }
@@ -337,7 +337,7 @@ public:
      * @param rIntegrationPoints array of IP
      * @param PointNumber tthe IP to be evaluated
     */
-    array_1d<double, 3> GetLocalAxesBodyForce(
+    virtual array_1d<double, 3> GetLocalAxesBodyForce(
         const Element &rElement,
         const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
         const IndexType PointNumber) const;
@@ -388,6 +388,18 @@ public:
         ) override;
 
     /**
+     * @brief Calculate a double Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
      * @brief Get on rVariable Constitutive Law from the element
      * @param rVariable The variable we want to get
      * @param rValues The results in the integration points
@@ -407,6 +419,13 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     int Check(const ProcessInfo &rCurrentProcessInfo) const override;
+
+    /**
+     * @brief This function returns a proper measure of the area.
+     * If the strain_size is 3 (standard Timoshenko beam), the area is the CROSS_AREA
+     * Else (plane strain Timoshenko beam), hence the area is per unit length
+     */
+    double GetCrossArea();
 
     ///@}
     ///@name Access

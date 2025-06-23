@@ -53,7 +53,7 @@ Condition::Pointer AxisymmetricLineNormalLoad2DDiffOrderCondition::Create(IndexT
 }
 
 double AxisymmetricLineNormalLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(
-    const IndexType                                 PointNumber,
+    IndexType                                       PointNumber,
     const GeometryType::JacobiansType&              JContainer,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
 

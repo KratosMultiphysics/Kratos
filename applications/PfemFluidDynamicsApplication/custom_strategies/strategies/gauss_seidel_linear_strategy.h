@@ -145,7 +145,7 @@ namespace Kratos
             //setting up the  builder and solver
             mpBuilderAndSolver = pNewBuilderAndSolver;
 
-            //set flag to start correcty the calculations
+            //set flag to start correctly the calculations
             mInitializeWasPerformed = false;
 
             //tells to the Builder And Solver if the system matrix and vectors need to
@@ -213,9 +213,9 @@ namespace Kratos
 
         //level of echo for the solving strategy
         // 0 -> mute... no echo at all
-        // 1 -> printing time and basic informations
+        // 1 -> printing time and basic information
         // 2 -> printing linear solver data
-        // 3 -> Print of debug informations:
+        // 3 -> Print of debug information:
         //		Echo of stiffness matrix, Dx, b...
 
         void SetEchoLevel(int Level) override

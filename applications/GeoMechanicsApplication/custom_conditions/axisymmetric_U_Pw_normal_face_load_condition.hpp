@@ -33,11 +33,8 @@ public:
 
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType       = Node;
-    using GeometryType   = Geometry<NodeType>;
+    using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType     = Vector;
-    using MatrixType     = Matrix;
 
     AxisymmetricUPwNormalFaceLoadCondition()
         : AxisymmetricUPwNormalFaceLoadCondition(0, nullptr, nullptr)

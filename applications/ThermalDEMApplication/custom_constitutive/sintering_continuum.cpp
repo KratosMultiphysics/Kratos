@@ -264,7 +264,7 @@ namespace Kratos
 		else { // tension
 			if (failure_type == 0) {
 				LocalElasticContactForce[2] = -kn * (indentation - sintering_displ) * 0.666666666666666;
-				if (fabs(LocalElasticContactForce[2]) > limit_force) {
+				if (std::abs(LocalElasticContactForce[2]) > limit_force) {
 					failure_type = 4; // tension failure
 					LocalElasticContactForce[2] = 0.0;
 				}

@@ -387,7 +387,7 @@ void CrBeamElement2D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
         load_orthogonal_direction /= vector_norm_c;
     }
 
-    // now caluclate respective work equivilent nodal moments
+    // now calculate respective work equivilent nodal moments
 
     const double custom_moment =
         norm_force_vector_orthogonal * GeometryLength * GeometryLength / 12.00;

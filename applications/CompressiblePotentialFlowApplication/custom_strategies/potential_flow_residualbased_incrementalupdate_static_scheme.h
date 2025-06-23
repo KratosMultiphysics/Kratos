@@ -298,7 +298,7 @@ private:
     // TargetCriticalMach Critical mach value to be used once the UpdateRelativeResidualNorm value is reached.
     // TargetUpwindFactorConstant Upwind factor constant value to be used once the UpdateRelativeResidualNorm value is reached.
     // UpdateRelativeResidualNorm Relative residual norm value to which the critical mach and the upwind factor constant will be updated.
-    // MachNumberSquaredLimit Mach number squared limit value wich will be used.
+    // MachNumberSquaredLimit Mach number squared limit value which will be used.
     
     bool mIsTransonic = false;
     double mInitialCriticalMach         = 0.0;

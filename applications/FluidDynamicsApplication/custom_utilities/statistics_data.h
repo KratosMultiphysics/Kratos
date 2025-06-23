@@ -127,7 +127,7 @@ public:
             }
 
             if (NumMeasurements > 1) { // Second order and higher statistics start from the second iteration
-                // loop on higer order statistics. They require the already written rMeasurements, (const) mData and the number of steps as input
+                // loop on higher order statistics. They require the already written rMeasurements, (const) mData and the number of steps as input
                 for (auto it_statistic = rHigherOrderStatistics.begin(); it_statistic != rHigherOrderStatistics.end(); ++it_statistic)
                 {
                     it_statistic->SampleDataPoint(it_update_buffer, IntegrationPointData(g), rUpdate, NumMeasurements);

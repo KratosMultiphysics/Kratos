@@ -65,13 +65,14 @@ class SimpControl(Control):
         self.optimization_problem = optimization_problem
 
         default_settings = Kratos.Parameters("""{
-            "controlled_model_part_names"      : [""],
-            "output_all_fields"                : true,
-            "echo_level"                       : 0,
-            "density_projection_settings"      : {},
-            "young_modulus_projection_settings": {},
-            "filter_settings"                  : {},
-            "list_of_materials"                : [
+            "controlled_model_part_names"       : [""],
+            "output_all_fields"                 : true,
+            "echo_level"                        : 0,
+            "consider_recursive_property_update": false,
+            "density_projection_settings"       : {},
+            "young_modulus_projection_settings" : {},
+            "filter_settings"                   : {},
+            "list_of_materials"                 : [
                 {
                     "density"      : 1.0,
                     "young_modulus": 1.0
@@ -97,6 +98,8 @@ class SimpControl(Control):
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", controlled_model_names_parts, False)
         self.model_part: 'typing.Optional[Kratos.ModelPart]' = None
 
+        self.consider_recursive_property_update = parameters["consider_recursive_property_update"].GetBool()
+
         # filtering settings
         self.filter = FilterFactory(self.model, self.model_part_operation.GetModelPartFullName(), Kratos.DENSITY, Kratos.Globals.DataLocation.Element, parameters["filter_settings"])
 
@@ -108,7 +111,7 @@ class SimpControl(Control):
 
         # Creating element specific properties for Youngs Modulus and Density
         if not KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
-            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
+            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements, self.consider_recursive_property_update)
             KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
 
         self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
@@ -203,10 +206,14 @@ class SimpControl(Control):
 
         density = self.density_projection.ProjectForward(self.simp_physical_phi)
         KratosOA.PropertiesVariableExpressionIO.Write(density, Kratos.DENSITY)
+        if self.consider_recursive_property_update:
+            KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(density.GetContainer(), Kratos.DENSITY)
         self.un_buffered_data.SetValue("DENSITY", density.Clone(), overwrite=True)
 
         youngs_modulus = self.young_modulus_projection.ProjectForward(self.simp_physical_phi)
         KratosOA.PropertiesVariableExpressionIO.Write(youngs_modulus, Kratos.YOUNG_MODULUS)
+        if self.consider_recursive_property_update:
+            KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(youngs_modulus.GetContainer(), Kratos.YOUNG_MODULUS)
         self.un_buffered_data.SetValue("YOUNG_MODULUS", youngs_modulus.Clone(), overwrite=True)
 
         # now calculate the total sensitivities of density w.r.t. phi

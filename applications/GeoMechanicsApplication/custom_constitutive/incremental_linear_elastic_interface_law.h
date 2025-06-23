@@ -46,8 +46,6 @@ private:
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 
-    [[nodiscard]] Matrix MakeConstitutiveMatrix(double NormalStiffness, double ShearStiffness) const;
-
     Vector mPreviousRelativeDisplacement;
     Vector mPreviousTraction;
 };

@@ -39,43 +39,43 @@ namespace Kratos
 
 */
 
-typedef void (*pF_UMATMod)(double*       STRESS,
-                           double*       STATEV,
-                           double**      DDSDDE,
-                           double*       SSE,
-                           double*       SPD,
-                           double*       SCD,
-                           double*       rpl,
-                           double*       ddsddt,
-                           double*       drplde,
-                           double*       drpldt,
-                           double*       stran,
-                           double*       dstran,
-                           double*       time,
-                           double*       dtime,
-                           double*       temp,
-                           double*       dtemp,
-                           double*       predef,
-                           double*       dpred,
-                           char*         materl,
-                           int*          ndi,
-                           int*          nshr,
-                           int*          ntens,
-                           int*          nstatv,
-                           const double* props,
-                           int*          nprops,
-                           double*       coords,
-                           double**      drot,
-                           double*       pnewdt,
-                           double*       celent,
-                           double**      dfgrd0,
-                           double**      dfgrd1,
-                           int*          noel,
-                           int*          npt,
-                           double*       kslay,
-                           double*       kspt,
-                           int*          kstep,
-                           int*          kinc);
+using pF_UMATMod = void (*)(double*       STRESS,
+                            double*       STATEV,
+                            double**      DDSDDE,
+                            double*       SSE,
+                            double*       SPD,
+                            double*       SCD,
+                            double*       rpl,
+                            double*       ddsddt,
+                            double*       drplde,
+                            double*       drpldt,
+                            double*       stran,
+                            double*       dstran,
+                            double*       time,
+                            double*       dtime,
+                            double*       temp,
+                            double*       dtemp,
+                            double*       predef,
+                            double*       dpred,
+                            char*         materl,
+                            int*          ndi,
+                            int*          nshr,
+                            int*          ntens,
+                            int*          nstatv,
+                            const double* props,
+                            int*          nprops,
+                            double*       coords,
+                            double**      drot,
+                            double*       pnewdt,
+                            double*       celent,
+                            double**      dfgrd0,
+                            double**      dfgrd1,
+                            int*          noel,
+                            int*          npt,
+                            double*       kslay,
+                            double*       kspt,
+                            int*          kstep,
+                            int*          kinc);
 
 ///@addtogroup ConstitutiveModelsApplication
 ///@{
@@ -138,7 +138,7 @@ public:
     /**
      * @brief Clone method
      */
-    ConstitutiveLaw::Pointer Clone() const override;
+    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * @brief This function is designed to be called once to check compatibility with element
@@ -154,7 +154,7 @@ public:
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() const override { return VoigtSize; }
+    [[nodiscard]] SizeType GetStrainSize() const override { return VoigtSize; }
 
     /**
      * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
@@ -250,9 +250,9 @@ public:
     // @details It is designed to be called only once (or anyway, not often) typically at the beginning
     //          of the calculations, so to verify that nothing is missing from the input or that
     //          no common error is found.
-    int Check(const Properties&   rMaterialProperties,
-              const GeometryType& rElementGeometry,
-              const ProcessInfo&  rCurrentProcessInfo) const override;
+    [[nodiscard]] int Check(const Properties&   rMaterialProperties,
+                            const GeometryType& rElementGeometry,
+                            const ProcessInfo&  rCurrentProcessInfo) const override;
 
     /**
      * This is to be called at the very beginning of the calculation
@@ -281,7 +281,6 @@ public:
      * @param rMaterialProperties the Properties instance of the current element
      * @param rElementGeometry the geometry of the current element
      * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
      */
     void ResetMaterial(const Properties&   rMaterialProperties,
                        const GeometryType& rElementGeometry,
@@ -289,7 +288,6 @@ public:
 
     using ConstitutiveLaw::GetValue;
     double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
-    int&    GetValue(const Variable<int>& rThisVariable, int& rValue) override;
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
 
     using ConstitutiveLaw::SetValue;
@@ -306,7 +304,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override { return "SmallStrainUMAT3DLaw"; }
+    [[nodiscard]] std::string Info() const override { return "SmallStrainUMAT3DLaw"; }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }

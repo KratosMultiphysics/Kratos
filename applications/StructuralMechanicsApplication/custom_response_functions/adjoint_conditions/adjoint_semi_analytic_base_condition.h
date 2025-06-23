@@ -87,7 +87,7 @@ public:
     ///@{
 
     ///@}
-    ///@name Informations
+    ///@name Information
     ///@{
 
     ///@}
@@ -258,28 +258,46 @@ public:
         KRATOS_ERROR << "Calculate of the adjoint base condition is called!" << std::endl;
     }
 
+    // Results calculation on integration points
+    void CalculateOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-					      std::vector<double>& rOutput,
-					      const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-					      std::vector< array_1d<double, 3 > >& Output,
-					      const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
-					      std::vector< Vector >& Output,
-					      const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
-    }
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 4>>& rVariable,
+        std::vector<array_1d<double, 4>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
-					      std::vector< Matrix >& Output,
-					      const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
-    }
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 6>>& rVariable,
+        std::vector<array_1d<double, 6>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 9>>& rVariable,
+        std::vector<array_1d<double, 9>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 

@@ -29,7 +29,7 @@ class AbsoluteNormResidualConvergenceCriteria(CoSimulationConvergenceCriteria):
         # Determine if we are looking at the energy difference between two domains (solvers), or just one
         self.solver_vec = [solvers[settings["solver"].GetString()]]
         is_dual_domain = False
-        for criteria_option in settings["criteria_options"]:
+        for criteria_option in settings["criteria_options"].values():
             if criteria_option.GetString() == "domain_difference":
                 is_dual_domain = True
                 break
