@@ -2250,6 +2250,11 @@ template <> struct ModelPart::Container<ModelPart::GeometriesMapType> {
     // static GeometriesMapType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Geometries(); }
 };
 
+template <> struct ModelPart::Container<ModelPart::PropertiesContainerType> {
+    static std::string GetEntityName() { return "property"; }
+    static ModelPart::PropertiesContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Properties(); }
+};
+
 ///@}
 ///@name Input and output
 ///@{
