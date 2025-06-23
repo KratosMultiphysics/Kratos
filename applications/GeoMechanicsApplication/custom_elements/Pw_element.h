@@ -49,9 +49,9 @@ public:
     explicit PwElement(IndexType NewId = 0) : Element(NewId) {}
 
     PwElement(IndexType                                       NewId,
-                           const GeometryType::Pointer&                    pGeometry,
-                           const std::vector<CalculationContribution>&     rContributions,
-                           std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+              const GeometryType::Pointer&                    pGeometry,
+              const std::vector<CalculationContribution>&     rContributions,
+              std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
         : Element(NewId, pGeometry),
           mContributions(rContributions),
           mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
@@ -59,10 +59,10 @@ public:
     }
 
     PwElement(IndexType                                       NewId,
-                           const GeometryType::Pointer&                    pGeometry,
-                           const PropertiesType::Pointer&                  pProperties,
-                           const std::vector<CalculationContribution>&     rContributions,
-                           std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+              const GeometryType::Pointer&                    pGeometry,
+              const PropertiesType::Pointer&                  pProperties,
+              const std::vector<CalculationContribution>&     rContributions,
+              std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
         : Element(NewId, pGeometry, pProperties),
           mContributions(rContributions),
           mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
@@ -71,15 +71,14 @@ public:
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<PwElement>(NewId, GetGeometry().Create(rThisNodes),
-                                                      pProperties, mContributions,
-                                                      this->CloneIntegrationCoefficientModifier());
+        return make_intrusive<PwElement>(NewId, GetGeometry().Create(rThisNodes), pProperties,
+                                         mContributions, this->CloneIntegrationCoefficientModifier());
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         return make_intrusive<PwElement>(NewId, pGeom, pProperties, mContributions,
-                                                      this->CloneIntegrationCoefficientModifier());
+                                         this->CloneIntegrationCoefficientModifier());
     }
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
