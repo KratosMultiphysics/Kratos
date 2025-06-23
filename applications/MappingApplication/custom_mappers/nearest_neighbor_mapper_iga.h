@@ -173,11 +173,11 @@ public:
         : BaseType(rModelPartOrigin, rModelPartDestination) {}
 
     NearestNeighborMapperIGA(ModelPart& rModelPartOrigin,
-                          ModelPart& rModelPartDestination,
-                          Parameters JsonParameters)
-                          : BaseType(rModelPartOrigin,
-                                     rModelPartDestination,
-                                     JsonParameters)
+                             ModelPart& rModelPartDestination,
+                             Parameters JsonParameters)
+        : BaseType(rModelPartOrigin,
+                   rModelPartDestination,
+                   JsonParameters)
     {
         KRATOS_TRY;
 
