@@ -20,6 +20,7 @@
 #include "utilities/container_io_utils.h"
 #include "tensor_adaptors/tensor_adaptor.h"
 #include "tensor_adaptors/variant_variable_tensor_adaptor.h"
+#include "numpy_utils.h"
 
 // Include base h
 #include "add_tensor_adaptors_to_python.h"
@@ -61,8 +62,67 @@ void AddBaseTensorAdaptor(
         .def("StoreData", &TTensorAdapterType::StoreData)
         .def("GetContainer", &TTensorAdapterType::GetContainer)
         .def("Shape", &TTensorAdapterType::Shape)
-        .def("ViewData", pybind11::overload_cast<>(&TTensorAdapterType::ViewData))
-        .def("MoveData", &TTensorAdapterType::MoveData)
+        .def("ViewData", [](TTensorAdapterType& rSelf){
+                using numpy_array_type = pybind11::array_t<primitive_data_type, pybind11::array::c_style>;
+
+                const auto& r_shape = rSelf.Shape();
+
+                std::vector<std::size_t> c_shape(r_shape.size());
+                std::copy(r_shape.begin(), r_shape.end(), c_shape.begin());
+                std::vector<std::size_t> strides(c_shape.size());
+
+                std::size_t stride_items = 1;
+                for (int i = c_shape.size() - 1; i >= 0; --i) {
+                    strides[i] = sizeof(primitive_data_type) * stride_items;
+                    stride_items *= c_shape[i];
+                }
+
+                // do nothing in the release of the numpy array since the ownership is not passed
+                // the ownership is kept with the TensorAdaptor.
+                pybind11::capsule release(rSelf.ViewData().data(), [](void* a) {});
+
+                return numpy_array_type(
+                    c_shape,
+                    strides,
+                    rSelf.ViewData().data(),
+                    release
+                );
+        })
+        .def("MoveData", [](TTensorAdapterType& rSelf){
+                using numpy_array_type = pybind11::array_t<primitive_data_type, pybind11::array::c_style>;
+
+                const auto& r_shape = rSelf.Shape();
+
+                std::vector<std::size_t> c_shape(r_shape.size());
+                std::copy(r_shape.begin(), r_shape.end(), c_shape.begin());
+                std::vector<std::size_t> strides(c_shape.size());
+
+                std::size_t stride_items = 1;
+                for (int i = c_shape.size() - 1; i >= 0; --i) {
+                    strides[i] = sizeof(primitive_data_type) * stride_items;
+                    stride_items *= c_shape[i];
+                }
+
+                // this method transfers the ownership of the data to numpy.
+                // Since the DenseVector does not allow moving out the data without getting a call
+                // to destroy DenseVector underlying data at the destructor, we are creating a copy of the
+                // data by moving it to a temp so the underlying data container within the TensorAdaptor is cleared.
+                DenseVector<primitive_data_type> temp = rSelf.MoveData();
+                primitive_data_type* array = new primitive_data_type[temp.size()];
+                std::copy(temp.begin(), temp.end(), array);
+
+                // now we add the release to clear the data.
+                pybind11::capsule release(array, [](void* a) {
+                    delete[] reinterpret_cast<primitive_data_type*>(a);
+                });
+
+                return numpy_array_type(
+                    c_shape,
+                    strides,
+                    array,
+                    release
+                );
+        })
         .def("__str__", PrintObject<TTensorAdapterType>);
     ;
 }
