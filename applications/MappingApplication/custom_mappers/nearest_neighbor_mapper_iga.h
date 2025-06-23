@@ -169,8 +169,8 @@ public:
 
     // Default constructor, needed for registration
     NearestNeighborMapperIGA(ModelPart& rModelPartOrigin,
-                          ModelPart& rModelPartDestination)
-                          : BaseType(rModelPartOrigin, rModelPartDestination) {}
+                             ModelPart& rModelPartDestination)
+        : BaseType(rModelPartOrigin, rModelPartDestination) {}
 
     NearestNeighborMapperIGA(ModelPart& rModelPartOrigin,
                           ModelPart& rModelPartDestination,
