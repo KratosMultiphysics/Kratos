@@ -32,7 +32,7 @@ public:
 
     template<class TContainerType, class TContainerIO>
     static void GetShape(
-        DenseVector<unsigned int>& rShape,
+        std::vector<int>& rShape,
         const TContainerType& rContainer,
         const TContainerIO& rContainerIO)
     {
@@ -45,11 +45,11 @@ public:
             rContainerIO.GetValue(dummy_value, rContainer.front());
         }
 
-        DataTypeTraits<return_type>::Shape(dummy_value, rShape.data().begin() + 1, rShape.data().end());
+        DataTypeTraits<return_type>::Shape(dummy_value, rShape.data() + 1, rShape.data() + rShape.size());
         rShape[0] = rContainer.size();
     }
 
-    template<class TIndexType = unsigned int>
+    template<class TIndexType>
     static TIndexType GetFlatLength(
         TIndexType const * pShapeBegin,
         TIndexType const * pShapeEnd)

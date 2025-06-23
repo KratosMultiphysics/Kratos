@@ -82,7 +82,23 @@ public:
             this->mpContainerIO = p_container_io;
         }, pVariable);
 
-        this->mData.resize(TensorAdaptorUtils::GetFlatLength(this->mShape.data().begin(), this->mShape.data().end()));
+        this->mData.resize(TensorAdaptorUtils::GetFlatLength(this->mShape.data(), this->mShape.data() + this->mShape.size()));
+    }
+
+    VariantVariableTensorAdaptor(
+        typename ContainerType::Pointer pContainer,
+        VariableType pVariable,
+        const std::vector<int>& rShape,
+        TArgs&&... rArgs)
+        : BaseType(pContainer)
+    {
+        std::visit([&](const auto pVariable){
+            auto p_container_io = new TContainerIOType(*pVariable, rArgs...);
+            this->mpContainerIO = p_container_io;
+        }, pVariable);
+
+        this->mShape = rShape;
+        this->mData.resize(TensorAdaptorUtils::GetFlatLength(this->mShape.data(), this->mShape.data() + this->mShape.size()));
     }
 
     ~VariantVariableTensorAdaptor()
@@ -102,7 +118,7 @@ public:
         KRATOS_TRY
 
         // sanity checks
-        KRATOS_ERROR_IF_NOT(this->mShape[0] == this->mpContainer->size())
+        KRATOS_ERROR_IF_NOT(this->mShape[0] == static_cast<int>(this->mpContainer->size()))
             << "First dimension of the initialized tensor adaptor mismatch with the container size [ "
             << "Tensor adapter shape = " << this->mShape << ", container size = " << this->mpContainer->size() << " ].\n";
 
@@ -122,7 +138,7 @@ public:
         KRATOS_TRY
 
         // sanity checks
-        KRATOS_ERROR_IF_NOT(this->mShape[0] == this->mpContainer->size())
+        KRATOS_ERROR_IF_NOT(this->mShape[0] == static_cast<int>(this->mpContainer->size()))
             << "First dimension of the initialized tensor adaptor mismatch with the container size [ "
             << "Tensor adapter shape = " << this->mShape << ", container size = " << this->mpContainer->size() << " ].\n";
 

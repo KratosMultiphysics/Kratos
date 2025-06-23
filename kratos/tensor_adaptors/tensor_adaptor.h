@@ -81,7 +81,7 @@ public:
     /**
      * @brief Get the Shape of the tensor
      */
-    DenseVector<int> Shape() const { return mShape; };
+    std::vector<int> Shape() const { return mShape; };
 
     ///@}
     ///@name Input and output
@@ -99,7 +99,7 @@ protected:
 
     DenseVector<TPrimitiveDataType> mData;
 
-    DenseVector<unsigned int> mShape;
+    std::vector<int> mShape;
 
     ///@}
 
