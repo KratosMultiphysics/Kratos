@@ -1,0 +1,166 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Suneth Warnakulasuriya
+//
+
+#pragma once
+
+// System includes
+#include <string>
+#include <variant>
+
+// External includes
+
+// Project includes
+#include "tensor_adaptor.h"
+#include "tensor_adaptor_utils.h"
+#include "utilities/container_io_utils.h"
+
+namespace Kratos {
+
+///@name Kratos Classes
+///@{
+
+/**
+ * @brief Base class or all the tensor adaptor types.
+ */
+template<class TContainerType, template<class> class TContainerIOType, class... TArgs>
+class VariantVariableTensorAdaptor: public TensorAdaptor<TContainerType, double> {
+public:
+
+    ///@name Type definitions
+    ///@{
+
+    using Pointer = Kratos::intrusive_ptr<VariantVariableTensorAdaptor>;
+
+    using ConstPointer = Kratos::intrusive_ptr<const VariantVariableTensorAdaptor>;
+
+    using BaseType = TensorAdaptor<TContainerType, double>;
+
+    using ContainerType = typename BaseType::ContainerType;
+
+    using VariableType = std::variant<
+                                    const Variable<double>*,
+                                    const Variable<array_1d<double, 3>>*,
+                                    const Variable<array_1d<double, 4>>*,
+                                    const Variable<array_1d<double, 6>>*,
+                                    const Variable<array_1d<double, 9>>*,
+                                    const Variable<Vector>*,
+                                    const Variable<Matrix>*
+                                >;
+
+    using ContainerIOType = std::variant<
+                                    TContainerIOType<double> const *,
+                                    TContainerIOType<array_1d<double, 3>> const *,
+                                    TContainerIOType<array_1d<double, 4>> const *,
+                                    TContainerIOType<array_1d<double, 6>> const *,
+                                    TContainerIOType<array_1d<double, 9>> const *,
+                                    TContainerIOType<Vector> const *,
+                                    TContainerIOType<Matrix> const *
+                                >;
+
+    ///@}
+    ///@name Life cycle
+    ///@{
+
+    VariantVariableTensorAdaptor(
+        typename ContainerType::Pointer pContainer,
+        VariableType pVariable,
+        TArgs&&... rArgs)
+        : BaseType(pContainer)
+    {
+        std::visit([&](const auto pVariable){
+            auto p_container_io = new TContainerIOType(*pVariable, rArgs...);
+            TensorAdaptorUtils::GetShape(this->mShape, *(this->mpContainer), *p_container_io);
+            this->mpContainerIO = p_container_io;
+        }, pVariable);
+
+        this->mData.resize(TensorAdaptorUtils::GetFlatLength(this->mShape.data().begin(), this->mShape.data().end()));
+    }
+
+    ~VariantVariableTensorAdaptor()
+    {
+        std::visit([](const auto pContainerIO){ delete pContainerIO; }, this->mpContainerIO);
+    }
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    /**
+     * @brief Fill the internal data from Kratos data structures
+     */
+    void CollectData() override
+    {
+        KRATOS_TRY
+
+        // sanity checks
+        KRATOS_ERROR_IF_NOT(this->mShape[0] == this->mpContainer->size())
+            << "First dimension of the initialized tensor adaptor mismatch with the container size [ "
+            << "Tensor adapter shape = " << this->mShape << ", container size = " << this->mpContainer->size() << " ].\n";
+
+        std::visit([this](auto pContainerIO) {
+            CopyToContiguousArray(*(this->mpContainer), *pContainerIO, this->mData.data().begin(), this->mData.size());
+        }, this->mpContainerIO);
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Store internal data to the given TContainerType container.
+     *
+     */
+    void StoreData() override
+    {
+        KRATOS_TRY
+
+        // sanity checks
+        KRATOS_ERROR_IF_NOT(this->mShape[0] == this->mpContainer->size())
+            << "First dimension of the initialized tensor adaptor mismatch with the container size [ "
+            << "Tensor adapter shape = " << this->mShape << ", container size = " << this->mpContainer->size() << " ].\n";
+
+        std::visit([this](auto pContainerIO) {
+            std::vector<unsigned int> shape;
+            shape.resize(this->mShape.size() - 1);
+            std::copy(this->mShape.begin() + 1, this->mShape.end(), shape.begin());
+            CopyFromContiguousDataArray(*(this->mpContainer), *pContainerIO, this->mData.data().begin(), shape);
+        }, this->mpContainerIO);
+
+        KRATOS_CATCH("");
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    std::string Info() const override
+    {
+        return std::visit([this](auto pContainer) {
+            std::stringstream msg;
+            msg << pContainer->Info() << " with " << this->mpContainer->size()
+                << " " << ModelPart::Container<TContainerType>::GetEntityName() << "(s).";
+            return msg.str();
+        }, mpContainerIO);
+        return "";
+    }
+
+    ///@}
+
+private:
+    ///@name Private member variables
+    ///@{
+
+    ContainerIOType mpContainerIO;
+
+    ///@}
+};
+
+/// @}
+} // namespace Kratos
