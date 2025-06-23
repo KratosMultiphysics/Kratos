@@ -8,15 +8,6 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
     """
     This class contains some element tests, such as triaxial and oedometer tests
     """
-
-    def setUp(self):
-        # Code here will be placed BEFORE every test in this TestCase.
-        pass
-
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
-
     def test_triaxial_comp_6n(self):
         """
         Drained compression triaxial test on Mohr-Coulomb model with axisymmetric 2D6N elements
