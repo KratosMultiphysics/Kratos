@@ -124,6 +124,16 @@ PointerVector<Node> CreateNodesOnModelPart(ModelPart& rModelPart)
     return result;
 }
 
+PointerVector<Node> CreateInclinedLine(ModelPart& rModelPart)
+{
+    PointerVector<Node> result;
+    result.push_back(rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0));
+    result.push_back(rModelPart.CreateNewNode(2, 1.0, -1.0, 0.0));
+    result.push_back(rModelPart.CreateNewNode(3, 0.5, -0.5, 0.0));
+
+    return result;
+}
+
 ModelPart& CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(Model& rModel)
 {
     auto& r_result = rModel.CreateModelPart("Main");
@@ -1247,6 +1257,48 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_GetIntegrationMethodForAllRegis
         std::make_unique<IntegrationCoefficientModifierForLineElement>());
     KRATOS_EXPECT_EQ(p_transient_pw_line_element_2D5N->GetIntegrationMethod(),
                      GeometryData::IntegrationMethod::GI_GAUSS_5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_CalculateLocalSystemWithPressureFilterLaw,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
+    const std::vector contributions = {CalculationContribution::Permeability, CalculationContribution::Compressibility,
+                                       CalculationContribution::FluidBodyFlow};
+    auto p_element = make_intrusive<PwElement<2, 3>>(
+        GetNextElementNumber(r_model_part), std::make_shared<Line2D3<Node>>(CreateInclinedLine(r_model_part)),
+        std::make_shared<Properties>(), contributions, nullptr);
+    SetBasicPropertiesAndVariables(p_element);
+    p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E20);
+    p_element->GetProperties().SetValue(RETENTION_LAW, "PressureFilterLaw");
+    p_element->GetProperties().SetValue(CROSS_AREA, 1.0);
+    p_element->GetProperties().SetValue(FILTER_LENGTH, 3.0);
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+    p_element->InitializeSolutionStep(dummy_process_info);
+
+    // Act
+    Vector actual_right_hand_side;
+    Matrix actual_left_hand_side;
+    p_element->CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
+
+    // Assert
+    Matrix expected_left_hand_side(3, 3);
+    // clang-format off
+    expected_left_hand_side <<= -6.5648064719788994, -0.93782949599698517, 7.5026359679758832,
+                                -0.93782949599698517,-6.5648064719788994,  7.5026359679758832,
+                                 7.5026359679758832,  7.5026359679758832,-15.005271935951766;
+    // clang-format on
+    KRATOS_EXPECT_EQ(actual_left_hand_side.size1(), expected_left_hand_side.size1());
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+
+    Vector expected_right_hand_side(3);
+    expected_right_hand_side <<= -28134.9, 28134.9, 0;
+    KRATOS_EXPECT_EQ(actual_right_hand_side.size(), expected_right_hand_side.size());
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
 } // namespace Kratos::Testing
