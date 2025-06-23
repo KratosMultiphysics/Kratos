@@ -3,7 +3,8 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from ui_builder import GeotechTestUI
 from ui_udsm_parser import udsm_parser
-
+import ctypes
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("deltares.triaxial.ui")
 
 SELECT_DLL = "Select DLL File"
 LINEAR_ELASTIC = "Linear Elastic Model"
@@ -12,11 +13,10 @@ def create_menu():
     root = tk.Tk()
 
     try:
-        icon_path = os.path.join(os.path.dirname(__file__), "assets", "icon.png")
-        icon_img = tk.PhotoImage(file=icon_path)
-        root.iconphoto(True, icon_img)
-    except Exception  as e:
-        print(f"Error loading icon: {e}")
+        icon_path = os.path.join(os.path.dirname(__file__), "assets", "icon.ico")
+        root.iconbitmap(default=icon_path)
+    except Exception as e:
+        print(f"Could not set icon: {e}")
 
     root.title("Triaxial Test")
     root.state('zoomed')

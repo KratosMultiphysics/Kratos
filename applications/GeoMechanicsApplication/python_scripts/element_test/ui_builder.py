@@ -334,4 +334,3 @@ class GeotechTestUI:
         self.fig = None
         self.canvas = None
         self.axes = []
-
