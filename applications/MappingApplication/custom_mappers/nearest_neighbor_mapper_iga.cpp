@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main author:    PJuan Ignacio Camarotti
+//  Main author:    Juan Ignacio Camarotti
 
 
 // System includes
