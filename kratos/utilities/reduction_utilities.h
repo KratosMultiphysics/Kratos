@@ -161,7 +161,7 @@ public:
     typedef TDataType   value_type;
     typedef TReturnType return_type;
 
-    TReturnType mValue = std::numeric_limits<TReturnType>::lowest(); // deliberately making the member value public, to allow one to change it as needed
+    TReturnType mValue = 0; // deliberately making the member value public, to allow one to change it as needed
 
     /// access to reduced value
     TReturnType GetValue() const

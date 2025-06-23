@@ -119,6 +119,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_InitializesNodalArea, KratosG
 
     std::vector<double> expected_values = {1.0, 2.0, 2.0, 1.0, 1.0, 1.0};
     std::vector<double> actual_values;
+    actual_values.reserve(model_part.Nodes().size());
     std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
                    [](const auto& node) { return node.GetValue(NODAL_AREA); });
 
@@ -185,6 +186,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoCo
 
     std::vector<double> expected_values = {1.0, 1.5, 1.5, 1.0, 2.0, 2.0};
     std::vector<double> actual_values;
+    actual_values.reserve(model_part.Nodes().size());
     std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
                    [](const auto& node) { return node.FastGetSolutionStepValue(HYDRAULIC_HEAD); });
 
@@ -221,6 +223,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
 
     std::vector<double> expected_values = {-1, 0, 1, -1, -1, 1};
     std::vector<double> actual_values;
+    actual_values.reserve(model_part.Nodes().size());
     std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
                    [](const auto& node) { return node.FastGetSolutionStepValue(HYDRAULIC_HEAD); });
 
@@ -262,6 +265,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyFo
                                            ScalarMatrix(3, 3, 1),  ScalarMatrix(3, 3, -1),
                                            ScalarMatrix(3, 3, -1), ScalarMatrix(3, 3, 1)};
     std::vector<Matrix> actual_values;
+    actual_values.reserve(model_part.Nodes().size());
     std::transform(
         model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
         [](const auto& node) { return node.FastGetSolutionStepValue(CAUCHY_STRESS_TENSOR); });
@@ -305,6 +309,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyFo
                                            ScalarVector(6, 1),  ScalarVector(6, -1),
                                            ScalarVector(6, -1), ScalarVector(6, 1)};
     std::vector<Vector> actual_values;
+    actual_values.reserve(model_part.Nodes().size());
     std::transform(
         model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
         [](const auto& node) { return node.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR); });
@@ -348,6 +353,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
                                                         ScalarVector(3, 1),  ScalarVector(3, -1),
                                                         ScalarVector(3, -1), ScalarVector(3, 1)};
     std::vector<array_1d<double, 3>> actual_values;
+    actual_values.reserve(model_part.Nodes().size());
     std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
                    [](const auto& node) { return node.FastGetSolutionStepValue(FLUID_FLUX_VECTOR); });
 

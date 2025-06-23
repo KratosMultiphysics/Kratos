@@ -226,7 +226,7 @@ int NavierStokesP2P1ContinuousWallCondition<TDim, TWallModel...>::Check(const Pr
         return check;
     } else {
         // Check that geometry is coplanar (i.e. edges midpoint nodes are aligned)
-        // Note that though Kratos geometry supports non coplanar, this is assumed througout current implementation
+        // Note that though Kratos geometry supports non coplanar, this is assumed throughout current implementation
         const auto& r_geometry = this->GetGeometry();
         if constexpr (TDim == 2) {
             array_1d<double, 3> vect_01 = r_geometry[1].Coordinates() - r_geometry[0].Coordinates();

@@ -271,10 +271,6 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         for idx, node_nr in enumerate(bottom_n_nbrs):
             self.assertAlmostEqual(p_bottom_analytic[idx], water_pressure[node_nr], delta=1e-6)
 
-    @KratosUnittest.skip("unit test not implemented")
-    def test_interpolate_water_pressure(self):
-        pass
-
     def test_interpolate_water_pressure_inclined(self):
         """
         Test interpolate water pressure with an inclined phreatic line.

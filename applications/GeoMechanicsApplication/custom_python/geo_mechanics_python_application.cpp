@@ -22,7 +22,6 @@
 #include "includes/define_python.h"
 
 // Application includes
-#include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -42,7 +41,6 @@ PYBIND11_MODULE(KratosGeoMechanicsApplication, m)
 
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
-    AddCustomConstitutiveLawsToPython(m);
     AddCustomProcessesToPython(m);
 
     // Registering variables in python
@@ -84,9 +82,6 @@ PYBIND11_MODULE(KratosGeoMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, INCREMENTAL_DISPLACEMENT)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_CONVERGED)
-
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ARC_LENGTH_LAMBDA)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ARC_LENGTH_RADIUS_FACTOR)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TIME_UNIT_CONVERTER)
 
@@ -145,6 +140,8 @@ PYBIND11_MODULE(KratosGeoMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, UMAT_PARAMETERS)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DT_TEMPERATURE_COEFFICIENT)
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FILTER_LENGTH)
 }
 
 } // namespace Kratos::Python.

@@ -108,7 +108,7 @@ void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideM
                                                       VectorType& rRightHandSideVector,
                                                       const ProcessInfo& rCurrentProcessInfo)
 {
-    // Resize and intialize output
+    // Resize and initialize output
     if (rLeftHandSideMatrix.size1() != LocalSize)
         rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
@@ -147,7 +147,7 @@ template <class TElementData>
 void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                                        const ProcessInfo& rCurrentProcessInfo)
 {
-    // Resize and intialize output
+    // Resize and initialize output
     if (rLeftHandSideMatrix.size1() != LocalSize)
         rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
@@ -212,7 +212,7 @@ template <class TElementData>
 void FluidElement<TElementData>::CalculateLocalVelocityContribution(
     MatrixType& rDampMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
-    // Resize and intialize output
+    // Resize and initialize output
     if( rDampMatrix.size1() != LocalSize )
         rDampMatrix.resize(LocalSize,LocalSize,false);
 
@@ -250,7 +250,7 @@ template <class TElementData>
 void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
                                                      const ProcessInfo& rCurrentProcessInfo)
 {
-    // Resize and intialize output
+    // Resize and initialize output
     if (rMassMatrix.size1() != LocalSize)
         rMassMatrix.resize(LocalSize, LocalSize, false);
 
@@ -929,6 +929,7 @@ template class FluidElement< AxisymmetricNavierStokesData<2,4> >;
 
 template class FluidElement< QSVMSDEMCoupledData<2,3> >;
 template class FluidElement< QSVMSDEMCoupledData<3,4> >;
+template class FluidElement< QSVMSDEMCoupledData<3,10> >;
 
 template class FluidElement< QSVMSDEMCoupledData<2,4> >;
 template class FluidElement< QSVMSDEMCoupledData<2,6> >;

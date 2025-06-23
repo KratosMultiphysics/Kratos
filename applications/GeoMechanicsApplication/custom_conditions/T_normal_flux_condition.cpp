@@ -15,8 +15,9 @@
 // Application includes
 #include "custom_conditions/T_normal_flux_condition.h"
 #include "custom_utilities/condition_utilities.hpp"
-#include "utilities/math_utils.h"
-#include <custom_utilities/variables_utilities.hpp>
+#include "custom_utilities/variables_utilities.hpp"
+
+#include <numeric>
 
 namespace Kratos
 {
@@ -62,11 +63,11 @@ void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            r
     VariablesUtilities::GetNodalValues(r_geom, NORMAL_HEAT_FLUX, normal_flux_vector.begin());
 
     for (unsigned int integration_point = 0; integration_point < num_integration_points; ++integration_point) {
-        // Obtain N
-        auto N = row(r_N_container, integration_point);
+        const auto N = row(r_N_container, integration_point);
 
         // Interpolation of nodal normal flux to integration point normal flux.
-        auto normal_flux_on_integration_point = MathUtils<>::Dot(N, normal_flux_vector);
+        const auto normal_flux_on_integration_point =
+            std::inner_product(N.begin(), N.end(), normal_flux_vector.cbegin(), 0.0);
 
         const auto integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient(
             j_container[integration_point], r_integration_points[integration_point].Weight());

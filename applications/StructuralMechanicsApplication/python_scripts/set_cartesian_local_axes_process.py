@@ -11,6 +11,7 @@ def Factory(settings, Model):
         """{
             "model_part_name"      : "set_model_part_name",
             "cartesian_local_axis" : [[1.0,0.0,0.0],[0.0,1.0,0.0]],
+            "set_local_axes_direction"    :  -1,
             "update_at_each_step"  : false
         }""");
     process_settings = settings["Parameters"]

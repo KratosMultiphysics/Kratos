@@ -201,7 +201,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>:: Exe
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::CheckAndPerformSearch()
 {
-    // If we froce to update the database
+    // If we force to update the database
     const bool update_interface = mThisParameters["update_interface"].GetBool();
 
     // First we check if search already exists
@@ -456,7 +456,7 @@ inline BoundedMatrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TDi
     const IntegrationMethod& rThisIntegrationMethod
     )
 {
-    // We initilize the Ae components
+    // We initialize the Ae components
     DualLagrangeMultiplierOperatorsType Ae_data;
     Ae_data.Initialize();
 

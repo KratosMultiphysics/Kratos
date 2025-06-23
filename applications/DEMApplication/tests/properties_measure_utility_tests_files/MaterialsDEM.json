@@ -1,0 +1,29 @@
+{
+    "materials"                  : [{
+        "material_name" : "DEM-DefaultMaterial",
+        "material_id"   : 1,
+        "Variables"     : {
+            "PARTICLE_DENSITY"    : 2650.0,
+            "YOUNG_MODULUS"       : 3.5e7,
+            "POISSON_RATIO"       : 0.2,
+            "PARTICLE_SPHERICITY" : 1.0
+        }
+    }],
+    "material_relations"         : [{
+        "material_names_list" : ["DEM-DefaultMaterial","DEM-DefaultMaterial"],
+        "material_ids_list"   : [1,1],
+        "Variables"           : {
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME" : "DEM_D_Hertz_viscous_Coulomb",
+            "PARTICLE_COHESION"                      : 0.0,
+            "STATIC_FRICTION"                        : 0.6,
+            "DYNAMIC_FRICTION"                       : 0.6,
+            "FRICTION_DECAY"                         : 500,
+            "COEFFICIENT_OF_RESTITUTION"             : 0.01,
+            "ROLLING_FRICTION"                       : 0.01,
+            "ROLLING_FRICTION_WITH_WALLS"            : 0.01,
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
+        }
+    }],
+    "material_assignation_table" : [["SpheresPart.DEMParts_Body","DEM-DefaultMaterial"]]
+}
+

@@ -127,7 +127,7 @@ private:
      * @brief Reads the variables list specified in the input and stores them
      * in the mDoubleVariablesList and the mComponentVariablesList.
      * @param rVariableStringArray Array containing the variables whose value
-     * is transfered from elements to nodes
+     * is transferred from elements to nodes
     */
     void StoreVariableList(const std::vector<std::string>& rVariableStringArray);
 

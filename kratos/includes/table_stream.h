@@ -4,16 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //  Inspired in bprinter, work of Dat Chu: https://github.com/dattanchu/bprinter
 //  Removing all the dependencies of boost::karma and adding bold fonts and additional functionalities needed
 //
 
-#ifndef KRATOS_TABLE_STREAM_H_INCLUDED
-#define KRATOS_TABLE_STREAM_H_INCLUDED
+#pragma once
 
 // System includes
 #include <iostream>
@@ -470,4 +469,3 @@ private:
 }; // Class TableStream
 
 } // namespace Kratos.
-#endif

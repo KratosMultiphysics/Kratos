@@ -50,4 +50,16 @@ void NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
     });
 }
 
+std::map<IndexType, IndexType> NodeUtilities::CreateGlobalToLocalNodeIndexMap(const PointerVector<Node>& rNodes)
+{
+    std::map<IndexType, IndexType> result;
+    int                            counter = 0;
+    for (const auto& r_node : rNodes) {
+        result[r_node.GetId()] = counter;
+        ++counter;
+    }
+
+    return result;
+}
+
 } // namespace Kratos

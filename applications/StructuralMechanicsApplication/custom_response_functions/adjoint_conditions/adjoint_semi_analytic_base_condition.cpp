@@ -393,7 +393,8 @@ namespace Kratos
         KRATOS_TRY;
 
         if ( mpPrimalCondition->Has(rDesignVariable) ) {
-            const double variable_value = mpPrimalCondition->GetValue(rDesignVariable);
+            // the rDesignVariable value may be negative, therefore adding a std::abs
+            const double variable_value = std::abs(mpPrimalCondition->GetValue(rDesignVariable));
             return variable_value;
         }
         else {
