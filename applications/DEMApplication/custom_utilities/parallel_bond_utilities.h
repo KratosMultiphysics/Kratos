@@ -84,10 +84,22 @@ namespace Kratos {
 
                     const auto& other_particle = r_sphere.mNeighbourElements[i];
                     array_1d<double, 3> other_to_me_vector;
-                    noalias(other_to_me_vector) = r_sphere.GetGeometry()[0].Coordinates() - other_particle->GetGeometry()[0].Coordinates();
+                    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+                    const auto& central_node = r_sphere.GetGeometry()[0];
+                    const auto& neighbour_node = other_particle->GetGeometry()[0];
+                    if (!r_process_info[DOMAIN_IS_PERIODIC]) { // default infinite-domain case
+                        noalias(other_to_me_vector) = central_node.Coordinates() - neighbour_node.Coordinates();
+                    } else { // periodic domain
+                        double my_coors[3] = {central_node[0], central_node[1], central_node[2]};
+                        double other_coors[3] = {neighbour_node[0], neighbour_node[1], neighbour_node[2]};
+                        r_sphere.TransformNeighbourCoorsToClosestInPeriodicDomain(r_process_info, my_coors, other_coors);
+                        other_to_me_vector[0] = my_coors[0] - other_coors[0];
+                        other_to_me_vector[1] = my_coors[1] - other_coors[1];
+                        other_to_me_vector[2] = my_coors[2] - other_coors[2];
+                    }
+                    const double distance = DEM_MODULUS_3(other_to_me_vector);
                     const double& this_radius = r_sphere.GetRadius();
                     const double& other_radius = other_particle->GetRadius();
-                    const double distance = DEM_MODULUS_3(other_to_me_vector);
                     const double radius_sum = this_radius + other_radius;
                     const double& initial_delta = r_sphere.GetInitialDelta(i);
                     const double initial_dist = radius_sum - initial_delta;
