@@ -904,6 +904,7 @@ namespace Kratos
             rB(5, index + 4) = ((DN_De_Jn_bending (i,2)  * y3) + (r_N (i)   * (thickness/2) * ( zeta * dy3z + dzetadz * y3 ))) - ((DN_De_Jn_bending(i, 0) * y1) + (r_N(i) * (thickness/2) * (zeta  * dy1x + dzetadx * y1) )); 
             rB(5, index + 5) = - ((DN_De_Jn_bending (i,2)  * y2 )+(r_N (i) * (thickness/2) * (zeta * dy2z + dzetadz * y2)));  
         }
+        KRATOS_WATCH(rB)
 
         //noalias(rB) = -prod(m_T_vector[IntegrationPointIndex],rB);
     }
@@ -964,8 +965,8 @@ namespace Kratos
         }
         DN_De_Jn_bending = trans(prod(J_inv, trans(new_DN_De_bending)));
 
-        KRATOS_WATCH(J_inv)
-        KRATOS_WATCH(rActualKinematic.a3)
+        //KRATOS_WATCH(J_inv)
+        //KRATOS_WATCH(rActualKinematic.a3)
                                                 
         // y hat 
         const double y1= rActualKinematic.a3[0];
@@ -1018,7 +1019,7 @@ namespace Kratos
             const double dzetadz= J_inv(2,2); 
             
             ///////////////////////////////////////////
-            KRATOS_WATCH(dn)
+            //KRATOS_WATCH(dn)
 
             Dn = prod(J_inv, dn);
 
