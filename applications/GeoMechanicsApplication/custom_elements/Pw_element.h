@@ -29,7 +29,6 @@
 #include "fluid_body_flow_calculator.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
-#include "includes/constitutive_law.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "integration_coefficients_calculator.h"
@@ -68,6 +67,12 @@ public:
           mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
     {
     }
+
+    ~PwElement() override                      = default;
+    PwElement(const PwElement&)                = delete;
+    PwElement& operator=(const PwElement&)     = delete;
+    PwElement(PwElement&&) noexcept            = delete;
+    PwElement& operator=(PwElement&&) noexcept = delete;
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
     {

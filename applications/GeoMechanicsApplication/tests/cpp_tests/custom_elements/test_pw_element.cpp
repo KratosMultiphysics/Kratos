@@ -38,37 +38,12 @@ ModelPart& CreateModelPartWithSolutionStepVariables(Model& rModel)
 PwElement<2, 2> TransientPwLineElementWithoutPWDofs(const Properties::Pointer&     rProperties,
                                                     const Geometry<Node>::Pointer& rGeometry)
 {
-    auto result = PwElement<2, 2>{1,
-                                  rGeometry,
-                                  rProperties,
-                                  {CalculationContribution::Permeability, CalculationContribution::Compressibility,
-                                   CalculationContribution::FluidBodyFlow},
-                                  std::make_unique<IntegrationCoefficientModifierForLineElement>()};
-
-    return result;
-}
-
-PwElement<2, 2> TransientPwLineElementWithPWDofs(const Properties::Pointer&     rProperties,
-                                                 const Geometry<Node>::Pointer& rGeometry)
-{
-    auto result = TransientPwLineElementWithoutPWDofs(rProperties, rGeometry);
-    for (auto& node : result.GetGeometry()) {
-        node.AddDof(WATER_PRESSURE);
-        node.AddDof(DT_WATER_PRESSURE);
-    }
-
-    return result;
-}
-
-PwElement<2, 2> TransientPwLineElementWithPWDofs(Model& rModel, const Properties::Pointer& rProperties)
-{
-    auto& r_model_part = CreateModelPartWithSolutionStepVariables(rModel);
-
-    PointerVector<Node> nodes;
-    nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 1.0, 1.0));
-    const auto p_geometry = std::make_shared<Line2D2<Node>>(nodes);
-    return TransientPwLineElementWithPWDofs(rProperties, p_geometry);
+    return PwElement<2, 2>{1,
+                           rGeometry,
+                           rProperties,
+                           {CalculationContribution::Permeability, CalculationContribution::Compressibility,
+                            CalculationContribution::FluidBodyFlow},
+                           std::make_unique<IntegrationCoefficientModifierForLineElement>()};
 }
 
 intrusive_ptr<Element> CreatePwLineElementWithoutPWDofs(ModelPart& rModelPart, const Properties::Pointer& rProperties)
@@ -247,7 +222,22 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_ReturnsTheExpectedLeftHandSideA
     process_info[DT_PRESSURE_COEFFICIENT] = 1.5;
 
     Model model;
-    auto  element = TransientPwLineElementWithPWDofs(model, p_properties);
+    auto& r_model_part = CreateModelPartWithSolutionStepVariables(model);
+
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 1.0, 1.0));
+    const auto p_geometry = std::make_shared<Line2D2<Node>>(nodes);
+    auto       element    = PwElement<2, 2>{1,
+                                            p_geometry,
+                                            p_properties,
+                                            {CalculationContribution::Permeability, CalculationContribution::Compressibility,
+                                             CalculationContribution::FluidBodyFlow},
+                                            std::make_unique<IntegrationCoefficientModifierForLineElement>()};
+    for (auto& node : element.GetGeometry()) {
+        node.AddDof(WATER_PRESSURE);
+        node.AddDof(DT_WATER_PRESSURE);
+    }
     element.GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
         array_1d<double, 3>{0.0, -10.0, 0.0};
     element.GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION) =
