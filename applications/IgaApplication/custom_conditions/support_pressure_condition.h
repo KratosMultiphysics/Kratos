@@ -1,17 +1,14 @@
-//  KRATOS  _____________
-//         /  _/ ____/   |
-//         / // / __/ /| |
-//       _/ // /_/ / ___ |
-//      /___/\____/_/  |_| Application
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Andrea Gorgi
-//
 
 #pragma once
-
 
 // System includes
 #include "includes/define.h"
@@ -21,40 +18,40 @@
 
 // Project includes
 #include "iga_application_variables.h"
-#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
-/// Condition for Neumann condition
-class KRATOS_API(IGA_APPLICATION) LoadSolidCondition
+/// Condition for penalty support condition
+class KRATOS_API(IGA_APPLICATION) SupportPressureCondition
     : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer definition of LoadSolidCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LoadSolidCondition);
+    /// Counted pointer definition of SupportPressureCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SupportPressureCondition);
 
     /// Size types
-    using SizeType = std::size_t;
-    using IndexType = std::size_t;
+    typedef std::size_t SizeType;
+    typedef std::size_t IndexType;
+
+    /// Type for shape function derivatives container
+    typedef Kratos::Matrix ShapeDerivativesType;
 
     ///@}
     ///@name Life Cycle
     ///@{
-    
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Constructor with Id and geometry
-    LoadSolidCondition(
+    SupportPressureCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {};
 
     /// Constructor with Id, geometry and property
-    LoadSolidCondition(
+    SupportPressureCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -62,11 +59,11 @@ public:
     {};
 
     /// Default constructor
-    LoadSolidCondition() : Condition()
+    SupportPressureCondition() : Condition()
     {};
 
     /// Destructor
-    virtual ~LoadSolidCondition() override
+    virtual ~SupportPressureCondition() override
     {};
 
     ///@}
@@ -80,24 +77,26 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<LoadSolidCondition>(
+        return Kratos::make_intrusive<SupportPressureCondition>(
             NewId, pGeom, pProperties);
     };
 
     /// Create with Id, pointer to geometry and pointer to property
     Condition::Pointer Create(
         IndexType NewId,
-        NodesArrayType const& ThisNodes,
+        NodesArrayType const& rThisNodes,
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<LoadSolidCondition>(
-            NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<SupportPressureCondition>(
+            NewId, GetGeometry().Create(rThisNodes), pProperties);
     };
 
     ///@}
     ///@name Operations
     ///@{
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * @brief This is called during the assembling process in order
@@ -130,8 +129,10 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
+    
     /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
     * @param rResult The vector containing the equation id
@@ -152,21 +153,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) const override;
 
-    /**
-     * @brief Get the solution coefficient at the previous time step in the two-dimensional case.
-     * 
-     * @param rValues solution coefficients at the previous time step
-     */
-    void GetSolutionCoefficientVector(
-        Vector& rValues) const;
-
-    ///@}
-    ///@name Check
-    ///@{
-
-    /// Performs check if Penalty factor is provided.
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
     ///@}
     ///@name Input and output
     ///@{
@@ -175,14 +161,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "\"LoadSolidCondition\" #" << Id();
+        buffer << "\"SupportPressureCondition\" #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "\"LoadSolidCondition\" #" << Id();
+        rOStream << "\"SupportPressureCondition\" #" << Id();
     }
 
     /// Print object's data.
@@ -191,83 +177,13 @@ public:
         pGetGeometry()->PrintData(rOStream);
     }
 
+    void GetSolutionCoefficientVector(Vector& rValues) const;
+
     ///@}
 
 protected:
 
-
-/**
- * Internal variables used in the constitutive calculations
- */
-struct ConstitutiveVariables
-{
-    ConstitutiveLaw::StrainVectorType StrainVector;
-    ConstitutiveLaw::StressVectorType StressVector;
-    ConstitutiveLaw::VoigtSizeMatrixType D;
-
-    /**
-     * The default constructor
-     * @param StrainSize The size of the strain vector in Voigt notation
-     */
-    ConstitutiveVariables(const SizeType StrainSize)
-    {
-        if (StrainVector.size() != StrainSize)
-            StrainVector.resize(StrainSize);
-
-        if (StressVector.size() != StrainSize)
-            StressVector.resize(StrainSize);
-
-        if (D.size1() != StrainSize || D.size2() != StrainSize)
-            D.resize(StrainSize, StrainSize);
-
-        noalias(StrainVector) = ZeroVector(StrainSize);
-        noalias(StressVector) = ZeroVector(StrainSize);
-        noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
-    }
-};
-
-/**
- * @brief Calculate the B matrix for the element in the two-dimensional case.
- * 
- * @param rB B matrix to be calculated
- * @param r_DN_DX The shape function derivatives in the global coordinate system
- */
-void CalculateB(
-    Matrix& rB,
-    Matrix& r_DN_DX) const;
-
-/**
- * @brief Compute the constitutive law response for the given strain vector.
- * 
- * @param matSize 
- * @param rStrain 
- * @param rValues 
- * @param rConstitutiVariables 
- */
-void ApplyConstitutiveLaw(
-        SizeType matSize, 
-        Vector& rStrain, 
-        ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveVariables& rConstitutiVariables);
-
-///@name Protected static Member Variables
-///@{
-void InitializeMaterial();
-
-void InitializeMemberVariables();
-
-void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-//@}
-///@name Protected member Variables
-///@{
-ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
-unsigned int mDim; /// The dimension of the condition 
-
-///@}
-
+    
 private:
     ///@name Serialization
     ///@{
@@ -284,8 +200,25 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
     }
 
+    /**
+     * @brief Initialize member variables
+     * 
+     * This function initializes the member variables of the condition.
+     * It computes the basis function order and penalty factor based on the geometry.
+     */
+    void InitializeMemberVariables();
+
+    void CalculateB(
+        Matrix& rB,
+        const ShapeDerivativesType& r_DN_DX) const;
+
+    // member variables
+    unsigned int mDim;
+    IndexType mBasisFunctionsOrder;
+    double mIntegrationWeight;
+
     ///@}
 
-}; // Class SupportPenaltyLaplacianCondition
+}; // Class SupportPressureCondition
 
 }  // namespace Kratos.

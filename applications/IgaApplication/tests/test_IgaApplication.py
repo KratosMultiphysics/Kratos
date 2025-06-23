@@ -12,6 +12,8 @@ from iga_test_factory import SinglePatchTest as SinglePatchTest
 from truss_element_tests import TrussElementTests as TTrussElementTests
 # Structural Elements test - python based
 from test_solid_IGA_element import SolidIGAElementTests as TSolidIGAElementTests
+# Sbm Structural Elements test
+from sbm_solid_tests import SbmSolidTests as TSbmSolidTests
 
 # Membrane tests
 from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
@@ -53,7 +55,7 @@ from test_import_nurbs_modeler import TestImportNurbsModeler as TTestImportNurbs
 # Processes tests
 from test_map_nurbs_volume_results_to_embedded_geometry_process import TestMapNurbsVolumeResultsToEmbeddedGeometryProcess as TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess
 # Fluid Element and Conditions tests
-from test_stokes_element import FluidTests as TTestFluid
+from applications.IgaApplication.tests.test_stokes_elements_and_conditions import FluidTests as TTestFluid
 
 has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 
@@ -77,6 +79,8 @@ def AssembleTestSuites():
         TTrussElementTests,
         # Structural Elements tests
         TSolidIGAElementTests,
+        # Sbm Elements tests
+        TSbmSolidTests,
         # Membrane tests
         MembraneSinglePatchFourPointSailLinearStatic,
         MembraneSinglePatchFourPointSailNonLinearStatic,
