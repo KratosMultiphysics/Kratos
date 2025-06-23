@@ -206,7 +206,7 @@ public:
     void stress_res_nln(const ProcessInfo& rCurrentProcessInfo, IndexType integration_point_index, Vector3d& _f, Vector3d& _m);
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable, std::vector<array_1d<double, 3>>& rOutput,const ProcessInfo& rCurrentProcessInfo);
-    void CalculateOnIntegrationPoints(const  Variable<Vector>& rVariable, std::vector <Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    //void CalculateOnIntegrationPoints(const  Variable<Vector>& rVariable, std::vector <Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
     void CalculateOnIntegrationPoints(const  Variable<double>& rVariable, std::vector <double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
     
     //Computes RHS
@@ -397,6 +397,7 @@ private:
     }
    
     void GetElementOrientation(const Matrix& r_DN_De, const ConfigurationType& rConfiguration, Vector3d& B1, Vector3d& B2, Vector3d& B3, float& A, float& B);
+    void GetB1AtBeamStart(const ConfigurationType& rConfiguration, Vector3d& B1);
     NurbsCurveGeometry<3, PointerVector<NodeType>>::Pointer pCurve;
 
     /// The vector containing the constitutive laws for all integration points.

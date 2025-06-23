@@ -225,6 +225,7 @@ namespace Kratos {
 
         Vector3d m_;
         Vector3d f_;
+        array_1d<double, 3> tangents;
 
         if (rOutput.size() != integration_points.size()) {
             rOutput.resize(GetGeometry().IntegrationPointsNumber());
@@ -279,37 +280,14 @@ namespace Kratos {
             {
                 rOutput[point_number] = integration_points[point_number].Coordinates();
             }
-        }
-    }
-
-    void EmbeddedIsogeometricBeamElement::CalculateOnIntegrationPoints(const  Variable<Vector>& rVariable, std::vector <Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo)
-    {
-        //KRATOS_WATCH("EmbeddedIsogeometricBeamElement::CalculateOnIntegrationPoints");
-        const auto& integration_points = GetGeometry().IntegrationPoints();
-
-        if (rOutput.size() != integration_points.size()) {
-            rOutput.resize(GetGeometry().IntegrationPointsNumber());
-        }
-
-        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
-            if (rVariable == LOCAL_CS_N)
+            if (rVariable ==  LOCAL_TANGENT)
             {
-                rOutput[point_number] = N;
-            }
-            if (rVariable == LOCAL_CS_n)
-            {
-                rOutput[point_number] = n;
-            }
-            if (rVariable == LOCAL_CS_V)
-            {
-                rOutput[point_number] = V;
-            }
-            if (rVariable == LOCAL_CS_v)
-            {
-                rOutput[point_number] = v;
+                GetGeometry().Calculate(LOCAL_TANGENT, tangents);
+                rOutput[point_number] = tangents;
             }
         }
     }
+
 
     void EmbeddedIsogeometricBeamElement::CalculateOnIntegrationPoints(const  Variable<double>& rVariable, std::vector <double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
     {
@@ -335,33 +313,11 @@ namespace Kratos {
     /// Check provided parameters
     int EmbeddedIsogeometricBeamElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
-        KRATOS_WATCH("EmbeddedIsogeometricBeamElement::Check");
+        //KRATOS_WATCH("EmbeddedIsogeometricBeamElement::Check");
         KRATOS_TRY
             const double numerical_limit = std::numeric_limits<double>::epsilon();
 
-        KRATOS_ERROR_IF((GetGeometry().WorkingSpaceDimension() != 3) || (GetGeometry().size() != 2))
-            << "The beam element works only in 3D and with 2 noded elements" << std::endl;
-
-        // verify that the variables are correctly initialized
-        KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0) << "DISPLACEMENT has Key zero! Check if the application is "
-            "registered properly." << std::endl;
-        KRATOS_ERROR_IF(CROSS_AREA.Key() == 0) << "CROSS_AREA has Key zero! Check if the application is "
-            "registered properly." << std::endl;
-
-        // verify that the dofs exist
-        for (IndexType i = 0; i < GetGeometry().size(); ++i) {
-            if (GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false) {
-                KRATOS_ERROR << "missing variable DISPLACEMENT on node "
-                    << GetGeometry()[i].Id() << std::endl;
-            }
-            if (GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false ||
-                GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false ||
-                GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false) {
-                KRATOS_ERROR
-                    << "missing one of the dofs for the variable DISPLACEMENT on node "
-                    << GetGeometry()[i].Id() << std::endl;
-            }
-        }
+        
 
         KRATOS_ERROR_IF(!GetProperties().Has(CROSS_AREA) ||
             GetProperties()[CROSS_AREA] <= numerical_limit)
@@ -501,6 +457,48 @@ namespace Kratos {
         else
             B = 0;
 
+    }
+
+    void EmbeddedIsogeometricBeamElement::GetB1AtBeamStart(const ConfigurationType& rConfiguration, Vector3d& B1)
+    {
+
+        auto& r_geometry = GetGeometry();
+        KRATOS_WATCH(r_geometry.Info());
+        const SizeType number_of_nodes = r_geometry.size();
+
+        array_1d<double, 3> tangents;
+        GetGeometry().Calculate(LOCAL_TANGENT, tangents); //this returns the tangents of the embedded beam in the parameter space of the shell
+
+        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+
+        Vector current_displacement = ZeroVector(dimension * number_of_nodes);
+        if (rConfiguration == ConfigurationType::Current) GetValuesVector(current_displacement);
+
+        // array_1d<double, 3> local_coordinates;
+        // local_coordinates[0] = 0.0;
+        // local_coordinates[1] = 0.0; 
+        // local_coordinates[2] = 0.0; 
+        // Matrix r_DN_De;
+        // r_geometry.ShapeFunctionsLocalGradients(r_DN_De, local_coordinates);
+
+        const Matrix& r_DN_De = r_geometry.ShapeFunctionLocalGradient(0);
+
+        //basis vectors a1 and a2 at ksi = 0
+        Vector A1 = ZeroVector(dimension);
+        Vector A2 = ZeroVector(dimension);
+
+        for (SizeType i = 0; i < number_of_nodes; ++i) {
+            A1[0] += (GetGeometry().GetPoint(i).X0() + current_displacement[i * dimension]) * r_DN_De(i, 0);
+            A1[1] += (GetGeometry().GetPoint(i).Y0() + current_displacement[(i * dimension) + 1]) * r_DN_De(i, 0);
+            A1[2] += (GetGeometry().GetPoint(i).Z0() + current_displacement[(i * dimension) + 2]) * r_DN_De(i, 0);
+
+            A2[0] += (GetGeometry().GetPoint(i).X0() + current_displacement[i * dimension]) * r_DN_De(i, 1);
+            A2[1] += (GetGeometry().GetPoint(i).Y0() + current_displacement[(i * dimension) + 1]) * r_DN_De(i, 1);
+            A2[2] += (GetGeometry().GetPoint(i).Z0() + current_displacement[(i * dimension) + 2]) * r_DN_De(i, 1);
+        }
+
+        B1 = A1 * tangents[0] + A2 * tangents[1]; //calculates the tangential vector B1 at ksi = 0
+        KRATOS_WATCH(B1);
     }
 
     void EmbeddedIsogeometricBeamElement::parametric_mapping(Vector& _knot_vector, double  u, double & u_mid  )
@@ -2754,62 +2752,64 @@ namespace Kratos {
     void EmbeddedIsogeometricBeamElement::comp_Phi_ref_prop(float& _Phi, float& _Phi_0_der)
     {
 
-        //_Phi = this->GetProperties()[PHI];
-        //_Phi_0_der = this->GetProperties()[PHI_DER];
-        //KRATOS_WATCH(_Phi);
-        //KRATOS_WATCH(_Phi_0_der);
-        const auto& r_geometry = GetGeometry();
-        const IndexType nb_nodes = r_geometry.size();
-        const float _u_act = r_geometry.IntegrationPoints()[0].Coordinates()[0];
+        // //_Phi = this->GetProperties()[PHI];
+        // //_Phi_0_der = this->GetProperties()[PHI_DER];
+        // //KRATOS_WATCH(_Phi);
+        // //KRATOS_WATCH(_Phi_0_der);
+        // const auto& r_geometry = GetGeometry();
+        // const IndexType nb_nodes = r_geometry.size();
+        // const float _u_act = r_geometry.IntegrationPoints()[0].Coordinates()[0];
 
-        float phi_0;
-        float phi_1;
-        float diff_phi;
-        float u_0;
-        float u_1;
-        int n_size;
+        // float phi_0;
+        // float phi_1;
+        // float diff_phi;
+        // float u_0;
+        // float u_1;
+        // int n_size;
 
-        Matrix cross_section_orientation = this->GetProperties()[CENTER_LINE_ROTATION];
-        n_size = cross_section_orientation.size1();
+        // //Matrix cross_section_orientation = this->GetProperties()[CENTER_LINE_ROTATION];
+        // n_size = cross_section_orientation.size1();
 
-        // search cross section orientation n before and after _u_act
+        // // search cross section orientation n before and after _u_act
 
-        u_0 = cross_section_orientation(0, 0);
-        u_1 = cross_section_orientation(n_size - 1, 0);
-        phi_0 = cross_section_orientation(0, 1);
-        phi_1 = cross_section_orientation(n_size - 1, 1);
+        // u_0 = cross_section_orientation(0, 0);
+        // u_1 = cross_section_orientation(n_size - 1, 0);
+        // phi_0 = 0;//cross_section_orientation(0, 1);
+        // phi_1 = 0;//cross_section_orientation(n_size - 1, 1);
 
-        for (int i = 1; i < n_size; i++)
-        {
-            if (cross_section_orientation(i, 0) > _u_act)
-            {
-                u_0 = cross_section_orientation(i - 1, 0);
-                phi_0 = cross_section_orientation(i - 1, 1);
-                break;
-            }
-        }
+        // for (int i = 1; i < n_size; i++)
+        // {
+        //     if (cross_section_orientation(i, 0) > _u_act)
+        //     {
+        //         u_0 = cross_section_orientation(i - 1, 0);
+        //         phi_0 = cross_section_orientation(i - 1, 1);
+        //         break;
+        //     }
+        // }
 
-        for (int i = 1; i < n_size; i++)
-        {
-            if (cross_section_orientation(n_size - i - 1, 0) <= _u_act)
-            {
-                u_1 = cross_section_orientation(n_size - i, 0);
-                phi_1 = cross_section_orientation(n_size - i, 1);
-                break;
-            }
-        }
-        float pi;
-        pi = 4 * atan(1.0);
+        // for (int i = 1; i < n_size; i++)
+        // {
+        //     if (cross_section_orientation(n_size - i - 1, 0) <= _u_act)
+        //     {
+        //         u_1 = cross_section_orientation(n_size - i, 0);
+        //         phi_1 = cross_section_orientation(n_size - i, 1);
+        //         break;
+        //     }
+        // }
+        // float pi;
+        // pi = 4 * atan(1.0);
 
-        diff_phi = (phi_1 - phi_0);
-        if (fabs(phi_1 - phi_0) > pi)
-        {
-            diff_phi = diff_phi - (diff_phi) / fabs(diff_phi) * 2 * pi;
-        }
+        // diff_phi = (phi_1 - phi_0);
+        // if (fabs(phi_1 - phi_0) > pi)
+        // {
+        //     diff_phi = diff_phi - (diff_phi) / fabs(diff_phi) * 2 * pi;
+        // }
 
-        _Phi += phi_0 + (_u_act - u_0) / (u_1 - u_0) * diff_phi;
+        // _Phi += phi_0 + (_u_act - u_0) / (u_1 - u_0) * diff_phi;
 
-        _Phi_0_der += diff_phi / (u_1 - u_0);
+        // _Phi_0_der += diff_phi / (u_1 - u_0);
+        _Phi = 0;
+        _Phi_0_der = 0;
     }
 
     void EmbeddedIsogeometricBeamElement::comp_Geometry_reference(Vector _deriv, Vector _deriv2, Vector3d& _R1, Vector3d& _R2, float& _A_ref, float& _B_ref)
@@ -3338,7 +3338,6 @@ namespace Kratos {
 
         //const unsigned int N_Dof = 4;//this->GetGeometry().PointsNumber()* (this->GetGeometry().WorkingSpaceDimension() + 1);
         Vector3d t0_0 = this->GetProperties()[T_0];
-
         //updates here have also to be applied in comp_dof_lin(...) below
           //_cur_var_n.resize(N_Dof);
         _cur_var_n.clear();
@@ -3632,8 +3631,8 @@ namespace Kratos {
         //KRATOS_WATCH("EmbeddedIsogeometricBeamElement::comp_dof_lin");
         KRATOS_TRY
 
+        
         Vector3d t0_0 = this->GetProperties()[T_0];
-
 
         //updates here have also to be applied in comp_dof_lin(...) above
         //_cur_var_n.resize(N_Dof);
@@ -5320,8 +5319,6 @@ namespace Kratos {
         const float m_inert_y = this->GetProperties()[I_Y];
         const float mt_iniert = this->GetProperties()[I_T];
         Vector3d t0_0 = this->GetProperties()[T_0];
-
-
 
         Vector func = row(r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod()), 0);
         Vector deriv = column(r_geometry.ShapeFunctionDerivatives(1, integration_point_index, this->GetIntegrationMethod()), 0);
