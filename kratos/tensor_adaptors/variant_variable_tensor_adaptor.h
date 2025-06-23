@@ -144,7 +144,7 @@ public:
     {
         return std::visit([this](auto pContainer) {
             std::stringstream msg;
-            msg << pContainer->Info() << " with " << this->mpContainer->size()
+            msg << "VariableTensorAdaptor: " << pContainer->Info() << " with " << this->mpContainer->size()
                 << " " << ModelPart::Container<TContainerType>::GetEntityName() << "(s).";
             return msg.str();
         }, mpContainerIO);
