@@ -99,7 +99,7 @@ protected:
 
     DenseVector<TPrimitiveDataType> mData;
 
-    DenseVector<int> mShape;
+    DenseVector<unsigned int> mShape;
 
     ///@}
 
