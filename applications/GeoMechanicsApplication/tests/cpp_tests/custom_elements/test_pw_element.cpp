@@ -13,10 +13,10 @@
 #include "custom_elements/Pw_element.h"
 #include "custom_elements/calculation_contribution.h"
 #include "custom_elements/integration_coefficient_modifier_for_line_element.h"
-#include "custom_elements/plane_strain_stress_state.h"
-#include "custom_elements/three_dimensional_stress_state.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
+#include "geometries/line_2d_4.h"
+#include "geometries/line_2d_5.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -1198,6 +1198,56 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement3D4N_CalculateLocalSystem, Krato
     Vector expected_right_hand_side(4);
     expected_right_hand_side <<= 166666.666, 0, 0, -166666.666;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
+}
+
+
+KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_GetIntegrationMethodForAllRegisteredElements,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const std::vector<CalculationContribution> contributions;
+    PointerVector<Node>                        nodes;
+    nodes.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+
+    // Act and Assert
+    auto p_transient_pw_line_element_2D2N = make_intrusive<PwElement<2, 2>>(
+        1, std::make_shared<Line2D2<Node>>(nodes), nullptr, contributions,
+        std::make_unique<IntegrationCoefficientModifierForLineElement>());
+    KRATOS_EXPECT_EQ(p_transient_pw_line_element_2D2N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+    auto p_transient_pw_line_element_3D2N = make_intrusive<PwElement<3, 2>>(
+        1, std::make_shared<Line3D2<Node>>(nodes), nullptr, contributions,
+        std::make_unique<IntegrationCoefficientModifierForLineElement>());
+    KRATOS_EXPECT_EQ(p_transient_pw_line_element_3D2N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+    nodes.push_back(make_intrusive<Node>(3, 1.0, 1.0, 0.0));
+    auto p_transient_pw_line_element_2D3N = make_intrusive<PwElement<2, 3>>(
+        1, std::make_shared<Line2D3<Node>>(nodes), nullptr, contributions,
+        std::make_unique<IntegrationCoefficientModifierForLineElement>());
+    KRATOS_EXPECT_EQ(p_transient_pw_line_element_2D3N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+    auto p_transient_pw_line_element_3D3N = make_intrusive<PwElement<3, 3>>(
+        1, std::make_shared<Line3D3<Node>>(nodes), nullptr, contributions,
+        std::make_unique<IntegrationCoefficientModifierForLineElement>());
+    KRATOS_EXPECT_EQ(p_transient_pw_line_element_3D3N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+    nodes.push_back(make_intrusive<Node>(4, 0.5, 0.0, 0.0));
+    auto p_transient_pw_line_element_2D4N = make_intrusive<PwElement<2, 4>>(
+        1, std::make_shared<Line2D4<Node>>(nodes), nullptr, contributions,
+        std::make_unique<IntegrationCoefficientModifierForLineElement>());
+    KRATOS_EXPECT_EQ(p_transient_pw_line_element_2D4N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_3);
+
+    nodes.push_back(make_intrusive<Node>(5, 1.0, 0.5, 0.0));
+    auto p_transient_pw_line_element_2D5N = make_intrusive<PwElement<2, 5>>(
+        1, std::make_shared<Line2D5<Node>>(nodes), nullptr, contributions,
+        std::make_unique<IntegrationCoefficientModifierForLineElement>());
+    KRATOS_EXPECT_EQ(p_transient_pw_line_element_2D5N->GetIntegrationMethod(),
+                     GeometryData::IntegrationMethod::GI_GAUSS_5);
 }
 
 } // namespace Kratos::Testing
