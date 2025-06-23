@@ -15,6 +15,7 @@
 // System includes
 #include <vector>
 #include <variant>
+#include <sstream>
 #include <type_traits>
 
 // Project includes
@@ -34,75 +35,92 @@ public:
     ///@name Type definitions
     ///@{
 
-    template<class TDataType>
-    using TLSType = char;
+    using ReturnType = bool;
 
-    template<class TDataType>
-    using ComponentType = bool;
+    ///@}
+    ///@name Life cycle
+    ///@{
+
+    FlagIO(const Flags& rFlag) : mFlag(rFlag) {}
 
     ///@}
     ///@name Public operations
     ///@{
 
     template<class TEntityType>
-    inline char GetValue(
-        const TEntityType& rEntity,
-        const Flags& rFlag,
-        char& rTLS) const
+    inline void GetValue(
+        ReturnType& rOutput,
+        const TEntityType& rEntity) const
     {
-        return rEntity.Is(rFlag);
+        rOutput = rEntity.Is(mFlag);
     }
 
     template<class TEntityType>
     inline void SetValue(
-        TEntityType& rEntity,
-        const Flags& rFlag,
-        const bool rValue) const
+        const ReturnType& rInput,
+        TEntityType& rEntity) const
     {
-        rEntity.Set(rFlag, rValue);
+        rEntity.Set(mFlag, rInput);
     }
+
+    std::string Info() const
+    {
+        return "Flag";
+    }
+
+    ///@}
+
+private:
+    ///@name Private member variables
+    ///@{
+
+    const Flags& mFlag;
 
     ///@}
 };
 
+template<class TDataType>
 class HistoricalIO
 {
 public:
     ///@name Type definitions
     ///@{
 
-    template<class TDataType>
-    using TLSType = char;
-
-    template<class TDataType>
-    using ComponentType = TDataType;
+    using ReturnType = TDataType;
 
     ///@}
     ///@name Life cycle
     ///@{
 
-    HistoricalIO(const unsigned int StepIndex) : mStepIndex(StepIndex) {}
+    HistoricalIO(
+        const Variable<TDataType>& rVariable,
+        const int StepIndex)
+        : mpVariable(&rVariable),
+          mStepIndex(StepIndex) {}
 
     ///@}
     ///@name Public operations
     ///@{
 
-    template<class TDataType>
-    inline const TDataType& GetValue(
-        const Node& rNode,
-        const Variable<TDataType>& rVariable,
-        char& rTLS) const
+    inline void GetValue(
+        ReturnType& rOutput,
+        const Node& rNode) const
     {
-        return rNode.FastGetSolutionStepValue(rVariable, mStepIndex);
+        rOutput = rNode.FastGetSolutionStepValue(*mpVariable, mStepIndex);
     }
 
-    template<class TDataType>
     inline void SetValue(
-        Node& rNode,
-        const Variable<TDataType>& rVariable,
-        const TDataType& rValue) const
+        const ReturnType& rInput,
+        Node& rNode) const
     {
-        rNode.FastGetSolutionStepValue(rVariable, mStepIndex) = rValue;
+        rNode.FastGetSolutionStepValue(*mpVariable, mStepIndex) = rInput;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream info;
+        info << "Historical " << mpVariable->Name() << " at Step = " << mStepIndex;
+        return info.str();
     }
 
     ///@}
@@ -111,107 +129,51 @@ private:
     ///@name Private member variables
     ///@{
 
-    const unsigned int mStepIndex;
+    const Variable<TDataType>* mpVariable;
+
+    const int mStepIndex;
 
     ///@}
 };
 
+template<class TDataType>
 class NonHistoricalIO
 {
 public:
     ///@name Type definitions
     ///@{
 
-    template<class TDataType>
-    using TLSType = char;
-
-    template<class TDataType>
-    using ComponentType = TDataType;
-
-    ///@}
-    ///@name Public operations
-    ///@{
-
-    template<class TEntityType, class TDataType>
-    inline const TDataType& GetValue(
-        const TEntityType& rEntity,
-        const Variable<TDataType>& rVariable,
-        char& rTLS) const
-    {
-        return rEntity.GetValue(rVariable);
-    }
-
-    template<class TEntityType, class TDataType>
-    inline void SetValue(
-        TEntityType& rEntity,
-        const Variable<TDataType>& rVariable,
-        const TDataType& rValue) const
-    {
-        rEntity.SetValue(rVariable, rValue);
-    }
-
-    ///@}
-};
-
-class GaussPointIO
-{
-public:
-    ///@name Calss definitions
-    ///@{
-
-    template<class TDataType>
-    struct TLSStruct {
-        std::vector<TDataType> mList;
-        DenseVector<typename DataTypeTraits<TDataType>::PrimitiveType> mVector;
-    };
-
-    ///@}
-    ///@name Type definitions
-    ///@{
-
-
-    template<class TDataType>
-    using TLSType = TLSStruct<TDataType>;
-
-    template<class TDataType>
-    using ComponentType = DenseVector<typename DataTypeTraits<TDataType>::PrimitiveType>;
+    using ReturnType = TDataType;
 
     ///@}
     ///@name Life cycle
     ///@{
 
-    GaussPointIO(const ProcessInfo& rProcessInfo) : mrProcessInfo(rProcessInfo) {}
+    NonHistoricalIO(const Variable<TDataType>& rVariable) : mpVariable(&rVariable) {}
 
     ///@}
     ///@name Public operations
     ///@{
 
-    template<class TEntityType, class TDataType>
-    inline const ComponentType<TDataType>& GetValue(
-        const TEntityType& rEntity,
-        const Variable<TDataType>& rVariable,
-        TLSType<TDataType>& rTLS) const
+    template<class TEntityType>
+    inline void GetValue(
+        ReturnType& rOutput,
+        const TEntityType& rEntity) const
     {
-        using list_traits = DataTypeTraits<std::vector<TDataType>>;
-
-        using vector_traits = DataTypeTraits<DenseVector<typename list_traits::PrimitiveType>>;
-
-        const_cast<TEntityType&>(rEntity).CalculateOnIntegrationPoints(rVariable, rTLS.mList, mrProcessInfo);
-
-        rTLS.mVector.resize(list_traits::Size(rTLS.mList), false);
-
-        list_traits::CopyToContiguousData(vector_traits::GetContiguousData(rTLS.mVector), rTLS.mList);
-
-        return rTLS.mVector;
+        rOutput = rEntity.GetValue(*mpVariable);
     }
 
-    template<class TEntityType, class TDataType>
+    template<class TEntityType>
     inline void SetValue(
-        TEntityType& rEntity,
-        const Variable<TDataType>& rVariable,
-        const ComponentType<TDataType>& rValue) const
+        const ReturnType& rInput,
+        TEntityType& rEntity) const
     {
-        KRATOS_ERROR << "GaussPointIO does not support setting values from vertices";
+        rEntity.SetValue(*mpVariable, rInput);
+    }
+
+    std::string Info() const
+    {
+        return mpVariable->Name();
     }
 
     ///@}
@@ -220,34 +182,80 @@ private:
     ///@name Private member variables
     ///@{
 
-    const ProcessInfo& mrProcessInfo;
+    const Variable<TDataType>* mpVariable;
 
     ///@}
 };
 
 template<class TDataType>
-struct ComponentTraits {};
+class GaussPointIO
+{
+public:
+    ///@name Type definitions
+    ///@{
 
-template<> struct ComponentTraits<Flags> { using ValueType = bool; };
-template<class TDataType> struct ComponentTraits<Variable<TDataType>> { using ValueType = TDataType; };
+    using ReturnType = std::vector<TDataType>;
 
-template<class TContainerType, class TComponentType, class TContainerDataIO, class TDataType>
+    ///@}
+    ///@name Life cycle
+    ///@{
+
+    GaussPointIO(
+        const Variable<TDataType>& rVariable,
+        const ProcessInfo& rProcessInfo)
+        : mpVariable(&rVariable),
+          mrProcessInfo(rProcessInfo) {}
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    template<class TEntityType>
+    inline void GetValue(
+        ReturnType& rOutput,
+        const TEntityType& rEntity) const
+    {
+        const_cast<TEntityType&>(rEntity).CalculateOnIntegrationPoints(*mpVariable, rOutput, mrProcessInfo);
+    }
+
+    template<class TEntityType>
+    inline void SetValue(
+        const ReturnType& rInput,
+        TEntityType& rEntity) const
+    {
+        rEntity.SetValuesOnIntegrationPoints(*mpVariable, rInput, mrProcessInfo);
+    }
+
+    std::string Info() const
+    {
+        return "Gauss point " + mpVariable->Name();
+    }
+
+    ///@}
+
+private:
+    ///@name Private member variables
+    ///@{
+
+    const Variable<TDataType>* mpVariable;
+
+    const ProcessInfo& mrProcessInfo;
+
+    ///@}
+};
+
+template<class TContainerType, class TContainerDataIO>
 void CopyToContiguousArray(
     const TContainerType& rContainer,
-    const TComponentType& rComponent,
     const TContainerDataIO& rContainerDataIO,
-    TDataType* pBegin,
+    typename DataTypeTraits<typename TContainerDataIO::ReturnType>::PrimitiveType* pBegin,
     const IndexType Size)
 {
     KRATOS_TRY
 
-    using component_type = typename ComponentTraits<TComponentType>::ValueType;
+    using return_type = typename TContainerDataIO::ReturnType;
 
-    using value_type = typename TContainerDataIO::template ComponentType<component_type>;
-
-    using value_type_traits = DataTypeTraits<value_type>;
-
-    static_assert(value_type_traits::IsContiguous, "Only contiguous data types are supported.");
+    using value_type_traits = DataTypeTraits<return_type>;
 
     if (rContainer.empty()) {
         // do nothing if the container is empty.
@@ -255,8 +263,8 @@ void CopyToContiguousArray(
     }
 
     // get the first item for sizing.
-    typename TContainerDataIO::template TLSType<component_type> tls;
-    const auto& initial_value = rContainerDataIO.GetValue(rContainer.front(), rComponent, tls);
+    return_type initial_value;
+    rContainerDataIO.GetValue(initial_value, rContainer.front());
 
     // get the stride from the first element to support dynamic types.
     const auto stride = value_type_traits::Size(initial_value);
@@ -266,49 +274,37 @@ void CopyToContiguousArray(
         << "Contiguous array size = " << Size << ", number of entities = "
         << rContainer.size() << ", data stride = " << stride << " ].";
 
-    IndexPartition<unsigned int>(rContainer.size()).for_each(tls, [&rContainer, &rComponent, &rContainerDataIO, pBegin, stride](const auto Index, auto& rTLS) {
-        const auto& value = rContainerDataIO.GetValue(*(rContainer.begin() + Index), rComponent, rTLS);
-        TDataType const* p_value_begin = value_type_traits::GetContiguousData(value);
+    IndexPartition<unsigned int>(rContainer.size()).for_each(typename TContainerDataIO::ReturnType{}, [&rContainer,  &rContainerDataIO, stride, pBegin](const auto Index, auto& rTLS) {
+        rContainerDataIO.GetValue(rTLS, *(rContainer.begin() + Index));
         auto p_subrange_begin = pBegin + Index * stride;
-        std::copy(p_value_begin, p_value_begin + stride, p_subrange_begin);
+        value_type_traits::CopyToContiguousData(p_subrange_begin, rTLS);
     });
 
     KRATOS_CATCH("");
 }
 
-template<class TContainerType, class TComponentType, class TContainerDataIO, class TDataType>
+template<class TContainerType, class TContainerDataIO>
 void CopyFromContiguousDataArray(
     TContainerType& rContainer,
-    const TComponentType& rComponent,
     const TContainerDataIO& rContainerDataIO,
-    TDataType const* pBegin,
+    typename DataTypeTraits<typename TContainerDataIO::ReturnType>::PrimitiveType const * pBegin,
     const std::vector<unsigned int>& rShape)
 {
     KRATOS_TRY
 
-    using component_type = typename ComponentTraits<TComponentType>::ValueType;
+    using return_type = typename TContainerDataIO::ReturnType;
 
-    using value_type = typename TContainerDataIO::template ComponentType<component_type>;
+    using value_type_traits = DataTypeTraits<return_type>;
 
-    using value_type_traits = DataTypeTraits<value_type>;
+    return_type dummy_value;
+    value_type_traits::Reshape(dummy_value, rShape);
 
-    static_assert(value_type_traits::IsContiguous, "Only contiguous data types are supported.");
+    const auto stride = value_type_traits::Size(dummy_value);
 
-    if (rContainer.empty()) {
-        // do nothing if the container is empty.
-        return;
-    }
-
-    value_type tls_prototype;
-    value_type_traits::Reshape(tls_prototype, rShape);
-
-    const auto stride = value_type_traits::Size(tls_prototype);
-
-    IndexPartition<unsigned int>(rContainer.size()).for_each(tls_prototype, [&rContainer, &rComponent, &rContainerDataIO, pBegin, stride](const auto Index, auto& rTLS) {
-        TDataType * p_value_begin = value_type_traits::GetContiguousData(rTLS);
-        TDataType const * p_subrange_begin = pBegin + Index * stride;
-        std::copy(p_subrange_begin, p_subrange_begin + stride, p_value_begin);
-        rContainerDataIO.SetValue(*(rContainer.begin() + Index), rComponent, rTLS);
+    IndexPartition<unsigned int>(rContainer.size()).for_each(dummy_value, [&rContainer, &rContainerDataIO, pBegin, stride](const auto Index, auto& rTLS) {
+        auto p_subrange_begin = pBegin + Index * stride;
+        value_type_traits::CopyFromContiguousData(rTLS, p_subrange_begin);
+        rContainerDataIO.SetValue(rTLS, *(rContainer.begin() + Index));
     });
 
     KRATOS_CATCH("");
