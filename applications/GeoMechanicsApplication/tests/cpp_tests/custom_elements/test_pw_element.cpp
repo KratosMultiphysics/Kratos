@@ -13,10 +13,10 @@
 #include "custom_elements/Pw_element.h"
 #include "custom_elements/calculation_contribution.h"
 #include "custom_elements/integration_coefficient_modifier_for_line_element.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-#include "tests/cpp_tests/test_utilities.h"
 #include "geometries/line_2d_4.h"
 #include "geometries/line_2d_5.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -93,7 +93,7 @@ void RemoveTwoNodes(ModelPart& rModelPart)
     rModelPart.RemoveNodeFromAllLevels(1);
 }
 
-PointerVector<Node> AddThreeNodes()
+PointerVector<Node> CreateThreeNodes()
 {
     PointerVector<Node> result;
     result.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -102,7 +102,7 @@ PointerVector<Node> AddThreeNodes()
     return result;
 }
 
-PointerVector<Node> AddThreeCoincidentNodes()
+PointerVector<Node> CreateThreeCoincidentNodes()
 {
     PointerVector<Node> result;
     for (unsigned int id = 1; id <= 3; id++) {
@@ -112,7 +112,7 @@ PointerVector<Node> AddThreeCoincidentNodes()
 }
 
 template <unsigned int TNumNodes>
-PointerVector<Node> AddNodesOnModelPart(ModelPart& rModelPart)
+PointerVector<Node> CreateNodesOnModelPart(ModelPart& rModelPart)
 {
     PointerVector<Node> result;
     result.push_back(rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0));
@@ -124,7 +124,7 @@ PointerVector<Node> AddNodesOnModelPart(ModelPart& rModelPart)
     return result;
 }
 
-ModelPart& AddModelPartWithWaterPressureVariableAndVolumeAcceleration(Model& rModel)
+ModelPart& CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(Model& rModel)
 {
     auto& r_result = rModel.CreateModelPart("Main");
     r_result.AddNodalSolutionStepVariable(WATER_PRESSURE);
@@ -157,12 +157,12 @@ intrusive_ptr<PwElement<TDim, TNumNodes>> CreateTransientPwLineElementWithPWDofs
     if constexpr (TDim == 2) {
         p_element = make_intrusive<PwElement<TDim, TNumNodes>>(
             GetNextElementNumber(rModelPart),
-            std::make_shared<Triangle2D3<Node>>(AddNodesOnModelPart<TNumNodes>(rModelPart)),
+            std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<TNumNodes>(rModelPart)),
             rProperties, contributions, nullptr);
     } else {
         p_element = make_intrusive<PwElement<TDim, TNumNodes>>(
             GetNextElementNumber(rModelPart),
-            std::make_shared<Tetrahedra3D4<Node>>(AddNodesOnModelPart<TNumNodes>(rModelPart)),
+            std::make_shared<Tetrahedra3D4<Node>>(CreateNodesOnModelPart<TNumNodes>(rModelPart)),
             rProperties, contributions, nullptr);
     }
     for (auto& r_node : p_element->GetGeometry()) {
@@ -180,7 +180,7 @@ intrusive_ptr<PwElement<2, 3>> CreateTriangleTransientPwLineElementWithoutPWDofs
         CalculationContribution::FluidBodyFlow};
     auto p_element = make_intrusive<PwElement<2, 3>>(
         GetNextElementNumber(rModelPart),
-        std::make_shared<Triangle2D3<Node>>(AddNodesOnModelPart<3>(rModelPart)), rProperties,
+        std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<3>(rModelPart)), rProperties,
         contributions, nullptr);
 
     rModelPart.AddElement(p_element);
@@ -426,7 +426,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CheckThrowsOnFaultyInput, Krato
 KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CreateInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto p_geometry = std::make_shared<Triangle2D3<Node>>(AddThreeNodes());
+    const auto p_geometry = std::make_shared<Triangle2D3<Node>>(CreateThreeNodes());
     const std::vector<CalculationContribution> contributions = {
         CalculationContribution::Permeability, CalculationContribution::Compressibility,
         CalculationContribution::FluidBodyFlow};
@@ -450,11 +450,11 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CreateInstanceWithNodeInput, Kr
     const std::vector<CalculationContribution> contributions = {
         CalculationContribution::Permeability, CalculationContribution::Compressibility,
         CalculationContribution::FluidBodyFlow};
-    const PwElement<2, 3> element(0, std::make_shared<Triangle2D3<Node>>(AddThreeNodes()),
+    const PwElement<2, 3> element(0, std::make_shared<Triangle2D3<Node>>(CreateThreeNodes()),
                                   p_properties, contributions, nullptr);
 
     // Act
-    const auto p_created_element = element.Create(1, AddThreeNodes(), p_properties);
+    const auto p_created_element = element.Create(1, CreateThreeNodes(), p_properties);
 
     // Assert
     EXPECT_NE(p_created_element, nullptr);
@@ -467,7 +467,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_DoFList, KratosGeoMechanicsFast
 {
     // Arrange
     Model      model;
-    auto&      r_model_part = AddModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     const auto p_element =
         CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
 
@@ -486,7 +486,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_EquationIdVector, KratosGeoMech
 {
     // Arrange
     Model model;
-    auto& r_model_part = AddModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     auto  p_element =
         CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
 
@@ -512,7 +512,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_IntegrationMethod, KratosGeoMec
     const std::vector<CalculationContribution> contributions = {
         CalculationContribution::Permeability, CalculationContribution::Compressibility,
         CalculationContribution::FluidBodyFlow};
-    const PwElement<2, 3> element(0, std::make_shared<Triangle2D3<Node>>(AddThreeCoincidentNodes()),
+    const PwElement<2, 3> element(0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()),
                                   std::make_shared<Properties>(), contributions, nullptr);
 
     // Act
@@ -531,7 +531,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CheckThrowsOnFaultyInput2, Krat
         CalculationContribution::FluidBodyFlow};
     const auto            p_properties = std::make_shared<Properties>();
     const PwElement<2, 3> element_with_coincident_nodes(
-        1, std::make_shared<Triangle2D3<Node>>(AddThreeCoincidentNodes()), p_properties, contributions, nullptr);
+        1, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()), p_properties, contributions, nullptr);
 
     // Act and Assert
     const auto dummy_process_info = ProcessInfo{};
@@ -539,7 +539,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CheckThrowsOnFaultyInput2, Krat
                                       "Error: DomainSize (0) is smaller than 1e-15 for element 1")
 
     const PwElement<2, 3> element_with_correct_domain_size(
-        1, std::make_shared<Triangle2D3<Node>>(AddThreeNodes()), p_properties, contributions, nullptr);
+        1, std::make_shared<Triangle2D3<Node>>(CreateThreeNodes()), p_properties, contributions, nullptr);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element_with_correct_domain_size.Check(dummy_process_info),
                                       "Error: Missing variable WATER_PRESSURE on node 1")
 
@@ -727,7 +727,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_InitializeSolution, KratosGeoMe
 {
     // Arrange
     Model model;
-    auto& r_model_part = AddModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     auto p_element =
         CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
@@ -747,7 +747,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_FinalizeSolutionStep, KratosGeo
 {
     // Arrange
     Model model;
-    auto& r_model_part = AddModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     auto p_element =
         CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
@@ -769,7 +769,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CalculateOnIntegrationPoints_Ve
 {
     // Arrange
     Model model;
-    auto& r_model_part = AddModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     auto p_element =
         CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
@@ -858,7 +858,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CalculateOnIntegrationPoints_1D
 {
     // Arrange
     Model model;
-    auto& r_model_part = AddModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     auto p_element =
         CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
@@ -896,7 +896,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CalculateOnIntegrationPoints_Ma
 {
     // Arrange
     Model model;
-    auto& r_model_part = AddModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     auto p_element =
         CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
@@ -935,7 +935,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_CalculateLocalSystem, Krato
 {
     // Arrange
     Model model;
-    auto& r_model_part = AddModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     auto p_element =
         CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
@@ -972,7 +972,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
 {
     // Arrange
     Model model;
-    auto& r_model_part = AddModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     PointerVector<Node> nodes;
     // Node 6, 5, 8  from test_transient_groundwater_flow.py: case A1_2D3N
@@ -1166,7 +1166,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement3D4N_CalculateLocalSystem, Krato
 {
     // Arrange
     Model model;
-    auto& r_model_part = AddModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     auto p_element =
         CreateTransientPwLineElementWithPWDofs<3, 4>(r_model_part, std::make_shared<Properties>());
@@ -1199,7 +1199,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement3D4N_CalculateLocalSystem, Krato
     expected_right_hand_side <<= 166666.666, 0, 0, -166666.666;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
-
 
 KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_GetIntegrationMethodForAllRegisteredElements,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
