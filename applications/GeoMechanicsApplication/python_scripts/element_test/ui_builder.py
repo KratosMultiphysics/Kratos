@@ -6,12 +6,11 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import threading
+import traceback
 
 from ui_runner import run_gui_builder
 from ui_logger import init_log_widget, log_message, clear_log
 from ui_udsm_parser import input_parameters_format_to_unicode
-import traceback
-
 
 direct_shear= "Direct Shear"
 MAX_STRAIN_LABEL = "Maximum Strain |εᵧᵧ|"
@@ -23,7 +22,6 @@ FL2_UNIT_LABEL = "kN/m²"
 SECONDS_UNIT_LABEL = "s"
 PERCENTAGE_UNIT_LABEL = "%"
 WITHOUT_UNIT_LABEL = ""
-
 
 class GeotechTestUI:
     def __init__(self, root, parent_frame, test_name, dll_path, model_dict, external_widgets=None):
