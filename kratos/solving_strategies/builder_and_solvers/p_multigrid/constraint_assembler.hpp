@@ -85,23 +85,30 @@ public:
 
     /// @brief Allocate memory for the constraint gap vector and relation matrix, and compute its topology.
     /// @details This function is responsible for large memory allocations, as well as computing
-    ///          the sparsity pattern of the relation matrix. It must also modify the provided
-    ///          left hand side matrix, solution vector, right hand side vector, and DoF list such that
-    ///          these containers will not require reallocation during later stages of the solution process.
-    /// @param rConstraints Constraint set of the related @ref ModelPart.
+    ///          the sparsity pattern of the relation matrix.
+    /// @param rConstraints Begin of the constraint set of the related @ref ModelPart.
+    /// @param rConstraints Sentinel of the constraint set of the related @ref ModelPart.
     /// @param rProcessInfo Current @ref ProcessInfo of the related @ref ModelPart.
-    /// @param rLhs Unconstrained left hand side matrix' topology.
     /// @param itDofBegin Iterator pointing to the first @ref Dof "DoF" of the unconstrained system.
     /// @param itDofEnd Sentinel of the unconstrained system's array of @ref Dof "DoFs".
     /// @note This function should be invoked @b after the unconstrained system is allocated, but @b before
     ///       it is assembled.
-    virtual void Allocate(const ConstraintArray& rConstraints,
-                          const ProcessInfo& rProcessInfo,
-                          typename TSparse::MatrixType& rLhs,
-                          typename TSparse::VectorType& rSolution,
-                          typename TSparse::VectorType& rRhs,
-                          typename DofSet::const_iterator itDofBegin,
-                          typename DofSet::const_iterator itDofEnd)
+    virtual void AllocateConstraints(ConstraintArray::const_iterator itConstraintBegin,
+                                     ConstraintArray::const_iterator itConstraintEnd,
+                                     const ProcessInfo& rProcessInfo,
+                                     typename DofSet::const_iterator itDofBegin,
+                                     typename DofSet::const_iterator itDofEnd)
+    {
+    }
+
+    /// @brief Allocate memory and compute the sparsity pattern of the constrained linear system.
+    /// @note This function must be preceded by a call to @ref AllocateConstraints.
+    /// @param rLhs Unconstrained left hand side matrix.
+    /// @param rSolution Unconstrained solution vector.
+    /// @param rRhs Unconstrained right hand side vector.
+    virtual void AllocateSystem(typename TSparse::MatrixType& rLhs,
+                                typename TSparse::VectorType& rSolution,
+                                typename TSparse::VectorType& rRhs)
     {
     }
 
@@ -116,7 +123,7 @@ public:
     ///                    the left hand side matrix of the unconstrained system.
     /// @param AssembleRhs Indicates whether to assemble data structures necessary for updating
     ///                    the right hand side vector of the unconstrained system.
-    /// @note This function must be preceded by a call to @ref ConstraintAssembler::Allocate, and should not make large scale
+    /// @note This function must be preceded by a call to @ref ConstraintAssembler::AllocateSystem, and should not make large scale
     ///       reallocations.
     virtual void Assemble(const ConstraintArray& rConstraints,
                           const ProcessInfo& rProcessInfo,
@@ -189,6 +196,33 @@ public:
                           typename TSparse::VectorType& rRhs,
                           DofSet& rDofSet)
     {
+    }
+
+    /// @brief Compute the system's residual in the dependent space, give the the residuals in the independent space.
+    /// @param rOutput Output vector. Residual in the dependent space.
+    /// @param rIndependentResidual Residual in the independent space.
+    virtual void ComputeDependentResidual(typename TSparse::VectorType& rOutput,
+                                          const typename TSparse::VectorType& rIndependentResidual) const
+    {
+        rOutput = rIndependentResidual;
+    }
+
+    /// @brief Compute the system's solution in the independent space, given the solution in the dependent space.
+    /// @param rOutput Output vector. Solution in the independent space.
+    /// @param rDependentSolution Solution in the dependent space.
+    virtual void ComputeIndependentSolution(typename TSparse::VectorType& rOutput,
+                                            const typename TSparse::VectorType& rDependentSolution) const
+    {
+        rOutput = rDependentSolution;
+    }
+
+    /// @brief Compute the system's solution in the dependent space, given the solution in the independent space.
+    /// @param rOutput Output vector. Solution in the dependent space.
+    /// @param rIndependentSolution Solution in the independent space.
+    virtual void ComputeDependentSolution(typename TSparse::VectorType& rOutput,
+                                          const typename TSparse::VectorType& rIndependentSolution) const
+    {
+        rOutput = rIndependentSolution;
     }
 
     /// @brief Release memory related to the linear system and constraints.

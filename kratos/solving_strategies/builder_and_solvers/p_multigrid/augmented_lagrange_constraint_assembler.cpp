@@ -12,7 +12,7 @@
 
 // Project includes
 #include "solving_strategies/builder_and_solvers/p_multigrid/augmented_lagrange_constraint_assembler.hpp" // AugmentedLagrangeConstraintAssembler
-#include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // MapRowContribution
+#include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // MapRowContribution, BalancedProduct
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_utilities.hpp" // ProcessMasterSlaveConstraint, ProcessMultifreedomConstraint, detail::MakeRelationTopology
 #include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // Scaling
 #include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
@@ -196,31 +196,42 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::~AugmentedLagrangeConstrai
 
 
 template <class TSparse, class TDense>
-void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Allocate(const typename Base::ConstraintArray& rConstraints,
-                                                                    const ProcessInfo& rProcessInfo,
-                                                                    typename TSparse::MatrixType& rLhs,
-                                                                    typename TSparse::VectorType& rSolution,
-                                                                    typename TSparse::VectorType& rRhs,
-                                                                    typename Base::DofSet::const_iterator itDofBegin,
-                                                                    typename Base::DofSet::const_iterator itDofEnd)
+void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AllocateConstraints(typename Base::ConstraintArray::const_iterator itConstraintBegin,
+                                                                               typename Base::ConstraintArray::const_iterator itConstraintEnd,
+                                                                               const ProcessInfo& rProcessInfo,
+                                                                               typename Base::DofSet::const_iterator itDofBegin,
+                                                                               typename Base::DofSet::const_iterator itDofEnd)
 {
     KRATOS_TRY
 
     this->Clear();
-    if (rConstraints.empty()) {
-        this->GetRelationMatrix() = typename TSparse::MatrixType(0, rLhs.size2(), 0);
+
+    // Handle case with no constraints.
+    if (itConstraintBegin == itConstraintEnd) {
+        this->GetRelationMatrix() = typename TSparse::MatrixType(0, std::distance(itDofBegin, itDofEnd), 0);
         this->GetRelationMatrix().index1_data()[0] = 0;
         this->GetRelationMatrix().set_filled(1, 0);
         return;
     }
 
     detail::MakeRelationTopology<TSparse,TDense>(std::distance(itDofBegin, itDofEnd),
-                                                 rConstraints,
+                                                 itConstraintBegin,
+                                                 itConstraintEnd,
                                                  rProcessInfo,
                                                  this->GetRelationMatrix(),
                                                  this->GetConstraintGapVector(),
                                                  mpImpl->mConstraintIdMap);
 
+    KRATOS_CATCH("")
+}
+
+
+template <class TSparse, class TDense>
+void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AllocateSystem(typename TSparse::MatrixType& rLhs,
+                                                                          typename TSparse::VectorType& rSolution,
+                                                                          typename TSparse::VectorType& rRhs)
+{
+    KRATOS_TRY
     // At this point, the sparsity pattern of the unconstrained LHS matrix (K), as well
     // as the relation matrix (A) are constructed. The current policy in Kratos is that
     // constraint imposition happens on K in-place, meaning K will have the union of both
@@ -233,7 +244,6 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Allocate(const typena
         SparseMatrixMultiplicationUtility::MatrixMultiplication(transpose, this->GetRelationMatrix(), this->GetHessian());
     }
     MergeMatrices<typename TSparse::DataType>(rLhs, this->GetHessian());
-
     KRATOS_CATCH("")
 }
 

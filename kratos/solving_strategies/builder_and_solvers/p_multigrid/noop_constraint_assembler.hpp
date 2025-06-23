@@ -40,6 +40,7 @@ public:
           mVerbosity(Settings.Has("verbosity") ? Settings["verbosity"].Get<int>() : 1)
     {}
 
+    /// @copydoc Base::FinalizeConstraintIteration
     bool FinalizeConstraintIteration(typename TSparse::MatrixType& rLhs,
                                      typename TSparse::VectorType& rSolution,
                                      typename TSparse::VectorType& rRhs,

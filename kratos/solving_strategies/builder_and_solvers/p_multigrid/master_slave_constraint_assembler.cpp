@@ -16,10 +16,10 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // MakeSparseTopology
 #include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // ParseDiagonalScaling, GetDiagonalScaleFactor
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_utilities.hpp" // ProcessMasterSlaveConstraint, ProcessMultifreedomConstraint, detail::MakeRelationTopology
+#include "factories/linear_solver_factory.h" // LinearSolver, LinearSolverFactory
 #include "includes/define.h" // KRATOS_TRY, KRATOS_CATCH
 #include "spaces/ublas_space.h" // TUblasSparseSpace
 #include "utilities/sparse_matrix_multiplication_utility.h" // SparseMatrixMultiplicationUtility
-#include "utilities/atomic_utilities.h" // AtomicAdd
 
 
 namespace Kratos {
@@ -52,6 +52,11 @@ struct MasterSlaveConstraintAssembler<TSparse,TDense>::Impl
     }; // struct LinearSystem
 
     std::optional<LinearSystem> mDependentSystem;
+
+    std::optional<std::pair<
+        LinearSystem,
+        typename LinearSolver<TSparse,TDense>::Pointer
+    >> mReverseSystem;
 
     int mVerbosity;
 };
@@ -95,13 +100,11 @@ MasterSlaveConstraintAssembler<TSparse,TDense>::~MasterSlaveConstraintAssembler(
 
 
 template <class TSparse, class TDense>
-void MasterSlaveConstraintAssembler<TSparse,TDense>::Allocate(const typename Base::ConstraintArray& rConstraints,
-                                                              const ProcessInfo& rProcessInfo,
-                                                              typename TSparse::MatrixType& rLhs,
-                                                              typename TSparse::VectorType& rSolution,
-                                                              typename TSparse::VectorType& rRhs,
-                                                              typename Base::DofSet::const_iterator itDofBegin,
-                                                              typename Base::DofSet::const_iterator itDofEnd)
+void MasterSlaveConstraintAssembler<TSparse,TDense>::AllocateConstraints(typename Base::ConstraintArray::const_iterator itConstraintBegin,
+                                                                         typename Base::ConstraintArray::const_iterator itConstraintEnd,
+                                                                         const ProcessInfo& rProcessInfo,
+                                                                         typename Base::DofSet::const_iterator itDofBegin,
+                                                                         typename Base::DofSet::const_iterator itDofEnd)
 {
     KRATOS_TRY
     this->Clear();
@@ -111,7 +114,7 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Allocate(const typename Bas
     KRATOS_TRY
     const typename TSparse::IndexType dependent_system_size = std::distance(itDofBegin, itDofEnd);
 
-    if (rConstraints.empty()) {
+    if (itConstraintBegin == itConstraintEnd) {
         this->GetRelationMatrix() = typename TSparse::MatrixType(0, dependent_system_size, 0);
         this->GetRelationMatrix().index1_data()[0] = 0;
         std::fill(this->GetRelationMatrix().index1_data().begin(),
@@ -120,13 +123,13 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Allocate(const typename Bas
         this->GetRelationMatrix().set_filled(1, 0);
     } else {
         detail::MakeRelationTopology<TSparse,TDense>(dependent_system_size,
-                                                     rConstraints,
+                                                     itConstraintBegin,
+                                                     itConstraintEnd,
                                                      rProcessInfo,
                                                      this->GetRelationMatrix(),
                                                      this->GetConstraintGapVector(),
                                                      mpImpl->mConstraintIdMap);
     }
-
 
     // Compute the modified relation matrix (T) for master-slave imposition.
     // This involves a partitioning of the DoFs (u) into:
@@ -423,6 +426,85 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Finalize([[maybe_unused]] t
 
     // Release the independent system.
     mpImpl->mDependentSystem.reset();
+}
+
+
+template <class TSparse, class TDense>
+void MasterSlaveConstraintAssembler<TSparse,TDense>::ComputeDependentResidual(typename TSparse::VectorType& rOutput,
+                                                                              const typename TSparse::VectorType& rIndependentResidual) const
+{
+    KRATOS_TRY
+
+    rOutput.resize(mpImpl->mMasterSlaveRelations.size2(), false);
+    TSparse::SetToZero(rOutput);
+    TSparse::TransposeMult(mpImpl->mMasterSlaveRelations, rIndependentResidual, rOutput);
+
+    KRATOS_CATCH("")
+}
+
+
+template <class TSparse, class TDense>
+void MasterSlaveConstraintAssembler<TSparse,TDense>::ComputeIndependentSolution(typename TSparse::VectorType& rOutput,
+                                                                                const typename TSparse::VectorType& rDependentSolution) const
+{
+    typename TSparse::MatrixType transpose_master_slave_relations;
+
+    KRATOS_TRY
+    SparseMatrixMultiplicationUtility::TransposeMatrix(transpose_master_slave_relations, mpImpl->mMasterSlaveRelations);
+    KRATOS_CATCH("")
+
+    if (!mpImpl->mReverseSystem.has_value()) {
+        KRATOS_TRY
+        mpImpl->mReverseSystem.emplace();
+        typename Impl::LinearSystem& r_reverse_system = mpImpl->mReverseSystem.value().first;
+        SparseMatrixMultiplicationUtility::MatrixMultiplication(transpose_master_slave_relations,
+                                                                mpImpl->mMasterSlaveRelations,
+                                                                r_reverse_system.mLhs);
+
+        //r_reverse_system.mSolution.resize(rIndependentDofSet.size()); // <= unused
+        r_reverse_system.mRhs.resize(mpImpl->mMasterSlaveRelations.size2());
+
+        mpImpl->mReverseSystem.value().second = LinearSolverFactory<TSparse,TDense>().Create(Parameters(R"({"solver_type" : "cg"})"));
+        KRATOS_CATCH("")
+    }
+
+    KRATOS_TRY
+    typename Impl::LinearSystem& r_reverse_system = mpImpl->mReverseSystem.value().first;
+
+    // Compute reverse RHS.
+    // T^T (u - b)
+    typename TSparse::VectorType tmp;
+    tmp.resize(rDependentSolution.size());
+    TSparse::Copy(rDependentSolution, tmp);
+    /// @todo TSparse::UnaliasedAdd(tmp, static_cast<TSparse::DataType>(-1), where are the master-slave constraint gaps?)
+    TSparse::SetToZero(r_reverse_system.mRhs);
+    BalancedProduct<TSparse,TSparse,TSparse>(transpose_master_slave_relations,
+                                             tmp,
+                                             r_reverse_system.mRhs);
+
+    // Solve the system.
+    KRATOS_ERROR_IF_NOT(rOutput.size() == r_reverse_system.mLhs.size1());
+    TSparse::SetToZero(rOutput);
+
+    LinearSolver<TSparse,TDense>& r_linear_solver = *mpImpl->mReverseSystem.value().second;
+    r_linear_solver.Solve(r_reverse_system.mLhs, rOutput, r_reverse_system.mRhs);
+
+    KRATOS_CATCH("")
+}
+
+
+template <class TSparse, class TDense>
+void MasterSlaveConstraintAssembler<TSparse,TDense>::ComputeDependentSolution(typename TSparse::VectorType& rOutput,
+                                                                              const typename TSparse::VectorType& rIndependentSolution) const
+{
+    KRATOS_TRY
+    rOutput.resize(mpImpl->mMasterSlaveRelations.size1());
+    TSparse::SetToZero(rOutput);
+    BalancedProduct<TSparse,TSparse,TSparse>(mpImpl->mMasterSlaveRelations,
+                                             rIndependentSolution,
+                                             rOutput);
+    /// @todo TSparse::UnaliasedAdd(rOutput, where are the master-slave constraint gaps?);
+    KRATOS_CATCH("")
 }
 
 

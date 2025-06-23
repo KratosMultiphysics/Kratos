@@ -35,14 +35,12 @@ public:
 
     ~MasterSlaveConstraintAssembler();
 
-    /// @copydoc Base::Allocate
-    void Allocate(const typename Base::ConstraintArray& rConstraints,
-                  const ProcessInfo& rProcessInfo,
-                  typename TSparse::MatrixType& rLhs,
-                  typename TSparse::VectorType& rSolution,
-                  typename TSparse::VectorType& rRhs,
-                  typename Base::DofSet::const_iterator itDofBegin,
-                  typename Base::DofSet::const_iterator itDofEnd) override;
+    /// @copydoc Base::AllocateConstraints
+    void AllocateConstraints(typename Base::ConstraintArray::const_iterator itConstraintBegin,
+                             typename Base::ConstraintArray::const_iterator itConstraintEnd,
+                             const ProcessInfo& rProcessInfo,
+                             typename Base::DofSet::const_iterator itDofBegin,
+                             typename Base::DofSet::const_iterator itDofEnd) override;
 
     /// @copydoc Base::Assemble
     void Assemble(const typename Base::ConstraintArray& rConstraints,
@@ -69,9 +67,21 @@ public:
 
     /// @copydoc Base::Finalize
     void Finalize(typename TSparse::MatrixType& rLhs,
-        typename TSparse::VectorType& rSolution,
-        typename TSparse::VectorType& rRhs,
-        typename Base::DofSet& rDofSet) override;
+                  typename TSparse::VectorType& rSolution,
+                  typename TSparse::VectorType& rRhs,
+                  typename Base::DofSet& rDofSet) override;
+
+    /// @copydoc Base::ComputeDependentResidual
+    void ComputeDependentResidual(typename TSparse::VectorType& rOutput,
+                                  const typename TSparse::VectorType& rIndependentResidual) const override;
+
+    /// @copydoc Base::ComputeIndependentSolution
+    void ComputeIndependentSolution(typename TSparse::VectorType& rOutput,
+                                    const typename TSparse::VectorType& rDependentSolution) const override;
+
+    /// @copydoc Base::ComputeDependentSolution
+    void ComputeDependentSolution(typename TSparse::VectorType& rOutput,
+                                  const typename TSparse::VectorType& rIndependentSolution) const override;
 
     /// @copydoc Base::Clear
     void Clear() override;

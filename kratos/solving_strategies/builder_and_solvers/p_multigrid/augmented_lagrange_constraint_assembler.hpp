@@ -70,14 +70,17 @@ public:
 
     ~AugmentedLagrangeConstraintAssembler();
 
-    /// @copydoc Base::Allocate
-    void Allocate(const typename Base::ConstraintArray& rConstraints,
-                  const ProcessInfo& rProcessInfo,
-                  typename TSparse::MatrixType& rLhs,
-                  typename TSparse::VectorType& rSolution,
-                  typename TSparse::VectorType& rRhs,
-                  typename Base::DofSet::const_iterator itDofBegin,
-                  typename Base::DofSet::const_iterator itDofEnd) override;
+    /// @copydoc Base::AllocateConstraints
+    void AllocateConstraints(typename Base::ConstraintArray::const_iterator itConstraintBegin,
+                             typename Base::ConstraintArray::const_iterator itConstraintEnd,
+                             const ProcessInfo& rProcessInfo,
+                             typename Base::DofSet::const_iterator itDofBegin,
+                             typename Base::DofSet::const_iterator itDofEnd) override;
+
+    /// @copydoc Base::AllocateSystem
+    void AllocateSystem(typename TSparse::MatrixType& rLhs,
+                        typename TSparse::VectorType& rSolution,
+                        typename TSparse::VectorType& rRhs) override;
 
     /// @copydoc Base::Assemble
     void Assemble(const typename Base::ConstraintArray& rConstraints,
