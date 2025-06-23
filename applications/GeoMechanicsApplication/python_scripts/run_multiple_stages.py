@@ -2,7 +2,6 @@ import os
 import sys
 
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.GeoMechanicsApplication import *
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 import KratosMultiphysics.GeoMechanicsApplication.context_managers as context_managers
 
