@@ -37,8 +37,6 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) PwCondition : public Condition
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(PwCondition);
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     PwCondition() : PwCondition(0, nullptr, nullptr) {}
 
     PwCondition(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -53,8 +51,6 @@ public:
 
     ~PwCondition() override = default;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
@@ -63,35 +59,25 @@ public:
 
     void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                              VectorType&        rRightHandSideVector,
+    void CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
+                              Vector&            rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
     std::string Info() const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
-    virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                              VectorType&        rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateAll(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    virtual void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
 private:
     [[nodiscard]] DofsVectorType GetDofs() const;
-
-    // Serialization
 
     friend class Serializer;
 

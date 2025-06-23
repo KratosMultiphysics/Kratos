@@ -30,14 +30,12 @@ std::unique_ptr<IntegrationScheme> MakeLobattoIntegrationScheme(std::size_t Numb
     return std::make_unique<LobattoIntegrationScheme>(NumberOfPoints);
 }
 
-std::vector<std::size_t> SupportedNumbersOfPointsForLobattoIntegration()
-{
-    return {2, 3};
-}
+std::vector<std::size_t> SupportedNumbersOfPointsForLobattoIntegration() { return {2, 3}; }
 
 double SumOfWeights(const Geo::IntegrationPointVectorType& rIntegrationPoints)
 {
     auto weights = std::vector<double>{};
+    weights.reserve(rIntegrationPoints.size());
     std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), std::back_inserter(weights),
                    [](const auto& rIntegrationPoint) { return rIntegrationPoint.Weight(); });
     return std::accumulate(weights.cbegin(), weights.cend(), 0.0);

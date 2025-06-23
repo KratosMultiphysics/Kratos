@@ -33,13 +33,8 @@ public:
 
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType       = Node;
-    using GeometryType   = Geometry<NodeType>;
+    using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType     = Vector;
-    using MatrixType     = Matrix;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     AxisymmetricUPwNormalFaceLoadCondition()
         : AxisymmetricUPwNormalFaceLoadCondition(0, nullptr, nullptr)
@@ -56,8 +51,6 @@ public:
     {
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
@@ -66,23 +59,13 @@ public:
 
     std::string Info() const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
     // Member Variables
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     double CalculateIntegrationCoefficient(const IndexType PointNumber,
                                            const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    // Member Variables
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     // Serialization
 
     friend class Serializer;

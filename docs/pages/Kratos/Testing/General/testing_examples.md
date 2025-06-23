@@ -8,7 +8,7 @@ summary:
 
 # How to run tests
 
-This section will provided some common (and not so common) use cases for Kratos tests.
+This section will provided some common use cases for Kratos tests.
 
 Unless stated otherwise, we asume that we running `KratosCoreTest` or `KratosMPICoreTest`. We will consider the `Array1DTest` as an example test
 

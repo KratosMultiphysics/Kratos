@@ -195,9 +195,8 @@ namespace Kratos {
                                       double equiv_poisson, 
                                       double indentation, 
                                       double indentation_particle,
-                                      double LocalElasticContactForce[3],
                                       double normalLocalContactForce,
-                                      double GlobalElasticContactForces[3],
+                                      double GlobalContactForce[3],
                                       double LocalCoordSystem_2[3],
                                       const int i_neighbor_count){
             KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateMoments) shouldn't be accessed, use derived class instead"<<std::endl;
@@ -212,8 +211,7 @@ namespace Kratos {
                                                 double ElasticLocalRotationalMoment[3],
                                                 double ViscoLocalRotationalMoment[3],
                                                 double equiv_poisson,
-                                                double indentation,
-                                                double LocalElasticContactForce[3]);
+                                                double indentation);
 
         virtual void AddPoissonContribution(const double equiv_poisson,
                                             double LocalCoordSystem[3][3],

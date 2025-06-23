@@ -21,7 +21,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
 class AlgorithmGradientProjection(Algorithm):
     """
-        A classical steepest descent algorithm to solve unconstrainted optimization problems.
+        A classical steepest descent algorithm to solve unconstrained optimization problems.
     """
 
     @classmethod
@@ -169,7 +169,7 @@ class AlgorithmGradientProjection(Algorithm):
         self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
         OutputGradientFields(self.__objective, self._optimization_problem, True)
         for constraint in self.__constraints_list:
-            OutputGradientFields(constraint, self._optimization_problem, True)
+            OutputGradientFields(constraint, self._optimization_problem, constraint.IsActive())
         for process in self._optimization_problem.GetListOfProcesses("output_processes"):
             if process.IsOutputStep():
                 process.PrintOutput()
@@ -211,7 +211,11 @@ class AlgorithmGradientProjection(Algorithm):
 
                 self.UpdateControl()
 
-                self.converged = self.__convergence_criteria.IsConverged()
+                converged = self.__convergence_criteria.IsConverged()
+
+                converged &= all([value <= 0.0 for value in self.__constr_value]) 
+
+                self.converged |=  self.__convergence_criteria.IsMaxIterationsReached()
 
                 self._optimization_problem.AdvanceStep()
 

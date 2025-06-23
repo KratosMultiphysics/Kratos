@@ -8,4 +8,4 @@ summary:
 
 ## Overview
 
-This section will descrive how the tests are executed in the CI, its organization across the different contaienrs and build matrix and its restrictions.
+This section will descrive how the tests are executed in the CI, its organization across the different containens and build matrix and its restrictions.

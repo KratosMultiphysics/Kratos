@@ -18,7 +18,7 @@
 
 // Application includes
 #include "custom_elements/transient_Pw_interface_element.hpp"
-#include "custom_utilities/interface_element_utilities.hpp"
+#include "custom_utilities/interface_element_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -53,8 +53,6 @@ public:
     using InterfaceElementVariables = typename BaseType::InterfaceElementVariables;
     using SFGradAuxVariables        = typename BaseType::SFGradAuxVariables;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     explicit SteadyStatePwInterfaceElement(IndexType NewId = 0)
         : TransientPwInterfaceElement<TDim, TNumNodes>(NewId)
     {
@@ -63,16 +61,20 @@ public:
     /// Constructor using an array of nodes
     SteadyStatePwInterfaceElement(IndexType                          NewId,
                                   const NodesArrayType&              ThisNodes,
-                                  std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
+                                  std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                  std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : TransientPwInterfaceElement<TDim, TNumNodes>(
+              NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
     /// Constructor using Geometry
     SteadyStatePwInterfaceElement(IndexType                          NewId,
                                   GeometryType::Pointer              pGeometry,
-                                  std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
+                                  std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                  std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : TransientPwInterfaceElement<TDim, TNumNodes>(
+              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -80,14 +82,14 @@ public:
     SteadyStatePwInterfaceElement(IndexType                          NewId,
                                   GeometryType::Pointer              pGeometry,
                                   PropertiesType::Pointer            pProperties,
-                                  std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                                  std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                  std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : TransientPwInterfaceElement<TDim, TNumNodes>(
+              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
     ~SteadyStatePwInterfaceElement() = default;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Element::Pointer Create(IndexType               NewId,
                             NodesArrayType const&   ThisNodes,
@@ -110,13 +112,7 @@ protected:
                             InterfaceElementVariables& rVariables,
                             unsigned int               GPoint) override;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    /// Member Variables
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Assignment operator.
     SteadyStatePwInterfaceElement& operator=(SteadyStatePwInterfaceElement const& rOther);
 

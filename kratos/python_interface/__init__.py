@@ -32,7 +32,28 @@ class KratosPaths(object):
 # import core library (Kratos.so)
 sys.path.append(KratosPaths.kratos_libs)
 sys.path.append(KratosPaths.kratos_module_libs)
-from Kratos import *
+
+try:
+    from Kratos import *
+except ImportError as e:
+    var_name = {
+        "posix": "LD_LIBRARY_PATH or DYLD_LIBRARY_PATH",
+        "nt": "PATH"
+    }
+
+    if os.name in var_name.keys():
+        print(f"Unable to find KratosCore. Please make sure that your {var_name[os.name]} environment variable includes the path to the Kratos libraries.")
+    else:
+        print(f"Unable to find KratosCore. Your OS is unknown and we cannot provide further info. Please open an issue at https://github.com/KratosMultiphysics/Kratos")
+
+    raise e
+
+except OSError as e:
+    if os.name == 'nt':
+        print("Please download the latest Microsfot Visual C++ Redistributable from https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist")
+    else:
+        print("Please make sure that the Kratos libraries are compiled for your system.")
+    raise e
 
 Kernel.RegisterPythonVersion()
 
@@ -57,10 +78,11 @@ def __ModuleInitDetail():
         or "MPI_LOCALNRANKS" in os.environ   # Recent mpich detected
     )
     mpi_requested = "--using-mpi" in sys.argv[1:] # Forcing MPI initialization through command-line flag
+    mpi_disabled = "--not-using-mpi" in sys.argv[1:] # Forcing MPI disabled through command-line flag
 
     using_mpi = False
 
-    if mpi_detected or mpi_requested:
+    if (mpi_detected or mpi_requested) and not mpi_disabled:
         from KratosMultiphysics.kratos_utilities import IsMPIAvailable
         if IsMPIAvailable():
             import KratosMultiphysics.mpi
@@ -145,24 +167,3 @@ def _ImportApplication(application, application_name):
 
 def IsDistributedRun():
     return KratosGlobals.Kernel.IsDistributedRun()
-
-
-# iterating through the parameters is deprecated
-# the following wraps the __iter__ method to issue a deprecation warning
-list_deprecation_warnings = []
-orig_iter = Parameters.__iter__
-import inspect
-def iter_wrapper(self):
-    # get information where the function is called
-    # this is necessary to issue the deprecation warning only
-    # once per call location
-    frame = inspect.stack()[1]
-    filename = frame.filename
-    line_number = frame.lineno
-    tup = (filename, line_number)
-    # issue deprecation warning only once, providing file name and line number
-    if tup not in list_deprecation_warnings:
-        list_deprecation_warnings.append(tup)
-        print(f'Deprecated method called in "{frame.filename}" in line {frame.lineno}: Iterating through "Parameters" object is deprecated, please use the "values" method instead')
-    return orig_iter(self)
-Parameters.__iter__ = iter_wrapper

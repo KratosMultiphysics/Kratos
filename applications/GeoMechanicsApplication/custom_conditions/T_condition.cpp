@@ -44,8 +44,8 @@ void GeoTCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& rConditionDofLis
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                                                          VectorType&        rRightHandSideVector,
+void GeoTCondition<TDim, TNumNodes>::CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
+                                                          Vector&            rRightHandSideVector,
                                                           const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -65,15 +65,15 @@ void GeoTCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rRes
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTCondition<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                                                  VectorType&        rRightHandSideVector,
+void GeoTCondition<TDim, TNumNodes>::CalculateAll(Matrix&            rLeftHandSideMatrix,
+                                                  Vector&            rRightHandSideVector,
                                                   const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+void GeoTCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

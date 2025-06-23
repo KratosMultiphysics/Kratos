@@ -12,8 +12,8 @@ from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 class StandardizedConstraint(ResponseRoutine):
     """Standardized constraint response function
 
-    This class creates instances to standardize any response function for the specified type of the contraint.
-    Supported contraint types:
+    This class creates instances to standardize any response function for the specified type of the constraint.
+    Supported constraint types:
         "=",
         "<",
         "<=,
@@ -109,6 +109,9 @@ class StandardizedConstraint(ResponseRoutine):
             DictLogger("Constraint info",self.GetInfo())
 
         return standardized_response_value
+    
+    def IsActive(self):
+        return self.GetStandardizedValue() > 0.0
 
     def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.CollectiveExpression:
 

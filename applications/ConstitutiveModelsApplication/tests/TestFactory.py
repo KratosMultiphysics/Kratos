@@ -5,7 +5,8 @@ from KratosMultiphysics import *
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import MainMaterial
+import KratosMultiphysics.ConstitutiveModelsApplication
+import KratosMultiphysics.ConstitutiveModelsApplication.MainMaterial
 
 # This utility will control the execution scope
 class controlledExecutionScope:

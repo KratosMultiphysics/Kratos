@@ -24,7 +24,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
 class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
     """
-        Relaxed Gradient Projection algorithm to solve constrainted optimization problems. Implemnetation is based on:
+        Relaxed Gradient Projection algorithm to solve constrained optimization problems. Implemnetation is based on:
         Antonau, I., Hojjat, M. & Bletzinger, KU. Relaxed gradient projection algorithm for constrained node-based shape optimization. Struct Multidisc Optim 63, 1633–1651 (2021). https://doi.org/10.1007/s00158-020-02821-y
     """
 
@@ -186,7 +186,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
                 w = active_constraint.ComputeW()
                 w_r[i] = active_constraint.Compute_W_relax(w)
                 w_c[i] = active_constraint.Compute_W_correction(w)
-                print(f"RGP Constaint {active_constraint.GetResponseName()}:: w_r = {w_r[i]}, w_c = {w_c[i]}")
+                print(f"RGP Constraint {active_constraint.GetResponseName()}:: w_r = {w_r[i]}, w_c = {w_c[i]}")
             return w_r, w_c
 
     @time_decorator()
@@ -214,7 +214,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
         OutputGradientFields(self.__objective, self._optimization_problem, True)
         for constraint in self.__constraints_list:
-            OutputGradientFields(constraint, self._optimization_problem, True)
+            OutputGradientFields(constraint, self._optimization_problem, constraint.IsActive())
         for process in self._optimization_problem.GetListOfProcesses("output_processes"):
             if process.IsOutputStep():
                 process.PrintOutput()
@@ -224,20 +224,20 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         active_constraints_list = self.GetActiveConstraintsList()        
         for i, constraint in enumerate(active_constraints_list):
             predicted_value = constraint.GetStandardizedValue() + KratosOA.ExpressionUtils.InnerProduct(active_constr_grad[i], update)
-            print(f"RGP Constaint {constraint.GetResponseName()}:: predicted g_i {predicted_value}")
+            print(f"RGP Constraint {constraint.GetResponseName()}:: predicted g_i {predicted_value}")
             if not constraint.IsSatisfied(predicted_value):
                 all_feasible = False
                 w = constraint.ComputeW()
                 w += self.buffer_coeff_update_factor
                 w_r[i] = constraint.Compute_W_relax(w)
                 w_c[i] = constraint.Compute_W_correction(w)
-                print(f"RGP Constaint {constraint.GetResponseName()}:: Corrected w_r = {w_r[i]}, w_c = {w_c[i]}")
+                print(f"RGP Constraint {constraint.GetResponseName()}:: Corrected w_r = {w_r[i]}, w_c = {w_c[i]}")
             else:
-                print(f"RGP Constaint {constraint.GetResponseName()}:: no correction for w_r, w_c ")
+                print(f"RGP Constraint {constraint.GetResponseName()}:: no correction for w_r, w_c ")
         return all_feasible
 
     def GetActiveConstraintsList(self, ):
-        return [constraint for constraint in self.__constraints_list if constraint.IsActiveConstrant()]        
+        return [constraint for constraint in self.__constraints_list if constraint.IsActive()]        
         
     def GetConstraintsList(self):
         return self.__constraints_list
@@ -265,9 +265,9 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
                     self.__constr_value.append(value)
                     constr_name = constraint.GetResponseName()
                     self.algorithm_data.GetBufferedData()[f"std_constr_{constr_name}_value"] = value
-                    msg = "active" if constraint.IsActiveConstrant() else "non-active"
-                    print(f"RGP Constaint {constraint.GetResponseName()} is {msg}")
-                    if constraint.IsActiveConstrant():
+                    msg = "active" if constraint.IsActive() else "non-active"
+                    print(f"RGP Constraint {constraint.GetResponseName()} is {msg}")
+                    if constraint.IsActive():
                         active_constr_grad.append(constraint.CalculateStandardizedGradient())
 
                 w_r, w_c = self.ComputeBufferCoefficients()
@@ -294,9 +294,11 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
 
                 self.UpdateControl()
 
-                self.converged = self.__convergence_criteria.IsConverged()
+                converged = self.__convergence_criteria.IsConverged()
 
-                self.converged &= all([c.IsSatisfied() for c in self.__constraints_list])
+                converged &= all([c.IsSatisfied() for c in self.__constraints_list]) 
+
+                self.converged |=  self.__convergence_criteria.IsMaxIterationsReached()
 
                 self._optimization_problem.AdvanceStep()
 

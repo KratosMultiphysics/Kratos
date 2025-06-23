@@ -14,7 +14,7 @@
 #include "structural_mechanics_fast_suite.h"
 #include "structural_mechanics_application_variables.h"
 
-#include "custom_elements/spring_damper_element.hpp"
+#include "custom_elements/nodal_elements/spring_damper_element.hpp"
 
 namespace Kratos::Testing {
 

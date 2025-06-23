@@ -55,7 +55,6 @@ public:
 
 protected:
     virtual void CalculateElasticMatrix(Matrix& rConstitutiveMatrix, ConstitutiveLaw::Parameters& rValues) = 0;
-    virtual void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector) = 0;
     virtual void CalculatePK2Stress(const Vector&                rStrainVector,
                                     Vector&                      rStressVector,
                                     ConstitutiveLaw::Parameters& rValues) = 0;

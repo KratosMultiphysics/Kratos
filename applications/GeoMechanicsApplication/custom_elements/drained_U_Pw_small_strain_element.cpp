@@ -12,6 +12,7 @@
 
 // Application includes
 #include "custom_elements/drained_U_Pw_small_strain_element.hpp"
+#include "custom_utilities/check_utilities.h"
 
 namespace Kratos
 {
@@ -22,21 +23,20 @@ Element::Pointer DrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType
                                                                        PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new DrainedUPwSmallStrainElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties,
+        this->GetStressStatePolicy().Clone(), this->CloneIntegrationCoefficientModifier()));
 }
-
-//----------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer DrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                        GeometryType::Pointer pGeom,
                                                                        PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new DrainedUPwSmallStrainElement(NewId, pGeom, pProperties,
-                                                             this->GetStressStatePolicy().Clone()));
+    return Element::Pointer(new DrainedUPwSmallStrainElement(
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(),
+        this->CloneIntegrationCoefficientModifier()));
 }
 
-//----------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void DrainedUPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -47,7 +47,6 @@ void DrainedUPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -60,8 +59,7 @@ int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCur
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType&   Geom = this->GetGeometry();
 
-    if (Geom.DomainSize() < 1.0e-15)
-        KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
+    CheckUtilities::CheckDomainSize(Geom.DomainSize(), this->Id());
 
     // Verify specific properties
 
@@ -84,7 +82,7 @@ int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCur
     }
 
     // Check constitutive law
-    if (mConstitutiveLawVector.size() > 0) {
+    if (!mConstitutiveLawVector.empty()) {
         return mConstitutiveLawVector[0]->Check(Prop, Geom, rCurrentProcessInfo);
     }
 
@@ -93,7 +91,6 @@ int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCur
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void DrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                                                                        ElementVariables& rVariables)
@@ -105,7 +102,6 @@ void DrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixTyp
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void DrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
                                                                        ElementVariables& rVariables,
@@ -120,8 +116,6 @@ void DrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorTyp
 
     KRATOS_CATCH("")
 }
-
-//----------------------------------------------------------------------------------------------------
 
 template class DrainedUPwSmallStrainElement<2, 3>;
 template class DrainedUPwSmallStrainElement<2, 4>;

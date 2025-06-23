@@ -48,7 +48,7 @@ public:
 
 /// This only calculates the distance. Calculating the inside outside should be done by a derived class of this.
 /** This process takes a volume model part (with tetrahedra mesh) and a skin model part (with triangle mesh) and
-     and calcualtes the distance to the skin for all the elements and nodes of the volume model part.
+     and calculates the distance to the skin for all the elements and nodes of the volume model part.
 */
 template<std::size_t TDim = 3>
 class KRATOS_API(KRATOS_CORE) CalculateDiscontinuousDistanceToSkinProcess : public Process
@@ -361,7 +361,7 @@ private:
      * plane defined by the set of points in rPointVector.
      * @param rElement reference to the element of interest
      * @param rElementalDistances reference to the elemental distances container containing the coordinates of al the intersecting points
-     * @param rPoitnVector reference to the vector containing the poits to define the approximation plane
+     * @param rPoitnVector reference to the vector containing the points to define the approximation plane
      */
     void ComputeElementalDistancesFromPlaneApproximation(
         Element& rElement,

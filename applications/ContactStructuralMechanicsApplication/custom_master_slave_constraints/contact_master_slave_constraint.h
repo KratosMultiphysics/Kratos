@@ -202,7 +202,7 @@ public:
 
     /**
      * @brief Returns the string containing a detailed description of this object.
-     * @return the string with informations
+     * @return the string with information
      */
     std::string GetInfo() const override;
 
@@ -231,7 +231,7 @@ private:
     void load(Serializer &rSerializer) override;
 };
 
-///@name Input/Output funcitons
+///@name Input/Output functions
 ///@{
 
 /// input stream function
