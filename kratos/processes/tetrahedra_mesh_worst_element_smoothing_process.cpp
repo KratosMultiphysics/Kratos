@@ -54,7 +54,7 @@ namespace Kratos
 		for (std::size_t i = 0; i < size; i++)
 		{
 			CalculateElementOptimumPosition(rNode, r_neighbours[i].GetGeometry(), rOptimumPoints[i]);
-			auto quality = std::abs(r_neighbours[i].GetGeometry().Quality(Geometry<Node<3> >::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH));
+			auto quality = std::abs(r_neighbours[i].GetGeometry().Quality(Geometry<Node >::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH));
 			if (quality < min_quality) {
 				min_quality = quality;
 				min_i = i;
@@ -64,7 +64,7 @@ namespace Kratos
 		rWeights[min_i] = 1.00;
 	}
 
-	void TetrahedraMeshWorstElementSmoothingProcess::CalculateElementOptimumPosition(NodeType& rNode, Geometry<Node<3> > const& rTetrahedra, Point& rOptimumPoint) {
+	void TetrahedraMeshWorstElementSmoothingProcess::CalculateElementOptimumPosition(NodeType& rNode, Geometry<Node > const& rTetrahedra, Point& rOptimumPoint) {
 		std::size_t i = 0;
 
 		for (; i < 4; i++)

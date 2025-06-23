@@ -18,6 +18,10 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
+/// @brief Helper method to initialize the application when loading the library directly
+/// @return An application instance
+extern "C" KRATOS_API(LINEARSOLVERS_APPLICATION) Kratos::KratosApplication* CreateApplication();
+
 namespace Kratos
 {
 

@@ -32,7 +32,7 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /// Gives a prime number after or befor of given number.
+  /// Gives a prime number before or after given number.
   /** Has an array of precalculated value up to 1e8 and calculates the rest.
   */
   class PrimeNumbers

@@ -634,7 +634,7 @@ public:
         }
 
         // Calculate the tractions from the pressure values
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode){
             const array_1d<double,3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
             const double p_pos = rNode.FastGetSolutionStepValue(rPressureVariable);
             noalias(rNode.FastGetSolutionStepValue(rTractionVariable)) = traction_modulus_func(p_pos, r_normal) * r_normal;
@@ -663,7 +663,7 @@ public:
         }
 
         // Calculate the tractions from the pressure values
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode){
             const array_1d<double,3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
             const double p_pos = rNode.FastGetSolutionStepValue(rPositivePressureVariable);
             const double p_neg = rNode.FastGetSolutionStepValue(rNegativePressureVariable);

@@ -134,10 +134,10 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIterat
         // Compute element kinematics B, F, DN_DX ...
         this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->mThisIntegrationMethod);
 
-        // Compute material reponse
+        // Compute material response
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this->GetStressMeasure());
-        this->SetValue(STRESS_VECTOR, this_constitutive_variables.StressVector);
-        this->SetValue(STRAIN_VECTOR, this_constitutive_variables.StrainVector);
+        this->SetValue(FEMDEM_STRESS_VECTOR, this_constitutive_variables.StressVector);
+        this->SetValue(FEMDEM_STRAIN_VECTOR, this_constitutive_variables.StrainVector);
     }
 
 
@@ -172,17 +172,15 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
     if (CalculateStiffnessMatrixFlag) { // Calculation of the matrix is required
         if (rLeftHandSideMatrix.size1() != mat_size )
             rLeftHandSideMatrix.resize(mat_size, mat_size, false);
-
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
     }
+    rLeftHandSideMatrix.clear();
 
     // Resizing as needed the RHS
     if (CalculateResidualVectorFlag) { // Calculation of the matrix is required
         if (rRightHandSideVector.size() != mat_size )
-            rRightHandSideVector.resize( mat_size, false);
-
-        rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
+            rRightHandSideVector.resize(mat_size, false);
     }
+    rRightHandSideVector.clear();
 
     // Reading integration points and local gradients
     const auto& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
@@ -214,7 +212,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
         // Compute element kinematics B, F, DN_DX ...
         this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-        // Compute material reponse
+        // Compute material response
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this->GetStressMeasure());
 
         // Calculating weights for integration on the reference configuration
@@ -233,12 +231,12 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
             for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
                 noalias(average_stress_edge) = this_constitutive_variables.StressVector;
                 noalias(average_strain_edge) = this_constitutive_variables.StrainVector;
-                this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-                this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
- 
+                this->CalculateAverageVariableOnEdge(this, FEMDEM_STRESS_VECTOR, average_stress_edge, edge);
+                this->CalculateAverageVariableOnEdge(this, FEMDEM_STRAIN_VECTOR, average_strain_edge, edge);
+
                 damages_edges[edge] = this->mDamages[edge];
                 double threshold    = this->mThresholds[edge];
-                
+
                 this->IntegrateStressDamageMechanics(threshold, damages_edges[edge], average_strain_edge, 
                                                      average_stress_edge, edge, characteristic_length, cl_values, 
                                                      is_damaging);
@@ -328,7 +326,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
         // Compute element kinematics B, F, DN_DX ...
         this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-        // Compute material reponse
+        // Compute material response
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this->GetStressMeasure());
 
         // Call the constitutive law to update material variables
@@ -346,11 +344,11 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
             for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
                 noalias(average_stress_edge) = this_constitutive_variables.StressVector;
                 noalias(average_strain_edge) = this_constitutive_variables.StrainVector;
-                this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-                this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
-                
-                this->IntegrateStressDamageMechanics(this->mThresholds[edge], this->mDamages[edge], 
-                                                     average_strain_edge, average_stress_edge, edge, 
+                this->CalculateAverageVariableOnEdge(this, FEMDEM_STRESS_VECTOR, average_stress_edge, edge);
+                this->CalculateAverageVariableOnEdge(this, FEMDEM_STRAIN_VECTOR, average_strain_edge, edge);
+
+                this->IntegrateStressDamageMechanics(this->mThresholds[edge], this->mDamages[edge],
+                                                     average_strain_edge, average_stress_edge, edge,
                                                      characteristic_length, cl_values, is_damaging);
             } // Loop over edges
         }
@@ -529,7 +527,7 @@ void GenericSmallStrainFemDemElement<3,6>::CalculateB(Matrix& rB, const Matrix& 
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Calculate2DB(
-    Matrix& rB, 
+    Matrix& rB,
     const Matrix& rDN_DX
     )
 {
@@ -549,7 +547,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Calculate2DB(
 }
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Calculate3DB(
-    Matrix& rB, 
+    Matrix& rB,
     const Matrix& rDN_DX
     )
 {
@@ -744,10 +742,10 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoi
 
             //call the constitutive law to update material variables
             if( rVariable == CAUCHY_STRESS_VECTOR) {
-                // Compute material reponse
+                // Compute material response
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
             } else {
-                // Compute material reponse
+                // Compute material response
                 this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2);
             }
 
@@ -783,7 +781,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoi
             // Compute element kinematics B, F, DN_DX ...
             this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-            // Compute material reponse
+            // Compute material response
             this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this_stress_measure);
 
             if ( rOutput[point_number].size() != strain_size)
@@ -821,7 +819,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoi
             CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
             //call the constitutive law to update material variables
-            // Compute material reponse
+            // Compute material response
             CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
 
             if ( rOutput[point_number].size() != strain_size )

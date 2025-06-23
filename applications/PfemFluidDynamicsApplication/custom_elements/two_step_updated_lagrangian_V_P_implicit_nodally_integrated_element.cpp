@@ -33,7 +33,6 @@ namespace Kratos
   {
     KRATOS_TRY;
 
-    // std::cout<<"InitializeNonLinearIteration "<<std::endl;
     GeometryType &rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     // Shape functions and integration points
@@ -2089,7 +2088,7 @@ namespace Kratos
 
     double RHSi = 0;
     if (this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION))
-    { // it must be checked once at the begining only
+    { // it must be checked once at the beginning only
       array_1d<double, 3> &VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 
       // double posX=(this->GetGeometry()[0].X() + this->GetGeometry()[1].X() + this->GetGeometry()[2].X())/3.0;

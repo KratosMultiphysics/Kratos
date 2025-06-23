@@ -1,12 +1,21 @@
 #ifndef CONTEXT_SETUP_HPP
 #define CONTEXT_SETUP_HPP
 
+#include <memory>
+#include <iostream>
 #include <vexcl/devlist.hpp>
 #include "random_vector.hpp"
 
 struct ContextSetup {
-    ContextSetup() : context(vex::Filter::DoublePrecision && vex::Filter::Env)
-    {
+    ContextSetup() {
+        try {
+            context = std::make_shared<vex::Context>(vex::Filter::DoublePrecision && vex::Filter::Env);
+        } catch(const vex::backend::error &e) {
+            std::cerr << "Failed to initialize compute context" << std::endl;
+            std::cerr << "Error: " << e << std::endl;
+            throw;
+        }
+
         unsigned seed = static_cast<uint>(time(0));
         std::cout << "seed: " << seed << std::endl;
 
@@ -15,24 +24,24 @@ struct ContextSetup {
 #ifndef VEXCL_BACKEND_JIT
         // If there is only one device in context, duplicate the command queues
         // in order to properly test multi-device capabilities.
-        if (context.queue().size() == 1) {
+        if (context->queue().size() == 1) {
             vex::Context second(vex::Filter::DoublePrecision && vex::Filter::Env);
 
-            std::vector<vex::backend::context>       c = context.context();
-            std::vector<vex::backend::command_queue> q = context.queue();
+            std::vector<vex::backend::context>       c = context->context();
+            std::vector<vex::backend::command_queue> q = context->queue();
 
             c.push_back(second.context(0));
             q.push_back(second.queue(0));
 
-            context = vex::Context(c, q);
-            vex::StaticContext<>::set(context);
+            context = std::make_shared<vex::Context>(c, q);
+            vex::StaticContext<>::set(*context);
         }
 #endif
 
-        std::cout << context << std::endl;
+        std::cout << *context << std::endl;
     }
 
-    vex::Context context;
+    std::shared_ptr<vex::Context> context;
 };
 
 struct ContextReference {

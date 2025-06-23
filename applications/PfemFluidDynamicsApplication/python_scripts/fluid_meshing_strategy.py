@@ -23,9 +23,12 @@ class FluidMeshingStrategy(meshing_strategy.MeshingStrategy):
         {
              "python_module": "meshing_strategy",
              "meshing_frequency": 0.0,
-             "remesh": false,
              "refine": false,
+             "refine_module" : "KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_complete_mesher",
+             "remesh": false,
+             "remesh_module" : "KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_keeping_nodes_mesher",
              "transfer" : false,
+             "transfer_module" : "KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_none_mesher",
              "reference_element_type": "Element2D3N",
              "reference_condition_type": "CompositeCondition2D3N"
         }
@@ -85,12 +88,11 @@ class FluidMeshingStrategy(meshing_strategy.MeshingStrategy):
 
         meshers_list = []
         if( self.settings["remesh"].GetBool() and self.settings["refine"].GetBool() ):
-            meshers_list.append("KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_complete_mesher")
-            #mesher_list.append("fluid_post_refining_mesher")
+            meshers_list.append(self.settings["refine_module"].GetString())
         elif( self.settings["remesh"].GetBool() ):
-            meshers_list.append("KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_keeping_nodes_mesher")
+            meshers_list.append(self.settings["remesh_module"].GetString())
         elif( self.settings["transfer"].GetBool() ):
-            meshers_list.append("KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_none_mesher")
+            meshers_list.append(self.settings["transfer_module"].GetString())
 
         for mesher in meshers_list:
             full_module_name = mesher

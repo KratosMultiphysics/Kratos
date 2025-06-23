@@ -88,7 +88,7 @@ namespace Kratos
         /**
          * @return Size of the strain vector (in Voigt notation) for the constitutive law
          */
-        SizeType GetStrainSize();
+        SizeType GetStrainSize() const override;
 
         void CalculateMaterialResponseCauchy(Parameters &rValues) override;
 
@@ -102,7 +102,7 @@ namespace Kratos
          * @return
          */
         int Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
-                  const ProcessInfo &rCurrentProcessInfo);
+                  const ProcessInfo &rCurrentProcessInfo) const override;
 
         /**
          * Input and output
@@ -129,18 +129,6 @@ namespace Kratos
         double GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const override;
 
         ///@}
-
-    private:
-        ///@name Static Member Variables
-        ///@{
-
-        ///@}
-        ///@name Member Variables
-        ///@{
-
-        ///@}
-        ///@name Private Operators
-        ///@{
 
         ///@}
         ///@name Private Operations

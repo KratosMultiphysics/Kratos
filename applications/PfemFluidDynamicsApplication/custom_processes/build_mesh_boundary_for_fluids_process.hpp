@@ -16,16 +16,16 @@
 
 // Project includes
 #include "custom_processes/build_model_part_boundary_process.hpp"
-//#include <boost/timer.hpp>
+// #include <boost/timer.hpp>
 
-///VARIABLES used:
-//Data:     MASTER_ELEMENTS(set), MASTER_NODES(set)
-//StepData:
-//Flags:    (checked) TO_ERASE, TO_REFINE, CONTACT, NEW_ENTITY
-//          (set)     BOUNDARY(set),  [TO_REFINE(nodes), TO_ERASE(condition)]->locally to not preserve condition
-//          (modified)
-//          (reset)
-// (set):=(set in this process)
+/// VARIABLES used:
+// Data:     MASTER_ELEMENTS(set), MASTER_NODES(set)
+// StepData:
+// Flags:    (checked) TO_ERASE, TO_REFINE, CONTACT, NEW_ENTITY
+//           (set)     BOUNDARY(set),  [TO_REFINE(nodes), TO_ERASE(condition)]->locally to not preserve condition
+//           (modified)
+//           (reset)
+//  (set):=(set in this process)
 
 namespace Kratos
 {
@@ -40,7 +40,7 @@ namespace Kratos
   typedef ModelPart::ElementsContainerType ElementsContainerType;
   typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
-  typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
   typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
   ///@}
   ///@name  Enum's
@@ -104,8 +104,6 @@ namespace Kratos
 
       bool success = false;
 
-      //boost::timer auxiliary;
-
       if (mEchoLevel > 0)
         std::cout << " [ Build Boundary on ModelPart [" << mrModelPart.Name() << "] ]" << std::endl;
 
@@ -115,12 +113,6 @@ namespace Kratos
       {
         std::cout << "  ERROR:  BOUNDARY BUILD FAILED ModelPart : [" << mrModelPart << "] " << std::endl;
       }
-      //     else
-      // {
-      //         if( mEchoLevel >= 1 )
-      //     std::cout<<" [ Search performed in Time = "<<auxiliary.elapsed()<<" ]"<<std::endl;
-      //           //PrintSkin(mrModelPart);
-      //       }
 
       KRATOS_CATCH(" ")
     }
@@ -195,14 +187,14 @@ namespace Kratos
       }
       const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-      //reset the boundary flag in all nodes and check if a remesh process has been performed
+      // reset the boundary flag in all nodes and check if a remesh process has been performed
       bool any_node_to_erase = false;
       for (ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); in++)
       {
 
         NodeWeakPtrVectorType &nNodes = in->GetValue(NEIGHBOUR_NODES);
         unsigned int neighNodes = nNodes.size();
-        if (neighNodes < (dimension+1))
+        if (neighNodes < (dimension + 1))
         {
           in->FastGetSolutionStepValue(ISOLATED_NODE) = 1;
         }
@@ -211,22 +203,22 @@ namespace Kratos
           in->FastGetSolutionStepValue(ISOLATED_NODE) = 0;
         }
 
-        if (in->Is(ISOLATED)) //to record the information of the previous step
+        if (in->Is(ISOLATED)) // to record the information of the previous step
         {
-          in->FastGetSolutionStepValue(PREVIOUS_FREESURFACE) = 1;
+          in->Set(PFEMFlags::PREVIOUS_ISOLATED, true);
         }
         else
         {
-          in->FastGetSolutionStepValue(PREVIOUS_FREESURFACE) = 0;
+          in->Reset(PFEMFlags::PREVIOUS_ISOLATED);
         }
 
-        if (in->Is(FREE_SURFACE)) //to record the information of the previous step
+        if (in->Is(FREE_SURFACE)) // to record the information of the previous step
         {
-          in->FastGetSolutionStepValue(FREESURFACE) = 1;
+          in->Set(PFEMFlags::PREVIOUS_FREESURFACE, true);
         }
         else
         {
-          in->FastGetSolutionStepValue(FREESURFACE) = 0;
+          in->Reset(PFEMFlags::PREVIOUS_FREESURFACE);
         }
 
         in->Reset(BOUNDARY);
@@ -249,7 +241,7 @@ namespace Kratos
 
       KRATOS_TRY
 
-      //properties to be used in the generation
+      // properties to be used in the generation
       int number_properties = rModelPart.GetParentModelPart().NumberOfProperties();
       Properties::Pointer properties = rModelPart.GetParentModelPart().pGetProperties(number_properties - 1);
 
@@ -259,38 +251,38 @@ namespace Kratos
       for (ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end; ie++)
       {
 
-        Geometry<Node<3>> &rElementGeometry = ie->GetGeometry();
+        Geometry<Node> &rElementGeometry = ie->GetGeometry();
 
         if (rElementGeometry.FacesNumber() >= 3)
-        { //3 or 4
+        { // 3 or 4
 
           /*each face is opposite to the corresponding node number so in 2D triangle
-	      0 ----- 1 2
-	      1 ----- 2 0
-	      2 ----- 0 1
-	    */
+        0 ----- 1 2
+        1 ----- 2 0
+        2 ----- 0 1
+      */
 
           /*each face is opposite to the corresponding node number so in 3D tetrahedron
-	      0 ----- 1 2 3
-	      1 ----- 2 0 3
-	      2 ----- 0 1 3
-	      3 ----- 0 2 1
-	    */
+        0 ----- 1 2 3
+        1 ----- 2 0 3
+        2 ----- 0 1 3
+        3 ----- 0 2 1
+      */
 
-          //finding boundaries and creating the "skin"
+          // finding boundaries and creating the "skin"
           //
           //********************************************************************
 
-          boost::numeric::ublas::matrix<unsigned int> lpofa; //connectivities of points defining faces
-          boost::numeric::ublas::vector<unsigned int> lnofa; //number of points defining faces
+          boost::numeric::ublas::matrix<unsigned int> lpofa; // connectivities of points defining faces
+          boost::numeric::ublas::vector<unsigned int> lnofa; // number of points defining faces
 
           ElementWeakPtrVectorType &rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
 
-          //get matrix nodes in faces
+          // get matrix nodes in faces
           rElementGeometry.NodesInFaces(lpofa);
           rElementGeometry.NumberNodesInFaces(lnofa);
 
-          //loop on neighbour elements of an element
+          // loop on neighbour elements of an element
           unsigned int iface = 0;
           for (ElementWeakPtrVectorType::iterator ne = rE.begin(); ne != rE.end(); ne++)
           {
@@ -300,7 +292,7 @@ namespace Kratos
             if ((ne)->Id() == ie->Id())
             {
 
-              //if no neighbour is present => the face is free surface
+              // if no neighbour is present => the face is free surface
               bool freeSurfaceFace = false;
               for (unsigned int j = 1; j <= NumberNodesInFace; j++)
               {
@@ -318,11 +310,11 @@ namespace Kratos
                 }
               }
 
-            } //end face condition
+            } // end face condition
 
             iface += 1;
 
-          } //end loop neighbours
+          } // end loop neighbours
         }
       }
 
@@ -341,7 +333,7 @@ namespace Kratos
       bool node_not_preserved = false;
       bool condition_not_preserved = false;
 
-      Geometry<Node<3>> &rConditionGeometry = rCondition.GetGeometry();
+      Geometry<Node> &rConditionGeometry = rCondition.GetGeometry();
 
       for (unsigned int j = 0; j < rConditionGeometry.size(); j++)
       {
@@ -355,7 +347,7 @@ namespace Kratos
       if (rCondition.Is(TO_ERASE))
         condition_not_preserved = true;
 
-      if (rCondition.Is(BOUNDARY)) //flag for composite condition
+      if (rCondition.Is(BOUNDARY)) // flag for composite condition
         condition_not_preserved = true;
 
       if (node_not_preserved == true || condition_not_preserved == true)
@@ -373,7 +365,6 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      //rModelPart.AddCondition(pCondition); //if a Local Id corresponds to a Global Id not added
       rModelPart.Conditions().push_back(pCondition);
 
       KRATOS_CATCH("")
@@ -418,7 +409,7 @@ namespace Kratos
     //**************************************************************************
     //**************************************************************************
 
-    bool FindNodeInCondition(Geometry<Node<3>> &rConditionGeometry, Geometry<Node<3>> &rElementGeometry, boost::numeric::ublas::matrix<unsigned int> &lpofa, boost::numeric::ublas::vector<unsigned int> &lnofa, unsigned int &iface)
+    bool FindNodeInCondition(Geometry<Node> &rConditionGeometry, Geometry<Node> &rElementGeometry, boost::numeric::ublas::matrix<unsigned int> &lpofa, boost::numeric::ublas::vector<unsigned int> &lnofa, unsigned int &iface)
     {
       KRATOS_TRY
 
@@ -442,7 +433,7 @@ namespace Kratos
         }
       }
 
-      //3D faces:
+      // 3D faces:
       if (lnofa[iface] == 3)
       {
         if (rConditionGeometry[0].Id() == rElementGeometry[lpofa(1, iface)].Id() ||
@@ -487,9 +478,6 @@ namespace Kratos
 
     /// Assignment operator.
     BuildMeshBoundaryForFluidsProcess &operator=(BuildMeshBoundaryForFluidsProcess const &rOther);
-
-    /// Copy constructor.
-    //BuildMeshBoundaryForFluidsProcess(BuildMeshBoundaryForFluidsProcess const& rOther);
 
     ///@}
 

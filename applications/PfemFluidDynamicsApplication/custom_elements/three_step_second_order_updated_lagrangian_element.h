@@ -70,8 +70,8 @@ namespace Kratos
 
     typedef ThreeStepUpdatedLagrangianElement<TDim> BaseType;
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -122,7 +122,7 @@ namespace Kratos
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
        * @param NewId Index number of the new element (optional)
        */
@@ -148,7 +148,7 @@ namespace Kratos
     {
     }
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
        * @param NewId Index of the new element
        * @param pGeometry Pointer to a geometry object

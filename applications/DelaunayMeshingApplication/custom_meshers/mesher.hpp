@@ -73,7 +73,7 @@ public:
     typedef MesherUtilities::MeshingParameters   MeshingParametersType;
     typedef MesherUtilities::RefiningParameters   RefineParametersType;
 
-    typedef GlobalPointersVector<Node<3> >          NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node >          NodeWeakPtrVectorType;
     typedef GlobalPointersVector<Element>        ElementWeakPtrVectorType;
     typedef GlobalPointersVector<Condition>    ConditionWeakPtrVectorType;
     ///@}
@@ -162,7 +162,7 @@ public:
     //*******************************************************************************************
 
     /**
-     * Mesher :: Initilize
+     * Mesher :: Initialize
      */
     virtual void InitializeMesher(ModelPart& rModelPart);
 
@@ -282,7 +282,7 @@ protected:
 
 
     /**
-     * Mesher :: Process to be done at the begining of the Generation
+     * Mesher :: Process to be done at the beginning of the Generation
      */
     virtual void ExecutePreMeshingProcesses();
 

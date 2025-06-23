@@ -118,9 +118,9 @@ namespace Kratos
 
       rElementalVariables.MeanPressure = OldPressure * (1 - theta) + Pressure * theta;
 
-      computeElement = this->CalcMechanicsUpdated(rElementalVariables, rCurrentProcessInfo, rDN_DX, g);
+      computeElement = this->CalcMechanicsUpdated(rElementalVariables, rCurrentProcessInfo, rDN_DX);
 
-      this->CalcElasticPlasticCauchySplitted(rElementalVariables, TimeStep, g, rCurrentProcessInfo, Density, DeviatoricCoeff, VolumetricCoeff);
+      this->CalcElasticPlasticCauchySplitted(rElementalVariables, g, N, rCurrentProcessInfo, Density, DeviatoricCoeff, VolumetricCoeff);
 
       if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
       {
@@ -140,6 +140,7 @@ namespace Kratos
     }
 
     double lumpedDynamicWeight = totalVolume * Density;
+    //FIXME: This has to be computed with the corresponding shape functions...
     this->ComputeLumpedMassMatrix(MassMatrix, lumpedDynamicWeight, MeanValueMass);
     if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
     {
@@ -173,12 +174,12 @@ namespace Kratos
     // noalias( rRightHandSideVector ) += -prod(MassMatrix,AccelerationValues);
     // noalias( rLeftHandSideMatrix ) +=  MassMatrix/TimeStep;
 
-    //2nd order
+    // 2nd order
     this->GetAccelerationValues(AccelerationValues, 0);
     this->GetVelocityValues(VelocityValues, 0);
     noalias(AccelerationValues) += -2.0 * VelocityValues / TimeStep;
     this->GetVelocityValues(VelocityValues, 1);
-    noalias(AccelerationValues) += 2.0 * VelocityValues / TimeStep; //these are negative accelerations
+    noalias(AccelerationValues) += 2.0 * VelocityValues / TimeStep; // these are negative accelerations
     noalias(rRightHandSideVector) += prod(MassMatrix, AccelerationValues);
     noalias(rLeftHandSideMatrix) += StiffnessMatrix + MassMatrix * 2 / TimeStep;
 
@@ -212,8 +213,8 @@ namespace Kratos
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateOnIntegrationPoints(const Variable<bool> &rVariable,
-                                                                                    std::vector<bool> &rOutput,
-                                                                                    const ProcessInfo &rCurrentProcessInfo)
+                                                                                     std::vector<bool> &rOutput,
+                                                                                     const ProcessInfo &rCurrentProcessInfo)
   {
     if (rVariable == YIELDED)
     {
@@ -223,19 +224,23 @@ namespace Kratos
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateOnIntegrationPoints(const Variable<double> &rVariable,
-                                                                                    std::vector<double> &rOutput,
-                                                                                    const ProcessInfo &rCurrentProcessInfo)
+                                                                                     std::vector<double> &rOutput,
+                                                                                     const ProcessInfo &rCurrentProcessInfo)
   {
     if (rVariable == EQ_STRAIN_RATE)
     {
       rOutput[0] = this->GetValue(EQ_STRAIN_RATE);
     }
+    if (rVariable == MECHANICAL_DISSIPATION)
+    {
+      rOutput[0] = this->GetValue(MECHANICAL_DISSIPATION);
+    }
   }
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateOnIntegrationPoints(const Variable<Vector> &rVariable,
-                                                                                    std::vector<Vector> &rOutput,
-                                                                                    const ProcessInfo &rCurrentProcessInfo)
+                                                                                     std::vector<Vector> &rOutput,
+                                                                                     const ProcessInfo &rCurrentProcessInfo)
   {
     if (rVariable == CAUCHY_STRESS_VECTOR)
     {

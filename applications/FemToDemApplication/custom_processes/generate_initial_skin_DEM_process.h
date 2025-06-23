@@ -19,15 +19,15 @@
 #include "processes/process.h"
 #include "fem_to_dem_application_variables.h"
 #include "custom_utilities/create_and_destroy.h"
-#include "processes/find_nodal_neighbours_process.h"
+#include "processes/find_global_nodal_neighbours_process.h"
 
 namespace Kratos {
 
 typedef std::size_t SizeType;
-typedef Node<3> NodeType;
+typedef Node NodeType;
 typedef ModelPart::NodesContainerType::iterator NodeIteratorType;
 
-class GenerateInitialSkinDEMProcess : public Process 
+class KRATOS_API(FEM_TO_DEM_APPLICATION) GenerateInitialSkinDEMProcess : public Process 
 {
  public:
 

@@ -168,11 +168,7 @@ void FluidElementUtilities<TNumNodes>::SetTangentialProjectionMatrix(
     const array_1d<double, 3>& rUnitNormal,
     BoundedMatrix<double, 3, 3>& rTangProjMatrix) {
 
-    #ifdef KRATOS_USE_AMATRIX
-    BoundedMatrix<double,3,3> id_matrix = IdentityMatrix(3);
-    #else
     BoundedMatrix<double,3,3> id_matrix = IdentityMatrix(3,3);
-    #endif
     noalias(rTangProjMatrix) = id_matrix - outer_prod(rUnitNormal, rUnitNormal);
 }
 
@@ -230,8 +226,11 @@ void FluidElementUtilities<TNumNodes>::DenseSystemSolve(
 
 template class FluidElementUtilities<3>; // triangle3
 template class FluidElementUtilities<4>; // tetrahedra4, quadrilateral4
+template class FluidElementUtilities<10>; // tetrahedra10
+template class FluidElementUtilities<9>; // quadrilateral9
 template class FluidElementUtilities<6>; // prism
 template class FluidElementUtilities<8>; // hexahedra8
+template class FluidElementUtilities<27>; // hexahedra27
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

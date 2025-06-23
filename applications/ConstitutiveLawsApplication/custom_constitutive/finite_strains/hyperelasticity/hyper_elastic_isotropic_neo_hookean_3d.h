@@ -11,8 +11,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined (KRATOS_HYPER_ELASTIC_ISOTROPIC_NEO_HOOKEAN_3D_LAW_H_INCLUDED)
-#define  KRATOS_HYPER_ELASTIC_ISOTROPIC_NEO_HOOKEAN_3D_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -141,7 +140,7 @@ public:
     }
 
     /**
-     * @brief Returns the stress measure of this constitutive law (by default 2st Piola-Kirchhoff stress in voigt notation)
+     * @brief Returns the stress measure of this constitutive law (by default 2nd Piola-Kirchhoff stress in voigt notation)
      * @return the expected stress measure
      */
     StressMeasure GetStressMeasure() override
@@ -431,4 +430,3 @@ private:
 
 }; // Class HyperElasticIsotropicNeoHookean3D
 }  // namespace Kratos.
-#endif // KRATOS_HYPER_ELASTIC_ISOTROPIC_NEO_HOOKEAN_3D_LAW_H_INCLUDED  defined

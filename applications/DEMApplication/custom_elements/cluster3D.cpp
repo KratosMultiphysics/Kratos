@@ -146,7 +146,7 @@ namespace Kratos {
         //We now create a spheric particle and keep it as a reference to an Element
         const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
 
-        Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
+        Node& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
 
         Quaternion<double>& Orientation = central_node.FastGetSolutionStepValue(ORIENTATION);
 
@@ -170,7 +170,7 @@ namespace Kratos {
             }
 
             Kratos::SphericParticle* new_sphere;
-            Node < 3 > ::Pointer new_node;
+            Node ::Pointer new_node;
             if (!breakable) {
                 new_sphere = p_creator_destructor->SphereCreatorForClusters(dem_model_part,
                                                                             new_node,
@@ -298,7 +298,7 @@ namespace Kratos {
 
     void Cluster3D::CollectForcesAndTorquesFromSpheres() {
 
-        Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
+        Node& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
         array_1d<double, 3>& center_forces       = central_node.FastGetSolutionStepValue(TOTAL_FORCES);
         array_1d<double, 3>& center_torque       = central_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
         array_1d<double, 3>& center_rigid_forces = central_node.FastGetSolutionStepValue(RIGID_ELEMENT_FORCE);
@@ -311,7 +311,7 @@ namespace Kratos {
 
             if (mListOfSphericParticles[i]->mNeighbourElements.size()==0 && mListOfSphericParticles[i]->mNeighbourRigidFaces.size()==0) continue; //Assuming the sphere only adds contact forces to the cluster
 
-            Node<3>& sphere_node = mListOfSphericParticles[i]->GetGeometry()[0];
+            Node& sphere_node = mListOfSphericParticles[i]->GetGeometry()[0];
             array_1d<double, 3>& particle_forces       = sphere_node.FastGetSolutionStepValue(TOTAL_FORCES);
             array_1d<double, 3>& rigid_particle_forces = sphere_node.FastGetSolutionStepValue(RIGID_ELEMENT_FORCE);
             center_forces[0] += particle_forces[0];

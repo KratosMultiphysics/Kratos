@@ -49,7 +49,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class ElasticIsotropic3DFEMDEM
+class KRATOS_API(FEM_TO_DEM_APPLICATION) ElasticIsotropic3DFEMDEM
     : public ConstitutiveLaw
 {
 public:
@@ -139,7 +139,7 @@ public:
     }
 
     /**
-     * @brief Returns the stress measure of this constitutive law (by default 2st Piola-Kirchhoff stress in voigt notation)
+     * @brief Returns the stress measure of this constitutive law (by default 2nd Piola-Kirchhoff stress in voigt notation)
      * @return the expected stress measure
      */
     StressMeasure GetStressMeasure() override
@@ -306,7 +306,7 @@ protected:
     ///@{
 
     /**
-    * @brief It checks the size of the constitutive matrix rConstitutiveMatrix and resize it if neccessary
+    * @brief It checks the size of the constitutive matrix rConstitutiveMatrix and resize it if necessary
     * @param rConstitutiveMatrix The constitutive matrix
     */
     void CheckClearElasticMatrix(Matrix& rConstitutiveMatrix);

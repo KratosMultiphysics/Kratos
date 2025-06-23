@@ -29,7 +29,7 @@ MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::MPCContactSearchProce
     Properties::Pointer pPairedProperties
     ) : BaseType(rMainModelPart, ThisParameters, pPairedProperties)
 {
-    // If we are going to consider multple searchs
+    // If we are going to consider multple searches
     const std::string& id_name = BaseType::mThisParameters["id_name"].GetString();
 
     // We get the contact model part
@@ -192,7 +192,7 @@ void MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ResetContactOper
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
 
     if (BaseType::mrMainModelPart.Is(MODIFIED)) { // It has been remeshed. We remove everything
-        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+        block_for_each(r_nodes_array, [&](Node& rNode) {
             if (rNode.Is(MASTER)) {
                 IndexMap::Pointer p_indexes_pairs = rNode.GetValue(INDEX_MAP);
 

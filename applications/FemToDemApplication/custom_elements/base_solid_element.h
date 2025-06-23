@@ -62,7 +62,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class BaseSolidElement
+class KRATOS_API(FEM_TO_DEM_APPLICATION) BaseSolidElement
     : public Element
 {
 protected:
@@ -143,7 +143,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// This is the definition of the node.
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The base element type
     typedef Element BaseType;
@@ -215,7 +215,7 @@ public:
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief Called at the end of eahc solution step
+     * @brief Called at the end of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
@@ -982,7 +982,7 @@ private:
             // Compute element kinematics B, F, DN_DX ...
             this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-            // Compute material reponse
+            // Compute material response
             this->SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
             rOutput[point_number] = mConstitutiveLawVector[point_number]->CalculateValue( Values, rVariable, rOutput[point_number] );

@@ -5,7 +5,7 @@ class ImportMDPAModeler(KratosMultiphysics.Modeler):
     def __init__(self, model, settings):
         super().__init__(model, settings)
 
-        # Cannot validate as settings may differ ammong input types
+        # Cannot validate as settings may differ among input types
         settings.AddMissingParameters(self.__GetDefaultSettings())
 
         # Declare required member variables
@@ -24,12 +24,6 @@ class ImportMDPAModeler(KratosMultiphysics.Modeler):
     def SetupGeometryModel(self):
         super().SetupGeometryModel()
 
-    def PrepareGeometryModel(self):
-        super().PrepareGeometryModel()
-
-    def SetupModelPart(self):
-        super().SetupModelPart()
-
         # Import the model part data
         # Note that at this point solvers must have already added the variables to the nodal variable data
         input_type = "mdpa"
@@ -37,6 +31,12 @@ class ImportMDPAModeler(KratosMultiphysics.Modeler):
             self.model_part,
             self.settings,
             input_type)
+
+    def PrepareGeometryModel(self):
+        super().PrepareGeometryModel()
+
+    def SetupModelPart(self):
+        super().SetupModelPart()
 
     @classmethod
     def __GetDefaultSettings(cls):

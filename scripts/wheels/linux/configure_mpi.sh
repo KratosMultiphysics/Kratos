@@ -26,7 +26,7 @@ add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 add_app ${KRATOS_APP_DIR}/DEMApplication
 add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication
-add_app ${KRATOS_APP_DIR}/ParticleMechanicsApplication;
+add_app ${KRATOS_APP_DIR}/MPMApplication;
 add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
 add_app ${KRATOS_APP_DIR}/DamApplication;
 add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
@@ -34,9 +34,9 @@ add_app ${KRATOS_APP_DIR}/FSIApplication;
 add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
-add_app ${KRATOS_APP_DIR}/FemToDemApplication;
-add_app ${KRATOS_APP_DIR}/PfemFluidDynamicsApplication;
-add_app ${KRATOS_APP_DIR}/DelaunayMeshingApplication;
+# add_app ${KRATOS_APP_DIR}/FemToDemApplication;
+# add_app ${KRATOS_APP_DIR}/PfemFluidDynamicsApplication;
+# add_app ${KRATOS_APP_DIR}/DelaunayMeshingApplication;
 add_app ${KRATOS_APP_DIR}/MeshingApplication;
 add_app ${KRATOS_APP_DIR}/MetisApplication;
 add_app ${KRATOS_APP_DIR}/DemStructuresCouplingApplication;
@@ -44,17 +44,19 @@ add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
 add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
 add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
 add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
-# add_app ${KRATOS_APP_DIR}/CableNetApplication;
+add_app ${KRATOS_APP_DIR}/CableNetApplication;
 add_app ${KRATOS_APP_DIR}/RANSApplication;
 add_app ${KRATOS_APP_DIR}/MappingApplication;
 add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
 # add_app ${KRATOS_APP_DIR}/HDF5Application;
 add_app ${KRATOS_APP_DIR}/IgaApplication;
 add_app ${KRATOS_APP_DIR}/ChimeraApplication;
-add_app ${KRATOS_APP_DIR}/MultilevelMonteCarloApplication;
 add_app ${KRATOS_APP_DIR}/StatisticsApplication;
 add_app ${KRATOS_APP_DIR}/RomApplication;
 add_app ${KRATOS_APP_DIR}/ShallowWaterApplication;
+add_app ${KRATOS_APP_DIR}/OptimizationApplication;
+add_app ${KRATOS_APP_DIR}/GeoMechanicsApplication;
+add_app ${KRATOS_APP_DIR}/SystemIdentificationApplication;
 
 # Clean
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/cmake_install.cmake"
@@ -67,13 +69,13 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DCMAKE_INSTALL_PREFIX=$2                                              \
 -DUSE_TRIANGLE_NONFREE_TPL=ON                                          \
 -DUSE_MPI=ON                                                           \
+-DMAKE_TRILINOS_OPTIONAL=ON                                            \
 -DCMAKE_C_COMPILER=gcc                                                 \
 -DCMAKE_CXX_COMPILER=g++                                               \
 -DCMAKE_CXX_FLAGS="-msse3 -std=c++11 "                                 \
 -DCMAKE_C_FLAGS="-msse3"                                               \
--DBOOST_ROOT="/workspace/boost/boost_1_71_0"                           \
+-DBOOST_ROOT="/workspace/boost/boost_1_74_0"                           \
 -DINCLUDE_MMG=ON                                                       \
 -DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
 -DKRATOS_BUILD_TESTING=OFF                                             \
--DINSTALL_RUNKRATOS=OFF                                                \
 -DKRATOS_GENERATE_PYTHON_STUBS=ON                                      \

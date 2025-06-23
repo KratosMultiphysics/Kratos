@@ -43,7 +43,7 @@ namespace Kratos
 /**
  * @class MPCContactSearchProcess
  * @ingroup ContactStructuralMechanicsApplication
- * @brief This utilitiy has as objective to create the contact constraints
+ * @brief This utility has as objective to create the contact constraints
  * @details It uses a KDtree for performing the search
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
@@ -59,16 +59,15 @@ public:
     ///@{
 
     /// The definition of the base type
-    typedef BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster> BaseType;
+    using BaseType = BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>;
 
     /// General type definitions
-    typedef typename BaseType::NodesArrayType           NodesArrayType;
-    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
-    typedef typename BaseType::NodeType                       NodeType;
-    typedef typename BaseType::GeometryType               GeometryType;
+    using NodesArrayType = typename BaseType::NodesArrayType;
+    using ConditionsArrayType = typename BaseType::ConditionsArrayType;
+    using GeometryType = typename BaseType::GeometryType;
 
     /// Index type definition
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// Pointer definition of MPCContactSearchProcess
     KRATOS_CLASS_POINTER_DEFINITION( MPCContactSearchProcess );

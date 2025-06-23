@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   license: ContactStructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #pragma once
@@ -22,7 +22,6 @@
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -46,7 +45,7 @@ namespace Kratos
  * @ingroup ContactStructuralMechanicsApplication
  * @class PairedCondition
  * @brief This is a base class for the conditions paired
- * @details This is a base class for the conditions paired, it is basically equal to the base condition, with a pointer to the paired geoemtry
+ * @details This is a base class for the conditions paired, it is basically equal to the base condition, with a pointer to the paired geometry
  * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) PairedCondition
@@ -59,27 +58,35 @@ public:
     /// Counted pointer of PairedCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PairedCondition );
 
-    typedef Condition                                                           BaseType;
+    /// Basetype definition
+    using BaseType = Condition;
 
-    typedef Point                                                              PointType;
+    /// Point type definition
+    using PointType = Point;
 
-    typedef Node<3>                                                             NodeType;
+    /// Geometry type definition
+    using GeometryType = Geometry<Node>;
 
-    typedef Geometry<NodeType>                                              GeometryType;
+    /// Coupling geometry type definition
+    using CouplingGeometryType = CouplingGeometry<Node>;
 
-    typedef CouplingGeometry<NodeType>                              CouplingGeometryType;
+    /// Vector type definition
+    using VectorType = BaseType::VectorType;
 
-    typedef BaseType::VectorType                                              VectorType;
+    /// Matrix type definition
+    using MatrixType = BaseType::MatrixType;
 
-    typedef BaseType::MatrixType                                              MatrixType;
+    /// Index type definition
+    using IndexType = BaseType::IndexType;
 
-    typedef BaseType::IndexType                                                IndexType;
+    /// Geometry pointer type definition
+    using GeometryPointerType = BaseType::GeometryType::Pointer;
 
-    typedef BaseType::GeometryType::Pointer                          GeometryPointerType;
+    /// Nodes array type definition
+    using NodesArrayType = BaseType::NodesArrayType;
 
-    typedef BaseType::NodesArrayType                                      NodesArrayType;
-
-    typedef BaseType::PropertiesType::Pointer                      PropertiesPointerType;
+    /// Properties pointer type definition
+    using PropertiesPointerType = BaseType::PropertiesType::Pointer;
 
     ///@}
     ///@name Life Cycle
@@ -153,7 +160,7 @@ public:
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief Creates a new element pointer from an arry of nodes
+     * @brief Creates a new element pointer from an array of nodes
      * @param NewId the ID of the new element
      * @param rThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -322,36 +329,6 @@ public:
     ///@{
 
     ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 private:
     ///@name Static Member Variables
     ///@{
@@ -386,17 +363,17 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
-        rSerializer.save("PairedNormal", mPairedNormal);
-    }
+    /**
+     * @brief Saves the PairedCondition object to a serializer.
+     * @param rSerializer the serializer to save to
+     */
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
-        rSerializer.load("PairedNormal", mPairedNormal);
-    }
+    /**
+     * @brief Loads the PairedCondition from a serializer.
+     * @param rSerializer the serializer to load from
+     */
+    void load(Serializer& rSerializer) override;
 
     ///@}
 

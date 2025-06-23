@@ -32,8 +32,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerHas, KratosCoreFastSuite) {
     const bool check_true = container.Has(NODAL_AREA);
     const bool check_false = container.Has(DISPLACEMENT);
 
-    KRATOS_CHECK_EQUAL(check_true, true);
-    KRATOS_CHECK_EQUAL(check_false, false);
+    KRATOS_EXPECT_EQ(check_true, true);
+    KRATOS_EXPECT_EQ(check_false, false);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataValueContainerHasComponent, KratosCoreFastSuite) {
@@ -43,33 +43,33 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerHasComponent, KratosCoreFastSuite) {
     displacement[1] = 0.10;
     displacement[2] = 0.20;
 
-    KRATOS_CHECK_IS_FALSE(container.Has(DISPLACEMENT_X));
-    KRATOS_CHECK_IS_FALSE(container.Has(DISPLACEMENT_Y));
-    KRATOS_CHECK_IS_FALSE(container.Has(DISPLACEMENT_Z));
+    KRATOS_EXPECT_FALSE(container.Has(DISPLACEMENT_X));
+    KRATOS_EXPECT_FALSE(container.Has(DISPLACEMENT_Y));
+    KRATOS_EXPECT_FALSE(container.Has(DISPLACEMENT_Z));
 
     container.SetValue(DISPLACEMENT, displacement);
 
-    KRATOS_CHECK(container.Has(DISPLACEMENT_X));
-    KRATOS_CHECK(container.Has(DISPLACEMENT_Y));
-    KRATOS_CHECK(container.Has(DISPLACEMENT_Z));
+    KRATOS_EXPECT_TRUE(container.Has(DISPLACEMENT_X));
+    KRATOS_EXPECT_TRUE(container.Has(DISPLACEMENT_Y));
+    KRATOS_EXPECT_TRUE(container.Has(DISPLACEMENT_Z));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataValueContainerSetComponentCheck, KratosCoreFastSuite) {
     DataValueContainer container;
 
-    KRATOS_CHECK_IS_FALSE(container.Has(DISPLACEMENT_X));
-    KRATOS_CHECK_IS_FALSE(container.Has(DISPLACEMENT_Y));
-    KRATOS_CHECK_IS_FALSE(container.Has(DISPLACEMENT_Z));
+    KRATOS_EXPECT_FALSE(container.Has(DISPLACEMENT_X));
+    KRATOS_EXPECT_FALSE(container.Has(DISPLACEMENT_Y));
+    KRATOS_EXPECT_FALSE(container.Has(DISPLACEMENT_Z));
 
     container.SetValue(DISPLACEMENT_X, 10.0);
 
-    KRATOS_CHECK(container.Has(DISPLACEMENT_X));
-    KRATOS_CHECK(container.Has(DISPLACEMENT_Y));
-    KRATOS_CHECK(container.Has(DISPLACEMENT_Z));
+    KRATOS_EXPECT_TRUE(container.Has(DISPLACEMENT_X));
+    KRATOS_EXPECT_TRUE(container.Has(DISPLACEMENT_Y));
+    KRATOS_EXPECT_TRUE(container.Has(DISPLACEMENT_Z));
 
-    KRATOS_CHECK_EQUAL(container.GetValue(DISPLACEMENT_X), 10.0);
-    KRATOS_CHECK_EQUAL(container.GetValue(DISPLACEMENT_Y), 0.0);
-    KRATOS_CHECK_EQUAL(container.GetValue(DISPLACEMENT_Z), 0.0);
+    KRATOS_EXPECT_EQ(container.GetValue(DISPLACEMENT_X), 10.0);
+    KRATOS_EXPECT_EQ(container.GetValue(DISPLACEMENT_Y), 0.0);
+    KRATOS_EXPECT_EQ(container.GetValue(DISPLACEMENT_Z), 0.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataValueContainer, KratosCoreFastSuite) {
@@ -83,7 +83,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainer, KratosCoreFastSuite) {
     auto& distances = container.GetValue(ELEMENTAL_DISTANCES);
 
     for (std::size_t i = 0; i < distances.size(); i++)
-        KRATOS_CHECK_EQUAL(distances[i], original_distances[i]);
+        KRATOS_EXPECT_EQ(distances[i], original_distances[i]);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataValueContainerComponent, KratosCoreFastSuite) {
@@ -95,19 +95,19 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerComponent, KratosCoreFastSuite) {
 
     container.SetValue(VELOCITY, original_velocity);
 
-    KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_X), original_velocity[0]);
-    KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_Y), original_velocity[1]);
-    KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_Z), original_velocity[2]);
+    KRATOS_EXPECT_EQ(container.GetValue(VELOCITY_X), original_velocity[0]);
+    KRATOS_EXPECT_EQ(container.GetValue(VELOCITY_Y), original_velocity[1]);
+    KRATOS_EXPECT_EQ(container.GetValue(VELOCITY_Z), original_velocity[2]);
 
     container.SetValue(DISPLACEMENT_Y, 1.23);
 
-    KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_X), original_velocity[0]);
-    KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_Y), original_velocity[1]);
-    KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_Z), original_velocity[2]);
+    KRATOS_EXPECT_EQ(container.GetValue(VELOCITY_X), original_velocity[0]);
+    KRATOS_EXPECT_EQ(container.GetValue(VELOCITY_Y), original_velocity[1]);
+    KRATOS_EXPECT_EQ(container.GetValue(VELOCITY_Z), original_velocity[2]);
 
-    KRATOS_CHECK_EQUAL(container.GetValue(DISPLACEMENT_X), 0.00);
-    KRATOS_CHECK_EQUAL(container.GetValue(DISPLACEMENT_Y), 1.23);
-    KRATOS_CHECK_EQUAL(container.GetValue(DISPLACEMENT_Z), 0.00);
+    KRATOS_EXPECT_EQ(container.GetValue(DISPLACEMENT_X), 0.00);
+    KRATOS_EXPECT_EQ(container.GetValue(DISPLACEMENT_Y), 1.23);
+    KRATOS_EXPECT_EQ(container.GetValue(DISPLACEMENT_Z), 0.00);
 
 }
 
@@ -126,8 +126,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerMerge, KratosCoreFastSuite) {
     options.Set(DataValueContainer::OVERWRITE_OLD_VALUES, false);
     container_target.Merge(container_origin, options);
 
-    KRATOS_CHECK_EQUAL(container_target.GetValue(DENSITY), density);
-    KRATOS_CHECK_EQUAL(container_target.GetValue(VISCOSITY), viscosity_2);
+    KRATOS_EXPECT_EQ(container_target.GetValue(DENSITY), density);
+    KRATOS_EXPECT_EQ(container_target.GetValue(VISCOSITY), viscosity_2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataValueContainerMergeOverride, KratosCoreFastSuite) {
@@ -144,8 +144,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerMergeOverride, KratosCoreFastSuite) 
     Flags options;
     options.Set(DataValueContainer::OVERWRITE_OLD_VALUES, true);
     container_target.Merge(container_origin, options);
-    KRATOS_CHECK_EQUAL(container_target.GetValue(DENSITY), density);
-    KRATOS_CHECK_EQUAL(container_target.GetValue(VISCOSITY), viscosity_1);
+    KRATOS_EXPECT_EQ(container_target.GetValue(DENSITY), density);
+    KRATOS_EXPECT_EQ(container_target.GetValue(VISCOSITY), viscosity_1);
 
 }
 }

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -13,13 +13,11 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_INTERFACE_OBJECT_CONFIGURE_H_INCLUDED)
-#define  KRATOS_INTERFACE_OBJECT_CONFIGURE_H_INCLUDED
+#pragma once
 
 // System includes
 
 // Kratos includes
-#include "utilities/contact_pair.h"
 #include "custom_searching/interface_object.h"
 
 namespace Kratos
@@ -61,8 +59,6 @@ public:
      * @param IteratorType          Iterator of points.
      * @param ResultIteratorType    Iterator of results. For this configure should be the same as PointIteratorType.
      * @param DistanceIteratorType  Iterato of distances (doubles)
-     * @param ContainerContactType  Container type for contacts
-     * @param IteratorContactType   Iterator type for contacts
      */
     typedef InterfaceObject                     ObjectType;
     typedef PointerVectorSet <
@@ -73,14 +69,10 @@ public:
 
     typedef ObjectContainerType::ContainerType  ContainerType;
     typedef ObjectContainerType::ContainerType  ResultContainerType;
-    typedef ContactPair<PointerType>            ContactPairType;
 
     typedef ContainerType::iterator             IteratorType;
     typedef ResultContainerType::iterator       ResultIteratorType;
     typedef std::vector<double>::iterator       DistanceIteratorType;
-
-    typedef std::vector<ContactPairType>        ContainerContactType;
-    typedef ContainerContactType::iterator      IteratorContactType;
 
     typedef double                              CoordinateType;
     typedef Tvector<CoordinateType, Dimension>   CoordinateArray;
@@ -89,7 +81,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default consturctor
+    /// Default constructor
     InterfaceObjectConfigure() {};
 
     /// Default destructor
@@ -100,7 +92,7 @@ public:
     ///@{
 
     /** Calculates the bounding box for the given object.
-     * For this configuation file, the bounding box is the equal to the point given in 'rObject'.
+     * For this configuration file, the bounding box is the equal to the point given in 'rObject'.
      * @param rObject    Point for which the bounding box will be calculated.
      * @param rLowPoint  Lower point of the boundingbox.
      * @param rHighPoint Higher point of the boundingbox.
@@ -111,7 +103,7 @@ public:
     }
 
     /** Calculates the bounding box for the given object extended with a Radius.
-     * For this configuation file, the bounding box is the equal to the point given in 'rObject' + - a radius.
+     * For this configuration file, the bounding box is the equal to the point given in 'rObject' + - a radius.
      * @param rObject    Point for which the bounding box will be calculated.
      * @param rLowPoint  Lower point of the boundingbox.
      * @param rHighPoint Higher point of the boundingbox.
@@ -135,7 +127,7 @@ public:
     }
 
     /** Tests the intersection of two objects
-     * For this configuation file, tests if the two points are the same within a Epsilon tolerance range.
+     * For this configuration file, tests if the two points are the same within a Epsilon tolerance range.
      * @param  rObj_1 First point of the tests
      * @param  rObj_2 Second point of the tests
      * @return        Boolean indicating the result of the intersection test described.
@@ -154,7 +146,7 @@ public:
     }
 
     /** Tests the intersection of two objects extended with a given radius.
-     * For this configuation file, tests if the two points extended with a radius
+     * For this configuration file, tests if the two points extended with a radius
      * are the same within a Epsilon tolerance range.
      * @param  rObj_1 First point of the tests
      * @param  rObj_2 Second point of the tests
@@ -189,8 +181,8 @@ public:
         }
     }
 
-    /** Tests the intersection of one object with a boundingbox descrived by 'rLowPoint' and 'rHighPoint'.
-     * For this configuation file, tests if one point is inside the boundingbox
+    /** Tests the intersection of one object with a boundingbox described by 'rLowPoint' and 'rHighPoint'.
+     * For this configuration file, tests if one point is inside the boundingbox
      * described by 'rLowPoint' and 'rHighPoint' within a Epsilon tolerance range.
      * @param  rObject    Point of the tests.
      * @param  rLowPoint  Lower point of the boundingbox.
@@ -210,8 +202,8 @@ public:
         return true;
     }
 
-    /** Tests the intersection of one object with a boundingbox descrived by 'rLowPoint' and 'rHighPoint'.
-     * For this configuation file, tests if one point extended by radius is inside the boundingbox
+    /** Tests the intersection of one object with a boundingbox described by 'rLowPoint' and 'rHighPoint'.
+     * For this configuration file, tests if one point extended by radius is inside the boundingbox
      * described by 'rLowPoint' and 'rHighPoint' within a Epsilon tolerance range.
      * @param  rObject    Point of the tests.
      * @param  rLowPoint  Lower point of the boundingbox.
@@ -232,8 +224,8 @@ public:
         return true;
     }
 
-    /** Calculates the distance betwen two objects.
-     * For this configuation file, calculates the euclidean distance between 'rObj_1' and 'rObj_2'.
+    /** Calculates the distance between two objects.
+     * For this configuration file, calculates the euclidean distance between 'rObj_1' and 'rObj_2'.
      * # Performance
      * In C++11 'std::pow(T, int)' provides the optimal solution in terms of speed.
      * # References
@@ -335,4 +327,3 @@ inline std::ostream& operator << (std::ostream& rOStream, const InterfaceObjectC
 ///@}
 
 } // namespace Kratos.
-#endif /* KRATOS_INTERFACE_OBJECT_CONFIGURE_H_INCLUDED */

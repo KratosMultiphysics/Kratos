@@ -9,7 +9,7 @@ Begin Nodes
    2        0.0000000000        0.0000000000        1.0000000000
 End Nodes
 
-Begin Elements SpringDamperElement3D2N// GUI group identifier: Beam
+Begin Elements SpringDamperElement3D// GUI group identifier: Beam
     1     0      1       2
 End Elements
 

@@ -1,5 +1,4 @@
 import os
-import sys
 
 # Importing the Kratos Library
 import KratosMultiphysics

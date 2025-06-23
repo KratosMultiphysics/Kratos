@@ -114,6 +114,123 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     }
 }
 
+void RomAuxiliaryUtilities::SetHRomComputingModelPartWithLists(const std::vector<int>& elementIds,
+                                        const std::vector<int>& conditionIds,
+                                        ModelPart& rOriginModelPart,
+                                        ModelPart& rHRomComputingModelPart) {
+
+    // Ensure that the provided destination model part is empty
+    rHRomComputingModelPart.Clear();
+
+    // Auxiliary containers to save the entities involved in the HROM mesh
+    // Note that we use a set for the nodes to make sure that the same node is not added by more than one element/condition
+    NodesPointerSetType hrom_nodes_set;
+    std::vector<Element::Pointer> hrom_elems_vect;
+    std::vector<Condition::Pointer> hrom_conds_vect;
+    std::vector<Node::Pointer> hrom_nodes_vect;
+    std::set<IndexType> unique_node_ids;
+    std::unordered_map<IndexType, bool> unique_nodes_map; // Using unordered_map for unique node IDs
+    ModelPart::ElementsContainerType::Pointer elements_container = Kratos::make_shared<ModelPart::ElementsContainerType>();
+    ModelPart::ConditionsContainerType::Pointer conditions_container = Kratos::make_shared<ModelPart::ConditionsContainerType>();
+    ModelPart::NodesContainerType::Pointer nodes_container = Kratos::make_shared<ModelPart::NodesContainerType>();
+    std::vector<IndexType> node_ids; // Set to store unique node IDs
+    std::vector<IndexType> element_ids; // Set to store unique element IDs
+    std::vector<IndexType> condition_ids; // Set to store unique element IDs
+
+    // Reserve space in the vector to improve performance
+    hrom_elems_vect.reserve(rOriginModelPart.NumberOfElements());
+    hrom_nodes_vect.reserve(rOriginModelPart.NumberOfNodes());
+
+    // Preallocate memory for the elements
+    elements_container->reserve(rOriginModelPart.NumberOfElements());
+    node_ids.reserve(rOriginModelPart.NumberOfNodes());
+    element_ids.reserve(rOriginModelPart.NumberOfElements());
+    condition_ids.reserve(rOriginModelPart.NumberOfConditions());
+
+
+    for (size_t i = 0; i < elementIds.size(); ++i) {
+
+        int elem_id = elementIds[i];
+
+        // Get the element from the origin model part (assuming IDs start from 1)
+        auto p_elem = rOriginModelPart.pGetElement(elem_id + 1); //FIXME: WHY THIS +1?
+
+        // Add the element to the auxiliary container and to the main HROM model part
+        hrom_elems_vect.push_back(p_elem);
+        elements_container->push_back(p_elem);
+        element_ids.push_back(elem_id + 1);
+
+        const auto& r_geom = p_elem->GetGeometry();
+        for (IndexType i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+            node_ids.push_back(r_geom[i_node].Id());
+        }
+    }
+    hrom_elems_vect.shrink_to_fit();
+    element_ids.shrink_to_fit();
+
+    //Reserve space for conditions (if needed)
+    hrom_conds_vect.reserve(rOriginModelPart.NumberOfConditions());
+
+    // Preallocate memory for the conditions
+    conditions_container->reserve(rOriginModelPart.NumberOfConditions());
+
+    // Iterate over the condition IDs and their weights
+    for (size_t i = 0; i < conditionIds.size(); ++i) {
+        int cond_id = conditionIds[i];
+
+        // Get the condition from the origin model part (assuming IDs start from 1)
+        auto p_cond = rOriginModelPart.pGetCondition(cond_id + 1); //FIXME: WHY THIS +1?
+
+        // Add the condition to the auxiliary container and to the main HROM model part
+        hrom_conds_vect.push_back(p_cond);
+        conditions_container->push_back(p_cond);
+        condition_ids.push_back(cond_id + 1);
+
+        const auto& r_geom = p_cond->GetGeometry();
+        for (IndexType i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+            node_ids.push_back(r_geom[i_node].Id());
+        }
+    }
+    hrom_conds_vect.shrink_to_fit();
+    condition_ids.shrink_to_fit();
+    node_ids.shrink_to_fit();
+
+    // Set the elements in the HROM model part
+    rHRomComputingModelPart.SetElements(elements_container);
+
+    // Set the conditions in the HROM model part
+    rHRomComputingModelPart.SetConditions(conditions_container);
+
+    std::sort(node_ids.begin(), node_ids.end());
+    auto last = std::unique(node_ids.begin(), node_ids.end());
+    node_ids.erase(last, node_ids.end());
+
+    nodes_container->reserve(node_ids.size());
+    for (auto node_id : node_ids) {
+        auto p_node = rOriginModelPart.pGetNode(node_id);
+        hrom_nodes_vect.push_back(p_node);
+        nodes_container->push_back(p_node);
+    }
+    hrom_nodes_vect.shrink_to_fit();
+
+    rHRomComputingModelPart.SetNodes(nodes_container);
+
+    //TODO: ADD MPC'S
+
+    // Add properties to the HROM mesh
+    // Note that we add all the properties although some of them might note be used in the HROM mesh
+    auto& r_root_model_part = const_cast<ModelPart&>(rOriginModelPart).GetRootModelPart();
+    auto& r_properties = r_root_model_part.rProperties();
+    for (auto it_p_prop = r_properties.ptr_begin(); it_p_prop < r_properties.ptr_end(); ++it_p_prop) {
+        rHRomComputingModelPart.AddProperties(*it_p_prop);
+    }
+
+    // Create and fill the HROM calculation sub model parts
+    for (auto& r_orig_sub_mp : rOriginModelPart.SubModelParts()) {
+        RecursiveHRomModelPartCreationVector(node_ids, element_ids, condition_ids, r_orig_sub_mp, rHRomComputingModelPart);
+    }
+}
+
 void RomAuxiliaryUtilities::RecursiveHRomModelPartCreation(
     const NodesPointerSetType& rNodesSet,
     const std::vector<Element::Pointer>& rElementsVector,
@@ -167,6 +284,256 @@ void RomAuxiliaryUtilities::RecursiveHRomModelPartCreation(
     // Recursive addition
     for (auto& r_orig_sub_mp : rOriginModelPart.SubModelParts()) {
         RecursiveHRomModelPartCreation(rNodesSet, rElementsVector, rConditionsVector, r_orig_sub_mp, r_hrom_sub_mp);
+    }
+}
+
+void RomAuxiliaryUtilities::RecursiveHRomModelPartCreationVector(
+    const std::vector<IndexType>& rNodeIds,
+    const std::vector<IndexType>& rElementIds,
+    const std::vector<IndexType>& rConditionIds,
+    const ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart)
+{
+    // Emulate the origin submodelpart hierarchy
+    auto& r_hrom_sub_mp = rDestinationModelPart.CreateSubModelPart(rOriginModelPart.Name());
+
+    // Create an unordered_set of node IDs from rNodesVector
+    std::unordered_set<IndexType> node_id_set;
+    for (IndexType id : rNodeIds) {
+        node_id_set.insert(id);
+    }
+
+    // Initialize aux_node_ids
+    std::vector<IndexType> aux_node_ids;
+
+    // Iterate through nodes in rOriginModelPart
+    for (const auto& r_node : rOriginModelPart.Nodes()) {
+        // Check if the node's ID is in the set
+        if (node_id_set.find(r_node.Id()) != node_id_set.end()) {
+            aux_node_ids.push_back(r_node.Id());
+        }
+    }
+
+    // Add nodes to r_hrom_sub_mp
+    r_hrom_sub_mp.AddNodes(aux_node_ids);
+
+    // Create an unordered_set of element IDs from rElementsVector
+    std::unordered_set<IndexType> element_id_set;
+    for (IndexType id : rElementIds) {
+        element_id_set.insert(id);
+    }
+
+    // Initialize aux_elem_ids
+    std::vector<IndexType> aux_elem_ids;
+
+    // Iterate through elements in rOriginModelPart
+    for (const auto& r_elem : rOriginModelPart.Elements()) {
+        // Check if the element's ID is in the set
+        if (element_id_set.find(r_elem.Id()) != element_id_set.end()) {
+            aux_elem_ids.push_back(r_elem.Id());
+        }
+    }
+
+    // Add elements to r_hrom_sub_mp
+    r_hrom_sub_mp.AddElements(aux_elem_ids);
+
+
+    // Create an unordered_set of condition IDs from rConditionsVector
+    std::unordered_set<IndexType> condition_id_set;
+    for (IndexType id : rConditionIds) {
+        condition_id_set.insert(id);
+    }
+
+    // Initialize aux_cond_ids
+    std::vector<IndexType> aux_cond_ids;
+
+    // Iterate through conditions in rOriginModelPart
+    for (const auto& r_cond : rOriginModelPart.Conditions()) {
+        // Check if the condition's ID is in the set
+        if (condition_id_set.find(r_cond.Id()) != condition_id_set.end()) {
+            aux_cond_ids.push_back(r_cond.Id());
+        }
+    }
+
+    // Add conditions to r_hrom_sub_mp
+    r_hrom_sub_mp.AddConditions(aux_cond_ids);
+
+
+    // Add properties
+    auto& r_properties = const_cast<ModelPart&>(rOriginModelPart).rProperties();
+    for (auto it_p_prop = r_properties.ptr_begin(); it_p_prop < r_properties.ptr_end(); ++it_p_prop) {
+        r_hrom_sub_mp.AddProperties(*it_p_prop);
+    }
+
+    //TODO: ADD MPCs
+
+    // Recursive addition
+    for (auto& r_orig_sub_mp : rOriginModelPart.SubModelParts()) {
+        RecursiveHRomModelPartCreationVector(rNodeIds, rElementIds, rConditionIds, r_orig_sub_mp, r_hrom_sub_mp);
+    }
+}
+
+void RomAuxiliaryUtilities::SetHRomComputingModelPartWithNeighbours(
+    const Parameters HRomWeights,
+    ModelPart& rOriginModelPart,
+    ModelPart& rHRomComputingModelPart)
+{
+    // Ensure that the provided destination model part is empty
+    rHRomComputingModelPart.Clear();
+
+    // Auxiliary containers to save the entities involved in the HROM mesh
+    NodesPointerSetType hrom_nodes_set;
+    std::vector<Element::Pointer> hrom_elems_vect;
+    std::vector<Condition::Pointer> hrom_conds_vect;
+
+    const auto& r_elem_weights = HRomWeights["Elements"];
+    const auto& r_cond_weights = HRomWeights["Conditions"];
+
+    hrom_elems_vect.reserve(rOriginModelPart.NumberOfElements());
+    hrom_conds_vect.reserve(rOriginModelPart.NumberOfConditions());
+
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rOriginModelPart);
+    find_nodal_elements_neighbours_process.Execute();
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType> find_nodal_conditions_neighbours_process(rOriginModelPart);
+    find_nodal_conditions_neighbours_process.Execute();
+
+    for (auto it = r_elem_weights.begin(); it != r_elem_weights.end(); ++it) {
+        // Get element from origin mesh
+        const IndexType elem_id = stoi(it.name());
+        const auto p_elem = rOriginModelPart.pGetElement(elem_id + 1);
+
+        // Add the element to the auxiliary container and to the main HROM model part
+        if(std::find(hrom_elems_vect.begin(), hrom_elems_vect.end(), p_elem) == hrom_elems_vect.end()) {
+            hrom_elems_vect.push_back(p_elem);
+            rHRomComputingModelPart.AddElement(p_elem);
+        }
+
+        // Add the element nodes to the auxiliary set and to the main HROM model part
+        const auto& r_geom = p_elem->GetGeometry();
+        const SizeType n_nodes = r_geom.PointsNumber();
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+            NodeType::Pointer p_node = r_geom(i_node);
+            hrom_nodes_set.insert(hrom_nodes_set.end(), p_node);
+            rHRomComputingModelPart.AddNode(p_node);
+
+            // Get the neighbor elements from each node and add them to the model part
+            for (auto& neighbor_elem : p_node->GetValue(NEIGHBOUR_ELEMENTS)) {
+                Kratos::Element::Pointer p_neighbor_elem = &neighbor_elem;
+                // Be careful to not add an element that is already in the model part.
+                // For this, we will check if the element is already in our vector of elements.
+                if(std::find(hrom_elems_vect.begin(), hrom_elems_vect.end(), p_neighbor_elem) == hrom_elems_vect.end()) {
+                    hrom_elems_vect.push_back(p_neighbor_elem);
+                    rHRomComputingModelPart.AddElement(p_neighbor_elem);
+
+                    // Add the nodes of the neighboring element to the model part
+                    const auto& neighbor_r_geom = p_neighbor_elem->GetGeometry();
+                    const SizeType neighbor_n_nodes = neighbor_r_geom.PointsNumber();
+                    for (IndexType i_neighbor_node = 0; i_neighbor_node < neighbor_n_nodes; ++i_neighbor_node) {
+                        NodeType::Pointer p_neighbor_node = neighbor_r_geom(i_neighbor_node);
+                        hrom_nodes_set.insert(hrom_nodes_set.end(), p_neighbor_node);
+                        rHRomComputingModelPart.AddNode(p_neighbor_node);
+                    }
+                }
+            }
+
+            // Get the neighbor conditions from each node and add them to the model part
+            for (auto& neighbor_cond : p_node->GetValue(NEIGHBOUR_CONDITIONS)) {
+                Kratos::Condition::Pointer p_neighbor_cond = &neighbor_cond;
+                // Be careful to not add a condition that is already in the model part.
+                // For this, we will check if the condition is already in our vector of conditions.
+                if(std::find(hrom_conds_vect.begin(), hrom_conds_vect.end(), p_neighbor_cond) == hrom_conds_vect.end()) {
+                    hrom_conds_vect.push_back(p_neighbor_cond);
+                    rHRomComputingModelPart.AddCondition(p_neighbor_cond);
+
+                    // Add the nodes of the neighboring condition to the model part
+                    const auto& neighbor_r_geom = p_neighbor_cond->GetGeometry();
+                    const SizeType neighbor_n_nodes = neighbor_r_geom.PointsNumber();
+                    for (IndexType i_neighbor_node = 0; i_neighbor_node < neighbor_n_nodes; ++i_neighbor_node) {
+                        NodeType::Pointer p_neighbor_node = neighbor_r_geom(i_neighbor_node);
+                        hrom_nodes_set.insert(hrom_nodes_set.end(), p_neighbor_node);
+                        rHRomComputingModelPart.AddNode(p_neighbor_node);
+                    }
+                }
+            }
+        }
+    }
+
+    for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
+        // Get the condition from origin mesh
+        const IndexType cond_id = stoi(it.name());
+        auto p_cond = rOriginModelPart.pGetCondition(cond_id + 1);
+
+        // Add the condition to the auxiliary container and to the main HROM model part
+        if(std::find(hrom_conds_vect.begin(), hrom_conds_vect.end(), p_cond) == hrom_conds_vect.end()) {
+            hrom_conds_vect.push_back(p_cond);
+            rHRomComputingModelPart.AddCondition(p_cond);
+        }
+
+        // Add the condition nodes to the auxiliary set and to the main HROM model part
+        const auto& r_geom = p_cond->GetGeometry();
+        const SizeType n_nodes = r_geom.PointsNumber();
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+            auto p_node = r_geom(i_node);
+            hrom_nodes_set.insert(hrom_nodes_set.end(), p_node);
+            rHRomComputingModelPart.AddNode(p_node);
+
+            // Get the neighbor elements from each node and add them to the model part
+            for (auto& neighbor_elem : p_node->GetValue(NEIGHBOUR_ELEMENTS)) {
+                Kratos::Element::Pointer p_neighbor_elem = &neighbor_elem;
+                // Be careful to not add an element that is already in the model part.
+                // For this, we will check if the element is already in our vector of elements.
+                if(std::find(hrom_elems_vect.begin(), hrom_elems_vect.end(), p_neighbor_elem) == hrom_elems_vect.end()) {
+                    hrom_elems_vect.push_back(p_neighbor_elem);
+                    rHRomComputingModelPart.AddElement(p_neighbor_elem);
+
+                    // Add the nodes of the neighboring element to the model part
+                    const auto& neighbor_r_geom = p_neighbor_elem->GetGeometry();
+                    const SizeType neighbor_n_nodes = neighbor_r_geom.PointsNumber();
+                    for (IndexType i_neighbor_node = 0; i_neighbor_node < neighbor_n_nodes; ++i_neighbor_node) {
+                        NodeType::Pointer p_neighbor_node = neighbor_r_geom(i_neighbor_node);
+                        hrom_nodes_set.insert(hrom_nodes_set.end(), p_neighbor_node);
+                        rHRomComputingModelPart.AddNode(p_neighbor_node);
+                    }
+                }
+            }
+
+            // Get the neighbor conditions from each node and add them to the model part
+            for (auto& neighbor_cond : p_node->GetValue(NEIGHBOUR_CONDITIONS)) {
+                Kratos::Condition::Pointer p_neighbor_cond = &neighbor_cond;
+                // Be careful to not add a condition that is already in the model part.
+                // For this, we will check if the condition is already in our vector of conditions.
+                if(std::find(hrom_conds_vect.begin(), hrom_conds_vect.end(), p_neighbor_cond) == hrom_conds_vect.end()) {
+                    hrom_conds_vect.push_back(p_neighbor_cond);
+                    rHRomComputingModelPart.AddCondition(p_neighbor_cond);
+
+                    // Add the nodes of the neighboring condition to the model part
+                    const auto& neighbor_r_geom = p_neighbor_cond->GetGeometry();
+                    const SizeType neighbor_n_nodes = neighbor_r_geom.PointsNumber();
+                    for (IndexType i_neighbor_node = 0; i_neighbor_node < neighbor_n_nodes; ++i_neighbor_node) {
+                        NodeType::Pointer p_neighbor_node = neighbor_r_geom(i_neighbor_node);
+                        hrom_nodes_set.insert(hrom_nodes_set.end(), p_neighbor_node);
+                        rHRomComputingModelPart.AddNode(p_neighbor_node);
+                    }
+                }
+            }
+        }
+    }
+    hrom_elems_vect.shrink_to_fit();
+    hrom_conds_vect.shrink_to_fit();
+
+    //TODO: ADD MPC'S
+
+    // Add properties to the HROM mesh
+    // Note that we add all the properties although some of them might note be used in the HROM mesh
+    auto& r_root_model_part = const_cast<ModelPart&>(rOriginModelPart).GetRootModelPart();
+    auto& r_properties = r_root_model_part.rProperties();
+    for (auto it_p_prop = r_properties.ptr_begin(); it_p_prop < r_properties.ptr_end(); ++it_p_prop) {
+        rHRomComputingModelPart.AddProperties(*it_p_prop);
+    }
+
+    // Create and fill the HROM calculation sub model parts
+    for (auto& r_orig_sub_mp : rOriginModelPart.SubModelParts()) {
+        RecursiveHRomModelPartCreation(hrom_nodes_set, hrom_elems_vect, hrom_conds_vect, r_orig_sub_mp, rHRomComputingModelPart);
     }
 }
 
@@ -335,6 +702,214 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
     return parent_ids;
 }
 
+std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
+    ModelPart& rModelPart,
+    const std::vector<IndexType>& rConditionIds)
+{
+
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rModelPart);
+    find_nodal_elements_neighbours_process.Execute();
+
+    std::unordered_set<IndexType> parent_ids_set;
+    // Iterate over the given node IDs
+    for (const auto condId : rConditionIds) {
+        auto& r_cond = rModelPart.GetCondition(condId + 1);
+        // Add neighboring elements' IDs to the set
+        const auto& r_neigh_elements = r_cond.GetValue(NEIGHBOUR_ELEMENTS);
+        // Add the neighbour elements to new_element_ids_set
+        for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
+            const auto& r_elem = r_neigh_elements[i];
+            parent_ids_set.insert(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            break;
+        }
+    }
+
+    // Convert the unordered_set to a vector
+    std::vector<IndexType> parent_ids(parent_ids_set.begin(), parent_ids_set.end());
+
+    return parent_ids;
+}
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIdsNotInHRom(
+    ModelPart& rModelPart,
+    ModelPart& rGivenModelPart,
+    const std::map<std::string, std::map<IndexType, double>>& rHRomWeights)
+{
+    std::vector<IndexType> new_element_ids;
+    const auto& r_elem_weights = rHRomWeights.at("Elements");
+
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rModelPart);
+    find_nodal_elements_neighbours_process.Execute();
+
+    for (const auto& r_node : rGivenModelPart.Nodes()) {
+        const auto& r_neigh = r_node.GetValue(NEIGHBOUR_ELEMENTS);
+
+        // Add the neighbour elements to the HROM weights
+        for (size_t i = 0; i < r_neigh.size(); ++i) {
+            const auto& r_elem = r_neigh[i];
+
+            // Note that we check if the element has been already added by the HROM element selection strategy
+            if (r_elem_weights.find(r_elem.Id() - 1) == r_elem_weights.end()) { //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+                new_element_ids.push_back(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            }
+        }
+    }
+
+    return new_element_ids;
+}
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(
+    ModelPart& rModelPart,
+    ModelPart& rGivenModelPart)
+{
+    std::unordered_set<IndexType> new_element_ids_set;
+
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rModelPart);
+    find_nodal_elements_neighbours_process.Execute();
+
+    for (const auto& r_node : rGivenModelPart.Nodes()) {
+        const auto& r_neigh = r_node.GetValue(NEIGHBOUR_ELEMENTS);
+
+        // Add the neighbour elements to new_element_ids_set
+        for (size_t i = 0; i < r_neigh.size(); ++i) {
+            const auto& r_elem = r_neigh[i];
+            new_element_ids_set.insert(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+        }
+    }
+
+    // Convert the unordered_set to a vector
+    std::vector<IndexType> new_element_ids(new_element_ids_set.begin(), new_element_ids_set.end());
+
+    return new_element_ids;
+}
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(
+    ModelPart& rModelPart,
+    const std::vector<IndexType>& rNodeIds,
+    bool RetrieveSingleNeighbour)
+{
+    std::unordered_set<IndexType> new_entity_ids_set;
+
+    // Execute process to find neighboring entities
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rModelPart);
+    find_nodal_elements_neighbours_process.Execute();
+
+    // Iterate over the given node IDs
+    for (const auto nodeId : rNodeIds) {
+        auto& r_node = rModelPart.GetNode(nodeId);
+
+        // Add neighboring elements' IDs to the set
+        const auto& r_neigh_elements = r_node.GetValue(NEIGHBOUR_ELEMENTS);
+        // Add the neighbour elements to new_element_ids_set
+        for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
+            const auto& r_elem = r_neigh_elements[i];
+            new_entity_ids_set.insert(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            if (RetrieveSingleNeighbour) {
+                break; // Break if only one neighbour should be retrieved
+            }
+        }
+    }
+
+    // Convert the unordered_set to a vector
+    std::vector<IndexType> new_element_ids(new_entity_ids_set.begin(), new_entity_ids_set.end());
+
+    return new_element_ids;
+}
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringConditionIds(
+    ModelPart& rModelPart,
+    const std::vector<IndexType>& rNodeIds,
+    bool RetrieveSingleNeighbour)
+{
+    std::unordered_set<IndexType> new_condition_ids_set;
+
+    // Execute process to find neighboring entities
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType> find_nodal_conditions_neighbours_process(rModelPart);
+    find_nodal_conditions_neighbours_process.Execute();
+
+    // Iterate over the given node IDs
+    for (const auto nodeId : rNodeIds) {
+        auto& r_node = rModelPart.GetNode(nodeId);
+
+        // Add neighboring elements' IDs to the set
+        const auto& r_neigh_elements = r_node.GetValue(NEIGHBOUR_CONDITIONS);
+        // Add the neighbour elements to new_element_ids_set
+        for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
+            const auto& r_cond = r_neigh_elements[i];
+            new_condition_ids_set.insert(r_cond.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            if (RetrieveSingleNeighbour) {
+                break; // Break if only one neighbour should be retrieved
+            }
+        }
+    }
+
+    // Convert the unordered_set to a vector
+    std::vector<IndexType> new_condition_ids(new_condition_ids_set.begin(), new_condition_ids_set.end());
+
+    return new_condition_ids;
+}
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart(
+    const ModelPart& rModelPartWithElementsToInclude,
+    std::map<std::string, std::map<IndexType, double>>& rHRomWeights)
+{
+    std::vector<IndexType> new_element_ids;
+    auto& r_elem_weights = rHRomWeights["Elements"];
+
+    for (const auto& r_elem : rModelPartWithElementsToInclude.Elements()) {
+        IndexType element_id = r_elem.Id();
+
+        // Check if the element is already added
+        if (r_elem_weights.find(element_id - 1) == r_elem_weights.end()) { //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            new_element_ids.push_back(element_id - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+        }
+    }
+
+    return new_element_ids;
+}
+
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetConditionIdsNotInHRomModelPart(
+    const ModelPart& rModelPartWithConditionsToInclude,
+    std::map<std::string, std::map<IndexType, double>>& rHRomWeights)
+{
+    std::vector<IndexType> new_condition_ids;
+    auto& r_cond_weights = rHRomWeights["Conditions"];
+
+    for (const auto& r_cond : rModelPartWithConditionsToInclude.Conditions()) {
+        IndexType condition_id = r_cond.Id();
+
+        // Check if the condition is already added
+        if (r_cond_weights.find(condition_id - 1) == r_cond_weights.end()) { //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            new_condition_ids.push_back(condition_id - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+        }
+    }
+
+    return new_condition_ids;
+}
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsInModelPart(
+    const ModelPart& rModelPart)
+{
+    std::vector<IndexType> element_ids;
+
+    for (const auto& r_elem : rModelPart.Elements()) {
+        element_ids.push_back(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+    }
+    return element_ids;
+}
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetConditionIdsInModelPart(
+    const ModelPart& rModelPart)
+{
+    std::vector<IndexType> condition_ids;
+
+    for (const auto& r_cond : rModelPart.Conditions()) {
+        condition_ids.push_back(r_cond.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+    }
+    return condition_ids;
+}
+
 std::vector<IndexType> RomAuxiliaryUtilities::GetHRomMinimumConditionsIds(
     const ModelPart& rModelPart,
     const std::map<IndexType, double>& rHRomConditionWeights)
@@ -393,7 +968,7 @@ void RomAuxiliaryUtilities::RecursiveHRomMinimumConditionIds(
 
         // If minimum condition is missing, add the first condition as minimum one
         if (!has_minimum_condition) {
-            rMinimumConditionsIds.push_back(rModelPart.ConditionsBegin()->Id() - 1); //FIXME: FIX THE - 1
+            rMinimumConditionsIds.push_back(rModelPart.ConditionsBegin()->Id() - 1); //FIXME: FIX THE + 1
         }
 
         // Recursively check the current modelpart submodelparts
@@ -438,10 +1013,10 @@ void RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes(
 }
 
 void RomAuxiliaryUtilities::GetPhiElemental(
-        Matrix &rPhiElemental,
-        const Element::DofsVectorType& rDofs,
-        const Element::GeometryType& rGeom,
-        const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping)
+    Matrix &rPhiElemental,
+    const Element::DofsVectorType& rDofs,
+    const Element::GeometryType& rGeom,
+    const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping)
     {
         for(std::size_t i = 0; i < rDofs.size(); ++i)
         {
@@ -453,7 +1028,7 @@ void RomAuxiliaryUtilities::GetPhiElemental(
             else
             {
                 const auto it_node = std::find_if(rGeom.begin(), rGeom.end(),
-                    [&](const Node<3>& rNode)
+                    [&](const Node& rNode)
                     {
                         return rNode.Id() == r_dof.Id();
                     });
@@ -466,6 +1041,50 @@ void RomAuxiliaryUtilities::GetPhiElemental(
 
                 noalias(row(rPhiElemental, i)) = row(nodal_rom_basis, row_id);
             }
+        }
+    }
+
+void RomAuxiliaryUtilities::GetPsiElemental(
+    Matrix &rPsiElemental,
+    const Element::DofsVectorType& rDofs,
+    const Element::GeometryType& rGeom,
+    const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping)
+    {
+        for(IndexType i = 0; i < rDofs.size(); ++i)
+        {
+            const auto& r_dof = *rDofs[i];
+            if (r_dof.IsFixed())
+            {
+                noalias(row(rPsiElemental, i)) = ZeroVector(rPsiElemental.size2());
+            }
+            else
+            {
+                const auto it_node = std::find_if(rGeom.begin(), rGeom.end(),
+                    [&](const Node& rNode)
+                    {
+                        return rNode.Id() == r_dof.Id();
+                    });
+                KRATOS_ERROR_IF(it_node == rGeom.end());
+
+                const auto& r_nodal_rom_basis = it_node->GetValue(ROM_LEFT_BASIS);
+
+                const auto variable_key = r_dof.GetVariable().Key();
+                const IndexType row_id = rVarToRowMapping.at(variable_key);
+
+                noalias(row(rPsiElemental, i)) = row(r_nodal_rom_basis, row_id);
+            }
+        }
+    }
+
+void RomAuxiliaryUtilities::GetJPhiElemental(
+    Matrix &rJPhiElemental,
+    const Element::DofsVectorType& rDofs,
+    const Matrix &rJPhi)
+    {
+        for(std::size_t i = 0; i < rDofs.size(); ++i)
+        {
+            const Dof<double>& r_dof = *rDofs[i];
+            noalias(row(rJPhiElemental, i)) = row(rJPhi, r_dof.EquationId());
         }
     }
 

@@ -80,6 +80,7 @@ namespace Kratos {
 
         virtual double CalculateCohesiveNormalForce(SphericParticle * const element1, SphericParticle * const element2, const double indentation);
         virtual double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation);
+        virtual double GetTangentialStiffness();
 
     private:
 

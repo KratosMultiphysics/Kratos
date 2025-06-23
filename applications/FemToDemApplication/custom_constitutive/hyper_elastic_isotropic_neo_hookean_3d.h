@@ -47,7 +47,7 @@ namespace Kratos
  * More info https://en.wikipedia.org/wiki/Neo-Hookean_solid
  * @author Vicente Mataix Ferrandiz
  */
-class HyperElasticIsotropicNeoHookean3DFEMDEM
+class KRATOS_API(FEM_TO_DEM_APPLICATION) HyperElasticIsotropicNeoHookean3DFEMDEM
     : public ConstitutiveLaw
 {
 public:
@@ -139,7 +139,7 @@ public:
     }
 
     /**
-     * @brief Returns the stress measure of this constitutive law (by default 2st Piola-Kirchhoff stress in voigt notation)
+     * @brief Returns the stress measure of this constitutive law (by default 2nd Piola-Kirchhoff stress in voigt notation)
      * @return the expected stress measure
      */
     StressMeasure GetStressMeasure() override

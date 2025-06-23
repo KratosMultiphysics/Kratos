@@ -1,0 +1,14 @@
+{
+    "custom_entries": [
+        "Overview.md",
+        "Work_Flow.md",
+        "Algorithm.md",
+        "Response_Routine.md",
+        "Response_Function.md",
+        "Execution_Policy.md",
+        "Master_Control.md",
+        "Control.md",
+        "Collective_Expressions.md",
+        "Optimization_Problem.md"
+    ]
+}

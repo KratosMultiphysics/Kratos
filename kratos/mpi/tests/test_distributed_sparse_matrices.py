@@ -1,5 +1,4 @@
-﻿import os
-import KratosMultiphysics.KratosUnittest as KratosUnittest
+﻿import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 import KratosMultiphysics.mpi
 import numpy as np 
@@ -38,7 +37,7 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
         [1,28,13,7],
         [17,10,36,7],
         [25,14,30,9]
-    ]  
+    ]
 
     Aref_all = {
         (19,19):3.0,(19,11):1.0,(19,7):2.0,(19,39):2.0,(11,19):1.0,(11,11):4.0,(11,7):1.0,(11,39):1.0,(7,19):2.0,(7,11):1.0,(7,7):6.0,(7,39):1.0,(39,19):2.0,(39,11):1.0,(39,7):1.0,(39,39):3.0,(33,33):4.0,(33,27):1.0,(33,22):1.0,(33,9):1.0,(27,33):1.0,
@@ -70,7 +69,7 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
         for i in range(1,NumThreads):
             Partitions[i] = Partitions[i-1] + PartitionSize 
         return Partitions
-    
+
     def ComputeBounds(self,N,Ndivisions,current_rank ):                            
         partition = self.DivideInPartitions(N,Ndivisions)
         return np.array([partition[current_rank],partition[current_rank+1]], dtype=int)
@@ -115,7 +114,7 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
         #construct two vectors
         y =  KratosMultiphysics.mpi.DistributedSystemVector(Agraph)
         y.SetValue(0.0)
-    
+
         b =  KratosMultiphysics.mpi.DistributedSystemVector(Agraph)    
         b.SetValue(1.0)
 
@@ -129,7 +128,7 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
             self.assertEqual(y[i],  reference_spmv_res[global_i], 1e-14 )
 
         y = A@b
-    
+
         B = A.SpMM(A)
 
         for i in range(y.LocalSize()):
@@ -141,7 +140,7 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
         local_output = KratosMultiphysics.Vector(local_mat.size1())
         local_output.fill(0.0)
         local_mat.SpMV(b.GetLocalData(), local_output)
-        
+
         nonlocal_mat  = A.GetOffDiagonalBlock()
         importer = KratosMultiphysics.mpi.DistributedVectorImporter(kratos_comm,A.GetOffDiagonalGlobalIds(),A.GetColNumbering())
         nonlocal_data=importer.ImportData(b) #here is where communications happen
@@ -180,7 +179,7 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
             b_serial = KratosMultiphysics.Vector(Aserial.Size1())
             b_serial.fill(0.0)
             Aserial.SpMV(y_serial, b_serial)
-            
+
             self.assertVectorAlmostEqual(b_serial, reference_spmv_res)
 
         #test operations

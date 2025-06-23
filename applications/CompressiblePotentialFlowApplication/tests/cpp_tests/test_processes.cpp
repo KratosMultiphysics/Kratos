@@ -54,7 +54,7 @@ namespace Kratos {
 
       for (std::size_t i_node = 0; i_node<3; i_node++){
         for (std::size_t i_dim = 0; i_dim<2; i_dim++){
-          KRATOS_CHECK_NEAR(model_part.GetNode(i_node+1).Coordinates()[i_dim], reference[i_node*2+i_dim], 1e-6);
+          KRATOS_EXPECT_NEAR(model_part.GetNode(i_node+1).Coordinates()[i_dim], reference[i_node*2+i_dim], 1e-6);
         }
       }
     }
@@ -88,7 +88,7 @@ namespace Kratos {
 
       for (std::size_t i_node = 0; i_node<3; i_node++){
         for (std::size_t i_dim = 0; i_dim<2; i_dim++){
-          KRATOS_CHECK_NEAR(model_part.GetNode(i_node+1).Coordinates()[i_dim], reference[i_node*2+i_dim], 1e-6);
+          KRATOS_EXPECT_NEAR(model_part.GetNode(i_node+1).Coordinates()[i_dim], reference[i_node*2+i_dim], 1e-6);
         }
       }
     }
@@ -123,7 +123,7 @@ namespace Kratos {
 
       for (std::size_t i_node = 0; i_node<3; i_node++){
         for (std::size_t i_dim = 0; i_dim<3; i_dim++){
-          KRATOS_CHECK_NEAR(model_part.GetNode(i_node+1).Coordinates()[i_dim], reference[i_node*3+i_dim], 1e-6);
+          KRATOS_EXPECT_NEAR(model_part.GetNode(i_node+1).Coordinates()[i_dim], reference[i_node*3+i_dim], 1e-6);
         }
       }
     }
@@ -180,7 +180,7 @@ namespace Kratos {
       KRATOS_WATCH(resultant_force)
 
       for (unsigned int i = 0; i < 3; i++) {
-        KRATOS_CHECK_NEAR(resultant_force(i), reference[i], 1e-6);
+        KRATOS_EXPECT_NEAR(resultant_force(i), reference[i], 1e-6);
       }
     }
 
@@ -220,7 +220,7 @@ namespace Kratos {
       Define2DWakeProcess.ExecuteInitialize();
 
       const int wake = p_element->GetValue(WAKE);
-      KRATOS_CHECK_NEAR(wake, 1, 1e-6);
+      KRATOS_EXPECT_NEAR(wake, 1, 1e-6);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ApplyFarFieldProcess, CompressiblePotentialApplicationFastSuite)
@@ -275,12 +275,12 @@ namespace Kratos {
 
       for (auto& r_node : model_part.Nodes()) {
         if (r_node.Id() == 1 || r_node.Id() == 3) {
-          KRATOS_CHECK(r_node.IsFixed(VELOCITY_POTENTIAL));
-          KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_POTENTIAL), initial_potential, 1e-6);
+          KRATOS_EXPECT_TRUE(r_node.IsFixed(VELOCITY_POTENTIAL));
+          KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_POTENTIAL), initial_potential, 1e-6);
         }
         else {
-          KRATOS_CHECK_IS_FALSE(r_node.IsFixed(VELOCITY_POTENTIAL));
-          KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_POTENTIAL), 11.0, 1e-6);
+          KRATOS_EXPECT_FALSE(r_node.IsFixed(VELOCITY_POTENTIAL));
+          KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_POTENTIAL), 11.0, 1e-6);
         }
       }
     }
@@ -347,13 +347,13 @@ namespace Kratos {
       ComputeNodalValueProcess.Execute();
       for (auto& r_node : model_part.Nodes()) {
         auto nodal_area = r_node.GetValue(NODAL_AREA);
-        KRATOS_CHECK_NEAR(nodal_area, 0.166667, 1e-6);
+        KRATOS_EXPECT_NEAR(nodal_area, 0.166667, 1e-6);
         auto nodal_velocity = r_node.GetValue(VELOCITY);
-        KRATOS_CHECK_NEAR(nodal_velocity[0], 1, 1e-6);
-        KRATOS_CHECK_NEAR(nodal_velocity[1], 1, 1e-6);
-        KRATOS_CHECK_NEAR(nodal_velocity[2], 0, 1e-6);
+        KRATOS_EXPECT_NEAR(nodal_velocity[0], 1, 1e-6);
+        KRATOS_EXPECT_NEAR(nodal_velocity[1], 1, 1e-6);
+        KRATOS_EXPECT_NEAR(nodal_velocity[2], 0, 1e-6);
         auto nodal_pressure = r_node.GetValue(PRESSURE_COEFFICIENT);
-        KRATOS_CHECK_NEAR(nodal_pressure, 0.98, 1e-6);
+        KRATOS_EXPECT_NEAR(nodal_pressure, 0.98, 1e-6);
       }
     }
 
@@ -410,7 +410,7 @@ namespace Kratos {
       ComputeWingSectionVariableProcessDefault.Execute();
 
       auto& r_node_section_1 = section_model_part_1.GetNode(1);
-      KRATOS_CHECK_NEAR(r_node_section_1.GetValue(PRESSURE_COEFFICIENT), 0.5, 1e-6);
+      KRATOS_EXPECT_NEAR(r_node_section_1.GetValue(PRESSURE_COEFFICIENT), 0.5, 1e-6);
 
       const std::vector<std::string> variable_array = {"VELOCITY","PRESSURE_COEFFICIENT"};
       ModelPart& section_model_part_2 = this_model.CreateModelPart("section_2", 3);
@@ -423,8 +423,8 @@ namespace Kratos {
       ComputeWingSectionVariableProcessWithArray.Execute();
 
       auto& r_node_section_2 = section_model_part_2.GetNode(1);
-      KRATOS_CHECK_NEAR(r_node_section_2.GetValue(PRESSURE_COEFFICIENT), 0.5, 1e-6);
-      KRATOS_CHECK_VECTOR_NEAR(r_node_section_2.GetValue(VELOCITY), velocity, 1e-6);
+      KRATOS_EXPECT_NEAR(r_node_section_2.GetValue(PRESSURE_COEFFICIENT), 0.5, 1e-6);
+      KRATOS_EXPECT_VECTOR_NEAR(r_node_section_2.GetValue(VELOCITY), velocity, 1e-6);
     }
 
 
@@ -490,7 +490,7 @@ namespace Kratos {
       ComputeWingSectionVariableProcessDefault.Execute();
 
       auto& r_node_section_1 = section_model_part_1.GetNode(1);
-      KRATOS_CHECK_NEAR(r_node_section_1.GetValue(PRESSURE_COEFFICIENT), 0.5, 1e-6);
+      KRATOS_EXPECT_NEAR(r_node_section_1.GetValue(PRESSURE_COEFFICIENT), 0.5, 1e-6);
 
       const std::vector<std::string> variable_array = {"VELOCITY","PRESSURE_COEFFICIENT"};
       ModelPart& section_model_part_2 = this_model.CreateModelPart("section_2", 3);
@@ -503,8 +503,8 @@ namespace Kratos {
       ComputeWingSectionVariableProcessWithArray.Execute();
 
       auto& r_node_section_2 = section_model_part_2.GetNode(1);
-      KRATOS_CHECK_NEAR(r_node_section_2.GetValue(PRESSURE_COEFFICIENT), 0.5, 1e-6);
-      KRATOS_CHECK_VECTOR_NEAR(r_node_section_2.GetValue(VELOCITY), velocity, 1e-6);
+      KRATOS_EXPECT_NEAR(r_node_section_2.GetValue(PRESSURE_COEFFICIENT), 0.5, 1e-6);
+      KRATOS_EXPECT_VECTOR_NEAR(r_node_section_2.GetValue(VELOCITY), velocity, 1e-6);
     }
   } // namespace Testing
 }  // namespace Kratos.

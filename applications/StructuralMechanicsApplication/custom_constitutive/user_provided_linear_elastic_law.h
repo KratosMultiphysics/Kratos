@@ -4,14 +4,13 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //                   Riccardo Rossi
 //
 
-#if !defined (KRATOS_USER_PROVIDED_LINEAR_ELASTIC_LAW_H_INCLUDED)
-#define  KRATOS_USER_PROVIDED_LINEAR_ELASTIC_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -142,7 +141,7 @@ public:
     }
 
     /**
-     * @brief Returns the stress measure of this constitutive law (by default 2st Piola-Kirchhoff stress in voigt notation)
+     * @brief Returns the stress measure of this constitutive law (by default 2nd Piola-Kirchhoff stress in voigt notation)
      * @return the expected stress measure
      */
     StressMeasure GetStressMeasure() override
@@ -427,4 +426,3 @@ private:
 
 }; // Class UserProvidedLinearElasticLaw
 }  // namespace Kratos.
-#endif // KRATOS_USER_PROVIDED_LINEAR_ELASTIC_LAW_H_INCLUDED  defined

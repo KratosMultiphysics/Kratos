@@ -26,12 +26,11 @@ namespace py = pybind11;
 
 void  AddCustomLinearSolversToPython(pybind11::module& m)
 {
-    typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
-    typedef IterativeSolver<SpaceType,  LocalSpaceType> IterativeSolverType;
-
-    typedef MixedULMLinearSolver<SpaceType,  LocalSpaceType> MixedULMLinearSolverType;
+    using SpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using LinearSolverType = LinearSolver<SpaceType, LocalSpaceType>;
+    using IterativeSolverType = IterativeSolver<SpaceType, LocalSpaceType>;
+    using MixedULMLinearSolverType = MixedULMLinearSolver<SpaceType, LocalSpaceType>;
 
     py::class_<MixedULMLinearSolverType, typename MixedULMLinearSolverType::Pointer, IterativeSolverType>(m, "MixedULMLinearSolver")
     .def(py::init<LinearSolverType::Pointer >())

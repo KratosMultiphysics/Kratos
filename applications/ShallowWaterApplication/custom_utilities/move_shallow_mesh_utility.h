@@ -69,7 +69,7 @@ public:
     /// Pointer definition of MoveShallowMeshUtility
     KRATOS_CLASS_POINTER_DEFINITION(MoveShallowMeshUtility);
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef Geometry<NodeType> GeometryType;
 

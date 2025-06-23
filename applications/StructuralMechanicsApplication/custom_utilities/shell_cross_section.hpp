@@ -3,16 +3,14 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Massimo Petracca
 //                   Philipp Bucher
 //
 
-#if !defined(SHELL_CROSS_SECTION_H_INCLUDED)
-#define SHELL_CROSS_SECTION_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <string>
@@ -51,7 +49,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(ShellCrossSection);
 
-    typedef Geometry<Node < 3 > > GeometryType;
+    typedef Geometry<Node > GeometryType;
 
     typedef std::vector< Ply > PlyCollection;
 
@@ -696,7 +694,7 @@ public:
 
     /**
     * Returns the string containing a detailed description of this object.
-    * @return the string with informations
+    * @return the string with information
     */
     virtual std::string GetInfo(const Properties& rProps);
 
@@ -1201,8 +1199,8 @@ public:
     }
 
     /**
-    * Calculates the avarage mass density of this cross section.
-    * @return the avarage mass density
+    * Calculates the average mass density of this cross section.
+    * @return the average mass density
     */
     inline double CalculateAvarageDensity(const Properties& rProps) const
     {
@@ -1396,7 +1394,7 @@ private:
 
 };
 
-///@name Input/Output funcitons
+///@name Input/Output functions
 ///@{
 
 inline std::istream& operator >> (std::istream& rIStream, ShellCrossSection& rThis);
@@ -1409,6 +1407,3 @@ inline std::ostream& operator << (std::ostream& rOStream, ShellCrossSection& rTh
 ///@}
 
 }
-
-
-#endif // SHELL_CROSS_SECTION_H_INCLUDED

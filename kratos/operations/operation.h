@@ -19,6 +19,7 @@
 
 // Project includes
 #include "containers/model.h"
+#include "includes/define_registry.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "includes/registry.h"
@@ -142,6 +143,14 @@ public:
     void PrintData(std::ostream& rOStream) const
     {
     }
+
+    ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Operations.KratosMultiphysics", Operation, Operation)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Operations.All", Operation, Operation)
 
     ///@}
 }; // Class Operation

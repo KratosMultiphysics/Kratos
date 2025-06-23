@@ -15,12 +15,12 @@ RUN mkdir -p /workspace/scripts; \
     mkdir -p /workspace/boost
 
 # Install Boost (from source)
-# RUN git clone -b 'boost-1.71.0' --depth 1 --recurse-submodules -j24 https://github.com/boostorg/boost.git /workspace/boost/boost_1_71_0
+# RUN git clone -b 'boost-1.74.0' --depth 1 --recurse-submodules -j24 https://github.com/boostorg/boost.git /workspace/boost/boost_1_74_0
 
 # Install Boost (form zip)
-RUN wget -P /workspace/boost https://boostorg.jfrog.io/artifactory/main/release/1.71.0/source/boost_1_71_0.tar.gz; \
-	tar -C /workspace/boost -xzf /workspace/boost/boost_1_71_0.tar.gz; \
-	rm /workspace/boost/boost_1_71_0.tar.gz
+RUN wget -P /workspace/boost https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.gz; \
+	tar -C /workspace/boost -xzf /workspace/boost/boost_1_74_0.tar.gz; \
+	rm /workspace/boost/boost_1_74_0.tar.gz
 
 # Install MMG 5.5.1
 # Note ( upgraded from 5.4.1 because of https://github.com/MmgTools/mmg/issues/85)
@@ -33,6 +33,27 @@ RUN git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /workspace/m
     make -j24 install && \
     rm -r /workspace/mmg_5_5_1 && \
     cd /
+
+# Install setuptools
+# 3.8
+RUN /opt/python/c38-cp38/bin/python -m pip install --upgrade pip
+RUN /opt/python/c38-cp38/bin/python -m pip install --upgrade setuptools wheel
+# 3.9
+RUN /opt/python/c39-cp39/bin/python -m pip install --upgrade pip
+RUN /opt/python/c39-cp39/bin/python -m pip install --upgrade setuptools wheel
+# 3.10
+RUN /opt/python/c310-cp310/bin/python -m pip install --upgrade pip
+RUN /opt/python/c310-cp310/bin/python -m pip install --upgrade setuptools wheel
+# 3.11
+RUN /opt/python/c311-cp311/bin/python -m pip install --upgrade pip
+RUN /opt/python/c311-cp311/bin/python -m pip install --upgrade setuptools wheel
+# 3.12
+RUN /opt/python/c312-cp312/bin/python -m pip install --upgrade pip
+RUN /opt/python/c312-cp312/bin/python -m pip install --upgrade setuptools wheel
+# 3.13
+RUN /opt/python/c313-cp313/bin/python -m pip install --upgrade pip
+RUN /opt/python/c313-cp313/bin/python -m pip install --upgrade setuptools wheel
+
 
 COPY start.sh /workspace/scripts/start.sh
 

@@ -77,6 +77,7 @@ namespace Kratos {
             const double kn_el,
             double equiv_young,
             double indentation,
+            double indentation_particle,
             double calculation_area,
             double& acumulated_damage,
             SphericContinuumParticle* element1,
@@ -311,8 +312,7 @@ namespace Kratos {
                                                     double ElasticLocalRotationalMoment[3],
                                                     double ViscoLocalRotationalMoment[3],
                                                     double equiv_poisson,
-                                                    double indentation,
-                                                    double LocalElasticContactForce[3]) {
+                                                    double indentation) {
 
         KRATOS_TRY
         double LocalDeltaRotatedAngle[3]    = {0.0};

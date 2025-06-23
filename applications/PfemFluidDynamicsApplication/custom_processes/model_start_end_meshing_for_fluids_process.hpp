@@ -271,7 +271,7 @@ namespace Kratos
           // 	  PreservedConditions.back().SetId(condId);
           // 	  condId+=1;
 
-          // 	  Geometry< Node<3> >& rGeometry = i_cond->GetGeometry();
+          // 	  Geometry< Node >& rGeometry = i_cond->GetGeometry();
           // 	  unsigned int NumNodes=rGeometry.size();
           // 	  unsigned int freeSurfaceNodes=0;
           // 	  unsigned int rigidNodes=0;

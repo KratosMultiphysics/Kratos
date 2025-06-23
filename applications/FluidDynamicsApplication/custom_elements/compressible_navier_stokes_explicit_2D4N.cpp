@@ -102,7 +102,7 @@ void CompressibleNavierStokesExplicit<2,4>::GetDofList(
 
 
 void ComputeMidpointShapeFunctions(
-    const Geometry<Node<3>>& rGeometry,
+    const Geometry<Node>& rGeometry,
     Vector& rN,
     Matrix& rDN_DX)
 {

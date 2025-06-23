@@ -114,10 +114,9 @@ namespace Kratos {
                                       double ElasticLocalRotationalMoment[3], 
                                       double ViscoLocalRotationalMoment[3], 
                                       double equiv_poisson, 
-                                      double indentation, 
-                                      double LocalElasticContactForce[3],
+                                      double indentation,
                                       double normalLocalContactForce,
-                                      double GlobalElasticContactForces[3],
+                                      double GlobalContactForce[3],
                                       double LocalCoordSystem_2[3],
                                       const int i_neighbor_count);
 
@@ -130,8 +129,7 @@ namespace Kratos {
                                                       double ElasticLocalRotationalMoment[3],
                                                       double ViscoLocalRotationalMoment[3],
                                                       double equiv_poisson,
-                                                      double indentation,
-                                                      double LocalElasticContactForce[3]);
+                                                      double indentation);
 
         virtual bool CheckRequirementsOfStressTensor();
 

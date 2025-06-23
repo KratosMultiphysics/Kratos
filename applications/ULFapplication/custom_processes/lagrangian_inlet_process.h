@@ -183,8 +183,8 @@ public:
                         in->Free(DISPLACEMENT_Z);
 
                         //make a copy of the
-                        //Node<3>::Pointer new_node = AdaptivityUtils::AddNode(in->X(),in->Y(),in->Z(),mr_model_part);
-                        Node<3>::DofsContainerType& reference_dofs = (mr_model_part.NodesBegin())->GetDofs();
+                        //Node::Pointer new_node = AdaptivityUtils::AddNode(in->X(),in->Y(),in->Z(),mr_model_part);
+                        Node::DofsContainerType& reference_dofs = (mr_model_part.NodesBegin())->GetDofs();
 
                         int id = mr_model_part.Nodes().size();
                         id++;
@@ -197,15 +197,15 @@ public:
                         //KRATOS_WATCH(init_pos_y)
                         //KRATOS_WATCH(init_pos_z)
 
-                        Node<3>::Pointer new_node = mr_model_part.CreateNewNode(id, init_pos_x, init_pos_y, init_pos_z);//in->X(), in->Y(), in->Z());
+                        Node::Pointer new_node = mr_model_part.CreateNewNode(id, init_pos_x, init_pos_y, init_pos_z);//in->X(), in->Y(), in->Z());
 
                         new_node->SetBufferSize(mr_model_part.NodesBegin()->GetBufferSize() );
                         //KRATOS_WATCH(new_node->GetBufferSize())
 
-                        for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
+                        for(Node::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
                         {
-                            Node<3>::DofType& rDof = *iii;
-                            Node<3>::DofType::Pointer p_new_dof = new_node->pAddDof( rDof );
+                            Node::DofType& rDof = *iii;
+                            Node::DofType::Pointer p_new_dof = new_node->pAddDof( rDof );
 
                             (p_new_dof)->FreeDof();
                             //(p_new_dof)->FixDof();

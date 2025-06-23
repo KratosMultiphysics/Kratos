@@ -1,6 +1,7 @@
 # Import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.DamApplication as KratosDam
+import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 
 class SaveVariablesUtility:
 
@@ -31,7 +32,7 @@ class SaveVariablesUtility:
         OutputMdpa.write('\nBegin NodalData NODAL_CAUCHY_STRESS_TENSOR')
         for part in mechanical_parts:
             for node in part.Nodes:
-                OutputMdpa.write('\n' + str(node.Id) + ' 0 ' + str(node.GetSolutionStepValue(KratosDam.NODAL_CAUCHY_STRESS_TENSOR)))
+                OutputMdpa.write('\n' + str(node.Id) + ' 0 ' + str(node.GetSolutionStepValue(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)))
         OutputMdpa.write('\nEnd NodalData\n')
 
         OutputMdpa.close()
@@ -62,7 +63,7 @@ class SaveVariablesUtility:
         OutputMdpa.write('Begin NodalData NODAL_CAUCHY_STRESS_TENSOR')
         for part in mechanical_parts:
             for node in part.Nodes:
-                OutputMdpa.write('\n' + str(node.Id) + ' 0 ' + str(node.GetSolutionStepValue(KratosDam.NODAL_CAUCHY_STRESS_TENSOR)))
+                OutputMdpa.write('\n' + str(node.Id) + ' 0 ' + str(node.GetSolutionStepValue(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)))
         OutputMdpa.write('\nEnd NodalData\n')
 
         OutputMdpa.close()

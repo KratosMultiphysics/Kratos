@@ -1,12 +1,14 @@
-// ==============================================================================
-//  KratosOptimizationApplication
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:         BSD License
-//                   license: OptimizationApplication/license.txt
+//  License:		 BSD License
+//					 license: OptimizationApplication/license.txt
 //
 //  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
 //
-// ==============================================================================
 
 #if !defined(KRATOS_HELMHOLTZ_SURF_SHAPE_ELEMENT_H_INCLUDED )
 #define  KRATOS_HELMHOLTZ_SURF_SHAPE_ELEMENT_H_INCLUDED
@@ -52,18 +54,18 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class HelmholtzSurfShapeElement
+class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzSurfShapeElement
     : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3>                             PointType;
-    typedef Node<3>::Pointer                    PointPtrType;
+    typedef Node                             PointType;
+    typedef Node::Pointer                    PointPtrType;
     typedef Geometry<PointType>                 GeometryType;
     typedef Pyramid3D5<PointType>               PyramidGeometryType;
-    typedef Tetrahedra3D4<PointType>            TetrahedraGeometryType;    
+    typedef Tetrahedra3D4<PointType>            TetrahedraGeometryType;
 
     /// Counted pointer of HelmholtzSurfShapeElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(HelmholtzSurfShapeElement);
@@ -105,7 +107,7 @@ public:
 
     void GetValuesVector(VectorType &rValues, int Step = 0) const override;
 
-    void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;    
+    void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -207,7 +209,7 @@ private:
     void CalculateSurfaceMassMatrix(MatrixType& rMassMatrix,const ProcessInfo& rCurrentProcessInfo) const;
     void CalculateSurfaceStiffnessMatrix(MatrixType& rStiffnessMatrix,const ProcessInfo& rCurrentProcessInfo) const;
     void GetPseudoBulkSurfaceShapeFunctionsValues(MatrixType& rNMatrix,const IntegrationMethod& rIntegrationMethod, const ProcessInfo& rCurrentProcessInfo) const;
-    void CalculatePseudoBulkSurfaceDN_DXMatrix(MatrixType& rDN_DX, const IntegrationMethod& rIntegrationMethod, const IndexType PointNumber, const ProcessInfo& rCurrentProcessInfo) const;   
+    void CalculatePseudoBulkSurfaceDN_DXMatrix(MatrixType& rDN_DX, const IntegrationMethod& rIntegrationMethod, const IndexType PointNumber, const ProcessInfo& rCurrentProcessInfo) const;
     void CalculateAvgSurfUnitNormal(VectorType & rNormal) const;
     void CalculateCMatrix(MatrixType& rCMatrix, const IntegrationMethod& rIntegrationMethod, const IndexType PointNumber) const;
     void CalculateBMatrix(MatrixType& rBMatrix, const MatrixType& rDN_DX_tMatrix, const IntegrationMethod& rIntegrationMethod, const IndexType PointNumber) const;

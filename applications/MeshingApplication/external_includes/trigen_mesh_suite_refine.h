@@ -154,7 +154,7 @@ public:
         unsigned int i = 0;
         for(ModelPart::ElementsContainerType iel =  ThisModelPart.ElementsBegin(); iel!=  ThisModelPart.ElementsEnd(); iel++)
         {
-            Geometry< Node<3> >& geom = iel->GetGeometry();
+            Geometry< Node >& geom = iel->GetGeometry();
             int base = i*3;
             in.trianglelist[base]   = geom[0]->Id();
             in.trianglelist[base+1] = geom[1]->Id();
@@ -215,7 +215,7 @@ public:
             int base = el * 3;
 
             //generating the geometry
-            Geometry<Node<3> > temp;
+            Geometry<Node > temp;
             temp.push_back( *((ModelNodes).find( out.trianglelist[base]).base()	) );
             temp.push_back( *((ModelNodes).find( out.trianglelist[base+1]).base()	) );
             temp.push_back( *((ModelNodes).find( out.trianglelist[base+2]).base()	) );
@@ -252,8 +252,8 @@ public:
                 temp.push_back(iii->GetGeometry()(1));
                 temp.push_back(iii->GetGeometry()(2));
 
-                Geometry< Node<3> >::Pointer cond =
-                    Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp) );
+                Geometry< Node >::Pointer cond =
+                    Geometry< Node >::Pointer(new Geometry< Node >(temp) );
                 int id = (iii->Id()-1)*3;
 
                 Condition::Pointer p_cond =
@@ -275,8 +275,8 @@ public:
                 temp.push_back(iii->GetGeometry()(2));
                 temp.push_back(iii->GetGeometry()(0));
 
-                Geometry< Node<3> >::Pointer cond =
-                    Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp) );
+                Geometry< Node >::Pointer cond =
+                    Geometry< Node >::Pointer(new Geometry< Node >(temp) );
                 int id = (iii->Id()-1)*3+1;
                 //
                 Condition::Pointer p_cond =
@@ -297,8 +297,8 @@ public:
                 temp.reserve(2);
                 temp.push_back(iii->GetGeometry()(0));
                 temp.push_back(iii->GetGeometry()(1));
-                Geometry< Node<3> >::Pointer cond =
-                    Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp) );
+                Geometry< Node >::Pointer cond =
+                    Geometry< Node >::Pointer(new Geometry< Node >(temp) );
                 int id = (iii->Id()-1)*3+2;
 
                 Condition::Pointer p_cond =
@@ -424,8 +424,8 @@ private:
     ///@name Private Operators
     ///@{
     //returns false if it should be removed
-    bool AlphaShape(double alpha_param, Geometry<Node<3> >& pgeom)
-    //bool AlphaShape(double alpha_param, Triangle2D<Node<3> >& pgeom)
+    bool AlphaShape(double alpha_param, Geometry<Node >& pgeom)
+    //bool AlphaShape(double alpha_param, Triangle2D<Node >& pgeom)
     {
         KRATOS_TRY
 

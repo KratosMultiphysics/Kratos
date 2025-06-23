@@ -18,7 +18,7 @@ class ConditionCreator(ClassCreator):
             not yet implemented.
 
         - members: list of KratosClassMember
-            class memebers to be added.
+            class members to be added.
 
         - procedures: list of KratosClassProcedures
             class procedures to be added. NYI
@@ -63,7 +63,7 @@ class ConditionCreator(ClassCreator):
             Input
             -----
             - flagList: list of strings
-                the list of falg names to be added
+                the list of flag names to be added
 
             Output
             ------

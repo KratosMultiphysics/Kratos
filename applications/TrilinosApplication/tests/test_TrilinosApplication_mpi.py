@@ -1,6 +1,6 @@
 # import Kratos
-from KratosMultiphysics import *
-if not IsDistributedRun():
+import KratosMultiphysics
+if not KratosMultiphysics.IsDistributedRun():
     raise Exception("This test script can only be executed in MPI!")
 
 
@@ -8,7 +8,6 @@ if not IsDistributedRun():
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suites
-
 import test_trilinos_linear_solvers
 import test_trilinos_matrix
 import test_trilinos_redistance

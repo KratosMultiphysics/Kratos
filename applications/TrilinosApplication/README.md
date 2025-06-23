@@ -69,7 +69,7 @@ Assuming that the dependencies are installed, the following steps are:
 1. Add the `TrilinosApplication` to the list of applications to be compiled in the building script for Kratos,
 as described in the [install instructions](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md#adding-applications).
 
-```bash
+```console
 export KRATOS_APPLICATIONS=
 ...
 add_app ${KRATOS_APP_DIR}/TrilinosApplication
@@ -78,7 +78,7 @@ add_app ${KRATOS_APP_DIR}/TrilinosApplication
 2. Tell cmake where are located the libraries and headers of *Trilinos*.
 If Trilinos was compiled (instead of downloaded with a package manager), it is usually enough to point the `TRILINOS_ROOT` variable to the build directory. For example:
 
-```bash
+```console
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}" \
 ...
 -DTRILINOS_ROOT="${HOME}/Projects/Trilinos/build"
@@ -88,14 +88,14 @@ Or, if *Trilinos* is installed with a package manager, then libraries and header
 Moreover, the name of the libraries may not be standard.
 In this case, instead of setting `TRILINOS_ROOT`, set `-DTRILINOS_INCLUDE_DIR=String` with the path to the include dir, `-DTRILINOS_LIBRARY_DIR=String` with the path to the library dir, and set `-DTRILINOS_LIBRARY_PREFIX=String` with the prefix to use when looking for the *Trilinos* libraries, i.e.,
 
-```bash
+```console
 libepetra.so  # No need to set TRILINOS_PREFIX
 libtrilinos_epetra.so  # -DTRILINOS_PREFIX="trilinos_"
 ```
 
 For example, in the case of Ubuntu with *Trilinos* installed by `sudo apt install trilinos-all-dev`:
 
-```bash
+```console
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos"
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu"
 -DTRILINOS_LIBRARY_PREFIX="trilinos_"
@@ -108,7 +108,7 @@ Check the [docker of the CI](https://github.com/KratosMultiphysics/Kratos/blob/m
 
 At the moment, the list of required packages is:
 
-```bash
+```console
 sudo apt install \
         libtrilinos-amesos-dev \
         libtrilinos-amesos2-dev \
@@ -127,7 +127,7 @@ sudo apt install \
 -It is possible to do a minimal installation of the TrilinosApplication only using the Epetra package.
 Other packages can be disabled with the following flags:
 
-```bash
+```console
 -DTRILINOS_EXCLUDE_ML_SOLVER=ON  # exclude the interface to the Trilinos ML solver package
 -DTRILINOS_EXCLUDE_AZTEC_SOLVER=ON  # exclude solvers from the Trilinos AztecOO package
 -DTRILINOS_EXCLUDE_AMESOS_SOLVER=ON  # exclude solvers using features of the Trilinos Amesos package
@@ -140,50 +140,50 @@ Other packages can be disabled with the following flags:
 
 To install *Spack* you just need to run the following command:
 
-```bash
+```console
 git clone -c feature.manyFiles=true https://github.com/spack/spack.git
 ```
 
 To use it you will need to add the corresponding environment variables (or call `spack_location/spack/bin/spack`):
 
-```bash
+```console
 . spack_location/spack/share/spack/setup-env.sh
 ```
 
 Then in order to install *Trilinos*:
 
-```bash
+```console
 spack install trilinos
 ```
 
 In case we want to use [*MUMPS*](https://graal.ens-lyon.fr/MUMPS/index.php) and [SuperLUDist](https://portal.nersc.gov/project/sparse/superlu/) with *Trilinos*, you can install them all together and properly liked with:
 
-```bash
+```console
 spack install trilinos+mumps+superlu-dist
 ```
 
 If you want that the libraries are added automatically to `LD_LIBRARY_PATH` to run the following commands before loading the modules:
 
-```bash
+```console
 spack config add modules:prefix_inspections:lib64:[LD_LIBRARY_PATH]
 spack config add modules:prefix_inspections:lib:[LD_LIBRARY_PATH]
 ```
 
 Now you just need to load *Trilinos*:
 
-```bash
+```console
 spack load trilinos
 ```
 
 or (if installed):
 
-```bash
+```console
 spack load trilinos+mumps+superlu-dist
 ```
 
-Once to compile `TrilinosApplication` just remember to add the application to the `configure` bash script: 
+Once to compile `TrilinosApplication` just remember to add the application to the `configure` bash script:
 
-```bash
+```console
 export KRATOS_APPLICATIONS=
 ...
 add_app ${KRATOS_APP_DIR}/TrilinosApplication

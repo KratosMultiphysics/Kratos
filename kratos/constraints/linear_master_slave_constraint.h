@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Aditya Ghantasala
 //
 
-#if !defined(LINEAR_MASTER_SLAVE_CONSTRAINT_H)
-#define LINEAR_MASTER_SLAVE_CONSTRAINT_H
+#pragma once
 
 // System includes
 
@@ -148,22 +147,7 @@ public:
         const VariableType& rSlaveVariable,
         const double Weight,
         const double Constant
-        ) : MasterSlaveConstraint(Id)
-    {
-        // Resizing the memeber variables
-        mRelationMatrix.resize(1,1,false);
-        mConstantVector.resize(1,false);
-
-        // Obtaining the dofs from the variables
-        mSlaveDofsVector.push_back(rSlaveNode.pGetDof(rSlaveVariable));
-        mMasterDofsVector.push_back(rMasterNode.pGetDof(rMasterVariable));
-
-        mRelationMatrix(0,0) = Weight;
-        mConstantVector(0) = Constant;
-
-        // Setting the slave flag on the node
-        rSlaveNode.Set(SLAVE);
-    }
+        );
 
     /// Destructor.
     ~LinearMasterSlaveConstraint() override
@@ -457,5 +441,3 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 ///@}
 
 } // namespace Kratos
-
-#endif // USER_PROVIDED_LINEAR_MASTER_SLAVE_CONSTRAINT_H

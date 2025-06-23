@@ -48,8 +48,8 @@ with open(optimization_log_filename, 'r') as csvfile:
 
     # # Check against specifications
     TestCase().assertEqual(resulting_iteration, 10)
-    TestCase().assertAlmostEqual(resulting_abs_change, -30.6997, 4)
-    TestCase().assertAlmostEqual(resulting_sina_alpha, 0.285005, 4)
+    TestCase().assertAlmostEqual(resulting_abs_change, -35.1215, 4)
+    TestCase().assertAlmostEqual(resulting_sina_alpha, 0.471852, 4)
 
 shutil.rmtree(original_directory+"/Optimization_Results")
 shutil.rmtree(original_directory+"/primal_results")

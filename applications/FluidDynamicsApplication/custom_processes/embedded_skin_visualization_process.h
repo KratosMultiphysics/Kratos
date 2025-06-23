@@ -120,10 +120,10 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(EmbeddedSkinVisualizationProcess);
 
     typedef std::unordered_map<
-        Node<3>::Pointer,
-        std::tuple< const Node<3>::Pointer, const Node<3>::Pointer, const double, const double >,
-        SharedPointerHasher<Node<3>::Pointer>,
-        SharedPointerComparator<Node<3>::Pointer> > CutNodesMapType;
+        Node::Pointer,
+        std::tuple< const Node::Pointer, const Node::Pointer, const double, const double >,
+        SharedPointerHasher<Node::Pointer>,
+        SharedPointerComparator<Node::Pointer> > CutNodesMapType;
 
     ///@}
     ///@name Life Cycle
@@ -184,6 +184,9 @@ public:
         const Parameters rParameters,
         std::vector<const Variable<TDataType>*>& rVariablesList);
 
+    /// Default constructor.
+    EmbeddedSkinVisualizationProcess() : Process() {};
+
     /// Constructor.
 
     /**
@@ -238,6 +241,13 @@ public:
     ///@name Operations
     ///@{
 
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters) override
+    {
+        return Kratos::make_shared<EmbeddedSkinVisualizationProcess>(rModel, ThisParameters);
+    }
+
     void ExecuteBeforeSolutionLoop() override;
 
     void ExecuteBeforeOutputStep() override;
@@ -248,7 +258,7 @@ public:
 
     /**
      * @brief Get the Default Settings object
-     * Static method to get the default settings inside the contructor
+     * Static method to get the default settings inside the constructor
      * @return Parameters The parameters object containing the default settings
      */
     static Parameters StaticGetDefaultParameters();
@@ -298,6 +308,9 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    /// Registry current operation
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics.FluidDynamicsApplication", Process, EmbeddedSkinVisualizationProcess)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", Process, EmbeddedSkinVisualizationProcess)
 
     ///@}
     ///@name Member Variables
@@ -310,19 +323,19 @@ private:
     ModelPart::ElementsContainerType mNewElementsPointers;
 
     // Reference to the origin model part
-    ModelPart& mrModelPart;
+    ModelPart* mpModelPart = nullptr;
 
     // Reference to the visualization model part
-    ModelPart& mrVisualizationModelPart;
+    ModelPart* mpVisualizationModelPart = nullptr;
 
     // Level set type. Current available options continuous and discontinuous
-    const LevelSetType mLevelSetType;
+    const LevelSetType mLevelSetType = LevelSetType::Continuous;
 
     // Shape functions type. Current available options ausas and standard
-    const ShapeFunctionsType mShapeFunctionsType;
+    const ShapeFunctionsType mShapeFunctionsType = ShapeFunctionsType::Standard;
 
     // If true, the visualization model part is created each time step (required in case the level set function is not constant)
-    const bool mReformModelPartAtEachTimeStep;
+    const bool mReformModelPartAtEachTimeStep = false;
 
     // Pointer to the variable that stores the nodal level set function
     const Variable<double>* mpNodalDistanceVariable;
@@ -362,7 +375,7 @@ private:
      */
     template<bool IsHistorical>
     double& AuxiliaryGetValue(
-        Node<3>& rNode,
+        Node& rNode,
         const Variable<double>& rVariable);
 
     /**
@@ -371,12 +384,12 @@ private:
      * It is specialized for the historical and non-historical databases
      * @tparam IsHistorical Template argument to indicate the database. Historical (true) and non-historical (false)
      * @param rNode Node from which the values are retrieved
-     * @param rVariable Vector variable to be retieved
+     * @param rVariable Vector variable to be retrieved
      * @return array_1d<double,3>& Reference to the retrieved value
      */
     template<bool IsHistorical>
     array_1d<double,3>& AuxiliaryGetValue(
-        Node<3>& rNode,
+        Node& rNode,
         const Variable<array_1d<double,3>>& rVariable);
 
     /**
@@ -404,9 +417,9 @@ private:
      */
     template<class TDataType, bool IsHistorical>
     void InterpolateVariablesListValues(
-        const Node<3>::Pointer& rpNode,
-        const Node<3>::Pointer& rpNodeI,
-        const Node<3>::Pointer& rpNodeJ,
+        const Node::Pointer& rpNode,
+        const Node::Pointer& rpNodeI,
+        const Node::Pointer& rpNodeJ,
         const double WeightI,
         const double WeightJ,
         const std::vector<const Variable<TDataType>*>& rVariablesList);
@@ -462,7 +475,7 @@ private:
      * @return True if it is split and false if not
      */
     bool ElementIsSplit(
-        const Geometry<Node<3>>::Pointer pGeometry,
+        const Geometry<Node>::Pointer pGeometry,
         const Vector &rNodalDistances);
 
     /**
@@ -474,13 +487,13 @@ private:
     bool ElementIsIncised(const Vector &rEdgeDistancesExtrapolated);
 
     /**
-     * Checks wether the element is in the positive side or not
+     * Checks whether the element is in the positive side or not
      * @param pGeometry Pointer to the element geometry
      * @param rNodalDistances Vector containing the distance values
      * @return True if it is split and false if not
      */
     bool ElementIsPositive(
-        Geometry<Node<3>>::Pointer pGeometry,
+        Geometry<Node>::Pointer pGeometry,
         const Vector &rNodalDistances);
 
     /**
@@ -499,25 +512,25 @@ private:
     const inline Vector SetEdgeDistancesExtrapolatedVector(const Element& rElem);
 
     /**
-     * Sets the the modified shape functions utility according to the
+     * Sets the modified shape functions utility according to the
      * distance values for a cut element.
      * @param pGeometry Pointer to the element geometry
      * @param rNodalDistances Vector containing the distance values
      * @return A pointer to the modified shape functions utility
      */
     ModifiedShapeFunctions::Pointer SetModifiedShapeFunctionsUtility(
-        const Geometry<Node<3>>::Pointer pGeometry,
+        const Geometry<Node>::Pointer pGeometry,
         const Vector &rNodalDistances);
 
     /**
-     * Sets the the modified shape functions utility for an Ausas incised element.
+     * Sets the modified shape functions utility for an Ausas incised element.
      * @param pGeometry Pointer to the element geometry
      * @param rNodalDistancesWithExtra Vector containing the distance values including extrapolated intersections
      * @param rEdgeDistancesExtrapolated Vector containing the edge distances rations of extrapolated intersections
      * @return A pointer to the modified shape functions utility
      */
     ModifiedShapeFunctions::Pointer SetAusasIncisedModifiedShapeFunctionsUtility(
-        const Geometry<Node<3>>::Pointer pGeometry,
+        const Geometry<Node>::Pointer pGeometry,
         const Vector &rNodalDistancesWithExtra,
         const Vector &rEdgeDistancesExtrapolated);
 
@@ -527,7 +540,7 @@ private:
      * @param rNewNodesArray Nodes that conform the new interface geometry
      * @return A pointer to the new geometry
      */
-    Geometry< Node<3> >::Pointer SetNewConditionGeometry(
+    Geometry< Node >::Pointer SetNewConditionGeometry(
         const GeometryData::KratosGeometryType &rOriginGeometryType,
         const Condition::NodesArrayType &rNewNodesArray);
 
@@ -541,19 +554,19 @@ private:
 
     /**
      * @brief Removes the visualization properties
-     * When it is required, this function searchs for the visualization properties to remove them.
+     * When it is required, this function searches for the visualization properties to remove them.
      */
     void RemoveVisualizationProperties();
 
     template<const bool IsDistributed>
     static void SetPartitionIndexFromOriginNode(
-        const Node<3>& rOriginNode,
-        Node<3>& rVisualizationNode);
+        const Node& rOriginNode,
+        Node& rVisualizationNode);
 
     template<const bool IsDistributed>
     static void SetPartitionIndex(
         const int PartitionIndex,
-        Node<3>& rVisualizationNode);
+        Node& rVisualizationNode);
 
     ///@}
     ///@name Private  Access
@@ -566,9 +579,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Default constructor.
-    EmbeddedSkinVisualizationProcess() = delete;
 
     /// Assignment operator.
     EmbeddedSkinVisualizationProcess& operator=(EmbeddedSkinVisualizationProcess const& rOther) = delete;

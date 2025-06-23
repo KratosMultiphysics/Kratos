@@ -1,7 +1,8 @@
-import sys
 import os
+import json
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import test_helper
 
 
@@ -18,46 +19,87 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         # Code here will be placed AFTER every test in this TestCase.
         pass
 
-    @KratosUnittest.skip("This test is very long and should be shortend")
     def test_wave_through_drained_linear_elastic_soil(self):
         """
         Test dynamic calculation on a drained linear elastic soil column. a line load of -1kN is instantly placed
         on the soil column. The soil parameters are chosen such that after 0.002 seconds, the wave is reflected at the
         bottom of the geometry such that half the stress in the soil column is cancelled out.
+
+        Note that for an accurate results, the timestep size has to be decreased. For regression test purposes, the
+        time step size is increased for faster calculation
         :return:
         """
-        test_name = 'test_1d_wave_prop_drained_soil.gid'
+        test_name = 'test_1d_wave_prop_drained_soil'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+
+        test_helper.run_kratos(file_path)
+
+        with open(os.path.join(file_path, "calculated_result.json")) as fp:
+            calculated_result = json.load(fp)
+
+        with open(os.path.join(file_path, "expected_result.json")) as fp:
+            expected_result = json.load(fp)
+
+        where = "NODE_41"
+        what = "VELOCITY_Y"
+        self.assertVectorAlmostEqual(calculated_result[where][what], expected_result[where][what])
+
+
+    def test_wave_through_drained_linear_elastic_soil_constant_mass_damping(self):
+        """
+        Test dynamic calculation on a drained linear elastic soil column. a line load of -1kN is instantly placed
+        on the soil column. The soil parameters are chosen such that after 0.002 seconds, the wave is reflected at the
+        bottom of the geometry such that half the stress in the soil column is cancelled out. In this test the global
+        mass and damping matrix are precalculated in the builder and solver, such that they are not recalculated every
+        step.
+
+        Note that for an accurate results, the timestep size has to be decreased. For regression test purposes, the
+        time step size is increased for faster calculation
+        :return:
+        """
+        test_name = 'test_1d_wave_prop_drained_soil_constant_mass_damping'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
 
         simulation = test_helper.run_kratos(file_path)
+        self.assertTrue(isinstance(simulation._GetSolver().builder_and_solver, KratosGeo.ResidualBasedBlockBuilderAndSolverWithMassAndDamping))
 
-        # get effective stress
-        efective_stresses = test_helper.get_cauchy_stress_tensor(simulation)
-        efective_stresses_yy = [integration_point[1,1] for element in efective_stresses for integration_point in element]
+        with open(os.path.join(file_path, "calculated_result.json")) as fp:
+            calculated_result = json.load(fp)
 
-        # get coordinates of the gauss points
-        gauss_coordinates = test_helper.get_gauss_coordinates(simulation)
-        gauss_coordinates_y = [integration_point[1] for element in gauss_coordinates for integration_point in element]
+        with open(os.path.join(file_path, "expected_result.json")) as fp:
+            expected_result = json.load(fp)
 
-        # calculate the expected effective stress in the soil column
-        expected_effective_stresses_yy = [-1000 if gauss_coordinate_y >= -0.49 else 0 if gauss_coordinate_y <= -0.51
-                                          else -500 for gauss_coordinate_y in gauss_coordinates_y]
+        where = "NODE_41"
+        what = "VELOCITY_Y"
+        self.assertVectorAlmostEqual(calculated_result[where][what], expected_result[where][what])
 
-        # calculate root mean square error
-        square_errors = [(efective_stress_yy - expected_effective_stresses_yy[idx])**2
-                         for idx, efective_stress_yy in enumerate(efective_stresses_yy)]
-        rmse = (sum(square_errors)/len(square_errors))**0.5
+    def test_load_on_block_2d_no_damping(self):
+        """
+        Tests a load on a 2d block without damping and a constant mass and stiffness matrix.
 
-        # assert root mean square error, the allowable error is 10% of the applied load
-        self.assertLess(rmse, 100)
-
-
-    @KratosUnittest.skip("unit test skipped as it is not ready")
-    def test_wave_through_undrained_linear_elastic_soil(self):
-        test_name = 'test_1d_confined_undrained_wave.gid'
+        """
+        test_name = 'test_load_on_block_2d_no_damping'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
+
+        # run test
         simulation = test_helper.run_kratos(file_path)
-        pass
+        self.assertTrue(isinstance(simulation._GetSolver().builder_and_solver,
+                                   KratosGeo.ResidualBasedBlockBuilderAndSolverWithMassAndDamping))
+
+        # get calculated results
+        with open(os.path.join(file_path, "calculated_results.json")) as fp:
+            calculated_result = json.load(fp)
+
+        # get expected results
+        with open(os.path.join(file_path, "expected_results.json")) as fp:
+            expected_result = json.load(fp)
+
+        # check if results are as expected
+        nodes = ["NODE_3", "NODE_4"]
+        what = "DISPLACEMENT_Y"
+        for node in nodes:
+            self.assertVectorAlmostEqual(calculated_result[node][what], expected_result[node][what])
+
 
 if __name__ == '__main__':
     KratosUnittest.main()

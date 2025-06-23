@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Anna Rehr
 //  Co-author   :    Vicente Mataix Ferrandiz
@@ -295,7 +295,7 @@ inline void SPRErrorProcess<TDim>::FindNodalNeighbours(ModelPart& rModelPart)
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
-            it_node->SetValue(NEIGHBOUR_NODES, GlobalPointersVector<Node<3>>());
+            it_node->SetValue(NEIGHBOUR_NODES, GlobalPointersVector<Node>());
             it_node->SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<Element>());
         }
     }

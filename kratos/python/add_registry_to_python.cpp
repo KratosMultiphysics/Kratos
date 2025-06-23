@@ -20,7 +20,7 @@
 #include "includes/define_python.h"
 #include "includes/registry.h"
 #include "add_registry_to_python.h"
-#include "includes/registry_value_item.h"
+#include "modeler/modeler.h"
 #include "operations/operation.h"
 #include "processes/process.h"
 
@@ -68,6 +68,7 @@ void AddRegistryToPython(pybind11::module& m)
         .def_static("HasItems", &Registry::HasItems)
         .def_static("HasValue", &Registry::HasValue)
         .def_static("GetItem", &Registry::GetItem, py::return_value_policy::reference)
+        .def_static("GetModeler", &Registry::GetValue<Modeler>, py::return_value_policy::reference)
         .def_static("GetOperation", &Registry::GetValue<Operation>, py::return_value_policy::reference)
         .def_static("GetProcess", &Registry::GetValue<Process>, py::return_value_policy::reference)
         .def_static("RemoveItem", &Registry::RemoveItem)

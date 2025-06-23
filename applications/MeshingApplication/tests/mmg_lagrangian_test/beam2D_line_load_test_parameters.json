@@ -15,22 +15,22 @@
         "scheme_type"                        : "newmark",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "mmg_lagrangian_test/beam2D_line_load_test",
+            "input_filename"   : "beam2D_line_load_test",
             "input_file_label" : 0
         },
         "material_import_settings" :{
-            "materials_filename": "mmg_lagrangian_test/materials_2D.json"
+            "materials_filename": "materials_2D.json"
         },
         "time_stepping"                      : {
             "time_step" : 0.0005
         },
-        "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
+        "reform_dofs_at_each_step"           : true,
         "auxiliary_variables_list" : []
     },
     "processes"        : {
@@ -40,7 +40,6 @@
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,0.0,0.0],
@@ -54,7 +53,6 @@
             "check"         : "DirectorVectorNonZero direction",
             "process_name"  : "AssignVectorByDirectionToConditionProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.LineLoad2D_Load_on_lines_Auto1",
                 "variable_name"   : "LINE_LOAD",
                 "modulus"         : -1.0e7,
@@ -62,7 +60,7 @@
                 "interval"        : [0.0,"End"]
             }
         }],
-        "recursive_remeshing_process" :[
+        "mesh_adaptivity_processes" :[
         {
             "python_module"   : "mmg_process",
             "kratos_module"   : "KratosMultiphysics.MeshingApplication",
@@ -70,7 +68,7 @@
             "process_name"          : "MmgProcess",
             "Parameters"            : {
                 "model_part_name"                  : "Structure",
-                "strategy"                         : "Hessian",
+                "strategy"                         : "hessian",
                 "hessian_strategy_parameters"              :{
                     "metric_variable"                  : ["DISPLACEMENT"],
                     "interpolation_error"              : 0.004
@@ -87,7 +85,7 @@
                 "initial_step"                     : 10,
                 "step_frequency"                   : 10,
                 "enforce_current"                   : true,
-                "filename"                         : "mmg_lagrangian_test/beam2D_line_load_test",
+                "filename"                         : "beam2D_line_load_test",
                 "save_external_files"               : true,
                 "anisotropy_remeshing"              : false,
                 "echo_level"                        : 0
@@ -101,8 +99,8 @@
             "help"                  : "This process compares two files and executes an Unittest Assert",
             "process_name"          : "CompareTwoFilesCheckProcess",
             "Parameters"            : {
-                "reference_file_name"   : "mmg_lagrangian_test/beam2D_line_load_test_result.sol",
-                "output_file_name"      : "mmg_lagrangian_test/beam2D_line_load_test_step=10.sol",
+                "reference_file_name"   : "beam2D_line_load_test_step=10.ref",
+                "output_file_name"      : "beam2D_line_load_test_step=10.sol",
                 "dimension"             : 2,
                 "tolerance"             : 1.0e-3,
                 "relative_tolerance"    : 1.0e-3,

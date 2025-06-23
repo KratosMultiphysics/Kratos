@@ -16,7 +16,7 @@ namespace Kratos {
     class KRATOS_API(SWIMMING_DEM_APPLICATION) SteadyViscousTorqueLaw : public Flags {
 
     public:
-        typedef Node <3> NodeType;
+        typedef Node NodeType;
         KRATOS_CLASS_POINTER_DEFINITION(SteadyViscousTorqueLaw);
 
         SteadyViscousTorqueLaw(){}
@@ -33,7 +33,7 @@ namespace Kratos {
 
         virtual std::string GetTypeOfLaw();
 
-        virtual void ComputeMoment(Geometry<Node<3> >& r_geometry,
+        virtual void ComputeMoment(Geometry<Node >& r_geometry,
                                    const double reynolds_number,
                                    double particle_radius,
                                    double fluid_density,

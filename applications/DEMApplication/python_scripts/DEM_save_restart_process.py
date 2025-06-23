@@ -18,7 +18,7 @@ class DEMSaveRestartProcess(SaveRestartProcess):
         Kratos.Process.__init__(self)
         ## Settings string in json format
         default_settings = Kratos.Parameters("""{
-            "help"                         : "This process is used in order to save the problem databse with the serializer the current problem",
+            "help"                         : "This process is used in order to save the problem database with the serializer the current problem",
             "model_part_names"              : ["SPECIFY_MODEL_PART_NAMES"],
             "echo_level"                   : 0,
             "serializer_trace"             : "no_trace",
@@ -34,7 +34,7 @@ class DEMSaveRestartProcess(SaveRestartProcess):
         params.RemoveValue("help")
         params.RemoveValue("remove_restart_folder_after_reading")
         params_dict = json.loads(params.PrettyPrintJsonString())
-        params_dict["input_filenames"] = [mp.GetString() for mp in params["model_part_names"]]
+        params_dict["input_filenames"] = [mp.GetString() for mp in params["model_part_names"].values()]
         params = Kratos.Parameters(json.dumps(params_dict))
 
         params.RemoveValue("model_part_names")

@@ -47,7 +47,7 @@ public:
         KRATOS_TRY
         for(ModelPart::ConditionsContainerType::iterator iii = conditions.begin(); iii != conditions.end(); iii++)
         {
-            Geometry< Node<3> >& geom = iii->GetGeometry();
+            Geometry< Node >& geom = iii->GetGeometry();
 
             for(unsigned int k = 0; k<geom.size(); k++)
                 geom[k].FastGetSolutionStepValue(FACE_HEAT_FLUX) = face_heat_source;
@@ -72,7 +72,7 @@ public:
         Properties::Pointer properties = OriginModelPart.GetMesh().pGetProperties(1);
         for(ModelPart::ElementsContainerType::iterator iii = OriginModelPart.ElementsBegin(); iii != OriginModelPart.ElementsEnd(); iii++)
         {
-            Geometry< Node<3> >& geom = iii->GetGeometry();
+            Geometry< Node >& geom = iii->GetGeometry();
             Properties::Pointer properties = iii->pGetProperties();
             Element::Pointer p_element = rReferenceElement.Create(id, geom ,properties);
             DestinationModelPart.Elements().push_back(p_element);
@@ -84,7 +84,7 @@ public:
         id = 1;
         for(ModelPart::ConditionsContainerType::iterator iii = OriginModelPart.ConditionsBegin(); iii != OriginModelPart.ConditionsEnd(); iii++)
         {
-            Geometry< Node<3> >& geom = iii->GetGeometry();
+            Geometry< Node >& geom = iii->GetGeometry();
             double nfree_surf = 0;
             for(unsigned int k = 0; k<geom.size(); k++)
                 nfree_surf += geom[k].FastGetSolutionStepValue(IS_FREE_SURFACE);
@@ -144,7 +144,7 @@ public:
                         temp1.reserve(2);
                         temp1.push_back(im->GetGeometry()(1));
                         temp1.push_back(im->GetGeometry()(2));
-                        Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
+                        Geometry< Node >::Pointer cond = Geometry< Node >::Pointer(new Geometry< Node >(temp1) );
                         int id = (im->Id()-1)*3;
                         Condition::Pointer p_cond = Kratos::make_intrusive<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
@@ -161,7 +161,7 @@ public:
                         temp1.reserve(2);
                         temp1.push_back(im->GetGeometry()(2));
                         temp1.push_back(im->GetGeometry()(0));
-                        Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
+                        Geometry< Node >::Pointer cond = Geometry< Node >::Pointer(new Geometry< Node >(temp1) );
                         int id = (im->Id()-1)*3+1;
                         Condition::Pointer p_cond = Kratos::make_intrusive<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
@@ -177,7 +177,7 @@ public:
                         temp1.reserve(2);
                         temp1.push_back(im->GetGeometry()(0));
                         temp1.push_back(im->GetGeometry()(1));
-                        Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
+                        Geometry< Node >::Pointer cond = Geometry< Node >::Pointer(new Geometry< Node >(temp1) );
                         int id = (im->Id()-1)*3+2;
 
                         Condition::Pointer p_cond = Kratos::make_intrusive<ThermalFace>(id, cond, properties);
@@ -213,7 +213,7 @@ public:
                         temp.push_back(im->GetGeometry()(1));
                         temp.push_back(im->GetGeometry()(2));
                         temp.push_back(im->GetGeometry()(3));
-                        Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Triangle3D3< Node<3> >(temp) );
+                        Geometry< Node >::Pointer cond = Geometry< Node >::Pointer(new Triangle3D3< Node >(temp) );
                         int id = (im->Id()-1)*4;
                         Condition::Pointer p_cond = Kratos::make_intrusive<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
@@ -230,7 +230,7 @@ public:
                         temp.push_back(im->GetGeometry()(0));
                         temp.push_back(im->GetGeometry()(3));
                         temp.push_back(im->GetGeometry()(2));
-                        Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Triangle3D3< Node<3> >(temp) );
+                        Geometry< Node >::Pointer cond = Geometry< Node >::Pointer(new Triangle3D3< Node >(temp) );
                         int id = (im->Id()-1)*4;
                         Condition::Pointer p_cond = Kratos::make_intrusive<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
@@ -247,7 +247,7 @@ public:
                         temp.push_back(im->GetGeometry()(0));
                         temp.push_back(im->GetGeometry()(1));
                         temp.push_back(im->GetGeometry()(3));
-                        Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Triangle3D3< Node<3> >(temp) );
+                        Geometry< Node >::Pointer cond = Geometry< Node >::Pointer(new Triangle3D3< Node >(temp) );
                         int id = (im->Id()-1)*4;
                         Condition::Pointer p_cond = Kratos::make_intrusive<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
@@ -266,7 +266,7 @@ public:
                         temp.push_back(im->GetGeometry()(0));
                         temp.push_back(im->GetGeometry()(2));
                         temp.push_back(im->GetGeometry()(1));
-                        Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Triangle3D3< Node<3> >(temp) );
+                        Geometry< Node >::Pointer cond = Geometry< Node >::Pointer(new Triangle3D3< Node >(temp) );
                         int id = (im->Id()-1)*4;
                         Condition::Pointer p_cond = Kratos::make_intrusive<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);

@@ -40,7 +40,7 @@ namespace Kratos
     void ShockCapturingPhysicsBasedProcess::ExecuteInitialize()
     {
         // Initialize nodal values
-        block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode) {
+        block_for_each(mrModelPart.Nodes(), [&](Node& rNode) {
             if (mShockSensor) {rNode.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);}
             if (mShearSensor) {rNode.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);}
             if (mShockSensor || mThermalSensor) {rNode.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);}
@@ -151,7 +151,7 @@ namespace Kratos
     void ShockCapturingPhysicsBasedProcess::CalculatePhysicsBasedShockCapturing()
     {
         // Initialize the values to zero
-        block_for_each(mrModelPart.Nodes(), [](Node<3> &rNode) {
+        block_for_each(mrModelPart.Nodes(), [](Node &rNode) {
             rNode.GetValue(ARTIFICIAL_CONDUCTIVITY) = 0.0;
             rNode.GetValue(ARTIFICIAL_BULK_VISCOSITY) = 0.0;
             rNode.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) = 0.0;
@@ -182,7 +182,7 @@ namespace Kratos
         }
 
         // Nodal smoothing of the shock capturing magnitudes
-        block_for_each(mrModelPart.Nodes(), [](Node<3>& rNode) {
+        block_for_each(mrModelPart.Nodes(), [](Node& rNode) {
             const double nodal_area = rNode.GetValue(NODAL_AREA);
             rNode.GetValue(ARTIFICIAL_CONDUCTIVITY) /= nodal_area;
             rNode.GetValue(ARTIFICIAL_BULK_VISCOSITY) /= nodal_area;
@@ -241,7 +241,7 @@ namespace Kratos
 
     template<>
     void ShockCapturingPhysicsBasedProcess::CalculateShockSensorValues<2,3>(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const array_1d<double,3>& rN,
         const BoundedMatrix<double,3,2>& rDN_DX,
         double& rMachNumber,
@@ -271,7 +271,7 @@ namespace Kratos
 
     template<>
     void ShockCapturingPhysicsBasedProcess::CalculateShockSensorValues<3,4>(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const array_1d<double,4>& rN,
         const BoundedMatrix<double,4,3>& rDN_DX,
         double& rMachNumber,
@@ -311,7 +311,7 @@ namespace Kratos
 
     template<std::size_t TDim, std::size_t TNumNodes>
     void ShockCapturingPhysicsBasedProcess::CalculateTemperatureGradients(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
         const Matrix& rJacobianMatrix,
         array_1d<double,3>& rTemperatureGradient,
@@ -337,7 +337,7 @@ namespace Kratos
 
     template<std::size_t TDim, std::size_t TNumNodes>
     void ShockCapturingPhysicsBasedProcess::CalculateShearSensorValues(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
         const Matrix& rJacobianMatrix,
@@ -378,21 +378,21 @@ namespace Kratos
 
     /* Explicit template instantiation ****************************************/
     template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingPhysicsBasedProcess::CalculateTemperatureGradients<2,3>(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const BoundedMatrix<double,3,2>& rDN_DX,
         const Matrix& rJacobianMatrix,
         array_1d<double,3>& rTemperatureGradient,
         array_1d<double,3>& rTemperatureLocalGradient);
 
     template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingPhysicsBasedProcess::CalculateTemperatureGradients<3,4>(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const BoundedMatrix<double,4,3>& rDN_DX,
         const Matrix& rJacobianMatrix,
         array_1d<double,3>& rTemperatureGradient,
         array_1d<double,3>& rTemperatureLocalGradient);
 
     template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingPhysicsBasedProcess::CalculateShearSensorValues<2,3>(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const array_1d<double,3>& rN,
         const BoundedMatrix<double,3,2>& rDN_DX,
         const Matrix& rJacobianMatrix,
@@ -400,7 +400,7 @@ namespace Kratos
         double& rSoundVelocity);
 
     template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingPhysicsBasedProcess::CalculateShearSensorValues<3,4>(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const array_1d<double,4>& rN,
         const BoundedMatrix<double,4,3>& rDN_DX,
         const Matrix& rJacobianMatrix,

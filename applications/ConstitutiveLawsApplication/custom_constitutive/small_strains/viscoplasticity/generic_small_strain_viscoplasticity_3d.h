@@ -12,8 +12,7 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_VISCOPLASTICITY_3D_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_VISCOPLASTICITY_3D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -355,5 +354,3 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericSmallStrainViscoplasticit
 }; // Class GenericYieldSurface
 
 } // namespace Kratos
-
-#endif

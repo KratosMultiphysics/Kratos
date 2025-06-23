@@ -1,4 +1,4 @@
-﻿import os
+﻿import pathlib
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -9,7 +9,7 @@ from KratosMultiphysics.testing.utilities import ReadDistributedModelPart
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 def GetFilePath(fileName):
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+    return str(pathlib.Path(__file__).absolute().parent / fileName)
 
 class TestTrilinosRedistance(KratosUnittest.TestCase):
 
@@ -36,7 +36,7 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
-        ReadDistributedModelPart(GetFilePath("coarse_sphere"), self.model_part)
+        ReadDistributedModelPart(GetFilePath( "auxiliary_files/mdpa_files/coarse_sphere"), self.model_part)
 
     def testTrilinosRedistance(self):
         # Initialize the DISTANCE values
@@ -50,16 +50,13 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(
             KratosMultiphysics.Parameters("""{"solver_type" : "amesos" }"""))
 
-        epetra_comm = TrilinosApplication.CreateEpetraCommunicator(KratosMultiphysics.DataCommunicator.GetDefault())
+        epetra_comm = TrilinosApplication.CreateEpetraCommunicator(self.model_part.GetCommunicator().GetDataCommunicator())
 
-        max_iterations = 2
-        TrilinosApplication.TrilinosVariationalDistanceCalculationProcess3D(
-            epetra_comm,
-            self.model_part,
-            trilinos_linear_solver,
-            max_iterations,
-            (KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE).AsFalse()
-            ).Execute()
+        settings = KratosMultiphysics.Parameters("""{
+            "model_part_name" : "Main",
+            "max_iterations" : 2
+        }""")
+        TrilinosApplication.TrilinosVariationalDistanceCalculationProcess3D(epetra_comm, self.current_model, trilinos_linear_solver, settings).Execute()
 
         # Check the obtained values
         max_distance = -1.0
@@ -107,4 +104,5 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), self._ExpectedLinearDistance(node.X, x_zero_dist), 10)
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

@@ -77,8 +77,6 @@ namespace Kratos
             for (ModelPart::NodesContainerType::iterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); it++)
                 it->FastGetSolutionStepValue(VISCOSITY) = viscosity;
 
-            mMolecularViscosity = viscosity;
-
             mRho = density;
 
             mdelta_t_avg = 1000.0;
@@ -392,7 +390,8 @@ namespace Kratos
             mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
 
             int fixed_size = mFixedVelocities.size();
-#pragma omp parallel for firstprivate(fixed_size)
+
+            #pragma omp parallel for firstprivate(fixed_size)
             for (int i_velocity = 0; i_velocity < fixed_size; i_velocity++)
             {
                 unsigned int i_node = mFixedVelocities[i_velocity];
@@ -447,7 +446,7 @@ namespace Kratos
             double stabdt_convection_factor = mstabdt_convection_factor;
             double tau2_factor = mtau2_factor;
 
-#pragma omp parallel for firstprivate(time_inv_avg, stabdt_pressure_factor, stabdt_convection_factor, tau2_factor)
+            #pragma omp parallel for firstprivate(time_inv_avg, stabdt_pressure_factor, stabdt_convection_factor, tau2_factor)
             for (int i_node = 0; i_node < n_nodes; i_node++)
             {
                 double &h_avg_i = mHavg[i_node];
@@ -576,7 +575,8 @@ namespace Kratos
             array_1d<double, TDim> stab_high;
 
             double inverse_rho = 1.0 / mRho;
-#pragma omp parallel for private(stab_low, stab_high)
+
+            #pragma omp parallel for private(stab_low, stab_high)
             for (int i_node = 0; i_node < n_nodes; i_node++)
             {
                 double dist = mdistances[i_node];
@@ -670,7 +670,7 @@ namespace Kratos
         {
             KRATOS_TRY
 
-            typedef Node<3> PointType;
+            typedef Node PointType;
             typedef GlobalPointersVector<PointType> PointVector;
             typedef PointVector::iterator PointIterator;
 
@@ -691,8 +691,8 @@ namespace Kratos
             {
                 if (inode->FastGetSolutionStepValue(DISTANCE) < 0.0) // candidates are only the ones inside the fluid domain
                 {
-                    GlobalPointersVector<Node<3>> &neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                    for (GlobalPointersVector<Node<3>>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                    GlobalPointersVector<Node> &neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                    for (GlobalPointersVector<Node>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                     {
                         if (i->FastGetSolutionStepValue(DISTANCE) >= 0.0) // add the node as free surface if one of its neighb is outside
                         {
@@ -711,14 +711,14 @@ namespace Kratos
             // fill layer 1 by neighbour relationships
             for (PointIterator iii = (layers[0]).begin(); iii != (layers[0]).end(); iii++)
             {
-                GlobalPointersVector<Node<3>> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                for (GlobalPointersVector<Node<3>>::iterator jjj = neighb_nodes.begin(); jjj != neighb_nodes.end(); jjj++) // destination = origin1 + value * Minv*origin
+                GlobalPointersVector<Node> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                for (GlobalPointersVector<Node>::iterator jjj = neighb_nodes.begin(); jjj != neighb_nodes.end(); jjj++) // destination = origin1 + value * Minv*origin
                 {
 
                     if (jjj->FastGetSolutionStepValue(DISTANCE) >= 0 &&
                         jjj->GetValue(IS_VISITED) == 0.0)
                     {
-                        layers[1].push_back(Node<3>::WeakPointer(*jjj.base()));
+                        layers[1].push_back(Node::WeakPointer(*jjj.base()));
                         jjj->GetValue(IS_VISITED) = 2.0;
                     }
                 }
@@ -776,8 +776,8 @@ namespace Kratos
 
                     double pavg = 0.0;
 
-                    GlobalPointersVector<Node<3>> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                    for (GlobalPointersVector<Node<3>>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                    GlobalPointersVector<Node> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                    for (GlobalPointersVector<Node>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                     {
                         if (i->GetValue(IS_VISITED) == 1.0)
                         {
@@ -974,12 +974,11 @@ namespace Kratos
                 mPn1[i_node] += dp[i_node] * scaling_factors[i_node];
             });
 
-            // write pressure and density to Kratos
+            // write pressure to Kratos
             mr_matrix_container.WriteScalarToDatabase(PRESSURE, mPn1, rNodes);
 
             // compute pressure proj for the next step
-
-#pragma omp parallel for private(work_array)
+            #pragma omp parallel for private(work_array)
             for (int i_node = 0; i_node < n_nodes; i_node++)
             {
                 array_1d<double, TDim> &xi_i = mXi[i_node];
@@ -1039,7 +1038,7 @@ namespace Kratos
 
             // compute end of step momentum
             double rho_inv = 1.0 / mRho;
-#pragma omp parallel for private(correction) firstprivate(delta_t, rho_inv, factor)
+            #pragma omp parallel for private(correction) firstprivate(delta_t, rho_inv, factor)
             for (int i_node = 0; i_node < n_nodes; i_node++)
             {
                 double dist = mdistances[i_node];
@@ -1082,7 +1081,7 @@ namespace Kratos
             // calculate the error on the divergence
             if (muse_mass_correction == true)
             {
-#pragma omp parallel for private(correction) firstprivate(delta_t, rho_inv)
+                #pragma omp parallel for private(correction) firstprivate(delta_t, rho_inv)
                 for (int i_node = 0; i_node < n_nodes; i_node++)
                 {
                     const double dist = mdistances[i_node];
@@ -1119,7 +1118,8 @@ namespace Kratos
             {
                 // apply conditions on corner edges
                 int edge_size = medge_nodes_direction.size();
-#pragma omp parallel for firstprivate(edge_size)
+
+                #pragma omp parallel for firstprivate(edge_size)
                 for (int i = 0; i < edge_size; i++)
                 {
                     int i_node = medge_nodes[i];
@@ -1152,7 +1152,8 @@ namespace Kratos
 
             // slip condition
             int slip_size = mSlipBoundaryList.size();
-#pragma omp parallel for firstprivate(slip_size)
+
+            #pragma omp parallel for firstprivate(slip_size)
             for (int i_slip = 0; i_slip < slip_size; i_slip++)
             {
                 unsigned int i_node = mSlipBoundaryList[i_slip];
@@ -1177,7 +1178,8 @@ namespace Kratos
 
             // fixed condition
             int fixed_size = mFixedVelocities.size();
-#pragma omp parallel for firstprivate(fixed_size)
+
+            #pragma omp parallel for firstprivate(fixed_size)
             for (int i_velocity = 0; i_velocity < fixed_size; i_velocity++)
             {
                 unsigned int i_node = mFixedVelocities[i_velocity];
@@ -1204,7 +1206,7 @@ namespace Kratos
 
             // ensure that corner nodes are wet if all of the nodes around them have a negative distance
 
-            typedef Node<3> PointType;
+            typedef Node PointType;
             typedef GlobalPointersVector<PointType> PointVector;
             typedef PointVector::iterator PointIterator;
 
@@ -1228,8 +1230,8 @@ namespace Kratos
             {
                 if (inode->FastGetSolutionStepValue(DISTANCE) < 0.0) // candidates are only the ones inside the fluid domain
                 {
-                    GlobalPointersVector<Node<3>> &neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                    for (GlobalPointersVector<Node<3>>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                    GlobalPointersVector<Node> &neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                    for (GlobalPointersVector<Node>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                     {
                         if (i->FastGetSolutionStepValue(DISTANCE) >= 0.0) // add the node as free surface if one of its neighb is outside
                         {
@@ -1260,14 +1262,14 @@ namespace Kratos
             {
                 for (PointIterator iii = (layers[il]).begin(); iii != (layers[il]).end(); iii++)
                 {
-                    GlobalPointersVector<Node<3>> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                    for (GlobalPointersVector<Node<3>>::iterator jjj = neighb_nodes.begin(); jjj != neighb_nodes.end(); jjj++) // destination = origin1 + value * Minv*origin
+                    GlobalPointersVector<Node> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                    for (GlobalPointersVector<Node>::iterator jjj = neighb_nodes.begin(); jjj != neighb_nodes.end(); jjj++) // destination = origin1 + value * Minv*origin
                     {
 
                         if (jjj->FastGetSolutionStepValue(DISTANCE) >= 0 &&
                             jjj->GetValue(IS_VISITED) == 0.0)
                         {
-                            layers[il + 1].push_back(Node<3>::WeakPointer(*jjj.base()));
+                            layers[il + 1].push_back(Node::WeakPointer(*jjj.base()));
                             jjj->GetValue(IS_VISITED) = double(il + 2.0);
                         }
                     }
@@ -1284,8 +1286,8 @@ namespace Kratos
                 noalias(aux_proj) = ZeroVector(3);
                 double avg_number = 0.0;
 
-                GlobalPointersVector<Node<3>> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                for (GlobalPointersVector<Node<3>>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                GlobalPointersVector<Node> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                for (GlobalPointersVector<Node>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                 {
                     if (i->GetValue(IS_VISITED) == 0.0) // the node will be considered for extrapolation only if completely inside
                     {
@@ -1325,8 +1327,8 @@ namespace Kratos
 
                     double pavg = 0.0;
 
-                    GlobalPointersVector<Node<3>> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                    for (GlobalPointersVector<Node<3>>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                    GlobalPointersVector<Node> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                    for (GlobalPointersVector<Node>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                     {
                         if (i->GetValue(IS_VISITED) < (il + 1) && i->GetValue(IS_VISITED) != 0.0)
                         {
@@ -1457,8 +1459,8 @@ namespace Kratos
                 if (inode->FastGetSolutionStepValue(DISTANCE) > 0.0) // candidates are only the ones inside the fluid domain
                 {
                     inode->GetValue(IS_VISITED) = 1.0;
-                    GlobalPointersVector<Node<3>> &neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                    for (GlobalPointersVector<Node<3>>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                    GlobalPointersVector<Node> &neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                    for (GlobalPointersVector<Node>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                     {
                         i->GetValue(IS_VISITED) = 1.0;
                     }
@@ -1486,8 +1488,8 @@ namespace Kratos
                 if (inode->FastGetSolutionStepValue(DISTANCE) <= 0.0) // candidates are only the ones inside the fluid domain
                 {
                     inode->GetValue(IS_VISITED) = 1.0;
-                    GlobalPointersVector<Node<3>> &neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                    for (GlobalPointersVector<Node<3>>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                    GlobalPointersVector<Node> &neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                    for (GlobalPointersVector<Node>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                     {
                         i->GetValue(IS_VISITED) = 1.0;
                     }
@@ -1562,7 +1564,7 @@ namespace Kratos
             for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
             {
                 // get geometry data of the face
-                Geometry<Node<3>> &face_geometry = cond_it->GetGeometry();
+                Geometry<Node> &face_geometry = cond_it->GetGeometry();
 
                 // reference for area normal of the face
                 array_1d<double, 3> &face_normal = cond_it->GetValue(NORMAL);
@@ -1601,7 +1603,7 @@ namespace Kratos
             for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
             {
                 // get geometry data of the face
-                Geometry<Node<3>> &face_geometry = cond_it->GetGeometry();
+                Geometry<Node> &face_geometry = cond_it->GetGeometry();
 
                 // reference for area normal of the face
                 array_1d<double, 3> &face_normal = cond_it->GetValue(NORMAL);
@@ -1723,7 +1725,8 @@ namespace Kratos
             // calculating the convective projection
             array_1d<double, TDim> a_i;
             array_1d<double, TDim> a_j;
-#pragma omp parallel for private(a_i, a_j)
+
+            #pragma omp parallel for private(a_i, a_j)
             for (int i_node = 0; i_node < n_nodes; i_node++)
             {
                 array_1d<double, TDim> &pi_i = mPiConvection[i_node];
@@ -2204,7 +2207,6 @@ namespace Kratos
         }
 
     private:
-        double mMolecularViscosity;
         MatrixContainer &mr_matrix_container;
         ModelPart &mr_model_part;
 
@@ -2292,7 +2294,7 @@ namespace Kratos
 
         void CalculateNormal2D(ModelPart::ConditionsContainerType::iterator cond_it, array_1d<double, 3> &area_normal)
         {
-            Geometry<Node<3>> &face_geometry = (cond_it)->GetGeometry();
+            Geometry<Node> &face_geometry = (cond_it)->GetGeometry();
 
             area_normal[0] = face_geometry[1].Y() - face_geometry[0].Y();
             area_normal[1] = -(face_geometry[1].X() - face_geometry[0].X());
@@ -2303,7 +2305,7 @@ namespace Kratos
 
         void CalculateNormal3D(ModelPart::ConditionsContainerType::iterator cond_it, array_1d<double, 3> &area_normal, array_1d<double, 3> &v1, array_1d<double, 3> &v2)
         {
-            Geometry<Node<3>> &face_geometry = (cond_it)->GetGeometry();
+            Geometry<Node> &face_geometry = (cond_it)->GetGeometry();
 
             v1[0] = face_geometry[1].X() - face_geometry[0].X();
             v1[1] = face_geometry[1].Y() - face_geometry[0].Y();
@@ -2357,7 +2359,6 @@ namespace Kratos
                 {
                     double &h_i = mHavg[i_node];
                     double &m_i = mr_matrix_container.GetLumpedMass()[i_node];
-                    // 						double& rho_i = mRho[i_node];
 
                     h_i = sqrt(2.0 * m_i);
                 }
@@ -2368,7 +2369,6 @@ namespace Kratos
                 {
                     double &h_i = mHavg[i_node];
                     double &m_i = mr_matrix_container.GetLumpedMass()[i_node];
-                    // 						double& rho_i = mRho[i_node];
 
                     h_i = pow(6.0 * m_i, 1.0 / 3.0);
                 }
@@ -2411,7 +2411,8 @@ namespace Kratos
             double stab_high;
             array_1d<double, TDim> a_i;
             array_1d<double, TDim> a_j;
-#pragma omp parallel for private(stab_low, stab_high, a_i, a_j)
+
+            #pragma omp parallel for private(stab_low, stab_high, a_i, a_j)
             for (int i_node = 0; i_node < n_nodes; i_node++)
             {
                 double &rhs_i = rhs[i_node];
@@ -2494,7 +2495,7 @@ namespace Kratos
 
         //**************************************
 
-        void CornerDectectionHelper(Geometry<Node<3>> &face_geometry,
+        void CornerDectectionHelper(Geometry<Node> &face_geometry,
                                     const array_1d<double, 3> &face_normal,
                                     const double An,
                                     const GlobalPointersVector<Condition> &neighb,
@@ -2582,7 +2583,7 @@ namespace Kratos
             for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
             {
                 // get geometry data of the face
-                Geometry<Node<3>> &face_geometry = cond_it->GetGeometry();
+                Geometry<Node> &face_geometry = cond_it->GetGeometry();
 
                 // reference for area normal of the face
                 const array_1d<double, 3> &face_normal = cond_it->GetValue(NORMAL);
@@ -2707,18 +2708,21 @@ namespace Kratos
             double y_plus_incercept = 10.9931899;
             unsigned int itmax = 100;
 
-            KRATOS_ERROR_IF(mViscosity[0] == 0) << "it is not possible to use the wall law with 0 viscosity" << std::endl;
-
             // slip condition
             int slip_size = mSlipBoundaryList.size();
-#pragma omp parallel for firstprivate(slip_size, B, toll, ym, y_plus_incercept, itmax)
+
+            #pragma omp parallel for firstprivate(slip_size, B, toll, ym, y_plus_incercept, itmax)
             for (int i_slip = 0; i_slip < slip_size; i_slip++)
             {
                 unsigned int i_node = mSlipBoundaryList[i_slip];
                 double dist = mdistances[i_node];
-                const double nu = mViscosity[i_node];
                 if (dist <= 0.0)
                 {
+
+                    KRATOS_ERROR_IF(mViscosity[i_node] == 0) << "it is not possible to use the wall law with 0 viscosity" << std::endl;
+
+                    const double nu = mViscosity[i_node];
+
                     // array_1d<double, TDim>& rhs_i = rhs[i_node];
                     const array_1d<double, TDim> &U_i = vel[i_node];
                     const array_1d<double, TDim> &an_i = mSlipNormal[i_node];
@@ -2775,7 +2779,8 @@ namespace Kratos
             int n_nodes = rNodes.size();
             mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
             array_1d<double, TDim> stab_high;
-#pragma omp parallel for private(grad_vx, grad_vy, grad_vz)
+
+            #pragma omp parallel for private(grad_vx, grad_vy, grad_vz)
             for (int i_node = 0; i_node < n_nodes; i_node++)
             {
                 // set to zero the gradients
@@ -2848,7 +2853,7 @@ namespace Kratos
             mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
             array_1d<double, TDim> stab_high;
 
-#pragma omp parallel for private(grad_vx, grad_vy)
+            #pragma omp parallel for private(grad_vx, grad_vy)
             for (int i_node = 0; i_node < n_nodes; i_node++)
             {
                 // set to zero the gradients

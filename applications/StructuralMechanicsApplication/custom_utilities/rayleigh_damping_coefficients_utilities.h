@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_RAYLEIGH_DAMPING_COEFFICIENTS_UTILITIES)
-#define KRATOS_RAYLEIGH_DAMPING_COEFFICIENTS_UTILITIES
+#pragma once
 
 // System includes
 
@@ -54,4 +53,3 @@ namespace RayleighDampingCoefficientsUtilities
 
 } /// namespace RayleighDampingCoefficientsUtilities
 } /// namespace Kratos
-#endif /* KRATOS_RAYLEIGH_DAMPING_COEFFICIENTS_UTILITIES defined */

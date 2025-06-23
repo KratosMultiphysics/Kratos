@@ -257,7 +257,7 @@ private:
         const double ArtificialDynamicViscosity,
         const double ArtificialMassDiffusivity,
         const double ArtificialConductivity,
-        const std::function<double(Geometry<Node<3>>*)>& rGeometrySize) const;
+        const std::function<double(Geometry<Node>*)>& rGeometrySize) const;
 
     static double ComputeEntropy(
         const double Density, 
@@ -291,7 +291,7 @@ private:
         const double SpecificHeatCV);
 
     /**
-     * @brief Buidls the TotalDerivativeUtil objects that will be used to compute inf norms
+     * @brief Builds the TotalDerivativeUtil objects that will be used to compute inf norms
      *
      * @param rElement: The element to compute them on
      * @return Tuple containing {TotalDerivativeUtil for entroy, TotalDerivativeUtil for density, Vector with total velocities}

@@ -4,16 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //  Inspired in bprinter, work of Dat Chu: https://github.com/dattanchu/bprinter
 //  Removing all the dependencies of boost::karma and adding bold fonts and additional functionalities needed
 //
 
-#ifndef KRATOS_TABLE_STREAM_H_INCLUDED
-#define KRATOS_TABLE_STREAM_H_INCLUDED
+#pragma once
 
 // System includes
 #include <iostream>
@@ -347,7 +346,7 @@ private:
     // Stream related variables
     std::ostream* mOutStream;                // The stream considered
     std::vector<std::string> mColumnHeaders; // This vector contains the header to print in each column
-    std::vector<int> mColumnWidths;          // This vector containts the spaces of each column
+    std::vector<int> mColumnWidths;          // This vector contains the spaces of each column
     std::string mSeparator;                  // The separator considered in each column
 
     // The indexes currently used
@@ -385,7 +384,7 @@ private:
     }
 
     /**
-     * This functions prints into the stream a double or float value with scientific notation (respeting the spaces asigned)
+     * This functions prints into the stream a double or float value with scientific notation (respecting the spaces assigned)
      * @param Input The double or float to print
      */
     template<typename TClass>
@@ -470,4 +469,3 @@ private:
 }; // Class TableStream
 
 } // namespace Kratos.
-#endif

@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(NUMERICAL_INTEGRATION_METHOD_ADAPTIVE_SIMPSON_H_INCLUDED)
-#define NUMERICAL_INTEGRATION_METHOD_ADAPTIVE_SIMPSON_H_INCLUDED
+#pragma once
 
 // System includes
 #include <limits>
@@ -60,5 +59,3 @@ namespace Kratos
 
   }; // Class AdaptiveSimpsonQuadrature
 } // namespace Kratos
-
-#endif // NUMERICAL_INTEGRATION_METHOD_ADAPTIVE_SIMPSON_H_INCLUDED

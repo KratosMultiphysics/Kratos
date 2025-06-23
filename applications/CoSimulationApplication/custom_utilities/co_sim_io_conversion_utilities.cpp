@@ -158,12 +158,12 @@ struct Accessor_Set_Base
 
 struct Accessor_Hist_Get : public Accessor_Get_Base
 {
-    static void Execute(const Node<3>& rNode, std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
+    static void Execute(const Node& rNode, std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
         rData[Index] = rNode.FastGetSolutionStepValue(rVariable);
     }
 
     template<std::size_t TSize>
-    static void Execute(const Node<3>& rNode, std::vector<double>& rData, const std::size_t Index, const Variable<array_1d<double, TSize>>& rVariable) {
+    static void Execute(const Node& rNode, std::vector<double>& rData, const std::size_t Index, const Variable<array_1d<double, TSize>>& rVariable) {
         const array_1d<double, TSize>& var = rNode.FastGetSolutionStepValue(rVariable);
         for (std::size_t i=0; i<TSize; ++i) { rData[Index*TSize+i] = var[i]; }
     }
@@ -185,12 +185,12 @@ struct Accessor_NonHist_Get : public Accessor_Get_Base
 
 struct Accessor_Hist_Set : public Accessor_Set_Base
 {
-    static void Execute(Node<3>& rNode, const std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
+    static void Execute(Node& rNode, const std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
         rNode.FastGetSolutionStepValue(rVariable) = rData[Index];
     }
 
     template<std::size_t TSize>
-    static void Execute(Node<3>& rNode, const std::vector<double>& rData, const std::size_t Index, const Variable<array_1d<double, TSize>>& rVariable) {
+    static void Execute(Node& rNode, const std::vector<double>& rData, const std::size_t Index, const Variable<array_1d<double, TSize>>& rVariable) {
         array_1d<double, TSize>& var = rNode.FastGetSolutionStepValue(rVariable);
         for (std::size_t i=0; i<TSize; ++i) { var[i] = rData[Index*TSize+i]; }
     }
@@ -359,7 +359,7 @@ void CoSimIOConversionUtilities::KratosModelPartToCoSimIOModelPart(
     const int my_rank = rKratosModelPart.GetCommunicator().MyPID();
     const bool is_distributed = rKratosModelPart.IsDistributed();
 
-    const auto is_local_node = [my_rank, is_distributed](const Kratos::Node<3>& rNode) -> bool {
+    const auto is_local_node = [my_rank, is_distributed](const Kratos::Node& rNode) -> bool {
         if (is_distributed) {
             const int node_rank = rNode.FastGetSolutionStepValue(PARTITION_INDEX);
             return node_rank == my_rank;

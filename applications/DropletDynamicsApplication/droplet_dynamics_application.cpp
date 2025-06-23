@@ -26,8 +26,8 @@ namespace Kratos {
 
 KratosDropletDynamicsApplication::KratosDropletDynamicsApplication():
     KratosApplication("DropletDynamicsApplication"),
-    mDropletDynamics2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mDropletDynamics3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
+    mDropletDynamics2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+    mDropletDynamics3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4))))
     {}
 
 void KratosDropletDynamicsApplication::Register()

@@ -240,7 +240,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         self.integration_values_extrapolation_to_nodes_process = KratosMultiphysics.IntegrationValuesExtrapolationToNodesProcess(self.main_model_part, extrapolation_parameters)
 
     def ExecuteInitialize(self):
-        """ This method is executed at the begining to initialize the process
+        """ This method is executed at the beginning to initialize the process
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -401,7 +401,7 @@ class ContactRemeshMmgProcess(MmgProcess):
         KratosMultiphysics.FastTransferBetweenModelPartsProcess(self.main_model_part, self.main_model_part.GetParentModelPart()).Execute()
 
     def _GenerateErrorProcess(self):
-        """ This method creates an erro process to compute the metric
+        """ This method creates an error process to compute the metric
 
         Keyword arguments:
         self -- It signifies an instance of a class.

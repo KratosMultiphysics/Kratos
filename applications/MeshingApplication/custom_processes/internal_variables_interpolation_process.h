@@ -42,7 +42,7 @@ namespace Kratos
 ///@{
 
     /// Definition of node type
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// Definition of the geometry type with given NodeType
     typedef Geometry<NodeType> GeometryType;
@@ -70,7 +70,7 @@ namespace Kratos
 /**
  * @class InternalVariablesInterpolationProcess
  * @ingroup MeshingApplication
- * @brief This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
+ * @brief This utility has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
  * @details The process employs the projection.h from MeshingApplication, which works internally using a kd-tree
  * @author Vicente Mataix Ferrandiz
  */
@@ -95,7 +95,7 @@ public:
     typedef ModelPart::NodesContainerType                    NodesArrayType;
     typedef ModelPart::ElementsContainerType              ElementsArrayType;
     typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
-    typedef Node<3>                                                NodeType;
+    typedef Node                                                NodeType;
     typedef Geometry<NodeType>                                 GeometryType;
 
     /// Pointer definition of InternalVariablesInterpolationProcess
@@ -266,7 +266,7 @@ private:
     std::size_t mAllocationSize;                    /// Allocation size for the vectors and max number of potential results
     std::size_t mBucketSize;                        /// Bucket size for kd-tree
 
-    // The seatch variables
+    // The search variables
     double mSearchFactor;                           /// The search factor to be considered
     PointVector mPointListOrigin;                   /// A list that contents the all the gauss points from the origin modelpart
 
@@ -621,14 +621,14 @@ private:
 
         /* Nodes */
         block_for_each(r_nodes_array, auxiliar_search<TDim>(mrOriginMainModelPart),
-        [this](Node<3>& rNode, auxiliar_search<TDim>& aux) {
+        [this](Node& rNode, auxiliar_search<TDim>& aux) {
 
             const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
             if (!old_entity) {
                 const bool found = aux.point_locator.FindPointOnMeshSimplified(rNode.Coordinates(), aux.N, aux.p_element, mAllocationSize);
 
                 if (!found) {
-                    KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING: Node "<< rNode.Id() << " not found (interpolation not posible)" <<  "\t X:"<< rNode.X() << "\t Y:"<< rNode.Y() << "\t Z:"<< rNode.Z() << std::endl;
+                    KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING: Node "<< rNode.Id() << " not found (interpolation not possible)" <<  "\t X:"<< rNode.X() << "\t Y:"<< rNode.Y() << "\t Z:"<< rNode.Z() << std::endl;
                 } else {
                     for (auto& variable_name : mInternalVariableList) {
                         if (KratosComponents<DoubleVarType>::Has(variable_name)) {
@@ -654,8 +654,8 @@ private:
 
     /**
      * @brief This converts the interpolation string to an enum
-     * @param Str The string that you want to comvert in the equivalent enum
-     * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
+     * @param Str The string that you want to convert in the equivalent enum
+     * @return Interpolation: The equivalent enum (this requires less memory than a std::string)
      */
     InterpolationTypes ConvertInter(const std::string& Str);
 

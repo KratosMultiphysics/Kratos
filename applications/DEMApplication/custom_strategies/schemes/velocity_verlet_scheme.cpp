@@ -15,7 +15,7 @@ namespace Kratos {
 
     void VelocityVerletScheme::UpdateTranslationalVariables(
             int StepFlag,
-            Node < 3 >& i,
+            Node& i,
             array_1d<double, 3 >& coor,
             array_1d<double, 3 >& displ,
             array_1d<double, 3 >& delta_displ,
@@ -55,7 +55,7 @@ namespace Kratos {
 
     void VelocityVerletScheme::CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 const double moment_of_inertia,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& torque,
@@ -73,7 +73,7 @@ namespace Kratos {
 
     void VelocityVerletScheme::CalculateNewRotationalVariablesOfRigidBodyElements(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 const array_1d<double, 3 > moments_of_inertia,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& torque,
@@ -108,7 +108,7 @@ namespace Kratos {
 
     void VelocityVerletScheme::UpdateRotationalVariables(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 array_1d<double, 3 >& angular_velocity,

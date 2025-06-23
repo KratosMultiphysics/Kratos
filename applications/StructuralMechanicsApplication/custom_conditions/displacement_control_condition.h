@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Mahmoud Zidan
 //
 
-#if !defined(KRATOS_DISPLACEMENT_CONTROL_CONDITION_H_INCLUDED )
-#define  KRATOS_DISPLACEMENT_CONTROL_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -172,7 +171,7 @@ public:
      * @brief This function provides a more general interface to the element.
      * @details It is designed so that rLHSvariables and rRHSvariables are passed to the element thus telling what is the desired output
      * @param rLeftHandSideMatrices container with the output left hand side matrices
-     * @param rLHSVariables paramter describing the expected LHSs
+     * @param rLHSVariables parameter describing the expected LHSs
      * @param rRightHandSideVectors container for the desired RHS output
      * @param rRHSVariables parameter describing the expected RHSs
      */
@@ -360,5 +359,3 @@ private:
 ///@{
 
 } // namespace Kratos.
-
-#endif // KRATOS_DISPLACEMENT_CONTROL_CONDITION_H_INCLUDED  defined

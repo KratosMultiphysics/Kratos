@@ -22,8 +22,9 @@
 
 // Application includes
 #include "tests/test_utils.h"
-#include "custom_io/hdf5_file_serial.h"
-#include "custom_io/hdf5_nodal_solution_step_data_io.h"
+#include "custom_io/hdf5_file.h"
+#include "custom_io/hdf5_container_component_io.h"
+#include "custom_utilities/container_io_utils.h"
 
 namespace Kratos
 {
@@ -56,7 +57,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadNodalResults2, KratosHDF5TestSuite)
             "file_access_mode": "exclusive",
             "file_driver": "core"
         })");
-    auto p_test_file = Kratos::make_shared<HDF5::FileSerial>(file_params);
+    auto p_test_file = Kratos::make_shared<HDF5::File>(r_read_model_part.GetCommunicator().GetDataCommunicator(), file_params);
 
     r_read_model_part.AddNodalSolutionStepVariable(DISPLACEMENT); // array_1d
     r_read_model_part.AddNodalSolutionStepVariable(PRESSURE); // double
@@ -85,22 +86,23 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadNodalResults2, KratosHDF5TestSuite)
     })");
     io_params["list_of_variables"].SetStringArray(variables_list);
 
-    HDF5::NodalSolutionStepDataIO data_io(io_params, p_test_file);
-    data_io.WriteNodalResults(r_write_model_part);
-    data_io.ReadNodalResults(r_read_model_part);
+    HDF5::ContainerComponentIO<ModelPart::NodesContainerType, HDF5::Internals::HistoricalIO, Variable<int>, Variable<double>, Variable<array_1d<double, 3>>, Variable<array_1d<double, 4>>, Variable<array_1d<double, 6>>, Variable<array_1d<double, 9>>, Variable<Kratos::Vector>, Variable<Kratos::Matrix>> data_io(io_params, p_test_file);
+    data_io.Write(r_write_model_part.Nodes(), HDF5::Internals::HistoricalIO(0), Parameters("""{}"""));
+    data_io.Read(r_read_model_part.Nodes(), HDF5::Internals::HistoricalIO(0), r_read_model_part.GetCommunicator());
+
     for (unsigned i = 0; i < 15; ++i)
     {
         HDF5::NodeType& r_read_node = r_read_model_part.Nodes()[i + 1];
         HDF5::NodeType& r_write_node = r_write_model_part.Nodes()[i + 1];
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_X) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_X) ==
                      r_write_node.FastGetSolutionStepValue(DISPLACEMENT_X));
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_Y) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_Y) ==
                      r_write_node.FastGetSolutionStepValue(DISPLACEMENT_Y));
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_Z) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_Z) ==
                      r_write_node.FastGetSolutionStepValue(DISPLACEMENT_Z));
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(PRESSURE) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(PRESSURE) ==
                      r_write_node.FastGetSolutionStepValue(PRESSURE));
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(REFINEMENT_LEVEL) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(REFINEMENT_LEVEL) ==
                      r_write_node.FastGetSolutionStepValue(REFINEMENT_LEVEL));
     }
 }
@@ -113,11 +115,13 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadNodalResults, KratosHDF5TestSuite)
             "file_access_mode": "exclusive",
             "file_driver": "core"
         })");
-    auto p_test_file = Kratos::make_shared<HDF5::FileSerial>(file_params);
 
     Model this_model;
     ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
     ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
+
+    auto p_test_file = Kratos::make_shared<HDF5::File>(r_read_model_part.GetCommunicator().GetDataCommunicator(), file_params);
+
     r_read_model_part.AddNodalSolutionStepVariable(DISPLACEMENT); // array_1d
     r_read_model_part.AddNodalSolutionStepVariable(PRESSURE); // double
     r_read_model_part.AddNodalSolutionStepVariable(REFINEMENT_LEVEL); // int
@@ -144,22 +148,22 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadNodalResults, KratosHDF5TestSuite)
             "prefix": "/Step",
             "list_of_variables": ["DISPLACEMENT", "PRESSURE", "REFINEMENT_LEVEL"]
         })");
-    HDF5::NodalSolutionStepDataIO data_io(io_params, p_test_file);
-    data_io.WriteNodalResults(r_write_model_part);
-    data_io.ReadNodalResults(r_read_model_part);
+    HDF5::ContainerComponentIO<ModelPart::NodesContainerType, HDF5::Internals::HistoricalIO, Variable<int>, Variable<double>, Variable<array_1d<double, 3>>, Variable<array_1d<double, 4>>, Variable<array_1d<double, 6>>, Variable<array_1d<double, 9>>, Variable<Kratos::Vector>, Variable<Kratos::Matrix>> data_io(io_params, p_test_file);
+    data_io.Write(r_write_model_part.Nodes(), HDF5::Internals::HistoricalIO(0), Parameters("""{}"""));
+    data_io.Read(r_read_model_part.Nodes(), HDF5::Internals::HistoricalIO(0), r_read_model_part.GetCommunicator());
     for (unsigned i = 0; i < 15; ++i)
     {
         HDF5::NodeType& r_read_node = r_read_model_part.Nodes()[i + 1];
         HDF5::NodeType& r_write_node = r_write_model_part.Nodes()[i + 1];
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_X) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_X) ==
                      r_write_node.FastGetSolutionStepValue(DISPLACEMENT_X));
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_Y) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_Y) ==
                      r_write_node.FastGetSolutionStepValue(DISPLACEMENT_Y));
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_Z) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_Z) ==
                      r_write_node.FastGetSolutionStepValue(DISPLACEMENT_Z));
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(PRESSURE) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(PRESSURE) ==
                      r_write_node.FastGetSolutionStepValue(PRESSURE));
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(REFINEMENT_LEVEL) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(REFINEMENT_LEVEL) ==
                      r_write_node.FastGetSolutionStepValue(REFINEMENT_LEVEL));
     }
 }

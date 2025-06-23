@@ -75,8 +75,8 @@ namespace Kratos
     ///base type:
     typedef TwoStepUpdatedLagrangianVPImplicitElement<TDim> BaseType;
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -123,7 +123,7 @@ namespace Kratos
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
        * @param NewId Index number of the new element (optional)
        */
@@ -149,7 +149,7 @@ namespace Kratos
     {
     }
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
        * @param NewId Index of the new element
        * @param pGeometry Pointer to a geometry object
@@ -208,10 +208,10 @@ namespace Kratos
     void GetNodesPosition(Vector &rValues,
                           const ProcessInfo &rCurrentProcessInfo,
                           double theta);
-
+ 
     void CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
                                Matrix &rNContainer,
-                               Vector &rGaussWeights);
+                               Vector &rGaussWeights) override; 
 
     void InitializeElementalVariables(ElementalVariables &rElementalVariables) override
     {

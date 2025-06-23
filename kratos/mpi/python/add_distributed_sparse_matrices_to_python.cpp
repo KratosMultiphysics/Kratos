@@ -25,8 +25,7 @@
 #include "add_distributed_sparse_matrices_to_python.h"
 #include "mpi/utilities/amgcl_distributed_csr_spmm_utilities.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void AddDistributedSparseMatricesToPython(pybind11::module& m)
 {
@@ -245,6 +244,5 @@ void AddDistributedSparseMatricesToPython(pybind11::module& m)
         .def("__str__", PrintObject<DistributedCsrMatrix<double,IndexType>>);
 }
 
-} // namespace Python
-} // namespace Kratos
+} // namespace Kratos::Python
 

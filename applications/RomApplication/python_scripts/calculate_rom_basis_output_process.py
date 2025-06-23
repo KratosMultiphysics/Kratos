@@ -1,6 +1,7 @@
 # Import Python modules
 import json
 import numpy
+from pathlib import Path
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -58,10 +59,14 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
         # Set the ROM basis output settings
         self.rom_basis_output_format = settings["rom_basis_output_format"].GetString()
-        if not self.rom_basis_output_format == "json":
-            err_msg = "Provided \'rom_basis_output_format\' is {}. Available options are \'json\'.".format(self.rom_basis_output_format)
+        rom_basis_output_available_formats = ["json", "numpy"]
+        if self.rom_basis_output_format not in rom_basis_output_available_formats:
+            err_msg = "Provided \'rom_basis_output_format\' is {}. Available options are \'json\' and \'numpy\'.".format(self.rom_basis_output_format)
             raise Exception(err_msg)
+
         self.rom_basis_output_name = settings["rom_basis_output_name"].GetString()
+
+        self.rom_basis_output_folder = Path(settings["rom_basis_output_folder"].GetString())
 
         # Get the SVD truncation tolerance
         self.svd_truncation_tolerance = settings["svd_truncation_tolerance"].GetDouble()
@@ -72,17 +77,30 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         # Initialize the snapshots data list
         self.snapshots_data_list = []
 
+        # Set the flag allowing to run multiple simulations using this process #TODO cope with arbitrarily large cases (parallelism)
+        self.rom_manager = settings["rom_manager"].GetBool()
+
+        # Set the flag to print the Singular Values vector corresponding to the SVD modes
+        self.print_singular_values = settings["print_singular_values"].GetBool()
+        if self.print_singular_values and self.rom_basis_output_format == "json":
+            err_msg = 'Cannot print singular values if using the "json" output format for CalculateRomBasisOutputProcess. Please use "numpy" instead.'
+            raise Exception(err_msg)
+
+
     @classmethod
     def GetDefaultParameters(self):
         default_settings = KratosMultiphysics.Parameters("""{
             "help": "A process to set the snapshots matrix and calculate the ROM basis from it.",
             "model_part_name": "",
+            "rom_manager" : false,
             "snapshots_control_type": "step",
             "snapshots_interval": 1.0,
             "nodal_unknowns": [],
-            "rom_basis_output_format": "json",
+            "rom_basis_output_format": "numpy",
             "rom_basis_output_name": "RomParameters",
-            "svd_truncation_tolerance": 1.0e-6
+            "rom_basis_output_folder" : "rom_data",
+            "svd_truncation_tolerance": 1.0e-6,
+            "print_singular_values": false
         }""")
 
         return default_settings
@@ -98,10 +116,10 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
     def PrintOutput(self):
         # Save the data in the snapshots data list
         aux_data_array = []
-        for node in self.model_part.Nodes:
-            for snapshot_var in self.snapshot_variables_list:
-                aux_data_array.append(node.GetSolutionStepValue(snapshot_var))
-        self.snapshots_data_list.append(aux_data_array)
+        for snapshot_var in self.snapshot_variables_list:
+            aux_data_array.append( numpy.array(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self.model_part.Nodes, snapshot_var, 0), copy=False ))
+        self.snapshots_data_list.append(numpy.stack(aux_data_array, axis=1).reshape(-1,1))
+
 
         # Schedule next snapshot output
         if self.snapshots_interval > 0.0: # Note: if == 0, we'll just always print
@@ -114,48 +132,91 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
                 while self.next_output <= step:
                     self.next_output += self.snapshots_interval
 
-    def ExecuteFinalize(self):
+
+    def _GetSnapshotsMatrix(self):
+        return numpy.block(self.snapshots_data_list)
+
+
+    def _ComputeSVD(self, snapshots_matrix):
+
+        # Calculate the randomized SVD of the snapshots matrix
+        u,sigma,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
+        return u, sigma
+
+
+    def _PrintRomBasis(self, u, sigma):
         # Initialize the Python dictionary with the default settings
         # Note that this order is kept if Python 3.6 onwards is used
         rom_basis_dict = {
+            "rom_manager" : False,
             "train_hrom": False,
             "run_hrom": False,
-            "rom_settings": {},
+            "projection_strategy": "galerkin",
+            "assembling_strategy": "global",
+            "rom_format": "numpy",
+            "rom_settings": {
+                "rom_bns_settings": {}
+            },
             "hrom_settings": {},
             "nodal_modes": {},
             "elements_and_weights" : {}
         }
         #TODO: I'd rename elements_and_weights to hrom_weights
 
-        # Set a NumPy array with the snapshots data
-        n_nodes = self.model_part.NumberOfNodes()
-        n_data_cols = len(self.snapshots_data_list)
+        if self.rom_manager:
+            rom_basis_dict["rom_manager"] = True
+        rom_basis_dict["hrom_settings"]["hrom_format"] = self.rom_basis_output_format
         n_nodal_unknowns = len(self.snapshot_variables_list)
-        snapshots_matrix = numpy.empty((n_nodal_unknowns*n_nodes,n_data_cols))
-        for i_col in range(n_data_cols):
-            aux_col = numpy.array(self.snapshots_data_list[i_col])
-            snapshots_matrix[:,i_col] = aux_col.transpose()
-
-        # Calculate the randomized SVD of the snapshots matrix
-        u,_,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
 
         # Save the nodal basis
         rom_basis_dict["rom_settings"]["nodal_unknowns"] = [var.Name() for var in self.snapshot_variables_list]
         rom_basis_dict["rom_settings"]["number_of_rom_dofs"] = numpy.shape(u)[1] #TODO: This is way misleading. I'd call it number_of_basis_modes or number_of_rom_modes
+        rom_basis_dict["projection_strategy"] = "galerkin" # Galerkin: (Phi.T@K@Phi dq= Phi.T@b), LSPG = (K@Phi dq= b), Petrov-Galerkin = (Psi.T@K@Phi dq = Psi.T@b)
+        rom_basis_dict["assembling_strategy"] = "global" # Assemble the ROM globally or element by element: "global" (Phi_g @ J_g @ Phi_g), "element by element" sum(Phi_e^T @ K_e @ Phi_e)
+        rom_basis_dict["rom_format"] = self.rom_basis_output_format
+        rom_basis_dict["rom_settings"]["petrov_galerkin_number_of_rom_dofs"] = 0
+        #NOTE "petrov_galerkin_number_of_rom_dofs" is not used unless a Petrov-Galerkin simulation is called, in which case it shall be modified either manually or from the RomManager
 
-        i = 0
-        for node in self.model_part.Nodes:
-            rom_basis_dict["nodal_modes"][node.Id] = u[i:i+n_nodal_unknowns].tolist()
-            i += n_nodal_unknowns
+        # Create the folder if it doesn't already exist
+        if not self.rom_basis_output_folder.exists():
+            self.rom_basis_output_folder.mkdir(parents=True)
 
-        # Export the ROM basis dictionary
         if self.rom_basis_output_format == "json":
-            output_filename = self.rom_basis_output_name + "." + self.rom_basis_output_format
-            with open(output_filename, 'w') as f:
-                json.dump(rom_basis_dict, f, indent = 4)
+            # Storing modes in JSON format
+            i = 0
+            for node in self.model_part.Nodes:
+                rom_basis_dict["nodal_modes"][node.Id] = u[i:i+n_nodal_unknowns].tolist()
+                i += n_nodal_unknowns
+
+        elif self.rom_basis_output_format == "numpy":
+            # Storing modes in Numpy format
+            node_ids = []
+            for node in self.model_part.Nodes:
+                node_ids.append(node.Id)
+            node_ids = numpy.array(node_ids)
+            numpy.save(self.rom_basis_output_folder / "RightBasisMatrix.npy", u)
+            numpy.save(self.rom_basis_output_folder / "NodeIds.npy", node_ids)
+            if self.print_singular_values:
+                numpy.save(self.rom_basis_output_folder / "SingularValuesVector.npy", sigma)
         else:
             err_msg = "Unsupported output format {}.".format(self.rom_basis_output_format)
             raise Exception(err_msg)
+
+        # Creating the ROM JSON file containing or not the modes depending on "self.rom_basis_output_format"
+        output_filename = self.rom_basis_output_folder / f"{self.rom_basis_output_name}.json"
+        with output_filename.open('w') as f:
+            json.dump(rom_basis_dict, f, indent = 4)
+
+
+    def ExecuteFinalize(self):
+        # Prepare a NumPy array with the snapshots data
+        self.n_nodes = self.model_part.NumberOfNodes()
+        self.n_data_cols = len(self.snapshots_data_list)
+        self.n_nodal_unknowns = len(self.snapshot_variables_list)
+
+        if not self.rom_manager:
+            u, sigma = self._ComputeSVD(self._GetSnapshotsMatrix())
+            self._PrintRomBasis(u, sigma)
 
     def __GetPrettyFloat(self, number):
         float_format = "{:.12f}"

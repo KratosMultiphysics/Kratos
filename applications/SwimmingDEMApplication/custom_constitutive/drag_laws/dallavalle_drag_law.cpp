@@ -34,7 +34,7 @@ namespace Kratos {
 
         const double equivalent_diameter = this->CalculateEquivalentDiameter(p_particle);
 
-        Geometry<Node<3> >& r_geometry = p_particle->GetGeometry();
+        Geometry<Node >& r_geometry = p_particle->GetGeometry();
         const double eps = r_geometry[0].FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
 
         double weighting_sum = this->CalculateWeightingSum(p_particle, equivalent_diameter);

@@ -195,6 +195,11 @@ namespace Kratos {
 
         AttachSpheresToStickyWalls();
 
+        if (r_process_info[CONTACT_MESH_OPTION] == 1) {
+            CreateContactElements();
+            InitializeContactElements();
+        }
+
         //set flag to 2 (search performed this timestep)
         mSearchControl = 2;
 
@@ -220,8 +225,8 @@ namespace Kratos {
             ConditionsArrayType& rConditions = submp.GetCommunicator().LocalMesh().Conditions();
 
             block_for_each(rConditions, [&](ModelPart::ConditionType& rCondition){
-            rCondition.Set(DEMFlags::STICKY, true);
-        });
+                rCondition.Set(DEMFlags::STICKY, true);
+            });
         }
 
         const int number_of_particles = (int) mListOfSphericParticles.size();
@@ -454,6 +459,9 @@ namespace Kratos {
         if (is_time_to_print_results && r_process_info[CONTACT_MESH_OPTION] == 1) {
             CreateContactElements();
             InitializeContactElements();
+        }else if (r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] && r_process_info[CONTACT_MESH_OPTION] == 1) {
+            CreateContactElements();
+            InitializeContactElements();
         }
 
         //RebuildPropertiesProxyPointers(mListOfSphericParticles);
@@ -654,6 +662,10 @@ namespace Kratos {
 
         if (r_process_info[DOMAIN_IS_PERIODIC]) {
             mpParticleCreatorDestructor->MoveParticlesOutsideBoundingBoxBackInside(r_model_part);
+            if (is_time_to_mark_and_remove){ //in "periodic" condition, we should also could delete particles
+                mpParticleCreatorDestructor->DestroyParticles<Cluster3D>(*mpCluster_model_part);
+                mpParticleCreatorDestructor->DestroyParticles<SphericParticle>(r_model_part);
+            }
         } else if (is_time_to_mark_and_remove) {
             mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox<Cluster3D>(*mpCluster_model_part);
             mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox<SphericParticle>(r_model_part);
@@ -737,8 +749,8 @@ namespace Kratos {
 
                 if (!r_process_info[IS_RESTARTED]){
                 // Central Node
-                Node<3>::Pointer central_node;
-                Geometry<Node<3> >::PointsArrayType central_node_list;
+                Node::Pointer central_node;
+                Geometry<Node >::PointsArrayType central_node_list;
 
                 array_1d<double, 3> reference_coordinates = ZeroVector(3);
 
@@ -786,7 +798,7 @@ namespace Kratos {
                 if (submp.Has(FREE_BODY_MOTION)) { // JIG: Backward compatibility, it should be removed in the future
                     if (submp[FREE_BODY_MOTION]) {
 
-                        std::vector<std::vector<Node<3>::Pointer> > thread_vectors_of_node_pointers;
+                        std::vector<std::vector<Node::Pointer> > thread_vectors_of_node_pointers;
                         thread_vectors_of_node_pointers.resize(mNumberOfThreads);
                         std::vector<std::vector<array_1d<double, 3> > > thread_vectors_of_coordinates;
                         thread_vectors_of_coordinates.resize(mNumberOfThreads);
@@ -885,7 +897,7 @@ namespace Kratos {
                 }
                 //node_area += 0.333333333333333 * Element_Area; //TODO: ONLY FOR TRIANGLE... Generalize for 3 or 4 nodes.
                 //node_pressure actually refers to normal force. Pressure is actually computed later in function Calculate_Nodal_Pressures_and_Stresses()
-                node_pressure += MathUtils<double>::Abs(GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element));
+                node_pressure += std::abs(GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element));
                 noalias(node_rhs_tang) += rhs_cond_comp - GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element) * Normal_to_Element;
 
                 geom[i].UnSetLock();
@@ -975,7 +987,7 @@ namespace Kratos {
         block_for_each(r_model_part_nodes, [&](ModelPart::NodeType& rNode) {
 
             if (rNode.Is(BLOCKED)) return;
-            Node<3>& node = rNode;
+            Node& node = rNode;
 
             if (node.GetDof(VELOCITY_X, vel_x_dof_position).IsFixed()) {
                 node.Set(DEMFlags::FIXED_VEL_X, true);
@@ -1286,20 +1298,112 @@ namespace Kratos {
         KRATOS_TRY
 
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
-        IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i) {
-            mListOfSphericParticles[i]->SetSearchRadius(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
-        });
+        if (GetDeltaOption() == 3){
+            // In this case, the parameter "added_search_distance" is actually a multiplier for getting the added_search_distance
+            const double search_radius_multiplier = added_search_distance;
+            IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i) {
+                mListOfSphericParticles[i]->SetSearchRadius(amplification * ((1 + search_radius_multiplier) *  mListOfSphericParticles[i]->GetRadius()));
+            });
+        }
+        else{
+            IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i) {
+                mListOfSphericParticles[i]->SetSearchRadius(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
+            });
+        }
 
         KRATOS_CATCH("")
     }
 
-    void ExplicitSolverStrategy::SetNormalRadiiOnAllParticles(ModelPart& r_model_part) {
+    void ExplicitSolverStrategy::SetNormalRadiiOnAllParticlesBeforeInitilization(ModelPart& r_model_part) {
         KRATOS_TRY
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
 
         IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){
             mListOfSphericParticles[i]->SetRadius();
         });
+
+        KRATOS_CATCH("")
+    }
+    
+    void ExplicitSolverStrategy::SetNormalRadiiOnAllParticles(ModelPart& r_model_part) {
+        KRATOS_TRY
+        int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
+
+        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
+        bool is_radius_expansion = r_process_info[IS_RADIUS_EXPANSION];
+        
+        if (!is_radius_expansion) {
+            IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){
+                mListOfSphericParticles[i]->SetRadius();
+            });
+        } else {
+            SetExpandedRadiiOnAllParticles(number_of_elements);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void ExplicitSolverStrategy::SetExpandedRadiiOnAllParticles(int number_of_elements) {
+        KRATOS_TRY
+
+        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
+        double radius_expansion_rate = r_process_info[RADIUS_EXPANSION_RATE];
+        double radius_multiplier_max = r_process_info[RADIUS_MULTIPLIER_MAX];
+        double radius_multiplier;
+        double radius_multiplier_old;
+        
+        bool is_radius_expansion = true;
+        CalculateRadiusExpansionVariables(is_radius_expansion, 
+                                        radius_expansion_rate, 
+                                        radius_multiplier_max, 
+                                        radius_multiplier, 
+                                        radius_multiplier_old);
+
+        IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){
+            mListOfSphericParticles[i]->SetRadius(is_radius_expansion, radius_expansion_rate, radius_multiplier_max, radius_multiplier, radius_multiplier_old);
+        });
+
+        KRATOS_CATCH("")
+    }
+
+    void ExplicitSolverStrategy::CalculateRadiusExpansionVariables(bool& is_radius_expansion, 
+                                                                double& radius_expansion_rate, 
+                                                                double& radius_multiplier_max, 
+                                                                double& radius_multiplier, 
+                                                                double& radius_multiplier_old) {
+        KRATOS_TRY
+
+        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
+        bool is_radius_expansion_rate_change = r_process_info[IS_RADIUS_EXPANSION_RATE_CHANGE];
+        const double time = r_process_info[TIME];
+        const double delta_time = r_process_info[DELTA_TIME];
+
+        if (is_radius_expansion_rate_change){
+            double radius_expansion_acceleration = r_process_info[RADIUS_EXPANSION_ACCELERATION];
+            double radius_expansion_rate_min = r_process_info[RADIUS_EXPANSION_RATE_MIN];
+            double radius_expansion_rate_ini = radius_expansion_rate;
+            double radius_expansion_rate_old = radius_expansion_rate + radius_expansion_acceleration * (time - delta_time);
+            radius_expansion_rate += radius_expansion_acceleration * time;
+
+            if (radius_expansion_rate > radius_expansion_rate_min){
+                radius_multiplier = 1.0 + time * (radius_expansion_rate + radius_expansion_rate_ini) * 0.5;
+                radius_multiplier_old = 1.0 + (time - delta_time) * (radius_expansion_rate_old + radius_expansion_rate_ini) * 0.5;
+            } else {
+                double time_needed = (radius_expansion_rate_min - radius_expansion_rate_ini) / radius_expansion_acceleration;
+                double radius_multiplier_part_1 = time_needed * (radius_expansion_rate_min + radius_expansion_rate_ini) * 0.5;
+                double radius_multiplier_part_2 = (time - time_needed) * radius_expansion_rate_min;
+                radius_multiplier = 1.0 + radius_multiplier_part_1 + radius_multiplier_part_2;
+                radius_multiplier_old = radius_multiplier - delta_time * radius_expansion_rate_min;
+            }
+
+        } else {
+            radius_multiplier = 1.0 + time * radius_expansion_rate;
+            radius_multiplier_old = 1.0 + (time - delta_time) * radius_expansion_rate;
+        }
+
+        if (radius_multiplier > radius_multiplier_max) {
+            is_radius_expansion = false;
+        }
 
         KRATOS_CATCH("")
     }
@@ -1456,7 +1560,7 @@ namespace Kratos {
                         ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*> (p_old_contact_element.get());
                         mListOfSphericParticles[i]->mBondElements[j] = p_bond;
                     } else {
-                        Geometry<Node<3> >::PointsArrayType NodeArray(2);
+                        Geometry<Node >::PointsArrayType NodeArray(2);
                         NodeArray.GetContainer()[0] = mListOfSphericParticles[i]->GetGeometry()(0);
                         NodeArray.GetContainer()[1] = neighbour_element->GetGeometry()(0);
                         const Properties::Pointer& properties = mListOfSphericParticles[i]->pGetProperties();

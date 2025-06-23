@@ -36,7 +36,7 @@ debugApp.AddElements([
     .AddClassMemberVariables([
         ClassMemberCreator(name='VariableA', vtype='double *', default='nullptr'),
         ClassMemberCreator(name='VariableB', vtype='int', default='0'),
-        ClassMemberCreator(name='VariableC', vtype='std::string', default='"Usefull String"'),
+        ClassMemberCreator(name='VariableC', vtype='std::string', default='"Useful String"'),
     ])
 ])
 

@@ -233,7 +233,7 @@ namespace Kratos
 	if( (conditions_begin + fc)->Is(TO_ERASE) )
 	  std::cout<<" ERROR: condition to erase present "<<std::endl;
 
-	Geometry< Node<3> >& rGeometry = (conditions_begin + fc)->GetGeometry();
+	Geometry< Node >& rGeometry = (conditions_begin + fc)->GetGeometry();
 
 	//std::cout<<" Facet["<<fc<<"]: (";
 

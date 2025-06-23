@@ -3,11 +3,11 @@ import KratosMultiphysics.TrilinosApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 from KratosMultiphysics.mpi import DataCommunicatorFactory
-import os
+
+import pathlib
 
 def GetFilePath(fileName):
-    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
-
+    return str(pathlib.Path(__file__).absolute().parent / fileName)
 
 class TestLinearSolvers(KratosUnittest.TestCase):
     @classmethod
@@ -55,10 +55,10 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         space = KratosMultiphysics.TrilinosApplication.TrilinosSparseSpace()
 
         #read the matrices
-        pA = space.ReadMatrixMarketMatrix(GetFilePath(matrix_name),comm)
+        pA = space.ReadMatrixMarketMatrix(GetFilePath( "auxiliary_files/matrix_market_files/" + matrix_name),comm)
         n = space.Size1(pA.GetReference())
 
-        pAoriginal = space.ReadMatrixMarketMatrix(GetFilePath(matrix_name),comm)
+        pAoriginal = space.ReadMatrixMarketMatrix(GetFilePath( "auxiliary_files/matrix_market_files/" + matrix_name),comm)
         pb  = space.CreateEmptyVectorPointer(comm)
         space.ResizeVector(pb,n)
         space.SetToZeroVector(pb.GetReference())
@@ -75,7 +75,6 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         #space.SetToZeroVector(boriginal)
         #space.UnaliasedAdd(boriginal, 1.0, b) #boriginal=1*bs
 
-
         #construct the solver
         linear_solver = trilinos_linear_solver_factory.ConstructSolver(settings)
 
@@ -88,13 +87,11 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         space.SetToZeroVector(ptmp.GetReference())
         space.Mult(pAoriginal.GetReference(),px.GetReference(),ptmp.GetReference())
 
-
         pcheck = space.CreateEmptyVectorPointer(comm)
         space.ResizeVector(pcheck,n)
         space.SetToZeroVector(pcheck.GetReference())
         space.UnaliasedAdd(pcheck.GetReference(), 1.0,pboriginal.GetReference())
         space.UnaliasedAdd(pcheck.GetReference(), -1.0,ptmp.GetReference())
-
 
         achieved_norm = space.TwoNorm(pcheck.GetReference())
 
@@ -112,7 +109,6 @@ class TestLinearSolvers(KratosUnittest.TestCase):
 
         #destroy the preconditioner - this is needed since  the solver should be destroyed before the destructor of the system matrix is called
         del linear_solver
-
 
 @KratosUnittest.skipUnless(hasattr(KratosMultiphysics.TrilinosApplication, 'AmesosSolver'), "AmesosSolver was explicitly disabled.")
 class TestAmesosLinearSolvers(TestLinearSolvers):
@@ -157,7 +153,6 @@ class TestAmesosLinearSolvers(TestLinearSolvers):
 
         with self.subTest('SubComm'):
             self._RunParametrizedWithSubComm(params_string)
-
 
     def test_amesos_klu(self):
         if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Klu") ):
@@ -696,4 +691,5 @@ class TestAMGCLMPILinearSolvers(TestLinearSolvers):
 
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

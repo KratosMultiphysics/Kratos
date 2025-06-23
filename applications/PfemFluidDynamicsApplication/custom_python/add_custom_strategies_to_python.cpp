@@ -16,10 +16,11 @@
 
 #include "spaces/ublas_space.h"
 
-//strategies
+// strategies
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_strategies/strategies/v_p_strategy.h"
 #include "custom_strategies/strategies/two_step_v_p_strategy.h"
+#include "custom_strategies/strategies/two_step_v_p_thermal_strategy.h"
 #include "custom_strategies/strategies/three_step_v_p_strategy.h"
 #include "custom_strategies/strategies/gauss_seidel_linear_strategy.h"
 #include "custom_strategies/strategies/nodal_two_step_v_p_strategy.h"
@@ -28,13 +29,13 @@
 
 // builder_and_solvers
 
-//convergence criterias
+// convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
-//linear solvers
+// linear solvers
 #include "linear_solvers/linear_solver.h"
 
-//schemes
+// schemes
 
 namespace Kratos
 {
@@ -48,18 +49,19 @@ namespace Kratos
             typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
             typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-            //base types
+            // base types
             typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
             typedef SolvingStrategy<SparseSpaceType, LocalSpaceType> BaseSolvingStrategyType;
             typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> ImplicitBaseSolvingStrategyType;
             typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
             typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
-            //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
+            // typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
 
-            //custom strategy types
+            // custom strategy types
             typedef ThreeStepVPStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> ThreeStepVPStrategyType;
             typedef VPStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> VPStrategyType;
             typedef TwoStepVPStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> TwoStepVPStrategyType;
+            typedef TwoStepVPThermalStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> TwoStepVPThermalStrategyType;
             typedef TwoStepVPDEMcouplingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> TwoStepVPDEMcouplingStrategyType;
             typedef NodalTwoStepVPStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> NodalTwoStepVPStrategyType;
             typedef NodalTwoStepVPStrategyForFSI<SparseSpaceType, LocalSpaceType, LinearSolverType> NodalTwoStepVPStrategyForFSIType;
@@ -79,6 +81,10 @@ namespace Kratos
                 ;
 
             py::class_<TwoStepVPStrategyType, TwoStepVPStrategyType::Pointer, VPStrategyType>(m, "TwoStepVPStrategy")
+                .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int, unsigned int>());
+            ;
+
+            py::class_<TwoStepVPThermalStrategyType, TwoStepVPThermalStrategyType::Pointer, TwoStepVPStrategyType>(m, "TwoStepVPThermalStrategy")
                 .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int, unsigned int>());
             ;
 

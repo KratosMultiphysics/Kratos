@@ -3,15 +3,17 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Massimo Petracca
 //
-//
 
-#if !defined(KRATOS_SHELLQ4_LOCAL_COORDINATE_SYSTEM_H_INCLUDED )
-#define  KRATOS_SHELLQ4_LOCAL_COORDINATE_SYSTEM_H_INCLUDED
+#pragma once
+
+// System includes
+
+// External includes
 
 // Project includes
 #include "utilities/math_utils.h"
@@ -69,7 +71,7 @@ public:
         : mP(4)
         , mOrientation(3, 3)
     {
-        // Form the basis vectors alligning the local X direction
+        // Form the basis vectors aligning the local X direction
         // with the 1-2 side
 
         // compute the central point
@@ -129,7 +131,7 @@ public:
         : mP(4)
         , mOrientation(3, 3)
     {
-        // Form the basis vectors alligning the local X direction
+        // Form the basis vectors aligning the local X direction
         // with the 1-2 side
 
         // compute the central point
@@ -433,6 +435,3 @@ public:
 };
 
 }
-
-
-#endif // KRATOS_SHELLQ4_LOCAL_COORDINATE_SYSTEM_H_INCLUDED

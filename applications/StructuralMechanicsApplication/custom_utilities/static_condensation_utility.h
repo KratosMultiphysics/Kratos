@@ -1,18 +1,16 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Klauss B Sautter
 //                   Philipp Bucher
 //
 
-#if !defined(KRATOS_STATIC_CONDENSATION_UTILITY_H_INCLUDED )
-#define  KRATOS_STATIC_CONDENSATION_UTILITY_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -32,7 +30,7 @@ namespace Kratos
     /**
      * @namespace StaticCondensationUtility
      *
-     * @brief This utilitiy condenses given degrees of freedom from any element stiffness matrix to model e.g. hinges
+     * @brief This utility condenses given degrees of freedom from any element stiffness matrix to model e.g. hinges
      *
      * @author Klaus B Sautter, Philipp Bucher
      */
@@ -123,7 +121,5 @@ namespace Kratos
 	}  // namespace StaticCondensationUtility
 
 }  // namespace Kratos.
-
-#endif // KRATOS_STATIC_CONDENSATION_UTILITY_H_INCLUDED  defined
 
 

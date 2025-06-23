@@ -20,60 +20,21 @@
 
 // Application includes
 #include "convection_diffusion_application.h"
+#include "../test_utilities/convection_diffusion_testing_utilities.h"
 
-
-namespace Kratos
+namespace Kratos::Testing
 {
-namespace Testing
-{
-
-void SetMixedLaplacianElementTestModelPart(ModelPart &rModelPart)
-{
-    // Set buffer size
-    rModelPart.SetBufferSize(2);
-
-    // Set convection diffusion settings
-    ConvectionDiffusionSettings::Pointer p_conv_dff_set = Kratos::make_shared<ConvectionDiffusionSettings>();
-    p_conv_dff_set->SetDensityVariable(DENSITY);
-    p_conv_dff_set->SetDiffusionVariable(CONDUCTIVITY);
-    p_conv_dff_set->SetUnknownVariable(TEMPERATURE);
-    p_conv_dff_set->SetGradientVariable(TEMPERATURE_GRADIENT);
-    p_conv_dff_set->SetVolumeSourceVariable(HEAT_FLUX);
-    p_conv_dff_set->SetSurfaceSourceVariable(FACE_HEAT_FLUX);
-    p_conv_dff_set->SetProjectionVariable(PROJECTED_SCALAR1);
-    p_conv_dff_set->SetConvectionVariable(CONVECTION_VELOCITY);
-    p_conv_dff_set->SetMeshVelocityVariable(MESH_VELOCITY);
-    p_conv_dff_set->SetVelocityVariable(VELOCITY);
-    p_conv_dff_set->SetSpecificHeatVariable(SPECIFIC_HEAT);
-    p_conv_dff_set->SetReactionVariable(REACTION_FLUX);
-    p_conv_dff_set->SetReactionGradientVariable(REACTION);
-    rModelPart.GetProcessInfo().SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_dff_set);
-
-    // Variables addition
-    rModelPart.AddNodalSolutionStepVariable(DENSITY);
-    rModelPart.AddNodalSolutionStepVariable(CONDUCTIVITY);
-    rModelPart.AddNodalSolutionStepVariable(TEMPERATURE);
-    rModelPart.AddNodalSolutionStepVariable(TEMPERATURE_GRADIENT);
-    rModelPart.AddNodalSolutionStepVariable(HEAT_FLUX);
-    rModelPart.AddNodalSolutionStepVariable(FACE_HEAT_FLUX);
-    rModelPart.AddNodalSolutionStepVariable(PROJECTED_SCALAR1);
-    rModelPart.AddNodalSolutionStepVariable(CONVECTION_VELOCITY);
-    rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
-    rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-    rModelPart.AddNodalSolutionStepVariable(SPECIFIC_HEAT);
-    rModelPart.AddNodalSolutionStepVariable(REACTION_FLUX);
-    rModelPart.AddNodalSolutionStepVariable(REACTION);
-
-    // Create a fake properties container
-    auto p_elem_prop = rModelPart.CreateNewProperties(0);
-}
 
 KRATOS_TEST_CASE_IN_SUITE(MixedLaplacianElement2D3N, KratosConvectionDiffusionFastSuite)
 {
     // Create the test element
     Model model;
     auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-    SetMixedLaplacianElementTestModelPart(r_test_model_part);
+    ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(r_test_model_part);
+
+    // Add the TEMPERATURE_GRADIENT variable (not added by SetEntityUnitTestModelPart)
+    r_test_model_part.AddNodalSolutionStepVariable(TEMPERATURE_GRADIENT);
+    r_test_model_part.GetProcessInfo()[CONVECTION_DIFFUSION_SETTINGS]->SetGradientVariable(TEMPERATURE_GRADIENT);
 
     // Element creation
     r_test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -98,8 +59,8 @@ KRATOS_TEST_CASE_IN_SUITE(MixedLaplacianElement2D3N, KratosConvectionDiffusionFa
 
     std::vector<double> expected_RHS = {0.1666666667, 0.025, 0.025, 0.1666666667, -0.025, 0, 0.1666666667, 0, -0.025};
     std::vector<double> expected_LHS_row_0 = {0.1, -0.15, -0.15, -0.05, -0.15, -0.15, -0.05, -0.15, -0.15};
-    KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-8)
-    KRATOS_CHECK_VECTOR_NEAR(row(LHS,0), expected_LHS_row_0, 1.0e-8)
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, expected_RHS, 1.0e-8)
+    KRATOS_EXPECT_VECTOR_NEAR(row(LHS,0), expected_LHS_row_0, 1.0e-8)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MixedLaplacianElement3D4N, KratosConvectionDiffusionFastSuite)
@@ -107,7 +68,11 @@ KRATOS_TEST_CASE_IN_SUITE(MixedLaplacianElement3D4N, KratosConvectionDiffusionFa
     // Create the test element
     Model model;
     auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-    SetMixedLaplacianElementTestModelPart(r_test_model_part);
+    ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(r_test_model_part);
+
+    // Add the TEMPERATURE_GRADIENT variable (not added by SetEntityUnitTestModelPart)
+    r_test_model_part.AddNodalSolutionStepVariable(TEMPERATURE_GRADIENT);
+    r_test_model_part.GetProcessInfo()[CONVECTION_DIFFUSION_SETTINGS]->SetGradientVariable(TEMPERATURE_GRADIENT);
 
     // Element creation
     r_test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -133,9 +98,8 @@ KRATOS_TEST_CASE_IN_SUITE(MixedLaplacianElement3D4N, KratosConvectionDiffusionFa
 
     std::vector<double> expected_RHS = {0.04166666667,0.005047557202,0.005047557202,0.005047557202,0.04166666667,-0.005047557202,0,0,0.04166666667,0,-0.005047557202,0,0.04166666667,0,0,-0.005047557202};
     std::vector<double> expected_LHS_row_0 = {0.05, -0.0375, -0.0375, -0.0375, -0.01666666667, -0.0375, -0.0375, -0.0375, -0.01666666667, -0.0375, -0.0375, -0.0375, -0.01666666667, -0.0375, -0.0375, -0.0375};
-    KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-8)
-    KRATOS_CHECK_VECTOR_NEAR(row(LHS,0), expected_LHS_row_0, 1.0e-8)
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, expected_RHS, 1.0e-8)
+    KRATOS_EXPECT_VECTOR_NEAR(row(LHS,0), expected_LHS_row_0, 1.0e-8)
 }
 
-} // namespace Testing
-} // namespace Kratos.
+} // namespace Kratos::Testing.

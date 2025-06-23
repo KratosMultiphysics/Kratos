@@ -29,16 +29,16 @@ KRATOS_TEST_CASE(GeometricalObject_IsActive)
 {
     GeometricalObject geom_obj;
 
-    KRATOS_CHECK(geom_obj.IsActive()); // active by default
+    KRATOS_EXPECT_TRUE(geom_obj.IsActive()); // active by default
 
     geom_obj.Set(ACTIVE, true);
-    KRATOS_CHECK(geom_obj.IsActive());
+    KRATOS_EXPECT_TRUE(geom_obj.IsActive());
 
     geom_obj.Set(ACTIVE, false);
-    KRATOS_CHECK_IS_FALSE(geom_obj.IsActive());
+    KRATOS_EXPECT_FALSE(geom_obj.IsActive());
 
     geom_obj.Reset(ACTIVE);
-    KRATOS_CHECK(geom_obj.IsActive()); // active by default
+    KRATOS_EXPECT_TRUE(geom_obj.IsActive()); // active by default
 }
 
 } // namespace Kratos::Testing

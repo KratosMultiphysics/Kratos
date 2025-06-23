@@ -50,7 +50,7 @@ class MapperTestCase(KratosUnittest.TestCase):
 
     def setUp(self):
         # reset the ModelPart
-        # initialize it with random values, such that I am not accidentially
+        # initialize it with random values, such that I am not accidentally
         # checking against 0.0
         default_scalar = -12345.6789
         default_vector = KM.Vector([111.222, -222.999, 333.444])
@@ -69,7 +69,6 @@ class MapperTestCase(KratosUnittest.TestCase):
             condition.SetValue(KM.PRESSURE, default_scalar)
             condition.SetValue(KM.FORCE, default_vector)
 
-
         for node in self.model_part_destination.Nodes:
             node.SetSolutionStepValue(KM.TEMPERATURE, default_scalar)
             node.SetSolutionStepValue(KM.VELOCITY, default_vector)
@@ -83,7 +82,6 @@ class MapperTestCase(KratosUnittest.TestCase):
         for condition in self.model_part_destination.Conditions:
             condition.SetValue(KM.TEMPERATURE, default_scalar)
             condition.SetValue(KM.VELOCITY, default_vector)
-
 
 def GetFullModelPartName(model_part):
     full_name = model_part.Name

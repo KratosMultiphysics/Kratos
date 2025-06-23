@@ -63,7 +63,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     ///NodeType
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
     ///Geometry Type
     typedef Geometry<NodeType> GeometryType;
     ///Element Type
@@ -79,7 +79,7 @@ public:
     ///BaseLengths
     typedef ContactDomainUtilities::BaseLengths           BaseLengths;
 
-    typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node > NodeWeakPtrVectorType;
     typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
     typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 
@@ -125,7 +125,7 @@ protected:
        //The stabilization parameter and penalty parameter
         double          StabilizationFactor;
 
-        //Contact condition conectivities
+        //Contact condition connectivities
         std::vector<unsigned int> nodes;
         std::vector<unsigned int> order;
         std::vector<unsigned int> slaves;
@@ -296,7 +296,7 @@ public:
     void InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override;
 
     /**
-     * Called at the end of eahc solution step
+     * Called at the end of each solution step
      */
     void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 

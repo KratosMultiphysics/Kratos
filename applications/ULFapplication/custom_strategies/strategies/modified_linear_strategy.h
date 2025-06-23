@@ -787,8 +787,8 @@ private:
             if(it->FastGetSolutionStepValue(IS_FLUID)!=0 && (it->GetValue(NEIGHBOUR_NODES)).size() != 0 )
             {
                 int count_fluid_neighb=0;
-                GlobalPointersVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
-                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                GlobalPointersVector< Node >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
+                for( GlobalPointersVector< Node >::iterator i =	neighb_nodes.begin();
                         i != neighb_nodes.end(); i++)
                 {
                     if (i->FastGetSolutionStepValue(IS_FLUID)!=0)
@@ -811,7 +811,7 @@ private:
 
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
         {
-            GlobalPointersVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
             if( neighb_nodes.size() != 0 && it->FastGetSolutionStepValue(IS_FLUID)!=0)
             {
                 //first row in the block
@@ -826,7 +826,7 @@ private:
                 }
 
                 //filling and order the first neighbours list
-                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                for( GlobalPointersVector< Node >::iterator i =	neighb_nodes.begin();
                         i != neighb_nodes.end(); i++)
                 {
                     if ( i->FastGetSolutionStepValue(IS_FLUID)!=0)
@@ -903,7 +903,7 @@ private:
         {
 
 
-            Geometry< Node<3> >& geom = i->GetGeometry();
+            Geometry< Node >& geom = i->GetGeometry();
             //counting the n-r of structure nodes
             unsigned int str_nr=0;
 

@@ -125,7 +125,7 @@ public:
         return Kratos::make_shared<ClassType>(ThisParameters);
     }
 
-    /// Initialize the iteration counter at the begining of each solution step
+    /// Initialize the iteration counter at the beginning of each solution step
     /**
       * @param r_model_part The problem's ModelPart
       * @param A System matrix

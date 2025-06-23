@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_EXCEPTION_H_INCLUDED )
-#define  KRATOS_EXCEPTION_H_INCLUDED
+#pragma once
 
 // System includes
 #include <stdexcept>
@@ -109,7 +108,7 @@ public:
     ///@name Access
     ///@{
 
-    /// The overide of the base class what method
+    /// The override of the base class what method
     /** This method returns the entire message with where information
     */
 
@@ -189,5 +188,3 @@ KRATOS_API(KRATOS_CORE) std::ostream& operator << (std::ostream& rOStream, const
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_EXCEPTION_H_INCLUDED  defined

@@ -55,7 +55,7 @@ namespace Kratos
     typedef ModelPart::ConditionsContainerType ConditionsContainerType;
     typedef ModelPart::MeshType MeshType;
 
-    typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
     typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
     typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 
@@ -74,7 +74,7 @@ namespace Kratos
      * understood as the surface elements of the area of interest.
      * @param rModelPart ModelPart of the problem. Must have a set of conditions defining the "skin" of the domain
      * @param dimension Spatial dimension (2 or 3)
-     * @note Use this fuction instead of its overload taking a Conditions array for MPI applications,
+     * @note Use this function instead of its overload taking a Conditions array for MPI applications,
      * as it will take care of communication between partitions.
      */
 
@@ -282,7 +282,7 @@ namespace Kratos
     // to the corresponding nodes
     static void CalculateUnitNormal2D(Condition &rCondition, array_1d<double, 3> &An)
     {
-      Geometry<Node<3>> &rGeometry = rCondition.GetGeometry();
+      Geometry<Node> &rGeometry = rCondition.GetGeometry();
 
       // Attention: normal criterion changed for line conditions (vs line elements)
       An[0] = rGeometry[1].Y() - rGeometry[0].Y();
@@ -296,7 +296,7 @@ namespace Kratos
     static void CalculateUnitNormal3D(Condition &rCondition, array_1d<double, 3> &An,
                                       array_1d<double, 3> &v1, array_1d<double, 3> &v2)
     {
-      Geometry<Node<3>> &rGeometry = rCondition.GetGeometry();
+      Geometry<Node> &rGeometry = rCondition.GetGeometry();
 
       v1[0] = rGeometry[1].X() - rGeometry[0].X();
       v1[1] = rGeometry[1].Y() - rGeometry[0].Y();
@@ -317,7 +317,7 @@ namespace Kratos
     // to the corresponding nodes
     static void CalculateUnitNormal2D(Element &rElement, array_1d<double, 3> &An)
     {
-      Geometry<Node<3>> &rGeometry = rElement.GetGeometry();
+      Geometry<Node> &rGeometry = rElement.GetGeometry();
 
       if (rGeometry.size() < 2)
       {
@@ -339,7 +339,7 @@ namespace Kratos
     static void CalculateUnitNormal3D(Element &rElement, array_1d<double, 3> &An,
                                       array_1d<double, 3> &v1, array_1d<double, 3> &v2)
     {
-      Geometry<Node<3>> &rGeometry = rElement.GetGeometry();
+      Geometry<Node> &rGeometry = rElement.GetGeometry();
 
       if (rGeometry.size() < 3)
       {
@@ -505,7 +505,7 @@ namespace Kratos
 
       ElementsContainerType::iterator it = rElements.begin();
 
-      if ((it)->GetGeometry().Dimension() == dimension)
+      if ((it)->GetGeometry().WorkingSpaceDimension() == dimension)
       {
         return true;
       }
@@ -522,7 +522,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      if (rModelPart.Conditions().begin()->GetGeometry().Dimension() == dimension)
+      if (rModelPart.Conditions().begin()->GetGeometry().WorkingSpaceDimension() == dimension)
       {
         return true;
       }
@@ -581,7 +581,7 @@ namespace Kratos
       ModelPart::NodesContainerType &rNodes = rModelPart.Nodes();
       ModelPart::ElementsContainerType &rElements = rModelPart.Elements();
 
-      // Check if the neigbours search is already done and set
+      // Check if the neighbours search is already done and set
       bool neighsearch = false;
       unsigned int number_of_nodes = rElements.begin()->GetGeometry().PointsNumber();
       for (unsigned int i = 0; i < number_of_nodes; ++i)
@@ -738,7 +738,7 @@ namespace Kratos
         // adding the normals to the nodes
         for (auto &i_cond : rModelPart.Conditions())
         {
-          Geometry<Node<3>> &rGeometry = i_cond.GetGeometry();
+          Geometry<Node> &rGeometry = i_cond.GetGeometry();
           double coeff = 1.00 / rGeometry.size();
           const array_1d<double, 3> &An = i_cond.GetValue(NORMAL);
 
@@ -754,7 +754,7 @@ namespace Kratos
         // adding the normals to the nodes
         for (auto &i_elem : rModelPart.Elements())
         {
-          Geometry<Node<3>> &rGeometry = i_elem.GetGeometry();
+          Geometry<Node> &rGeometry = i_elem.GetGeometry();
           double coeff = 1.00 / rGeometry.size();
           const array_1d<double, 3> &An = i_elem.GetValue(NORMAL);
 
@@ -1268,7 +1268,7 @@ namespace Kratos
           if (norm_2(rNormal) != 0)
             rNormal = rNormal / norm_2(rNormal);
 
-          for (unsigned int i_norm = 0; i_norm < NumberOfNeighbourNormals; ++i_norm) // loop over node neigbour faces
+          for (unsigned int i_norm = 0; i_norm < NumberOfNeighbourNormals; ++i_norm) // loop over node neighbour faces
           {
             if (FaceNormals[i_norm] != 1)
             { // not coincident normal
@@ -1617,7 +1617,7 @@ namespace Kratos
     //           //std::cout<<" modulus 1 "<<Normal.modulus()<<std::endl;
     //           Normal=Normal/norm_2(Normal);
     //           Normal*=1.2;
-    //           //Normal.write(" CORRRECTION ");
+    //           //Normal.write(" CORRECTION ");
     //           //std::cout<<" modulus 2 "<<Normal.modulus()<<std::endl;
     //         }
 
@@ -1631,7 +1631,7 @@ namespace Kratos
     //         if(norm_2(Normal)!=0)
     //           Normal=Normal/norm_2(Normal); //normalize normal *this/modulus();
 
-    //         for(unsigned int esnod=0;esnod<normals_size;++esnod)//loop over node neigbour faces
+    //         for(unsigned int esnod=0;esnod<normals_size;++esnod)//loop over node neighbour faces
     //           {
     //     	if (storenorm[esnod]!=1){
 

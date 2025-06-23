@@ -126,7 +126,7 @@ namespace Kratos
 	      //Find the neighbours of TRIPLE_POINT at the boundary
 	      if ((im->FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
 	      {
-		GlobalPointersVector< Node<3> >& neighb = im->GetValue(NEIGHBOUR_NODES);
+		GlobalPointersVector< Node >& neighb = im->GetValue(NEIGHBOUR_NODES);
 		x0 = im->X();
 		y0 = im->Y();
 		x1 = 0.0;
@@ -164,7 +164,7 @@ namespace Kratos
 	      //Find the neighbours of IS_FREE_SURFACE at the boundary
 	      if (im->FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
 	      {
-		GlobalPointersVector< Node<3> >& neighb = im->GetValue(NEIGHBOUR_NODES);
+		GlobalPointersVector< Node >& neighb = im->GetValue(NEIGHBOUR_NODES);
 		x0 = im->X();
 		y0 = im->Y();
 		x1 = 0.0;
@@ -217,7 +217,7 @@ namespace Kratos
 	      //Find the neighbours of TRIPLE_POINT at the boundary
 	      if ((im->FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
 	      {
-		GlobalPointersVector< Node<3> >& neighb = im->GetValue(NEIGHBOUR_NODES);
+		GlobalPointersVector< Node >& neighb = im->GetValue(NEIGHBOUR_NODES);
 		double x0 = im->X();
 		double y0 = im->Y();
 		double z0 = im->Z();

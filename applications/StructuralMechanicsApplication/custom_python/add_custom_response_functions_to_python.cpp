@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:        BSD License
-//	                license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Armin Geiser
 //
@@ -32,8 +32,7 @@
 #include "custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_nodal_reaction_response_function.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
 {
@@ -88,6 +87,5 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, Parameters>());
 }
 
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.
 

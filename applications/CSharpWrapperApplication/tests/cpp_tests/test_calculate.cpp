@@ -8,10 +8,10 @@
 //                                 |_|                     |_|   |_|                    |_|   |_|
 //
 //
-//  License: BSD License
-//   license: CSharpWrapperApplication/license.txt
+//  License:         BSD License
+//                   license: CSharpWrapperApplication/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -28,10 +28,10 @@ namespace Kratos {
     namespace Testing {
         void CreateMDPAFile() {
             std::filebuf buffer;
-            buffer.open(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.mdpa"}), std::ios::out);
+            std::filesystem::path file_path = std::filesystem::current_path() / "file.mdpa";
+            buffer.open(file_path.string().c_str(), std::ios::out);
             std::ostream os(&buffer);
-            os
-                    << "Begin ModelPartData\nEnd ModelPartData\n\nBegin Properties  0\n    DENSITY 2700.000000\n    YOUNG_MODULUS 7000000.000000\n    POISSON_RATIO 0.300000\n    BODY_FORCE [3] (0.000000,0.000000,0.000000)\n    THICKNESS 1.000000\nEnd Properties\n\nBegin Nodes\n        1        0.0        0.0         0.0\n        2        0.0        0.0         1.0\n        3        1.0        0.0         0.0\n        4        1.0        1.0         0.0\nEnd Nodes\n\nBegin Elements SmallDisplacementElement3D4N\n    1 0 1 2 3 4\nEnd Elements\n\nBegin SubModelPart BasePart // Note that this would be a sub sub modelpart\n    Begin SubModelPartNodes\n        1\n        2\n    End SubModelPartNodes\n    Begin SubModelPart inner_part\n        Begin SubModelPartNodes\n            1\n        End SubModelPartNodes\n    End SubModelPart\nEnd SubModelPart";
+            os << "Begin ModelPartData\nEnd ModelPartData\n\nBegin Properties  0\n    DENSITY 2700.000000\n    YOUNG_MODULUS 7000000.000000\n    POISSON_RATIO 0.300000\n    BODY_FORCE [3] (0.000000,0.000000,0.000000)\n    THICKNESS 1.000000\nEnd Properties\n\nBegin Nodes\n        1        0.0        0.0         0.0\n        2        0.0        0.0         1.0\n        3        1.0        0.0         0.0\n        4        1.0        1.0         0.0\nEnd Nodes\n\nBegin Elements SmallDisplacementElement3D4N\n    1 0 1 2 3 4\nEnd Elements\n\nBegin SubModelPart BasePart // Note that this would be a sub sub modelpart\n    Begin SubModelPartNodes\n        1\n        2\n    End SubModelPartNodes\n    Begin SubModelPart inner_part\n        Begin SubModelPartNodes\n            1\n        End SubModelPartNodes\n    End SubModelPart\nEnd SubModelPart";
             buffer.close();
         }
 
@@ -86,7 +86,8 @@ namespace Kratos {
             })");
             const std::string &r_json_text = json_parameters.PrettyPrintJsonString();
             std::filebuf buffer;
-            buffer.open(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.json"}), std::ios::out);
+            std::filesystem::path file_path_json = std::filesystem::current_path() / "file.json";
+            buffer.open(file_path_json.string().c_str(), std::ios::out);
             std::ostream os(&buffer);
             os << r_json_text;
             buffer.close();
@@ -102,9 +103,9 @@ namespace Kratos {
 
             // Import mdpa
             CreateMDPAFile();
-            const std::string file_name = FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.mdpa"});
+            std::filesystem::path file_path = std::filesystem::current_path() / "file.mdpa";
             CSharpKratosWrapper::KratosWrapper *wrapperInstance = new CSharpKratosWrapper::KratosWrapper();
-            wrapperInstance->init(file_name.c_str());
+            wrapperInstance->init(file_path.string().c_str());
             CSharpKratosWrapper::ModelPartWrapper *mainModelPart = wrapperInstance->getRootModelPartWrapper();
             // Get some API info
             mainModelPart->retrieveResults();
@@ -117,9 +118,9 @@ namespace Kratos {
 
 //             // Non-initialized (calculated)
 //             for (int i = 0; i < n; i++) {
-//                 KRATOS_CHECK_NEAR(x[i], 0.0, float_epsilon);
-//                 KRATOS_CHECK_NEAR(y[i], 0.0, float_epsilon);
-//                 KRATOS_CHECK_NEAR(z[i], 0.0, float_epsilon);
+//                 KRATOS_EXPECT_NEAR(x[i], 0.0, float_epsilon);
+//                 KRATOS_EXPECT_NEAR(y[i], 0.0, float_epsilon);
+//                 KRATOS_EXPECT_NEAR(z[i], 0.0, float_epsilon);
 //             }
 
             // None fixed
@@ -129,18 +130,18 @@ namespace Kratos {
             y = mainModelPart->getYCoordinates();
             z = mainModelPart->getZCoordinates();
 
-//             KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[0], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(x[1], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[1], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[1], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(x[2], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[2], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[2], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(x[3], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[3], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[0], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[0], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[0], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[1], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[1], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[1], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[2], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[2], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[2], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[3], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[3], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[3], 0.0, float_epsilon);
 
             // All fixed
             mainModelPart->updateNodePos(0, x[0], y[0], z[0]);
@@ -154,18 +155,18 @@ namespace Kratos {
             y = mainModelPart->getYCoordinates();
             z = mainModelPart->getZCoordinates();
 
-//             KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[0], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(x[1], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[1], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[1], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(x[2], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[2], 1.0e-8, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[2], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(x[3], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[3], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[0], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[0], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[0], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[1], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[1], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[1], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[2], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[2], 1.0e-8, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[2], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[3], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[3], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[3], 0.0, float_epsilon);
 
             // Partially fixed
             mainModelPart->updateNodePos(0, x[0], y[0], z[0]);
@@ -178,20 +179,20 @@ namespace Kratos {
             y = mainModelPart->getYCoordinates();
             z = mainModelPart->getZCoordinates();
 
-//             KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[0], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(x[1], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[1], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[1], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(x[2], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[2], 2.0e-8, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[2], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(x[3], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[3], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[0], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[0], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[0], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[1], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[1], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[1], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[2], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[2], 2.0e-8, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[2], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[3], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[3], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[3], 0.0, float_epsilon);
 
-            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.mdpa"})).c_str());
+            std::filesystem::remove(file_path);
         }
 
         /**
@@ -205,11 +206,11 @@ namespace Kratos {
             // Import mdpa
             CreateMDPAFile();
             CreateJSONFile();
-            const std::string file_name = FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.mdpa"});
-            const std::string file_name_json = FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.json"});
+            std::filesystem::path file_path = std::filesystem::current_path() / "file.mdpa";
+            std::filesystem::path file_path_json = std::filesystem::current_path() / "file.json";
             CSharpKratosWrapper::KratosWrapper *wrapperInstance = new CSharpKratosWrapper::KratosWrapper();
 
-            wrapperInstance->init(file_name.c_str(), file_name_json.c_str());
+            wrapperInstance->init(file_path.string().c_str(), file_path_json.string().c_str());
             CSharpKratosWrapper::ModelPartWrapper *mainModelPart = wrapperInstance->getRootModelPartWrapper();
 
             // Get some API info
@@ -223,9 +224,9 @@ namespace Kratos {
 
 //             // Non-initialized (calculated)
 //             for (int i = 0; i < n; i++) {
-//                 KRATOS_CHECK_NEAR(x[i], 0.0, float_epsilon);
-//                 KRATOS_CHECK_NEAR(y[i], 0.0, float_epsilon);
-//                 KRATOS_CHECK_NEAR(z[i], 0.0, float_epsilon);
+//                 KRATOS_EXPECT_NEAR(x[i], 0.0, float_epsilon);
+//                 KRATOS_EXPECT_NEAR(y[i], 0.0, float_epsilon);
+//                 KRATOS_EXPECT_NEAR(z[i], 0.0, float_epsilon);
 //             }
 
             // None fixed
@@ -235,18 +236,18 @@ namespace Kratos {
             y = mainModelPart->getYCoordinates();
             z = mainModelPart->getZCoordinates();
 
-//             KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[0], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(x[1], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[1], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[1], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(x[2], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[2], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[2], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(x[3], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[3], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[0], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[0], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[0], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[1], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[1], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[1], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[2], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[2], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[2], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[3], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[3], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[3], 0.0, float_epsilon);
 
             // All fixed
             mainModelPart->updateNodePos(0, x[0], y[0], z[0]);
@@ -260,18 +261,18 @@ namespace Kratos {
             y = mainModelPart->getYCoordinates();
             z = mainModelPart->getZCoordinates();
 
-//             KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[0], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(x[1], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[1], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[1], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(x[2], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[2], 1.0e-8, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[2], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(x[3], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[3], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[0], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[0], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[0], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[1], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[1], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[1], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[2], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[2], 1.0e-8, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[2], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[3], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[3], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[3], 0.0, float_epsilon);
 
             // Partially fixed
             mainModelPart->updateNodePos(0, x[0], y[0], z[0]);
@@ -284,21 +285,21 @@ namespace Kratos {
             y = mainModelPart->getYCoordinates();
             z = mainModelPart->getZCoordinates();
 
-//             KRATOS_CHECK_NEAR(x[0], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[0], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[0], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(x[1], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[1], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[1], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(x[2], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[2], 2.0e-8, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[2], 0.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(x[3], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(y[3], 1.0, float_epsilon);
-//             KRATOS_CHECK_NEAR(z[3], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[0], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[0], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[0], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[1], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[1], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[1], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[2], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[2], 2.0e-8, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[2], 0.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(x[3], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(y[3], 1.0, float_epsilon);
+//             KRATOS_EXPECT_NEAR(z[3], 0.0, float_epsilon);
 
-            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.mdpa"})).c_str());
-            Kratos::filesystem::remove((FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "file.json"})).c_str());
+            std::filesystem::remove(file_path);
+            std::filesystem::remove(file_path_json);
         }
 
     } // namespace Testing

@@ -117,11 +117,25 @@ public:
     static double ComputeCorrectionFactor(ModelPart& rModelPart, const double PrevConstraintValue, const double ConstraintValue, double& CorrectionScaling, const bool IsAdaptive);
 
     /**
+     * Assemble the values of the scalar variable into a vector
+     */
+    static void AssembleVector( ModelPart& rModelPart,
+        Vector& rVector,
+        const Variable<double> &rVariable);
+
+    /**
      * Assemble the values of the nodal vector variable into a vector
      */
     static void AssembleVector( ModelPart& rModelPart,
         Vector& rVector,
         const Variable<array_3d> &rVariable);
+
+    /**
+     * Assigns the values of a vector to the scalar variables
+     */
+    static void AssignVectorToVariable(ModelPart& rModelPart,
+        const Vector& rVector,
+        const Variable<double> &rVariable);
 
     /**
      * Assigns the values of a vector to the nodal vector variables
@@ -152,6 +166,59 @@ public:
         LinearSolver<DenseSpace, DenseSpace>& rSolver,
         Vector& rProjectedSearchDirection,
         Vector& rRestoration);
+
+     // ==============================================================================
+    // For running relaxed gradient projection
+    // ==============================================================================
+
+    /**
+     * Assemble a list of Numbers into a diagonal Matrix, independent of the model part
+     */
+    static void AssembleBufferMatrix( Matrix& rMatrix,
+        const std::vector<double>& rVariables)
+    {
+    	size_t VectorSize = rVariables.size();
+        rMatrix = ZeroMatrix(VectorSize, VectorSize);
+        IndexPartition(VectorSize).for_each([&](const int i) {rMatrix(i,i) = rVariables[i];} );
+    }
+
+    /**
+     * Calculate the relaxed projection of the objective gradient into the subspace tangent to
+     * the active constraint gradients.
+     * In a second step, calculate correction move
+     */
+    static void CalculateRelaxedProjectedSearchDirectionAndCorrection(
+        Vector& rObjectiveGradient,
+        Matrix& rConstraintGradients,
+        Matrix& rRelaxationCoefficients,
+        Vector& rCorrectionCoefficients,
+        LinearSolver<DenseSpace, DenseSpace>& rSolver,
+        Vector& rProjectedSearchDirection,
+        Vector& rCorrection
+        )
+    {
+        // local variable naming according to https://msulaiman.org/onewebmedia/GradProj_2.pdf
+        Vector& nabla_f = rObjectiveGradient;
+        Matrix& N = rConstraintGradients;
+        Vector& s = rProjectedSearchDirection;
+        Vector& c = rCorrection;
+        Matrix& omega_r = rRelaxationCoefficients;
+        Vector& omega_c = rCorrectionCoefficients;
+
+
+        Matrix NTN = prod(trans(N), N);
+        Matrix I = IdentityMatrix(N.size2());
+        Matrix NTN_inv(NTN.size1(), NTN.size2());
+
+        rSolver.Solve(NTN, NTN_inv, I); // solve with identity to get the inverse
+
+
+        s = - (nabla_f - prod(N, Vector(prod(omega_r, Vector(prod(NTN_inv, Vector(prod(trans(N), nabla_f))))))));
+
+        c = - prod(N, omega_c);
+
+    }
+
     // ==============================================================================
 
     ///@}

@@ -1,5 +1,4 @@
 
-import KratosMultiphysics.MeshingApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication
 import KratosMultiphysics.DEMApplication
 import KratosMultiphysics.StructuralMechanicsApplication

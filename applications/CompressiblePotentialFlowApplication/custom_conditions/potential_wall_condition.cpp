@@ -230,7 +230,7 @@ void PotentialWallCondition<TDim, TNumNodes>::PrintData(std::ostream& rOStream) 
 template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::CalculateNormal2D(array_1d<double, 3>& An) const
 {
-    const Geometry<Node<3>>& pGeometry = this->GetGeometry();
+    const Geometry<Node>& pGeometry = this->GetGeometry();
 
     An[0] = pGeometry[1].Y() - pGeometry[0].Y();
     An[1] = -(pGeometry[1].X() - pGeometry[0].X());
@@ -240,7 +240,7 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateNormal2D(array_1d<double,
 template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::CalculateNormal3D(array_1d<double, 3>& An) const
 {
-    const Geometry<Node<3>>& pGeometry = this->GetGeometry();
+    const Geometry<Node>& pGeometry = this->GetGeometry();
 
     array_1d<double, 3> v1, v2;
     v1[0] = pGeometry[1].X() - pGeometry[0].X();

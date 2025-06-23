@@ -1,0 +1,51 @@
+Begin ModelPartData
+End ModelPartData
+Begin Properties 0
+End Properties
+Begin Properties 1
+End Properties
+Begin Nodes
+		1     0.01     0.01    0.01    
+		2     0.01     0.02    0.01    
+		3     0.01     0.01    0.05    
+		4     0.07     0.07    0.01    
+		5     0.08     0.07    0.01    
+		6     0.07     0.07    0.05    
+		7     0.05     0.05    0.08    
+		8     0.05     0.08    0.08    
+		9     0.04     0.08    0.08    
+End Nodes
+Begin Conditions SurfaceCondition3D3N
+		1     1    1    2    3    
+		2     1    4    5    6    
+		3     1    7    8    9    
+		4     1    1    2    4    
+End Conditions
+Begin SubModelPart workpiece
+Begin SubModelPartNodes
+		1
+		2
+		3
+		4
+		5
+		6
+		7
+		8
+        9
+End SubModelPartNodes
+Begin SubModelPartConditions
+		1
+		2
+		3
+End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart base
+Begin SubModelPartNodes
+		1
+		2
+        4
+End SubModelPartNodes
+Begin SubModelPartConditions
+		4
+End SubModelPartConditions
+End SubModelPart

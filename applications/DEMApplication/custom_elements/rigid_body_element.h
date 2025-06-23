@@ -84,7 +84,7 @@ namespace Kratos {
         }
 
         std::vector<array_1d<double, 3> > mListOfCoordinates;
-        std::vector<Node<3>::Pointer > mListOfNodes;
+        std::vector<Node::Pointer > mListOfNodes;
         DEMIntegrationScheme* mpTranslationalIntegrationScheme;
         DEMIntegrationScheme* mpRotationalIntegrationScheme;
 

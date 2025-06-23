@@ -135,7 +135,7 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             "dimension"       : 2
         }""")
 
-        with self.assertRaisesRegex(Exception, '"dimension" cannot be specifed for scalar variables!'):
+        with self.assertRaisesRegex(Exception, '"dimension" cannot be specified for scalar variables!'):
             CouplingInterfaceData(settings, self.model)
 
     def test_wrong_input_no_dim_vector(self):
@@ -144,7 +144,7 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             "variable_name"   : "DISPLACEMENT"
         }""")
 
-        with self.assertRaisesRegex(Exception, '"dimension" has to be specifed for vector variables!'):
+        with self.assertRaisesRegex(Exception, '"dimension" has to be specified for vector variables!'):
             CouplingInterfaceData(settings, self.model)
 
     def test_wrong_input_variable_type(self):
@@ -250,7 +250,7 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             "location"        : "node_non_historical"
         }""")
 
-        with self.assertRaisesRegex(Exception, 'The ModelPart named : "something" was not found either as root-ModelPart or as a flat name. The total input string was "something'):
+        with self.assertRaisesRegex(Exception, 'The ModelPart named : "something" was not found as root-ModelPart. The total input string was "something'):
             CouplingInterfaceData(settings, self.model)
 
     def test_GetHistoricalVariableDict(self):

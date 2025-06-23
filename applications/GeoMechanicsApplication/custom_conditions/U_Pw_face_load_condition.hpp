@@ -12,9 +12,7 @@
 //                   Vahid Galavi
 //
 
-
-#if !defined(KRATOS_GEO_U_PW_FACE_LOAD_CONDITION_H_INCLUDED )
-#define  KRATOS_GEO_U_PW_FACE_LOAD_CONDITION_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/serializer.h"
@@ -27,88 +25,53 @@
 namespace Kratos
 {
 
-template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwFaceLoadCondition
-    : public UPwCondition<TDim,TNumNodes>
+template <unsigned int TDim, unsigned int TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwFaceLoadCondition : public UPwCondition<TDim, TNumNodes>
 {
-
 public:
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwFaceLoadCondition);
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwFaceLoadCondition );
-    
-    typedef std::size_t IndexType;
-	typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
-    using UPwCondition<TDim,TNumNodes>::mThisIntegrationMethod;
-    
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    using IndexType      = std::size_t;
+    using PropertiesType = Properties;
+    using GeometryType   = Geometry<Node>;
+    using NodesArrayType = GeometryType::PointsArrayType;
 
     // Default constructor
-    UPwFaceLoadCondition() : UPwCondition<TDim,TNumNodes>() {}
-    
+    UPwFaceLoadCondition() : UPwCondition<TDim, TNumNodes>() {}
+
     // Constructor 1
-    UPwFaceLoadCondition( IndexType NewId,
-                          GeometryType::Pointer pGeometry ) :
-                        UPwCondition<TDim,TNumNodes>(NewId, pGeometry) {}
-    
+    UPwFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+        : UPwCondition<TDim, TNumNodes>(NewId, pGeometry)
+    {
+    }
+
     // Constructor 2
-    UPwFaceLoadCondition( IndexType NewId,
-                          GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties ) :
-                        UPwCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
+    UPwFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+        : UPwCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    {
+    }
 
-    // Destructor
-    ~UPwFaceLoadCondition() override {}
+    Condition::Pointer Create(IndexType               NewId,
+                              NodesArrayType const&   ThisNodes,
+                              PropertiesType::Pointer pProperties) const override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    Condition::Pointer Create(IndexType NewId,
-                              NodesArrayType const& ThisNodes,
-                              PropertiesType::Pointer pProperties ) const override;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    std::string Info() const override;
 
 protected:
-
-    // Member Variables
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void CalculateRHS(VectorType& rRightHandSideVector,
-                      const ProcessInfo& CurrentProcessInfo) override;
-
-    virtual void CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
-                                                 const Matrix& Jacobian,
-                                                 const double& Weight);
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
 
 private:
-    
-    // Member Variables
-    
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    // Serialization
-    
     friend class Serializer;
-    
+
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
-    
 }; // class UPwFaceLoadCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_U_PW_FACE_LOAD_CONDITION_H_INCLUDED defined 

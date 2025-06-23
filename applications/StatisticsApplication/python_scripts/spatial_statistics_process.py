@@ -102,7 +102,7 @@ class SpatialStatisticsProcess(Kratos.Process):
         spatial_method_output_names_ = [method_info[0] for method_info in spatial_output_method_info]
         spatial_method_output = [method_info[1] for method_info in spatial_output_method_info]
 
-        for variable_settings in self.settings["input_variable_settings"]:
+        for variable_settings in self.settings["input_variable_settings"].values():
             variable_settings.ValidateAndAssignDefaults(default_parameters["input_variable_settings"][0])
 
             container_type = variable_settings["container"].GetString()
@@ -116,7 +116,7 @@ class SpatialStatisticsProcess(Kratos.Process):
                 if (not Kratos.KratosGlobals.HasVariable(variable_name)):
                     raise RuntimeError("Variable not found. [ variable_name = " + variable_name + " ]")
 
-                for method_settings in self.settings["statistics_methods"]:
+                for method_settings in self.settings["statistics_methods"].values():
                     method_settings.ValidateAndAssignDefaults(default_parameters["statistics_methods"][0])
 
                     method_name = method_settings["method_name"].GetString()
@@ -165,7 +165,7 @@ class SpatialStatisticsProcess(Kratos.Process):
         if (not self.model.HasModelPart(self.model_part_name)):
             raise RuntimeError(self.model_part_name + " not found.")
 
-        for variable_settings in self.variables_settings_list:
+        for variable_settings in self.variables_settings_list.values():
             variable_names_list = variable_settings["variable_names"].GetStringArray()
 
             container = variable_settings["container"].GetString()

@@ -91,7 +91,7 @@ public:
         std::vector<array_1d<double,3>> pos_int_unit_normals;   // Positive interface unit normal vector in each Gauss pt.
 
         std::vector<unsigned int>   int_vec_identifiers;    // Interior (fluid) nodes identifiers
-        std::vector<unsigned int>   out_vec_identifiers;    // Outside (stucture) nodes identifiers
+        std::vector<unsigned int>   out_vec_identifiers;    // Outside (structure) nodes identifiers
 
         unsigned int    n_pos = 0;                          // Number of postivie distance nodes
         unsigned int    n_neg = 0;                          // Number of negative distance nodes
@@ -188,7 +188,7 @@ public:
 
             GeometryPointerType p_geom = this->pGetGeometry();
 
-            // Construct the modified shape fucntions utility
+            // Construct the modified shape functions utility
             ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
             if constexpr (TNumNodes == 4) {
                 p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, distances);
@@ -563,7 +563,7 @@ protected:
                 }
             }
 
-            // Contribution coming fron the shear stress operator
+            // Contribution coming from the shear stress operator
             noalias(auxLeftHandSideMatrix) += weight*prod(N_aux_trans, aux_matrix_ACB);
 
             // Contribution coming from the pressure terms
@@ -793,7 +793,7 @@ protected:
     }
 
     /**
-    * This drops the outer nodes velocity constributions in both LHS and RHS matrices.
+    * This drops the outer nodes velocity contributions in both LHS and RHS matrices.
     * @param rLeftHandSideMatrix reference to the LHS matrix
     * @param rRightHandSideVector reference to the RHS vector
     * @param rData reference to element data structure
@@ -980,7 +980,7 @@ protected:
             const BoundedMatrix<double, (TDim-1)*3, TDim> aux_matrix_APnorm = prod(trans(voigt_normal_projection_matrix), normal_projection_matrix);
             const BoundedMatrix<double, MatrixSize, TDim> aux_matrix_BCAPnorm = prod(aux_matrix_BC, aux_matrix_APnorm);
 
-            // Contribution coming fron the shear stress operator
+            // Contribution coming from the shear stress operator
             noalias(auxLeftHandSideMatrix) += adjoint_consistency_term*weight*prod(aux_matrix_BCAPnorm, N_aux);
 
             // Contribution coming from the pressure terms
@@ -1216,7 +1216,7 @@ protected:
         } else {
             // First, compute and assemble the penalty level set BC imposition contribution
             // Secondly, compute and assemble the modified Nitche method level set BC imposition contribution (Codina and Baiges, 2009)
-            // Note that the Nitche contribution has to be computed the last since it drops the outer nodes rows previous constributions
+            // Note that the Nitche contribution has to be computed the last since it drops the outer nodes rows previous contributions
             AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rCurrentProcessInfo);
             DropOuterNodesVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
             AddBoundaryConditionModifiedNitcheContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
@@ -1292,11 +1292,7 @@ protected:
 
         // Fill the tangential projection matrix (I - nxn)
         if constexpr (TDim == 3) {
-            #ifdef KRATOS_USE_AMATRIX
-            BoundedMatrix<double,3,3> id_matrix = IdentityMatrix(TDim);
-            #else
             BoundedMatrix<double,3,3> id_matrix = IdentityMatrix(TDim,TDim);
-            #endif
             noalias(rTangProjMatrix) = id_matrix - outer_prod(rUnitNormal, rUnitNormal);
         } else {
             rTangProjMatrix(0,0) = 1.0 - rUnitNormal(0)*rUnitNormal(0);

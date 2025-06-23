@@ -62,7 +62,7 @@ public:
         rParameters["variable_name"];
         rParameters["model_part_name"];
 
-        // Now validate agains defaults -- this also ensures no type mismatch
+        // Now validate against defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mVariableName = rParameters["variable_name"].GetString();
@@ -86,7 +86,7 @@ public:
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize() override
+    void ExecuteBeforeSolutionLoop() override
     {
 
         KRATOS_TRY;
@@ -98,7 +98,10 @@ public:
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
-            if ((mInputFile == "") || (mInputFile == "- No file") || (mInputFile == "- Add new file"))
+            std::string no_file_str = "- No file";
+            std::string add_file_str = "- Add new file";
+
+            if ((mInputFile == "") || strstr(mInputFile.c_str(),no_file_str.c_str()) || strstr(mInputFile.c_str(),add_file_str.c_str()))
             {
                 #pragma omp parallel for
                 for(int i = 0; i<nnodes; i++)
@@ -140,7 +143,10 @@ public:
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
-            if ((mInputFile == "") || (mInputFile == "- No file") || (mInputFile == "- Add new file"))
+            std::string no_file_str = "- No file";
+            std::string add_file_str = "- Add new file";
+
+            if ((mInputFile == "") || strstr(mInputFile.c_str(),no_file_str.c_str()) || strstr(mInputFile.c_str(),add_file_str.c_str()))
             {
                 #pragma omp parallel for
                 for(int i = 0; i<nnodes; i++)

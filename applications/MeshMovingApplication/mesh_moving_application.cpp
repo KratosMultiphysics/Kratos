@@ -33,41 +33,41 @@ namespace Kratos {
 KratosMeshMovingApplication::KratosMeshMovingApplication()
     : KratosApplication("MeshMovingApplication"),
       mLaplacianMeshMovingElement2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
+          0, Element::GeometryType::Pointer(new Triangle2D3<Node>(
                  Element::GeometryType::PointsArrayType(3)))),
       mLaplacianMeshMovingElement2D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
+          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node>(
                  Element::GeometryType::PointsArrayType(4)))),
       mLaplacianMeshMovingElement3D4N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
+          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(
                  Element::GeometryType::PointsArrayType(4)))),
       mLaplacianMeshMovingElement3D8N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3>>(
+          0, Element::GeometryType::Pointer(new Hexahedra3D8<Node>(
                  Element::GeometryType::PointsArrayType(8)))),
       mStructuralMeshMovingElement2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
+          0, Element::GeometryType::Pointer(new Triangle2D3<Node>(
                  Element::GeometryType::PointsArrayType(3)))),
       mStructuralMeshMovingElement2D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(
+          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node>(
                  Element::GeometryType::PointsArrayType(4)))),
       mStructuralMeshMovingElement3D4N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
+          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(
                  Element::GeometryType::PointsArrayType(4)))),
       mStructuralMeshMovingElement3D8N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3>>(
+          0, Element::GeometryType::Pointer(new Hexahedra3D8<Node>(
                  Element::GeometryType::PointsArrayType(8)))),
       mStructuralMeshMovingElement3D6N(
-          0, Element::GeometryType::Pointer(new Prism3D6<Node<3>>(
+          0, Element::GeometryType::Pointer(new Prism3D6<Node>(
                  Element::GeometryType::PointsArrayType(6)))),
       mStructuralMeshMovingElement3D15N(
-          0, Element::GeometryType::Pointer(new Prism3D15<Node<3>>(
+          0, Element::GeometryType::Pointer(new Prism3D15<Node>(
                  Element::GeometryType::PointsArrayType(15)))),
       // Elements with empty geometry for automatic element generation by
       // GenerateMeshPart function
       mLaplacianMeshMovingElement(
-          0, Element::GeometryType::Pointer(new Geometry<Node<3>>())),
+          0, Element::GeometryType::Pointer(new Geometry<Node>())),
       mStructuralMeshMovingElement(
-          0, Element::GeometryType::Pointer(new Geometry<Node<3>>())) {}
+          0, Element::GeometryType::Pointer(new Geometry<Node>())) {}
 
 void KratosMeshMovingApplication::Register()
 {

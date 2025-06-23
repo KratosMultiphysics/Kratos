@@ -67,7 +67,7 @@ public:
     typedef std::size_t SizeType;
 
     /// The definition of the node
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// Pointer definition of SplitInternalInterfacesProcess
     KRATOS_CLASS_POINTER_DEFINITION(SplitInternalInterfacesProcess);

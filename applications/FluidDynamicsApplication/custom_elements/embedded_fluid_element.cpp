@@ -4,10 +4,11 @@
 #include "custom_elements/qs_vms.h"
 #include "custom_elements/weakly_compressible_navier_stokes.h"
 
-#include "custom_utilities/embedded_data.h"
 #include "utilities/element_size_calculator.h"
-#include "custom_utilities/time_integrated_qsvms_data.h"
-#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
+
+#include "data_containers/embedded_data.h"
+#include "data_containers/time_integrated_qs_vms/time_integrated_qs_vms_data.h"
+#include "data_containers/weakly_compressible_navier_stokes/weakly_compressible_navier_stokes_data.h"
 
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
@@ -85,7 +86,7 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo) {
 
-    // Resize and intialize output
+    // Resize and initialize output
     if (rLeftHandSideMatrix.size1() != LocalSize)
         rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
@@ -133,7 +134,7 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
         } else {
             // First, compute and assemble the penalty level set BC imposition contribution
             // Secondly, compute and assemble the modified Nitsche method level set BC imposition contribution (Codina and Baiges, 2009)
-            // Note that the Nistche contribution has to be computed the last since it drops the outer nodes rows previous constributions
+            // Note that the Nistche contribution has to be computed the last since it drops the outer nodes rows previous contributions
             AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
             DropOuterNodesVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
             AddBoundaryConditionModifiedNitscheContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
@@ -436,11 +437,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalPenaltyContribution(
                     const unsigned int row = i * BlockSize + m;
                     for (unsigned int n = 0; n < Dim; ++n){
                         const unsigned int col = j * BlockSize + n;
-                        #ifdef KRATOS_USE_AMATRIX
-                        double lhs_ij = pen_coef*weight*aux_N[i]*aux_unit_normal(m)*aux_unit_normal(n)*aux_N[j];
-                        #else
                         double lhs_ij = pen_coef*weight*aux_N(i)*aux_unit_normal(m)*aux_unit_normal(n)*aux_N(j);
-                        #endif
                         rLHS(row, col) += lhs_ij;
                         rRHS(row) -= lhs_ij*values(col);
                     }
@@ -487,11 +484,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalSymmetricCounterpartContri
         BoundedMatrix<double, LocalSize, Dim> trans_pres_to_voigt_matrix_normal_op = ZeroMatrix(LocalSize, Dim);
         for (unsigned int i = 0; i < NumNodes; ++i){
             for (unsigned int comp = 0; comp < Dim; ++comp){
-                #ifdef KRATOS_USE_AMATRIX
-                trans_pres_to_voigt_matrix_normal_op(i*BlockSize + Dim, comp) = aux_N[i]*aux_unit_normal(comp);
-                #else
                 trans_pres_to_voigt_matrix_normal_op(i*BlockSize + Dim, comp) = aux_N(i)*aux_unit_normal(comp);
-                #endif
             }
         }
 
@@ -499,11 +492,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalSymmetricCounterpartContri
         BoundedMatrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
         for (unsigned int i = 0; i < NumNodes; ++i){
             for (unsigned int comp = 0; comp < Dim; ++comp){
-                #ifdef KRATOS_USE_AMATRIX
-                N_mat(comp, i*BlockSize + comp) = aux_N[i];
-                #else
                 N_mat(comp, i*BlockSize + comp) = aux_N(i);
-                #endif
             }
         }
 
@@ -524,7 +513,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalSymmetricCounterpartContri
         const BoundedMatrix<double, StrainSize, Dim> aux_matrix_APnorm = prod(trans(voigt_normal_proj_matrix), normal_proj_matrix);
         const BoundedMatrix<double, LocalSize, Dim> aux_matrix_BCAPnorm = prod(aux_matrix_BC, aux_matrix_APnorm);
 
-        // Contribution coming fron the shear stress operator
+        // Contribution coming from the shear stress operator
         noalias(aux_LHS) -= adjoint_consistency*weight*prod(aux_matrix_BCAPnorm, N_mat);
 
         // Contribution coming from the pressure terms
@@ -569,11 +558,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialPenaltyContribution(
         BoundedMatrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
         for (unsigned int i = 0; i < NumNodes; ++i){
             for (unsigned int comp = 0; comp < Dim; ++comp){
-                #ifdef KRATOS_USE_AMATRIX
-                N_mat(comp, i*BlockSize + comp) = aux_N[i];
-                #else
                 N_mat(comp, i*BlockSize + comp) = aux_N(i);
-                #endif
             }
         }
         BoundedMatrix<double, LocalSize, Dim> N_mat_trans = trans(N_mat);
@@ -657,11 +642,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialSymmetricCounterpartCo
         BoundedMatrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
         for (unsigned int i = 0; i < NumNodes; ++i){
             for (unsigned int comp = 0; comp < Dim; ++comp){
-                #ifdef KRATOS_USE_AMATRIX
-                N_mat(comp, i*BlockSize + comp) = aux_N[i];
-                #else
                 N_mat(comp, i*BlockSize + comp) = aux_N(i);
-                #endif
             }
         }
 
@@ -909,20 +890,12 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionModifiedNitscheCont
 
         for (unsigned int i_out = 0; i_out < rData.NumNegativeNodes; i_out++) {
             const unsigned int i_out_nodeid = rData.NegativeIndices[i_out];
-            #ifdef KRATOS_USE_AMATRIX
-            aux_out(i_out) = aux_cut[i_out_nodeid];
-            #else
             aux_out(i_out) = aux_cut(i_out_nodeid);
-            #endif
         }
 
         for (unsigned int i_int = 0; i_int < rData.NumPositiveNodes; ++i_int) {
             const unsigned int i_int_nodeid = rData.PositiveIndices[i_int];
-            #ifdef KRATOS_USE_AMATRIX
-            aux_int(i_int) = aux_cut[i_int_nodeid];
-            #else
             aux_int(i_int) = aux_cut(i_int_nodeid);
-            #endif
         }
 
         M_gamma += weight*outer_prod(aux_out,aux_out);

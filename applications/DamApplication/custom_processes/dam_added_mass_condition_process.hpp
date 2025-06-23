@@ -65,7 +65,7 @@ class DamAddedMassConditionProcess : public Process
         rParameters["variable_name"];
         rParameters["model_part_name"];
 
-        // Now validate agains defaults -- this also ensures no type mismatch
+        // Now validate against defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mVariableName = rParameters["variable_name"].GetString();
@@ -84,7 +84,7 @@ class DamAddedMassConditionProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize() override
+    void ExecuteBeforeSolutionLoop() override
     {
         KRATOS_TRY;
 
@@ -100,8 +100,6 @@ class DamAddedMassConditionProcess : public Process
         else
             direction = 2;
 
-        double ref_coord = mReferenceCoordinate + mWaterLevel;
-
         if (nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
@@ -111,14 +109,14 @@ class DamAddedMassConditionProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double y_water = ref_coord - (it->Coordinates()[direction]);
+                double y_water = mWaterLevel - (it->Coordinates()[direction]);
 
                 if (y_water < 0.0)
                 {
                     y_water = 0.0;
                 }
 
-                added_mass = 0.875 * mSpecific * sqrt(y_water * mWaterLevel);
+                added_mass = 0.875 * mSpecific * sqrt(y_water * (mWaterLevel - mReferenceCoordinate));
 
                 it->FastGetSolutionStepValue(var) = added_mass;
 
@@ -154,8 +152,6 @@ class DamAddedMassConditionProcess : public Process
         else
             direction = 2;
 
-        double ref_coord = mReferenceCoordinate + mWaterLevel;
-
         if (nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
@@ -165,14 +161,14 @@ class DamAddedMassConditionProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double y_water = ref_coord - (it->Coordinates()[direction]);
+                double y_water = mWaterLevel - (it->Coordinates()[direction]);
 
                 if (y_water < 0.0)
                 {
                     y_water = 0.0;
                 }
 
-                added_mass = 0.875 * mSpecific * sqrt(y_water * mWaterLevel);
+                added_mass = 0.875 * mSpecific * sqrt(y_water * (mWaterLevel - mReferenceCoordinate));
 
                 it->FastGetSolutionStepValue(var) = added_mass;
 

@@ -2,15 +2,18 @@ from sys import argv
 from importlib import import_module
 
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication
+# import KratosMultiphysics.FluidDynamicsApplication
 
-from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
+from KratosMultiphysics.analysis_stage import AnalysisStage
+# from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
-class DropletDynamicsAnalysis(FluidDynamicsAnalysis):
+class DropletDynamicsAnalysis(AnalysisStage): #FluidDynamicsAnalysis):
+
+    # __init__ function can be defined specifically here to set deprecation warnings; using the template project parameters, there is no need for that
 
     def _CreateSolver(self):
         if not isinstance(self.model, KratosMultiphysics.Model):
-            raise Exception("input is expected to be provided as a Kratos Model object")#
+            raise Exception("input is expected to be provided as a Kratos Model object")
 
         if not isinstance(self.project_parameters, KratosMultiphysics.Parameters):
             raise Exception("input is expected to be provided as a Kratos Parameters object")
@@ -24,6 +27,15 @@ class DropletDynamicsAnalysis(FluidDynamicsAnalysis):
 
     def _GetSimulationName(self):
         return "Droplet Dynamics Analysis"
+
+    # def _CreateProcesses can be defined specifically here to give some hints or warnings regarding to the processes called within the project parameters
+
+    def _GetOrderOfProcessesInitialization(self):
+        # This is the duplicate of the same function defined in FluidDynamicsAnalysis. The aim is to provide essential data (e.g. gravity) first and prevent any unwanted modification to the BC
+        return ["gravity",
+                "initial_conditions_process_list",
+                "boundary_conditions_process_list",
+                "auxiliar_process_list"]
 
 if __name__ == '__main__':
     if len(argv) > 2:

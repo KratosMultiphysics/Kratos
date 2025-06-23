@@ -57,7 +57,7 @@ public:
     ///@{
 
     /// Node type definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The definition of the index type
     typedef std::size_t IndexType;
@@ -246,7 +246,7 @@ private:
     /**
      * @brief This converts the algorithm string to an enum
      * @param Str The string that you want to convert in the equivalent enum
-     * @return Algorithm: The equivalent enum (this requires less memmory and is eassier to compare than a std::string)
+     * @return Algorithm: The equivalent enum (this requires less memory and is eassier to compare than a std::string)
      */
     Algorithm ConvertAlgorithmString(const std::string& Str)
     {

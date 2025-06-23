@@ -11,8 +11,7 @@
 //  Main authors:    Alejandro Cornejo & Lucia Barbu
 //
 
-#if !defined(KRATOS_TRESCA_PLASTIC_POTENTIAL_H_INCLUDED)
-#define KRATOS_TRESCA_PLASTIC_POTENTIAL_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -239,4 +238,3 @@ class TrescaPlasticPotential
 ///@}
 
 } // namespace Kratos.
-#endif

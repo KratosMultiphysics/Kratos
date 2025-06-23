@@ -128,7 +128,7 @@ void RigidFace3D::AddForcesDueToTorque(VectorType& rRightHandSideVector, Vector&
 void RigidFace3D::CalculateNormal(array_1d<double, 3>& rnormal){
 
 //    array_1d<double, 3> v1, v2;
-//    Geometry<Node<3> >& geom = GetGeometry();
+//    Geometry<Node >& geom = GetGeometry();
 
 //    v1[0] = geom[1][0] - geom[0][0];
 //    v1[1] = geom[1][1] - geom[0][1];
@@ -141,7 +141,7 @@ void RigidFace3D::CalculateNormal(array_1d<double, 3>& rnormal){
 //    MathUtils<double>::CrossProduct(rnormal, v1, v2);
 
 //    rnormal /= MathUtils<double>::Norm3(rnormal);
-    Geometry<Node<3> >& geom = GetGeometry();
+    Geometry<Node >& geom = GetGeometry();
     if (geom.size()>2){
         double v1[3];
         double v2[3];
@@ -390,7 +390,7 @@ void RigidFace3D::ComputeConditionRelativeData(int rigid_neighbour_index,
 
 int RigidFace3D::CheckSide(SphericParticle *p_particle){
     const array_1d<double, 3>& particle_center_coors = p_particle->GetGeometry()[0];
-    const Geometry<Node<3> >& geom = this->GetGeometry();
+    const Geometry<Node >& geom = this->GetGeometry();
     const auto& n0 = geom[0];
     const array_1d<double, 3> a0 = geom[1] - n0;
     const array_1d<double, 3> a1 = geom[2] - n0;
@@ -405,7 +405,7 @@ int RigidFace3D::CheckSide(SphericParticle *p_particle){
 bool RigidFace3D::CheckProjectionFallsInside(SphericParticle *p_particle)
 {
     const array_1d<double, 3>& P = p_particle->GetGeometry()[0].Coordinates();
-    const Geometry<Node<3> >& geom = GetGeometry();
+    const Geometry<Node >& geom = GetGeometry();
     const array_1d<double, 3>& P1 = geom[0].Coordinates();
     const array_1d<double, 3>& P2 = geom[1].Coordinates();
     const array_1d<double, 3>& P3 = geom[2].Coordinates();

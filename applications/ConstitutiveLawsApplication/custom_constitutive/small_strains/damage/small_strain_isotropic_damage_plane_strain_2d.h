@@ -10,8 +10,7 @@
 //
 //  Main authors:    Marcelo Raschi
 
-#if !defined(KRATOS_LINEAR_ISOTROPIC_DAMAGE_PLANE_STRAIN_2D_H_INCLUDED)
-#define KRATOS_LINEAR_ISOTROPIC_DAMAGE_PLANE_STRAIN_2D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -172,4 +171,3 @@ private:
 
 }; // class LinearIsotropicDamagePlaneStrain2DLaw
 } // namespace Kratos
-#endif

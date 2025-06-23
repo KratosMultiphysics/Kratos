@@ -73,7 +73,9 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
+    using BaseType = TwoFluidNavierStokes<TElementData>;
+
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
@@ -96,7 +98,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
     * @param NewId Index number of the new element (optional)
     */
@@ -116,7 +118,7 @@ public:
     */
     TwoFluidNavierStokesAlphaMethod(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
     * @param NewId Index of the new element
     * @param pGeometry Pointer to a geometry object
@@ -151,7 +153,7 @@ public:
     /**
     * Returns a pointer to a new FluidElement element, created using given input.
     * @param NewId the ID of the new element
-    * @param pGeom a pointer to the geomerty to be used to create the element
+    * @param pGeom a pointer to the geometry to be used to create the element
     * @param pProperties the properties assigned to the new element
     * @return a Pointer to the new element
     */
@@ -159,6 +161,15 @@ public:
         GeometryType::Pointer pGeom,
         Properties::Pointer pProperties) const override;
 
+    void CalculateOnIntegrationPoints(
+        const Variable<double> &rVariable,
+        std::vector<double> &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
+        
+    void Calculate(
+        const Variable<double> &rVariable,
+        double &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
     ///@}
     ///@name Inquiry
     ///@{
@@ -178,7 +189,7 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-        
+
     ///@}
     ///@name Friends
     ///@{
@@ -210,13 +221,13 @@ protected:
      * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
      */
     void PressureGradientStabilization(
-        const TElementData& rData,
-        const Vector& rInterfaceWeights,
-        const Matrix& rEnrInterfaceShapeFunctionPos,
-        const Matrix& rEnrInterfaceShapeFunctionNeg,
-        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,
-        MatrixType& rKeeTot,
-		VectorType& rRHSeeTot) override;
+        const TElementData &rData,
+        const Vector &rInterfaceWeights,
+        const Matrix &rEnrInterfaceShapeFunctionPos,
+        const Matrix &rEnrInterfaceShapeFunctionNeg,
+        const GeometryType::ShapeFunctionsGradientsType &rInterfaceShapeDerivatives,
+        MatrixType &rKeeTot,
+        VectorType &rRHSeeTot) override;
 
     /**
      * @brief Computes the LHS Gauss pt. contribution
@@ -229,7 +240,7 @@ protected:
         MatrixType& rLHS) override;
 
     /**
-     * @brief Computes the RHS Gaus  pt. contribution
+     * @brief Computes the RHS Gauss pt. contribution
      * This method computes the contribution to the RHS of a Gauss pt.
      * @param rData Reference to the element data container
      * @param rRHS Reference to the Right Hand Side vector to be filled
@@ -241,7 +252,7 @@ protected:
     /**
      * @brief Computes the pressure enrichment contributions
      * This method computes the pressure enrichment contributions for
-     * a Gauss pt. in both the left hand side and righ hand side of the equations.
+     * a Gauss pt. in both the left hand side and right hand side of the equations.
      * @param rData Reference to the element data container
      * @param rV Contribution related to the pressure enrichment DOFs in the N-S standard equations
      * @param rH Contribution related to the standard velocity and pressure DOFs in the enrichment equations
@@ -261,6 +272,14 @@ protected:
      * @param rData Data container with the input velocity and gradients and output strain rate vector
      */
     void CalculateStrainRate(TElementData& rData) const override;
+
+    /**
+     * @brief Calculate the artificial dynamic viscosity.
+     * In this function we calculate the artificial dynamic viscosity in each gauss point.
+     * @param rData Data container
+     */
+
+    double CalculateArtificialDynamicViscositySpecialization(TElementData &rData) const;
 
     ///@}
     ///@name Protected  Access

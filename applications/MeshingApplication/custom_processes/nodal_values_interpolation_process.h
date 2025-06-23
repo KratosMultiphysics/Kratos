@@ -190,11 +190,7 @@ public:
      */
     void UpdatePoint()
     {
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates();
-#else
         noalias(this->Coordinates()) = mpOriginCond->GetGeometry().Center().Coordinates();
-#endif // ifdef KRATOS_USE_AMATRIX
     }
 
 private:
@@ -208,7 +204,7 @@ private:
 /**
  * @class NodalValuesInterpolationProcess
  * @ingroup MeshingApplication
- * @brief This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
+ * @brief This utility has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
  * @details The process employs the projection.h from MeshingApplication, which works internally using a kd-tree. Additionally if it can't found the node inside the reference mesh it will try to extrapolate from the skin (if the option is activated)
  * @author Vicente Mataix Ferrandiz
  */
@@ -224,7 +220,7 @@ public:
     typedef ModelPart::NodesContainerType                    NodesArrayType;
     typedef ModelPart::ElementsContainerType              ElementsArrayType;
     typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
-    typedef Node<3>                                                NodeType;
+    typedef Node                                                NodeType;
     typedef Geometry<NodeType>                                 GeometryType;
     typedef Point                                                 PointType;
     typedef PointType::CoordinatesArrayType            CoordinatesArrayType;

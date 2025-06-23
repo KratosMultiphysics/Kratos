@@ -57,22 +57,21 @@ public:
     ///@{
 
     /// Geometric definitions
-    typedef Point                                              PointType;
-    typedef Node<3>                                             NodeType;
-    typedef Geometry<NodeType>                              GeometryType;
-    typedef Geometry<PointType>                        GeometryPointType;
+    using PointType = Point;
+    using GeometryType = Geometry<Node>;
+    using GeometryPointType = Geometry<PointType>;
 
     /// The index type
-    typedef std::size_t                                        IndexType;
+    using IndexType = std::size_t;
 
     /// The size type
-    typedef std::size_t                                         SizeType;
+    using SizeType = std::size_t;
 
     /// Definition of the entities container
-    typedef ModelPart::NodesContainerType                 NodesArrayType;
-    typedef ModelPart::ElementsContainerType           ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType       ConditionsArrayType;
-
+    using NodesArrayType = ModelPart::NodesContainerType;
+    using ElementsArrayType = ModelPart::ElementsContainerType;
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
+    
     /// Pointer definition of ExactMortarIntegrationUtility
     KRATOS_CLASS_POINTER_DEFINITION(InterfacePreprocessCondition);
 
@@ -175,7 +174,7 @@ private:
         );
 
     /**
-     * @brief Creates a new properties (contaning just values related with contact)
+     * @brief Creates a new properties (containing just values related with contact)
      * @details These values are removed from the original property (in order to reduce overload of properties on the original elements)
      * @return A map containing new properties
      */

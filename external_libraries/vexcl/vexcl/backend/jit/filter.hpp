@@ -61,6 +61,13 @@ struct Name {
         std::string devname;
 };
 
+// The JIT backend does not support the exclusive filter functionality,
+// but provides the filter for compatibility.
+template <class Filter>
+Filter Exclusive(Filter&& filter) {
+    return std::forward<Filter>(filter);
+}
+
 inline std::vector< std::function<bool(const backend::device&)> >
 backend_env_filters()
 {

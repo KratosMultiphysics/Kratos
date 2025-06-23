@@ -10,10 +10,9 @@
 
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
 #include "custom_constitutive/DEM_continuum_constitutive_law.h"
-
 #include "custom_constitutive/DEM_compound_constitutive_law.h"
 #include "custom_constitutive/DEM_compound_constitutive_law_for_PBM.h"
-
+#include "custom_constitutive/DEM_D_Linear_Simple_Coulomb_CL.h"
 #include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_Nestle_CL.h"
@@ -24,15 +23,12 @@
 #include "custom_constitutive/DEM_D_DMT_cohesive_law.h"
 #include "custom_constitutive/DEM_D_Stress_dependent_cohesive_CL.h"
 #include "custom_constitutive/DEM_D_Quadratic_CL.h"
-
-#include "custom_constitutive/DEM_rolling_friction_model.h"
-
+#include "custom_constitutive/DEM_D_void_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_confined_CL.h"
 #include "custom_constitutive/DEM_D_Linear_confined_CL.h"
 #include "custom_constitutive/DEM_D_Linear_HighStiffness_CL.h"
 #include "custom_constitutive/DEM_D_Linear_HighStiffness_2D_CL.h"
 #include "custom_constitutive/DEM_D_Linear_classic_CL.h"
-
 #include "custom_constitutive/DEM_Dempack_CL.h"
 #include "custom_constitutive/DEM_Dempack_2D_CL.h"
 #include "custom_constitutive/DEM_KDEM_CL.h"
@@ -59,10 +55,18 @@
 #include "custom_constitutive/dem_kdem_2d_cl.h"
 #include "custom_constitutive/dem_kdem_fabric_2d_cl.h"
 #include "custom_constitutive/DEM_parallel_bond_CL.h"
+#include "custom_constitutive/DEM_smooth_joint_CL.h"
+#include "custom_constitutive/DEM_parallel_bond_for_membrane_CL.h"
+#include "custom_constitutive/DEM_parallel_bond_bilinear_damage_CL.h"
+#include "custom_constitutive/DEM_parallel_bond_bilinear_damage_mixed_CL.h"
+#include "custom_constitutive/DEM_rolling_friction_model.h"
 #include "custom_constitutive/DEM_rolling_friction_model_constant_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_viscous_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_bounded.h"
-
+#include "custom_constitutive/DEM_global_damping.h"
+#include "custom_constitutive/DEM_global_damping_nonviscous_constantforcedir.h"
+#include "custom_constitutive/DEM_global_damping_nonviscous_variableforcedir.h"
+#include "custom_constitutive/DEM_global_damping_viscous.h"
 
 namespace Kratos {
 namespace Python {
@@ -89,6 +93,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEM_D_Bentonite_Colloid, DEM_D_Bentonite_Colloid::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Bentonite_Colloid")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_D_Linear_Simple_Coulomb, DEM_D_Linear_Simple_Coulomb::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Linear_Simple_Coulomb")
         .def(py::init<>())
         ;
 
@@ -157,6 +165,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEM_D_Linear_classic, DEM_D_Linear_classic::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Linear_classic")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_D_void, DEM_D_void::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_void")
         .def(py::init<>())
         ;
 
@@ -264,6 +276,22 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEM_parallel_bond, DEM_parallel_bond::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_parallel_bond")
+       .def(py::init<>())
+        ;
+
+    py::class_<DEM_smooth_joint, DEM_smooth_joint::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_smooth_joint")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_parallel_bond_for_membrane, DEM_parallel_bond_for_membrane::Pointer, DEM_parallel_bond>(m, "DEM_parallel_bond_for_membrane")
+        .def(py::init<>())
+        ;
+    
+    py::class_<DEM_parallel_bond_bilinear_damage, DEM_parallel_bond_bilinear_damage::Pointer, DEM_parallel_bond>(m, "DEM_parallel_bond_bilinear_damage")
+        .def(py::init<>())
+        ;
+    
+    py::class_<DEM_parallel_bond_bilinear_damage_mixed, DEM_parallel_bond_bilinear_damage_mixed::Pointer, DEM_parallel_bond>(m, "DEM_parallel_bond_bilinear_damage_mixed")
         .def(py::init<>())
         ;
 
@@ -278,6 +306,31 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
     py::class_<DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Quadratic>, DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Quadratic>::Pointer, DEM_parallel_bond>(m, "DEM_parallel_bond_Quadratic")
         .def(py::init<>())
         ;
+
+    py::class_<DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage, DEM_D_Hertz_viscous_Coulomb>, DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage, DEM_D_Hertz_viscous_Coulomb>::Pointer, DEM_parallel_bond_bilinear_damage>(m, "DEM_parallel_bond_bilinear_damage_Hertz")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage, DEM_D_Linear_classic>, DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage, DEM_D_Linear_classic>::Pointer, DEM_parallel_bond_bilinear_damage>(m, "DEM_parallel_bond_bilinear_damage_Linear")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage, DEM_D_Quadratic>, DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage, DEM_D_Quadratic>::Pointer, DEM_parallel_bond_bilinear_damage>(m, "DEM_parallel_bond_bilinear_damage_Quadratic")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage_mixed, DEM_D_Hertz_viscous_Coulomb>, DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage_mixed, DEM_D_Hertz_viscous_Coulomb>::Pointer, DEM_parallel_bond_bilinear_damage_mixed>(m, "DEM_parallel_bond_bilinear_damage_mixed_Hertz")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage_mixed, DEM_D_Linear_classic>, DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage_mixed, DEM_D_Linear_classic>::Pointer, DEM_parallel_bond_bilinear_damage_mixed>(m, "DEM_parallel_bond_bilinear_damage_mixed_Linear")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage_mixed, DEM_D_Quadratic>, DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage_mixed, DEM_D_Quadratic>::Pointer, DEM_parallel_bond_bilinear_damage_mixed>(m, "DEM_parallel_bond_bilinear_damage_mixed_Quadratic")
+        .def(py::init<>())
+        ;
+
 
     //for compound constitutive law
 
@@ -309,16 +362,40 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEMRollingFrictionModelConstantTorque, DEMRollingFrictionModelConstantTorque::Pointer, DEMRollingFrictionModel>(m, "DEMRollingFrictionModelConstantTorque")
-    .def(py::init<>())
-    ;
+        .def(py::init<>())
+        ;
 
     py::class_<DEMRollingFrictionModelViscousTorque, DEMRollingFrictionModelViscousTorque::Pointer, DEMRollingFrictionModel>(m, "DEMRollingFrictionModelViscousTorque")
-    .def(py::init<>())
-    ;
+        .def(py::init<>())
+        ;
 
     py::class_<DEMRollingFrictionModelBounded, DEMRollingFrictionModelBounded::Pointer, DEMRollingFrictionModel>(m, "DEMRollingFrictionModelBounded")
-    .def(py::init<>())
-    ;
+        .def(py::init<>())
+        ;
+
+    // DEM Global Damping Model:
+
+    py::class_<DEMGlobalDampingModel, DEMGlobalDampingModel::Pointer>(m, "DEMGlobalDampingModel")
+        .def(py::init<>())
+        .def("Clone", &DEMGlobalDampingModel::Clone)
+        .def("SetGlobalDampingModelInProperties", &DEMGlobalDampingModel::SetGlobalDampingModelInProperties)
+        ;
+
+    py::class_<Variable<DEMGlobalDampingModel::Pointer>, Variable<DEMGlobalDampingModel::Pointer>::Pointer>(m, "DEMGlobalDampingModelPointerVariable")
+        .def("__str__", PrintObject<Variable<DEMGlobalDampingModel::Pointer>>)
+        ;
+
+    py::class_<DEMGlobalDampingNonViscousCstForceDir, DEMGlobalDampingNonViscousCstForceDir::Pointer, DEMGlobalDampingModel>(m, "DEMGlobalDampingNonViscousCstForceDir")
+        .def(py::init<>())
+        ;
+    
+    py::class_<DEMGlobalDampingNonViscousVarForceDir, DEMGlobalDampingNonViscousVarForceDir::Pointer, DEMGlobalDampingModel>(m, "DEMGlobalDampingNonViscousVarForceDir")
+        .def(py::init<>())
+        ;
+    
+    py::class_<DEMGlobalDampingViscous, DEMGlobalDampingViscous::Pointer, DEMGlobalDampingModel>(m, "DEMGlobalDampingViscous")
+        .def(py::init<>())
+        ;
 }
 
 } // namespace Python.

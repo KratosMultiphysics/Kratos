@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SIMPLE_MORTAR_MAPPER_WRAPPER_PROCESS)
-#define KRATOS_SIMPLE_MORTAR_MAPPER_WRAPPER_PROCESS
+#pragma once
 
 // System includes
 
@@ -30,7 +29,7 @@ namespace Kratos
 ///@{
 
     /// The definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -60,15 +59,23 @@ public:
     /// Pointer definition of SimpleMortarMapperProcessWrapper
     KRATOS_CLASS_POINTER_DEFINITION(SimpleMortarMapperProcessWrapper);
 
-    /// Linear solver
-    typedef UblasSpace<double, CompressedMatrix, Vector>    SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector>               LocalSpaceType;
-    typedef typename SparseSpaceType::MatrixType                 MatrixType;
-    typedef typename SparseSpaceType::VectorType                 VectorType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    /// Type definition for sparse space type
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+
+    /// Type definition for local space type
+    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+
+    /// Type definition for matrix
+    using MatrixType = typename SparseSpaceType::MatrixType;
+
+    /// Type definition for vector
+    using VectorType = typename SparseSpaceType::VectorType;
+
+    /// Type definition for linear solver
+    using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 
     /// Index type definition
-    typedef std::size_t                                          IndexType;
+    using IndexType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -78,7 +85,7 @@ public:
      * @brief Default constructor
      * @param rOriginModelPart The origin model part to compute
      * @param rDestinationModelPart The destination model part to compute
-     * @param rThisVariable The variable to transfer and be transfered
+     * @param rThisVariable The variable to transfer and be transferred
      * @param ThisParameters The configuration parameters
      * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
      */
@@ -268,11 +275,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -300,36 +305,6 @@ public:
     ///@{
 
     ///@}
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -350,8 +325,7 @@ private:
     ///@}
     ///@name Private  Access
     ///@{
-    ///@}
-
+        
     ///@}
     ///@name Serialization
     ///@{
@@ -365,12 +339,9 @@ private:
 
     ///@}
 };// class SimpleMortarMapperProcessWrapper
-
-
 ///@}
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
@@ -379,4 +350,3 @@ private:
 ///@}
 
 }  // namespace Kratos.
-#endif /* KRATOS_SIMPLE_MORTAR_MAPPER_WRAPPER_PROCESS defined */

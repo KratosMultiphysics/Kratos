@@ -253,9 +253,8 @@ void MapperVertexMorphing::CreateListOfNodesInOriginModelPart()
 void MapperVertexMorphing::CreateFilterFunction()
 {
     std::string filter_type = mMapperSettings["filter_function_type"].GetString();
-    double filter_radius = mMapperSettings["filter_radius"].GetDouble();
 
-    mpFilterFunction = Kratos::make_unique<FilterFunction>(filter_type, filter_radius);
+    mpFilterFunction = Kratos::make_unique<FilterFunction>(filter_type);
 }
 
 void MapperVertexMorphing::InitializeMappingVariables()
@@ -296,7 +295,6 @@ void MapperVertexMorphing::ComputeMappingMatrix()
     InitializeComputationOfMappingMatrix();
     CreateSearchTreeWithAllNodesInOriginModelPart();
 
-    double filter_radius = mMapperSettings["filter_radius"].GetDouble();
     unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
 
     for(auto& node_i : mrDestinationModelPart.Nodes())
@@ -304,7 +302,7 @@ void MapperVertexMorphing::ComputeMappingMatrix()
         NodeVector neighbor_nodes( max_number_of_neighbors );
         std::vector<double> resulting_squared_distances( max_number_of_neighbors );
         unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                            filter_radius,
+                                                                            GetVertexMorphingRadius(node_i),
                                                                             neighbor_nodes.begin(),
                                                                             resulting_squared_distances.begin(),
                                                                             max_number_of_neighbors );
@@ -322,16 +320,16 @@ void MapperVertexMorphing::ComputeMappingMatrix()
     }
 }
 
-void MapperVertexMorphing::ComputeWeightForAllNeighbors(  ModelPart::NodeType& origin_node,
-                                    NodeVector& neighbor_nodes,
-                                    unsigned int number_of_neighbors,
+void MapperVertexMorphing::ComputeWeightForAllNeighbors(  const ModelPart::NodeType& origin_node,
+                                    const NodeVector& neighbor_nodes,
+                                    const unsigned int number_of_neighbors,
                                     std::vector<double>& list_of_weights,
                                     double& sum_of_weights )
 {
     for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
     {
         ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-        double weight = mpFilterFunction->ComputeWeight( origin_node.Coordinates(), neighbor_node.Coordinates() );
+        double weight = mpFilterFunction->ComputeWeight( origin_node.Coordinates(), neighbor_node.Coordinates(), GetVertexMorphingRadius(origin_node) );
 
         list_of_weights[neighbor_itr] = weight;
         sum_of_weights += weight;

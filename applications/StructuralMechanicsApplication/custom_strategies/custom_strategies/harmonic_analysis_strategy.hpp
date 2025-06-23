@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Quirin Aumann
 //
 
-#if !defined(KRATOS_HARMONIC_ANALYSIS_STRATEGY )
-#define  KRATOS_HARMONIC_ANALYSIS_STRATEGY
+#pragma once
 
 // System includes
 
@@ -80,6 +79,8 @@ public:
     typedef std::complex<double> ComplexType;
 
     typedef DenseVector<ComplexType> ComplexVectorType;
+
+    typedef std::vector<std::size_t> EquationIdVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -230,13 +231,13 @@ public:
             BuiltinTimer setup_dofs_time;
             p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
             KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-                << setup_dofs_time.ElapsedSeconds() << std::endl;
+                << setup_dofs_time << std::endl;
 
             // Set global equation ids
             BuiltinTimer setup_system_time;
             p_builder_and_solver->SetUpSystem(r_model_part);
             KRATOS_INFO_IF("Setup System Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-                << setup_system_time.ElapsedSeconds() << std::endl;
+                << setup_system_time << std::endl;
 
             // initialize the force vector; this does not change during the computation
             auto& r_force_vector = *mpForceVector;
@@ -246,10 +247,9 @@ public:
             if (r_force_vector.size() != system_size)
                 r_force_vector.resize(system_size, false);
             r_force_vector = ZeroVector( system_size );
-            p_builder_and_solver->BuildRHS(p_scheme,r_model_part,r_force_vector);
 
             KRATOS_INFO_IF("Force Vector Build Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-                << force_vector_build_time.ElapsedSeconds() << std::endl;
+                << force_vector_build_time << std::endl;
 
             // initialize the modal matrix
             auto& r_modal_matrix = *mpModalMatrix;
@@ -267,7 +267,7 @@ public:
                     const std::size_t n_node_dofs = node_dofs.size();
                     const Matrix& r_node_eigenvectors = node.GetValue(EIGENVECTOR_MATRIX);
 
-                    // TO BE VERIFIED!! In the current implmentation of Dofs there are nor reordered and only pushec back. 
+                    // TO BE VERIFIED!! In the current implmentation of Dofs there are nor reordered and only pushec back.
                     // if( node_dofs.IsSorted() == false )
                     // {
                     //     node_dofs.Sort();
@@ -282,7 +282,7 @@ public:
             }
 
             KRATOS_INFO_IF("Modal Matrix Build Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-                << modal_matrix_build_time.ElapsedSeconds() << std::endl;
+                << modal_matrix_build_time << std::endl;
 
             // get the damping coefficients if they exist
             for( auto& property : r_model_part.PropertiesArray() )
@@ -362,7 +362,7 @@ public:
                 }
 
                 KRATOS_INFO_IF("Material Damping Build Time", BaseType::GetEchoLevel() > 0 && rank == 0)
-                    << material_damping_build_time.ElapsedSeconds() << std::endl;
+                    << material_damping_build_time << std::endl;
             }
             mInitializeWasPerformed = true;
         }
@@ -394,6 +394,25 @@ public:
         const std::size_t n_dofs = this->pGetBuilderAndSolver()->GetEquationSystemSize();
 
         auto& f = *mpForceVector;
+        TSparseSpace::SetToZero(f);
+
+        // Build the RHS manually to avoid the residual formulation
+        IndexPartition<std::size_t>(r_model_part.NumberOfConditions()).for_each(
+        std::tuple<DenseVectorType, EquationIdVectorType>{},
+        [&r_model_part, &r_process_info, &f](const std::size_t Index, auto& rTLS) {
+            auto& r_condition = *(r_model_part.ConditionsBegin() + Index);
+
+            auto& rhs = std::get<0>(rTLS);
+            auto& equation_id = std::get<1>(rTLS);
+
+            r_condition.CalculateRightHandSide(rhs, r_process_info);
+            r_condition.EquationIdVector(equation_id, r_process_info);
+
+            // Assemble into global vector
+            for (IndexType i = 0; i < equation_id.size(); ++i) {
+                AtomicAdd(f[equation_id[i]], rhs[i]);
+            }
+        });
 
         ComplexType mode_weight;
         ComplexVectorType modal_displacement;
@@ -429,7 +448,7 @@ public:
                 const std::size_t n_node_dofs = node_dofs.size();
                 const Matrix& r_node_eigenvectors = node.GetValue(EIGENVECTOR_MATRIX);
 
-            // TO BE VERIFIED!! In the current implmentation of Dofs there are nor reordered and only pushec back. 
+            // TO BE VERIFIED!! In the current implmentation of Dofs there are nor reordered and only pushec back.
                 // if (node_dofs.IsSorted() == false)
                 // {
                 //     node_dofs.Sort();
@@ -646,6 +665,4 @@ private:
 ///@}
 
 } /* namespace Kratos */
-
-#endif /* KRATOS_HARMONIC_ANALYSIS_STRATEGY  defined */
 

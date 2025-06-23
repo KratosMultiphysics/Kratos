@@ -65,7 +65,7 @@ public:
     ///@{
 
     typedef std::size_t                     IndexType;
-    typedef Node<3>                         NodeType;
+    typedef Node                         NodeType;
 
     /// Pointer definition of ApplySinusoidalFunctionProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplySinusoidalFunctionProcess);

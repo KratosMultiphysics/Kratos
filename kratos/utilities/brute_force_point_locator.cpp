@@ -149,7 +149,7 @@ void BruteForcePointLocator::CheckResults(const std::string& rObjectName,
     }
 }
 
-bool BruteForcePointLocator::NodeIsCloseEnough(const Node<3>& rNode,
+bool BruteForcePointLocator::NodeIsCloseEnough(const Node& rNode,
                                                const Point& rThePoint,
                                                const Globals::Configuration configuration,
                                                const double DistanceThreshold) const

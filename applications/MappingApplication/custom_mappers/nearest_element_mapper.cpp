@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -34,7 +34,9 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rIn
 
 void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject)
 {
-    SaveSearchResult(rInterfaceObject, true);
+    if (mOptions.UseApproximation) {
+        SaveSearchResult(rInterfaceObject, true);
+    }
 }
 
 void NearestElementInterfaceInfo::SaveSearchResult(const InterfaceObject& rInterfaceObject,
@@ -51,7 +53,7 @@ void NearestElementInterfaceInfo::SaveSearchResult(const InterfaceObject& rInter
 
     ProjectionUtilities::PairingIndex pairing_index;
 
-    const bool is_full_projection = ProjectionUtilities::ComputeProjection(*p_geom, point_to_proj, mLocalCoordTol, shape_function_values, eq_ids, proj_dist, pairing_index, ComputeApproximation);
+    const bool is_full_projection = ProjectionUtilities::ComputeProjection(*p_geom, point_to_proj, mOptions.LocalCoordTol, shape_function_values, eq_ids, proj_dist, pairing_index, ComputeApproximation);
 
     if (is_full_projection) {
         SetLocalSearchWasSuccessful();
@@ -137,7 +139,7 @@ void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 
         mInterfaceInfos[found_idx]->GetValue(rOriginIds, MapperInterfaceInfo::InfoType::Dummy);
 
-        KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not initialized!" << std::endl;
 
         if (rDestinationIds.size() != 1) rDestinationIds.resize(1);
         rDestinationIds[0] = mpNode->GetValue(INTERFACE_EQUATION_ID);
@@ -147,7 +149,7 @@ void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 
 void NearestElementLocalSystem::PairingInfo(std::ostream& rOStream, const int EchoLevel) const
 {
-    KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
+    KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not initialized!" << std::endl;
 
     rOStream << "NearestElementLocalSystem based on " << mpNode->Info();
     if (EchoLevel > 3) {

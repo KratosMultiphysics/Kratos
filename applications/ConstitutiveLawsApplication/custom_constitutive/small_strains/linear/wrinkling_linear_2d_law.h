@@ -11,8 +11,7 @@
 //  Main authors:    Klaus B. Sautter
 //
 
-#if !defined (KRATOS_WRINKLING_LINEAR_2D_LAW_H_INCLUDED)
-#define  KRATOS_WRINKLING_LINEAR_2D_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -614,4 +613,3 @@ private:
 
 }; // Class WrinklingLinear2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_WRINKLING_LINEAR_2D_LAW_H_INCLUDED  defined

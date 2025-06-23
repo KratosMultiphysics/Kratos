@@ -20,6 +20,7 @@
 #include "optimization_utilities.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/auxiliar_model_part_utilities.h"
 #include "spaces/ublas_space.h"
 #include "shape_optimization_application.h"
 #include "linear_solvers/linear_solver.h"
@@ -227,39 +228,30 @@ double OptimizationUtilities::ComputeCorrectionFactor(ModelPart& rModelPart, con
 
 void OptimizationUtilities::AssembleVector( ModelPart& rModelPart,
     Vector& rVector,
+    const Variable<double> &rVariable)
+{
+    AuxiliarModelPartUtilities(rModelPart).GetScalarData<Vector>(rVariable, Globals::DataLocation::NodeHistorical, rVector);
+}
+
+void OptimizationUtilities::AssembleVector( ModelPart& rModelPart,
+    Vector& rVector,
     const Variable<array_3d> &rVariable)
 {
-    if (rVector.size() != rModelPart.NumberOfNodes()*3){
-        rVector.resize(rModelPart.NumberOfNodes()*3);
-    }
+    AuxiliarModelPartUtilities(rModelPart).GetVectorData<Vector>(rVariable, Globals::DataLocation::NodeHistorical, rVector);
+}
 
-    int i=0;
-    for (auto & node_i : rModelPart.Nodes())
-    {
-        array_3d& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
-        rVector[i*3+0] = variable_vector[0];
-        rVector[i*3+1] = variable_vector[1];
-        rVector[i*3+2] = variable_vector[2];
-        ++i;
-    }
+void OptimizationUtilities::AssignVectorToVariable(ModelPart& rModelPart,
+    const Vector& rVector,
+    const Variable<double> &rVariable)
+{
+    AuxiliarModelPartUtilities(rModelPart).SetScalarData<Vector>(rVariable, Globals::DataLocation::NodeHistorical, rVector);
 }
 
 void OptimizationUtilities::AssignVectorToVariable(ModelPart& rModelPart,
     const Vector& rVector,
     const Variable<array_3d> &rVariable)
 {
-    KRATOS_ERROR_IF(rVector.size() != rModelPart.NumberOfNodes()*3)
-        << "AssignVectorToVariable: Vector size does not mach number of Nodes!" << std::endl;
-
-    int i=0;
-    for (auto & node_i : rModelPart.Nodes())
-    {
-        array_3d& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
-        variable_vector[0] = rVector[i*3+0];
-        variable_vector[1] = rVector[i*3+1];
-        variable_vector[2] = rVector[i*3+2];
-        ++i;
-    }
+    AuxiliarModelPartUtilities(rModelPart).SetVectorData<Vector>(rVariable, Globals::DataLocation::NodeHistorical, rVector);
 }
 
 void OptimizationUtilities::AssembleMatrix(ModelPart& rModelPart,

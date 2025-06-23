@@ -59,18 +59,6 @@ public:
     {
         KRATOS_TRY
 
-        //check for variables keys (verify that the variables are correctly initialized)
-        if(PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "PRESSURE has Key zero! (check if the application is correctly registered", "" )
-        if(Dt_PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "Dt_PRESSURE has Key zero! (check if the application is correctly registered", "" )
-        if(Dt2_PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "Dt2_PRESSURE has Key zero! (check if the application is correctly registered", "" )
-        if ( VELOCITY_PRESSURE_COEFFICIENT.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY_PRESSURE_COEFFICIENT has Key zero! (check if the application is correctly registered", "" )
-        if ( ACCELERATION_PRESSURE_COEFFICIENT.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION_PRESSURE_COEFFICIENT has Key zero! (check if the application is correctly registered", "" )
-
         //check that variables are correctly allocated
         for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
         {
@@ -107,6 +95,15 @@ public:
         mDeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
         r_model_part.GetProcessInfo()[VELOCITY_PRESSURE_COEFFICIENT] = mGamma/(mBeta*mDeltaTime);
         r_model_part.GetProcessInfo()[ACCELERATION_PRESSURE_COEFFICIENT] = 1.0/(mBeta*mDeltaTime*mDeltaTime);
+
+        // Initialize INITIAL_STRESS_TENSOR
+        block_for_each(r_model_part.Nodes(), [](Node& rNode){
+            auto& r_initial_stress = rNode.FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
+            if (r_initial_stress.size1() != 3 || r_initial_stress.size2() != 3) {
+                r_initial_stress.resize(3,3,false);
+            }
+            r_initial_stress.clear();
+        });
 
         BaseType::mSchemeIsInitialized = true;
 
@@ -388,24 +385,16 @@ public:
     {
         KRATOS_TRY
 
-        int NumThreads = ParallelUtilities::GetNumThreads();
-        OpenMPUtils::PartitionVector DofSetPartition;
-        OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
-
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            typename DofsArrayType::iterator DofsBegin = rDofSet.begin() + DofSetPartition[k];
-            typename DofsArrayType::iterator DofsEnd = rDofSet.begin() + DofSetPartition[k+1];
-
-            //Update Displacement and Pressure (DOFs)
-            for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof)
+        // Initialize
+        block_for_each(rDofSet, [&Dx](auto& dof)
             {
-                if (itDof->IsFree())
-                    itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx, itDof->EquationId());
+                if (dof.IsFree())
+                {
+                    dof.GetSolutionStepValue() += TSparseSpace::GetValue(Dx, dof.EquationId());
+                }
+
             }
-        }
+        );
 
         this->UpdateVariablesDerivatives(r_model_part);
 

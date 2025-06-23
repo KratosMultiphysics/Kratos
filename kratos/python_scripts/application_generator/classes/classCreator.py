@@ -99,7 +99,7 @@ class ClassCreator(TemplateRule):
 
             Input
             -----
-            members: list of 'KratosClasMemeber'
+            members: list of 'KratosClassMember'
                 the list of class members to be add to the class
 
             Rules
@@ -130,7 +130,7 @@ class ClassCreator(TemplateRule):
             else:
                 membersRule['value'] += ctab + m.type + ' ' + name + ';\n'
 
-                # We will always preffer initialization list to avoid double-initialization (defaul + body) and
+                # We will always preffer initialization list to avoid double-initialization (default + body) and
                 # to keet the VTable clean
 
                 # Generic constructors

@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   license: ContactStructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -22,7 +22,7 @@ namespace Kratos
 {
 template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
 double TrescaFrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::GetThresholdValue(
-    const NodeType& rNode,
+    const Node& rNode,
     const PairedCondition& rCondition,
     const ProcessInfo& rCurrentProcessInfo
     )
@@ -44,7 +44,7 @@ double TrescaFrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::Ge
 
 template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
 double TrescaFrictionalLaw<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::GetDerivativeThresholdValue(
-    const NodeType& rNode,
+    const Node& rNode,
     const PairedCondition& rCondition,
     const ProcessInfo& rCurrentProcessInfo,
     const DerivativeDataType& rDerivativeData,

@@ -124,7 +124,7 @@ namespace Kratos
 	      is_free = 0;
 	      is_struct = 0;
 	      is_lagin = 0;
-	      GlobalPointersVector< Node<3> >& neighb = im->GetValue(NEIGHBOUR_NODES);
+	      GlobalPointersVector< Node >& neighb = im->GetValue(NEIGHBOUR_NODES);
 	      for (unsigned int i = 0; i < neighb.size(); i++)
 	      {
 		  if (neighb[i].FastGetSolutionStepValue(IS_BOUNDARY) != 0.0)

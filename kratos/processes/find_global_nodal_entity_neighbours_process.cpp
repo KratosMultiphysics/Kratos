@@ -20,6 +20,7 @@
 #include "includes/condition.h"
 #include "includes/element.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "utilities/variable_utils.h"
 #include "utilities/compute_neighbour_list_functor.h"
 #include "utilities/communication_coloring_utilities.h"
@@ -234,31 +235,7 @@ typename FindGlobalNodalEntityNeighboursProcess<TContainerType>::IdMapType FindG
         }
     );
 
-    class MapReducer{
-        public:
-            typedef std::pair<int, std::vector<int>> value_type;
-            typedef IdMapType return_type;
-
-            return_type mMap;
-
-            return_type GetValue()
-            {
-                return mMap;
-            }
-
-            void LocalReduce(value_type function_return_value)
-            {
-                mMap[function_return_value.first] = function_return_value.second;
-            }
-
-            void ThreadSafeReduce(MapReducer& rOther)
-            {
-                const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
-                mMap.merge(rOther.mMap);
-            }
-    };
-
-    return block_for_each<MapReducer>(rNodes, [&](auto& rNode){
+    return block_for_each<MapReduction<IdMapType>>(rNodes, [&](auto& rNode){
         auto& r_neighbours = rNode.GetValue(mrOutputVariable);
         std::vector<int> tmp(r_neighbours.size());
         for(unsigned int i=0; i<r_neighbours.size(); ++i) {

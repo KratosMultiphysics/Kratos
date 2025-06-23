@@ -51,7 +51,7 @@ for Line in SpheresMesh:
     if Line.startswith('Coordinates'):
         node_section_started = True
         continue
-    
+
     if node_section_started and not node_section_finished:
         if Line.startswith('End Coordinates'):
             node_section_finished = True
@@ -61,7 +61,7 @@ for Line in SpheresMesh:
         data[1] = float(data[1])
         data[2] = float(data[2])
         data[3] = float(data[3])
-        
+
         if Test_type == 1:
             if data[2] > top:
                 continue
@@ -85,7 +85,7 @@ for Line in SpheresMesh:
                 skin_list.append(data[0])
             if (data[1] * data[1] + data[2] * data[2] < (internal_radius + internal_tol_factor * mean_particle_radius) * (internal_radius + internal_tol_factor * mean_particle_radius)):
                 skin_list.append(data[0])
-            
+
         node_list.append(data[0])
         element_list.append(data[0])
         coord_x_list.append(data[1])
@@ -96,7 +96,7 @@ for Line in SpheresMesh:
     if Line.startswith('Elements'):
         element_section_started = True
         continue
-    
+
     if element_section_started:
         if Line.startswith('End Elements'):
             break
@@ -146,25 +146,25 @@ Begin Nodes\n''')
 
 for i in range(len(node_list)):
     SpheresMdpa.write("%i %12.8f %12.8f %12.8f\n" % (node_list[i], coord_x_list[i], coord_y_list[i], coord_z_list[i]))
-    
+
 SpheresMdpa.write('''End Nodes\n
 Begin Elements SphericContinuumParticle3D\n''')
 
 for i in range(len(node_list)):
     SpheresMdpa.write("%i %i %i\n" % (element_list[i], props_list[i], node_list[i]))
-    
+
 SpheresMdpa.write('''End Elements\n
 Begin NodalData RADIUS\n''')
 
 for i in range(len(node_list)):
     SpheresMdpa.write("%i %i %12.8f\n" % (node_list[i], zeros_list[i], radius_list[i]))
-    
+
 SpheresMdpa.write('''End NodalData\n
 Begin NodalData COHESIVE_GROUP\n''')
-    
+
 for i in range(len(node_list)):
     SpheresMdpa.write("%i %i %i\n" % (node_list[i], zeros_list[i], props_list[i]))
-    
+
 SpheresMdpa.write('''End NodalData\n
 Begin NodalData SKIN_SPHERE\n''')
 if Test_type == 3:
@@ -177,7 +177,7 @@ Begin SubModelPart PartsCont_dem // Group dem // Subtree PartsCont
 
 for i in range(len(node_list)):
     SpheresMdpa.write("%i\n" % (node_list[i]))
-    
+
 SpheresMdpa.write('''End SubModelPartNodes
     Begin SubModelPartElements\n''')
 

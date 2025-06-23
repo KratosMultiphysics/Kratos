@@ -24,6 +24,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/registry.h"
 #include "variable_data.h"
 #include "utilities/stl_vector_io.h"
 
@@ -94,8 +95,7 @@ public:
         : VariableData(NewName, sizeof(TDataType)),
           mZero(Zero),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
-    {
-    }
+    {}
     /**
      * @brief Constructor with specific name and zero value
      * @param NewName The name to be assigned to the new variable
@@ -108,8 +108,7 @@ public:
         : VariableData(NewName, sizeof(TDataType)),
           mZero(TDataType()),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
-    {
-    }
+    {}
 
     /**
      * @brief Constructor for creating a component of other variable
@@ -125,8 +124,7 @@ public:
         )
         : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
           mZero(Zero)
-    {
-    }
+    {}
 
     /**
      * @brief Constructor for creating a component of other variable
@@ -145,9 +143,20 @@ public:
         : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
           mZero(Zero),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
-    {
-    }
+    {}
 
+    /**
+     * Copy constructor.
+     * @brief Copy constructor.
+     * @param rOtherVariable The old variable to be copied
+     */
+    explicit Variable(const VariableType& rOtherVariable) :
+        VariableData(rOtherVariable),
+        mZero(rOtherVariable.mZero),
+        mpTimeDerivativeVariable(rOtherVariable.mpTimeDerivativeVariable)
+    {
+        // Here we don't register as we asume that the origin is already registered
+    }
 
     /// Destructor.
     ~Variable() override {}
@@ -308,6 +317,19 @@ public:
         return GetValueByIndex(static_cast<TDataType*>(pSource),GetComponentIndex());
     }
 
+    /// Add the variable to the Kratos Registry
+    void Register() const {
+        const std::string variable_path("variables.all."+Name());
+        if (!Registry::HasItem(variable_path)) {
+            Registry::AddItem<VariableType>(variable_path, *this);
+            Registry::AddItem<VariableType>("variables."+Registry::GetCurrentSource()+"."+Name(), *this);
+        } else if(!Registry::GetItem(variable_path).IsSameType(*this)) {
+            KRATOS_ERROR << "Attempting to register " << Name()
+                << " but a variable with the same name and different type already exists"
+                << std::endl;
+        }
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -417,22 +439,6 @@ protected:
 
     ///@}
 private:
-    ///@name Protected LifeCycle
-    ///@{
-
-    /**
-     * Copy constructor.
-     * @brief Copy constructor.
-     * @param rOtherVariable The old variable to be copied
-     */
-    explicit Variable(const VariableType& rOtherVariable) :
-        VariableData(rOtherVariable),
-        mZero(rOtherVariable.mZero),
-        mpTimeDerivativeVariable(rOtherVariable.mpTimeDerivativeVariable)
-    {
-    }
-    
-    ///@}
     ///@name Static Member Variables
     ///@{
 

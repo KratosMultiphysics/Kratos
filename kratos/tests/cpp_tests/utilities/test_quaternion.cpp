@@ -38,7 +38,7 @@ namespace Kratos
             Quaternion<double> quaternion = Quaternion<double>(0.5, 0.4, 1.8, 2.4);
             const double squared_norm = quaternion.squaredNorm();
 
-            KRATOS_CHECK_EQUAL(squared_norm, 9.41);
+            KRATOS_EXPECT_EQ(squared_norm, 9.41);
 		}
 
 		/** Checks if the norm of a Quaternion is being calculated correctly.
@@ -52,7 +52,7 @@ namespace Kratos
             Quaternion<double> quaternion = Quaternion<double>(0.7, 2.3, 0.9, 3.7);
             const double norm = quaternion.norm();
 
-            KRATOS_CHECK_NEAR(norm, 4.5033321, tolerance);
+            KRATOS_EXPECT_NEAR(norm, 4.5033321, tolerance);
         }
 
 		/** Checks if the normalization of a Quaternion (make it a unit quaternion)
@@ -66,10 +66,10 @@ namespace Kratos
             Quaternion<double> quaternion = Quaternion<double>(5.2, 1.3, 4.5, 0.1);
             quaternion.normalize();
 
-            KRATOS_CHECK_NEAR(quaternion.W(), 0.7429330, tolerance);
-            KRATOS_CHECK_NEAR(quaternion.X(), 0.1857332, tolerance);
-            KRATOS_CHECK_NEAR(quaternion.Y(), 0.6429228, tolerance);
-            KRATOS_CHECK_NEAR(quaternion.Z(), 0.0142872, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.W(), 0.7429330, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.X(), 0.1857332, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.Y(), 0.6429228, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.Z(), 0.0142872, tolerance);
         }
 
 		/** Checks if the conjugate of a Quaternion, which represents the opposite rotation,
@@ -81,10 +81,10 @@ namespace Kratos
             Quaternion<double> quaternion = Quaternion<double>(0.1, 0.2, 4.1, 3.5);
             Quaternion<double> quaternion_conjugate = quaternion.conjugate();
 
-            KRATOS_CHECK_EQUAL(quaternion_conjugate.W(), 0.1);
-            KRATOS_CHECK_EQUAL(quaternion_conjugate.X(),-0.2);
-            KRATOS_CHECK_EQUAL(quaternion_conjugate.Y(),-4.1);
-            KRATOS_CHECK_EQUAL(quaternion_conjugate.Z(),-3.5);
+            KRATOS_EXPECT_EQ(quaternion_conjugate.W(), 0.1);
+            KRATOS_EXPECT_EQ(quaternion_conjugate.X(),-0.2);
+            KRATOS_EXPECT_EQ(quaternion_conjugate.Y(),-4.1);
+            KRATOS_EXPECT_EQ(quaternion_conjugate.Z(),-3.5);
         }
 
 		/** Checks if the transformation from Quaternion to Rotation Matrix is being
@@ -108,7 +108,7 @@ namespace Kratos
 
             for (unsigned i = 0; i < 3; ++i)
                 for (unsigned j = 0; j < 3; ++j)
-                    KRATOS_CHECK_NEAR(rotation_matrix(i,j), actual_rotation_matrix(i,j), tolerance);
+                    KRATOS_EXPECT_NEAR(rotation_matrix(i,j), actual_rotation_matrix(i,j), tolerance);
         }
 
 		/** Checks if the transformation from Quaternion to Euler Angles is being
@@ -125,9 +125,9 @@ namespace Kratos
             array_1d<double, 3> euler_angles;
             quaternion.ToEulerAngles(euler_angles);
 
-            KRATOS_CHECK_NEAR(euler_angles[0], 2.07594, tolerance);
-            KRATOS_CHECK_NEAR(euler_angles[1],-1.88068, tolerance);
-            KRATOS_CHECK_NEAR(euler_angles[2], 2.13307, tolerance);
+            KRATOS_EXPECT_NEAR(euler_angles[0], 2.07594, tolerance);
+            KRATOS_EXPECT_NEAR(euler_angles[1],-1.88068, tolerance);
+            KRATOS_EXPECT_NEAR(euler_angles[2], 2.13307, tolerance);
         }
 
 		/** Check if the transformation from Quaternion to Rotation Vector is being
@@ -153,8 +153,8 @@ namespace Kratos
             actual_rotation_vector[0] = 0.397708; actual_rotation_vector[1] =-1.51852; actual_rotation_vector[2] =-1.12081;
 
             for (unsigned i = 0; i < 3; ++i) {
-                KRATOS_CHECK_NEAR(rotation_vector[i], actual_rotation_vector[i], tolerance);
-                KRATOS_CHECK_NEAR(rotation_vector_comp[i], actual_rotation_vector[i], tolerance);
+                KRATOS_EXPECT_NEAR(rotation_vector[i], actual_rotation_vector[i], tolerance);
+                KRATOS_EXPECT_NEAR(rotation_vector_comp[i], actual_rotation_vector[i], tolerance);
             }
         }
 
@@ -181,8 +181,8 @@ namespace Kratos
             actual_rotated_vector[0] =-1.39401; actual_rotated_vector[1] =-4.09286; actual_rotated_vector[2] = 3.86849;
 
             for (unsigned i = 0; i < 3; ++i) {
-                KRATOS_CHECK_NEAR(rotated_vector[i], actual_rotated_vector[i], tolerance);
-                KRATOS_CHECK_NEAR(vector[i], actual_rotated_vector[i], tolerance);
+                KRATOS_EXPECT_NEAR(rotated_vector[i], actual_rotated_vector[i], tolerance);
+                KRATOS_EXPECT_NEAR(vector[i], actual_rotated_vector[i], tolerance);
 
             }
         }
@@ -195,10 +195,10 @@ namespace Kratos
         {
             Quaternion<double> quaternion = Quaternion<double>::Identity();
 
-            KRATOS_CHECK_EQUAL(quaternion.W(), 1.0);
-            KRATOS_CHECK_EQUAL(quaternion.X(), 0.0);
-            KRATOS_CHECK_EQUAL(quaternion.Y(), 0.0);
-            KRATOS_CHECK_EQUAL(quaternion.Z(), 0.0);
+            KRATOS_EXPECT_EQ(quaternion.W(), 1.0);
+            KRATOS_EXPECT_EQ(quaternion.X(), 0.0);
+            KRATOS_EXPECT_EQ(quaternion.Y(), 0.0);
+            KRATOS_EXPECT_EQ(quaternion.Z(), 0.0);
         }
 
 
@@ -218,10 +218,10 @@ namespace Kratos
             Quaternion<double> quaternion = Quaternion<double>::FromAxisAngle(axis[0], axis[1], axis[2], radians);
             quaternion.normalize();
 
-            KRATOS_CHECK_NEAR(quaternion.W(),-0.7373937, tolerance);
-            KRATOS_CHECK_NEAR(quaternion.X(),-0.3509602, tolerance);
-            KRATOS_CHECK_NEAR(quaternion.Y(),-0.5669357, tolerance);
-            KRATOS_CHECK_NEAR(quaternion.Z(), 0.1079878, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.W(),-0.7373937, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.X(),-0.3509602, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.Y(),-0.5669357, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.Z(), 0.1079878, tolerance);
         }
 
 		/** Check if a Quaternion is being generated correctly from a Rotation
@@ -241,15 +241,15 @@ namespace Kratos
             Quaternion<double> quaternion_comp = Quaternion<double>::FromRotationVector(rotation_vector[0], rotation_vector[1], rotation_vector[2]);
             quaternion_comp.normalize();
 
-            KRATOS_CHECK_NEAR(quaternion.W(),-0.4644623, tolerance);
-            KRATOS_CHECK_NEAR(quaternion.X(),-0.0314087, tolerance);
-            KRATOS_CHECK_NEAR(quaternion.Y(), 0.7852186, tolerance);
-            KRATOS_CHECK_NEAR(quaternion.Z(), 0.4083137, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.W(),-0.4644623, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.X(),-0.0314087, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.Y(), 0.7852186, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.Z(), 0.4083137, tolerance);
 
-            KRATOS_CHECK_NEAR(quaternion_comp.W(),-0.4644623, tolerance);
-            KRATOS_CHECK_NEAR(quaternion_comp.X(),-0.0314087, tolerance);
-            KRATOS_CHECK_NEAR(quaternion_comp.Y(), 0.7852186, tolerance);
-            KRATOS_CHECK_NEAR(quaternion_comp.Z(), 0.4083137, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion_comp.W(),-0.4644623, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion_comp.X(),-0.0314087, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion_comp.Y(), 0.7852186, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion_comp.Z(), 0.4083137, tolerance);
         }
 
 		/** Check if a Quaternion is being generated correctly from a Rotation
@@ -268,10 +268,10 @@ namespace Kratos
             Quaternion<double> quaternion = Quaternion<double>::FromRotationMatrix(rotation_matrix);
             quaternion.normalize();
 
-            KRATOS_CHECK_NEAR(quaternion.W(), 0.3789054, tolerance);
-            KRATOS_CHECK_NEAR(quaternion.X(), 0.8525371, tolerance);
-            KRATOS_CHECK_NEAR(quaternion.Y(), 0.0947264, tolerance);
-            KRATOS_CHECK_NEAR(quaternion.Z(), 0.3473299, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.W(), 0.3789054, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.X(), 0.8525371, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.Y(), 0.0947264, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.Z(), 0.3473299, tolerance);
         }
 
 		/** Check if a Quaternion is being generated correctly from a Euler
@@ -288,10 +288,10 @@ namespace Kratos
             Quaternion<double> quaternion = Quaternion<double>::FromEulerAngles(euler_angles);
             quaternion.normalize();
 
-            KRATOS_CHECK_NEAR(quaternion.W(), 0.768422, tolerance);
-            KRATOS_CHECK_NEAR(quaternion.X(), 0.294841, tolerance);
-            KRATOS_CHECK_NEAR(quaternion.Y(),-0.32999, tolerance);
-            KRATOS_CHECK_NEAR(quaternion.Z(),-0.46228, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.W(), 0.768422, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.X(), 0.294841, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.Y(),-0.32999, tolerance);
+            KRATOS_EXPECT_NEAR(quaternion.Z(),-0.46228, tolerance);
         }
     } // namespace Testing
 }  // namespace Kratos.

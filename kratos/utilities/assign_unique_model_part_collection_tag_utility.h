@@ -38,7 +38,7 @@ namespace Kratos
     typedef ModelPart::ConditionsContainerType              ConditionsArrayType;
 
     // Components definition
-    typedef Node <3>                                                   NodeType;
+    typedef Node                                                   NodeType;
     typedef Element                                                 ElementType;
     typedef Condition                                             ConditionType;
 

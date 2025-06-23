@@ -182,7 +182,7 @@ public:
             {
                 // Find the center of the element
                 array_1d<double,3> center_coord = ZeroVector(3);
-                Geometry< Node<3> >& geom = elem_i->GetGeometry();
+                Geometry< Node >& geom = elem_i->GetGeometry();
                 for(unsigned int i=0; i<geom.size(); i++)
                     noalias(center_coord) += (geom[i].GetInitialPosition());
                 center_coord /= static_cast<double>(geom.size());
@@ -211,7 +211,7 @@ public:
             {
                 // Find the center of the element
                 array_1d<double,3> center_coord = ZeroVector(3);
-                Geometry< Node<3> >& geom = elem_i->GetGeometry();
+                Geometry< Node >& geom = elem_i->GetGeometry();
                 array_1d<double,3> disp = ZeroVector(3);
                 for(unsigned int i=0; i<geom.size(); i++)
                     noalias(center_coord) += (geom[i].GetInitialPosition());
@@ -292,7 +292,7 @@ public:
             {
                 // Find the center of the element
                 array_1d<double,3> center_coord = ZeroVector(3);
-                Geometry< Node<3> >& geom = elem_i->GetGeometry();
+                Geometry< Node >& geom = elem_i->GetGeometry();
                 for(unsigned int i=0; i<geom.size(); i++)
                     noalias(center_coord) += (geom[i].GetInitialPosition());
                 center_coord /= static_cast<double>(geom.size());
@@ -321,7 +321,7 @@ public:
             {
                 // Find the center of the element
                 array_1d<double,3> center_coord = ZeroVector(3);
-                Geometry< Node<3> >& geom = elem_i->GetGeometry();
+                Geometry< Node >& geom = elem_i->GetGeometry();
                 array_1d<double,3> disp = ZeroVector(3);
                 for(unsigned int i=0; i<geom.size(); i++)
                     noalias(center_coord) += (geom[i].GetInitialPosition());

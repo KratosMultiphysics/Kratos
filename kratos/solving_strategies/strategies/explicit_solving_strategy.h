@@ -186,8 +186,6 @@ public:
         // Call the explicit builder and solver initialize (Set up DOF set and lumped mass vector)
         mpExplicitBuilder->Initialize(BaseType::GetModelPart());
 
-        // Initialize the solution values
-        InitializeDofSetValues();
     }
 
     /**
@@ -458,23 +456,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief Initialize the DOF set values
-     * This method initializes the current value of the unknown variables in the DOF set
-     */
-    void InitializeDofSetValues()
-    {
-        // Initialize the DOF values
-        auto& r_dof_set = mpExplicitBuilder->GetDofSet();
-        block_for_each(
-            r_dof_set,
-            [](DofType& rDof){
-                auto &r_value = rDof.GetSolutionStepValue();
-                r_value = 0.0;
-            }
-        );
-    }
 
     ///@}
     ///@name Private  Access

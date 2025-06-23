@@ -12,8 +12,7 @@
 //
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_D_PLUS_D_MINUS_DAMAGE_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_D_PLUS_D_MINUS_DAMAGE_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -31,9 +30,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
-    // The size type definition
-    typedef std::size_t SizeType;
 
 ///@}
 ///@name  Enum's
@@ -59,8 +55,12 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericSmallStrainDplusDminusDam
     : public std::conditional<TConstLawIntegratorTensionType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
 {
 public:
+
     ///@name Type Definitions
     ///@{
+
+    // The size type definition
+    using SizeType = std::size_t;
 
     /// The define the working dimension size, already defined in the integrator
     static constexpr SizeType Dimension = TConstLawIntegratorTensionType::Dimension;
@@ -75,24 +75,24 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainDplusDminusDamage);
 
     /// The node definition
-    typedef Node<3> NodeType;
+    using NodeType = Node;
 
     /// The geometry definition
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
     /// Definition of the machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
-	struct DamageParameters {
-		double DamageTension = 0.0;
-		double DamageCompression = 0.0;
-		double ThresholdTension = 0.0;
-		double ThresholdCompression = 0.0;
-		array_1d<double, VoigtSize> TensionStressVector;
-		array_1d<double, VoigtSize> CompressionStressVector;
+    struct DamageParameters {
+        double DamageTension = 0.0;
+        double DamageCompression = 0.0;
+        double ThresholdTension = 0.0;
+        double ThresholdCompression = 0.0;
+        array_1d<double, VoigtSize> TensionStressVector;
+        array_1d<double, VoigtSize> CompressionStressVector;
         double UniaxialTensionStress = 0.0;
         double UniaxialCompressionStress = 0.0;
-	};
+    };
     ///@}
     ///@name Life Cycle
     ///@{
@@ -119,12 +119,8 @@ public:
         : BaseType(rOther),
           mTensionDamage(rOther.mTensionDamage),
           mTensionThreshold(rOther.mTensionThreshold),
-          mNonConvTensionDamage(rOther.mNonConvTensionDamage),
-          mNonConvTensionThreshold(rOther.mNonConvTensionThreshold),
           mCompressionDamage(rOther.mCompressionDamage),
-          mCompressionThreshold(rOther.mCompressionThreshold),
-          mNonConvCompressionDamage(rOther.mNonConvCompressionDamage),
-          mNonConvCompressionThreshold(rOther.mNonConvCompressionThreshold)
+          mCompressionThreshold(rOther.mCompressionThreshold)
     {
     }
 
@@ -257,20 +253,6 @@ public:
     bool Has(const Variable<double> &rThisVariable) override;
 
     /**
-     * @brief Returns whether this constitutive Law has specified variable (Vector)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<Vector> &rThisVariable) override;
-
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (Matrix)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<Matrix> &rThisVariable) override;
-
-    /**
      * @brief Sets the value of a specified variable (double)
      * @param rVariable the variable to be returned
      * @param rValue new value of the specified variable
@@ -291,28 +273,6 @@ public:
     double& GetValue(
         const Variable<double> &rThisVariable,
         double& rValue
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (Vector)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Vector& GetValue(
-        const Variable<Vector> &rThisVariable,
-        Vector& rValue
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (matrix)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Matrix& GetValue(
-        const Variable<Matrix>& rThisVariable,
-        Matrix& rValue
         ) override;
 
     /**
@@ -341,7 +301,8 @@ public:
     double& CalculateValue(
         ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<double>& rThisVariable,
-        double& rValue) override;
+        double& rValue
+        ) override;
 
     /**
      * @brief Returns the value of a specified variable (vector)
@@ -403,6 +364,7 @@ public:
     ///@}
 
 protected:
+
     ///@name Protected static Member Variables
     ///@{
 
@@ -420,27 +382,16 @@ protected:
     // Tension values
     double& GetTensionThreshold() { return mTensionThreshold; }
     double& GetTensionDamage() { return mTensionDamage; }
-    double& GetNonConvTensionThreshold() { return mNonConvTensionThreshold; }
-    double& GetNonConvTensionDamage() { return mNonConvTensionDamage; }
 
     void SetTensionThreshold(const double toThreshold) { mTensionThreshold = toThreshold; }
     void SetTensionDamage(const double toDamage) { mTensionDamage = toDamage; }
-    void SetNonConvTensionThreshold(const double toThreshold) { mNonConvTensionThreshold = toThreshold; }
-    void SetNonConvTensionDamage(const double toDamage) { mNonConvTensionDamage = toDamage; }
 
     // Compression values
     double& GetCompressionThreshold() { return mCompressionThreshold; }
     double& GetCompressionDamage() { return mCompressionDamage; }
-    double& GetNonConvCompressionThreshold() { return mNonConvCompressionThreshold; }
-    double& GetNonConvCompressionDamage() { return mNonConvCompressionDamage; }
 
     void SetCompressionThreshold(const double toThreshold) { mCompressionThreshold = toThreshold; }
     void SetCompressionDamage(const double toDamage) { mCompressionDamage = toDamage; }
-    void SetNonConvCompressionThreshold(const double toThreshold) { mNonConvCompressionThreshold = toThreshold; }
-    void SetNonConvCompressionDamage(const double toDamage) { mNonConvCompressionDamage = toDamage; }
-
-    void SetTensionStress(const double toS){mTensionUniaxialStress = toS;}
-    void SetCompressionStress(const double toS){mCompressionUniaxialStress = toS;}
 
     ///@}
     ///@name Protected  Access
@@ -464,23 +415,12 @@ private:
     ///@{
 
     // Converged values
-    double mTensionDamage = 0.0;
+    double mTensionDamage    = 0.0;
     double mTensionThreshold = 0.0;
 
-    // Non Converged values
-    double mNonConvTensionDamage = 0.0;
-    double mNonConvTensionThreshold = 0.0;
-
-    double mCompressionDamage = 0.0;
+    double mCompressionDamage    = 0.0;
     double mCompressionThreshold = 0.0;
-    // double mUniaxialStress = 0.0;
 
-    // Non Converged values
-    double mNonConvCompressionDamage = 0.0;
-    double mNonConvCompressionThreshold = 0.0;
-
-    double mTensionUniaxialStress = 0.0;
-    double mCompressionUniaxialStress = 0.0;
     ///@}
     ///@name Private Operators
     ///@{
@@ -522,12 +462,8 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.save("TensionDamage", mTensionDamage);
         rSerializer.save("TensionThreshold", mTensionThreshold);
-        rSerializer.save("NonConvTensionDamage", mNonConvTensionDamage);
-        rSerializer.save("NonConvTensionThreshold", mNonConvTensionThreshold);
         rSerializer.save("CompressionDamage", mCompressionDamage);
         rSerializer.save("CompressionThreshold", mCompressionThreshold);
-        rSerializer.save("NonConvCompressionnDamage", mNonConvCompressionDamage);
-        rSerializer.save("NonConvCompressionThreshold", mNonConvCompressionThreshold);
     }
 
     void load(Serializer &rSerializer) override
@@ -535,12 +471,8 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.load("TensionDamage", mTensionDamage);
         rSerializer.load("TensionThreshold", mTensionThreshold);
-        rSerializer.load("NonConvTensionDamage", mNonConvTensionDamage);
-        rSerializer.load("NonConvTensionThreshold", mNonConvTensionThreshold);
         rSerializer.load("CompressionDamage", mCompressionDamage);
         rSerializer.load("CompressionThreshold", mCompressionThreshold);
-        rSerializer.load("NonConvCompressionnDamage", mNonConvCompressionDamage);
-        rSerializer.load("NonConvCompressionThreshold", mNonConvCompressionThreshold);
     }
 
     ///@}
@@ -548,4 +480,3 @@ private:
 }; // Class
 
 } // namespace Kratos
-#endif

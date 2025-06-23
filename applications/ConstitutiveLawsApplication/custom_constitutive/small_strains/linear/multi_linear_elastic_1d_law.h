@@ -11,8 +11,7 @@
 //  Main authors:    Klaus B. Sautter
 //
 
-#if !defined (KRATOS_MULTI_LINEAR_ELASTIC_1D_LAW_H_INCLUDED)
-#define  KRATOS_MULTI_LINEAR_ELASTIC_1D_LAW_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "custom_constitutive/truss_constitutive_law.h"
@@ -96,4 +95,3 @@ namespace Kratos
     }; // Class MultiLinearElastic1DLaw
 
 }  // namespace Kratos.
-#endif // KRATOS_MULTI_LINEAR_ELASTIC_1D_LAW_H_INCLUDED  defined

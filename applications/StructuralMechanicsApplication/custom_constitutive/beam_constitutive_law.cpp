@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -74,27 +74,12 @@ int BeamConstitutiveLaw::Check(
     const ProcessInfo& rCurrentProcessInfo
 ) const
 {
-    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.00)
-    {
-        KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
-    }
-
-    const double& nu = rMaterialProperties[POISSON_RATIO];
-    const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
-
-    if(POISSON_RATIO.Key() == 0 || check==true)
-    {
-        KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value " << std::endl;
-    }
-
-
-    if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY] < 0.00)
-    {
-        KRATOS_ERROR << "DENSITY has Key zero or invalid value " << std::endl;
-    }
+    KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
+    const double nu = rMaterialProperties[POISSON_RATIO];
+    KRATOS_ERROR_IF((nu > 0.499 && nu < 0.501) || (nu < -0.999 && nu > -1.01)) << "POISSON_RATIO has Key zero or invalid value " << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[DENSITY] <= 0.0) << "DENSITY has Key zero or invalid value " << std::endl;
 
     return 0;
-
 }
 
 } // Namespace Kratos

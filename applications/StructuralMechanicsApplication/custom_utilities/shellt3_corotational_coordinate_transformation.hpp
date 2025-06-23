@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Massimo Petracca
 //
@@ -148,7 +148,7 @@ public:
         // reference coordinate system
         ShellT3_LocalCoordinateSystem a(CreateReferenceCoordinateSystem());
 
-        // current coordinate system using the 1-2 side alignement
+        // current coordinate system using the 1-2 side alignment
         ShellT3_LocalCoordinateSystem b(geom[0], geom[1], geom[2]);
 
         double aX1 = a.X1();
@@ -418,7 +418,7 @@ private:
 
                 iNode[j] += pert; // apply perturbation
 
-                ShellT3_LocalCoordinateSystem b(nodes[0], nodes[1], nodes[2]);   // perturbed coordinate system (1-2 side alignement)
+                ShellT3_LocalCoordinateSystem b(nodes[0], nodes[1], nodes[2]);   // perturbed coordinate system (1-2 side alignment)
 
                 double bX1 = b.X1();
                 double bY1 = b.Y1();
@@ -523,7 +523,7 @@ private:
 
                 iNode[j] += pert; // apply perturbation
 
-                ShellT3_LocalCoordinateSystem b(nodes[0], nodes[1], nodes[2]);   // perturbed coordinate system (1-2 side alignement)
+                ShellT3_LocalCoordinateSystem b(nodes[0], nodes[1], nodes[2]);   // perturbed coordinate system (1-2 side alignment)
 
                 // save the (numerical) rotation gradient
 

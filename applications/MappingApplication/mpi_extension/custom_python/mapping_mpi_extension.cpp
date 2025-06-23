@@ -26,15 +26,14 @@
 #include "factories/mapper_factory.h"
 #include "python/add_mapper_to_python.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 PYBIND11_MODULE(KratosMappingMPIExtension,m)
 {
     AddMappingToPython<MPIMapperDefinitions::SparseSpaceType, MPIMapperDefinitions::DenseSpaceType>(m);
 
     // Macros for registering mappers
-    // wil be removed once using the core factories
+    // will be removed once using the core factories
     #define KRATOS_REGISTER_MAPPER(MapperType, MapperName)                                                   \
         {                                                                                                    \
         Model current_model;                                                                                 \
@@ -52,7 +51,6 @@ PYBIND11_MODULE(KratosMappingMPIExtension,m)
     KRATOS_REGISTER_MAPPER(Projection3D2DMapper,  "projection_3D_2D");
 }
 
-}
 }
 
 #endif // KRATOS_PYTHON defined

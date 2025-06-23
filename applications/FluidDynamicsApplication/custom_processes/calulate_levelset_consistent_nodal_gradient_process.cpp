@@ -52,7 +52,7 @@ void CalulateLevelsetConsistentNodalGradientProcess::Execute(){
 
     const auto zero_vector = ZeroVector(3);
     // Set to zero
-    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+    block_for_each(mrModelPart.Nodes(), [&](Node& rNode){
         rNode.SetValue(NODAL_AREA, 0.0);
         rNode.SetValue(PRESSURE_GRADIENT, zero_vector);
     });
@@ -77,7 +77,7 @@ void CalulateLevelsetConsistentNodalGradientProcess::Execute(){
     mrModelPart.GetCommunicator().AssembleNonHistoricalData(PRESSURE_GRADIENT);
     mrModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
 
-    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+    block_for_each(mrModelPart.Nodes(), [&](Node& rNode){
         if (rNode.GetValue(NODAL_AREA) > 1.0e-12){
             rNode.GetValue(PRESSURE_GRADIENT) /= rNode.GetValue(NODAL_AREA);}
     });

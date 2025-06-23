@@ -63,7 +63,7 @@ class PropertiesLayout
   /// Type of container used for variables
   typedef DataValueContainer ContainerType;
 
-  typedef Node<3> NodeType;
+  typedef Node NodeType;
 
   typedef Geometry<NodeType> GeometryType;
 

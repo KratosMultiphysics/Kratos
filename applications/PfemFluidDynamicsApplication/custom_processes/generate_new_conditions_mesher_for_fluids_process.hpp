@@ -39,7 +39,7 @@ typedef ModelPart::NodesContainerType NodesContainerType;
 typedef ModelPart::ElementsContainerType ElementsContainerType;
 typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
-typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
 typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
 ///@}
 ///@name  Enum's
@@ -235,7 +235,7 @@ protected:
       {
         for (ModelPart::ConditionsContainerType::iterator i_cond = TemporaryConditions.begin(); i_cond != TemporaryConditions.end(); ++i_cond)
         {
-          Geometry<Node<3>> &rConditionGeometry = i_cond->GetGeometry();
+          Geometry<Node> &rConditionGeometry = i_cond->GetGeometry();
           for (unsigned int i = 0; i < rConditionGeometry.size(); i++)
           {
             if (rConditionGeometry[i].Is(TO_ERASE))
@@ -295,7 +295,7 @@ protected:
     //clear nodal boundary flag
     for (ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end; ++ie)
     {
-      Geometry<Node<3>> &rElementGeometry = ie->GetGeometry();
+      Geometry<Node> &rElementGeometry = ie->GetGeometry();
 
       for (unsigned int j = 0; j < rElementGeometry.size(); ++j)
       {
@@ -307,7 +307,7 @@ protected:
     for (ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end; ++ie)
     {
 
-      Geometry<Node<3>> &rElementGeometry = ie->GetGeometry();
+      Geometry<Node> &rElementGeometry = ie->GetGeometry();
 
       const unsigned int dimension = rElementGeometry.WorkingSpaceDimension();
 
@@ -379,7 +379,7 @@ protected:
             bool inserted = false;
             for (ModelPart::ConditionsContainerType::iterator ic = rTemporaryConditions.begin(); ic != rTemporaryConditions.end(); ++ic)
             {
-              Geometry<Node<3>> &rConditionGeometry = ic->GetGeometry();
+              Geometry<Node> &rConditionGeometry = ic->GetGeometry();
 
               if (ic->IsNot(TO_ERASE))
               {
@@ -579,7 +579,7 @@ protected:
     bool node_not_preserved = false;
     bool condition_not_preserved = false;
 
-    Geometry<Node<3>> &rConditionGeometry = rCondition.GetGeometry();
+    Geometry<Node> &rConditionGeometry = rCondition.GetGeometry();
 
     for (unsigned int j = 0; j < rConditionGeometry.size(); ++j)
     {
@@ -656,7 +656,7 @@ private:
   //**************************************************************************
   //**************************************************************************
 
-  bool FindNodeInCondition(Geometry<Node<3>> &rConditionGeometry, Geometry<Node<3>> &rElementGeometry, DenseMatrix<unsigned int> &lpofa, DenseVector<unsigned int> &lnofa, unsigned int &iface)
+  bool FindNodeInCondition(Geometry<Node> &rConditionGeometry, Geometry<Node> &rElementGeometry, DenseMatrix<unsigned int> &lpofa, DenseVector<unsigned int> &lnofa, unsigned int &iface)
   {
     KRATOS_TRY
 

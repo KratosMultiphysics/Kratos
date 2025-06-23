@@ -49,9 +49,9 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyPointLinkSegregatedVCon
 
   typedef Vector                             VectorType;
   typedef Element                           ElementType;
-  typedef Node<3>::Pointer             PointPointerType;
+  typedef Node::Pointer             PointPointerType;
   typedef Quaternion<double>             QuaternionType;
-  typedef Node<3>::DofsContainerType  DofsContainerType;
+  typedef Node::DofsContainerType  DofsContainerType;
   typedef GeometryData::SizeType               SizeType;
 
   ///@{
@@ -189,7 +189,7 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyPointLinkSegregatedVCon
 
   /**
    * this is called during the assembling process in order
-   * to calculate the condition left hand side matrix for the second derivatives constributions
+   * to calculate the condition left hand side matrix for the second derivatives contributions
    * @param rLeftHandSideMatrix: the condition left hand side matrix
    * @param rCurrentProcessInfo: the current process info instance
    */
@@ -199,7 +199,7 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyPointLinkSegregatedVCon
 
   /**
    * this is called during the assembling process in order
-   * to calculate the condition right hand side vector for the second derivatives constributions
+   * to calculate the condition right hand side vector for the second derivatives contributions
    * @param rRightHandSideVector: the condition right hand side vector
    * @param rCurrentProcessInfo: the current process info instance
    */

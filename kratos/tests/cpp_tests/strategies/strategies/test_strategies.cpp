@@ -26,8 +26,8 @@
 #include "spaces/ublas_space.h"
 
 /* Element include */
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_element.h"
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_constitutive_law.h"
+#include "tests/test_utilities/test_element.h"
+#include "tests/test_utilities/test_constitutive_law.h"
 
 // Linear solvers
 #include "linear_solvers/reorderer.h"
@@ -57,7 +57,7 @@ namespace Kratos
         /// Tests
         // NOTE: The strategies test many things simulataneously
         // TODO: Create test for the other components
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
         typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -173,8 +173,8 @@ namespace Kratos
                 pstrategy->Solve();
 
                 for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepReactionValue()), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepReactionValue()), tolerance);
                 }
             }
         }
@@ -221,11 +221,69 @@ namespace Kratos
                 pstrategy->Solve();
 
                 for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepReactionValue()), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepReactionValue()), tolerance);
                 }
             }
         }
+
+
+        /**
+         * Checks if the Nonconvereged solutions of the Newton Rapshon strategy performs correctly
+         */
+        KRATOS_TEST_CASE_IN_SUITE(NonconvergedSolutionsNRStrategy, KratosCoreFastSuite)
+        {
+            Model current_model;
+
+            constexpr double tolerance_residual_criteria = 1e-15;  // with this tolerance, I expect the strategy to reach the maximum number of iterations, i.e. 10
+
+
+            ModelPart& model_part = current_model.CreateModelPart("Main");
+
+            SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
+            LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+            ConvergenceCriteriaType::Pointer pcriteria = ConvergenceCriteriaType::Pointer( new ResidualCriteriaType(tolerance_residual_criteria, tolerance_residual_criteria) );
+            BuilderAndSolverType::Pointer pbuildandsolve = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(psolver) );
+
+            ResidualBasedNewtonRaphsonStrategyType::Pointer pstrategy = ResidualBasedNewtonRaphsonStrategyType::Pointer( new ResidualBasedNewtonRaphsonStrategyType(model_part, pscheme, pcriteria, pbuildandsolve, 10, true));
+
+            DofsArrayType Doftemp = BasicTestStrategyDisplacement(model_part, ResidualType::NON_LINEAR);
+
+            NodeType::Pointer pnode = model_part.pGetNode(1);
+
+            double time = 0.0;
+            const double delta_time = 1.0e-4;
+            const unsigned int number_iterations = 1;
+
+            pstrategy-> SetUpNonconvergedSolutionsFlag(true);
+
+            for (unsigned int iter = 0; iter < number_iterations; ++iter) {
+                time += delta_time;
+
+                model_part.CloneTimeStep(time);
+
+                array_1d<double, 3> init_vector;
+                init_vector[0] = 0.5;
+                init_vector[1] = 0.5;
+                init_vector[2] = 0.5;
+                pnode->FastGetSolutionStepValue(DISPLACEMENT) = init_vector;
+
+                pcriteria->SetEchoLevel(0);
+                pstrategy->SetEchoLevel(0);
+                pstrategy->Solve();
+
+                auto [NonconveregedSolutionsMatrix,Dofs]= pstrategy->GetNonconvergedSolutions();
+
+                unsigned int expected_rows = Dofs.size();
+                unsigned int expected_cols = model_part.GetProcessInfo()[NL_ITERATION_NUMBER] + 1; //+1 because zeroth is included
+
+                KRATOS_CHECK_EQUAL(NonconveregedSolutionsMatrix.size1(), expected_rows);
+                KRATOS_CHECK_EQUAL(NonconveregedSolutionsMatrix.size2(), expected_cols);
+
+
+            }
+        }
+
 
         KRATOS_TEST_CASE_IN_SUITE(LineSearchStrategy, KratosCoreFastSuite)
         {
@@ -275,8 +333,8 @@ namespace Kratos
                 pstrategy->Solve();
 
                 for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepReactionValue()), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepReactionValue()), tolerance);
                 }
             }
         }
@@ -335,7 +393,7 @@ namespace Kratos
                 pstrategy->Solve();
 
                 for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.25), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepValue() - 1.25), tolerance);
                 }
             }
         }

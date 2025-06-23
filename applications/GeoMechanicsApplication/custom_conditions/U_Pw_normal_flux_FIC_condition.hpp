@@ -12,9 +12,7 @@
 //                   Vahid Galavi
 //
 
-
-#if !defined(KRATOS_GEO_U_PW_NORMAL_FLUX_FIC_CONDITION_H_INCLUDED )
-#define  KRATOS_GEO_U_PW_NORMAL_FLUX_FIC_CONDITION_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/serializer.h"
@@ -23,115 +21,91 @@
 #include "custom_conditions/U_Pw_condition.hpp"
 #include "custom_conditions/U_Pw_normal_flux_condition.hpp"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/condition_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
 
-template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION)
-    UPwNormalFluxFICCondition : public UPwNormalFluxCondition<TDim,TNumNodes>
+template <unsigned int TDim, unsigned int TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwNormalFluxFICCondition
+    : public UPwNormalFluxCondition<TDim, TNumNodes>
 {
-
 public:
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwNormalFluxFICCondition);
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwNormalFluxFICCondition );
+    using IndexType      = std::size_t;
+    using PropertiesType = Properties;
+    using GeometryType   = Geometry<Node>;
+    using NodesArrayType = GeometryType::PointsArrayType;
 
-    typedef std::size_t IndexType;
-	typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
-    using UPwCondition<TDim,TNumNodes>::mThisIntegrationMethod;
-    typedef typename UPwNormalFluxCondition<TDim,TNumNodes>::NormalFluxVariables NormalFluxVariables;
+    UPwNormalFluxFICCondition() : UPwNormalFluxFICCondition(0, nullptr, nullptr) {}
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    // Default constructor
-    UPwNormalFluxFICCondition() : UPwNormalFluxCondition<TDim,TNumNodes>() {}
-
-    // Constructor 1
-    UPwNormalFluxFICCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwNormalFluxCondition<TDim,TNumNodes>(NewId, pGeometry) {}
-
-    // Constructor 2
-    UPwNormalFluxFICCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwNormalFluxCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
+    UPwNormalFluxFICCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+        : UPwNormalFluxFICCondition(NewId, pGeometry, nullptr)
     {
-        mThisIntegrationMethod = this->GetIntegrationMethod();
     }
 
-    // Destructor
-    ~UPwNormalFluxFICCondition() override {}
+    UPwNormalFluxFICCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+        : UPwNormalFluxCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    {
+    }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
+    Condition::Pointer Create(IndexType               NewId,
+                              NodesArrayType const&   ThisNodes,
+                              PropertiesType::Pointer pProperties) const override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    std::string Info() const override;
 
 protected:
+    struct NormalFluxVariables {
+        double                      IntegrationCoefficient;
+        array_1d<double, TNumNodes> Np;
+    };
 
-    struct NormalFluxFICVariables
-    {
+    struct NormalFluxFICVariables {
         double DtPressureCoefficient;
         double ElementLength;
         double BiotModulusInverse;
 
-        array_1d<double,TNumNodes> DtPressureVector;
-        BoundedMatrix<double,TNumNodes,TNumNodes> PMatrix;
+        array_1d<double, TNumNodes> DtPressureVector;
     };
 
-    // Member Variables
+    void CalculateAll(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                      VectorType& rRightHandSideVector,
-                      const ProcessInfo& CurrentProcessInfo ) override;
-
-    void CalculateRHS(VectorType& rRightHandSideVector,
-                      const ProcessInfo& CurrentProcessInfo) override;
+    void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
 
     void CalculateElementLength(double& rElementLength, const GeometryType& Geom);
 
+    void CalculateAndAddLHSStabilization(Matrix&                 rLeftHandSideMatrix,
+                                         NormalFluxVariables&    rVariables,
+                                         NormalFluxFICVariables& rFICVariables);
 
-    void CalculateAndAddLHSStabilization(MatrixType& rLeftHandSideMatrix, NormalFluxVariables& rVariables, NormalFluxFICVariables& rFICVariables);
+    void CalculateAndAddBoundaryMassMatrix(Matrix&                       rLeftHandSideMatrix,
+                                           const NormalFluxVariables&    rVariables,
+                                           const NormalFluxFICVariables& rFICVariables);
 
-    void CalculateAndAddBoundaryMassMatrix(MatrixType& rLeftHandSideMatrix, NormalFluxVariables& rVariables, NormalFluxFICVariables& rFICVariables);
+    void CalculateAndAddRHSStabilization(Vector&                 rRightHandSideVector,
+                                         NormalFluxVariables&    rVariables,
+                                         NormalFluxFICVariables& rFICVariables);
 
-
-    void CalculateAndAddRHSStabilization(VectorType& rRightHandSideVector, NormalFluxVariables& rVariables, NormalFluxFICVariables& rFICVariables);
-
-    void CalculateAndAddBoundaryMassFlow(VectorType& rRightHandSideVector, NormalFluxVariables& rVariables, NormalFluxFICVariables& rFICVariables);
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    void CalculateAndAddBoundaryMassFlow(Vector&                       rRightHandSideVector,
+                                         NormalFluxVariables&          rVariables,
+                                         const NormalFluxFICVariables& rFICVariables);
 
 private:
-
-    // Member Variables
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    // Serialization
-
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
-
 }; // class UPwNormalFluxFICCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_U_PW_NORMAL_FLUX_FIC_CONDITION_H_INCLUDED defined

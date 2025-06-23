@@ -2,32 +2,29 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Nelson Lafontaine
-//   Last update:    Vicente Mataix Ferrandiz
-//                    
+//                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SPATIAL_CONTAINERS_CONFIGURE_INCLUDED )
-#define  KRATOS_SPATIAL_CONTAINERS_CONFIGURE_INCLUDED
-
-
+#pragma once
 
 // System includes
 #include <string>
 #include <iostream>
 #include <cmath>
 
+// External includes
+
 // Project includes
-#include "utilities/contact_pair.h"
+#include "includes/element.h"
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -35,8 +32,8 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef std::size_t SizeType;
-    
+using SizeType = std::size_t;
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -66,35 +63,39 @@ public:
     ///@{
 
     /// Point definition
-    typedef Point                                                                      PointType; 
-    
-    /// The node definition
-    typedef Node<3>                                                                     NodeType;
-    
-    /// The geometry definition
-    typedef Geometry<NodeType>                                                      GeometryType;
-    
-    /// Dditance iterator
-    typedef std::vector<double>::iterator                                   DistanceIteratorType;
-    
-    /// The entity definition
-    typedef TEntity                                                                   EntityType;
-    
-    /// Container definition
-    typedef typename PointerVectorSet<TEntity, IndexedObject>::ContainerType       ContainerType;
-    typedef typename ContainerType::value_type                                       PointerType;
-    typedef typename ContainerType::iterator                                        IteratorType;
-    typedef typename PointerVectorSet<TEntity, IndexedObject>::ContainerType ResultContainerType;
-    typedef typename ResultContainerType::value_type                           ResultPointerType;
-    typedef typename ResultContainerType::iterator                            ResultIteratorType;
+    using PointType = Point;
 
-    /// Contact Pairs
-    typedef ContactPair<PointerType>                                             ContactPairType;
-//     typedef array_1d<PointerType, 2>                                          ContactPairType;
-    typedef std::vector<ContactPairType>                                    ContainerContactType;
-    typedef typename ContainerContactType::iterator                          IteratorContactType;
-    typedef typename ContainerContactType::value_type                         PointerContactType;
-    typedef typename std::vector<PointerType>::iterator                      PointerTypeIterator;
+    /// The node definition
+    using NodeType = Node;
+
+    /// The geometry definition
+    using GeometryType = Geometry<NodeType>;
+
+    /// Dditance iterator
+    using DistanceIteratorType = std::vector<double>::iterator;
+
+    /// The entity definition
+    using EntityType = TEntity;
+
+    /// Container definition
+    using ContainerType = typename PointerVectorSet<TEntity, IndexedObject>::ContainerType;
+    using PointerType = typename ContainerType::value_type;
+    using IteratorType = typename ContainerType::iterator;
+    using ResultContainerType = typename PointerVectorSet<TEntity, IndexedObject>::ContainerType;
+    using ResultPointerType = typename ResultContainerType::value_type;
+    using ResultIteratorType = typename ResultContainerType::iterator;
+
+    /// Definition of the Dimension (it is the template argument, but it is needed to be defined as a static member for legacy reasons as it is used that way in other places)
+    static constexpr std::size_t Dimension = TDimension;
+
+    /// Definition of the DIMENSION (it is the template argument, but it is needed to be defined as a static member for legacy reasons as it is used that way in other places)
+    static constexpr std::size_t DIMENSION = TDimension;
+
+    /// Definition of the maximum level
+    static constexpr std::size_t MAX_LEVEL = 16;
+
+    /// Definition of the minimum level
+    static constexpr std::size_t MIN_LEVEL = 2;
 
     /// Pointer definition of SpatialContainersConfigure
     KRATOS_CLASS_POINTER_DEFINITION(SpatialContainersConfigure);
@@ -103,12 +104,6 @@ public:
     ///@name  Enum's
     ///@{
 
-    enum { Dimension = TDimension,
-           DIMENSION = TDimension,
-           MAX_LEVEL = 16,
-           MIN_LEVEL = 2
-         };
-    
     ///@}
     ///@name Life Cycle
     ///@{
@@ -119,11 +114,9 @@ public:
     /// Destructor.
     virtual ~SpatialContainersConfigure() {}
 
-
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -131,15 +124,20 @@ public:
 
     /**
      * @brief This method computes the bounding box
+     * @param rObject The object to compute the bounding box
+     * @param rLowPoint The lower point of the bounding box
+     * @param rHighPoint The higher point of the bounding box
      */
-    static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
+    static inline void CalculateBoundingBox(
+        const PointerType& rObject,
+        PointType& rLowPoint,
+        PointType& rHighPoint
+        )
     {
         rHighPoint = rObject->GetGeometry().GetPoint(0);
         rLowPoint  = rObject->GetGeometry().GetPoint(0);
-        for (unsigned int point = 0; point<rObject->GetGeometry().PointsNumber(); point++)
-        {
-            for(std::size_t i = 0; i<TDimension; i++)
-            {
+        for (unsigned int point = 0; point<rObject->GetGeometry().PointsNumber(); point++) {
+            for(unsigned int i = 0; i<TDimension; i++) {
                 rLowPoint[i]  =  (rLowPoint[i]  >  rObject->GetGeometry().GetPoint(point)[i] ) ?  rObject->GetGeometry().GetPoint(point)[i] : rLowPoint[i];
                 rHighPoint[i] =  (rHighPoint[i] <  rObject->GetGeometry().GetPoint(point)[i] ) ?  rObject->GetGeometry().GetPoint(point)[i] : rHighPoint[i];
             }
@@ -148,8 +146,17 @@ public:
 
     /**
      * @brief This method computes the bounding box
+     * @param rObject The object to compute the bounding box
+     * @param rLowPoint The lower point of the bounding box
+     * @param rHighPoint The higher point of the bounding box
+     * @param Radius The radius
      */
-    static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint, const double Radius)
+    static inline void CalculateBoundingBox(
+        const PointerType& rObject,
+        PointType& rLowPoint,
+        PointType& rHighPoint,
+        const double Radius
+        )
     {
         (void)Radius;
         CalculateBoundingBox(rObject, rLowPoint, rHighPoint);
@@ -157,19 +164,31 @@ public:
 
     /**
      * @brief This method computes the intersection
+     * @param rObj_1 The first object
+     * @param rObj_2 The second object
+     * @return True if there is an intersection, false otherwise
      */
-    static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
+    static inline bool Intersection(
+        const PointerType& rObj_1,
+        const PointerType& rObj_2
+        )
     {
-        GeometryType& geom_1 = rObj_1->GetGeometry();
-        GeometryType& geom_2 = rObj_2->GetGeometry();
-        return  geom_1.HasIntersection(geom_2);
-
+        GeometryType& r_geom_1 = rObj_1->GetGeometry();
+        GeometryType& r_geom_2 = rObj_2->GetGeometry();
+        return r_geom_1.HasIntersection(r_geom_2);
     }
 
     /**
      * @brief This method computes the intersection
+     * @param rObj_1 The first object
+     * @param rObj_2 The second object
+     * @param Radius The radius
      */
-    static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double Radius)
+    static inline bool Intersection(
+        const PointerType& rObj_1,
+        const PointerType& rObj_2,
+        const double Radius
+        )
     {
         (void)Radius;
         return Intersection(rObj_1, rObj_2);
@@ -177,16 +196,32 @@ public:
 
     /**
      * @brief This method computes the intersection box
+     * @param rObject The object considered
+     * @param rLowPoint The low point of the box
+     * @param rHighPoint The high point of the box
      */
-    static inline bool IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
+    static inline bool IntersectionBox(
+        const PointerType& rObject,
+        const PointType& rLowPoint,
+        const PointType& rHighPoint
+        )
     {
         return rObject->GetGeometry().HasIntersection(rLowPoint, rHighPoint);
     }
 
     /**
      * @brief This method computes the intersection box
+     * @param rObject The object considered
+     * @param rLowPoint The low point of the box
+     * @param rHighPoint The high point of the box
+     * @param Radius The radius
      */
-    static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double Radius)
+    static inline bool IntersectionBox(
+        const PointerType& rObject,
+        const PointType& rLowPoint,
+        const PointType& rHighPoint,
+        const double Radius
+        )
     {
         (void)Radius;
         return IntersectionBox(rObject, rLowPoint, rHighPoint);
@@ -194,19 +229,26 @@ public:
 
     /**
      * @brief This method computes the distance
+     * @param rObj_1 The first object
+     * @param rObj_2 The second object
+     * @param rDistance The distance
      */
-    static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance) {}
+    static inline void Distance(
+        const PointerType& rObj_1,
+        const PointerType& rObj_2,
+        double& rDistance
+        )
+    {
 
+    }
 
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -224,80 +266,63 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
     ///@{
 
-
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -309,7 +334,6 @@ private:
     /// Copy constructor.
     SpatialContainersConfigure(SpatialContainersConfigure const& rOther);
 
-
     ///@}
 
 }; // Class SpatialContainersConfigure
@@ -319,11 +343,9 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 template <std::size_t TDimension>
@@ -346,7 +368,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_SPATIAL_CONTAINERS_CONFIGURE_INCLUDED  defined

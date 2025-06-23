@@ -1,17 +1,15 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Philipp Bucher
 //
 
-#if !defined(KRATOS_GID_EIGEN_IO_H_INCLUDED )
-#define  KRATOS_GID_EIGEN_IO_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -19,7 +17,6 @@
 
 // Project includes
 #include "includes/gid_io.h"
-
 
 namespace Kratos
 {
@@ -42,7 +39,7 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /// GidIO extended for writting Eigenvalue Results
+  /// GidIO extended for writing Eigenvalue Results
 
   /** The main functionality of this class is to write the custom format
   * where the result label is customizable, i.e. it can contain e.g.
@@ -87,7 +84,7 @@ class GidEigenIO : public GidIO<>
     /**
     * Write the post-processed eigensolver-results
     * for Variable of type "double"
-    * The label is can be e.g. the Eigenvalue or -frequency
+    * The label can be e.g. the Eigenvalue or -frequency
     */
     void WriteEigenResults( ModelPart& rModelPart,
                             const Variable<double>& rVariable,
@@ -111,7 +108,7 @@ class GidEigenIO : public GidIO<>
     /**
     * Write the post-processed eigensolver-results
     * for Variable of type "array_1d<double, 3>""
-    * The label is can be e.g. the Eigenvalue or -frequency
+    * The label can be e.g. the Eigenvalue or -frequency
     */
     void WriteEigenResults( ModelPart& rModelPart,
                             const Variable<array_1d<double, 3>>& rVariable,
@@ -261,6 +258,4 @@ class GidEigenIO : public GidIO<>
   ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_GID_EIGEN_IO_H_INCLUDED  defined
 

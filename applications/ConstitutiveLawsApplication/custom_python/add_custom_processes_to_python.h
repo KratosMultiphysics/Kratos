@@ -11,8 +11,7 @@
 //  Main authors:    Sergio Jimenez/Alejandro Cornejo
 //
 
-#if !defined(KRATOS_ADD_PROCESSES_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_PROCESSES_TO_PYTHON_H_INCLUDED
+#pragma once
 
 // System includes
 #include <pybind11/pybind11.h>
@@ -31,5 +30,3 @@ namespace Kratos
         void  AddCustomProcessesToPython(pybind11::module& m);
     }  // namespace Python.
 }  // namespace Kratos.
-
-#endif // KRATOS_ADD_PROCESSES_TO_PYTHON_H_INCLUDED  defined

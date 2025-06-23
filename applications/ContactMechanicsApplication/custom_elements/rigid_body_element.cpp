@@ -778,7 +778,7 @@ void RigidBodyElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideV
       //Initialize sizes for the system components:
       this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
 
-      //RHS reseted to zero
+      //RHS reset to zero
     }
 
 
@@ -1141,7 +1141,7 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
     TotalQuaternion.ToRotationMatrix( CurrentRotationMatrix );
 
 
-    //for writting purposes
+    //for writing purposes
     ArrayType CurrentStepRotationVector = GetGeometry()[0].FastGetSolutionStepValue(STEP_ROTATION);
     CurrentStepRotationVector = MapToInitialLocalFrame(CurrentStepRotationVector);
     ArrayType CurrentDisplacementVector = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
@@ -1313,7 +1313,7 @@ void RigidBodyElement::UpdateRigidBodyNodes(const ProcessInfo& rCurrentProcessIn
 
      KRATOS_TRY
 
-     Node<3>::Pointer rCenterOfGravity = this->GetGeometry()(0);
+     Node::Pointer rCenterOfGravity = this->GetGeometry()(0);
 
      if( rCenterOfGravity->Is(SLAVE) ){
        Element& MasterElement = this->GetGeometry()[0].GetValue(MASTER_ELEMENTS).back();

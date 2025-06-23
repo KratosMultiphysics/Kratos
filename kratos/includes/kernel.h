@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
-#if !defined(KRATOS_KERNEL_H_INCLUDED)
-#define KRATOS_KERNEL_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -30,7 +29,7 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// Kernel is in charge of synchronization the whole system of Kratos itself and its appliction.
+/// Kernel is in charge of synchronization the whole system of Kratos itself and its application.
 /** Kernel is the first component of the Kratos to be created and then used to plug the application into Kratos.
     Kernel takes the list of variables defined in the Variables file in Kratos and then by adding each application
     synchronizes the variables of this application with its variables and add the new ones to the Kratos.
@@ -76,18 +75,18 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     /// Copy constructor.
     /** This constructor is empty
     */
-    Kernel(Kernel const& rOther) {}
+    Kernel(Kernel const& rOther);
 
     /// Destructor.
-    virtual ~Kernel() {}
+    virtual ~Kernel();
 
     ///@}
     ///@name Operations
     ///@{
 
-    /// Pluging an application into Kratos.
+    /// Plugging an application into Kratos.
     /** This method first call the register method of the new application in order to create the
-        components list of the application and then syncronizes the lists of its components with Kratos ones.
+        components list of the application and then synchronizes the lists of its components with Kratos ones.
         The synchronized lists are
       - Variables
       - Elements
@@ -97,8 +96,14 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     */
     void ImportApplication(KratosApplication::Pointer pNewApplication);
 
-    /// To be deprecated becuase variables have their own hash key.
-    /** The keys of Variables are not sequencial anymore, so this method will be deprecated
+    /// This method is used to print the information about the kernel
+    /** This method is used to print the information about the kernel which contains the main information
+        about the compiler usnsed, the release type and also number of threads and processes used to run in this execution.
+    */
+    void PrintInfo();
+
+    /// To be deprecated because variables have their own hash key.
+    /** The keys of Variables are not sequential anymore, so this method will be deprecated
     */
     void Initialize();
 
@@ -110,7 +115,9 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     */
     void InitializeApplication(KratosApplication& NewApplication) {}
 
-    bool IsImported(const std::string& ApplicationName) const;
+    bool IsImported(const std::string& rApplicationName) const;
+
+    bool IsLibraryAvailable(const std::string& rLibraryName) const;
 
     static bool IsDistributedRun();
 
@@ -127,8 +134,13 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const;
 
-    static std::unordered_set<std::string>&
-    GetApplicationsList();
+    static std::unordered_set<std::string>& GetApplicationsList();
+
+    /**
+     * @brief Get the list of libraries available in the system
+     * @return The list of libraries available in the system (stored in a set)
+     */
+    static std::unordered_set<std::string> GetLibraryList();
 
     static std::string Version();
 
@@ -140,17 +152,19 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     static std::string Compiler();
 
+    static void SetPythonVersion(std::string);
+
     void PrintParallelismSupportInfo() const;
 
     ///@}
-   protected:
    private:
     ///@name Static Member Variables
     ///@{
 
     KratosApplication::Pointer mpKratosCoreApplication;
 
-    static bool mIsDistributedRun;
+    static bool         mIsDistributedRun;
+    static std::string  mPyVersion;
 
     ///@}
     ///@name Member Variables
@@ -191,5 +205,3 @@ inline std::ostream& operator<<(std::ostream& rOStream, const Kernel& rThis) {
 ///@}
 
 }  // namespace Kratos.
-
-#endif  // KRATOS_KERNEL_H_INCLUDED  defined

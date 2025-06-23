@@ -7,6 +7,9 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 # Other imports
 import numpy as np
 
+# STD imports
+import typing
+
 class BaseCouplingInterfaceData:
     """This class serves as interface to the data structure (Model and ModelPart)
     that holds the data used during CoSimulation
@@ -86,11 +89,11 @@ class CouplingInterfaceData(BaseCouplingInterfaceData):
         # dimensionality of the data
         if self.is_scalar_variable:
             if self.dimension != -1:
-                self._RaiseException('"dimension" cannot be specifed for scalar variables!')
+                self._RaiseException('"dimension" cannot be specified for scalar variables!')
             self.dimension = 1 # needed in other places, e.g. for "Size"
         else:
             if self.dimension < 1:
-                self._RaiseException('"dimension" has to be specifed for vector variables!')
+                self._RaiseException('"dimension" has to be specified for vector variables!')
             else:
                 if self.variable_type == "Array" and self.dimension not in [1,2,3]:
                     self._RaiseException('"dimension" can only be 1,2,3 when using variables of type "Array"')
@@ -155,7 +158,7 @@ class CouplingInterfaceData(BaseCouplingInterfaceData):
         else:
             return {}
 
-    def GetData(self, solution_step_index=0):
+    def GetData(self, solution_step_index=0) -> "np.ndarray[typing.Union[bool,np.intc,np.uintc,np.double]]":
         self.__CheckBufferSize(solution_step_index)
 
         if self.location == "node_historical":

@@ -54,7 +54,7 @@ public:
 
     using IndexType = std::size_t;
 
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     using GeometryType = Geometry<NodeType>;
 
@@ -190,7 +190,7 @@ public:
          * @param WDerivative                   Gauss point weight derivative w.r.t. chosen variable from TDerivativesType
          * @param DetJDerivative                Jacobian determinant derivative w.r.t. chosen variable from TDerivativesType
          * @param rdNdXDerivative               Gauss point shape gradient's derivatives w.r.t. chosen variable from TDerivativesType
-         * @param MassTermsDerivativesWeight    This decides whether Mass term derivativs needs to be computed or not (either 1.0 or 0.0)
+         * @param MassTermsDerivativesWeight    This decides whether Mass term derivatives needs to be computed or not (either 1.0 or 0.0)
          */
         void CalculateGaussPointResidualsDerivativeContributions(
             VectorF& rResidualDerivative,
@@ -224,7 +224,7 @@ public:
 
             // calculate derivative contributions w.r.t. current derivative variable. Derivative variables are
             // assumed be independent of each other, so no cross derivative terms are there. Hence
-            // it is only sufficient to derrive w.r.t. current derivative variable.
+            // it is only sufficient to derive w.r.t. current derivative variable.
             rData.mpConstitutiveLaw->CalculateDerivative(rData.mConstitutiveLawValues, EFFECTIVE_VISCOSITY, derivatives_type.GetDerivativeVariable(), effective_viscosity_derivative);
             effective_viscosity_derivative *= rN[NodeIndex];
 
@@ -558,7 +558,7 @@ public:
         Vector mShearStress;
         Matrix mC;
 
-        // Sotring this derivatives also in primal data container
+        // Sorting this derivatives also in primal data container
         // since all the matrices and vectors needs to be initialized
         // in the heap, therefore to avoid re-reserving memory for each derivative
         Vector mStrainRateDerivative;

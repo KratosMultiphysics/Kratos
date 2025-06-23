@@ -224,7 +224,7 @@ public:
 
     /**
      * @brief Construct a new Edge Based Gradient Recovery Process object
-     * Level set convection proces model constructor
+     * Level set convection process model constructor
      * @param rModel Model container
      * @param pLinearSolver Linear solver to be used in the level set convection problem
      * @param ThisParameters Json settings encapsulating the process configuration (see also GetDefaultParameters)

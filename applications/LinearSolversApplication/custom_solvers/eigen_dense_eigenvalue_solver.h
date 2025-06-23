@@ -101,7 +101,7 @@ public:
 
         if( success ){
             KRATOS_INFO_IF("DenseEigenvalueSolver", mEchoLevel > 0) << "Completed in "
-                << eigensolver_timer.ElapsedSeconds() << " seconds" << std::endl;
+                << eigensolver_timer << std::endl;
 
             Eigen::IOFormat fmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", "[ ", " ]");
 

@@ -9,9 +9,8 @@
 //
 //  Main authors:    Riccardo Rossi
 //
-#if !defined(KRATOS_DISTRIBUTED_SYSTEM_VECTOR_H_INCLUDED )
-#define  KRATOS_DISTRIBUTED_SYSTEM_VECTOR_H_INCLUDED
 
+#pragma once
 
 // System includes
 #include <string>
@@ -207,6 +206,13 @@ public:
             AddEntry(*it);
     }
 
+    TDataType Norm() const
+    {
+        TDataType norm_squared = mLocalData.Norm();
+        norm_squared = GetComm().SumAll(norm_squared);
+        return std::sqrt(norm_squared);
+    }
+
     TDataType Dot(const DistributedSystemVector& rOtherVector, MpiIndexType gather_on_rank=0)
     {
         const auto& other_data = rOtherVector.GetLocalData();
@@ -361,17 +367,17 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const 
+    void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "DistributedSystemVector LOCAL DATA:" << std::endl;        
+        rOStream << "DistributedSystemVector LOCAL DATA:" << std::endl;
     }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const {
         const auto k = GetComm().Rank();
-        std::cout << "Local Size=" << LocalSize() << " Total Size=" << GetNumbering().Size() << std::endl; 
-        std::cout << "Numbering begins with " << GetNumbering().GetCpuBounds()[k] << " ends at " << GetNumbering().GetCpuBounds()[k+1] << std::endl;
-        std::cout << mLocalData << std::endl;
+        rOStream << "Local Size = " << LocalSize() << " Total Size = " << GetNumbering().Size() << std::endl;
+        rOStream << "Numbering begins with " << GetNumbering().GetCpuBounds()[k] << " ends at " << GetNumbering().GetCpuBounds()[k+1] << std::endl;
+        rOStream << mLocalData << std::endl;
     }
 
     ///@}
@@ -498,7 +504,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_DISTRIBUTED_SYSTEM_VECTOR_H_INCLUDED  defined
 
 

@@ -1,0 +1,11 @@
+{
+    "side_bar_name": "kratos_workshops",
+    "landing_page": "2024_UNIPD/General/Overview.md",
+    "additional_menu_options": {
+        "product": "Workshops",
+        "title": "sidebar"
+    },
+    "custom_entries":[
+        "2024_UNIPD"
+    ]
+}

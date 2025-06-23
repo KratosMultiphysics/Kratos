@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//			 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -183,7 +183,7 @@ const Parameters MeshCondition::GetSpecifications() const
         "required_variables"         : [],
         "required_dofs"              : [],
         "flags_used"                 : [],
-        "compatible_geometries"      : ["Point2D", "Point3D", "Line2D2", "Line2D3", "Line3D2", "Line3D3", "Triangle3D3", "Triangle3D6", "Quadrilateral3D4", "Quadrilateral3D8", "Quadrilateral3D9"],
+        "compatible_geometries"      : ["Point2D", "Point3D", "Line2D2", "Line2D3", "Line2D4", "Line2D5", "Line3D2", "Line3D3", "Triangle3D3", "Triangle3D6", "Quadrilateral3D4", "Quadrilateral3D8", "Quadrilateral3D9"],
         "element_integrates_in_time" : true,
         "compatible_constitutive_laws": {
             "type"        : [],

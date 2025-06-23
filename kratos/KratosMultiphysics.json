@@ -1,6 +1,6 @@
 {
 	"wheel_name": "KratosMultiphysics",
-    "included_modules":  ["response_functions", "mpi"],
+    "included_modules":  ["response_functions", "mpi", "modelers", "orchestrators"],
 	"included_binaries": ["Kratos.*", "KratosCore.*", "KratosCore.*", "KratosMPICore.*", "KratosMPI.*", "zlib.*", "libz.*"],
 	"dependencies": ["numpy"],
 	"author": "Kratos Team",

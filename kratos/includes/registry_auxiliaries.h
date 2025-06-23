@@ -107,6 +107,18 @@ public:
         RegisterPrototype(module_path, rOperationPrototype);
     }
 
+    template<typename TPrototypeType>
+    static void RegisterControllerWithPrototype(
+        const std::string ModuleName,
+        const std::string ControllerName,
+        TPrototypeType rControllerPrototype)
+    {
+        const std::string all_path = std::string("Controllers.All.") + ControllerName;
+        RegisterPrototype(all_path, rControllerPrototype);
+        const std::string module_path = std::string("Controllers.") + ModuleName + std::string(".") + ControllerName;
+        RegisterPrototype(module_path, rControllerPrototype);
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -154,7 +166,7 @@ private:
     {
         if (!Registry::HasItem(RegistryEntryName)) {
             auto& r_item = Registry::AddItem<RegistryItem>(RegistryEntryName);
-            r_item.AddItem<RegistryValueItem<TPrototypeType>>("Prototype", rPrototype);
+            r_item.AddItem<TPrototypeType>("Prototype", rPrototype);
         } else {
             KRATOS_ERROR << "'" << RegistryEntryName << "' is already registered." << std::endl;
         }

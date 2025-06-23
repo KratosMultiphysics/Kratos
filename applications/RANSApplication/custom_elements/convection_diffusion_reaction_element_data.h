@@ -66,7 +66,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using GeometryType = Geometry<Node<3>>;
+    using GeometryType = Geometry<Node>;
 
     using ArrayD = array_1d<double, TDim>;
 

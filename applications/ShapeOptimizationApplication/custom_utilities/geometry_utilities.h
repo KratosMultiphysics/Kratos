@@ -66,6 +66,7 @@ public:
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
     typedef ModelPart::ElementType::GeometryType GeometryType;
     typedef std::size_t SizeType;
+    using NodeType = Node;
 
     /// Pointer definition of GeometryUtilities
     KRATOS_CLASS_POINTER_DEFINITION(GeometryUtilities);
@@ -95,6 +96,8 @@ public:
     ///@name Operations
     ///@{
 
+    void CalculateNodalAreasFromConditions();
+
     void ComputeUnitSurfaceNormals();
 
     void ProjectNodalVariableOnUnitSurfaceNormals( const Variable<array_3d> &rNodalVariable );
@@ -122,6 +125,45 @@ public:
     double ComputeVolume();
 
     void ComputeVolumeShapeDerivatives(const Variable<array_3d>& rDerivativeVariable);
+
+    // Computes the gaussian curvature at all surface nodes depending on the surrounding elements
+    // (I) Quadratic Elements:  Curvature tensor by shape functions
+    // (II) Linear Quadrangle:  Taubin http://graphics.stanford.edu/courses/cs348a-17-winter/ReaderNotes/taubin-iccv95b.pdf
+    //                          Camprubi Estebo https://mediatum.ub.tum.de/doc/601055/00000039.pdf
+    // (III) Linear Triangle:   Meyer https://authors.library.caltech.edu/99186/2/diffGeoOps.pdf
+    void CalculateGaussianCurvature();
+
+    // Computes the gaussian curvature at a surface node from the curvature tensor.
+    // For quadratic elements (e.g. 6NTriangle).
+    double GaussianCurvatureForNodeFromTensor(const NodeType &rNode);
+
+    // Computes the gaussian curvature at a surface node according to Taubin.
+    // For 4NQuads, variable naming according to Camprubi Estebo.
+    double GaussianCurvatureForNodeTaubin(const NodeType &rNode);
+
+    // Computes the gaussian curvature at a surface node according to Meyer.
+    // For 3NTriangles.
+    double GaussianCurvatureForNodeMeyer(const NodeType &rNode);
+
+    // Selects the curvature technique according to the surrounding elements
+    // Precedence: (I) > (II) > (III)
+    std::string GetCurvatureTechnique(const NodeType &rNode);
+
+    bool CheckIfElementIsQuadratic(const Kratos::GlobalPointer<Kratos::Condition> pElement);
+
+    bool CheckIfNodesHasQuadraticNeigbourElement(const NodeType &rNode);
+
+    void LocalPointInElement(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, Kratos::Point::CoordinatesArrayType& rLocalPoint);
+
+    Matrix CurvatureTensor(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement);
+
+    void BaseVectors(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, Vector& rG1, Vector& rG2);
+
+    void CartesianBaseVectors(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, Vector& rE1, Vector& rE2);
+
+    void TransformTensorCoefficients(Matrix& rTensor, Matrix& rResultTensor, Vector&rG1, Vector&rG2, Vector&rE1, Vector&rE2);
+
+    void InnerAngleAndMixedAreaOf3D3NTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea);
 
     // --------------------------------------------------------------------------
 

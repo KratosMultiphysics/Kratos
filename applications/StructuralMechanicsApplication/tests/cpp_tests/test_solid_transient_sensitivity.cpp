@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Michael Andre, https://github.com/msandre
 //
@@ -28,7 +28,7 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "spaces/ublas_space.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "utilities/sensitivity_builder.h"
 
 // Application includes
@@ -111,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_SaintVenantPlaneStrain_TransientSen
             const double adjoint_sensitivity =
                 adjoint_solver.CalculateSensitivity(i_node, dir);
             const double tol = std::max(0.001 * std::abs(finite_diff_sensitivity), 1e-10);
-            KRATOS_CHECK_NEAR(adjoint_sensitivity, finite_diff_sensitivity, tol);
+            KRATOS_EXPECT_NEAR(adjoint_sensitivity, finite_diff_sensitivity, tol);
         }
     }
 }
@@ -159,7 +159,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D8_SaintVenant_TransientSensitivity, K
             const double adjoint_sensitivity =
                 adjoint_solver.CalculateSensitivity(i_node, dir);
             const double tol = std::max(0.01 * std::abs(finite_diff_sensitivity), 1e-10);
-            KRATOS_CHECK_NEAR(adjoint_sensitivity, finite_diff_sensitivity, tol);
+            KRATOS_EXPECT_NEAR(adjoint_sensitivity, finite_diff_sensitivity, tol);
         }
     }
 }
@@ -207,6 +207,7 @@ void SolvePrimal(ModelPart* pModelPart,
                  std::function<void(ModelPart*)> CallerFun)
 {
     auto p_solver = CreatePrimalSolvingStrategy(pModelPart);
+    p_solver->SetEchoLevel(0);
     p_solver->Initialize();
     const double start_time = 0.0;
     pModelPart->CloneTimeStep(start_time - DeltaTime);
@@ -291,6 +292,7 @@ void SolveAdjoint(ModelPart* pAdjointModelPart,
     auto p_response_function = ResponseFunctionFactory(pAdjointModelPart, ResponseNodeId);
     auto p_adjoint_solver =
         CreateAdjointSolvingStrategy(pAdjointModelPart, p_response_function);
+    p_adjoint_solver->SetEchoLevel(0);
     p_adjoint_solver->Initialize();
     SensitivityBuilder sensitivity_builder(
         Parameters(R"(

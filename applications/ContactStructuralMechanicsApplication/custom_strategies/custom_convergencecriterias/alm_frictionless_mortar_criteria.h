@@ -68,28 +68,28 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( TABLE_IS_INITIALIZED );
 
     /// The base convergence criteria class definition
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >    ConvergenceCriteriaBaseType;
+    using ConvergenceCriteriaBaseType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
     /// The base class definition
-    typedef BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >             BaseType;
+    using BaseType = BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
     /// The definition of the current class
-    typedef ALMFrictionlessMortarConvergenceCriteria< TSparseSpace, TDenseSpace > ClassType;
+    using ClassType = ALMFrictionlessMortarConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
     /// The dofs array type
-    typedef typename BaseType::DofsArrayType                                  DofsArrayType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
     /// The sparse matrix type
-    typedef typename BaseType::TSystemMatrixType                          TSystemMatrixType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
     /// The dense vector type
-    typedef typename BaseType::TSystemVectorType                          TSystemVectorType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
     /// The table stream definition TODO: Replace by logger
-    typedef TableStreamUtility::Pointer                             TablePrinterPointerType;
+    using TablePrinterPointerType = TableStreamUtility::Pointer;
 
     /// The index type definition
-    typedef std::size_t                                                           IndexType;
+    using IndexType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -279,7 +279,7 @@ public:
     }
 
     ///@}
-    ///@name Acces
+    ///@name Access
     ///@{
 
     ///@}
@@ -309,11 +309,7 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
 protected:
-
     ///@name Protected static Member Variables
     ///@{
 
@@ -343,50 +339,6 @@ protected:
     }
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
-    ///@}
-
 }; // Class ALMFrictionlessMortarConvergenceCriteria
 
 ///@name Local flags creation

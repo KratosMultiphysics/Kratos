@@ -1,0 +1,39 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+   20        1.00000        2.00000        1.00000
+   26        2.00000        2.00000        1.00000
+   27        1.00000        1.00000        1.00000
+   41        1.00000        2.00000        0.00000
+   43        2.00000        1.00000        1.00000
+   55        1.00000        1.00000        0.00000
+   58        2.00000        2.00000        0.00000
+   62        2.00000        1.00000        0.00000
+End Nodes
+
+
+Begin Elements MPMUpdatedLagrangian3D8N// GUI group identifier: point
+       28          0         26         20         41         58         43         27         55         62 
+End Elements
+
+Begin SubModelPart Parts_point // Group point // Subtree Parts
+    Begin SubModelPartNodes
+           20
+           26
+           27
+           41
+           43
+           55
+           58
+           62
+    End SubModelPartNodes
+    Begin SubModelPartElements
+           28
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Klaus B Sautter
 //
 
-#if !defined(KRATOS_CONSTRAINT_UTILITIES)
-#define KRATOS_CONSTRAINT_UTILITIES
+#pragma once
 
 // System includes
 
@@ -62,6 +61,19 @@ namespace ConstraintUtilities
         );
 
     /**
+     * @brief This method computes the active dofs
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @param rActiveDofs Vector containing the active dofs
+     * @param rDofSet The whole set of dofs
+     */
+    void KRATOS_API(KRATOS_CORE) DistributedComputeActiveDofs(
+        ModelPart& rModelPart,
+        std::vector<int>& rActiveDofs,
+        const ModelPart::DofsArrayType& rDofSet,
+        const std::size_t InitialDofId
+        );
+
+    /**
      * @brief This method resets the values of the slave dofs
      * @param rModelPart The model of the problem to solve
      */
@@ -104,4 +116,3 @@ namespace ConstraintUtilities
 
 }; // namespace ConstraintUtilities
 }  // namespace Kratos
-#endif /* KRATOS_CONSTRAINT_UTILITIES defined */

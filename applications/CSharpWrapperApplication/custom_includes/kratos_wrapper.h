@@ -27,10 +27,10 @@
 
 namespace CSharpKratosWrapper {
 
-    using NodeType = Kratos::Node<3>;
+    using NodeType = Kratos::Node;
     using ModelPart = Kratos::ModelPart;
 
-    class KratosWrapper {
+    class KRATOS_API(CSHARP_WRAPPER_APPLICATION) KratosWrapper {
 
     public:
 

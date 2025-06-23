@@ -58,19 +58,19 @@
     "loads_process_list": [
       {
         "python_module": "apply_mpm_coupling_interface_neumann_condition_process",
-        "kratos_module": "KratosMultiphysics.ParticleMechanicsApplication",
+        "kratos_module": "KratosMultiphysics.MPMApplication",
         "Parameters": {
           "model_part_name": "Background_Grid.INTERFACE_coupling_to_dem",
-          "particles_per_condition": 1
+          "material_points_per_condition": 1
         }
       }
     ],
     "list_other_processes": [
       {
-        "python_module": "particle_from_json_check_result_process",
-        "kratos_module": "KratosMultiphysics.ParticleMechanicsApplication",
+        "python_module": "mpm_from_json_check_result_process",
+        "kratos_module": "KratosMultiphysics.MPMApplication",
         "help": "",
-        "process_name": "ParticleFromJsonCheckResultProcess",
+        "process_name": "MPMFromJsonCheckResultProcess",
         "Parameters": {
           "check_variables": [ "MP_DISPLACEMENT" ],
           "input_file_name": "mpm_dem/cosim_mpm_dem_results.json",
@@ -83,10 +83,10 @@
   },
   "print_output_process": [
     {
-      "python_module": "particle_json_output_process",
-      "kratos_module": "KratosMultiphysics.ParticleMechanicsApplication",
+      "python_module": "mpm_json_output_process",
+      "kratos_module": "KratosMultiphysics.MPMApplication",
       "help": "",
-      "process_name": "ParticleJsonOutputProcess",
+      "process_name": "MPMJsonOutputProcess",
       "Parameters": {
         "gauss_points_output_variables": [ "MP_DISPLACEMENT" ],
         "output_file_name": "mpm_dem/cosim_mpm_dem_results.json",

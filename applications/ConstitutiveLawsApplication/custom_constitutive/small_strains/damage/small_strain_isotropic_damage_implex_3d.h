@@ -10,8 +10,7 @@
 //
 //  Main authors:    Marcelo Raschi
 
-#if !defined(KRATOS_SMALL_STRAIN_ISOTROPIC_DAMAGE_IMPLEX_3D_LAW_H_INCLUDED)
-#define KRATOS_SMALL_STRAIN_ISOTROPIC_DAMAGE_IMPLEX_3D_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -243,7 +242,7 @@ public:
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {
-        rOStream << "Small Strain Isotropic Damage 3D constitutive law with Implex intergration scheme\n";
+        rOStream << "Small Strain Isotropic Damage 3D constitutive law with Implex integration scheme\n";
     };
 
 protected:
@@ -331,4 +330,3 @@ private:
 
 }; // class SmallStrainIsotropicDamage3D
 } // namespace Kratos
-#endif

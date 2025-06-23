@@ -12,8 +12,7 @@
 //                   Ruben Zorrilla
 //
 
-#if !defined (KRATOS_HYPER_ELASTIC_ISOTROPIC_KIRCHHOFF_PLANE_STRESS_2D_LAW_H_INCLUDED)
-#define  KRATOS_HYPER_ELASTIC_ISOTROPIC_KIRCHHOFF_PLANE_STRESS_2D_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -235,4 +234,3 @@ private:
 
 }; // Class HyperElasticIsotropicKirchhoffPlaneStress2D
 }  // namespace Kratos.
-#endif // KRATOS_HYPER_ELASTIC_ISOTROPIC_KIRCHHOFF_PLANE_STRESS_2D_LAW_H_INCLUDED  defined

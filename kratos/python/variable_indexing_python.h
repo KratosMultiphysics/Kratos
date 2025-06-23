@@ -4,35 +4,24 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
 
-
-
-
-#if !defined(KRATOS_VARIABLE_INDEXING_PYTHON_H_INCLUDED )
-#define  KRATOS_VARIABLE_INDEXING_PYTHON_H_INCLUDED
-
-
+#pragma once
 
 // System includes
 #include <pybind11/pybind11.h>
 
 // External includes
 
-
 // Project includes
 #include "includes/define_python.h"
 
-
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 namespace py = pybind11;
@@ -81,11 +70,9 @@ public:
     /// Destructor.
     virtual ~VariableIndexingPython() {}
 
-
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -110,39 +97,30 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
     ///@{
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
     ///@{
 
-
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -174,9 +152,6 @@ private:
         return rData.Has(rV);
     }
 
-
-
-
     ///@}
     ///@name Private  Access
     ///@{
@@ -194,7 +169,6 @@ private:
     /// Assignment operator.
     VariableIndexingPython& operator=(const VariableIndexingPython& rOther);
 
-
     ///@}
 
 }; // Class VariableIndexingPython
@@ -204,17 +178,12 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
 
 ///@}
 
-}  // namespace Python.
-
-}  // namespace Kratos.
-
-#endif // KRATOS_VARIABLE_INDEXING_PYTHON_H_INCLUDED  defined
+}  // namespace Kratos::Python.
 
 

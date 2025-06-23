@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
-#ifndef ADJOINT_NODAL_DISPLACEMENT_RESPONSE_FUNCTION_H
-#define ADJOINT_NODAL_DISPLACEMENT_RESPONSE_FUNCTION_H
+#pragma once
 
 
 // System includes
@@ -55,7 +54,7 @@ public:
     ///@{
 
     typedef Element::DofsVectorType DofsVectorType;
-    typedef Node<3>::Pointer PointTypePointer;
+    typedef Node::Pointer PointTypePointer;
     typedef Variable<array_1d<double, 3>> ArrayVariableType;
 
     ///@}
@@ -235,5 +234,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // ADJOINT_NODAL_DISPLACEMENT_RESPONSE_FUNCTION_H_INCLUDED

@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
@@ -28,6 +28,40 @@
 
 namespace Kratos
 {
+    namespace AdjointSemiAnalyticBaseConditionHelperUtils
+    {
+        template <class TData>
+        void CalculateOnIntegrationPoints(
+            Condition& rPrimalCondition,
+            const Condition& rAdjointCondition,
+            const Variable<TData>& rVariable,
+            std::vector<TData>& rValues,
+            const ProcessInfo& rCurrentProcessInfo)
+        {
+            KRATOS_TRY
+
+            if (rAdjointCondition.Has(rVariable)) {
+                // Get result value for output
+                const auto& output_value = rAdjointCondition.GetValue(rVariable);
+
+                // Resize Output
+                const auto gauss_points_number = rAdjointCondition.GetGeometry().IntegrationPointsNumber(rAdjointCondition.GetIntegrationMethod());
+                if (rValues.size() != gauss_points_number) {
+                    rValues.resize(gauss_points_number);
+                }
+
+                // Write scalar result value on all Gauss-Points
+                for (IndexType i = 0; i < gauss_points_number; ++i) {
+                    rValues[i] = output_value;
+                }
+            }
+            else {
+                rPrimalCondition.CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+            }
+
+            KRATOS_CATCH("");
+        }
+    } // namespace AdjointSemiAnalyticBaseConditionHelperUtils
 
     template <class TPrimalCondition>
     void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
@@ -114,62 +148,74 @@ namespace Kratos
 
     template <class TPrimalCondition>
     void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable, std::vector< array_1d<double, 3 > >& rOutput, const ProcessInfo& rCurrentProcessInfo)
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_TRY;
-
-        if (this->Has(rVariable)) {
-            // Get result value for output
-            const auto& output_value = this->GetValue(rVariable);
-
-            // Resize Output
-            const SizeType gauss_points_number = this->GetGeometry()
-                .IntegrationPointsNumber(this->GetIntegrationMethod());
-            if (rOutput.size() != gauss_points_number) {
-                rOutput.resize(gauss_points_number);
-            }
-
-            // Write result value on all Gauss-Points
-            for(IndexType i = 0; i < gauss_points_number; ++i) {
-                rOutput[i] = output_value;
-            }
-
-        }
-        else {
-            KRATOS_ERROR << "Unsupported output variable." << std::endl;
-        }
-
-        KRATOS_CATCH("")
+        AdjointSemiAnalyticBaseConditionHelperUtils::CalculateOnIntegrationPoints(*mpPrimalCondition, *this, rVariable, rOutput, rCurrentProcessInfo);
     }
 
     template <class TPrimalCondition>
     void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_TRY;
+        AdjointSemiAnalyticBaseConditionHelperUtils::CalculateOnIntegrationPoints(*mpPrimalCondition, *this, rVariable, rOutput, rCurrentProcessInfo);
+    }
 
-        if (this->Has(rVariable)) {
-            // Get result value for output
-            const auto& output_value = this->GetValue(rVariable);
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        AdjointSemiAnalyticBaseConditionHelperUtils::CalculateOnIntegrationPoints(*mpPrimalCondition, *this, rVariable, rOutput, rCurrentProcessInfo);
+    }
 
-            // Resize Output
-            const SizeType gauss_points_number = this->GetGeometry()
-                .IntegrationPointsNumber(this->GetIntegrationMethod());
-            if (rOutput.size() != gauss_points_number) {
-                rOutput.resize(gauss_points_number);
-            }
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 4>>& rVariable,
+        std::vector<array_1d<double, 4>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        AdjointSemiAnalyticBaseConditionHelperUtils::CalculateOnIntegrationPoints(*mpPrimalCondition, *this, rVariable, rOutput, rCurrentProcessInfo);
+    }
 
-            // Write result value on all Gauss-Points
-            for(IndexType i = 0; i < gauss_points_number; ++i) {
-                rOutput[i] = output_value;
-            }
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 6>>& rVariable,
+        std::vector<array_1d<double, 6>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        AdjointSemiAnalyticBaseConditionHelperUtils::CalculateOnIntegrationPoints(*mpPrimalCondition, *this, rVariable, rOutput, rCurrentProcessInfo);
+    }
 
-        }
-        else {
-            KRATOS_ERROR << "Unsupported output variable." << std::endl;
-        }
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 9>>& rVariable,
+        std::vector<array_1d<double, 9>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        AdjointSemiAnalyticBaseConditionHelperUtils::CalculateOnIntegrationPoints(*mpPrimalCondition, *this, rVariable, rOutput, rCurrentProcessInfo);
+    }
 
-        KRATOS_CATCH("")
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        AdjointSemiAnalyticBaseConditionHelperUtils::CalculateOnIntegrationPoints(*mpPrimalCondition, *this, rVariable, rOutput, rCurrentProcessInfo);
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::CalculateOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        AdjointSemiAnalyticBaseConditionHelperUtils::CalculateOnIntegrationPoints(*mpPrimalCondition, *this, rVariable, rOutput, rCurrentProcessInfo);
     }
 
     template <class TPrimalCondition>
@@ -347,7 +393,8 @@ namespace Kratos
         KRATOS_TRY;
 
         if ( mpPrimalCondition->Has(rDesignVariable) ) {
-            const double variable_value = mpPrimalCondition->GetValue(rDesignVariable);
+            // the rDesignVariable value may be negative, therefore adding a std::abs
+            const double variable_value = std::abs(mpPrimalCondition->GetValue(rDesignVariable));
             return variable_value;
         }
         else {

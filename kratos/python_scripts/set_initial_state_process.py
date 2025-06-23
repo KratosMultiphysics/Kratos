@@ -27,7 +27,7 @@ def components_to_functions(vect):
     vector with functions rendered from the input's components
     """
     v = []
-    for c in vect:
+    for c in vect.values():
         if c.IsNumber():
             s = str(c.GetDouble())
         elif c.IsString():
@@ -69,7 +69,6 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
             """
         {
             "help"            : "This sets the initial conditions in terms of imposed strain, stress or deformation gradient",
-            "mesh_id"         : 0,
             "model_part_name" : "please_specify_model_part_name",
             "dimension"       : 3,
             "imposed_strain"  : ["0*t","0*t","0*t",0,0,0],
@@ -100,7 +99,7 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         # init deformation gradient
         aux_matrix = settings["imposed_deformation_gradient"]
         self.deformation_functions = []
-        for row in aux_matrix:
+        for row in aux_matrix.values():
             aux_vector = components_to_functions(row)
             self.deformation_functions.append(aux_vector)
         nrows = aux_matrix.size()

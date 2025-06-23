@@ -67,7 +67,7 @@ public:
 
     typedef Point PointType;
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
 
     typedef Geometry<NodeType> GeometryType;
 
@@ -164,6 +164,10 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    void GenerateSubModelParts(
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelpart);
 
 
     ///@}

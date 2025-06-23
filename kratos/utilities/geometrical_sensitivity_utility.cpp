@@ -95,11 +95,7 @@ GeometricalSensitivityUtility::MatrixType GeometricalSensitivityUtility::Calcula
             IndexType i_coord_sub = (Deriv.Direction > i) ? Deriv.Direction - 1 : Deriv.Direction;
             for (unsigned j = 0; j < mrJ.size2(); ++j)
             {
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-				DenseVector<std::size_t> ia1(mrJ.size1() - 1), ia2(mrJ.size2() - 1);
-#else
 				IndirectArrayType ia1(mrJ.size1() - 1), ia2(mrJ.size2() - 1);
-#endif // ifdef KRATOS_USE_AMATRIX
 
                 // Construct the Jacobian submatrix structure for the first minor.
                 unsigned i_sub = 0;

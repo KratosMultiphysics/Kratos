@@ -31,6 +31,8 @@
 
 #include "pfem_fluid_dynamics_application_variables.h"
 
+#include "processes/integration_values_extrapolation_to_nodes_process.h"
+
 #include "v_p_strategy.h"
 
 #include <stdio.h>
@@ -125,16 +127,16 @@ namespace Kratos
       typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
       typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-      //initializing fractional velocity solution step
+      // initializing fractional velocity solution step
       typedef Scheme<TSparseSpace, TDenseSpace> SchemeType;
       typename SchemeType::Pointer pScheme;
 
       typename SchemeType::Pointer Temp = typename SchemeType::Pointer(new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
       pScheme.swap(Temp);
 
-      //CONSTRUCTION OF VELOCITY
-      //BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pVelocityLinearSolver));
-      BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pVelocityLinearSolver));
+      // CONSTRUCTION OF VELOCITY
+      // BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pVelocityLinearSolver));
+      BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pVelocityLinearSolver));
 
       this->mpMomentumStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pVelocityLinearSolver, vel_build, ReformDofAtEachIteration, CalculateNormDxFlag));
 
@@ -188,7 +190,7 @@ namespace Kratos
 
       if (mTimeOrder == 2)
       {
-        //calculate the BDF coefficients
+        // calculate the BDF coefficients
         double Dt = rCurrentProcessInfo[DELTA_TIME];
         double OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
 
@@ -198,9 +200,9 @@ namespace Kratos
         Vector &BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
         BDFcoeffs.resize(3, false);
 
-        BDFcoeffs[0] = TimeCoeff * (Rho * Rho + 2.0 * Rho);        //coefficient for step n+1 (3/2Dt if Dt is constant)
-        BDFcoeffs[1] = -TimeCoeff * (Rho * Rho + 2.0 * Rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
-        BDFcoeffs[2] = TimeCoeff;                                  //coefficient for step n-1 (1/2Dt if Dt is constant)
+        BDFcoeffs[0] = TimeCoeff * (Rho * Rho + 2.0 * Rho);        // coefficient for step n+1 (3/2Dt if Dt is constant)
+        BDFcoeffs[1] = -TimeCoeff * (Rho * Rho + 2.0 * Rho + 1.0); // coefficient for step n (-4/2Dt if Dt is constant)
+        BDFcoeffs[2] = TimeCoeff;                                  // coefficient for step n-1 (1/2Dt if Dt is constant)
       }
       else if (mTimeOrder == 1)
       {
@@ -210,8 +212,8 @@ namespace Kratos
         Vector &BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
         BDFcoeffs.resize(2, false);
 
-        BDFcoeffs[0] = TimeCoeff;  //coefficient for step n+1 (1/Dt)
-        BDFcoeffs[1] = -TimeCoeff; //coefficient for step n (-1/Dt)
+        BDFcoeffs[0] = TimeCoeff;  // coefficient for step n+1 (1/Dt)
+        BDFcoeffs[1] = -TimeCoeff; // coefficient for step n (-1/Dt)
       }
 
       KRATOS_CATCH("");
@@ -269,8 +271,8 @@ namespace Kratos
         if (it == maxNonLinearIterations - 1 || ((continuityConverged && momentumConverged) && it > 2))
         {
 
-          //double tensilStressSign = 1.0;
-          // ComputeErrorL2Norm(tensilStressSign);
+          // double tensilStressSign = 1.0;
+          //  ComputeErrorL2Norm(tensilStressSign);
           this->UpdateStressStrain();
         }
 
@@ -305,6 +307,15 @@ namespace Kratos
 
     void InitializeSolutionStep() override
     {
+        auto& r_model_part = BaseType::GetModelPart();
+
+        // InitializeSolutionStep of momentum strategy
+        r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP, 1);
+        mpMomentumStrategy->InitializeSolutionStep();
+
+        // InitializeSolutionStep of continuity strategy
+        r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP, 5);
+        mpPressureStrategy->InitializeSolutionStep();
     }
 
     void UpdateStressStrain() override
@@ -319,8 +330,7 @@ namespace Kratos
         OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElemBegin, ElemEnd);
         for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
         {
-          /* itElem-> InitializeElementStrainStressState(); */
-          itElem->InitializeSolutionStep(rCurrentProcessInfo);
+          itElem->InitializeNonLinearIteration(rCurrentProcessInfo);
         }
       }
 
@@ -414,10 +424,10 @@ namespace Kratos
       // build momentum system and solve for fractional step velocity increment
       rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 1);
 
-      if (it == 0)
-      {
-        mpMomentumStrategy->InitializeSolutionStep();
-      }
+      // if (it == 0)
+      // {
+      //   mpMomentumStrategy->InitializeSolutionStep();
+      // }
 
       NormDv = mpMomentumStrategy->Solve();
 
@@ -464,10 +474,10 @@ namespace Kratos
       // 2. Pressure solution
       rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 5);
 
-      if (it == 0)
-      {
-        mpPressureStrategy->InitializeSolutionStep();
-      }
+    //   if (it == 0)
+    //   {
+    //     mpPressureStrategy->InitializeSolutionStep();
+    //   }
       NormDp = mpPressureStrategy->Solve();
 
       if (BaseType::GetEchoLevel() > 0 && Rank == 0)
@@ -767,11 +777,11 @@ namespace Kratos
 
     // Fractional step index.
     /*  1 : Momentum step (calculate fractional step velocity)
-      * 2-3 : Unused (reserved for componentwise calculation of frac step velocity)
-      * 4 : Pressure step
-      * 5 : Computation of projections
-      * 6 : End of step velocity
-      */
+     * 2-3 : Unused (reserved for componentwise calculation of frac step velocity)
+     * 4 : Pressure step
+     * 5 : Computation of projections
+     * 6 : End of step velocity
+     */
     //    unsigned int mStepId;
 
     /// Scheme for the solution of the momentum equation

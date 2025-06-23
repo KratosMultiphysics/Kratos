@@ -226,11 +226,11 @@ public:
     {
         KRATOS_TRY
 
-        GlobalPointerMapCommunicator<Node<3>, TDataType> pointer_map_communicator(
+        GlobalPointerMapCommunicator<Node, TDataType> pointer_map_communicator(
             rModelPart.GetCommunicator().GetDataCommunicator());
 
         auto apply_sensitivities_proxy = pointer_map_communicator.GetApplyProxy(
-            [&](Node<3>& rNode, const TDataType& NewValue) {
+            [&](Node& rNode, const TDataType& NewValue) {
                 if (rNode.Has(UPDATE_SENSITIVITIES) && rNode.GetValue(UPDATE_SENSITIVITIES)) {
                     rNode.SetLock();
                     rNode.FastGetSolutionStepValue(*(rVariable.pOutputVariable)) += NewValue * ScalingFactor;
@@ -383,6 +383,11 @@ SensitivityBuilder::SensitivityBuilder(
         Settings["condition_data_value_sensitivity_variables"].GetStringArray());
 
     KRATOS_CATCH("");
+}
+
+void SensitivityBuilder::SetResponseFunction(AdjointResponseFunction::Pointer pResponseFunction)
+{
+    mpResponseFunction = pResponseFunction;
 }
 
 void SensitivityBuilder::Initialize()

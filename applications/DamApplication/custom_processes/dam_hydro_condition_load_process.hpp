@@ -66,7 +66,7 @@ class DamHydroConditionLoadProcess : public Process
         rParameters["variable_name"];
         rParameters["model_part_name"];
 
-        // Now validate agains defaults -- this also ensures no type mismatch
+        // Now validate against defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mVariableName = rParameters["variable_name"].GetString();
@@ -97,7 +97,7 @@ class DamHydroConditionLoadProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize() override
+    void ExecuteBeforeSolutionLoop() override
     {
         KRATOS_TRY;
 
@@ -112,8 +112,6 @@ class DamHydroConditionLoadProcess : public Process
         else
             direction = 2;
 
-        double ref_coord = mReferenceCoordinate + mWaterLevel;
-
         if (nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
@@ -123,7 +121,7 @@ class DamHydroConditionLoadProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double pressure = (mSpecific * (ref_coord - it->Coordinates()[direction]));
+                double pressure = (mSpecific * (mWaterLevel - it->Coordinates()[direction]));
 
                 if (pressure > 0.0)
                 {
@@ -167,8 +165,6 @@ class DamHydroConditionLoadProcess : public Process
         else
             direction = 2;
 
-        double ref_coord = mReferenceCoordinate + mWaterLevel;
-
         if (nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
@@ -178,7 +174,7 @@ class DamHydroConditionLoadProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double pressure = (mSpecific * (ref_coord - it->Coordinates()[direction]));
+                double pressure = (mSpecific * (mWaterLevel - it->Coordinates()[direction]));
 
                 if (pressure > 0.0)
                 {

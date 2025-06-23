@@ -87,7 +87,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MASS_SOURCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.HEAT_SOURCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.NUMERICAL_ENTROPY) # TODO: This is only necessary whith shock capturing entropy_based
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.NUMERICAL_ENTROPY) # TODO: This is only necessary with shock capturing entropy_based
 
         # Post-process variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MACH)
@@ -127,7 +127,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
     def _create_solution_strategy(self):
         self.computing_model_part = self.GetComputingModelPart()
         strategy_settings = KratosMultiphysics.Parameters('''{}''')
-        strategy_settings.AddEmptyValue("rebuild_level").SetInt(0 if self.settings["reform_dofs_at_each_step"].GetBool() else 1)
+        strategy_settings.AddEmptyValue("rebuild_level").SetInt(1 if self.settings["reform_dofs_at_each_step"].GetBool() else 0)
         strategy_settings.AddEmptyValue("move_mesh_flag").SetBool(self.settings["move_mesh_flag"].GetBool())
         strategy_settings.AddEmptyValue("shock_capturing_settings").RecursivelyAddMissingParameters(self.settings["shock_capturing_settings"])
 
@@ -153,7 +153,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
     @classmethod
     def _OverrideBoolParameterWithWarning(cls, parent, child, value):
         if parent.Has(child) and parent[child].GetBool() != value:
-            KratosMultiphysics.Logger.PrintWarning("", "User-specifed {} will be overriden with {}".format(child, value))
+            KratosMultiphysics.Logger.PrintWarning("", "User-specified {} will be overridden with {}".format(child, value))
         else:
             parent.AddEmptyValue(child)
         parent[child].SetBool(True)
@@ -192,7 +192,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
                 ]))
 
             custom_settings.RemoveValue("shock_capturing")
-            # Not adding new syntax -> Using defauts
+            # Not adding new syntax -> Using defaults
 
 
     def _ReadShockCapturingSettings(self):
