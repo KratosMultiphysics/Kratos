@@ -15,7 +15,8 @@
 // System includes
 #include <iostream>
 #include <unordered_map>
-#include <unordered_set>
+//#include <unordered_set>
+#include <boost/unordered/unordered_flat_set.hpp>
 
 // External includes
 #include <span/span.hpp>
@@ -67,7 +68,8 @@ public:
     ///@name Type Definitions
     ///@{
     typedef TIndexType IndexType;
-    typedef DenseVector<std::unordered_set<IndexType> > GraphType;
+    //typedef DenseVector<std::unordered_set<IndexType> > GraphType;
+    typedef DenseVector<boost::unordered_flat_set<IndexType> > GraphType;
     typedef typename GraphType::const_iterator const_row_iterator;
 
     /// Pointer definition of SparseContiguousRowGraph
@@ -93,7 +95,9 @@ public:
         //doing first touching
         IndexPartition<IndexType>(GraphSize).for_each([&](IndexType i){
             // mLocks[i] = LockObject();
-            mGraph[i] = std::unordered_set<IndexType>();
+            //mGraph[i] = std::unordered_set<IndexType>();
+            mGraph[i] = boost::unordered_flat_set<IndexType>();
+
         });
     }
 
@@ -113,7 +117,9 @@ public:
         mpComm = rOther.mpComm;
         mGraph.resize(rOther.mGraph.size());
         IndexPartition<IndexType>(rOther.mGraph.size()).for_each([&](IndexType i) {
-            mGraph[i] = std::unordered_set<IndexType>();
+            //mGraph[i] = std::unordered_set<IndexType>();
+            mGraph[i] = boost::unordered_flat_set<IndexType>();
+
         });
         mLocks = decltype(mLocks)(rOther.mLocks.size());
         this->AddEntries(rOther);
