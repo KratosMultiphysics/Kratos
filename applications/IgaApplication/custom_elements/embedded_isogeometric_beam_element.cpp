@@ -31,17 +31,16 @@ namespace Kratos {
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_control_points = r_geometry.size();
 
-        if (rResult.size() != 4 * number_of_control_points)
-            rResult.resize(4 * number_of_control_points, false);
+        if (rResult.size() != 3 * number_of_control_points)
+            rResult.resize(3 * number_of_control_points, false);
 
         const IndexType pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
 
         for (IndexType i = 0; i < number_of_control_points; ++i) {
-            const IndexType index = i * 4;
+            const IndexType index = i * 3;
             rResult[index] = r_geometry[i].GetDof(DISPLACEMENT_X, pos).EquationId();
             rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
             rResult[index + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
-            rResult[index + 3] = r_geometry[i].GetDof(ROTATION_X, pos + 3).EquationId();
         }
 
         KRATOS_CATCH("")
@@ -59,13 +58,12 @@ namespace Kratos {
         const SizeType number_of_control_points = r_geometry.size();
 
         rElementalDofList.resize(0);
-        rElementalDofList.reserve(4 * number_of_control_points);
+        rElementalDofList.reserve(3 * number_of_control_points);
 
         for (IndexType i = 0; i < number_of_control_points; ++i) {
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
         }
         KRATOS_CATCH("")
     };
@@ -77,6 +75,8 @@ namespace Kratos {
     void EmbeddedIsogeometricBeamElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
+        // Pre-allocate memory to avoid repeated allocations during assembly
+        set_Memory();
         KRATOS_CATCH("")
         //InitializeMaterial();
     }
@@ -112,7 +112,9 @@ namespace Kratos {
     {
         //KRATOS_WATCH("EmbeddedIsogeometricBeamElement::CalculateAll");
         //KRATOS_WATCH(this->Id());
+        
         set_Memory();
+        
         const auto& r_geometry = GetGeometry();
         auto& r_integration_points = r_geometry.IntegrationPoints();
             
@@ -123,8 +125,8 @@ namespace Kratos {
 
         _gke.clear();
         _gfie.clear();
-        //stiff_mat_el_lin(rCurrentProcessInfo, point_number, _gke, _gfie, _dL);
-        stiff_mat_el_nln(rCurrentProcessInfo, point_number, _gke, _gfie, _dL);
+        stiff_mat_el_lin(rCurrentProcessInfo, point_number, _gke, _gfie, _dL);
+        //stiff_mat_el_nln(rCurrentProcessInfo, point_number, _gke, _gfie, _dL);
         //stiff_mat_el_geo(rCurrentProcessInfo, point_number, _gke,  _dL);
         
         float mult = (integration_weight * _dL);
@@ -158,18 +160,17 @@ namespace Kratos {
     {
         const auto& r_geometry = GetGeometry();
         const IndexType nb_nodes = r_geometry.size();
-        if (rValues.size() != nb_nodes * 4) {
-            rValues.resize(nb_nodes * 4, false);
+        if (rValues.size() != nb_nodes * 3) {
+            rValues.resize(nb_nodes * 3, false);
         }
 
         for (IndexType i = 0; i < nb_nodes; ++i) {
-            IndexType index = i * 4;
+            IndexType index = i * 3;
             const auto& disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
             const auto& rot = r_geometry[i].FastGetSolutionStepValue(ROTATION_X, Step);
             rValues[index] = disp[0];
             rValues[index + IndexType(1)] = disp[1];
             rValues[index + IndexType(2)] = disp[2];
-            rValues[index + IndexType(3)] = rot;
         }
     }
 
@@ -177,19 +178,16 @@ namespace Kratos {
     {
         const auto& r_geometry = GetGeometry();
         const IndexType nb_nodes = r_geometry.size();
-        if (rValues.size() != nb_nodes * 4) {
-            rValues.resize(nb_nodes * 4, false);
+        if (rValues.size() != nb_nodes * 3) {
+            rValues.resize(nb_nodes * 3, false);
         }
 
         for (IndexType i = 0; i < nb_nodes; ++i) {
-            IndexType index = i * 4;
+            IndexType index = i * 3;
             const auto& vel =r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
-            const auto& ang_vel = r_geometry[i].FastGetSolutionStepValue(ANGULAR_VELOCITY_X, Step);
-            
             rValues[index] = vel[0];
             rValues[index + IndexType(1)] = vel[1];
             rValues[index + IndexType(2)] = vel[2];
-            rValues[index + IndexType(3)] = ang_vel;
         }
     }
 
@@ -197,19 +195,17 @@ namespace Kratos {
     {
         const auto& r_geometry = GetGeometry();
         const IndexType nb_nodes = r_geometry.size();
-        if (rValues.size() != nb_nodes * 4) {
-            rValues.resize(nb_nodes * 4, false);
+        if (rValues.size() != nb_nodes * 3) {
+            rValues.resize(nb_nodes * 3, false);
         }
 
         for (IndexType i = 0; i < nb_nodes; ++i) {
-            IndexType index = i * 4;
+            IndexType index = i * 3;
             const auto& acc = r_geometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
-            const auto& ang_acc = r_geometry[i].FastGetSolutionStepValue(ANGULAR_ACCELERATION_X, Step); 
 
             rValues[index] = acc[0];
             rValues[index + IndexType(1)] = acc[1];
             rValues[index + IndexType(2)] = acc[2];
-            rValues[index + IndexType(3)] = ang_acc;
         }
     }
 
@@ -225,6 +221,7 @@ namespace Kratos {
 
         Vector3d m_;
         Vector3d f_;
+        array_1d<double, 3> tangents;
 
         if (rOutput.size() != integration_points.size()) {
             rOutput.resize(GetGeometry().IntegrationPointsNumber());
@@ -279,37 +276,14 @@ namespace Kratos {
             {
                 rOutput[point_number] = integration_points[point_number].Coordinates();
             }
-        }
-    }
-
-    void EmbeddedIsogeometricBeamElement::CalculateOnIntegrationPoints(const  Variable<Vector>& rVariable, std::vector <Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo)
-    {
-        //KRATOS_WATCH("EmbeddedIsogeometricBeamElement::CalculateOnIntegrationPoints");
-        const auto& integration_points = GetGeometry().IntegrationPoints();
-
-        if (rOutput.size() != integration_points.size()) {
-            rOutput.resize(GetGeometry().IntegrationPointsNumber());
-        }
-
-        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
-            if (rVariable == LOCAL_CS_N)
+            if (rVariable ==  LOCAL_TANGENT)
             {
-                rOutput[point_number] = N;
-            }
-            if (rVariable == LOCAL_CS_n)
-            {
-                rOutput[point_number] = n;
-            }
-            if (rVariable == LOCAL_CS_V)
-            {
-                rOutput[point_number] = V;
-            }
-            if (rVariable == LOCAL_CS_v)
-            {
-                rOutput[point_number] = v;
+                GetGeometry().Calculate(LOCAL_TANGENT, tangents);
+                rOutput[point_number] = tangents;
             }
         }
     }
+
 
     void EmbeddedIsogeometricBeamElement::CalculateOnIntegrationPoints(const  Variable<double>& rVariable, std::vector <double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
     {
@@ -325,6 +299,35 @@ namespace Kratos {
             {
                 rOutput[point_number] = integration_points[point_number].Coordinates()[0];
             }
+            else if (rVariable == NODAL_MASS) {
+                double detJ = GetGeometry().DeterminantOfJacobian(point_number);
+                double mass = integration_points[point_number].Weight() * detJ * GetProperties()[CROSS_AREA] * GetProperties()[DENSITY];
+                rOutput[point_number] = mass;
+            }
+            else if (rVariable == VON_MISES_STRESS) {
+                Vector3d f_, m_;
+                stress_res_lin(rCurrentProcessInfo, point_number, f_, m_);
+                
+                // Extract cross-section properties
+                const double area = GetProperties()[CROSS_AREA];
+                const double I_y = GetProperties()[I_V];
+                const double I_z = GetProperties()[I_N];
+                const double I_t = GetProperties()[I_T];
+                const double height = GetProperties()[HEIGHT];
+                const double width = GetProperties()[WIDTH];
+                
+                // Calculate stress components
+                const double sigma_axial = f_[0] / area;
+                const double sigma_bending_y = std::abs(m_[1]) * (height/2.0) / I_y;
+                const double sigma_bending_z = std::abs(m_[2]) * (width/2.0) / I_z;
+                const double tau_torsion = std::abs(m_[0]) * std::max(height, width) / (2.0 * I_t);
+                
+                // Von Mises equivalent stress for beam elements
+                const double sigma_normal = std::abs(sigma_axial) + sigma_bending_y + sigma_bending_z;
+                const double sigma_equivalent = std::sqrt(sigma_normal * sigma_normal + 3.0 * tau_torsion * tau_torsion);
+                
+                rOutput[point_number] = sigma_equivalent;
+            }
         }
     }
 
@@ -335,33 +338,11 @@ namespace Kratos {
     /// Check provided parameters
     int EmbeddedIsogeometricBeamElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
-        KRATOS_WATCH("EmbeddedIsogeometricBeamElement::Check");
+        //KRATOS_WATCH("EmbeddedIsogeometricBeamElement::Check");
         KRATOS_TRY
             const double numerical_limit = std::numeric_limits<double>::epsilon();
 
-        KRATOS_ERROR_IF((GetGeometry().WorkingSpaceDimension() != 3) || (GetGeometry().size() != 2))
-            << "The beam element works only in 3D and with 2 noded elements" << std::endl;
-
-        // verify that the variables are correctly initialized
-        KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0) << "DISPLACEMENT has Key zero! Check if the application is "
-            "registered properly." << std::endl;
-        KRATOS_ERROR_IF(CROSS_AREA.Key() == 0) << "CROSS_AREA has Key zero! Check if the application is "
-            "registered properly." << std::endl;
-
-        // verify that the dofs exist
-        for (IndexType i = 0; i < GetGeometry().size(); ++i) {
-            if (GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false) {
-                KRATOS_ERROR << "missing variable DISPLACEMENT on node "
-                    << GetGeometry()[i].Id() << std::endl;
-            }
-            if (GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false ||
-                GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false ||
-                GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false) {
-                KRATOS_ERROR
-                    << "missing one of the dofs for the variable DISPLACEMENT on node "
-                    << GetGeometry()[i].Id() << std::endl;
-            }
-        }
+        
 
         KRATOS_ERROR_IF(!GetProperties().Has(CROSS_AREA) ||
             GetProperties()[CROSS_AREA] <= numerical_limit)
@@ -388,74 +369,82 @@ namespace Kratos {
 
     void EmbeddedIsogeometricBeamElement::set_Memory()
     {
+        // Performance optimization: only allocate memory once
+        if (mMemoryInitialized) {
+            return;
+        }
+        
         // definition of problem size
-        Dof_Node = 4;
-        N_Dof = this->GetGeometry().size() * 4;
-        _n_Dof = this->GetGeometry().size() * 4;
-        _gke.resize(_n_Dof, _n_Dof);
-        _gfie.resize(_n_Dof);
+        Dof_Node = 3;
+        N_Dof = this->GetGeometry().size() * 3;
+        N_Dof = this->GetGeometry().size() * 3;
+        _gke.resize(N_Dof, N_Dof);
+        _gfie.resize(N_Dof);
         //resizing
-        S_gke.resize(_n_Dof, _n_Dof);
-        S_fie.resize(_n_Dof);
-        S_eps_var.resize(_n_Dof);
-        S_curv_n_var.resize(_n_Dof);
-        S_curv_v_var.resize(_n_Dof);
-        S_torsion_var.resize(_n_Dof);
-        S_torsion_n_var.resize(_n_Dof);
-        S_torsion_v_var.resize(_n_Dof);
-        S_shear_n_var.resize(_n_Dof);
-        S_shear_v_var.resize(_n_Dof);
-        S_eps_var_var.resize(_n_Dof, _n_Dof);
-        S_curv_n_var_var.resize(_n_Dof, _n_Dof);
-        S_curv_v_var_var.resize(_n_Dof, _n_Dof);
-        S_torsion_var_var.resize(_n_Dof, _n_Dof);
-        S_torsion_n_var_var.resize(_n_Dof, _n_Dof);
-        S_torsion_v_var_var.resize(_n_Dof, _n_Dof);
-        S_kem.resize(_n_Dof, _n_Dof);
-        S_keb_n.resize(_n_Dof, _n_Dof);
-        S_keb_v.resize(_n_Dof, _n_Dof);
-        S_ket_n.resize(_n_Dof, _n_Dof);
-        S_ket_v.resize(_n_Dof, _n_Dof);
-        S_me.resize(_n_Dof, _n_Dof);
-        S_fiem.resize(_n_Dof);
-        S_fieb_n.resize(_n_Dof);
-        S_fieb_v.resize(_n_Dof);
-        S_fiet_n.resize(_n_Dof);
-        S_fiet_v.resize(_n_Dof);
+        S_gke.resize(N_Dof, N_Dof);
+        S_fie.resize(N_Dof);
+        S_eps_var.resize(N_Dof);
+        S_curv_n_var.resize(N_Dof);
+        S_curv_v_var.resize(N_Dof);
+        S_torsion_var.resize(N_Dof);
+        S_torsion_n_var.resize(N_Dof);
+        S_torsion_v_var.resize(N_Dof);
+        S_shear_n_var.resize(N_Dof);
+        S_shear_v_var.resize(N_Dof);
+        S_eps_var_var.resize(N_Dof, N_Dof);
+        S_curv_n_var_var.resize(N_Dof, N_Dof);
+        S_curv_v_var_var.resize(N_Dof, N_Dof);
+        S_torsion_var_var.resize(N_Dof, N_Dof);
+        S_torsion_n_var_var.resize(N_Dof, N_Dof);
+        S_torsion_v_var_var.resize(N_Dof, N_Dof);
+        S_kem.resize(N_Dof, N_Dof);
+        S_keb_n.resize(N_Dof, N_Dof);
+        S_keb_v.resize(N_Dof, N_Dof);
+        S_ket_n.resize(N_Dof, N_Dof);
+        S_ket_v.resize(N_Dof, N_Dof);
+        S_me.resize(N_Dof, N_Dof);
+        S_fiem.resize(N_Dof);
+        S_fieb_n.resize(N_Dof);
+        S_fieb_v.resize(N_Dof);
+        S_fiet_n.resize(N_Dof);
+        S_fiet_v.resize(N_Dof);
         //first variation of mapping matrices
-        S_mat_rod_var.resize(_n_Dof * 3, 3);
-        S_mat_lam_var.resize(_n_Dof * 3, 3);
-        S_mat_lam_var_Rod_Lam.resize(_n_Dof * 3, 3);//new
-        S_mat_rod_lam_var_Rod_Lam.resize(_n_Dof * 3, 3);
-        S_mat_rod_var_lam_Rod_Lam.resize(_n_Dof * 3, 3);
-        S_mat_rodlamRodLam_var.resize(_n_Dof * 3, 3);
-        S_mat_rod_der_var.resize(_n_Dof * 3, 3);
-        S_mat_lam_der_var.resize(_n_Dof * 3, 3);
-        S_mat_lam_der_var_Rod_Lam.resize(_n_Dof * 3, 3);
-        S_mat_lam_var_Rod_der_Lam.resize(_n_Dof * 3, 3);
-        S_mat_lam_var_Rod_Lam_der.resize(_n_Dof * 3, 3);
-        S_mat_rod_der_lam_var_Rod_Lam.resize(_n_Dof * 3, 3);
-        S_mat_rod_lam_der_var_Rod_Lam.resize(_n_Dof * 3, 3);
-        S_mat_rod_lam_var_Rod_der_Lam.resize(_n_Dof * 3, 3);
-        S_mat_rod_lam_var_Rod_Lam_der.resize(_n_Dof * 3, 3);
-        S_mat_rod_der_var_lam_Rod_Lam.resize(_n_Dof * 3, 3);
-        S_mat_rod_var_lam_der_Rod_Lam.resize(_n_Dof * 3, 3);
-        S_mat_rod_var_lam_Rod_der_Lam.resize(_n_Dof * 3, 3);
-        S_mat_rod_var_lam_Rod_Lam_der.resize(_n_Dof * 3, 3);
-        S_mat_rodlamRodLam_der_var.resize(_n_Dof * 3, 3);
+        S_mat_rod_var.resize(N_Dof * 3, 3);
+        S_mat_lam_var.resize(N_Dof * 3, 3);
+        S_mat_lam_var_Rod_Lam.resize(N_Dof * 3, 3);//new
+        S_mat_rod_lam_var_Rod_Lam.resize(N_Dof * 3, 3);
+        S_mat_rod_var_lam_Rod_Lam.resize(N_Dof * 3, 3);
+        S_mat_rodlamRodLam_var.resize(N_Dof * 3, 3);
+        S_mat_rod_der_var.resize(N_Dof * 3, 3);
+        S_mat_lam_der_var.resize(N_Dof * 3, 3);
+        S_mat_lam_der_var_Rod_Lam.resize(N_Dof * 3, 3);
+        S_mat_lam_var_Rod_der_Lam.resize(N_Dof * 3, 3);
+        S_mat_lam_var_Rod_Lam_der.resize(N_Dof * 3, 3);
+        S_mat_rod_der_lam_var_Rod_Lam.resize(N_Dof * 3, 3);
+        S_mat_rod_lam_der_var_Rod_Lam.resize(N_Dof * 3, 3);
+        S_mat_rod_lam_var_Rod_der_Lam.resize(N_Dof * 3, 3);
+        S_mat_rod_lam_var_Rod_Lam_der.resize(N_Dof * 3, 3);
+        S_mat_rod_der_var_lam_Rod_Lam.resize(N_Dof * 3, 3);
+        S_mat_rod_var_lam_der_Rod_Lam.resize(N_Dof * 3, 3);
+        S_mat_rod_var_lam_Rod_der_Lam.resize(N_Dof * 3, 3);
+        S_mat_rod_var_lam_Rod_Lam_der.resize(N_Dof * 3, 3);
+        S_mat_rodlamRodLam_der_var.resize(N_Dof * 3, 3);
         //second variation of mapping matrices
-        S_mat_rod_var_var.resize(_n_Dof * 3, _n_Dof * 3);
-        S_mat_lam_var_var.resize(_n_Dof * 3, _n_Dof * 3);
-        S_mat_lam_var_var_Rod_Lam.resize(_n_Dof * 3, _n_Dof * 3);
-        S_mat_rod_lam_var_var_Rod_Lam.resize(_n_Dof * 3, _n_Dof * 3);
-        S_mat_rod_var_lam_var_Rod_Lam.resize(_n_Dof * 3, _n_Dof * 3);
-        S_mat_rod_var_var_lam_Rod_Lam.resize(_n_Dof * 3, _n_Dof * 3);
-        S_mat_rodlamRodLam_var_var.resize(_n_Dof * 3, _n_Dof * 3);
-        S_mat_rod_der_var_var.resize(_n_Dof * 3, _n_Dof * 3);
-        S_mat_lam_der_var_var.resize(_n_Dof * 3, _n_Dof * 3);
-        S_mat_lam_der_var_var_Rod_Lam.resize(_n_Dof * 3, _n_Dof * 3);
-        S_mat_lam_var_var_Rod_der_Lam.resize(_n_Dof * 3, _n_Dof * 3);
-        S_mat_lam_var_var_Rod_Lam_der.resize(_n_Dof * 3, _n_Dof * 3);
+        S_mat_rod_var_var.resize(N_Dof * 3, N_Dof * 3);
+        S_mat_lam_var_var.resize(N_Dof * 3, N_Dof * 3);
+        S_mat_lam_var_var_Rod_Lam.resize(N_Dof * 3, N_Dof * 3);
+        S_mat_rod_lam_var_var_Rod_Lam.resize(N_Dof * 3, N_Dof * 3);
+        S_mat_rod_var_lam_var_Rod_Lam.resize(N_Dof * 3, N_Dof * 3);
+        S_mat_rod_var_var_lam_Rod_Lam.resize(N_Dof * 3, N_Dof * 3);
+        S_mat_rodlamRodLam_var_var.resize(N_Dof * 3, N_Dof * 3);
+        S_mat_rod_der_var_var.resize(N_Dof * 3, N_Dof * 3);
+        S_mat_lam_der_var_var.resize(N_Dof * 3, N_Dof * 3);
+        S_mat_lam_der_var_var_Rod_Lam.resize(N_Dof * 3, N_Dof * 3);
+        S_mat_lam_var_var_Rod_der_Lam.resize(N_Dof * 3, N_Dof * 3);
+        S_mat_lam_var_var_Rod_Lam_der.resize(N_Dof * 3, N_Dof * 3);
+        
+        // Mark memory as initialized
+        mMemoryInitialized = true;
     }
 
 
@@ -501,6 +490,48 @@ namespace Kratos {
         else
             B = 0;
 
+    }
+
+    void EmbeddedIsogeometricBeamElement::GetB1AtBeamStart(const ConfigurationType& rConfiguration, Vector3d& B1)
+    {
+
+        auto& r_geometry = GetGeometry();
+        KRATOS_WATCH(r_geometry.Info());
+        const SizeType number_of_nodes = r_geometry.size();
+
+        array_1d<double, 3> tangents;
+        GetGeometry().Calculate(LOCAL_TANGENT, tangents); //this returns the tangents of the embedded beam in the parameter space of the shell
+
+        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+
+        Vector current_displacement = ZeroVector(dimension * number_of_nodes);
+        if (rConfiguration == ConfigurationType::Current) GetValuesVector(current_displacement);
+
+        // array_1d<double, 3> local_coordinates;
+        // local_coordinates[0] = 0.0;
+        // local_coordinates[1] = 0.0; 
+        // local_coordinates[2] = 0.0; 
+        // Matrix r_DN_De;
+        // r_geometry.ShapeFunctionsLocalGradients(r_DN_De, local_coordinates);
+
+        const Matrix& r_DN_De = r_geometry.ShapeFunctionLocalGradient(0);
+
+        //basis vectors a1 and a2 at ksi = 0
+        Vector A1 = ZeroVector(dimension);
+        Vector A2 = ZeroVector(dimension);
+
+        for (SizeType i = 0; i < number_of_nodes; ++i) {
+            A1[0] += (GetGeometry().GetPoint(i).X0() + current_displacement[i * dimension]) * r_DN_De(i, 0);
+            A1[1] += (GetGeometry().GetPoint(i).Y0() + current_displacement[(i * dimension) + 1]) * r_DN_De(i, 0);
+            A1[2] += (GetGeometry().GetPoint(i).Z0() + current_displacement[(i * dimension) + 2]) * r_DN_De(i, 0);
+
+            A2[0] += (GetGeometry().GetPoint(i).X0() + current_displacement[i * dimension]) * r_DN_De(i, 1);
+            A2[1] += (GetGeometry().GetPoint(i).Y0() + current_displacement[(i * dimension) + 1]) * r_DN_De(i, 1);
+            A2[2] += (GetGeometry().GetPoint(i).Z0() + current_displacement[(i * dimension) + 2]) * r_DN_De(i, 1);
+        }
+
+        B1 = A1 * tangents[0] + A2 * tangents[1]; //calculates the tangential vector B1 at ksi = 0
+        KRATOS_WATCH(B1);
     }
 
     void EmbeddedIsogeometricBeamElement::parametric_mapping(Vector& _knot_vector, double  u, double & u_mid  )
@@ -958,27 +989,33 @@ namespace Kratos {
     void EmbeddedIsogeometricBeamElement::comp_mat_rodrigues(Matrix3d& _mat_rod, Vector3d _vec, float _phi)//here was an error
     {
         _mat_rod.clear();
-        Matrix3d _mat_identity;
-        _mat_identity.resize(3, 3, false);
-        _mat_identity.clear();  //initialization by 0 
-        for (int i = 0; i < 3; i++) { _mat_identity(i, i) = 1.; }
+        
+        // Use pre-computed identity matrix to avoid repeated initialization
+        if (mIdentityMatrix3d.size1() != 3) {
+            mIdentityMatrix3d.resize(3, 3, false);
+            mIdentityMatrix3d.clear();
+            for (int i = 0; i < 3; i++) { mIdentityMatrix3d(i, i) = 1.0; }
+        }
 
-        for (int i = 0; i < 3; i++) { _mat_rod(i, i) = cos(_phi); }
-        _mat_rod += cross_prod_vec_mat(_vec, _mat_identity) * sin(_phi);
+        // Pre-compute trigonometric values
+        const float cos_phi = cos(_phi);
+        const float sin_phi = sin(_phi);
+        
+        for (int i = 0; i < 3; i++) { _mat_rod(i, i) = cos_phi; }
+        _mat_rod += cross_prod_vec_mat(_vec, mIdentityMatrix3d) * sin_phi;
     }
 
     void EmbeddedIsogeometricBeamElement::comp_mat_rodrigues_deriv(Matrix3d& _mat_rod_der, Vector3d _vec, Vector3d _vec_deriv, float _phi, float _phi_deriv)
     {
         _mat_rod_der.clear();
 
-        Matrix3d _mat_identity;
-        _mat_identity.resize(3, 3, false);
-        _mat_identity.clear();  //initialization by 0 
-        for (int i = 0; i < 3; i++) { _mat_identity(i, i) = 1; }
+        // Pre-compute trigonometric values
+        const float cos_phi = cos(_phi);
+        const float sin_phi = sin(_phi);
 
-        for (int i = 0; i < 3; i++) { _mat_rod_der(i, i) = -_phi_deriv * sin(_phi); }
-        _mat_rod_der += cross_prod_vec_mat(_vec, _mat_identity) * cos(_phi) * _phi_deriv;
-        _mat_rod_der += cross_prod_vec_mat(_vec_deriv, _mat_identity) * sin(_phi);
+        for (int i = 0; i < 3; i++) { _mat_rod_der(i, i) = -_phi_deriv * sin_phi; }
+        _mat_rod_der += cross_prod_vec_mat(_vec, mIdentityMatrix3d) * cos_phi * _phi_deriv;
+        _mat_rod_der += cross_prod_vec_mat(_vec_deriv, mIdentityMatrix3d) * sin_phi;
     }
 
     void EmbeddedIsogeometricBeamElement::comp_mat_rodrigues_var(Matrix& _mat_rod_var, Vector3d _vec, Vector _vec_var, Vector _func, float _phi)
@@ -1150,19 +1187,20 @@ namespace Kratos {
         phi_var.resize(N_Dof);
         phi_var.clear();
 
-        for (int r = 0;r < N_Dof / Dof_Node;r++)
-        {
-            phi_var(r * Dof_Node + 3) = _func(r);
-        }
+        //uncommented this
+        // for (int r = 0;r < N_Dof / Dof_Node;r++)
+        // {
+        //     phi_var(r * Dof_Node + 3) = _func(r);
+        // }
 
         Vector phi_der_var;
         phi_der_var.resize(N_Dof);
         phi_der_var.clear();
 
-        for (int r = 0;r < N_Dof / Dof_Node;r++)
-        {
-            phi_der_var(r * Dof_Node + 3) = _deriv(r);
-        }
+        // for (int r = 0;r < N_Dof / Dof_Node;r++)
+        // {
+        //     phi_der_var(r * Dof_Node + 3) = _deriv(r);
+        // }
 
         for (size_t t = 0;t < 3;t++) //in the case
         {
@@ -1230,11 +1268,12 @@ namespace Kratos {
         phi_der_var.resize(N_Dof);
         phi_der_var.clear();
 
-        for (int r = 0;r < N_Dof / Dof_Node;r++)
-        {
-            phi_var(r * Dof_Node + 3) = _func[r];
-            phi_der_var(r * Dof_Node + 3) = _deriv(r);
-        }
+        //uncommented this
+        // for (int r = 0;r < N_Dof / Dof_Node;r++)
+        // {
+        //     phi_var(r * Dof_Node + 3) = _func[r];
+        //     phi_der_var(r * Dof_Node + 3) = _deriv(r);
+        // }
 
         float cs;
         cs = cos(_phi);
@@ -2754,62 +2793,64 @@ namespace Kratos {
     void EmbeddedIsogeometricBeamElement::comp_Phi_ref_prop(float& _Phi, float& _Phi_0_der)
     {
 
-        //_Phi = this->GetProperties()[PHI];
-        //_Phi_0_der = this->GetProperties()[PHI_DER];
-        //KRATOS_WATCH(_Phi);
-        //KRATOS_WATCH(_Phi_0_der);
-        const auto& r_geometry = GetGeometry();
-        const IndexType nb_nodes = r_geometry.size();
-        const float _u_act = r_geometry.IntegrationPoints()[0].Coordinates()[0];
+        // //_Phi = this->GetProperties()[PHI];
+        // //_Phi_0_der = this->GetProperties()[PHI_DER];
+        // //KRATOS_WATCH(_Phi);
+        // //KRATOS_WATCH(_Phi_0_der);
+        // const auto& r_geometry = GetGeometry();
+        // const IndexType nb_nodes = r_geometry.size();
+        // const float _u_act = r_geometry.IntegrationPoints()[0].Coordinates()[0];
 
-        float phi_0;
-        float phi_1;
-        float diff_phi;
-        float u_0;
-        float u_1;
-        int n_size;
+        // float phi_0;
+        // float phi_1;
+        // float diff_phi;
+        // float u_0;
+        // float u_1;
+        // int n_size;
 
-        Matrix cross_section_orientation = this->GetProperties()[CENTER_LINE_ROTATION];
-        n_size = cross_section_orientation.size1();
+        // //Matrix cross_section_orientation = this->GetProperties()[CENTER_LINE_ROTATION];
+        // n_size = cross_section_orientation.size1();
 
-        // search cross section orientation n before and after _u_act
+        // // search cross section orientation n before and after _u_act
 
-        u_0 = cross_section_orientation(0, 0);
-        u_1 = cross_section_orientation(n_size - 1, 0);
-        phi_0 = cross_section_orientation(0, 1);
-        phi_1 = cross_section_orientation(n_size - 1, 1);
+        // u_0 = cross_section_orientation(0, 0);
+        // u_1 = cross_section_orientation(n_size - 1, 0);
+        // phi_0 = 0;//cross_section_orientation(0, 1);
+        // phi_1 = 0;//cross_section_orientation(n_size - 1, 1);
 
-        for (int i = 1; i < n_size; i++)
-        {
-            if (cross_section_orientation(i, 0) > _u_act)
-            {
-                u_0 = cross_section_orientation(i - 1, 0);
-                phi_0 = cross_section_orientation(i - 1, 1);
-                break;
-            }
-        }
+        // for (int i = 1; i < n_size; i++)
+        // {
+        //     if (cross_section_orientation(i, 0) > _u_act)
+        //     {
+        //         u_0 = cross_section_orientation(i - 1, 0);
+        //         phi_0 = cross_section_orientation(i - 1, 1);
+        //         break;
+        //     }
+        // }
 
-        for (int i = 1; i < n_size; i++)
-        {
-            if (cross_section_orientation(n_size - i - 1, 0) <= _u_act)
-            {
-                u_1 = cross_section_orientation(n_size - i, 0);
-                phi_1 = cross_section_orientation(n_size - i, 1);
-                break;
-            }
-        }
-        float pi;
-        pi = 4 * atan(1.0);
+        // for (int i = 1; i < n_size; i++)
+        // {
+        //     if (cross_section_orientation(n_size - i - 1, 0) <= _u_act)
+        //     {
+        //         u_1 = cross_section_orientation(n_size - i, 0);
+        //         phi_1 = cross_section_orientation(n_size - i, 1);
+        //         break;
+        //     }
+        // }
+        // float pi;
+        // pi = 4 * atan(1.0);
 
-        diff_phi = (phi_1 - phi_0);
-        if (fabs(phi_1 - phi_0) > pi)
-        {
-            diff_phi = diff_phi - (diff_phi) / fabs(diff_phi) * 2 * pi;
-        }
+        // diff_phi = (phi_1 - phi_0);
+        // if (fabs(phi_1 - phi_0) > pi)
+        // {
+        //     diff_phi = diff_phi - (diff_phi) / fabs(diff_phi) * 2 * pi;
+        // }
 
-        _Phi += phi_0 + (_u_act - u_0) / (u_1 - u_0) * diff_phi;
+        // _Phi += phi_0 + (_u_act - u_0) / (u_1 - u_0) * diff_phi;
 
-        _Phi_0_der += diff_phi / (u_1 - u_0);
+        // _Phi_0_der += diff_phi / (u_1 - u_0);
+        _Phi = 0;
+        _Phi_0_der = 0;
     }
 
     void EmbeddedIsogeometricBeamElement::comp_Geometry_reference(Vector _deriv, Vector _deriv2, Vector3d& _R1, Vector3d& _R2, float& _A_ref, float& _B_ref)
@@ -3338,7 +3379,6 @@ namespace Kratos {
 
         //const unsigned int N_Dof = 4;//this->GetGeometry().PointsNumber()* (this->GetGeometry().WorkingSpaceDimension() + 1);
         Vector3d t0_0 = this->GetProperties()[T_0];
-
         //updates here have also to be applied in comp_dof_lin(...) below
           //_cur_var_n.resize(N_Dof);
         _cur_var_n.clear();
@@ -3632,8 +3672,8 @@ namespace Kratos {
         //KRATOS_WATCH("EmbeddedIsogeometricBeamElement::comp_dof_lin");
         KRATOS_TRY
 
+        
         Vector3d t0_0 = this->GetProperties()[T_0];
-
 
         //updates here have also to be applied in comp_dof_lin(...) above
         //_cur_var_n.resize(N_Dof);
@@ -4552,8 +4592,8 @@ namespace Kratos {
         const float poisson_ratio = this->GetProperties()[POISSON_RATIO];
         const float _gmod = _emod / (2.0 * (1.0 + poisson_ratio));
         const float _area = this->GetProperties()[CROSS_AREA];
-        const float _m_inert_z = this->GetProperties()[I_Z];
-        const float _m_inert_y = this->GetProperties()[I_Y];
+        const float _m_inert_z = this->GetProperties()[I_N];
+        const float _m_inert_y = this->GetProperties()[I_V];
         const float _mt_iniert = this->GetProperties()[I_T];
         Vector3d t0_0 = this->GetProperties()[T_0];
 
@@ -4729,8 +4769,8 @@ namespace Kratos {
         const float poisson_ratio = this->GetProperties()[POISSON_RATIO];
         const float _gmod = _emod / (2.0 * (1.0 + poisson_ratio));
         const float _area = this->GetProperties()[CROSS_AREA];
-        const float _m_inert_z = this->GetProperties()[I_Z];
-        const float _m_inert_y = this->GetProperties()[I_Y];
+        const float _m_inert_z = this->GetProperties()[I_N];
+        const float _m_inert_y = this->GetProperties()[I_V];
         const float _mt_iniert = this->GetProperties()[I_T];
         Vector3d t0_0 = this->GetProperties()[T_0];
 
@@ -4888,8 +4928,8 @@ namespace Kratos {
         const float poisson_ratio = this->GetProperties()[POISSON_RATIO];
         const float _gmod = _emod / (2.0 * (1.0 + poisson_ratio));
         const float _area = this->GetProperties()[CROSS_AREA];
-        const float _m_inert_z = this->GetProperties()[I_Z];
-        const float _m_inert_y = this->GetProperties()[I_Y];
+        const float _m_inert_z = this->GetProperties()[I_N];
+        const float _m_inert_y = this->GetProperties()[I_V];
         const float _mt_iniert = this->GetProperties()[I_T];
         
         
@@ -4910,9 +4950,17 @@ namespace Kratos {
 
         const auto& r_geometry = GetGeometry();
         
-        Vector R_vec = row(r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod()), 0);
-        Vector dR_vec = column(r_geometry.ShapeFunctionDerivatives(1, integration_point_index, this->GetIntegrationMethod()), 0);
-        Vector ddR_vec = column(r_geometry.ShapeFunctionDerivatives(2, integration_point_index, this->GetIntegrationMethod()), 0);
+        // Use cached shape functions if available, otherwise compute and cache
+        Vector R_vec, dR_vec, ddR_vec;
+        if (!mShapeFunctionsCached) {
+            mCachedR_vec = row(r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod()), 0);
+            mCacheddR_vec = column(r_geometry.ShapeFunctionDerivatives(1, integration_point_index, this->GetIntegrationMethod()), 0);
+            mCachedddR_vec = column(r_geometry.ShapeFunctionDerivatives(2, integration_point_index, this->GetIntegrationMethod()), 0);
+            mShapeFunctionsCached = true;
+        }
+        R_vec = mCachedR_vec;
+        dR_vec = mCacheddR_vec;
+        ddR_vec = mCachedddR_vec;
 
         //declarations
         Vector3d R_1;  //1st derivative of the curve undeformed config
@@ -5036,37 +5084,18 @@ namespace Kratos {
         S_torsion_v_var_var = S_torsion_v_var_var / A;
 
 
-        //stiffness matrix of the membran part
-        for (int r = 0;r < N_Dof;r++)
-            for (int s = 0;s < N_Dof;s++)
-                S_kem(r, s) = emod_A * S_eps_var[r] * S_eps_var[s] + S11_m * S_eps_var_var(r, s);
-
-        //stiffness matrix of the bending part
-        for (int r = 0;r < N_Dof;r++)
-            for (int s = 0;s < N_Dof;s++)
-                S_keb_n(r, s) = emod_I_v * S_curv_n_var[r] * S_curv_n_var[s] + S_curv_n_var_var(r, s) * S11_n;
-
-        //stiffness matrix of the bending part
-        for (int r = 0;r < N_Dof;r++)
-            for (int s = 0;s < N_Dof;s++)
-                S_keb_v(r, s) = emod_I_n * S_curv_v_var[r] * S_curv_v_var[s] + S_curv_v_var_var(r, s) * S11_v;
-
-        //stiffness matrix of the torsion part
-        for (int r = 0;r < N_Dof;r++)
-            for (int s = 0;s < N_Dof;s++)
-                S_ket_n(r, s) = 0.5 * gmod_It * S_torsion_n_var[r] * S_torsion_n_var[s] + S12 * S_torsion_n_var_var(r, s);
-
-        //stiffness matrix of the torsion part
-        for (int r = 0;r < N_Dof;r++)
-            for (int s = 0;s < N_Dof;s++)
-                S_ket_v(r, s) = 0.5 * gmod_It * S_torsion_v_var[r] * S_torsion_v_var[s] + S13 * S_torsion_v_var_var(r, s);
-        //compute final element stiffness matrix
+        // Optimized stiffness matrix assembly - combine all loops into one
         _gke.clear();
-        _gke += S_kem;
-        _gke += S_keb_n;
-        _gke += S_keb_v;
-        _gke += S_ket_n;
-        _gke += S_ket_v;
+        for (int r = 0; r < N_Dof; r++) {
+            for (int s = 0; s < N_Dof; s++) {
+                // Combine all stiffness matrix contributions in a single loop
+                _gke(r, s) = emod_A * S_eps_var[r] * S_eps_var[s] + S11_m * S_eps_var_var(r, s)  // membrane
+                           + emod_I_v * S_curv_n_var[r] * S_curv_n_var[s] + S_curv_n_var_var(r, s) * S11_n  // bending n
+                           + emod_I_n * S_curv_v_var[r] * S_curv_v_var[s] + S_curv_v_var_var(r, s) * S11_v  // bending v
+                           + 0.5 * gmod_It * S_torsion_n_var[r] * S_torsion_n_var[s] + S12 * S_torsion_n_var_var(r, s)  // torsion n
+                           + 0.5 * gmod_It * S_torsion_v_var[r] * S_torsion_v_var[s] + S13 * S_torsion_v_var_var(r, s); // torsion v
+            }
+        }
 
         _gfie = -(S11_m * S_eps_var + S11_n * S_curv_n_var + S11_v * S_curv_v_var + S12 * S_torsion_n_var + S13 * S_torsion_v_var);
     }
@@ -5316,12 +5345,10 @@ namespace Kratos {
         const float area = this->GetProperties()[CROSS_AREA];
         const float height = this->GetProperties()[HEIGHT];
         const float width = this->GetProperties()[WIDTH];
-        const float m_inert_z = this->GetProperties()[I_Z];
-        const float m_inert_y = this->GetProperties()[I_Y];
+        const float m_inert_z = this->GetProperties()[I_N];
+        const float m_inert_y = this->GetProperties()[I_V];
         const float mt_iniert = this->GetProperties()[I_T];
         Vector3d t0_0 = this->GetProperties()[T_0];
-
-
 
         Vector func = row(r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod()), 0);
         Vector deriv = column(r_geometry.ShapeFunctionDerivatives(1, integration_point_index, this->GetIntegrationMethod()), 0);
@@ -5488,8 +5515,8 @@ namespace Kratos {
         const float area = this->GetProperties()[CROSS_AREA];
         const float height = this->GetProperties()[HEIGHT];
         const float width = this->GetProperties()[WIDTH];
-        const float m_inert_z = this->GetProperties()[I_Z];
-        const float m_inert_y = this->GetProperties()[I_Y];
+        const float m_inert_z = this->GetProperties()[I_N];
+        const float m_inert_y = this->GetProperties()[I_V];
         const float mt_iniert = this->GetProperties()[I_T];
         Vector3d t0_0 = this->GetProperties()[T_0];
         

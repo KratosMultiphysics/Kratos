@@ -386,6 +386,11 @@ void  AddGeometriesToPython(pybind11::module& m)
         self.SpansLocalSpace(spans, direction_index);
         return spans;
             })
+        .def("GlobalSpaceDerivatives", [](NurbsCurveOnSurfaceGeometry<3, NodeContainerType, NodeContainerType>& self, std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives, CoordinatesArrayType& rLocalCoordinates, SizeType DerivativeOrder)
+            {
+                self.GlobalSpaceDerivatives(rGlobalSpaceDerivatives, rLocalCoordinates, DerivativeOrder);
+                return rGlobalSpaceDerivatives;
+            })
         ;
 }
 

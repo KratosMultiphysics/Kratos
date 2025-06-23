@@ -205,9 +205,9 @@ public:
     void stress_res_lin(const ProcessInfo& rCurrentProcessInfo,  IndexType integration_point_index, Vector3d& _f, Vector3d& _m);
     void stress_res_nln(const ProcessInfo& rCurrentProcessInfo, IndexType integration_point_index, Vector3d& _f, Vector3d& _m);
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable, std::vector<array_1d<double, 3>>& rOutput,const ProcessInfo& rCurrentProcessInfo);
-    void CalculateOnIntegrationPoints(const  Variable<Vector>& rVariable, std::vector <Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
-    void CalculateOnIntegrationPoints(const  Variable<double>& rVariable, std::vector <double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable, std::vector<array_1d<double, 3>>& rOutput,const ProcessInfo& rCurrentProcessInfo) override;
+    //void CalculateOnIntegrationPoints(const  Variable<Vector>& rVariable, std::vector <Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const  Variable<double>& rVariable, std::vector <double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
     
     //Computes RHS
     void CalculateRightHandSide(
@@ -215,7 +215,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType nb_nodes = GetGeometry().size();
-        const SizeType nb_dofs = nb_nodes * 4;
+        const SizeType nb_dofs = nb_nodes * 3;
 
         if (rRightHandSideVector.size() != nb_dofs)
             rRightHandSideVector.resize(nb_dofs);
@@ -233,7 +233,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType nb_nodes = GetGeometry().size();
-        const SizeType nb_dofs = nb_nodes * 4;
+        const SizeType nb_dofs = nb_nodes * 3;
 
         VectorType right_hand_side_vector;
          
@@ -252,7 +252,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType nb_nodes = GetGeometry().size();
-        const SizeType nb_dofs = nb_nodes * 4;
+        const SizeType nb_dofs = nb_nodes * 3;
 
         if (rRightHandSideVector.size() != nb_dofs)
             rRightHandSideVector.resize(nb_dofs);
@@ -397,6 +397,7 @@ private:
     }
    
     void GetElementOrientation(const Matrix& r_DN_De, const ConfigurationType& rConfiguration, Vector3d& B1, Vector3d& B2, Vector3d& B3, float& A, float& B);
+    void GetB1AtBeamStart(const ConfigurationType& rConfiguration, Vector3d& B1);
     NurbsCurveGeometry<3, PointerVector<NodeType>>::Pointer pCurve;
 
     /// The vector containing the constitutive laws for all integration points.
@@ -485,6 +486,24 @@ private:
 
 
     std::vector<array_1d<double, 3>> mReferenceBaseVector;
+    
+    /// Performance optimization: flag to track memory initialization
+    mutable bool mMemoryInitialized = false;
+    
+    /// Cached shape function derivatives to avoid O(p³) computation
+    mutable Vector mCachedR_vec;
+    mutable Vector mCacheddR_vec;
+    mutable Vector mCachedddR_vec;
+    mutable bool mShapeFunctionsCached = false;
+    
+    /// Pre-computed identity matrix for Rodrigues computation
+    mutable Matrix3d mIdentityMatrix3d;
+    
+    /// Method to reset all caches when geometry changes
+    void ResetCaches() const {
+        mMemoryInitialized = false;
+        mShapeFunctionsCached = false;
+    }
 
     ///@}
     ///@name Private operations

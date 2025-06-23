@@ -58,6 +58,7 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSbmLaplacianConditionNeumann(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mBernoulliBeamElasticConstitutiveLaw()
 {
 }
 
@@ -101,6 +102,9 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_MODELER("NurbsGeometryModeler", mNurbsGeometryModeler);
     KRATOS_REGISTER_MODELER("NurbsGeometryModelerSbm", mNurbsGeometryModelerSbm);
     KRATOS_REGISTER_MODELER("ImportNurbsSbmModeler", mImportNurbsSbmModeler);
+
+    // CONSTITUTIVE LAWS
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("BernoulliBeamElasticConstitutiveLaw", mBernoulliBeamElasticConstitutiveLaw);
 
     // VARIABLES
     KRATOS_REGISTER_VARIABLE(CROSS_AREA)
@@ -175,12 +179,12 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(T_0)
     KRATOS_REGISTER_VARIABLE(N_0)
     KRATOS_REGISTER_VARIABLE(CENTER_LINE_ROTATION)
-    KRATOS_REGISTER_VARIABLE(I_Y)
-    KRATOS_REGISTER_VARIABLE(I_Z)
+    KRATOS_REGISTER_VARIABLE(I_V)
+    KRATOS_REGISTER_VARIABLE(I_N)
     KRATOS_REGISTER_VARIABLE(I_T)
     KRATOS_REGISTER_VARIABLE(HEIGHT)
     KRATOS_REGISTER_VARIABLE(WIDTH)
-
+    KRATOS_REGISTER_VARIABLE(VON_MISES_STRESS)
 
 
     // SBM Variables 
