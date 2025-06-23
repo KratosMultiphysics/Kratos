@@ -8,8 +8,6 @@ class UPwBaseElement
 
 class UPwSmallStrainElement
 class DrainedUPwSmallStrainElement
-class TransientPwElement
-class SteadyStatePwElement
 class UndrainedUPwSmallStrainElement
 class UPwSmallStrainFICElement
 class UPwUpdatedLagrangianFICElement
@@ -25,8 +23,6 @@ Element <|-- UPwBaseElement
 UPwBaseElement <|-- UPwSmallStrainElement
 
 UPwSmallStrainElement <|-- DrainedUPwSmallStrainElement
-UPwSmallStrainElement <|-- TransientPwElement
-TransientPwElement <|-- SteadyStatePwElement
 UPwSmallStrainElement <|-- UndrainedUPwSmallStrainElement
 UPwSmallStrainElement <|-- UPwSmallStrainFICElement
 UPwSmallStrainFICElement <|-- UPwUpdatedLagrangianFICElement
