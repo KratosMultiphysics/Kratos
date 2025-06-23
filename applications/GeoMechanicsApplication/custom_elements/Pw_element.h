@@ -41,14 +41,14 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) TransientPwLineElement : public Element
+class KRATOS_API(GEO_MECHANICS_APPLICATION) PwElement : public Element
 {
 public:
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransientPwLineElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(PwElement);
 
-    explicit TransientPwLineElement(IndexType NewId = 0) : Element(NewId) {}
+    explicit PwElement(IndexType NewId = 0) : Element(NewId) {}
 
-    TransientPwLineElement(IndexType                                       NewId,
+    PwElement(IndexType                                       NewId,
                            const GeometryType::Pointer&                    pGeometry,
                            const std::vector<CalculationContribution>&     rContributions,
                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
@@ -58,7 +58,7 @@ public:
     {
     }
 
-    TransientPwLineElement(IndexType                                       NewId,
+    PwElement(IndexType                                       NewId,
                            const GeometryType::Pointer&                    pGeometry,
                            const PropertiesType::Pointer&                  pProperties,
                            const std::vector<CalculationContribution>&     rContributions,
@@ -71,14 +71,14 @@ public:
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<TransientPwLineElement>(NewId, GetGeometry().Create(rThisNodes),
+        return make_intrusive<PwElement>(NewId, GetGeometry().Create(rThisNodes),
                                                       pProperties, mContributions,
                                                       this->CloneIntegrationCoefficientModifier());
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<TransientPwLineElement>(NewId, pGeom, pProperties, mContributions,
+        return make_intrusive<PwElement>(NewId, pGeom, pProperties, mContributions,
                                                       this->CloneIntegrationCoefficientModifier());
     }
 

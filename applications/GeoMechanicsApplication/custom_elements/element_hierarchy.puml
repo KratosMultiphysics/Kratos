@@ -51,10 +51,10 @@ class LineInterfaceElement
 Element <|-- LineInterfaceElement
 
 'Pw Elements
-class TransientPwLineElement
+class PwElement
 class GeoSteadyStatePwPipingElement
 
-Element <|-- TransientPwLineElement
+Element <|-- PwElement
 Element <|-- GeoSteadyStatePwPipingElement
 
 ''Thermal

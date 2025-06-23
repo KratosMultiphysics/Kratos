@@ -11,7 +11,7 @@
 //
 
 // Project includes
-#include "custom_elements/transient_pw_line_element.h"
+#include "custom_elements/Pw_element.h"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
@@ -111,7 +111,7 @@ auto SetupPipingStrategy(Model& rModel)
     p_element_props->SetValue(CONSTITUTIVE_LAW, LinearElastic2DInterfaceLaw().Clone());
 
     auto contributions = {CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow};
-    auto p_element = make_intrusive<TransientPwLineElement<2, 4>>(
+    auto p_element = make_intrusive<PwElement<2, 4>>(
         0, CreateQuadrilateral2D4N(r_model_part, std::vector<int>{13, 14, 15, 16}, 3.0, 4.0, 2000.0, 2000.0),
         p_element_props, contributions, nullptr);
     p_element->Initialize(r_process_info);
