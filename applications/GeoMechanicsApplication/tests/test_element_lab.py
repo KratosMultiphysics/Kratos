@@ -31,36 +31,33 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
 
         stages = test_helper.get_separated_stages(directory_names)
 
-        effective_stresses_stages = [None] * n_stages
         initial_directory = os.getcwd()
 
         # run stages and get results
         for idx, stage in enumerate(stages):
             os.chdir(directory_names[idx])
             stage.Run()
-            effective_stresses_stages[idx] = test_helper.get_cauchy_stress_tensor(stage)
         os.chdir(initial_directory)
 
-        # Assert
-        stage_nr = 0
-        effective_stresses_xx = [integration_point[0,0] for element in effective_stresses_stages[stage_nr] for integration_point in element]
-        effective_stresses_yy = [integration_point[1,1] for element in effective_stresses_stages[stage_nr] for integration_point in element]
-        effective_stresses_zz = [integration_point[2,2] for element in effective_stresses_stages[stage_nr] for integration_point in element]
-        # Assert integration point information
-        for idx, effective_stress_xx in enumerate(effective_stresses_xx):
-            self.assertAlmostEqual(-100.0, effective_stress_xx,        3)
-            self.assertAlmostEqual(-100.0, effective_stresses_yy[idx], 3)
-            self.assertAlmostEqual(-100.0, effective_stresses_zz[idx], 3)
+        reader = test_helper.GiDOutputFileReader()
 
-        stage_nr = 1
-        effective_stresses_xx = [integration_point[0,0] for element in effective_stresses_stages[stage_nr] for integration_point in element]
-        effective_stresses_yy = [integration_point[1,1] for element in effective_stresses_stages[stage_nr] for integration_point in element]
-        effective_stresses_zz = [integration_point[2,2] for element in effective_stresses_stages[stage_nr] for integration_point in element]
-        # Assert integration point information
-        for idx, effective_stress_xx in enumerate(effective_stresses_xx):
-            self.assertAlmostEqual(-100.0, effective_stress_xx,        2)
-            self.assertAlmostEqual(-300.0, effective_stresses_yy[idx], 2)
-            self.assertAlmostEqual(-100.0, effective_stresses_zz[idx], 2)
+        # Assert
+        output_data = reader.read_output_from(os.path.join(project_path, "Stage_1", "triaxial_comp_6n_stage1.post.res"))
+        time = 1.0
+        for element_stress_vectors in reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", time, output_data):
+            for stress_vector in element_stress_vectors:
+                self.assertAlmostEqual(-100.0, stress_vector[0], 3)
+                self.assertAlmostEqual(-100.0, stress_vector[1], 3)
+                self.assertAlmostEqual(-100.0, stress_vector[2], 3)
+
+        output_data = reader.read_output_from(os.path.join(project_path, "Stage_2", "triaxial_comp_6n_stage2.post.res"))
+        time = 1.25
+        for element_stress_vectors in reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", time, output_data):
+            for stress_vector in element_stress_vectors:
+                self.assertAlmostEqual(-100.0, stress_vector[0], 2)
+                self.assertAlmostEqual(-300.0, stress_vector[1], 2)
+                self.assertAlmostEqual(-100.0, stress_vector[2], 2)
+
 
     def test_oedometer_ULFEM(self):
         """
