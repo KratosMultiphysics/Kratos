@@ -111,7 +111,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsMasterSlaveConstraints,
                         KratosGeoMechanicsSingleElementWithMohrCoulomb,
                         KratosGeoMechanicsMohrCoulombWithTensionTests,
-                        KratosGeoMechanicsApplyInitialUniformStressFieldTests
+                        KratosGeoMechanicsApplyInitialUniformStressFieldTests,
                         KratosGeoMechanicsDirichletReleaseTests,
     ]
 
