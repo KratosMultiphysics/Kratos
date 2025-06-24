@@ -70,6 +70,8 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         self.__test_saturated_below_phreatic_level_pw('test_saturated_below_phreatic_level_upw_smallstrain_triangle6n')
 
     def test_climbing_falling_phreatic_level_upw_smallstrain_quad4n(self):
+        # only waterpressures below phreatic level are checked with an analytical solution.
+        # values above phreatic level give suction of an unchecked amount.
         file_path = test_helper.get_file_path(os.path.join('test_partially_saturated', 'test_rising_falling_phreatic_level_pw_quad4n'))
         simulation = test_helper.run_kratos(file_path)
 
