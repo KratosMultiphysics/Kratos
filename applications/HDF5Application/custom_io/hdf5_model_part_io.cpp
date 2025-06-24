@@ -220,6 +220,7 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
 
     // Avoid inadvertently reordering partway through
     // the writing process.
+    // TODO: Remove after PVS refactoring
     rModelPart.Nodes().Unique();
     rModelPart.Conditions().Unique();
     rModelPart.Elements().Unique();
