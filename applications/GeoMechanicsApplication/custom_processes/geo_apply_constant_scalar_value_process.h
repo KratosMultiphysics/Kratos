@@ -34,8 +34,7 @@ namespace Kratos
  * @ingroup KratosCore
  * @author Riccardo Rossi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoApplyConstantScalarValueProcess
-    : public Process
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoApplyConstantScalarValueProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -56,20 +55,14 @@ public:
      * @param rModel Reference to the model.
      * @param rParameters Parameters containing information about the variable, value, mesh ID, and options.
      */
-    GeoApplyConstantScalarValueProcess(
-        Model& rModel,
-        Parameters ThisParameters
-        );
+    GeoApplyConstantScalarValueProcess(Model& rModel, Parameters ThisParameters);
 
     /**
      * @brief Constructor to apply a constant scalar value to nodes in a model part for a given variable.
      * @param rModelPart Reference to the model part.
      * @param ThisParameters Parameters containing information about the variable, value, mesh ID, and options.
      */
-    GeoApplyConstantScalarValueProcess(
-        ModelPart& rModelPart,
-        Parameters ThisParameters
-    );
+    GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, Parameters ThisParameters);
 
     /**
      * @brief Constructor to apply a constant scalar value to nodes in a model part for a given double variable.
@@ -78,12 +71,10 @@ public:
      * @param DoubleValue The double value to apply.
      * @param Options Flags specifying additional options.
      */
-    GeoApplyConstantScalarValueProcess(
-        ModelPart& rModelPart,
-        const Variable<double>& rVariable,
-        const double DoubleValue,
-        const Flags Options
-        );
+    GeoApplyConstantScalarValueProcess(ModelPart&              rModelPart,
+                                       const Variable<double>& rVariable,
+                                       const double            DoubleValue,
+                                       const Flags             Options);
 
     /**
      * @brief Constructor to apply a constant scalar value to nodes in a model part for a given integer variable.
@@ -92,12 +83,10 @@ public:
      * @param IntValue The integer value to apply.
      * @param options Flags specifying additional options.
      */
-    GeoApplyConstantScalarValueProcess(
-        ModelPart& rModelPart,
-        const Variable<int>& rVariable,
-        const int IntValue,
-        const Flags options
-        );
+    GeoApplyConstantScalarValueProcess(ModelPart&           rModelPart,
+                                       const Variable<int>& rVariable,
+                                       const int            IntValue,
+                                       const Flags          options);
 
     /**
      * @brief Constructor to apply a constant scalar value to nodes in a model part for a given boolean variable.
@@ -106,12 +95,10 @@ public:
      * @param BoolValue The boolean value to apply.
      * @param options Flags specifying additional options.
      */
-    GeoApplyConstantScalarValueProcess(
-        ModelPart& rModelPart,
-        const Variable<bool>& rVariable,
-        const bool BoolValue,
-        const Flags options
-        );
+    GeoApplyConstantScalarValueProcess(ModelPart&            rModelPart,
+                                       const Variable<bool>& rVariable,
+                                       const bool            BoolValue,
+                                       const Flags           options);
 
     /// Destructor.
     ~GeoApplyConstantScalarValueProcess() override = default;
@@ -121,10 +108,7 @@ public:
     ///@{
 
     /// This operator is provided to call the process as a function and simply calls the Execute method.
-    void operator()()
-    {
-        Execute();
-    }
+    void operator()() { Execute(); }
 
     ///@}
     ///@name Operations
@@ -159,10 +143,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "GeoApplyConstantScalarValueProcess";
-    }
+    std::string Info() const override { return "GeoApplyConstantScalarValueProcess"; }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
@@ -171,9 +152,7 @@ public:
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
+    void PrintData(std::ostream& rOStream) const override {}
 
     ///@}
     ///@name Friends
@@ -184,11 +163,11 @@ protected:
     ///@name Protected Member Variables
     ///@{
 
-    ModelPart& mrModelPart;    /// Reference to the model part.
-    std::string mVariableName; /// Name of the variable.
-    double mDoubleValue = 0.0; /// Double value.
-    int mIntValue = 0;         /// Integer value.
-    bool mBoolValue = false;   /// Boolean value.
+    ModelPart&  mrModelPart;          /// Reference to the model part.
+    std::string mVariableName;        /// Name of the variable.
+    double      mDoubleValue = 0.0;   /// Double value.
+    int         mIntValue    = 0;     /// Integer value.
+    bool        mBoolValue   = false; /// Boolean value.
 
     ///@}
 private:
@@ -196,30 +175,23 @@ private:
     ///@{
 
     /**
-    * @brief Apply a value to all nodes of the model part for a given variable, optionally fixing the variable.
-    * @tparam TVarType Type of the variable.
-    * @param rVariable The variable to apply the value to.
-    * @param ToBeFixed Boolean indicating whether the variable should be fixed.
-    * @param Value The value to apply to the variable.
-    */
-    template<class TVarType>
-    void InternalApplyValue(
-        const TVarType& rVariable,
-        const bool ToBeFixed,
-        const typename TVarType::Type Value
-        );
+     * @brief Apply a value to all nodes of the model part for a given variable, optionally fixing the variable.
+     * @tparam TVarType Type of the variable.
+     * @param rVariable The variable to apply the value to.
+     * @param ToBeFixed Boolean indicating whether the variable should be fixed.
+     * @param Value The value to apply to the variable.
+     */
+    template <class TVarType>
+    void InternalApplyValue(const TVarType& rVariable, const bool ToBeFixed, const typename TVarType::Type Value);
 
     /**
-    * @brief Apply a value to all nodes of the model part for a given variable without fixing the variable.
-    * @tparam TVarType Type of the variable.
-    * @param rVariable The variable to apply the value to.
-    * @param Value The value to apply to the variable.
-    */
-    template<class TVarType>
-    void InternalApplyValueWithoutFixing(
-        const TVarType& rVariable,
-        const typename TVarType::Type Value
-        );
+     * @brief Apply a value to all nodes of the model part for a given variable without fixing the variable.
+     * @tparam TVarType Type of the variable.
+     * @param rVariable The variable to apply the value to.
+     * @param Value The value to apply to the variable.
+     */
+    template <class TVarType>
+    void InternalApplyValueWithoutFixing(const TVarType& rVariable, const typename TVarType::Type Value);
 
     ///@}
     ///@name Un accessible methods
@@ -229,7 +201,7 @@ private:
     GeoApplyConstantScalarValueProcess& operator=(GeoApplyConstantScalarValueProcess const& rOther);
 
     /// Copy constructor.
-    //GeoApplyConstantScalarValueProcess(GeoApplyConstantScalarValueProcess const& rOther);
+    // GeoApplyConstantScalarValueProcess(GeoApplyConstantScalarValueProcess const& rOther);
 
     ///@}
 }; // Class GeoApplyConstantScalarValueProcess
@@ -243,12 +215,10 @@ private:
 ///@{
 
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  GeoApplyConstantScalarValueProcess& rThis);
+inline std::istream& operator>>(std::istream& rIStream, GeoApplyConstantScalarValueProcess& rThis);
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const GeoApplyConstantScalarValueProcess& rThis)
+inline std::ostream& operator<<(std::ostream& rOStream, const GeoApplyConstantScalarValueProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -256,6 +226,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
     return rOStream;
 }
+
 ///@}
 
-}  // namespace Kratos.
+} // namespace Kratos.
