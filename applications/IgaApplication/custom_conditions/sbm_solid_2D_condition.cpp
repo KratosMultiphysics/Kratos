@@ -56,7 +56,6 @@ namespace Kratos
     {
         KRATOS_TRY
         Condition candidateClosestSkinSegment1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
-        // Condition candidateClosestSkinSegment2 = this->GetValue(NEIGHBOUR_CONDITIONS)[1];
         const auto& r_geometry = this->GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
 
@@ -288,7 +287,7 @@ namespace Kratos
 
                         for (IndexType jdim = 0; jdim < 2; jdim++) {
                             // PENALTY TERM
-                            rLeftHandSideMatrix(2*i+idim, 2*j+idim) -= H_sum(0,i)*H_sum(0,j)* penalty_integration * direction[idim] * direction[jdim];
+                            rLeftHandSideMatrix(2*i+idim, 2*j+idim) -= H(0,i)*H_sum(0,j)* penalty_integration * direction[idim] * direction[jdim];
 
                             const int id2 = (id1+2)%3;
                             const int jglob = 2*j+jdim;
@@ -329,7 +328,7 @@ namespace Kratos
 
                         const int iglob = 2*i+idim;
 
-                        rRightHandSideVector(iglob) -= H_sum(0,i) * direction[idim] * displacement_module * penalty_integration;
+                        rRightHandSideVector(iglob) -= H(0,i) * direction[idim] * displacement_module * penalty_integration;
 
                         // // PENALTY FREE g_n = 0
                         // // rhs -> [\sigma_1(w) \dot n] \dot n (-g_{n,0})
@@ -361,7 +360,7 @@ namespace Kratos
                 for (IndexType j = 0; j < number_of_nodes; j++) {
                     
                     for (IndexType idim = 0; idim < 2; idim++) {
-                        rLeftHandSideMatrix(2*i+idim, 2*j+idim) -= H_sum(0,i)*H_sum(0,j)* penalty_integration;
+                        rLeftHandSideMatrix(2*i+idim, 2*j+idim) -= H(0,i)*H_sum(0,j)* penalty_integration;
                         const int id1 = 2*idim;
                         const int iglob = 2*i+idim;
 
@@ -372,15 +371,15 @@ namespace Kratos
                             // // FLUX 
                             // // [sigma(u) \dot n] \dot n * (-w \dot n)
                             // //*********************************************** */
-                            // Vector sigma_u_n = ZeroVector(3);
-                            // sigma_u_n[0] = DB(0, jglob)*normal_parameter_space[0] + DB(2, jglob)*normal_parameter_space[1];
-                            // sigma_u_n[1] = DB(2, jglob)*normal_parameter_space[0] + DB(1, jglob)*normal_parameter_space[1];
+                            Vector sigma_w_n = ZeroVector(3);
+                            sigma_w_n[0] = DB(0, iglob)*normal_parameter_space[0] + DB(2, iglob)*normal_parameter_space[1];
+                            sigma_w_n[1] = DB(2, iglob)*normal_parameter_space[0] + DB(1, iglob)*normal_parameter_space[1];
 
                             // double sigma_u_n_dot_direction = inner_prod(sigma_u_n, direction);
                             // rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*sigma_u_n[jdim] * integration_factor;
                             rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*(DB(id1, jglob)* normal_parameter_space[0] + DB(id2, jglob)* normal_parameter_space[1]) * integration_factor;
 
-                            rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*H_sum(0,j)*(DB(id1, 2*i+jdim)* normal_parameter_space[0] + DB(id2, 2*i+jdim)* normal_parameter_space[1]) * integration_factor;
+                            rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*H_sum(0,j)*sigma_w_n[jdim] * integration_factor;
                         }
 
                     }
@@ -401,13 +400,19 @@ namespace Kratos
                 for (IndexType i = 0; i < number_of_nodes; i++) {
 
                     for (IndexType idim = 0; idim < 2; idim++) {
+                        
+                        const IndexType iglob = 2*i+idim;
 
-                        rRightHandSideVector[2*i+idim] -= H_sum(0,i)*u_D[idim]* penalty_integration;
+                        rRightHandSideVector[iglob] -= H(0,i)*u_D[idim]* penalty_integration;
                         const int id1 = idim*2;
+
+                        Vector sigma_w_n = ZeroVector(3);
+                        sigma_w_n[0] = DB(0, iglob)*normal_parameter_space[0] + DB(2, iglob)*normal_parameter_space[1];
+                        sigma_w_n[1] = DB(2, iglob)*normal_parameter_space[0] + DB(1, iglob)*normal_parameter_space[1];
 
                         for (IndexType jdim = 0; jdim < 2; jdim++) {
                             const int id2 = (id1+2)%3;
-                            rRightHandSideVector(2*i+idim) -= Guglielmo_innovation*u_D[jdim]*(DB(id1, 2*i+jdim)* normal_parameter_space[0] + DB(id2, 2*i+jdim)* normal_parameter_space[1]) * integration_factor;
+                            rRightHandSideVector(2*i+idim) -= Guglielmo_innovation*u_D[jdim]*sigma_w_n[jdim] * integration_factor;
                         }
 
                     }
