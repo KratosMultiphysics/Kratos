@@ -608,9 +608,9 @@ namespace Kratos {
                                                                         mNeighbourRollingFrictionMoments[i]);
                         }
                         else {
-                            if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
-                              mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForce);
-                            }
+                            //if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
+                            mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForce);
+                            //}
                         }
                     }
 
@@ -631,9 +631,9 @@ namespace Kratos {
                                                                         mNeighbourRollingFrictionMoments[i]);
                         }
                         else {
-                            if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
-                                mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForce);
-                            }
+                            //if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
+                            mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForce);
+                            //}
                         }
                     }
                 }
