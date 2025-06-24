@@ -60,10 +60,10 @@ public:
     }
 }; // class ExpressionTrampoline
 
-template<class TTensorAdapterType>
-pybind11::array_t<typename TTensorAdapterType::PrimitiveDataType, pybind11::array::c_style> GetNumpyArray(TTensorAdapterType& rTensorAdaptor)
+template<class TTensorAdaptorType>
+pybind11::array_t<typename TTensorAdaptorType::PrimitiveDataType, pybind11::array::c_style> GetNumpyArray(TTensorAdaptorType& rTensorAdaptor)
 {
-    using primitive_data_type = typename TTensorAdapterType::PrimitiveDataType;
+    using primitive_data_type = typename TTensorAdaptorType::PrimitiveDataType;
     using numpy_array_type = pybind11::array_t<primitive_data_type, pybind11::array::c_style>;
 
     const auto& r_shape = rTensorAdaptor.Shape();
@@ -90,10 +90,10 @@ pybind11::array_t<typename TTensorAdapterType::PrimitiveDataType, pybind11::arra
     );
 }
 
-template<class TTensorAdapterType>
+template<class TTensorAdaptorType>
 void SetNumpyArray(
-    TTensorAdapterType& rTensorAdaptor,
-    const pybind11::array_t<typename TTensorAdapterType::PrimitiveDataType, pybind11::array::c_style>& rArray)
+    TTensorAdaptorType& rTensorAdaptor,
+    const pybind11::array_t<typename TTensorAdaptorType::PrimitiveDataType, pybind11::array::c_style>& rArray)
 {
     KRATOS_ERROR_IF(rArray.ndim() == 0)
         << "Passed data is not compatible [ array = "
@@ -122,21 +122,21 @@ void SetNumpyArray(
     });
 }
 
-template<class TTensorAdapterType>
+template<class TTensorAdaptorType>
 void AddBaseTensorAdaptor(
     pybind11::module& rModule,
     const std::string& AdaptorName)
 {
-    using container_type = typename TTensorAdapterType::ContainerType;
-    using primitive_data_type = typename TTensorAdapterType::PrimitiveDataType;
-    pybind11::class_<TTensorAdapterType, typename TTensorAdapterType::Pointer, Detail::TensorAdaptorTrampoline<container_type, primitive_data_type>>(rModule, AdaptorName.c_str())
-        .def("CollectData", &TTensorAdapterType::CollectData)
-        .def("StoreData", &TTensorAdapterType::StoreData)
-        .def("GetContainer", &TTensorAdapterType::GetContainer)
-        .def("Shape", &TTensorAdapterType::Shape)
-        .def_property("data", &GetNumpyArray<TTensorAdapterType>, &SetNumpyArray<TTensorAdapterType>)
-        .def("ViewData", &GetNumpyArray<TTensorAdapterType>)
-        .def("MoveData", [](TTensorAdapterType& rSelf){
+    using container_type = typename TTensorAdaptorType::ContainerType;
+    using primitive_data_type = typename TTensorAdaptorType::PrimitiveDataType;
+    pybind11::class_<TTensorAdaptorType, typename TTensorAdaptorType::Pointer, Detail::TensorAdaptorTrampoline<container_type, primitive_data_type>>(rModule, AdaptorName.c_str())
+        .def("CollectData", &TTensorAdaptorType::CollectData)
+        .def("StoreData", &TTensorAdaptorType::StoreData)
+        .def("GetContainer", &TTensorAdaptorType::GetContainer)
+        .def("Shape", &TTensorAdaptorType::Shape)
+        .def_property("data", &GetNumpyArray<TTensorAdaptorType>, &SetNumpyArray<TTensorAdaptorType>)
+        .def("ViewData", &GetNumpyArray<TTensorAdaptorType>)
+        .def("MoveData", [](TTensorAdaptorType& rSelf){
                 using numpy_array_type = pybind11::array_t<primitive_data_type, pybind11::array::c_style>;
 
                 const auto& r_shape = rSelf.Shape();
@@ -171,7 +171,7 @@ void AddBaseTensorAdaptor(
                     release
                 );
         })
-        .def("__str__", PrintObject<TTensorAdapterType>);
+        .def("__str__", PrintObject<TTensorAdaptorType>);
     ;
 }
 
@@ -245,6 +245,7 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
     pybind11::class_<element_gp_variant_variable_ta_type, element_gp_variant_variable_ta_type::Pointer, element_gp_variant_variable_ta_type::BaseType>(element_tensor_adaptors_sub_module, "ElementGaussPointVariableTensorAdaptor")
         .def(pybind11::init<typename element_gp_variant_variable_ta_type::ContainerType::Pointer, typename element_gp_variant_variable_ta_type::VariableType, const ProcessInfo&>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("process_info"))
         .def(pybind11::init<typename element_gp_variant_variable_ta_type::ContainerType::Pointer, typename element_gp_variant_variable_ta_type::VariableType, const std::vector<int>&, const ProcessInfo&>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("shape"), pybind11::arg("process_info"))
+        .def
         ;
 
 }
