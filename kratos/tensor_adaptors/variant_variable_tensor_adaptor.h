@@ -77,7 +77,8 @@ public:
         : BaseType(pContainer)
     {
         std::visit([&](const auto pVariable){
-            auto p_container_io = new TContainerIOType(*pVariable, rArgs...);
+            using data_type = typename std::remove_cv_t<std::decay_t<decltype(*pVariable)>>::Type;
+            auto p_container_io = new TContainerIOType<data_type>(*pVariable, rArgs...);
             TensorAdaptorUtils::GetShape(this->mShape, *(this->mpContainer), *p_container_io);
             this->mpContainerIO = p_container_io;
         }, pVariable);
@@ -93,9 +94,32 @@ public:
         : BaseType(pContainer)
     {
         std::visit([&](const auto pVariable){
-            auto p_container_io = new TContainerIOType(*pVariable, rArgs...);
+            using data_type = typename std::remove_cv_t<std::decay_t<decltype(*pVariable)>>::Type;
+
+            auto p_container_io = new TContainerIOType<data_type>(*pVariable, rArgs...);
             this->mpContainerIO = p_container_io;
+
+            KRATOS_ERROR_IF_NOT(DataTypeTraits<data_type>::Dimension + 1 == rShape.size())
+                << "Dimensions mismatch for " << pVariable->Name() << " [ Required dimensions by variable = "
+                << DataTypeTraits<data_type>::Dimension + 1 << ", shape = " << rShape
+                << ", TensorAdaptor = " << this->Info() << " ].\n";
+
+            if constexpr(!DataTypeTraits<data_type>::IsDynamic) {
+                // now we know the shape exactly, hence we can check whether
+                // user has provided the shape correctly. These types are
+                // double, array3, array4, ...
+                TensorAdaptorUtils::GetShape(this->mShape, *(this->mpContainer), *p_container_io);
+
+                for (IndexType i = 0; i < rShape.size(); ++i) {
+                    KRATOS_ERROR_IF_NOT(rShape[i] == this->mShape[i])
+                                << "Shape mismatch for " << pVariable->Name()
+                                << " [ Required variable shape = " << this->mShape << ", shape = " << rShape
+                                << ", TensorAdaptor = " << this->Info() << " ].\n";
+                }
+            }
+
         }, pVariable);
+
 
         this->mShape = rShape;
         this->mData.resize(TensorAdaptorUtils::GetFlatLength(this->mShape.data(), this->mShape.data() + this->mShape.size()));
@@ -120,7 +144,8 @@ public:
         // sanity checks
         KRATOS_ERROR_IF_NOT(this->mShape[0] == static_cast<int>(this->mpContainer->size()))
             << "First dimension of the initialized tensor adaptor mismatch with the container size [ "
-            << "Tensor adapter shape = " << this->mShape << ", container size = " << this->mpContainer->size() << " ].\n";
+            << "Tensor adapter shape = " << this->mShape << ", container size = " << this->mpContainer->size()
+            << ", TensorAdaptor = " << this->Info() << " ].\n";
 
         std::visit([this](auto pContainerIO) {
             CopyToContiguousArray(*(this->mpContainer), *pContainerIO, this->mData.data().begin(), this->mData.size());
@@ -140,7 +165,8 @@ public:
         // sanity checks
         KRATOS_ERROR_IF_NOT(this->mShape[0] == static_cast<int>(this->mpContainer->size()))
             << "First dimension of the initialized tensor adaptor mismatch with the container size [ "
-            << "Tensor adapter shape = " << this->mShape << ", container size = " << this->mpContainer->size() << " ].\n";
+            << "Tensor adapter shape = " << this->mShape << ", container size = " << this->mpContainer->size()
+            << ", TensorAdaptor = " << this->Info() << " ].\n";
 
         std::visit([this](auto pContainerIO) {
             std::vector<unsigned int> shape;
