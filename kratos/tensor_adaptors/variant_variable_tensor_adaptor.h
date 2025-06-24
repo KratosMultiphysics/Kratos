@@ -102,7 +102,7 @@ public:
             KRATOS_ERROR_IF_NOT(DataTypeTraits<data_type>::Dimension + 1 == rShape.size())
                 << "Dimensions mismatch for " << pVariable->Name() << " [ Required dimensions by variable = "
                 << DataTypeTraits<data_type>::Dimension + 1 << ", shape = " << rShape
-                << ", TensorAdaptor = " << this->Info() << " ].\n";
+                << ", TensorAdaptor = " << *this << " ].\n";
 
             if constexpr(!DataTypeTraits<data_type>::IsDynamic) {
                 // now we know the shape exactly, hence we can check whether
@@ -114,12 +114,15 @@ public:
                     KRATOS_ERROR_IF_NOT(rShape[i] == this->mShape[i])
                                 << "Shape mismatch for " << pVariable->Name()
                                 << " [ Required variable shape = " << this->mShape << ", shape = " << rShape
-                                << ", TensorAdaptor = " << this->Info() << " ].\n";
+                                << ", TensorAdaptor = " << *this << " ].\n";
                 }
             }
 
         }, pVariable);
 
+        KRATOS_ERROR_IF_NOT(rShape[0] == pContainer->size())
+            << "First dimension of the shape should represent the container size [ shape = "
+            << rShape << ", size of the container = " << pContainer->size() << ", Tensor = " << *this << " ].\n";
 
         this->mShape = rShape;
         this->mData.resize(TensorAdaptorUtils::GetFlatLength(this->mShape.data(), this->mShape.data() + this->mShape.size()));
@@ -145,7 +148,7 @@ public:
         KRATOS_ERROR_IF_NOT(this->mShape[0] == static_cast<int>(this->mpContainer->size()))
             << "First dimension of the initialized tensor adaptor mismatch with the container size [ "
             << "Tensor adapter shape = " << this->mShape << ", container size = " << this->mpContainer->size()
-            << ", TensorAdaptor = " << this->Info() << " ].\n";
+            << ", TensorAdaptor = " << *this << " ].\n";
 
         std::visit([this](auto pContainerIO) {
             CopyToContiguousArray(*(this->mpContainer), *pContainerIO, this->mData.data().begin(), this->mData.size());
@@ -166,7 +169,7 @@ public:
         KRATOS_ERROR_IF_NOT(this->mShape[0] == static_cast<int>(this->mpContainer->size()))
             << "First dimension of the initialized tensor adaptor mismatch with the container size [ "
             << "Tensor adapter shape = " << this->mShape << ", container size = " << this->mpContainer->size()
-            << ", TensorAdaptor = " << this->Info() << " ].\n";
+            << ", TensorAdaptor = " << *this << " ].\n";
 
         std::visit([this](auto pContainerIO) {
             std::vector<unsigned int> shape;
