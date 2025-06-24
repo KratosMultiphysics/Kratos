@@ -36,6 +36,10 @@ void NearestNeighborInterfaceInfoIGA::ProcessSearchResult(const InterfaceObject&
         mShapeFunctionValues.clear();
         mNearestNeighborId.clear();
 
+        // Reserve space for the vectors
+        mShapeFunctionValues.reserve(num_values);
+        mNearestNeighborId.reserve(num_values);
+
         for (std::size_t i = 0; i < num_values; ++i) {
             mShapeFunctionValues.push_back(shape_function_values(i));
             mNearestNeighborId.push_back(rInterfaceObject.pGetBaseGeometry()->Points()[i].GetValue(INTERFACE_EQUATION_ID));
@@ -44,6 +48,11 @@ void NearestNeighborInterfaceInfoIGA::ProcessSearchResult(const InterfaceObject&
     } 
     else if (neighbor_distance == mNearestNeighborDistance) {
         mNumberOfNearestNeighbors += 1;
+
+        // Reserve additional space for the vectors
+        mShapeFunctionValues.reserve(mShapeFunctionValues.size() + num_values); 
+        mNearestNeighborId.reserve(mNearestNeighborId.size() + num_values);    
+
         for (std::size_t i = 0; i < num_values; ++i) {
             mShapeFunctionValues.push_back(shape_function_values(i));
             mNearestNeighborId.push_back(rInterfaceObject.pGetBaseGeometry()->Points()[i].GetValue(INTERFACE_EQUATION_ID));
