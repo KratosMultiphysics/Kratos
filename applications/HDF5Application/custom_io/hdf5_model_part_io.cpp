@@ -40,7 +40,7 @@ ModelPartIO::ModelPartIO(
     Parameters Settings,
     File::Pointer pFile)
     : mpFile(pFile),
-      mWriteEntityProperyIds(true)
+      mWriteEntityPropertyIds(true)
 {
     Parameters default_params(R"(
         {
@@ -71,7 +71,7 @@ ModelPartIO::ModelPartIO(
     File::Pointer pFile)
     : mpFile(pFile),
       mPrefix(rPrefix),
-      mWriteEntityProperyIds(WriteEntityPropertyIds)
+      mWriteEntityPropertyIds(WriteEntityPropertyIds)
 {
 }
 
@@ -149,7 +149,7 @@ void ModelPartIO::WriteElements(ElementsContainerType const& rElements)
     mpFile->AddPath(element_path);
     for (unsigned int i = 0; i < names.size(); ++i) {
         Internals::ConnectivitiesData<ElementsContainerType> connectivities(element_path, mpFile);
-        connectivities.Write(factored_elements[i], mWriteEntityProperyIds);
+        connectivities.Write(factored_elements[i], mWriteEntityPropertyIds);
     }
 
     KRATOS_CATCH("");
@@ -188,7 +188,7 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rConditions)
     mpFile->AddPath(condition_path);
     for (unsigned int i = 0; i < names.size(); ++i) {
         Internals::ConnectivitiesData<ConditionsContainerType> connectivities(condition_path, mpFile);
-        connectivities.Write(factored_conditions[i], mWriteEntityProperyIds);
+        connectivities.Write(factored_conditions[i], mWriteEntityPropertyIds);
     }
 
     KRATOS_CATCH("");

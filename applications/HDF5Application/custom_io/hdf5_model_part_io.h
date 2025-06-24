@@ -112,7 +112,7 @@ private:
     ///@name Private member variables
     ///@{
 
-    const bool mWriteEntityProperyIds;
+    const bool mWriteEntityPropertyIds;
 
     Parameters mCustomAttributes;
 
