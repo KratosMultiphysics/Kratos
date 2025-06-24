@@ -69,10 +69,11 @@ ModelPartIO::ModelPartIO(
     const std::string& rPrefix,
     const bool WriteEntityPropertyIds,
     File::Pointer pFile)
-    : mpFile(pFile),
-      mPrefix(rPrefix),
-      mWriteEntityPropertyIds(WriteEntityPropertyIds)
+    : ModelPartIO(
+        [&rPrefix](){Parameters output; output.AddString("prefix", rPrefix); return output; }(),
+        pFile)
 {
+    mWriteEntityPropertyIds = WriteEntityPropertyIds;
 }
 
 bool ModelPartIO::ReadNodes(NodesContainerType& rNodes)
