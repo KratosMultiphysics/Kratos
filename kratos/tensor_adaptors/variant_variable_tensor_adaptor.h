@@ -33,6 +33,14 @@ namespace Kratos {
  */
 template<class TContainerType, template<class> class TContainerIOType, class... TArgs>
 class VariantVariableTensorAdaptor: public TensorAdaptor<TContainerType, double> {
+private:
+    template<template<class> class TIOType, class... TDataTypes>
+    struct VariableInfo
+    {
+        using VariableType = std::variant<Variable<TDataTypes> const *...>;
+        using ContainerIOType = std::variant<TIOType<TDataTypes> const *...>;
+    };
+
 public:
 
     ///@name Type definitions
@@ -46,25 +54,20 @@ public:
 
     using ContainerType = typename BaseType::ContainerType;
 
-    using VariableType = std::variant<
-                                    const Variable<double>*,
-                                    const Variable<array_1d<double, 3>>*,
-                                    const Variable<array_1d<double, 4>>*,
-                                    const Variable<array_1d<double, 6>>*,
-                                    const Variable<array_1d<double, 9>>*,
-                                    const Variable<Vector>*,
-                                    const Variable<Matrix>*
+    using VariableInfoType = VariableInfo<
+                                    TContainerIOType,
+                                    double,
+                                    array_1d<double, 3>,
+                                    array_1d<double, 4>,
+                                    array_1d<double, 6>,
+                                    array_1d<double, 9>,
+                                    Vector,
+                                    Matrix
                                 >;
 
-    using ContainerIOType = std::variant<
-                                    TContainerIOType<double> const *,
-                                    TContainerIOType<array_1d<double, 3>> const *,
-                                    TContainerIOType<array_1d<double, 4>> const *,
-                                    TContainerIOType<array_1d<double, 6>> const *,
-                                    TContainerIOType<array_1d<double, 9>> const *,
-                                    TContainerIOType<Vector> const *,
-                                    TContainerIOType<Matrix> const *
-                                >;
+    using VariableType = typename VariableInfoType::VariableType;
+
+    using ContainerIOType = typename VariableInfoType::ContainerIOType;
 
     ///@}
     ///@name Life cycle
