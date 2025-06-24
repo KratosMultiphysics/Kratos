@@ -14,6 +14,8 @@
 
 // External includes
 #include <pybind11/stl.h>
+#include <pybind11/numpy.h>
+#include <pybind11/functional.h>
 
 // Project includes
 #include "includes/model_part.h"
@@ -90,36 +92,40 @@ pybind11::array_t<typename TTensorAdaptorType::PrimitiveDataType, pybind11::arra
     );
 }
 
-template<class TTensorAdaptorType>
+template<class TTensorAdaptorType, class... TArgs>
 void SetNumpyArray(
     TTensorAdaptorType& rTensorAdaptor,
-    const pybind11::array_t<typename TTensorAdaptorType::PrimitiveDataType, pybind11::array::c_style>& rArray)
+    std::variant<pybind11::array_t<TArgs, pybind11::array::c_style> const *...> pArray)
 {
-    KRATOS_ERROR_IF(rArray.ndim() == 0)
-        << "Passed data is not compatible [ array = "
-        << rArray << ", Tensor adaptor = " << rTensorAdaptor << " ].\n";
+    std::visit([&rTensorAdaptor](const auto pArray) {
+        auto& r_array = *pArray;
 
-    std::vector<int> shape(rArray.ndim());
-    std::copy(rArray.shape(), rArray.shape() + rArray.ndim(), shape.begin());
+        KRATOS_ERROR_IF(r_array.ndim() == 0)
+            << "Passed data is not compatible [ array = "
+            << r_array << ", Tensor adaptor = " << rTensorAdaptor << " ].\n";
 
-    const auto& r_shape = rTensorAdaptor.Shape();
+        std::vector<int> shape(r_array.ndim());
+        std::copy(r_array.shape(), r_array.shape() + r_array.ndim(), shape.begin());
 
-    KRATOS_ERROR_IF_NOT(shape.size() == r_shape.size())
-        << "Dimensions mismatch. [ Tensor dimensions = " << r_shape.size()
-        << ", numpy array dimensions = " << shape.size()
-        << ", Tensor adaptor = " << rTensorAdaptor << " ].\n";
+        const auto& r_shape = rTensorAdaptor.Shape();
 
-    for (unsigned int i = 0; i < shape.size(); ++i) {
-        KRATOS_ERROR_IF_NOT(r_shape[i] == shape[i])
-            << "Shape mismatch. [ Tensor shape = " << rTensorAdaptor.Shape()
-            << ", numpy array shape = " << shape
+        KRATOS_ERROR_IF_NOT(shape.size() == r_shape.size())
+            << "Dimensions mismatch. [ Tensor dimensions = " << r_shape.size()
+            << ", numpy array dimensions = " << shape.size()
             << ", Tensor adaptor = " << rTensorAdaptor << " ].\n";
-    }
 
-    // copy data from the input to the Adaptor
-    IndexPartition<IndexType>(rArray.size()).for_each([&rArray, &rTensorAdaptor](const auto Index) {
-        rTensorAdaptor.ViewData()[Index] = rArray.data()[Index];
-    });
+        for (unsigned int i = 0; i < shape.size(); ++i) {
+            KRATOS_ERROR_IF_NOT(r_shape[i] == shape[i])
+                << "Shape mismatch. [ Tensor shape = " << rTensorAdaptor.Shape()
+                << ", numpy array shape = " << shape
+                << ", Tensor adaptor = " << rTensorAdaptor << " ].\n";
+        }
+
+        // copy data from the input to the Adaptor
+        IndexPartition<IndexType>(rTensorAdaptor.ViewData().size()).for_each([&r_array, &rTensorAdaptor](const auto Index) {
+            rTensorAdaptor.ViewData()[Index] = static_cast<typename TTensorAdaptorType::PrimitiveDataType>(r_array.data()[Index]);
+        });
+    }, pArray);
 }
 
 template<class TTensorAdaptorType>
@@ -134,7 +140,25 @@ void AddBaseTensorAdaptor(
         .def("StoreData", &TTensorAdaptorType::StoreData)
         .def("GetContainer", &TTensorAdaptorType::GetContainer)
         .def("Shape", &TTensorAdaptorType::Shape)
-        .def_property("data", &GetNumpyArray<TTensorAdaptorType>, &SetNumpyArray<TTensorAdaptorType>)
+        .def_property("data",
+                      &GetNumpyArray<TTensorAdaptorType>,
+                      pybind11::cpp_function(
+                        &SetNumpyArray<TTensorAdaptorType,
+                            bool,
+                            std::uint8_t,
+                            std::uint16_t,
+                            std::uint32_t,
+                            std::uint64_t,
+                            std::int8_t,
+                            std::int16_t,
+                            std::int32_t,
+                            std::int64_t,
+                            float,
+                            double,
+                            long double>,
+                        pybind11::arg("self"),
+                        pybind11::arg("array").noconvert()
+                      ))
         .def("ViewData", &GetNumpyArray<TTensorAdaptorType>)
         .def("MoveData", [](TTensorAdaptorType& rSelf){
                 using numpy_array_type = pybind11::array_t<primitive_data_type, pybind11::array::c_style>;
