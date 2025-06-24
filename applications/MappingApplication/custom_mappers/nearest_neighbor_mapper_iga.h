@@ -32,8 +32,8 @@ public:
     NearestNeighborInterfaceInfoIGA() {}
 
     explicit NearestNeighborInterfaceInfoIGA(const CoordinatesArrayType& rCoordinates,
-                                 const IndexType SourceLocalSystemIndex,
-                                 const IndexType SourceRank)
+                                             const IndexType SourceLocalSystemIndex,
+                                             const IndexType SourceRank)
         : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank) {}
 
     MapperInterfaceInfo::Pointer Create() const override
@@ -169,15 +169,15 @@ public:
 
     // Default constructor, needed for registration
     NearestNeighborMapperIGA(ModelPart& rModelPartOrigin,
-                          ModelPart& rModelPartDestination)
-                          : BaseType(rModelPartOrigin, rModelPartDestination) {}
+                             ModelPart& rModelPartDestination)
+        : BaseType(rModelPartOrigin, rModelPartDestination) {}
 
     NearestNeighborMapperIGA(ModelPart& rModelPartOrigin,
-                          ModelPart& rModelPartDestination,
-                          Parameters JsonParameters)
-                          : BaseType(rModelPartOrigin,
-                                     rModelPartDestination,
-                                     JsonParameters)
+                             ModelPart& rModelPartDestination,
+                             Parameters JsonParameters)
+        : BaseType(rModelPartOrigin,
+                   rModelPartDestination,
+                   JsonParameters)
     {
         KRATOS_TRY;
 
