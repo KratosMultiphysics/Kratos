@@ -120,7 +120,8 @@
           "x_coordinates"              : [ 0.0,  1.0],
           "y_coordinates"              : [-2.0, -2.0],
           "z_coordinates"              : [ 0.0,  0.0],
-          "specific_weight"            : 10000.0
+          "specific_weight"            : 10000.0,
+          "pressure_tension_cut_off"  : 1.0E-03
         }
       },
       {
@@ -138,7 +139,8 @@
           "x_coordinates"              : [ 0.0,  1.0],
           "y_coordinates"              : [-2.0, -2.0],
           "z_coordinates"              : [ 0.0,  0.0],
-          "specific_weight"            : 10000.0
+          "specific_weight"            : 10000.0,
+          "pressure_tension_cut_off"   : 1.0E-03
         }
       },
       {
@@ -156,7 +158,8 @@
           "x_coordinates"              : [ 0.0,  1.0],
           "y_coordinates"              : [-2.0, -2.0],
           "z_coordinates"              : [ 0.0,  0.0],
-          "specific_weight"            : 10000.0
+          "specific_weight"            : 10000.0,
+          "pressure_tension_cut_off"   : 1.0E-03
         }
       },
 	  {
