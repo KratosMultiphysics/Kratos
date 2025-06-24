@@ -245,7 +245,6 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
     pybind11::class_<element_gp_variant_variable_ta_type, element_gp_variant_variable_ta_type::Pointer, element_gp_variant_variable_ta_type::BaseType>(element_tensor_adaptors_sub_module, "ElementGaussPointVariableTensorAdaptor")
         .def(pybind11::init<typename element_gp_variant_variable_ta_type::ContainerType::Pointer, typename element_gp_variant_variable_ta_type::VariableType, const ProcessInfo&>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("process_info"))
         .def(pybind11::init<typename element_gp_variant_variable_ta_type::ContainerType::Pointer, typename element_gp_variant_variable_ta_type::VariableType, const std::vector<int>&, const ProcessInfo&>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("shape"), pybind11::arg("process_info"))
-        .def
         ;
 
 }
