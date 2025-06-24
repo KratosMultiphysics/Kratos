@@ -303,6 +303,11 @@ namespace Kratos {
             {
                 rOutput[point_number] = integration_points[point_number].Coordinates()[0];
             }
+            else if (rVariable == NODAL_MASS) {
+                double detJ = GetGeometry().DeterminantOfJacobian(point_number);
+                double mass = integration_points[point_number].Weight() * detJ * GetProperties()[CROSS_AREA] * GetProperties()[DENSITY];
+                rOutput[point_number] = mass;
+            }
         }
     }
 

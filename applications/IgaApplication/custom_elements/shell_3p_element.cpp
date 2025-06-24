@@ -232,8 +232,18 @@ namespace Kratos
                 }
             } 
         }
+        else if (rVariable == NODAL_MASS) {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                double detJ = GetGeometry().DeterminantOfJacobian(point_number);
+                double mass = r_integration_points[point_number].Weight() * detJ * GetProperties()[THICKNESS] * GetProperties()[DENSITY];
+                rOutput[point_number] = mass;
+            }
+        }
         else if (mConstitutiveLawVector[0]->Has(rVariable)) {
             GetValueOnConstitutiveLaw(rVariable, rOutput);
+        }
+        else {
+            KRATOS_WARNING("Shell3pElement ") << "Unknown variable requested: " << rVariable.Name() << std::endl;
         }
     }
 
@@ -305,7 +315,9 @@ namespace Kratos
     }
 
 
+
     ///@}
+
     ///@name Assembly
     ///@{
 
