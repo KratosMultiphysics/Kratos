@@ -36,7 +36,12 @@ TransientPwLineElement<2, 2> TransientPwLineElementWithoutPWDofs(const Propertie
                                                                  const Geometry<Node>::Pointer& rGeometry)
 {
     auto result = TransientPwLineElement<2, 2>{
-        1, rGeometry, rProperties, {CalculationContribution::Permeability, CalculationContribution::Compressibility}};
+        1,
+        rGeometry,
+        rProperties,
+        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
+         CalculationContribution::FluidBodyFlow},
+        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
 
     return result;
 }
@@ -70,10 +75,12 @@ intrusive_ptr<Element> CreatePwLineElementWithoutPWDofs(ModelPart& rModelPart, c
     nodes.push_back(rModelPart.CreateNewNode(0, 0.0, 0.0, 0.0));
     nodes.push_back(rModelPart.CreateNewNode(1, 1.0, 1.0, 0.0));
     const auto                                 p_geometry = std::make_shared<Line2D2<Node>>(nodes);
-    const std::vector<CalculationContribution> contirbutions = {
-        CalculationContribution::Permeability, CalculationContribution::Compressibility};
+    const std::vector<CalculationContribution> contributions = {
+        CalculationContribution::Permeability, CalculationContribution::Compressibility,
+        CalculationContribution::FluidBodyFlow};
     auto element = make_intrusive<TransientPwLineElement<2, 2>>(
-        rModelPart.NumberOfElements() + 1, p_geometry, rProperties, contirbutions);
+        rModelPart.NumberOfElements() + 1, p_geometry, rProperties, contributions,
+        std::make_unique<IntegrationCoefficientModifierForLineElement>());
     rModelPart.AddElement(element);
     return element;
 }
@@ -166,7 +173,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementCheckThrowsOnFaultyInput, Kratos
     // Act and Assert
     const auto dummy_process_info = ProcessInfo{};
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element_with_coincident_nodes.Check(dummy_process_info),
-                                      "Error: Length smaller than 1e-15 for element 1")
+                                      "Error: Length (0) is smaller than 1e-15 for element 1")
     nodes.erase(nodes.begin() + 1);
     nodes.push_back(make_intrusive<Node>(1, 1.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<Line2D2<Node>>(nodes);

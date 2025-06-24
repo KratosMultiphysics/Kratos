@@ -41,25 +41,14 @@ double AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateIntegra
 template <unsigned int TDim, unsigned int TNumNodes>
 GeometryData::IntegrationMethod AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::GetIntegrationMethod() const
 {
-    GeometryData::IntegrationMethod GI_GAUSS;
-
-    switch (TNumNodes) {
-    case 2:
-    case 3:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        break;
-    case 4:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_3;
-        break;
-    case 5:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_5;
-        break;
+    switch (this->GetGeometry().GetGeometryOrderType()) {
+    case GeometryData::Kratos_Cubic_Order:
+        return GeometryData::IntegrationMethod::GI_GAUSS_3;
+    case GeometryData::Kratos_Quartic_Order:
+        return GeometryData::IntegrationMethod::GI_GAUSS_5;
     default:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        break;
+        return GeometryData::IntegrationMethod::GI_GAUSS_2;
     }
-
-    return GI_GAUSS;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

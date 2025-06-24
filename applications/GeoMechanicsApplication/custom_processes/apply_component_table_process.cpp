@@ -51,7 +51,9 @@ ApplyComponentTableProcess::ApplyComponentTableProcess(ModelPart& rModelPart, Pa
 
     unsigned int TableId = ProcessSettings["table"].GetInt();
     mpTable              = rModelPart.pGetTable(TableId);
-    mTimeUnitConverter   = rModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
+    KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(TIME_UNIT_CONVERTER))
+        << "TIME_UNIT_CONVERTER not found in ProcessInfo for the ApplyComponentTableProcess" << std::endl;
+    mTimeUnitConverter = rModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
 
     KRATOS_CATCH("")
 }

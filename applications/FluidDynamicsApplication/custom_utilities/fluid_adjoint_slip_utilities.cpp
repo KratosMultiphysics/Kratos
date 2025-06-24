@@ -84,13 +84,13 @@ void FluidAdjointSlipUtilities::CalculateRotatedSlipConditionAppliedSlipVariable
                 // column corresponding to ADJOINT_FLUID_VECTOR_1_X of the common node to zero except for the
                 // nodal normal derivative contributions. If the normal is perpendicular to the X direction, then
                 // this will set the diagonal in the column corresponding to this node's ADJOINT_FLUID_VECTOR_1_X dof
-                // to zero. But there can be non-zero off-diagonal due to normal not being zero. Eventhough
+                // to zero. But there can be non-zero off-diagonal due to normal not being zero. Even though
                 // ADJOINT_FLUID_VECTOR_1_X will be fixed in the block builder and solver
                 // it will not recognize this column as empty, so diagonal won't be fixed by B&S to 1.0.
                 // Since ADJOINT_FLUID_VECTOR_1_X of this node is fixed, B&S will set all the off-diagonals
                 // to zero. This will create a zero column in the system matrix which makes it singular.
                 // So this check is performed here to avoid this.
-                // In here inlets are alsways assumed to be dirichlet.
+                // In here inlets are always assumed to be dirichlet.
                 AddNodalApplySlipConditionDerivatives(rOutput, block_index, r_node);
             }
         } else {
@@ -130,13 +130,13 @@ void FluidAdjointSlipUtilities::CalculateRotatedSlipConditionAppliedNonSlipVaria
                 // column corresponding to ADJOINT_FLUID_VECTOR_1_X of the common node to zero except for the
                 // nodal normal derivative contributions. If the normal is perpendicular to the X direction, then
                 // this will set the diagonal in the column corresponding to this node's ADJOINT_FLUID_VECTOR_1_X dof
-                // to zero. But there can be non-zero off-diagonal due to normal not being zero. Eventhough
+                // to zero. But there can be non-zero off-diagonal due to normal not being zero. Even though
                 // ADJOINT_FLUID_VECTOR_1_X will be fixed in the block builder and solver
                 // it will not recognize this column as empty, so diagonal won't be fixed by B&S to 1.0.
                 // Since ADJOINT_FLUID_VECTOR_1_X of this node is fixed, B&S will set all the off-diagonals
                 // to zero. This will create a zero column in the system matrix which makes it singular.
                 // So this check is performed here to avoid this.
-                // In here inlets are alsways assumed to be dirichlet.
+                // In here inlets are always assumed to be dirichlet.
                 ClearNodalResidualDerivatives(rOutput, block_index);
             }
         } else {

@@ -741,9 +741,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
             mConstitutiveLawVector[integration_point]->CalculateMaterialResponsePK2(cl_values);
 
             rOutput[integration_point] = cl_values.GetStressVector();
-            if ( this->GetProperties().Has(BEAM_PRESTRESS_PK2)) {
-                rOutput[integration_point] += this->GetProperties()[BEAM_PRESTRESS_PK2];
-            }
         }
     }
 }

@@ -90,26 +90,6 @@ namespace Kratos
             mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 5;
             mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::GAUSS;
             break;
-        case IntegrationMethod::GI_EXTENDED_GAUSS_1:
-            mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 1;
-            mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::EXTENDED_GAUSS;
-            break;
-        case IntegrationMethod::GI_EXTENDED_GAUSS_2:
-            mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 2;
-            mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::EXTENDED_GAUSS;
-            break;
-        case IntegrationMethod::GI_EXTENDED_GAUSS_3:
-            mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 3;
-            mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::EXTENDED_GAUSS;
-            break;
-        case IntegrationMethod::GI_EXTENDED_GAUSS_4:
-            mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 4;
-            mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::EXTENDED_GAUSS;
-            break;
-        case IntegrationMethod::GI_EXTENDED_GAUSS_5:
-            mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 5;
-            mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::EXTENDED_GAUSS;
-            break;
         case IntegrationMethod::GI_LOBATTO_1:
             mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 2;
             mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::LOBATTO;
