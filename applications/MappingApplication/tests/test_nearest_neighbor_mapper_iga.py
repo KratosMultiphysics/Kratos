@@ -6,16 +6,14 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import ParallelEnvironment, IsDistributedRun
 import basic_mapper_tests
 data_comm = KM.Testing.GetDefaultDataCommunicator()
-# if data_comm.IsDistributed():
-#     from KratosMultiphysics.MappingApplication import MPIExtension as MappingMPIExtension
+if data_comm.IsDistributed():
+    from KratosMultiphysics.MappingApplication import MPIExtension as MappingMPIExtension
 
 # Additional imports for corner cases
 import mapper_test_case
 import os
 from math import sin, cos
 
-# def GetFilePath(file_name):
-#     return os.path.join(os.path.dirname(os.path.realpath(__file__)), file_name)
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), "mdpa_files", fileName)

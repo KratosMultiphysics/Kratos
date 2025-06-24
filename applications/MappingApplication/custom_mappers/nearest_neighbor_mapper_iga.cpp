@@ -65,22 +65,24 @@ void NearestNeighborLocalSystemIGA::CalculateAll(MatrixType& rLocalMappingMatrix
                     EquationIdVectorType& rDestinationIds,
                     MapperLocalSystem::PairingStatus& rPairingStatus) const
 {
-    if (mInterfaceInfos.size() > 0) {
+    if (!mInterfaceInfos.empty()) {  
         rPairingStatus = MapperLocalSystem::PairingStatus::InterfaceInfoFound;
 
-        if (rDestinationIds.size() != 1) rDestinationIds.resize(1);
+        rDestinationIds.resize(1);
 
         std::vector<int> nearest_neighbor_id;
         IndexType number_of_nearest_neighbors = 0;
 
-        mInterfaceInfos[0]->GetValue(nearest_neighbor_id, MapperInterfaceInfo::InfoType::Dummy);
-        mInterfaceInfos[0]->GetValue(number_of_nearest_neighbors, MapperInterfaceInfo::InfoType::Dummy);
+        mInterfaceInfos.front()->GetValue(nearest_neighbor_id, MapperInterfaceInfo::InfoType::Dummy);
+        mInterfaceInfos.front()->GetValue(number_of_nearest_neighbors, MapperInterfaceInfo::InfoType::Dummy);
         rOriginIds = nearest_neighbor_id;
 
         std::vector<double> sf_values;
-        mInterfaceInfos[0]->GetValue(sf_values, MapperInterfaceInfo::InfoType::Dummy);
+        mInterfaceInfos.front()->GetValue(sf_values, MapperInterfaceInfo::InfoType::Dummy);
 
         rLocalMappingMatrix.resize(1, rOriginIds.size(), false);
+
+        KRATOS_DEBUG_ERROR_IF(number_of_nearest_neighbors == 0) << "No nearest neighbors found for the node: " << mpNode->Id() << std::endl;
         const double mapping_weight = 1.0/number_of_nearest_neighbors;
         
         for (IndexType i=0; i<rOriginIds.size(); ++i) {

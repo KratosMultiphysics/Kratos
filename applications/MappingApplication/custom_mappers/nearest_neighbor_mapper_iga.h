@@ -29,12 +29,22 @@ class KRATOS_API(MAPPING_APPLICATION) NearestNeighborInterfaceInfoIGA : public M
 public:
 
     /// Default constructor.
-    NearestNeighborInterfaceInfoIGA() {}
+    NearestNeighborInterfaceInfoIGA()
+        : mShapeFunctionValues(),
+        mNearestNeighborId(),
+        mNumberOfNearestNeighbors(0),
+        mNearestNeighborDistance(std::numeric_limits<double>::max())
+    {}
+    //NearestNeighborInterfaceInfoIGA() {}
 
     explicit NearestNeighborInterfaceInfoIGA(const CoordinatesArrayType& rCoordinates,
                                              const IndexType SourceLocalSystemIndex,
                                              const IndexType SourceRank)
-        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank) {}
+        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank),  
+        mShapeFunctionValues(),
+        mNearestNeighborId(),
+        mNumberOfNearestNeighbors(0),
+        mNearestNeighborDistance(std::numeric_limits<double>::max()) {}
 
     MapperInterfaceInfo::Pointer Create() const override
     {
@@ -86,9 +96,9 @@ public:
 
 private:
     std::vector<double> mShapeFunctionValues;
-    std::vector<int> mNearestNeighborId = {};
-    IndexType mNumberOfNearestNeighbors = 0;
-    double mNearestNeighborDistance = std::numeric_limits<double>::max();
+    std::vector<int> mNearestNeighborId;
+    IndexType mNumberOfNearestNeighbors;
+    double mNearestNeighborDistance;
 
     friend class Serializer;
 
@@ -139,10 +149,10 @@ private:
 };
 
 /// Nearest Neighbor Mapper for IGA-FEM simulations 
-/** This class implements the Nearest Neighbor Mapping technique for IBRA-FEM partitioned simulations.
+/** This class implements the Nearest Neighbor Mapping technique for IGA-FEM partitioned simulations.
 * Each node on the destination side (FEM side) gets assigned is's closest integration point (neighbor) on the other side of the interface (IGA side).
 * Once the nearest integration point is found, the shape function values of the integration point are used to interpolate the values from the IGA side to the FEM side.
-* For information abt the available echo_levels and the JSON default-parameters
+* For information about the available echo_levels and the JSON default-parameters
 * look into the class description of the MapperCommunicator
 */
 template<class TSparseSpace, class TDenseSpace, class TMapperBackend>
@@ -170,14 +180,14 @@ public:
     // Default constructor, needed for registration
     NearestNeighborMapperIGA(ModelPart& rModelPartOrigin,
                              ModelPart& rModelPartDestination)
-        : BaseType(rModelPartOrigin, rModelPartDestination) {}
+                             : BaseType(rModelPartOrigin, rModelPartDestination) {}
 
     NearestNeighborMapperIGA(ModelPart& rModelPartOrigin,
                              ModelPart& rModelPartDestination,
                              Parameters JsonParameters)
-        : BaseType(rModelPartOrigin,
-                   rModelPartDestination,
-                   JsonParameters)
+                             : BaseType(rModelPartOrigin,
+                                       rModelPartDestination,
+                                       JsonParameters)
     {
         KRATOS_TRY;
 
@@ -185,20 +195,15 @@ public:
             << "NearestNeighborMapperIGA expects the origin model part to be IGA.\n"
             << "Please set \"is_origin_iga\": true in the mapper settings." << std::endl;
 
-        auto check_has_nodes = [](const ModelPart& rModelPart){
-            if (rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
-                KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfNodes() == 0) << "No nodes exist in ModelPart \"" << rModelPart.FullName() << "\"" << std::endl;
-            }
-        };
+        if (rModelPartOrigin.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
+            KRATOS_ERROR_IF(rModelPartOrigin.GetCommunicator().GlobalNumberOfConditions() == 0)
+                << "No conditions exist in ModelPart \"" << rModelPartOrigin.FullName() << "\"" << std::endl;
+        }
 
-        auto check_has_conditions = [](const ModelPart& rModelPart){
-            if (rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
-                KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfConditions() == 0) << "No conditions exist in ModelPart \"" << rModelPart.FullName() << "\"" << std::endl;
-            }
-        };
-
-        check_has_conditions(rModelPartOrigin);
-        check_has_nodes(rModelPartDestination);
+        if (rModelPartDestination.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
+            KRATOS_ERROR_IF(rModelPartDestination.GetCommunicator().GlobalNumberOfNodes() == 0)
+                << "No nodes exist in ModelPart \"" << rModelPartDestination.FullName() << "\"" << std::endl;
+        }
 
         this->ValidateInput();
         this->Initialize();
@@ -283,7 +288,7 @@ private:
     {
         return Parameters( R"({
             "search_settings"              : {},
-            "is_origin_iga"               : true,
+            "is_origin_iga"                : true,
             "use_initial_configuration"    : false,
             "echo_level"                   : 0,
             "print_pairing_status_to_file" : false,
