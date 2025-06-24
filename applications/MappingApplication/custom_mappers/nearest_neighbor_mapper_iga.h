@@ -107,6 +107,8 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MapperInterfaceInfo );
         rSerializer.save("NearestNeighborId", mNearestNeighborId);
         rSerializer.save("NearestNeighborDistance", mNearestNeighborDistance);
+        rSerializer.save("ShapeFunctionValues", mShapeFunctionValues);
+        rSerializer.save("NumberofNearestNeighbors", mNumberOfNearestNeighbors);
     }
 
     void load(Serializer& rSerializer) override
@@ -114,6 +116,8 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MapperInterfaceInfo );
         rSerializer.load("NearestNeighborId", mNearestNeighborId);
         rSerializer.load("NearestNeighborDistance", mNearestNeighborDistance);
+        rSerializer.save("ShapeFunctionValues", mShapeFunctionValues);
+        rSerializer.save("NumberofNearestNeighbors", mNumberOfNearestNeighbors);
     }
 };
 
