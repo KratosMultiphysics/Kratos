@@ -50,6 +50,14 @@ public:
                                StoreData    /*function name*/
         );
     }
+
+    std::string Info() const override
+    {
+        PYBIND11_OVERRIDE_PURE(std::string,  /*return type*/
+                               BaseType,     /*base type*/
+                               Info          /*function name*/
+        );
+    }
 }; // class ExpressionTrampoline
 
 template<class TTensorAdapterType>
@@ -87,21 +95,25 @@ void SetNumpyArray(
     TTensorAdapterType& rTensorAdaptor,
     const pybind11::array_t<typename TTensorAdapterType::PrimitiveDataType, pybind11::array::c_style>& rArray)
 {
-    KRATOS_ERROR_IF(rArray.ndim() == 0) << "Passed data is not compatible.\n";
+    KRATOS_ERROR_IF(rArray.ndim() == 0)
+        << "Passed data is not compatible [ array = "
+        << rArray << ", Tensor adaptor = " << rTensorAdaptor.Info() << " ].\n";
 
-    DenseVector<unsigned int> shape(rArray.ndim());
+    std::vector<int> shape(rArray.ndim());
     std::copy(rArray.shape(), rArray.shape() + rArray.ndim(), shape.begin());
 
     const auto& r_shape = rTensorAdaptor.Shape();
 
     KRATOS_ERROR_IF_NOT(shape.size() == r_shape.size())
         << "Dimensions mismatch. [ Tensor dimensions = " << r_shape.size()
-        << ", numpy array dimensions = " << shape.size() << " ].\n";
+        << ", numpy array dimensions = " << shape.size()
+        << ", Tensor adaptor = " << rTensorAdaptor.Info() << " ].\n";
 
     for (unsigned int i = 0; i < shape.size(); ++i) {
         KRATOS_ERROR_IF_NOT(r_shape[i] == shape[i])
             << "Shape mismatch. [ Tensor shape = " << rTensorAdaptor.Shape()
-            << ", numpy array shape = " << shape << " ].\n";
+            << ", numpy array shape = " << shape
+            << ", Tensor adaptor = " << rTensorAdaptor.Info() << " ].\n";
     }
 
     // copy data from the input to the Adaptor
