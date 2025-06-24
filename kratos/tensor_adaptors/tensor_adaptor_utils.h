@@ -25,7 +25,7 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class TensorAdaptorUtils {
+class KRATOS_API(KRATOS_CORE) TensorAdaptorUtils {
 public:
     ///@name Public static methods
     ///@{

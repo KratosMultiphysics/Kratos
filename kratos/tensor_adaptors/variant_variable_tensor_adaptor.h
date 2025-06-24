@@ -32,7 +32,7 @@ namespace Kratos {
  * @brief Base class or all the tensor adaptor types.
  */
 template<class TContainerType, template<class> class TContainerIOType, class... TArgs>
-class VariantVariableTensorAdaptor: public TensorAdaptor<TContainerType, double> {
+class KRATOS_API(KRATOS_CORE) VariantVariableTensorAdaptor: public TensorAdaptor<TContainerType, double> {
 private:
     template<template<class> class TIOType, class... TDataTypes>
     struct VariableInfo
