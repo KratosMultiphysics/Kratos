@@ -61,7 +61,7 @@ ModelPartIO::ModelPartIO(
 
     KRATOS_ERROR_IF(mPrefix.back() == '/')
         << "The ModelPartIO prefix is always assumed to be representing a group,"
-        << " hence ending \"\\\" is not required [ provided prefix = "
+        << " hence the trailing \"/\" is not required [ provided prefix = "
         << mPrefix << " ].\n";
 }
 
