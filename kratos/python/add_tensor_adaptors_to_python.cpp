@@ -97,7 +97,7 @@ void SetNumpyArray(
 {
     KRATOS_ERROR_IF(rArray.ndim() == 0)
         << "Passed data is not compatible [ array = "
-        << rArray << ", Tensor adaptor = " << rTensorAdaptor.Info() << " ].\n";
+        << rArray << ", Tensor adaptor = " << rTensorAdaptor << " ].\n";
 
     std::vector<int> shape(rArray.ndim());
     std::copy(rArray.shape(), rArray.shape() + rArray.ndim(), shape.begin());
@@ -107,13 +107,13 @@ void SetNumpyArray(
     KRATOS_ERROR_IF_NOT(shape.size() == r_shape.size())
         << "Dimensions mismatch. [ Tensor dimensions = " << r_shape.size()
         << ", numpy array dimensions = " << shape.size()
-        << ", Tensor adaptor = " << rTensorAdaptor.Info() << " ].\n";
+        << ", Tensor adaptor = " << rTensorAdaptor << " ].\n";
 
     for (unsigned int i = 0; i < shape.size(); ++i) {
         KRATOS_ERROR_IF_NOT(r_shape[i] == shape[i])
             << "Shape mismatch. [ Tensor shape = " << rTensorAdaptor.Shape()
             << ", numpy array shape = " << shape
-            << ", Tensor adaptor = " << rTensorAdaptor.Info() << " ].\n";
+            << ", Tensor adaptor = " << rTensorAdaptor << " ].\n";
     }
 
     // copy data from the input to the Adaptor
