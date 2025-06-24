@@ -40,6 +40,16 @@ class TestTensorAdaptors(KratosUnittest.TestCase):
             node.SetSolutionStepValue(Kratos.EXTERNAL_FORCES_VECTOR, Kratos.Vector([node.Id * 2 + 1, node.Id * 3 + 1, node.Id * 4 + 1, node.Id * 2 + 1, node.Id * 3 + 1]))
             node.SetSolutionStepValue(Kratos.NORMAL_SHAPE_DERIVATIVE, Kratos.Matrix([[node.Id * 2 + 1, node.Id * 3 + 1], [node.Id * 4 + 1, node.Id * 2 + 1], [node.Id * 3 + 1, node.Id * 4 + 1]]))
 
+    def test_NodeHistoricalVariableTensorAdaptorShape(self):
+        with self.assertRaises(RuntimeError):
+            Kratos.TensorAdaptors.NodeTensorAdaptors.NodeHistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY, [10, 4], 0)
+            Kratos.TensorAdaptors.NodeTensorAdaptors.NodeHistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY, [3, 3], 0)
+            Kratos.TensorAdaptors.NodeTensorAdaptors.NodeHistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY, [3, 3, 3], 0)
+
+        self.assertEqual(Kratos.TensorAdaptors.NodeTensorAdaptors.NodeHistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.EXTERNAL_FORCES_VECTOR, 0).Shape(), [10, 5])
+        self.assertEqual(Kratos.TensorAdaptors.NodeTensorAdaptors.NodeHistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.INTERNAL_FORCES_VECTOR, 0).Shape(), [10, 0])
+        self.assertEqual(Kratos.TensorAdaptors.NodeTensorAdaptors.NodeHistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.INTERNAL_FORCES_VECTOR, [10, 6], 0).Shape(), [10, 6])
+
     def test_NodeHistoricalVariableTensorAdaptor(self):
         for input_var, output_var in zip(self.input_list_of_variables, self.output_list_of_variables):
             read_tensor_adaptor = Kratos.TensorAdaptors.NodeTensorAdaptors.NodeHistoricalVariableTensorAdaptor(self.model_part.Nodes, input_var, 0)
