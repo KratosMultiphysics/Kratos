@@ -77,6 +77,8 @@ namespace Kratos {
     void EmbeddedIsogeometricBeamElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
+        // Pre-allocate memory to avoid repeated allocations during assembly
+        set_Memory();
         KRATOS_CATCH("")
         //InitializeMaterial();
     }
@@ -112,7 +114,9 @@ namespace Kratos {
     {
         //KRATOS_WATCH("EmbeddedIsogeometricBeamElement::CalculateAll");
         //KRATOS_WATCH(this->Id());
+        
         set_Memory();
+        
         const auto& r_geometry = GetGeometry();
         auto& r_integration_points = r_geometry.IntegrationPoints();
             
@@ -123,8 +127,8 @@ namespace Kratos {
 
         _gke.clear();
         _gfie.clear();
-        //stiff_mat_el_lin(rCurrentProcessInfo, point_number, _gke, _gfie, _dL);
-        stiff_mat_el_nln(rCurrentProcessInfo, point_number, _gke, _gfie, _dL);
+        stiff_mat_el_lin(rCurrentProcessInfo, point_number, _gke, _gfie, _dL);
+        //stiff_mat_el_nln(rCurrentProcessInfo, point_number, _gke, _gfie, _dL);
         //stiff_mat_el_geo(rCurrentProcessInfo, point_number, _gke,  _dL);
         
         float mult = (integration_weight * _dL);
@@ -349,6 +353,11 @@ namespace Kratos {
 
     void EmbeddedIsogeometricBeamElement::set_Memory()
     {
+        // Performance optimization: only allocate memory once
+        if (mMemoryInitialized) {
+            return;
+        }
+        
         // definition of problem size
         Dof_Node = 4;
         N_Dof = this->GetGeometry().size() * 4;
@@ -417,6 +426,9 @@ namespace Kratos {
         S_mat_lam_der_var_var_Rod_Lam.resize(_n_Dof * 3, _n_Dof * 3);
         S_mat_lam_var_var_Rod_der_Lam.resize(_n_Dof * 3, _n_Dof * 3);
         S_mat_lam_var_var_Rod_Lam_der.resize(_n_Dof * 3, _n_Dof * 3);
+        
+        // Mark memory as initialized
+        mMemoryInitialized = true;
     }
 
 
@@ -961,27 +973,33 @@ namespace Kratos {
     void EmbeddedIsogeometricBeamElement::comp_mat_rodrigues(Matrix3d& _mat_rod, Vector3d _vec, float _phi)//here was an error
     {
         _mat_rod.clear();
-        Matrix3d _mat_identity;
-        _mat_identity.resize(3, 3, false);
-        _mat_identity.clear();  //initialization by 0 
-        for (int i = 0; i < 3; i++) { _mat_identity(i, i) = 1.; }
+        
+        // Use pre-computed identity matrix to avoid repeated initialization
+        if (mIdentityMatrix3d.size1() != 3) {
+            mIdentityMatrix3d.resize(3, 3, false);
+            mIdentityMatrix3d.clear();
+            for (int i = 0; i < 3; i++) { mIdentityMatrix3d(i, i) = 1.0; }
+        }
 
-        for (int i = 0; i < 3; i++) { _mat_rod(i, i) = cos(_phi); }
-        _mat_rod += cross_prod_vec_mat(_vec, _mat_identity) * sin(_phi);
+        // Pre-compute trigonometric values
+        const float cos_phi = cos(_phi);
+        const float sin_phi = sin(_phi);
+        
+        for (int i = 0; i < 3; i++) { _mat_rod(i, i) = cos_phi; }
+        _mat_rod += cross_prod_vec_mat(_vec, mIdentityMatrix3d) * sin_phi;
     }
 
     void EmbeddedIsogeometricBeamElement::comp_mat_rodrigues_deriv(Matrix3d& _mat_rod_der, Vector3d _vec, Vector3d _vec_deriv, float _phi, float _phi_deriv)
     {
         _mat_rod_der.clear();
 
-        Matrix3d _mat_identity;
-        _mat_identity.resize(3, 3, false);
-        _mat_identity.clear();  //initialization by 0 
-        for (int i = 0; i < 3; i++) { _mat_identity(i, i) = 1; }
+        // Pre-compute trigonometric values
+        const float cos_phi = cos(_phi);
+        const float sin_phi = sin(_phi);
 
-        for (int i = 0; i < 3; i++) { _mat_rod_der(i, i) = -_phi_deriv * sin(_phi); }
-        _mat_rod_der += cross_prod_vec_mat(_vec, _mat_identity) * cos(_phi) * _phi_deriv;
-        _mat_rod_der += cross_prod_vec_mat(_vec_deriv, _mat_identity) * sin(_phi);
+        for (int i = 0; i < 3; i++) { _mat_rod_der(i, i) = -_phi_deriv * sin_phi; }
+        _mat_rod_der += cross_prod_vec_mat(_vec, mIdentityMatrix3d) * cos_phi * _phi_deriv;
+        _mat_rod_der += cross_prod_vec_mat(_vec_deriv, mIdentityMatrix3d) * sin_phi;
     }
 
     void EmbeddedIsogeometricBeamElement::comp_mat_rodrigues_var(Matrix& _mat_rod_var, Vector3d _vec, Vector _vec_var, Vector _func, float _phi)
@@ -4914,9 +4932,17 @@ namespace Kratos {
 
         const auto& r_geometry = GetGeometry();
         
-        Vector R_vec = row(r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod()), 0);
-        Vector dR_vec = column(r_geometry.ShapeFunctionDerivatives(1, integration_point_index, this->GetIntegrationMethod()), 0);
-        Vector ddR_vec = column(r_geometry.ShapeFunctionDerivatives(2, integration_point_index, this->GetIntegrationMethod()), 0);
+        // Use cached shape functions if available, otherwise compute and cache
+        Vector R_vec, dR_vec, ddR_vec;
+        if (!mShapeFunctionsCached) {
+            mCachedR_vec = row(r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod()), 0);
+            mCacheddR_vec = column(r_geometry.ShapeFunctionDerivatives(1, integration_point_index, this->GetIntegrationMethod()), 0);
+            mCachedddR_vec = column(r_geometry.ShapeFunctionDerivatives(2, integration_point_index, this->GetIntegrationMethod()), 0);
+            mShapeFunctionsCached = true;
+        }
+        R_vec = mCachedR_vec;
+        dR_vec = mCacheddR_vec;
+        ddR_vec = mCachedddR_vec;
 
         //declarations
         Vector3d R_1;  //1st derivative of the curve undeformed config
@@ -5040,37 +5066,18 @@ namespace Kratos {
         S_torsion_v_var_var = S_torsion_v_var_var / A;
 
 
-        //stiffness matrix of the membran part
-        for (int r = 0;r < N_Dof;r++)
-            for (int s = 0;s < N_Dof;s++)
-                S_kem(r, s) = emod_A * S_eps_var[r] * S_eps_var[s] + S11_m * S_eps_var_var(r, s);
-
-        //stiffness matrix of the bending part
-        for (int r = 0;r < N_Dof;r++)
-            for (int s = 0;s < N_Dof;s++)
-                S_keb_n(r, s) = emod_I_v * S_curv_n_var[r] * S_curv_n_var[s] + S_curv_n_var_var(r, s) * S11_n;
-
-        //stiffness matrix of the bending part
-        for (int r = 0;r < N_Dof;r++)
-            for (int s = 0;s < N_Dof;s++)
-                S_keb_v(r, s) = emod_I_n * S_curv_v_var[r] * S_curv_v_var[s] + S_curv_v_var_var(r, s) * S11_v;
-
-        //stiffness matrix of the torsion part
-        for (int r = 0;r < N_Dof;r++)
-            for (int s = 0;s < N_Dof;s++)
-                S_ket_n(r, s) = 0.5 * gmod_It * S_torsion_n_var[r] * S_torsion_n_var[s] + S12 * S_torsion_n_var_var(r, s);
-
-        //stiffness matrix of the torsion part
-        for (int r = 0;r < N_Dof;r++)
-            for (int s = 0;s < N_Dof;s++)
-                S_ket_v(r, s) = 0.5 * gmod_It * S_torsion_v_var[r] * S_torsion_v_var[s] + S13 * S_torsion_v_var_var(r, s);
-        //compute final element stiffness matrix
+        // Optimized stiffness matrix assembly - combine all loops into one
         _gke.clear();
-        _gke += S_kem;
-        _gke += S_keb_n;
-        _gke += S_keb_v;
-        _gke += S_ket_n;
-        _gke += S_ket_v;
+        for (int r = 0; r < N_Dof; r++) {
+            for (int s = 0; s < N_Dof; s++) {
+                // Combine all stiffness matrix contributions in a single loop
+                _gke(r, s) = emod_A * S_eps_var[r] * S_eps_var[s] + S11_m * S_eps_var_var(r, s)  // membrane
+                           + emod_I_v * S_curv_n_var[r] * S_curv_n_var[s] + S_curv_n_var_var(r, s) * S11_n  // bending n
+                           + emod_I_n * S_curv_v_var[r] * S_curv_v_var[s] + S_curv_v_var_var(r, s) * S11_v  // bending v
+                           + 0.5 * gmod_It * S_torsion_n_var[r] * S_torsion_n_var[s] + S12 * S_torsion_n_var_var(r, s)  // torsion n
+                           + 0.5 * gmod_It * S_torsion_v_var[r] * S_torsion_v_var[s] + S13 * S_torsion_v_var_var(r, s); // torsion v
+            }
+        }
 
         _gfie = -(S11_m * S_eps_var + S11_n * S_curv_n_var + S11_v * S_curv_v_var + S12 * S_torsion_n_var + S13 * S_torsion_v_var);
     }

@@ -486,6 +486,24 @@ private:
 
 
     std::vector<array_1d<double, 3>> mReferenceBaseVector;
+    
+    /// Performance optimization: flag to track memory initialization
+    mutable bool mMemoryInitialized = false;
+    
+    /// Cached shape function derivatives to avoid O(p³) computation
+    mutable Vector mCachedR_vec;
+    mutable Vector mCacheddR_vec;
+    mutable Vector mCachedddR_vec;
+    mutable bool mShapeFunctionsCached = false;
+    
+    /// Pre-computed identity matrix for Rodrigues computation
+    mutable Matrix3d mIdentityMatrix3d;
+    
+    /// Method to reset all caches when geometry changes
+    void ResetCaches() const {
+        mMemoryInitialized = false;
+        mShapeFunctionsCached = false;
+    }
 
     ///@}
     ///@name Private operations
