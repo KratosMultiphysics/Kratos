@@ -230,8 +230,8 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
     // adding non-historical variable tensor adaptors
     using node_historical_variant_variable_ta_type = VariantVariableTensorAdaptor<ModelPart::NodesContainerType, HistoricalIO, const int>;
     pybind11::class_<node_historical_variant_variable_ta_type, node_historical_variant_variable_ta_type::Pointer, node_historical_variant_variable_ta_type::BaseType>(node_tensor_adaptors_sub_module, "NodeHistoricalVariableTensorAdaptor")
-        .def(pybind11::init<typename node_historical_variant_variable_ta_type::ContainerType::Pointer, typename node_historical_variant_variable_ta_type::VariableType, const int>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("step_index"))
-        .def(pybind11::init<typename node_historical_variant_variable_ta_type::ContainerType::Pointer, typename node_historical_variant_variable_ta_type::VariableType, const std::vector<int>&, const int>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("shape"), pybind11::arg("step_index"))
+        .def(pybind11::init<typename node_historical_variant_variable_ta_type::ContainerType::Pointer, typename node_historical_variant_variable_ta_type::VariableType, const int>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("step_index") = 0)
+        .def(pybind11::init<typename node_historical_variant_variable_ta_type::ContainerType::Pointer, typename node_historical_variant_variable_ta_type::VariableType, const std::vector<int>&, const int>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("shape"), pybind11::arg("step_index") = 0)
         ;
 
     // adding gauss point calculation tensor adaptors

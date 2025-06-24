@@ -52,7 +52,7 @@ class TestTensorAdaptors(KratosUnittest.TestCase):
 
     def test_NodeHistoricalVariableTensorAdaptor(self):
         for input_var, output_var in zip(self.input_list_of_variables, self.output_list_of_variables):
-            read_tensor_adaptor = Kratos.TensorAdaptors.NodeTensorAdaptors.NodeHistoricalVariableTensorAdaptor(self.model_part.Nodes, input_var, 0)
+            read_tensor_adaptor = Kratos.TensorAdaptors.NodeTensorAdaptors.NodeHistoricalVariableTensorAdaptor(self.model_part.Nodes, input_var)
             write_tensor_adaptor = Kratos.TensorAdaptors.NodeTensorAdaptors.NodeHistoricalVariableTensorAdaptor(read_tensor_adaptor.GetContainer(), output_var, read_tensor_adaptor.Shape(), 1)
 
             read_tensor_adaptor.CollectData()
