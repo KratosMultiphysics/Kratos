@@ -120,7 +120,7 @@ public:
 
         }, pVariable);
 
-        KRATOS_ERROR_IF_NOT(rShape[0] == pContainer->size())
+        KRATOS_ERROR_IF_NOT(rShape[0] == static_cast<int>(pContainer->size()))
             << "First dimension of the shape should represent the container size [ shape = "
             << rShape << ", size of the container = " << pContainer->size() << ", Tensor = " << *this << " ].\n";
 
