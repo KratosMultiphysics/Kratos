@@ -303,8 +303,7 @@ std::vector<std::size_t> ModelPartIO::ReadContainerIds(std::string const& rPath)
 {
     KRATOS_TRY
 
-    unsigned start_index, block_size;
-    std::tie(start_index, block_size) = HDF5::StartIndexAndBlockSize(*mpFile, rPath);
+    const auto [start_index, block_size] = HDF5::StartIndexAndBlockSize(*mpFile, rPath);
 
     Vector<int> id_buf;
     mpFile->ReadDataSet(rPath + "/Ids", id_buf, start_index, block_size);

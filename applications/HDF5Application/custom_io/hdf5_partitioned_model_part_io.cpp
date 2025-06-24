@@ -125,8 +125,7 @@ void PartitionedModelPartIO::ReadParitionIndices(ModelPart& rModelPart)
 
     // now we read the ghost node partition index from the H5 file.
     const auto& r_ghost_node_path = mPrefix + "/Nodes/Ghost";
-    unsigned start_index, block_size;
-    std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, r_ghost_node_path);
+    const auto [start_index, block_size] = StartIndexAndBlockSize(*mpFile, r_ghost_node_path);
     Vector<int> partition_ids, node_ids;
     mpFile->ReadDataSet(r_ghost_node_path + "/PARTITION_INDEX", partition_ids, start_index, block_size);
     mpFile->ReadDataSet(r_ghost_node_path + "/Ids", node_ids, start_index, block_size);
