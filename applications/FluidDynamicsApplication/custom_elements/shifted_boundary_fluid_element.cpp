@@ -1,4 +1,5 @@
 // Project includes
+#include "fluid_dynamics_application_variables.h"
 #include "includes/cfd_variables.h"
 #include "includes/define.h"
 #include "includes/kratos_flags.h"

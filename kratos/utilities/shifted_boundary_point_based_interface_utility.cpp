@@ -160,7 +160,7 @@ namespace Kratos
             "model_part_name" : "",
             "skin_model_part_name" : "",
             "boundary_sub_model_part_name" : "",
-            "sbm_interface_condition_name" : "",
+            "boundary_wall_condition_name" : "",
             "extension_operator_type" : "MLS",
             "mls_extension_operator_order" : 1,
             "active_side_of_skin" : "both",
@@ -215,9 +215,9 @@ namespace Kratos
         }
 
         // Set the shifted-boundary condition prototype to be used in the condition creation
-        const std::string interface_condition_name = ThisParameters["sbm_interface_condition_name"].GetString();
-        KRATOS_ERROR_IF(interface_condition_name == "") << "SBM interface condition has not been provided." << std::endl;
-        mpConditionPrototype = &KratosComponents<Condition>::Get(interface_condition_name);
+        const std::string wall_condition_name = ThisParameters["boundary_wall_condition_name"].GetString();
+        KRATOS_ERROR_IF(wall_condition_name == "") << "SBM boundary wall condition has not been provided." << std::endl;
+        mpConditionPrototype = &KratosComponents<Condition>::Get(wall_condition_name);
 
         // Set which side of the skin model part is considered
         const std::string active_side_of_skin = ThisParameters["active_side_of_skin"].GetString();
@@ -597,13 +597,13 @@ namespace Kratos
                 GetDataForSplitElementSkinPoint(*p_element, skin_pt_position, skin_pt_N, skin_pt_DN_DX);
 
                 // Add skin pt. condition for positive side of boundary - using support cloud data for negative nodes
-                // NOTE that the boundary normal is negative in order to point outwards (from positive to negative side),
+                // NOTE that the boundary normal is negative in order to point outward (from positive to negative side),
                 // because positive side is where dot product of vector to node with average normal is positive
                 n_skin_pt_conditions_added_pos += AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, -skin_pt_area_normal,
                 mExtensionOperatorMap, cloud_nodes_vector_pos, skin_pt_N, skin_pt_DN_DX, max_cond_id, /*ConsiderPositiveSide=*/true);
 
                 // Add skin pt. condition for negative side of boundary - using support cloud data for positive nodes
-                // NOTE that boundary normal is opposite (from negative to positive side)
+                // NOTE that boundary normal is pointing outward (from negative to positive side)
                 n_skin_pt_conditions_added_neg += AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, skin_pt_area_normal,
                 mExtensionOperatorMap, cloud_nodes_vector_neg, skin_pt_N, skin_pt_DN_DX, max_cond_id, /*ConsiderPositiveSide=*/false);
             }

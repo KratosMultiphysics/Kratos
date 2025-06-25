@@ -48,7 +48,7 @@ class ShiftedBoundaryFormulation(object):
 
         self.element_name = "ShiftedBoundaryWeaklyCompressibleNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
-        self.sbm_interface_condition_name = "ShiftedBoundaryWallCondition"
+        self.boundary_wall_condition_name = "ShiftedBoundaryWallCondition"
         self.boundary_sub_model_part_name = "ShiftedBoundaryConditions"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
         if self.level_set_type != "point-based":
@@ -147,7 +147,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         self.shifted_boundary_formulation = ShiftedBoundaryFormulation(self.settings["formulation"])
         self.element_name = self.shifted_boundary_formulation.element_name
         self.condition_name = self.shifted_boundary_formulation.condition_name
-        self.sbm_interface_condition_name = self.shifted_boundary_formulation.sbm_interface_condition_name + str(self.settings["domain_size"].GetInt()) + "D"
+        self.sbm_wall_condition_name = self.shifted_boundary_formulation.boundary_wall_condition_name + str(self.settings["domain_size"].GetInt()) + "D"
         self.level_set_type = self.shifted_boundary_formulation.level_set_type
         self.element_integrates_in_time = self.shifted_boundary_formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.shifted_boundary_formulation.element_has_nodal_properties
@@ -161,8 +161,11 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         self.boundary_sub_model_part_name = self.shifted_boundary_formulation.boundary_sub_model_part_name
 
         # Create a skin model part
+        #TODO instead of advancing skin model parts in time manually, add Process Info to model parts as pointer to process info of the computing model part??
         for skin_mp_name in self.skin_model_part_names:
             self.model.CreateModelPart(skin_mp_name)
+            #const auto p_process_info = r_origin_model_part.pGetProcessInfo();
+            #r_visualization_model_part.SetProcessInfo(p_process_info);
 
         # Create a model part for skin integration points
         self.skin_point_model_part = self.model.CreateModelPart("SkinPoints")
@@ -335,9 +338,9 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         settings = KM.Parameters("""{}""")
         settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name + "." + self.GetComputingModelPart().Name)
         settings.AddEmptyValue("boundary_sub_model_part_name").SetString(self.boundary_sub_model_part_name)
+        settings.AddEmptyValue("boundary_wall_condition_name").SetString(self.sbm_wall_condition_name)
         settings.AddEmptyValue("extension_operator_type").SetString(self.settings["formulation"]["extension_operator_type"].GetString())
         settings.AddEmptyValue("mls_extension_operator_order").SetInt(self.settings["formulation"]["mls_extension_operator_order"].GetInt())
-        settings.AddEmptyValue("sbm_interface_condition_name").SetString(self.sbm_interface_condition_name)
 
         #if self.level_set_type == "point-based":
         #n_dim = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
