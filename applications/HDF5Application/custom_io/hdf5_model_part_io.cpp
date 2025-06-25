@@ -92,11 +92,6 @@ void ModelPartIO::ReadProperties(PropertiesContainerType& rProperties)
     Internals::ReadProperties(*mpFile, mPrefix, rProperties);
 }
 
-void ModelPartIO::WriteProperties(Properties const& rProperties)
-{
-    Internals::WriteProperties(*mpFile, mPrefix, rProperties);
-}
-
 void ModelPartIO::WriteProperties(PropertiesContainerType const& rProperties)
 {
     Internals::WriteProperties(*mpFile, mPrefix, rProperties);

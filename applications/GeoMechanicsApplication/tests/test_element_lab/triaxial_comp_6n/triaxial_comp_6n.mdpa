@@ -34,20 +34,16 @@ Begin Nodes
 End Nodes
 
 
-//Begin Elements SmallStrainUPwDiffOrderElement2D6N
 Begin Elements SmallStrainUPwDiffOrderAxisymmetricElement2D6N
-//Begin Elements UPwSmallStrainElement2D6N
   1  1  5 9 6 7 8 4
   2  1  6 1 5 2 3 4
 End Elements
 
 
-//Begin Conditions LineNormalLoadDiffOrderCondition2D3N
 Begin Conditions AxisymmetricLineNormalLoadDiffOrderCondition2D3N
   1  1  9 6 8
 End Conditions
 
-//Begin Conditions LineNormalLoadDiffOrderCondition2D3N
 Begin Conditions AxisymmetricLineNormalLoadDiffOrderCondition2D3N
   2  1  6 1 2
 End Conditions

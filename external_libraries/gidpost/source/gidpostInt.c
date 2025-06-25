@@ -19,7 +19,7 @@
 static int ByteOrderCheck = 0x91d;  /* Magic number */
 
 /* format to print reals to string, customizable only once at the begin*/
-static char format_real[100]={"%.9g"};
+static char format_real[100]={"%g"};
 
 GIDPOST_API int GiD_PostSetFormatReal(GP_CONST char * f){
   strcpy(format_real,f);

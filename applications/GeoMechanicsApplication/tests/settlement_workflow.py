@@ -10,6 +10,8 @@ import KratosMultiphysics.LinearSolversApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.GeoMechanicsApplication as GeoMechanicsApplication
 
+import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
+
 import test_helper
 
 
@@ -143,7 +145,7 @@ class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosGeoMechanicsSettlementWo
 
 
     def test_d_settlement_workflow(self):
-        test_helper.run_stages(self.test_path, self.number_of_stages)
+        run_multiple_stages.run_stages(self.test_path, self.number_of_stages)
 
         self.check_displacements()
         self.check_nodal_stresses()

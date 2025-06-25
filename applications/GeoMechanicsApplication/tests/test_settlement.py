@@ -6,22 +6,14 @@ sys.path.append(os.path.join('..', '..', '..'))
 sys.path.append(os.path.join('..', 'python_scripts'))
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 import test_helper
 
 class KratosGeoMechanicsSettlementTests(KratosUnittest.TestCase):
-
-    def setUp(self):
-        # Code here will be placed BEFORE every test in this TestCase.
-        pass
-
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
-
     def test_Abc_1_1_0_True_Deformations(self):
         test_name = 'test_Abc_1_1_0_True_Deformations'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
-        test_helper.run_stages(file_path, 2)
+        run_multiple_stages.run_stages(file_path, 2)
         node = 1
         cwd = os.getcwd()
         os.chdir(file_path)

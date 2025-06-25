@@ -10,6 +10,9 @@
 //  Main author:     Máté Kelemen
 //
 
+// External includes
+#include <pybind11/stl.h>
+
 // Internal includes
 #include "add_custom_utilities_to_python.h"
 
@@ -17,6 +20,7 @@
 #include "custom_utilities/vertex.h"
 #include "custom_utilities/vertex_utilities.h"
 #include "custom_utilities/container_io_utils.h"
+#include "custom_utilities/data_type_utilities.h"
 
 
 namespace Kratos
@@ -86,6 +90,12 @@ void AddCustomUtilitiesToPython(pybind11::module& rModule)
         .def(pybind11::init<>())
         .def("push_back", pybind11::overload_cast<const HDF5::Detail::VertexContainerType::pointer&>(&HDF5::Detail::VertexContainerType::push_back))
         ;
+
+    auto sub_module = rModule.def_submodule("Utilities");
+    sub_module.def("GetListOfAvailableVariables", &HDF5::Internals::GetListOfAvailableVariables<ModelPart::NodesContainerType>, pybind11::arg("container"), pybind11::arg("data_communicator"));
+    sub_module.def("GetListOfAvailableVariables", &HDF5::Internals::GetListOfAvailableVariables<ModelPart::ConditionsContainerType>, pybind11::arg("container"), pybind11::arg("data_communicator"));
+    sub_module.def("GetListOfAvailableVariables", &HDF5::Internals::GetListOfAvailableVariables<ModelPart::ElementsContainerType>, pybind11::arg("container"), pybind11::arg("data_communicator"));
+    sub_module.def("GetListOfAvailableVariables", &HDF5::Internals::GetListOfAvailableVariables<ModelPart::PropertiesContainerType>, pybind11::arg("container"), pybind11::arg("data_communicator"));
 
     #undef KRATOS_DEFINE_VERTEX_GETVALUE_OVERLOAD_BINDING
 }
