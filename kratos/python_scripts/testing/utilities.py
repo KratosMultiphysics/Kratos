@@ -162,7 +162,7 @@ class Commander(object):
                 self.exitCodes[test_suit_name] = 1
             finally:
                 if process_stdout:
-                    self.PrintOutput(process_stdout, sys.stderr)
+                    self.PrintOutput(process_stdout, sys.stdout)
                 if process_stderr:
                     self.PrintOutput(process_stderr, sys.stderr)
 
