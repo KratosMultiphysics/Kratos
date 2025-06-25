@@ -148,7 +148,7 @@ public:
 
     /**
      * @brief This function calculates the LHS matrix and RHS vector of the local system.
-     * All terms should be added which are necessary for the imposition of a shifted-boundary wall condition 
+     * All terms should be added which are necessary for the imposition of a shifted-boundary wall condition
      * for the given geometry of an integration point to the system.
      * The geometry should include all nodes that contribute to the calculation of the value at the integration point.
      * AddNitscheImposition is called in order to use Nitsche imposition of a Navier-slip boundary condition at the integration point.
@@ -287,7 +287,7 @@ protected:
 
     /**
      * @brief This function penalizes a violation of a Dirichlet boundary condition at an integration point using a penalty constant.
-     * PENALTY_COEFFICIENT is taken as penalty constant from rCurrentProcessInfo.  
+     * PENALTY_COEFFICIENT is taken as penalty constant from rCurrentProcessInfo.
      * Penalization is added to LHS and RHS as violation of a zero velocity constraint.
      * @param rLeftHandSideMatrix reference to the LHS matrix
      * @param rRightHandSideVector reference to the RHS vector
@@ -334,7 +334,9 @@ protected:
      * @return a pair of double containing the two coefficients
      */
     std::pair<const double, const double> ComputeSlipTangentialPenaltyCoefficients(
+        const Vector& rN,
         const double SlipLength,
+        const double DeltaTime,
         const double Penalty,
         const double ParentSize,
         const double EffectiveViscosity) const;

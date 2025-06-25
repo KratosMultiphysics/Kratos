@@ -276,7 +276,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
 
     /////////////////////////////////////////////////////////////////////////////////
     // Compute the Nitsche normal imposition penalty coefficient
-    const double pen_coeff = this->ComputeSlipNormalPenaltyCoefficient(r_N, delta_time, penalty, parent_size, effective_viscosity);
+    const double pen_coeff_normal = this->ComputeSlipNormalPenaltyCoefficient(r_N, delta_time, penalty, parent_size, effective_viscosity);
 
     // Add normal velocity penalty contribution of the integration point
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
@@ -285,7 +285,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
                 const std::size_t row = i_node * BlockSize + di;
                 for (std::size_t dj = 0; dj < TDim; ++dj){
                     const std::size_t col = j_node * BlockSize + dj;
-                    aux_LHS(row, col) += pen_coeff * weight * r_N(i_node) * normal(di) * normal(dj) * r_N(j_node);
+                    aux_LHS(row, col) += pen_coeff_normal * weight * r_N(i_node) * normal(di) * normal(dj) * r_N(j_node);
                 }
             }
         }
@@ -319,7 +319,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
 
     /////////////////////////////////////////////////////////////////////////////////
     // Compute the Nitsche slip tangential penalty coefficients
-    std::pair<const double, const double> pen_coeffs = this->ComputeSlipTangentialPenaltyCoefficients(slip_length, penalty, parent_size, effective_viscosity);
+    std::pair<const double, const double> pen_coeffs_tang = this->ComputeSlipTangentialPenaltyCoefficients(r_N, slip_length, delta_time, penalty, parent_size, effective_viscosity);
 
     // Set the tangential projection matrix (I - n x n)
     BoundedMatrix<double, TDim, TDim> tang_proj_matrix;
@@ -330,24 +330,24 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     const Matrix aux_matrix_ACB = prod(voigt_normal_proj_matrix, aux_matrix_CB);
 
     // Contribution coming from the traction vector tangential component (no contribution for no slip)
-    noalias(aux_LHS) += pen_coeffs.first  * weight * prod(aux_matrix_N_trans_tang, aux_matrix_ACB);
+    noalias(aux_LHS) += pen_coeffs_tang.first  * weight * prod(aux_matrix_N_trans_tang, aux_matrix_ACB);
 
     // Contribution coming from the tangential velocity (towards zero for slip)
-    noalias(aux_LHS) += pen_coeffs.second * weight * prod(aux_matrix_N_trans_tang, N_matrix);
+    noalias(aux_LHS) += pen_coeffs_tang.second * weight * prod(aux_matrix_N_trans_tang, N_matrix);
 
     /////////////////////////////////////////////////////////////////////////////////
     // Compute the Nitsche slip tangential symmetric counterpart stabilization
-    std::pair<const double, const double> nitsche_coeffs = this->ComputeSlipTangentialNitscheCoefficients(slip_length, penalty, parent_size, effective_viscosity);
+    std::pair<const double, const double> nitsche_coeffs_tang = this->ComputeSlipTangentialNitscheCoefficients(slip_length, penalty, parent_size, effective_viscosity);
 
     // Compute some integration point auxiliary matrices
     const Matrix aux_matrix_BtransAtrans = prod(trans(B_matrix), trans(voigt_normal_proj_matrix));
     const Matrix aux_matrix_BtransAtransPtan = prod(aux_matrix_BtransAtrans, tang_proj_matrix);
 
     // Contribution coming from the traction vector tangential component (no contribution for no slip)
-    noalias(aux_LHS) -= adjoint_consistency * nitsche_coeffs.first  * weight * prod(aux_matrix_BtransAtransPtan, aux_matrix_ACB);
+    noalias(aux_LHS) -= adjoint_consistency * nitsche_coeffs_tang.first  * weight * prod(aux_matrix_BtransAtransPtan, aux_matrix_ACB);
 
     // Contribution coming from the tangential velocity (towards zero for slip)
-    noalias(aux_LHS) -= adjoint_consistency * nitsche_coeffs.second * weight * prod(aux_matrix_BtransAtransPtan, N_matrix);
+    noalias(aux_LHS) -= adjoint_consistency * nitsche_coeffs_tang.second * weight * prod(aux_matrix_BtransAtransPtan, N_matrix);
 
     /////////////////////////////////////////////////////////////////////////////////
     //KRATOS_WATCH(aux_LHS);
@@ -409,27 +409,43 @@ double ShiftedBoundaryWallCondition<TDim>::ComputeSlipNormalPenaltyCoefficient(
     }
     const double int_pt_v_norm = norm_2(int_pt_v);
 
-    const double stab_constant = EffectiveViscosity + int_pt_rho*int_pt_v_norm*ParentSize + int_pt_rho*ParentSize*ParentSize/DeltaTime;
+    const double stab_constant_u = EffectiveViscosity + int_pt_rho*int_pt_v_norm*ParentSize / 6.0 + int_pt_rho*ParentSize*ParentSize/DeltaTime / 12.0;
 
     // Compute the Nitsche coefficient (including the Winter stabilization term)
-    const double coeff = (EffectiveViscosity + stab_constant) / (Penalty * ParentSize);
+    const double coeff = (EffectiveViscosity + stab_constant_u) / (Penalty * ParentSize);
 
     return coeff;
 }
 
 template<std::size_t TDim>
 std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::ComputeSlipTangentialPenaltyCoefficients(
+    const Vector& rN,
     const double SlipLength,
+    const double DeltaTime,
     const double Penalty,
     const double ParentSize,
     const double EffectiveViscosity) const
 {
-    const double penalty_coeff = 1.0 / (SlipLength + Penalty*ParentSize);
-    const double coeff_1 = SlipLength * penalty_coeff ;
-    const double coeff_2 = EffectiveViscosity * penalty_coeff;
+    // Get the velocity and density for the integration point
+    const auto& r_geometry = this->GetGeometry();
+    const std::size_t n_nodes = r_geometry.PointsNumber();
+    double int_pt_rho = rN(0) * r_geometry[0].FastGetSolutionStepValue(DENSITY);
+    array_1d<double,3> int_pt_v = rN(0) * r_geometry[0].FastGetSolutionStepValue(VELOCITY);
+    for (std::size_t i_node = 1;  i_node < n_nodes; ++i_node) {
+        int_pt_rho += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(DENSITY);
+        int_pt_v += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
+    }
+    const double int_pt_v_norm = norm_2(int_pt_v);
 
-    std::pair<const double, const double> coeffs(coeff_1, coeff_2);
-    return coeffs;
+    const double stab_constant_u = EffectiveViscosity + int_pt_rho*int_pt_v_norm*ParentSize / 6.0 + int_pt_rho*ParentSize*ParentSize/DeltaTime / 12.0;
+    //const double stab_constant_tau = int_pt_rho*int_pt_v_norm*ParentSize;  // /EffectiveViscosity / 100000;
+
+    const double penalty_coeff = 1.0 / (SlipLength + Penalty*ParentSize);
+    const double coeff_1 = penalty_coeff * SlipLength;                              // pure slip: * ParentSize/Penalty || * SlipLength / Penalty * stab_constant_tau    // Winter et al. (2018): * SlipLength;
+    const double coeff_2 = penalty_coeff * (EffectiveViscosity + stab_constant_u);  // pure slip: 0.0                                                                   // Winter et al. (2018): * EffectiveViscosity;
+
+    std::pair<const double, const double> coefficients(coeff_1, coeff_2);
+    return coefficients;
 }
 
 template<std::size_t TDim>
@@ -439,12 +455,15 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
     const double ParentSize,
     const double EffectiveViscosity) const
 {
-    const double stab_coeff = Penalty * ParentSize / (SlipLength + Penalty*ParentSize);
-    const double coeff_1 = SlipLength * stab_coeff;
-    const double coeff_2 = EffectiveViscosity * stab_coeff;
+    const double stab_coeff = 1.0 / (SlipLength + 1.0);                                                 // Winter et al. (2018): Penalty * ParentSize / (SlipLength + Penalty*ParentSize);
+    const double coeff_1 = stab_coeff * SlipLength * ParentSize / Penalty;          // pure slip: 1.0   // Winter et al. (2018): * SlipLength
+    const double coeff_2 = stab_coeff * EffectiveViscosity;                         // pure slip: 0.0
 
-    std::pair<const double, const double> coeffs(coeff_1, coeff_2);
-    return coeffs;
+    // std::string grad_coeff = "Stabilization coefficient: " + std::to_string(coeff_1);
+    // KRATOS_WATCH(grad_coeff);
+
+    std::pair<const double, const double> coefficients(coeff_1, coeff_2);
+    return coefficients;
 }
 
 template class ShiftedBoundaryWallCondition<2>;
