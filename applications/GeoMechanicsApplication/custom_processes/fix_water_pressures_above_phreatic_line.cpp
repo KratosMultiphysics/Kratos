@@ -28,6 +28,9 @@ void FixWaterPressuresAbovePhreaticLineProcess::ExecuteInitializeSolutionStep()
             rNode.FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
             rNode.Fix(WATER_PRESSURE);
         }
+        else {
+            rNode.Free(WATER_PRESSURE);
+        }
     });
 }
 
