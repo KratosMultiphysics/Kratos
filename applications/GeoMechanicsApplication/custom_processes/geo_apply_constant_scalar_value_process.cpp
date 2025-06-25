@@ -1,40 +1,29 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS___
+//     //   ) )
+//    //         ___      ___
+//   //  ____  //___) ) //   ) )
+//  //    / / //       //   / /
+// ((____/ / ((____   ((___/ /  MECHANICS
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
-//
 
-// System includes
-
-// External includes
-
-// Project includes
 #include "geo_apply_constant_scalar_value_process.h"
 #include "containers/model.h"
 #include "utilities/variable_utils.h"
 
 namespace Kratos
 {
-KRATOS_CREATE_LOCAL_FLAG(GeoApplyConstantScalarValueProcess, VARIABLE_IS_FIXED, 0)
 
-/***********************************************************************************/
-/***********************************************************************************/
+KRATOS_CREATE_LOCAL_FLAG(GeoApplyConstantScalarValueProcess, VARIABLE_IS_FIXED, 0)
 
 GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(Model& rModel, Parameters ThisParameters)
     : GeoApplyConstantScalarValueProcess(
           rModel.GetModelPart(ThisParameters["model_part_name"].GetString()), ThisParameters)
 {
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, Parameters ThisParameters)
     : Process(Flags()), mrModelPart(rModelPart)
@@ -84,9 +73,6 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
     KRATOS_CATCH("");
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart& rModelPart,
                                                                        const Variable<double>& rVariable,
                                                                        const double DoubleValue,
@@ -105,9 +91,6 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
 
     KRATOS_CATCH("");
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart& rModelPart,
                                                                        const Variable<int>& rVariable,
@@ -132,9 +115,6 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
     KRATOS_CATCH("");
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart& rModelPart,
                                                                        const Variable<bool>& rVariable,
                                                                        const bool  BoolValue,
@@ -157,9 +137,6 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
 
     KRATOS_CATCH("");
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void GeoApplyConstantScalarValueProcess::ExecuteInitialize()
 {
@@ -188,9 +165,6 @@ void GeoApplyConstantScalarValueProcess::ExecuteFinalize()
     }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 template <class TVarType>
 void GeoApplyConstantScalarValueProcess::InternalApplyValue(const TVarType&               rVariable,
                                                             const bool                    ToBeFixed,
@@ -199,7 +173,7 @@ void GeoApplyConstantScalarValueProcess::InternalApplyValue(const TVarType&     
     const std::size_t number_of_nodes = mrModelPart.Nodes().size();
 
     if (number_of_nodes != 0) {
-        block_for_each(mrModelPart.Nodes(), [&](Node& rNode) {
+        block_for_each(mrModelPart.Nodes(), [ToBeFixed, &rVariable, &Value](Node& rNode) {
             if constexpr (std::is_same<TVarType, Variable<double>>::value) { // For nodes
                 if (ToBeFixed) {
                     rNode.Fix(rVariable);
@@ -218,9 +192,6 @@ template void GeoApplyConstantScalarValueProcess::InternalApplyValue<Variable<in
 template void GeoApplyConstantScalarValueProcess::InternalApplyValue<Variable<double>>(
     const Variable<double>& rVariable, const bool ToBeFixed, const double Value);
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 template <class TVarType>
 void GeoApplyConstantScalarValueProcess::InternalApplyValueWithoutFixing(const TVarType& rVariable,
                                                                          const typename TVarType::Type Value)
@@ -238,9 +209,6 @@ template void GeoApplyConstantScalarValueProcess::InternalApplyValueWithoutFixin
     const Variable<int>& rVariable, const int Value);
 template void GeoApplyConstantScalarValueProcess::InternalApplyValueWithoutFixing<Variable<double>>(
     const Variable<double>& rVariable, const double Value);
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 const Parameters GeoApplyConstantScalarValueProcess::GetDefaultParameters() const
 {

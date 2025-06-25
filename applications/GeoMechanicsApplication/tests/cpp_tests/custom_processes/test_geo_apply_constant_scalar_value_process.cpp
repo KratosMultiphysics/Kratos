@@ -51,8 +51,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_FreesDoFAfterFinali
 KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_FinalizeDoesNothing_ForIntVariable,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model current_model;
-    ModelPart& r_model_part = current_model.CreateModelPart("Main",2);
+    Model      current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main", 2);
     r_model_part.AddNodalSolutionStepVariable(TIME_STEPS);
 
     r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
