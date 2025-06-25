@@ -173,7 +173,7 @@ void GeoApplyConstantScalarValueProcess::InternalApplyValue(const TVarType&     
     const std::size_t number_of_nodes = mrModelPart.Nodes().size();
 
     if (number_of_nodes != 0) {
-        block_for_each(mrModelPart.Nodes(), [ToBeFixed, &rVariable, &Value](Node& rNode) {
+        block_for_each(mrModelPart.Nodes(), [&](Node& rNode) {
             if constexpr (std::is_same<TVarType, Variable<double>>::value) { // For nodes
                 if (ToBeFixed) {
                     rNode.Fix(rVariable);
