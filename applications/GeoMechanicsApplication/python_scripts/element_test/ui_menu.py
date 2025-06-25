@@ -5,10 +5,9 @@ from ui_builder import GeotechTestUI
 from ui_udsm_parser import udsm_parser
 
 import ctypes
-ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("deltares.triaxial.ui")
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("deltares.ElementTestSuite.ui")
 
-SELECT_DLL = "Select DLL File"
-LINEAR_ELASTIC = "Linear Elastic Model"
+from ui_labels import SELECT_DLL, LINEAR_ELASTIC
 
 def create_menu():
     root = tk.Tk()
@@ -19,7 +18,7 @@ def create_menu():
     except Exception as e:
         print(f"Could not set icon: {e}")
 
-    root.title("Triaxial Test")
+    root.title("Soil Element Test Suite")
     root.state('zoomed')
     root.resizable(True, True)
 

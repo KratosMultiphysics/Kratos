@@ -12,16 +12,11 @@ from ui_runner import run_gui_builder
 from ui_logger import init_log_widget, log_message, clear_log
 from ui_udsm_parser import input_parameters_format_to_unicode
 
-direct_shear= "Direct Shear"
-MAX_STRAIN_LABEL = "Maximum Strain |εᵧᵧ|"
-INIT_PRESSURE_LABEL = "Initial effective cell pressure |σ'ₓₓ|"
-STRESS_INC_LABEL = "Stress increment |σ'ᵧᵧ|"
-NUM_STEPS_LABEL = "Number of steps"
-DURATION_LABEL = "Duration"
-FL2_UNIT_LABEL = "kN/m²"
-SECONDS_UNIT_LABEL = "s"
-PERCENTAGE_UNIT_LABEL = "%"
-WITHOUT_UNIT_LABEL = ""
+from ui_labels import (
+    TRIAXIAL, DIRECT_SHEAR,
+    MAX_STRAIN_LABEL, INIT_PRESSURE_LABEL, STRESS_INC_LABEL, NUM_STEPS_LABEL, DURATION_LABEL,
+    FL2_UNIT_LABEL, SECONDS_UNIT_LABEL, PERCENTAGE_UNIT_LABEL, WITHOUT_UNIT_LABEL
+)
 
 class GeotechTestUI:
     def __init__(self, root, parent_frame, test_name, dll_path, model_dict, external_widgets=None):
@@ -34,7 +29,7 @@ class GeotechTestUI:
 
         self.model_var = tk.StringVar(root)
         self.model_var.set(model_dict["model_name"][0])
-        self.current_test = tk.StringVar(value="Triaxial")
+        self.current_test = tk.StringVar(value=TRIAXIAL)
 
         self._init_frames()
 
@@ -135,11 +130,11 @@ class GeotechTestUI:
 
         self.test_buttons = {}
         self.test_images = {
-            "Triaxial": tk.PhotoImage(file=os.path.join(os.path.dirname(__file__), "assets", "triaxial.png")),
-            "Direct Shear": tk.PhotoImage(file=os.path.join(os.path.dirname(__file__), "assets", "direct_shear.png"))
+            TRIAXIAL: tk.PhotoImage(file=os.path.join(os.path.dirname(__file__), "assets", "triaxial.png")),
+            DIRECT_SHEAR: tk.PhotoImage(file=os.path.join(os.path.dirname(__file__), "assets", "direct_shear.png"))
         }
 
-        for test_name in ["Triaxial", "Direct Shear"]:
+        for test_name in [TRIAXIAL, DIRECT_SHEAR]:
             btn = tk.Button(
                 self.test_selector_frame,
                 text=test_name,
@@ -157,7 +152,7 @@ class GeotechTestUI:
         self.test_input_frame = ttk.Frame(self.param_frame, padding="10")
         self.test_input_frame.pack(fill="both", expand=True)
 
-        self._switch_test("Triaxial")
+        self._switch_test(TRIAXIAL)
 
         self.run_button = ttk.Button(self.button_frame, text="Run Calculation", command=self._start_simulation_thread)
         self.run_button.pack(pady=5)
@@ -220,7 +215,7 @@ class GeotechTestUI:
         for w in self.test_input_frame.winfo_children():
             w.destroy()
 
-        if test_name == "Triaxial":
+        if test_name == TRIAXIAL:
             self._init_plot_canvas(num_plots=5)
             self.triaxial_widgets = self._create_entries(
                 self.test_input_frame,
@@ -230,11 +225,11 @@ class GeotechTestUI:
                 {INIT_PRESSURE_LABEL: "100", MAX_STRAIN_LABEL: "10",
                  NUM_STEPS_LABEL: "100", DURATION_LABEL: "1.0"}
             )
-        elif test_name == "Direct Shear":
+        elif test_name == DIRECT_SHEAR:
             self._init_plot_canvas(num_plots=4)
             self.shear_widgets = self._create_entries(
                 self.test_input_frame,
-                "Direct Shear Input Data",
+                "Direct Simple Shear Input Data",
                 [INIT_PRESSURE_LABEL, MAX_STRAIN_LABEL, NUM_STEPS_LABEL, DURATION_LABEL],
                 [FL2_UNIT_LABEL, PERCENTAGE_UNIT_LABEL, WITHOUT_UNIT_LABEL, SECONDS_UNIT_LABEL],
                 {INIT_PRESSURE_LABEL: "100", MAX_STRAIN_LABEL: "10",
@@ -244,7 +239,6 @@ class GeotechTestUI:
         log_message(f"{test_name} test selected.", "info")
 
     def _run_simulation(self):
-        clear_log()
         try:
             log_message("Starting calculation... Please wait...", "info")
             log_message("Validating input...", "info")
@@ -257,13 +251,12 @@ class GeotechTestUI:
                 cohesion_phi_indices = (int(self.cohesion_var.get()), int(self.phi_var.get()))
 
             index = self.model_dict["model_name"].index(self.model_var.get()) + 1 if self.dll_path else -2
-            model_name = self.model_var.get()
             test_type = self.current_test.get()
 
             log_message("Calculating...", "info")
             self.root.update_idletasks()
 
-            if test_type == "Triaxial":
+            if test_type == TRIAXIAL:
                 run_gui_builder(
                     test_type="triaxial",
                     dll_path=self.dll_path or "",
@@ -274,7 +267,7 @@ class GeotechTestUI:
                     axes=self.axes
                 )
 
-            elif test_type == "Direct Shear":
+            elif test_type == DIRECT_SHEAR:
                 run_gui_builder(
                     test_type="direct_shear",
                     dll_path=self.dll_path or "",

@@ -1,12 +1,19 @@
 import numpy as np
 from ui_logger import log_message
+from ui_labels import (
+    SIGMA1_LABEL, SIGMA3_LABEL, SIGMA1_SIGMA3_DIFF_LABEL, VERTICAL_STRAIN_LABEL,
+    VOLUMETRIC_STRAIN_LABEL, SHEAR_STRAIN_LABEL, SHEAR_STRESS_LABEL, EFFECTIVE_STRESS_LABEL,
+    MOBILIZED_SHEAR_STRESS_LABEL, P_STRESS_LABEL, Q_STRESS_LABEL, TITLE_SIGMA1_VS_SIGMA3,
+    TITLE_DIFF_PRINCIPAL_SIGMA_VS_STRAIN, TITLE_VOL_VS_VERT_STRAIN, TITLE_MOHR, TITLE_P_VS_Q, TITLE_SHEAR_VS_STRAIN,
+    LEGEND_MC, LEGEND_MC_FAILURE
+)
 
 
 def plot_principal_stresses_triaxial(ax, sigma_1, sigma_3):
-    ax.plot(sigma_3, sigma_1, '-', color='blue', label='σ₁ vs σ₃')
-    ax.set_title('σ₁ vs σ₃')
-    ax.set_xlabel('σ₃ (Principal Stress 3) [kN/m²]')
-    ax.set_ylabel('σ₁ (Principal Stress 1) [kN/m²]')
+    ax.plot(sigma_3, sigma_1, '-', color='blue', label=TITLE_SIGMA1_VS_SIGMA3)
+    ax.set_title(TITLE_SIGMA1_VS_SIGMA3)
+    ax.set_xlabel(SIGMA3_LABEL)
+    ax.set_ylabel(SIGMA1_LABEL)
     ax.grid(True)
     ax.locator_params(nbins=8)
 
@@ -20,20 +27,20 @@ def plot_principal_stresses_triaxial(ax, sigma_1, sigma_3):
     ax.minorticks_on()
 
 def plot_delta_sigma_triaxial(ax, vertical_strain, sigma_diff):
-    ax.plot(vertical_strain, sigma_diff, '-', color='blue', label='|σ₁ - σ₃|')
-    ax.set_title('|σ₁ - σ₃| vs εᵧᵧ')
-    ax.set_xlabel('εᵧᵧ (Vertical Strain) [-]')
-    ax.set_ylabel('|σ₁ - σ₃| [kN/m²]')
+    ax.plot(vertical_strain, sigma_diff, '-', color='blue', label=SIGMA1_SIGMA3_DIFF_LABEL)
+    ax.set_title(TITLE_DIFF_PRINCIPAL_SIGMA_VS_STRAIN)
+    ax.set_xlabel(VERTICAL_STRAIN_LABEL)
+    ax.set_ylabel(SIGMA1_SIGMA3_DIFF_LABEL)
     ax.grid(True)
     ax.invert_xaxis()
     ax.locator_params(nbins=8)
     ax.minorticks_on()
 
 def plot_volumetric_vertical_strain_triaxial(ax, vertical_strain, volumetric_strain):
-    ax.plot(vertical_strain, volumetric_strain, '-', color='blue', label='Volumetric Strain')
-    ax.set_title('εᵥ vs εᵧᵧ')
-    ax.set_xlabel('εᵧᵧ (Vertical Strain) [-]')
-    ax.set_ylabel('εᵥ (Volumetric Strain) [-]')
+    ax.plot(vertical_strain, volumetric_strain, '-', color='blue', label=TITLE_VOL_VS_VERT_STRAIN)
+    ax.set_title(TITLE_VOL_VS_VERT_STRAIN)
+    ax.set_xlabel(VERTICAL_STRAIN_LABEL)
+    ax.set_ylabel(VOLUMETRIC_STRAIN_LABEL)
     ax.grid(True)
     ax.invert_xaxis()
     ax.invert_yaxis()
@@ -49,18 +56,18 @@ def plot_mohr_coulomb_triaxial(ax, sigma_1, sigma_3, cohesion=None, friction_ang
     sigma = center + radius * np.cos(theta)
     tau = -radius * np.sin(theta)
 
-    ax.plot(sigma, tau, label='Mohr-Coulomb', color='blue')
+    ax.plot(sigma, tau, label=LEGEND_MC, color='blue')
 
     if cohesion is not None and friction_angle is not None:
         phi_rad = np.radians(friction_angle)
         x_line = np.linspace(0, sigma_1, 200)
         y_line = x_line * np.tan(phi_rad) - cohesion
-        ax.plot(x_line, -y_line, 'r--', label="Failure Criterion: τ = σ' tan(φ°) + c'")
+        ax.plot(x_line, -y_line, 'r--', label=LEGEND_MC_FAILURE)
         ax.legend(loc='upper left')
 
-    ax.set_title("Mohr-Coulomb")
-    ax.set_xlabel("σ' (Effective Stress) [kN/m²]")
-    ax.set_ylabel("τ (Mobilized Shear Stress) [kN/m²]")
+    ax.set_title(LEGEND_MC)
+    ax.set_xlabel(EFFECTIVE_STRESS_LABEL)
+    ax.set_ylabel(MOBILIZED_SHEAR_STRESS_LABEL)
     ax.grid(True)
     ax.invert_xaxis()
     ax.set_xlim(left=0, right= 1.2*np.max(sigma_1))
@@ -68,20 +75,20 @@ def plot_mohr_coulomb_triaxial(ax, sigma_1, sigma_3, cohesion=None, friction_ang
     ax.minorticks_on()
 
 def plot_p_q_triaxial(ax, p_list, q_list):
-    ax.plot(p_list, q_list, '-', color='blue', label="p' vs q")
-    ax.set_title("p' vs q")
-    ax.set_xlabel("p' (Mean Effective Stress) [kN/m²]")
-    ax.set_ylabel("q (Deviatoric Stress) [kN/m²]")
+    ax.plot(p_list, q_list, '-', color='blue', label=TITLE_P_VS_Q)
+    ax.set_title(TITLE_P_VS_Q)
+    ax.set_xlabel(P_STRESS_LABEL)
+    ax.set_ylabel(Q_STRESS_LABEL)
     ax.grid(True)
     ax.invert_xaxis()
     ax.locator_params(nbins=8)
     ax.minorticks_on()
 
 def plot_principal_stresses_direct_shear(ax, sigma_1, sigma_3):
-    ax.plot(sigma_3, sigma_1, '-', color='blue', label='σ₁ vs σ₃')
-    ax.set_title('σ₁ vs σ₃')
-    ax.set_xlabel('σ₃ (Principal Stress 3) [kN/m²]')
-    ax.set_ylabel('σ₁ (Principal Stress 1) [kN/m²]')
+    ax.plot(sigma_3, sigma_1, '-', color='blue', label=TITLE_SIGMA1_VS_SIGMA3)
+    ax.set_title(TITLE_SIGMA1_VS_SIGMA3)
+    ax.set_xlabel(SIGMA3_LABEL)
+    ax.set_ylabel(SIGMA1_LABEL)
     ax.grid(True)
     ax.locator_params(nbins=8)
 
@@ -94,15 +101,14 @@ def plot_principal_stresses_direct_shear(ax, sigma_1, sigma_3):
 
     ax.invert_xaxis()
     ax.invert_yaxis()
-    ax.legend(loc='best')
     ax.minorticks_on()
 
 def plot_strain_stress_direct_shear(ax, shear_strain_xy, shear_stress_xy):
     gamma_xy = 2 * np.array(shear_strain_xy)
-    ax.plot(np.abs(gamma_xy), np.abs(shear_stress_xy), '-', color='blue', label='τₓᵧ vs εₓᵧ')
-    ax.set_title('τₓᵧ vs εₓᵧ')
-    ax.set_xlabel('γₓᵧ (Shear Strain) [-]')
-    ax.set_ylabel('τₓᵧ (Shear Stress) [kN/m²]')
+    ax.plot(np.abs(gamma_xy), np.abs(shear_stress_xy), '-', color='blue', label=TITLE_SHEAR_VS_STRAIN)
+    ax.set_title(TITLE_SHEAR_VS_STRAIN)
+    ax.set_xlabel(SHEAR_STRAIN_LABEL)
+    ax.set_ylabel(SHEAR_STRESS_LABEL)
     ax.grid(True)
     ax.locator_params(nbins=8)
     ax.minorticks_on()
@@ -116,19 +122,19 @@ def plot_mohr_coulomb_direct_shear(ax, sigma_1, sigma_3, cohesion=None, friction
     sigma = center + radius * np.cos(theta)
     tau = -radius * np.sin(theta)
 
-    ax.plot(sigma, tau, label='Mohr-Coulomb', color='blue')
+    ax.plot(sigma, tau, label=LEGEND_MC, color='blue')
 
     if cohesion is not None and friction_angle is not None:
         phi_rad = np.radians(friction_angle)
         max_sigma = center + radius
         x_line = np.linspace(0, max_sigma * 1.5, 400)
         y_line = x_line * np.tan(phi_rad) - cohesion
-        ax.plot(x_line, -y_line, 'r--', label="Failure Criterion: τ = σ' tan(φ°) + c'")
+        ax.plot(x_line, -y_line, 'r--', label=LEGEND_MC_FAILURE)
         ax.legend(loc='upper left')
 
-    ax.set_title("Mohr-Coulomb")
-    ax.set_xlabel("σ' (Effective Stress) [kN/m²]")
-    ax.set_ylabel("τ (Mobilized Shear Stress) [kN/m²]")
+    ax.set_title(LEGEND_MC)
+    ax.set_xlabel(EFFECTIVE_STRESS_LABEL)
+    ax.set_ylabel(MOBILIZED_SHEAR_STRESS_LABEL)
     ax.grid(True)
     ax.invert_xaxis()
     if sigma_1 > 0 or sigma_3 > 0:
@@ -140,10 +146,10 @@ def plot_mohr_coulomb_direct_shear(ax, sigma_1, sigma_3, cohesion=None, friction
     ax.minorticks_on()
 
 def plot_p_q_direct_shear(ax, p_list, q_list):
-    ax.plot(p_list, q_list, '-', color='blue', label="p' vs q")
-    ax.set_title("p' vs q")
-    ax.set_xlabel("p' (Mean Effective Stress) [kN/m²]")
-    ax.set_ylabel("q (Deviatoric Stress) [kN/m²]")
+    ax.plot(p_list, q_list, '-', color='blue', label=TITLE_P_VS_Q)
+    ax.set_title(TITLE_P_VS_Q)
+    ax.set_xlabel(P_STRESS_LABEL)
+    ax.set_ylabel(Q_STRESS_LABEL)
     ax.grid(True)
     ax.invert_xaxis()
     ax.set_xlim(left=0, right=1.2*np.max(p_list))

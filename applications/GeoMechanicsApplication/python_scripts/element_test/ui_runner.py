@@ -27,5 +27,5 @@ def run_gui_builder(test_type, dll_path, index, umat_parameters, input_widgets, 
         )
 
     except Exception:
-        log_message(f"Error during simulation:", "error")
+        log_message("Error during simulation:", "error")
         log_message(traceback.format_exc(), "error")
