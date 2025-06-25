@@ -312,6 +312,30 @@ namespace Kratos {
                 double mass = integration_points[point_number].Weight() * detJ * GetProperties()[CROSS_AREA] * GetProperties()[DENSITY];
                 rOutput[point_number] = mass;
             }
+            else if (rVariable == VON_MISES_STRESS) {
+                Vector3d f_, m_;
+                stress_res_lin(rCurrentProcessInfo, point_number, f_, m_);
+                
+                // Extract cross-section properties
+                const double area = GetProperties()[CROSS_AREA];
+                const double I_y = GetProperties()[I_Y];
+                const double I_z = GetProperties()[I_Z];
+                const double I_t = GetProperties()[I_T];
+                const double height = GetProperties()[HEIGHT];
+                const double width = GetProperties()[WIDTH];
+                
+                // Calculate stress components
+                const double sigma_axial = f_[0] / area;
+                const double sigma_bending_y = std::abs(m_[1]) * (height/2.0) / I_y;
+                const double sigma_bending_z = std::abs(m_[2]) * (width/2.0) / I_z;
+                const double tau_torsion = std::abs(m_[0]) * std::max(height, width) / (2.0 * I_t);
+                
+                // Von Mises equivalent stress for beam elements
+                const double sigma_normal = std::abs(sigma_axial) + sigma_bending_y + sigma_bending_z;
+                const double sigma_equivalent = std::sqrt(sigma_normal * sigma_normal + 3.0 * tau_torsion * tau_torsion);
+                
+                rOutput[point_number] = sigma_equivalent;
+            }
         }
     }
 
