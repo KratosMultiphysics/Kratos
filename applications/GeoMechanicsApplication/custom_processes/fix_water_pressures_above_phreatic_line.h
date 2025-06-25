@@ -25,7 +25,6 @@ public:
 
 private:
     ModelPart& mrModelPart;
-    Vector mYCoordinate;
     Table<double> mPhreaticLineTable;
 };
 

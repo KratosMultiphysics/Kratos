@@ -17,13 +17,13 @@ namespace Kratos
 {
 FixWaterPressuresAbovePhreaticLineProcess::FixWaterPressuresAbovePhreaticLineProcess(ModelPart& rMainModelPart,
                                                                                      const Parameters& rSettings)
-    : mrModelPart(rMainModelPart), mYCoordinate(rSettings["y_coordinates"].GetVector())
+    : mrModelPart(rMainModelPart)
 {
-    const auto x_coordinate = rSettings["x_coordinates"].GetVector();
-    const auto y_coordinate = rSettings["y_coordinates"].GetVector();
+    const auto x_coordinates = rSettings["x_coordinates"].GetVector();
+    const auto y_coordinates = rSettings["y_coordinates"].GetVector();
 
-    for (int i = 0; i < x_coordinate.size(); ++i) {
-        mPhreaticLineTable.insert(x_coordinate[i], y_coordinate[i]);
+    for (int i = 0; i < x_coordinates.size(); ++i) {
+        mPhreaticLineTable.insert(x_coordinates[i], y_coordinates[i]);
     }
 }
 
