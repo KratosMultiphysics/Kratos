@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include "includes/table.h"
 #include "processes/process.h"
 
 namespace Kratos
@@ -24,7 +25,8 @@ public:
 
 private:
     ModelPart& mrModelPart;
-    double mYCoordinate;
+    Vector mYCoordinate;
+    Table<double> mPhreaticLineTable;
 };
 
 } // namespace Kratos
