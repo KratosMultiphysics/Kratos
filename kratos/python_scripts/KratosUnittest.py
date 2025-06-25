@@ -184,39 +184,27 @@ def skipIfApplicationsNotAvailable(*application_names):
     reason_for_skip = 'Required Applications are missing: "{}"'.format('", "'.join(required_but_not_available_apps))
     return skipIf(len(required_but_not_available_apps) > 0, reason_for_skip)
 
-
 @contextmanager
-def SupressConsoleOutput():
+def ControlOutput(verbosity):
+    """ Controls the level of output of the application
+        0 - no output
+        1 - only errors
+        2 - all output
+    """
     with open(os.devnull, "w") as devnull:
-        old_stdout = sys.stdout
-        sys.stdout = devnull
+        if verbosity > 0:
+            old_stderr = sys.stderr
+            sys.stderr = devnull
+        if verbosity > 1:
+            old_stdout = sys.stdout
+            sys.stdout = devnull
         try:
             yield
         finally:
-            sys.stdout = old_stdout
-
-@contextmanager
-def SupressConsoleError():
-    with open(os.devnull, "w") as devnull:
-        old_stderr = sys.stderr
-        sys.stderr = devnull
-        try:
-            yield
-        finally:
-            sys.stderr = old_stderr
-
-@contextmanager
-def SupressAllConsole():
-    with open(os.devnull, "w") as devnull:
-        old_stderr = sys.stderr
-        old_stdout = sys.stdout
-        sys.stderr = devnull
-        sys.stdout = devnull
-        try:
-            yield
-        finally:
-            sys.stderr = old_stderr
-            sys.stdout = old_stdout
+            if verbosity > 0:
+                sys.stderr = old_stderr
+            if verbosity > 1:
+                sys.stdout = old_stdout
 
 def main():
     # this deliberately overiddes the function "unittest.main",
