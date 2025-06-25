@@ -49,4 +49,37 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FixesAllWaterPre
     EXPECT_TRUE(r_model_part.GetNode(2).IsFixed(WATER_PRESSURE));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_DoesNothingWhenAllNodesBelowPhreaticLine,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto  model        = Model{};
+    auto& r_model_part = model.CreateModelPart("foo");
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(2, 0.0, -1.0, 0.0);
+
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.AddDof(WATER_PRESSURE);
+    }
+
+    r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
+    r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
+
+    auto                                      test_parameters = Parameters{R"(
+            {
+                "model_part_name": "foo",
+                "x_coordinates": [0.0],
+                "y_coordinates": [1.0],
+                "z_coordinates": [0.0],
+                "gravity_direction": 1
+            }  )"};
+    FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
+
+    process.ExecuteInitializeSolutionStep();
+    EXPECT_EQ(r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE), 1.0);
+    EXPECT_FALSE(r_model_part.GetNode(1).IsFixed(WATER_PRESSURE));
+    EXPECT_EQ(r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE), 2.0);
+    EXPECT_FALSE(r_model_part.GetNode(2).IsFixed(WATER_PRESSURE));
+}
+
 } // namespace Kratos::Testing

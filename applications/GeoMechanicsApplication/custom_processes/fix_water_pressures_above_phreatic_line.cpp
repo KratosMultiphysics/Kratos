@@ -16,16 +16,18 @@
 namespace Kratos
 {
 FixWaterPressuresAbovePhreaticLineProcess::FixWaterPressuresAbovePhreaticLineProcess(ModelPart& rMainModelPart,
-                                                                                     const Parameters&)
-    : mrModelPart(rMainModelPart)
+                                                                                     const Parameters& rSettings)
+    : mrModelPart(rMainModelPart), mYCoordinate(rSettings["y_coordinates"][0].GetDouble())
 {
 }
 
 void FixWaterPressuresAbovePhreaticLineProcess::ExecuteInitializeSolutionStep()
 {
-    block_for_each(mrModelPart.Nodes(), [](Node& rNode) {
-        rNode.FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-        rNode.Fix(WATER_PRESSURE);
+    block_for_each(mrModelPart.Nodes(), [this](Node& rNode) {
+        if (rNode.Y() > mYCoordinate) {
+            rNode.FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+            rNode.Fix(WATER_PRESSURE);
+        }
     });
 }
 

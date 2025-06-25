@@ -19,11 +19,12 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) FixWaterPressuresAbovePhreaticLineProcess : public Process
 {
 public:
-    FixWaterPressuresAbovePhreaticLineProcess(ModelPart& rMainModelPart, const Parameters& ThisParameters);
+    FixWaterPressuresAbovePhreaticLineProcess(ModelPart& rMainModelPart, const Parameters& rSettings);
     void ExecuteInitializeSolutionStep() override;
 
 private:
     ModelPart& mrModelPart;
+    double mYCoordinate;
 };
 
 } // namespace Kratos
