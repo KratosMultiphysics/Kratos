@@ -51,17 +51,17 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 
 # Configure
-cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
-${KRATOS_CMAKE_OPTIONS_FLAGS}                                       \
--DUSE_MPI=ON                                                        \
--DEXCLUDE_KRATOS_CORE=ON                                            \
--DEXCLUDE_AUTOMATIC_DEPENDENCIES=ON                                 \
--DREMOVE_INSTALL_DIRECTORIES=OFF                                    \
--DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O0 -Wall"             \
--DCMAKE_POLICY_VERSION_MINIMUM=3.5                                  \
--DTRILINOS_INCLUDE_DIR="/usr/include/trilinos"                      \
--DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu"                  \
--DTRILINOS_LIBRARY_PREFIX="trilinos_"                               \
+cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" -Wno-dev    \
+${KRATOS_CMAKE_OPTIONS_FLAGS}                                                   \
+-DUSE_MPI=ON                                                                    \
+-DEXCLUDE_KRATOS_CORE=ON                                                        \
+-DEXCLUDE_AUTOMATIC_DEPENDENCIES=ON                                             \
+-DREMOVE_INSTALL_DIRECTORIES=OFF                                                \
+-DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O0 -Wall"                         \
+-DCMAKE_POLICY_VERSION_MINIMUM=3.5                                              \
+-DTRILINOS_INCLUDE_DIR="/usr/include/trilinos"                                  \
+-DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu"                              \
+-DTRILINOS_LIBRARY_PREFIX="trilinos_"                                           \
 -DCMAKE_UNITY_BUILD=ON
 
 # Build
