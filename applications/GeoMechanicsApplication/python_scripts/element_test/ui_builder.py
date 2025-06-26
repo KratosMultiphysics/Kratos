@@ -69,7 +69,7 @@ class GeotechTestUI:
     def _init_plot_canvas(self, num_plots):
         self._destroy_existing_plot_canvas()
 
-        self.fig = plt.figure(figsize=(12, 8))
+        self.fig = plt.figure(figsize=(12, 8), dpi=100)
         rows = math.ceil(math.sqrt(num_plots))
         cols = math.ceil(num_plots / rows)
 
