@@ -141,6 +141,11 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
 void GeoApplyConstantScalarValueProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY;
+
+    // We only apply the value and fixity once, in the first time step. The reason we cannot
+    // use ExecuteInitialize() is that this method is called too early, leading to issues with
+    // calculations of our increments (e.g. INCREMENTAL_DISPLACEMENT) in combination with prescribed
+    // non-zero values.
     if (!mInitialized) {
         const bool is_fixed = this->Is(VARIABLE_IS_FIXED);
 
