@@ -46,10 +46,11 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FixesAllWaterPre
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
 
     process.ExecuteInitializeSolutionStep();
-    EXPECT_DOUBLE_EQ(r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE), 0.0);
-    EXPECT_TRUE(r_model_part.GetNode(1).IsFixed(WATER_PRESSURE));
-    EXPECT_DOUBLE_EQ(r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE), 0.0);
-    EXPECT_TRUE(r_model_part.GetNode(2).IsFixed(WATER_PRESSURE));
+
+    for (auto& r_node : r_model_part.Nodes()) {
+        EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(WATER_PRESSURE), 0.0);
+        EXPECT_TRUE(r_node.IsFixed(WATER_PRESSURE));
+    }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_DoesNothingWhenAllNodesBelowPhreaticLine,
@@ -198,7 +199,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FreesNodesWhenTh
     EXPECT_DOUBLE_EQ(r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE), 2.0);
     EXPECT_FALSE(r_model_part.GetNode(2).IsFixed(WATER_PRESSURE));
 
-    r_model_part.GetNode(1).FastGetSolutionStepValue(TOTAL_DISPLACEMENT)[1] = -1.0; // move node 1 below phreatic line using total displacements (without moving the mesh)
+    // Move node 1 below phreatic line using total displacements (without moving the mesh, since move_mesh is false)
+    r_model_part.GetNode(1).FastGetSolutionStepValue(TOTAL_DISPLACEMENT)[1] = -1.0;
     process.ExecuteInitializeSolutionStep();
     EXPECT_DOUBLE_EQ(r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE), 0.0);
     EXPECT_FALSE(r_model_part.GetNode(1).IsFixed(WATER_PRESSURE));
