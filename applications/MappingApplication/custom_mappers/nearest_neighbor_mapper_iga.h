@@ -215,9 +215,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    /// Destructor.
-    ~NearestNeighborMapperIGA() override = default;
-
     ///@}
     ///@name Operations
     ///@{
