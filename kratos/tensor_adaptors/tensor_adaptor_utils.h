@@ -13,6 +13,7 @@
 #pragma once
 
 // System includes
+#include <numeric>
 #include <type_traits>
 
 // External includes
@@ -32,7 +33,7 @@ public:
 
     template<class TContainerType, class TContainerIO>
     static void GetShape(
-        std::vector<int>& rShape,
+        DenseVector<int>& rShape,
         const TContainerType& rContainer,
         const TContainerIO& rContainerIO)
     {
@@ -45,7 +46,7 @@ public:
             rContainerIO.GetValue(dummy_value, rContainer.front());
         }
 
-        DataTypeTraits<return_type>::Shape(dummy_value, rShape.data() + 1, rShape.data() + rShape.size());
+        DataTypeTraits<return_type>::Shape(dummy_value, rShape.data().begin() + 1, rShape.data().end());
         rShape[0] = rContainer.size();
     }
 
