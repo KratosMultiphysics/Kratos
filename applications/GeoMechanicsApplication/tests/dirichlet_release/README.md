@@ -20,7 +20,7 @@ The test is performed in two stages, with the following common conditions for bo
 
 ## Assertions
 
-The calculated displacements, strains and effective stresses from the Kratos Geomechanics calculations for stage 1 and 2 are compared to the expected solutions:
+The calculated displacements, total displacements, strains and effective stresses from the Kratos Geomechanics calculations for stage 1 and 2 are compared to the expected solutions:
 
-- During stage 1: The vertical displacement in the top node is asserted to be the prescribed -0.1 [m], identical to the strain. The expected vertical stress was hand-calculated using the strains, resulting from the forced compression and the Poisson effects of the strain in the x-direction (partially induced by the water pressure). 
-- During stage 2: Since the prescribed displacement is released, the vertical stress is asserted to be 0.0. The vertical strain and displacement are asserted to be 0.1 (note the sign is opposite to the displacement in stage 1).
+- During stage 1: The vertical displacement in the top node is asserted to be the prescribed -0.1 [m], identical to the total vertical displacement and strain. The expected vertical stress was hand-calculated using the strains, resulting from the forced compression and the Poisson effects of the strain in the x-direction (partially induced by the water pressure). 
+- During stage 2: Since the prescribed displacement is released, the total vertical displacement as well as the vertical stress are asserted to be 0.0. The vertical strain and displacement are asserted to be 0.1 (note the sign is opposite to the displacement in stage 1).
