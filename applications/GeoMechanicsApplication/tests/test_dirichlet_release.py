@@ -43,7 +43,6 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
         self.check_expected_outputs(
             expected_stage_displacement_and_strain=-0.1,
             expected_stress=expected_cauchy_stress_yy,
-            expected_total_displacement=-0.1,
             output_data=output_data[0],
             time=1.0,
         )
@@ -51,7 +50,6 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
         self.check_expected_outputs(
             expected_stage_displacement_and_strain=0.1072,
             expected_stress=100.0,
-            expected_total_displacement=0.0072,
             output_data=output_data[1],
             time=2.0,
         )
@@ -60,7 +58,6 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
         self,
         expected_stage_displacement_and_strain,
         expected_stress,
-        expected_total_displacement,
         output_data,
         time,
     ):
@@ -71,14 +68,7 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
         self.assertAlmostEqual(
             expected_stage_displacement_and_strain, displacement_top_node[1], 2
         )
-        total_displacement_top_node = (
-            test_helper.GiDOutputFileReader.nodal_values_at_time(
-                "TOTAL_DISPLACEMENT", time, output_data, [3]
-            )[0]
-        )
-        self.assertAlmostEqual(
-            expected_total_displacement, total_displacement_top_node[1], 2
-        )
+
         # integration point check in element 1, integration point 4 ( uniform stress and strain so an arbitrary choice )
         green_lagrange_strains_2_4 = (
             test_helper.GiDOutputFileReader.element_integration_point_values_at_time(

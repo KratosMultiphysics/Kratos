@@ -138,29 +138,21 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
     KRATOS_CATCH("");
 }
 
-void GeoApplyConstantScalarValueProcess::ExecuteInitializeSolutionStep()
+void GeoApplyConstantScalarValueProcess::ExecuteInitialize()
 {
     KRATOS_TRY;
 
-    // We only apply the value and fixity once, in the first time step. The reason we cannot
-    // use ExecuteInitialize() is that this method is called too early, leading to issues with
-    // calculations of our increments (e.g. INCREMENTAL_DISPLACEMENT) in combination with prescribed
-    // non-zero values.
-    if (!mInitialized) {
-        const bool is_fixed = this->Is(VARIABLE_IS_FIXED);
+    const bool is_fixed = this->Is(VARIABLE_IS_FIXED);
 
-        if (KratosComponents<Variable<double>>::Has(mVariableName)) { // case of double variable
-            InternalApplyValue<>(KratosComponents<Variable<double>>::Get(mVariableName), is_fixed, mDoubleValue);
-        } else if (KratosComponents<Variable<int>>::Has(mVariableName)) { // Case of int variable
-            InternalApplyValueWithoutFixing<>(KratosComponents<Variable<int>>::Get(mVariableName), mIntValue);
-        } else if (KratosComponents<Variable<bool>>::Has(mVariableName)) { // Case of bool variable
-            InternalApplyValueWithoutFixing<>(KratosComponents<Variable<bool>>::Get(mVariableName), mBoolValue);
-        } else {
-            KRATOS_ERROR << "Not able to fix the variable. Attempting to fix variable: " << mVariableName
-                         << std::endl;
-        }
-
-        mInitialized = true;
+    if (KratosComponents<Variable<double>>::Has(mVariableName)) { // case of double variable
+        InternalApplyValue<>(KratosComponents<Variable<double>>::Get(mVariableName), is_fixed, mDoubleValue);
+    } else if (KratosComponents<Variable<int>>::Has(mVariableName)) { // Case of int variable
+        InternalApplyValueWithoutFixing<>(KratosComponents<Variable<int>>::Get(mVariableName), mIntValue);
+    } else if (KratosComponents<Variable<bool>>::Has(mVariableName)) { // Case of bool variable
+        InternalApplyValueWithoutFixing<>(KratosComponents<Variable<bool>>::Get(mVariableName), mBoolValue);
+    } else {
+        KRATOS_ERROR << "Not able to fix the variable. Attempting to fix variable: " << mVariableName
+                     << std::endl;
     }
 
     KRATOS_CATCH("");
