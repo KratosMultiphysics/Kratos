@@ -54,7 +54,6 @@ public:
 
     ~GeoApplyConstantScalarValueProcess() override = default;
 
-    void             ExecuteInitialize() override;
     void             ExecuteInitializeSolutionStep() override;
     void             ExecuteFinalize() override;
     const Parameters GetDefaultParameters() const override;

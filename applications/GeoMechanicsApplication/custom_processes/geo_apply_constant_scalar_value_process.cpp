@@ -159,8 +159,6 @@ void GeoApplyConstantScalarValueProcess::ExecuteInitializeSolutionStep()
     KRATOS_CATCH("");
 }
 
-void GeoApplyConstantScalarValueProcess::ExecuteInitialize() { mInitialized = false; }
-
 void GeoApplyConstantScalarValueProcess::ExecuteFinalize()
 {
     if (this->Is(VARIABLE_IS_FIXED) && KratosComponents<Variable<double>>::Has(mVariableName)) {
