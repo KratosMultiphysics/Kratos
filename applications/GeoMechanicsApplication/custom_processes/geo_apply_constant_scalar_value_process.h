@@ -60,10 +60,6 @@ public:
 
     [[nodiscard]] std::string Info() const override { return "GeoApplyConstantScalarValueProcess"; }
 
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
-
-    void PrintData(std::ostream& rOStream) const override {}
-
 protected:
     ModelPart&  mrModelPart;          /// Reference to the model part.
     std::string mVariableName;        /// Name of the variable.
