@@ -24,6 +24,9 @@
 
 namespace Kratos {
 
+template<class TCheck, class... TList>
+using IsInList = std::disjunction<std::is_same<TCheck, TList>...>;
+
 /**
  * @brief Generic data type traits class for arithmetic types.
  *

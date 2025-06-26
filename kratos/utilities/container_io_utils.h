@@ -90,6 +90,9 @@ public:
 
     using ReturnType = TDataType;
 
+    template<class TContainerType>
+    using IsAllowedContainer = IsInList<TContainerType, ModelPart::NodesContainerType>;
+
     ///@}
     ///@name Life cycle
     ///@{
@@ -149,6 +152,15 @@ public:
 
     using ReturnType = TDataType;
 
+    template<class TContainerType>
+    using IsAllowedContainer = IsInList<TContainerType,
+                                        ModelPart::NodesContainerType,
+                                        ModelPart::ConditionsContainerType,
+                                        ModelPart::ElementsContainerType,
+                                        ModelPart::PropertiesContainerType,
+                                        ModelPart::GeometriesMapType,
+                                        ModelPart::MasterSlaveConstraintContainerType>;
+
     ///@}
     ///@name Life cycle
     ///@{
@@ -201,6 +213,11 @@ public:
     using DataType = TDataType;
 
     using ReturnType = std::vector<TDataType>;
+
+    template<class TContainerType>
+    using IsAllowedContainer = IsInList<TContainerType,
+                                        ModelPart::ConditionsContainerType,
+                                        ModelPart::ElementsContainerType>;
 
     ///@}
     ///@name Life cycle

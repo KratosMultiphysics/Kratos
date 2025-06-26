@@ -193,18 +193,12 @@ void VariableTensorAdaptor::CollectData()
 
         auto& r_data = std::get<DenseVector<primitive_type>>(this->mData);
 
-        if constexpr(std::is_same_v<container_io_type, HistoricalIO<data_type>>) {
-            if constexpr(std::is_same_v<container_type, ModelPart::NodesContainerType>) {
-                CopyToContiguousArray(*pContainer, *pContainerIO, r_data.data().begin(), r_data.size());
-            }
-        } else if constexpr(std::is_same_v<container_io_type, GaussPointIO<data_type>>) {
-            if constexpr(std::is_same_v<container_type, ModelPart::ConditionsContainerType> || std::is_same_v<container_type, ModelPart::ElementsContainerType>) {
-                CopyToContiguousArray(*pContainer, *pContainerIO, r_data.data().begin(), r_data.size());
-            }
-        } else {
+        if constexpr(container_io_type::template IsAllowedContainer<container_type>::value) {
             CopyToContiguousArray(*pContainer, *pContainerIO, r_data.data().begin(), r_data.size());
+        } else {
+            KRATOS_ERROR << "It is prohibited to use " << ModelPart::Container<container_type>::GetEntityName()
+                         << " containers with " <<  pContainerIO->Info () << ".";
         }
-
     }, mpContainer, mpContainerIO);
 
     KRATOS_CATCH("");
@@ -233,18 +227,12 @@ void VariableTensorAdaptor::StoreData()
         std::copy(this->mShape.begin() + 1, this->mShape.end(), shape.begin());
 
 
-        if constexpr(std::is_same_v<container_io_type, HistoricalIO<data_type>>) {
-            if constexpr(std::is_same_v<container_type, ModelPart::NodesContainerType>) {
-                CopyFromContiguousDataArray(*pContainer, *pContainerIO, r_data.data().begin(), shape);
-            }
-        } else if constexpr(std::is_same_v<container_io_type, GaussPointIO<data_type>>) {
-            if constexpr(std::is_same_v<container_type, ModelPart::ConditionsContainerType> || std::is_same_v<container_type, ModelPart::ElementsContainerType>) {
-                CopyFromContiguousDataArray(*pContainer, *pContainerIO, r_data.data().begin(), shape);
-            }
-        } else {
+        if constexpr(container_io_type::template IsAllowedContainer<container_type>::value) {
             CopyFromContiguousDataArray(*pContainer, *pContainerIO, r_data.data().begin(), shape);
+        } else {
+            KRATOS_ERROR << "It is prohibited to use " << ModelPart::Container<container_type>::GetEntityName()
+                         << " containers with " <<  pContainerIO->Info () << ".";
         }
-
     }, mpContainer, mpContainerIO);
 
     KRATOS_CATCH("");
