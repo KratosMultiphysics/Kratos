@@ -86,6 +86,8 @@ public:
     ///@name Type definitions
     ///@{
 
+    using DataType = TDataType;
+
     using ReturnType = TDataType;
 
     ///@}
@@ -143,6 +145,8 @@ public:
     ///@name Type definitions
     ///@{
 
+    using DataType = TDataType;
+
     using ReturnType = TDataType;
 
     ///@}
@@ -193,6 +197,8 @@ class GaussPointIO
 public:
     ///@name Type definitions
     ///@{
+
+    using DataType = TDataType;
 
     using ReturnType = std::vector<TDataType>;
 
