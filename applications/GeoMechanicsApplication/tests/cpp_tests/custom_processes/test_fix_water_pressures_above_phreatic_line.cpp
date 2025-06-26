@@ -39,8 +39,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FixesAllWaterPre
                 "model_part_name": "foo",
                 "x_coordinates": [0.0],
                 "y_coordinates": [-2.0],
-                "z_coordinates": [0.0],
-                "gravity_direction": 1,
                 "move_mesh": false
             }  )"};
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
@@ -75,8 +73,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_DoesNothingWhenA
                 "model_part_name": "foo",
                 "x_coordinates": [0.0],
                 "y_coordinates": [1.0],
-                "z_coordinates": [0.0],
-                "gravity_direction": 1,
                 "move_mesh": false
             }  )"};
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
@@ -110,8 +106,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_OnlyFixesNodesAb
                 "model_part_name": "foo",
                 "x_coordinates": [0.0],
                 "y_coordinates": [-0.5],
-                "z_coordinates": [0.0],
-                "gravity_direction": 1,
                 "move_mesh": false
             }  )"};
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
@@ -145,8 +139,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FreesNodesWhenTh
                 "model_part_name": "foo",
                 "x_coordinates": [0.0],
                 "y_coordinates": [-0.5],
-                "z_coordinates": [0.0],
-                "gravity_direction": 1,
                 "move_mesh": true
             }  )"};
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
@@ -187,8 +179,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FreesNodesWhenTh
                 "model_part_name": "foo",
                 "x_coordinates": [0.0],
                 "y_coordinates": [-0.5],
-                "z_coordinates": [0.0],
-                "gravity_direction": 1,
                 "move_mesh": false
             }  )"};
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
@@ -230,7 +220,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_InterpolatesMult
                 "model_part_name": "foo",
                 "x_coordinates": [0.0, 1.0],
                 "y_coordinates": [-1.0, 0.0],
-                "gravity_direction": 1,
                 "move_mesh": false
             }  )"};
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);

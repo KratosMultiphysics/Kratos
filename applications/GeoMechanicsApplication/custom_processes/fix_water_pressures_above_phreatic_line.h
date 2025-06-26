@@ -24,9 +24,9 @@ public:
     void ExecuteInitializeSolutionStep() override;
 
 private:
-    ModelPart& mrModelPart;
+    ModelPart&    mrModelPart;
     Table<double> mPhreaticLineTable;
-    bool mMoveMesh = false;
+    bool          mMoveMesh = false;
 };
 
 } // namespace Kratos
