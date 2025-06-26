@@ -27,7 +27,6 @@ public:
 private:
     ModelPart&    mrModelPart;
     Table<double> mPhreaticLineTable;
-    bool          mMoveMesh = false;
 };
 
 } // namespace Kratos
