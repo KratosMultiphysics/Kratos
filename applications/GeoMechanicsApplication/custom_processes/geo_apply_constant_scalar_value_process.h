@@ -55,6 +55,7 @@ public:
     ~GeoApplyConstantScalarValueProcess() override = default;
 
     void             ExecuteInitialize() override;
+    void             ExecuteInitializeSolutionStep() override;
     void             ExecuteFinalize() override;
     const Parameters GetDefaultParameters() const override;
 
@@ -70,6 +71,7 @@ protected:
     double      mDoubleValue = 0.0;   /// Double value.
     int         mIntValue    = 0;     /// Integer value.
     bool        mBoolValue   = false; /// Boolean value.
+    bool        mInitialized = false;
 
 private:
     template <class TVarType>

@@ -1,6 +1,7 @@
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 import test_helper
 
 
@@ -22,7 +23,7 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
         test_name = "dirichlet_release"
         project_path = test_helper.get_file_path(test_name)
         n_stages = 2
-        stages = test_helper.get_stages(project_path, n_stages)
+        run_multiple_stages.run_stages(project_path, n_stages)
 
         # name of output file
         output_file_names = [
@@ -31,10 +32,8 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
         ]
         output_data = []
 
-        # run stages and get results
-        for stage, output_file_name in zip(stages, output_file_names):
-            stage.Run()
-            reader = test_helper.GiDOutputFileReader()
+        reader = test_helper.GiDOutputFileReader()
+        for output_file_name in output_file_names:
             output_data.append(reader.read_output_from(output_file_name))
 
         # Expected stress, resulting from the compression, Poisson effects (nu = 0.2) and
