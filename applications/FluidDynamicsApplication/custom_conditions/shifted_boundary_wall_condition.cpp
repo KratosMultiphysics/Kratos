@@ -344,10 +344,10 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     const Matrix aux_matrix_BtransAtransPtan = prod(aux_matrix_BtransAtrans, tang_proj_matrix);
 
     // Contribution coming from the traction vector tangential component (no contribution for no slip)
-    noalias(aux_LHS) -= adjoint_consistency * nitsche_coeffs_tang.first  * weight * prod(aux_matrix_BtransAtransPtan, aux_matrix_ACB);
+    noalias(aux_LHS) -= adjoint_consistency * nitsche_coeffs_tang.first  * weight * 2 * prod(aux_matrix_BtransAtransPtan, aux_matrix_ACB);
 
     // Contribution coming from the tangential velocity (towards zero for slip)
-    noalias(aux_LHS) -= adjoint_consistency * nitsche_coeffs_tang.second * weight * prod(aux_matrix_BtransAtransPtan, N_matrix);
+    noalias(aux_LHS) -= adjoint_consistency * nitsche_coeffs_tang.second * weight * 2 * prod(aux_matrix_BtransAtransPtan, N_matrix);
 
     /////////////////////////////////////////////////////////////////////////////////
     //KRATOS_WATCH(aux_LHS);
