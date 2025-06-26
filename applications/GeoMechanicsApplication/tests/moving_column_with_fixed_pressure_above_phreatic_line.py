@@ -16,20 +16,23 @@ class KratosGeoMechanicsSettlementWorkflowCppRoute(KratosUnittest.TestCase):
     """
     This test class checks the settlement workflow using the C++ route.
     """
-    def get_test_dir_name(self):
-        return "cpp"
 
     def setUp(self):
         super().setUp()
 
         self.test_root = test_helper.get_file_path("moving_column_with_fixed_pressure_above_phreatic_line")
-        self.test_path = os.path.join(self.test_root, self.get_test_dir_name())
 
     def test_d_settlement_workflow(self):
         import KratosMultiphysics.GeoMechanicsApplication.run_geo_settlement as run_geo_settlement
 
         status = run_geo_settlement.run_stages(self.test_root,["ProjectParameters.json"])
+        reader = test_helper.GiDOutputFileReader()
+        output_data = reader.read_output_from(os.path.join(self.test_root, 'output.post.res'))
+
+
         self.assertEqual(status, 0)
+        self.assertAlmostEqual(reader.nodal_values_at_time("WATER_PRESSURE", 21600.0, output_data, [27])[0], 0.0, 5)
+        self.assertAlmostEqual(reader.nodal_values_at_time("WATER_PRESSURE", 22200.0, output_data, [27])[0], -3678.75, 5)
 
 
 if __name__ == '__main__':
