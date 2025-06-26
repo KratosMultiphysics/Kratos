@@ -159,6 +159,8 @@ void GeoApplyConstantScalarValueProcess::ExecuteInitializeSolutionStep()
             KRATOS_ERROR << "Not able to fix the variable. Attempting to fix variable: " << mVariableName
                          << std::endl;
         }
+
+        mInitialized = true;
     }
 
     KRATOS_CATCH("");
