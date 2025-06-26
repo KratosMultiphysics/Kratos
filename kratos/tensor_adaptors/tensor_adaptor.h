@@ -16,6 +16,7 @@
 #include <string>
 #include <atomic>
 #include <variant>
+#include <numeric>
 #include <type_traits>
 
 // External includes
@@ -129,6 +130,8 @@ public:
      * @brief Get the Shape of the tensor
      */
     DenseVector<int> Shape() const { return mShape; };
+
+    int Size() const { return std::accumulate(mShape.data().begin(), mShape.data().end(), 1, std::multiplies<int>{}); }
 
     ///@}
     ///@name Input and output

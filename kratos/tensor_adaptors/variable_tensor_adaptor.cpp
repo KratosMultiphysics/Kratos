@@ -91,7 +91,7 @@ VariableTensorAdaptor::VariableTensorAdaptor(
         auto p_container_io = Detail::InitializeAndGetContainerIO<HistoricalIO>(this->mShape, rShape, pVariable, pContainer, StepIndex);
 
         DenseVector<primitive_data_type> data;
-        data.resize(TensorAdaptorUtils::GetFlatLength(this->mShape.data().begin(), this->mShape.data().end()));
+        data.resize(this->Size());
         this->mData = std::move(data);
 
         return p_container_io;
@@ -121,7 +121,7 @@ VariableTensorAdaptor::VariableTensorAdaptor(
         auto p_container_io = Detail::InitializeAndGetContainerIO<NonHistoricalIO>(this->mShape, rShape, pVariable, pContainer);
 
         DenseVector<primitive_data_type> data;
-        data.resize(TensorAdaptorUtils::GetFlatLength(this->mShape.data().begin(), this->mShape.data().end()));
+        data.resize(this->Size());
         this->mData = std::move(data);
 
         return p_container_io;
@@ -152,7 +152,7 @@ VariableTensorAdaptor::VariableTensorAdaptor(
         auto p_container_io = Detail::InitializeAndGetContainerIO<GaussPointIO>(this->mShape, rShape, pVariable, pContainer, rProcessInfo);
 
         DenseVector<primitive_data_type> data;
-        data.resize(TensorAdaptorUtils::GetFlatLength(this->mShape.data().begin(), this->mShape.data().end()));
+        data.resize(this->Size());
         this->mData = std::move(data);
 
         return p_container_io;
@@ -257,13 +257,13 @@ VariableTensorAdaptor::ContainerType VariableTensorAdaptor::GetContainer() const
 
 std::string VariableTensorAdaptor::Info() const
 {
-    // return std::visit([this](auto pContainer) {
-    //     std::stringstream msg;
-    //     msg << "VariableTensorAdaptor: " << pContainer->Info() << " with " << this->mpContainer->size()
-    //         << " " << ModelPart::Container<TContainerType>::GetEntityName() << "(s).";
-    //     return msg.str();
-    // }, mpContainerIO);
-    return "";
+    return std::visit([this](auto pContainer, auto pContainerIO) {
+        std::stringstream msg;
+        msg << "VariableTensorAdaptor: " << pContainerIO->Info() << " with " << pContainer->size()
+            << " " << ModelPart::Container<std::remove_cv_t<std::decay_t<decltype(*pContainer)>>>::GetEntityName() << "(s) having shape "
+            << this->Shape() << " ].";
+        return msg.str();
+    }, mpContainer, mpContainerIO);
 }
 
 // template instantiations

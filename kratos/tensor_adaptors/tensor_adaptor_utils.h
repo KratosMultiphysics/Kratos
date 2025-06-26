@@ -13,7 +13,6 @@
 #pragma once
 
 // System includes
-#include <numeric>
 #include <type_traits>
 
 // External includes
@@ -48,14 +47,6 @@ public:
 
         DataTypeTraits<return_type>::Shape(dummy_value, rShape.data().begin() + 1, rShape.data().end());
         rShape[0] = rContainer.size();
-    }
-
-    template<class TIndexType>
-    static TIndexType GetFlatLength(
-        TIndexType const * pShapeBegin,
-        TIndexType const * pShapeEnd)
-    {
-        return std::accumulate(pShapeBegin, pShapeEnd, 1, std::multiplies<TIndexType>{});
     }
 
     ///@}
