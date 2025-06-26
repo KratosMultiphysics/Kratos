@@ -427,7 +427,6 @@ void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& r
         if (VtkDefinitions::KratosVtkGeometryTypes.count(r_kratos_cell) > 0) {
             cell_type = VtkDefinitions::KratosVtkGeometryTypes.at(r_kratos_cell);
         } else {
-            const auto& r_kratos_cell = r_entity.GetGeometry().GetGeometryType();
             switch (r_kratos_cell) {
                 case GeometryData::KratosGeometryType::Kratos_Nurbs_Curve:
                     KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Nurbs_Curve" << std::endl;
