@@ -11,13 +11,15 @@
 //
 
 #include "fix_water_pressures_above_phreatic_line.h"
+#include "geo_mechanics_application_variables.h"
 #include "includes/model_part.h"
 
 namespace Kratos
 {
+
 FixWaterPressuresAbovePhreaticLineProcess::FixWaterPressuresAbovePhreaticLineProcess(ModelPart& rMainModelPart,
                                                                                      const Parameters& rSettings)
-    : mrModelPart(rMainModelPart)
+    : mrModelPart(rMainModelPart), mMoveMesh(rSettings["move_mesh"].GetBool())
 {
     const auto x_coordinates = rSettings["x_coordinates"].GetVector();
     const auto y_coordinates = rSettings["y_coordinates"].GetVector();
@@ -30,11 +32,14 @@ FixWaterPressuresAbovePhreaticLineProcess::FixWaterPressuresAbovePhreaticLinePro
 void FixWaterPressuresAbovePhreaticLineProcess::ExecuteInitializeSolutionStep()
 {
     block_for_each(mrModelPart.Nodes(), [this](Node& rNode) {
-        if (rNode.Y() > mPhreaticLineTable(rNode.X())) {
-            rNode.FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+        const auto coordinates =
+            mMoveMesh ? rNode.Coordinates()
+                      : rNode.Coordinates() + rNode.FastGetSolutionStepValue(TOTAL_DISPLACEMENT);
+        if (coordinates[1] > mPhreaticLineTable(coordinates[0])) {
+            rNode.FastGetSolutionStepValue(WATER_PRESSURE) =
+                0.0; // Could be changed to small positive value instead of zero
             rNode.Fix(WATER_PRESSURE);
-        }
-        else {
+        } else {
             rNode.Free(WATER_PRESSURE);
         }
     });
