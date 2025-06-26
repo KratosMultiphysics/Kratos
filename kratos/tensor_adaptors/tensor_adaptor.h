@@ -15,12 +15,15 @@
 // System includes
 #include <string>
 #include <atomic>
+#include <variant>
+#include <type_traits>
 
 // External includes
 #include <span/span.hpp>
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "includes/ublas_interface.h"
 #include "intrusive_ptr/intrusive_ptr.hpp"
 
@@ -32,8 +35,27 @@ namespace Kratos {
 /**
  * @brief Base class or all the tensor adaptor types.
  */
-template<class TContainerType, class TPrimitiveDataType>
 class KRATOS_API(KRATOS_CORE) TensorAdaptor {
+private:
+    ///@name Private classes
+    ///@{
+
+    template<class... TPrimitiveDataTypes>
+    struct PrimitiveDataTypes
+    {
+        ///@name Type definitions
+        ///@{
+
+        using DataType = std::variant<DenseVector<TPrimitiveDataTypes>...>;
+
+        using ViewType = std::variant<Kratos::span<TPrimitiveDataTypes>...>;
+
+        using ConstViewType = std::variant<Kratos::span<const TPrimitiveDataTypes>...>;
+
+        ///@}
+    };
+
+    ///@}
 public:
 
     ///@name Type definitions
@@ -43,15 +65,28 @@ public:
 
     using ConstPointer = Kratos::intrusive_ptr<const TensorAdaptor>;
 
-    using PrimitiveDataType = TPrimitiveDataType;
+    using PrimitiveDataTypeInfo = PrimitiveDataTypes<bool, int, double>;
 
-    using ContainerType = TContainerType;
+    using DataType = PrimitiveDataTypeInfo::DataType;
+
+    using ViewType = PrimitiveDataTypeInfo::ViewType;
+
+    using ConstViewType = PrimitiveDataTypeInfo::ConstViewType;
+
+    using ContainerType = std::variant<
+                                ModelPart::NodesContainerType::Pointer,
+                                ModelPart::ConditionsContainerType::Pointer,
+                                ModelPart::ElementsContainerType::Pointer,
+                                ModelPart::PropertiesContainerType::Pointer,
+                                // ModelPart::MasterSlaveConstraintContainerType::Pointer,
+                                ModelPart::GeometryContainerType::GeometriesMapType::Pointer
+                            >;
 
     ///@}
     ///@name Life cycle
     ///@{
 
-    TensorAdaptor(typename TContainerType::Pointer pContainer) : mpContainer(pContainer) {};
+    TensorAdaptor() = default;
 
     virtual ~TensorAdaptor() = default;
 
@@ -70,18 +105,30 @@ public:
      */
     virtual void StoreData() = 0;
 
-    typename TContainerType::Pointer GetContainer() const { return mpContainer; }
+    virtual ContainerType GetContainer() const = 0;
 
-    DenseVector<TPrimitiveDataType> MoveData() { return std::move(mData); }
+    DataType MoveData() { return std::move(mData); }
 
-    Kratos::span<const TPrimitiveDataType> ViewData() const { return Kratos::span<const TPrimitiveDataType>(mData.data().begin(), mData.data().end()); }
+    ConstViewType  ViewData() const
+    {
+        return std::visit([](const auto& rData) -> ConstViewType {
+            using data_type = typename std::remove_cv_t<std::decay_t<decltype(rData)>>::value_type;
+            return Kratos::span<const data_type>(rData.data().begin(), rData.data().end());
+        }, this->mData);
+    }
 
-    Kratos::span<TPrimitiveDataType> ViewData() { return Kratos::span<TPrimitiveDataType>(mData.data().begin(), mData.data().end()); }
+    ViewType ViewData()
+    {
+        return std::visit([](auto& rData) -> ViewType {
+            using data_type = typename std::remove_cv_t<std::decay_t<decltype(rData)>>::value_type;
+            return Kratos::span<data_type>(rData.data().begin(), rData.data().end());
+        }, this->mData);
+    }
 
     /**
      * @brief Get the Shape of the tensor
      */
-    std::vector<int> Shape() const { return mShape; };
+    DenseVector<int> Shape() const { return mShape; };
 
     ///@}
     ///@name Input and output
@@ -95,11 +142,9 @@ protected:
     ///@name Protected member variables
     ///@{
 
-    typename TContainerType::Pointer mpContainer;
+    DataType mData;
 
-    DenseVector<TPrimitiveDataType> mData;
-
-    std::vector<int> mShape;
+    DenseVector<int> mShape;
 
     ///@}
 
@@ -131,10 +176,9 @@ private:
 
 /// @}
 /// output stream functions
-template<class TContainerType, class TPrimitiveDataType>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const TensorAdaptor<TContainerType, TPrimitiveDataType>& rThis)
+    const TensorAdaptor& rThis)
 {
     return rOStream << rThis.Info();
 }
