@@ -21,10 +21,12 @@
 #include "includes/model_part.h"
 #include "includes/define_python.h"
 #include "utilities/container_io_utils.h"
-#include "tensor_adaptors/tensor_adaptor.h"
-#include "tensor_adaptors/variant_variable_tensor_adaptor.h"
 #include "numpy_utils.h"
 #include "utilities/parallel_utilities.h"
+
+// Tensor adaptors
+#include "tensor_adaptors/tensor_adaptor.h"
+#include "tensor_adaptors/variable_tensor_adaptor.h"
 
 // Include base h
 #include "add_tensor_adaptors_to_python.h"
@@ -33,71 +35,93 @@ namespace Kratos::Python {
 
 namespace Detail {
 
-template <class TContainerType, class TDataType>
-class TensorAdaptorTrampoline final : public TensorAdaptor<TContainerType, TDataType> {
+using PybindArrayType = std::variant<
+                            pybind11::array_t<int, pybind11::array::c_style>,
+                            pybind11::array_t<bool, pybind11::array::c_style>,
+                            pybind11::array_t<double, pybind11::array::c_style>
+                        >;
+
+
+class TensorAdaptorTrampoline final : public TensorAdaptor {
 public:
-    using BaseType = TensorAdaptor<TContainerType, TDataType>;
+    using BaseType = TensorAdaptor;
+
     void CollectData() override
     {
-        PYBIND11_OVERRIDE_PURE(void,        /*return type*/
-                               BaseType,    /*base type*/
-                               CollectData  /*function name*/
+        PYBIND11_OVERRIDE_PURE(void,                /*return type*/
+                               BaseType,            /*base type*/
+                               CollectData          /*function name*/
         );
     }
 
     void StoreData() override
     {
-        PYBIND11_OVERRIDE_PURE(void,        /*return type*/
-                               BaseType,    /*base type*/
-                               StoreData    /*function name*/
+        PYBIND11_OVERRIDE_PURE(void,                /*return type*/
+                               BaseType,            /*base type*/
+                               StoreData            /*function name*/
+        );
+    }
+
+    ContainerType GetContainer() const override
+    {
+        PYBIND11_OVERRIDE_PURE(ContainerType,       /*return type*/
+                               BaseType,            /*base type*/
+                               GetContainer         /*function name*/
         );
     }
 
     std::string Info() const override
     {
-        PYBIND11_OVERRIDE_PURE(std::string,  /*return type*/
-                               BaseType,     /*base type*/
-                               Info          /*function name*/
+        PYBIND11_OVERRIDE_PURE(std::string,         /*return type*/
+                               BaseType,            /*base type*/
+                               Info                 /*function name*/
         );
     }
 }; // class ExpressionTrampoline
 
-template<class TTensorAdaptorType>
-pybind11::array_t<typename TTensorAdaptorType::PrimitiveDataType, pybind11::array::c_style> GetNumpyArray(TTensorAdaptorType& rTensorAdaptor)
+
+PybindArrayType GetNumpyArray(TensorAdaptor& rTensorAdaptor)
 {
-    using primitive_data_type = typename TTensorAdaptorType::PrimitiveDataType;
-    using numpy_array_type = pybind11::array_t<primitive_data_type, pybind11::array::c_style>;
+    auto view_data = rTensorAdaptor.ViewData();
 
-    const auto& r_shape = rTensorAdaptor.Shape();
+    return std::visit([&rTensorAdaptor](auto& rTensorData) -> PybindArrayType {
+        using value_type = typename std::remove_cv_t<std::decay_t<decltype(rTensorData)>>::value_type;
+        using numpy_array_type = pybind11::array_t<value_type, pybind11::array::c_style>;
 
-    std::vector<std::size_t> c_shape(r_shape.size());
-    std::copy(r_shape.begin(), r_shape.end(), c_shape.begin());
-    std::vector<std::size_t> strides(c_shape.size());
+        const auto& r_shape = rTensorAdaptor.Shape();
 
-    std::size_t stride_items = 1;
-    for (int i = c_shape.size() - 1; i >= 0; --i) {
-        strides[i] = sizeof(primitive_data_type) * stride_items;
-        stride_items *= c_shape[i];
-    }
+        std::vector<std::size_t> c_shape(r_shape.size());
+        std::copy(r_shape.begin(), r_shape.end(), c_shape.begin());
+        std::vector<std::size_t> strides(c_shape.size());
 
-    // do nothing in the release of the numpy array since the ownership is not passed
-    // the ownership is kept with the TensorAdaptor.
-    pybind11::capsule release(rTensorAdaptor.ViewData().data(), [](void* a) {});
+        std::size_t stride_items = 1;
+        for (int i = c_shape.size() - 1; i >= 0; --i) {
+            strides[i] = sizeof(value_type) * stride_items;
+            stride_items *= c_shape[i];
+        }
 
-    return numpy_array_type(
-        c_shape,
-        strides,
-        rTensorAdaptor.ViewData().data(),
-        release
-    );
+        // do nothing in the release of the numpy array since the ownership is not passed
+        // the ownership is kept with the TensorAdaptor.
+        pybind11::capsule release(rTensorData.data(), [](void* a) {});
+
+        return numpy_array_type(
+            c_shape,
+            strides,
+            rTensorData.data(),
+            release
+        );
+    }, view_data);
 }
 
-template<class TTensorAdaptorType, class... TArgs>
+template<class... TArgs>
 void SetNumpyArray(
-    TTensorAdaptorType& rTensorAdaptor,
+    TensorAdaptor& rTensorAdaptor,
     std::variant<pybind11::array_t<TArgs, pybind11::array::c_style> const *...> pArray)
 {
-    std::visit([&rTensorAdaptor](const auto pArray) {
+    auto view_data = rTensorAdaptor.ViewData();
+
+    std::visit([&rTensorAdaptor](const auto pArray, auto& rTensorData) {
+        using value_type = typename std::remove_cv_t<std::decay_t<decltype(rTensorData)>>::value_type;
         auto& r_array = *pArray;
 
         KRATOS_ERROR_IF(r_array.ndim() == 0)
@@ -122,28 +146,53 @@ void SetNumpyArray(
         }
 
         // copy data from the input to the Adaptor
-        IndexPartition<IndexType>(rTensorAdaptor.ViewData().size()).for_each([&r_array, &rTensorAdaptor](const auto Index) {
-            rTensorAdaptor.ViewData()[Index] = static_cast<typename TTensorAdaptorType::PrimitiveDataType>(r_array.data()[Index]);
+        IndexPartition<IndexType>(rTensorData.size()).for_each([&r_array, &rTensorData](const auto Index) {
+            rTensorData[Index] = static_cast<value_type>(r_array.data()[Index]);
         });
-    }, pArray);
+    }, pArray, view_data);
 }
 
-template<class TTensorAdaptorType>
-void AddBaseTensorAdaptor(
-    pybind11::module& rModule,
-    const std::string& AdaptorName)
+// template<class TContainerType>
+// void AddContainerBaseTensorAdaptors(
+//     pybind11::module& rModule,
+//     const std::string& AdaptorNamePrefix)
+// {
+//     AddBaseTensorAdaptor<TensorAdaptor<TContainerType, int>>(rModule, AdaptorNamePrefix + "IntTensorAdaptor");
+//     AddBaseTensorAdaptor<TensorAdaptor<TContainerType, double>>(rModule, AdaptorNamePrefix + "DoubleTensorAdaptor");
+//     AddBaseTensorAdaptor<TensorAdaptor<TContainerType, bool>>(rModule, AdaptorNamePrefix + "BoolTensorAdaptor");
+// }
+
+// template<class TContainerType>
+// void AddNonHistoricalTensorAdaptors(
+//     pybind11::module& rModule,
+//     const std::string& rAdaptorName)
+// {
+//     using non_historical_variant_variable_ta_type = VariantVariableTensorAdaptor<TContainerType, NonHistoricalIO>;
+//     pybind11::class_<non_historical_variant_variable_ta_type, typename non_historical_variant_variable_ta_type::Pointer, typename non_historical_variant_variable_ta_type::BaseType>(rModule, rAdaptorName.c_str())
+//         .def(pybind11::init<typename non_historical_variant_variable_ta_type::ContainerType::Pointer, typename non_historical_variant_variable_ta_type::VariableType>(), pybind11::arg("container"), pybind11::arg("variable"))
+//         .def(pybind11::init<typename non_historical_variant_variable_ta_type::ContainerType::Pointer, typename non_historical_variant_variable_ta_type::VariableType, const std::vector<int>&>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("shape"))
+//         ;
+
+// }
+
+} // namespace Detail
+
+
+void AddTensorAdaptorsToPython(pybind11::module& m)
 {
-    using container_type = typename TTensorAdaptorType::ContainerType;
-    using primitive_data_type = typename TTensorAdaptorType::PrimitiveDataType;
-    pybind11::class_<TTensorAdaptorType, typename TTensorAdaptorType::Pointer, Detail::TensorAdaptorTrampoline<container_type, primitive_data_type>>(rModule, AdaptorName.c_str())
-        .def("CollectData", &TTensorAdaptorType::CollectData)
-        .def("StoreData", &TTensorAdaptorType::StoreData)
-        .def("GetContainer", &TTensorAdaptorType::GetContainer)
-        .def("Shape", &TTensorAdaptorType::Shape)
+    auto tensor_adaptor_sub_module = m.def_submodule("TensorAdaptors");
+
+    // add the base tensor adaptor
+    pybind11::class_<TensorAdaptor, TensorAdaptor::Pointer>(tensor_adaptor_sub_module, "TensorAdaptor")
+        .def("CollectData", &TensorAdaptor::CollectData)
+        .def("StoreData", &TensorAdaptor::StoreData)
+        .def("GetContainer", &TensorAdaptor::GetContainer)
+        .def("Shape", &TensorAdaptor::Shape)
+        .def("ViewData", &Detail::GetNumpyArray)
         .def_property("data",
-                      &GetNumpyArray<TTensorAdaptorType>,
+                      &Detail::GetNumpyArray,
                       pybind11::cpp_function(
-                        &SetNumpyArray<TTensorAdaptorType,
+                        &Detail::SetNumpyArray<
                             bool,
                             std::uint8_t,
                             std::uint16_t,
@@ -159,117 +208,107 @@ void AddBaseTensorAdaptor(
                         pybind11::arg("self"),
                         pybind11::arg("array").noconvert()
                       ))
-        .def("ViewData", &GetNumpyArray<TTensorAdaptorType>)
-        .def("MoveData", [](TTensorAdaptorType& rSelf){
-                using numpy_array_type = pybind11::array_t<primitive_data_type, pybind11::array::c_style>;
+        // .def("MoveData", [](TTensorAdaptorType& rSelf){
+        //         using numpy_array_type = pybind11::array_t<primitive_data_type, pybind11::array::c_style>;
 
-                const auto& r_shape = rSelf.Shape();
+        //         const auto& r_shape = rSelf.Shape();
 
-                std::vector<std::size_t> c_shape(r_shape.size());
-                std::copy(r_shape.begin(), r_shape.end(), c_shape.begin());
-                std::vector<std::size_t> strides(c_shape.size());
+        //         std::vector<std::size_t> c_shape(r_shape.size());
+        //         std::copy(r_shape.begin(), r_shape.end(), c_shape.begin());
+        //         std::vector<std::size_t> strides(c_shape.size());
 
-                std::size_t stride_items = 1;
-                for (int i = c_shape.size() - 1; i >= 0; --i) {
-                    strides[i] = sizeof(primitive_data_type) * stride_items;
-                    stride_items *= c_shape[i];
-                }
+        //         std::size_t stride_items = 1;
+        //         for (int i = c_shape.size() - 1; i >= 0; --i) {
+        //             strides[i] = sizeof(primitive_data_type) * stride_items;
+        //             stride_items *= c_shape[i];
+        //         }
 
-                // this method transfers the ownership of the data to numpy.
-                // Since the DenseVector does not allow moving out the data without getting a call
-                // to destroy DenseVector underlying data at the destructor, we are creating a copy of the
-                // data by moving it to a temp so the underlying data container within the TensorAdaptor is cleared.
-                DenseVector<primitive_data_type> temp = rSelf.MoveData();
-                primitive_data_type* array = new primitive_data_type[temp.size()];
-                std::copy(temp.begin(), temp.end(), array);
+        //         // this method transfers the ownership of the data to numpy.
+        //         // Since the DenseVector does not allow moving out the data without getting a call
+        //         // to destroy DenseVector underlying data at the destructor, we are creating a copy of the
+        //         // data by moving it to a temp so the underlying data container within the TensorAdaptor is cleared.
+        //         DenseVector<primitive_data_type> temp = rSelf.MoveData();
+        //         primitive_data_type* array = new primitive_data_type[temp.size()];
+        //         std::copy(temp.begin(), temp.end(), array);
 
-                // now we add the release to clear the data.
-                pybind11::capsule release(array, [](void* a) {
-                    delete[] reinterpret_cast<primitive_data_type*>(a);
-                });
+        //         // now we add the release to clear the data.
+        //         pybind11::capsule release(array, [](void* a) {
+        //             delete[] reinterpret_cast<primitive_data_type*>(a);
+        //         });
 
-                return numpy_array_type(
-                    c_shape,
-                    strides,
-                    array,
-                    release
-                );
-        })
-        .def("__str__", PrintObject<TTensorAdaptorType>);
+        //         return numpy_array_type(
+        //             c_shape,
+        //             strides,
+        //             array,
+        //             release
+        //         );
+        // })
+        .def("__str__", PrintObject<TensorAdaptor>);
     ;
-}
 
-template<class TContainerType>
-void AddContainerBaseTensorAdaptors(
-    pybind11::module& rModule,
-    const std::string& AdaptorNamePrefix)
-{
-    AddBaseTensorAdaptor<TensorAdaptor<TContainerType, int>>(rModule, AdaptorNamePrefix + "IntTensorAdaptor");
-    AddBaseTensorAdaptor<TensorAdaptor<TContainerType, double>>(rModule, AdaptorNamePrefix + "DoubleTensorAdaptor");
-    AddBaseTensorAdaptor<TensorAdaptor<TContainerType, bool>>(rModule, AdaptorNamePrefix + "BoolTensorAdaptor");
-}
-
-template<class TContainerType>
-void AddNonHistoricalTensorAdaptors(
-    pybind11::module& rModule,
-    const std::string& rAdaptorName)
-{
-    using non_historical_variant_variable_ta_type = VariantVariableTensorAdaptor<TContainerType, NonHistoricalIO>;
-    pybind11::class_<non_historical_variant_variable_ta_type, typename non_historical_variant_variable_ta_type::Pointer, typename non_historical_variant_variable_ta_type::BaseType>(rModule, rAdaptorName.c_str())
-        .def(pybind11::init<typename non_historical_variant_variable_ta_type::ContainerType::Pointer, typename non_historical_variant_variable_ta_type::VariableType>(), pybind11::arg("container"), pybind11::arg("variable"))
-        .def(pybind11::init<typename non_historical_variant_variable_ta_type::ContainerType::Pointer, typename non_historical_variant_variable_ta_type::VariableType, const std::vector<int>&>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("shape"))
+    pybind11::class_<VariableTensorAdaptor, VariableTensorAdaptor::Pointer, TensorAdaptor>(tensor_adaptor_sub_module, "VariableTensorAdaptor")
+        // nodal historical
+        .def(pybind11::init<ModelPart::NodesContainerType::Pointer, VariableTensorAdaptor::VariableType, const int>(), pybind11::arg("nodes"), pybind11::arg("variable"), pybind11::arg("step_index"))
+        .def(pybind11::init<ModelPart::NodesContainerType::Pointer, VariableTensorAdaptor::VariableType, const int, const std::vector<int>&>(), pybind11::arg("nodes"), pybind11::arg("variable"), pybind11::arg("step_index"), pybind11::arg("shape"))
+        // non historical
+        .def(pybind11::init<ModelPart::NodesContainerType::Pointer, VariableTensorAdaptor::VariableType>(), pybind11::arg("nodes"), pybind11::arg("variable"))
+        .def(pybind11::init<ModelPart::NodesContainerType::Pointer, VariableTensorAdaptor::VariableType, const std::vector<int>&>(), pybind11::arg("nodes"), pybind11::arg("variable"), pybind11::arg("shape"))
+        .def(pybind11::init<ModelPart::ConditionsContainerType::Pointer, VariableTensorAdaptor::VariableType>(), pybind11::arg("conditions"), pybind11::arg("variable"))
+        .def(pybind11::init<ModelPart::ConditionsContainerType::Pointer, VariableTensorAdaptor::VariableType, const std::vector<int>&>(), pybind11::arg("conditions"), pybind11::arg("variable"), pybind11::arg("shape"))
+        .def(pybind11::init<ModelPart::ElementsContainerType::Pointer, VariableTensorAdaptor::VariableType>(), pybind11::arg("elements"), pybind11::arg("variable"))
+        .def(pybind11::init<ModelPart::ElementsContainerType::Pointer, VariableTensorAdaptor::VariableType, const std::vector<int>&>(), pybind11::arg("elements"), pybind11::arg("variable"), pybind11::arg("shape"))
+        .def(pybind11::init<ModelPart::GeometriesMapType::Pointer, VariableTensorAdaptor::VariableType>(), pybind11::arg("geometries"), pybind11::arg("variable"))
+        .def(pybind11::init<ModelPart::GeometriesMapType::Pointer, VariableTensorAdaptor::VariableType, const std::vector<int>&>(), pybind11::arg("geometries"), pybind11::arg("variable"), pybind11::arg("shape"))
+        .def(pybind11::init<ModelPart::PropertiesContainerType::Pointer, VariableTensorAdaptor::VariableType>(), pybind11::arg("properties"), pybind11::arg("variable"))
+        .def(pybind11::init<ModelPart::PropertiesContainerType::Pointer, VariableTensorAdaptor::VariableType, const std::vector<int>&>(), pybind11::arg("properties"), pybind11::arg("variable"), pybind11::arg("shape"))
+        // gauss point io
+        .def(pybind11::init<ModelPart::ConditionsContainerType::Pointer, VariableTensorAdaptor::VariableType, const ProcessInfo&>(), pybind11::arg("conditions"), pybind11::arg("variable"), pybind11::arg("process_info"))
+        .def(pybind11::init<ModelPart::ConditionsContainerType::Pointer, VariableTensorAdaptor::VariableType, const ProcessInfo&, const std::vector<int>&>(), pybind11::arg("conditions"), pybind11::arg("variable"), pybind11::arg("process_info"), pybind11::arg("shape"))
+        .def(pybind11::init<ModelPart::ElementsContainerType::Pointer, VariableTensorAdaptor::VariableType, const ProcessInfo&>(), pybind11::arg("elements"), pybind11::arg("variable"), pybind11::arg("process_info"))
+        .def(pybind11::init<ModelPart::ElementsContainerType::Pointer, VariableTensorAdaptor::VariableType, const ProcessInfo&, const std::vector<int>&>(), pybind11::arg("elements"), pybind11::arg("variable"), pybind11::arg("process_info"), pybind11::arg("shape"))
         ;
 
-}
+    // auto node_tensor_adaptors_sub_module = tensor_adaptor_sub_module.def_submodule("NodeTensorAdaptors");
+    // Detail::AddContainerBaseTensorAdaptors<ModelPart::NodesContainerType>(node_tensor_adaptors_sub_module, "Node");
 
-} // namespace Detail
+    // auto condition_tensor_adaptors_sub_module = tensor_adaptor_sub_module.def_submodule("ConditionTensorAdaptors");
+    // Detail::AddContainerBaseTensorAdaptors<ModelPart::ConditionsContainerType>(condition_tensor_adaptors_sub_module, "Condition");
 
+    // auto element_tensor_adaptors_sub_module = tensor_adaptor_sub_module.def_submodule("ElementTensorAdaptors");
+    // Detail::AddContainerBaseTensorAdaptors<ModelPart::ElementsContainerType>(element_tensor_adaptors_sub_module, "Element");
 
-void AddTensorAdaptorsToPython(pybind11::module& m)
-{
-    auto tensor_adaptor_sub_module = m.def_submodule("TensorAdaptors");
+    // auto properties_tensor_adaptors_sub_module = tensor_adaptor_sub_module.def_submodule("PropertyTensorAdaptors");
+    // Detail::AddContainerBaseTensorAdaptors<ModelPart::PropertiesContainerType>(properties_tensor_adaptors_sub_module, "Property");
 
-    auto node_tensor_adaptors_sub_module = tensor_adaptor_sub_module.def_submodule("NodeTensorAdaptors");
-    Detail::AddContainerBaseTensorAdaptors<ModelPart::NodesContainerType>(node_tensor_adaptors_sub_module, "Node");
+    // auto geometries_tensor_adaptors_sub_module = tensor_adaptor_sub_module.def_submodule("GeometryTensorAdaptors");
+    // Detail::AddContainerBaseTensorAdaptors<ModelPart::GeometryContainerType::GeometriesMapType>(geometries_tensor_adaptors_sub_module, "Geometry");
 
-    auto condition_tensor_adaptors_sub_module = tensor_adaptor_sub_module.def_submodule("ConditionTensorAdaptors");
-    Detail::AddContainerBaseTensorAdaptors<ModelPart::ConditionsContainerType>(condition_tensor_adaptors_sub_module, "Condition");
+    // // adding non historical variable tensor adaptors
+    // Detail::AddNonHistoricalTensorAdaptors<ModelPart::NodesContainerType>(node_tensor_adaptors_sub_module, "NodeNonHistoricalVariableTensorAdaptor");
+    // Detail::AddNonHistoricalTensorAdaptors<ModelPart::ConditionsContainerType>(condition_tensor_adaptors_sub_module, "ConditionVariableTensorAdaptor");
+    // Detail::AddNonHistoricalTensorAdaptors<ModelPart::ElementsContainerType>(element_tensor_adaptors_sub_module, "ElementVariableTensorAdaptor");
+    // Detail::AddNonHistoricalTensorAdaptors<ModelPart::PropertiesContainerType>(properties_tensor_adaptors_sub_module, "PropertyVariableTensorAdaptor");
+    // Detail::AddNonHistoricalTensorAdaptors<ModelPart::GeometryContainerType::GeometriesMapType>(geometries_tensor_adaptors_sub_module, "GeometryVariableTensorAdaptor");
 
-    auto element_tensor_adaptors_sub_module = tensor_adaptor_sub_module.def_submodule("ElementTensorAdaptors");
-    Detail::AddContainerBaseTensorAdaptors<ModelPart::ElementsContainerType>(element_tensor_adaptors_sub_module, "Element");
+    // // adding non-historical variable tensor adaptors
+    // using node_historical_variant_variable_ta_type = VariantVariableTensorAdaptor<ModelPart::NodesContainerType, HistoricalIO, const int>;
+    // pybind11::class_<node_historical_variant_variable_ta_type, node_historical_variant_variable_ta_type::Pointer, node_historical_variant_variable_ta_type::BaseType>(node_tensor_adaptors_sub_module, "NodeHistoricalVariableTensorAdaptor")
+    //     .def(pybind11::init<typename node_historical_variant_variable_ta_type::ContainerType::Pointer, typename node_historical_variant_variable_ta_type::VariableType, const int>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("step_index") = 0)
+    //     .def(pybind11::init<typename node_historical_variant_variable_ta_type::ContainerType::Pointer, typename node_historical_variant_variable_ta_type::VariableType, const std::vector<int>&, const int>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("shape"), pybind11::arg("step_index") = 0)
+    //     ;
 
-    auto properties_tensor_adaptors_sub_module = tensor_adaptor_sub_module.def_submodule("PropertyTensorAdaptors");
-    Detail::AddContainerBaseTensorAdaptors<ModelPart::PropertiesContainerType>(properties_tensor_adaptors_sub_module, "Property");
+    // // adding gauss point calculation tensor adaptors
+    // using condition_gp_variant_variable_ta_type = VariantVariableTensorAdaptor<ModelPart::ConditionsContainerType, GaussPointIO, const ProcessInfo&>;
+    // pybind11::class_<condition_gp_variant_variable_ta_type, condition_gp_variant_variable_ta_type::Pointer, condition_gp_variant_variable_ta_type::BaseType>(condition_tensor_adaptors_sub_module, "ConditionGaussPointVariableTensorAdaptor")
+    //     .def(pybind11::init<typename condition_gp_variant_variable_ta_type::ContainerType::Pointer, typename condition_gp_variant_variable_ta_type::VariableType, const ProcessInfo&>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("process_info"))
+    //     .def(pybind11::init<typename condition_gp_variant_variable_ta_type::ContainerType::Pointer, typename condition_gp_variant_variable_ta_type::VariableType, const std::vector<int>&, const ProcessInfo&>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("shape"), pybind11::arg("process_info"))
+    //     ;
 
-    auto geometries_tensor_adaptors_sub_module = tensor_adaptor_sub_module.def_submodule("GeometryTensorAdaptors");
-    Detail::AddContainerBaseTensorAdaptors<ModelPart::GeometryContainerType::GeometriesMapType>(geometries_tensor_adaptors_sub_module, "Geometry");
-
-    // adding non historical variable tensor adaptors
-    Detail::AddNonHistoricalTensorAdaptors<ModelPart::NodesContainerType>(node_tensor_adaptors_sub_module, "NodeNonHistoricalVariableTensorAdaptor");
-    Detail::AddNonHistoricalTensorAdaptors<ModelPart::ConditionsContainerType>(condition_tensor_adaptors_sub_module, "ConditionVariableTensorAdaptor");
-    Detail::AddNonHistoricalTensorAdaptors<ModelPart::ElementsContainerType>(element_tensor_adaptors_sub_module, "ElementVariableTensorAdaptor");
-    Detail::AddNonHistoricalTensorAdaptors<ModelPart::PropertiesContainerType>(properties_tensor_adaptors_sub_module, "PropertyVariableTensorAdaptor");
-    Detail::AddNonHistoricalTensorAdaptors<ModelPart::GeometryContainerType::GeometriesMapType>(geometries_tensor_adaptors_sub_module, "GeometryVariableTensorAdaptor");
-
-    // adding non-historical variable tensor adaptors
-    using node_historical_variant_variable_ta_type = VariantVariableTensorAdaptor<ModelPart::NodesContainerType, HistoricalIO, const int>;
-    pybind11::class_<node_historical_variant_variable_ta_type, node_historical_variant_variable_ta_type::Pointer, node_historical_variant_variable_ta_type::BaseType>(node_tensor_adaptors_sub_module, "NodeHistoricalVariableTensorAdaptor")
-        .def(pybind11::init<typename node_historical_variant_variable_ta_type::ContainerType::Pointer, typename node_historical_variant_variable_ta_type::VariableType, const int>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("step_index") = 0)
-        .def(pybind11::init<typename node_historical_variant_variable_ta_type::ContainerType::Pointer, typename node_historical_variant_variable_ta_type::VariableType, const std::vector<int>&, const int>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("shape"), pybind11::arg("step_index") = 0)
-        ;
-
-    // adding gauss point calculation tensor adaptors
-    using condition_gp_variant_variable_ta_type = VariantVariableTensorAdaptor<ModelPart::ConditionsContainerType, GaussPointIO, const ProcessInfo&>;
-    pybind11::class_<condition_gp_variant_variable_ta_type, condition_gp_variant_variable_ta_type::Pointer, condition_gp_variant_variable_ta_type::BaseType>(condition_tensor_adaptors_sub_module, "ConditionGaussPointVariableTensorAdaptor")
-        .def(pybind11::init<typename condition_gp_variant_variable_ta_type::ContainerType::Pointer, typename condition_gp_variant_variable_ta_type::VariableType, const ProcessInfo&>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("process_info"))
-        .def(pybind11::init<typename condition_gp_variant_variable_ta_type::ContainerType::Pointer, typename condition_gp_variant_variable_ta_type::VariableType, const std::vector<int>&, const ProcessInfo&>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("shape"), pybind11::arg("process_info"))
-        ;
-
-    using element_gp_variant_variable_ta_type = VariantVariableTensorAdaptor<ModelPart::ElementsContainerType, GaussPointIO, const ProcessInfo&>;
-    pybind11::class_<element_gp_variant_variable_ta_type, element_gp_variant_variable_ta_type::Pointer, element_gp_variant_variable_ta_type::BaseType>(element_tensor_adaptors_sub_module, "ElementGaussPointVariableTensorAdaptor")
-        .def(pybind11::init<typename element_gp_variant_variable_ta_type::ContainerType::Pointer, typename element_gp_variant_variable_ta_type::VariableType, const ProcessInfo&>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("process_info"))
-        .def(pybind11::init<typename element_gp_variant_variable_ta_type::ContainerType::Pointer, typename element_gp_variant_variable_ta_type::VariableType, const std::vector<int>&, const ProcessInfo&>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("shape"), pybind11::arg("process_info"))
-        ;
+    // using element_gp_variant_variable_ta_type = VariantVariableTensorAdaptor<ModelPart::ElementsContainerType, GaussPointIO, const ProcessInfo&>;
+    // pybind11::class_<element_gp_variant_variable_ta_type, element_gp_variant_variable_ta_type::Pointer, element_gp_variant_variable_ta_type::BaseType>(element_tensor_adaptors_sub_module, "ElementGaussPointVariableTensorAdaptor")
+    //     .def(pybind11::init<typename element_gp_variant_variable_ta_type::ContainerType::Pointer, typename element_gp_variant_variable_ta_type::VariableType, const ProcessInfo&>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("process_info"))
+    //     .def(pybind11::init<typename element_gp_variant_variable_ta_type::ContainerType::Pointer, typename element_gp_variant_variable_ta_type::VariableType, const std::vector<int>&, const ProcessInfo&>(), pybind11::arg("container"), pybind11::arg("variable"), pybind11::arg("shape"), pybind11::arg("process_info"))
+    //     ;
 
 }
 
