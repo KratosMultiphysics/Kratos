@@ -1,7 +1,6 @@
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 import test_helper
 
 
@@ -23,7 +22,7 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
         test_name = "dirichlet_release"
         project_path = test_helper.get_file_path(test_name)
         n_stages = 2
-        run_multiple_stages.run_stages(project_path, n_stages)
+        stages = test_helper.get_stages(project_path, n_stages)
 
         # name of output file
         output_file_names = [
@@ -32,8 +31,10 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
         ]
         output_data = []
 
-        reader = test_helper.GiDOutputFileReader()
-        for output_file_name in output_file_names:
+        # run stages and get results
+        for stage, output_file_name in zip(stages, output_file_names):
+            stage.Run()
+            reader = test_helper.GiDOutputFileReader()
             output_data.append(reader.read_output_from(output_file_name))
 
         # Expected stress, resulting from the compression, Poisson effects (nu = 0.2) and
@@ -43,6 +44,7 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
         self.check_expected_outputs(
             expected_stage_displacement_and_strain=-0.1,
             expected_stress=expected_cauchy_stress_yy,
+            expected_total_displacement=-0.1,
             output_data=output_data[0],
             time=1.0,
         )
@@ -50,6 +52,7 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
         self.check_expected_outputs(
             expected_stage_displacement_and_strain=0.1072,
             expected_stress=100.0,
+            expected_total_displacement=0.0072,
             output_data=output_data[1],
             time=2.0,
         )
@@ -58,6 +61,7 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
         self,
         expected_stage_displacement_and_strain,
         expected_stress,
+        expected_total_displacement,
         output_data,
         time,
     ):
@@ -67,6 +71,14 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
         )[0]
         self.assertAlmostEqual(
             expected_stage_displacement_and_strain, displacement_top_node[1], 2
+        )
+        total_displacement_top_node = (
+            test_helper.GiDOutputFileReader.nodal_values_at_time(
+                "TOTAL_DISPLACEMENT", time, output_data, [3]
+            )[0]
+        )
+        self.assertAlmostEqual(
+            expected_total_displacement, total_displacement_top_node[1], 2
         )
         # integration point check in element 1, integration point 4 ( uniform stress and strain so an arbitrary choice )
         green_lagrange_strains_2_4 = (
