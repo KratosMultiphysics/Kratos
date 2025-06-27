@@ -14,6 +14,23 @@
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
+namespace
+{
+using namespace Kratos;
+
+Parameters CreateParametersWithConstantPhreaticLineAtHeight(double height)
+{
+    return Parameters{R"(
+            {
+                "model_part_name": "foo",
+                "x_coordinates": [0.0],
+                "y_coordinates": [)" +
+                      std::to_string(height) + R"(],
+                "z_coordinates": [0.0]
+            }  )"};
+}
+} // namespace
+
 namespace Kratos::Testing
 {
 
@@ -34,12 +51,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FixesAllWaterPre
     r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
     r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
 
-    auto                                      test_parameters = Parameters{R"(
-            {
-                "model_part_name": "foo",
-                "x_coordinates": [0.0],
-                "y_coordinates": [-2.0]
-            }  )"};
+    auto test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(-2.0);
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
 
     process.ExecuteInitializeSolutionStep();
@@ -67,12 +79,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_DoesNothingWhenA
     r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
     r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
 
-    auto                                      test_parameters = Parameters{R"(
-            {
-                "model_part_name": "foo",
-                "x_coordinates": [0.0],
-                "y_coordinates": [1.0]
-            }  )"};
+    auto test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(1.0);
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
 
     process.ExecuteInitializeSolutionStep();
@@ -99,12 +106,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_OnlyFixesNodesAb
     r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
     r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
 
-    auto                                      test_parameters = Parameters{R"(
-            {
-                "model_part_name": "foo",
-                "x_coordinates": [0.0],
-                "y_coordinates": [-0.5]
-            }  )"};
+    auto test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(-0.5);
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
 
     process.ExecuteInitializeSolutionStep();
@@ -131,12 +133,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FreesNodesWhenTh
     r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
     r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
 
-    auto                                      test_parameters = Parameters{R"(
-            {
-                "model_part_name": "foo",
-                "x_coordinates": [0.0],
-                "y_coordinates": [-0.5]
-            }  )"};
+    auto test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(-0.5);
+
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
 
     process.ExecuteInitializeSolutionStep();
@@ -171,15 +169,16 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_InterpolatesMult
     r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
     r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
 
-    auto                                      test_parameters = Parameters{R"(
+    auto test_parameters = Parameters{R"(
             {
                 "model_part_name": "foo",
                 "x_coordinates": [0.0, 1.0],
                 "y_coordinates": [-1.0, 0.0]
             }  )"};
-    FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
 
+    FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
     process.ExecuteInitializeSolutionStep();
+
     EXPECT_DOUBLE_EQ(r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE), 0.0);
     EXPECT_TRUE(r_model_part.GetNode(1).IsFixed(WATER_PRESSURE));
     EXPECT_DOUBLE_EQ(r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE), 2.0);
