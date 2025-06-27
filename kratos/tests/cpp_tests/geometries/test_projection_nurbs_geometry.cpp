@@ -163,7 +163,7 @@ typedef Node NodeType;
         // Try projection with initial guess at u = 0.0
         array_1d<double, 3> parameter_extreme = ZeroVector(3);
 
-        bool isConvergedExtreme = ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(parameter_extreme, curve_extreme_point, projected_point_extreme, curve);
+        const bool is_converged_extreme = ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(parameter_extreme, curve_extreme_point, projected_point_extreme, curve);
 
         KRATOS_EXPECT_EQ(isConvergedExtreme, true);
 
