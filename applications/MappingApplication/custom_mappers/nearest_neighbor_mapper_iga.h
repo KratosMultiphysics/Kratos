@@ -35,7 +35,6 @@ public:
         mNumberOfNearestNeighbors(0),
         mNearestNeighborDistance(std::numeric_limits<double>::max())
     {}
-    //NearestNeighborInterfaceInfoIGA() {}
 
     explicit NearestNeighborInterfaceInfoIGA(const CoordinatesArrayType& rCoordinates,
                                              const IndexType SourceLocalSystemIndex,
@@ -195,7 +194,7 @@ public:
     {
         KRATOS_TRY;
 
-        KRATOS_ERROR_IF(!JsonParameters.Has("is_origin_iga") || JsonParameters["is_origin_iga"].GetBool() != true)
+        KRATOS_ERROR_IF(!JsonParameters.Has("is_origin_iga") || !JsonParameters["is_origin_iga"].GetBool())
             << "NearestNeighborMapperIGA expects the origin model part to be IGA.\n"
             << "Please set \"is_origin_iga\": true in the mapper settings." << std::endl;
 
@@ -234,16 +233,6 @@ public:
             JsonParameters);
 
         KRATOS_CATCH("");
-    }
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    int AreMeshesConforming() const override
-    {
-        KRATOS_WARNING_ONCE("Mapper") << "Developer-warning: \"AreMeshesConforming\" is deprecated and will be removed in the future" << std::endl;
-        return BaseType::mMeshesAreConforming;
     }
 
     ///@}
