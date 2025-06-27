@@ -3157,7 +3157,7 @@ void ModelPartIO::ReadConditionalVectorialVariableData(ConditionsContainerType& 
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::ReadGeometryDataBlock(GeometriesMapType& rThisGeometries)
+void ModelPartIO::ReadGeometryDataBlock(GeometryContainerType& rThisGeometries)
 {
     KRATOS_TRY
 
@@ -3190,7 +3190,7 @@ void ModelPartIO::ReadGeometryDataBlock(GeometriesMapType& rThisGeometries)
 }
 
 template<class TVariableType>
-void ModelPartIO::ReadGeometryScalarVariableData(GeometriesMapType& rThisGeometries, const TVariableType& rVariable)
+void ModelPartIO::ReadGeometryScalarVariableData(GeometryContainerType& rThisGeometries, const TVariableType& rVariable)
 {
     KRATOS_TRY
 
@@ -3223,7 +3223,7 @@ void ModelPartIO::ReadGeometryScalarVariableData(GeometriesMapType& rThisGeometr
 }
 
 template<class TVariableType, class TDataType>
-void ModelPartIO::ReadGeometryVectorialVariableData(GeometriesMapType& rThisGeometries, const TVariableType& rVariable, TDataType Dummy)
+void ModelPartIO::ReadGeometryVectorialVariableData(GeometryContainerType& rThisGeometries, const TVariableType& rVariable, TDataType Dummy)
 {
     KRATOS_TRY
 
