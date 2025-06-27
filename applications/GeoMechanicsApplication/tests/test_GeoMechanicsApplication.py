@@ -63,6 +63,7 @@ from test_mohr_coulomb_with_tension_cutoff import KratosGeoMechanicsMohrCoulombW
 from test_single_element_with_Mohr_Coulomb import KratosGeoMechanicsSingleElementWithMohrCoulomb
 from one_dimensional_consolidation import KratosGeoMechanics1DConsolidation, KratosGeoMechanics1DConsolidationCppRoute
 from test_apply_initial_uniform_stress_field import KratosGeoMechanicsApplyInitialUniformStressFieldTests
+from test_hydraulic_heads import KratosGeoMechanicsHydraulicHeads
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -110,7 +111,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsMasterSlaveConstraints,
                         KratosGeoMechanicsSingleElementWithMohrCoulomb,
                         KratosGeoMechanicsMohrCoulombWithTensionTests,
-                        KratosGeoMechanicsApplyInitialUniformStressFieldTests
+                        KratosGeoMechanicsApplyInitialUniformStressFieldTests,
+                        KratosGeoMechanicsHydraulicHeads,
     ]
 
     # Create an array with the selected tests
