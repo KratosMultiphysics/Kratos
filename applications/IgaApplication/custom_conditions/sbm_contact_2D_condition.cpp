@@ -299,8 +299,8 @@ namespace Kratos
         double x = r_geometry_master.Center().X();
         double y = r_geometry_master.Center().Y();
         // if ((x >= 0.3 && x <= 0.7))
-            basis_functions_order_master = 1;
-            basis_functions_order_slave = 1;
+            // basis_functions_order_master = 1;
+            // basis_functions_order_slave = 1;
 
 
         for (int n = 1; n <= basis_functions_order_master; n++) {
@@ -479,7 +479,7 @@ namespace Kratos
         integration_weight_slave /= (1+curvature_sign_master*curvature_true_master*norm_2(mDistanceMaster));
 
 
-        integration_weight_slave = integration_weight_master;
+        // integration_weight_slave = integration_weight_master;
         this->SetValue(INTEGRATION_WEIGHT, integration_weight_master);
         this->SetValue(GAMMA_CONTACT, integration_weight_slave);
         // KRATOS_WATCH(integration_weight_slave)

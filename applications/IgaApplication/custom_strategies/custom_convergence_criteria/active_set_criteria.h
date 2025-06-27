@@ -333,9 +333,9 @@ public:
                 double young_modulus_master = i_cond->GetValue(YOUNG_MODULUS_MASTER); 
                 double young_modulus_slave = i_cond->GetValue(YOUNG_MODULUS_SLAVE); 
 
-                const double penalty = 1e2;
-                double check_value_master = normal_gap_master*penalty - sigma_nn_master;///young_modulus_master;
-                double check_value_slave = normal_gap_slave*penalty - sigma_nn_slave;///young_modulus_slave;
+                const double penalty = 1;
+                double check_value_master = normal_gap_master;//*penalty - sigma_nn_master;///young_modulus_master;
+                double check_value_slave = normal_gap_slave;//*penalty - sigma_nn_slave;///young_modulus_slave;
 
                 double tangent_gap_master = norm_2(gap + normal_master*normal_gap_master);
                 double tangent_gap_slave = norm_2(gap - normal_slave*normal_gap_slave);

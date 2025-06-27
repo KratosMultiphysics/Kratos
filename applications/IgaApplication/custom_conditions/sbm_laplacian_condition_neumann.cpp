@@ -124,6 +124,9 @@ void SbmLaplacianConditionNeumann::InitializeMemberVariables()
         mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
     }
 
+    //FIXME:
+    mBasisFunctionsOrder *= 2;
+
     // Compute the normals
     mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
     mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);

@@ -16,19 +16,19 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/sbm_load_solid_2D_condition.h"
+#include "custom_conditions/sbm_load_solid_condition.h"
 #include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
 
-    void SBMLoadSolid2DCondition:: Initialize(const ProcessInfo& rCurrentProcessInfo)
+    void SbmLoadSolidCondition:: Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         InitializeMaterial();
     }
 
 
-    void SBMLoadSolid2DCondition::InitializeMaterial()
+    void SbmLoadSolidCondition::InitializeMaterial()
     {
         KRATOS_TRY
         if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
@@ -49,7 +49,7 @@ namespace Kratos
     }
 
 
-    void SBMLoadSolid2DCondition::CalculateAll(
+    void SbmLoadSolidCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
@@ -135,7 +135,7 @@ namespace Kratos
             // compute true tau (tangential unit vector)
             MathUtils<double>::CrossProduct(true_tau, true_n, vectorOutOfPlane); 
         } else
-            KRATOS_ERROR << ":::[SBMLoadSolid2DCondition]::: Error, no NEIGHBOUR NODE OR CONDITIONS SPECIFIED" << std::endl;
+            KRATOS_ERROR << ":::[SbmLoadSolidCondition]::: Error, no NEIGHBOUR NODE OR CONDITIONS SPECIFIED" << std::endl;
         
         // //FIXME:
         Vector meshSize_uv = this->GetValue(MARKER_MESHES);
@@ -179,6 +179,7 @@ namespace Kratos
         basisFunctionsOrder = std::sqrt(DN_De[0].size1()) - 1;
 
         //FIXME: 
+        basisFunctionsOrder *= 2;
         double x = r_geometry.Center().X();
         double y = r_geometry.Center().Y();
         // if ((x >= 0.5 && x <= 0.9) || (x >= 1.5 && x <= 1.9) && y > 1.0)
@@ -503,14 +504,14 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    int SBMLoadSolid2DCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+    int SbmLoadSolidCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
             << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyLaplacianCondition" << std::endl;
         return 0;
     }
 
-    unsigned long long SBMLoadSolid2DCondition::factorial(int n) 
+    unsigned long long SbmLoadSolidCondition::factorial(int n) 
     {
         if (n == 0) return 1;
         unsigned long long result = 1;
@@ -519,13 +520,13 @@ namespace Kratos
     }
 
     // Function to compute a single term in the Taylor expansion
-    double SBMLoadSolid2DCondition::computeTaylorTerm(double derivative, double dx, int n_k, double dy, int k)
+    double SbmLoadSolidCondition::computeTaylorTerm(double derivative, double dx, int n_k, double dy, int k)
     {
         return derivative * std::pow(dx, n_k) * std::pow(dy, k) / (factorial(k) * factorial(n_k));    
     }
 
 
-    void SBMLoadSolid2DCondition::EquationIdVector(
+    void SbmLoadSolidCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -544,7 +545,7 @@ namespace Kratos
         }
     }
 
-    void SBMLoadSolid2DCondition::GetDofList(
+    void SbmLoadSolidCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -562,7 +563,7 @@ namespace Kratos
         }
     };
 
-    void SBMLoadSolid2DCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+    void SbmLoadSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -673,7 +674,7 @@ namespace Kratos
     }
 
 
-    void SBMLoadSolid2DCondition::GetValuesVector(
+    void SbmLoadSolidCondition::GetValuesVector(
         Vector& rValues) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
@@ -692,7 +693,7 @@ namespace Kratos
         }
     }
 
-    void SBMLoadSolid2DCondition::CalculateB(
+    void SbmLoadSolidCondition::CalculateB(
         Matrix& rB, 
         Matrix& r_DN_DX) const
     {
@@ -716,7 +717,7 @@ namespace Kratos
     }
 
     /// Reads in a json formatted file and returns its KratosParameters instance.
-    Parameters SBMLoadSolid2DCondition::ReadParamatersFile(
+    Parameters SbmLoadSolidCondition::ReadParamatersFile(
         const std::string& rDataFileName) const
     {
         std::ifstream infile(rDataFileName);

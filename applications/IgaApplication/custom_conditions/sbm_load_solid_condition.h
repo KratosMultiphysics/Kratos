@@ -26,7 +26,7 @@
 namespace Kratos
 {
     /// Condition for penalty support condition
-    class SBMLoadSolid2DCondition
+    class SbmLoadSolidCondition
         : public Condition
     {
     public:
@@ -34,7 +34,7 @@ namespace Kratos
         ///@{
 
         /// Counted pointer definition of LoadPlainStressCondition
-        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SBMLoadSolid2DCondition);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SbmLoadSolidCondition);
 
         /// Size types
         typedef std::size_t SizeType;
@@ -45,14 +45,14 @@ namespace Kratos
         ///@{
 
         /// Constructor with Id and geometry
-        SBMLoadSolid2DCondition(
+        SbmLoadSolidCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry)
             : Condition(NewId, pGeometry)
         {};
 
         /// Constructor with Id, geometry and property
-        SBMLoadSolid2DCondition(
+        SbmLoadSolidCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties)
@@ -60,11 +60,11 @@ namespace Kratos
         {};
 
         /// Default constructor
-        SBMLoadSolid2DCondition() : Condition()
+        SbmLoadSolidCondition() : Condition()
         {};
 
         /// Destructor
-        virtual ~SBMLoadSolid2DCondition() override
+        virtual ~SbmLoadSolidCondition() override
         {};
 
         ///@}
@@ -78,7 +78,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
         ) const override
         {
-            return Kratos::make_intrusive<SBMLoadSolid2DCondition>(
+            return Kratos::make_intrusive<SbmLoadSolidCondition>(
                 NewId, pGeom, pProperties);
         };
 
@@ -89,7 +89,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
         ) const override
         {
-            return Kratos::make_intrusive<SBMLoadSolid2DCondition>(
+            return Kratos::make_intrusive<SbmLoadSolidCondition>(
                 NewId, GetGeometry().Create(ThisNodes), pProperties);
         };
 
@@ -225,14 +225,14 @@ namespace Kratos
         std::string Info() const override
         {
             std::stringstream buffer;
-            buffer << "\"SBMLoadSolid2DCondition\" #" << Id();
+            buffer << "\"SbmLoadSolidCondition\" #" << Id();
             return buffer.str();
         }
 
         /// Print information about this object.
         void PrintInfo(std::ostream& rOStream) const override
         {
-            rOStream << "\"SBMLoadSolid2DCondition\" #" << Id();
+            rOStream << "\"SbmLoadSolidCondition\" #" << Id();
         }
 
         /// Print object's data.
@@ -289,8 +289,8 @@ namespace Kratos
 
         ///@}
 
-    }; // Class SBMLoadSolid2DCondition
+    }; // Class SbmLoadSolidCondition
 
 }  // namespace Kratos.
 
-#endif // SBMLoadSolid2DCondition  defined
+#endif // SbmLoadSolidCondition  defined

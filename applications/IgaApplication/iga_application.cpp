@@ -30,7 +30,7 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mLaplacianIGAElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
-    , mSolid2DElement(0, Element::GeometryType::Pointer(
+    , mSolidElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mConvDiffIGAElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
@@ -64,13 +64,13 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportLaplacianLagrangeCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mSupportSolid2DCondition(0, Condition::GeometryType::Pointer(
+    , mSupportSolidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mLoadSolid2DCondition(0, Condition::GeometryType::Pointer(
+    , mLoadSolidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mSBMSolid2DCondition(0, Condition::GeometryType::Pointer(
+    , mSbmSolidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mSBMLoadSolid2DCondition(0, Condition::GeometryType::Pointer(
+    , mSbmLoadSolidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportContact2DCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1)))) 
@@ -97,7 +97,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
     KRATOS_REGISTER_ELEMENT("LaplacianIGAElement", mLaplacianIGAElement)
-    KRATOS_REGISTER_ELEMENT("Solid2DElement", mSolid2DElement)
+    KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
     KRATOS_REGISTER_ELEMENT("ConvDiffIGAElement", mConvDiffIGAElement)
 
     // CONDITIONS
@@ -116,10 +116,10 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SbmLaplacianConditionNeumann", mSbmLaplacianConditionNeumann)
     KRATOS_REGISTER_CONDITION("SBMSupportLagrangeCondition", mSBMSupportLagrangeCondition)
     KRATOS_REGISTER_CONDITION("SupportLaplacianLagrangeCondition", mSupportLaplacianLagrangeCondition)
-    KRATOS_REGISTER_CONDITION("SupportSolid2DCondition", mSupportSolid2DCondition)
-    KRATOS_REGISTER_CONDITION("LoadSolid2DCondition", mLoadSolid2DCondition)
-    KRATOS_REGISTER_CONDITION("SBMSolid2DCondition", mSBMSolid2DCondition)
-    KRATOS_REGISTER_CONDITION("SBMLoadSolid2DCondition", mSBMLoadSolid2DCondition)
+    KRATOS_REGISTER_CONDITION("SupportSolidCondition", mSupportSolidCondition)
+    KRATOS_REGISTER_CONDITION("LoadSolidCondition", mLoadSolidCondition)
+    KRATOS_REGISTER_CONDITION("SbmSolidCondition", mSbmSolidCondition)
+    KRATOS_REGISTER_CONDITION("SbmLoadSolidCondition", mSbmLoadSolidCondition)
     KRATOS_REGISTER_CONDITION("SupportContact2DCondition", mSupportContact2DCondition)
     KRATOS_REGISTER_CONDITION("SbmContact2DCondition", mSbmContact2DCondition)
 
@@ -198,6 +198,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     // SBM Variables 
     KRATOS_REGISTER_VARIABLE(INTEGRATION_POINTS)
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHTS)
+    KRATOS_REGISTER_VARIABLE(KNOT_SPAN_SIZES)
 
     // CONTACT Variables 
     KRATOS_REGISTER_VARIABLE(NORMAL_GAP )
