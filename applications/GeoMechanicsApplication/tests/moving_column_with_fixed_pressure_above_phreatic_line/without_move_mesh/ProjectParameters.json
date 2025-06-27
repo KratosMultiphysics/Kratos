@@ -13,10 +13,10 @@
     "domain_size": 2,
     "model_import_settings": {
       "input_type": "mdpa",
-      "input_filename": "mesh"
+      "input_filename": "../common/mesh"
     },
     "material_import_settings": {
-      "materials_filename": "MaterialParameters.json"
+      "materials_filename": "../common/MaterialParameters.json"
     },
     "time_stepping": {
       "time_step": 3600.0,
@@ -50,7 +50,7 @@
     "problem_domain_sub_model_part_list": ["Soil"],
     "processes_sub_model_part_list": ["Top", "Bottom", "SoilExcludingBoundary", "Soil"],
     "body_domain_sub_model_part_list": ["Soil"],
-    "move_mesh_flag": true
+    "move_mesh_flag": false
   },
   "output_processes": {
     "gid_output": [

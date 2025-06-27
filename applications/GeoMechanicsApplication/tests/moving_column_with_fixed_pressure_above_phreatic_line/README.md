@@ -7,6 +7,8 @@ phreatic line is situated at the top of the column) and then upwards to the star
 
 It is checked that node 27 (see the mesh structure below) is fixed to zero, or freed respectively at the expected times.
 
+This is validated both for a model where move_mesh is set to true, as well as false.
+
 ![MeshStructure](MeshStructure.svg)
 
 ## Setup
