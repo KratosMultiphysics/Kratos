@@ -21,7 +21,7 @@ class KratosGeoMechanicsHydraulicHeads(KratosUnittest.TestCase):
 
         reader = test_helper.GiDOutputFileReader()
         output_data = reader.read_output_from(
-            os.path.join(test_path, f"test_head_extrapolate_{test_no}.post.res")
+            os.path.join(test_path, f"test_nodal_hydraulic_head_{test_no}.post.res")
         )
         time = 1.0
         numerical_hydraulic_heads = reader.nodal_values_at_time(
@@ -29,7 +29,7 @@ class KratosGeoMechanicsHydraulicHeads(KratosUnittest.TestCase):
         )
 
         post_msh_file_path = os.path.join(
-            test_path, f"test_head_extrapolate_{test_no}.post.msh"
+            test_path, f"test_nodal_hydraulic_head_{test_no}.post.msh"
         )
         nodal_coordinates = test_helper.read_coordinates_from_post_msh_file(
             post_msh_file_path
