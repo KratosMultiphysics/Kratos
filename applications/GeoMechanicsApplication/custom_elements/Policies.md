@@ -13,12 +13,13 @@ Currently, the following policies are implemented (still under development):
 
 1. The [StressStatePolicy](#stressstatepolicy) - this is used to calculate several stress-related properties depending
    on the configuration. There are three flavours: `ThreeDimensionalStressState`, `PlaneStrainStressState` and `AxisymmetricStressState`.
+2. The [Integration coefficient calculator](#integration-coefficient-calculator)
 
 ## StressStatePolicy
 
 The stress state policy is used to easily configure elements to have a specific stress state. The responsibility of the
 stress state is to convert strain tensors to [strain vectors](#strain-vectors), define the strain-displacement relation
-by filling the [B-matrix](#b-matrix) and calculate the [integration coefficient](#integration-coefficient).
+by filling the [B-matrix](#b-matrix).
 
 There are three different
 stress state implementations:
@@ -27,8 +28,7 @@ stress state implementations:
 2. `PlaneStrainStressState`
 3. `AxisymmetricStressState`
 
-They all derive from the same interface (`StressStatePolicy`) and can be used interchangeably to calculate the B-matrix,
-the integration coefficient and the Green Lagrange Strain vector. See the following schematic for the structure of the
+They all derive from the same interface (`StressStatePolicy`) and can be used interchangeably to calculate the B-matrix and the Green Lagrange Strain vector. See the following schematic for the structure of the
 stress state policies:
 
 ![stress_state_policies.svg](stress_state_policies.svg)
@@ -130,16 +130,31 @@ N_1 / r & 0 & N_2 / r & 0 & N_3 / r & 0\\
 ```
 Note that in our geomechanics code base, the radial coordinate $r$ is equal to $x$.
 
-### Integration coefficient
+## Integration coefficient calculator
 
-The integration coefficient (or integration volume) depends on the integration weight ($w_i$) and the determinant of the Jacobian ($J$). In case of the 3D stress state, the integration volume is calculated as:
+Based on its name, the integration coefficient calculator calculates the integration coefficient. The integration coefficient (or integration volume) 
+depends on the integration weight ($w_i$) and the determinant of the Jacobian ($J$). 
+
+### Default calculation
+There is a default version that works for plane and 3D elements. In case of the 3D element, the integration volume is calculated as:
 $$V_i = w_i \det{(J)}$$
 
-##
-Since $w_i$ is the volume in isoparametric coordinates. For the plane strain stress state, $w_i$ is the area in isoparametric coordinates. However, since the thickness is by definition 1, the integration coefficient can be calculated using the same equation.
+Since $w_i$ is the volume in isoparametric coordinates. For the plane element, $w_i$ is the area in isoparametric coordinates. 
+However, since the thickness is by definition 1, the integration coefficient can be calculated using the same equation.
 
-Also for the axisymmetric stress state, $w_i$ is defined as the isoparametric area. To convert this to a volume, the area is multiplied with the axisymmetric circumference:
+### Modifiers
+
+For other elements the integration coefficient calculator has a modifier, which modifies the default integration coefficient value. Currently, there are two modifiers and they are described below. 
+
+#### An axisymmetric element
+
+This modifier takes $w_i$ as the isoparametric area and converts it to a volume by a multiplication with the axisymmetric circumference:
 $$V_i = 2\pi r w_i \det{(J)}$$
+
+#### A line element
+
+There is a number of line elements and the line element modifier provides the default integration coefficient multiplied by the user provided CROSS_AREA.
+
 
 ## Bibliography
 Gamma, E., Helm, R., Johnson, R., & Vlissides, J. (1994). _Design Patterns: Elements of Reusable Object-Oriented Software._

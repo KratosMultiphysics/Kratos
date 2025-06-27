@@ -30,7 +30,8 @@ SmoothClamper<TContainerType>::SmoothClamper(
     const double Min,
     const double Max)
     : mMin(Min),
-      mMax(Max)
+      mMax(Max),
+      mDelta(mMax - mMin)
 {
     KRATOS_TRY
 
@@ -40,15 +41,41 @@ SmoothClamper<TContainerType>::SmoothClamper(
 }
 
 template<class TContainerType>
+double SmoothClamper<TContainerType>::ProjectForward(const double X) const
+{
+    const double x_tilde = std::clamp((X - mMin) / mDelta, 0.0, 1.0);
+    return mMin + x_tilde * x_tilde * (3.0 - 2.0 * x_tilde) * mDelta;
+}
+
+template<class TContainerType>
+double SmoothClamper<TContainerType>::CalculateForwardProjectionGradient(const double X) const
+{
+    const double x_tilde = std::clamp((X - mMin) / mDelta, 0.0, 1.0);
+    return 6 * x_tilde - 6 * x_tilde * x_tilde;
+}
+
+template<class TContainerType>
+double SmoothClamper<TContainerType>::ProjectBackward(const double Y) const
+{
+    double x_tilde;
+    if (Y < mMin) {
+        x_tilde = 0;
+    } else if (Y > mMax) {
+        x_tilde = 1.0;
+    } else {
+        const double y = (Y - mMin) / mDelta;
+        x_tilde = 0.5 - std::sin(std::asin(1.0 - 2.0 * y) / 3.0);
+    }
+    return mMin + x_tilde * mDelta;
+}
+
+template<class TContainerType>
 ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ProjectForward(const ContainerExpression<TContainerType>& rInput) const
 {
     KRATOS_TRY
 
     // x*x*(3.0-2.0*x);
 
-    const auto min = mMin;
-    const auto max = mMax;
-    const auto delta = mMax - mMin;
     const auto& r_input_exp = rInput.GetExpression();
     const auto number_of_entities = r_input_exp.NumberOfEntities();
     const auto stride = r_input_exp.GetItemComponentCount();
@@ -58,17 +85,9 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ProjectForwar
 
     auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, {});
 
-    IndexPartition<IndexType>(number_of_entities).for_each([&p_result_exp, &r_input_exp, min, max, delta](const auto Index) {
+    IndexPartition<IndexType>(number_of_entities).for_each([&](const auto Index) {
         const double x = r_input_exp.Evaluate(Index, Index, 0);
-        double& value = *(p_result_exp->begin() + Index);
-        if (x < 0.0) {
-            value = min;
-        } else if (x > 1.0) {
-            value = max;
-        } else {
-            const double y = x * x * (3.0 - 2.0 * x);
-            value = min + y * delta;
-        }
+        *(p_result_exp->begin() + Index) = this->ProjectForward(x);
     });
 
     auto result = rInput;
@@ -87,7 +106,6 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::CalculateForw
     // y = 3x^2 - 2x^3
     // dy/dx = 3.2.x - 2.3.x^2
 
-    const auto delta = mMax - mMin;
     const auto& r_input_exp = rInput.GetExpression();
     const auto number_of_entities = r_input_exp.NumberOfEntities();
     const auto stride = r_input_exp.GetItemComponentCount();
@@ -97,16 +115,9 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::CalculateForw
 
     auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, {});
 
-    IndexPartition<IndexType>(number_of_entities).for_each([&p_result_exp, &r_input_exp, delta](const auto Index) {
+    IndexPartition<IndexType>(number_of_entities).for_each([&](const auto Index) {
         const double x = r_input_exp.Evaluate(Index, Index, 0);
-        double& value = *(p_result_exp->begin() + Index);
-        if (x < 0.0) {
-            value = 0.0;
-        } else if (x > 1.0) {
-            value = 0.0;
-        } else {
-            value = (6 * x - 6 * x * x) * delta;
-        }
+        *(p_result_exp->begin() + Index) = this->CalculateForwardProjectionGradient(x);
     });
 
     auto result = rInput;
@@ -121,9 +132,6 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ProjectBackwa
 {
     KRATOS_TRY
 
-    const auto min = mMin;
-    const auto max = mMax;
-    const auto delta = mMax - mMin;
     const auto& r_input_exp = rInput.GetExpression();
     const auto number_of_entities = r_input_exp.NumberOfEntities();
     const auto stride = r_input_exp.GetItemComponentCount();
@@ -133,17 +141,9 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ProjectBackwa
 
     auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, {});
 
-    IndexPartition<IndexType>(number_of_entities).for_each([&p_result_exp, &r_input_exp, min, delta, max](const auto Index) {
-        const double value = r_input_exp.Evaluate(Index, Index, 0);
-        double& x = *(p_result_exp->begin() + Index);
-        if (value < min) {
-            x = 0.0;
-        } else if (value > max) {
-            x = 1.0;
-        } else {
-            const double y = (value - min) / delta;
-            x = 0.5 - std::sin(std::asin(1.0 - 2.0 * y) / 3.0);
-        }
+    IndexPartition<IndexType>(number_of_entities).for_each([&](const auto Index) {
+        const double x = r_input_exp.Evaluate(Index, Index, 0);
+        *(p_result_exp->begin() + Index) = this->ProjectBackward(x);
     });
 
     auto result = rInput;

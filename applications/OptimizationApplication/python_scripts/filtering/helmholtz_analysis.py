@@ -21,7 +21,7 @@ class HelmholtzAnalysis(AnalysisStage):
 
     #### Internal functions ####
     def _CreateSolver(self):
-        """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
+        """ Create the Solver (and create and import the ModelPart if it is not already in the model) """
         return implicit_filter_solvers.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):
@@ -103,7 +103,7 @@ class HelmholtzAnalysis(AnalysisStage):
 
     def __AssignNodalSolutionToDataExpression(self) -> ContainerExpressionTypes:
         if self.__source_data is None:
-            raise RuntimeError("The __AssignDataExpressionToNodalSource shoud be called first.")
+            raise RuntimeError("The __AssignDataExpressionToNodalSource should be called first.")
 
         # it is better to work on the model part of the data_exp rather than the internal
         # model part created with ConnectivityPreserveModelPart because, then all the outputs will
@@ -124,7 +124,7 @@ class HelmholtzAnalysis(AnalysisStage):
 
     def __GetNeighbourEntities(self, data_exp: ContainerExpressionTypes) -> ContainerExpressionTypes:
         # following makes the number of neighbours computation to be executed once
-        # per given contaienr, hence if the mesh element/connectivity changes
+        # per given container, hence if the mesh element/connectivity changes
         # this computation needs to be redone. Especially in the case if MMG is
         # used for re-meshing.
         key = data_exp.GetContainer()

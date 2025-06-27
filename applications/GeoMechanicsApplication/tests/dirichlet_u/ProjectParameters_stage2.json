@@ -31,7 +31,7 @@
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",
-        "reset_displacements":                true,
+        "reset_displacements":                false,
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,

@@ -2031,8 +2031,8 @@ private:
     template<class TContainerType>
     static bool IsSubSet(
         const TContainerType& rContainer,
-        typename TContainerType::iterator begin,
-        typename TContainerType::iterator end)
+        typename TContainerType::const_iterator begin,
+        typename TContainerType::const_iterator end)
     {
         // do nothing if the given range is empty.
         if (std::distance(begin, end) == 0) {
