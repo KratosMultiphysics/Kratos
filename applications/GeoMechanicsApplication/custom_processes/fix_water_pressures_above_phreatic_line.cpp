@@ -25,6 +25,14 @@ FixWaterPressuresAbovePhreaticLineProcess::FixWaterPressuresAbovePhreaticLinePro
     const auto x_coordinates = rSettings["x_coordinates"].GetVector();
     const auto y_coordinates = rSettings["y_coordinates"].GetVector();
 
+    KRATOS_ERROR_IF(x_coordinates.empty() || y_coordinates.empty())
+        << "The x_coordinates and/or y_coordinates of the phreatic line must be "
+           "non-empty vectors.\n";
+
+    KRATOS_ERROR_IF(x_coordinates.size() != y_coordinates.size())
+        << "The lengths of the x_coordinates and y_coordinates of the phreatic line must be "
+           "equal.\n";
+
     for (std::size_t i = 0; i < x_coordinates.size(); ++i) {
         mPhreaticLineTable.insert(x_coordinates[i], y_coordinates[i]);
     }

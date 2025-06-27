@@ -50,6 +50,52 @@ ModelPart& CreateModelPartWithTwoNodesAtHeights(Model& rModel, double y_node_1, 
 namespace Kratos::Testing
 {
 
+KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_ThrowsUponConstructionWhenXOrYCoordinatesAreEmpty,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr double y_node_1     = 0.0;
+    constexpr double y_node_2     = -2.0;
+    auto             model        = Model{};
+    auto&            r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
+
+    auto test_parameters = Parameters{R"(
+            {
+                "model_part_name": "foo",
+                "x_coordinates": [],
+                "y_coordinates": []
+            }  )"};
+
+    // Act & Assert
+    const std::string expected_error_message = "The x_coordinates and/or y_coordinates "
+                                               "of the phreatic line must be non-empty vectors.";
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        FixWaterPressuresAbovePhreaticLineProcess(r_model_part, test_parameters), expected_error_message);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_ThrowsUponConstructionWhenXYCoordinatesAreNotEqualLength,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr double y_node_1     = 0.0;
+    constexpr double y_node_2     = -2.0;
+    auto             model        = Model{};
+    auto&            r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
+
+    auto test_parameters = Parameters{R"(
+            {
+                "model_part_name": "foo",
+                "x_coordinates": [1.0],
+                "y_coordinates": [2.0, 3.0]
+            }  )"};
+
+    // Act & Assert
+    const std::string expected_error_message = "The lengths of the x_coordinates and y_coordinates "
+                                               "of the phreatic line must be equal.";
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        FixWaterPressuresAbovePhreaticLineProcess(r_model_part, test_parameters), expected_error_message);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FixesAllWaterPressuresToZeroWhenAllNodesAbovePhreaticLine,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {

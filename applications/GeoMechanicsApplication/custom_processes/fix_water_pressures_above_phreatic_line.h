@@ -18,6 +18,11 @@
 
 namespace Kratos
 {
+///
+/// @brief This process fixes the water pressure DoF to zero for all nodes in the modelpart above the phreatic line.
+/// The position of the phreatic line is defined by a table of x and y coordinates (but is constant in time).
+/// The current position of the nodes is determined by the initial position plus the total displacement.
+/// This means the process requires the TOTAL_DISPLACEMENT variable to be defined and correct at each time step.
 class KRATOS_API(GEO_MECHANICS_APPLICATION) FixWaterPressuresAbovePhreaticLineProcess : public Process
 {
 public:
