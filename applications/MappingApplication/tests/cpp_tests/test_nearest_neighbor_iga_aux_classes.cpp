@@ -17,7 +17,6 @@
 #include "includes/stream_serializer.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "mapping_application_variables.h"
-#include "geometries/quadrilateral_2d_4.h"
 
 namespace Kratos::Testing {
 
