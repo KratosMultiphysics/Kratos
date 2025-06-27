@@ -12,6 +12,11 @@ Source is http://burtleburtle.net/bob/c/lookupa.c
 #include "lookupa.h"
 #endif
 
+#ifndef WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif // WIN32
+
 /*
 --------------------------------------------------------------------
 mix -- mix 3 32-bit values reversibly.
@@ -242,3 +247,7 @@ register ub4 *state;
    state[0]=a; state[1]=b; state[2]=c; state[3]=d;
    state[4]=e; state[5]=f; state[6]=g; state[7]=h;
 }
+
+#ifndef WIN32
+#pragma GCC diagnostic pop
+#endif // WIN32
