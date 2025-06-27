@@ -104,19 +104,19 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MapperInterfaceInfo );
-        rSerializer.save("NearestNeighborId", mNearestNeighborId);
-        rSerializer.save("NearestNeighborDistance", mNearestNeighborDistance);
         rSerializer.save("ShapeFunctionValues", mShapeFunctionValues);
+        rSerializer.save("NearestNeighborId", mNearestNeighborId);
         rSerializer.save("NumberofNearestNeighbors", mNumberOfNearestNeighbors);
+        rSerializer.save("NearestNeighborDistance", mNearestNeighborDistance);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MapperInterfaceInfo );
+        rSerializer.load("ShapeFunctionValues", mShapeFunctionValues);
         rSerializer.load("NearestNeighborId", mNearestNeighborId);
+        rSerializer.load("NumberofNearestNeighbors", mNumberOfNearestNeighbors);
         rSerializer.load("NearestNeighborDistance", mNearestNeighborDistance);
-        rSerializer.save("ShapeFunctionValues", mShapeFunctionValues);
-        rSerializer.save("NumberofNearestNeighbors", mNumberOfNearestNeighbors);
     }
 };
 
@@ -213,9 +213,6 @@ public:
 
         KRATOS_CATCH("");
     }
-
-    /// Destructor.
-    ~NearestNeighborMapperIGA() override = default;
 
     ///@}
     ///@name Operations

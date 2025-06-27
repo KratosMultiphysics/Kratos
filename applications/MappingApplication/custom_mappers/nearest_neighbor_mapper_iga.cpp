@@ -37,8 +37,8 @@ void NearestNeighborInterfaceInfoIGA::ProcessSearchResult(const InterfaceObject&
         mNearestNeighborId.clear();
 
         // Reserve space for the vectors
-        mShapeFunctionValues.reserve(num_values);
-        mNearestNeighborId.reserve(num_values);
+        mShapeFunctionValues.reserve(mShapeFunctionValues.size() + num_values);
+        mNearestNeighborId.reserve(mNearestNeighborId.size() + num_values);
 
         for (std::size_t i = 0; i < num_values; ++i) {
             mShapeFunctionValues.push_back(shape_function_values(i));
