@@ -165,11 +165,11 @@ typedef Node NodeType;
 
         const bool is_converged_extreme = ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(parameter_extreme, curve_extreme_point, projected_point_extreme, curve);
 
-        KRATOS_EXPECT_EQ(isConvergedExtreme, true);
+        KRATOS_EXPECT_EQ(is_converged_extreme, true);
 
         KRATOS_EXPECT_NEAR(parameter_extreme[0], -1.0, TOLERANCE);
 
-        std::vector<double> projected_point_extreme1 = {-9.0, -2.0, 0.0};
+        array_1d<double, 3> projected_point_extreme1{-9.0, -2.0, 0.0};
 
         KRATOS_EXPECT_VECTOR_NEAR(projected_point_extreme, projected_point_extreme1, TOLERANCE);
     }
