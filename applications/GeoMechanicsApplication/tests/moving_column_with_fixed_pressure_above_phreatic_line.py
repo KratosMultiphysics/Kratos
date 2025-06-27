@@ -18,20 +18,28 @@ class KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine(
     def test_fixed_pressure_above_phreatic_line_via_cpp_workflow_with_move_mesh(self):
         import KratosMultiphysics.GeoMechanicsApplication.run_geo_settlement as run_geo_settlement
 
-        test_folder = os.path.join(test_helper.get_file_path(
-            "moving_column_with_fixed_pressure_above_phreatic_line"
-        ), "with_move_mesh")
+        test_folder = os.path.join(
+            test_helper.get_file_path(
+                "moving_column_with_fixed_pressure_above_phreatic_line"
+            ),
+            "with_move_mesh",
+        )
         status = run_geo_settlement.run_stages(test_folder, ["ProjectParameters.json"])
         self.assertEqual(status, 0)
 
         self.assert_results(test_folder)
 
-    def test_fixed_pressure_above_phreatic_line_via_cpp_workflow_without_move_mesh(self):
+    def test_fixed_pressure_above_phreatic_line_via_cpp_workflow_without_move_mesh(
+        self,
+    ):
         import KratosMultiphysics.GeoMechanicsApplication.run_geo_settlement as run_geo_settlement
 
-        test_folder = os.path.join(test_helper.get_file_path(
-            "moving_column_with_fixed_pressure_above_phreatic_line"
-        ), "without_move_mesh")
+        test_folder = os.path.join(
+            test_helper.get_file_path(
+                "moving_column_with_fixed_pressure_above_phreatic_line"
+            ),
+            "without_move_mesh",
+        )
         status = run_geo_settlement.run_stages(test_folder, ["ProjectParameters.json"])
         self.assertEqual(status, 0)
 
