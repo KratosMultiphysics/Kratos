@@ -151,7 +151,7 @@ public:
      * This method computes the raycasting distance for a given point. It casts a ray
      * in the x and y (as well as z in 3D) directions and computes the distance from
      * the ray origin point (the point of interest) to each one of the intersecting objects.
-     * @param rpoint reference to the point of interest
+     * @param rPoint reference to the point of interest
      * @return double raycasting distance value computed
      */
     virtual double DistancePositionInSpace(const Point &rPoint);
@@ -215,7 +215,6 @@ protected:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
@@ -230,11 +229,9 @@ protected:
     const Variable<double>* mpDistanceVariable = nullptr;
     NodeScalarGetFunctionType mDistanceGetterFunctor;
 
-
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -267,7 +264,6 @@ protected:
         const array_1d<double,3> &rCoords,
         array_1d<array_1d<double,3>, (TDim == 3) ? 9 : 5> &rExtraRayOrigs);
 
-
     /**
      * @brief Trims the extra rays to bounding box
      */
@@ -284,7 +280,6 @@ protected:
     void ComputeExtraRayColors(
         const array_1d<double,3> &rCoords,
         array_1d<double,TDim> &rDistances);
-
 
     /**
      * @brief Calculate the mCharacterisiticLength variable using bounding box of the domain to be used in scaling the epsilons
@@ -314,17 +309,13 @@ protected:
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
     ///@name Un accessible methods
     ///@{
-
-
 
     ///@}
 }; // Class ApplyRayCastingProcess
@@ -332,7 +323,6 @@ protected:
 ///@}
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
