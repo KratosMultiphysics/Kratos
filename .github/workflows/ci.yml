@@ -246,7 +246,7 @@ jobs:
 
 
   windows:
-    runs-on: windows-2019
+    runs-on: windows-2022
     needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
@@ -265,7 +265,7 @@ jobs:
 
     - name: Download boost
       run: |
-        $url = "https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.gz"
+        $url = "https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz"
         (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
         7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
         7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
@@ -462,7 +462,7 @@ jobs:
 
 
   windows-core-without-unity:
-    runs-on: windows-2019
+    runs-on: windows-2022
     needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
@@ -481,7 +481,7 @@ jobs:
 
     - name: Download boost
       run: |
-        $url = "https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.gz"
+        $url = "https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz"
         (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
         7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
         7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
@@ -496,7 +496,7 @@ jobs:
     - name: Build
       shell: cmd
       run: |
-        call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
 
         set CC=cl.exe
         set CXX=cl.exe
@@ -512,7 +512,7 @@ jobs:
         del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
         cmake                                                 ^
-          -G"Visual Studio 16 2019"                           ^
+          -G"Visual Studio 17 2022"                           ^
           -H"%KRATOS_SOURCE%"                                 ^
           -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"              ^
           -DBOOST_ROOT="%TEMP%\boost"                         ^

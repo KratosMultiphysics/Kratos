@@ -120,12 +120,12 @@
             "meshing_before_output" : true,
             "meshing_domains" : [
 		{
-                    "python_module": "meshing_domain",
+                    "python_module": "KratosMultiphysics.DelaunayMeshingApplication.meshing_domain",
                     "model_part_name": "Solid_Piece",
                     "alpha_shape": 2.4,
                     "offset_factor": 2e-6,
                     "meshing_strategy":{
-			"python_module": "meshing_strategy",
+			"python_module": "KratosMultiphysics.DelaunayMeshingApplication.meshing_strategy",
 			"meshing_frequency": 0.0,
 			"remesh": true,
 			"refine": true,
