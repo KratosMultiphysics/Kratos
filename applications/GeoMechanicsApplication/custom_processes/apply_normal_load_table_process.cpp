@@ -171,6 +171,13 @@ void ApplyNormalLoadTableProcess::ExecuteInitializeSolutionStep()
     }
 }
 
+void ApplyNormalLoadTableProcess::ExecuteFinalize()
+{
+    for (const auto& process : mProcesses) {
+        process->ExecuteFinalize();
+    }
+}
+
 std::string ApplyNormalLoadTableProcess::Info() const { return "ApplyNormalLoadTableProcess"; }
 
 } // namespace Kratos

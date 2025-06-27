@@ -12,8 +12,7 @@
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
         "model_import_settings":              {
-            "input_type":       "mdpa",
-            "input_filename":   "dirichlet_release"
+            "input_type":       "use_input_model_part"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -35,8 +34,6 @@
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,
-        "rayleigh_m":                         0.0,
-        "rayleigh_k":                         0.0,
         "strategy_type":                      "newton_raphson",
         "convergence_criterion":              "residual_criterion",
         "residual_relative_tolerance":        1.0E-4,
@@ -46,9 +43,6 @@
         "number_cycles":                      1,
         "reduction_factor":                   1.0,
         "increase_factor":                    1.0,
-        "desired_iterations":                 4,
-        "max_radius_factor":                  10.0,
-        "min_radius_factor":                  0.1,
         "calculate_reactions":                true,
         "rotation_dofs":                      false,
         "linear_solver_settings":             {
@@ -82,7 +76,7 @@
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["WATER_PRESSURE","DISPLACEMENT","TOTAL_DISPLACEMENT"],
+                        "nodal_results":       ["DISPLACEMENT"],
                         "gauss_point_results": ["CAUCHY_STRESS_TENSOR","GREEN_LAGRANGE_STRAIN_TENSOR"]
                     }
                 }

@@ -160,6 +160,7 @@ void GeoApplyConstantScalarValueProcess::ExecuteInitialize()
 
 void GeoApplyConstantScalarValueProcess::ExecuteFinalize()
 {
+    // Since DoF are by definition double variables, freeing DoF is only relevant for variables of type double.
     if (this->Is(VARIABLE_IS_FIXED) && KratosComponents<Variable<double>>::Has(mVariableName)) {
         VariableUtils().ApplyFixity(KratosComponents<Variable<double>>::Get(mVariableName), false,
                                     mrModelPart.Nodes());
