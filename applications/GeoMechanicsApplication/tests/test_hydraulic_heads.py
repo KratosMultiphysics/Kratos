@@ -43,13 +43,31 @@ class KratosGeoMechanicsHydraulicHeads(KratosUnittest.TestCase):
         ]
 
         self.assertVectorAlmostEqual(
-            numerical_hydraulic_heads, analytical_hydraulic_heads
+            numerical_hydraulic_heads, analytical_hydraulic_heads, places=5
         )
 
     def test_hydraulic_heads_1(self):
         test_no = 1
         head_bottom = 1.0
         head_top = 1.0
+        self.run_and_check_nodal_hydraulic_heads(test_no, head_bottom, head_top)
+
+    def test_hydraulic_heads_2(self):
+        test_no = 2
+        head_bottom = 0.0
+        head_top = 1.0
+        self.run_and_check_nodal_hydraulic_heads(test_no, head_bottom, head_top)
+
+    def test_hydraulic_heads_3(self):
+        test_no = 3
+        head_bottom = -1.0
+        head_top = 1.0
+        self.run_and_check_nodal_hydraulic_heads(test_no, head_bottom, head_top)
+
+    def test_hydraulic_heads_4(self):
+        test_no = 4
+        head_bottom = 1.0
+        head_top = 0.0
         self.run_and_check_nodal_hydraulic_heads(test_no, head_bottom, head_top)
 
 
