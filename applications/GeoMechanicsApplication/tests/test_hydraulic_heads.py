@@ -12,9 +12,7 @@ class KratosGeoMechanicsHydraulicHeads(KratosUnittest.TestCase):
     def run_and_check_nodal_hydraulic_heads(self, test_no, head_bottom, head_top):
         import KratosMultiphysics.GeoMechanicsApplication.run_geo_flow as run_geo_flow
 
-        test_path = test_helper.get_file_path(
-            "test_head_extrapolation_custom_workflow_flow"
-        )
+        test_path = test_helper.get_file_path("test_nodal_hydraulic_head")
         status = run_geo_flow.run_flow_analysis(
             test_path, f"ProjectParameters_{test_no}.json", ""
         )
