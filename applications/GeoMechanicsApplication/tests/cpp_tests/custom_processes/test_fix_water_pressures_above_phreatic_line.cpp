@@ -29,6 +29,22 @@ Parameters CreateParametersWithConstantPhreaticLineAtHeight(double height)
                 "z_coordinates": [0.0]
             }  )"};
 }
+
+ModelPart& CreateModelPartWithTwoNodesAtHeights(Model& rModel, double y_node_1, double y_node_2)
+{
+    auto& r_result = rModel.CreateModelPart("foo");
+    r_result.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    r_result.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
+    r_result.CreateNewNode(1, 0.0, y_node_1, 0.0);
+    r_result.CreateNewNode(2, 0.0, y_node_2, 0.0);
+
+    for (auto& r_node : r_result.Nodes()) {
+        r_node.AddDof(WATER_PRESSURE);
+    }
+
+    return r_result;
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -37,25 +53,20 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FixesAllWaterPressuresToZeroWhenAllNodesAbovePhreaticLine,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto  model        = Model{};
-    auto& r_model_part = model.CreateModelPart("foo");
-    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    r_model_part.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
-    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    r_model_part.CreateNewNode(2, 0.0, -1.0, 0.0);
-
-    for (auto& r_node : r_model_part.Nodes()) {
-        r_node.AddDof(WATER_PRESSURE);
-    }
-
+    // Arrange
+    constexpr double y_node_1     = 0.0;
+    constexpr double y_node_2     = -1.0;
+    auto             model        = Model{};
+    auto&            r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
+    auto             test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(-2.0);
     r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
     r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
-
-    auto test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(-2.0);
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
 
+    // Act
     process.ExecuteInitializeSolutionStep();
 
+    // Assert
     for (auto& r_node : r_model_part.Nodes()) {
         EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(WATER_PRESSURE), 0.0);
         EXPECT_TRUE(r_node.IsFixed(WATER_PRESSURE));
@@ -65,24 +76,21 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FixesAllWaterPre
 KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_DoesNothingWhenAllNodesBelowPhreaticLine,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto  model        = Model{};
-    auto& r_model_part = model.CreateModelPart("foo");
-    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    r_model_part.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
-    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    r_model_part.CreateNewNode(2, 0.0, -1.0, 0.0);
-
-    for (auto& r_node : r_model_part.Nodes()) {
-        r_node.AddDof(WATER_PRESSURE);
-    }
-
+    // Arrange
+    constexpr double y_node_1     = 0.0;
+    constexpr double y_node_2     = -1.0;
+    auto             model        = Model{};
+    auto&            r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
     r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
     r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
 
     auto test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(1.0);
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
 
+    // Act
     process.ExecuteInitializeSolutionStep();
+
+    // Assert
     EXPECT_DOUBLE_EQ(r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE), 1.0);
     EXPECT_FALSE(r_model_part.GetNode(1).IsFixed(WATER_PRESSURE));
     EXPECT_DOUBLE_EQ(r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE), 2.0);
@@ -92,16 +100,11 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_DoesNothingWhenA
 KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_OnlyFixesNodesAbovePhreaticLine,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto  model        = Model{};
-    auto& r_model_part = model.CreateModelPart("foo");
-    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    r_model_part.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
-    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    r_model_part.CreateNewNode(2, 0.0, -1.0, 0.0);
-
-    for (auto& r_node : r_model_part.Nodes()) {
-        r_node.AddDof(WATER_PRESSURE);
-    }
+    // Arrange
+    constexpr double y_node_1     = 0.0;
+    constexpr double y_node_2     = -1.0;
+    auto             model        = Model{};
+    auto&            r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
 
     r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
     r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
@@ -109,7 +112,10 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_OnlyFixesNodesAb
     auto test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(-0.5);
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
 
+    // Act
     process.ExecuteInitializeSolutionStep();
+
+    // Assert
     EXPECT_DOUBLE_EQ(r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE), 0.0);
     EXPECT_TRUE(r_model_part.GetNode(1).IsFixed(WATER_PRESSURE));
     EXPECT_DOUBLE_EQ(r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE), 2.0);
@@ -119,16 +125,11 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_OnlyFixesNodesAb
 KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FreesNodesWhenTheyGetBelowPhreaticLine_WithoutMoveMesh,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto  model        = Model{};
-    auto& r_model_part = model.CreateModelPart("foo");
-    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    r_model_part.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
-    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    r_model_part.CreateNewNode(2, 0.0, -2.0, 0.0);
-
-    for (auto& r_node : r_model_part.Nodes()) {
-        r_node.AddDof(WATER_PRESSURE);
-    }
+    // Arrange
+    constexpr double y_node_1     = 0.0;
+    constexpr double y_node_2     = -2.0;
+    auto             model        = Model{};
+    auto&            r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
 
     r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
     r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
@@ -137,15 +138,21 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FreesNodesWhenTh
 
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
 
+    // Act
     process.ExecuteInitializeSolutionStep();
+
+    // Assert
     EXPECT_DOUBLE_EQ(r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE), 0.0);
     EXPECT_TRUE(r_model_part.GetNode(1).IsFixed(WATER_PRESSURE));
     EXPECT_DOUBLE_EQ(r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE), 2.0);
     EXPECT_FALSE(r_model_part.GetNode(2).IsFixed(WATER_PRESSURE));
 
+    // Act
     // Move node 1 below phreatic line using total displacements (without moving the mesh, since move_mesh is false)
     r_model_part.GetNode(1).FastGetSolutionStepValue(TOTAL_DISPLACEMENT)[1] = -1.0;
     process.ExecuteInitializeSolutionStep();
+
+    // Assert
     EXPECT_DOUBLE_EQ(r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE), 0.0);
     EXPECT_FALSE(r_model_part.GetNode(1).IsFixed(WATER_PRESSURE));
     EXPECT_DOUBLE_EQ(r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE), 2.0);
@@ -155,6 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FreesNodesWhenTh
 KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_InterpolatesMultiLineCorrectly,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+    // Arrange
     auto  model        = Model{};
     auto& r_model_part = model.CreateModelPart("foo");
     r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
@@ -177,8 +185,11 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_InterpolatesMult
             }  )"};
 
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
+
+    // Act
     process.ExecuteInitializeSolutionStep();
 
+    // Assert
     EXPECT_DOUBLE_EQ(r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE), 0.0);
     EXPECT_TRUE(r_model_part.GetNode(1).IsFixed(WATER_PRESSURE));
     EXPECT_DOUBLE_EQ(r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE), 2.0);
