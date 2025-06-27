@@ -243,7 +243,7 @@ Begin SubModelPart SoilExcludingBoundary
     19
     20
   End SubModelPartElements
-End SubModelPart 
+End SubModelPart
 
 Begin SubModelPart gravity
   Begin SubModelPartNodes
@@ -325,7 +325,7 @@ Begin SubModelPart gravity
   End SubModelPartElements
 End SubModelPart 
 
-Begin SubModelPart TopWaterPressure0
+Begin SubModelPart Top
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
@@ -337,7 +337,7 @@ Begin SubModelPart TopWaterPressure0
   End SubModelPartElements
 End SubModelPart 
 
-Begin SubModelPart Bottom1
+Begin SubModelPart Bottom
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
@@ -347,59 +347,7 @@ Begin SubModelPart Bottom1
   End SubModelPartNodes
   Begin SubModelPartElements
   End SubModelPartElements
-End SubModelPart 
-
-Begin SubModelPart FixedPressure2
-  Begin SubModelPartTables
-  End SubModelPartTables
-  Begin SubModelPartNodes
-    1
-    4
-    24
-  End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
-End SubModelPart 
-
-Begin SubModelPart Side3
-  Begin SubModelPartTables
-  End SubModelPartTables
-  Begin SubModelPartNodes
-    3
-    4
-    15
-    16
-    17
-    18
-    19
-    20
-    21
-    22
-    23
-  End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
-End SubModelPart 
-
-Begin SubModelPart Side4
-  Begin SubModelPartTables
-  End SubModelPartTables
-  Begin SubModelPartNodes
-    1
-    2
-    5
-    6
-    7
-    8
-    9
-    10
-    11
-    12
-    13
-  End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
-End SubModelPart 
+End SubModelPart
 
 Begin SubModelPart Head_line0
   Begin SubModelPartNodes
@@ -479,98 +427,7 @@ Begin SubModelPart Head_line0
     19
     20
   End SubModelPartElements
-End SubModelPart 
-
-Begin SubModelPart PhreaticLineContactStress0
-  Begin SubModelPartNodes
-    2
-    3
-    14
-  End SubModelPartNodes
-  Begin SubModelPartConditions
-    22
-  End SubModelPartConditions
-End SubModelPart 
-
-Begin SubModelPart K0_model_part
-  Begin SubModelPartNodes
-    1
-    2
-    3
-    4
-    5
-    6
-    7
-    8
-    9
-    10
-    11
-    12
-    13
-    14
-    15
-    16
-    17
-    18
-    19
-    20
-    21
-    22
-    23
-    24
-    25
-    26
-    27
-    28
-    29
-    30
-    31
-    32
-    33
-    34
-    35
-    36
-    37
-    38
-    39
-    40
-    41
-    42
-    43
-    44
-    45
-    46
-    47
-    48
-    49
-    50
-    51
-    52
-    53
-  End SubModelPartNodes
-  Begin SubModelPartElements
-    1
-    2
-    3
-    4
-    5
-    6
-    7
-    8
-    9
-    10
-    11
-    12
-    13
-    14
-    15
-    16
-    17
-    18
-    19
-    20
-  End SubModelPartElements
-End SubModelPart 
+End SubModelPart
 
 Begin SubModelPart Head_line1
   Begin SubModelPartNodes
@@ -652,16 +509,6 @@ Begin SubModelPart Head_line1
   End SubModelPartElements
 End SubModelPart 
 
-Begin SubModelPart PhreaticLineContactStress1
-  Begin SubModelPartNodes
-    2
-    3
-    14
-  End SubModelPartNodes
-  Begin SubModelPartConditions
-    22
-  End SubModelPartConditions
-End SubModelPart 
 
 Begin Table 2 TIME DISPLACEMENT_Y
    0.0000000000 0.0000000000
