@@ -601,6 +601,14 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
                      typename TOutputSparse::VectorType& rOutput,
                      const typename TOutputSparse::DataType Coefficient = static_cast<typename TOutputSparse::DataType>(1))
 {
+    // Sanity checks.
+    KRATOS_ERROR_IF_NOT(rLhs.size2() == rRhs.size() && rLhs.size1() == rOutput.size())
+        << "incompatible matrix-vector product: "
+        << "(" << rLhs.size1() << "x" << rLhs.size2() << ") "
+        << "@ "
+        << "(" << rRhs.size() << ") "
+        << "=> (" << rOutput.size() << ")";
+
     KRATOS_TRY
 
     // Create partition for entries in the matrix.
