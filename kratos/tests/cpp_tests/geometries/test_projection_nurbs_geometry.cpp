@@ -155,10 +155,7 @@ typedef Node NodeType;
 
         KRATOS_EXPECT_VECTOR_NEAR(projected_point, projected_point2, TOLERANCE);
 
-        array_1d<double, 3> curve_extreme_point;
-        curve_extreme_point[0] = -9.0;
-        curve_extreme_point[1] = -2.0;
-        curve_extreme_point[2] = 0.0;
+        array_1d<double, 3> curve_extreme_point{-9.0, -2.0, 0.0};
 
         // Initialize projected point
         array_1d<double, 3> projected_point_extreme = ZeroVector(3);
