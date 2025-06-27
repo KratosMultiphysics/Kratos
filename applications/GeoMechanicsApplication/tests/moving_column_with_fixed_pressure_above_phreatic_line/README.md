@@ -19,15 +19,14 @@ The test is performed in a single stage, with the following conditions:
     - All displacements are fixed and follow the constant velocity of the column.
     - The water pressure is described using a phreatic line (i.e. hydrostatic with reference y-coordinate = -2.0 [m]).
 
-
 - Material:
     - The material is elastic according to the GeoLinearElasticPlaneStrain2DLaw.
 
 ## Assertions
 
-It is asserted that the water pressure at node 27 (y = -1.5 [m]) is free just before the phreatic line is crossed and
-fixed to zero after.
-with a velocity of 2.0m/day (or 2.0m/86400s) the phreatic line is crossed after the column has moved 0.5 [m] downwards,
+It is asserted that the water pressure DoF at node 27 (y = -1.5 [m]) is free just before the phreatic line is crossed
+and fixed to zero after. Due to a velocity of 2.0m/day (or 2.0m/86400s) the phreatic line is crossed after the column has
+moved 0.5 [m] downwards,
 which is after 21600 seconds (or 6 hours). The next crossing is when the column moved up again. By that time, the column
 has moved 3.5 [m] in total (2 down and 1.5 up again), meaning the crossing point is at 3.5 / (2.0/81600) = 151200
 seconds (or 42 hours). However, since the DoF are fixed/freed based on the `TOTAL_DISPLACEMENT` variable (which is
