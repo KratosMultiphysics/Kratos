@@ -36,11 +36,10 @@ void FixWaterPressuresAbovePhreaticLineProcess::ExecuteInitializeSolutionStep()
         const auto current_coordinates =
             rNode.GetInitialPosition() + rNode.FastGetSolutionStepValue(TOTAL_DISPLACEMENT);
         if (current_coordinates[1] > mPhreaticLineTable(current_coordinates[0])) {
-            rNode.FastGetSolutionStepValue(WATER_PRESSURE) =
-                0.0; // Could be changed to small positive value instead of zero
+            rNode.FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
             rNode.Fix(WATER_PRESSURE);
         } else {
-            rNode.Free(WATER_PRESSURE); // We could think about freeing in finalizesolutionstep
+            rNode.Free(WATER_PRESSURE);
         }
     });
 }

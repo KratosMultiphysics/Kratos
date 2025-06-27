@@ -2,7 +2,7 @@
   "problem_data": {
     "problem_name": "moving_column_with_fixed_pressure_above_phreatic_line",
     "start_time": 0.0,
-    "end_time": 86400,
+    "end_time": 172800,
     "echo_level": 1,
     "parallel_type": "OpenMP",
     "number_of_threads": 1
@@ -19,7 +19,7 @@
       "materials_filename": "MaterialParameters.json"
     },
     "time_stepping": {
-      "time_step": 600.0,
+      "time_step": 3600.0,
       "max_delta_time_factor": 8640000000.0
     },
     "buffer_size": 2,
@@ -50,7 +50,7 @@
     "problem_domain_sub_model_part_list": ["Soil"],
     "processes_sub_model_part_list": ["Top", "Bottom", "SoilExcludingBoundary", "Soil"],
     "body_domain_sub_model_part_list": ["Soil"],
-    "move_mesh_flag": false
+    "move_mesh_flag": true
   },
   "output_processes": {
     "gid_output": [
@@ -76,7 +76,7 @@
               "node_output": false,
               "skin_output": false,
               "plane_output": [],
-              "nodal_results": ["WATER_PRESSURE"],
+              "nodal_results": ["WATER_PRESSURE", "TOTAL_DISPLACEMENT"],
               "gauss_point_results": []
             },
             "point_data_configuration": []
