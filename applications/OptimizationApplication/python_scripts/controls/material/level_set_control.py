@@ -29,15 +29,16 @@ class LevelSetControl(Control):
             "output_all_fields"                 : true,
             "echo_level"                        : 0,
             "consider_recursive_property_update": false,
-            "density_projection_settings"       : {},
-            "young_modulus_projection_settings" : {},
-            "filter_settings"                   : {},
             "density"                           : 1.0,
             "young_modulus"                     : 1.0,
             "k"                                 : 1000.0                                 
                 }
             ]
         }""")
+        
+        #            "density_projection_settings"       : {},
+        #            "young_modulus_projection_settings" : {},
+        #            "filter_settings"                   : {},
 
         #fill in missing info from defaults
         parameters.ValidateAndAssignDefaults(default_settings)
@@ -85,10 +86,12 @@ class LevelSetControl(Control):
         self._UpdateAndOutputFields(self.GetEmptyField())
 
     def Check(self) -> None:
-        self.filter.Check()
+        #self.filter.Check()
+        pass
 
     def Finalize(self) -> None:
-        self.filter.Finalize()
+        #self.filter.Finalize()
+        pass
 
     def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return self.controlled_physical_variables
@@ -149,13 +152,13 @@ class LevelSetControl(Control):
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
         
         # rho = H(phi)*rho_0
-        density = self._ComputeHeaviside(Kratos.DENSITY)
+        density = self._ComputePhysicalVariableField(Kratos.DENSITY)
         KratosOA.PropertiesVariableExpressionIO.Write(density, Kratos.DENSITY)
         if self.consider_recursive_property_update:
             KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(density.GetContainer(), Kratos.DENSITY)
         self.un_buffered_data.SetValue("DENSITY", density.Clone(), overwrite=True)
 
-        youngs_modulus = self._ComputeHeaviside(Kratos.YOUNG_MODULUS)
+        youngs_modulus = self._ComputePhysicalVariableField(Kratos.YOUNG_MODULUS)
         KratosOA.PropertiesVariableExpressionIO.Write(youngs_modulus, Kratos.YOUNG_MODULUS)
         if self.consider_recursive_property_update:
             KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(youngs_modulus.GetContainer(), Kratos.YOUNG_MODULUS)
@@ -175,9 +178,12 @@ class LevelSetControl(Control):
             un_buffered_data.SetValue(f"dYOUNG_MODULUS_d{self.GetName()}", self.d_young_modulus_d_phi.Clone(), overwrite=True)
 
 
-
-    def _ComputeHeaviside(self, physical_variable) -> ContainerExpressionTypes:
-        return 1/2 * (1 + tanh(self.k * self.control_phi)) * physical_variable
+    def _ComputePhysicalVariableField(self, physical_variable) -> ContainerExpressionTypes:
+        # Get variable value
+        base_value = self.parameters[physical_variable.Name().lower()].GetDouble()
+        # Compute Heaviside
+        heaviside = 0.5 * (1.0 + tanh(self.k * self.control_phi))
+        return base_value * heaviside
 
 
     def _ComputeLevelSetGradientNorm(self, LSF: ContainerExpressionTypes) -> ContainerExpressionTypes:
