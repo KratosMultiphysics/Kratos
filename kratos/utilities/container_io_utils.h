@@ -101,7 +101,13 @@ public:
         const Variable<TDataType>& rVariable,
         const int StepIndex)
         : mpVariable(&rVariable),
-          mStepIndex(StepIndex) {}
+          mStepIndex(StepIndex)
+    {
+        KRATOS_ERROR_IF(StepIndex < 0)
+            << "Trying to create HistoricalIO with "
+            << rVariable.Name() << ". Step index should be positive or zero [ step index = "
+            << StepIndex << " ].";
+    }
 
     ///@}
     ///@name Public operations
