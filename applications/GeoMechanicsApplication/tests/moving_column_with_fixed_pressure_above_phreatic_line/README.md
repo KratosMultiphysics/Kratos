@@ -1,0 +1,32 @@
+# Fixing water pressure above the phreatic line
+
+This test uses a moving column to check whether water pressures are correctly fixed to zero above the phreatic line,
+using the `FixWaterPressuresAbovePhreaticLineProcess`. The column is 1x5 [m] and the phreatic line is situated 2 [m]
+below the top of the column. The column is uniformly moving with a speed of 2.0m/day, first downwards (until the
+phreatic line is situated at the top of the column) and then upwards to the starting position.
+
+It is checked that node 27 (see the mesh structure below) is fixed to zero, or freed respectively at the expected times.
+
+![MeshStructure](MeshStructure.svg)
+
+## Setup
+
+The test is performed in a single stage, with the following conditions:
+
+- Constraints:
+    - All displacements are fixed and follow the constant velocity of the column.
+    - The water pressure is described using a phreatic line (i.e. hydrostatic with reference y-coordinate = -2.0 [m]).
+
+
+- Material:
+    - The material is elastic according to the GeoLinearElasticPlaneStrain2DLaw.
+
+## Assertions
+
+It is asserted that the water pressure at node 27 (y = -1.5 [m]) is free just before the phreatic line is crossed and
+fixed to zero after.
+with a velocity of 2.0m/day (or 2.0m/86400s) the phreatic line is crossed after the column has moved 0.5 [m] downwards,
+which is after 21600 seconds (or 6 hours). The next crossing is when the column moved up again. By that time, the column
+has moved 3.5 [m] in total (2 down and 1.5 up again), meaning the crossing point is at 3.5 / (2.0/81600) = 151200
+seconds (or 42 hours). However, since the DoF are fixed/freed based on the `TOTAL_DISPLACEMENT` variable (which is
+calculated at the end of a time step), the crossover happens one time-step later. 
