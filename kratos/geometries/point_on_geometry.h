@@ -254,11 +254,34 @@ public:
 
         if (rResultGeometries.size() != 1) { rResultGeometries.resize(1); }
         // assignment operator for quadrature point geometry with Dimension being 0.
-        rResultGeometries(0) = Kratos::make_shared<
-            QuadraturePointGeometry<PointType, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground, 0>>(
-                std::move(rQuadraturePointGeometries(0)->Points()),
-                rQuadraturePointGeometries(0)->GetGeometryData().GetGeometryShapeFunctionContainer(),
-                this);
+
+        if(mpBackgroundGeometry->GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface)
+        {
+            array_1d<double, 3> local_tangent;
+            rQuadraturePointGeometries(0)->Calculate(LOCAL_TANGENT, local_tangent);
+
+            rResultGeometries(0) = Kratos::make_shared<
+                QuadraturePointCurveOnSurfaceGeometry<PointType, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground, 0>>(
+                    std::move(rQuadraturePointGeometries(0)->Points()),
+                    rQuadraturePointGeometries(0)->GetGeometryData().GetGeometryShapeFunctionContainer(),
+                    local_tangent[0],
+                    local_tangent[1],
+                    this);
+
+            // rResultGeometries(0) = Kratos::make_shared<
+            //     QuadraturePointGeometry<PointType, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground, 0>>(
+            //         std::move(rQuadraturePointGeometries(0)->Points()),
+            //         rQuadraturePointGeometries(0)->GetGeometryData().GetGeometryShapeFunctionContainer(),
+            //         rQuadraturePointGeometries(0).get());
+        }
+        else
+        {
+            rResultGeometries(0) = Kratos::make_shared<
+                QuadraturePointGeometry<PointType, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground, 0>>(
+                    std::move(rQuadraturePointGeometries(0)->Points()),
+                    rQuadraturePointGeometries(0)->GetGeometryData().GetGeometryShapeFunctionContainer(),
+                    this);
+        }
     }
 
     ///@}

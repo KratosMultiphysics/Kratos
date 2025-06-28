@@ -37,16 +37,19 @@ namespace Kratos
  *        from outside.
  *        The parent pointer can provide the address to the owner of this quadrature point.
  */
-template<class TPointType>
+template<class TPointType,
+    int TWorkingSpaceDimension,
+    int TLocalSpaceDimension = TWorkingSpaceDimension,
+    int TDimension = TLocalSpaceDimension>
 class QuadraturePointCurveOnSurfaceGeometry
-    : public QuadraturePointGeometry<TPointType, 3, 2, 1>
+    : public QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension>
 {
 public:
 
     /// Pointer definition of QuadraturePointGeometry
     KRATOS_CLASS_POINTER_DEFINITION(QuadraturePointCurveOnSurfaceGeometry);
 
-    typedef QuadraturePointGeometry<TPointType, 3, 2, 1> BaseType;
+    typedef QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> BaseType;
     typedef Geometry<TPointType> GeometryType;
 
     typedef typename GeometryType::IndexType IndexType;
@@ -80,7 +83,7 @@ public:
     /// Constructor with points and geometry shape function container
     QuadraturePointCurveOnSurfaceGeometry(
         const PointsArrayType& ThisPoints,
-        GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
+        const GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
         double LocalTangentsU,
         double LocalTangentsV)
         : BaseType(ThisPoints, ThisGeometryShapeFunctionContainer)
@@ -92,7 +95,7 @@ public:
     /// Constructor with points, geometry shape function container, parent
     QuadraturePointCurveOnSurfaceGeometry(
         const PointsArrayType& ThisPoints,
-        GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
+        const GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
         double LocalTangentsU,
         double LocalTangentsV,
         GeometryType* pGeometryParent)

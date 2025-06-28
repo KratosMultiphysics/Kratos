@@ -108,7 +108,7 @@ namespace Kratos
             GeometryType* pGeometryParent)
         {
             return Kratos::make_shared<
-                QuadraturePointCurveOnSurfaceGeometry<TPointType>>(
+                QuadraturePointCurveOnSurfaceGeometry<TPointType, 3, 2, 1>>(
                     rPoints,
                     rShapeFunctionContainer,
                     LocalTangentU,
@@ -123,7 +123,7 @@ namespace Kratos
             double LocalTangentV)
         {
             return Kratos::make_shared<
-                QuadraturePointCurveOnSurfaceGeometry<TPointType>>(
+                QuadraturePointCurveOnSurfaceGeometry<TPointType, 3, 2, 1>>(
                     rPoints,
                     rShapeFunctionContainer,
                     LocalTangentU,
