@@ -24,6 +24,7 @@ class FsiAnalysis(AnalysisStage):
             self._ModelersSetupGeometryModel()
             self._ModelersPrepareGeometryModel()
             self._ModelersSetupModelPart()
+            self.ModifyInitialGeometry()
 
             self._GetSolver().ImportModelPart()
             self._GetSolver().PrepareModelPart()
@@ -35,7 +36,6 @@ class FsiAnalysis(AnalysisStage):
 
         # This should let eventual derived stages modify the model after reading.
         self.ModifyInitialProperties()
-        self.ModifyInitialGeometry()
 
         # Initialize the user-provided processes
         self._AnalysisStage__CreateListOfProcesses() # Why name mangling?

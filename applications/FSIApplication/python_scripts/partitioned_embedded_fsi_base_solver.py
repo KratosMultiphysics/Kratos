@@ -52,6 +52,7 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
                 },
                 "nl_max_it": 30,
                 "nl_tol": 1e-07,
+                "fluid_interfaces_list": [],
                 "structure_interfaces_list": []
             }
         }""")
@@ -158,6 +159,7 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
         coupling_settings = self.settings["coupling_settings"]
         self.max_nl_it = coupling_settings["nl_max_it"].GetInt()
         self.nl_tol = coupling_settings["nl_tol"].GetDouble()
+        self.fluid_interface_submodelpart_name = coupling_settings["fluid_interfaces_list"][0].GetString()
         self.structure_interface_submodelpart_name = coupling_settings["structure_interfaces_list"][0].GetString()
 
         # Construct the structure solver
@@ -428,13 +430,13 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
                 "parent_model_part_name": "",
                 "input_variable_list": [],
                 "output_variable_list": ["DISPLACEMENT"],
-                "auxiliary_variable_list": ["POSITIVE_FACE_PRESSURE","NEGATIVE_FACE_PRESSURE","NORMAL"]
+                "auxiliary_variable_list": ["POINT_LOAD","POSITIVE_FACE_PRESSURE","NEGATIVE_FACE_PRESSURE","NORMAL"]
             }""")
         else:
             err_msg = 'Level set type is: \'' + self.level_set_type + '\'. Expected \'continuous\' or \'discontinuous\'.'
             raise Exception(err_msg)
 
-        aux_settings["parent_model_part_name"].SetString(self.structure_interface_submodelpart_name)
+        aux_settings["parent_model_part_name"].SetString(self.fluid_interface_submodelpart_name)
         aux_settings["input_variable_list"].Append(self._GetTractionVariable().Name())
 
         # Construct the FSI coupling interface
@@ -476,7 +478,7 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
             err_msg = 'Level set type is: \'' + self.level_set_type + '\'. Expected \'continuous\' or \'discontinuous\'.'
             raise Exception(err_msg)
 
-        aux_settings["parent_model_part_name"].SetString(self.structure_interface_submodelpart_name)
+        aux_settings["parent_model_part_name"].SetString(self.fluid_interface_submodelpart_name)
 
         # Construct the FSI coupling interface
         fsi_coupling_interface_fluid = fsi_coupling_interface.FSICouplingInterface(

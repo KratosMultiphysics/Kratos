@@ -22,6 +22,7 @@
 #include "spaces/ublas_space.h"
 #include "custom_utilities/director_utilities.h"
 #include "custom_utilities/iga_flags.h"
+#include "custom_utilities/mapping_intersection_iga_utilities.h"
 
 
 namespace Kratos {

@@ -110,7 +110,7 @@ public:
      * @param rDestinationInterfaceModelPart Empty destination modelpart to create the skin nodes and conditions
      */
     void CreateCouplingSkin(
-        const ModelPart &rOriginInterfaceModelPart,
+        ModelPart &rOriginInterfaceModelPart,
         ModelPart &rDestinationInterfaceModelPart)
     {
         // Check the origin interface model part

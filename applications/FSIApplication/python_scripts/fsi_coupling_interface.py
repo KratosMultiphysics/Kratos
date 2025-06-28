@@ -108,7 +108,7 @@ class FSICouplingInterface:
         # Get the output variable from the father model part
         # Note that these are the current non-linear iteration unrelaxed values (\tilde{u}^{k+1})
         # These values will be used below to calculate the interface residual vector
-        self.GetValuesFromFatherModelPart(output_variable)
+        # self.GetValuesFromFatherModelPart(output_variable) 
 
         # Save the previously existent RELAXED_DISPLACEMENT in OLD_RELAXED_DISPLACEMENT before doing the update
         # These values will be used below to calculate the interface residual vector (u^{k})

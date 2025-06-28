@@ -160,6 +160,9 @@ class PartitionedFSIBaseSolver(PythonSolver):
         # Perform all the operations required to set up the coupling interfaces
         self._InitializeCouplingInterfaces()
 
+        # Create the mortar mapper
+        self._GetMortarMapper()
+
     def AdvanceInTime(self, current_time):
         # Subdomains time advance
         fluid_new_time = self.fluid_solver.AdvanceInTime(current_time)
@@ -263,9 +266,23 @@ class PartitionedFSIBaseSolver(PythonSolver):
                     0)
 
             self._GetConvergenceAccelerator().FinalizeNonLinearIteration()
+            
+            # Convert distributed traction to point values 
+            KratosMultiphysics.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
+                self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
+                self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().Conditions,
+                self._GetTractionVariable(),
+                KratosStructural.POINT_LOAD)
+
+            # Map the point load from the fe mesh to IGA
+            self._GetMortarMapper().InverseMap(KratosStructural.POINT_LOAD, KratosStructural.POINT_LOAD, KratosMultiphysics.Mapper.USE_TRANSPOSE)
+
 
             # Solve the structure problem
             self._SolveStructure()
+
+            # print("Inverse Map is needed!!") !!
+            self._GetMortarMapper().Map(KratosMultiphysics.DISPLACEMENT, KratosMultiphysics.DISPLACEMENT)
 
             # Compute the residual vector
             dis_residual_norm = self._GetFSICouplingInterfaceStructure().ComputeResidualVector()
@@ -547,6 +564,11 @@ class PartitionedFSIBaseSolver(PythonSolver):
                 self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                 self._GetFSICouplingInterfaceFluidNegative().GetInterfaceModelPart())
         return self._structure_to_fluid_negative_interface_mapper
+    
+    def _GetMortarMapper(self):
+        if not hasattr(self, '_mortar_mapper'):
+            self._mortar_mapper = self._CreateMortarMapper()
+        return self._mortar_mapper
 
     @classmethod
     def _CreateStructureToFluidInterfaceMapper(self, structure_interface, fluid_interface):
@@ -560,6 +582,31 @@ class PartitionedFSIBaseSolver(PythonSolver):
             mapper_params)
 
         return structure_to_fluid_interface_mapper
+    
+    def _CreateMortarMapper(self):
+        mapper_mortar_params = KratosMultiphysics.Parameters("""{
+                "mapper_type": "coupling_geometry",
+                "echo_level" : 0,
+                "dual_mortar": false,
+                "consistency_scaling" : true,
+                "modeler_name" : "IgaFemCosimModeler",
+                "destination_is_slave"          : false,                                             
+                "modeler_parameters":{
+                    "origin_model_part_name" : "origin",
+                    "destination_model_part_name" : "destination",
+                    "is_interface_sub_model_parts_specified" : true,
+                    "origin_interface_sub_model_part_name" : "FSICouplingInterfaceStructure",
+					"destination_interface_sub_model_part_name" : "IgaModelPart.Load_4"
+                }
+            }""")
+        
+            
+        mapper_mortar = KratosMultiphysics.MapperFactory.CreateMapper(
+            self._GetFSICouplingInterfaceStructure().GetFatherModelPart(),
+            self._GetStructureInterfaceSubmodelPart(),
+            mapper_mortar_params)
+
+        return mapper_mortar
 
     def _GetFSICouplingInterfaceStructure(self):
         if not hasattr(self, '_fsi_coupling_interface_structure'):
@@ -752,7 +799,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
             KratosMultiphysics.DISPLACEMENT,
             KratosMultiphysics.RELAXED_DISPLACEMENT,
-            self._GetStructureInterfaceSubmodelPart(),
+            self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
             self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
             0)
 
@@ -785,8 +832,21 @@ class PartitionedFSIBaseSolver(PythonSolver):
         # Directly send the map load from the structure FSI coupling interface to the parent one
         self._GetFSICouplingInterfaceStructure().TransferValuesToFatherModelPart(self._GetTractionVariable())
 
+        # Convert distributed traction to point values
+        KratosMultiphysics.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
+            self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
+            self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().Conditions,
+            self._GetTractionVariable(),
+            KratosStructural.POINT_LOAD)
+
+        # Map the point load from the fe mesh to IGA
+        self._GetMortarMapper().InverseMap(KratosStructural.POINT_LOAD, KratosStructural.POINT_LOAD, KratosMultiphysics.Mapper.USE_TRANSPOSE)
+
         # Solve the structure problem
         self._SolveStructure()
+
+        # print("Inverse Map is needed!!")
+        self._GetMortarMapper().Map(KratosMultiphysics.DISPLACEMENT, KratosMultiphysics.DISPLACEMENT)
 
         # Compute the residual vector
         dis_residual_norm = self._GetFSICouplingInterfaceStructure().ComputeResidualVector()
