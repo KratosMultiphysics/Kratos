@@ -93,6 +93,9 @@ namespace Kratos
 
                         // Recreate nodes in model part to ensure correct assignment of dofs
                         IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+                        // VariableUtils().SetFlag(TO_ERASE, true, r_model_part.Nodes());
+                        // r_model_part.RemoveNodes(TO_ERASE);
+
                         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
                             if (PointsRefined(i)->Id() == 0) {
                                 PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
@@ -134,6 +137,9 @@ namespace Kratos
 
                         // Recreate nodes in model part to ensure correct assignment of dofs
                         IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+                        // VariableUtils().SetFlag(TO_ERASE, true, r_model_part.Nodes());
+                        // r_model_part.RemoveNodes(TO_ERASE);
+
                         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
                             if (PointsRefined(i)->Id() == 0) {
                                 PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
@@ -183,7 +189,18 @@ namespace Kratos
 
                         // Recreate nodes in model part to ensure correct assignment of dofs
                         IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+                        // Option 1:
+                        // VariableUtils().SetFlag(TO_ERASE, true, r_model_part.Nodes());
+                        // r_model_part.RemoveNodes(TO_ERASE);
+                        
+                        // Option 2:
+                        // array_1d<double, 3> cp_coordinates = ZeroVector(3); 
                         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
+                            // cp_coordinates[0] = PointsRefined[i][0];
+                            // cp_coordinates[1] = PointsRefined[i][1];
+                            // cp_coordinates[2] = PointsRefined[i][2];
+                            // PointsRefined(i) = Kratos::make_intrusive<Node>(node_id+i+1, cp_coordinates); 
+
                             if (PointsRefined(i)->Id() == 0) {
                                 PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
                                 node_id++;
@@ -232,6 +249,9 @@ namespace Kratos
 
                     // Recreate nodes in model part to ensure correct assignment of dofs
                     IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+                    // VariableUtils().SetFlag(TO_ERASE, true, r_model_part.Nodes());
+                    // r_model_part.RemoveNodes(TO_ERASE);
+
                     for (IndexType i = 0; i < PointsRefined.size(); ++i) {
                         if (PointsRefined(i)->Id() == 0) {
                             PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);

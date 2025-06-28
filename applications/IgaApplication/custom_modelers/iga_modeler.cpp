@@ -256,6 +256,7 @@ namespace Kratos
                 rReferenceElement.Create(rIdCounter, (*it), pProperties));
             for (SizeType i = 0; i < (*it)->size(); ++i) {
                 rModelPart.AddNode((*it)->pGetPoint(i));
+                // rModelPart.Nodes().push_back((*it)->pGetPoint(i));
             }
             rIdCounter++;
         }
@@ -285,6 +286,7 @@ namespace Kratos
                 rReferenceCondition.Create(rIdCounter, (*it), pProperties));
             for (SizeType i = 0; i < (*it)->size(); ++i) {
                 rModelPart.AddNode((*it)->pGetPoint(i));
+                // rModelPart.Nodes().push_back((*it)->pGetPoint(i));
             }
             rIdCounter++;
         }

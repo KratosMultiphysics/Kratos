@@ -15,3 +15,8 @@ application = KratosIgaApplication()
 application_name = "KratosIgaApplication"
 
 _ImportApplication(application, application_name)
+
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+if CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    # if available import the advanced constitutive laws
+    import KratosMultiphysics.ConstitutiveLawsApplication
