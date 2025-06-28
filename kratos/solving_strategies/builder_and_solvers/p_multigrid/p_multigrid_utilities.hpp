@@ -12,6 +12,9 @@
 
 #pragma once
 
+// External includes
+#include <boost/unordered/unordered_flat_map.hpp> // boost::unordered_flat_map
+
 // Project includes
 #include "geometries/geometry_data.h" // GeometryData
 #include "geometries/geometry.h" // Geometry
@@ -21,7 +24,6 @@
 // System includes
 #include <tuple> // std::tuple
 #include <vector> // std::vector
-#include <unordered_map> // std::unordered_map
 #include <limits> // std::numeric_limits
 #include <cstdint> // std::uint8_t
 #include <algorithm> // std::remove_if
@@ -329,7 +331,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
     // fine row indices are stored, from which coarse row indices can later
     // be computed.
     std::vector<std::pair<
-        std::unordered_map<
+        boost::unordered_flat_map<
             GlobalIndex,    // <== column index
             TValue          // <== value
         >,
@@ -498,7 +500,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
     // This means that fine Dofs can be reused for the coarse system.
     KRATOS_TRY
     // Collect solution step variables and store them in a hash map.
-    std::unordered_map<typename Variable<double>::KeyType,const Variable<double>*> solution_step_variable_map;
+    boost::unordered_flat_map<typename Variable<double>::KeyType,const Variable<double>*> solution_step_variable_map;
 
     for (const auto& r_variable_data : rModelPart.GetNodalSolutionStepVariablesList()) {
         const std::string& r_name = r_variable_data.Name();

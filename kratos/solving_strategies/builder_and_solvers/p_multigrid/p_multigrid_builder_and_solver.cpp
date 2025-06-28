@@ -10,6 +10,9 @@
 //  Main authors:    Máté Kelemen
 //
 
+// External includes
+#include <boost/unordered/unordered_flat_set.hpp> // boost::unordered_flat_set
+
 // Project includes
 #include "solving_strategies/builder_and_solvers/p_multigrid/p_multigrid_builder_and_solver.hpp" // PMultigridBuilderAndSolver
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_assembler_factory.hpp" // ConstraintAssemblerFactory
@@ -28,7 +31,6 @@
 
 // System includes
 #include <optional> // std::optional
-#include <unordered_set> // std::unordered_set
 #include <variant> // std::variant
 
 
@@ -343,7 +345,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
         KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
         KRATOS_TRY
 
-        using IndexSet = std::unordered_set<std::size_t>;
+        using IndexSet = boost::unordered_flat_set<std::size_t>;
         std::vector<IndexSet> indices(mpInterface->GetEquationSystemSize());
 
         {
@@ -588,7 +590,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::SetUpDofSet(typename Interface:
         DofsVectorType tls_dofs, tls_constraint_dofs;
 
         // We create the temporal set in current thread and we reserve some space on it
-        std::unordered_set<Node::DofType::Pointer, DofPointerHasher> dofs_tmp_set;
+        boost::unordered_flat_set<Node::DofType::Pointer, DofPointerHasher> dofs_tmp_set;
         dofs_tmp_set.reserve(20000);
 
         // Add the DOFs from the model part elements
