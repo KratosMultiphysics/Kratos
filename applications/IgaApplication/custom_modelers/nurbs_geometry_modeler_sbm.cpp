@@ -14,7 +14,9 @@
 // Project includes
 #include "nurbs_geometry_modeler_sbm.h"
 #include "custom_utilities/create_breps_sbm_utilities.h"
-#include "custom_processes/snake_sbm_process.h"
+//FIXME:
+#include "custom_processes/snake_extended_sbm_process.h"
+// #include "custom_processes/snake_sbm_process.h"
 #include "iga_application_variables.h"
 
 namespace Kratos
@@ -140,12 +142,19 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(
         snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
 
     // Create the surrogate_sub_model_part for inner and outer
-    SnakeSbmProcess snake_sbm_process(*mpModel, snake_parameters);
-    snake_sbm_process.Execute();
+    // FIXME:
+    // SnakeSbmProcess snake_sbm_process(*mpModel, snake_parameters);
+    // snake_sbm_process.Execute();
+    SnakeExtendedSbmProcess snake_sbm_process(*mpModel, snake_parameters);
+    snake_sbm_process.ExecuteInitialize();
+
 
     // Create the breps for the outer sbm boundary
     CreateBrepsSbmUtilities<Node, Point, true> CreateBrepsSbmUtilities(mEchoLevel);
     CreateBrepsSbmUtilities.CreateSurrogateBoundary(mpSurface, surrogate_sub_model_part_inner, surrogate_sub_model_part_outer, A_uvw, B_uvw, r_iga_model_part);
+
+    //FIXME:
+    snake_sbm_process.Execute();
 }
 
 // 3D 

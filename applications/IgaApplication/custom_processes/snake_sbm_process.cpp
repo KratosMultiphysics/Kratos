@@ -226,7 +226,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     else if (rSkinModelPartInitial.Geometries().size()>0) // if the skin model part is defined by nurbs geometries
     {
         //TODO: decrease the number when the closest point projection for the NURBS is optimized in the IgaSbmModeler
-        const int n_initial_points_for_side = 5000; 
+        const int n_initial_points_for_side = 50000; 
         int first_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;
         const SizeType n_boundary_curves = rSkinModelPartInitial.NumberOfGeometries();
         bool new_inner_loop = true;
@@ -765,13 +765,13 @@ void SnakeSbmProcess::MarkKnotSpansAvailable(
                 // Create 25 "fake" gauss_points to check if the majority are inside or outside
                 const int num_fake_gauss_points = 5;
                 int number_of_inside_gaussian_points = 0;
-                for (IndexType i_GPx = 0; i_GPx < num_fake_gauss_points; i_GPx++){
-                    double x_coord = j*rKnotStepUV[0] + rKnotStepUV[0]/(num_fake_gauss_points+1)*(i_GPx+1) + rStartingPosition[0];
+                for (IndexType i_GPx = 0; i_GPx < num_fake_gauss_points+1; i_GPx++){
+                    double x_coord = j*rKnotStepUV[0] + rKnotStepUV[0]/(num_fake_gauss_points)*(i_GPx) + rStartingPosition[0];
 
                     // NOTE:: The v-knot spans are upside down in the matrix!!
-                    for (IndexType i_GPy = 0; i_GPy < num_fake_gauss_points; i_GPy++) 
+                    for (IndexType i_GPy = 0; i_GPy < num_fake_gauss_points+1; i_GPy++) 
                     {
-                        double y_coord = i*rKnotStepUV[1] + rKnotStepUV[1]/(num_fake_gauss_points+1)*(i_GPy+1) + rStartingPosition[1];
+                        double y_coord = i*rKnotStepUV[1] + rKnotStepUV[1]/(num_fake_gauss_points)*(i_GPy) + rStartingPosition[1];
                         Point gauss_point = Point(x_coord, y_coord, 0);  // GAUSSIAN POINT
                         if (IsPointInsideSkinBoundary(gauss_point, rPointsBin, rSkinModelPart)) {
                             // Sum over the number of num_fake_gauss_points per knot span
@@ -782,7 +782,7 @@ void SnakeSbmProcess::MarkKnotSpansAvailable(
                 }
             
                 // Mark the knot span as available or not depending on the number of Gauss Points Inside/Outside
-                if (number_of_inside_gaussian_points < Lambda*num_fake_gauss_points*num_fake_gauss_points) {
+                if (number_of_inside_gaussian_points < Lambda*(num_fake_gauss_points+1)*(num_fake_gauss_points+1)) {
                     rKnotSpansAvailable[IdMatrix][i][j] = -1; // Cut knot spans that have been checked
                 }
                 else{

@@ -88,9 +88,12 @@ public:
 
         return default_parameters;
     }
-    
-private:
 
+protected:
+    /**
+    * @brief Creates the initial snake coordinates for 2D skin.
+    */
+    void CreateTheSnakeCoordinates();
     Model* mpModel = nullptr;
     Parameters mThisParameters;
     IndexType mEchoLevel;
@@ -101,7 +104,6 @@ private:
     ModelPart* mpSkinModelPartInnerInitial = nullptr; 
     ModelPart* mpSkinModelPartOuterInitial = nullptr; 
     ModelPart* mpSkinModelPart = nullptr; 
-
 
     using PointType = Node;
     using PointTypePointer = Node::Pointer;
@@ -116,10 +118,7 @@ private:
     using NurbsCurveGeometryPointerType = NurbsCurveGeometry<2, PointerVector<Node>>::Pointer;
     using CoordinatesArrayType = Geometry<PointType>::CoordinatesArrayType;
 
-    /**
-    * @brief Creates the initial snake coordinates for 2D skin.
-    */
-    void CreateTheSnakeCoordinates();
+private:
 
     /**
      * @brief Create a The Snake Coordinates object

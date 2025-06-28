@@ -123,6 +123,7 @@ void IgaModelerSbm::GetGeometryList(
                         
             if (rPhysicsParameters["sbm_parameters"]["is_inner"].GetBool()) // inner loop
             {
+                //FIXME: 
                 // Surface id is 1
                 int inner_brep_id = 2;
                 ModelPart& surrogate_model_part_outer = rModelPart.GetSubModelPart("surrogate_outer");
