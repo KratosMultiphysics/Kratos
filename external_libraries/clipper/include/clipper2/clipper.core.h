@@ -680,6 +680,7 @@ namespace Clipper2Lib
     return Area<T>(poly) >= 0;
   }
   
+  // Note: This is where we have the problem related to the line intersection! 
   inline bool GetIntersectPoint(const Point64& ln1a, const Point64& ln1b,
     const Point64& ln2a, const Point64& ln2b, Point64& ip)
   {  
@@ -688,6 +689,16 @@ namespace Clipper2Lib
     double dy1 = static_cast<double>(ln1b.y - ln1a.y);
     double dx2 = static_cast<double>(ln2b.x - ln2a.x);
     double dy2 = static_cast<double>(ln2b.y - ln2a.y);
+
+    std::cout<<"ln1a.x: "<<ln1a.x<<std::endl;
+    std::cout<<"ln1a.y: "<<ln1a.y<<std::endl;
+    std::cout<<"ln1b.x: "<<ln1b.x<<std::endl;
+    std::cout<<"ln1b.y: "<<ln1b.y<<std::endl;
+
+    std::cout<<"ln2a.x: "<<ln2a.x<<std::endl;
+    std::cout<<"ln2a.y: "<<ln2a.y<<std::endl;
+    std::cout<<"ln2b.x: "<<ln2b.x<<std::endl;
+    std::cout<<"ln2b.y: "<<ln2b.y<<std::endl;
 
     double det = dy1 * dx2 - dy2 * dx1;
     if (det == 0.0) return false;
@@ -699,6 +710,12 @@ namespace Clipper2Lib
       ip.x = static_cast<int64_t>(ln1a.x + t * dx1);
       ip.y = static_cast<int64_t>(ln1a.y + t * dy1);
     }
+
+    std::cout<<"det: "<<det<<std::endl;
+    std::cout<<"t: "<<t<<std::endl;
+    std::cout<<"ip.x: "<<ip.x<<std::endl;
+    std::cout<<"ip.y: "<<ip.y<<std::endl;
+
     return true;
   }
 

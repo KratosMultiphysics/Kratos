@@ -410,6 +410,7 @@ namespace Clipper2Lib {
     }
     Location startingLoc = loc;
 
+    int counter = 0;
     ///////////////////////////////////////////////////
     while (i <= highI)
     {
@@ -485,6 +486,27 @@ namespace Clipper2Lib {
 
         loc = crossing_loc;
         Add(ip2);
+          
+        // Note: THIS IS THE CASE WHERE IP AND IP2 ARE CLOSE
+        if(std::abs(sqrt((ip.x-ip2.x)*(ip.x-ip2.x)+(ip.y-ip2.y)*(ip.y-ip2.y)))<100)
+        {
+          std::cout<<"IP.x: "<<ip.x<<std::endl;
+          std::cout<<"IP2.x: "<<ip2.x<<std::endl;
+          std::cout<<"IP.y: "<<ip.y<<std::endl;
+          std::cout<<"IP2.y: "<<ip2.y<<std::endl;
+
+          // if(ip != ip2)
+          // {
+            // exit(0);
+          // }
+
+          counter++;
+          if(counter > 11)
+          {
+            exit(0);
+          }
+        }
+        
         if (ip == ip2)
         {
           // it's very likely that path[i] is on rect

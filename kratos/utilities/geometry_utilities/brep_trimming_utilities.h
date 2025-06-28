@@ -24,6 +24,8 @@
 
 #include "utilities/tessellation_utilities/curve_tessellation.h"
 #include "includes/node.h"
+#include "utilities/nnls.h"
+#include "utilities/polynomial_fitting_utilities.h"
 
 namespace Kratos
 {
@@ -340,6 +342,26 @@ namespace Kratos
         }
 
         ///@}
+
+        //Computes constant terms of moment fitting equation via area integration points.
+        static void ComputeConstantTerms(
+            Vector& rConstantTerms, IntegrationPointsArrayType& rElementIntegrationPoints,
+            double U0, double U1, double V0, double V1,
+            IntegrationInfo& rIntegrationInfo);
+
+        //Start point elimination algorihtm. Final quadrature rule is stored in rElement.
+        static double PointElimination(
+            Vector& rConstantTerms, IntegrationPointsArrayType& rElementIntegrationPoints,
+            IntegrationPointsArrayType& rElementNewIntegrationPoints,
+            double U0, double U1, double V0, double V1,
+            IntegrationInfo& rIntegrationInfo);
+
+        //Set-Up and solve moment fitting equation. Solve the moment fitting equation for the weights of the integration points.
+        static double MomentFitting(
+            Vector& rConstantTerms, IntegrationPointsArrayType& rElementIntegrationPoints,
+            double U0, double U1, double V0, double V1,
+            IntegrationInfo& rIntegrationInfo);
+
     };
     ///@} // Kratos Classes
 } // namespace Kratos.
