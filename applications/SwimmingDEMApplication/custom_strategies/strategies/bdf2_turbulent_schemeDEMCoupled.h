@@ -301,6 +301,7 @@ public:
     {
         KRATOS_TRY
 
+        BaseType::InitializeNonLinIteration(rModelPart, A, Dx, b);
         if (mpTurbulenceModel != 0) mpTurbulenceModel->Execute();
 
         const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();

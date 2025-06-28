@@ -27,7 +27,7 @@ namespace Kratos
   }
 
 
-  //*******************************ASSIGMENT OPERATOR***********************************
+  //******************************ASSIGNMENT OPERATOR***********************************
   //************************************************************************************
 
   ExponentialDamageHardeningRule& ExponentialDamageHardeningRule::operator=(ExponentialDamageHardeningRule const& rOther)

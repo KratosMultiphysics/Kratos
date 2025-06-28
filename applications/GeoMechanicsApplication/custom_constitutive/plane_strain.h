@@ -20,11 +20,17 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) PlaneStrain : public ConstitutiveLawDimension
 {
 public:
-    [[nodiscard]] Matrix FillConstitutiveMatrix(double c1, double c2, double c3) const override;
+    [[nodiscard]] Matrix CalculateElasticMatrix(double YoungsModulus, double PoissonsRatio) const override;
     [[nodiscard]] std::unique_ptr<ConstitutiveLawDimension> Clone() const override;
     [[nodiscard]] std::size_t                               GetStrainSize() const override;
     [[nodiscard]] std::size_t                               GetDimension() const override;
-    [[nodiscard]] Flags                                     GetSpatialType() const override;
+    [[nodiscard]] std::size_t GetNumberOfNormalComponents() const override;
+    [[nodiscard]] Flags       GetSpatialType() const override;
+
+private:
+    friend class Serializer;
+    void save(Serializer&) const override;
+    void load(Serializer&) override;
 };
 
 } // namespace Kratos

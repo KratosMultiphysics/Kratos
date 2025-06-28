@@ -8,7 +8,7 @@ This application implements the **Material Point Method (MPM)** with main motiva
 
 Particle or meshfree methods are a family of methods in which the state of a system is represented by a set of particles, without a fixed connectivity. As a consequence, these methods are particularly well suited for the analysis of moving discontinuities and large deformations with breaking and fragmentation. This approach does not suffer from the mesh distortion and entanglement issues posed by other Lagrangian discretizations such as the Finite Element Method (FEM).
 
-The **Material Point Method** (MPM) is an hybrid thechnique which uses a fixed background grid (or mesh) for solving the governing equations in a FEM fashion and  set of material particles (MP) for storing all the hystorical variables and material informations. The MPM has gained a remarkably increasing popularity due to its capability in simulating problems involving historically dependent materials and large deformations. As MPM is able to combine the strengths of both Eulerian and Lagrangian methods, it has been used in various engineering applications and industrial purposes, in particular in geomechanics and in the environmental fluid dynamics field.
+The **Material Point Method** (MPM) is an hybrid thechnique which uses a fixed background grid (or mesh) for solving the governing equations in a FEM fashion and  set of material particles (MP) for storing all the hystorical variables and material information. The MPM has gained a remarkably increasing popularity due to its capability in simulating problems involving historically dependent materials and large deformations. As MPM is able to combine the strengths of both Eulerian and Lagrangian methods, it has been used in various engineering applications and industrial purposes, in particular in geomechanics and in the environmental fluid dynamics field.
 
 ## Getting Started
 
@@ -55,12 +55,12 @@ In particular, in order to use the `MPMApplication` it is also required to compi
 
 A GUI (Graphic User Interface) for the MPM application is also available within the pre and post processing software [GiD](https://www.gidhome.com/). Instructions on how to download and install it are available in the [`GiDInterface` repository](https://github.com/KratosMultiphysics/GiDInterface/tree/master/). A basic knowledge of GiD is required.
 
-Any software able to handle `vtk` files can be used for post processing (e.g., `Paraview`).
+Any software able to handle `vtk` files can be used for post processing (e.g., [Paraview](https://www.paraview.org/), [VisIt](https://visit-dav.github.io/visit-website/index.html)).
 
 ## Examples & Tutorials
 * Use-cases and validation examples are available in the MPM section of the [Examples repository](https://kratosmultiphysics.github.io/Examples/).
 * Unit tests of the main features can be found in the [tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/MPMApplication/tests) folder.
-* A step-by-step tutorial using GiD for both pre and post processing is available [here](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/MPM_example_in_GiD/introduction.html).
+* A step-by-step tutorial using GiD for both pre and post processing is available [here](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Step-by-step_Tutorial_in_GiD/introduction.html).
 
 ## Features
 
@@ -76,33 +76,34 @@ The following features are currently available and subject to development within
 * Updated Lagrangian mixed UP elements - triangular (2D) and tetrahedral (3D), structured and unstructured, stabilized using  Variational Multiscale Stabilization (VMS) or Pressure Projection techniques
 
 **Constitutive laws**
-* Linear isotropic elastic materials - plane strain, plane stress, axis-symmetric, and 3D
-* Hyperelastic Neo-Hookean laws - finite strain, plane strain, axis-symmetric, and 3D
+* [Linear isotropic elastic materials](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Constitutive_Laws/constitutive_laws.html#linear-elasticity) - plane strain, plane stress, axis-symmetric, and 3D
+* [Hyperelastic Neo-Hookean laws](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Constitutive_Laws/constitutive_laws.html#hyperelastic-neohookean) - finite strain, plane strain, axis-symmetric, and 3D
 * Elasto-plastic laws:
-    * Mohr Coulomb - finite strain, associative and non-associative, plane strain, axis-symmetric, and 3D
-    * Mohr Coulomb with Strain Softening - finite strain, associative and non-associative, plane strain, axis-symmetric, and 3D
+    * [Mohr Coulomb](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Constitutive_Laws/constitutive_laws.html#mohr-coulomb) - finite strain, associative and non-associative, plane strain, axis-symmetric, and 3D
+    * [Mohr Coulomb with Strain Softening](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Constitutive_Laws/constitutive_laws.html#mohr-coulomb-strain-softening) - finite strain, associative and non-associative, plane strain, axis-symmetric, and 3D
 * Critical state laws:
-    * Modified Cam-Clay - finite strain, plane strain, axis-symmetric, and 3D
+    * [Modified Cam-Clay](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Constitutive_Laws/constitutive_laws.html#modified-cam-clay) - finite strain, plane strain, axis-symmetric, and 3D
     * Johnson Cook Thermal Plastic (just for explicit MPM)
+* Displacement-based [Newtonian Fluid Law](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Constitutive_Laws/constitutive_laws.html#newtonian-fluid) - plane strain and 3D
 
 **Boundary conditions**
 * Grid-Based Conditions (conforming): applied directly at the background nodes
-    * Neumann: Point load
-    * Neumann: Line load (a distributed load applied over a line)
-    * Neumann: Surface load (a distributed load applied over a face)
-    * Dirichlet: Slip and non-slip conditions for arbitrary inclination
+    * Neumann: [Point load](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Grid-based_Boundary_Conditions/load.html)
+    * Neumann: [Line load](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Grid-based_Boundary_Conditions/load.html) (a distributed load applied over a line)
+    * Neumann: [Surface load](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Grid-based_Boundary_Conditions/load.html) (a distributed load applied over a face)
+    * Dirichlet: [Slip](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Grid-based_Boundary_Conditions/slip_boundary_condition.html) and [non-slip](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Grid-based_Boundary_Conditions/fixed_displacement_boundary_condition.html) conditions for arbitrary inclination
 * Material Point-Based Conditions (non-conforming): applied on movable boundary particles
     * Neumann:
-        * moving point load
+        * [moving point load](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Material_Point-based_Boundary_Conditions/point_load.html)
         * interface condition for partitioned coupling with DEM
     * Dirichlet: fixed, slip or contact condition
-        * penalty method
+        * [penalty method](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Material_Point-based_Boundary_Conditions/penalty.html)
         * Lagrange multiplier method (*soon in the master branch*)
         * perturbed Lagrangian method (*soon in the master branch*)
         * interface condition for partitioned coupling with FEM, RBS,...
 
 **Time schemes**
-* Implicit - Newmark/Bossak prediction and correction scheme for static, quasi-static, and dynamic problems
+* [Implicit](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/MPM_Solver/mpm_implicit_solver.html) - Newmark/Bossak prediction and correction scheme for static, quasi-static, and dynamic problems
 * Explicit
 
 **Other features**

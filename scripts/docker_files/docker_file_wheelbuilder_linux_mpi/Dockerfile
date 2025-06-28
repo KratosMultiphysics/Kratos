@@ -34,6 +34,27 @@ RUN git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /workspace/m
     rm -r /workspace/mmg_5_5_1 && \
     cd /
 
+# Install setuptools
+# 3.8
+RUN /opt/python/c38-cp38/bin/python -m pip install --upgrade pip
+RUN /opt/python/c38-cp38/bin/python -m pip install --upgrade setuptools wheel
+# 3.9
+RUN /opt/python/c39-cp39/bin/python -m pip install --upgrade pip
+RUN /opt/python/c39-cp39/bin/python -m pip install --upgrade setuptools wheel
+# 3.10
+RUN /opt/python/c310-cp310/bin/python -m pip install --upgrade pip
+RUN /opt/python/c310-cp310/bin/python -m pip install --upgrade setuptools wheel
+# 3.11
+RUN /opt/python/c311-cp311/bin/python -m pip install --upgrade pip
+RUN /opt/python/c311-cp311/bin/python -m pip install --upgrade setuptools wheel
+# 3.12
+RUN /opt/python/c312-cp312/bin/python -m pip install --upgrade pip
+RUN /opt/python/c312-cp312/bin/python -m pip install --upgrade setuptools wheel
+# 3.13
+RUN /opt/python/c313-cp313/bin/python -m pip install --upgrade pip
+RUN /opt/python/c313-cp313/bin/python -m pip install --upgrade setuptools wheel
+
+
 COPY start.sh /workspace/scripts/start.sh
 
 RUN chmod +x /workspace/scripts/start.sh

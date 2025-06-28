@@ -33,11 +33,8 @@ public:
 
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType       = Node;
-    using GeometryType   = Geometry<NodeType>;
+    using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType     = Vector;
-    using MatrixType     = Matrix;
 
     // Default constructor
     UPwNormalFaceLoadCondition() : UPwCondition<TDim, TNumNodes>() {}
@@ -68,7 +65,7 @@ protected:
 
     // Member Variables
 
-    void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
+    void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
 
     void InitializeConditionVariables(NormalFaceLoadVariables& rVariables, const GeometryType& Geom);
 

@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(RADIATION_MODEL_H_INCLUDED)
-#define RADIATION_MODEL_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -86,5 +85,3 @@ namespace Kratos
   }
 
 } // namespace Kratos
-
-#endif // RADIATION_MODEL_H_INCLUDED

@@ -136,7 +136,7 @@ public:
 
     }
 
-    void CalculateAll(
+    virtual void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
@@ -318,9 +318,9 @@ public:
                 Values.SetStrainVector(strain);
 
                 Vector stress(strain_size);
-                Values.SetStressVector(stress); //this is an ouput parameter
+                Values.SetStressVector(stress); //this is an output parameter
 
-    //             Values.SetConstitutiveMatrix(data.C);      //this is an ouput parameter
+    //             Values.SetConstitutiveMatrix(data.C);      //this is an output parameter
 
                 //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
                 //this is ok under the hypothesis that no history dependent behaviour is employed

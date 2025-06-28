@@ -50,7 +50,7 @@ namespace Kratos
  * This element represents a 4-node bilinear Shell element
  * based on the Enhanced Assumed Strain Method (E.A.S.) for the membrane part
  * and on the Mixed Interpolation of Tensorial Components (M.I.T.C.)
- * for the trasverse shear part.
+ * for the transverse shear part.
  * This element is formulated for small strains,
  * but can be used in Geometrically nonlinear problems
  * involving large displacements and rotations

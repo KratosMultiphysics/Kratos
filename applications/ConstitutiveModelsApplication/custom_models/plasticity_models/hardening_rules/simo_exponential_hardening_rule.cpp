@@ -29,7 +29,7 @@ namespace Kratos
   }
 
 
-  //*******************************ASSIGMENT OPERATOR***********************************
+  //******************************ASSIGNMENT OPERATOR***********************************
   //************************************************************************************
 
   SimoExponentialHardeningRule& SimoExponentialHardeningRule::operator=(SimoExponentialHardeningRule const& rOther)

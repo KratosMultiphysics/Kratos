@@ -24,6 +24,9 @@
 namespace Kratos
 {
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void LinearTimoshenkoBeamElement2D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -60,7 +63,7 @@ void LinearTimoshenkoBeamElement2D2N::InitializeMaterial()
         const auto& r_properties = GetProperties();
         auto N_values            = Vector();
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
-            mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+            mConstitutiveLawVector[point_number] = r_properties[CONSTITUTIVE_LAW]->Clone();
             mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, N_values);
         }
     } else
@@ -103,23 +106,31 @@ void LinearTimoshenkoBeamElement2D2N::EquationIdVector(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    const auto& r_geometry = this->GetGeometry();
+    KRATOS_TRY
+    const auto& r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
     IndexType local_index = 0;
 
     if (rResult.size() != dofs_per_node * number_of_nodes)
         rResult.resize(dofs_per_node * number_of_nodes, false);
 
-    const IndexType xpos    = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
-    const IndexType rot_pos = this->GetGeometry()[0].GetDofPosition(ROTATION_Z);
+    const IndexType xpos    = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType rot_pos = r_geometry[0].GetDofPosition(ROTATION_X);
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
-        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos    ).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos).EquationId();
         rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Y, xpos + 1).EquationId();
-        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z    , rot_pos ).EquationId();
+        if (dimension == 3) {
+            rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Z, xpos + 2).EquationId();
+            rResult[local_index++] = r_geometry[i].GetDof(ROTATION_X, rot_pos).EquationId();
+            rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Y, rot_pos + 1).EquationId();
+        }
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z, rot_pos + 2).EquationId();
     }
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -135,13 +146,19 @@ void LinearTimoshenkoBeamElement2D2N::GetDofList(
     const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
     rElementalDofList.resize(dofs_per_node * number_of_nodes);
+    SizeType index = 0;
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
-        const SizeType index = i * dofs_per_node;
-        rElementalDofList[index]     = r_geom[i].pGetDof(DISPLACEMENT_X);
-        rElementalDofList[index + 1] = r_geom[i].pGetDof(DISPLACEMENT_Y);
-        rElementalDofList[index + 2] = r_geom[i].pGetDof(ROTATION_Z    );
+        rElementalDofList[index++]   = r_geom[i].pGetDof(DISPLACEMENT_X);
+        rElementalDofList[index++] = r_geom[i].pGetDof(DISPLACEMENT_Y);
+        if (dimension == 3) {
+            rElementalDofList[index++] = r_geom[i].pGetDof(DISPLACEMENT_Z);
+            rElementalDofList[index++] = r_geom[i].pGetDof(ROTATION_X);
+            rElementalDofList[index++] = r_geom[i].pGetDof(ROTATION_Y);
+        }
+        rElementalDofList[index++] = r_geom[i].pGetDof(ROTATION_Z);
     }
     KRATOS_CATCH("")
 }
@@ -442,6 +459,7 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLocalSystem(
     const auto &r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
     if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) {
         rLHS.resize(mat_size, mat_size, false);
@@ -463,11 +481,11 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLocalSystem(
     const double length = CalculateLength();
     const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
     const double J      = 0.5 * length;
-    const double area   = r_props[CROSS_AREA];
+    const double area   = GetCrossArea();
 
     // Let's initialize the cl values
-    VectorType strain_vector(3), stress_vector(3);
-    MatrixType constitutive_matrix(3, 3);
+    VectorType strain_vector(strain_size), stress_vector(strain_size);
+    MatrixType constitutive_matrix(strain_size, strain_size);
     strain_vector.clear();
     cl_values.SetStrainVector(strain_vector);
     cl_values.SetStressVector(stress_vector);
@@ -576,6 +594,7 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLeftHandSide(
     const auto &r_props = GetProperties();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
     if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) {
         rLHS.resize(mat_size, mat_size, false);
@@ -594,8 +613,8 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLeftHandSide(
     const double J      = 0.5 * length;
 
     // Let's initialize the cl values
-    VectorType strain_vector(3), stress_vector(3);
-    MatrixType constitutive_matrix(3, 3);
+    VectorType strain_vector(strain_size), stress_vector(strain_size);
+    MatrixType constitutive_matrix(strain_size, strain_size);
     strain_vector.clear();
     cl_values.SetStrainVector(strain_vector);
     cl_values.SetStressVector(stress_vector);
@@ -684,6 +703,7 @@ void LinearTimoshenkoBeamElement2D2N::CalculateRightHandSide(
     const auto &r_props = GetProperties();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
     if (rRHS.size() != mat_size) {
         rRHS.resize(mat_size, false);
@@ -700,11 +720,11 @@ void LinearTimoshenkoBeamElement2D2N::CalculateRightHandSide(
     const double length = CalculateLength();
     const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
     const double J      = 0.5 * length;
-    const double area   = r_props[CROSS_AREA];
+    const double area   = GetCrossArea();
 
     // Let's initialize the cl values
-    VectorType strain_vector(3), stress_vector(3);
-    MatrixType constitutive_matrix(3, 3);
+    VectorType strain_vector(strain_size), stress_vector(strain_size);
+    MatrixType constitutive_matrix(strain_size, strain_size);
     strain_vector.clear();
     cl_values.SetStrainVector(strain_vector);
     cl_values.SetStressVector(stress_vector);
@@ -850,18 +870,11 @@ void LinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
         const auto &r_geometry = GetGeometry();
 
         ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
-        auto &r_cl_options = cl_values.GetOptions();
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-
         const double length = CalculateLength();
         const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
-
-        // Let's initialize the cl values
         VectorType strain_vector(strain_size), stress_vector(strain_size);
-        strain_vector.clear();
-        cl_values.SetStrainVector(strain_vector);
-        cl_values.SetStressVector(stress_vector);
+        StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector);
+
         VectorType nodal_values(mat_size);
         GetNodalValuesVector(nodal_values);
 
@@ -880,18 +893,10 @@ void LinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
         const auto &r_geometry = GetGeometry();
 
         ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
-        auto &r_cl_options = cl_values.GetOptions();
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-
         const double length = CalculateLength();
         const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
-
-        // Let's initialize the cl values
         VectorType strain_vector(strain_size), stress_vector(strain_size);
-        strain_vector.clear();
-        cl_values.SetStrainVector(strain_vector);
-        cl_values.SetStressVector(stress_vector);
+        StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector);
         VectorType nodal_values(mat_size);
         GetNodalValuesVector(nodal_values);
 
@@ -910,18 +915,10 @@ void LinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
         const auto &r_geometry = GetGeometry();
 
         ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
-        auto &r_cl_options = cl_values.GetOptions();
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-
         const double length = CalculateLength();
         const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
-
-        // Let's initialize the cl values
         VectorType strain_vector(strain_size), stress_vector(strain_size);
-        strain_vector.clear();
-        cl_values.SetStrainVector(strain_vector);
-        cl_values.SetStressVector(stress_vector);
+        StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector);
         VectorType nodal_values(mat_size);
         GetNodalValuesVector(nodal_values);
 
@@ -960,6 +957,41 @@ void LinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
             } else if (rVariable == SHEAR_STRAIN) {
                 rOutput[IP] = strain_vector[2];
             }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rOutput,
+    const ProcessInfo& rProcessInfo
+    )
+{
+    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const SizeType mat_size = GetDoFsPerNode() * GetGeometry().size();
+    rOutput.resize(integration_points.size());
+
+    if (rVariable == PK2_STRESS_VECTOR) {
+        const auto &r_props = GetProperties();
+        ConstitutiveLaw::Parameters cl_values(GetGeometry(), r_props, rProcessInfo);
+        const double length = CalculateLength();
+        const double phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
+
+        VectorType strain_vector(strain_size), stress_vector(strain_size);
+        StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector);
+
+        VectorType nodal_values(mat_size);
+        GetNodalValuesVector(nodal_values);
+
+        // Loop over the integration points
+        for (SizeType integration_point = 0; integration_point < integration_points.size(); ++integration_point) {
+            CalculateGeneralizedStrainsVector(strain_vector, length, phi, integration_points[integration_point].X(), nodal_values);
+            mConstitutiveLawVector[integration_point]->CalculateMaterialResponsePK2(cl_values);
+            rOutput[integration_point] = cl_values.GetStressVector();
         }
     }
 }
@@ -1021,5 +1053,12 @@ void LinearTimoshenkoBeamElement2D2N::load(Serializer& rSerializer)
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+double LinearTimoshenkoBeamElement2D2N::GetCrossArea()
+{
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const auto& r_props = GetProperties();
+    return (strain_size == 3) ? r_props[CROSS_AREA] : r_props[THICKNESS];
+}
 
 } // Namespace Kratos

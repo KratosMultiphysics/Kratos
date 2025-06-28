@@ -14,13 +14,12 @@
 #include "set_thermal_data_utilities.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   SetThermalDataUtilities::SetThermalDataUtilities() {}
   SetThermalDataUtilities::~SetThermalDataUtilities() {}
 
-  //-----------------------------------------------------------------------------------------------------------------------
-  void SetThermalDataUtilities::ExecuteInitialize(ModelPart& sphere_modelpart, ModelPart& rigidface_modelpart)
-  {
+  //------------------------------------------------------------------------------------------------------------
+  void SetThermalDataUtilities::ExecuteInitialize(ModelPart& sphere_modelpart, ModelPart& rigidface_modelpart) {
     KRATOS_TRY
 
     // Set thermal properties provided in SubModelParts data
@@ -29,9 +28,8 @@ namespace Kratos {
     KRATOS_CATCH("")
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
-  void SetThermalDataUtilities::InitializeThermalDataInSubModelParts(ModelPart& sphere_modelpart, ModelPart& rigidface_modelpart)
-  {
+  //------------------------------------------------------------------------------------------------------------
+  void SetThermalDataUtilities::InitializeThermalDataInSubModelParts(ModelPart& sphere_modelpart, ModelPart& rigidface_modelpart) {
     KRATOS_TRY
 
     // Set particles data
@@ -43,9 +41,8 @@ namespace Kratos {
     KRATOS_CATCH("")
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
-  void SetThermalDataUtilities::InitializeThermalDataInParticles(ModelPart& sphere_modelpart)
-  {
+  //------------------------------------------------------------------------------------------------------------
+  void SetThermalDataUtilities::InitializeThermalDataInParticles(ModelPart& sphere_modelpart) {
     KRATOS_TRY
 
     if (sphere_modelpart.NumberOfSubModelParts()) {
@@ -94,9 +91,8 @@ namespace Kratos {
     KRATOS_CATCH("")
   }
 
-  //-----------------------------------------------------------------------------------------------------------------------
-  void SetThermalDataUtilities::InitializeThermalDataInWalls(ModelPart& rigidface_modelpart)
-  {
+  //------------------------------------------------------------------------------------------------------------
+  void SetThermalDataUtilities::InitializeThermalDataInWalls(ModelPart& rigidface_modelpart) {
     KRATOS_TRY
 
     for (ModelPart::SubModelPartsContainerType::iterator sub_model_part  = rigidface_modelpart.SubModelPartsBegin();

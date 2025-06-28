@@ -230,7 +230,7 @@ protected:
         const std::string& rConditionName
         ) const;
 
-    /** @brief Assing new conditions to additional ModelParts (if requested by user).
+    /** @brief Assign new conditions to additional ModelParts (if requested by user).
      *  @param[in] rAuxiliaryModelPart ModelPart containing the new conditions.
      */
     void SetUpAdditionalSubModelParts(const ModelPart& rAuxiliaryModelPart);

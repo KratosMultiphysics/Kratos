@@ -29,6 +29,42 @@
 namespace Kratos
 {
 
+namespace AdjointFiniteDifferenceBaseElementHelperUtils
+{
+
+template <class TData>
+void CalculateOnIntegrationPoints(
+    Element& rPrimalElement,
+    const Element& rAdjointElement,
+    const Variable<TData>& rVariable,
+    std::vector<TData>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (rAdjointElement.Has(rVariable)) {
+        // Get result value for output
+        const auto& output_value = rAdjointElement.GetValue(rVariable);
+
+        // Resize Output
+        const SizeType gauss_points_number = rAdjointElement.GetGeometry().IntegrationPointsNumber(rAdjointElement.GetIntegrationMethod());
+        if (rValues.size() != gauss_points_number) {
+            rValues.resize(gauss_points_number);
+        }
+
+        // Write scalar result value on all Gauss-Points
+        for (IndexType i = 0; i < gauss_points_number; ++i) {
+            rValues[i] = output_value;
+        }
+    }
+    else {
+        rPrimalElement.CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH("");
+}
+} // namespace AdjointFiniteDifferenceBaseElementHelperUtils
+
 template <class TPrimalElement>
 void AdjointFiniteDifferencingBaseElement<TPrimalElement>::EquationIdVector(EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
@@ -194,60 +230,75 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::Calculate(const Varia
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                    std::vector<double>& rValues,
-                    const ProcessInfo& rCurrentProcessInfo)
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
+    const Variable<bool>& rVariable,
+    std::vector<bool>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
-
-    if(this->Has(rVariable))
-    {
-        // Get result value for output
-        const double& output_value = this->GetValue(rVariable);
-
-        // Resize Output
-        const SizeType  gauss_points_number = this->GetGeometry()
-            .IntegrationPointsNumber(this->GetIntegrationMethod());
-        if (rValues.size() != gauss_points_number)
-            rValues.resize(gauss_points_number);
-
-        // Write scalar result value on all Gauss-Points
-        for(IndexType i = 0; i < gauss_points_number; ++i)
-            rValues[i] = output_value;
-    }
-    else
-        KRATOS_ERROR << "Unsupported output variable." << std::endl;
-
-    KRATOS_CATCH("")
+    AdjointFiniteDifferenceBaseElementHelperUtils::CalculateOnIntegrationPoints(*mpPrimalElement, *this, rVariable, rOutput, rCurrentProcessInfo);
 }
 
 template <class TPrimalElement>
 void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable, std::vector< array_1d<double, 3 > >& rOutput, const ProcessInfo& rCurrentProcessInfo)
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    AdjointFiniteDifferenceBaseElementHelperUtils::CalculateOnIntegrationPoints(*mpPrimalElement, *this, rVariable, rOutput, rCurrentProcessInfo);
+}
 
-    if(this->Has(rVariable)) {
-        // Get result value for output
-        const auto& output_value = this->GetValue(rVariable);
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    AdjointFiniteDifferenceBaseElementHelperUtils::CalculateOnIntegrationPoints(*mpPrimalElement, *this, rVariable, rOutput, rCurrentProcessInfo);
+}
 
-        // Resize Output
-        const SizeType gauss_points_number = this->GetGeometry()
-            .IntegrationPointsNumber(this->GetIntegrationMethod());
-        if (rOutput.size() != gauss_points_number) {
-            rOutput.resize(gauss_points_number);
-        }
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 4>>& rVariable,
+    std::vector<array_1d<double, 4>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    AdjointFiniteDifferenceBaseElementHelperUtils::CalculateOnIntegrationPoints(*mpPrimalElement, *this, rVariable, rOutput, rCurrentProcessInfo);
+}
 
-        // Write scalar result value on all Gauss-Points
-        for(IndexType i = 0; i < gauss_points_number; ++i) {
-            rOutput[i] = output_value;
-        }
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 6>>& rVariable,
+    std::vector<array_1d<double, 6>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    AdjointFiniteDifferenceBaseElementHelperUtils::CalculateOnIntegrationPoints(*mpPrimalElement, *this, rVariable, rOutput, rCurrentProcessInfo);
+}
 
-    } else {
-        KRATOS_ERROR << "Unsupported output variable." << std::endl;
-    }
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 9>>& rVariable,
+    std::vector<array_1d<double, 9>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    AdjointFiniteDifferenceBaseElementHelperUtils::CalculateOnIntegrationPoints(*mpPrimalElement, *this, rVariable, rOutput, rCurrentProcessInfo);
+}
 
-    KRATOS_CATCH("")
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    AdjointFiniteDifferenceBaseElementHelperUtils::CalculateOnIntegrationPoints(*mpPrimalElement, *this, rVariable, rOutput, rCurrentProcessInfo);
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
+    const Variable<Matrix>& rVariable,
+    std::vector<Matrix>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    AdjointFiniteDifferenceBaseElementHelperUtils::CalculateOnIntegrationPoints(*mpPrimalElement, *this, rVariable, rOutput, rCurrentProcessInfo);
 }
 
 template <class TPrimalElement>
@@ -298,19 +349,44 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
 
     // Get perturbation size
     const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
+    const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
+    const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+    const SizeType num_dofs_per_node = mHasRotationDofs ?  2 * dimension : dimension;
+    const SizeType local_size = number_of_nodes * num_dofs_per_node;
 
-    Vector RHS;
-    this->pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
+    if( rDesignVariable == TEMPERATURE )
+    {
+        rOutput.resize( number_of_nodes, local_size, false);
 
-    // Get pseudo-load from utility
-    FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, rCurrentProcessInfo);
+        Vector RHS;
+        Vector derived_RHS;
+        
+        pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
+
+        for(IndexType i_node = 0; i_node < mpPrimalElement->GetGeometry().PointsNumber(); ++i_node)
+        {
+            // Get pseudo-load contribution from utility
+            FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable,
+                                                                      mpPrimalElement->GetGeometry()[i_node], delta, 
+                                                                      derived_RHS, rCurrentProcessInfo);
+
+            KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit! [ derived_RHS.size() = " << derived_RHS.size() << ", local_size = " << local_size << " ]." << std::endl;
+
+            for(IndexType i = 0; i < derived_RHS.size(); ++i)
+                rOutput(i_node, i) = derived_RHS[i];
+        }
+    }
+    else
+    {
+        Vector RHS;
+        this->pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
+
+        // Get pseudo-load from utility
+        FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, rCurrentProcessInfo);
+    }
 
     if (rOutput.size1() == 0 || rOutput.size2() == 0)
     {
-        const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
-        const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
-        const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
-        const SizeType local_size = number_of_nodes * num_dofs_per_node;
         rOutput = ZeroMatrix(0, local_size);
     }
 

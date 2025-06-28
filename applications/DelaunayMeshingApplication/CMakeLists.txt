@@ -38,7 +38,7 @@ if(${INCLUDE_TETGEN} MATCHES ON)
   add_definitions(-DTETLIBRARY)
   add_definitions(-DTETGEN150)
   add_definitions(-w)
-  #perform platform specific defintions
+  #perform platform specific definitions
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     add_definitions(-DCPU86)
     add_definitions(-DNO_TIMER)

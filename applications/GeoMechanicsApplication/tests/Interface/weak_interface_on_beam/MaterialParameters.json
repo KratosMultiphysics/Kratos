@@ -47,7 +47,7 @@
               "name"             :  "SmallStrainUDSM2DInterfaceLaw" 
           },
           "Variables": {
-              "IGNORE_UNDRAINED"         :  false,
+              "IGNORE_UNDRAINED"         :  true,
               "DENSITY_SOLID"            :  2.0e3,
               "DENSITY_WATER"            :  1.0e3,
               "POROSITY"                 :  0.3,
@@ -78,7 +78,7 @@
               "name"             :  "SmallStrainUDSM2DInterfaceLaw" 
           },
           "Variables": {
-              "IGNORE_UNDRAINED"         :  false,
+              "IGNORE_UNDRAINED"         :  true,
               "DENSITY_SOLID"            :  2.0e3,
               "DENSITY_WATER"            :  1.0e3,
               "POROSITY"                 :  0.3,

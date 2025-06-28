@@ -14,14 +14,15 @@
 
 #include <numeric>
 
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
-#include <custom_utilities/math_utilities.h>
 
 namespace Kratos
 {
@@ -99,7 +100,7 @@ public:
     int Check(const ProcessInfo&) const override
     {
         KRATOS_TRY
-        CheckDomainSize();
+        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id());
         CheckHasSolutionStepsDataFor(WATER_PRESSURE);
         CheckHasDofsFor(WATER_PRESSURE);
         CheckProperties();
@@ -118,12 +119,16 @@ public:
         Element::Initialize(rCurrentProcessInfo);
         // all these except the PIPE_ELEMENT_LENGTH seem to be in the erosion_process_strategy only. Why do this: it is used in output for dGeoFlow
         this->SetValue(PIPE_ELEMENT_LENGTH, CalculateLength(this->GetGeometry()));
-        this->SetValue(PIPE_EROSION, false);
-        constexpr double small_pipe_height = 1e-10;
-        this->SetValue(PIPE_HEIGHT, small_pipe_height);
-        this->SetValue(PREV_PIPE_HEIGHT, small_pipe_height);
-        this->SetValue(DIFF_PIPE_HEIGHT, 0.);
-        this->SetValue(PIPE_ACTIVE, false);
+
+        if (!mIsInitialized) {
+            this->SetValue(PIPE_EROSION, false);
+            constexpr double small_pipe_height = 1e-10;
+            this->SetValue(PIPE_HEIGHT, small_pipe_height);
+            this->SetValue(PREV_PIPE_HEIGHT, small_pipe_height);
+            this->SetValue(DIFF_PIPE_HEIGHT, 0.);
+            this->SetValue(PIPE_ACTIVE, false);
+            mIsInitialized = true;
+        }
     }
 
     double CalculateEquilibriumPipeHeight(const PropertiesType& rProp, const GeometryType& rGeom, double)
@@ -221,14 +226,6 @@ public:
     std::string Info() const override { return "GeoSteadyStatePwPipingElement"; }
 
 private:
-    void CheckDomainSize() const
-    {
-        constexpr auto min_domain_size = 1.0e-15;
-        KRATOS_ERROR_IF(GetGeometry().DomainSize() < min_domain_size)
-            << "DomainSize (" << GetGeometry().DomainSize() << ") is smaller than "
-            << min_domain_size << " for element " << Id() << std::endl;
-    }
-
     void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
     {
         for (const auto& node : GetGeometry()) {
@@ -392,9 +389,10 @@ private:
             array_1d<double, TDim> tangent_vector = column(J_container[integration_point_index], 0);
             tangent_vector /= norm_2(tangent_vector);
 
-            array_1d<double, 1> projected_gravity = ZeroVector(1);
-            projected_gravity(0) = MathUtils<double>::Dot(tangent_vector, body_acceleration);
-            const auto N         = Vector{row(rNContainer, integration_point_index)};
+            const auto projected_gravity =
+                array_1d<double, 1>(1, std::inner_product(tangent_vector.begin(), tangent_vector.end(),
+                                                          body_acceleration.begin(), 0.0));
+            const auto N = Vector{row(rNContainer, integration_point_index)};
             fluid_body_vector +=
                 r_properties[DENSITY_WATER] *
                 prod(prod(rShapeFunctionGradients[integration_point_index], constitutive_matrix), projected_gravity) *
@@ -413,11 +411,15 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+        rSerializer.save("mIsInitialized", mIsInitialized);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+        rSerializer.load("mIsInitialized", mIsInitialized);
     }
+
+    bool mIsInitialized = false;
 };
 } // namespace Kratos
