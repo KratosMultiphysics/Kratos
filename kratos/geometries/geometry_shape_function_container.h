@@ -97,7 +97,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor for single integration point having the full containers
+    /// Constructor for single integration point having the full containers with first derivatives 
     GeometryShapeFunctionContainer(
         IntegrationMethod ThisDefaultMethod,
         const IntegrationPointsContainerType& ThisIntegrationPoints,
@@ -108,6 +108,31 @@ public:
         , mShapeFunctionsValues( ThisShapeFunctionsValues )
         , mShapeFunctionsLocalGradients( ThisShapeFunctionsLocalGradients )
     {
+    }
+
+    /// Constructor for single integration point having the full containers with multiple derivatives
+    GeometryShapeFunctionContainer(
+        IntegrationMethod ThisDefaultMethod,
+        const IntegrationPointsContainerType& ThisIntegrationPoints,
+        const ShapeFunctionsValuesContainerType& ThisShapeFunctionsValues,
+        const ShapeFunctionsDerivativesContainerType& ThisShapeFunctionsDerivatives )
+        : mDefaultMethod(ThisDefaultMethod)
+        , mIntegrationPoints(ThisIntegrationPoints)
+        , mShapeFunctionsValues( ThisShapeFunctionsValues )
+    {
+        if (ThisShapeFunctionsDerivatives[static_cast<int>(ThisDefaultMethod)].size() > 0)
+        {
+            mShapeFunctionsLocalGradients[static_cast<int>(ThisDefaultMethod)] = ThisShapeFunctionsDerivatives[static_cast<int>(ThisDefaultMethod)][0]; 
+        }
+        if (ThisShapeFunctionsDerivatives[static_cast<int>(ThisDefaultMethod)].size() > 1)
+        {
+            ShapeFunctionsDerivativesIntegrationPointArrayType derivatives_array(ThisShapeFunctionsDerivatives[static_cast<int>(ThisDefaultMethod)].size() - 1);
+            for (IndexType i = 1; i < ThisShapeFunctionsDerivatives[static_cast<int>(ThisDefaultMethod)].size(); ++i)
+            {
+                derivatives_array[i - 1] = ThisShapeFunctionsDerivatives[static_cast<int>(ThisDefaultMethod)][i];
+            }
+            mShapeFunctionsDerivatives[static_cast<int>(ThisDefaultMethod)] = derivatives_array;
+        }
     }
 
     /// Constructor ONLY for single integration point with first derivatives
