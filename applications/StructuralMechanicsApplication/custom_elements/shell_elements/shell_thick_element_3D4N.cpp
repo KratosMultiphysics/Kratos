@@ -1284,7 +1284,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
         // multiply the section tangent matrices and stress resultants by 'dA'
 
         D *= dA;
-        Ddrilling *= dA;
+        Ddrilling *= dA * 0.05;;
         generalizedStresses *= dA;
         double drillingStress = Ddrilling * drillingStrain; // already multiplied by 'dA'
 

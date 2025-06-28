@@ -88,8 +88,8 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
         {
             "max_iteration"         : 1000,
             "tolerance"             : 1e-6,
-            "number_of_eigenvalues" : 1,
-            "echo_level"            : 0,
+            "number_of_eigenvalues" : 3,
+            "echo_level"            : 1,
             "normalize_eigenvectors": false
         }
         """)

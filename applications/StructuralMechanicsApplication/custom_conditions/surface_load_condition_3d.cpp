@@ -299,9 +299,9 @@ void SurfaceLoadCondition3D::CalculateAll(
         // Adding pressure force
         if (std::abs(pressure) > std::numeric_limits<double>::epsilon()) {
             // LEFT HAND SIDE MATRIX
-            if (CalculateStiffnessMatrixFlag) {
-                CalculateAndSubKp(rLeftHandSideMatrix, tangent_xi, tangent_eta, DN_DeContainer[point_number], rN, pressure, integration_weight);
-            }
+            // if (CalculateStiffnessMatrixFlag) {
+            //     CalculateAndSubKp(rLeftHandSideMatrix, tangent_xi, tangent_eta, DN_DeContainer[point_number], rN, pressure, integration_weight);
+            // }
 
             // RIGHT HAND SIDE VECTOR
             if (CalculateResidualVectorFlag) { //calculation of the matrix is required

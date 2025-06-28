@@ -944,6 +944,15 @@ Vector CrBeamElement3D2N::CalculateAntiSymmetricDeformationMode() const
     MathUtils<double>::CrossProduct(temp_vector, rotated_nx0, bisectrix);
     phi_a = prod(Matrix(trans(rotation_matrix)), temp_vector);
     phi_a *= 4.00;
+    
+    // //decimal corrections
+    // const double norm = norm_2(phi_a);
+    // const double tolerance = std::max(norm * 1.0E-15, 1.0E-15);
+    // for (unsigned int i = 0; i < phi_a.size(); i++) {
+    //     if (std::abs(phi_a(i)) < tolerance) {
+    //         phi_a(i) = 0.0;
+    //     }
+    // }
 
     return phi_a;
 }
@@ -1039,7 +1048,7 @@ void CrBeamElement3D2N::ConstCalculateRightHandSide(
     KRATOS_TRY;
     
     // Add internal forces
-    const Vector internal_forces = CalculateGlobalNodalForces();
+    const Vector internal_forces = (rCurrentProcessInfo[STEP] * (rCurrentProcessInfo[NL_ITERATION_NUMBER] + 1) > 1) ? CalculateGlobalNodalForces() : ZeroVector(msElementSize);
     rRightHandSideVector = ZeroVector(msElementSize);
     noalias(rRightHandSideVector) -= internal_forces;
     

@@ -924,17 +924,18 @@ void ShellThinElement3D4N<TKinematics>::InitializeCalculationData(CalculationDat
         v_h[1] = (-1.0*A_0 + A_1 - A_2) / 2.0 / A_0;
         v_h[2] = (A_0 - A_1 - A_2) / 2.0 / A_0;
         v_h[3] = (-1.0*A_0 - A_1 + A_2) / 2.0 / A_0;
+        double correction_factor = 2.0;
 
         //filter matrix for higher order translations strain field
         Matrix H_tv = Matrix(2, 12, 0.0);
         for (int i = 0; i < 4; i++) {
             // x-components
-            H_tv(0, i) = v_h[i] * s_xi[0];
-            H_tv(1, i) = v_h[i] * s_eta[0];
+            H_tv(0, i) = correction_factor * v_h[i] * s_xi[0];
+            H_tv(1, i) = correction_factor * v_h[i] * s_eta[0];
 
             //y components
-            H_tv(0, 4 + i) = v_h[i] * s_xi[1];
-            H_tv(1, 4 + i) = v_h[i] * s_eta[1];
+            H_tv(0, 4 + i) = correction_factor * v_h[i] * s_xi[1];
+            H_tv(1, 4 + i) = correction_factor * v_h[i] * s_eta[1];
         }
 
         //eqn 5.2.26
