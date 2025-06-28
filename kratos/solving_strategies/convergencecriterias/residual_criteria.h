@@ -191,6 +191,11 @@ public:
         const TSystemVectorType& rb
         ) override
     {
+        if (rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] <= 1) {
+            [[maybe_unused]] SizeType size_residual;
+            CalculateResidualNorm(rModelPart, mInitialResidualNorm, size_residual, rDofSet, rb);
+        }
+
         if (TSparseSpace::Size(rb) != 0) { //if we are solving for something
             // Some values
             const int rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
@@ -245,9 +250,6 @@ public:
         if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
             ComputeActiveDofs(rModelPart, rDofSet);
         }
-
-        SizeType size_residual;
-        CalculateResidualNorm(rModelPart, mInitialResidualNorm, size_residual, rDofSet, rb);
     }
 
     /**
