@@ -58,6 +58,7 @@
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 #include "geometries/quadrature_point_geometry.h"
+#include "geometries/knot_span_geometry.h"
 #include "geometries/coupling_geometry.h"
 
 // Elements
@@ -458,6 +459,9 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const QuadraturePointGeometry<Node,3,2> mQuadraturePointGeometrySurface3D = QuadraturePointGeometry<Node,3,2>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
     const QuadraturePointGeometry<Node,3> mQuadraturePointGeometryVolume3D = QuadraturePointGeometry<Node,3>(GeometryType::PointsArrayType(),
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+    //KnotSpanGeometries:
+    const KnotSpanGeometry<Node,3,2> mKnotSpanGeometrySurface = KnotSpanGeometry<Node,3,2>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
 
     // General conditions must be defined
