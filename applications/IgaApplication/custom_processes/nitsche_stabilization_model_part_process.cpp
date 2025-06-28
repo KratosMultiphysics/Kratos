@@ -38,41 +38,108 @@ void NitscheStabilizationModelPartProcess::ExecuteInitialize()
     if(mrThisModelPart.ConditionsBegin()->GetGeometry().NumberOfGeometryParts() != 0) // Coupling Nitsche condition
     {
         // a) Create a new model part for Nitsche stabilization calculation
-        const SizeType master_nurbs_surface_id = mrThisModelPart.ConditionsBegin()->GetGeometry().GetGeometryPart(0).GetGeometryParent(0).pGetGeometryPart(std::numeric_limits<IndexType>::max())->Id();
-        const SizeType slave_nurbs_surface_id = mrThisModelPart.ConditionsBegin()->GetGeometry().GetGeometryPart(1).GetGeometryParent(0).pGetGeometryPart(std::numeric_limits<IndexType>::max())->Id();
 
         for(ModelPart::ConditionsContainerType::iterator i_cond = mrThisModelPart.ConditionsBegin() ; i_cond != mrThisModelPart.ConditionsEnd() ; ++i_cond)
         {
             nitsche_stabilization_model_part.AddCondition(*(i_cond.base()));
         }
-        
-        SizeType slave_element_start_id = 0; 
+
+        SizeType master_nurbs_surface_id;
+        SizeType slave_nurbs_surface_id;
+
+        if(nitsche_stabilization_model_part.ConditionsArray().size() > 1) //CoS
+        {
+            master_nurbs_surface_id = mrThisModelPart.ConditionsBegin()->GetGeometry().GetGeometryPart(0).GetGeometryParent(0).pGetGeometryPart(std::numeric_limits<IndexType>::max())->Id();
+            slave_nurbs_surface_id = mrThisModelPart.ConditionsBegin()->GetGeometry().GetGeometryPart(1).GetGeometryParent(0).pGetGeometryPart(std::numeric_limits<IndexType>::max())->Id();
+        }
+        else //PoCoS
+        {
+            master_nurbs_surface_id = mrThisModelPart.ConditionsBegin()->GetGeometry().GetGeometryPart(0).GetGeometryParent(0).GetGeometryPart(std::numeric_limits<IndexType>::max()).pGetGeometryPart(std::numeric_limits<IndexType>::max())->Id();
+            slave_nurbs_surface_id = mrThisModelPart.ConditionsBegin()->GetGeometry().GetGeometryPart(1).GetGeometryParent(0).GetGeometryPart(std::numeric_limits<IndexType>::max()).pGetGeometryPart(std::numeric_limits<IndexType>::max())->Id();
+        }
+
         for(ModelPart::ElementsContainerType::iterator i_elem = r_model_part_root.ElementsBegin() ; i_elem != r_model_part_root.ElementsEnd() ; ++i_elem)
         {   
             const SizeType nurbs_surface_id = (*(i_elem.base()))->GetGeometry().GetGeometryParent(0).pGetGeometryPart(std::numeric_limits<IndexType>::max())->Id();
             if(nurbs_surface_id == master_nurbs_surface_id || nurbs_surface_id == slave_nurbs_surface_id)
             {
                 nitsche_stabilization_model_part.AddElement(*(i_elem.base()));
-                if(nurbs_surface_id == master_nurbs_surface_id && (*(i_elem.base()))->GetGeometry().GetGeometryParent(0).HasGeometryPart(std::numeric_limits<IndexType>::max()-2) == 0)
-                {
-                    ++slave_element_start_id;
-                }
             } 
         }
-
+        
         // b) Assign properties from master and slave geometries to coupling condition
-        Properties::Pointer master_properties = nitsche_stabilization_model_part.ElementsBegin()->pGetProperties();    
-        Properties::Pointer slave_properties = nitsche_stabilization_model_part.pGetElement(slave_element_start_id-1)->pGetProperties();
-        SizeType prop_id = (nitsche_stabilization_model_part.ConditionsBegin()->pGetProperties())->Id(); 
+        if(nitsche_stabilization_model_part.ConditionsArray().size() > 1) //CoS
+        {
+            SizeType slave_element_end_id = 0;
+            for(ModelPart::ElementsContainerType::iterator i_elem = nitsche_stabilization_model_part.ElementsBegin() ; i_elem != nitsche_stabilization_model_part.ElementsEnd() ; ++i_elem)
+            {  
+                if((*(i_elem.base()))->GetGeometry().GetGeometryParent(0).HasGeometryPart(std::numeric_limits<IndexType>::max()-2) == 0)
+                {
+                    ++slave_element_end_id;
+                }
+            }
 
-        if(master_properties == slave_properties)
-        {
-            mrThisModelPart.pGetProperties(prop_id)->AddSubProperties(master_properties);
+            Properties::Pointer master_properties = nitsche_stabilization_model_part.ElementsBegin()->pGetProperties();    
+            Properties::Pointer slave_properties = nitsche_stabilization_model_part.ElementsArray()[slave_element_end_id-1]->pGetProperties();   
+
+            SizeType prop_id = (nitsche_stabilization_model_part.ConditionsBegin()->pGetProperties())->Id(); 
+
+            if(master_properties == slave_properties)
+            {
+                mrThisModelPart.pGetProperties(prop_id)->AddSubProperties(master_properties);
+            }
+            else
+            {
+                mrThisModelPart.pGetProperties(prop_id)->AddSubProperties(master_properties);
+                mrThisModelPart.pGetProperties(prop_id)->AddSubProperties(slave_properties);
+            }
         }
-        else
+        else // PoCoS
         {
-            mrThisModelPart.pGetProperties(prop_id)->AddSubProperties(master_properties);
-            mrThisModelPart.pGetProperties(prop_id)->AddSubProperties(slave_properties);
+            SizeType master_nurbs_curve_on_surface_id = mrThisModelPart.ConditionsBegin()->GetGeometry().GetGeometryPart(0).GetGeometryParent(0).GetGeometryPart(std::numeric_limits<IndexType>::max()).pGetGeometryPart(std::numeric_limits<IndexType>::max()-2)->Id();
+            SizeType slave_nurbs_curve_on_surface_id = mrThisModelPart.ConditionsBegin()->GetGeometry().GetGeometryPart(1).GetGeometryParent(0).GetGeometryPart(std::numeric_limits<IndexType>::max()).pGetGeometryPart(std::numeric_limits<IndexType>::max()-2)->Id();
+    
+            SizeType master_element_end_id = 0;
+            SizeType slave_element_end_id = 0;
+
+            for(ModelPart::ElementsContainerType::iterator i_elem = nitsche_stabilization_model_part.ElementsBegin() ; i_elem != nitsche_stabilization_model_part.ElementsEnd() ; ++i_elem)
+            {          
+                ++master_element_end_id;
+                if((*(i_elem.base()))->GetGeometry().GetGeometryParent(0).HasGeometryPart(std::numeric_limits<IndexType>::max()-2) != 0)
+                {
+                    if((*(i_elem.base()))->GetGeometry().GetGeometryParent(0).pGetGeometryPart(std::numeric_limits<IndexType>::max()-2)->Id() == master_nurbs_curve_on_surface_id)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            for(ModelPart::ElementsContainerType::iterator i_elem = nitsche_stabilization_model_part.ElementsBegin() ; i_elem != nitsche_stabilization_model_part.ElementsEnd() ; ++i_elem)
+            {          
+                ++slave_element_end_id;
+                if((*(i_elem.base()))->GetGeometry().GetGeometryParent(0).HasGeometryPart(std::numeric_limits<IndexType>::max()-2) != 0)
+                {
+                    if((*(i_elem.base()))->GetGeometry().GetGeometryParent(0).pGetGeometryPart(std::numeric_limits<IndexType>::max()-2)->Id() == slave_nurbs_curve_on_surface_id)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            Properties::Pointer master_properties = nitsche_stabilization_model_part.ElementsArray()[master_element_end_id+1]->pGetProperties();    
+            Properties::Pointer slave_properties = nitsche_stabilization_model_part.ElementsArray()[slave_element_end_id+1]->pGetProperties();
+            SizeType prop_id = (nitsche_stabilization_model_part.ConditionsBegin()->pGetProperties())->Id(); 
+
+            
+            if(master_properties == slave_properties)
+            {
+                mrThisModelPart.pGetProperties(prop_id)->AddSubProperties(master_properties);
+            }
+            else
+            {
+                mrThisModelPart.pGetProperties(prop_id)->AddSubProperties(master_properties);
+                mrThisModelPart.pGetProperties(prop_id)->AddSubProperties(slave_properties);
+            }
         }
 
         // c) Find the number of DOFs on the current interface boundary
@@ -109,6 +176,9 @@ void NitscheStabilizationModelPartProcess::ExecuteInitialize()
                 }
             }
         }
+        KRATOS_WATCH(new_model_part_master.NumberOfNodes())
+        KRATOS_WATCH(new_model_part_slave.NumberOfNodes())
+        
         const int number_of_nodes = (new_model_part_master.NumberOfNodes() + new_model_part_slave.NumberOfNodes())* 3;
         nitsche_stabilization_model_part.GetProcessInfo().SetValue(EIGENVALUE_NITSCHE_STABILIZATION_SIZE, number_of_nodes);
     }

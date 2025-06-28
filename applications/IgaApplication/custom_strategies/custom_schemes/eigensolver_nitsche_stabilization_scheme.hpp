@@ -116,7 +116,7 @@ public:
     {
         KRATOS_TRY
 
-        if (CurrentProcessInfo[BUILD_LEVEL] == 2) 
+        if (CurrentProcessInfo[BUILD_LEVEL] == 2 || CurrentProcessInfo[BUILD_LEVEL] == 3) 
         {
             rCurrentCondition.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
         }

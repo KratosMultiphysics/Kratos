@@ -19,6 +19,7 @@
 
 // Project includes
 #include "iga_application_variables.h"
+#include "custom_utilities/iga_flags.h"
 
 
 namespace Kratos
@@ -31,7 +32,7 @@ namespace Kratos
     *
     *   The aproach is described in https://doi.org/10.1186/s40323-018-0109-4
     */
-    class KRATOS_API(IGA_APPLICATION) SupportLagrangeCondition
+    class SupportLagrangeCondition
         : public Condition
     {
     public:
@@ -101,6 +102,8 @@ namespace Kratos
         ///@}
         ///@name Operations
         ///@{
+
+        void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
         /// Calculates RightHandSide F-vector only
         void CalculateRightHandSide(
@@ -230,6 +233,8 @@ namespace Kratos
         ///@name private variables
         ///@{
 
+        std::vector<Vector> m_phi_r_vector;
+
         const double shape_function_tolerance = 1e-6;
 
         ///@}
@@ -241,6 +246,25 @@ namespace Kratos
          */
         SizeType GetNumberOfNonZeroNodes() const;
 
+        SizeType GetNumberOfNonZeroDOFsRotation() const;
+
+        // Compute rotational shape functions
+        void CalculateRotationalShapeFunctions(
+            IndexType IntegrationPointIndex,
+            Vector& phi_r,
+            Matrix& phi_rs,
+            array_1d<double, 2>& diff_phi);
+
+        // Compute rotation
+        void CalculateRotation(
+            IndexType IntegrationPointIndex,
+            const Matrix &rShapeFunctionGradientValues,
+            Vector &phi_r,
+            Matrix &phi_rs,
+            array_1d<double, 2> &phi,
+            array_1d<double, 3> &trim_tangent,
+            const Vector &local_tangent);
+
         ///@}
         ///@name Serialization
         ///@{
@@ -250,11 +274,13 @@ namespace Kratos
         virtual void save(Serializer& rSerializer) const override
         {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
+            rSerializer.save("phi_r", m_phi_r_vector);
         }
 
         virtual void load(Serializer& rSerializer) override
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
+            rSerializer.load("phi_r", m_phi_r_vector);
         }
 
         ///@}

@@ -41,6 +41,7 @@ namespace Kratos
         {
             // covariant metric
             array_1d<double, 3> a_ab_covariant;
+            array_1d<double, 3> b_ab_covariant;
 
             //base vector 1
             array_1d<double, 3> a1;
@@ -68,6 +69,7 @@ namespace Kratos
             KinematicVariables(SizeType Dimension)
             {
                 noalias(a_ab_covariant) = ZeroVector(Dimension);
+                noalias(b_ab_covariant) = ZeroVector(Dimension);
 
                 noalias(a1) = ZeroVector(Dimension);
                 noalias(a2) = ZeroVector(Dimension);
@@ -221,6 +223,11 @@ namespace Kratos
                 CalculateNitscheStabilizationMatrix(rLeftHandSideMatrix, rRightHandSideVector,
                     rCurrentProcessInfo);
             }
+            else if (rCurrentProcessInfo[BUILD_LEVEL] == 3)
+            {
+                CalculateNitscheStabilizationRotationMatrix(rLeftHandSideMatrix, rRightHandSideVector,
+                    rCurrentProcessInfo);
+            }
             else
             {
                 CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
@@ -259,6 +266,12 @@ namespace Kratos
         );
 
         void CalculateNitscheStabilizationMatrix(
+            MatrixType& rLeftHandSideMatrix,
+            VectorType& rRightHandSideVector,
+            const ProcessInfo& rCurrentProcessInfo
+        );
+
+        void CalculateNitscheStabilizationRotationMatrix(
             MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
             const ProcessInfo& rCurrentProcessInfo
@@ -313,6 +326,8 @@ namespace Kratos
 
         // Components of the metric coefficient tensor on the contravariant basis
         std::vector<array_1d<double, 3>> m_A_ab_covariant_vector;
+        // Components of the curvature coefficient tensor on the contravariant basis
+        std::vector<array_1d<double, 3>> m_B_ab_covariant_vector;
 
         // Determinant of the geometrical Jacobian.
         Vector m_dA_vector;
@@ -380,6 +395,48 @@ namespace Kratos
             Matrix& rFirstVariationStressCovariant, 
             array_1d<double, 3>& rDisplacement,
             array_1d<double, 3>& rSecondVariationTractionProduct);
+
+        // Moment-related functions
+        void CalculateMoment(
+            IndexType IntegrationPointIndex,
+            array_1d<double, 3>& rMoment,
+            const KinematicVariables& rActualKinematic,
+            ConstitutiveVariables& rThisConstitutiveVariablesCurvature);
+
+        void CalculateFirstVariationMomentCovariant(
+            IndexType IntegrationPointIndex,
+            Matrix& rFirstVariationMomentCovariant,
+            const KinematicVariables& rActualKinematic,
+            ConstitutiveVariables& rThisConstitutiveVariablesCurvature);
+
+        void CalculateFirstVariationMoment(
+            IndexType IntegrationPointIndex,
+            Matrix& rFirstVariationMoment,
+            Matrix& rFirstVariationMomentCovariant,
+            const KinematicVariables& rActualKinematic,
+            ConstitutiveVariables& rThisConstitutiveVariablesCurvature);
+
+        void CalculateSecondVariationMomentProduct(
+            IndexType IntegrationPointIndex,
+            Matrix& rPi,
+            const KinematicVariables& rActualKinematic,
+            ConstitutiveVariables& rThisConstitutiveVariablesCurvature);
+
+        void CalculateSecondVariationMoment(
+            IndexType IntegrationPointIndex,
+            Matrix& rSecondVariationMoment,
+            const KinematicVariables& rActualKinematic,
+            Matrix& rFirstVariationMomentCovariant, 
+            array_1d<double, 3>& rRotation,
+            array_1d<double, 3>& rSecondVariationMomentProduct);
+
+        void CalculateSecondVariationMomentT2(
+            IndexType IntegrationPointIndex,
+            Matrix& rSecondVariationMoment,
+            const KinematicVariables& rActualKinematic,
+            Matrix& rFirstVariationMomentCovariant, 
+            array_1d<double, 3>& T2,
+            array_1d<double, 3>& rSecondVariationMomentProduct);
         
         /**
         * This functions updates the constitutive variables
@@ -392,6 +449,7 @@ namespace Kratos
             IndexType IntegrationPointIndex,
             KinematicVariables& rActualMetric,
             ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
+            ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
             ConstitutiveLaw::Parameters& rValues,
             const ConstitutiveLaw::StressMeasure ThisStressMeasure
         );
@@ -406,6 +464,31 @@ namespace Kratos
             const KinematicVariables& rActualKinematic
         );
 
+        // Compute rotational shape functions
+        void CalculateRotationalShapeFunctions(
+            IndexType IntegrationPointIndex,
+            Vector& phi_r,
+            Matrix& phi_rs,
+            array_1d<double, 2>& diff_phi);
+
+        // Compute rotation
+        void CalculateRotation(
+            IndexType IntegrationPointIndex,
+            const Matrix &rShapeFunctionGradientValues,
+            Vector &phi_r,
+            Matrix &phi_rs,
+            array_1d<double, 2> &phi,
+            array_1d<double, 3> &trim_tangent,
+            const Vector &local_tangent);
+
+        ///@}
+        ///@name Geometrical Functions
+        ///@{
+
+        void CalculateHessian(
+            Matrix& Hessian,
+            const Matrix& rDDN_DDe) const;
+
         ///@}
         ///@name Serialization
         ///@{
@@ -416,6 +499,7 @@ namespace Kratos
         {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
             rSerializer.save("A_ab_covariant_vector", m_A_ab_covariant_vector);
+            rSerializer.save("B_ab_covariant_vector", m_B_ab_covariant_vector);
             rSerializer.save("dA_vector", m_dA_vector);
             rSerializer.save("T_vector", m_T_vector);
             rSerializer.save("reference_contravariant_base", m_reference_contravariant_base);
@@ -425,6 +509,7 @@ namespace Kratos
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
             rSerializer.load("A_ab_covariant_vector", m_A_ab_covariant_vector);
+            rSerializer.load("B_ab_covariant_vector", m_B_ab_covariant_vector);
             rSerializer.load("dA_vector", m_dA_vector);
             rSerializer.load("T_vector", m_T_vector);
             rSerializer.load("reference_contravariant_base", m_reference_contravariant_base);

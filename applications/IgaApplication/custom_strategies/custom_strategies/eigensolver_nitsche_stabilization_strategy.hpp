@@ -392,6 +392,8 @@ public:
         SparseMatrixType reduced_stabilization_matrix;
         SparseMatrixType reduced_stiffness_matrix;
 
+        Vector rResult;
+        std::size_t number_of_nodes_master, number_of_nodes_slave;
         if(rModelPart.ConditionsBegin()->GetGeometry().NumberOfGeometryParts() != 0) // Coupling Nitsche condition
         {
             // 1. find the DOFs on the current interface boundary
@@ -410,7 +412,7 @@ public:
                     }
                 }
             }
-            const std::size_t number_of_nodes_master = reduced_model_part_master.NumberOfNodes();
+            number_of_nodes_master = reduced_model_part_master.NumberOfNodes();
 
             Model reduced_model_slave;
             ModelPart& reduced_model_part_slave = reduced_model_slave.CreateModelPart("new_model");
@@ -427,10 +429,9 @@ public:
                     }
                 }
             }
-            const std::size_t number_of_nodes_slave = reduced_model_part_slave.NumberOfNodes();
+            number_of_nodes_slave = reduced_model_part_slave.NumberOfNodes();
 
             // 2. create the result vector
-            Vector rResult;
             rResult.resize((number_of_nodes_master+number_of_nodes_slave)*3);
 
             IndexType i_master = 0;
@@ -457,15 +458,20 @@ public:
 
             // 3. assigned the value of the reduced stifness and stabilization matrices based on result vector
             reduced_stabilization_matrix = ZeroMatrix((number_of_nodes_master+number_of_nodes_slave)*3,(number_of_nodes_master+number_of_nodes_slave)*3);
+            KRATOS_WATCH(SparseSpaceType::Size1(reduced_stabilization_matrix))
+            KRATOS_WATCH(SparseSpaceType::Size2(reduced_stabilization_matrix))
+            KRATOS_WATCH((number_of_nodes_master+number_of_nodes_slave)*3)
+            // exit(0);
 
             for (IndexType i = 0; i < (number_of_nodes_master+number_of_nodes_slave)*3; i++)
             {
                 for (IndexType j = 0; j <= i; j++)
                 {
-                    reduced_stabilization_matrix(i,j) = rStabilizationMatrix(rResult(i),rResult(j));
+                    auto value = rStabilizationMatrix(rResult(i), rResult(j));
+                    reduced_stabilization_matrix(i,j) = value;
                     if (i != j)
                     {
-                        reduced_stabilization_matrix(j,i) = rStabilizationMatrix(rResult(i),rResult(j));
+                        reduced_stabilization_matrix(j,i) = value;
                     }
                 }
             }
@@ -505,7 +511,6 @@ public:
             const std::size_t number_of_nodes = reduced_model_part.NumberOfNodes();
 
             // 2. create the result vector
-            Vector rResult;
             rResult.resize((number_of_nodes)*3);
 
             IndexType i = 0;
@@ -549,18 +554,112 @@ public:
         DenseVectorType Eigenvalues;
         DenseMatrixType Eigenvectors;
 
-        // Solve for eigenvalues and eigenvectors
-        BuiltinTimer system_solve_time;
-        this->pGetBuilderAndSolver()->GetLinearSystemSolver()->Solve(
-                reduced_stabilization_matrix,
-                reduced_stiffness_matrix,
-                Eigenvalues,
-                Eigenvectors);
+        // std::cout<<"checkpoint"<<std::endl;
 
-        KRATOS_INFO_IF("System Solve Time", BaseType::GetEchoLevel() > 0)
-                << system_solve_time.ElapsedSeconds() << std::endl;
+        // Other method to compute the stabilization
+        double stabilization_parameter_1 = norm_frobenius(reduced_stabilization_matrix)/norm_frobenius(reduced_stiffness_matrix);
+        KRATOS_WATCH(stabilization_parameter_1)
 
-        rModelPart.GetProcessInfo()[EIGENVALUE_NITSCHE_STABILIZATION_VECTOR] = Eigenvalues;
+        //double stabilization_parameter_2 = max(reduced_stabilization_matrix)/max(reduced_stiffness_matrix);
+        //KRATOS_WATCH(stabilization_parameter_2)
+
+        array_1d<double, 2> Eigenval;
+
+        Eigenval[0] = stabilization_parameter_1;
+        Eigenval[1] = stabilization_parameter_1;
+        
+        if (reduced_stabilization_matrix.size1() <= 6)
+        {
+            rModelPart.GetProcessInfo()[EIGENVALUE_NITSCHE_STABILIZATION_VECTOR] = Eigenval;
+            KRATOS_WATCH(Eigenval)
+        }
+        else
+        {
+            // KRATOS_WATCH(reduced_stiffness_matrix)
+            // KRATOS_WATCH(reduced_stabilization_matrix)
+
+            // // Solve for eigenvalues and eigenvectors
+            // BuiltinTimer system_solve_time;
+            // this->pGetBuilderAndSolver()->GetLinearSystemSolver()->Solve(
+            //     reduced_stabilization_matrix,
+            //     reduced_stiffness_matrix,
+            //     Eigenvalues,
+            //     Eigenvectors);
+
+            // KRATOS_WATCH(Eigenvalues)
+
+            // KRATOS_INFO_IF("System Solve Time", BaseType::GetEchoLevel() > 0)
+            //     << system_solve_time.ElapsedSeconds() << std::endl;
+
+            // rModelPart.GetProcessInfo()[EIGENVALUE_NITSCHE_STABILIZATION_VECTOR] = Eigenvalues;
+
+            rModelPart.GetProcessInfo()[EIGENVALUE_NITSCHE_STABILIZATION_VECTOR] = Eigenval;
+            // KRATOS_WATCH(Eigenval)
+        }
+
+        bool rotation = true;
+        if (rModelPart.ConditionsBegin()->GetGeometry().NumberOfGeometryParts() != 0 && rotation)
+        {
+            SparseMatrixType& rStabilizationRotationMatrix = this->GetStabilizationMatrix();
+
+            // Get the global stabilization matrix of the respective model part, linked with the Nitsche stabilization scheme.
+            rModelPart.GetProcessInfo()[BUILD_LEVEL] = 3;
+            TSparseSpace::SetToZero(rStabilizationRotationMatrix);
+
+            this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStabilizationRotationMatrix,b);
+
+            if (BaseType::GetEchoLevel() == 4) {
+                TSparseSpace::WriteMatrixMarketMatrix("StabilizationRotationMatrix.mm", rStabilizationRotationMatrix, false);
+            }
+
+            SparseMatrixType reduced_stabilization_rotation_matrix = ZeroMatrix((number_of_nodes_master+number_of_nodes_slave)*3,(number_of_nodes_master+number_of_nodes_slave)*3);
+            for (IndexType i = 0; i < (number_of_nodes_master+number_of_nodes_slave)*3; i++)
+            {
+                for (IndexType j = 0; j <= i; j++)
+                {
+                    reduced_stabilization_rotation_matrix(i,j) = rStabilizationRotationMatrix(rResult(i),rResult(j));
+                    if (i != j)
+                    {
+                        reduced_stabilization_rotation_matrix(j,i) = rStabilizationRotationMatrix(rResult(i),rResult(j));
+                    }
+                }
+            }
+       
+            // Eigenvector matrix and eigenvalue vector are initialized by the solver
+            DenseVectorType Eigenvaluesrotation;
+            DenseMatrixType Eigenvectorsrotation;
+
+            double stabilization_parameter_2 = norm_frobenius(reduced_stabilization_rotation_matrix)/norm_frobenius(reduced_stiffness_matrix);
+            KRATOS_WATCH(stabilization_parameter_2)
+
+            // KRATOS_WATCH(reduced_stabilization_rotation_matrix)
+
+            // // Solve for eigenvalues and eigenvectors
+            // BuiltinTimer system_solve_time;
+            // this->pGetBuilderAndSolver()->GetLinearSystemSolver()->Solve(
+            //     reduced_stabilization_rotation_matrix,
+            //     reduced_stiffness_matrix,
+            //     Eigenvaluesrotation,
+            //     Eigenvectorsrotation);
+
+            // KRATOS_WATCH(Eigenvaluesrotation)
+
+            // KRATOS_INFO_IF("System Solve Time", BaseType::GetEchoLevel() > 0)
+            //     << system_solve_time.ElapsedSeconds() << std::endl;
+
+            // rModelPart.GetProcessInfo()[EIGENVALUE_NITSCHE_STABILIZATION_ROTATION_VECTOR] = Eigenvaluesrotation;
+
+            array_1d<double, 2> Eigenval;
+
+            Eigenval[0] = stabilization_parameter_2;
+            Eigenval[1] = stabilization_parameter_2;
+
+            rModelPart.GetProcessInfo()[EIGENVALUE_NITSCHE_STABILIZATION_ROTATION_VECTOR] = Eigenval;
+        }
+        else
+        {
+            rModelPart.GetProcessInfo()[EIGENVALUE_NITSCHE_STABILIZATION_ROTATION_VECTOR] = Eigenval*0.0;
+        }
 
         return true;
     }

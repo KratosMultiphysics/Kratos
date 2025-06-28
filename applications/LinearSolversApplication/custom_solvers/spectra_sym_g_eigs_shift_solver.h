@@ -110,7 +110,7 @@ class SpectraSymGEigsShiftSolver
 
         OpType op(a, b);
         BOpType Bop(b);
-        const int ncv = 3 * nroot;  // TODO find a good value
+        const int ncv = nroot+1;  // TODO 
         Spectra::SymGEigsShiftSolver<OpType, BOpType, Spectra::GEigsMode::ShiftInvert> eigs(op, Bop, nroot, ncv, shift);
 
         eigs.init();
@@ -156,9 +156,11 @@ class SpectraSymGEigsShiftSolver
 
         // --- output
         if (echo_level > 0) {
+            double duration = timer.ElapsedSeconds();
+
             Eigen::IOFormat fmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", "[ ", " ]");
 
-            KRATOS_INFO("SpectraSymGEigsShiftSolver:") << "Completed in " << timer << std::endl
+            KRATOS_INFO("SpectraSymGEigsShiftSolver:") << "Completed in " << duration << " seconds" << std::endl
                       << "                   Eigenvalues = " << eigvals.transpose().format(fmt) << std::endl;
         }
     }
