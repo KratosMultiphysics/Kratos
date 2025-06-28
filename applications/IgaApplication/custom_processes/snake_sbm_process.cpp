@@ -56,14 +56,16 @@ SnakeSbmProcess::SnakeSbmProcess(
 void SnakeSbmProcess::CreateTheSnakeCoordinates()
 {   
     // Initilize the property of skin_model_part_in and out
-    if (mpSkinModelPartInnerInitial->NumberOfNodes()>0) {
+    // skin model part may have nodes if imported from an stl file or geometries if imported from a nurbs file
+    if (mpSkinModelPartInnerInitial->NumberOfNodes()>0 || mpSkinModelPartInnerInitial->NumberOfGeometries()>0) 
+    {
         if (!mpSkinModelPartInnerInitial->HasProperties(0)) mpSkinModelPartInnerInitial->CreateNewProperties(0);
         if (!mpSkinModelPart->HasProperties(0)) mpSkinModelPart->CreateNewProperties(0);
         // template argument IsInnerLoop set true
         CreateTheSnakeCoordinates<true>(*mpSkinModelPartInnerInitial, mNumberOfInnerLoops, mLambdaInner, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart);
             
     }
-    if (mpSkinModelPartOuterInitial->NumberOfNodes()>0) {
+    if (mpSkinModelPartOuterInitial->NumberOfNodes()>0 || mpSkinModelPartOuterInitial->NumberOfGeometries()>0) {
         if (!mpSkinModelPartOuterInitial->HasProperties(0)) mpSkinModelPartOuterInitial->CreateNewProperties(0);
         if (!mpSkinModelPart->HasProperties(0)) mpSkinModelPart->CreateNewProperties(0);
         // template argument IsInnerLoop set false
@@ -132,6 +134,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     parameter_external_coordinates[1][1] = knot_vector_v[knot_vector_v.size()-1];
     // Note that in here we are saving the knot span info in the parent model part database
     surrogate_model_part.GetParentModelPart().SetValue(PARAMETER_SPACE_CORNERS, parameter_external_coordinates);
+    r_skin_sub_model_part.SetValue(PARAMETER_SPACE_CORNERS, parameter_external_coordinates);
 
     // Create the matrix of active/inactive knot spans, one for inner and one for outer loop
     std::vector<int> n_knot_spans_uv(2);
@@ -161,10 +164,6 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
         KRATOS_INFO_IF("::[SnakeSbmProcess]::",  is_inner) << "Inner :: Starting SnakeStep" << std::endl;
         KRATOS_INFO_IF("::[SnakeSbmProcess]::", !is_inner) << "Outer :: Starting SnakeStep" << std::endl;
     }
-    
-
-    KRATOS_WARNING_IF("::[SnakeSbmProcess]::", rSkinModelPartInitial.NumberOfConditions() == 0) 
-                    << "Reference Skin model part for SBM has no conditions." << std::endl;
             
     if (rSkinModelPartInitial.NumberOfConditions()> 0) {
         
@@ -224,6 +223,144 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
             }
         }
     }
+    else if (rSkinModelPartInitial.Geometries().size()>0) // if the skin model part is defined by nurbs geometries
+    {
+        //TODO: decrease the number when the closest point projection for the NURBS is optimized in the IgaSbmModeler
+        const int n_initial_points_for_side = 5000; 
+        int first_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;
+        const SizeType n_boundary_curves = rSkinModelPartInitial.NumberOfGeometries();
+        bool new_inner_loop = true;
+        for (IndexType i_boundary_curve = 0; i_boundary_curve < n_boundary_curves; i_boundary_curve++) 
+        {
+            NurbsCurveGeometryPointerType p_curve = std::dynamic_pointer_cast<Kratos::NurbsCurveGeometry<2, Kratos::PointerVector<Kratos::Node>>>(rSkinModelPartInitial.pGetGeometry(i_boundary_curve));
+            if (!p_curve) 
+                KRATOS_ERROR << "NURBS curve " << i_boundary_curve << " not defined in the initial Model Part. Check the importNurbsSbmModeler." << std::endl;
+
+            // first point
+            CoordinatesArrayType first_point_coords(3);
+            Vector first_point_local_coord = ZeroVector(3);
+            p_curve->GlobalCoordinates(first_point_coords, first_point_local_coord);
+            // check the first point of the curve
+            if (new_inner_loop) 
+            {
+                Node::Pointer node = new Node(first_node_id, first_point_coords[0], first_point_coords[1], first_point_coords[2]);
+
+                // Create two nodes and two conditions for each skin condition
+                std::string layer_name = p_curve->GetValue(IDENTIFIER);
+
+                //needed for the call to the assign_vector_variable_to_nodes_process
+                ModelPart& r_skin_layer_sub_model_part = r_skin_sub_model_part.HasSubModelPart(layer_name) ? 
+                                                         r_skin_sub_model_part.GetSubModelPart(layer_name) : r_skin_sub_model_part.CreateSubModelPart(layer_name);
+
+                // compute normal at the node coords
+                std::vector<CoordinatesArrayType> global_space_derivatives;
+                SizeType derivative_order = 2;
+                CoordinatesArrayType new_point_local_coord = ZeroVector(3); //first point at local coord zero
+                p_curve->GlobalSpaceDerivatives(global_space_derivatives, new_point_local_coord, derivative_order);
+                CoordinatesArrayType tangent_vector = global_space_derivatives[1];
+                double tangent_magnitude = norm_2(tangent_vector);
+                tangent_vector /= tangent_magnitude;
+                Vector normal_vector = ZeroVector(3);
+                normal_vector[0] = tangent_vector[1];
+                normal_vector[1] = -tangent_vector[0];
+
+                node->SetValue(NORMAL, normal_vector);
+                node->SetValue(LOCAL_TANGENT, tangent_vector);
+        
+                r_skin_layer_sub_model_part.AddNode(node);
+                new_inner_loop = false;
+            } else 
+            {
+                const int last_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes();
+                Node& r_last_node = r_skin_sub_model_part.GetNode(last_node_id);
+                KRATOS_ERROR_IF(norm_2(first_point_coords - r_last_node) > 1e-7)
+                                << "ImportNurbsSbmModeler: error in the json NURBS file. The boundary curves" 
+                                << " are not correctly ordered." << std::endl;
+
+
+                // Create two nodes and two conditions for each skin condition
+                std::string layer_name = p_curve->GetValue(IDENTIFIER);
+
+                //needed for the call to the assign_vector_variable_to_nodes_process
+                ModelPart& r_skin_layer_sub_model_part = r_skin_sub_model_part.HasSubModelPart(layer_name) ? 
+                                                        r_skin_sub_model_part.GetSubModelPart(layer_name) : r_skin_sub_model_part.CreateSubModelPart(layer_name);
+
+                
+                // compute normal at the node coords
+                std::vector<CoordinatesArrayType> global_space_derivatives;
+                SizeType derivative_order = 2;
+                CoordinatesArrayType new_point_local_coord = ZeroVector(3); //first point at local coord zero
+                p_curve->GlobalSpaceDerivatives(global_space_derivatives, new_point_local_coord, derivative_order);
+                CoordinatesArrayType tangent_vector = global_space_derivatives[1];
+                double tangent_magnitude = norm_2(tangent_vector);
+                tangent_vector /= tangent_magnitude;
+                Vector normal_vector = ZeroVector(3);
+                normal_vector[0] = tangent_vector[1];
+                normal_vector[1] = -tangent_vector[0];
+
+                r_last_node.SetValue(NORMAL, normal_vector);
+                r_last_node.SetValue(LOCAL_TANGENT, tangent_vector);
+                r_skin_layer_sub_model_part.AddNode(&r_last_node);
+            }
+            // add the specified number of points
+            Vector second_point_local_coord = ZeroVector(3);
+            CoordinatesArrayType second_point_coords(3);
+            for (int i = 1; i < n_initial_points_for_side; i++)
+            {
+                second_point_local_coord[0] = (double) i/(n_initial_points_for_side-1);
+                p_curve->GlobalCoordinates(second_point_coords, second_point_local_coord);
+                //***********************************************************
+                    // Collect the coordinates of the points
+                std::vector<std::vector<double>> xy_coord_i_cond(2);
+                xy_coord_i_cond[0].resize(2); xy_coord_i_cond[1].resize(2); 
+                
+                xy_coord_i_cond[0][0] = first_point_coords[0]; // x_true_boundary1
+                xy_coord_i_cond[1][0] = first_point_coords[1]; // y_true_boundary1
+                xy_coord_i_cond[0][1] = second_point_coords[0]; // x_true_boundary2
+                xy_coord_i_cond[1][1] = second_point_coords[1]; // y_true_boundary2
+                
+                // Collect the intersections of the skin boundary with the knot values
+                std::vector<std::vector<int>> knot_span_uv(2);
+                knot_span_uv[0].resize(2); knot_span_uv[1].resize(2);
+
+                knot_span_uv[0][0] = (first_point_coords[0]-starting_pos_uv[0]) / knot_step_uv[0]; // knot_span_u_1st_point
+                knot_span_uv[1][0] = (first_point_coords[1]-starting_pos_uv[1]) / knot_step_uv[1]; // knot_span_v_1st_point
+                knot_span_uv[0][1] = (second_point_coords[0]-starting_pos_uv[0]) / knot_step_uv[0]; // knot_span_u_2nd_point
+                knot_span_uv[1][1] = (second_point_coords[1]-starting_pos_uv[1]) / knot_step_uv[1]; // knot_span_v_2nd_point
+
+                if (is_inner &&
+                            (knot_span_uv[0][0] < 0 || knot_span_uv[0][0] >= n_knot_spans_uv[0] ||
+                            knot_span_uv[1][0] < 0 || knot_span_uv[1][0] >= n_knot_spans_uv[1] ||
+                            knot_span_uv[0][1] < 0 || knot_span_uv[0][1] >= n_knot_spans_uv[0] ||
+                            knot_span_uv[1][1] < 0 || knot_span_uv[1][1] >= n_knot_spans_uv[1]) )
+                    KRATOS_ERROR << "[SnakeSbmUtilities]:: The skin boundary provided is bigger than the background geometry in the parameter space." << std::endl;
+
+                // additional check knot_span_uv computation on the domain border [especially for outer boundary]
+                if (knot_span_uv[0][0] == n_knot_spans_uv[0]) knot_span_uv[0][0]--; 
+                if (knot_span_uv[1][0] == n_knot_spans_uv[1]) knot_span_uv[1][0]--;
+                if (knot_span_uv[0][1] == n_knot_spans_uv[0]) knot_span_uv[0][1]--; 
+                if (knot_span_uv[1][1] == n_knot_spans_uv[1]) knot_span_uv[1][1]--;
+
+                std::vector<double> local_coords{first_point_local_coord[0], second_point_local_coord[0]};
+                
+                SnakeStepNurbs(id_matrix_knot_spans_available, knot_span_uv, xy_coord_i_cond, knot_step_uv, starting_pos_uv, local_coords,
+                                p_curve, r_skin_sub_model_part, knot_spans_available);
+                
+                first_point_local_coord = second_point_local_coord;
+                first_point_coords = second_point_coords;
+            }
+            // check the last point of the curve
+            if (norm_2(second_point_coords - r_skin_sub_model_part.GetNode(first_node_id)) < 1e-15)
+            {
+                first_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;
+                new_inner_loop = true;
+                id_matrix_knot_spans_available++;
+            }
+        }
+    }
+    else {
+        KRATOS_ERROR << "::[SnakeSbmProcess]:: Reference Skin model part for SBM is empty." << std::endl;;
+    }
 
     PointVector points;
     for (auto &i_cond : r_skin_sub_model_part.Conditions()) {
@@ -257,7 +394,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
         
         if (is_inner) {
             CreateSurrogateBuondaryFromSnakeInner(id_inner_loop, r_skin_sub_model_part, points_bin, n_knot_spans_uv, 
-                                                    knot_vector_u, knot_vector_v, knot_spans_available, r_surrogate_sub_model_part);
+                                                    knot_vector_u, knot_vector_v, starting_pos_uv, knot_spans_available, r_surrogate_sub_model_part);
             
             if (EchoLevel >  0)
                 KRATOS_INFO("::[SnakeSbmProcess]::") << "Inner :: Snake process has finished" << std::endl;
@@ -362,6 +499,151 @@ void SnakeSbmProcess::SnakeStep(
         auto p_cond2 = rSkinModelPart.CreateNewCondition("LineCondition2D2N", idNode2, {{idNode2, idNode2+1}}, p_cond_prop );
         rSkinModelPart.AddCondition(p_cond1);
         rSkinModelPart.AddCondition(p_cond2);
+    }
+}
+
+
+void SnakeSbmProcess::SnakeStepNurbs(
+            const int IdMatrix, 
+            const std::vector<std::vector<int>> rKnotSpansUV, 
+            const std::vector<std::vector<double>>& rConditionCoord, 
+            const Vector rKnotStepUV, 
+            const Vector rStartingPosition,
+            const std::vector<double> rLocalCoords,
+            const NurbsCurveGeometryPointerType &rpCurve,
+            ModelPart& rSkinModelPart, 
+            std::vector<std::vector<std::vector<int>>> &rKnotSpansAvailable)
+{
+    bool is_splitted = false;
+
+    if (rKnotSpansUV[0][0] != rKnotSpansUV[0][1] || rKnotSpansUV[1][0] != rKnotSpansUV[1][1]) { 
+        // intersection between true and surrogate boundary
+        // Check if we are jumping some cut knot spans. If yes we split the true segment
+        if (std::abs(rKnotSpansUV[1][0]-rKnotSpansUV[1][1]) > 1 || std::abs(rKnotSpansUV[0][0]-rKnotSpansUV[0][1]) > 1 || 
+                (rKnotSpansUV[0][0] != rKnotSpansUV[0][1] && rKnotSpansUV[1][0] != rKnotSpansUV[1][1]) ) {
+            is_splitted = true;
+            
+            // Split the segment and do it recursively
+            Vector local_coords_split = ZeroVector(3);
+            local_coords_split[0] = (rLocalCoords[0] + rLocalCoords[1]) / 2;
+            CoordinatesArrayType xy_true_boundary_split;
+            rpCurve->GlobalCoordinates(xy_true_boundary_split, local_coords_split);
+
+            int knot_span_u_point_split = (xy_true_boundary_split[0]-rStartingPosition[0]) / rKnotStepUV[0] ;
+            int knot_span_v_point_split = (xy_true_boundary_split[1]-rStartingPosition[1]) / rKnotStepUV[1] ;
+
+            // check if it's exactly the same of the first or second point
+            bool is_passing_through_diagonal = (std::abs(rKnotSpansUV[0][0] - rKnotSpansUV[0][1]) == 1)  && 
+                                                (std::abs(rKnotSpansUV[1][0] - rKnotSpansUV[1][1]) == 1);
+            
+            if (is_passing_through_diagonal)
+            {
+                // additional check to avoid infinite loop: check if the splitted segment is too small
+                const double split_segment_length = sqrt(std::pow((xy_true_boundary_split[0] - rConditionCoord[0][0]),2) + 
+                                                         std::pow((xy_true_boundary_split[1] - rConditionCoord[1][0]),2)); 
+                
+                // exactly passing trough a diagonal vertex 
+                const double minumum_length = std::min(rKnotStepUV[0]/100, rKnotStepUV[1]/100); 
+                if (split_segment_length <= minumum_length)
+                {
+                    KRATOS_WARNING("[SnakeSbmProcess] :: one skin segment is exactly passing trough a diagonal vertex");
+                    // -> we mark an arbitrary knot span (the one with the x of the first point and the y of the second point) as cut.
+                    knot_span_u_point_split = rKnotSpansUV[0][0];
+                    knot_span_v_point_split = rKnotSpansUV[1][1];
+                }
+            }
+
+            if (knot_span_u_point_split == int (rKnotSpansAvailable[IdMatrix][0].size())) knot_span_u_point_split--;
+            if (knot_span_v_point_split == int (rKnotSpansAvailable[IdMatrix].size())) knot_span_v_point_split--;
+
+            // update xy_coord for the first split segment
+            std::vector<std::vector<double>> xy_coord_i_cond_split(2);
+            xy_coord_i_cond_split[0].resize(2); xy_coord_i_cond_split[1].resize(2); 
+            xy_coord_i_cond_split[0][0] = rConditionCoord[0][0];
+            xy_coord_i_cond_split[1][0] = rConditionCoord[1][0];
+            xy_coord_i_cond_split[0][1] = xy_true_boundary_split[0];
+            xy_coord_i_cond_split[1][1] = xy_true_boundary_split[1];
+            // update knot_span_uv for the first split segment
+            std::vector<std::vector<int>> knot_span_uv_split(2);
+            knot_span_uv_split[0].resize(2); knot_span_uv_split[1].resize(2); 
+            knot_span_uv_split[0][0] = rKnotSpansUV[0][0];
+            knot_span_uv_split[1][0] = rKnotSpansUV[1][0];
+            knot_span_uv_split[0][1] = knot_span_u_point_split;
+            knot_span_uv_split[1][1] = knot_span_v_point_split;
+
+            std::vector<double> local_coords_split_segment1{rLocalCoords[0], local_coords_split[0]};
+            
+            // __We do it recursively first split__
+            SnakeStepNurbs(IdMatrix, knot_span_uv_split, xy_coord_i_cond_split, rKnotStepUV, rStartingPosition, local_coords_split_segment1,
+                        rpCurve, rSkinModelPart, rKnotSpansAvailable);
+
+            // update xy_coord for the second split segment
+            xy_coord_i_cond_split[0][0] = xy_true_boundary_split[0];
+            xy_coord_i_cond_split[1][0] = xy_true_boundary_split[1];
+            xy_coord_i_cond_split[0][1] = rConditionCoord[0][1];
+            xy_coord_i_cond_split[1][1] = rConditionCoord[1][1];
+            // update knot_span_uv for the second split segment
+            knot_span_uv_split[0][0] = knot_span_u_point_split;
+            knot_span_uv_split[1][0] = knot_span_v_point_split;
+            knot_span_uv_split[0][1] = rKnotSpansUV[0][1];
+            knot_span_uv_split[1][1] = rKnotSpansUV[1][1];
+
+            std::vector<double> local_coords_split_segment2{local_coords_split[0], rLocalCoords[1]};
+
+            // __We do it recursively second split__
+            SnakeStepNurbs(IdMatrix, knot_span_uv_split, xy_coord_i_cond_split, rKnotStepUV, rStartingPosition, local_coords_split_segment2,
+                        rpCurve, rSkinModelPart, rKnotSpansAvailable);
+        }
+        // Check if the true boundary crosses an u or a v knot value
+        else if (rKnotSpansUV[0][0] != rKnotSpansUV[0][1]) { // u knot value is crossed
+            // Find the "knot_spans_available" using the intersection
+            rKnotSpansAvailable[IdMatrix][rKnotSpansUV[1][0]][rKnotSpansUV[0][0]] = 2;
+            rKnotSpansAvailable[IdMatrix][rKnotSpansUV[1][0]][rKnotSpansUV[0][1]] = 2;
+
+        }
+        else if (rKnotSpansUV[1][0] != rKnotSpansUV[1][1]) { // v knot value is crossed
+            // Find the "knot_spans_available" using the intersection (Snake_coordinate classic -> External Boundary)
+            rKnotSpansAvailable[IdMatrix][rKnotSpansUV[1][0]][rKnotSpansUV[0][0]] = 2;
+            rKnotSpansAvailable[IdMatrix][rKnotSpansUV[1][1]][rKnotSpansUV[0][0]] = 2;
+        }
+    }
+    if (!is_splitted) {
+        // Call the root model part for the Ids of the node
+        auto idNode1 = rSkinModelPart.GetRootModelPart().Nodes().size();
+        auto idNode2 = idNode1+1;
+        // Create two nodes and two conditions for each skin condition
+        auto node = new Node(idNode2, rConditionCoord[0][1], rConditionCoord[1][1], 0.0);
+
+        std::string layer_name = rpCurve->GetValue(IDENTIFIER);
+        std::string condition_name = rpCurve->GetValue(CONDITION_NAME);
+
+        ModelPart& skin_layer_sub_model_part = rSkinModelPart.HasSubModelPart(layer_name) ? 
+                                            rSkinModelPart.GetSubModelPart(layer_name) : rSkinModelPart.CreateSubModelPart(layer_name);
+        
+        // compute normal and tangent informations at the local coord of the point 
+        std::vector<CoordinatesArrayType> global_space_derivatives;
+        SizeType derivative_order = 2;
+        CoordinatesArrayType new_point_local_coord = ZeroVector(3);
+        new_point_local_coord[0] = rLocalCoords[1];
+        rpCurve->GlobalSpaceDerivatives(global_space_derivatives, new_point_local_coord, derivative_order);
+        CoordinatesArrayType tangent_vector = global_space_derivatives[1];
+        double tangent_magnitude = norm_2(tangent_vector);
+        tangent_vector /= tangent_magnitude;
+        Vector normal_vector = ZeroVector(3);
+        normal_vector[0] = tangent_vector[1];
+        normal_vector[1] = -tangent_vector[0];
+        node->SetValue(NORMAL, normal_vector);
+        node->SetValue(LOCAL_TANGENT, tangent_vector);
+
+        skin_layer_sub_model_part.AddNode(node);
+
+        Properties::Pointer p_cond_prop = rSkinModelPart.pGetProperties(0);
+        Condition::Pointer p_cond = rSkinModelPart.CreateNewCondition("LineCondition2D2N", idNode1, {{idNode1, idNode2}}, p_cond_prop );
+
+        p_cond->SetValue(CONDITION_NAME, condition_name);
+        //FIXME: future PR
+        // p_cond->SetValue(LAYER_NAME, layer_name);
+        rSkinModelPart.AddCondition(p_cond);
     }
 }
 
@@ -523,16 +805,17 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
     const ModelPart& rSkinModelPartInner, 
     DynamicBins& rPointsBinInner,
     const std::vector<int>& rNumberKnotSpans, 
-    const Vector& knot_vector_u, 
-    const Vector& knot_vector_v,
+    const Vector& rKnotVectorU, 
+    const Vector& rKnotVectorV,
+    const Vector& rStartingPositionUV,
     std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable,
     ModelPart& rSurrogateModelPartInner
     ) 
 {
     // Snake 2D works with a raycasting technique from each of the two directions
 
-    const double knot_step_u = knot_vector_u[1]-knot_vector_u[0];
-    const double knot_step_v = knot_vector_v[1]-knot_vector_v[0];
+    const double knot_step_u = rKnotVectorU[1]-rKnotVectorU[0];
+    const double knot_step_v = rKnotVectorV[1]-rKnotVectorV[0];
     
     IndexType id_surrogate_first_node; 
     if (rSurrogateModelPartInner.NumberOfNodes() == 0)
@@ -541,7 +824,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
         IndexType idSurrogateNode = id_surrogate_first_node;
         for (int j = 0; j < rNumberKnotSpans[1]; j++) {
             for (int i = 0; i < rNumberKnotSpans[0]; i++) {
-                rSurrogateModelPartInner.CreateNewNode(idSurrogateNode, knot_vector_u[i], knot_vector_v[j], 0.0);
+                rSurrogateModelPartInner.CreateNewNode(idSurrogateNode, rKnotVectorU[i], rKnotVectorV[j], 0.0);
                 idSurrogateNode++;
             }
         }
@@ -565,12 +848,13 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
         for (int i = 0; i < rNumberKnotSpans[0]; i++) {
             if (check_next_point) {
                 // Check i+1 point using isPointInsideSkinBoundary3D
-                Point centerPoint = Point((i + 0.5)*knot_step_u, (j + 0.5)*knot_step_v, 0.0);
+                Point knot_span_center_point = Point(rStartingPositionUV[0] + (i + 0.5)*knot_step_u, rStartingPositionUV[1] + (j + 0.5)*knot_step_v, 0.0);
                 bool is_exiting = false;
                 if ( rKnotSpansAvailable[IdMatrix][j][i] == 1 ) {
                     // the knot span was already been checked very well
+                    continue;
                 }
-                else if (IsPointInsideSkinBoundary(centerPoint, rPointsBinInner, rSkinModelPartInner)) {
+                else if (IsPointInsideSkinBoundary(knot_span_center_point, rPointsBinInner, rSkinModelPartInner)) {
                     // STILL INSIDE --> do not save nothing and update rKnotSpansAvailable 
                     if ( rKnotSpansAvailable[IdMatrix][j][i] == -1) {
                         is_exiting = true;
@@ -759,7 +1043,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
 
             if (check_next_point) {
                 // Check i+1 point using isPointInsideSkinBoundary
-                Point centerPoint = Point((i + 0.5)*knot_step_u, (j + 0.5)*knot_step_v, 0.0);
+                Point knot_span_center_point = Point(rStartingPositionUV[0] + (i + 0.5)*knot_step_u, rStartingPositionUV[1] + (j + 0.5)*knot_step_v, 0.0);
                 // FIXME:
                 // auto p_center_point = Kratos::make_shared<>();
                 bool is_exiting = false;
@@ -768,7 +1052,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
                 if ( rKnotSpansAvailable[IdMatrix][j][i] == 1 ) {
                     // the knot span has already been checked very well
                 }
-                else if (IsPointInsideSkinBoundary(centerPoint, rPointsBinOuter, rSkinModelPartOuter)) {
+                else if (IsPointInsideSkinBoundary(knot_span_center_point, rPointsBinOuter, rSkinModelPartOuter)) {
                     // STILL INSIDE --> do not save nothing and update knot_spans_available 
                     if ( rKnotSpansAvailable[IdMatrix][j][i] == -1) {
                         is_exiting = true;

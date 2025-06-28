@@ -962,8 +962,8 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
         strategy = self.setup_strategy(mp)
         # create nodes
-        second_coord = [0.3, 0.0, 0.0]
-        third_coord = [0.15, 0.0, 0.0]
+        second_coord = [200.3, 0.0, 0.0]
+        third_coord = [100.15, 0.0, 0.0]
         mp.CreateNewNode(1,0.0,0.0,0.0)
         mp.CreateNewNode(2,second_coord[0],second_coord[1],second_coord[2])
         mp.CreateNewNode(3, third_coord[0], third_coord[1], third_coord[2])
@@ -988,8 +988,8 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         cond.SetValue(StructuralMechanicsApplication.POINT_LOAD, load_on_cond)
 
         # set load outside condition with a local distance with a floating point inaccuracy
-        # ( 0.1+0.2 = 0.30000000000000004)
-        cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, 0.1+0.2)
+        # ( 100.1+100.2 = 200.30000000000001)
+        cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, 100.1+100.2)
         strategy.InitializeSolutionStep()
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
