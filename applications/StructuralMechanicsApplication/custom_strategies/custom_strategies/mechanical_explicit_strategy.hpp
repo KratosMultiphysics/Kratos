@@ -519,17 +519,175 @@ private:
             loop_base = [&disppos](Node& rNode){
                 const auto force_residual = rNode.FastGetSolutionStepValue(FORCE_RESIDUAL);
 
-                if (rNode.GetDof(DISPLACEMENT_X, disppos).IsFixed()) {
-                    double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_X);
-                    r_reaction = -force_residual[0];
+                 // if (rNode.GetDof(DISPLACEMENT_X, disppos).IsFixed()) {
+                //     double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_X);
+                //     r_reaction = -force_residual[0];
+                // }
+                // if (rNode.GetDof(DISPLACEMENT_Y, disppos + 1).IsFixed()) {
+                //     double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_Y);
+                //     r_reaction = -force_residual[1];
+                // }
+                // if (rNode.GetDof(DISPLACEMENT_Z, disppos + 2).IsFixed()) {
+                //     double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_Z);
+                //     r_reaction = -force_residual[2];
+                // }
+                // if (rNode.GetDof(DISPLACEMENT_X, disppos).IsFixed()) {
+                    double& r_reaction_x = rNode.FastGetSolutionStepValue(REACTION_X);
+                    r_reaction_x = -force_residual[0];
+                // }
+                // if (rNode.GetDof(DISPLACEMENT_Y, disppos + 1).IsFixed()) {
+                    double& r_reaction_y = rNode.FastGetSolutionStepValue(REACTION_Y);
+                    r_reaction_y = -force_residual[1];
+                // }
+                // if (rNode.GetDof(DISPLACEMENT_Z, disppos + 2).IsFixed()) {
+                    double& r_reaction_z = rNode.FastGetSolutionStepValue(REACTION_Z);
+                    r_reaction_z = -force_residual[2];
+                // }
+            };
+
+            if (has_dof_for_rot_z) {
+                loop = [&rotppos, &loop_base](Node& rNode){
+                    loop_base(rNode);
+                    const auto moment_residual = rNode.FastGetSolutionStepValue(MOMENT_RESIDUAL);
+                    if (rNode.GetDof(ROTATION_X, rotppos).IsFixed()) {
+                        double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_MOMENT_X);
+                        r_reaction = -moment_residual[0];
+                    }
+                    if (rNode.GetDof(ROTATION_Y, rotppos + 1).IsFixed()) {
+                        double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_MOMENT_Y);
+                        r_reaction = -moment_residual[1];
+                    }
+                    if (rNode.GetDof(ROTATION_Z, rotppos + 2).IsFixed()) {
+                        double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_MOMENT_Z);
+                        r_reaction = -moment_residual[2];
+                    }
+                };
+            } else {
+                loop = loop_base;
+            }
+
+            // Compute on nodes
+            block_for_each(r_nodes, loop);
+        } // if not nodes.empty()
+
+
+        /////////////////////////////////////////////////////////////////////////////////////////////
+        KRATOS_WATCH("get reaction")
+
+        //Getting the Elements
+        ElementsArrayType& pElements = rModelPart.Elements();
+
+        //getting the array of the conditions
+        ConditionsArrayType& ConditionsArray = rModelPart.Conditions();
+
+        rModelPart.GetProcessInfo()[COMPUTE_REACTION] = true;
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        
+        //contributions to the system
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+        //vector containing the localization in the system of the different
+        //terms
+        Element::EquationIdVectorType EquationId;
+
+        // assemble all elements
+        //for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
+
+        const int nelements = static_cast<int>(pElements.size());
+        // #pragma omp parallel firstprivate(nelements, RHS_Contribution, EquationId)
+        // {
+        //     #pragma omp for schedule(guided, 512) nowait
+            // for (int i=0; i<nelements; i++) {
+            //     typename ElementsArrayType::iterator it = pElements.begin() + i;
+            //     //detect if the element is active or not. If the user did not make any choice the element
+            //     //is active by default
+            //     bool element_is_active = true;
+            //     if( (it)->IsDefined(ACTIVE) ) {
+            //         element_is_active = (it)->Is(ACTIVE);
+            //     }
+
+            //     if(element_is_active) {
+            //         //calculate elemental Right Hand Side Contribution
+            //         pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+            //         // KRATOS_WATCH(EquationId)
+            //         KRATOS_WATCH(RHS_Contribution)
+
+            //         // //assemble the elemental contribution
+            //         // AssembleRHS(rb, RHS_Contribution, EquationId);
+            //     }
+            // }
+
+            RHS_Contribution.resize(0, false);
+
+            // assemble all conditions
+            const int nconditions = static_cast<int>(ConditionsArray.size());
+            // #pragma omp for schedule(guided, 512)
+            for (int i = 0; i<nconditions; i++) {
+                auto it = ConditionsArray.begin() + i;
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                // KRATOS_WATCH(*it)
+                // KRATOS_WATCH(it->HasProperties())
+
+                bool condition_is_active = true;
+                if(it->HasProperties())
+                {
+                   if((!(it->GetProperties()).IsEmpty()))
+                   {
+                        condition_is_active = true;
+                   }
                 }
-                if (rNode.GetDof(DISPLACEMENT_Y, disppos + 1).IsFixed()) {
-                    double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_Y);
-                    r_reaction = -force_residual[1];
+
+                // bool condition_is_active = true;
+                // if( (it)->IsDefined(ACTIVE) ) {
+                //     condition_is_active = (it)->Is(ACTIVE);
+                // }
+
+                if(condition_is_active) {
+                    //calculate elemental contribution
+                    pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    KRATOS_WATCH(RHS_Contribution)
+
+                    // //assemble the elemental contribution
+                    // AssembleRHS(rb, RHS_Contribution, EquationId);
                 }
-                if (rNode.GetDof(DISPLACEMENT_Z, disppos + 2).IsFixed()) {
-                    double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_Z);
-                    r_reaction = -force_residual[2];
+            }
+        // }
+
+        rModelPart.GetProcessInfo()[COMPUTE_REACTION] = false;
+
+        // We iterate over the nodes once more
+        if (!r_nodes.empty()) {
+            // If we consider rotation dofs
+            const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
+
+            // Auxiliary values
+            const array_1d<double,3> zero_array = ZeroVector(3);
+
+            // Getting
+            const auto it_node_begin = r_nodes.begin();
+            const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
+            const IndexType rotppos = it_node_begin->GetDofPosition(ROTATION_X);
+
+            // Construct loop lambda depending on whether nodes have rot_z
+            std::function<void(Node&)> loop_base, loop;
+
+            loop_base = [&disppos](Node& rNode){
+                const auto force_residual = rNode.FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+                if (rNode.GetDof(DISPLACEMENT_X, disppos).IsFixed() == false) {
+                    double& r_reaction_x = rNode.FastGetSolutionStepValue(REACTION_X);
+                    r_reaction_x = -force_residual[0];
+                }
+                if (rNode.GetDof(DISPLACEMENT_Y, disppos + 1).IsFixed() == false) {
+                    double& r_reaction_y = rNode.FastGetSolutionStepValue(REACTION_Y);
+                    r_reaction_y = -force_residual[1];
+                }
+                if (rNode.GetDof(DISPLACEMENT_Z, disppos + 2).IsFixed() == false) {
+                    double& r_reaction_z = rNode.FastGetSolutionStepValue(REACTION_Z);
+                    r_reaction_z = -force_residual[2];
                 }
             };
 
@@ -557,7 +715,30 @@ private:
             // Compute on nodes
             block_for_each(r_nodes, loop);
         } // if not nodes.empty()
+   
     }
+
+    //**************************************************************************
+
+    void AssembleRHS(
+        TSystemVectorType& b,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId
+    )
+    {
+        unsigned int local_size = RHS_Contribution.size();
+
+        for (unsigned int i_local = 0; i_local < local_size; i_local++) {
+            unsigned int i_global = EquationId[i_local];
+
+            // ASSEMBLING THE SYSTEM VECTOR
+            double& b_value = b[i_global];
+            const double& rhs_value = RHS_Contribution[i_local];
+
+            AtomicAdd(b_value, rhs_value);
+        }
+    }
+
 
     ///@}
     ///@name Private  Access

@@ -640,6 +640,8 @@ public:
         KRATOS_TRY
 
         this->TCalculateRHSContribution(rCurrentElement, RHS_Contribution, rCurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,rCurrentProcessInfo);
+
         KRATOS_CATCH("")
     }
 
@@ -660,6 +662,7 @@ public:
         KRATOS_TRY
 
         this->TCalculateRHSContribution(rCurrentCondition, RHS_Contribution, rCurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -817,8 +820,16 @@ private:
     {
         rCurrentEntity.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
 
-        rCurrentEntity.AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
-        rCurrentEntity.AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
+        if( rCurrentProcessInfo[COMPUTE_REACTION] == false )
+        {
+            rCurrentEntity.AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
+            rCurrentEntity.AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
+        }   
+        else if( rCurrentProcessInfo[COMPUTE_REACTION] == true )
+        {
+            rCurrentEntity.AddExplicitContribution(-RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
+            rCurrentEntity.AddExplicitContribution(-RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
+        } 
     }
 
     ///@}
