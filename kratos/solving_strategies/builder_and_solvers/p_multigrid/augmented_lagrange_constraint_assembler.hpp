@@ -80,7 +80,8 @@ public:
     /// @copydoc Base::AllocateSystem
     void AllocateSystem(typename TSparse::MatrixType& rLhs,
                         typename TSparse::VectorType& rSolution,
-                        typename TSparse::VectorType& rRhs) override;
+                        typename TSparse::VectorType& rRhs,
+                        typename Base::DofSet& rDofs) override;
 
     /// @copydoc Base::Assemble
     void Assemble(const typename Base::ConstraintArray& rConstraints,

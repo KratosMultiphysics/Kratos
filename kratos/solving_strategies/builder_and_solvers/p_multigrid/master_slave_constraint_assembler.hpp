@@ -72,16 +72,19 @@ public:
                   typename Base::DofSet& rDofSet) override;
 
     /// @copydoc Base::ComputeDependentResidual
-    void ComputeDependentResidual(typename TSparse::VectorType& rOutput,
-                                  const typename TSparse::VectorType& rIndependentResidual) const override;
+    void ComputeIndependentResidual(typename TSparse::VectorType& rResidual) const override;
+
+    /// @copydoc Base::ComputeDependentResidual
+    void ComputeDependentResidual(typename TSparse::VectorType& rResidual) const override;
 
     /// @copydoc Base::ComputeIndependentSolution
-    void ComputeIndependentSolution(typename TSparse::VectorType& rOutput,
-                                    const typename TSparse::VectorType& rDependentSolution) const override;
+    void ComputeIndependentSolution(typename TSparse::VectorType& rSolution) const override;
 
     /// @copydoc Base::ComputeDependentSolution
-    void ComputeDependentSolution(typename TSparse::VectorType& rOutput,
-                                  const typename TSparse::VectorType& rIndependentSolution) const override;
+    void ComputeDependentSolution(typename TSparse::VectorType& rSolution) const override;
+
+    /// @copydoc Base::GetDependentDofs
+    const typename Base::DofSet& GetDependentDofs(const typename Base::DofSet& rIndependentDofSet) const noexcept override;
 
     /// @copydoc Base::Clear
     void Clear() override;

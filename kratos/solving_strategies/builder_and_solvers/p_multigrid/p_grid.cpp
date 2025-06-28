@@ -247,7 +247,6 @@ void PGrid<TSparse,TDense>::Assemble(ModelPart& rModelPart,
                 SparseUtils::MatrixMultiplication(rParentConstraintAssembler.GetRelationMatrix(),
                                                   mProlongationOperator,
                                                   mpConstraintAssembler->GetRelationMatrix());
-                mpConstraintAssembler->AllocateSystem(mLhs, mSolution, mRhs);
             }
 
             if (AssembleRHS) {
@@ -277,7 +276,6 @@ void PGrid<TSparse,TDense>::Assemble(ModelPart& rModelPart,
                 SparseUtils::MatrixMultiplication(tmp,
                                                   mProlongationOperator,
                                                   mpConstraintAssembler->GetHessian());
-                mpConstraintAssembler->AllocateSystem(mLhs, mSolution, mRhs);
             }
 
             if (AssembleRHS) {
@@ -291,7 +289,10 @@ void PGrid<TSparse,TDense>::Assemble(ModelPart& rModelPart,
                          << " (parent: " << rParentConstraintAssembler.GetValue(rParentConstraintAssembler.GetImpositionVariable())
                          << " child: " << mpConstraintAssembler->GetValue(mpConstraintAssembler->GetImpositionVariable()) << ")";
     } // switch rParentConstraintAssembler.GetImposition()
+    KRATOS_CATCH("")
 
+    KRATOS_TRY
+    mpConstraintAssembler->AllocateSystem(mLhs, mSolution, mRhs, mIndirectDofSet);
     KRATOS_CATCH("")
 }
 
@@ -380,6 +381,7 @@ void PGrid<TSparse,TDense>::Initialize(ModelPart& rModelPart,
                                         mRhs,
                                         mIndirectDofSet,
                                         rModelPart);
+    mpSolver->InitializeSolutionStep(mLhs, mSolution, mRhs);
     KRATOS_CATCH("")
 }
 
@@ -397,9 +399,9 @@ void PGrid<TSparse,TDense>::ExecuteMultigridLoop(PMGStatusStream& rStream,
     // The multigrid hierarchy depth is currently capped at 1,
     // so the linear solver is used here instead of invoking
     // lower grids.
-    mpSolver->InitializeSolutionStep(mLhs, mSolution, mRhs);
+    //mpSolver->InitializeSolutionStep(mLhs, mSolution, mRhs);
     rReport.multigrid_converged = mpSolver->Solve(mLhs, mSolution, mRhs);
-    mpSolver->FinalizeSolutionStep(mLhs, mSolution, mRhs);
+    //mpSolver->FinalizeSolutionStep(mLhs, mSolution, mRhs);
 
     KRATOS_CATCH("")
 }
@@ -428,7 +430,6 @@ void PGrid<TSparse,TDense>::ExecuteConstraintLoop(PMGStatusStream& rStream,
 
         // Get an update on the solution with respect to the current right hand side.
         this->ExecuteMultigridLoop(rStream, rReport);
-
         constraints_finished = mpConstraintAssembler->FinalizeConstraintIteration(mLhs,
                                                                                   mSolution,
                                                                                   mRhs,
@@ -512,50 +513,21 @@ void PGrid<TSparse,TDense>::Restrict(typename TSparse::VectorType& rCoarseIndepe
                                      const typename TParentSparse::VectorType& rFineIndependentResidual,
                                      const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler) const
 {
-    // The current grid's constraint imposition is assumed not to be master-slave elimination.
-    KRATOS_ERROR_IF(mpConstraintAssembler->GetImposition() == ConstraintImposition::MasterSlave)
-        << "master-slave elimination is not supported on coarse grids";
+    KRATOS_TRY
+    // Transform fine residual from independent to dependent space.
+    typename TParentSparse::VectorType fine_dependent_residual = rFineIndependentResidual;
+    rParentConstraintAssembler.ComputeDependentResidual(fine_dependent_residual);
 
-    switch (rParentConstraintAssembler.GetImposition()) {
-        case ConstraintImposition::MasterSlave: {
-            KRATOS_ERROR_IF(mpConstraintAssembler->GetImposition() == ConstraintImposition::Lagrange)
-                << "standard Lagrange multipliers are not supported yet on the coarse grid";
+    // Use the restriction operator to transform the dependent residual to the coarse grid.
+    rCoarseIndependentResidual.resize(mRestrictionOperator.size1(), false);
+    TSparse::SetToZero(rCoarseIndependentResidual);
+    BalancedProduct<TSparse,TParentSparse,TSparse>(mRestrictionOperator,
+                                                   fine_dependent_residual,
+                                                   rCoarseIndependentResidual);
 
-            KRATOS_TRY
-            typename TParentSparse::VectorType fine_dependent_residual;
-            rParentConstraintAssembler.ComputeDependentResidual(fine_dependent_residual, rFineIndependentResidual);
-            TSparse::SetToZero(rCoarseIndependentResidual);
-            BalancedProduct<TSparse,TParentSparse,TSparse>(mRestrictionOperator,
-                                                           rFineIndependentResidual,
-                                                           rCoarseIndependentResidual);
-
-            // At this point, rCoarseIndependentResidual is the residual in the coarse
-            // grid's DEPENDENT space. Normally, one would have to transform it to the
-            // independent space using the coarse grid's constraint assembler, but the
-            // coarse grid is not allowed to impose constraints via master-slave elimination
-            // (because constraints might turn ill-posed during restriction).
-            // Since other imposition methods don't make a distinction between dependent
-            // and independent spaces (standard Lagrange multipliers are not supported)
-            // this means that the coarse residual is always identical in dependent and
-            // independent space.
-            break;
-            KRATOS_CATCH("")
-        } // case ConstraintImposition::MasterSlave
-        case ConstraintImposition::None:
-        case ConstraintImposition::AugmentedLagrange: {
-            KRATOS_TRY
-            rCoarseIndependentResidual.resize(mRestrictionOperator.size1(), false),
-            TSparse::SetToZero(rCoarseIndependentResidual);
-            BalancedProduct<TSparse,TParentSparse,TSparse>(mRestrictionOperator,
-                                                           rFineIndependentResidual,
-                                                           rCoarseIndependentResidual);
-            break;
-            KRATOS_CATCH("")
-        } // case None || AugmentedLagrange
-        default:
-            KRATOS_ERROR << "unsupported constraint imposition on the parent grid: "
-                         << rParentConstraintAssembler.GetValue(rParentConstraintAssembler.GetImpositionVariable());
-    } // switch rParentConstraintAssembler.GetImposition()
+    // Transform the coarse residual from dependent to independent space.
+    mpConstraintAssembler->ComputeIndependentResidual(rCoarseIndependentResidual);
+    KRATOS_CATCH("")
 }
 
 
@@ -565,50 +537,20 @@ void PGrid<TSparse,TDense>::Prolong(typename TParentSparse::VectorType& rFineInd
                                     const typename TSparse::VectorType& rCoarseIndependentSolution,
                                     const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler) const
 {
-    // The current grid's constraint imposition is assumed not to be master-slave elimination.
-    KRATOS_ERROR_IF(mpConstraintAssembler->GetImposition() == ConstraintImposition::MasterSlave)
-        << "master-slave elimination is not supported on coarse grids";
-
     KRATOS_TRY
-    switch (rParentConstraintAssembler.GetImposition()) {
-        case ConstraintImposition::MasterSlave: {
-            KRATOS_ERROR_IF(mpConstraintAssembler->GetImposition() == ConstraintImposition::Lagrange)
-                << "standard Lagrange multipliers are not supported yet on the coarse grid";
+    // Transform the coarse residual from independent space to dependent space.
+    typename TSparse::VectorType dependent_solution = rCoarseIndependentSolution;
+    mpConstraintAssembler->ComputeDependentSolution(dependent_solution);
 
-            KRATOS_TRY
-            // Dependent and independent spaces are always identical on the coarse grid
-            // because master-slave elimination is forbidden and standard lagrange multipliers
-            // are not supported. => The independent solution doesn't have to be transformed
-            // to the dependent space on the coarse grid.
+    // Use the prolongation operator to transform the dependent residual to the fine grid.
+    rFineIndependentSolution.resize(mProlongationOperator.size1(), false);
+    TParentSparse::SetToZero(rFineIndependentSolution);
+    BalancedProduct<TSparse,TSparse,TParentSparse>(mProlongationOperator,
+                                                   rCoarseIndependentSolution,
+                                                   rFineIndependentSolution);
 
-            // Prolong the dependent solution.
-            typename TParentSparse::VectorType fine_dependent_solution;
-            fine_dependent_solution.resize(mProlongationOperator.size1(), false);
-            TParentSparse::SetToZero(fine_dependent_solution);
-            BalancedProduct<TSparse,TSparse,TParentSparse>(mProlongationOperator,
-                                                           rCoarseIndependentSolution,
-                                                           fine_dependent_solution);
-
-            // Transform the dependent solution to independent space.
-            rParentConstraintAssembler.ComputeIndependentSolution(rFineIndependentSolution, fine_dependent_solution);
-            break;
-            KRATOS_CATCH("")
-        } // case ConstraintImposition::MasterSlave
-        case ConstraintImposition::None:
-        case ConstraintImposition::AugmentedLagrange: {
-            KRATOS_TRY
-            rFineIndependentSolution.resize(mProlongationOperator.size1(), false);
-            TParentSparse::SetToZero(rFineIndependentSolution);
-            BalancedProduct<TSparse,TSparse,TParentSparse>(mProlongationOperator,
-                                                           rCoarseIndependentSolution,
-                                                           rFineIndependentSolution);
-            break;
-            KRATOS_CATCH("")
-        } // case None || AugmentedLagrange
-        default:
-            KRATOS_ERROR << "unsupported constraint imposition on the parent grid: "
-                         << rParentConstraintAssembler.GetValue(rParentConstraintAssembler.GetImpositionVariable());
-    } // switch rParentConstraintAssembler.GetImposition()
+    // Transform the fine residual from dependent to independent space.
+    rParentConstraintAssembler.ComputeIndependentSolution(rFineIndependentSolution);
     KRATOS_CATCH("")
 }
 

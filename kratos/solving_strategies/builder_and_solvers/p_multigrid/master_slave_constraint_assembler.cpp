@@ -53,12 +53,60 @@ struct MasterSlaveConstraintAssembler<TSparse,TDense>::Impl
 
     std::optional<LinearSystem> mDependentSystem;
 
-    std::optional<std::pair<
-        LinearSystem,
-        typename LinearSolver<TSparse,TDense>::Pointer
-    >> mReverseSystem;
-
     int mVerbosity;
+
+    std::pair<typename TSparse::MatrixType&, LinearSolver<TSparse,TDense>&> GetIndependentTransform()
+    {
+        if (!mIndependentTransform.has_value()) {
+            KRATOS_TRY
+            typename TSparse::MatrixType transpose_master_slave_relations;
+            SparseMatrixMultiplicationUtility::TransposeMatrix(transpose_master_slave_relations, mMasterSlaveRelations);
+            mIndependentTransform.emplace();
+
+            typename TSparse::MatrixType& r_lhs = mIndependentTransform.value().first;
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(transpose_master_slave_relations,
+                                                                    mMasterSlaveRelations,
+                                                                    r_lhs);
+
+            mIndependentTransform.value().second = LinearSolverFactory<TSparse,TDense>().Create(mIndependentSolverSettings);
+            typename TSparse::VectorType dummy;
+            mIndependentTransform.value().second->Initialize(r_lhs, dummy, dummy);
+            mIndependentTransform.value().second->InitializeSolutionStep(r_lhs, dummy, dummy);
+            KRATOS_CATCH("")
+        }
+
+        return std::pair<typename TSparse::MatrixType&,LinearSolver<TSparse,TDense>&>(mIndependentTransform.value().first, *mIndependentTransform.value().second);
+    }
+
+    std::pair<typename TSparse::MatrixType&, LinearSolver<TSparse,TDense>&> GetDependentTransform()
+    {
+        if (!mDependentTransform.has_value()) {
+            KRATOS_TRY
+            typename TSparse::MatrixType transpose_master_slave_relations;
+            SparseMatrixMultiplicationUtility::TransposeMatrix(transpose_master_slave_relations, mMasterSlaveRelations);
+            mDependentTransform.emplace();
+
+            typename TSparse::MatrixType& r_lhs = mDependentTransform.value().first;
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(mMasterSlaveRelations,
+                                                                    transpose_master_slave_relations,
+                                                                    r_lhs);
+
+            mDependentTransform.value().second = LinearSolverFactory<TSparse,TDense>().Create(mDependentSolverSettings);
+            typename TSparse::VectorType dummy;
+            mDependentTransform.value().second->Initialize(r_lhs, dummy, dummy);
+            mDependentTransform.value().second->InitializeSolutionStep(r_lhs, dummy, dummy);
+            KRATOS_CATCH("")
+        }
+
+        return std::pair<typename TSparse::MatrixType&,LinearSolver<TSparse,TDense>&>(mDependentTransform.value().first, *mDependentTransform.value().second);
+    }
+
+    Parameters mDependentSolverSettings, mIndependentSolverSettings;
+
+    std::optional<std::pair<
+        typename TSparse::MatrixType,
+        typename LinearSolver<TSparse,TDense>::Pointer
+    >> mDependentTransform, mIndependentTransform;
 };
 
 
@@ -90,6 +138,8 @@ MasterSlaveConstraintAssembler<TSparse,TDense>::MasterSlaveConstraintAssembler(P
     Settings.ValidateAndAssignDefaults(default_parameters);
     Settings.AddValue("diagonal_scaling", maybe_diagonal_scaling.has_value() ? maybe_diagonal_scaling.value() : default_diagonal_scaling);
     mpImpl->mpDiagonalScaling = std::make_unique<Scaling>(Settings["diagonal_scaling"]);
+    mpImpl->mDependentSolverSettings = Settings["dependent_solver_settings"];
+    mpImpl->mIndependentSolverSettings = Settings["independent_solver_settings"];
     mpImpl->mVerbosity = Settings["verbosity"].Get<int>();
     KRATOS_CATCH("")
 }
@@ -430,81 +480,87 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Finalize([[maybe_unused]] t
 
 
 template <class TSparse, class TDense>
-void MasterSlaveConstraintAssembler<TSparse,TDense>::ComputeDependentResidual(typename TSparse::VectorType& rOutput,
-                                                                              const typename TSparse::VectorType& rIndependentResidual) const
+void MasterSlaveConstraintAssembler<TSparse,TDense>::ComputeIndependentResidual(typename TSparse::VectorType& rResidual) const
+{
+    KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
+}
+
+
+template <class TSparse, class TDense>
+void MasterSlaveConstraintAssembler<TSparse,TDense>::ComputeDependentResidual(typename TSparse::VectorType& rResidual) const
 {
     KRATOS_TRY
 
-    rOutput.resize(mpImpl->mMasterSlaveRelations.size2(), false);
-    TSparse::SetToZero(rOutput);
-    TSparse::TransposeMult(mpImpl->mMasterSlaveRelations, rIndependentResidual, rOutput);
+    typename TSparse::VectorType dependent_residual(mpImpl->mMasterSlaveRelations.size1());
+    TSparse::SetToZero(dependent_residual);
+
+    // Compute right hand side.
+    typename TSparse::VectorType rhs(dependent_residual.size());
+    TSparse::SetToZero(rhs);
+    BalancedProduct<TSparse,TSparse,TSparse>(mpImpl->mMasterSlaveRelations,
+                                             rResidual,
+                                             rhs);
+
+    // Solve linear system.
+    auto [r_lhs, r_linear_solver] = mpImpl->GetDependentTransform();
+    r_linear_solver.Solve(r_lhs, dependent_residual, rhs);
+    rResidual.swap(dependent_residual);
 
     KRATOS_CATCH("")
 }
 
 
 template <class TSparse, class TDense>
-void MasterSlaveConstraintAssembler<TSparse,TDense>::ComputeIndependentSolution(typename TSparse::VectorType& rOutput,
-                                                                                const typename TSparse::VectorType& rDependentSolution) const
+void MasterSlaveConstraintAssembler<TSparse,TDense>::ComputeIndependentSolution(typename TSparse::VectorType& rSolution) const
 {
-    typename TSparse::MatrixType transpose_master_slave_relations;
-
     KRATOS_TRY
-    SparseMatrixMultiplicationUtility::TransposeMatrix(transpose_master_slave_relations, mpImpl->mMasterSlaveRelations);
-    KRATOS_CATCH("")
-
-    if (!mpImpl->mReverseSystem.has_value()) {
-        KRATOS_TRY
-        mpImpl->mReverseSystem.emplace();
-        typename Impl::LinearSystem& r_reverse_system = mpImpl->mReverseSystem.value().first;
-        SparseMatrixMultiplicationUtility::MatrixMultiplication(transpose_master_slave_relations,
-                                                                mpImpl->mMasterSlaveRelations,
-                                                                r_reverse_system.mLhs);
-
-        //r_reverse_system.mSolution.resize(rIndependentDofSet.size()); // <= unused
-        r_reverse_system.mRhs.resize(mpImpl->mMasterSlaveRelations.size2());
-
-        mpImpl->mReverseSystem.value().second = LinearSolverFactory<TSparse,TDense>().Create(Parameters(R"({"solver_type" : "cg"})"));
-        KRATOS_CATCH("")
-    }
-
-    KRATOS_TRY
-    typename Impl::LinearSystem& r_reverse_system = mpImpl->mReverseSystem.value().first;
+    auto [r_lhs, r_linear_solver] = mpImpl->GetIndependentTransform();
 
     // Compute reverse RHS.
     // T^T (u - b)
+    typename TSparse::VectorType rhs;
+    rhs.resize(r_lhs.size1(), false);
+    TSparse::SetToZero(rhs);
+
     typename TSparse::VectorType tmp;
-    tmp.resize(rDependentSolution.size());
-    TSparse::Copy(rDependentSolution, tmp);
+    tmp.resize(rSolution.size());
+    TSparse::Copy(rSolution, tmp);
+
     /// @todo TSparse::UnaliasedAdd(tmp, static_cast<TSparse::DataType>(-1), where are the master-slave constraint gaps?)
-    TSparse::SetToZero(r_reverse_system.mRhs);
-    BalancedProduct<TSparse,TSparse,TSparse>(transpose_master_slave_relations,
-                                             tmp,
-                                             r_reverse_system.mRhs);
+    TSparse::TransposeMult(mpImpl->mMasterSlaveRelations, tmp, rhs);
 
     // Solve the system.
-    KRATOS_ERROR_IF_NOT(rOutput.size() == r_reverse_system.mLhs.size1());
-    TSparse::SetToZero(rOutput);
+    typename TSparse::VectorType independent_solution(r_lhs.size1());
+    TSparse::SetToZero(independent_solution);
 
-    LinearSolver<TSparse,TDense>& r_linear_solver = *mpImpl->mReverseSystem.value().second;
-    r_linear_solver.Solve(r_reverse_system.mLhs, rOutput, r_reverse_system.mRhs);
+    r_linear_solver.Solve(r_lhs, independent_solution, rhs);
+    rSolution.swap(independent_solution);
 
     KRATOS_CATCH("")
 }
 
 
 template <class TSparse, class TDense>
-void MasterSlaveConstraintAssembler<TSparse,TDense>::ComputeDependentSolution(typename TSparse::VectorType& rOutput,
-                                                                              const typename TSparse::VectorType& rIndependentSolution) const
+void MasterSlaveConstraintAssembler<TSparse,TDense>::ComputeDependentSolution(typename TSparse::VectorType& rSolution) const
 {
     KRATOS_TRY
-    rOutput.resize(mpImpl->mMasterSlaveRelations.size1());
-    TSparse::SetToZero(rOutput);
+    typename TSparse::VectorType dependent_solution(mpImpl->mMasterSlaveRelations.size1());
+    TSparse::SetToZero(dependent_solution);
     BalancedProduct<TSparse,TSparse,TSparse>(mpImpl->mMasterSlaveRelations,
-                                             rIndependentSolution,
-                                             rOutput);
+                                             rSolution,
+                                             dependent_solution);
     /// @todo TSparse::UnaliasedAdd(rOutput, where are the master-slave constraint gaps?);
+
+    rSolution.swap(dependent_solution);
     KRATOS_CATCH("")
+}
+
+
+template <class TSparse, class TDense>
+const typename MasterSlaveConstraintAssembler<TSparse,TDense>::Base::DofSet&
+MasterSlaveConstraintAssembler<TSparse,TDense>::GetDependentDofs(const typename Base::DofSet& rIndependentDofSet) const noexcept
+{
+    return mpImpl->mDependentSystem.value().mDofSet;
 }
 
 
@@ -525,6 +581,16 @@ Parameters MasterSlaveConstraintAssembler<TSparse,TDense>::GetDefaultParameters(
     return Parameters(R"({
         "method" : "master_slave",
         "diagonal_scaling" : "norm",
+        "dependent_solver_settings" : {
+            "solver_type"   : "amgcl",
+            "smoother_type" : "gauss_seidel",
+            "krylov_type"   : "gmres"
+        },
+        "independent_solver_settings" : {
+            "solver_type" : "amgcl",
+            "smoother_type" : "ilu0",
+            "krylov_type" : "cg"
+        },
         "verbosity" : 1
     })");
 }

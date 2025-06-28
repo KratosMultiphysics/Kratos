@@ -106,9 +106,11 @@ public:
     /// @param rLhs Unconstrained left hand side matrix.
     /// @param rSolution Unconstrained solution vector.
     /// @param rRhs Unconstrained right hand side vector.
+    /// @param rDofs Dofs before constraint imposition.
     virtual void AllocateSystem(typename TSparse::MatrixType& rLhs,
                                 typename TSparse::VectorType& rSolution,
-                                typename TSparse::VectorType& rRhs)
+                                typename TSparse::VectorType& rRhs,
+                                DofSet& rDofs)
     {
     }
 
@@ -198,31 +200,35 @@ public:
     {
     }
 
-    /// @brief Compute the system's residual in the dependent space, give the the residuals in the independent space.
-    /// @param rOutput Output vector. Residual in the dependent space.
-    /// @param rIndependentResidual Residual in the independent space.
-    virtual void ComputeDependentResidual(typename TSparse::VectorType& rOutput,
-                                          const typename TSparse::VectorType& rIndependentResidual) const
+    /// @brief Compute the system's residual in the independent space, give the the residuals in the dependent space.
+    /// @param rResidual Input/output vector. Passed in as the residual in dependent space, and transformed to independent space.
+    virtual void ComputeIndependentResidual(typename TSparse::VectorType& rResidual) const
     {
-        rOutput = rIndependentResidual;
+    }
+
+    /// @brief Compute the system's residual in the dependent space, give the the residuals in the independent space.
+    /// @param rResidual Input/output vector. Passed in as the residual in independent space, and transformed to dependent space.
+    virtual void ComputeDependentResidual(typename TSparse::VectorType& rResidual) const
+    {
     }
 
     /// @brief Compute the system's solution in the independent space, given the solution in the dependent space.
-    /// @param rOutput Output vector. Solution in the independent space.
-    /// @param rDependentSolution Solution in the dependent space.
-    virtual void ComputeIndependentSolution(typename TSparse::VectorType& rOutput,
-                                            const typename TSparse::VectorType& rDependentSolution) const
+    /// @param rSolution Input/output vector. Passed in as the solution in dependent space and transformed to independent space.
+    virtual void ComputeIndependentSolution(typename TSparse::VectorType& rSolution) const
     {
-        rOutput = rDependentSolution;
     }
 
     /// @brief Compute the system's solution in the dependent space, given the solution in the independent space.
-    /// @param rOutput Output vector. Solution in the dependent space.
-    /// @param rIndependentSolution Solution in the independent space.
-    virtual void ComputeDependentSolution(typename TSparse::VectorType& rOutput,
-                                          const typename TSparse::VectorType& rIndependentSolution) const
+    /// @param rSolution Input/output vector. Passed in as the solution in independent space and transformed to dependent space.
+    virtual void ComputeDependentSolution(typename TSparse::VectorType& rSolution) const
     {
-        rOutput = rIndependentSolution;
+    }
+
+    /// @brief Access the dependent set of @ref Dof "DoFs", given the independent set.
+    /// @param rIndependentDofSet Independent set of @ref Dof "DoFs".
+    virtual const DofSet& GetDependentDofs(const DofSet& rIndependentDofSet) const noexcept
+    {
+        return rIndependentDofSet;
     }
 
     /// @brief Release memory related to the linear system and constraints.

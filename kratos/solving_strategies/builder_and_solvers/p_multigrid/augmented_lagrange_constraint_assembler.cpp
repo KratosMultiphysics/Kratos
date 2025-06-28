@@ -37,8 +37,13 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
                               int Verbosity)
 {
     // Sanity checks.
-    KRATOS_ERROR_IF_NOT(static_cast<typename TSparse::IndexType>(std::distance(itDofBegin, itDofEnd)) == rRelationMatrix.size2());
-    KRATOS_ERROR_IF_NOT(rConstraintGaps.size() == rRelationMatrix.size1());
+    KRATOS_ERROR_IF_NOT(static_cast<typename TSparse::IndexType>(std::distance(itDofBegin, itDofEnd)) == rRelationMatrix.size2())
+        << "number of DoFs (" << std::distance(itDofBegin, itDofEnd) << ") "
+        << "does not match the constraint gradient's shape (" << rRelationMatrix.size1() << "x" << rRelationMatrix.size2() << ")";
+
+    KRATOS_ERROR_IF_NOT(rConstraintGaps.size() == rRelationMatrix.size1())
+        << "number of constraint gaps (" << rConstraintGaps.size() << ") "
+        << "does not match the number of constraint equations (" << rRelationMatrix.size1() << ")";
 
     KRATOS_TRY
 
@@ -222,6 +227,8 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AllocateConstraints(t
                                                  this->GetConstraintGapVector(),
                                                  mpImpl->mConstraintIdMap);
 
+    this->GetConstraintGapVector().resize(this->GetRelationMatrix().size1(), false);
+
     KRATOS_CATCH("")
 }
 
@@ -229,7 +236,8 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AllocateConstraints(t
 template <class TSparse, class TDense>
 void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AllocateSystem(typename TSparse::MatrixType& rLhs,
                                                                           typename TSparse::VectorType& rSolution,
-                                                                          typename TSparse::VectorType& rRhs)
+                                                                          typename TSparse::VectorType& rRhs,
+                                                                          typename Base::DofSet& rDofs)
 {
     KRATOS_TRY
     // At this point, the sparsity pattern of the unconstrained LHS matrix (K), as well
@@ -257,7 +265,6 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
                                                                     const bool AssembleRhs)
 {
     KRATOS_TRY
-
     /// @todo @p AssembleLhs and @p AssembleRhs are currently ignored,
     ///       and everything gets assembled. Think it through what needs
     ///       to be done and what can be omitted for each case. - matekelemen
@@ -267,7 +274,9 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
                                                    this->GetHessian(),
                                                    this->GetConstraintGapVector(),
                                                    mpImpl->mConstraintIdMap);
+    KRATOS_CATCH("")
 
+    KRATOS_TRY
     // Propagate obvious dirichlet conditions.
     detail::ApplyDirichletConditions<TSparse,TDense>(this->GetRelationMatrix(),
                                                      this->GetConstraintGapVector(),
@@ -275,7 +284,6 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
                                                      itDofEnd,
                                                      this->GetName(),
                                                      mpImpl->mVerbosity);
-
     KRATOS_CATCH("")
 }
 
@@ -322,10 +330,10 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
     {
         const typename TSparse::MatrixType& r_transpose_relation_matrix = this->GetTransposeRelationMatrix();
         KRATOS_ERROR_IF(r_transpose_relation_matrix.size1() != this->GetRelationMatrix().size2()
-                        || r_transpose_relation_matrix.size2() != this->GetRelationMatrix().size1()
-                        || r_transpose_relation_matrix.nnz() != this->GetRelationMatrix().nnz())
+                     || r_transpose_relation_matrix.size2() != this->GetRelationMatrix().size1()
+                     || r_transpose_relation_matrix.nnz()   != this->GetRelationMatrix().nnz())
             << "the transpose of the relation matrix is uninitialized or out of date "
-            << "(" << this->GetRelationMatrix().size1() << "x" << this->GetRelationMatrix().size2() << "/" << this->GetRelationMatrix().nnz() << ") "
+            << "(" << this->GetRelationMatrix().size1()          << "x" << this->GetRelationMatrix().size2()          << "/" << this->GetRelationMatrix().nnz() << ") "
             << "(" << this->GetTransposeRelationMatrix().size1() << "x" << this->GetTransposeRelationMatrix().size2() << "/" << this->GetTransposeRelationMatrix().nnz() << ") ";
 
         typename TSparse::MatrixType relation_product;
