@@ -22,21 +22,21 @@ namespace Kratos
 {
 
 template <typename MidGeometryType>
-class LineInterfaceGeometry : public Geometry<Node>
+class InterfaceGeometry : public Geometry<Node>
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(LineInterfaceGeometry);
+    KRATOS_CLASS_POINTER_DEFINITION(InterfaceGeometry);
 
     using BaseType = Geometry<Node>;
 
-    LineInterfaceGeometry() = default;
+    InterfaceGeometry() = default;
 
-    explicit LineInterfaceGeometry(const PointsArrayType& rThisPoints)
-        : LineInterfaceGeometry(0, rThisPoints)
+    explicit InterfaceGeometry(const PointsArrayType& rThisPoints)
+        : InterfaceGeometry(0, rThisPoints)
     {
     }
 
-    LineInterfaceGeometry(IndexType NewGeometryId, const PointsArrayType& rThisPoints)
+    InterfaceGeometry(IndexType NewGeometryId, const PointsArrayType& rThisPoints)
         : BaseType(NewGeometryId, rThisPoints)
     {
         KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6))
@@ -54,7 +54,7 @@ public:
 
     [[nodiscard]] BaseType::Pointer Create(const IndexType NewGeometryId, const PointsArrayType& rThisPoints) const override
     {
-        return std::make_shared<LineInterfaceGeometry>(NewGeometryId, rThisPoints);
+        return std::make_shared<InterfaceGeometry>(NewGeometryId, rThisPoints);
     }
 
     [[nodiscard]] double ShapeFunctionValue(IndexType ShapeFunctionIndex,
