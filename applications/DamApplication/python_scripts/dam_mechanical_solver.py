@@ -199,7 +199,7 @@ class DamMechanicalSolver(object):
 
         self.Solver.Solve()
 
-    # solve :: sequencial calls
+    # solve :: sequential calls
 
     def InitializeStrategy(self):
         if self.settings["mechanical_solver_settings"]["clear_storage"].GetBool():
@@ -219,7 +219,7 @@ class DamMechanicalSolver(object):
     def FinalizeSolutionStep(self):
         self.Solver.FinalizeSolutionStep()
 
-    # solve :: sequencial calls
+    # solve :: sequential calls
 
     def SetEchoLevel(self, level):
         self.Solver.SetEchoLevel(level)

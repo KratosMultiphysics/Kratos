@@ -174,22 +174,10 @@
                 "kratos_module": "StructuralMechanicsApplication",
                 "process_name": "SetMovingLoadProcess",
                 "Parameters": {
-                    "load": [
-                        0,
-                        -1000,
-                        0
-                    ],
-                    "direction": [
-                        1,
-                        1,
-                        1
-                    ],
+                    "load": [0, -1000, 0],
+                    "direction": [1, 1, 1],
                     "velocity": 1000,
-                    "origin": [
-                        0.75,
-                        3,
-                        5
-                    ],
+                    "origin": [0.75, 3, 5],
                     "offset": 0.0,
                     "model_part_name": "PorousDomain.train_load",
                     "variable_name": "POINT_LOAD"
@@ -208,7 +196,6 @@
                     "fluid_pressure_type": "Uniform"
                 }
             }
-        ],
-        "auxiliary_process_list": []
+        ]
     }
 }

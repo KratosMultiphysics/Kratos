@@ -14,8 +14,8 @@
 
 #include "geo_aliases.h"
 
-#include <geometries/tetrahedra_3d_4.h>
-#include <geometries/triangle_2d_3.h>
+#include "geometries/tetrahedra_3d_4.h"
+#include "geometries/triangle_2d_3.h"
 
 namespace Kratos
 {
@@ -33,6 +33,12 @@ ModelPart& CreateModelPartWithASingle2D6NDiffOrderElement(Model& rModel);
 
 ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel,
                                                  const Geo::ConstVariableRefs& rNodalVariables = {});
+
+ModelPart& CreateModelPartWithASingle2D10NElement(Model& rModel,
+                                                  const Geo::ConstVariableRefs& rNodalVariables = {});
+
+ModelPart& CreateModelPartWithASingle2D15NElement(Model& rModel,
+                                                  const Geo::ConstVariableRefs& rNodalVariables = {});
 
 ModelPart&          CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel);
 ModelPart&          CreateModelPartWithASingle3D10NUPwDiffOrderElement(Model& rModel);

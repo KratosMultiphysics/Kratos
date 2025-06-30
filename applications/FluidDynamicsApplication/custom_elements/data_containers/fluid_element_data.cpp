@@ -37,8 +37,8 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::Initialize(
     cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
     ConstitutiveLawValues.SetStrainVector(StrainRate);   //this is the input parameter
-    ConstitutiveLawValues.SetStressVector(ShearStress);  //this is an ouput parameter
-    ConstitutiveLawValues.SetConstitutiveMatrix(C);      //this is an ouput parameter
+    ConstitutiveLawValues.SetStressVector(ShearStress);  //this is an output parameter
+    ConstitutiveLawValues.SetConstitutiveMatrix(C);      //this is an output parameter
 }
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>

@@ -855,7 +855,7 @@ namespace Kratos
 
     const unsigned int size = rGeometry.size();
 
-    // check if is a sliver and the distorsion of the sliver
+    // check if is a sliver and the distortion of the sliver
 
     double Volume = 0;
     double MaximumSideLength = 0;

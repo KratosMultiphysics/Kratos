@@ -4,62 +4,81 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
-//
 
-#if !defined(KRATOS_FILE_SERIALIZER_H_INCLUDED )
-#define  KRATOS_FILE_SERIALIZER_H_INCLUDED
+#pragma once
 
 // System includes
-#include <string>
-#include <cstring>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/serializer.h"
 
 namespace Kratos
 {
-    //This class provides a simpler interface for serialization to a file
-    // Note that you may not override any load or save method of the Serializer. They are not virtual
-    class FileSerializer : public Serializer 
-    {
-        public:
-            KRATOS_CLASS_POINTER_DEFINITION(FileSerializer); 
+///@name Kratos Classes
+///@{
+/**
+ * @class FileSerializer
+ * @ingroup KratosCore
+ * @brief This class provides a simplified interface for serializing data to a file.
+ * @details Note that you may not override any load or save method of the Serializer base class, as they are not virtual.
+ * @author Pooyan Dadvand
+ */
+class KRATOS_API(KRATOS_CORE) FileSerializer 
+    : public Serializer 
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-            ///this constructor simply wraps the standard Serializer and defines output to basic_iostream
-            ///@param rTrace type of serialization to be employed
-            FileSerializer(std::string const& Filename, Serializer::TraceType const& rTrace=SERIALIZER_NO_TRACE) 
-                : Serializer(nullptr, rTrace)
-            {
-                std::fstream* p_file = new std::fstream(std::string(Filename+".rest").c_str(), std::ios::binary|std::ios::in|std::ios::out);
-                if(!(*p_file))
-                {
-                    delete p_file;
-                    p_file = new std::fstream(std::string(Filename+".rest").c_str(), std::ios::binary|std::ios::out);
-                }
-                SetBuffer( p_file );
-                KRATOS_ERROR_IF_NOT(*pGetBuffer()) << "Error opening input file : "
-                                            << std::string(Filename+".rest") << std::endl;
-            }
+    /// Pointer definition of Condition
+    KRATOS_CLASS_POINTER_DEFINITION(FileSerializer);
 
-            virtual ~FileSerializer(){}
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-        private:
+    /**
+     * @brief Constructor that initializes the FileSerializer.
+     * @param Filename The name of the file for serialization.
+     * @param rTrace Type of serialization trace to be employed (default: SERIALIZER_NO_TRACE).
+     */
+    FileSerializer(std::string const& Filename, Serializer::TraceType const& rTrace = SERIALIZER_NO_TRACE);
 
-            /// Assignment operator.
-            FileSerializer& operator=(FileSerializer const& rOther) = delete;
+    /**
+     * @brief Destructor
+     */
+    ~FileSerializer() override {}
 
-            /// Copy constructor.
-            FileSerializer(FileSerializer const& rOther) = delete;
-    };
+    ///@}
+private:
+    ///@name Private Operators
+    ///@{
+
+    /**
+     * @brief Deleted assignment operator to prevent unwanted copying.
+     * @param rOther Another instance of FileSerializer to assign from.
+     * @return FileSerializer& Reference to the assigned FileSerializer object.
+     */
+    FileSerializer& operator=(FileSerializer const& rOther) = delete;
+
+    ///@}
+    ///@name Private Life Cycle
+    ///@{
+
+    /**
+     * @brief Deleted copy constructor to prevent unwanted copying.
+     * @param rOther Another instance of FileSerializer to construct from.
+     */
+    FileSerializer(FileSerializer const& rOther) = delete;
+
+    ///@}
+};
+///@}
 }
-
-#endif // KRATOS_FILE_SERIALIZER_H_INCLUDED  defined

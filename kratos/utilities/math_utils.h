@@ -698,12 +698,13 @@ public:
      * @param rSecondVector Second input vector
      * @return The resulting norm
      */
-    static inline double Dot(
-        const Vector& rFirstVector,
-        const Vector& rSecondVector
+    template<class TVector1, class TVector2>
+    static inline TDataType Dot(
+        const TVector1& rFirstVector,
+        const TVector2& rSecondVector
         )
     {
-        double temp = 0.0;
+        TDataType temp {};
         for (std::size_t i=0; i<rFirstVector.size(); ++i){
             temp += rFirstVector[i] * rSecondVector[i];
         }
@@ -1915,7 +1916,7 @@ public:
     }
 
 
-    static double DegreesToRadians(double AngleInDegrees)
+    constexpr static double DegreesToRadians(double AngleInDegrees)
     {
         return (AngleInDegrees * Globals::Pi) / 180.0;
     }

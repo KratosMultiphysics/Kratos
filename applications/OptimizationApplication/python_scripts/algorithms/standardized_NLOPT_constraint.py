@@ -14,8 +14,8 @@ import sys
 class StandardizedNLOPTConstraint(ResponseRoutine):
     """Standardized constraint response function
 
-    This class creates instances to standardize any response function for the specified type of the contraint.
-    Supported contraint types:
+    This class creates instances to standardize any response function for the specified type of the constraint.
+    Supported constraint types:
         "=",
         "<",
         ">"
