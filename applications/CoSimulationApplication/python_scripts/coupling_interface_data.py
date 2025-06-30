@@ -262,7 +262,7 @@ def SetSolutionStepValue(entity, variable, solution_step_index, value):
 def GetNumpyDataType(variable_type):
     # https://docs.scipy.org/doc/numpy/user/basics.types.html
     dtype_map = {
-        "Bool" : bool,
+        "Bool" : np.int32,
         "Integer" : np.intc,
         "Unsigned Integer" : np.uintc,
         "Double" : np.double,
