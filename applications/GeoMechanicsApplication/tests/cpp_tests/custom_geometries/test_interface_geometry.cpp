@@ -428,6 +428,14 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeNodedLineInterfaceGeometry_DomainSizeRet
     KRATOS_EXPECT_RELATIVE_NEAR(geometry.DomainSize(), geometry.Length(), 1e-6)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeNodedPlanarInterfaceGeometry_DomainSizeReturnsTheAreaOfUnderlyingLineGeometry,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateThreePlusThreeNoded3DPlanarInterfaceGeometry();
+
+    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DomainSize(), geometry.Area(), 1e-6)
+}
+
 KRATOS_TEST_CASE_IN_SUITE(GlobalCoordinatesAreCorrectlyMappedToLocalCoordinate_ForTwoPlusTwoNodedLineInterfaceGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
