@@ -15,6 +15,7 @@
 #include "geometries/geometry_data.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
+#include "geometries/triangle_3d_3.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -84,6 +85,19 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryCanBeConstructedGivenASetOfNullPointe
     KRATOS_EXPECT_EQ(geometry.PointsNumber(), 6);
     KRATOS_EXPECT_EQ(geometry.LocalSpaceDimension(), 1);
     KRATOS_EXPECT_EQ(geometry.WorkingSpaceDimension(), 2);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryCanBeConstructedGivenASetOfNullPointersToNodesAndAPlanarGeometryType,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // The following constructor input data resembles what is done at element registration time
+    const auto six_null_pointers_to_nodes = Geometry<Node>::PointsArrayType{6};
+
+    const auto geometry = InterfaceGeometry<Triangle3D3<Node>>{six_null_pointers_to_nodes};
+
+    KRATOS_EXPECT_EQ(geometry.PointsNumber(), 6);
+    KRATOS_EXPECT_EQ(geometry.LocalSpaceDimension(), 2);
+    KRATOS_EXPECT_EQ(geometry.WorkingSpaceDimension(), 3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Create_CreatesNewInstanceOfCorrectType, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -298,7 +312,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingInverseJacobian, K
     Matrix result;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         geometry.InverseOfJacobian(result, xi),
-        "Inverse of Jacobian is not implemented for the line interface geometry")
+        "Inverse of Jacobian is not implemented for the interface geometry")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoLineInterfaceGeometry_LengthReturnsTheLengthOfUnderlyingLineGeometry,
