@@ -75,7 +75,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
     KRATOS_REGISTER_ELEMENT("LaplacianIGAElement", mLaplacianIGAElement)
-    KRATOS_REGISTER_ELEMENT("Active_Shell3pElement", mActiveShell3pElement)
+    KRATOS_REGISTER_ELEMENT("ActiveShell3pElement", mActiveShell3pElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)
