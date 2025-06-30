@@ -50,6 +50,28 @@ array_1d<double, props_size> MakePropsVector(const Vector& rUMatParameters)
     return result;
 }
 
+std::vector<std::string> GFortranNamesOf(const std::vector<std::string>& rFunctionNames)
+{
+    auto result = std::vector<std::string>{};
+    result.reserve(rFunctionNames.size());
+    auto append_underscore = [](const auto& rFunctionName) { return rFunctionName + '_'; };
+    std::transform(rFunctionNames.begin(), rFunctionNames.end(), std::back_inserter(result), append_underscore);
+    return result;
+}
+
+const std::vector<std::string>& UserModFunctionNames()
+{
+    auto generate_names = []() {
+        using namespace std::string_literals;
+        auto result = std::vector<std::string>{"User_Mod"s, "User_mod"s, "USER_MOD"s, "user_mod"s};
+        const auto gfortran_names = GFortranNamesOf(result);
+        result.insert(result.end(), gfortran_names.begin(), gfortran_names.end());
+        return result;
+    };
+    static const auto result = generate_names();
+    return result;
+}
+
 } // namespace
 
 namespace Kratos
@@ -471,16 +493,15 @@ bool SmallStrainUDSMLaw::loadUDSMLinux(const Properties& rMaterialProperties)
     // resolve function GetStateVarCount address
     mpGetStateVarCount = (f_GetStateVarCount)dlsym(lib_handle, "getstatevarcount");
 
-    mpUserMod = (f_UserMod)dlsym(lib_handle, "user_mod");
+    for (const auto& r_function_name : UserModFunctionNames()) {
+        mpUserMod = (f_UserMod)dlsym(lib_handle, r_function_name.c_str());
+
+        if (mpUserMod) break;
+    }
+
     if (!mpUserMod) {
-        mpUserMod = (f_UserMod)dlsym(lib_handle, "user_mod_");
-        if (!mpUserMod) {
-            KRATOS_INFO("Error in loadUDSMLinux")
-                << "cannot load function User_Mod in the specified UDSM: " << rMaterialProperties[UDSM_NAME]
-                << std::endl;
-            KRATOS_ERROR << "cannot load function User_Mod in the specified UDSM "
-                         << rMaterialProperties[UDSM_NAME] << std::endl;
-        }
+        KRATOS_ERROR << "Cannot load function 'User_Mod' in the specified UDSM "
+                     << rMaterialProperties[UDSM_NAME] << std::endl;
     }
 
     return true;
@@ -533,18 +554,17 @@ bool SmallStrainUDSMLaw::loadUDSMWindows(const Properties& rMaterialProperties)
     // resolve function GetStateVarCount address
     mpGetStateVarCount = (f_GetStateVarCount)GetProcAddress(hGetProcIDDLL, "getstatevarcount");
 
-    mpUserMod = (f_UserMod)GetProcAddress(hGetProcIDDLL, "user_mod");
-    if (!mpUserMod) {
-        // check if the dll is compiled with gfortran
-        mpUserMod = (f_UserMod)GetProcAddress(hGetProcIDDLL, "user_mod_");
-        if (!mpUserMod) {
-            KRATOS_INFO("Error in loadUDSMWindows")
-                << "cannot load function User_Mod in the specified UDSM: " << rMaterialProperties[UDSM_NAME]
-                << std::endl;
-            KRATOS_ERROR << "cannot load function User_Mod in the specified UDSM "
-                         << rMaterialProperties[UDSM_NAME] << std::endl;
-        }
+    for (const auto& r_function_name : UserModFunctionNames()) {
+        mpUserMod = (f_UserMod)GetProcAddress(hGetProcIDDLL, r_function_name.c_str());
+
+        if (mpUserMod) break;
     }
+
+    if (!mpUserMod) {
+        KRATOS_ERROR << "Cannot load function 'User_Mod' in the specified UDSM "
+                     << rMaterialProperties[UDSM_NAME] << std::endl;
+    }
+
     return true;
 #else
     KRATOS_ERROR << "loadUDSMWindows should be called in Windows applications"

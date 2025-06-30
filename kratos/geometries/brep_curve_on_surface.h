@@ -400,7 +400,7 @@ public:
 
         const double max_parameter = mCurveNurbsInterval.MaxParameter();
         if (rPointLocalCoordinates[0] > max_parameter) {
-            rClosestPointLocalCoordinates[0] = min_parameter;
+            rClosestPointLocalCoordinates[0] = max_parameter;
             return 0;
         } else if (std::abs(rPointLocalCoordinates[0] - max_parameter) < Tolerance) {
             rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
