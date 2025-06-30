@@ -42,7 +42,7 @@ public:
         KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6))
             << "Number of nodes must be 2+2 or 3+3\n";
 
-        mMidGeometry = std::make_unique<MidGeometryType>(CreatePointsOfMidLine());
+        mMidGeometry = std::make_unique<MidGeometryType>(CreatePointsOfMidGeometry());
         this->SetGeometryData(&mMidGeometry->GetGeometryData());
     }
 
@@ -85,7 +85,7 @@ public:
 
     Matrix& InverseOfJacobian(Matrix& rResult, const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        KRATOS_ERROR << "Inverse of Jacobian is not implemented for the line interface geometry\n";
+        KRATOS_ERROR << "Inverse of Jacobian is not implemented for the interface geometry\n";
     }
 
     [[nodiscard]] double Length() const override { return mMidGeometry->Length(); }
@@ -257,21 +257,21 @@ public:
     }
 
 private:
-    [[nodiscard]] PointerVector<Node> CreatePointsOfMidLine() const
+    [[nodiscard]] PointerVector<Node> CreatePointsOfMidGeometry() const
     {
         const auto points                  = this->Points();
-        const auto number_of_midline_nodes = std::size_t{points.size() / 2};
-        auto       result                  = PointerVector<Node>{number_of_midline_nodes};
+        const auto number_of_mid_geometry_nodes = std::size_t{points.size() / 2};
+        auto       result                  = PointerVector<Node>{number_of_mid_geometry_nodes};
 
         auto is_null = [](const auto& rNodePtr) { return rNodePtr == nullptr; };
         if (std::any_of(points.ptr_begin(), points.ptr_end(), is_null)) {
-            // At least one point is not defined, so the points of the mid-line can't be computed.
-            // As a result, all the mid-line points will be undefined.
+            // At least one point is not defined, so the points of the mid-geometry can't be computed.
+            // As a result, all the mid-geometry points will be undefined.
             return result;
         }
 
         auto begin_of_first_side  = points.ptr_begin();
-        auto begin_of_second_side = begin_of_first_side + number_of_midline_nodes;
+        auto begin_of_second_side = begin_of_first_side + number_of_mid_geometry_nodes;
         auto make_mid_point       = [](const auto& pPoint1, const auto& pPoint2) {
             return make_intrusive<Node>(pPoint1->Id(), Point{(*pPoint1 + *pPoint2) / 2});
         };
