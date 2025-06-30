@@ -1,6 +1,6 @@
 {
   "problem_data": {
-    "problem_name": "mesh",
+    "problem_name": "rising_falling_phreatic_level",
     "start_time": 0.0,
     "end_time": 29.0,
     "echo_level": 1,
@@ -19,8 +19,7 @@
       "materials_filename": "MaterialParameters.json"
     },
     "time_stepping": {
-      "time_step": 1.0,
-      "max_delta_time_factor": 1.0
+      "time_step": 1.0
     },
     "buffer_size": 2,
     "echo_level": 1,
@@ -31,7 +30,6 @@
     "block_builder": true,
     "solution_type": "Quasi-Static",
     "scheme_type": "Backward_Euler",
-    "reset_displacements": true,
     "strategy_type": "newton_raphson",
     "convergence_criterion": "residual_criterion",
     "residual_relative_tolerance": 0.001,
@@ -43,6 +41,7 @@
     "increase_factor": 1.0,
     "calculate_reactions": true,
     "rotation_dofs": false,
+    "move_mesh_flag": false,
     "linear_solver_settings": {
       "solver_type": "LinearSolversApplication.sparse_lu",
       "scaling": true
@@ -58,8 +57,7 @@
     ],
     "body_domain_sub_model_part_list": [
       "Soil"
-    ],
-    "move_mesh_flag": false
+    ]
   },
   "output_processes": {
     "gid_output": [
