@@ -546,12 +546,24 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+        std::vector<size_t> contributions(mContributions.size());
+        std::transform(mContributions.begin(), mContributions.end(), contributions.begin(),
+                       [](CalculationContribution c) { return static_cast<size_t>(c); });
+        rSerializer.save("Contribution", contributions);
         rSerializer.save("RetentionlawVector", mRetentionLawVector);
+        rSerializer.save("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+        std::vector<size_t> contributions;
+        rSerializer.load("Contribution", contributions);
+        mContributions.clear();
+        std::transform(contributions.begin(), contributions.end(), std::back_inserter(mContributions),
+                       [](size_t c) { return static_cast<CalculationContribution>(c); });
+        rSerializer.load("RetentionlawVector", mRetentionLawVector);
+        rSerializer.save("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
     }
 };
 
