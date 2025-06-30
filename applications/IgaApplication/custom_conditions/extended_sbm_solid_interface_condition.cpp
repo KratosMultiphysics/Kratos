@@ -119,6 +119,19 @@ void ExtendedSbmSolidInterfaceCondition::InitializeSbmMemberVariables()
 
     mDistanceVectorMinus.resize(3);
     noalias(mDistanceVectorMinus) = r_geometry.Center().Coordinates() - r_surrogate_geometry_minus.Center().Coordinates();
+
+    // const Point&  p_true = r_geometry.Center();            // true boundary
+    // const Point&  p_sur_plus  = GetGeometryPlus().Center();
+
+    // std::ofstream out("centers.txt", std::ios::app);       // append mode
+    // out << std::setprecision(15)                           // full precision
+    //     << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
+    //     << p_sur_plus .X() << ' ' << p_sur_plus .Y() << ' ' << p_sur_plus .Z() << '\n';
+
+    // const Point&  p_sur_minus  = GetGeometryMinus().Center();
+    // out << std::setprecision(15)                           // full precision
+    //     << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
+    //     << p_sur_minus .X() << ' ' << p_sur_minus .Y() << ' ' << p_sur_minus .Z() << '\n';
 }
 
 void ExtendedSbmSolidInterfaceCondition::CalculateLocalSystem(

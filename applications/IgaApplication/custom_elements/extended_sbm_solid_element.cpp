@@ -68,9 +68,9 @@ ExtendedSbmSolidElement::~ExtendedSbmSolidElement()
 
 void ExtendedSbmSolidElement:: Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    InitializeMaterial();
     InitializeMemberVariables();
     InitializeSbmMemberVariables();
+    InitializeMaterial();
 }
 
 
@@ -78,12 +78,14 @@ void ExtendedSbmSolidElement::InitializeMaterial()
 {
     KRATOS_TRY
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
-        const GeometryType& r_geometry = GetGeometry();
-        const Properties& r_properties = GetProperties();
-        const auto& N_values = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
-
+        const GeometryType& r_geometry = GetSurrogateGeometry();
+        const Properties& r_properties = GetProperties();        
+        const SizeType number_of_control_points = r_geometry.size();
+        Vector N_sum_vec = ZeroVector(number_of_control_points);
+        ComputeTaylorExpansionContribution(N_sum_vec);
+    
         mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-        mpConstitutiveLaw->InitializeMaterial( r_properties, r_geometry, row(N_values , 0 ));
+        mpConstitutiveLaw->InitializeMaterial( r_properties, r_geometry, N_sum_vec);
 
     } else
         KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
@@ -97,7 +99,7 @@ void ExtendedSbmSolidElement::InitializeMemberVariables()
     // // Compute class memeber variables
     const auto& r_geometry = GetGeometry();
 
-    const auto& r_projected_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
+    const auto& r_projected_geometry = GetSurrogateGeometry();
     const auto& r_DN_De = r_projected_geometry.ShapeFunctionsLocalGradients(r_projected_geometry.GetDefaultIntegrationMethod());
     
     // Initialize DN_DX
@@ -114,7 +116,6 @@ void ExtendedSbmSolidElement::InitializeMemberVariables()
 
     mBasisFunctionsOrder *= 2; 
 
-
     // calculate the integration weight
     // reading integration point
     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
@@ -129,10 +130,18 @@ void ExtendedSbmSolidElement::InitializeMemberVariables()
 void ExtendedSbmSolidElement::InitializeSbmMemberVariables()
 {
     const auto& r_geometry = this->GetGeometry();
-    const auto& r_surrogate_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
+    const auto& r_surrogate_geometry = GetSurrogateGeometry();
 
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = r_geometry.Center().Coordinates() - r_surrogate_geometry.Center().Coordinates();
+
+    // const Point&  p_true = r_geometry.Center();            // true boundary
+    // const Point&  p_sur  = r_surrogate_geometry.Center();  // surrogate
+
+    // std::ofstream out("centers.txt", std::ios::app);       // append mode
+    // out << std::setprecision(15)                           // full precision
+    //     << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
+    //     << p_sur .X() << ' ' << p_sur .Y() << ' ' << p_sur .Z() << '\n';
 }
 
 void ExtendedSbmSolidElement::CalculateLocalSystem(
@@ -142,7 +151,7 @@ void ExtendedSbmSolidElement::CalculateLocalSystem(
 {
     KRATOS_TRY
 
-    const SizeType mat_size = GetValue(NEIGHBOUR_GEOMETRIES)[0]->size() * 2;
+    const SizeType mat_size = GetSurrogateGeometry().size() * 2;
 
     if (rRightHandSideVector.size() != mat_size)
         rRightHandSideVector.resize(mat_size);
@@ -163,7 +172,7 @@ void ExtendedSbmSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMat
 {
     KRATOS_TRY
 
-    const auto& r_surrogate_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
+    const auto& r_surrogate_geometry = GetSurrogateGeometry();
     const auto& r_true_geometry = GetGeometry();
     const unsigned int number_of_control_points = r_surrogate_geometry.size();
 
@@ -186,7 +195,7 @@ void ExtendedSbmSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMat
 
     // obtain the tangent constitutive matrix at the true position
     
-    ConstitutiveLaw::Parameters values_true(r_true_geometry, GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters values_true(r_surrogate_geometry, GetProperties(), rCurrentProcessInfo);
 
     Vector old_displacement_coefficient_vector(mat_size);
     GetSolutionCoefficientVector(old_displacement_coefficient_vector);
@@ -198,8 +207,6 @@ void ExtendedSbmSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMat
 
     const Matrix& r_D_on_true = values_true.GetConstitutiveMatrix();
 
-    Matrix DB_sum = prod(r_D_on_true, B_sum);
-
     noalias(rLeftHandSideMatrix) += integration_weight * prod(trans(B_sum), Matrix(prod(r_D_on_true, B_sum))); 
 
     KRATOS_CATCH("")
@@ -210,7 +217,7 @@ void ExtendedSbmSolidElement::CalculateRightHandSide(VectorType& rRightHandSideV
 {
     KRATOS_TRY
 
-    const auto& r_surrogate_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
+    const auto& r_surrogate_geometry = GetSurrogateGeometry();
     const auto& r_true_geometry = GetGeometry();
     const unsigned int number_of_control_points = r_surrogate_geometry.size();
 
@@ -237,7 +244,7 @@ void ExtendedSbmSolidElement::CalculateRightHandSide(VectorType& rRightHandSideV
 
     // obtain the tangent constitutive matrix at the true position
     
-    ConstitutiveLaw::Parameters values_true(r_true_geometry, GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters values_true(r_surrogate_geometry, GetProperties(), rCurrentProcessInfo);
 
     Vector old_displacement_coefficient_vector(mat_size);
     GetSolutionCoefficientVector(old_displacement_coefficient_vector);
@@ -270,7 +277,7 @@ void ExtendedSbmSolidElement::EquationIdVector(
         const ProcessInfo& rCurrentProcessInfo
     ) const
     {
-        const auto& r_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
+        const auto& r_geometry = GetSurrogateGeometry();
         const SizeType number_of_control_points = r_geometry.size();
 
         if (rResult.size() != 2 * number_of_control_points)
@@ -289,7 +296,7 @@ void ExtendedSbmSolidElement::GetDofList(
     const ProcessInfo& rCurrentProcessInfo
 ) const
 {
-    const auto& r_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
+    const auto& r_geometry = GetSurrogateGeometry();
     const SizeType number_of_control_points = r_geometry.size();
 
     rElementalDofList.resize(0);
@@ -345,7 +352,7 @@ void ExtendedSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentPr
     //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
         //TODO: build a CalculateOnIntegrationPoints method
         //--------------------------------------------------------------------------------------------
-        const auto& r_surrogate_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
+        const auto& r_surrogate_geometry = GetSurrogateGeometry();
         const SizeType number_of_control_points = r_surrogate_geometry.size();
         const SizeType mat_size = number_of_control_points * 2;
 
@@ -436,7 +443,7 @@ void ExtendedSbmSolidElement::CalculateB(
         Matrix& rB, 
         Matrix& r_DN_DX) const
     {
-        const auto& r_surrogate_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
+        const auto& r_surrogate_geometry = GetSurrogateGeometry();
         const SizeType number_of_control_points = r_surrogate_geometry.size();
         const SizeType mat_size = number_of_control_points * 2;
 
@@ -461,7 +468,7 @@ void ExtendedSbmSolidElement::CalculateB(
 void ExtendedSbmSolidElement::GetSolutionCoefficientVector(
         Vector& rValues) const
     {
-        const auto& r_surrogate_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
+        const auto& r_surrogate_geometry = GetSurrogateGeometry();
         const SizeType number_of_control_points = r_surrogate_geometry.size();
         const SizeType mat_size = number_of_control_points * 2;
 
@@ -497,7 +504,7 @@ void ExtendedSbmSolidElement::ApplyConstitutiveLaw(SizeType matSize, Vector& rSt
 
 void ExtendedSbmSolidElement::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
 {
-    const auto& r_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
+    const auto& r_geometry = GetSurrogateGeometry();
     const SizeType number_of_control_points = r_geometry.PointsNumber();
     const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
@@ -556,7 +563,7 @@ void ExtendedSbmSolidElement::ComputeTaylorExpansionContribution(Vector& H_sum_v
 
 void ExtendedSbmSolidElement::ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum)
 {
-    const auto& r_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
+    const auto& r_geometry = GetSurrogateGeometry();
     const SizeType number_of_control_points = r_geometry.PointsNumber();
     const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
 

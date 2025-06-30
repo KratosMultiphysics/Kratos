@@ -364,6 +364,13 @@ protected:
     ///@}
 
 private:
+    ///@name Operations
+    ///@{
+    const GeometryType& GetSurrogateGeometry() const
+    {
+        return *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
+    }
+    ///@}
     ///@name Static Member Variables
     ///@{
 

@@ -168,7 +168,9 @@ void ExtendedSbmLoadSolidCondition::CalculateRightHandSide(
     Vector N_sum_vec = ZeroVector(number_of_control_points);
     ComputeTaylorExpansionContribution(N_sum_vec);
 
-    Vector g_N = this->GetValue(FORCE); 
+    // Vector g_N = this->GetValue(FORCE); 
+
+    Vector g_N = ZeroVector(3); 
 
     double nu = this->GetProperties().GetValue(POISSON_RATIO);
     double E = this->GetProperties().GetValue(YOUNG_MODULUS);
@@ -177,11 +179,56 @@ void ExtendedSbmLoadSolidCondition::CalculateRightHandSide(
     const double y = r_true_geometry.Center().Y();
 
     // // cosinusoidal
-    // g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[0]; 
-    // g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[1]; 
+    g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[0]; 
+    g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[1]; 
 
-    g_N[0] = E/(1-nu*nu) * mNormalPhysicalSpace[0] +  E/2/(1+nu) * mNormalPhysicalSpace[1]; 
-    g_N[1] = E/2/(1+nu) * mNormalPhysicalSpace[0] + E*nu/(1-nu*nu)* mNormalPhysicalSpace[1]; 
+    // g_N[0] = E/(1-nu*nu) * mNormalPhysicalSpace[0] +  E/2/(1+nu) * mNormalPhysicalSpace[1]; 
+    // g_N[1] = E/2/(1+nu) * mNormalPhysicalSpace[0] + E*nu/(1-nu*nu)* mNormalPhysicalSpace[1]; 
+
+
+    // sol::: u = x**2, v  x*y
+    // const double A = E / (1.0 - nu * nu);  // E/(1-ν²)
+    // const double B = E / (2.0 * (1.0 + nu)); // E/[2(1+ν)]
+
+    // const double nx = mNormalPhysicalSpace[0];
+    // const double ny = mNormalPhysicalSpace[1];
+
+    // // trazione analitica t = σ·n
+    // g_N[0] = A * (2.0 + nu) * x * nx   // σxx n_x
+    //     + B * y * ny;               // σxy n_y
+
+    // g_N[1] = B * y * nx                // σxy n_x
+    //     + A * (1.0 + 2.0 * nu) * x * ny; // σyy n_y
+
+    // sol::: u = x*y, v = x*y
+    // const double A = E / (1.0 - nu*nu);
+    // const double B = E / (2.0 * (1.0 + nu));
+
+    // const double nx = mNormalPhysicalSpace[0];
+    // const double ny = mNormalPhysicalSpace[1];
+
+    // g_N[0] =  A*(y + nu*x)*nx + B*(x + y)*ny;
+    // g_N[1] =  B*(x + y)*nx   + A*(x + nu*y)*ny;
+
+
+    // sol:: x**2-7/20*y**2
+    // const double A = E / (1.0 - nu*nu);          // plane-stress
+    // const double B = E / (2.0 * (1.0 + nu));
+    // const double alpha = 2.0 * (1.0 + nu) / (1.0 - nu*nu); // = A/B
+    // const double beta  = (1.0 - nu*nu) / (2.0 * (1.0 + nu)); // = B/A
+
+    // const double nx = mNormalPhysicalSpace[0];
+    // const double ny = mNormalPhysicalSpace[1];
+
+    // // t_x = σxx n_x + σxy n_y
+    // g_N[0] =
+    //     ( 2.0*A*x - 2.0*A*nu*beta*y ) * nx +
+    //     ( 2.0*B*x - 2.0*B*alpha*y )  * ny;
+
+    // // t_y = σxy n_x + σyy n_y
+    // g_N[1] =
+    //     ( 2.0*B*x - 2.0*B*alpha*y ) * nx +
+    //     ( 2.0*A*nu*x - 2.0*A*beta*y ) * ny;
 
     for (IndexType i = 0; i < number_of_control_points; i++) {
         for (IndexType zdim = 0; zdim < 2; zdim++) {
