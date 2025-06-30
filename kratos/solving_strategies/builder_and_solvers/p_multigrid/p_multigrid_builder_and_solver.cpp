@@ -138,9 +138,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
 
             // Perform smoothing on the fine grid.
             TSparse::SetToZero(rSolutionUpdate); //< do I need this?
-            //mpInterface->GetLinearSystemSolver()->InitializeSolutionStep(rLhs, rSolutionUpdate, rResidual);
-            mpInterface->GetLinearSystemSolver()->Solve(rLhs, rSolutionUpdate, rResidual);
-            //mpInterface->GetLinearSystemSolver()->FinalizeSolutionStep(rLhs, rSolutionUpdate, rResidual);
+            mpInterface->GetLinearSystemSolver()->PerformSolutionStep(rLhs, rSolutionUpdate, rResidual);
 
             // Update the fine solution.
             TSparse::UnaliasedAdd(rSolution, 1.0, rSolutionUpdate);
@@ -192,6 +190,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
             initial_residual_norm = initial_residual_norm ? initial_residual_norm : 1;
         }
 
+        mpInterface->GetLinearSystemSolver()->InitializeSolutionStep(rLhs, rSolution, rRhs);
+
         // Outer loop for constraints.
         do {
             status_report.maybe_multigrid_residual.reset();
@@ -235,6 +235,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
             ++status_report.constraint_iteration;
         } while (true);
 
+        mpInterface->GetLinearSystemSolver()->FinalizeSolutionStep(rLhs, rSolution, rRhs);
+
         return status_report;
         KRATOS_CATCH("")
     }
@@ -246,17 +248,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
                typename Interface::TSystemVectorType& rRhs,
                ModelPart& rModelPart)
     {
-        // Prepare and initialize members.
         KRATOS_TRY
-        if (mpInterface->GetLinearSolver().AdditionalPhysicalDataIsNeeded()) {
-            mpInterface->GetLinearSolver().ProvideAdditionalData(rLhs,
-                                                                 rSolution,
-                                                                 rRhs,
-                                                                 mpInterface->GetDofSet(),
-                                                                 rModelPart);
-        }
-        mpInterface->GetLinearSystemSolver()->InitializeSolutionStep(rLhs, rSolution, rRhs);
-
         if (mMaybeHierarchy.has_value()) {
             std::visit([&rModelPart, &rLhs, &rSolution, &rRhs](auto& r_grid){
                             r_grid.template Initialize<TSparse>(
@@ -267,6 +259,17 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
                        },
                        mMaybeHierarchy.value());
         } // if mMaybeHierarchy
+        KRATOS_CATCH("")
+
+        // Prepare and initialize members.
+        KRATOS_TRY
+        if (mpInterface->GetLinearSolver().AdditionalPhysicalDataIsNeeded()) {
+            mpInterface->GetLinearSolver().ProvideAdditionalData(rLhs,
+                                                                 rSolution,
+                                                                 rRhs,
+                                                                 mpInterface->GetDofSet(),
+                                                                 rModelPart);
+        }
 
         std::optional<PMGStatusStream> status_stream = PMGStatusStream(
             /*rStream=*/            std::cout,

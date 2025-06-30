@@ -506,7 +506,7 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::ComputeDependentResidual(ty
 
     // Solve linear system.
     auto [r_lhs, r_linear_solver] = mpImpl->GetDependentTransform();
-    r_linear_solver.Solve(r_lhs, dependent_residual, rhs);
+    r_linear_solver.PerformSolutionStep(r_lhs, dependent_residual, rhs);
     rResidual.swap(dependent_residual);
 
     KRATOS_CATCH("")
@@ -536,7 +536,7 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::ComputeIndependentSolution(
     typename TSparse::VectorType independent_solution(r_lhs.size1());
     TSparse::SetToZero(independent_solution);
 
-    r_linear_solver.Solve(r_lhs, independent_solution, rhs);
+    r_linear_solver.PerformSolutionStep(r_lhs, independent_solution, rhs);
     rSolution.swap(independent_solution);
 
     KRATOS_CATCH("")

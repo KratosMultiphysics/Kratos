@@ -399,9 +399,7 @@ void PGrid<TSparse,TDense>::ExecuteMultigridLoop(PMGStatusStream& rStream,
     // The multigrid hierarchy depth is currently capped at 1,
     // so the linear solver is used here instead of invoking
     // lower grids.
-    //mpSolver->InitializeSolutionStep(mLhs, mSolution, mRhs);
-    rReport.multigrid_converged = mpSolver->Solve(mLhs, mSolution, mRhs);
-    //mpSolver->FinalizeSolutionStep(mLhs, mSolution, mRhs);
+    rReport.multigrid_converged = mpSolver->PerformSolutionStep(mLhs, mSolution, mRhs);
 
     KRATOS_CATCH("")
 }
