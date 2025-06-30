@@ -68,12 +68,46 @@ public:
     }
 
     /**
+     * @brief Checks if the given shape is valid.
+     *
+     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeEnd             End of the shape array.
+     */
+    template<class TIteratorType>
+    static bool inline IsValidShape(
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        return pShapeBegin == pShapeEnd;
+    }
+
+    /**
      * @brief Returns the size of the value.
      *
      * @return TIndexType Size of the value.
      */
     template<class TIndexType = unsigned int>
     static inline TIndexType Size(const ContainerType&)
+    {
+        return 1;
+    }
+
+    /**
+     * @brief Get the size of the underlying container given the shape
+     *
+     * This method returns number of @ref PrimitiveType values contained recursively
+     * using the given shape with @ref pShapeBegin indicating the pointer to the
+     * start of the shape array and @ref pShapeEnd indicating the pointer to the
+     * end of the shape array.
+     *
+     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeEnd             End of the shape array.
+     * @return TIndexType           Number of primitive type values in the shape.
+     */
+    template<class TIteratorType, class TIndexType = unsigned int>
+    static inline TIndexType Size(
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
     {
         return 1;
     }
@@ -195,6 +229,30 @@ public:
     }
 
     /**
+     * @brief Copies the given container element value to contiguous array.
+     *
+     * This method copies all the elements of @ref rContainer recursively to the
+     * provided @ref pContiguousDataBegin.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param pContiguousDataBegin      Contiguous array pointer.
+     * @param rContainer                Container to copy data to the contiguous array.
+     * @param pShapeBegin               Begining of the shape array.
+     * @param pShapeEnd                 End of the shape array.
+     */
+    template<class TIteratorType>
+    inline static void CopyToContiguousData(
+        PrimitiveType* pContiguousDataBegin,
+        const ContainerType& rContainer,
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        *pContiguousDataBegin = rContainer;
+    }
+
+    /**
      * @brief Copies data from contiguous array to rValue.
      *
      * This method copies data from contiguous array to the passed @ref rValue.
@@ -210,6 +268,30 @@ public:
         PrimitiveType const * pContiguousDataBegin)
     {
         rValue = *pContiguousDataBegin;
+    }
+
+    /**
+     * @brief Copies contiguous values to the container.
+     *
+     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
+     * to the @ref rContainer.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param rContainer            Container to copy values to.
+     * @param pContiguousDataBegin  Contiguous data container from which values are copied from.
+     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeEnd             End of the shape array.
+     */
+    template<class TIteratorType>
+    inline static void CopyFromContiguousData(
+        ContainerType& rContainer,
+        PrimitiveType const * pContiguousDataBegin,
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        rContainer = *pContiguousDataBegin;
     }
 
     ///@}
@@ -287,6 +369,20 @@ public:
     }
 
     /**
+     * @brief Checks if the given shape is valid.
+     *
+     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeEnd             End of the shape array.
+     */
+    template<class TIteratorType>
+    static bool inline IsValidShape(
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        return pShapeBegin != pShapeEnd && (*pShapeBegin) <= TSize && ValueTraits::template IsValidShape<TIteratorType>(pShapeBegin + 1, pShapeEnd);
+    }
+
+    /**
      * @brief Gets the size of underlying rContainer.
      *
      * This method returns number of @ref PrimitiveType values contained in
@@ -303,6 +399,26 @@ public:
         } else {
             return TSize * ValueTraits::template Size<TIndexType>(rContainer[0]);
         }
+    }
+
+    /**
+     * @brief Get the size of the underlying container given the shape
+     *
+     * This method returns number of @ref PrimitiveType values contained recursively
+     * using the given shape with @ref pShapeBegin indicating the pointer to the
+     * start of the shape array and @ref pShapeEnd indicating the pointer to the
+     * end of the shape array.
+     *
+     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeEnd             End of the shape array.
+     * @return TIndexType           Number of primitive type values in the shape.
+     */
+    template<class TIteratorType, class TIndexType = unsigned int>
+    static inline TIndexType Size(
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        return (*pShapeBegin) * ValueTraits::template Size<TIteratorType, TIndexType>(pShapeBegin + 1, pShapeEnd);
     }
 
     /**
@@ -363,7 +479,7 @@ public:
      * @param rContainer    Container to be resized recursively.
      * @param rShape        Shape to be used in resizing.
      * @return true         If the rContainer or its elements has changed due to resizing.
-     * @return false        If the rContaienr has not changed.
+     * @return false        If the rContainer has not changed.
      */
     template<class TIndexType = unsigned int>
     static inline bool Reshape(
@@ -388,7 +504,7 @@ public:
      * @param pShapeBegin   Begin of the shape vector.
      * @param pShapeEnd     End of the shape vector.
      * @return true         If the rContainer or its elements has changed due to resizing.
-     * @return false        If the rContaienr has not changed.
+     * @return false        If the rContainer has not changed.
      */
     template<class TIndexType = unsigned int>
     static inline bool Reshape(
@@ -396,7 +512,7 @@ public:
         TIndexType const * pShapeBegin,
         TIndexType const * pShapeEnd)
     {
-        KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) >= 1 && *pShapeBegin == static_cast<TIndexType>(TSize))
+        KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) >= 1 && *pShapeBegin <= static_cast<TIndexType>(TSize))
             << "Invalid shape/dimension given for array_1d data type [ Expected shape = " << Shape(rContainer) << ", provided shape = "
             << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
 
@@ -485,7 +601,7 @@ public:
      *          is not correctly sized.
      *
      * @param pContiguousDataBegin      Contiguous array pointer.
-     * @param rContainer                Contaienr to copy data to the contiguous array.
+     * @param rContainer                Container to copy data to the contiguous array.
      */
     inline static void CopyToContiguousData(
         PrimitiveType* pContiguousDataBegin,
@@ -494,6 +610,33 @@ public:
         const auto stride = ValueTraits::Size(rContainer[0]);
         for (unsigned int i = 0; i < TSize; ++i) {
             ValueTraits::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
+        }
+    }
+
+    /**
+     * @brief Copies the given container element value to contiguous array.
+     *
+     * This method copies all the elements of @ref rContainer recursively to the
+     * provided @ref pContiguousDataBegin.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param pContiguousDataBegin      Contiguous array pointer.
+     * @param rContainer                Container to copy data to the contiguous array.
+     * @param pShapeBegin               Begining of the shape array.
+     * @param pShapeEnd                 End of the shape array.
+     */
+    template<class TIteratorType>
+    inline static void CopyToContiguousData(
+        PrimitiveType* pContiguousDataBegin,
+        const ContainerType& rContainer,
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        const auto stride = ValueTraits::Size(pShapeBegin + 1, pShapeEnd);
+        for (unsigned int i = 0; i < *pShapeBegin; ++i) {
+            ValueTraits::template CopyToContiguousData<TIteratorType>(pContiguousDataBegin + i * stride, rContainer[i], pShapeBegin + 1, pShapeEnd);
         }
     }
 
@@ -516,6 +659,33 @@ public:
         const auto stride = ValueTraits::Size(rContainer[0]);
         for (unsigned int i = 0; i < TSize; ++i) {
             ValueTraits::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
+        }
+    }
+
+    /**
+     * @brief Copies contiguous values to the container.
+     *
+     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
+     * to the @ref rContainer.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param rContainer            Container to copy values to.
+     * @param pContiguousDataBegin  Contiguous data container from which values are copied from.
+     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeEnd             End of the shape array.
+     */
+    template<class TIteratorType>
+    inline static void CopyFromContiguousData(
+        ContainerType& rContainer,
+        PrimitiveType const * pContiguousDataBegin,
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        const auto stride = ValueTraits::Size(pShapeBegin + 1, pShapeEnd);
+        for (unsigned int i = 0; i < *pShapeBegin; ++i) {
+            ValueTraits::template CopyFromContiguousData<TIteratorType>(rContainer[i], pContiguousDataBegin + i * stride, pShapeBegin + 1, pShapeEnd);
         }
     }
 
@@ -593,6 +763,20 @@ public:
     }
 
     /**
+     * @brief Checks if the given shape is valid.
+     *
+     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeEnd             End of the shape array.
+     */
+    template<class TIteratorType>
+    static bool inline IsValidShape(
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        return pShapeBegin != pShapeEnd && ValueTraits::template IsValidShape<TIteratorType>(pShapeBegin + 1, pShapeEnd);
+    }
+
+    /**
      * @brief Gets the size of underlying rContainer.
      *
      * This method returns number of @ref PrimitiveType values contained in
@@ -605,6 +789,26 @@ public:
     static inline TIndexType Size(const ContainerType& rValue)
     {
         return (rValue.empty() ? 0 : rValue.size() * ValueTraits::template Size<TIndexType>(rValue[0]));
+    }
+
+    /**
+     * @brief Get the size of the underlying container given the shape
+     *
+     * This method returns number of @ref PrimitiveType values contained recursively
+     * using the given shape with @ref pShapeBegin indicating the pointer to the
+     * start of the shape array and @ref pShapeEnd indicating the pointer to the
+     * end of the shape array.
+     *
+     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeEnd             End of the shape array.
+     * @return TIndexType           Number of primitive type values in the shape.
+     */
+    template<class TIteratorType, class TIndexType = unsigned int>
+    static inline TIndexType Size(
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        return (*pShapeBegin) * ValueTraits::template Size<TIteratorType, TIndexType>(pShapeBegin + 1, pShapeEnd);
     }
 
     /**
@@ -665,7 +869,7 @@ public:
      * @param rContainer    Container to be resized recursively.
      * @param rShape        Shape to be used in resizing.
      * @return true         If the rContainer or its elements has changed due to resizing.
-     * @return false        If the rContaienr has not changed.
+     * @return false        If the rContainer has not changed.
      */
     template<class TIndexType = unsigned int>
     static inline bool Reshape(
@@ -690,7 +894,7 @@ public:
      * @param pShapeBegin   Begin of the shape vector.
      * @param pShapeEnd     End of the shape vector.
      * @return true         If the rContainer or its elements has changed due to resizing.
-     * @return false        If the rContaienr has not changed.
+     * @return false        If the rContainer has not changed.
      */
     template<class TIndexType = unsigned int>
     static inline bool Reshape(
@@ -792,7 +996,7 @@ public:
      *          is not correctly sized.
      *
      * @param pContiguousDataBegin      Contiguous array pointer.
-     * @param rContainer                Contaienr to copy data to the contiguous array.
+     * @param rContainer                Container to copy data to the contiguous array.
      */
     inline static void CopyToContiguousData(
         PrimitiveType* pContiguousDataBegin,
@@ -802,6 +1006,37 @@ public:
             const auto stride = ValueTraits::Size(rContainer[0]);
             for (unsigned int i = 0; i < rContainer.size(); ++i) {
                 ValueTraits::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
+            }
+        }
+    }
+
+    /**
+     * @brief Copies the given container element value to contiguous array.
+     *
+     * This method copies all the elements of @ref rContainer recursively to the
+     * provided @ref pContiguousDataBegin.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param pContiguousDataBegin      Contiguous array pointer.
+     * @param rContainer                Container to copy data to the contiguous array.
+     * @param pShapeBegin               Begining of the shape array.
+     * @param pShapeEnd                 End of the shape array.
+     */
+    template<class TIteratorType>
+    inline static void CopyToContiguousData(
+        PrimitiveType* pContiguousDataBegin,
+        const ContainerType& rContainer,
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        // since the range [pShapeBegin, pShapeEnd) is checked using the IsValidShape method,
+        // here we only check for the dynamic size.
+        if (*pShapeBegin <= rContainer.size()) {
+            const auto stride = ValueTraits::Size(pShapeBegin + 1, pShapeEnd);
+            for (unsigned int i = 0; i < *pShapeBegin; ++i) {
+                ValueTraits::template CopyToContiguousData<TIteratorType>(pContiguousDataBegin + i * stride, rContainer[i], pShapeBegin + 1, pShapeEnd);
             }
         }
     }
@@ -826,6 +1061,35 @@ public:
             const auto stride = ValueTraits::Size(rContainer[0]);
             for (unsigned int i = 0; i < rContainer.size(); ++i) {
                 ValueTraits::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
+            }
+        }
+    }
+
+    /**
+     * @brief Copies contiguous values to the container.
+     *
+     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
+     * to the @ref rContainer.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param rContainer            Container to copy values to.
+     * @param pContiguousDataBegin  Contiguous data container from which values are copied from.
+     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeEnd             End of the shape array.
+     */
+    template<class TIteratorType>
+    inline static void CopyFromContiguousData(
+        ContainerType& rContainer,
+        PrimitiveType const * pContiguousDataBegin,
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        if (rContainer.size() >= *pShapeBegin) {
+            const auto stride = ValueTraits::Size(pShapeBegin + 1, pShapeEnd);
+            for (unsigned int i = 0; i < *pShapeBegin; ++i) {
+                ValueTraits::template CopyFromContiguousData<TIteratorType>(rContainer[i], pContiguousDataBegin + i * stride, pShapeBegin + 1, pShapeEnd);
             }
         }
     }
@@ -899,6 +1163,20 @@ public:
     }
 
     /**
+     * @brief Checks if the given shape is valid.
+     *
+     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeEnd             End of the shape array.
+     */
+    template<class TIteratorType>
+    static bool inline IsValidShape(
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        return pShapeBegin != pShapeEnd && (pShapeBegin + 1) != pShapeEnd && ValueTraits::template IsValidShape<TIteratorType>(pShapeBegin + 2, pShapeEnd);
+    }
+
+    /**
      * @brief Gets the size of underlying rContainer.
      *
      * This method returns number of @ref PrimitiveType values contained in
@@ -911,6 +1189,26 @@ public:
     static inline TIndexType Size(const ContainerType& rValue)
     {
         return (rValue.size1() == 0 || rValue.size2() == 0 ? 0 : rValue.size1() * rValue.size2() * ValueTraits::template Size<TIndexType>(rValue.data()[0]));
+    }
+
+    /**
+     * @brief Get the size of the underlying container given the shape
+     *
+     * This method returns number of @ref PrimitiveType values contained recursively
+     * using the given shape with @ref pShapeBegin indicating the pointer to the
+     * start of the shape array and @ref pShapeEnd indicating the pointer to the
+     * end of the shape array.
+     *
+     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeEnd             End of the shape array.
+     * @return TIndexType           Number of primitive type values in the shape.
+     */
+    template<class TIteratorType, class TIndexType = unsigned int>
+    static inline TIndexType Size(
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        return (*pShapeBegin) * (*(pShapeBegin + 1)) * ValueTraits::template Size<TIteratorType, TIndexType>(pShapeBegin + 2, pShapeEnd);
     }
 
     /**
@@ -972,7 +1270,7 @@ public:
      * @param rContainer    Container to be resized recursively.
      * @param rShape        Shape to be used in resizing.
      * @return true         If the rContainer or its elements has changed due to resizing.
-     * @return false        If the rContaienr has not changed.
+     * @return false        If the rContainer has not changed.
      */
     template<class TIndexType = unsigned int>
     static inline bool Reshape(
@@ -997,7 +1295,7 @@ public:
      * @param pShapeBegin   Begin of the shape vector.
      * @param pShapeEnd     End of the shape vector.
      * @return true         If the rContainer or its elements has changed due to resizing.
-     * @return false        If the rContaienr has not changed.
+     * @return false        If the rContainer has not changed.
      */
     template<class TIndexType = unsigned int>
     static inline bool Reshape(
@@ -1099,7 +1397,7 @@ public:
      *          is not correctly sized.
      *
      * @param pContiguousDataBegin      Contiguous array pointer.
-     * @param rContainer                Contaienr to copy data to the contiguous array.
+     * @param rContainer                Container to copy data to the contiguous array.
      */
     inline static void CopyToContiguousData(
         PrimitiveType* pContiguousDataBegin,
@@ -1109,6 +1407,39 @@ public:
             const auto stride = ValueTraits::Size(rContainer(0, 0));
             for (unsigned int i = 0; i < rContainer.size1() * rContainer.size2(); ++i) {
                 ValueTraits::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer.data()[i]);
+            }
+        }
+    }
+
+    /**
+     * @brief Copies the given container element value to contiguous array.
+     *
+     * This method copies all the elements of @ref rContainer recursively to the
+     * provided @ref pContiguousDataBegin.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param pContiguousDataBegin      Contiguous array pointer.
+     * @param rContainer                Container to copy data to the contiguous array.
+     * @param pShapeBegin               Begining of the shape array.
+     * @param pShapeEnd                 End of the shape array.
+     */
+    template<class TIteratorType>
+    inline static void CopyToContiguousData(
+        PrimitiveType* pContiguousDataBegin,
+        const ContainerType& rContainer,
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        // since the range [pShapeBegin, pShapeEnd) is checked using the IsValidShape method,
+        // here we only check for the dynamic size.
+        if (*pShapeBegin <= rContainer.size1() && *(pShapeBegin + 1) <= rContainer.size2()) {
+            const auto stride = ValueTraits::Size(pShapeBegin + 2, pShapeEnd);
+            for (unsigned int i = 0; i < *pShapeBegin; ++i) {
+                for (unsigned int j = 0; j < *(pShapeBegin + 1); ++j) {
+                    ValueTraits::template CopyToContiguousData<TIteratorType>(pContiguousDataBegin + i * stride * (*pShapeBegin) + j * stride, rContainer(i, j), pShapeBegin + 2, pShapeEnd);
+                }
             }
         }
     }
@@ -1133,6 +1464,39 @@ public:
             const auto stride = ValueTraits::Size(rContainer(0, 0));
             for (unsigned int i = 0; i < rContainer.size1() * rContainer.size2(); ++i) {
                 ValueTraits::CopyFromContiguousData(rContainer.data()[i], pContiguousDataBegin + i * stride);
+            }
+        }
+    }
+
+    /**
+     * @brief Copies contiguous values to the container.
+     *
+     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
+     * to the @ref rContainer.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param rContainer            Container to copy values to.
+     * @param pContiguousDataBegin  Contiguous data container from which values are copied from.
+     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeEnd             End of the shape array.
+     */
+    template<class TIteratorType>
+    inline static void CopyFromContiguousData(
+        ContainerType& rContainer,
+        PrimitiveType const * pContiguousDataBegin,
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        // since the range [pShapeBegin, pShapeEnd) is checked using the IsValidShape method,
+        // here we only check for the dynamic size.
+        if (*pShapeBegin <= rContainer.size1() && *(pShapeBegin + 1) <= rContainer.size2()) {
+            const auto stride = ValueTraits::Size(pShapeBegin + 2, pShapeEnd);
+            for (unsigned int i = 0; i < *pShapeBegin; ++i) {
+                for (unsigned int j = 0; j < *(pShapeBegin + 1); ++j) {
+                    ValueTraits::template CopyFromContiguousData<TIteratorType>(rContainer(i, j), pContiguousDataBegin + i * stride * (*pShapeBegin) + j * stride, pShapeBegin + 2, pShapeEnd);
+                }
             }
         }
     }
@@ -1202,6 +1566,20 @@ public:
     }
 
     /**
+     * @brief Checks if the given shape is valid.
+     *
+     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeEnd             End of the shape array.
+     */
+    template<class TIteratorType>
+    static bool inline IsValidShape(
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        return pShapeBegin != pShapeEnd;
+    }
+
+    /**
      * @brief Gets the size of underlying rContainer.
      *
      * This method returns number of @ref PrimitiveType values contained in
@@ -1214,6 +1592,26 @@ public:
     static inline TIndexType Size(const ContainerType& rValue)
     {
         return rValue.size();
+    }
+
+    /**
+     * @brief Get the size of the underlying container given the shape
+     *
+     * This method returns number of @ref PrimitiveType values contained recursively
+     * using the given shape with @ref pShapeBegin indicating the pointer to the
+     * start of the shape array and @ref pShapeEnd indicating the pointer to the
+     * end of the shape array.
+     *
+     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeEnd             End of the shape array.
+     * @return TIndexType           Number of primitive type values in the shape.
+     */
+    template<class TIteratorType, class TIndexType = unsigned int>
+    static inline TIndexType Size(
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        return *pShapeBegin;
     }
 
     /**
@@ -1268,7 +1666,7 @@ public:
      * @param rContainer    Container to be resized recursively.
      * @param rShape        Shape to be used in resizing.
      * @return true         If the rContainer or its elements has changed due to resizing.
-     * @return false        If the rContaienr has not changed.
+     * @return false        If the rContainer has not changed.
      */
     template<class TIndexType = unsigned int>
     static inline bool Reshape(
@@ -1293,7 +1691,7 @@ public:
      * @param pShapeBegin   Begin of the shape vector.
      * @param pShapeEnd     End of the shape vector.
      * @return true         If the rContainer or its elements has changed due to resizing.
-     * @return false        If the rContaienr has not changed.
+     * @return false        If the rContainer has not changed.
      */
     template<class TIndexType = unsigned int>
     static inline bool Reshape(
@@ -1356,13 +1754,41 @@ public:
      *          is not correctly sized.
      *
      * @param pContiguousDataBegin      Contiguous array pointer.
-     * @param rContainer                Contaienr to copy data to the contiguous array.
+     * @param rContainer                Container to copy data to the contiguous array.
      */
     inline static void CopyToContiguousData(
         PrimitiveType* pContiguousDataBegin,
         const ContainerType& rContainer)
     {
         std::copy(rContainer.begin(), rContainer.end(), pContiguousDataBegin);
+    }
+
+    /**
+     * @brief Copies the given container element value to contiguous array.
+     *
+     * This method copies all the elements of @ref rContainer recursively to the
+     * provided @ref pContiguousDataBegin.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param pContiguousDataBegin      Contiguous array pointer.
+     * @param rContainer                Container to copy data to the contiguous array.
+     * @param pShapeBegin               Begining of the shape array.
+     * @param pShapeEnd                 End of the shape array.
+     */
+    template<class TIteratorType>
+    inline static void CopyToContiguousData(
+        PrimitiveType* pContiguousDataBegin,
+        const ContainerType& rContainer,
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        // since the range [pShapeBegin, pShapeEnd) is checked using the IsValidShape method,
+        // here we only check for the dynamic size.
+        if (*pShapeBegin <= rContainer.size()) {
+            std::copy(rContainer.begin(), rContainer.begin() + (*pShapeBegin), pContiguousDataBegin);
+        }
     }
 
     /**
@@ -1382,6 +1808,30 @@ public:
         PrimitiveType const * pContiguousDataBegin)
     {
         std::copy(pContiguousDataBegin, pContiguousDataBegin + rContainer.size(), rContainer.begin());
+    }
+
+    /**
+     * @brief Copies contiguous values to the container.
+     *
+     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
+     * to the @ref rContainer.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param rContainer            Container to copy values to.
+     * @param pContiguousDataBegin  Contiguous data container from which values are copied from.
+     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeEnd             End of the shape array.
+     */
+    template<class TIteratorType>
+    inline static void CopyFromContiguousData(
+        ContainerType& rContainer,
+        PrimitiveType const * pContiguousDataBegin,
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        std::copy(pContiguousDataBegin, pContiguousDataBegin + *pShapeBegin, rContainer.begin());
     }
 
     ///@}
@@ -1451,6 +1901,20 @@ public:
     }
 
     /**
+     * @brief Checks if the given shape is valid.
+     *
+     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeEnd             End of the shape array.
+     */
+    template<class TIteratorType>
+    static bool inline IsValidShape(
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        return pShapeBegin != pShapeEnd && ValueTraits::template IsValidShape<TIteratorType>(pShapeBegin + 1, pShapeEnd);
+    }
+
+    /**
      * @brief Gets the size of underlying rContainer.
      *
      * This method returns number of @ref PrimitiveType values contained in
@@ -1463,6 +1927,26 @@ public:
     static inline TIndexType Size(const ContainerType& rValue)
     {
         return (rValue.empty() ? 0 : rValue.size() * ValueTraits::template Size<TIndexType>(rValue[0]));
+    }
+
+    /**
+     * @brief Get the size of the underlying container given the shape
+     *
+     * This method returns number of @ref PrimitiveType values contained recursively
+     * using the given shape with @ref pShapeBegin indicating the pointer to the
+     * start of the shape array and @ref pShapeEnd indicating the pointer to the
+     * end of the shape array.
+     *
+     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeEnd             End of the shape array.
+     * @return TIndexType           Number of primitive type values in the shape.
+     */
+    template<class TIteratorType, class TIndexType = unsigned int>
+    static inline TIndexType Size(
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        return (*pShapeBegin) * ValueTraits::template Size<TIteratorType, TIndexType>(pShapeBegin + 1, pShapeEnd);
     }
 
     /**
@@ -1523,7 +2007,7 @@ public:
      * @param rContainer    Container to be resized recursively.
      * @param rShape        Shape to be used in resizing.
      * @return true         If the rContainer or its elements has changed due to resizing.
-     * @return false        If the rContaienr has not changed.
+     * @return false        If the rContainer has not changed.
      */
     template<class TIndexType = unsigned int>
     static inline bool Reshape(
@@ -1548,7 +2032,7 @@ public:
      * @param pShapeBegin   Begin of the shape vector.
      * @param pShapeEnd     End of the shape vector.
      * @return true         If the rContainer or its elements has changed due to resizing.
-     * @return false        If the rContaienr has not changed.
+     * @return false        If the rContainer has not changed.
      */
     template<class TIndexType = unsigned int>
     static inline bool Reshape(
@@ -1624,7 +2108,7 @@ public:
      *          is not correctly sized.
      *
      * @param pContiguousDataBegin      Contiguous array pointer.
-     * @param rContainer                Contaienr to copy data to the contiguous array.
+     * @param rContainer                Container to copy data to the contiguous array.
      */
     inline static void CopyToContiguousData(
         PrimitiveType* pContiguousDataBegin,
@@ -1634,6 +2118,37 @@ public:
             const auto stride = ValueTraits::Size(rContainer[0]);
             for (unsigned int i = 0; i < rContainer.size(); ++i) {
                 ValueTraits::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
+            }
+        }
+    }
+
+    /**
+     * @brief Copies the given container element value to contiguous array.
+     *
+     * This method copies all the elements of @ref rContainer recursively to the
+     * provided @ref pContiguousDataBegin.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param pContiguousDataBegin      Contiguous array pointer.
+     * @param rContainer                Container to copy data to the contiguous array.
+     * @param pShapeBegin               Begining of the shape array.
+     * @param pShapeEnd                 End of the shape array.
+     */
+    template<class TIteratorType>
+    inline static void CopyToContiguousData(
+        PrimitiveType* pContiguousDataBegin,
+        const ContainerType& rContainer,
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        // since the range [pShapeBegin, pShapeEnd) is checked using the IsValidShape method,
+        // here we only check for the dynamic size.
+        if (*pShapeBegin <= rContainer.size()) {
+            const auto stride = ValueTraits::Size(pShapeBegin + 1, pShapeEnd);
+            for (unsigned int i = 0; i < *pShapeBegin; ++i) {
+                ValueTraits::template CopyToContiguousData<TIteratorType>(pContiguousDataBegin + i * stride, rContainer[i], pShapeBegin + 1, pShapeEnd);
             }
         }
     }
@@ -1658,6 +2173,35 @@ public:
             const auto stride = ValueTraits::Size(rContainer[0]);
             for (unsigned int i = 0; i < rContainer.size(); ++i) {
                 ValueTraits::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
+            }
+        }
+    }
+
+    /**
+     * @brief Copies contiguous values to the container.
+     *
+     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
+     * to the @ref rContainer.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param rContainer            Container to copy values to.
+     * @param pContiguousDataBegin  Contiguous data container from which values are copied from.
+     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeEnd             End of the shape array.
+     */
+    template<class TIteratorType>
+    inline static void CopyFromContiguousData(
+        ContainerType& rContainer,
+        PrimitiveType const * pContiguousDataBegin,
+        TIteratorType pShapeBegin,
+        TIteratorType pShapeEnd)
+    {
+        if (rContainer.size() >= *pShapeBegin) {
+            const auto stride = ValueTraits::Size(pShapeBegin + 1, pShapeEnd);
+            for (unsigned int i = 0; i < *pShapeBegin; ++i) {
+                ValueTraits::template CopyFromContiguousData<TIteratorType>(rContainer[i], pContiguousDataBegin + i * stride, pShapeBegin + 1, pShapeEnd);
             }
         }
     }
