@@ -42,8 +42,8 @@ public:
         KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6))
             << "Number of nodes must be 2+2 or 3+3\n";
 
-        mMidLineGeometry = std::make_unique<MidGeometryType>(CreatePointsOfMidLine());
-        this->SetGeometryData(&mMidLineGeometry->GetGeometryData());
+        mMidGeometry = std::make_unique<MidGeometryType>(CreatePointsOfMidLine());
+        this->SetGeometryData(&mMidGeometry->GetGeometryData());
     }
 
     [[nodiscard]] BaseType::Pointer Create(const PointsArrayType& rThisPoints) const override
@@ -60,27 +60,27 @@ public:
     [[nodiscard]] double ShapeFunctionValue(IndexType ShapeFunctionIndex,
                                             const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidLineGeometry->ShapeFunctionValue(ShapeFunctionIndex, rLocalCoordinate);
+        return mMidGeometry->ShapeFunctionValue(ShapeFunctionIndex, rLocalCoordinate);
     }
 
     Vector& ShapeFunctionsValues(Vector& rResult, const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidLineGeometry->ShapeFunctionsValues(rResult, rLocalCoordinate);
+        return mMidGeometry->ShapeFunctionsValues(rResult, rLocalCoordinate);
     }
 
     Matrix& ShapeFunctionsLocalGradients(Matrix& rResult, const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidLineGeometry->ShapeFunctionsLocalGradients(rResult, rLocalCoordinate);
+        return mMidGeometry->ShapeFunctionsLocalGradients(rResult, rLocalCoordinate);
     }
 
     Matrix& Jacobian(Matrix& rResult, const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidLineGeometry->Jacobian(rResult, rLocalCoordinate);
+        return mMidGeometry->Jacobian(rResult, rLocalCoordinate);
     }
 
     [[nodiscard]] double DeterminantOfJacobian(const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidLineGeometry->DeterminantOfJacobian(rLocalCoordinate);
+        return mMidGeometry->DeterminantOfJacobian(rLocalCoordinate);
     }
 
     Matrix& InverseOfJacobian(Matrix& rResult, const CoordinatesArrayType& rLocalCoordinate) const override
@@ -88,30 +88,30 @@ public:
         KRATOS_ERROR << "Inverse of Jacobian is not implemented for the line interface geometry\n";
     }
 
-    [[nodiscard]] double Length() const override { return mMidLineGeometry->Length(); }
+    [[nodiscard]] double Length() const override { return mMidGeometry->Length(); }
 
-    [[nodiscard]] double DomainSize() const override { return mMidLineGeometry->DomainSize(); }
+    [[nodiscard]] double DomainSize() const override { return mMidGeometry->DomainSize(); }
 
     [[nodiscard]] std::string Info() const override
     {
         return "An interface geometry consisting of two sub-geometries with Info: " +
-               mMidLineGeometry->Info();
+               mMidGeometry->Info();
     }
 
     CoordinatesArrayType& PointLocalCoordinates(CoordinatesArrayType& rResult,
                                                 const CoordinatesArrayType& rGlobalCoordinate) const override
     {
-        return mMidLineGeometry->PointLocalCoordinates(rResult, rGlobalCoordinate);
+        return mMidGeometry->PointLocalCoordinates(rResult, rGlobalCoordinate);
     }
 
     Matrix& PointsLocalCoordinates(Matrix& rResult) const override
     {
-        return mMidLineGeometry->PointsLocalCoordinates(rResult);
+        return mMidGeometry->PointsLocalCoordinates(rResult);
     }
 
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
-    void PrintData(std::ostream& rOStream) const override { mMidLineGeometry->PrintData(rOStream); }
+    void PrintData(std::ostream& rOStream) const override { mMidGeometry->PrintData(rOStream); }
 
     [[nodiscard]] static std::string IntegrationSchemeFunctionalityNotImplementedMessage()
     {
@@ -280,7 +280,7 @@ private:
         return result;
     }
 
-    std::unique_ptr<BaseType> mMidLineGeometry;
+    std::unique_ptr<BaseType> mMidGeometry;
 };
 
 } // namespace Kratos
