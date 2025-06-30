@@ -14,33 +14,7 @@ else:
     raise ImportError(f"Tests folder not found at: {tests_folder_path}")
 
 
-class TriaxialTest:
-    def __init__(self, json_file_path):
-        self.json_file_path = json_file_path
-        self.data = self._read_json()
-
-    def _read_json(self):
-        with open(self.json_file_path, 'r') as file:
-            return json.load(file)
-
-    def _write_json(self):
-        with open(self.json_file_path, 'w') as file:
-            json.dump(self.data, file, indent=4)
-
-    def modify_umat_parameters(self, new_value):
-        self.data['properties'][0]['Material']['Variables']['UMAT_PARAMETERS'][0] = new_value
-        self._write_json()
-
-    def read_umat_parameters(self):
-        try:
-            umat_parameters = self.data['properties'][0]['Material']['Variables']['UMAT_PARAMETERS']
-            cohesion = umat_parameters[2]
-            friction_angle = umat_parameters[3]
-            return cohesion, friction_angle
-        except KeyError:
-            raise KeyError("Cohesion and Friction angle not found in the UMAT_PARAMETERS.")
-
-class TriaxialTestRunner:
+class GenericTestRunner:
     def __init__(self, output_file_paths, work_dir):
         self.output_file_paths = output_file_paths
         self.work_dir = work_dir
@@ -51,11 +25,12 @@ class TriaxialTestRunner:
 
         stress, mean_stress, von_mises, _, strain = self._collect_results()
         tensors = self._extract_stress_tensors(stress)
-        yy_strain, vol_strain = self._compute_strains(strain)
+        shear_stress_xy = self._extract_shear_stress_xy(stress)
+        yy_strain, vol_strain, shear_strain_xy = self._compute_strains(strain)
         von_mises_values = self._compute_scalar_stresses(von_mises)
         mean_stress_values = self._compute_scalar_stresses(mean_stress)
 
-        return tensors, yy_strain, vol_strain, von_mises_values, mean_stress_values
+        return tensors, yy_strain, vol_strain, von_mises_values, mean_stress_values, shear_stress_xy, shear_strain_xy
 
     def _load_stage_parameters(self):
         parameter_files = [os.path.join(self.work_dir, 'ProjectParameters.json')]
@@ -119,8 +94,19 @@ class TriaxialTestRunner:
             reshaped[time_step] = [tensor]
         return reshaped
 
+    def _extract_shear_stress_xy(self, stress_results):
+        shear_stress_xy = []
+        for result in stress_results:
+            values = result["values"]
+            if not values:
+                continue
+            stress_components = values[0]["value"][0]
+            shear_xy = stress_components[3]
+            shear_stress_xy.append(shear_xy)
+        return shear_stress_xy
+
     def _compute_strains(self, strain_results):
-        yy, vol = [], []
+        yy, vol, shear_xy = [], [], []
         for result in strain_results:
             values = result["values"]
             if not values:
@@ -128,7 +114,8 @@ class TriaxialTestRunner:
             eps_xx, eps_yy, eps_zz, eps_xy = values[0]["value"][0][:4]
             vol.append(eps_xx + eps_yy + eps_zz)
             yy.append(eps_yy)
-        return yy, vol
+            shear_xy.append(eps_xy)
+        return yy, vol, shear_xy
 
     def _compute_scalar_stresses(self, results):
         return [r["values"][0]["value"][1] for r in results if r["values"]]

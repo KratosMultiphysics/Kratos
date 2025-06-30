@@ -66,3 +66,15 @@ class MdpaEditor:
         else:
             self.raw_text = new_text
             MdpaEditor.save(self)
+
+    def update_middle_maximum_strain(self, maximum_strain):
+        pattern = r'\$middle_maximum_strain\b'
+        prescribed_middle_displacement = (-maximum_strain / 2) / 100
+
+        replacer = self._replacer_factory(prescribed_middle_displacement)
+        new_text, count = re.subn(pattern, replacer, self.raw_text)
+        if count == 0:
+            log_message("Could not update middle maximum strain.", "Warning")
+        else:
+            self.raw_text = new_text
+            MdpaEditor.save(self)
