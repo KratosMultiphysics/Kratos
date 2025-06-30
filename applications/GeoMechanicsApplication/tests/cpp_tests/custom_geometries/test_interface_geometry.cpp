@@ -48,6 +48,18 @@ auto CreateThreePlusThreeNoded2DLineInterfaceGeometry()
     return InterfaceGeometry<Line2D3<Node>>{1, nodes};
 }
 
+auto CreateThreePlusThreeNoded3DPlanarInterfaceGeometry()
+{
+    PointerVector<Node> nodes;
+    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.5));
+    nodes.push_back(Kratos::make_intrusive<Node>(5, 1.0, 0.0, 0.5));
+    nodes.push_back(Kratos::make_intrusive<Node>(6, 1.0, 1.0, 0.5));
+    return InterfaceGeometry<Triangle3D3<Node>>{1, nodes};
+}
+
 void AssertNodeIdsOfGeometry(const Geometry<Node>::Pointer&  rGeometryPtr,
                              const std::vector<std::size_t>& rExpectedNodeIds)
 {
@@ -222,6 +234,30 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInN
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, xi_start), 0.0);
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, xi_end), 0.0);
     KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, xi_middle), 1.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForThreePlusThreeNodedPlanarGeometry,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry            = CreateThreePlusThreeNoded3DPlanarInterfaceGeometry();
+    const auto xi_first_node_pair  = array_1d<double, 3>{0.0, 0.0, 0.0};
+    const auto xi_second_node_pair = array_1d<double, 3>{1.0, 0.0, 0.0};
+    const auto xi_third_node_pair  = array_1d<double, 3>{0.0, 1.0, 0.0};
+
+    // Values for first shape function
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, xi_first_node_pair), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, xi_second_node_pair), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(0, xi_third_node_pair), 0.0);
+
+    // Values for second shape function
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, xi_first_node_pair), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, xi_second_node_pair), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(1, xi_third_node_pair), 0.0);
+
+    // Values for third shape function
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, xi_first_node_pair), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, xi_second_node_pair), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.ShapeFunctionValue(2, xi_third_node_pair), 1.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValuesAtPosition_ForTwoPlusTwoNodedGeometry,
