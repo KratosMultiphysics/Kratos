@@ -400,6 +400,18 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeNodedLineInterfaceGeometry_LengthReturns
     KRATOS_EXPECT_RELATIVE_NEAR(geometry.Length(), expected_length, 1e-6)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CalculatedArea_IsTheSameAsTheLength, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateThreePlusThreeNoded2DLineInterfaceGeometry();
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.Area(), geometry.Length());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_GivesCorrectArea_ForPlanarMidGeometry, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateThreePlusThreeNoded3DPlanarInterfaceGeometry();
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.Area(), 0.5);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoNodedLineInterfaceGeometry_DomainSizeReturnsTheLengthOfUnderlyingLineGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -477,14 +489,6 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeLineInterfaceGeometryHasTwoEdgesWithOppo
     KRATOS_EXPECT_EQ(edges.size(), 2);
     AssertNodeIdsOfGeometry(edges(0), {1, 2, 3});
     AssertNodeIdsOfGeometry(edges(1), {5, 4, 6});
-}
-
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingArea, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto geometry = CreateThreePlusThreeNoded2DLineInterfaceGeometry();
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.Area(),
-                                      "Calling base class 'Area' method instead of derived class "
-                                      "one. Please check the definition of derived class. ")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingVolume, KratosGeoMechanicsFastSuiteWithoutKernel)

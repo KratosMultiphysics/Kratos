@@ -57,6 +57,11 @@ public:
         return std::make_shared<InterfaceGeometry>(NewGeometryId, rThisPoints);
     }
 
+    [[nodiscard]] double Area() const override
+    {
+        return mMidGeometry->Area();
+    }
+
     [[nodiscard]] double ShapeFunctionValue(IndexType ShapeFunctionIndex,
                                             const CoordinatesArrayType& rLocalCoordinate) const override
     {
