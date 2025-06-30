@@ -39,8 +39,8 @@ public:
     InterfaceGeometry(IndexType NewGeometryId, const PointsArrayType& rThisPoints)
         : BaseType(NewGeometryId, rThisPoints)
     {
-        KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6))
-            << "Number of nodes must be 2+2 or 3+3\n";
+        KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6 || rThisPoints.size() == 12))
+            << "Number of nodes must be 2+2, 3+3 or 6+6\n";
 
         mMidGeometry = std::make_unique<MidGeometryType>(CreatePointsOfMidGeometry());
         this->SetGeometryData(&mMidGeometry->GetGeometryData());

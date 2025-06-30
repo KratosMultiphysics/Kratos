@@ -16,6 +16,7 @@
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/triangle_3d_3.h"
+#include "geometries/triangle_3d_6.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -143,7 +144,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForPlanarMidGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto          geometry = InterfaceGeometry<Triangle3D3<Node>>();
+    const auto          geometry = InterfaceGeometry<Triangle3D6<Node>>();
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(2, 0.0, 0.0, 0.0));
@@ -151,13 +152,19 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(5, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(6, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(7, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(8, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(9, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(10, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(11, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(12, 0.0, 0.0, 0.0));
 
     constexpr auto new_geometry_id = 1;
     const auto     new_geometry    = geometry.Create(new_geometry_id, nodes);
 
     KRATOS_EXPECT_NE(new_geometry, nullptr);
-    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceGeometry<Triangle3D3<Node>>*>(new_geometry.get()), nullptr);
-    KRATOS_EXPECT_EQ(new_geometry->PointsNumber(), 6);
+    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceGeometry<Triangle3D6<Node>>*>(new_geometry.get()), nullptr);
+    KRATOS_EXPECT_EQ(new_geometry->PointsNumber(), 12);
     KRATOS_EXPECT_EQ(new_geometry->Id(), new_geometry_id);
     KRATOS_EXPECT_EQ(new_geometry->LocalSpaceDimension(), 2);
     KRATOS_EXPECT_EQ(new_geometry->WorkingSpaceDimension(), 3);
@@ -171,10 +178,10 @@ KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithThreeNodesThrows, KratosGeoMechan
     nodes.push_back(Kratos::make_intrusive<Node>(3, -1.0, 0.0, 0.0));
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(InterfaceGeometry<Line2D3<Node>>{nodes},
-                                      "Number of nodes must be 2+2 or 3+3")
+                                      "Number of nodes must be 2+2, 3+3 or 6+6")
     constexpr auto geometry_id = 1;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((InterfaceGeometry<Line2D3<Node>>{geometry_id, nodes}),
-                                      "Number of nodes must be 2+2 or 3+3")
+                                      "Number of nodes must be 2+2, 3+3 or 6+6")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForTwoPlusTwoNodedGeometry,
