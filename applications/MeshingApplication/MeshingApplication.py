@@ -8,3 +8,7 @@ application = KratosMeshingApplication()
 application_name = "KratosMeshingApplication"
 
 _ImportApplication(application, application_name)
+
+from KratosMultiphysics import python_registry_utilities
+from . import python_registry_lists
+python_registry_utilities.RegisterAll("KratosMultiphysics.MeshingApplication", python_registry_lists)

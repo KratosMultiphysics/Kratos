@@ -386,6 +386,7 @@ void GatherModelPartUtility::GatherEntityFromOtherPartitions(
     }
 
     // Use serializer
+    auto& r_root_model_part = rModelPart.GetRootModelPart();
     for (int i_rank = 0; i_rank < world_size; ++i_rank) {
         // Receiving
         if (i_rank == rank) {
@@ -395,23 +396,24 @@ void GatherModelPartUtility::GatherEntityFromOtherPartitions(
                     std::string recv_buffer;
                     r_data_communicator.Recv(recv_buffer, origin_rank, static_cast<int>(index));
                     StreamSerializer serializer;
+                    serializer.Set(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION);
                     const auto p_serializer_buffer = dynamic_cast<std::stringstream*>(serializer.pGetBuffer());
                     p_serializer_buffer->write(recv_buffer.data(), recv_buffer.size());
                     if constexpr (std::is_same<TObjectType, Node>::value) {
                         Node::Pointer p_new_node;
                         serializer.load("bring_node_" + std::to_string(index), p_new_node);
-                        KRATOS_DEBUG_ERROR_IF(rModelPart.HasNode(p_new_node->Id())) << "The node " << p_new_node->Id() << " from rank: " << origin_rank << " already exists in rank: " << rank << std::endl;
-                        entities_to_bring.push_back(p_new_node);
+                        KRATOS_DEBUG_ERROR_IF(r_root_model_part.HasNode(p_new_node->Id())) << "The node " << p_new_node->Id() << " from rank: " << origin_rank << " already exists in rank: " << rank << std::endl;
+                        entities_to_bring.insert(entities_to_bring.end(), p_new_node);
                     } else if constexpr (std::is_same<TObjectType, Element>::value) {
                         Element::Pointer p_new_element;
                         serializer.load("bring_element_" + std::to_string(index), p_new_element);
-                        KRATOS_DEBUG_ERROR_IF(rModelPart.HasElement(p_new_element->Id())) << "The element " << p_new_element->Id() << " from rank: " << origin_rank << " already exists in rank: " << rank << std::endl;
-                        entities_to_bring.push_back(p_new_element);
+                        KRATOS_DEBUG_ERROR_IF(r_root_model_part.HasElement(p_new_element->Id())) << "The element " << p_new_element->Id() << " from rank: " << origin_rank << " already exists in rank: " << rank << std::endl;
+                        entities_to_bring.insert(entities_to_bring.end(), p_new_element);
                     } else if constexpr (std::is_same<TObjectType, Condition>::value) {
                         Condition::Pointer p_new_condition;
                         serializer.load("bring_condition_" + std::to_string(index), p_new_condition);
-                        KRATOS_DEBUG_ERROR_IF(rModelPart.HasCondition(p_new_condition->Id())) << "The condition " << p_new_condition->Id() << " from rank: " << origin_rank << " already exists in rank: " << rank << std::endl;
-                        entities_to_bring.push_back(p_new_condition);
+                        KRATOS_DEBUG_ERROR_IF(r_root_model_part.HasCondition(p_new_condition->Id())) << "The condition " << p_new_condition->Id() << " from rank: " << origin_rank << " already exists in rank: " << rank << std::endl;
+                        entities_to_bring.insert(entities_to_bring.end(), p_new_condition);
                     } else {
                         KRATOS_ERROR << "Entity type not supported" << std::endl;
                     }
@@ -422,6 +424,7 @@ void GatherModelPartUtility::GatherEntityFromOtherPartitions(
             if (it_find != send_entities.end()) {
                 for (auto index : it_find->second) {
                     StreamSerializer serializer;
+                    serializer.Set(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION);
                     if constexpr (std::is_same<TObjectType, Node>::value) {
                         KRATOS_DEBUG_ERROR_IF_NOT(rModelPart.HasNode(index)) << "Node with index " << index << " not found in model part" << std::endl;
                         auto p_send_node = rModelPart.pGetNode(index);

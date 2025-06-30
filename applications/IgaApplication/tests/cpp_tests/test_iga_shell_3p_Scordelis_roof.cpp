@@ -33,7 +33,7 @@ namespace Testing
 
     typename Element::Pointer GetShell3pElementScordelis(
         ModelPart& rModelPart, SizeType PolynomialDegree, IntegrationPoint<3> IntegrationPoint)
-    {
+    {        
         // Set the element properties
         auto p_elem_prop = rModelPart.CreateNewProperties(0);
         p_elem_prop->SetValue(YOUNG_MODULUS, 4.32e8);
@@ -51,6 +51,8 @@ namespace Testing
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=4 (Scordelis Lo Roof).
     KRATOS_TEST_CASE_IN_SUITE(IgaShell3pElementP4Scordelis, KratosIgaFastSuite)
     {
+        KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStress2DLaw")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
@@ -95,6 +97,8 @@ namespace Testing
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=5 (Scordelis Lo Roof).
     KRATOS_TEST_CASE_IN_SUITE(IgaShell3pElementP5Scordelis, KratosIgaFastSuite)
     {
+        KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStress2DLaw")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);

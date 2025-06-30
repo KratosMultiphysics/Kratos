@@ -28,20 +28,40 @@ BackwardEulerScheme <|-- BackwardEulerQuasistaticTScheme
 
 class GeneralizedNewmarkScheme
 {
-    void UpdateVariablesDerivatives() override;
     void SetTimeFactors() override;
 }
 class NewmarkQuasistaticPwScheme
+{
+    void UpdateVariablesDerivatives() override;
+}
 class GeneralizedNewmarkTScheme
-class NewmarkQuasistaticUPwScheme
+{
+    void UpdateVariablesDerivatives() override;
+}
 class NewmarkDynamicUPwScheme
+{
+    void UpdateVariablesDerivatives() override;
+    void CalculateSystemContributions() override;
+    void CalculateLHSContribution() override;
+    void CalculateRHSContribution() override;
+}
 class NewmarkQuasistaticDampedUPwScheme
+{
+    void UpdateVariablesDerivatives() override;
+    void CalculateSystemContributions() override;
+    void CalculateLHSContribution() override;
+    void CalculateRHSContribution() override;
+}
+class NewmarkQuasistaticUPwScheme
+{
+    void UpdateVariablesDerivatives() override;
+}
 
 GeoMechanicsTimeIntegrationScheme <|-- GeneralizedNewmarkScheme
 GeneralizedNewmarkScheme <|-- NewmarkQuasistaticPwScheme
 GeneralizedNewmarkScheme <|-- GeneralizedNewmarkTScheme
+GeneralizedNewmarkScheme <|-- NewmarkDynamicUPwScheme
+GeneralizedNewmarkScheme <|-- NewmarkQuasistaticDampedUPwScheme
 GeneralizedNewmarkScheme <|-- NewmarkQuasistaticUPwScheme
-NewmarkQuasistaticUPwScheme <|-- NewmarkDynamicUPwScheme
-NewmarkQuasistaticUPwScheme <|-- NewmarkQuasistaticDampedUPwScheme
 
 @enduml

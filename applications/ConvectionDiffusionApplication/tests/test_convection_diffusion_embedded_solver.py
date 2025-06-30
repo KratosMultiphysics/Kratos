@@ -25,7 +25,7 @@ class EmbeddedSolverDirichletCircleAnalysis(ConvectionDiffusionAnalysis):
             node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, 0, 1.0)
 
         # Set penalty coefficient
-        self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.ConvectionDiffusionApplication.PENALTY_DIRICHLET] = 1.0e0
+        self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.PENALTY_COEFFICIENT] = 1.0e0
         # Set boundary value for Nitsche imposition of DBC
         for elem in self._GetSolver().GetComputingModelPart().Elements:
             elem.SetValue(KratosMultiphysics.ConvectionDiffusionApplication.EMBEDDED_SCALAR, 0.0)

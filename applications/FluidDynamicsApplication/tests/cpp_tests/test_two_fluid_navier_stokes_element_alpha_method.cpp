@@ -17,21 +17,23 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "spaces/ublas_space.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
-#include "utilities/math_utils.h"
 #include "includes/global_pointer_variables.h"
+#include "includes/cfd_variables.h"
+#include "utilities/math_utils.h"
+#include "utilities/normal_calculation_utils.h"
+
+// Application includes
 #include "custom_elements/two_fluid_navier_stokes_alpha_method.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
 #include "custom_constitutive/newtonian_two_fluid_2d_law.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
-
 #include "processes/find_nodal_neighbours_process.h"
-#include "utilities/normal_calculation_utils.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
     namespace Testing {

@@ -13,7 +13,7 @@
     "BoundingBoxMinY"                : 0.0,
     "BoundingBoxMinZ"                : -0.0015,
     "BoundingBoxMoveOption"          : true,
-    "BoundingBoxMoveVelocity"        : 0.001,
+    "BoundingBoxMoveVelocity"        : [0.001, 0.001, 0.001],
     "dem_inlet_option"               : false,
     "GravityX"                       : 0.0,
     "GravityY"                       : 0.0,

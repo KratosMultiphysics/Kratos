@@ -9,9 +9,9 @@ import os
 
 have_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("FluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "LinearSolversApplication")
 have_potential_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("CompressiblePotentialFlowApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "LinearSolversApplication")
-have_mpm_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("ParticleMechanicsApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication", "ConstitutiveLawsApplication")
+have_mpm_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("MPMApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication", "ConstitutiveLawsApplication")
 have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication")
-have_mpm_dem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "ParticleMechanicsApplication", "MappingApplication", "LinearSolversApplication")
+have_mpm_dem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "MPMApplication", "MappingApplication", "LinearSolversApplication")
 have_fem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("StructuralMechanicsApplication", "MappingApplication")
 have_pfem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("PfemFluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication", "ConstitutiveLawsApplication")
 

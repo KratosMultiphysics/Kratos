@@ -89,6 +89,7 @@ void AddContainerExpressionUtilsToPython(pybind11::module& m, const std::string&
 
      m.def("Collapse", &ExpressionUtils::Collapse<TContainerType>, py::arg(rName.c_str()));
      m.def("Abs", &ExpressionUtils::Abs<TContainerType>, py::arg(rName.c_str()));
+     m.def("Log", &ExpressionUtils::Log<TContainerType>, py::arg(rName.c_str()));
      m.def("EntityMin", &ExpressionUtils::EntityMin<TContainerType>, py::arg(rName.c_str()));
      m.def("EntityMax", &ExpressionUtils::EntityMax<TContainerType>, py::arg(rName.c_str()));
      m.def("EntitySum", &ExpressionUtils::EntitySum<TContainerType>, py::arg(rName.c_str()));

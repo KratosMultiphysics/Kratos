@@ -14,7 +14,7 @@
 #include "radiation_continuum_zhou.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   RadiationContinuumZhou::RadiationContinuumZhou() {}
   RadiationContinuumZhou::~RadiationContinuumZhou() {}
 

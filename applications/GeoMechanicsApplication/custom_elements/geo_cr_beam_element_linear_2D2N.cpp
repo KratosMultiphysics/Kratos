@@ -27,7 +27,6 @@ GeoCrBeamElementLinear2D2N::GeoCrBeamElementLinear2D2N(IndexType NewId, Geometry
 {
 }
 
-//-------------------------------------------------------------------------------------------------
 GeoCrBeamElementLinear2D2N::GeoCrBeamElementLinear2D2N(IndexType               NewId,
                                                        GeometryType::Pointer   pGeometry,
                                                        PropertiesType::Pointer pProperties)
@@ -35,7 +34,6 @@ GeoCrBeamElementLinear2D2N::GeoCrBeamElementLinear2D2N(IndexType               N
 {
 }
 
-//-------------------------------------------------------------------------------------------------
 Element::Pointer GeoCrBeamElementLinear2D2N::Create(IndexType               NewId,
                                                     NodesArrayType const&   rThisNodes,
                                                     PropertiesType::Pointer pProperties) const
@@ -44,7 +42,6 @@ Element::Pointer GeoCrBeamElementLinear2D2N::Create(IndexType               NewI
     return Kratos::make_intrusive<GeoCrBeamElementLinear2D2N>(NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
-//-------------------------------------------------------------------------------------------------
 Element::Pointer GeoCrBeamElementLinear2D2N::Create(IndexType               NewId,
                                                     GeometryType::Pointer   pGeom,
                                                     PropertiesType::Pointer pProperties) const
@@ -52,10 +49,6 @@ Element::Pointer GeoCrBeamElementLinear2D2N::Create(IndexType               NewI
     return Kratos::make_intrusive<GeoCrBeamElementLinear2D2N>(NewId, pGeom, pProperties);
 }
 
-//-------------------------------------------------------------------------------------------------
-GeoCrBeamElementLinear2D2N::~GeoCrBeamElementLinear2D2N() {}
-
-//----------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear2D2N::ResetConstitutiveLaw()
 {
     KRATOS_TRY
@@ -66,7 +59,6 @@ void GeoCrBeamElementLinear2D2N::ResetConstitutiveLaw()
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear2D2N::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                                                       VectorType&        rRightHandSideVector,
                                                       const ProcessInfo& rCurrentProcessInfo)
@@ -87,7 +79,6 @@ void GeoCrBeamElementLinear2D2N::CalculateLocalSystem(MatrixType&        rLeftHa
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear2D2N::CalculateRightHandSide(VectorType&        rRightHandSideVector,
                                                         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -175,7 +166,6 @@ void GeoCrBeamElementLinear2D2N::CalculateOnIntegrationPoints(const Variable<arr
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear2D2N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -195,7 +185,6 @@ void GeoCrBeamElementLinear2D2N::InitializeSolutionStep(const ProcessInfo& rCurr
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear2D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -205,7 +194,6 @@ void GeoCrBeamElementLinear2D2N::Initialize(const ProcessInfo& rCurrentProcessIn
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear2D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -215,7 +203,6 @@ void GeoCrBeamElementLinear2D2N::FinalizeSolutionStep(const ProcessInfo& rCurren
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear2D2N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElementLinear2D2N)

@@ -18,11 +18,11 @@
 
 // Project includes
 #include "includes/process_info.h"
-#include "testing/testing.h"
 #include "containers/model.h"
 
 // Application includes
 #include "constitutive_laws_application_variables.h"
+#include "tests/cpp_tests/constitutive_laws_fast_suite.h"
 
 // Constitutive law
 #include "custom_constitutive/small_strains/damage/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
@@ -30,12 +30,8 @@
 #include "geometries/triangle_2d_3.h"
 #include "constitutive_laws_application_variables.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-namespace Testing
-{
-// We test the d+ d- damage Constitutive Law (for masonry) 2D...
-typedef Node NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DInternalVariables, KratosConstitutiveLawsFastSuite)
 {
@@ -76,11 +72,11 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureTensionTest, KratosConstitutiv
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.5, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    Node::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.5, 0.0);
+    Node::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
 
-    Triangle2D3<NodeType> Geom = Triangle2D3<NodeType>(p_node_1, p_node_2, p_node_3);
+    Triangle2D3<Node> Geom = Triangle2D3<Node>(p_node_1, p_node_2, p_node_3);
 
     stress_vector = ZeroVector(3);
     strain_vector = ZeroVector(3);
@@ -149,11 +145,11 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosConstit
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.5, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    Node::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.5, 0.0);
+    Node::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
 
-    Triangle2D3<NodeType> Geom = Triangle2D3<NodeType>(p_node_1, p_node_2, p_node_3);
+    Triangle2D3<Node> Geom = Triangle2D3<Node>(p_node_1, p_node_2, p_node_3);
 
     stress_vector = ZeroVector(3);
     strain_vector = ZeroVector(3);
@@ -221,11 +217,11 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosConstitutiv
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.5, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    Node::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.5, 0.0);
+    Node::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
 
-    Triangle2D3<NodeType> Geom = Triangle2D3<NodeType>(p_node_1, p_node_2, p_node_3);
+    Triangle2D3<Node> Geom = Triangle2D3<Node>(p_node_1, p_node_2, p_node_3);
 
     stress_vector = ZeroVector(3);
     strain_vector = ZeroVector(3);
@@ -283,5 +279,4 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosConstitutiv
     KRATOS_EXPECT_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.0001e6);
 }
 
-} // namespace Testing
-} // namespace Kratos
+} // namespace Kratos::Testing

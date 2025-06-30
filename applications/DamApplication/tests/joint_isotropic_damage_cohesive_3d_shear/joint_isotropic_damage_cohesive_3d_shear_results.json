@@ -1,0 +1,401 @@
+{
+  "TIME": [
+    40.0
+  ],
+  "NODE_2": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_3": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_7": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_8": {
+    "DISPLACEMENT_X": [
+      -1.574783623581772e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -4.863655550578565e-11
+    ],
+    "DISPLACEMENT_Z": [
+      3.077515605203753e-11
+    ]
+  },
+  "NODE_9": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_10": {
+    "DISPLACEMENT_X": [
+      -1.575406694577032e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -1.4388013496616795e-08
+    ],
+    "DISPLACEMENT_Z": [
+      -1.8973713233737692e-08
+    ]
+  },
+  "NODE_11": {
+    "DISPLACEMENT_X": [
+      8.948410274551479e-11
+    ],
+    "DISPLACEMENT_Y": [
+      -1.3517142628977168e-08
+    ],
+    "DISPLACEMENT_Z": [
+      4.0784928097634546e-11
+    ]
+  },
+  "NODE_12": {
+    "DISPLACEMENT_X": [
+      -1.0452674844535216e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -4.7476766524461894e-11
+    ],
+    "DISPLACEMENT_Z": [
+      6.477697174023815e-11
+    ]
+  },
+  "NODE_17": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_18": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_19": {
+    "DISPLACEMENT_X": [
+      -3.250882386224059e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -1.0454613980145221e-10
+    ],
+    "DISPLACEMENT_Z": [
+      5.0778173354893573e-11
+    ]
+  },
+  "NODE_22": {
+    "DISPLACEMENT_X": [
+      7.922411146892508e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -4.6888568217481346e-08
+    ],
+    "DISPLACEMENT_Z": [
+      -3.3729421420412795e-08
+    ]
+  },
+  "NODE_24": {
+    "DISPLACEMENT_X": [
+      -7.871546267510956e-11
+    ],
+    "DISPLACEMENT_Y": [
+      -4.671074484588411e-11
+    ],
+    "DISPLACEMENT_Z": [
+      9.998114966735983e-11
+    ]
+  },
+  "NODE_25": {
+    "DISPLACEMENT_X": [
+      3.56068678973163e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -1.4396159254613448e-08
+    ],
+    "DISPLACEMENT_Z": [
+      1.911690126388364e-08
+    ]
+  },
+  "NODE_27": {
+    "DISPLACEMENT_X": [
+      2.810483825455998e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -4.6312622438186255e-08
+    ],
+    "DISPLACEMENT_Z": [
+      1.0287220012054744e-10
+    ]
+  },
+  "NODE_28": {
+    "DISPLACEMENT_X": [
+      -2.968023752622763e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -1.0690885640595012e-10
+    ],
+    "DISPLACEMENT_Z": [
+      1.0729634256929662e-10
+    ]
+  },
+  "NODE_33": {
+    "DISPLACEMENT_X": [
+      -2.499106957874348e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -1.0189622948456514e-10
+    ],
+    "DISPLACEMENT_Z": [
+      1.6711898493378498e-10
+    ]
+  },
+  "NODE_35": {
+    "DISPLACEMENT_X": [
+      -2.498253638950808e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -4.6888745346147464e-08
+    ],
+    "DISPLACEMENT_Z": [
+      3.394829030013608e-08
+    ]
+  },
+  "NODE_37": {
+    "DISPLACEMENT_X": [
+      -5.803990151771331e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -1.6071722963439804e-10
+    ],
+    "DISPLACEMENT_Z": [
+      6.566200067939577e-11
+    ]
+  },
+  "NODE_38": {
+    "DISPLACEMENT_X": [
+      1.8218005521337798e-09
+    ],
+    "DISPLACEMENT_Y": [
+      -9.171095066985774e-08
+    ],
+    "DISPLACEMENT_Z": [
+      -4.40730219971226e-08
+    ]
+  },
+  "NODE_40": {
+    "DISPLACEMENT_X": [
+      5.722888585036754e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -9.11015946057226e-08
+    ],
+    "DISPLACEMENT_Z": [
+      1.3920332010973864e-10
+    ]
+  },
+  "NODE_41": {
+    "DISPLACEMENT_X": [
+      -5.899935267025472e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -1.5831516787430474e-10
+    ],
+    "DISPLACEMENT_Z": [
+      1.4073336987732452e-10
+    ]
+  },
+  "NODE_45": {
+    "DISPLACEMENT_X": [
+      -6.38806442094105e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -1.5222967154866055e-10
+    ],
+    "DISPLACEMENT_Z": [
+      2.0318194416879153e-10
+    ]
+  },
+  "NODE_46": {
+    "DISPLACEMENT_X": [
+      -6.388720415895597e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -9.170334751365605e-08
+    ],
+    "DISPLACEMENT_Z": [
+      4.434047431065638e-08
+    ]
+  },
+  "NODE_49": {
+    "DISPLACEMENT_X": [
+      -8.520759033626606e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -2.2255938376531445e-10
+    ],
+    "DISPLACEMENT_Z": [
+      6.687514298757148e-11
+    ]
+  },
+  "NODE_50": {
+    "DISPLACEMENT_X": [
+      2.714863487131199e-09
+    ],
+    "DISPLACEMENT_Y": [
+      -1.450916759220014e-07
+    ],
+    "DISPLACEMENT_Z": [
+      -5.0190115016906415e-08
+    ]
+  },
+  "NODE_53": {
+    "DISPLACEMENT_X": [
+      8.610674333004801e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -1.440221906857621e-07
+    ],
+    "DISPLACEMENT_Z": [
+      1.3569000000056838e-10
+    ]
+  },
+  "NODE_54": {
+    "DISPLACEMENT_X": [
+      -8.807239159663794e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -2.1768845016605022e-10
+    ],
+    "DISPLACEMENT_Z": [
+      1.3734343030417428e-10
+    ]
+  },
+  "NODE_57": {
+    "DISPLACEMENT_X": [
+      -9.525641506775303e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -2.1599950696503889e-10
+    ],
+    "DISPLACEMENT_Z": [
+      2.0225549319951088e-10
+    ]
+  },
+  "NODE_58": {
+    "DISPLACEMENT_X": [
+      -9.526592169784405e-10
+    ],
+    "DISPLACEMENT_Y": [
+      -1.4508442914623542e-07
+    ],
+    "DISPLACEMENT_Z": [
+      5.045762897070633e-08
+    ]
+  },
+  "NODE_62": {
+    "DISPLACEMENT_X": [
+      -1.1216831450905836e-09
+    ],
+    "DISPLACEMENT_Y": [
+      -2.9106777146624205e-10
+    ],
+    "DISPLACEMENT_Z": [
+      6.584959697849856e-11
+    ]
+  },
+  "NODE_63": {
+    "DISPLACEMENT_X": [
+      3.4201552783381193e-09
+    ],
+    "DISPLACEMENT_Y": [
+      -2.0185286292211496e-07
+    ],
+    "DISPLACEMENT_Z": [
+      -5.24879843467811e-08
+    ]
+  },
+  "NODE_65": {
+    "DISPLACEMENT_X": [
+      -1.1481833878744602e-09
+    ],
+    "DISPLACEMENT_Y": [
+      -2.891330047370231e-10
+    ],
+    "DISPLACEMENT_Z": [
+      1.3525202648922322e-10
+    ]
+  },
+  "NODE_66": {
+    "DISPLACEMENT_X": [
+      1.124182528894297e-09
+    ],
+    "DISPLACEMENT_Y": [
+      -2.0199107414729234e-07
+    ],
+    "DISPLACEMENT_Z": [
+      1.3158623844436568e-10
+    ]
+  },
+  "NODE_69": {
+    "DISPLACEMENT_X": [
+      -1.1719437676870626e-09
+    ],
+    "DISPLACEMENT_Y": [
+      -2.8617319949245784e-10
+    ],
+    "DISPLACEMENT_Z": [
+      2.0170389007580792e-10
+    ]
+  },
+  "NODE_70": {
+    "DISPLACEMENT_X": [
+      -1.1719102979587677e-09
+    ],
+    "DISPLACEMENT_Y": [
+      -2.0184890451363542e-07
+    ],
+    "DISPLACEMENT_Z": [
+      5.2751781772928246e-08
+    ]
+  }
+}

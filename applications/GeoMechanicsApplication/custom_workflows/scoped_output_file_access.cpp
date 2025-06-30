@@ -22,9 +22,6 @@ ScopedOutputFileAccess::ScopedOutputFileAccess(StrategyWrapper& rStrategyWrapper
     mrStrategyWrapper.InitializeOutput();
 }
 
-ScopedOutputFileAccess::~ScopedOutputFileAccess()
-{
-    mrStrategyWrapper.FinalizeOutput();
-}
+ScopedOutputFileAccess::~ScopedOutputFileAccess() { mrStrategyWrapper.FinalizeOutput(); }
 
 } // namespace Kratos

@@ -176,7 +176,7 @@ public:
             }
         }
 
-        // Initialize all the elemnets and conditions
+        // Initialize all the elements and conditions
         EntitiesUtilities::InitializeAllEntities(BaseType::GetModelPart());
     }
 
@@ -762,7 +762,7 @@ protected:
     /** On periodic boundaries, the nodal area and the values to project need to take into account contributions from elements on
      * both sides of the boundary. This is done using the conditions and the non-historical nodal data containers as follows:\n
      * 1- The partition that owns the PeriodicCondition adds the values on both nodes to their non-historical containers.\n
-     * 2- The non-historical containers are added across processes, transmiting the right value from the condition owner to all partitions.\n
+     * 2- The non-historical containers are added across processes, transmitting the right value from the condition owner to all partitions.\n
      * 3- The value on all periodic nodes is replaced by the one received in step 2.
      */
      void PeriodicConditionProjectionCorrection(ModelPart& rModelPart)

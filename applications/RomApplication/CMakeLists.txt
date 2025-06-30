@@ -7,7 +7,14 @@ include(pybind11Tools)
 
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication)
 
+set(KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC 
+    "${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication/external_libraries/eigen3"
+    "${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication/external_libraries/spectra1/include"
+)
+
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication )
+include_directories( ${KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC} )
 
 ## RomApplication Core sources
 file(GLOB_RECURSE KRATOS_ROM_APPLICATION_CORE
@@ -23,12 +30,13 @@ file(GLOB_RECURSE KRATOS_ROM_APPLICATION_CORE
 ## RomApplication testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_ROM_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    kratos_add_gtests(TARGET KratosRomCore SOURCES "${KRATOS_ROM_APPLICATION_TESTING_SOURCES}" USE_CUSTOM_MAIN)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## RomApplication python interface sources
 file(GLOB_RECURSE KRATOS_ROM_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
-add_library(KratosRomCore SHARED ${KRATOS_ROM_APPLICATION_CORE} ${KRATOS_ROM_APPLICATION_TESTING_SOURCES})
+add_library(KratosRomCore SHARED ${KRATOS_ROM_APPLICATION_CORE})
 target_link_libraries(KratosRomCore PUBLIC KratosCore KratosLinearSolversCore)
 set_target_properties(KratosRomCore PROPERTIES COMPILE_DEFINITIONS "ROM_APPLICATION=EXPORT,API")
 

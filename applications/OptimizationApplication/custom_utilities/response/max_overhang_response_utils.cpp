@@ -24,7 +24,7 @@
 #include "utilities/openmp_utils.h"
 
 // Application includes
-#include "custom_utilities/geometrical/model_part_utils.h"
+#include "custom_utilities/geometrical/opt_app_model_part_utils.h"
 #include "optimization_application_variables.h"
 
 // Include base h
@@ -99,7 +99,7 @@ void MaxOverhangAngleResponseUtils::CalculateSensitivity(
     // calculate sensitivities for each and every model part w.r.t. their sensitivity variables list
     for (const auto& it : rSensitivityVariableModelPartInfo) {
         std::visit([&](auto&& r_variable) {
-            const auto& r_sensitivity_model_parts = ModelPartUtils::GetModelPartsWithCommonReferenceEntities(
+            const auto& r_sensitivity_model_parts = OptAppModelPartUtils::GetModelPartsWithCommonReferenceEntities(
                 it.second, rEvaluatedModelParts, false, true, false, false, 0);
 
             // reset nodal common interface values
@@ -195,7 +195,7 @@ void MaxOverhangAngleResponseUtils::CalculateConditionFiniteDifferenceShapeSensi
     const double ref_val = CalculateConditionValue(rCondition,ResponseSettings);
 
     // initialize dummy element for parallelized perturbation based sensitivity calculation
-    // in each thread seperately
+    // in each thread separately
     if (!pThreadLocalCondition) {
 
         std::stringstream name;

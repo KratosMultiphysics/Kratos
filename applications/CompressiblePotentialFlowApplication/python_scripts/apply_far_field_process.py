@@ -19,9 +19,13 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
+        if not settings.Has("angle_of_attack_units"):
+            KratosMultiphysics.Logger.PrintWarning("ApplyFarFieldProcess", "'angle of attack_units' is not provided. Using 'radians' as default angle of attack unit.")
+
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name":"",
+                "angle_of_attack_units": "radians",
                 "angle_of_attack": 0.0,
                 "mach_infinity": 0.02941176471,
                 "free_stream_density"  : 1.0,
@@ -41,6 +45,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.far_field_model_part = Model[settings["model_part_name"].GetString()]
         self.fluid_model_part = self.far_field_model_part.GetRootModelPart()
 
+        self.angle_of_attack_units = settings["angle_of_attack_units"].GetString()
         self.angle_of_attack = settings["angle_of_attack"].GetDouble()
         self.free_stream_mach = settings["mach_infinity"].GetDouble()
         self.density_inf = settings["free_stream_density"].GetDouble()
@@ -59,6 +64,11 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         # Computing free stream velocity
         self.u_inf = self.free_stream_mach * self.free_stream_speed_of_sound
         self.free_stream_velocity = KratosMultiphysics.Vector(3)
+
+        if self.angle_of_attack_units == "radians":
+            KratosMultiphysics.Logger.PrintWarning("ApplyFarFieldProcess", " Using 'radians' as angle of attack unit. This will be deprecated soon.")
+        elif self.angle_of_attack_units == "degrees":
+            self.angle_of_attack = self.angle_of_attack*math.pi/180
 
         self.domain_size = self.fluid_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
         if self.domain_size == 2:
@@ -139,7 +149,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 # A negative projection means inflow (i.e. inlet condition)
                 self._AssignDirichletFarFieldBoundaryCondition(reference_inlet_node, cond)
             else:
-                # A positive projection means outlow (i.e. outlet condition)
+                # A positive projection means outflow (i.e. outlet condition)
                 self._AssignNeumannFarFieldBoundaryCondition(cond)
 
     def _AssignDirichletFarFieldBoundaryCondition(self, reference_inlet_node, cond):

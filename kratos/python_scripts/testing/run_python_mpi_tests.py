@@ -1,13 +1,13 @@
+import sys
+import argparse
+import multiprocessing
+
+from pathlib import Path
+
 import KratosMultiphysics as KM
-from KratosMultiphysics import KratosUnittest
 from KratosMultiphysics import kratos_utilities as kratos_utils
 
 from KratosMultiphysics.testing import utilities as testing_utils
-
-import sys, os
-import argparse
-import multiprocessing
-from pathlib import Path
 
 if KM.IsDistributedRun():
     raise Exception("cannot be run with MPI!")
@@ -32,8 +32,12 @@ def main():
     the 'KratosMPICore' application and for any other applications specified by the user. The tests are run using 
     the specified command and number of processes, and the results are printed to the console.
     """
+
+    # Define the command
+    cmd = testing_utils.GetPython3Command()
+
     # Set default values
-    applications = kratos_utils.GetListOfAvailableApplications()
+    applications = kratos_utils.GetListOfAvailableApplications() + ["KratosMPICore"]
 
     # parse command line options
     parser = argparse.ArgumentParser()
@@ -56,12 +60,10 @@ def main():
     else:
         parsedApps = args.applications
     for a in parsedApps:
-        if a not in applications + ['KratosCore']:
+        if a not in applications:
             print('Warning: Application {} does not exist'.format(a))
             sys.exit()
     applications = parsedApps
-    if 'KratosCore' in applications:
-        applications.remove('KratosCore')
 
     # Set timeout of the different levels
     signalTime = None
@@ -76,51 +78,20 @@ def main():
     # Create the commands
     commander = testing_utils.Commander()
 
-    exit_codes = {}
+    # Run the tests
+    commander.RunMPIPythonTests(applications, args.mpi_command, args.mpi_flags, args.num_processes_flag, args.processes, args.level, args.verbosity, cmd, signalTime)
 
-    testing_utils.PrintTestHeader("KratosMPICore")
-    # KratosMPICore must always be executed
-    with KratosUnittest.SupressConsoleOutput():
-        commander.RunMPITestSuit(
-            'KratosMPICore',
-            Path(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()))/"kratos"/"mpi",
-            args.mpi_command,
-            args.mpi_flags,
-            args.num_processes_flag,
-            args.processes,
-            args.level,
-            args.verbosity,
-            args.command,
-            signalTime
-        )
+    # Exit message
+    testing_utils.PrintTestSummary(commander.exitCodes)
 
-    testing_utils.PrintTestFooter("KratosMPICore", commander.exitCode)
-    exit_codes["KratosMPICore"] = commander.exitCode
+    # Propagate exit code and end
+    try:
+        exit_code = max(commander.exitCodes.values())
+    except:
+        print("Failed to run tests")
+        exit_code = 1
 
-    # Run the tests for the rest of the Applications
-    for application in applications:
-        testing_utils.PrintTestHeader(application)
-
-        with KratosUnittest.SupressConsoleOutput():
-            commander.RunMPITestSuit(
-                application+"_mpi",
-                Path(KM.KratosPaths.kratos_applications) / application,
-                args.mpi_command,
-                args.mpi_flags,
-                args.num_processes_flag,
-                args.processes,
-                args.level,
-                args.verbosity,
-                args.command,
-                signalTime
-            )
-
-        testing_utils.PrintTestFooter(application, commander.exitCode)
-        exit_codes[application] = commander.exitCode
-
-    testing_utils.PrintTestSummary(exit_codes)
-    sys.exit(max(exit_codes.values()))
+    sys.exit(exit_code)
 
 if __name__ == "__main__":
-    KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
     main()

@@ -130,10 +130,9 @@ class TestMassterControl(kratos_unittest.TestCase):
                 self.assertFalse(v)
 
         update *= 2
-        # now everyhing should be updated
+        # now everything should be updated
         updated_status = self.master_control.Update(update)
         self.assertTrue(all(updated_status.values()))
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

@@ -23,7 +23,7 @@ namespace Kratos
 class Model;
 class ModelPart;
 
-class GeoOutputWriter
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoOutputWriter
 {
 public:
     GeoOutputWriter(const Parameters& rGidOutputSettings, const std::string& rWorkingDirectory, ModelPart& rModelPart);

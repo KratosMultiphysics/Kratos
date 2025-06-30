@@ -35,6 +35,5 @@ public:
               {FirstOrderScalarVariable(TEMPERATURE, DT_TEMPERATURE, DT_TEMPERATURE_COEFFICIENT)}, theta)
     {
     }
-
 }; // Class GeneralizedNewmarkTScheme
 } // namespace Kratos

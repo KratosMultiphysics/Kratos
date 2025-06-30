@@ -77,6 +77,8 @@ public:
             mInputVariableType = Globals::DataLocation::NodeNonHistorical;
         } else if (rInputVariableType == "element") {
             mInputVariableType = Globals::DataLocation::Element;
+        } else if (rInputVariableType == "process_info") {
+            mInputVariableType = Globals::DataLocation::ProcessInfo;
         } else {
             KRATOS_ERROR << "The table_input_variable_type is incorrect or not supported. Types available are : 'node_historical', 'node_non_historical' and 'element'" << std::endl;
         }

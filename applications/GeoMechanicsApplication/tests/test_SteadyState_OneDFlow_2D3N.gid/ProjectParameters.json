@@ -32,7 +32,6 @@
         "block_builder":                      true,
         "solution_type":                      "Steady-State-Groundwater-Flow",
         "scheme_type":                        "Backward_Euler",
-        "reset_displacements":                true,
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,
@@ -61,7 +60,6 @@
         "min_alpha":                          0.1,
         "max_alpha":                          2.0,
         "line_search_tolerance":              0.5,
-        "rotation_dofs":                      true,
         "linear_solver_settings":             {
             "solver_type":         "bicgstab",
             "tolerance":           1.0e-6,
@@ -147,7 +145,6 @@
             "value":           [0.0,-9.81,0.0],
             "table":           [0,0,0]
         }
-    }],
-        "auxiliar_process_list": []
+    }]
     }
 }

@@ -117,13 +117,14 @@ public:
     //GET:
 
     /**
-     * Get on rVariable a double Value from the Element Constitutive Law
+     * Calculate a double Variable on the Element Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+   void CalculateOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+   void CalculateOnIntegrationPoints(const Variable<Vector> &rVariable, std::vector<Vector> &rValues, const ProcessInfo &rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo) override;
+   void CalculateOnIntegrationPoints(const Variable<Matrix> &rVariable, std::vector<Matrix> &rValues, const ProcessInfo &rCurrentProcessInfo) override;
+
 
     //************* STARTING - ENDING  METHODS
 
@@ -131,12 +132,12 @@ public:
     /**
     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
     */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+   void GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+   void EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const override;
 
     /**
      * Sets on rValues the nodal displacements
@@ -163,8 +164,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
+   int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     /**
       * this is called during the assembling process in order
@@ -173,7 +173,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateMassMatrix(MatrixType& rMassMatrix, 
-		    ProcessInfo& rCurrentProcessInfo) override;
+                            const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -182,7 +182,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, 
-		    ProcessInfo& rCurrentProcessInfo) override;
+                               const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -233,8 +233,7 @@ protected:
      */
     virtual void CalculateAndAddKuum(MatrixType& rK,
                                      ElementDataType & rVariables,
-                                     double& rIntegrationWeight
-                                    ) override;
+                                    double &rIntegrationWeight)  override;
     /**
      * Calculation of the water Material Stiffness Matrix. 
      */
@@ -257,8 +256,7 @@ protected:
      */
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
           ElementDataType & rVariables,
-          double& rIntegrationWeight
-          ) override;
+          double &rIntegrationWeight) override;
 
     /**
      * Volumetric loads
@@ -266,8 +264,7 @@ protected:
     virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
           ElementDataType & rVariables,
           Vector & rVolumeForces,
-          double& rIntegrationWeight
-          ) override;
+          double &rIntegrationWeight) override;
     /**
      * Volumetric loads
      */
@@ -298,22 +295,12 @@ protected:
      */
     void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
                                   VectorType& rRightHandSideVector,
-                                  Flags& rCalculationFlags) override;
-
-    //on integration points:
-    /**
-     * Calculate a double Variable on the Element Constitutive Law
-     */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+                                 Flags &rCalculationFlags) override;
+    
 
     void CalculateB2Matrix( Matrix & rB2, const Matrix& rDN_DX);
 
-
-    double & CalculateGaussPointWaterPressure( ElementDataType & rVariables, double & rWaterPressure);
+   double &CalculateGaussPointWaterPressure(ElementDataType &rVariables, double &rWaterPressure);
 
     ///@}
     ///@name Protected  Access

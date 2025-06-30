@@ -1,9 +1,9 @@
 ---
 title: Applications as Python Modules
-keywords: 
+keywords:
 tags: [Applications Python Modules Legacy]
 sidebar: kratos_for_developers
-summary: 
+summary:
 ---
 
 https://github.com/KratosMultiphysics/Kratos/pull/3217/ enables the applications can be used as python-modules.
@@ -16,7 +16,7 @@ import analysis_stage # this works because the folder "python_scripts" is added 
 
 # new, pythonic way
 from KratosMultiphysics import analysis_stage
-from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic import NavierStokesSolverMonolithic
+from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_monolithic_solver import NavierStokesMonolithicSolver
 ```
 
 The new way is the standard already for new applications created with the Application-Generator. For already existing applications currently both ways are supported, but it is recommended to the developers to use the new way (pythonic way) of importing python-scripts because at some point the old import-mechanism (which adds the python_scripts to the python-path) will be removed eventually, and then all python-files should be using the new way already.
@@ -24,8 +24,8 @@ The new way is the standard already for new applications created with the Applic
 # The following three steps are recommended for developers:
 ## 1. Modify the `CMakeLists.txt` in your Application (replacing `DummyApplication` with the real name of your Application):
 
-Change the location where the `DummyApplication.py` is being installed to: 
-- from: `install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/DummyApplication.py" DESTINATION KratosMultiphysics )` 
+Change the location where the `DummyApplication.py` is being installed to:
+- from: `install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/DummyApplication.py" DESTINATION KratosMultiphysics )`
 - to `install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/DummyApplication.py" DESTINATION "KratosMultiphysics/DummyApplication" RENAME "__init__.py")`
 
 ## 2. Update `DummyApplication.py` to use the new import mechanism
@@ -56,7 +56,7 @@ previously:
 ```
 KratosMultiphysics
  |-- __init__.py
- |-- application_importer.py    
+ |-- application_importer.py
  |-- kratos_globals.py
  |-- ... (other kratos files)
  |-- DummyApplication.py
@@ -67,7 +67,7 @@ new:
 ```
 KratosMultiphysics
  |-- __init__.py
- |-- application_importer.py    
+ |-- application_importer.py
  |-- kratos_globals.py
  |-- ... (other kratos files)
  |-- DummyApplication

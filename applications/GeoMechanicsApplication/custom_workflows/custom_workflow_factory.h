@@ -12,12 +12,14 @@
 
 #pragma once
 
+#include "includes/kratos_export_api.h"
+
 namespace Kratos
 {
 
 class KratosGeoSettlement;
 
-class CustomWorkflowFactory
+class KRATOS_API(GEO_MECHANICS_APPLICATION) CustomWorkflowFactory
 {
 public:
     static KratosGeoSettlement* CreateKratosGeoSettlement();

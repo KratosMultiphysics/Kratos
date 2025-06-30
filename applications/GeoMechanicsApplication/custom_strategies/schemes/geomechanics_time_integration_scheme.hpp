@@ -11,6 +11,7 @@
 //
 #pragma once
 
+#include "custom_utilities/variables_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "solving_strategies/schemes/scheme.h"
 
@@ -73,55 +74,6 @@ public:
 
         return 0;
 
-        KRATOS_CATCH("")
-    }
-
-    void GetDofList(const Element& rElement, Element::DofsVectorType& rDofList, const ProcessInfo& rCurrentProcessInfo) override
-    {
-        GetDofListImpl(rElement, rDofList, rCurrentProcessInfo);
-    }
-
-    void GetDofList(const Condition& rCondition, Condition::DofsVectorType& rDofList, const ProcessInfo& rCurrentProcessInfo) override
-    {
-        GetDofListImpl(rCondition, rDofList, rCurrentProcessInfo);
-    }
-
-    template <typename T>
-    void GetDofListImpl(const T& rElementOrCondition, typename T::DofsVectorType& rDofList, const ProcessInfo& rCurrentProcessInfo)
-    {
-        if (IsActive(rElementOrCondition))
-            rElementOrCondition.GetDofList(rDofList, rCurrentProcessInfo);
-    }
-
-    void EquationId(const Element&                 rElement,
-                    Element::EquationIdVectorType& rEquationId,
-                    const ProcessInfo&             rCurrentProcessInfo) override
-    {
-        EquationIdImpl(rElement, rEquationId, rCurrentProcessInfo);
-    }
-
-    void EquationId(const Condition&                 rCondition,
-                    Condition::EquationIdVectorType& rEquationId,
-                    const ProcessInfo&               rCurrentProcessInfo) override
-    {
-        EquationIdImpl(rCondition, rEquationId, rCurrentProcessInfo);
-    }
-
-    template <typename T>
-    void EquationIdImpl(const T&                          rElementOrCondition,
-                        typename T::EquationIdVectorType& rEquationId,
-                        const ProcessInfo&                rCurrentProcessInfo)
-    {
-        if (IsActive(rElementOrCondition))
-            rElementOrCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
-    }
-
-    void Initialize(ModelPart& rModelPart) override
-    {
-        Scheme<TSparseSpace, TDenseSpace>::Initialize(rModelPart);
-
-        KRATOS_TRY
-        SetTimeFactors(rModelPart);
         KRATOS_CATCH("")
     }
 
@@ -198,9 +150,9 @@ public:
         return !(rComponent.IsDefined(ACTIVE)) || rComponent.Is(ACTIVE);
     }
 
-    void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& A, TSystemVectorType& Dx, TSystemVectorType& b) override
+    void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rb) override
     {
-        FinalizeSolutionStepActiveEntities(rModelPart, A, Dx, b);
+        FinalizeSolutionStepActiveEntities(rModelPart, rA, rDx, rb);
     }
 
     void CalculateSystemContributions(Element&                       rCurrentElement,
@@ -224,11 +176,11 @@ public:
     }
 
     template <typename T>
-    void CalculateSystemContributionsImpl(T&                                rCurrentComponent,
-                                          LocalSystemMatrixType&            LHS_Contribution,
-                                          LocalSystemVectorType&            RHS_Contribution,
-                                          typename T::EquationIdVectorType& EquationId,
-                                          const ProcessInfo&                CurrentProcessInfo)
+    static void CalculateSystemContributionsImpl(T&                     rCurrentComponent,
+                                                 LocalSystemMatrixType& LHS_Contribution,
+                                                 LocalSystemVectorType& RHS_Contribution,
+                                                 typename T::EquationIdVectorType& EquationId,
+                                                 const ProcessInfo& CurrentProcessInfo)
 
     {
         KRATOS_TRY
@@ -256,10 +208,10 @@ public:
     }
 
     template <typename T>
-    void CalculateRHSContributionImpl(T&                                rCurrentComponent,
-                                      LocalSystemVectorType&            RHS_Contribution,
-                                      typename T::EquationIdVectorType& EquationId,
-                                      const ProcessInfo&                CurrentProcessInfo)
+    static void CalculateRHSContributionImpl(T&                                rCurrentComponent,
+                                             LocalSystemVectorType&            RHS_Contribution,
+                                             typename T::EquationIdVectorType& EquationId,
+                                             const ProcessInfo&                CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -286,10 +238,10 @@ public:
     }
 
     template <typename T>
-    void CalculateLHSContributionImpl(T&                                rCurrentComponent,
-                                      LocalSystemMatrixType&            LHS_Contribution,
-                                      typename T::EquationIdVectorType& EquationId,
-                                      const ProcessInfo&                CurrentProcessInfo)
+    static void CalculateLHSContributionImpl(T&                                rCurrentComponent,
+                                             LocalSystemMatrixType&            LHS_Contribution,
+                                             typename T::EquationIdVectorType& EquationId,
+                                             const ProcessInfo&                CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -315,12 +267,6 @@ public:
     }
 
 protected:
-    const Variable<double>& GetComponentFromVectorVariable(const Variable<array_1d<double, 3>>& rSource,
-                                                           const std::string& rComponent) const
-    {
-        return KratosComponents<Variable<double>>::Get(rSource.Name() + "_" + rComponent);
-    }
-
     virtual inline void SetTimeFactors(ModelPart& rModelPart)
     {
         mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
@@ -363,15 +309,15 @@ private:
                 // We don't check for "Z", since it is optional (in case of a 2D problem)
                 std::vector<std::string> components{"X", "Y"};
                 for (const auto& component : components) {
-                    const auto& variable_component =
-                        GetComponentFromVectorVariable(r_second_order_vector_variable.instance, component);
+                    const auto& variable_component = VariablesUtilities::GetComponentFromVectorVariable(
+                        r_second_order_vector_variable.instance.Name(), component);
                     this->CheckDof(r_node, variable_component);
                 }
             }
         }
     }
 
-    void CheckBufferSize(const ModelPart& rModelPart) const
+    static void CheckBufferSize(const ModelPart& rModelPart)
     {
         constexpr auto minimum_buffer_size = ModelPart::IndexType{2};
         KRATOS_ERROR_IF(rModelPart.GetBufferSize() < minimum_buffer_size)
@@ -381,14 +327,14 @@ private:
     }
 
     template <class T>
-    void CheckSolutionStepsData(const Node& rNode, const Variable<T>& rVariable) const
+    static void CheckSolutionStepsData(const Node& rNode, const Variable<T>& rVariable)
     {
         KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(rVariable))
             << rVariable.Name() << " variable is not allocated for node " << rNode.Id() << std::endl;
     }
 
     template <class T>
-    void CheckDof(const Node& rNode, const Variable<T>& rVariable) const
+    static void CheckDof(const Node& rNode, const Variable<T>& rVariable)
     {
         KRATOS_ERROR_IF_NOT(rNode.HasDofFor(rVariable))
             << "missing " << rVariable.Name() << " dof on node " << rNode.Id() << std::endl;

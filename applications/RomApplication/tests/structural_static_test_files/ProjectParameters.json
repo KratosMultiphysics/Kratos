@@ -73,6 +73,7 @@
     },
     "output_processes": {
         "gid_output" : [],
-        "vtk_output": []
+        "vtk_output": [],
+        "rom_output": []
     }
 }

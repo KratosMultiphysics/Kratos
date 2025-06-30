@@ -1,5 +1,4 @@
-//  KRATOS  _____     _ _ _
-//         |_   _| __(_) (_)_ __   ___  ___
+
 //           | || '__| | | | '_ \ / _ \/ __|
 //           | || |  | | | | | | | (_) \__
 //           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
@@ -19,7 +18,7 @@
 #include "Epetra_FEVector.h"
 
 // Project includes
-#include "testing/testing.h"
+#include "tests/cpp_tests/trilinos_fast_suite.h"
 #include "containers/model.h"
 #include "custom_strategies/convergencecriterias/trilinos_residual_criteria.h"
 #include "mpi/includes/mpi_data_communicator.h"
@@ -81,7 +80,7 @@ void GenerateTestTrilinosResidualCriteriaModelPart(
 /**
  * Checks the residual criteria
  */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosResidualCriteria, KratosTrilinosApplicationMPITestSuite)
+KRATOS_TEST_CASE_IN_SUITE(TrilinosResidualCriteria, KratosTrilinosApplicationMPITestSuite)
 {
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("TestModelPart");
@@ -171,7 +170,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosResidualCriteria, KratosTrilinosAp
 /**
  * Checks the residual criteria with MPC
  */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosResidualCriteriaWithMPC, KratosTrilinosApplicationMPITestSuite)
+KRATOS_TEST_CASE_IN_SUITE(TrilinosResidualCriteriaWithMPC, KratosTrilinosApplicationMPITestSuite)
 {
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("TestModelPart");

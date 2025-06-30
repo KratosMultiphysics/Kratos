@@ -12,9 +12,9 @@
 
 #pragma once
 
+#include "parameters_utilities.h"
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
-#include "parameters_utilities.h"
 
 namespace Kratos
 {
@@ -30,23 +30,18 @@ public:
         KRATOS_ERROR_IF_NOT(rSolverSettings.Has("convergence_criterion"))
             << "No convergence_criterion is defined, aborting.";
 
-        if (rSolverSettings["convergence_criterion"].GetString() ==
-            "displacement_criterion")
-        {
-            const std::vector<std::string> entries_to_copy = {
-                "displacement_absolute_tolerance",
-                "displacement_relative_tolerance"};
-            const Parameters convergence_inputs =
+        if (rSolverSettings["convergence_criterion"].GetString() == "displacement_criterion") {
+            const std::vector<std::string> entries_to_copy = {"displacement_absolute_tolerance",
+                                                              "displacement_relative_tolerance"};
+            const Parameters               convergence_inputs =
                 ParametersUtilities::CopyOptionalParameters(rSolverSettings, entries_to_copy);
             return std::make_shared<DisplacementCriteria<TSparseSpace, TDenseSpace>>(convergence_inputs);
         }
-        if (rSolverSettings["convergence_criterion"].GetString() ==
-            "residual_criterion")
-        {
-            const std::vector<std::string> entries_to_copy = {
-                "residual_absolute_tolerance", "residual_relative_tolerance"};
-            const auto convergence_inputs = ParametersUtilities::CopyOptionalParameters(
-                rSolverSettings, entries_to_copy);
+        if (rSolverSettings["convergence_criterion"].GetString() == "residual_criterion") {
+            const std::vector<std::string> entries_to_copy = {"residual_absolute_tolerance",
+                                                              "residual_relative_tolerance"};
+            const auto                     convergence_inputs =
+                ParametersUtilities::CopyOptionalParameters(rSolverSettings, entries_to_copy);
             return std::make_shared<ResidualCriteria<TSparseSpace, TDenseSpace>>(convergence_inputs);
         }
 

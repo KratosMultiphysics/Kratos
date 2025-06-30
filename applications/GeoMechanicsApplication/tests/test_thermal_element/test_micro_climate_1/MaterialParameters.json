@@ -3,10 +3,8 @@
     "model_part_name"                      : "PorousDomain.soil1",
     "properties_id"                        : 1,
     "Material" : { 
-      "constitutive_law" : {
-        "name"                             : "GeoThermalDispersion2DLaw"
-      }, 
       "Variables" : {
+        "THERMAL_LAW_NAME"                 : "GeoThermalDispersionLaw",
         "DENSITY_SOLID"                    : 1.700000e+03,
         "DENSITY_WATER"                    : 1000.0,
         "POROSITY"                         : 0.0, 

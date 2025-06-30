@@ -16,7 +16,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
 class AlgorithmSteepestDescent(Algorithm):
     """
-        A classical steepest descent algorithm to solve unconstrainted optimization problems.
+        A classical steepest descent algorithm to solve unconstrained optimization problems.
     """
 
     @classmethod
@@ -42,6 +42,7 @@ class AlgorithmSteepestDescent(Algorithm):
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.master_control = MasterControl() # Need to fill it with controls
+        self._optimization_problem.AddComponent(self.master_control)
 
         for control_name in parameters["controls"].GetStringArray():
             control = optimization_problem.GetControl(control_name)
@@ -59,6 +60,7 @@ class AlgorithmSteepestDescent(Algorithm):
         self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
 
         self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
+        self._optimization_problem.AddComponent(self.__objective)
         self.__control_field = None
         self.__obj_val = None
 
@@ -97,7 +99,7 @@ class AlgorithmSteepestDescent(Algorithm):
     @time_decorator()
     def UpdateControl(self) -> KratosOA.CollectiveExpression:
         update = self.algorithm_data.GetBufferedData()["control_field_update"]
-        self.__control_field += update
+        self.__control_field = KratosOA.ExpressionUtils.Collapse(self.__control_field + update)
 
     @time_decorator()
     def Output(self) -> KratosOA.CollectiveExpression:
@@ -120,7 +122,7 @@ class AlgorithmSteepestDescent(Algorithm):
 
                 self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
                 obj_info = self.__objective.GetInfo()
-                self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["value"]
+                self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["std_value"]
                 self.algorithm_data.GetBufferedData()["rel_obj[%]"] = obj_info["rel_change [%]"]
                 if "abs_change [%]" in obj_info:
                     self.algorithm_data.GetBufferedData()["abs_obj[%]"] = obj_info["abs_change [%]"]

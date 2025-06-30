@@ -61,7 +61,6 @@ public:
     std::vector<TimeStepEndState> Run(const TimeStepEndState& EndState) override
     {
         mStrategyWrapper->Initialize();
-        mStrategyWrapper->SaveTotalDisplacementFieldAtStartOfTimeLoop();
         std::vector<TimeStepEndState> result;
         TimeStepEndState              NewEndState = EndState;
         ScopedOutputFileAccess        limit_output_file_access_to_this_scope{*mStrategyWrapper};
@@ -70,6 +69,7 @@ public:
             // clone without end time, the end time is overwritten anyway
             mStrategyWrapper->CloneTimeStep();
             NewEndState = RunCycleLoop(NewEndState);
+            mStrategyWrapper->ComputeIncrementalDisplacementField();
             mStrategyWrapper->AccumulateTotalDisplacementField();
             mStrategyWrapper->FinalizeSolutionStep();
             mStrategyWrapper->OutputProcess();

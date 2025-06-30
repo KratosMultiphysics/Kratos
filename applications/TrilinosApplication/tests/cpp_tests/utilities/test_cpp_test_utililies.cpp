@@ -15,14 +15,14 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
+#include "tests/cpp_tests/trilinos_fast_suite.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "../trilinos_cpp_test_utilities.h"
 
 namespace Kratos::Testing
 {
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCPPTestUtilitiesGenerateSparseMatrix, KratosTrilinosApplicationMPITestSuite)
+KRATOS_TEST_CASE_IN_SUITE(TrilinosCPPTestUtilitiesGenerateSparseMatrix, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
@@ -47,7 +47,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCPPTestUtilitiesGenerateSparseMatr
     TrilinosCPPTestUtilities::CheckSparseMatrix(A, row_indexes, column_indexes, values);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCPPTestUtilitiesGenerateSparseMatrixRealCase, KratosTrilinosApplicationMPITestSuite)
+KRATOS_TEST_CASE_IN_SUITE(TrilinosCPPTestUtilitiesGenerateSparseMatrixRealCase, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
     const auto& r_comm = Testing::GetDefaultDataCommunicator();

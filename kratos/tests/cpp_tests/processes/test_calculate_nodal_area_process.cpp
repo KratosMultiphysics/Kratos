@@ -16,7 +16,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
 // #include "includes/gid_io.h"
@@ -58,7 +58,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalArea1, KratosCoreFastSuite)
 
     CppTestsUtilities::Create2DGeometry(this_model_part);
 
-    typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable> HistNodalAreaProcess;
+    using HistNodalAreaProcess = CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>; ;
     HistNodalAreaProcess hist_process(this_model_part, 2);
     hist_process.Execute();
 
@@ -71,7 +71,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalArea1, KratosCoreFastSuite)
     KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/3.0, tolerance);
     KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(6)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/6.0, tolerance);
 
-    typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable> NonHistNodalAreaProcess;
+    using NonHistNodalAreaProcess= CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable>; ;
     NonHistNodalAreaProcess nonhist_process(this_model_part, 2);
     nonhist_process.Execute();
 
@@ -103,7 +103,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalArea2, KratosCoreFastSuite)
     CppTestsUtilities::Create3DGeometry(this_model_part);
 
     // Calculate nodal area
-    typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable> HistNodalAreaProcess;
+    using HistNodalAreaProcess = CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>; ;
     HistNodalAreaProcess hist_process(this_model_part, 3);
     hist_process.Execute();
 
@@ -120,7 +120,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalArea2, KratosCoreFastSuite)
     KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(11)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/12.0, tolerance);
     KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(12)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/12.0, tolerance);
 
-    typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable> NonHistNodalAreaProcess;
+    using NonHistNodalAreaProcess= CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable>; ;
     NonHistNodalAreaProcess nonhist_process(this_model_part, 3);
     nonhist_process.Execute();
 
@@ -153,7 +153,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalArea3, KratosCoreFastSuite)
 
     CppTestsUtilities::Create2DQuadrilateralsGeometry(this_model_part);
 
-    typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable> HistNodalAreaProcess;
+    using HistNodalAreaProcess = CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>; ;
     HistNodalAreaProcess hist_process(this_model_part, 2);
     hist_process.Execute();
 
@@ -168,7 +168,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalArea3, KratosCoreFastSuite)
     KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
     KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(6)->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
 
-    typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable> NonHistNodalAreaProcess;
+    using NonHistNodalAreaProcess= CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable>; ;
     NonHistNodalAreaProcess nonhist_process(this_model_part, 2);
     nonhist_process.Execute();
 
@@ -202,7 +202,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalArea4, KratosCoreFastSuite)
     CppTestsUtilities::Create3DHexahedraGeometry(this_model_part);
 
     // Calculate nodal area
-    typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable> HistNodalAreaProcess;
+    using HistNodalAreaProcess = CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>; ;
     HistNodalAreaProcess hist_process(this_model_part, 3);
     hist_process.Execute();
 
@@ -223,7 +223,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalArea4, KratosCoreFastSuite)
     KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(11)->FastGetSolutionStepValue(NODAL_AREA)) - 0125, tolerance);
     KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(12)->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
 
-    typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable> NonHistNodalAreaProcess;
+    using NonHistNodalAreaProcess= CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable>; ;
     NonHistNodalAreaProcess nonhist_process(this_model_part, 3);
     nonhist_process.Execute();
 

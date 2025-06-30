@@ -158,15 +158,17 @@ KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess2, KratosCoreFastS
     std::size_t count = 0;
     for (auto& r_node : r_origin_model_part.Nodes()) {
         ++count;
-        if (r_node.Is(MASTER))
+        if (r_node.Is(MASTER)) {
             KRATOS_EXPECT_EQ(r_node.Id(), r_destination_model_part.GetNode(count).Id());
+        }
     }
 
     count = 0;
     for (auto& cond : r_origin_model_part.Conditions()) {
         ++count;
-        if (cond.Is(MASTER))
+        if (cond.Is(MASTER)) {
             KRATOS_EXPECT_EQ(cond.Id(), r_destination_model_part.GetCondition(count).Id());
+        }
     }
 }
 
@@ -284,15 +286,17 @@ KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess4, KratosCoreFastS
     std::size_t count = 0;
     for (auto& r_node : r_origin_model_part.Nodes()) {
         ++count;
-        if (r_node.Is(MASTER))
+        if (r_node.Is(MASTER)) {
             KRATOS_EXPECT_EQ(r_node.Id() + 6, r_destination_model_part.GetNode(count + 6).Id());
+        }
     }
 
     count = 0;
     for (auto& r_cond : r_origin_model_part.Conditions()) {
         ++count;
-        if (r_cond.Is(MASTER))
+        if (r_cond.Is(MASTER)) {
             KRATOS_EXPECT_EQ(r_cond.Id() + 2, r_destination_model_part.GetCondition(count  + 2).Id());
+        }
     }
 }
 

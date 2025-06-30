@@ -19,7 +19,7 @@
 #include "Epetra_FEVector.h"
 
 // Project includes
-#include "testing/testing.h"
+#include "tests/cpp_tests/trilinos_fast_suite.h"
 #include "containers/model.h"
 #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
 #include "mpi/includes/mpi_data_communicator.h"
@@ -81,7 +81,7 @@ void GenerateTestTrilinosDisplacementCriteriaModelPart(
 /**
  * Checks the displacement criteria
  */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosDisplacementCriteria, KratosTrilinosApplicationMPITestSuite)
+KRATOS_TEST_CASE_IN_SUITE(TrilinosDisplacementCriteria, KratosTrilinosApplicationMPITestSuite)
 {
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("TestModelPart");

@@ -19,25 +19,23 @@
 namespace Kratos
 {
 
-
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyExcavationProcess : public Process
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyExcavationProcess);
 
-    ApplyExcavationProcess(ModelPart&        rModelPart,
-                           const Parameters& rSettings);
+    ApplyExcavationProcess(ModelPart& rModelPart, const Parameters& rProcessSettings);
 
     ~ApplyExcavationProcess() override;
 
-    ApplyExcavationProcess(const ApplyExcavationProcess&) = delete;
+    ApplyExcavationProcess(const ApplyExcavationProcess&)            = delete;
     ApplyExcavationProcess& operator=(const ApplyExcavationProcess&) = delete;
 
     void ExecuteInitialize() override;
 
 private:
     ModelPart& mrModelPart;
-    bool mDeactivateSoilPart;
+    bool       mDeactivateSoilPart;
 };
 
-}
+} // namespace Kratos

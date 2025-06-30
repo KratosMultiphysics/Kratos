@@ -8,7 +8,7 @@
             "settings": {
                 "model_part_name": "Structure",
                 "domain_size": 3,
-                "input_filename": "Structure"
+                "input_filename": "../../../mdpas/algorithms_test_input/unconstraint/Structure"
             }
         }
     ],
@@ -23,7 +23,7 @@
                 "analysis_module": "KratosMultiphysics.StructuralMechanicsApplication",
                 "analysis_type": "StructuralMechanicsAnalysis",
                 "analysis_settings": {
-                    "@include_json": "primal_parameters.json"
+                    "@include_json": "../../../mdpas/algorithms_test_input/unconstraint/primal_parameters.json"
                 },
                 "analysis_output_settings": {
                     "nodal_solution_step_data_variables": [

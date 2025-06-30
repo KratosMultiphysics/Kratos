@@ -300,5 +300,4 @@ class ApplyParabolicInletProcessTest(UnitTest.TestCase):
         self.assertFalse(test_node.IsFixed(KratosMultiphysics.VELOCITY_Z))
 
 if __name__ == '__main__':
-    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.PROGRESS)
     UnitTest.main()

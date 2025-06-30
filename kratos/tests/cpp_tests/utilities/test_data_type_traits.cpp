@@ -855,7 +855,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(data_type_4_trait::Size(test_data_type_4), 0);
     std::vector<unsigned int> data_type_4_shape{0, 0, 4, 0, 4};
     KRATOS_EXPECT_EQ(data_type_4_trait::Shape(test_data_type_4), data_type_4_shape);
-    KRATOS_EXPECT_EQ(data_type_4_trait::GetContiguousData(test_data_type_4), 0);
+    KRATOS_EXPECT_TRUE(data_type_4_trait::GetContiguousData(test_data_type_4) == nullptr);
 
     using data_type_5 = DenseMatrix<array_1d<array_1d<array_1d<array_1d<double, 4>, 0>, 4>, 0>>;
     using data_type_5_trait = DataTypeTraits<data_type_5>;
@@ -872,7 +872,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(data_type_5_trait::Size(test_data_type_5), 0);
     std::vector<unsigned int> data_type_5_shape{0, 0, 0, 4, 0, 4};
     KRATOS_EXPECT_EQ(data_type_5_trait::Shape(test_data_type_5), data_type_5_shape);
-    KRATOS_EXPECT_EQ(data_type_5_trait::GetContiguousData(test_data_type_5), 0);
+    KRATOS_EXPECT_TRUE(data_type_5_trait::GetContiguousData(test_data_type_5) == nullptr);
 
     using data_type_6 = array_1d<array_1d<array_1d<array_1d<array_1d<double, 4>, 0>, 4>, 0>, 2>;
     using data_type_6_trait = DataTypeTraits<data_type_6>;

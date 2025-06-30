@@ -116,16 +116,10 @@ public:
         )
     {
         array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
-
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
-
-        const double c1 = 0.0;
         const double c2 = std::sqrt(3.0);
-        const double c3 = 0.0;
 
-        noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+        noalias(rGFlux) = c2 * second_vector;
     }
 
     /**

@@ -3,7 +3,7 @@ title: Set-up Example
 keywords: json
 tags: [JSON_Structure.md]
 sidebar: cosimulation_application
-summary: 
+summary:
 ---
 # Overview
 This page will guide the users how to configure the json for the CoSimulation.
@@ -23,7 +23,7 @@ The json file starts with the problem data. All the inputs in the problem data h
 ```
 ## Solver Settings
 
-### Coupling strategy 
+### Coupling strategy
 Users can choose the coupling strategy at the "type" field. Certain strategy gives additional settings, such as the maximum number of iteration for each time step. These addtional settings can be found at the respective page of the coupling strategy.
 ```json
     "solver_settings" :
@@ -41,9 +41,9 @@ The available names for ```<coupling_strategy>``` are listed below:
 - [coupled_solvers.feti_dynamic_coupled_solver](../Coupling_Strategy/Feti_Dynamic_Coupled_Solver.html)
 
 ### Coupling Sequence
-This part of the settings dictate the communication between the solvers used in the CoSimulation. The order of the solver executed will follow the order of the items inside the ```"coupling_sequence"``` field. Each item correspond to one solver. It has the ```name``` of the solver, the ```input_data_list``` and the ```output_data_list```. 
+This part of the settings dictate the communication between the solvers used in the CoSimulation. The order of the solver executed will follow the order of the items inside the ```"coupling_sequence"``` field. Each item correspond to one solver. It has the ```name``` of the solver, the ```input_data_list``` and the ```output_data_list```.
 The ```name``` field correspond on a solver naming that the user created in the ```"solvers"``` part of the solver settings. More details about how the solver is defined is explained [here](#solvers).
-The data to be transfered are managed in the ```input_data_list``` and ```output_data_list```. The ```input_data_list``` contains the data to be used for the current solver. On the other hand, the ```output_data_list``` contains the data from this solver to be sent to another solver. 
+The data to be transfered are managed in the ```input_data_list``` and ```output_data_list```. The ```input_data_list``` contains the data to be used for the current solver. On the other hand, the ```output_data_list``` contains the data from this solver to be sent to another solver.
 
 Each item inside ```"input_data_list"``` contain:
 - ```"data"```                      : variable of the input data.
@@ -188,8 +188,8 @@ In this part, the user define the solvers to be used for the CoSimulation. For c
     - [solver_wrappers.kratos.convection_diffusion_wrapper](../Coupling_Operations/Convection-Diffusion.html)
     - [solver_wrappers.kratos.dem_wrapper](../Coupling_Operations/DEM.html)
     - [solver_wrappers.kratos.fluid_dynamics_wrapper](../Coupling_Operations/Fluid_Dynamics.html)
-    - [solver_wrappers.kratos.particle_mechanics_dirichlet_wrapper](../Coupling_Operations/Particle_Mechanics_(Dirichlet).html)
-    - [solver_wrappers.kratos.particle_mechanics_neumann_wrapper](../Coupling_Operations/Particle_Mechanics_(Neumann).html)
+    - [solver_wrappers.kratos.mpm_dirichlet_wrapper](../Coupling_Operations/MPM_Dirichlet.html)
+    - [solver_wrappers.kratos.mpm_neumann_wrapper](../Coupling_Operations/MPM_Neumann.html)
     - [solver_wrappers.kratos.pfem_fluid_dynamics_wrapper](../Coupling_Operations/PFEM_Fluid_Dynamics.html)
     - [solver_wrappers.kratos.potential_flow_wrapper](../Coupling_Operations/Potential_Flow.html)
     - [solver_wrappers.kratos.structural_mechanics_wrapper](../Coupling_Operations/Structural_Mechanics.html)
@@ -270,7 +270,7 @@ The available ```"type"``` are listed below:
 - [relative_norm_previous_residual](../Convergence_Criteria/relative_norm_previous_residual.html)
 
 ### Convergence Accelerators
-The convergence of the coupling strategy such as the strong coupling can be improved by using convergence accelerator. 
+The convergence of the coupling strategy such as the strong coupling can be improved by using convergence accelerator.
 ```json
         "convergence_accelerators" : [
             {
@@ -288,7 +288,7 @@ The available convergence accelerators are listed below:
 - [mvqn](../Convergence_Accelerators/MVQN.html)
 
 ### Predictors
-Predictors helps the solver by predicting the solution for the next timestep . It can be used both in a weak coupling and a strong coupling. 
+Predictors helps the solver by predicting the solution for the next timestep . It can be used both in a weak coupling and a strong coupling.
 The available predictors are listed below:
 - [average_value_based](../Predictors/Average_Value_Based.html)
 - [linear](../Predictors/Linear.html)
@@ -340,7 +340,7 @@ The operators that has been established here can be executed before or after tra
             "solver"    : "fluid",
             "data_name" : "force"
         },
-        "Coupling_Operation_B" : { 
+        "Coupling_Operation_B" : {
             "type"      : "impose_mesh_displacement",
             "solver"    : "fluid",
             "data_name" : "disp"

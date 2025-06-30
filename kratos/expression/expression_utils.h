@@ -215,7 +215,7 @@ public:
     /**
      * @brief Returns an expression which represents the component wise absolute value of the given expression.
      *
-     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ representss \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
      *          , then the returned expression \f$\left|\underline{\mathbb{u}}\right|\f$
      *
      *          \f[
@@ -227,9 +227,27 @@ public:
     static Expression::ConstPointer Abs(const Expression::ConstPointer& rpExpression);
 
     /**
+     * @brief Returns an expression which represents the component wise logarithmic value of the given expression.
+     *
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
+     *          , then the returned expression \f$\left|\underline{\mathbb{u}}\right|\f$
+     *
+     *          \f[
+     *              Log\left(\underline{\mathbb{u}}\right) = log\left(u_{ij}\right)
+     *          \f]
+     *
+     * @warning Returns nan if the given $\f$u_{ij}\f < 0.0$
+     * @warning Returns inf if the given $\f$u_{ij}\f = 0.0$
+     *
+     * @return Expression::ConstPointer Expression which computes component wise logarithmic value.
+     */
+    static Expression::ConstPointer Log(const Expression::ConstPointer& rpExpression);
+
+
+    /**
      * @brief Returns an expression which raises each component to the given power.
      *
-     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ representss \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
      *          , where P is specified by @a Power.
      *
      *          \f[
@@ -245,8 +263,8 @@ public:
     /**
      * @brief Returns an expression which raises each component to the given power from another expression.
      *
-     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ representss \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
-     *          and the @a rpPowerpExpression is \f$\underline{\mathbb{P}}\f$, where \f$p_{ij}\f$ representss \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
+     *          and the @a rpPowerpExpression is \f$\underline{\mathbb{P}}\f$, where \f$p_{ij}\f$ represents \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
      *          , then the returned expression can be illustrated as below.
      *
      *          \f[
@@ -270,7 +288,7 @@ public:
     /**
      * @brief Returns an expression which scales each component to the specified value
      *
-     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ representss \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
      *          , where Scale is specified by @a Scale.
      *
      *          \f[
@@ -286,8 +304,8 @@ public:
     /**
      * @brief Returns an expression which scales each component by a value from another expression.
      *
-     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ representss \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
-     *          and the @a rpScaleExpression is \f$\underline{\mathbb{s}}\f$, where \f$s_{ij}\f$ representss \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
+     *          and the @a rpScaleExpression is \f$\underline{\mathbb{s}}\f$, where \f$s_{ij}\f$ represents \f$j^{th}\f$ component of the flattened entity data for \f$i^{th}\f$ entity
      *          , then the returned expression can be illustrated as below.
      *
      *          \f[
@@ -311,7 +329,7 @@ public:
     /**
      * @brief Returns an expression having min value from all the components for each entity.
      *
-     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ representss \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity
      *          , Following illustrates the returned expression which is always a scalar expression having \f$m_i\f$ representing the \f$i^{th}\f$ entity data.
      *
      *          \f[
@@ -330,7 +348,7 @@ public:
     /**
      * @brief Returns an expression having max value from all the components for each entity.
      *
-     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ representss \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity
      *          , Following illustrates the returned expression which is always a scalar expression having \f$m_i\f$ representing the \f$i^{th}\f$ entity data.
      *
      *          \f[
@@ -349,7 +367,7 @@ public:
     /**
      * @brief Returns an expression having sum of component values for each entity.
      *
-     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ representss \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity
      *          , Following illustrates the returned expression which is always a scalar expression having \f$m_i\f$ representing the \f$i^{th}\f$ entity data.
      *
      *          \f[
@@ -372,7 +390,7 @@ public:
     /**
      * @brief Returns the sum of the expression assuming it is a flat vector [Shape is not considered].
      *
-     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ representss \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity (having \f$M\f$ entities)
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity (having \f$M\f$ entities)
      *          , Following illustrates the returned value where the entity data is flattened.
      *
      *          \f[
@@ -392,7 +410,7 @@ public:
     /**
      * @brief Returns the infinity norm of the expression assuming it is a flat vector [Shape is not considered].
      *
-     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ representss \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity (having \f$M\f$ entities)
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity (having \f$M\f$ entities)
      *          , Following illustrates the returned value where the entity data is flattened.
      *
      *          \f[
@@ -412,7 +430,7 @@ public:
     /**
      * @brief Returns the L2 norm of the expression assuming it is a flat vector [Shape is not considered].
      *
-     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ representss \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity (having \f$M\f$ entities)
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity (having \f$M\f$ entities)
      *          , Following illustrates the returned value where the entity data is flattened.
      *
      *          \f[
@@ -432,7 +450,7 @@ public:
     /**
      * @brief Returns the P norm of the expression assuming it is a flat vector [Shape is not considered].
      *
-     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ representss \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity (having \f$M\f$ entities)
+     * @details If the input @a rpExpression is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity (having \f$M\f$ entities)
      *          , Following illustrates the returned value where the entity data is flattened.
      *
      *          \f[
@@ -454,8 +472,8 @@ public:
     /**
      * @brief Returns the inner product between two expressions.
      *
-     * @details If the input @a rpExpression1 is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ representss \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity (having \f$M\f$ entities)
-     *          and the input @a rpExpression2 is \f$\underline{\mathbb{v}}\f$, where \f$v_{ij}\f$ representss \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity (having \f$M\f$ entities),
+     * @details If the input @a rpExpression1 is \f$\underline{\mathbb{u}}\f$, where \f$u_{ij}\f$ represents \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity (having \f$M\f$ entities)
+     *          and the input @a rpExpression2 is \f$\underline{\mathbb{v}}\f$, where \f$v_{ij}\f$ represents \f$j^{th}\f$ component of the flattened (having \f$N\f$ total components) entity data for \f$i^{th}\f$ entity (having \f$M\f$ entities),
      *          Following illustrates the returned value where the entity data is flattened. This does not consider shapes of the expressions. They should have same size of flattened vectors.
      *
      *          \f[
@@ -553,6 +571,7 @@ public:
 
     KRATOS_EXPRESSION_UTILS_CEXP_METHOD_1(Collapse)
     KRATOS_EXPRESSION_UTILS_CEXP_METHOD_1(Abs)
+    KRATOS_EXPRESSION_UTILS_CEXP_METHOD_1(Log)
     KRATOS_EXPRESSION_UTILS_CEXP_METHOD_1(EntityMin)
     KRATOS_EXPRESSION_UTILS_CEXP_METHOD_1(EntityMax)
     KRATOS_EXPRESSION_UTILS_CEXP_METHOD_1(EntitySum)

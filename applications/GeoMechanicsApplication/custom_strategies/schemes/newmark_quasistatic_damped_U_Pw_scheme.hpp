@@ -21,7 +21,7 @@ namespace Kratos
 {
 
 template <class TSparseSpace, class TDenseSpace>
-class NewmarkQuasistaticDampedUPwScheme : public NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>
+class NewmarkQuasistaticDampedUPwScheme : public GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(NewmarkQuasistaticDampedUPwScheme);
@@ -31,7 +31,12 @@ public:
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
     NewmarkQuasistaticDampedUPwScheme(double beta, double gamma, double theta)
-        : NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>(beta, gamma, theta)
+        : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
+              {FirstOrderScalarVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)},
+              {SecondOrderVectorVariable(DISPLACEMENT), SecondOrderVectorVariable(ROTATION)},
+              beta,
+              gamma,
+              theta)
     {
         // Allocate auxiliary memory
         const auto num_threads = ParallelUtilities::GetNumThreads();

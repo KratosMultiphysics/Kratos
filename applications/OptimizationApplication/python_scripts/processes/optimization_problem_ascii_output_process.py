@@ -7,8 +7,8 @@ from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetAllComponentFullNamesWithData
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetComponentHavingDataByFullName
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetAllComponentFullNamesWithData
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetComponentHavingDataByFullName
 
 def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ExecutionPolicy:
     if not parameters.Has("settings"):
@@ -122,7 +122,7 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
                 # write the step
                 file_output.write("{:>7d}".format(self.optimization_problem.GetStep()))
 
-                # wrtie the values
+                # write the values
                 for component, header_info_dict in self.list_of_headers:
                     componend_data_view = ComponentDataView(component, self.optimization_problem)
                     buffered_dict = componend_data_view.GetBufferedData()

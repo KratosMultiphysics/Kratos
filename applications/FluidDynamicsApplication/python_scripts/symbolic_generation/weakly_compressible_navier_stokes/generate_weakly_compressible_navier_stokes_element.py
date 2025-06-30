@@ -4,7 +4,7 @@ from KratosMultiphysics.sympy_fe_utilities import *
 
 ## Settings explanation
 # DIMENSION TO COMPUTE:
-# This symbolic generator is valid for both 2D and 3D cases. Since the element has been programed with a dimension template in Kratos,
+# This symbolic generator is valid for both 2D and 3D cases. Since the element has been programmed with a dimension template in Kratos,
 # it is advised to set the dim_to_compute flag as "Both". In this case the generated .cpp file will contain both 2D and 3D implementations.
 # LINEARISATION SETTINGS:
 # FullNR considers the convective velocity as "v-vmesh", hence v is taken into account in the derivation of the LHS and RHS.
@@ -118,6 +118,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 
     ## Other data definitions
     f = DefineMatrix('f',nnodes,dim)            # Forcing term
+    v_sol_frac = DefineMatrix('r_v_sol_frac',nnodes,dim) # Solid fraction velocity
 
     ## Constitutive matrix definition
     C = DefineSymmetricMatrix('C',strain_size,strain_size)
@@ -125,7 +126,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     ## Stress vector definition
     stress = DefineVector('stress',strain_size)
 
-    ## Other simbols definition
+    ## Other symbol definitions
     dt = sympy.Symbol('dt', positive = True)         # Time increment
     mu = sympy.Symbol('mu', positive = True)         # Dynamic viscosity
     h = sympy.Symbol('h', positive = True)
@@ -146,6 +147,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     ## Data interpolation to the Gauss points
     f_gauss = f.transpose()*N
     v_gauss = v.transpose()*N
+    v_sol_frac_gauss = v_sol_frac.transpose()*N
 
     ## Convective velocity definition
     if convective_term:
@@ -164,10 +166,10 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         for i in range(0, dim):
             stab_norm_a += vconv_gauss[i]**2
         stab_norm_a = sympy.sqrt(stab_norm_a)
-        tau1 = 1.0/(rho*dyn_tau/dt + stab_c2*rho*stab_norm_a/h + stab_c1*mu/h**2 + stab_c3*sigma/h**2) # Stabilization parameter 1
+        tau1 = 1.0/(rho*dyn_tau/dt + stab_c2*rho*stab_norm_a/h + stab_c1*mu/h**2 + stab_c3*sigma/h)    # Stabilization parameter 1
         tau2 = mu + (stab_c2*rho*stab_norm_a*h + stab_c3*sigma)/stab_c1                                # Stabilization parameter 2
     else:
-        tau1 = 1.0/(rho*dyn_tau/dt + stab_c1*mu/h**2 + stab_c3*sigma/h**2) # Stabilization parameter 1
+        tau1 = 1.0/(rho*dyn_tau/dt + stab_c1*mu/h**2 + stab_c3*sigma/h)    # Stabilization parameter 1
         tau2 = mu + stab_c3*sigma/stab_c1                                  # Stabilization parameter 2
 
     ## Compute the rest of magnitudes at the Gauss points
@@ -205,7 +207,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     ## Compute galerkin functional
     # Navier-Stokes functional
     if divide_by_rho:
-        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - sigma*w_gauss.transpose()*v_gauss - q_gauss*div_v
+        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - sigma*w_gauss.transpose()*(v_gauss-v_sol_frac_gauss) - q_gauss*div_v
         if artificial_compressibility:
             rv_galerkin -= (1/(rho*c*c))*q_gauss*pder_gauss
             if convective_term:
@@ -224,7 +226,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     ##  Stabilization functional terms
     # Momentum conservation residual
     # Note that the viscous stress term is dropped since linear elements are used
-    vel_residual = rho*f_gauss - rho*accel_gauss - grad_p - sigma*v_gauss
+    vel_residual = rho*f_gauss - rho*accel_gauss - grad_p - sigma*(v_gauss-v_sol_frac_gauss)
     if convective_term:
         vel_residual -= rho*convective_term_gauss.transpose()
 

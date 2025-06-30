@@ -80,7 +80,7 @@ namespace Testing {
         auto p_surface = GenerateReferenceNodeSurfacePointer();
         auto p_curve = GenerateReferenceCurve2dPointer();
 
-        auto brep_curve_on_surface = BrepCurveOnSurface< PointerVector<NodeType>, PointerVector<Point>>(
+        auto brep_curve_on_surface = BrepCurveOnSurface< PointerVector<NodeType>, false, PointerVector<Point>>(
             p_surface, p_curve);
 
         // Check general information, input to ouput
@@ -98,10 +98,10 @@ namespace Testing {
         auto p_surface = GenerateReferenceNodeSurfacePointer();
         auto p_curve = GenerateReferenceCurve2dPointer();
 
-        auto brep_curve_on_surface = BrepCurveOnSurface< PointerVector<NodeType>, PointerVector<Point>>(
+        auto brep_curve_on_surface = BrepCurveOnSurface< PointerVector<NodeType>, false, PointerVector<Point>>(
             p_surface, p_curve);
 
-        auto brep_curve_on_surface_2 = BrepCurveOnSurface< PointerVector<NodeType>, PointerVector<Point>>(brep_curve_on_surface);
+        auto brep_curve_on_surface_2 = BrepCurveOnSurface< PointerVector<NodeType>, false, PointerVector<Point>>(brep_curve_on_surface);
 
         KRATOS_EXPECT_EQ(brep_curve_on_surface.WorkingSpaceDimension(), brep_curve_on_surface_2.WorkingSpaceDimension());
         KRATOS_EXPECT_EQ(brep_curve_on_surface.LocalSpaceDimension(), brep_curve_on_surface_2.LocalSpaceDimension());
