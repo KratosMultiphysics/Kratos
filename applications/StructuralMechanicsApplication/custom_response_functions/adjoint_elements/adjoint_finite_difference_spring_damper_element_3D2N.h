@@ -23,7 +23,7 @@ namespace Kratos
  * sensitivity analysis.
  */
 template <typename TPrimalElement>
-class AdjointFiniteDifferenceSpringDamperElement: public AdjointFiniteDifferencingBaseElement<TPrimalElement>
+class KRATOS_API(KRATOS_STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferenceSpringDamperElement: public AdjointFiniteDifferencingBaseElement<TPrimalElement>
 {
 public:
 
