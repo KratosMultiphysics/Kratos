@@ -113,6 +113,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsMohrCoulombWithTensionTests,
                         KratosGeoMechanicsApplyInitialUniformStressFieldTests,
                         KratosGeoMechanicsDirichletReleaseTests,
+                        KratosGeoMechanicsDeactivationWithStructuralTest,
     ]
 
     # Create an array with the selected tests
