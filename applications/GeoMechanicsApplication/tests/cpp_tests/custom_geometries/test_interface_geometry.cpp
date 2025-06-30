@@ -499,6 +499,17 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeLineInterfaceGeometryHasTwoEdgesWithOppo
     AssertNodeIdsOfGeometry(edges(1), {5, 4, 6});
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreePlanarInterfaceGeometryThrowsWhenCallingGenerateEdges,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateThreePlusThreeNoded3DPlanarInterfaceGeometry();
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.GenerateEdges(),
+                                      "Edges can only be generated for line geometries. "
+                                      "This is a planar interface geometry, which does not "
+                                      "support edges.");
+}
+
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingVolume, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateThreePlusThreeNoded2DLineInterfaceGeometry();

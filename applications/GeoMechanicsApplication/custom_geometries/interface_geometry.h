@@ -57,10 +57,7 @@ public:
         return std::make_shared<InterfaceGeometry>(NewGeometryId, rThisPoints);
     }
 
-    [[nodiscard]] double Area() const override
-    {
-        return mMidGeometry->Area();
-    }
+    [[nodiscard]] double Area() const override { return mMidGeometry->Area(); }
 
     [[nodiscard]] double ShapeFunctionValue(IndexType ShapeFunctionIndex,
                                             const CoordinatesArrayType& rLocalCoordinate) const override
@@ -99,8 +96,7 @@ public:
 
     [[nodiscard]] std::string Info() const override
     {
-        return "An interface geometry consisting of two sub-geometries with Info: " +
-               mMidGeometry->Info();
+        return "An interface geometry consisting of two sub-geometries with Info: " + mMidGeometry->Info();
     }
 
     CoordinatesArrayType& PointLocalCoordinates(CoordinatesArrayType& rResult,
@@ -215,6 +211,10 @@ public:
 
     GeometriesArrayType GenerateEdges() const override
     {
+        KRATOS_ERROR_IF_NOT(mMidGeometry->LocalSpaceDimension() == 1)
+            << "Edges can only be generated for line geometries. This is a planar interface "
+               "geometry, which does not support edges.\n";
+
         const auto points = this->Points();
 
         // The first edge coincides with the first side of the element
@@ -264,14 +264,14 @@ public:
 private:
     [[nodiscard]] PointerVector<Node> CreatePointsOfMidGeometry() const
     {
-        const auto points                  = this->Points();
+        const auto points                       = this->Points();
         const auto number_of_mid_geometry_nodes = std::size_t{points.size() / 2};
-        auto       result                  = PointerVector<Node>{number_of_mid_geometry_nodes};
+        auto       result                       = PointerVector<Node>{number_of_mid_geometry_nodes};
 
         auto is_null = [](const auto& rNodePtr) { return rNodePtr == nullptr; };
         if (std::any_of(points.ptr_begin(), points.ptr_end(), is_null)) {
-            // At least one point is not defined, so the points of the mid-geometry can't be computed.
-            // As a result, all the mid-geometry points will be undefined.
+            // At least one point is not defined, so the points of the mid-geometry can't be
+            // computed. As a result, all the mid-geometry points will be undefined.
             return result;
         }
 
