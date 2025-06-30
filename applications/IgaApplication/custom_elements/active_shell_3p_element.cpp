@@ -16,7 +16,7 @@
 // Project includes
 
 // Application includes
-#include "custom_elements/shell_3p_element.h"
+#include "custom_elements/active_shell_3p_element.h"
 
 
 
@@ -25,7 +25,7 @@ namespace Kratos
     ///@name Initialize Functions
     ///@{
 
-    void Shell3pElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
+    void ActiveShell3pElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -65,7 +65,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void Shell3pElement::InitializeMaterial()
+    void ActiveShell3pElement::InitializeMaterial()
     {
         KRATOS_TRY
 
@@ -87,7 +87,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void Shell3pElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+    void ActiveShell3pElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -102,7 +102,7 @@ namespace Kratos
     ///@name Results on Gauss Points
     ///@{
 
-    void Shell3pElement::CalculateOnIntegrationPoints(
+    void ActiveShell3pElement::CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
@@ -237,7 +237,7 @@ namespace Kratos
         }
     }
 
-    void Shell3pElement::CalculateOnIntegrationPoints(
+    void ActiveShell3pElement::CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3 >>& rVariable,
         std::vector<array_1d<double, 3 >>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
@@ -302,7 +302,7 @@ namespace Kratos
     ///@name Assembly
     ///@{
 
-    void Shell3pElement::CalculateAll(
+    void ActiveShell3pElement::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
@@ -412,7 +412,7 @@ namespace Kratos
     ///@name Implicit
     ///@{
 
-    void Shell3pElement::CalculateDampingMatrix(
+    void ActiveShell3pElement::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
         const ProcessInfo& rCurrentProcessInfo
     )
@@ -463,7 +463,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void Shell3pElement::CalculateMassMatrix(
+    void ActiveShell3pElement::CalculateMassMatrix(
         MatrixType& rMassMatrix,
         const ProcessInfo& rCurrentProcessInfo
     )
@@ -511,7 +511,7 @@ namespace Kratos
     ///@name Kinematics
     ///@{
 
-    void Shell3pElement::CalculateKinematics(
+    void ActiveShell3pElement::CalculateKinematics(
         const IndexType IntegrationPointIndex,
         KinematicVariables& rKinematicVariables
     ) const
@@ -552,7 +552,7 @@ namespace Kratos
     *
     *  The transformation from ε_12_cu to 2*ε_12_ca is included in T.
     */
-    void Shell3pElement::CalculateTransformation(
+    void ActiveShell3pElement::CalculateTransformation(
         const KinematicVariables& rKinematicVariables,
         Matrix& rT
     ) const
@@ -606,7 +606,7 @@ namespace Kratos
     /* Computes the transformation matrix T from the local cartesian basis to
     *  the local cartesian basis.
     */
-    void Shell3pElement::CalculateTransformationFromCovariantToCartesian(
+    void ActiveShell3pElement::CalculateTransformationFromCovariantToCartesian(
         const KinematicVariables& rKinematicVariables,
         Matrix& rTCovToCar
     ) const
@@ -644,7 +644,7 @@ namespace Kratos
         rTCovToCar(2, 2) = G_00 * G_11;
     }
 
-    void Shell3pElement::CalculateConstitutiveVariables(
+    void ActiveShell3pElement::CalculateConstitutiveVariables(
         const IndexType IntegrationPointIndex,
         KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
@@ -680,7 +680,7 @@ namespace Kratos
             trans(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix), rThisConstitutiveVariablesCurvature.StrainVector);
     }
 
-    void Shell3pElement::CalculateBMembrane(
+    void ActiveShell3pElement::CalculateBMembrane(
         const IndexType IntegrationPointIndex,
         Matrix& rB,
         const KinematicVariables& rActualKinematic) const
@@ -712,7 +712,7 @@ namespace Kratos
         }
     }
 
-    void Shell3pElement::CalculateBCurvature(
+    void ActiveShell3pElement::CalculateBCurvature(
         const IndexType IntegrationPointIndex,
         Matrix& rB,
         const KinematicVariables& rActualKinematic) const
@@ -785,7 +785,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void Shell3pElement::CalculateSecondVariationStrainCurvature(
+    void ActiveShell3pElement::CalculateSecondVariationStrainCurvature(
         const IndexType IntegrationPointIndex,
         SecondVariations& rSecondVariationsStrain,
         SecondVariations& rSecondVariationsCurvature,
@@ -907,7 +907,7 @@ namespace Kratos
     ///@name Stiffness matrix assembly
     ///@{
 
-    inline void Shell3pElement::CalculateAndAddKm(
+    inline void ActiveShell3pElement::CalculateAndAddKm(
         MatrixType& rLeftHandSideMatrix,
         const Matrix& rB,
         const Matrix& rD,
@@ -917,7 +917,7 @@ namespace Kratos
         noalias(rLeftHandSideMatrix) += IntegrationWeight * prod(trans(rB), Matrix(prod(rD, rB)));
     }
 
-    inline void Shell3pElement::CalculateAndAddNonlinearKm(
+    inline void ActiveShell3pElement::CalculateAndAddNonlinearKm(
         Matrix& rLeftHandSideMatrix,
         const SecondVariations& rSecondVariationsStrain,
         const Vector& rSD,
@@ -945,7 +945,7 @@ namespace Kratos
     ///@name Stress recovery
     ///@{
     
-    void Shell3pElement::CalculatePK2Stress(
+    void ActiveShell3pElement::CalculatePK2Stress(
         const IndexType IntegrationPointIndex,
         array_1d<double, 3>& rPK2MembraneStressCartesian,
         array_1d<double, 3>& rPK2BendingStressCartesian,
@@ -978,7 +978,7 @@ namespace Kratos
         rPK2BendingStressCartesian = -1.0 * constitutive_variables_curvature.StressVector / pow(thickness, 2) * 12;
     }
     
-    void Shell3pElement::CalculateCauchyStress(
+    void ActiveShell3pElement::CalculateCauchyStress(
         const IndexType IntegrationPointIndex,
         array_1d<double, 3>& rCauchyMembraneStressesCartesian, 
         array_1d<double, 3>& rCauchyBendingStressesCartesian, 
@@ -1024,7 +1024,7 @@ namespace Kratos
         rCauchyBendingStressesCartesian = bending_stress_cau_car;
     }
 
-    void Shell3pElement::CalculateShearForce(
+    void ActiveShell3pElement::CalculateShearForce(
         const IndexType IntegrationPointIndex,
         array_1d<double, 2>& rq, 
         const ProcessInfo& rCurrentProcessInfo) const
@@ -1155,7 +1155,7 @@ namespace Kratos
         rq[1] = inner_prod(e2, kinematic_variables.a2) * q_cau_cov[1];
     }
 
-    void Shell3pElement::CalculateDerivativeOfCurvatureInitial(
+    void ActiveShell3pElement::CalculateDerivativeOfCurvatureInitial(
         const IndexType IntegrationPointIndex,
         array_1d<double, 3>& rDCurvature_D1,
         array_1d<double, 3>& rDCurvature_D2,
@@ -1234,7 +1234,7 @@ namespace Kratos
         rDCurvature_D2[2] = inner_prod(DDa2_DD21, a3) + inner_prod(Da1_D2, Da3_D2);
     }
     
-    void Shell3pElement::CalculateDerivativeOfCurvatureActual(
+    void ActiveShell3pElement::CalculateDerivativeOfCurvatureActual(
         const IndexType IntegrationPointIndex,
         array_1d<double, 3>& rDCurvature_D1,
         array_1d<double, 3>& rDCurvature_D2,
@@ -1281,7 +1281,7 @@ namespace Kratos
         rDCurvature_D2[2] = inner_prod(DDa2_DD21, rKinematicVariables.a3) + inner_prod(Da1_D2, Da3_D2);
     }
 
-    void Shell3pElement::CalculateDerivativeTransformationMatrices(
+    void ActiveShell3pElement::CalculateDerivativeTransformationMatrices(
         const IndexType IntegrationPointIndex,
         std::vector<Matrix>& rDQ_Dalpha_init,
         std::vector<Matrix>& rDTransCartToCov_Dalpha_init,
@@ -1447,7 +1447,7 @@ namespace Kratos
     ///@name Dynamic Functions
     ///@{
 
-    void Shell3pElement::GetValuesVector(
+    void ActiveShell3pElement::GetValuesVector(
         Vector& rValues,
         int Step) const
     {
@@ -1468,7 +1468,7 @@ namespace Kratos
         }
     }
 
-    void Shell3pElement::GetFirstDerivativesVector(
+    void ActiveShell3pElement::GetFirstDerivativesVector(
         Vector& rValues,
         int Step) const
     {
@@ -1488,7 +1488,7 @@ namespace Kratos
         }
     }
 
-    void Shell3pElement::GetSecondDerivativesVector(
+    void ActiveShell3pElement::GetSecondDerivativesVector(
         Vector& rValues,
         int Step) const
     {
@@ -1508,7 +1508,7 @@ namespace Kratos
         }
     }
 
-    void Shell3pElement::EquationIdVector(
+    void ActiveShell3pElement::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -1532,7 +1532,7 @@ namespace Kratos
         KRATOS_CATCH("")
     };
 
-    void Shell3pElement::GetDofList(
+    void ActiveShell3pElement::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -1557,7 +1557,7 @@ namespace Kratos
     ///@name Check
     ///@{
 
-    int Shell3pElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+    int ActiveShell3pElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         // Verify that the constitutive law exists
         if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
@@ -1579,7 +1579,7 @@ namespace Kratos
         return 0;
     }
 
-    void Shell3pElement::CalculateHessian(
+    void ActiveShell3pElement::CalculateHessian(
         Matrix& Hessian,
         const Matrix& rDDN_DDe) const
     {
@@ -1606,7 +1606,7 @@ namespace Kratos
         }
     }
 
-    void Shell3pElement::CalculateSecondDerivativesOfBaseVectors(
+    void ActiveShell3pElement::CalculateSecondDerivativesOfBaseVectors(
         const Matrix& rDDDN_DDDe,
         array_1d<double, 3>& rDDa1_DD11,
         array_1d<double, 3>& rDDa1_DD12,

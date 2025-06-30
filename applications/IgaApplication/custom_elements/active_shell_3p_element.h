@@ -1,6 +1,4 @@
-#if !defined(KRATOS_SHELL_3P_ELEMENT_H_INCLUDED )
-#define  KRATOS_SHELL_3P_ELEMENT_H_INCLUDED
-
+#pragma once
 
 // System includes
 
@@ -21,7 +19,7 @@ namespace Kratos
 /// Short class definition.
 /** Kirchhoff-Love Shell. Optimized for Isogeometric Analysis by Kiendl et al. .
 */
-class KRATOS_API(IGA_APPLICATION) Shell3pElement
+class KRATOS_API(IGA_APPLICATION) ActiveShell3pElement
     : public Element
 {
 protected:
@@ -109,8 +107,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of Shell3pElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Shell3pElement);
+    /// Counted pointer of ActiveShell3pElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ActiveShell3pElement);
 
     /// Size types
     typedef std::size_t SizeType;
@@ -124,14 +122,14 @@ public:
     ///@{
 
     /// Constructor using an array of nodes
-    Shell3pElement(
+    ActiveShell3pElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
     {};
 
     /// Constructor using an array of nodes with properties
-    Shell3pElement(
+    ActiveShell3pElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -139,12 +137,12 @@ public:
     {};
 
     /// Default constructor necessary for serialization
-    Shell3pElement()
+    ActiveShell3pElement()
         : Element()
     {};
 
     /// Destructor.
-    virtual ~Shell3pElement() = default;
+    virtual ~ActiveShell3pElement() = default;
 
     ///@}
     ///@name Life Cycle
@@ -157,7 +155,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<Shell3pElement>(
+        return Kratos::make_intrusive<ActiveShell3pElement>(
             NewId, pGeom, pProperties);
     };
 
@@ -168,7 +166,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive< Shell3pElement >(
+        return Kratos::make_intrusive< ActiveShell3pElement >(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -355,14 +353,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Kirchhoff-Love Shell3pElement #" << Id();
+        buffer << "Kirchhoff-Love ActiveShell3pElement #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Kirchhoff-Love Shell3pElement #" << Id();
+        rOStream << "Kirchhoff-Love ActiveShell3pElement #" << Id();
     }
 
     /// Print object's data.
@@ -569,9 +567,7 @@ private:
 
     ///@}
 
-};     // Class Shell3pElement
+};     // Class ActiveShell3pElement
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MESHLESS_SHELL_3P_ELEMENT_H_INCLUDED  defined
