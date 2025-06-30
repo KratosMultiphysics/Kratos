@@ -109,7 +109,7 @@ def _ValidateAndAssignDofDefaults(dof_settings, available_dofs):
     active_dofs = []
 
     # Read entries from the project parameters and check they are not repeated
-    for entry in dof_settings:
+    for entry in dof_settings.values():
         # Clone the data so the modifications don't affect previously processed entries
         dof_data = entry.Clone()
         # Check that the selected DOF is among the available ones
@@ -152,7 +152,7 @@ def _CreateListOfProcesses(model, parameters, main_model_part):
     if parameters.Has("processes"):
         for process_type in process_types:
             if parameters["processes"].Has(process_type):
-                for process in parameters["processes"][process_type]:
+                for process in parameters["processes"][process_type].values():
                     python_module = process["python_module"].GetString()
                     kratos_module = process["kratos_module"].GetString()
                     process_module = import_module(kratos_module + "." + python_module)
@@ -167,7 +167,7 @@ def _CreateListOfOutputProcesses(model, parameters):
     # Import the processes and save them in a list
     list_of_output_processes = []
     if parameters.Has("output_processes"):
-        for process in parameters["output_processes"]:
+        for process in parameters["output_processes"].values():
             python_module = process["python_module"].GetString()
             kratos_module = process["kratos_module"].GetString()
             process_module = import_module(kratos_module + "." + python_module)
