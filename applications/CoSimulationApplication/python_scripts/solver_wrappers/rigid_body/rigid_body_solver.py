@@ -14,7 +14,7 @@ import os
 
 class RigidBodySolver:
     """
-    This class implements a Rigid Body within Kratos. It can be seen as a combination of 6 single-degree-of-freedom
+    @details This class implements a Rigid Body within Kratos. It can be seen as a combination of 6 single-degree-of-freedom
     (SDOF) solvers, solving independently the 3 displacements and 3 rotations of a rigid body. It is meant to be used
     with CoSimulationApplication (e.g. rigid object submerged in a certain flow). For standalone usage, it can also
     be called directly, since the class acts at the same time as a solver and as an analysis.
@@ -40,7 +40,7 @@ class RigidBodySolver:
          Node 2                 REACTION, REACTION_MOMENT                      |
          (0,0,0)                PRESCRIBED_DISPLACEMENT, PRESCRIBED_ROTATION   /
 
-    It is possible to apply forces to the rigid body as well as displacements to the reference point (e.g. to be used
+    @note It is possible to apply forces to the rigid body as well as displacements to the reference point (e.g. to be used
     as a TMD). The "PRESCRIBED_*" variables have the same behaviour as their original version but are necessary to avoid
     overwriting data in some cases (e.g. when a force comes from another solver with CoSimulation but an extra force must
     be prescribed directly from the project parameters).
