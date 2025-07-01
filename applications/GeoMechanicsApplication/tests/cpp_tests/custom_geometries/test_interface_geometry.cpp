@@ -510,6 +510,30 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreePlanarInterfaceGeometryThrowsWhenCalling
                                       "support edges.");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreePlanarInterfaceGeometryHasTwoPlanesWithOppositeOrientations,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateThreePlusThreeNoded3DPlanarInterfaceGeometry();
+
+    const auto edges = geometry.GenerateFaces();
+
+    KRATOS_EXPECT_EQ(edges.size(), 2);
+    AssertNodeIdsOfGeometry(edges(0), {1, 2, 3});
+    AssertNodeIdsOfGeometry(edges(1), {5, 4, 6});
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoLineInterfaceGeometryThrowsWhenCallingGenerateFaces,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateTwoPlusTwoNoded2DLineInterfaceGeometry();
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geometry.GenerateFaces(),
+                                      "Faces can only be generated for planar geometries. "
+                                      "This is a line interface geometry, which does not "
+                                      "support faces.");
+}
+
+
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingVolume, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateThreePlusThreeNoded2DLineInterfaceGeometry();
