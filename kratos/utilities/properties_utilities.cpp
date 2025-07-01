@@ -28,8 +28,8 @@ void CopyPropertiesValues(
 {
     KRATOS_TRY
 
-    const auto& r_origin_data = rOriginProperties.Data();
-    auto& r_destination_data = rDestinatiionProperties.Data();
+    const auto& r_origin_data = rOriginProperties.GetData();
+    auto& r_destination_data = rDestinatiionProperties.GetData();
     if (!r_destination_data.IsEmpty()) r_destination_data.Clear();
 
     // Copy data

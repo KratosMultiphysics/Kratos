@@ -332,24 +332,6 @@ protected:
         KRATOS_CATCH("")
     }
 
-    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
-
-        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
-            // For the Newmark schemes the second derivatives should be updated before calculating the first derivatives
-            this->UpdateVectorSecondTimeDerivative(rNode);
-            this->UpdateVectorFirstTimeDerivative(rNode);
-
-            for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
-                this->UpdateScalarTimeDerivative(rNode, r_first_order_scalar_variable.instance,
-                                                 r_first_order_scalar_variable.first_time_derivative);
-            }
-        });
-
-        KRATOS_CATCH("")
-    }
-
 private:
     std::vector<Matrix> mMassMatrix;
     std::vector<Vector> mAccelerationVector;
