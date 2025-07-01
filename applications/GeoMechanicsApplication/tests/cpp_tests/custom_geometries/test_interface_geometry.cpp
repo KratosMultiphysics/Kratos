@@ -15,6 +15,7 @@
 #include "geometries/geometry_data.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
+#include "geometries/quadrilateral_3d_4.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/triangle_3d_6.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -76,6 +77,20 @@ auto CreateSixPlusSixNoded3DPlanarInterfaceGeometry()
     nodes.push_back(Kratos::make_intrusive<Node>(11, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(12, 0.0, 0.0, 0.0));
     return InterfaceGeometry<Triangle3D6<Node>>{1, nodes};
+}
+
+auto CreateFourPlusFourNoded3DPlanarInterfaceGeometry()
+{
+    PointerVector<Node> nodes;
+    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 1.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(5, 0.0, 0.0, 0.5));
+    nodes.push_back(Kratos::make_intrusive<Node>(6, 1.0, 0.0, 0.5));
+    nodes.push_back(Kratos::make_intrusive<Node>(7, 1.0, 1.0, 0.5));
+    nodes.push_back(Kratos::make_intrusive<Node>(8, 0.0, 1.0, 0.5));
+    return InterfaceGeometry<Quadrilateral3D4<Node>>{1, nodes};
 }
 
 void AssertNodeIdsOfGeometry(const Geometry<Node>::Pointer&  rGeometryPtr,
@@ -208,10 +223,10 @@ KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithThreeNodesThrows, KratosGeoMechan
     nodes.push_back(Kratos::make_intrusive<Node>(3, -1.0, 0.0, 0.0));
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(InterfaceGeometry<Line2D3<Node>>{nodes},
-                                      "Number of nodes must be 2+2, 3+3 or 6+6")
+                                      "Number of nodes must be 2+2, 3+3, 6+6, 4+4 or 8+8")
     constexpr auto geometry_id = 1;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((InterfaceGeometry<Line2D3<Node>>{geometry_id, nodes}),
-                                      "Number of nodes must be 2+2, 3+3 or 6+6")
+                                      "Number of nodes must be 2+2, 3+3, 6+6, 4+4 or 8+8")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForTwoPlusTwoNodedGeometry,
@@ -545,11 +560,23 @@ KRATOS_TEST_CASE_IN_SUITE(SixPlusSixPlanarInterfaceGeometryHasTwoPlanesWithOppos
 {
     const auto geometry = CreateSixPlusSixNoded3DPlanarInterfaceGeometry();
 
-    const auto edges = geometry.GenerateFaces();
+    const auto faces = geometry.GenerateFaces();
 
-    KRATOS_EXPECT_EQ(edges.size(), 2);
-    AssertNodeIdsOfGeometry(edges(0), {1, 2, 3, 4, 5, 6});
-    AssertNodeIdsOfGeometry(edges(1), {7, 9, 8, 12, 11, 10});
+    KRATOS_EXPECT_EQ(faces.size(), 2);
+    AssertNodeIdsOfGeometry(faces(0), {1, 2, 3, 4, 5, 6});
+    AssertNodeIdsOfGeometry(faces(1), {7, 9, 8, 12, 11, 10});
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FourPlusFourPlanarInterfaceGeometryHasTwoPlanesWithOppositeOrientations,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateFourPlusFourNoded3DPlanarInterfaceGeometry();
+
+    const auto faces = geometry.GenerateFaces();
+
+    KRATOS_EXPECT_EQ(faces.size(), 2);
+    AssertNodeIdsOfGeometry(faces(0), {1, 2, 3, 4});
+    AssertNodeIdsOfGeometry(faces(1), {5, 8, 7, 6});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoLineInterfaceGeometryThrowsWhenCallingGenerateFaces,
@@ -562,7 +589,6 @@ KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoLineInterfaceGeometryThrowsWhenCallingGenera
                                       "This is a line interface geometry, which does not "
                                       "support faces.");
 }
-
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingVolume, KratosGeoMechanicsFastSuiteWithoutKernel)
 {

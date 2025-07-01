@@ -39,8 +39,9 @@ public:
     InterfaceGeometry(IndexType NewGeometryId, const PointsArrayType& rThisPoints)
         : BaseType(NewGeometryId, rThisPoints)
     {
-        KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6 || rThisPoints.size() == 12))
-            << "Number of nodes must be 2+2, 3+3 or 6+6\n";
+        KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6 || rThisPoints.size() == 12)||
+                            (rThisPoints.size() == 8) || (rThisPoints.size() == 16))
+            << "Number of nodes must be 2+2, 3+3, 6+6, 4+4 or 8+8\n";
 
         mMidGeometry = std::make_unique<MidGeometryType>(CreatePointsOfMidGeometry());
         this->SetGeometryData(&mMidGeometry->GetGeometryData());
@@ -247,9 +248,14 @@ public:
 
         // The second face coincides with the second side of the element. However, the nodes must be
         // traversed in opposite direction.
-        auto nodes_of_second_edge = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
-        std::reverse(nodes_of_second_edge.ptr_begin() + 1, nodes_of_second_edge.ptr_begin() + 3);
-        std::reverse(nodes_of_second_edge.ptr_begin() + 3, nodes_of_second_edge.ptr_end()); // any high-order nodes
+        auto   nodes_of_second_edge = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
+
+        // For planes, we assume the number of edges is always equal to the number of corner points.
+        const auto number_of_corner_points = mMidGeometry->EdgesNumber();
+        auto end_of_corner_points = nodes_of_second_edge.ptr_begin() + number_of_corner_points;
+
+        std::reverse(nodes_of_second_edge.ptr_begin() + 1, end_of_corner_points);
+        std::reverse(end_of_corner_points, nodes_of_second_edge.ptr_end()); // any high-order nodes
 
         auto result = GeometriesArrayType{};
         result.push_back(std::make_shared<MidGeometryType>(nodes_of_first_face));
