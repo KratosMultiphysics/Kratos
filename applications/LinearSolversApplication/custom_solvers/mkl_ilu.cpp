@@ -117,17 +117,14 @@ MKLILUSmootherBase<TSparse,TDense>::~MKLILUSmootherBase() = default;
 
 /// Compute the incomplete LU factorization.
 template <class TSparse, class TDense>
-void MKLILUSmootherBase<TSparse,TDense>::ProvideAdditionalData(typename Base::SparseMatrix& rLhs,
-                                                               typename Base::Vector& rSolution,
-                                                               typename Base::Vector& rRhs,
-                                                               ModelPart::DofsArrayType& rDofSet,
-                                                               ModelPart& rModelPart)
+void MKLILUSmootherBase<TSparse,TDense>::InitializeSolutionStep(typename Base::SparseMatrix& rLhs,
+                                                                typename Base::Vector& rSolution,
+                                                                typename Base::Vector& rRhs)
 {
     KRATOS_TRY
-    Base::ProvideAdditionalData(rLhs, rSolution, rRhs, rDofSet, rModelPart);
+    Base::InitializeSolutionStep(rLhs, rSolution, rRhs);
     KRATOS_CATCH("")
 
-    MKL_INT error = 0;
     KRATOS_TRY
     if (!rLhs.nnz()) return;
 
@@ -153,9 +150,7 @@ void MKLILUSmootherBase<TSparse,TDense>::ProvideAdditionalData(typename Base::Sp
                     lhs_view,
                     mpImpl->ipar,
                     mpImpl->dpar);
-
     KRATOS_CATCH("")
-    KRATOS_ERROR_IF(error) << "dcsrilut terminated with error code " << error;
 
     KRATOS_TRY
     mpImpl->mpLUAdaptor.reset(new sparse_matrix_t);
@@ -206,15 +201,20 @@ bool MKLILUSmootherBase<TSparse,TDense>::Solve(typename Base::CSRView LhsView,
                                                typename Base::template VectorView</*IsMutable=*/true> SolutionView,
                                                typename Base::template VectorView</*IsMutable=*/false> RhsView)
 {
-    KRATOS_ERROR_IF_NOT(mpImpl->mpLUAdaptor) << "MKLILUSmootherBase::ProvideAdditionalData must be called before MKLILUSmootherBase::Solve";
+    // State checks.
+    KRATOS_ERROR_IF_NOT(mpImpl->mpLUAdaptor) << "MKLILUSmootherBase::InitializeSolutionStep must be called before MKLILUSmootherBase::Solve";
+
+    // Sanity checks.
     KRATOS_ERROR_IF_NOT(static_cast<MKL_INT>(mpImpl->mBuffer.size()) == LhsView.row_count);
     KRATOS_ERROR_IF_NOT(LhsView.row_count == LhsView.column_count);
     KRATOS_ERROR_IF_NOT(LhsView.row_count == SolutionView.size);
     KRATOS_ERROR_IF_NOT(SolutionView.size == RhsView.size);
 
+    // Define matrix properties.
     matrix_descr lu_properties;
     lu_properties.type = SPARSE_MATRIX_TYPE_TRIANGULAR;
 
+    // Perform substitutions.
     for (MKL_INT i_sweep=0; i_sweep<mpImpl->mIterations; ++i_sweep) {
         // Forward substitution.
         KRATOS_TRY
@@ -308,7 +308,7 @@ void MKLILU0Smoother<TSparse,TDense>::Factorize(std::vector<int>& rRowExtents,
              rEntries.data(),
              rIntegerSettings.data(),
              rNumericSettings.data(),
-            &return_code);
+             &return_code);
 
     std::copy(LhsView.it_row_begin,
               LhsView.it_row_begin + LhsView.row_count + 1,
@@ -318,7 +318,7 @@ void MKLILU0Smoother<TSparse,TDense>::Factorize(std::vector<int>& rRowExtents,
               LhsView.it_column_begin + LhsView.entry_count,
               rColumnIndices.data());
 
-    KRATOS_ERROR_IF(return_code) << "dcsrilut terminated with error code " << return_code;
+    KRATOS_ERROR_IF(return_code) << "dcsrilu0 terminated with error code " << return_code;
     KRATOS_CATCH("")
 }
 
@@ -384,7 +384,7 @@ void MKLILUTSmoother<TSparse,TDense>::Factorize(std::vector<int>& rRowExtents,
              &mFillFactor,
              rIntegerSettings.data(),
              rNumericSettings.data(),
-            &return_code);
+             &return_code);
 
     KRATOS_ERROR_IF(return_code) << "dcsrilut terminated with error code " << return_code;
     KRATOS_CATCH("")

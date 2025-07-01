@@ -73,6 +73,12 @@ public:
 
     ~MKLSmootherBase();
 
+    /// @copydoc Base::InitializeSolutionStep
+    void InitializeSolutionStep(SparseMatrix& rLhs, Vector& rSolution, Vector& rRhs) override;
+
+    /// @copydoc Base::PerformSolutionStep
+    void PerformSolutionStep(SparseMatrix& rLhs, Vector& rSolution, Vector& rRhs) override;
+
     /// @copydoc Base::Solve(SparseMatrix&,Vector&,Vector&)
     bool Solve(SparseMatrix& rLhs, Vector& rSolution, Vector& rRhs) final override;
 
@@ -80,22 +86,11 @@ public:
     bool Solve(SparseMatrix& rLhs, DenseMatrix& rSolutions, DenseMatrix& rRhsVectors) final override
     {KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not supported";}
 
-    /// @copydoc Base::AdditionalPhysicalDataIsNeeded
-    bool AdditionalPhysicalDataIsNeeded() final override
-    {return true;}
-
     void FinalizeSolutionStep(SparseMatrix& rLhs,
                               Vector& rSolution,
                               Vector& rRhs) override;
 
     void Clear() override;
-
-    /// @copydoc Base::ProvideAdditionalData
-    void ProvideAdditionalData(SparseMatrix& rLhs,
-        Vector& rSolution,
-        Vector& rRhs,
-        ModelPart::DofsArrayType& rDofSet,
-        ModelPart& rModelPart) override;
 
 protected:
     std::tuple<

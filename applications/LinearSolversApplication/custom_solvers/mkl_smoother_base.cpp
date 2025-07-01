@@ -55,36 +55,11 @@ template <class TSparse, class TDense>
 MKLSmootherBase<TSparse,TDense>::~MKLSmootherBase() = default;
 
 
-template <class TSparse, class TDense>
-bool MKLSmootherBase<TSparse,TDense>::Solve(SparseMatrix& rLhs,
-                                          Vector& rSolution,
-                                          Vector& rRhs)
-{
-    if (!rLhs.nnz()) return true;
-
-    // Sanity checks.
-    KRATOS_ERROR_IF_NOT(rSolution.size());
-    KRATOS_ERROR_IF_NOT(rRhs.size());
-
-    KRATOS_TRY
-    auto [lhs_view, solution_view, rhs_view] = this->MakeSystemView(
-        rLhs,
-        &*rSolution.begin(),
-        (&*rSolution.begin()) + rSolution.size(),
-        &*rRhs.begin(),
-        (&*rRhs.begin()) + rRhs.size());
-    return this->Solve(lhs_view, solution_view, rhs_view);
-    KRATOS_CATCH("")
-}
-
-
 /// Copy and transform the index arrays to MKL_INT, and a 1-based indices. ...
 template <class TSparse, class TDense>
-void MKLSmootherBase<TSparse,TDense>::ProvideAdditionalData(SparseMatrix& rLhs,
-                                                          Vector&,
-                                                          Vector&,
-                                                          ModelPart::DofsArrayType&,
-                                                          ModelPart&)
+void MKLSmootherBase<TSparse,TDense>::InitializeSolutionStep(SparseMatrix& rLhs,
+                                                             Vector&,
+                                                             Vector&)
 {
     KRATOS_TRY
     mpImpl->mMaybeRowExtents.emplace(rLhs.index1_data().size());
@@ -106,9 +81,50 @@ void MKLSmootherBase<TSparse,TDense>::ProvideAdditionalData(SparseMatrix& rLhs,
 
 
 template <class TSparse, class TDense>
+void MKLSmootherBase<TSparse,TDense>::PerformSolutionStep(SparseMatrix& rLhs,
+                                                          Vector& rSolution,
+                                                          Vector& rRhs)
+{
+    //if (!rLhs.nnz()) return true;
+    if (!rLhs.nnz()) return;
+
+    // Sanity checks.
+    KRATOS_ERROR_IF_NOT(rSolution.size());
+    KRATOS_ERROR_IF_NOT(rRhs.size());
+
+    KRATOS_TRY
+    auto [lhs_view, solution_view, rhs_view] = this->MakeSystemView(
+        rLhs,
+        &*rSolution.begin(),
+        (&*rSolution.begin()) + rSolution.size(),
+        &*rRhs.begin(),
+        (&*rRhs.begin()) + rRhs.size());
+    //return this->Solve(lhs_view, solution_view, rhs_view);
+    this->Solve(lhs_view, solution_view, rhs_view);
+    KRATOS_CATCH("")
+}
+
+
+template <class TSparse, class TDense>
+bool MKLSmootherBase<TSparse,TDense>::Solve(SparseMatrix& rLhs,
+                                            Vector& rSolution,
+                                            Vector& rRhs)
+{
+    KRATOS_TRY
+    this->InitializeSolutionStep(rLhs, rSolution, rRhs);
+    //return this->PerformSolutionStep(rLhs, rSolution, rRhs);
+    this->PerformSolutionStep(rLhs, rSolution, rRhs);
+    this->FinalizeSolutionStep(rLhs, rSolution, rRhs);
+    this->Clear();
+    return false;
+    KRATOS_CATCH("")
+}
+
+
+template <class TSparse, class TDense>
 void MKLSmootherBase<TSparse,TDense>::FinalizeSolutionStep(SparseMatrix&,
-                                                         Vector&,
-                                                         Vector&)
+                                                           Vector&,
+                                                           Vector&)
 {
 }
 

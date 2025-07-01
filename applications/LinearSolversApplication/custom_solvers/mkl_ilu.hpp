@@ -41,11 +41,9 @@ public:
 
     ~MKLILUSmootherBase();
 
-    void ProvideAdditionalData(typename Base::SparseMatrix& rLhs,
-                               typename Base::Vector& rSolution,
-                               typename Base::Vector& rRhs,
-                               ModelPart::DofsArrayType& rDofSet,
-                               ModelPart& rModelPart) final override;
+    void InitializeSolutionStep(typename Base::SparseMatrix& rLhs,
+                                typename Base::Vector& rSolution,
+                                typename Base::Vector& rRhs) final override;
 
     static Parameters GetDefaultParameters();
 
