@@ -70,7 +70,7 @@ public:
     /**
      * @brief Checks if the given shape is valid.
      *
-     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeBegin           Beginning of the shape array.
      * @param pShapeEnd             End of the shape array.
      */
     template<class TIteratorType>
