@@ -19,11 +19,13 @@
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
+#include "custom_utilities/registration_utilities.h"
 
 namespace
 {
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 ModelPart& CreateModelPartWithSolutionStepVariables(Model& rModel)
 {
@@ -1291,4 +1293,50 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_CalculateLocalSystemWithPre
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_SaveLoad, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
+    auto p_element =
+        CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
+    SetBasicPropertiesAndVariables(p_element);
+    p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 0.5);
+    p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
+    p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
+    p_element->GetProperties().SetValue(POROSITY, 0.1);
+    p_element->GetProperties().SetValue(IGNORE_UNDRAINED, false);
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+    p_element->InitializeSolutionStep(dummy_process_info);
+
+    const auto triangle_2D3N = static_cast<Triangle2D3<Node>>(p_element->GetGeometry());
+    const auto scoped_registration_geometry = ScopedSerializerRegistration{p_element->GetGeometry().Name(), triangle_2D3N};
+    const auto scoped_registration_law = ScopedSerializerRegistration{"SaturatedLaw"s, SaturatedLaw()};
+    auto serializer = StreamSerializer{};
+
+    // Act
+    serializer.save("test_tag"s, p_element);
+    auto p_loaded_element = CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
+    SetBasicPropertiesAndVariables(p_loaded_element);
+    //serializer.load("test_tag"s, p_loaded_element);
+
+    // Assert
+    Vector actual_right_hand_side;
+    Matrix actual_left_hand_side;
+    p_loaded_element->CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
+
+    Matrix expected_left_hand_side(3, 3);
+    // clang-format off
+    expected_left_hand_side <<= -49.999999999999993,0,49.999999999999993,
+                                 0,0,0,
+                                 49.999999999999993,0,-49.999999999999993;
+    // clang-format on
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+
+    Vector expected_right_hand_side(3);
+    expected_right_hand_side <<= 500000, 0, -500000;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
+}
 } // namespace Kratos::Testing
