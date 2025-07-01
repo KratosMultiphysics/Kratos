@@ -10,6 +10,7 @@
 //  Main authors:    Anne van de Graaf
 //
 #include "dgeosettlement.h"
+#include "geo_mechanics_application.h"
 #include "input_output/logger.h"
 #include "time_loop_executor_interface.h"
 
