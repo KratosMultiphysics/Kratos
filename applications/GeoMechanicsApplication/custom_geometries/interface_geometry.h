@@ -239,14 +239,15 @@ public:
         // The second face coincides with the second side of the element. However, the nodes must be
         // traversed in opposite direction.
         auto nodes_of_second_edge = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
-
         auto end_of_corner_points = nodes_of_second_edge.ptr_begin() + GetNumberOfCornerPoints();
 
-        auto begin_of_corner_points =
+        // For line geometries we want to reverse all 'corner points', while for planes we don't change the
+        // starting node, but only reverse the order of the rest of the corner points.
+        auto begin_of_corner_points_to_reverse =
             mMidGeometry->GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear
                 ? nodes_of_second_edge.ptr_begin()
                 : nodes_of_second_edge.ptr_begin() + 1;
-        std::reverse(begin_of_corner_points, end_of_corner_points);
+        std::reverse(begin_of_corner_points_to_reverse, end_of_corner_points);
         std::reverse(end_of_corner_points, nodes_of_second_edge.ptr_end()); // any high-order nodes
 
         auto result = GeometriesArrayType{};
