@@ -308,7 +308,6 @@ private:
         return result;
     }
 
-private:
     [[nodiscard]] std::size_t GetNumberOfCornerPoints() const
     {
         const auto geometry_family = mMidGeometry->GetGeometryFamily();
