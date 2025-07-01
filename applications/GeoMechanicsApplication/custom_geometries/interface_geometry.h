@@ -212,7 +212,7 @@ public:
 
     GeometriesArrayType GenerateEdges() const override
     {
-        KRATOS_ERROR_IF_NOT(mMidGeometry->LocalSpaceDimension() == 1)
+        KRATOS_ERROR_IF_NOT(mMidGeometry->GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear)
             << "Edges can only be generated for line geometries. This is a planar interface "
                "geometry, which does not support edges.\n";
 
@@ -225,7 +225,7 @@ public:
         // The second edge coincides with the second side of the element. However, the nodes must be
         // traversed in opposite direction.
         auto nodes_of_second_edge = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
-        std::swap(nodes_of_second_edge(0), nodes_of_second_edge(1)); // end nodes
+        std::reverse(nodes_of_second_edge.ptr_begin(), nodes_of_second_edge.ptr_begin() + 2); // end nodes
         std::reverse(nodes_of_second_edge.ptr_begin() + 2, nodes_of_second_edge.ptr_end()); // any high-order nodes
 
         auto result = GeometriesArrayType{};
@@ -236,7 +236,7 @@ public:
 
     GeometriesArrayType GenerateFaces() const override
     {
-        KRATOS_ERROR_IF(mMidGeometry->LocalSpaceDimension() == 1)
+        KRATOS_ERROR_IF(mMidGeometry->GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear)
             << "Faces can only be generated for planar geometries. This is a line "
                "interface geometry, which does not support faces.\n";
 
