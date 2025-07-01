@@ -39,7 +39,7 @@ public:
     InterfaceGeometry(IndexType NewGeometryId, const PointsArrayType& rThisPoints)
         : BaseType(NewGeometryId, rThisPoints)
     {
-        KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6 || rThisPoints.size() == 12)||
+        KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6 || rThisPoints.size() == 12) ||
                             (rThisPoints.size() == 8) || (rThisPoints.size() == 16))
             << "Number of nodes must be 2+2, 3+3, 6+6, 4+4 or 8+8\n";
 
@@ -216,22 +216,7 @@ public:
             << "Edges can only be generated for line geometries. This is a planar interface "
                "geometry, which does not support edges.\n";
 
-        const auto points = this->Points();
-
-        // The first edge coincides with the first side of the element
-        auto begin_of_second_side = points.ptr_begin() + (points.size() / 2);
-        const auto nodes_of_first_edge = PointerVector<Node>{points.ptr_begin(), begin_of_second_side};
-
-        // The second edge coincides with the second side of the element. However, the nodes must be
-        // traversed in opposite direction.
-        auto nodes_of_second_edge = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
-        std::reverse(nodes_of_second_edge.ptr_begin(), nodes_of_second_edge.ptr_begin() + 2); // end nodes
-        std::reverse(nodes_of_second_edge.ptr_begin() + 2, nodes_of_second_edge.ptr_end()); // any high-order nodes
-
-        auto result = GeometriesArrayType{};
-        result.push_back(std::make_shared<MidGeometryType>(nodes_of_first_edge));
-        result.push_back(std::make_shared<MidGeometryType>(nodes_of_second_edge));
-        return result;
+        return GenerateTwoSides();
     }
 
     GeometriesArrayType GenerateFaces() const override
@@ -240,6 +225,11 @@ public:
             << "Faces can only be generated for planar geometries. This is a line "
                "interface geometry, which does not support faces.\n";
 
+        return GenerateTwoSides();
+    }
+
+    GeometriesArrayType GenerateTwoSides() const
+    {
         const auto points = this->Points();
 
         // The first face coincides with the first side of the element
@@ -248,13 +238,15 @@ public:
 
         // The second face coincides with the second side of the element. However, the nodes must be
         // traversed in opposite direction.
-        auto   nodes_of_second_edge = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
+        auto nodes_of_second_edge = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
 
-        // For planes, we assume the number of edges is always equal to the number of corner points.
-        const auto number_of_corner_points = mMidGeometry->EdgesNumber();
-        auto end_of_corner_points = nodes_of_second_edge.ptr_begin() + number_of_corner_points;
+        auto end_of_corner_points = nodes_of_second_edge.ptr_begin() + GetNumberOfCornerPoints();
 
-        std::reverse(nodes_of_second_edge.ptr_begin() + 1, end_of_corner_points);
+        auto begin_of_corner_points =
+            mMidGeometry->GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear
+                ? nodes_of_second_edge.ptr_begin()
+                : nodes_of_second_edge.ptr_begin() + 1;
+        std::reverse(begin_of_corner_points, end_of_corner_points);
         std::reverse(end_of_corner_points, nodes_of_second_edge.ptr_end()); // any high-order nodes
 
         auto result = GeometriesArrayType{};
@@ -313,6 +305,22 @@ private:
         std::transform(begin_of_first_side, begin_of_second_side, begin_of_second_side,
                        result.ptr_begin(), make_mid_point);
         return result;
+    }
+
+private:
+    std::size_t GetNumberOfCornerPoints() const
+    {
+        const auto geometry_family = mMidGeometry->GetGeometryFamily();
+        switch (geometry_family) {
+        case GeometryData::KratosGeometryFamily::Kratos_Linear:
+            return 2;
+        case GeometryData::KratosGeometryFamily::Kratos_Triangle:
+            return 3;
+        case GeometryData::KratosGeometryFamily::Kratos_Quadrilateral:
+            return 4;
+        default:
+            KRATOS_ERROR << "The geometry family of the mid-geometry is not supported\n";
+        }
     }
 
     std::unique_ptr<BaseType> mMidGeometry;
