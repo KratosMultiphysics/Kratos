@@ -16,6 +16,7 @@
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/quadrilateral_3d_4.h"
+#include "geometries/quadrilateral_3d_8.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/triangle_3d_6.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -91,6 +92,28 @@ auto CreateFourPlusFourNoded3DPlanarInterfaceGeometry()
     nodes.push_back(Kratos::make_intrusive<Node>(7, 1.0, 1.0, 0.5));
     nodes.push_back(Kratos::make_intrusive<Node>(8, 0.0, 1.0, 0.5));
     return InterfaceGeometry<Quadrilateral3D4<Node>>{1, nodes};
+}
+
+auto CreateEightPlusEightNoded3DPlanarInterfaceGeometry()
+{
+    PointerVector<Node> nodes;
+    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 1.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(5, 0.5, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(6, 1.0, 0.5, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(7, 0.5, 1.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(8, 0.0, 0.5, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(9, 0.0, 0.0, 0.5));
+    nodes.push_back(Kratos::make_intrusive<Node>(10, 1.0, 0.0, 0.5));
+    nodes.push_back(Kratos::make_intrusive<Node>(11, 1.0, 1.0, 0.5));
+    nodes.push_back(Kratos::make_intrusive<Node>(12, 0.0, 1.0, 0.5));
+    nodes.push_back(Kratos::make_intrusive<Node>(13, 0.5, 0.0, 0.5));
+    nodes.push_back(Kratos::make_intrusive<Node>(14, 1.0, 0.5, 0.5));
+    nodes.push_back(Kratos::make_intrusive<Node>(15, 0.5, 1.0, 0.5));
+    nodes.push_back(Kratos::make_intrusive<Node>(16, 0.0, 0.5, 0.5));
+    return InterfaceGeometry<Quadrilateral3D8<Node>>{1, nodes};
 }
 
 void AssertNodeIdsOfGeometry(const Geometry<Node>::Pointer&  rGeometryPtr,
@@ -577,6 +600,18 @@ KRATOS_TEST_CASE_IN_SUITE(FourPlusFourPlanarInterfaceGeometryHasTwoPlanesWithOpp
     KRATOS_EXPECT_EQ(faces.size(), 2);
     AssertNodeIdsOfGeometry(faces(0), {1, 2, 3, 4});
     AssertNodeIdsOfGeometry(faces(1), {5, 8, 7, 6});
+}
+
+KRATOS_TEST_CASE_IN_SUITE(EightPlusEightPlanarInterfaceGeometryHasTwoPlanesWithOppositeOrientations,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateEightPlusEightNoded3DPlanarInterfaceGeometry();
+
+    const auto faces = geometry.GenerateFaces();
+
+    KRATOS_EXPECT_EQ(faces.size(), 2);
+    AssertNodeIdsOfGeometry(faces(0), {1, 2, 3, 4, 5, 6, 7, 8});
+    AssertNodeIdsOfGeometry(faces(1), {9, 12, 11, 10, 16, 15, 14, 13});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoLineInterfaceGeometryThrowsWhenCallingGenerateFaces,
