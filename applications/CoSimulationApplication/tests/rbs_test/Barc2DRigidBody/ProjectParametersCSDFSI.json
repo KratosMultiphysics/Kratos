@@ -92,7 +92,7 @@
                 "process_name": "AssignVectorVariableProcess",
                 "Parameters": {
                     "model_part_name": "Main.RootPoint",
-                    "variable_name": "PRESCRIBED_DISPLACEMENT",
+                    "variable_name": "IMPOSED_DISPLACEMENT",
                     "interval": [
                         3.14159,
                         6.28318
@@ -115,7 +115,7 @@
                 "process_name": "AssignScalarVariableProcess",
                 "Parameters": {
                     "model_part_name": "Main.RootPoint",
-                    "variable_name": "PRESCRIBED_ROTATION_Z",
+                    "variable_name": "IMPOSED_ROTATION_Z",
                     "interval": [
                         5,
                         "End"
@@ -130,7 +130,7 @@
                 "process_name": "AssignVectorVariableProcess",
                 "Parameters": {
                     "model_part_name": "Main.RigidBody",
-                    "variable_name": "PRESCRIBED_FORCE",
+                    "variable_name": "IMPOSED_FORCE",
                     "interval": [
                         6,
                         6.5

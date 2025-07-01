@@ -124,7 +124,7 @@
                 "process_name": "AssignVectorVariableProcess",
                 "Parameters": {
                     "model_part_name": "Main.RootPoint",
-                    "variable_name": "PRESCRIBED_DISPLACEMENT",
+                    "variable_name": "IMPOSED_DISPLACEMENT",
                     "interval": [
                         3.76991,
                         "End"
@@ -147,7 +147,7 @@
                 "process_name": "AssignVectorVariableProcess",
                 "Parameters": {
                     "model_part_name": "Main.RigidBody",
-                    "variable_name": "PRESCRIBED_MOMENT",
+                    "variable_name": "IMPOSED_MOMENT",
                     "interval": [
                         3.14159,
                         "End"

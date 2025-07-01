@@ -390,8 +390,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         # Specific variables for the model part RigidBody
         self.assertTrue(self.simulation.rigid_body_model_part.HasNodalSolutionStepVariable(KM.FORCE))
         self.assertTrue(self.simulation.rigid_body_model_part.HasNodalSolutionStepVariable(KM.MOMENT))
-        self.assertTrue(self.simulation.rigid_body_model_part.HasNodalSolutionStepVariable(KMC.PRESCRIBED_FORCE))
-        self.assertTrue(self.simulation.rigid_body_model_part.HasNodalSolutionStepVariable(KMC.PRESCRIBED_MOMENT))
+        self.assertTrue(self.simulation.rigid_body_model_part.HasNodalSolutionStepVariable(KMC.IMPOSED_FORCE))
+        self.assertTrue(self.simulation.rigid_body_model_part.HasNodalSolutionStepVariable(KMC.IMPOSED_MOMENT))
         self.assertTrue(self.simulation.rigid_body_model_part.HasNodalSolutionStepVariable(KMC.EFFECTIVE_FORCE))
         self.assertTrue(self.simulation.rigid_body_model_part.HasNodalSolutionStepVariable(KMC.EFFECTIVE_MOMENT))
         self.assertTrue(self.simulation.rigid_body_model_part.HasNodalSolutionStepVariable(KM.BODY_FORCE))
@@ -400,8 +400,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
         # Specific variables for the model part RootPoint
         self.assertTrue(self.simulation.root_point_model_part.HasNodalSolutionStepVariable(KM.REACTION))
         self.assertTrue(self.simulation.root_point_model_part.HasNodalSolutionStepVariable(KM.REACTION_MOMENT))
-        self.assertTrue(self.simulation.root_point_model_part.HasNodalSolutionStepVariable(KMC.PRESCRIBED_DISPLACEMENT))
-        self.assertTrue(self.simulation.root_point_model_part.HasNodalSolutionStepVariable(KMC.PRESCRIBED_ROTATION))
+        self.assertTrue(self.simulation.root_point_model_part.HasNodalSolutionStepVariable(KMC.IMPOSED_DISPLACEMENT))
+        self.assertTrue(self.simulation.root_point_model_part.HasNodalSolutionStepVariable(KMC.IMPOSED_ROTATION))
 
 
     def test_SetCompleteVector_rigid_body(self):
@@ -474,17 +474,17 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
     def test_ResetExternalVariables(self):
         random_vector = np.random.rand(self.simulation.system_size)
         self.simulation._SetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT, random_vector)
-        self.simulation._SetCompleteVector("rigid_body", KMC.PRESCRIBED_FORCE, KMC.PRESCRIBED_MOMENT, random_vector)
+        self.simulation._SetCompleteVector("rigid_body", KMC.IMPOSED_FORCE, KMC.IMPOSED_MOMENT, random_vector)
         self.simulation._SetCompleteVector("root_point", KM.DISPLACEMENT, KM.ROTATION, random_vector)
-        self.simulation._SetCompleteVector("root_point", KMC.PRESCRIBED_DISPLACEMENT, KMC.PRESCRIBED_ROTATION, random_vector)
+        self.simulation._SetCompleteVector("root_point", KMC.IMPOSED_DISPLACEMENT, KMC.IMPOSED_ROTATION, random_vector)
         
         self.simulation._ResetExternalVariables()
 
         zero_vector = np.zeros(self.simulation.system_size)
         self.assertVectorAlmostEqual(zero_vector, self.simulation._GetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT))
-        self.assertVectorAlmostEqual(zero_vector, self.simulation._GetCompleteVector("rigid_body", KMC.PRESCRIBED_FORCE, KMC.PRESCRIBED_MOMENT))
+        self.assertVectorAlmostEqual(zero_vector, self.simulation._GetCompleteVector("rigid_body", KMC.IMPOSED_FORCE, KMC.IMPOSED_MOMENT))
         self.assertVectorAlmostEqual(zero_vector, self.simulation._GetCompleteVector("root_point", KM.DISPLACEMENT, KM.ROTATION))
-        self.assertVectorAlmostEqual(zero_vector, self.simulation._GetCompleteVector("root_point", KMC.PRESCRIBED_DISPLACEMENT, KMC.PRESCRIBED_ROTATION))
+        self.assertVectorAlmostEqual(zero_vector, self.simulation._GetCompleteVector("root_point", KMC.IMPOSED_DISPLACEMENT, KMC.IMPOSED_ROTATION))
 
 
     def test_CalculateEffectiveLoad(self):
@@ -603,7 +603,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                         "process_name"  : "AssignVectorVariableProcess",
                         "Parameters": {
                             "model_part_name" : "Main.RigidBody",
-                            "variable_name"   : "PRESCRIBED_FORCE",
+                            "variable_name"   : "IMPOSED_FORCE",
                             "interval"        : [0, "End"],
                             "constrained"     : [false,false,false],
                             "value"           : ["5*sin((5+2*t)*t)", "3*sin((5+2*t)*t)", "2*sin((5+2*t)*t)"]
@@ -639,7 +639,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                         "process_name": "AssignVectorVariableProcess",
                         "Parameters": {
                             "model_part_name": "Main.RootPoint",
-                            "variable_name": "PRESCRIBED_DISPLACEMENT",
+                            "variable_name": "IMPOSED_DISPLACEMENT",
                             "interval": [
                                 0,
                                 "End"
@@ -662,7 +662,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                         "process_name": "AssignVectorVariableProcess",
                         "Parameters": {
                             "model_part_name": "Main.RootPoint",
-                            "variable_name": "PRESCRIBED_ROTATION",
+                            "variable_name": "IMPOSED_ROTATION",
                             "interval": [
                                 0,
                                 "End"
@@ -685,7 +685,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                         "process_name": "AssignVectorVariableProcess",
                         "Parameters": {
                             "model_part_name": "Main.RigidBody",
-                            "variable_name": "PRESCRIBED_MOMENT",
+                            "variable_name": "IMPOSED_MOMENT",
                             "interval": [
                                 0,
                                 "End"
@@ -722,8 +722,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
 
         linear = np.array([7.486 , 3.5861, 2.1867])
         angular = np.array([3.4861 , 1.1848, 0.0486])
-        self.simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KMC.PRESCRIBED_FORCE, buffer, linear)
-        self.simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KMC.PRESCRIBED_MOMENT, buffer, angular)
+        self.simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KMC.IMPOSED_FORCE, buffer, linear)
+        self.simulation.rigid_body_model_part.Nodes[1].SetSolutionStepValue(KMC.IMPOSED_MOMENT, buffer, angular)
 
         linear = np.array([2.5488 , 0.1647, 2.4846])
         angular = np.array([2.1558 , 1.1817, 1.8574])
@@ -732,8 +732,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
 
         linear = np.array([0.1488 , 0.5267, 0.1217])
         angular = np.array([0.8998 , 0.1487, 0.9124])
-        self.simulation.root_point_model_part.Nodes[2].SetSolutionStepValue(KMC.PRESCRIBED_DISPLACEMENT, buffer, linear)
-        self.simulation.root_point_model_part.Nodes[2].SetSolutionStepValue(KMC.PRESCRIBED_ROTATION, buffer, angular)
+        self.simulation.root_point_model_part.Nodes[2].SetSolutionStepValue(KMC.IMPOSED_DISPLACEMENT, buffer, linear)
+        self.simulation.root_point_model_part.Nodes[2].SetSolutionStepValue(KMC.IMPOSED_ROTATION, buffer, angular)
         
         self.simulation._CalculateEffectiveLoad()
 
@@ -1056,7 +1056,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                         "process_name"  : "AssignVectorVariableProcess",
                         "Parameters": {
                             "model_part_name" : "Main.RigidBody",
-                            "variable_name"   : "PRESCRIBED_FORCE",
+                            "variable_name"   : "IMPOSED_FORCE",
                             "interval"        : [0, "End"],
                             "constrained"     : [false,false,false],
                             "value"           : ["5*sin((5+2*t)*t)", "3*sin((5+2*t)*t)", "2*sin((5+2*t)*t)"]
@@ -1092,7 +1092,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                         "process_name": "AssignVectorVariableProcess",
                         "Parameters": {
                             "model_part_name": "Main.RootPoint",
-                            "variable_name": "PRESCRIBED_DISPLACEMENT",
+                            "variable_name": "IMPOSED_DISPLACEMENT",
                             "interval": [
                                 0,
                                 "End"
@@ -1115,7 +1115,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                         "process_name": "AssignVectorVariableProcess",
                         "Parameters": {
                             "model_part_name": "Main.RootPoint",
-                            "variable_name": "PRESCRIBED_ROTATION",
+                            "variable_name": "IMPOSED_ROTATION",
                             "interval": [
                                 0,
                                 "End"
@@ -1138,7 +1138,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                         "process_name": "AssignVectorVariableProcess",
                         "Parameters": {
                             "model_part_name": "Main.RigidBody",
-                            "variable_name": "PRESCRIBED_MOMENT",
+                            "variable_name": "IMPOSED_MOMENT",
                             "interval": [
                                 0,
                                 "End"
@@ -1816,7 +1816,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                         "process_name"  : "AssignVectorVariableProcess",
                         "Parameters": {
                             "model_part_name" : "Main.RigidBody",
-                            "variable_name"   : "PRESCRIBED_FORCE",
+                            "variable_name"   : "IMPOSED_FORCE",
                             "interval"        : [0, "End"],
                             "constrained"     : [false,false,false],
                             "value"           : ["5*sin((5+2*t)*t)", "3*sin((5+2*t)*t)", "2*sin((5+2*t)*t)"]
@@ -1852,7 +1852,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                         "process_name": "AssignVectorVariableProcess",
                         "Parameters": {
                             "model_part_name": "Main.RootPoint",
-                            "variable_name": "PRESCRIBED_DISPLACEMENT",
+                            "variable_name": "IMPOSED_DISPLACEMENT",
                             "interval": [
                                 0,
                                 "End"
@@ -1875,7 +1875,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                         "process_name": "AssignVectorVariableProcess",
                         "Parameters": {
                             "model_part_name": "Main.RootPoint",
-                            "variable_name": "PRESCRIBED_ROTATION",
+                            "variable_name": "IMPOSED_ROTATION",
                             "interval": [
                                 0,
                                 "End"
@@ -1898,7 +1898,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                         "process_name": "AssignVectorVariableProcess",
                         "Parameters": {
                             "model_part_name": "Main.RigidBody",
-                            "variable_name": "PRESCRIBED_MOMENT",
+                            "variable_name": "IMPOSED_MOMENT",
                             "interval": [
                                 0,
                                 "End"
@@ -1950,8 +1950,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
 
         rigid_body_model_part.AddNodalSolutionStepVariable(KM.FORCE)
         rigid_body_model_part.AddNodalSolutionStepVariable(KM.MOMENT)
-        rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_FORCE)
-        rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_MOMENT)
+        rigid_body_model_part.AddNodalSolutionStepVariable(KMC.IMPOSED_FORCE)
+        rigid_body_model_part.AddNodalSolutionStepVariable(KMC.IMPOSED_MOMENT)
         rigid_body_model_part.AddNodalSolutionStepVariable(KMC.EFFECTIVE_FORCE)
         rigid_body_model_part.AddNodalSolutionStepVariable(KMC.EFFECTIVE_MOMENT)
         rigid_body_model_part.AddNodalSolutionStepVariable(KM.BODY_FORCE)
@@ -1959,8 +1959,8 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
 
         root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION)
         root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION_MOMENT)
-        root_point_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_DISPLACEMENT)
-        root_point_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_ROTATION)
+        root_point_model_part.AddNodalSolutionStepVariable(KMC.IMPOSED_DISPLACEMENT)
+        root_point_model_part.AddNodalSolutionStepVariable(KMC.IMPOSED_ROTATION)
 
         # Without restart (12 processes)
         list_of_processes = input_check._CreateListOfProcesses(self.model, Parameters, main_model_part)
@@ -2041,7 +2041,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                         "process_name"  : "AssignVectorVariableProcess",
                         "Parameters": {
                             "model_part_name" : "Main.RigidBody",
-                            "variable_name"   : "PRESCRIBED_FORCE",
+                            "variable_name"   : "IMPOSED_FORCE",
                             "interval"        : [0, "End"],
                             "constrained"     : [false,false,false],
                             "value"           : ["5*sin((5+2*t)*t)", "3*sin((5+2*t)*t)", "2*sin((5+2*t)*t)"]

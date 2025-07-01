@@ -49,7 +49,7 @@
                 "process_name"  : "AssignVectorVariableProcess",
                 "Parameters": {
                     "model_part_name" : "Main.RigidBody",
-                    "variable_name"   : "PRESCRIBED_FORCE",
+                    "variable_name"   : "IMPOSED_FORCE",
                     "interval"        : [0, "End"],
                     "constrained"     : [false,false,false],
                     "value"           : ["5*sin((5+2*t)*t)", 0.0, 0.0]
@@ -60,7 +60,7 @@
                 "process_name"  : "AssignVectorVariableProcess",
                 "Parameters": {
                     "model_part_name" : "Main.RootPoint",
-                    "variable_name"   : "PRESCRIBED_ROTATION",
+                    "variable_name"   : "IMPOSED_ROTATION",
                     "interval"        : [2.0, "End"],
                     "constrained"     : [false,false,false],
                     "value"           : [0.0, 0.0, "0.001*sin(10*t)"]

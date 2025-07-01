@@ -27,7 +27,7 @@ class RigidBodySolver:
     |               |       Node ID: 1                                         |
     |    Node 1     |       Specific variables:                                |
     |       X       |           FORCE, MOMENT,                                 |
-    |    (0,0,0)    |           PRESCRIBED_FORCE, PRESCRIBED_MOMENT            |
+    |    (0,0,0)    |           IMPOSED_FORCE, IMPOSED_MOMENT                  |
     |               |           EFFECTIVE_FORCE, EFFECTIVE_MOMENT              |    Model part: Main
      ---------------            BODY_FORCE, BODY_MOMENT                        |    Nodes IDs: 1, 2
         |       |                                                               >   General variables:
@@ -38,10 +38,10 @@ class RigidBodySolver:
         |       |           Node ID: 2                                         |
     /////// X ////////      Specific variables:                                |
          Node 2                 REACTION, REACTION_MOMENT                      |
-         (0,0,0)                PRESCRIBED_DISPLACEMENT, PRESCRIBED_ROTATION   /
+         (0,0,0)                IMPOSED_DISPLACEMENT, IMPOSED_ROTATION         /
 
     @note It is possible to apply forces to the rigid body as well as displacements to the reference point (e.g. to be used
-    as a TMD). The "PRESCRIBED_*" variables have the same behaviour as their original version but are necessary to avoid
+    as a TMD). The "IMPOSED_*" variables have the same behaviour as their original version but are necessary to avoid
     overwriting data in some cases (e.g. when a force comes from another solver with CoSimulation but an extra force must
     be prescribed directly from the project parameters).
     """
@@ -190,8 +190,8 @@ class RigidBodySolver:
         # Specific variables for the model part RigidBody
         self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.FORCE)
         self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.MOMENT)
-        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_FORCE)
-        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_MOMENT)
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.IMPOSED_FORCE)
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.IMPOSED_MOMENT)
         self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.EFFECTIVE_FORCE)
         self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.EFFECTIVE_MOMENT)
         self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.BODY_FORCE)
@@ -200,8 +200,8 @@ class RigidBodySolver:
         # Specific variables for the model part RootPoint
         self.root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION)
         self.root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION_MOMENT)
-        self.root_point_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_DISPLACEMENT)
-        self.root_point_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_ROTATION)
+        self.root_point_model_part.AddNodalSolutionStepVariable(KMC.IMPOSED_DISPLACEMENT)
+        self.root_point_model_part.AddNodalSolutionStepVariable(KMC.IMPOSED_ROTATION)
 
 
     def Run(self):
@@ -297,7 +297,7 @@ class RigidBodySolver:
 
     def SolveSolutionStep(self):
         
-        # Calculate the effective load which considers both external/prescribed
+        # Calculate the effective load which considers both external/imposed
         # loads and the equivalent load from the root point displacement
         self._CalculateEffectiveLoad()
         eff_load = self._GetCompleteVector("rigid_body", KMC.EFFECTIVE_FORCE, KMC.EFFECTIVE_MOMENT)
@@ -367,9 +367,9 @@ class RigidBodySolver:
         # Set to zero variables that might not be overwritten each time step
         zero_vector = np.zeros(self.system_size)
         self._SetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT, zero_vector, broadcast=False)
-        self._SetCompleteVector("rigid_body", KMC.PRESCRIBED_FORCE, KMC.PRESCRIBED_MOMENT, zero_vector, broadcast=False)
+        self._SetCompleteVector("rigid_body", KMC.IMPOSED_FORCE, KMC.IMPOSED_MOMENT, zero_vector, broadcast=False)
         self._SetCompleteVector("root_point", KM.DISPLACEMENT, KM.ROTATION, zero_vector, broadcast=False)
-        self._SetCompleteVector("root_point", KMC.PRESCRIBED_DISPLACEMENT, KMC.PRESCRIBED_ROTATION, zero_vector, broadcast=False)
+        self._SetCompleteVector("root_point", KMC.IMPOSED_DISPLACEMENT, KMC.IMPOSED_ROTATION, zero_vector, broadcast=False)
 
 
     def _CalculateEffectiveLoad(self):
@@ -377,13 +377,13 @@ class RigidBodySolver:
         # Calculate the total load
         self_weight = self._GetCompleteVector("rigid_body", KM.BODY_FORCE, KM.BODY_MOMENT)
         external_load = self._GetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT)
-        prescribed_load = self._GetCompleteVector("rigid_body", KMC.PRESCRIBED_FORCE, KMC.PRESCRIBED_MOMENT)
-        self.total_load = external_load + prescribed_load + self_weight
+        imposed_load = self._GetCompleteVector("rigid_body", KMC.IMPOSED_FORCE, KMC.IMPOSED_MOMENT)
+        self.total_load = external_load + imposed_load + self_weight
 
         # Calculate the total root point displacement and the equivalent force it generates
         external_root_point_displ = self._GetCompleteVector("root_point", KM.DISPLACEMENT, KM.ROTATION)
-        prescribed_root_point_displ = self._GetCompleteVector("root_point", KMC.PRESCRIBED_DISPLACEMENT, KMC.PRESCRIBED_ROTATION)
-        self.total_root_point_displ = external_root_point_displ + prescribed_root_point_displ
+        imposed_root_point_displ = self._GetCompleteVector("root_point", KMC.IMPOSED_DISPLACEMENT, KMC.IMPOSED_ROTATION)
+        self.total_root_point_displ = external_root_point_displ + imposed_root_point_displ
         self._UpdateKinematics("root_point", self.total_root_point_displ)
         root_point_force = self._CalculateEquivalentForceFromRootPointDisplacement()
         
