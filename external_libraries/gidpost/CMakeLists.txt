@@ -139,7 +139,7 @@ add_subdirectory (source)
 # built.
 link_directories (${PROJECT_BINARY_DIR}/source  ${ZLIB_LIBRARIES} ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
 
-if (ENABLE_EXAMPLES OR ENABLE_FORTRAN_EXAMPLES)
-  add_subdirectory( examples )
-  add_subdirectory( examples/MultiplePartition )
-endif (ENABLE_EXAMPLES OR ENABLE_FORTRAN_EXAMPLES)
+# if (ENABLE_EXAMPLES OR ENABLE_FORTRAN_EXAMPLES)
+#   add_subdirectory( examples )
+#   add_subdirectory( examples/MultiplePartition )
+# endif (ENABLE_EXAMPLES OR ENABLE_FORTRAN_EXAMPLES)
