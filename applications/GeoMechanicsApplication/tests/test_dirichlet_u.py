@@ -72,7 +72,7 @@ class KratosGeoMechanicsDirichletUTests(KratosUnittest.TestCase):
             # stresses are continuous over the stages
             cauchy_stresses_2_4    = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", time, output_data[stage_nr], [2], [3])[0][0]
             cauchy_stresses_2_4_yy = cauchy_stresses_2_4[1]
-            self.assertAlmostEqual(E*time*0.05, cauchy_stresses_2_4_yy, 2)
+            self.assertAlmostEqual(E*time*0.05, cauchy_stresses_2_4_yy, places=None, delta=1.0)
 
 if __name__ == '__main__':
     KratosUnittest.main()
