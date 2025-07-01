@@ -19,6 +19,7 @@
 #include <type_traits>
 
 // Project includes
+#include "includes/define.h"
 #include "containers/flags.h"
 #include "includes/ublas_interface.h"
 #include "includes/model_part.h"
@@ -88,6 +89,11 @@ public:
 
     using ReturnType = TDataType;
 
+    template<class TContainerType>
+    using IsAllowedContainer = IsInList<TContainerType, ModelPart::NodesContainerType>;
+
+    KRATOS_CLASS_POINTER_DEFINITION(HistoricalIO);
+
     ///@}
     ///@name Life cycle
     ///@{
@@ -145,6 +151,18 @@ public:
 
     using ReturnType = TDataType;
 
+    template<class TContainerType>
+    using IsAllowedContainer = IsInList<TContainerType,
+                                        ModelPart::NodesContainerType,
+                                        ModelPart::ConditionsContainerType,
+                                        ModelPart::ElementsContainerType,
+                                        ModelPart::PropertiesContainerType,
+                                        ModelPart::GeometriesMapType,
+                                        ModelPart::MasterSlaveConstraintContainerType
+                                    >;
+
+    KRATOS_CLASS_POINTER_DEFINITION(NonHistoricalIO);
+
     ///@}
     ///@name Life cycle
     ///@{
@@ -196,6 +214,13 @@ public:
 
     using ReturnType = std::vector<TDataType>;
 
+    template<class TContainerType>
+    using IsAllowedContainer = IsInList<TContainerType,
+                                        ModelPart::ConditionsContainerType,
+                                        ModelPart::ElementsContainerType>;
+
+    KRATOS_CLASS_POINTER_DEFINITION(GaussPointIO);
+
     ///@}
     ///@name Life cycle
     ///@{
@@ -244,12 +269,13 @@ private:
     ///@}
 };
 
-template<class TContainerType, class TContainerDataIO>
+template<class TContainerType, class TContainerDataIO, class TIteratorType>
 void CopyToContiguousArray(
     const TContainerType& rContainer,
     const TContainerDataIO& rContainerDataIO,
     typename DataTypeTraits<typename TContainerDataIO::ReturnType>::PrimitiveType* pBegin,
-    const IndexType Size)
+    TIteratorType pShapeBegin,
+    TIteratorType pShapeEnd)
 {
     KRATOS_TRY
 
@@ -257,38 +283,25 @@ void CopyToContiguousArray(
 
     using value_type_traits = DataTypeTraits<return_type>;
 
-    if (rContainer.empty()) {
-        // do nothing if the container is empty.
-        return;
-    }
-
-    // get the first item for sizing.
-    return_type initial_value;
-    rContainerDataIO.GetValue(initial_value, rContainer.front());
-
     // get the stride from the first element to support dynamic types.
-    const auto stride = value_type_traits::Size(initial_value);
+    const auto stride = value_type_traits::Size(pShapeBegin + 1, pShapeEnd);
 
-    KRATOS_ERROR_IF_NOT(Size == rContainer.size() * stride)
-        << "The contiguous array size mismatch with data in the container [ "
-        << "Contiguous array size = " << Size << ", number of entities = "
-        << rContainer.size() << ", data stride = " << stride << " ].";
-
-    IndexPartition<unsigned int>(rContainer.size()).for_each(typename TContainerDataIO::ReturnType{}, [&rContainer,  &rContainerDataIO, stride, pBegin](const auto Index, auto& rTLS) {
+    IndexPartition<unsigned int>(rContainer.size()).for_each(typename TContainerDataIO::ReturnType{}, [&rContainer,  &rContainerDataIO, pShapeBegin, pShapeEnd, stride, pBegin](const auto Index, auto& rTLS) {
         rContainerDataIO.GetValue(rTLS, *(rContainer.begin() + Index));
         auto p_subrange_begin = pBegin + Index * stride;
-        value_type_traits::CopyToContiguousData(p_subrange_begin, rTLS);
+        value_type_traits::CopyToContiguousData(p_subrange_begin, rTLS, pShapeBegin + 1, pShapeEnd);
     });
 
     KRATOS_CATCH("");
 }
 
-template<class TContainerType, class TContainerDataIO>
+template<class TContainerType, class TContainerDataIO, class TIteratorType>
 void CopyFromContiguousDataArray(
     TContainerType& rContainer,
     const TContainerDataIO& rContainerDataIO,
     typename DataTypeTraits<typename TContainerDataIO::ReturnType>::PrimitiveType const * pBegin,
-    const std::vector<unsigned int>& rShape)
+    TIteratorType pShapeBegin,
+    TIteratorType pShapeEnd)
 {
     KRATOS_TRY
 
@@ -297,13 +310,13 @@ void CopyFromContiguousDataArray(
     using value_type_traits = DataTypeTraits<return_type>;
 
     return_type dummy_value;
-    value_type_traits::Reshape(dummy_value, rShape);
+    value_type_traits::Reshape(dummy_value, &*(pShapeBegin + 1), &*(pShapeBegin + std::distance(pShapeBegin, pShapeEnd)));
 
-    const auto stride = value_type_traits::Size(dummy_value);
+    const auto stride = value_type_traits::Size(pShapeBegin + 1, pShapeEnd);
 
-    IndexPartition<unsigned int>(rContainer.size()).for_each(dummy_value, [&rContainer, &rContainerDataIO, pBegin, stride](const auto Index, auto& rTLS) {
+    IndexPartition<unsigned int>(rContainer.size()).for_each(dummy_value, [&rContainer, &rContainerDataIO, pBegin, pShapeBegin, pShapeEnd, stride](const auto Index, auto& rTLS) {
         auto p_subrange_begin = pBegin + Index * stride;
-        value_type_traits::CopyFromContiguousData(rTLS, p_subrange_begin);
+        value_type_traits::CopyFromContiguousData(rTLS, p_subrange_begin, pShapeBegin + 1, pShapeEnd);
         rContainerDataIO.SetValue(rTLS, *(rContainer.begin() + Index));
     });
 
