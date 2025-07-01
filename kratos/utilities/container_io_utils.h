@@ -283,7 +283,6 @@ void CopyToContiguousArray(
 
     using value_type_traits = DataTypeTraits<return_type>;
 
-    // get the stride from the first element to support dynamic types.
     const auto stride = value_type_traits::Size(pShapeBegin + 1, pShapeEnd);
 
     IndexPartition<unsigned int>(rContainer.size()).for_each(typename TContainerDataIO::ReturnType{}, [&rContainer,  &rContainerDataIO, pShapeBegin, pShapeEnd, stride, pBegin](const auto Index, auto& rTLS) {
