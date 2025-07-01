@@ -234,7 +234,7 @@ public:
      * This method copies all the elements of @ref rContainer recursively to the
      * provided @ref pContiguousDataBegin.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may segfault if the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param pContiguousDataBegin      Contiguous array pointer.
