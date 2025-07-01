@@ -60,6 +60,24 @@ auto CreateThreePlusThreeNoded3DPlanarInterfaceGeometry()
     return InterfaceGeometry<Triangle3D3<Node>>{1, nodes};
 }
 
+auto CreateSixPlusSixNoded3DPlanarInterfaceGeometry()
+{
+    PointerVector<Node> nodes;
+    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(2, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(5, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(6, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(7, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(8, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(9, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(10, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(11, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(12, 0.0, 0.0, 0.0));
+    return InterfaceGeometry<Triangle3D6<Node>>{1, nodes};
+}
+
 void AssertNodeIdsOfGeometry(const Geometry<Node>::Pointer&  rGeometryPtr,
                              const std::vector<std::size_t>& rExpectedNodeIds)
 {
@@ -519,7 +537,19 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreePlanarInterfaceGeometryHasTwoPlanesWithO
 
     KRATOS_EXPECT_EQ(edges.size(), 2);
     AssertNodeIdsOfGeometry(edges(0), {1, 2, 3});
-    AssertNodeIdsOfGeometry(edges(1), {5, 4, 6});
+    AssertNodeIdsOfGeometry(edges(1), {4, 6, 5});
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SixPlusSixPlanarInterfaceGeometryHasTwoPlanesWithOppositeOrientations,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateSixPlusSixNoded3DPlanarInterfaceGeometry();
+
+    const auto edges = geometry.GenerateFaces();
+
+    KRATOS_EXPECT_EQ(edges.size(), 2);
+    AssertNodeIdsOfGeometry(edges(0), {1, 2, 3, 4, 5, 6});
+    AssertNodeIdsOfGeometry(edges(1), {7, 9, 8, 12, 11, 10});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoLineInterfaceGeometryThrowsWhenCallingGenerateFaces,

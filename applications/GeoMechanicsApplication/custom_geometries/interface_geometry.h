@@ -248,8 +248,8 @@ public:
         // The second face coincides with the second side of the element. However, the nodes must be
         // traversed in opposite direction.
         auto nodes_of_second_edge = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
-        std::swap(nodes_of_second_edge(0), nodes_of_second_edge(1)); // end nodes
-        std::reverse(nodes_of_second_edge.ptr_begin() + 2, nodes_of_second_edge.ptr_end()); // any high-order nodes
+        std::swap(nodes_of_second_edge(1), nodes_of_second_edge(2));
+        std::reverse(nodes_of_second_edge.ptr_begin() + 3, nodes_of_second_edge.ptr_end()); // any high-order nodes
 
         auto result = GeometriesArrayType{};
         result.push_back(std::make_shared<MidGeometryType>(nodes_of_first_edge));
