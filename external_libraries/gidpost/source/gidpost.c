@@ -104,15 +104,15 @@ GIDPOST_API int GiD_PostIsThreadSafe( GiD_PostMode Mode ) {
  */
 
 // Do not complain about implementing deprecated api
-#ifdef WIN32
+#ifdef _WIN32
 // #if defined( _MSC_VER )
 // disable deprecated declarations
 #pragma warning(disable:4996)
 // #endif
-#else // WIN32
+#else // _WIN32
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif // WIN32
+#endif // _WIN32
 
 /*
  *  Open a new post mesh file
@@ -120,14 +120,14 @@ GIDPOST_API int GiD_PostIsThreadSafe( GiD_PostMode Mode ) {
 
 int GiD_OpenPostMeshFile(GP_CONST char * FileName, GiD_PostMode Mode )
 {
-  // G_PostMode=Mode;
+  const GiD_PostEncoding encoding_filename=GiD_PostEncodeLocale; //for back compatibility, consider like older library non utf-8
 
   assert(!G_MeshFile);
   if (G_MeshFile) {
     /* must be closed */
     return GP_ERROR_FILEOPENED;
   }
-  G_MeshFile = _GiDfiles_NewFile( Mode ); // inside does also this G_MeshFile->m_post_mode = Mode;
+  G_MeshFile = _GiDfiles_NewFile( Mode,encoding_filename);
   if (!G_MeshFile )
     /* not enough memory */
     return GP_ERROR_NOMEM;
@@ -144,7 +144,7 @@ int GiD_OpenPostMeshFile(GP_CONST char * FileName, GiD_PostMode Mode )
       return GP_ERROR_OPENFAILED;
     }
     CPostFile_PushState( G_MeshFile, POST_S0 );
-    return GiD_OpenPostMeshFile_HDF5( G_MeshFile->m_hdf5_file, FileName);
+    return GiD_OpenPostMeshFile_HDF5( G_MeshFile->m_hdf5_file, FileName,encoding_filename);
 #else
     return GP_ERROR_INVALID_STATE;
 #endif
@@ -164,11 +164,9 @@ int GiD_OpenPostMeshFile(GP_CONST char * FileName, GiD_PostMode Mode )
   return GP_OK;
 }
 
-GiD_FILE GiD_fOpenPostMeshFile( GP_CONST char * FileName,
-		                GiD_PostMode Mode )
-{
+static GiD_FILE GiD_fOpenPostMeshFile_internal( GP_CONST char * FileName,GP_CONST GiD_PostMode Mode,GP_CONST GiD_PostEncoding encoding_filename ) {
   CPostFile *File = NULL;
-  File = _GiDfiles_NewFile( Mode ); // inside does also this File->m_post_mode = Mode;
+  File = _GiDfiles_NewFile( Mode,encoding_filename);
   if ( !File ) {
     /* not enough memory = -2 */
     return 0;
@@ -176,13 +174,12 @@ GiD_FILE GiD_fOpenPostMeshFile( GP_CONST char * FileName,
 
 #ifdef ENABLE_HDF5
   if ( Mode == GiD_PostHDF5 ) {
-
     CurrentHdf5WriteData *my_hdf5_file = new_CurrentHdf5WriteData();
     assert( new_CurrentHdf5WriteData );
     if ( !my_hdf5_file ) {
       return 0;
     }
-    int fail = GiD_OpenPostMeshFile_HDF5( my_hdf5_file, FileName );
+    int fail = GiD_OpenPostMeshFile_HDF5( my_hdf5_file, FileName,encoding_filename);
     if ( fail ) {
       delete_CurrentHdf5WriteData( my_hdf5_file );
       CPostFile_Release( File );
@@ -221,6 +218,16 @@ GiD_FILE GiD_fOpenPostMeshFile( GP_CONST char * FileName,
   }
   CPostFile_PushState( File, POST_S0 );
   return fd;
+}
+
+// FileName must be in local encoding, open uses directly char *filename
+GiD_FILE GiD_fOpenPostMeshFile( GP_CONST char * FileName, GiD_PostMode Mode ) {
+    return GiD_fOpenPostMeshFile_internal( FileName, Mode,GiD_PostEncodeLocale);
+}
+
+// FileName must be in utf-8. open does filename conversion utf8 --> multibyte
+GiD_FILE GiD_fOpenPostMeshFile_utf8( GP_CONST char * FileName, GiD_PostMode Mode ) {
+    return GiD_fOpenPostMeshFile_internal( FileName, Mode,GiD_PostEncodeUTF8);
 }
 
 /*
@@ -613,7 +620,8 @@ int GiD_WriteCoordinates( int id, double x, double y, double z )
   }
 #endif
 
-  return _GiDfiles_WriteCoordinates( mesh, id, x, y, z );
+  res = _GiDfiles_WriteCoordinates( mesh, id, x, y, z );
+  return res;
 }
 
 int GiD_fWriteCoordinates(GiD_FILE fd, int id, double x, double y, double z)
@@ -1084,6 +1092,7 @@ int GiD_fWriteCircleMat(GiD_FILE fd, int id, int nid, double r,
 
 int GiD_OpenPostResultFile( GP_CONST char * FileName, GiD_PostMode Mode )
 {
+  const GiD_PostEncoding encoding_filename=GiD_PostEncodeLocale; //for back compatibility, consider like older library non utf-8
   // G_PostMode=Mode;
 
   if ( G_ResultFile ) {
@@ -1091,7 +1100,7 @@ int GiD_OpenPostResultFile( GP_CONST char * FileName, GiD_PostMode Mode )
     return  GP_ERROR_FILEOPENED;
   }
 
-  G_ResultFile = _GiDfiles_NewFile( Mode ); // inside does also this G_ResultFile->m_post_mode = Mode;
+  G_ResultFile = _GiDfiles_NewFile( Mode,encoding_filename);
   if ( !G_ResultFile ) {
     /* not enough memory */
     return GP_ERROR_NOMEM;
@@ -1108,7 +1117,7 @@ int GiD_OpenPostResultFile( GP_CONST char * FileName, GiD_PostMode Mode )
       return GP_ERROR_OPENFAILED;
     }
     CPostFile_PushState( G_ResultFile, POST_S0 );
-    return GiD_OpenPostResultFile_HDF5( G_ResultFile->m_hdf5_file, FileName);
+    return GiD_OpenPostResultFile_HDF5( G_ResultFile->m_hdf5_file, FileName,encoding_filename);
 #else
     return GP_ERROR_INVALID_STATE;
 #endif
@@ -1130,11 +1139,10 @@ int GiD_OpenPostResultFile( GP_CONST char * FileName, GiD_PostMode Mode )
   return 0;
 }
 
-GiD_FILE GiD_fOpenPostResultFile(GP_CONST char * FileName, GiD_PostMode Mode)
-{
+static GiD_FILE GiD_fOpenPostResultFile_internal(GP_CONST char * FileName, GiD_PostMode Mode, GiD_PostEncoding encoding_filename) {
   GiD_FILE fd;
   CPostFile *File = NULL;
-  File = _GiDfiles_NewFile( Mode ); // inside does also this File->m_post_mode = Mode;
+  File = _GiDfiles_NewFile( Mode, encoding_filename);
   if ( !File ) {
     /* not enough memory = -2 GP_ERROR_NOMEM */
     return 0;
@@ -1148,7 +1156,7 @@ GiD_FILE GiD_fOpenPostResultFile(GP_CONST char * FileName, GiD_PostMode Mode)
     if ( !my_hdf5_file ) {
       return 0;
     }
-    int fail = GiD_OpenPostResultFile_HDF5( my_hdf5_file, FileName );
+    int fail = GiD_OpenPostResultFile_HDF5( my_hdf5_file, FileName, encoding_filename );
     if ( fail ) {
       delete_CurrentHdf5WriteData( my_hdf5_file );
       CPostFile_Release( File );
@@ -1195,6 +1203,18 @@ GiD_FILE GiD_fOpenPostResultFile(GP_CONST char * FileName, GiD_PostMode Mode)
     CPostFile_PushState( File, POST_S0 );
     }
   return fd;
+}
+
+
+// FileName must be in local encoding, open uses directly char *filename
+GiD_FILE GiD_fOpenPostResultFile(GP_CONST char * FileName, GiD_PostMode Mode) {
+    return GiD_fOpenPostResultFile_internal( FileName, Mode,GiD_PostEncodeLocale);
+}
+
+
+// FileName must be in utf-8. open does filename conversion utf8 --> multibyte
+GiD_FILE GiD_fOpenPostResultFile_utf8(GP_CONST char * FileName, GiD_PostMode Mode) {
+    return GiD_fOpenPostResultFile_internal( FileName, Mode,GiD_PostEncodeUTF8); 
 }
 
 /*
@@ -1797,21 +1817,21 @@ int GiD_fResultDescription( GiD_FILE fd,
 }
 
 int GiD_ResultDescriptionDim( GP_CONST char * Result, GiD_ResultType Type,
-                              size_t s )
+                              int dim )
 {
 #ifdef ENABLE_HDF5
   if( G_ResultFile->m_post_mode ==GiD_PostHDF5){
     /* disregard s in hdf5, because ResultGroup is really written in hdf5 as independent Results*/
-    return GiD_ResultDescription_HDF5( G_ResultFile->m_hdf5_file, Result,Type);
+    return GiD_ResultDescription_HDF5( G_ResultFile->m_hdf5_file, Result, Type);
   }
 #endif
 
-  return _GiDfiles_ResultDescription_( G_ResultFile, Result, Type, s );
+  return _GiDfiles_ResultDescription_( G_ResultFile, Result, Type, dim );
 }
 
 int GiD_fResultDescriptionDim( GiD_FILE fd,
                                GP_CONST char * Result, GiD_ResultType Type,
-                               size_t s )
+                               int dim )
 {
   CPostFile *File = NULL;
   if ( (  File  = FD2FILE(  fd)) == NULL) { return -8;}
@@ -1824,7 +1844,7 @@ int GiD_fResultDescriptionDim( GiD_FILE fd,
   }
 #endif
 
-  return _GiDfiles_ResultDescription_( File, Result, Type, s );
+  return _GiDfiles_ResultDescription_( File, Result, Type, dim );
 }
 
 int GiD_ResultLocalAxes( GP_CONST char *Result, GP_CONST char *Analysis, double step, double vx, double vy,
@@ -2635,6 +2655,6 @@ int GiD_fWriteResultUserAttribute( GiD_FILE fd, GP_CONST char *Name, GP_CONST ch
   return _GiDFiles_WriteResultUserAttribute( File, Name, Value );
 }
 
-#ifndef WIN32
+#ifndef _WIN32
 #pragma GCC diagnostic pop
-#endif // WIN32
+#endif // _WIN32

@@ -46,6 +46,7 @@ MODULE gidpost
   INTEGER(C_INT),           PARAMETER :: GID_DUMMY_NULL     = -1  ! default (null) value on GiD types
   INTEGER,                  PARAMETER :: GID_MAX_CHAR_LEN   = 64  ! max length of strings
   INTEGER(C_INT),           PARAMETER :: GID_FILE_NULL_UNIT = -1  ! default (null) value on GiD file unit
+  INTEGER(C_INT),           PARAMETER :: GID_NO_FILE = 0  ! default (null) value on GiD file unit
   CHARACTER(1,KIND=C_CHAR), PARAMETER :: C_CHAR_ARRAY(1) = (/ C_NULL_CHAR /)
 
 !--------------------------------------------------------------------------
@@ -139,7 +140,7 @@ MODULE gidpost
     !PRIVATE
     INTEGER(C_INT) :: file_unit  = GID_FILE_NULL_UNIT
   END TYPE GiD_File
-
+  
 !--------------------------------------------------------------------------
 ! AUXILIAR VARIABLES
 !--------------------------------------------------------------------------
@@ -152,7 +153,7 @@ MODULE gidpost
 !--------------------------------------------------------------------------
 
   INTERFACE
-
+  
 !--------------------------------------------------------------------------
 ! GLOBAL ROUTINES
 !--------------------------------------------------------------------------
@@ -702,9 +703,10 @@ MODULE gidpost
 ! PUBLIC ROUTINES
 !--------------------------------------------------------------------------
 
+  public :: GiD_File_is_null
   PUBLIC :: GiD_PostInit, GiD_PostDone
   PUBLIC :: GiD_OpenPostMeshFile, GiD_ClosePostMeshFile
-  PUBLIC :: GiD_fOpenPostMeshFile, GiD_fClosePostMeshFile
+  PUBLIC :: GiD_fOpenPostMeshFile, GiD_fOpenPostMeshFile_utf8, GiD_fClosePostMeshFile
   PUBLIC :: GiD_BeginMeshGroup, GiD_EndMeshGroup
   PUBLIC :: GiD_fBeginMeshGroup, GiD_fEndMeshGroup
   PUBLIC :: GiD_BeginMesh, GiD_BeginMeshColor, GiD_EndMesh
@@ -718,7 +720,7 @@ MODULE gidpost
   PUBLIC :: GiD_WriteCircle, GiD_WriteCircleMat, GiD_WriteSphere, GiD_WriteSphereMat
   PUBLIC :: GiD_fWriteCircle, GiD_fWriteCircleMat, GiD_fWriteSphere, GiD_fWriteSphereMat
   PUBLIC :: GiD_OpenPostResultFile, GiD_ClosePostResultFile
-  PUBLIC :: GiD_fOpenPostResultFile, GiD_fClosePostResultFile
+  PUBLIC :: GiD_fOpenPostResultFile, GiD_fOpenPostResultFile_utf8, GiD_fClosePostResultFile
   PUBLIC :: GiD_BeginGaussPoint, GiD_EndGaussPoint, GiD_WriteGaussPoint2D, GiD_WriteGaussPoint3D
   PUBLIC :: GiD_fBeginGaussPoint, GiD_fEndGaussPoint, GiD_fWriteGaussPoint2D, GiD_fWriteGaussPoint3D
   PUBLIC :: GiD_BeginRangeTable, GiD_EndRangeTable, GiD_WriteMinRange, GiD_WriteRange, GiD_WriteMaxRange
@@ -753,6 +755,18 @@ MODULE gidpost
 
 CONTAINS
 
+  
+    FUNCTION GiD_File_is_null( fd ) RESULT(res)
+  
+      TYPE(GiD_File), INTENT(IN) :: fd
+      LOGICAL :: res
+      res = .FALSE.
+      if ( fd%file_unit == GID_NO_FILE) then
+          res = .TRUE.
+      end if
+      
+    END FUNCTION GiD_File_is_null
+    
 !--------------------------------------------------------------------------
 ! REDEFINED SUBROUTINES WITH STRING ARGUMENTS
 !--------------------------------------------------------------------------
@@ -777,6 +791,8 @@ CONTAINS
 
   END SUBROUTINE GiD_OpenPostMeshFile
 
+  
+  
   FUNCTION GiD_fOpenPostMeshFile( filename, postmode ) RESULT(fd)
 
     CHARACTER(LEN=*),   INTENT(IN) :: filename
@@ -797,6 +813,27 @@ CONTAINS
     fd%file_unit = GiD_fOpenPostMeshFile_cpp( filename_cpp, postmode )
 
   END FUNCTION GiD_fOpenPostMeshFile
+
+  FUNCTION GiD_fOpenPostMeshFile_utf8( filename, postmode ) RESULT(fd)
+
+    CHARACTER(LEN=*),   INTENT(IN) :: filename
+    TYPE(GiD_PostMode), INTENT(IN) :: postmode
+    TYPE(GiD_File) :: fd
+
+    CHARACTER(1,KIND=C_CHAR) :: filename_cpp(MAX_STRING_LEN)
+
+    INTERFACE
+      INTEGER(C_INT) FUNCTION GiD_fOpenPostMeshFile_utf8_cpp( filename_cpp, postmode ) BIND(C,NAME='GiD_fOpenPostMeshFile_utf8')
+        IMPORT:: GiD_PostMode, C_CHAR, GiD_File, C_INT
+        CHARACTER(1,KIND=C_CHAR),  INTENT(IN) :: filename_cpp(1)
+        TYPE(GiD_PostMode), VALUE, INTENT(IN) :: postmode
+      END FUNCTION GiD_fOpenPostMeshFile_utf8_cpp
+    END INTERFACE
+
+    filename_cpp = C_STRING(filename)
+    fd%file_unit = GiD_fOpenPostMeshFile_utf8_cpp( filename_cpp, postmode )
+
+  END FUNCTION GiD_fOpenPostMeshFile_utf8
 
 !--------------------------------------------------------------------------
   
@@ -1028,6 +1065,27 @@ CONTAINS
     fd%file_unit = GiD_fOpenPostResultFile_cpp(filename_cpp,postmode)
 
   END FUNCTION GiD_fOpenPostResultFile
+  
+  FUNCTION GiD_fOpenPostResultFile_utf8(filename,postmode) RESULT(fd)
+
+    CHARACTER(LEN=*),   INTENT(IN) :: filename
+    TYPE(GiD_PostMode), INTENT(IN) :: postmode
+    TYPE(GiD_File) :: fd
+
+    CHARACTER(1,KIND=C_CHAR) :: filename_cpp(MAX_STRING_LEN)
+
+    INTERFACE
+      INTEGER(C_INT) FUNCTION GiD_fOpenPostResultFile_utf8_cpp(filename_cpp,postmode) BIND(C,NAME='GiD_fOpenPostResultFile_utf8')
+        IMPORT:: GiD_PostMode, C_CHAR, GiD_File, C_INT
+        CHARACTER(1,KIND=C_CHAR),  INTENT(IN) :: filename_cpp(1)
+        TYPE(GiD_PostMode), VALUE, INTENT(IN) :: postmode
+      END FUNCTION GiD_fOpenPostResultFile_utf8_cpp
+    END INTERFACE
+
+    filename_cpp = C_STRING(filename)
+    fd%file_unit = GiD_fOpenPostResultFile_utf8_cpp(filename_cpp,postmode)
+
+  END FUNCTION GiD_fOpenPostResultFile_utf8
   
 !--------------------------------------------------------------------------
     

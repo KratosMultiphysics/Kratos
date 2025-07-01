@@ -12,15 +12,15 @@
 #include <stdarg.h>
 
 // Do not complain about implementing deprecated api
-#ifdef WIN32
+#ifdef _WIN32
 // #if defined( _MSC_VER )
 // disable deprecated declarations
 #pragma warning(disable:4996)
 // #endif
-#else // WIN32
+#else // _WIN32
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif // WIN32
+#endif // _WIN32
 
 #include "gidpost.h"
 
@@ -502,6 +502,6 @@ int GiD_fComplexVectorComp(GiD_FILE fd, GP_CONST char * Rex,GP_CONST char * Imx,
   return 0;
 }
 
-#ifndef WIN32
+#ifndef _WIN32
 #pragma GCC diagnostic pop
-#endif // WIN32
+#endif // _WIN32

@@ -36,13 +36,14 @@ static void _print_stderr( const char *str ) {
 #define HDF5_DEBUG
 #endif
 
-typedef struct _CPostHdf5File {
+// typedef struct _CPostHdf5File CPostHdf5File; is done in hdf5.h
+struct _CPostHdf5File {
    hid_t file_id;
    hid_t group_id;
    char group_path[ 1024 ];
    struct hdf5c_buffer file_buffer[ MAX_CONCURRENT_DATASETS ];
    char error_buffer[ 8192 ];
-} CPostHdf5File;
+};
 
 
 const char *hdf5c_f_get_version() {
@@ -139,29 +140,29 @@ void delete_CPostHdf5File( CPostHdf5File *obj ) {
   #define H5_GID_COMPRESSION_LEVEL   6
 */
 
-int hdf5c_f_open( CPostHdf5File *obj, const char *zFile, OpenType otype ) {
+int hdf5c_f_open( CPostHdf5File *obj, const char *filename_in, OpenType otype ) {
   if ( obj == NULL ) {
     return -1;
   }
 
-  int i,is_hdf5;
+  int i, is_hdf5;
   hid_t file_id;
-  unsigned int flags=H5F_ACC_RDWR;
-  
-  H5Eset_auto(H5E_DEFAULT,NULL,NULL);
+  unsigned int flags = H5F_ACC_RDWR;
 
-  is_hdf5=H5Fis_hdf5(zFile);
-  if(is_hdf5<=0 && otype==Read_OT){
-    sprintf(obj->error_buffer,"File '%s' does not exists or is not in hdf5 format",zFile);
-    print_error( obj->error_buffer);
+  H5Eset_auto( H5E_DEFAULT, NULL, NULL );
+
+  is_hdf5 = H5Fis_hdf5( filename_in );
+  if ( is_hdf5 <= 0 && otype == Read_OT ) {
+    sprintf( obj->error_buffer, "File '%s' does not exists or is not in hdf5 format", filename_in );
+    print_error( obj->error_buffer );
     return -1;
   }
-  if(is_hdf5 && otype!=Create_OT){
-    if(otype==Read_OT) flags=H5F_ACC_RDONLY;
-    file_id=H5Fopen(zFile,flags,H5P_DEFAULT);
-    if(file_id<0){
-      sprintf(obj->error_buffer,"Could not open file '%s'",zFile);
-      print_error( obj->error_buffer);
+  if ( is_hdf5 && otype != Create_OT ) {
+    if ( otype == Read_OT ) flags = H5F_ACC_RDONLY;
+    file_id = H5Fopen( filename_in, flags, H5P_DEFAULT );
+    if ( file_id < 0 ) {
+      sprintf( obj->error_buffer, "Could not open file '%s'", filename_in );
+      print_error( obj->error_buffer );
       return -1;
     }
   } else { // Create_OT
@@ -169,38 +170,38 @@ int hdf5c_f_open( CPostHdf5File *obj, const char *zFile, OpenType otype ) {
     // https://docs.hdfgroup.org/archive/support/HDF5/Tutor/swmr.html
     hid_t fapl = H5Pcreate( H5P_FILE_ACCESS );
     herr_t status = H5Pset_libver_bounds( fapl, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST );
-    if ( status < 0) {
-      sprintf( obj->error_buffer, "could not create file '%s' (set_libver_bounds failed) ",zFile);
-      print_error( obj->error_buffer);
+    if ( status < 0 ) {
+      sprintf( obj->error_buffer, "could not create file '%s' (set_libver_bounds failed) ", filename_in );
+      print_error( obj->error_buffer );
       return -1;
     }
     // it is one of opening with flag H5F_ACC_SWMR_WRITE or using H5Fstart_swmr_write() once after H5Dcreate().
-    file_id = H5Fcreate( zFile, H5F_ACC_TRUNC | H5F_ACC_SWMR_WRITE, H5P_DEFAULT, fapl );
-    // file_id = H5Fcreate( zFile, H5F_ACC_TRUNC , H5P_DEFAULT, fapl );
+    file_id = H5Fcreate( filename_in, H5F_ACC_TRUNC | H5F_ACC_SWMR_WRITE, H5P_DEFAULT, fapl );
+    // file_id = H5Fcreate( filename_in, H5F_ACC_TRUNC , H5P_DEFAULT, fapl );
     // H5Pclose( fapl);
 #else // H5_VERSION_GE( 1, 10, 0)
-    file_id = H5Fcreate( zFile, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    file_id = H5Fcreate( filename_in, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
 #endif // H5_VERSION_GE( 1, 10, 0)
-    if(file_id<0){
-      sprintf(obj->error_buffer,"could not create file '%s'",zFile);
-      print_error( obj->error_buffer);
+    if ( file_id < 0 ) {
+      sprintf( obj->error_buffer, "could not create file '%s'", filename_in );
+      print_error( obj->error_buffer );
       return -1;
     }
   }
-  obj->file_id=file_id;
-  for(i=0;i<MAX_CONCURRENT_DATASETS;i++){
-    obj->file_buffer[i].used=0;
-    obj->file_buffer[i].file_id=file_id;
-    memset(obj->file_buffer[i].intarray,0,20*sizeof(int*));
-    memset(obj->file_buffer[i].doublearray,0,20*sizeof(double*));
+  obj->file_id = file_id;
+  for ( i = 0; i < MAX_CONCURRENT_DATASETS; i++ ) {
+    obj->file_buffer[ i ].used = 0;
+    obj->file_buffer[ i ].file_id = file_id;
+    memset( obj->file_buffer[ i ].intarray, 0, 20 * sizeof( int * ) );
+    memset( obj->file_buffer[ i ].doublearray, 0, 20 * sizeof( double * ) );
   }
-  strcpy(obj->error_buffer,"");
+  strcpy( obj->error_buffer, "" );
   return 0;
 }
 
-int hdf5c_f_init( CPostHdf5File *obj, const char *zFile ) {
-  /* this is equal to hdf5c_open(zFile,Create_OT) for compatibility */
-  return hdf5c_f_open( obj, zFile, Create_OT);
+int hdf5c_f_init( CPostHdf5File *obj, const char *filename ) {
+  /* this is equal to hdf5c_open(filename_in,Create_OT) for compatibility */
+  return hdf5c_f_open( obj, filename, Create_OT);
 }
 
 int hdf5c_f_end( CPostHdf5File *obj ) {
@@ -411,9 +412,10 @@ static int hdf5c_f_create_int_dataset_from_buffer( CPostHdf5File *obj, int datas
     return -1;
   }
   if ( length <= 0) {
-    char buf[ 1024];
+    char *buf = ( char *)malloc( ( strlen( name) + 1024) * sizeof( char));
     sprintf( buf, "create_int_dataset: Empty array, data set not created for '%s'", name);
     print_error( buf);
+    free( buf);
     return 0; // -1;
   }
 
@@ -470,9 +472,10 @@ static int hdf5c_f_create_double_dataset_from_buffer( CPostHdf5File *obj, int da
     return -1;
   }
   if ( length <= 0) {
-    char buf[ 1024];
+    char *buf = ( char *)malloc( ( strlen( name) + 1024) * sizeof( char));
     sprintf( buf, "create_double_dataset: Empty array, data set not created for '%s'", name);
     print_error( buf);
+    free( buf);
     return 0; // -1;
   }
 

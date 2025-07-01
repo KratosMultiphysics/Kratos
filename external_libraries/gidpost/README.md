@@ -1,4 +1,4 @@
-GiDPost 2.11
+GiDPost 2.12
 ============
 
 gidpost is a set of functions (library) for writing postprocess results for GiD in ASCII, binary compressed or HDF5 format.
@@ -27,6 +27,7 @@ $ cd .../gidpost
 $ mkdir build-linux
 $ cd build-linux
 $ cmake -DENABLE_HDF5=ON -DENABLE_FORTRAN_EXAMPLES=ON ..     ;# gfortran is needed to ENABLE_FORTRAN_EXAMPLES (by default it's off)
+# more options are: -DENABLE_SHARED_LIBS=ON -DENABLE_EXAMPLES=ON -DENABLE_PARALLEL_EXAMPLE=ON
 $ make
 $ cd examples
 $ ./testc -help      ;# to view format options
@@ -87,6 +88,13 @@ $ ./testf90          ;# fortran 90 example writing hdf5 gid post file
 
 ChangeLog:
 ==========
+
+*From version 2.11 to 2.12*
+
+* CMake changes: HDF5 to be optional, Intel fortran compiler detection,
+* some refactoring about GiD_fOpenPostResultFile() in Fortran API, utf-8 encoding.
+* GiD_fWriteResultBlock() added unit_name option, and optional NULL parameters.
+* corrected some warnings and errors, for instance, when using hdf5 1.8.x.
 
 *From version 2.10 to 2.11*
 

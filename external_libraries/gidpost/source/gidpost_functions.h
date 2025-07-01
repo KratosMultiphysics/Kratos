@@ -1,7 +1,7 @@
 #ifndef __GIDPOST_FUNCTIONS__
 #define __GIDPOST_FUNCTIONS__
 
-#include "gidpost_cluster_functions.h"
+#include "gidpost_types.h"
 
 /*
   GiD_PostInit -- Initialization of gidpost library, must be called
@@ -27,8 +27,9 @@ GIDPOST_API GP_CONST char *GiD_PostGetFormatStep( void );
  *  Open a new post mesh file.
  */
 GIDPOST_API
-GiD_FILE GiD_fOpenPostMeshFile(GP_CONST char * FileName,
-		               GiD_PostMode Mode );
+GiD_FILE GiD_fOpenPostMeshFile(GP_CONST char * FileName, GiD_PostMode Mode );
+GIDPOST_API
+GiD_FILE GiD_fOpenPostMeshFile_utf8(GP_CONST char * FileName, GiD_PostMode Mode );
 
 /*
  *  Close the current post mesh file
@@ -253,6 +254,8 @@ int GiD_fWriteCircleMat(GiD_FILE fd, int id, int nid, double r,
  */
 GIDPOST_API
 GiD_FILE GiD_fOpenPostResultFile(GP_CONST char * FileName, GiD_PostMode Mode);
+GIDPOST_API
+GiD_FILE GiD_fOpenPostResultFile_utf8(GP_CONST char * FileName, GiD_PostMode Mode);
 
 /*
  *  Close the current post result file
@@ -411,7 +414,7 @@ int GiD_fResultDescription(GiD_FILE fd, GP_CONST char * Result,
 GIDPOST_API
 int GiD_fResultDescriptionDim(GiD_FILE fd, GP_CONST char * Result,
 		              GiD_ResultType Type,
-		              size_t dim);
+		              int dim);
 
   /*
     Associates the given local axes result to the current result.

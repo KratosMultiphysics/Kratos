@@ -11,6 +11,11 @@ typedef enum {
   GiD_PostHDF5
 } GiD_PostMode;
 
+typedef enum {
+  GiD_PostEncodeLocale = 0,
+  GiD_PostEncodeUTF8
+} GiD_PostEncoding;
+
 #define GiD_PostBinary2 GiD_PostHDF5 /* back compatibility */
 
 /* domain dimension */
@@ -30,8 +35,7 @@ typedef enum {
   GiD_Prism,
   GiD_Pyramid,
   GiD_Sphere,
-  GiD_Circle,
-  GiD_Cluster
+  GiD_Circle
 } GiD_ElementType;
 
 typedef enum {
@@ -54,7 +58,8 @@ typedef enum {
   GiD_OnNurbsVolume 
 } GiD_ResultLocation;
 
-typedef unsigned int GiD_FILE;
+// typedef unsigned int GiD_FILE;
+typedef int GiD_FILE;
 
 #define GP_OK                   0
 #define GP_ERROR_INVALID_STATE -1

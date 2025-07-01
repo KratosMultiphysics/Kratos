@@ -5,16 +5,11 @@
 #include "gidpostInt.h"
 
 CPostFile *_GiDfiles_GetMeshFile( void );
-CPostFile *_GiDfiles_NewFile(GiD_PostMode Mode);
+CPostFile *_GiDfiles_NewFile( GiD_PostMode Mode, GiD_PostEncoding encoding_filename);
 int _GiDfiles_CheckState( post_state s_req, CPostFile *file );
 
-int _GiDfiles_BeginMesh( CPostFile *File,
-                         GP_CONST char * MeshName, GiD_Dimension Dim,
-                         GiD_ElementType EType, int NNode );
-int _GiDfiles_BeginMeshColor(CPostFile *File,
-                             GP_CONST char * MeshName, GiD_Dimension Dim,
-                             GiD_ElementType EType, int NNode,
-                             double Red, double Green, double Blue);
+int _GiDfiles_BeginMesh(CPostFile *File,GP_CONST char * MeshName,GiD_Dimension Dim,GiD_ElementType EType,int NNode);
+int _GiDfiles_BeginMeshColor(CPostFile *File,GP_CONST char * MeshName,GiD_Dimension Dim,GiD_ElementType EType,int NNode,double Red,double Green,double Blue);
 int _GiDfiles_MeshUnit(CPostFile *File,GP_CONST char * UnitName);
 int _GiDfiles_BeginCoordinates( CPostFile *File );
 int _GiDfiles_EndCoordinates( CPostFile *File );
@@ -85,7 +80,7 @@ int _GiDfiles_BeginResultGroup( CPostFile         *File,
 int _GiDfiles_ResultDescription_( CPostFile     *File,
                                   GP_CONST char *Result,
                                   GiD_ResultType Type,
-                                  size_t         s );
+                                  int         dim );
 int _GiDfiles_EndResult(CPostFile *File);
 
 int _GiDfiles_BeginOnMeshGroup( CPostFile *File, char *Name );

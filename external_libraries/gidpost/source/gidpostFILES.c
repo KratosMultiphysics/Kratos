@@ -29,7 +29,7 @@
 #define GP_DUMP_STATE( File )
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
 #define snprintf _snprintf
 #endif
   
@@ -99,20 +99,17 @@ static GP_CONST char * level_desc[] = {
   "unknown"
 };
 
-static GP_CONST char * GetStateDesc(post_state ps)
-{
+static GP_CONST char * GetStateDesc(post_state ps) {
   const int i = ( int)ps;
   static int last = sizeof(level_desc)/sizeof(level_desc[0]) - 1;
   return (i<0 || i >= last) ? level_desc[last] : level_desc[i]; 
 } 
 
-CPostFile *_GiDfiles_GetMeshFile()
-{
+CPostFile *_GiDfiles_GetMeshFile() {
   return (G_outputMesh = G_MeshFile ? G_MeshFile : G_ResultFile);
 }
 
-CPostFile * _GiDfiles_NewFile(GiD_PostMode Mode)
-{
+CPostFile * _GiDfiles_NewFile(GiD_PostMode Mode, GiD_PostEncoding encoding_filename) {
   // GiD_PostInit(); // GiD_postInit should be done only once !!
   CPostFile *ret_file = NULL;
   switch ( Mode ) {
@@ -134,6 +131,7 @@ CPostFile * _GiDfiles_NewFile(GiD_PostMode Mode)
   }
   if ( ret_file ) {
     ret_file->m_post_mode = Mode;
+    ret_file->m_encoding_filename= encoding_filename;
   }
   return ret_file;
 }
@@ -176,7 +174,6 @@ int ValidateConnectivity(GiD_ElementType etype , int NNode)
   case GiD_Point:
   case GiD_Sphere:
   case GiD_Circle:
-  case GiD_Cluster:
     error = (NNode != 1);
     break;
   case GiD_Linear:
@@ -1402,7 +1399,7 @@ int _GiDfiles_BeginResultGroup( CPostFile         *File,
 int _GiDfiles_ResultDescription_( CPostFile     *File,
 		             GP_CONST char *Result,
 		             GiD_ResultType Type,
-		             size_t         s )
+		             int         dim )
 {
   char line[LINE_SIZE];
   char *tmp_name;
@@ -1423,7 +1420,7 @@ int _GiDfiles_ResultDescription_( CPostFile     *File,
   line[0] = '\0';
   tmp_name = change_quotes( strdup( Result ) );
   snprintf( line, LINE_SIZE-1, "ResultDescription \"%s\" %s",
-	   tmp_name, GetResultTypeName( Type, s ) );
+	   tmp_name, GetResultTypeName( Type, dim ) );
   free( tmp_name );
   if (CPostFile_WriteString( File, line ) ) 
     {

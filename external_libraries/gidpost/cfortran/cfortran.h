@@ -2201,7 +2201,7 @@ static _Icf(2,U,F,CFFUN(UN),0)() {_(F,_cfE) _Icf(3,GZ,F,UN,LN) ABSOFT_cf1(F));_(
    E == number of elements in an array of strings                             */
 #define TTSTR(    A,B,D)                                                       \
            ((B=_cf_malloc(D+1))[D]='\0', memcpy(B,A,D), kill_trailing(B,' '))
-#define TTTTSTR(  A,B,D)   (!(D<4||A[0]||A[1]||A[2]||A[3]))?NULL:              \
+#define TTTTSTR(  A,B,D)   (!(D<4||A[0]||A[1]||A[2]||A[3]))? ( void *)NULL:              \
                             memchr(A,'\0',D)                 ?A   : TTSTR(A,B,D)
 #define TTTTSTRV( A,B,D,E) (_(B,N)=E,B=_cf_malloc(_(B,N)*(D+1)), (void *)      \
   vkill_trailing(f2cstrv(A,B,D+1, _(B,N)*(D+1)), D+1,_(B,N)*(D+1),' '))

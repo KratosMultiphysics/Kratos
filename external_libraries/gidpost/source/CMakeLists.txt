@@ -1,18 +1,10 @@
 #include (ExternalProject)
+
+message( STATUS "* Configuring gidpost library" )
+
 set (gidpost_source 
-  gidpost.c gidpost_cluster.c gidpostFILES.c gidpostInt.c  gidpostfor.c gidpostforAPI.c
+  gidpost.c gidpostFILES.c gidpostInt.c  gidpostfor.c gidpostforAPI.c
   gidpostHash.c hashtab.c recycle.c lookupa.c)
-
-  
-# Remove Unity of gidpost foreach gidpost.c gidpost_cluster.c gidpostFILES.c gidpostInt.c  gidpostfor.c gidpostforAPI.c   gidpostHash.c hashtab.c recycle.c lookupa.c
-# set_source_files_properties(gidpost.c gidpost_cluster.c gidpostFILES.c gidpostInt.c  gidpostfor.c gidpostforAPI.c
-#   gidpostHash.c hashtab.c recycle.c lookupa.c PROPERTIES COMPILE_FLAGS -fno-unity)
-file(GLOB SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/source/*.c")
-
-foreach(file ${SOURCE_FILES})
-    set_source_files_properties(${file} PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
-endforeach()
-
 
 # find  package already done in  ../CmakeLists.txt
 # find_package(HDF5)
@@ -47,6 +39,7 @@ if ( ( CMAKE_CXX_COMPILER_ID STREQUAL "GNU") OR ( CMAKE_CXX_COMPILER_ID STREQUAL
   target_compile_options( gidpost PRIVATE "$<$<CONFIG:Debug>:-Wall>")
   target_compile_options( gidpost PRIVATE "$<$<CONFIG:Debug>:-Wextra>")
   target_compile_options( gidpost PRIVATE "$<$<CONFIG:Debug>:-Wconversion>")
+  target_compile_options( gidpost PRIVATE "$<$<CONFIG:Debug>:-Wno-unused-parameter>")
   # add_compile_options( "$<$<CONFIG:Debug>:-Wall>")
   # add_compile_options( "$<$<CONFIG:Debug>:-Wextra>")
 endif()
@@ -81,4 +74,4 @@ install (TARGETS gidpost
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
 
-install( FILES gidpost.h gidpost_types.h gidpost_functions.h gidpost_cluster_functions.h gidpost_functions_deprecated.h DESTINATION include )
+install( FILES gidpost.h gidpost_types.h gidpost_functions.h gidpost_functions_deprecated.h DESTINATION include )

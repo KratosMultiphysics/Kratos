@@ -21,7 +21,6 @@
 #endif
 #include "hdf5c.h"
 
-
 /* private structures */
 
 struct Myresult {
@@ -207,7 +206,32 @@ int GiD_IsThreadSafe_HDF5( void ) {
   return hdf5c_f_is_thread_safe();
 }
 
-int GiD_OpenPostMeshFile_HDF5( CurrentHdf5WriteData *obj,  GP_CONST char *FileName ) {
+static int GiD_OpenFileHDF5_internal( CPostHdf5File *post_h5_file, GP_CONST char *FileName, GiD_PostEncoding encoding_filename ) {
+  int ret = 0;
+  if (encoding_filename == GiD_PostEncodeUTF8 ) {
+#ifdef _WIN32
+    wchar_t wname[ MAX_PATH ];
+    MultiByteToWideChar( CP_UTF8, 0, FileName, -1, wname, MAX_PATH );
+    char externalname[MAX_PATH];
+    WideCharToMultiByte( CP_ACP, 0, wname, -1, externalname, MAX_PATH, 0, 0 );
+    ret = hdf5c_f_init( post_h5_file, externalname );
+    if ( ret < 0 ) {
+      // try again with the original name, if will work if it is in external local encoding
+      ret = hdf5c_f_init( post_h5_file, FileName );
+    }
+#else // _WIN32
+    ret = hdf5c_f_init( post_h5_file, FileName );
+#endif
+  } else {
+    assert(encoding_filename == GiD_PostEncodeLocale);
+    ret = hdf5c_f_init( post_h5_file, FileName );
+  }
+
+
+  return ret;
+}
+
+int GiD_OpenPostMeshFile_HDF5( CurrentHdf5WriteData *obj,  GP_CONST char *FileName, GiD_PostEncoding encoding_filename) {
   if ( !obj ) {
     return -1;
   }
@@ -219,7 +243,7 @@ int GiD_OpenPostMeshFile_HDF5( CurrentHdf5WriteData *obj,  GP_CONST char *FileNa
   obj->mesh_group_data = new_MeshGroupData();
   if ( !resetMeshGroupData( obj->mesh_group_data ) )
     return -1;
-  ret = hdf5c_f_init( obj->post_h5_file, FileName );
+  ret = GiD_OpenFileHDF5_internal( obj->post_h5_file, FileName,encoding_filename);
   if ( ret >= 0 ) {
     hdf5c_f_set_attribute( obj->post_h5_file, "/", "GiD Post Results File", "1.1" );
     return 0;
@@ -241,12 +265,9 @@ int GiD_ClosePostMeshFile_HDF5( CurrentHdf5WriteData *obj ) {
   return 0;
 }
 
-int GiD_BeginMesh_HDF5( CurrentHdf5WriteData *obj, GP_CONST char * MeshName,GiD_Dimension Dim, GiD_ElementType EType,int NNode)
-{
+int GiD_BeginMesh_HDF5( CurrentHdf5WriteData *obj, GP_CONST char * MeshName,GiD_Dimension Dim, GiD_ElementType EType,int NNode) {
   char meshN[1024],buf[1024];
-  char* enames[]={"NoElement","Point","Linear","Triangle","Quadrilateral","Tetrahedra","Hexahedra","Prism","Pyramid",
-      "Sphere","Circle"};
-
+  const char* enames[]={"NoElement","Point","Linear","Triangle","Quadrilateral","Tetrahedra","Hexahedra","Prism","Pyramid","Sphere","Circle"};
   char dst_mesh_path[ 1024 ];
   const char *mesh_path = getCurrentMeshPath( obj, dst_mesh_path, 1024 );
   hdf5c_f_create_group( obj->post_h5_file, mesh_path);
@@ -404,7 +425,6 @@ int GiD_BeginElements_HDF5( CurrentHdf5WriteData *obj )
   switch(obj->current_mesh_etype){
     case GiD_Sphere: num_int=3; num_real=1; break;
     case GiD_Circle: num_int=3; num_real=4; break;
-    case GiD_Cluster: num_int=3; break;
     default: num_int=obj->current_mesh_nnode+2; break;
   }
   char dst_mesh_path[ 1024 ];
@@ -601,14 +621,10 @@ int GiD_WriteCircleMat_HDF5( CurrentHdf5WriteData *obj, int id, int nid, double 
   return 0;
 }
 
-int GiD_OpenPostResultFile_HDF5( CurrentHdf5WriteData *obj, GP_CONST char * FileName) {
+int GiD_OpenPostResultFile_HDF5( CurrentHdf5WriteData *obj, GP_CONST char * FileName, GiD_PostEncoding encoding_filename ) {
   if ( !obj ) {
     return -1;
   }
-#ifdef _WIN32
-  wchar_t wname[MAX_PATH];
-  char externalname[MAX_PATH];
-#endif  
   int ret;
   ret = initGlobalHdf5File( obj );
   if ( ret < 0 )
@@ -623,18 +639,8 @@ int GiD_OpenPostResultFile_HDF5( CurrentHdf5WriteData *obj, GP_CONST char * File
   int fail = resetMeshGroupData( obj->mesh_group_data );
   if ( fail )
     return -1;
-#ifdef _WIN32  
-  ret=hdf5c_f_init( obj->post_h5_file, FileName);
-  if(ret<0){
-    /* try again converting from utf-8 to external*/
-    MultiByteToWideChar(CP_UTF8,0,FileName,-1,wname,MAX_PATH);    
-    WideCharToMultiByte(CP_ACP,0,wname,-1,externalname,MAX_PATH,0,0);  
-    ret=hdf5c_f_init( obj->post_h5_file, externalname);
-  }
-#else  
-  ret=hdf5c_f_init( obj->post_h5_file, FileName);
-#endif
 
+  ret = GiD_OpenFileHDF5_internal( obj->post_h5_file, FileName, encoding_filename );
   
   if(ret>=0){
     hdf5c_f_set_attribute( obj->post_h5_file, "/","GiD Post Results File","1.1");

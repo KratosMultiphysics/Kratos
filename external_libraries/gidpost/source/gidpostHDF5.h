@@ -16,17 +16,15 @@ void delete_CurrentHdf5WriteData( CurrentHdf5WriteData *obj );
 *#    Mesh file
 *################################################################################*/
 
-int GiD_OpenPostMeshFile_HDF5( CurrentHdf5WriteData *obj, GP_CONST char * FileName);
+int GiD_OpenPostMeshFile_HDF5( CurrentHdf5WriteData *obj, GP_CONST char * FileName, GiD_PostEncoding encoding );
 int GiD_ClosePostMeshFile_HDF5( CurrentHdf5WriteData *obj );
 
 /*################################################################################
 *#    Write Mesh
 *################################################################################*/
 
-int GiD_BeginMesh_HDF5( CurrentHdf5WriteData *obj, GP_CONST char * MeshName,GiD_Dimension Dim, GiD_ElementType EType,
-		       int NNode);
-int GiD_BeginMeshColor_HDF5( CurrentHdf5WriteData *obj, GP_CONST char * MeshName,GiD_Dimension Dim, GiD_ElementType EType,
-		            int NNode,double Red, double Green, double Blue);
+int GiD_BeginMesh_HDF5(CurrentHdf5WriteData *obj,GP_CONST char * MeshName,GiD_Dimension Dim,GiD_ElementType EType,int NNode);
+int GiD_BeginMeshColor_HDF5(CurrentHdf5WriteData *obj,GP_CONST char * MeshName,GiD_Dimension Dim,GiD_ElementType EType,int NNode,double Red,double Green,double Blue);
 int GiD_EndMesh_HDF5( CurrentHdf5WriteData *obj );
 int GiD_MeshUnit_HDF5( CurrentHdf5WriteData *obj,  GP_CONST char * UnitName );
 int GiD_MeshLocalAxes_HDF5( CurrentHdf5WriteData *obj, GP_CONST char * Result, GP_CONST char * Analysis,double step);
@@ -55,7 +53,7 @@ int GiD_WriteCircleMat_HDF5( CurrentHdf5WriteData *obj, int id, int nid, double 
 *#    Results file
 *################################################################################*/
 
-int GiD_OpenPostResultFile_HDF5( CurrentHdf5WriteData *obj, GP_CONST char * FileName);
+int GiD_OpenPostResultFile_HDF5( CurrentHdf5WriteData *obj, GP_CONST char * FileName, GiD_PostEncoding encoding );
 int GiD_ClosePostResultFile_HDF5( CurrentHdf5WriteData *obj );
 
 /*################################################################################

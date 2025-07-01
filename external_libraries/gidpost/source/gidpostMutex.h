@@ -10,7 +10,7 @@
 #define GP_MUTEX_ENV extern
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
 // defined in  gidpostHash.c
 GP_MUTEX_ENV CRITICAL_SECTION  cs;
 

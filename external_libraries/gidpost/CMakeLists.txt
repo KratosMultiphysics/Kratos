@@ -1,4 +1,8 @@
-cmake_minimum_required (VERSION 2.9)
+cmake_minimum_required (VERSION 3.10)
+
+if(NOT DEFINED CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+endif(NOT DEFINED CMAKE_BUILD_TYPE)
 
 project (gidpost)
 
@@ -22,9 +26,10 @@ if(ZLIB_FOUND)
 endif()
 
 # Find hdf5
+# find_package(HDF5 REQUIRED COMPONENTS C HL)
 
 if( NOT DEFINED ENABLE_HDF5)
-    option (ENABLE_HDF5 "Use HDF5" OFF)
+    option (ENABLE_HDF5 "Use HDF5" ON)
 endif( NOT DEFINED ENABLE_HDF5)
 
 if ( ENABLE_HDF5 )
@@ -41,24 +46,56 @@ if ( ENABLE_HDF5 )
         set (ENABLE_HDF5 OFF)
     endif(HDF5_FOUND)
 endif( ENABLE_HDF5)
-option(ENABLE_SHARED_LIBS "Build gidpost as a shared libraries." OFF)
+
+if( NOT DEFINED ENABLE_SHARED_LIBS)
+    option(ENABLE_SHARED_LIBS "Build gidpost as a shared libraries." OFF)
+endif( NOT DEFINED ENABLE_SHARED_LIBS)
 
 if (ENABLE_SHARED_LIBS)
   add_definitions (-DGIDPOST_SHARED)
 endif (ENABLE_SHARED_LIBS)
-option ( ENABLE_FORTRAN_EXAMPLES "Build fortran examples, it is needed a fortran compiler" OFF )
+
+# fortran examples and compiler selection
+if( NOT DEFINED ENABLE_EXAMPLES)
+    option (ENABLE_EXAMPLES "Build examples, it is needed a C++ compiler" ON )
+endif( NOT DEFINED ENABLE_EXAMPLES)
+
+if( NOT DEFINED ENABLE_FORTRAN_EXAMPLES)
+    option (ENABLE_FORTRAN_EXAMPLES "Build fortran examples, it is needed a fortran compiler" OFF )
+endif( NOT DEFINED ENABLE_FORTRAN_EXAMPLES)
 
 if (ENABLE_FORTRAN_EXAMPLES)
   enable_language ( Fortran )
   # add_definitions(-DgFortran)
   # message(STATUS "*** defining -DgFortran")
+  message( STATUS "-- Fortran toolset : ${CMAKE_VS_PLATFORM_TOOLSET_FORTRAN}")
+  message( STATUS "-- Detected Fortran : ${CMAKE_Fortran_COMPILER_ID}")
+  message( STATUS "-- Fortran executable : ${CMAKE_Fortran_COMPILER}")
   add_definitions (-DgFortran)
+  if ( CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+    option (HAS_GFORTRAN "Use GNU Gfortran" ON)
+    message( STATUS "-- Using GNU GFortran : ${CMAKE_Fortran_COMPILER_ID}")
+  elseif ( CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
+    option (HAS_INTEL_FORTRAN "Use Intel Fortran" ON)
+    message( STATUS "-- Using Intel Fortran : ${CMAKE_Fortran_COMPILER_ID}")
+  elseif ( CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC")
+    option (HAS_NVIDIA_FORTRAN "Use nVidia fortran" ON)
+    message( STATUS "-- Using nVidia nvfortran : ${CMAKE_Fortran_COMPILER_ID}")
+  else ( CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+    message( WARNING "Fortran compiler not supported: ${CMAKE_Fortran_COMPILER_ID}")
+  endif ( CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 endif (ENABLE_FORTRAN_EXAMPLES)
 
 # used in examples/MultiplePartition
-option(ENABLE_PARALLEL_EXAMPLE "Build gidpost as a shared libraries." OFF)
+if ( NOT DEFINED ENABLE_PARALLEL_EXAMPLE)
+    option(ENABLE_PARALLEL_EXAMPLE "Build gidpost as a shared libraries." OFF)
+endif( NOT DEFINED ENABLE_PARALLEL_EXAMPLE)
+
 if( ENABLE_PARALLEL_EXAMPLE )
   find_package( Boost COMPONENTS thread REQUIRED)
+  if ( ( CMAKE_CXX_COMPILER_ID STREQUAL "GNU") OR ( CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  endif ( ( CMAKE_CXX_COMPILER_ID STREQUAL "GNU") OR ( CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
 endif( ENABLE_PARALLEL_EXAMPLE )
 
 # using g++ 11 in older linuxes
@@ -102,5 +139,7 @@ add_subdirectory (source)
 # built.
 link_directories (${PROJECT_BINARY_DIR}/source  ${ZLIB_LIBRARIES} ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
 
-# add_subdirectory( examples )
-# add_subdirectory( examples/MultiplePartition )
+if (ENABLE_EXAMPLES OR ENABLE_FORTRAN_EXAMPLES)
+  add_subdirectory( examples )
+  add_subdirectory( examples/MultiplePartition )
+endif (ENABLE_EXAMPLES OR ENABLE_FORTRAN_EXAMPLES)

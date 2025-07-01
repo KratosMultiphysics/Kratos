@@ -374,7 +374,7 @@ GIDPOST_API_DEPRECATED
 int GCC_GIDPOST_API_DEPRECATED GiD_ResultDescription(GP_CONST char * Result, GiD_ResultType Type);
 GIDPOST_API_DEPRECATED
 int GCC_GIDPOST_API_DEPRECATED GiD_ResultDescriptionDim(GP_CONST char * Result, GiD_ResultType Type,
-		              size_t dim);
+		              int dim);
 
   /*
     Associates the given local axes result to the current result.

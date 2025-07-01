@@ -1,4 +1,3 @@
-/* gidpost 2.11 */
 /*
  *  gidpost.h --
  *
@@ -29,7 +28,7 @@
 #endif
 
 #define GP_VERSION_MAJOR 2
-#define GP_VERSION_MINOR 11
+#define GP_VERSION_MINOR 12
 
 /* build GIDPOST_VERSION by stringify-ing GP_VERSION_MAJOR and GP_VERSION_MINOR */
 #define __GP_V_STR( str)     __GP_V_STR_( str)
@@ -42,8 +41,8 @@
 
 /*
 #if defined(_MSC_VER) && defined(GIDPOST_SHARED)
-# ifndef WIN32
-#  define WIN32
+# ifndef _WIN32
+#  define _WIN32
 # endif
 # if defined(GIDPOST_EXPORTS)
 #  define GIDPOST_API __declspec(dllexport)

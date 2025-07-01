@@ -31,8 +31,8 @@
 
 #define LINE_SIZE 8192
 
-GP_CONST char * GetResultTypeName(GiD_ResultType type, size_t s);
-void GetResultTypeMinMaxValues(GiD_ResultType type, size_t *min, size_t *max);
+GP_CONST char * GetResultTypeName(GiD_ResultType type, int dim);
+void GetResultTypeMinMaxValues(GiD_ResultType type, int *min, int *max);
 
 typedef struct _CPostFile CPostFile;
 
@@ -83,71 +83,72 @@ struct _CPostFile
   post_state stack_state[STACK_STATE_SIZE];
   int stack_pos;
   
-  int (*ptr_Open)            (CPostFile* this, GP_CONST char *name);
-  int (*ptr_Close)           (CPostFile* this);
-  int (*ptr_Flush)           (CPostFile* this);
-  int (*ptr_IsBinary)        (CPostFile* this);
-  int (*ptr_WriteString)     (CPostFile* this, GP_CONST char * str);
-  int (*ptr_BeginCoordinates)(CPostFile* this);
-  int (*ptr_BeginElements)   (CPostFile* this);
-  int (*ptr_BeginValues)     (CPostFile* this);
-  int (*ptr_EndValues)       (CPostFile* this);
-  int (*ptr_WriteInteger)    (CPostFile* this, int i,    int op);
-  int (*ptr_WriteDouble)     (CPostFile* this, double x, int op);
-  int (*ptr_WriteValuesVA)   (CPostFile* this, int id,   int n, va_list ap);
-  int ( *ptr_WriteValues )( CPostFile *this, int id, int n, GP_CONST double * );
-  int ( *ptr_WriteValuesNS )( CPostFile *this, int id, int n, GP_CONST double * );
-  int (*ptr_WriteValuesNSV)  (CPostFile* this, int id,   int n, int num_comp, GP_CONST double* );
-  int (*ptr_Write2D)         (CPostFile* this, double x, double y);
-  int (*ptr_Write3D)         (CPostFile* this, double x, double y, double z);
-  int ( *ptr_WriteElement )( CPostFile *this, int id, int n, GP_CONST int nid[] );
-  int (*ptr_WritePostHeader) (CPostFile* this);
-  int (*ptr_WritePostHeaderIGA) (CPostFile* this);
+  int (*ptr_Open)            (CPostFile* post_file, GP_CONST char *name);
+  int (*ptr_Close)           (CPostFile* post_file);
+  int (*ptr_Flush)           (CPostFile* post_file);
+  int (*ptr_IsBinary)        (CPostFile* post_file);
+  int (*ptr_WriteString)     (CPostFile* post_file, GP_CONST char * str);
+  int (*ptr_BeginCoordinates)(CPostFile* post_file);
+  int (*ptr_BeginElements)   (CPostFile* post_file);
+  int (*ptr_BeginValues)     (CPostFile* post_file);
+  int (*ptr_EndValues)       (CPostFile* post_file);
+  int (*ptr_WriteInteger)    (CPostFile* post_file, int i,    int op);
+  int (*ptr_WriteDouble)     (CPostFile* post_file, double x, int op);
+  int (*ptr_WriteValuesVA)   (CPostFile* post_file, int id,   int n, va_list ap);
+  int ( *ptr_WriteValues )( CPostFile* post_file, int id, int n, GP_CONST double * );
+  int ( *ptr_WriteValuesNS )( CPostFile* post_file, int id, int n, GP_CONST double * );
+  int (*ptr_WriteValuesNSV)  (CPostFile* post_file, int id,   int n, int num_comp, GP_CONST double* );
+  int (*ptr_Write2D)         (CPostFile* post_file, double x, double y);
+  int (*ptr_Write3D)         (CPostFile* post_file, double x, double y, double z);
+  int ( *ptr_WriteElement )( CPostFile* post_file, int id, int n, GP_CONST int nid[] );
+  int (*ptr_WritePostHeader) (CPostFile* post_file);
+  int (*ptr_WritePostHeaderIGA) (CPostFile* post_file);
 
   // if m_post_mode == GiD_PostHDF5 then CurrentHdf5WriteData is valid and above not
   /* TODO add here G_PostMode and CurrentHdf5WriteData *my_hdf5_file */
   GiD_PostMode m_post_mode;
+  GiD_PostEncoding m_encoding_filename; //to open the file converting filename from utf-8 to local or not
   CurrentHdf5WriteData *m_hdf5_file;
 };
 
-int CPostFile_Release         (CPostFile*);
-int CPostFile_Open            (CPostFile* this, GP_CONST char * name);
-int CPostFile_Close           (CPostFile* this);
-post_state CPostFile_TopState ( CPostFile* this );
-int CPostFile_PushState       ( CPostFile* this, post_state s );
-post_state CPostFile_PopState (CPostFile* this);
-int CPostFile_Flush           (CPostFile* this);
-int CPostFile_IsBinary        (CPostFile* this);
-int CPostFile_WriteString     (CPostFile* this, GP_CONST char * str);
-int CPostFile_BeginCoordinates(CPostFile* this);
-int CPostFile_BeginElements   (CPostFile* this);
-int CPostFile_BeginValues     (CPostFile* this);
-int CPostFile_EndValues       (CPostFile* this);
-int CPostFile_WriteInteger    (CPostFile* this, int i,    int op);
-int CPostFile_WriteDouble     (CPostFile* this, double x, int op);
-int CPostFile_WriteValuesVA   (CPostFile* this, int id,   int n, ...);
-int CPostFile_WriteValues( CPostFile *this, int id, int n, GP_CONST double * );
-int CPostFile_WriteValuesNS( CPostFile *this, int id, int n, GP_CONST double * );
-int CPostFile_WriteValuesNSV( CPostFile *this, int id, int n, int num_comp, GP_CONST double * );
-int CPostFile_Write2D         (CPostFile* this, double x, double y);
-int CPostFile_Write3D         (CPostFile* this, double x, double y, double z);
-int CPostFile_WriteElement( CPostFile *this, int id, int n, GP_CONST int nid[] );
-int CPostFile_WritePostHeader (CPostFile* this);
+int CPostFile_Release         (CPostFile* post_file);
+int CPostFile_Open            (CPostFile* post_file, GP_CONST char * name);
+int CPostFile_Close           (CPostFile* post_file);
+post_state CPostFile_TopState ( CPostFile* post_file );
+int CPostFile_PushState       ( CPostFile* post_file, post_state s );
+post_state CPostFile_PopState (CPostFile* post_file);
+int CPostFile_Flush           (CPostFile* post_file);
+int CPostFile_IsBinary        (CPostFile* post_file);
+int CPostFile_WriteString     (CPostFile* post_file, GP_CONST char * str);
+int CPostFile_BeginCoordinates(CPostFile* post_file);
+int CPostFile_BeginElements   (CPostFile* post_file);
+int CPostFile_BeginValues     (CPostFile* post_file);
+int CPostFile_EndValues       (CPostFile* post_file);
+int CPostFile_WriteInteger    (CPostFile* post_file, int i,    int op);
+int CPostFile_WriteDouble     (CPostFile* post_file, double x, int op);
+int CPostFile_WriteValuesVA   (CPostFile* post_file, int id,   int n, ...);
+int CPostFile_WriteValues( CPostFile* post_file, int id, int n, GP_CONST double * );
+int CPostFile_WriteValuesNS( CPostFile* post_file, int id, int n, GP_CONST double * );
+int CPostFile_WriteValuesNSV( CPostFile* post_file, int id, int n, int num_comp, GP_CONST double * );
+int CPostFile_Write2D         (CPostFile* post_file, double x, double y);
+int CPostFile_Write3D         (CPostFile* post_file, double x, double y, double z);
+int CPostFile_WriteElement( CPostFile* post_file, int id, int n, GP_CONST int nid[] );
+int CPostFile_WritePostHeader (CPostFile* post_file);
 
-void CPostFile_ResetLastID     (CPostFile* this);
-void CPostFile_SetConnectivity (CPostFile* this, int nnode);
-int CPostFile_GetConnectivity  (CPostFile* this);
-int CPostFile_MatchConnectivity(CPostFile* this, int written);
+void CPostFile_ResetLastID     (CPostFile* post_file);
+void CPostFile_SetConnectivity (CPostFile* post_file, int nnode);
+int CPostFile_GetConnectivity  (CPostFile* post_file);
+int CPostFile_MatchConnectivity(CPostFile* post_file, int written);
 
-void CPostFile_ResultGroupOnBegin       (CPostFile* this);
-void CPostFile_ResultGroupOnNewType     (CPostFile* this, GiD_ResultType t);
-int  CPostFile_ResultGroupIsEmpty       (CPostFile* this);
-void CPostFile_ResultGroupOnBeginValues (CPostFile* this);
-int  CPostFile_ResultGroupWriteValues   (CPostFile* this, GiD_ResultType t, int id, int n, ...);
+void CPostFile_ResultGroupOnBegin       (CPostFile* post_file);
+void CPostFile_ResultGroupOnNewType     (CPostFile* post_file, GiD_ResultType t);
+int  CPostFile_ResultGroupIsEmpty       (CPostFile* post_file);
+void CPostFile_ResultGroupOnBeginValues (CPostFile* post_file);
+int  CPostFile_ResultGroupWriteValues   (CPostFile* post_file, GiD_ResultType t, int id, int n, ...);
 
-CPostFile *CPostAscii_Create( void );
-CPostFile *CPostAsciiZ_Create( void );
-CPostFile *CPostBinary_Create( void );
-CPostFile *CPostHdf5_Create( void );
+CPostFile* CPostAscii_Create( void );
+CPostFile* CPostAsciiZ_Create( void );
+CPostFile* CPostBinary_Create( void );
+CPostFile* CPostHdf5_Create( void );
 
 #endif
