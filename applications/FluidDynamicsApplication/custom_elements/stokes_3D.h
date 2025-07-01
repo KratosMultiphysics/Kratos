@@ -448,8 +448,8 @@ public:
             Values.SetShapeFunctionsValues(Nvec);
 
             Values.SetStrainVector(strain); //this is the input parameter
-            Values.SetStressVector(data.stress); //this is an ouput parameter
-//             Values.SetConstitutiveMatrix(data.C);      //this is an ouput parameter
+            Values.SetStressVector(data.stress); //this is an output parameter
+//             Values.SetConstitutiveMatrix(data.C);      //this is an output parameter
 
             //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
             //this is ok under the hypothesis that no history dependent behaviour is employed
@@ -611,8 +611,8 @@ protected:
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
         Values.SetStrainVector(strain); //this is the input parameter
-        Values.SetStressVector(data.stress); //this is an ouput parameter
-        Values.SetConstitutiveMatrix(data.C);      //this is an ouput parameter
+        Values.SetStressVector(data.stress); //this is an output parameter
+        Values.SetConstitutiveMatrix(data.C);      //this is an output parameter
 
         //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
         //this is ok under the hypothesis that no history dependent behaviour is employed

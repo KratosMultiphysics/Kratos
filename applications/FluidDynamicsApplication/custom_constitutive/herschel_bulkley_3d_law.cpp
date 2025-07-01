@@ -79,7 +79,7 @@ void  HerschelBulkley3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
 
     const Properties& MaterialProperties  = rValues.GetMaterialProperties();
 
-    Vector& S                  = rValues.GetStrainVector(); //using the short name S to reduce the lenght of the expressions
+    Vector& S                  = rValues.GetStrainVector(); //using the short name S to reduce the length of the expressions
     Vector& StressVector                  = rValues.GetStressVector();
 
     //-----------------------------//

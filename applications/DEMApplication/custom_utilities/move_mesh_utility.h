@@ -32,7 +32,7 @@ namespace  Kratos
     /**
      * @class MoveMeshUtility
      *
-     * @brief This utilitiy moves the nodes of a dem wall
+     * @brief This utility moves the nodes of a dem wall
      *        used especially in the fem-dem coupling
      *
      * @author Klaus B Sautter

@@ -385,7 +385,7 @@ void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>
                 << ") that was not casted from an int, i.e. it contains a "
                 << "fractional part of " << std::abs(fract_part-0.1) << "!" << std::endl;
 #endif
-            // retrive data from buffer
+            // retrieve data from buffer
             const int local_sys_idx = static_cast<IndexType>(r_rank_buffer[j*4]+0.1);
             // 0.1 is added to prevent truncation errors like (int)1.9999 = 1
             coords[0] = r_rank_buffer[j*4 + 1];
@@ -418,7 +418,7 @@ void FillBufferAfterLocalSearch(MapperInterfaceInfoPointerVectorType& rMapperInt
             const auto p_serializer_buffer = dynamic_cast<std::stringstream*>(serializer.pGetBuffer());
             const std::string& stream_str = p_serializer_buffer->str();
 
-            const SizeType send_size = sizeof(char) * (stream_str.size()+1); // +1 fof Null-terminated string
+            const SizeType send_size = sizeof(char) * (stream_str.size()+1); // +1 for Null-terminated string
 
             rSendSizes[i_rank] = send_size;
 

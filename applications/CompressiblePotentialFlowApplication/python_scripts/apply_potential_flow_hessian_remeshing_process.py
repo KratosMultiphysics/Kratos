@@ -40,7 +40,7 @@ class ApplyPotentialFlowHessianRemeshingProcess(KratosMultiphysics.Process):
         self.main_model_part = Model[settings["model_part_name"].GetString()]
         self.domain_size = self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
         if not self.domain_size == 2 and not self.domain_size == 3:
-            raise(Exception("Domain size is different than 2 and different than 3. Please set the domain size correclty"))
+            raise(Exception("Domain size is different than 2 and different than 3. Please set the domain size correctly"))
 
         self.metric_parameters = settings["metric_parameters"]
         self.mmg_parameters = settings["mmg_parameters"]

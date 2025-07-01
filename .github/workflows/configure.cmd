@@ -1,4 +1,4 @@
-call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
+call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
 
 set CC=cl.exe
 set CXX=cl.exe
@@ -43,11 +43,12 @@ del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
 cmake                                                 ^
-  -G"Visual Studio 16 2019"                           ^
+  -G"Visual Studio 17 2022"                           ^
   -H"%KRATOS_SOURCE%"                                 ^
   -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"              ^
   -DBOOST_ROOT="%TEMP%\boost"                         ^
   -DCMAKE_CXX_FLAGS="/Od /we4661 /we4804 /WX /wd4996" ^
+  -DCMAKE_POLICY_VERSION_MINIMUM=3.5                  ^
   -DFORCE_LOCAL_ZLIB_COMPILATION=ON                   ^
   -DCMAKE_UNITY_BUILD=ON                                    || goto :error
 

@@ -195,7 +195,7 @@ class PFEM2Solver:
                 #self.distance_utils.CalculateDistances(self.model_part,DISTANCE,0.1)
                 #(self.VariableUtils).CopyScalarVar(DISTANCE,TEMP_CONV_PROJ,self.model_part.Nodes)
 
-                #transfering data from the particles to the mesh:
+                #transferring data from the particles to the mesh:
                 (self.moveparticles).TransferLagrangianToEulerian();
 
                 #MORE RICC THINGS
@@ -227,7 +227,7 @@ class PFEM2Solver:
                 (self.moveparticles).CalculateDeltaVelocity();
                 t11 = timer.time()
                 self.implicit_solving = self.implicit_solving + t11-t6
-                #transfering the information to the mesh:
+                #transferring the information to the mesh:
                 modify_particle_pressure=False
                 (self.moveparticles).AccelerateParticlesWithoutMovingUsingDeltaVelocity(modify_particle_pressure,add_gravity);
                 t12 = timer.time()

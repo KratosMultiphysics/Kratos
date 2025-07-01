@@ -27,14 +27,14 @@
 namespace Kratos
 {
 
-ActivateModelPartOperation::ActivateModelPartOperation(Model& rModel, const Parameters rSettings)
+ActivateModelPartOperation::ActivateModelPartOperation(Model& rModel, const Parameters& rSettings)
     : Operation(), mpModelPart(&rModel.GetModelPart(rSettings["model_part_name"].GetString()))
 {
 }
 
-Operation::Pointer ActivateModelPartOperation::Create(Model& rModel, Parameters Parameters) const
+Operation::Pointer ActivateModelPartOperation::Create(Model& rModel, Parameters Settings) const
 {
-    return Kratos::make_shared<ActivateModelPartOperation>(rModel, Parameters);
+    return Kratos::make_shared<ActivateModelPartOperation>(rModel, Settings);
 }
 
 void ActivateModelPartOperation::Execute()

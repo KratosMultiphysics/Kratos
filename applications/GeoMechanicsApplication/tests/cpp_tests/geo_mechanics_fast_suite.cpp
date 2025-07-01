@@ -43,6 +43,7 @@ KratosGeoMechanicsFastSuiteWithoutKernel::KratosGeoMechanicsFastSuiteWithoutKern
 
     KRATOS_REGISTER_VARIABLE(CAUCHY_STRESS_VECTOR)
     KRATOS_REGISTER_VARIABLE(CAUCHY_STRESS_TENSOR)
+    KRATOS_REGISTER_VARIABLE(TIME_STEPS)
     // clang-format on
 }
 

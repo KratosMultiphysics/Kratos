@@ -48,7 +48,7 @@ namespace Kratos
  * @class ContactResidualBasedEliminationBuilderAndSolver
  * @ingroup ContactStructuralMechanicsApplication
  * @brief Current class provides an implementation for contact builder and solving operations. (elimination)
- * @details The RHS is constituted by the unbalanced loads (residual). Degrees of freedom are reordered putting the restrained degrees of freedom at the end of the system ordered in reverse order with respect to the DofSet and not considered the inactive ones. Imposition of the dirichlet conditions is naturally dealt with as the residual already contains this information. Calculation of the reactions involves a cost very similiar to the calculation of the total residual
+ * @details The RHS is constituted by the unbalanced loads (residual). Degrees of freedom are reordered putting the restrained degrees of freedom at the end of the system ordered in reverse order with respect to the DofSet and not considered the inactive ones. Imposition of the dirichlet conditions is naturally dealt with as the residual already contains this information. Calculation of the reactions involves a cost very similar to the calculation of the total residual
  * @author Vicente Mataix Ferrandiz
  * @tparam TSparseSpace The sparse matrix system considered
  * @tparam TDenseSpace The dense matrix system

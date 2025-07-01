@@ -109,7 +109,7 @@ namespace Kratos
         {
             KRATOS_TRY;
 
-            // pointer types for solution strategy construcion
+            // pointer types for solution strategy construction
             typedef typename Scheme<TSparseSpace, TDenseSpace>::Pointer SchemePointerType;
             //typedef typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
             typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;

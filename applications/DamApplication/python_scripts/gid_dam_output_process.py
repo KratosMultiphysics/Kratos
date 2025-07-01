@@ -82,7 +82,7 @@ class GiDDamOutputProcess(KratosMultiphysics.Process):
             self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
             # Note: this only validates the first level of the JSON tree.
             # I'm not going for recursive validation because some branches may
-            # not exist and I don't want the validator assinging defaults there.
+            # not exist and I don't want the validator assigning defaults there.
             param.ValidateAndAssignDefaults(self.defaults)
 
         self.param = param

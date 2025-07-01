@@ -11,9 +11,9 @@ sys.path.append(os.path.join('..', 'python_scripts'))
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 
 
-def get_file_path(fileName):
+def get_file_path(filename):
     import os
-    return os.path.join(os.path.dirname(__file__), fileName)
+    return os.path.join(os.path.dirname(__file__), filename)
 
 
 def make_geomechanics_analysis(model, project_parameters_file_path):
@@ -44,76 +44,6 @@ def run_kratos(file_path, model=None):
 
     os.chdir(cwd)
     return simulation
-
-def run_stages(project_path,n_stages):
-    """
-    Run all construction stages
-
-    :param project_path:
-    :param n_stages:
-    :return:
-    """
-    cwd = os.getcwd()
-    stages = get_stages(project_path,n_stages)
-    [stage.Run() for stage in stages]
-    os.chdir(cwd)
-    return stages
-
-def get_stages(project_path,n_stages):
-    """
-    Gets all construction stages
-
-    :param project_path:
-    :param n_stages:
-    :return:
-    """
-
-    parameter_file_names = [os.path.join(project_path, 'ProjectParameters_stage' + str(i + 1) + '.json') for i in
-                            range(n_stages)]
-
-    # set stage parameters
-    parameters_stages = [None] * n_stages
-    os.chdir(project_path)
-    for idx, parameter_file_name in enumerate(parameter_file_names):
-        with open(parameter_file_name, 'r') as parameter_file:
-            parameters_stages[idx] = Kratos.Parameters(parameter_file.read())
-
-    model = Kratos.Model()
-    stages = [analysis.GeoMechanicsAnalysis(model, stage_parameters) for stage_parameters in parameters_stages]
-    return stages
-
-def get_separated_directory_names(project_path, n_stages):
-    """
-    Gets directory names for all construction stages in seperated directories as Stage_0, Stage_1, ...
-
-    :param project_path:
-    :param n_stages:
-    :return:
-    """
-    directory_names = [os.path.join(project_path, 'Stage_' +  str(i + 1)) for i in range(n_stages)]
-
-    return directory_names
-
-def get_separated_stages(directory_names):
-    """
-    Gets all construction stages in seperated directories as Stage_0, Stage_1, ...
-
-    :param project_path:
-    :param n_stages:
-    :return:
-    """
-    n_stages = len(directory_names)
-    # set stage parameters
-    parameters_stages = [None] * n_stages
-    for idx, directory_name in enumerate(directory_names):
-        parameter_file_name = directory_name + '/ProjectParameters.json'
-        with open(parameter_file_name, 'r') as parameter_file:
-            parameters_stages[idx] = Kratos.Parameters(parameter_file.read())
-
-    model = Kratos.Model()
-    stages = [analysis.GeoMechanicsAnalysis(model, stage_parameters) for stage_parameters in parameters_stages]
-
-    return stages
 
 
 def get_displacement(simulation):
@@ -377,9 +307,8 @@ def get_force(simulation):
     model_part = simulation._list_of_output_processes[0].model_part
     elements = model_part.Elements
 
-    Force = [element.CalculateOnIntegrationPoints(
+    return [element.CalculateOnIntegrationPoints(
         Kratos.FORCE, model_part.ProcessInfo)[0] for element in elements]
-    return Force
 
 
 def get_moment(simulation):
@@ -687,3 +616,30 @@ class GiDOutputFileReader:
             return result
         else:
             return element_results
+
+
+def read_coordinates_from_post_msh_file(file_path, node_ids=None):
+    node_map = {}
+
+    with open(file_path, "r") as post_msh_file:
+        reading_coordinates = False
+        for line in post_msh_file:
+            line = line.strip()
+            if line == "Coordinates":
+                reading_coordinates = True
+                continue
+
+            if line == "End Coordinates":
+                reading_coordinates = False
+
+            if reading_coordinates:
+                numbers = line.split()  # [node ID, x, y, z]
+                node_map[int(numbers[0])] = tuple([float(number) for number in numbers[1:]])
+
+    if node_ids is None:
+        return list(node_map.values())
+
+    result = []
+    for id in node_ids:
+        result.append(node_map[id])
+    return result

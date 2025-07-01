@@ -12,8 +12,7 @@
 //                   Pooyan Dadvand
 //
 
-#if !defined(KRATOS_GID_MESH_CONTAINER_H_INCLUDED)
-#define  KRATOS_GID_MESH_CONTAINER_H_INCLUDED
+#pragma once
 // System includes
 #include <string>
 #include <iostream>
@@ -309,4 +308,3 @@ protected:
     const char* mMeshTitle;
 };//class GidMeshContainer
 }// namespace Kratos.
-#endif // KRATOS_GID_MESH_CONTAINER_H_INCLUDED defined

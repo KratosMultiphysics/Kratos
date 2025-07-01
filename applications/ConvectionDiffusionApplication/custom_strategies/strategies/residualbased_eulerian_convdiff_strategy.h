@@ -297,7 +297,7 @@ public:
 		//else
 		//	std::cout << "No Projection variable assigned for ConvDiff. Assuming Projection=0" << std::endl;
 		if(my_settings->IsDefinedProjectionVariable()==true)
-			KRATOS_ERROR << "ConvDiffSettings: ProjectionVariable not useed. Remove it" << std::endl;
+			KRATOS_ERROR << "ConvDiffSettings: ProjectionVariable not used. Remove it" << std::endl;
 
 		//CONVECTION VELOCITY VARIABLE
 		//CURRENTLY WE ARE USING (VELOCITY -MESH_VELOCITY) TO CONVECT, so the ConvectionVariable must not be used:

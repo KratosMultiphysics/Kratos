@@ -73,7 +73,7 @@ class OptimizationProblem:
                 break
 
         if added_component_type is None:
-            raise RuntimeError(f"The given compoennt is of not supported types. Supported types:\n\tKratos.Process\n\t" + "\n\t".join([k.__name__ for k in self.__components.keys()]))
+            raise RuntimeError(f"The given component is of not supported types. Supported types:\n\tKratos.Process\n\t" + "\n\t".join([k.__name__ for k in self.__components.keys()]))
         else:
             if self.__echo_level > 0:
                 Kratos.Logger.PrintInfo(self.__class__.__name__, f"Added \"{component.GetName()}\" to \"{added_component_type}\".")

@@ -1942,7 +1942,7 @@ void BaseSolidElement::CalculateDampingMatrixWithLumpedMass(
 
     noalias( rDampingMatrix ) = ZeroMatrix( mat_size, mat_size );
 
-    // 1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    // 1.-Get Damping Coefficients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
     double alpha = 0.0;
     if( GetProperties().Has(RAYLEIGH_ALPHA) )
         alpha = GetProperties()[RAYLEIGH_ALPHA];

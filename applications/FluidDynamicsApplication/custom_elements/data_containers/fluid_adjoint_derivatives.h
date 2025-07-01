@@ -160,12 +160,12 @@ public:
         KRATOS_TRY
 
         KRATOS_DEBUG_ERROR_IF(rOutput.size1() != TAssemblyRowBlockSize * NumNodes)
-            << "rOuput.size1() does not have the required size. [ rOutput.size1() = "
+            << "rOutput.size1() does not have the required size. [ rOutput.size1() = "
             << rOutput.size1() << ", required_size = TAssemblyRowBlockSize * NumNodes = "
             << TAssemblyRowBlockSize * NumNodes << " ].\n";
 
         KRATOS_DEBUG_ERROR_IF(rOutput.size2() != TAssemblyColumnBlockSize * NumNodes)
-            << "rOuput.size2() does not have the required size. [ rOutput.size2() = "
+            << "rOutput.size2() does not have the required size. [ rOutput.size2() = "
             << rOutput.size2() << ", required_size = TAssemblyColumnBlockSize * NumNodes = "
             << TAssemblyColumnBlockSize * NumNodes << " ].\n";
 
@@ -194,7 +194,7 @@ public:
         static_assert(ColumnStartingIndex == 0);
 
         KRATOS_DEBUG_ERROR_IF(rOutput.size() != TAssemblyRowBlockSize * NumNodes)
-            << "rOuput.size() does not have the required size. [ rOutput.size() = "
+            << "rOutput.size() does not have the required size. [ rOutput.size() = "
             << rOutput.size() << ", required_size = TAssemblyRowBlockSize * NumNodes = "
             << TAssemblyRowBlockSize * NumNodes << " ].\n";
 

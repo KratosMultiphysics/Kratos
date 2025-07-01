@@ -329,7 +329,7 @@ std::vector<std::size_t> LaplacianShiftedBoundaryElement<TDim>::GetSurrogateFace
     auto& r_neigh_elems = GetValue(NEIGHBOUR_ELEMENTS);
 
     // Check the current element faces
-    // Note that we relly on the fact that the neighbours are sorted according to the faces
+    // Note that we rely on the fact that the neighbours are sorted according to the faces
     std::vector<std::size_t> surrogate_faces_ids;
     for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
         auto p_neigh_elem = r_neigh_elems(i_face).get();

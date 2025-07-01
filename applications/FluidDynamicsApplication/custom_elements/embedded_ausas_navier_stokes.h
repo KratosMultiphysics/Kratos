@@ -125,7 +125,7 @@ public:
         std::vector<array_1d<double,3>> neg_int_unit_normals;   // Positive interface unit normal vector in each Gauss pt.
 
         std::vector<unsigned int>   int_vec_identifiers;    // Interior (fluid) nodes identifiers
-        std::vector<unsigned int>   out_vec_identifiers;    // Outside (stucture) nodes identifiers
+        std::vector<unsigned int>   out_vec_identifiers;    // Outside (structure) nodes identifiers
 
         unsigned int    n_pos = 0;                          // Number of postivie distance nodes
         unsigned int    n_neg = 0;                          // Number of negative distance nodes
@@ -422,7 +422,7 @@ protected:
     void Initialize(const ProcessInfo &rCurrentProcessInfo) override {
         KRATOS_TRY;
 
-        // Initalize the constitutive law pointer
+        // Initialize the constitutive law pointer
         mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
         mpConstitutiveLaw->InitializeMaterial( GetProperties(), this->GetGeometry(), row( this->GetGeometry().ShapeFunctionsValues(), 0 ) );
 
@@ -516,7 +516,7 @@ protected:
 
             GeometryPointerType p_geom = this->pGetGeometry();
 
-            // Construct the modified shape fucntions utility
+            // Construct the modified shape functions utility
             ModifiedShapeFunctions::Pointer p_ausas_modified_sh_func = nullptr;
             if constexpr (TNumNodes == 4) {
                 p_ausas_modified_sh_func = Kratos::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(p_geom, distances);
@@ -609,7 +609,7 @@ protected:
         array_1d<double, MatrixSize> rhs_local;
         BoundedMatrix<double, MatrixSize, MatrixSize> lhs_local;
 
-        // Decide if the element is wether split or not and add the contribution accordingly
+        // Decide if the element is whether split or not and add the contribution accordingly
         if (rData.n_pos != 0 && rData.n_neg != 0){
 
             // Add the positive side volume contribution
@@ -682,7 +682,7 @@ protected:
         // Allocate memory needed
         array_1d<double, MatrixSize> rhs_local;
 
-        // Decide if the element is wether split or not and add the contribution accordingly
+        // Decide if the element is whether split or not and add the contribution accordingly
         if (rData.n_pos != 0 && rData.n_neg != 0){
 
             // Add the positive side volume contribution
@@ -1204,8 +1204,8 @@ protected:
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
         Values.SetStrainVector(rData.strain);       //this is the input parameter
-        Values.SetStressVector(rData.stress);       //this is an ouput parameter
-        Values.SetConstitutiveMatrix(rData.C);      //this is an ouput parameter
+        Values.SetStressVector(rData.stress);       //this is an output parameter
+        Values.SetConstitutiveMatrix(rData.C);      //this is an output parameter
 
         //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
         //this is ok under the hypothesis that no history dependent behaviour is employed

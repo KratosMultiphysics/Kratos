@@ -97,7 +97,7 @@ public:
     ///@}
 
     ///@}
-    ///@name Informations
+    ///@name Information
     ///@{
 
     ///@name Operations

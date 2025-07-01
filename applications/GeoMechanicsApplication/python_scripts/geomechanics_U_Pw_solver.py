@@ -91,9 +91,7 @@ class UPwSolver(GeoSolver):
             },
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
-            "body_domain_sub_model_part_list": [""],
-            "loads_sub_model_part_list": [],
-            "loads_variable_list": []
+            "body_domain_sub_model_part_list": [""]
         }""")
 
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
@@ -243,7 +241,4 @@ class UPwSolver(GeoSolver):
         return super()._CreateBuilderAndSolver()
 
     def _CheckConvergence(self):
-        return self.solver.IsConverged()
-
-    def _UpdateLoads(self):
-        self.solver.UpdateLoads()
+        return self.solving_strategy.IsConverged()

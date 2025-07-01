@@ -30,7 +30,7 @@ namespace Kratos
    * @class SetMaterialPropertiesForThermalCouplingProcess
    * @ingroup PfemFluidDynamicsApplication
    * @brief This process sets the nodal value of thermal properties (density, conductivity and capacity)
-   * that depends on the temperature, which is necesssary for solving the termal part,
+   * that depends on the temperature, which is necessary for solving the termal part,
    * since the convection-diffusion solver gets these nodal values for assembling the system.
    * The value of these properties are computed according to the constitutive law of the incident elements of each node,
    * using the nodal temperature, and the average is taken as the nodal value for the property.

@@ -166,7 +166,7 @@ class ShellThicknessControl(Control):
         if self.consider_recursive_property_update:
             KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(projected_filtered_thickness_field.GetContainer(), Kratos.THICKNESS)
 
-        # compute and stroe projection derivatives for consistent filtering of the sensitivities
+        # compute and store projection derivatives for consistent filtering of the sensitivities
         self.projection_derivative_field = self.thickness_projection.ForwardProjectionGradient(self.physical_phi_field)
 
         # now output the fields

@@ -137,7 +137,7 @@ public:
 
 
     /**
-     * \brief Initializes solution step. It determines wether the moving load reactions are to be calculated
+     * \brief Initializes solution step. It determines whether the moving load reactions are to be calculated
      * \param rCurrentProcessInfo current process info
      */
     void InitializeSolutionStep(const ProcessInfo & rCurrentProcessInfo) override;

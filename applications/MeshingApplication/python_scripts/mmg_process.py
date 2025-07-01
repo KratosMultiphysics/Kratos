@@ -46,7 +46,6 @@ class MmgProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters("""
         {
             "help"                             : "This process remeshes using MMG library. This process uses different utilities and processes",
-            "mesh_id"                          : 0,
             "filename"                         : "out",
             "model_part_name"                  : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "blocking_threshold_size"          : false,
@@ -238,7 +237,7 @@ class MmgProcess(KratosMultiphysics.Process):
         self.remesh_executed = False
 
     def ExecuteInitialize(self):
-        """ This method is executed at the begining to initialize the process
+        """ This method is executed at the beginning to initialize the process
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -270,10 +269,10 @@ class MmgProcess(KratosMultiphysics.Process):
                 mean = stat.mean(nodal_h_values)
                 stdev = stat.stdev(nodal_h_values)
                 prob = (self.settings["automatic_remesh_parameters"]["min_size_current_percentage"].GetDouble())/100
-                self.settings["minimal_size"].SetDouble(_normvalf(prob, mean, stdev)) # Using normal normal distribution to get the minimal size as a stadistical meaninful value
+                self.settings["minimal_size"].SetDouble(_normvalf(prob, mean, stdev)) # Using normal normal distribution to get the minimal size as a stadistical meaningful value
 
                 prob = (self.settings["automatic_remesh_parameters"]["max_size_current_percentage"].GetDouble())/100
-                self.settings["maximal_size"].SetDouble(_normvalf(prob, mean, stdev)) # Using normal normal distribution to get the maximal size as a stadistical meaninful value
+                self.settings["maximal_size"].SetDouble(_normvalf(prob, mean, stdev)) # Using normal normal distribution to get the maximal size as a stadistical meaningful value
 
             # We deactivate, so it doesn't recalculate each initialization
             self.settings["automatic_remesh"].SetBool(False)
@@ -475,7 +474,7 @@ class MmgProcess(KratosMultiphysics.Process):
         self.remesh_executed = False
 
     def ExecuteBeforeOutputStep(self):
-        """ This method is executed right before the ouput process computation
+        """ This method is executed right before the output process computation
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -486,7 +485,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 self._ErrorCalculation()
 
     def ExecuteAfterOutputStep(self):
-        """ This method is executed right after the ouput process computation
+        """ This method is executed right after the output process computation
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -662,7 +661,7 @@ class MmgProcess(KratosMultiphysics.Process):
         pass
 
     def _GenerateErrorProcess(self):
-        """ This method creates an erro process to compute the metric
+        """ This method creates an error process to compute the metric
 
         Keyword arguments:
         self -- It signifies an instance of a class.

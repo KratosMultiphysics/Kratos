@@ -13,8 +13,7 @@
 //
 
 
-#if !defined(KRATOS_LEVELSET_CONVECTION_ELEMENT_SIMPLEX_INCLUDED )
-#define  KRATOS_LEVELSET_CONVECTION_ELEMENT_SIMPLEX_INCLUDED
+#pragma once
 
 // System includes
 
@@ -137,6 +136,7 @@ public:
         const ConvectionDiffusionSettings::Pointer& my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
         const Variable<array_1d<double, 3 > >& rConvVar = my_settings->GetConvectionVariable();
+        const Variable<array_1d<double, 3 > >& rConvMeshVar = my_settings->GetMeshVelocityVariable();
         const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
 
 
@@ -156,10 +156,8 @@ public:
         {
             phi[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
             phi_old[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,1);
-//             dphi_dt[i] = dt_inv*(phi[i] - phi_old [i];
-
-            v[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
-            vold[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar,1);
+            v[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar) - GetGeometry()[i].FastGetSolutionStepValue(rConvMeshVar);
+            vold[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar,1) - GetGeometry()[i].FastGetSolutionStepValue(rConvMeshVar, 1);
         }
         array_1d<double,TDim> grad_phi_halfstep = prod(trans(DN_DX), 0.5*(phi+phi_old));
         const double norm_grad = norm_2(grad_phi_halfstep);
@@ -506,7 +504,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_LEVELSET_CONVECTION_ELEMENT_SIMPLEX_INCLUDED  defined
-
-

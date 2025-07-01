@@ -2,10 +2,10 @@
 
 ![](https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/mmg_remeshing_examples/use_cases/channel_sphere2D/data/channel.png)
 
-Meshing Application provides several tools to create, manipulate and interact with meshes. It containts several interfaces to both Kratos
-thrid party libraries (Triangle, TetGen, MMG)
+Meshing Application provides several tools to create, manipulate and interact with meshes. It contains several interfaces to both Kratos
+third party libraries (Triangle, TetGen, MMG)
 
-The application offers the functionalities listed below. If there is an Object without methds it means it can be called using the __Execute()__ function.
+The application offers the functionalities listed below. If there is an Object without methods it means it can be called using the __Execute()__ function.
 
 - [Interface](#interface)
   * [Custom IO](#custom-io)
@@ -49,7 +49,7 @@ The application offers the functionalities listed below. If there is an Object w
   * _MappingFromMovingMesh_VariableMeshes_ScalarVar_
   * _MappingFromMovingMesh_VariableMeshes_VectorialVar_
 
-* __LocalRefineTriangleMesh__: Refines a Trianglular Mesh.
+* __LocalRefineTriangleMesh__: Refines a Triangular Mesh.
 * __LocalRefinePrismMesh__: Refines a Prism Mesh.
 * __LocalRefineSPrismMesh__: Refines a SPrism Mesh.
 * __LocalRefineTetrahedraMesh__: Refines a Tetrahedra Mesh.
@@ -99,7 +99,7 @@ The application offers the functionalities listed below. If there is an Object w
 
 ## External Libraries
 
-Meshing application can make use of several third party libs as an alternative (or sometimes unique) way to implementd the
+Meshing application can make use of several third party libs as an alternative (or sometimes unique) way to implemented the
 interface shown. You can find information about these libs in their respective pages which are listed below:
 
 ### TetGen
@@ -140,7 +140,7 @@ Tetgen also enable to use the following __meshers__:
   * _ReGenerateMesh_
   
 ### MMG
-[MMG](https://www.mmgtools.org/) is an open source software for simplicial remeshing. It provides 3 applications and 4 libraries. In Kratos it provides the following additioanl __procedures__:
+[MMG](https://www.mmgtools.org/) is an open source software for simplicial remeshing. It provides 3 applications and 4 libraries. In Kratos it provides the following additional __procedures__:
 
 * __MmgProcess__: This class is a remesher which uses the MMG library. The class uses a class for the 2D and 3D cases (solid and surfaces). The remesher keeps the previous submodelparts and interpolates the nodal values between the old and new mesh
         

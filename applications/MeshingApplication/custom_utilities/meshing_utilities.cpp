@@ -84,7 +84,7 @@ void ComputeElementSize(Element& rElement)
         rElement.SetValue(ELEMENT_H, 2.0 * this_geometry.Circumradius());
     } else if(this_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4){ // Tetrahedral elements
         rElement.SetValue(ELEMENT_H,std::pow(12.0 * this_geometry.Volume()/std::sqrt(2.0), 1.0/3.0));
-    } else { // In any othe case just considers the length of the element
+    } else { // In any other case just considers the length of the element
         KRATOS_WARNING("MetricErrorProcess") << "This process is designed for tetrahedra (3D) and triangles (2D). Error expected" << std::endl;
         rElement.SetValue(ELEMENT_H, this_geometry.Length());
     }

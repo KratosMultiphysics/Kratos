@@ -19,6 +19,7 @@
 // External includes
 
 // Project includes
+#include "input_output/logger.h"
 #include "utilities/string_utilities.h"
 
 namespace Kratos::StringUtilities {
@@ -175,12 +176,18 @@ std::string ReplaceAllSubstrings(
     return output_string;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 std::string Trim(
     const std::string& rInputString,
     const bool RemoveNullChar)
 {
     return TrimLeft(TrimRight(rInputString, RemoveNullChar), RemoveNullChar);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 std::function<bool(std::string::value_type)> TrimChar(const bool RemoveNullChar)
 {
@@ -194,6 +201,9 @@ std::function<bool(std::string::value_type)> TrimChar(const bool RemoveNullChar)
         return std::isspace(character);
     };
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 std::string TrimLeft(
     const std::string& rInputString,
@@ -211,6 +221,9 @@ std::string TrimLeft(
     return output_string;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 std::string TrimRight(
     const std::string& rInputString,
     const bool RemoveNullChar)
@@ -224,6 +237,133 @@ std::string TrimRight(
     );
 
     return output_string;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::vector<std::string> SplitStringIntoAVector(const std::string& rText)
+{
+    std::istringstream iss(rText);
+    std::string word;
+    std::vector<std::string> words;
+
+    // The stream extraction operator (>>) automatically skips whitespace
+    // (including spaces and tabs) by default.
+    while (iss >> word) {
+        words.push_back(word);
+    }
+    return words;
+};
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <typename TType>
+std::vector<TType> StringToVector(const std::string& rInputString)
+{
+    std::vector<TType> result;
+    std::string str = rInputString; // Make a mutable copy
+
+    // 1. Remove '[' and ']' from the outer string if they exist
+    // Trim the input string first to handle cases like "  [1,2,3]  "
+    str = Trim(str);
+    if (!str.empty() && str.front() == '[') {
+        str.erase(0, 1);
+    }
+    if (!str.empty() && str.back() == ']') {
+        str.pop_back();
+    }
+
+    // If the string is empty after removing brackets and trimming (e.g., "[]" or "[ ]" or ""), return an empty vector
+    if (Trim(str).empty()) {
+        return result;
+    }
+
+    // 2. Use stringstream to split by comma and parse elements
+    std::stringstream ss(str);
+    std::string segment;
+
+    // Split the string by comma
+    while (std::getline(ss, segment, ',')) {
+        // Trim whitespace from the individual segment
+        std::string trimmedSegment = Trim(segment);
+        if (!trimmedSegment.empty()) {
+            TType value;
+            std::stringstream converter(trimmedSegment);
+
+            // Try to convert the segment to type TType
+            // The "converter >> value" attempts the conversion.
+            // The "!(converter >> std::ws).eof()" checks if there's anything left in the stream
+            // after the value and any trailing whitespace. If there is, it's an error (e.g. "1.2abc" or "12x").
+            if (converter >> value && (converter >> std::ws).eof()) {
+                result.push_back(value);
+            } else {
+                // Handle cases where conversion is not possible (e.g., non-numeric characters)
+                KRATOS_WARNING("StringUtilities") << "Invalid argument for conversion: '" << trimmedSegment << "'" << std::endl;
+            }
+        }
+    }
+    return result;
+}
+
+// Explicit instantiation of the template function for double and integer types
+template KRATOS_API(KRATOS_CORE) std::vector<double> StringToVector<double>(const std::string& rInputString);
+template KRATOS_API(KRATOS_CORE) std::vector<int> StringToVector<int>(const std::string& rInputString);
+template KRATOS_API(KRATOS_CORE) std::vector<unsigned int> StringToVector<unsigned int>(const std::string& rInputString);
+template KRATOS_API(KRATOS_CORE) std::vector<std::size_t> StringToVector<std::size_t>(const std::string& rInputString);
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::size_t CountValuesUntilPrefix(
+    const std::string& rInputString,
+    const std::string& rStopPrefix
+    )
+{
+    std::istringstream iss(rInputString); // Use a string stream to easily extract tokens
+    std::string token;
+    std::size_t count = 0;
+
+    while (iss >> token) { // Read tokens one by one
+        // Check if the current token starts with the rStopPrefix
+        // string::find(substring_to_find, starting_position)
+        // If rStopPrefix is found at the beginning of token (position 0), it returns 0.
+        // If rStopPrefix is empty, token.find("", 0) also returns 0,
+        // meaning an empty rStopPrefix will cause the loop to break on the first token, returning 0.
+        if (token.find(rStopPrefix, 0) == 0) {
+            break; // Stop condition met, do not count this token or subsequent ones
+        }
+        count++; // Increment count for tokens that do not meet the stop condition
+    }
+    return count;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::size_t CountValuesUntilCharacter(
+    const std::string& rInputString,
+    const std::string& rStopCharacter
+    )
+{
+    std::istringstream iss(rInputString); // Use a string stream to easily extract tokens
+    std::string token;
+    std::size_t count = 0;
+
+    while (iss >> token) { // Read tokens one by one
+        // Check if the token contains the stop prefix
+        // If the token contains the stop prefix, we stop counting
+        // We use find to check if the token contains the stop prefix
+        // Note: find returns std::string::npos if the substring is not found
+        // If the token contains the stop prefix, we stop counting
+        // We do not count the token that contains the stop prefix
+        if (token.find(rStopCharacter) != std::string::npos) {
+            break; // Stop condition met, do not count this token or subsequent ones
+        }
+        count++; // Increment count for tokens that do not meet the stop condition
+    }
+    return count;
 }
 
 } // namespace Kratos::StringUtilities

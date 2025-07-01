@@ -242,7 +242,7 @@ public:
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {
-        rOStream << "Small Strain Isotropic Damage 3D constitutive law with Implex intergration scheme\n";
+        rOStream << "Small Strain Isotropic Damage 3D constitutive law with Implex integration scheme\n";
     };
 
 protected:

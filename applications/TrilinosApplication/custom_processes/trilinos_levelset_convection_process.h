@@ -10,8 +10,7 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_TRILINOS_LEVELSET_CONVECTION_PROCESS_INCLUDED )
-#define  KRATOS_TRILINOS_LEVELSET_CONVECTION_PROCESS_INCLUDED
+#pragma once
 
 // System includes
 
@@ -243,6 +242,8 @@ protected:
         const auto n_nodes = BaseType::mpDistanceModelPart->NumberOfNodes();
         (this->mVelocity).resize(n_nodes);
         (this->mVelocityOld).resize(n_nodes);
+        (this->mMeshVelocity).resize(n_nodes);
+        (this->mMeshVelocityOld).resize(n_nodes);
         (this->mOldDistance).resize(n_nodes);
 
         if (this->mIsBfecc){
@@ -294,10 +295,12 @@ private:
         auto& r_base_model_part = BaseType::mrBaseModelPart;
         const auto& r_level_set_var = *BaseType::mpLevelSetVar;
         const auto& r_convect_var = *BaseType::mpConvectVar;
+        const auto& r_mesh_convect_var = *BaseType::mpMeshConvectVar;
 
         // Check the nodal database of the current partition
         VariableUtils().CheckVariableExists<Variable<double>>(r_level_set_var, r_base_model_part.Nodes());
         VariableUtils().CheckVariableExists<Variable<array_1d<double,3>>>(r_convect_var, r_base_model_part.Nodes());
+        VariableUtils().CheckVariableExists<Variable<array_1d<double,3>>>(r_mesh_convect_var, r_base_model_part.Nodes());
 
         // Check if the modelpart is globally empty
         KRATOS_ERROR_IF(r_base_model_part.GetCommunicator().GlobalNumberOfNodes() == 0) << "The model has no nodes." << std::endl;
@@ -364,5 +367,3 @@ private:
 
 ///@}
 }  // namespace Kratos.
-
-#endif // KRATOS_TRILINOS_LEVELSET_CONVECTION_PROCESS_INCLUDED  defined

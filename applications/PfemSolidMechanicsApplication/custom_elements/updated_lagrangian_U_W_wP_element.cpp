@@ -806,7 +806,7 @@ namespace Kratos
 
 
 
-      double CurrentPermeability = GetProperties()[PERMEABILITY];
+      double CurrentPermeability = GetProperties()[PERMEABILITY_WATER];
 
       for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
@@ -935,7 +935,7 @@ namespace Kratos
 
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-      const double & rPermeability = GetProperties()[PERMEABILITY];
+      const double & rPermeability = GetProperties()[PERMEABILITY_WATER];
 
       double ElementSize = 0;
       for (unsigned int i = 0; i < number_of_nodes; i++) {

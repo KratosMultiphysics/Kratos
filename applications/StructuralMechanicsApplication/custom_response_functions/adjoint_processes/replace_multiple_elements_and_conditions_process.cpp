@@ -76,8 +76,8 @@ void ReplaceEntities(TEntityContainer& rEntityContainer,
             it->pGetProperties()
         );
 
-        // Deep copy data and flags
-        p_entity->GetData() = it->GetData();
+        // Deep copy flags. Since we use the same geometry for the element and conditions, there is 
+        // no need to deep copy the data.
         p_entity->Set(Flags(*it));
 
         (*it.base()) = p_entity;

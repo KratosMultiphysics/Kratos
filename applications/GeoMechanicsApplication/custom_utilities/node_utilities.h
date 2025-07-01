@@ -16,6 +16,8 @@
 #include "containers/variable.h"
 #include "includes/model_part.h"
 
+#include <map>
+
 namespace Kratos
 {
 
@@ -35,6 +37,8 @@ public:
                                                                        const Variable<array_1d<double, 3>>& rDestinationVariable,
                                                                        const array_1d<double, 3>& rNewValues,
                                                                        IndexType SolutionStepIndex = 0);
+
+    static std::map<IndexType, IndexType> CreateGlobalToLocalNodeIndexMap(const PointerVector<Node>& rNodes);
 };
 
 } // namespace Kratos

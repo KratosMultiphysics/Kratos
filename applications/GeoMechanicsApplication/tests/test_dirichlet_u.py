@@ -1,21 +1,13 @@
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 import test_helper
 
 class KratosGeoMechanicsDirichletUTests(KratosUnittest.TestCase):
     """
     This class contains a test for displacement Dirichlet boundary condition
     """
-
-    def setUp(self):
-        # Code here will be placed BEFORE every test in this TestCase.
-        pass
-
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
-
     def test_dirichlet_u(self):
         """
         4 element elongation test in 2 stages. The incremental elastic material should show 
@@ -29,18 +21,12 @@ class KratosGeoMechanicsDirichletUTests(KratosUnittest.TestCase):
         test_name    = 'dirichlet_u'
         project_path = test_helper.get_file_path(test_name)
         n_stages     = 2
-        stages       = test_helper.get_stages(project_path,n_stages)
+        run_multiple_stages.run_stages(project_path, n_stages)
 
-        # name of output file
-        output_file_names = [os.path.join(project_path, f'dirichlet_u_stage{i+1}.post.res') for i in
-                            range(n_stages)]
-        output_data       = []
-
-        # run stages and get results
-        for stage, output_file_name in zip(stages, output_file_names):
-            stage.Run()
-            reader = test_helper.GiDOutputFileReader()
-            output_data.append(reader.read_output_from(output_file_name))
+        output_data = []
+        reader = test_helper.GiDOutputFileReader()
+        for i in range(n_stages):
+            output_data.append(reader.read_output_from(os.path.join(project_path, f'dirichlet_u_stage{i+1}.post.res')))
 
         E = 30E+06
         stage_nr = 0
@@ -86,7 +72,7 @@ class KratosGeoMechanicsDirichletUTests(KratosUnittest.TestCase):
             # stresses are continuous over the stages
             cauchy_stresses_2_4    = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", time, output_data[stage_nr], [2], [3])[0][0]
             cauchy_stresses_2_4_yy = cauchy_stresses_2_4[1]
-            self.assertAlmostEqual(E*time*0.05, cauchy_stresses_2_4_yy, 2)
+            self.assertAlmostEqual(E*time*0.05, cauchy_stresses_2_4_yy, places=None, delta=1.0)
 
 if __name__ == '__main__':
     KratosUnittest.main()

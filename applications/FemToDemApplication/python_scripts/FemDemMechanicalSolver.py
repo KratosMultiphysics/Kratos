@@ -26,7 +26,7 @@ class FemDemMechanicalSolver(object):
     _create_builder_and_solver
     _create_mechanical_solver
 
-    The mechanical_solver, builder_and_solver, etc. should alway be retrieved
+    The mechanical_solver, builder_and_solver, etc. should always be retrieved
     using the getter functions _get_mechanical_solver, _get_builder_and_solver,
     etc. from this base class.
 
