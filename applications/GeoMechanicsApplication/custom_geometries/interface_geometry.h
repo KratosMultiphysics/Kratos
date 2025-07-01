@@ -243,16 +243,16 @@ public:
 
         // The first face coincides with the first side of the element
         auto begin_of_second_side = points.ptr_begin() + (points.size() / 2);
-        const auto nodes_of_first_edge = PointerVector<Node>{points.ptr_begin(), begin_of_second_side};
+        const auto nodes_of_first_face = PointerVector<Node>{points.ptr_begin(), begin_of_second_side};
 
         // The second face coincides with the second side of the element. However, the nodes must be
         // traversed in opposite direction.
         auto nodes_of_second_edge = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
-        std::swap(nodes_of_second_edge(1), nodes_of_second_edge(2));
+        std::reverse(nodes_of_second_edge.ptr_begin() + 1, nodes_of_second_edge.ptr_begin() + 3);
         std::reverse(nodes_of_second_edge.ptr_begin() + 3, nodes_of_second_edge.ptr_end()); // any high-order nodes
 
         auto result = GeometriesArrayType{};
-        result.push_back(std::make_shared<MidGeometryType>(nodes_of_first_edge));
+        result.push_back(std::make_shared<MidGeometryType>(nodes_of_first_face));
         result.push_back(std::make_shared<MidGeometryType>(nodes_of_second_edge));
         return result;
     }
