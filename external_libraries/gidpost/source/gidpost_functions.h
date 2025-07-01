@@ -3,6 +3,8 @@
 
 #include "gidpost_types.h"
 
+#include "gidpost_cluster_functions.h"
+
 /*
   GiD_PostInit -- Initialization of gidpost library, must be called
   from the main thread of the program.
