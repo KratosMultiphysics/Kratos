@@ -169,8 +169,10 @@ class GeoMechanicsAnalysis(AnalysisStage):
                 KratosGeo.CalculateIncrementalDisplacementProcess(
                     self._GetSolver().GetComputingModelPart(), Kratos.Parameters()).Execute()
 
-                for node in self._GetSolver().GetComputingModelPart().Nodes:
-                    self._CalculateTotalDisplacement(node)
+                KratosGeo.CalculateTotalMotionProcess(
+                    self._GetSolver().GetComputingModelPart(),
+                    Kratos.Parameters("""{"variable_name": "DISPLACEMENT"}""")).Execute()
+
 
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
