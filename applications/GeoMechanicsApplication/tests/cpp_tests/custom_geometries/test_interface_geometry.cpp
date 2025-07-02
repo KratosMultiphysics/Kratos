@@ -121,14 +121,11 @@ auto CreateEightPlusEightNoded3DPlanarInterfaceGeometry()
     return InterfaceGeometry<Quadrilateral3D8<Node>>{1, nodes};
 }
 
-void AssertNodeIdsOfGeometry(const Geometry<Node>::Pointer&  rGeometryPtr,
-                             const std::vector<std::size_t>& rExpectedNodeIds)
+void AssertNodeIdsOfGeometry(const Geometry<Node>& rGeometry, const std::vector<std::size_t>& rExpectedNodeIds)
 {
-    KRATOS_EXPECT_NE(rGeometryPtr, nullptr);
-
     auto node_ids = std::vector<std::size_t>{};
-    node_ids.reserve(rGeometryPtr->size());
-    std::transform(rGeometryPtr->begin(), rGeometryPtr->end(), std::back_inserter(node_ids),
+    node_ids.reserve(rGeometry.size());
+    std::transform(rGeometry.begin(), rGeometry.end(), std::back_inserter(node_ids),
                    [](const auto& rNode) { return rNode.Id(); });
     KRATOS_EXPECT_VECTOR_EQ(node_ids, rExpectedNodeIds)
 }
@@ -532,8 +529,8 @@ KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoLineInterfaceGeometryHasTwoEdgesWithOpposite
     const auto edges = geometry.GenerateEdges();
 
     KRATOS_EXPECT_EQ(edges.size(), 2);
-    AssertNodeIdsOfGeometry(edges(0), {1, 2});
-    AssertNodeIdsOfGeometry(edges(1), {4, 3});
+    AssertNodeIdsOfGeometry(edges[0], {1, 2});
+    AssertNodeIdsOfGeometry(edges[1], {4, 3});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeLineInterfaceGeometryHasTwoEdgesWithOppositeOrientations,
@@ -544,8 +541,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeLineInterfaceGeometryHasTwoEdgesWithOppo
     const auto edges = geometry.GenerateEdges();
 
     KRATOS_EXPECT_EQ(edges.size(), 2);
-    AssertNodeIdsOfGeometry(edges(0), {1, 2, 3});
-    AssertNodeIdsOfGeometry(edges(1), {5, 4, 6});
+    AssertNodeIdsOfGeometry(edges[0], {1, 2, 3});
+    AssertNodeIdsOfGeometry(edges[1], {5, 4, 6});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreePlanarInterfaceGeometryThrowsWhenCallingGenerateEdges,
@@ -564,11 +561,11 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreePlanarInterfaceGeometryHasTwoPlanesWithO
 {
     const auto geometry = CreateThreePlusThreeNoded3DPlanarInterfaceGeometry();
 
-    const auto edges = geometry.GenerateFaces();
+    const auto faces = geometry.GenerateFaces();
 
-    KRATOS_EXPECT_EQ(edges.size(), 2);
-    AssertNodeIdsOfGeometry(edges(0), {1, 2, 3});
-    AssertNodeIdsOfGeometry(edges(1), {4, 6, 5});
+    KRATOS_EXPECT_EQ(faces.size(), 2);
+    AssertNodeIdsOfGeometry(faces[0], {1, 2, 3});
+    AssertNodeIdsOfGeometry(faces[1], {4, 6, 5});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SixPlusSixPlanarInterfaceGeometryHasTwoPlanesWithOppositeOrientations,
@@ -579,8 +576,8 @@ KRATOS_TEST_CASE_IN_SUITE(SixPlusSixPlanarInterfaceGeometryHasTwoPlanesWithOppos
     const auto faces = geometry.GenerateFaces();
 
     KRATOS_EXPECT_EQ(faces.size(), 2);
-    AssertNodeIdsOfGeometry(faces(0), {1, 2, 3, 4, 5, 6});
-    AssertNodeIdsOfGeometry(faces(1), {7, 9, 8, 12, 11, 10});
+    AssertNodeIdsOfGeometry(faces[0], {1, 2, 3, 4, 5, 6});
+    AssertNodeIdsOfGeometry(faces[1], {7, 9, 8, 12, 11, 10});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FourPlusFourPlanarInterfaceGeometryHasTwoPlanesWithOppositeOrientations,
@@ -591,8 +588,8 @@ KRATOS_TEST_CASE_IN_SUITE(FourPlusFourPlanarInterfaceGeometryHasTwoPlanesWithOpp
     const auto faces = geometry.GenerateFaces();
 
     KRATOS_EXPECT_EQ(faces.size(), 2);
-    AssertNodeIdsOfGeometry(faces(0), {1, 2, 3, 4});
-    AssertNodeIdsOfGeometry(faces(1), {5, 8, 7, 6});
+    AssertNodeIdsOfGeometry(faces[0], {1, 2, 3, 4});
+    AssertNodeIdsOfGeometry(faces[1], {5, 8, 7, 6});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(EightPlusEightPlanarInterfaceGeometryHasTwoPlanesWithOppositeOrientations,
@@ -603,8 +600,8 @@ KRATOS_TEST_CASE_IN_SUITE(EightPlusEightPlanarInterfaceGeometryHasTwoPlanesWithO
     const auto faces = geometry.GenerateFaces();
 
     KRATOS_EXPECT_EQ(faces.size(), 2);
-    AssertNodeIdsOfGeometry(faces(0), {1, 2, 3, 4, 5, 6, 7, 8});
-    AssertNodeIdsOfGeometry(faces(1), {9, 12, 11, 10, 16, 15, 14, 13});
+    AssertNodeIdsOfGeometry(faces[0], {1, 2, 3, 4, 5, 6, 7, 8});
+    AssertNodeIdsOfGeometry(faces[1], {9, 12, 11, 10, 16, 15, 14, 13});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoLineInterfaceGeometryThrowsWhenCallingGenerateFaces,

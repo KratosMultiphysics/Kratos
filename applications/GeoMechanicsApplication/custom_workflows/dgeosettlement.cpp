@@ -9,9 +9,14 @@
 //
 //  Main authors:    Anne van de Graaf
 //
+
+#include "utilities/variable_utils.h"
+
 #include "dgeosettlement.h"
 #include "geo_mechanics_application.h"
 #include "input_output/logger.h"
+#include "linear_solvers_application.h"
+#include "structural_mechanics_application.h"
 #include "time_loop_executor_interface.h"
 
 #include "custom_processes/apply_excavation_process.h"
