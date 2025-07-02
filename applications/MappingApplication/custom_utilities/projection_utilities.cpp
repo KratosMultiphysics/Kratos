@@ -305,7 +305,7 @@ PairingIndex ProjectToIBRA(const GeometryType& rGeometry,
     CoordinatesArrayType local_curve_coords = ZeroVector(3);
     CoordinatesArrayType local_surface_coords = ZeroVector(3);
     CoordinatesArrayType projected_point_global_coords = ZeroVector(3);
-    PairingIndex pairing_index;
+    PairingIndex pairing_index = PairingIndex::Unspecified;
 
     if (geom_type == GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface || geom_type == GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface){
         // Get the nurbs surface geometry
@@ -340,7 +340,7 @@ PairingIndex ProjectToIBRA(const GeometryType& rGeometry,
             // Get the distance between the projected point and the point to project
             rProjectionDistance = norm_2(rPointToProject - projected_point_global_coords);
         }  else if (!ComputeApproximation) { // If the projection fails and no approximation is allowed, return unspecified
-            return PairingIndex::Unspecified;
+            return pairing_index;
         }
     } else if (geom_type == GeometryData::KratosGeometryType::Kratos_Brep_Surface || geom_type == GeometryData::KratosGeometryType::Kratos_Nurbs_Surface){
         // Get the nurbs surface geometry

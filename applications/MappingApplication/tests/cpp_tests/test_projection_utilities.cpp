@@ -60,8 +60,6 @@ void TestComputeProjection(const GeometryType& rGeometry,
     ProjectionUtilities::PairingIndex pairing_index;
 
     const bool is_full_projection = ProjectionUtilities::ComputeProjection(rGeometry, rPointToProject, LocalCoordTol, sf_values, eq_ids, proj_dist, pairing_index, ComputeApproximation);
-    KRATOS_WATCH(sf_values)
-    KRATOS_WATCH(eq_ids)
 
     KRATOS_EXPECT_EQ(FullProjection, is_full_projection);
     KRATOS_EXPECT_EQ(ExpPairingIndex, pairing_index);
