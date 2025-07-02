@@ -69,6 +69,12 @@ if( USE_EIGEN_FEAST MATCHES ON )
     add_definitions(-D__MKL_SOLVERS_EE_H)
 endif()
 
+if (USE_EIGEN_SUITESPARSE)
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
+    find_package(SuiteSparse REQUIRED)
+    add_definitions(-DKRATOS_USE_EIGEN_SUITESPARSE)
+endif()
+
 ## generate variables with the sources
 set( KRATOS_LINEARSOLVERS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers_application.cpp
@@ -116,6 +122,10 @@ if( USE_EIGEN_MKL MATCHES ON )
             target_link_libraries(KratosLinearSolversCore PUBLIC feast4 gfortran m)
         endif()
     endif( MSVC )
+endif()
+
+if (USE_EIGEN_SUITESPARSE)
+    target_link_libraries(KratosLinearSolversCore PUBLIC SuiteSparse::CHOLMOD)
 endif()
 
 # changing the .dll suffix to .pyd
