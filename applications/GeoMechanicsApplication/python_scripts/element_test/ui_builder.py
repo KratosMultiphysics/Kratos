@@ -108,14 +108,7 @@ class GeotechTestUI:
         params = self.model_dict["param_names"][index]
         units = self.model_dict.get("param_units", [[]])[index]
 
-        raw_defaults = {
-            "1. E": "10000", "2. n_ur": "0.3", "3. c'": "0.0", "4. f_peak": "30.0",
-            "5. y_peak": "0.0", "6. s_t, cut-off": "0.0", "7. yield function (MC=1 DP=2 MNC=3 MN=4)": "1",
-            "8. n_un (UMAT)": "0.3", "YOUNG_MODULUS": "10000", "POISSON_RATIO": "0.3"
-        }
-        default_values = {
-            input_parameters_format_to_unicode(k): v for k, v in raw_defaults.items()
-        }
+        default_values = {}
         self.entry_widgets = self._create_entries(self.param_frame, "Soil Input Parameters", params, units, default_values)
 
         self.mohr_checkbox = tk.BooleanVar()
@@ -222,7 +215,7 @@ class GeotechTestUI:
                 "Triaxial Input Data",
                 [INIT_PRESSURE_LABEL, MAX_STRAIN_LABEL, NUM_STEPS_LABEL, DURATION_LABEL],
                 [FL2_UNIT_LABEL, PERCENTAGE_UNIT_LABEL, WITHOUT_UNIT_LABEL, SECONDS_UNIT_LABEL],
-                {INIT_PRESSURE_LABEL: "100", MAX_STRAIN_LABEL: "10",
+                {INIT_PRESSURE_LABEL: "100", MAX_STRAIN_LABEL: "20",
                  NUM_STEPS_LABEL: "100", DURATION_LABEL: "1.0"}
             )
         elif test_name == DIRECT_SHEAR:
@@ -232,7 +225,7 @@ class GeotechTestUI:
                 "Direct Simple Shear Input Data",
                 [INIT_PRESSURE_LABEL, MAX_STRAIN_LABEL, NUM_STEPS_LABEL, DURATION_LABEL],
                 [FL2_UNIT_LABEL, PERCENTAGE_UNIT_LABEL, WITHOUT_UNIT_LABEL, SECONDS_UNIT_LABEL],
-                {INIT_PRESSURE_LABEL: "100", MAX_STRAIN_LABEL: "10",
+                {INIT_PRESSURE_LABEL: "100", MAX_STRAIN_LABEL: "20",
                  NUM_STEPS_LABEL: "100", DURATION_LABEL: "1.0"}
             )
 
