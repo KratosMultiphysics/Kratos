@@ -19,7 +19,6 @@
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <string>
-#include <type_traits>
 
 using namespace Kratos;
 using namespace std::string_literals;
@@ -43,14 +42,6 @@ auto CreateThreePlusThree2DLineInterfaceGeometry()
 
 namespace Kratos::Testing
 {
-
-KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    EXPECT_FALSE(std::is_copy_constructible_v<Line2DInterfaceStressState>);
-    EXPECT_FALSE(std::is_copy_assignable_v<Line2DInterfaceStressState>);
-    EXPECT_TRUE(std::is_move_constructible_v<Line2DInterfaceStressState>);
-    EXPECT_TRUE(std::is_move_assignable_v<Line2DInterfaceStressState>);
-}
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CloneCreatesCorrectInstance, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -132,7 +123,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStrain, Krato
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto strain = stress_state_policy.CalculateGreenLagrangeStrain({}),
-        "For interfaces, it is not possible to calculate the Green-Lagrange "
+        "For line interfaces, it is not possible to calculate the Green-Lagrange "
         "strain based on a deformation gradient.")
 }
 
@@ -142,7 +133,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStressTensorS
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto strain = stress_state_policy.GetStressTensorSize(),
-        "For interfaces, the stress tensor size is not implemented.")
+        "For line interfaces, the stress tensor size is not implemented.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)

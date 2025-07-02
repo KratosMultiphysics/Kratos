@@ -14,6 +14,7 @@
 #include "includes/serializer.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
+#include <type_traits>
 
 namespace Kratos
 {
@@ -57,7 +58,7 @@ SizeType Line2DInterfaceStressState::GetVoigtSize() const { return VOIGT_SIZE_2D
 
 SizeType Line2DInterfaceStressState::GetStressTensorSize() const
 {
-    KRATOS_ERROR << "For interfaces, the stress tensor size is not implemented.\n";
+    KRATOS_ERROR << "For line interfaces, the stress tensor size is not implemented.\n";
 }
 
 Vector Line2DInterfaceStressState::DefineInterfaceVoigtVector()
@@ -80,6 +81,11 @@ void Line2DInterfaceStressState::load(Serializer&)
 {
     // No data members to be loaded (yet)
 }
+
+static_assert(!std::is_copy_constructible_v<Line2DInterfaceStressState>);
+static_assert(!std::is_copy_assignable_v<Line2DInterfaceStressState>);
+static_assert(std::is_move_constructible_v<Line2DInterfaceStressState>);
+static_assert(std::is_move_assignable_v<Line2DInterfaceStressState>);
 
 Matrix PlaneInterfaceStressState::CalculateBMatrix(const Matrix&, const Vector& rN, const Geometry<Node>& rGeometry) const
 {
