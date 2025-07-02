@@ -70,7 +70,12 @@ namespace py = pybind11;
  py::class_<FaceHeatFlux < 3 > >(m,"FaceHeatFlux").def(py::init<>())
    .def("FaceHeatFluxDistribution", &FaceHeatFlux < 3 > ::FaceHeatFluxDistribution)
    .def("FlameDistribution", &FaceHeatFlux < 3 > ::FlameDistribution)
+   .def("CaptureMass", &FaceHeatFlux < 3 > ::CaptureMass)
+   .def("DetectAllOilClusters", &FaceHeatFlux < 3 > ::DetectAllOilClusters)
+   .def("ColorOilClusters", &FaceHeatFlux < 3 > ::ColorOilClusters)
    ;
+
+
 
  py::class_<HeatSource < 3 > >(m,"HeatSource").def(py::init<>())
    .def("Heat_Source", &HeatSource < 3 > ::Heat_Source)

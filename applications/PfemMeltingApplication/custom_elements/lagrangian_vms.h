@@ -988,7 +988,8 @@ void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             const double TauTwo,
             const array_1d< double, TNumNodes >& rShapeFunc,
             const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
-            const double Weight)
+            const double Weight
+            )
     {
         const unsigned int BlockSize = TDim + 1;
 
@@ -1016,8 +1017,7 @@ void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
         this->EvaluateInPoint(Arrhenius_coefficient, ARRHENIUS_COEFFICIENT, rShapeFunc);
 
 	double R=8.31; //universal gas constant
-
-
+        
 	if(Temperature > 800.0) Temperature=800.0;
 	if(Temperature < 500.0) Arrhenius_coefficient=0.0;
 
@@ -1026,7 +1026,25 @@ void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
 	double E_over_R_polymer = Activation_energy / R;
 
 	double aux_var_polymer= Arrhenius_coefficient * std::exp(- E_over_R_polymer/Temperature) ;
+	
+	// FOR A BETTER DECOMPOSITION SIMULATION
+	//double Alpha;
 
+        //this->EvaluateInPoint(Alpha, ALPHA, rShapeFunc);
+        
+        //double dt = 0.01;
+        
+        //double dalpha_dt = 1.0;//(1.0 - Alpha) * aux_var_polymer;
+        // CHANGED: Forward Euler update of ALPHA (could be improved with better time integration)
+        //double UpdatedAlpha = Alpha + dt * dalpha_dt;
+        //if (UpdatedAlpha > 1.0) UpdatedAlpha = 1.0; // Clamp to 1
+        // CHANGED: Save updated alpha to each node (weighted by shape functions)
+        //for (unsigned int i = 0; i < TNumNodes; ++i) {
+        //double& node_alpha = this->GetGeometry()[i].FastGetSolutionStepValue(ALPHA);
+        //node_alpha += dt * (1.0 - node_alpha) * aux_var_polymer * rShapeFunc[i]; // Lumped update
+        //}
+        //CHANGE ENDS
+        
         for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
         {
             for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over columns
@@ -1091,8 +1109,8 @@ void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             rDampRHS[FirstRow + TDim] += Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
 
             //rDampRHS[FirstRow + TDim] += (-1.0) * Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
-            rDampRHS[FirstRow + TDim]-= Weight * aux_var_polymer / TNumNodes;
-
+            rDampRHS[FirstRow + TDim] -= Weight * aux_var_polymer / TNumNodes;
+            //rDampRHS[FirstRow + TDim] -= Weight * dalpha_dt / TNumNodes;
             // Update reference indices
             FirstRow += BlockSize;
             FirstCol = 0;

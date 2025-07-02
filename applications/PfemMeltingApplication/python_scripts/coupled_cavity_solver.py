@@ -285,10 +285,14 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PK2_STRESS_TENSOR)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POROSITY)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIAMETER)
         
         
         
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VOLUME)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(PfemM.NODAL_VOLUME_DROP)
+        
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(PfemM.IS_SOLID)
@@ -311,7 +315,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(PfemM.DELTA_SIGMA_ZZ)
 
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(PfemM.PRESSUREAUX)
-
+        
 
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(PfemM.HISTORICAL_SIGMA_XX)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(PfemM.HISTORICAL_SIGMA_XY)
@@ -385,8 +389,8 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
                 node.Free(KratosMultiphysics.PRESSURE)
                 node.Free(KratosMultiphysics.TEMPERATURE)
                 node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,0, 298.0) #NODES NOT
-    
-
+                
+                
                 if(node.Y>-0.00001):
                     node.Fix(KratosMultiphysics.VELOCITY_X)
                     node.Fix(KratosMultiphysics.VELOCITY_Y)
@@ -398,7 +402,8 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
                     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, 0.0)
                     node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,0, 298.0) #NODES NOT
                     node.Fix(KratosMultiphysics.TEMPERATURE)
-                    
+                    node.SetSolutionStepValue(KratosMultiphysics.POROSITY,0, 1) #NODES NOT
+                    node.Fix(KratosMultiphysics.POROSITY)
 
 
                     
@@ -598,7 +603,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         #domain_size is from .MDPA file. indicating if is a 2D or 3D problem
         if(self.domain_size ==3):
             #(self.Mesher).ReGenerateMesh("LagrangianFluidVMS3D","ThermalFace3D3N", self.fluid_solver.main_model_part, self.node_erase_process, True, True, 1.2, 0.01)  #1.8
-            (self.Mesher).ReGenerateMesh("VMS3D","ThermalFace3D3N", self.fluid_solver.main_model_part, self.node_erase_process, True, True, 1.2, 0.2)  #1.8
+            (self.Mesher).ReGenerateMesh("LagrangianFluidVMS3D","ThermalFace3D3N", self.fluid_solver.main_model_part, self.node_erase_process, True, True, 1.2, 0.2)  #1.8
         else:
             #(self.Mesher).ReGenerateMesh("QFLUID2D","ThermalFace2D2N", self.fluid_solver.main_model_part, self.node_erase_process, True, False, 1.2, 0.20)  #1.8
             (self.Mesher).ReGenerateMesh("VMS2D","ThermalFace2D2N", self.fluid_solver.main_model_part, self.node_erase_process, True, True, 1.4, 0.30)  #0.25            
@@ -680,6 +685,10 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         
         #if move is true, then the points may be moved 
         move=True #False
+        
+        #This function evlute the mass before solving NS eas not declared in this scope; did you mean ‘NODAL_VOLUMEquation
+        self.faceheatflux.CaptureMass(self.fluid_solver.main_model_part,1)
+        
         #particles are moved following the Streamline.RungeKutta4. The RungeKutta4 is the time intergration scheme used for it.
         if(move==True):
             self.Streamline.RungeKutta4ElementbasedSI(self.fluid_solver.main_model_part,100)
@@ -714,22 +723,31 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         #This function evaluate the specific heat capacity
         self.CalculateSpecificHeataux()
         
+        #This function evlute the mass before solving NS equation
+        #self.faceheatflux.CaptureMass(self.fluid_solver.main_model_part,1)
+        
         #If only thermal calculation is needed, then "fluid_is_converged = True" 
         fluid_is_converged = self.fluid_solver.SolveSolutionStep()
         #fluid_is_converged = True
-       
         
+        #This function evlute the mass after solving NS equation
+        self.faceheatflux.CaptureMass(self.fluid_solver.main_model_part,0)
         
-        
+        colors= self.faceheatflux.DetectAllOilClusters(self.fluid_solver.main_model_part)
+        print(colors)
         #This loop is needed for a Lagrangian calculation
         for node in self.fluid_solver.main_model_part.Nodes:
             velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
             node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, velocity)
-
+            
+        # it controls the time of fire application here
+        if(self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME] <15): 
 
         #This function evaluate the heat provided by the flame, and apply on the free surface
-        self.faceheatflux.FlameDistribution(self.fluid_solver.main_model_part,1.0)
-
+            self.faceheatflux.FlameDistribution(self.fluid_solver.main_model_part,1.5e5 , 1.0)
+        else:
+            self.faceheatflux.FlameDistribution(self.fluid_solver.main_model_part,0.0, 1.0)
+        
 
         #If the thermal calculation is not needed, then "thermal_is_converged = True"
         thermal_is_converged = self.thermal_solver.SolveSolutionStep()

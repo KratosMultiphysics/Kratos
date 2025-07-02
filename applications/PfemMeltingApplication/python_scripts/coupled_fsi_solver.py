@@ -380,6 +380,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         for node in self.fluid_solver.main_model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0, 0.0)
         parametersf=self.settings["fluid_solver_settings"]
+        
 
         Cavity=False
         Cavity=True
@@ -453,6 +454,8 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().SetVariable(self.variables_aux[0], self.values_aux[0].GetDouble(), self.fluid_solver.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetVariable(self.variables_aux[1], self.values_aux[1].GetDouble(), self.fluid_solver.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetVariable(self.variables_aux[2], self.values_aux[2].GetDouble(), self.fluid_solver.main_model_part.Nodes)
+        
+        #KratosMultiphysics.VariableUtils().SetVariable(self.variables_aux[2], self.values_aux[2].GetDouble(), self.fluid_solver.main_model_part.Nodes)
 
 
 
