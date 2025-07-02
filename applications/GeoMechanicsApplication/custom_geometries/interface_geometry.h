@@ -232,27 +232,27 @@ public:
     {
         const auto points = this->Points();
 
-        // The first face coincides with the first side of the element
+        // The first side coincides with the first half of the element nodes
         auto begin_of_second_side = points.ptr_begin() + (points.size() / 2);
-        const auto nodes_of_first_face = PointerVector<Node>{points.ptr_begin(), begin_of_second_side};
+        const auto nodes_of_first_side = PointerVector<Node>{points.ptr_begin(), begin_of_second_side};
 
-        // The second face coincides with the second side of the element. However, the nodes must be
-        // traversed in opposite direction.
-        auto nodes_of_second_edge = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
-        auto end_of_corner_points = nodes_of_second_edge.ptr_begin() + GetNumberOfCornerPoints();
+        // The second side coincides with the second half of the element nodes. However, the nodes
+        // must be traversed in opposite direction.
+        auto nodes_of_second_side = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
+        auto end_of_corner_points = nodes_of_second_side.ptr_begin() + GetNumberOfCornerPoints();
 
-        // For line geometries we want to reverse all 'corner points', while for planes we don't change the
-        // starting node, but only reverse the order of the rest of the corner points.
+        // For line geometries we want to reverse all 'corner points', while for planes we don't
+        // change the starting node, but only reverse the order of the rest of the corner points.
         auto begin_of_corner_points_to_reverse =
             mMidGeometry->GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear
-                ? nodes_of_second_edge.ptr_begin()
-                : nodes_of_second_edge.ptr_begin() + 1;
+                ? nodes_of_second_side.ptr_begin()
+                : nodes_of_second_side.ptr_begin() + 1;
         std::reverse(begin_of_corner_points_to_reverse, end_of_corner_points);
-        std::reverse(end_of_corner_points, nodes_of_second_edge.ptr_end()); // any high-order nodes
+        std::reverse(end_of_corner_points, nodes_of_second_side.ptr_end()); // any high-order nodes
 
         auto result = GeometriesArrayType{};
-        result.push_back(std::make_shared<MidGeometryType>(nodes_of_first_face));
-        result.push_back(std::make_shared<MidGeometryType>(nodes_of_second_edge));
+        result.push_back(std::make_shared<MidGeometryType>(nodes_of_first_side));
+        result.push_back(std::make_shared<MidGeometryType>(nodes_of_second_side));
         return result;
     }
 

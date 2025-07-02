@@ -62,22 +62,27 @@ auto CreateThreePlusThreeNoded3DPlanarInterfaceGeometry()
     return InterfaceGeometry<Triangle3D3<Node>>{1, nodes};
 }
 
+PointerVector<Node> CreateNodesForSixPlusSixNoded3DPlanarInterface()
+{
+    PointerVector<Node> result;
+    result.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    result.push_back(Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+    result.push_back(Kratos::make_intrusive<Node>(3, 0.0, 1.0, 0.0));
+    result.push_back(Kratos::make_intrusive<Node>(4, 0.5, 0.0, 0.0));
+    result.push_back(Kratos::make_intrusive<Node>(5, 0.5, 0.5, 0.0));
+    result.push_back(Kratos::make_intrusive<Node>(6, 0.0, 0.5, 0.0));
+    result.push_back(Kratos::make_intrusive<Node>(7, 0.0, 0.0, 0.5));
+    result.push_back(Kratos::make_intrusive<Node>(8, 1.0, 0.0, 0.5));
+    result.push_back(Kratos::make_intrusive<Node>(9, 0.0, 1.0, 0.5));
+    result.push_back(Kratos::make_intrusive<Node>(10, 0.5, 0.0, 0.5));
+    result.push_back(Kratos::make_intrusive<Node>(11, 0.5, 0.5, 0.5));
+    result.push_back(Kratos::make_intrusive<Node>(12, 0.0, 0.5, 0.5));
+    return result;
+}
+
 auto CreateSixPlusSixNoded3DPlanarInterfaceGeometry()
 {
-    PointerVector<Node> nodes;
-    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(2, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(5, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(6, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(7, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(8, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(9, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(10, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(11, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(12, 0.0, 0.0, 0.0));
-    return InterfaceGeometry<Triangle3D6<Node>>{1, nodes};
+    return InterfaceGeometry<Triangle3D6<Node>>{1, CreateNodesForSixPlusSixNoded3DPlanarInterface()};
 }
 
 auto CreateFourPlusFourNoded3DPlanarInterfaceGeometry()
@@ -212,23 +217,11 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForPlanarMidGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto          geometry = InterfaceGeometry<Triangle3D6<Node>>();
-    PointerVector<Node> nodes;
-    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(2, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(5, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(6, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(7, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(8, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(9, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(10, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(11, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(12, 0.0, 0.0, 0.0));
+    const auto geometry = InterfaceGeometry<Triangle3D6<Node>>();
 
     constexpr auto new_geometry_id = 1;
-    const auto     new_geometry    = geometry.Create(new_geometry_id, nodes);
+    const auto     new_geometry =
+        geometry.Create(new_geometry_id, CreateNodesForSixPlusSixNoded3DPlanarInterface());
 
     KRATOS_EXPECT_NE(new_geometry, nullptr);
     KRATOS_EXPECT_NE(dynamic_cast<const InterfaceGeometry<Triangle3D6<Node>>*>(new_geometry.get()), nullptr);

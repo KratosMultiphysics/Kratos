@@ -598,11 +598,9 @@ private:
         std::make_unique<ThreeDimensionalStressState>()};
 
     const LineInterfaceElement mULineInterfacePlaneStrainElement2Plus2N{
-        0, Kratos::make_shared<InterfaceGeometry<Line2D2<NodeType>>>(
-               Element::GeometryType::PointsArrayType(4))};
+        0, Kratos::make_shared<InterfaceGeometry<Line2D2<NodeType>>>(Element::GeometryType::PointsArrayType(4))};
     const LineInterfaceElement mULineInterfacePlaneStrainElement3Plus3N{
-        0, Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(
-               Element::GeometryType::PointsArrayType(6))};
+        0, Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6))};
 
     // Updated-Lagrangian elements:
     const UPwUpdatedLagrangianElement<2, 3> mUPwUpdatedLagrangianElement2D3N{
