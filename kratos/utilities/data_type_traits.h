@@ -69,15 +69,21 @@ public:
 
     /**
      * @brief Checks if the given shape is valid.
+     * @details This method checks if the given shape is valid in the sense
+     *          that, dimensionality is correct as well as the values for each
+     *          static dimension is less or equal to the actual data types
+     *          static dimension value.
      *
      * @param pShapeBegin           Beginning of the shape array.
      * @param pShapeEnd             End of the shape array.
      */
-    template<class TIteratorType>
+    template<class TIntegerType>
     static bool inline IsValidShape(
-        TIteratorType pShapeBegin,
-        TIteratorType pShapeEnd)
+        TIntegerType const * pShapeBegin,
+        TIntegerType const * pShapeEnd)
     {
+        // this class is reserved for primitive types such as int, double, bool,...
+        // therefore, there should not be any dimensionality. Should only be an empty shape.
         return pShapeBegin == pShapeEnd;
     }
 
@@ -370,16 +376,22 @@ public:
 
     /**
      * @brief Checks if the given shape is valid.
+     * @details This method checks if the given shape is valid in the sense
+     *          that, dimensionality is correct as well as the values for each
+     *          static dimension is less or equal to the actual data types
+     *          static dimension value.
      *
-     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeBegin           Beginning of the shape array.
      * @param pShapeEnd             End of the shape array.
      */
-    template<class TIteratorType>
+    template<class TIntegerType>
     static bool inline IsValidShape(
-        TIteratorType pShapeBegin,
-        TIteratorType pShapeEnd)
+        TIntegerType const * pShapeBegin,
+        TIntegerType const * pShapeEnd)
     {
-        return pShapeBegin != pShapeEnd && (*pShapeBegin) <= TSize && ValueTraits::template IsValidShape<TIteratorType>(pShapeBegin + 1, pShapeEnd);
+        // this is an array_1d, so first dimension is used by the array_1d.
+        // the static size check is done here.
+        return pShapeBegin != pShapeEnd && (*pShapeBegin) <= TSize && ValueTraits::template IsValidShape<TIntegerType>(pShapeBegin + 1, pShapeEnd);
     }
 
     /**
@@ -764,16 +776,25 @@ public:
 
     /**
      * @brief Checks if the given shape is valid.
+     * @details This method checks if the given shape is valid in the sense
+     *          that, dimensionality is correct as well as the values for each
+     *          static dimension is less or equal to the actual data types
+     *          static dimension value.
      *
-     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeBegin           Beginning of the shape array.
      * @param pShapeEnd             End of the shape array.
      */
-    template<class TIteratorType>
+    template<class TIntegerType>
     static bool inline IsValidShape(
-        TIteratorType pShapeBegin,
-        TIteratorType pShapeEnd)
+        TIntegerType const * pShapeBegin,
+        TIntegerType const * pShapeEnd)
     {
-        return pShapeBegin != pShapeEnd && ValueTraits::template IsValidShape<TIteratorType>(pShapeBegin + 1, pShapeEnd);
+        // this is a dense vector, hence the first dimension of the given shape
+        // is used to identify the number of components in the dense vector.
+        // Since the dense vector is dynamic, this does not check the given
+        // number of components in the shape with what will be available.
+        // it only checks whether the dimension is available in the shape.
+        return pShapeBegin != pShapeEnd && ValueTraits::template IsValidShape<TIntegerType>(pShapeBegin + 1, pShapeEnd);
     }
 
     /**
@@ -1164,16 +1185,24 @@ public:
 
     /**
      * @brief Checks if the given shape is valid.
+     * @details This method checks if the given shape is valid in the sense
+     *          that, dimensionality is correct as well as the values for each
+     *          static dimension is less or equal to the actual data types
+     *          static dimension value.
      *
-     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeBegin           Beginning of the shape array.
      * @param pShapeEnd             End of the shape array.
      */
-    template<class TIteratorType>
+    template<class TIntegerType>
     static bool inline IsValidShape(
-        TIteratorType pShapeBegin,
-        TIteratorType pShapeEnd)
+        TIntegerType const * pShapeBegin,
+        TIntegerType const * pShapeEnd)
     {
-        return pShapeBegin != pShapeEnd && (pShapeBegin + 1) != pShapeEnd && ValueTraits::template IsValidShape<TIteratorType>(pShapeBegin + 2, pShapeEnd);
+        // this is for the matrix type.
+        // first two dimensions of the shape is used to define the matrix row and column
+        // number of components. Since matrix is dynamic, this
+        // only check whether the required dimensions are available.
+        return pShapeBegin != pShapeEnd && (pShapeBegin + 1) != pShapeEnd && ValueTraits::template IsValidShape<TIntegerType>(pShapeBegin + 2, pShapeEnd);
     }
 
     /**
@@ -1567,16 +1596,25 @@ public:
 
     /**
      * @brief Checks if the given shape is valid.
+     * @details This method checks if the given shape is valid in the sense
+     *          that, dimensionality is correct as well as the values for each
+     *          static dimension is less or equal to the actual data types
+     *          static dimension value.
      *
-     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeBegin           Beginning of the shape array.
      * @param pShapeEnd             End of the shape array.
      */
-    template<class TIteratorType>
+    template<class TIntegerType>
     static bool inline IsValidShape(
-        TIteratorType pShapeBegin,
-        TIteratorType pShapeEnd)
+        TIntegerType const * pShapeBegin,
+        TIntegerType const * pShapeEnd)
     {
-        return pShapeBegin != pShapeEnd;
+        // this is also considered as an array of chars.
+        // hence it should only have one dimension.
+        // since string is dynamic, number of components
+        // in the dimension is not checked. Only the
+        // availability of the dimension is checked.
+        return (pShapeBegin + 1) == pShapeEnd;
     }
 
     /**
@@ -1902,16 +1940,24 @@ public:
 
     /**
      * @brief Checks if the given shape is valid.
+     * @details This method checks if the given shape is valid in the sense
+     *          that, dimensionality is correct as well as the values for each
+     *          static dimension is less or equal to the actual data types
+     *          static dimension value.
      *
-     * @param pShapeBegin           Begining of the shape array.
+     * @param pShapeBegin           Beginning of the shape array.
      * @param pShapeEnd             End of the shape array.
      */
-    template<class TIteratorType>
+    template<class TIntegerType>
     static bool inline IsValidShape(
-        TIteratorType pShapeBegin,
-        TIteratorType pShapeEnd)
+        TIntegerType const * pShapeBegin,
+        TIntegerType const * pShapeEnd)
     {
-        return pShapeBegin != pShapeEnd && ValueTraits::template IsValidShape<TIteratorType>(pShapeBegin + 1, pShapeEnd);
+        // This is a vector type, and first dimension represents
+        // the number of components in the vector. Hence the availability
+        // of the dimension is checked. Since std::vector is dynamic,
+        // the number of component in the std::vector is not checked.
+        return pShapeBegin != pShapeEnd && ValueTraits::template IsValidShape<TIntegerType>(pShapeBegin + 1, pShapeEnd);
     }
 
     /**

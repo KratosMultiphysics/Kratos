@@ -951,18 +951,18 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedDenseMatrixSizeWithShape, KratosCo
 
     KRATOS_EXPECT_EQ(data_type_traits::Dimension, shape.size());
     KRATOS_EXPECT_EQ(data_type_traits::Size(shape.begin(), shape.end()), 2150400);
-    KRATOS_EXPECT_FALSE(data_type_traits::IsValidShape(shape.begin(), shape.end()));
+    KRATOS_EXPECT_FALSE(data_type_traits::IsValidShape(shape.data(), shape.data() + shape.size()));
 
     shape[3] = 10;
     shape[6] = 3;
-    KRATOS_EXPECT_TRUE(data_type_traits::IsValidShape(shape.begin(), shape.end()));
+    KRATOS_EXPECT_TRUE(data_type_traits::IsValidShape(shape.data(), shape.data() + shape.size()));
     KRATOS_EXPECT_EQ(data_type_traits::Size(shape.begin(), shape.end()), 768000);
-    KRATOS_EXPECT_FALSE(data_type_traits::IsValidShape(shape.begin(), shape.end() - 1));
-    KRATOS_EXPECT_FALSE(data_type_traits::IsValidShape(shape.begin() + 1, shape.end()));
+    KRATOS_EXPECT_FALSE(data_type_traits::IsValidShape(shape.data(), shape.data() + shape.size() - 1));
+    KRATOS_EXPECT_FALSE(data_type_traits::IsValidShape(shape.data() + 1, shape.data() + shape.size()));
 
     shape[3] = 5;
     shape[6] = 2;
-    KRATOS_EXPECT_TRUE(data_type_traits::IsValidShape(shape.begin(), shape.end()));
+    KRATOS_EXPECT_TRUE(data_type_traits::IsValidShape(shape.data(), shape.data() + shape.size()));
     KRATOS_EXPECT_EQ(data_type_traits::Size(shape.begin(), shape.end()), 256000);
 }
 
@@ -980,7 +980,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedDenseMatrixCopyToContiguousDataWit
     shape[6] = 2;       // array_1d dim
 
     KRATOS_EXPECT_EQ(data_type_traits::Dimension, shape.size());
-    KRATOS_EXPECT_TRUE(data_type_traits::IsValidShape(shape.begin(), shape.end()));
+    KRATOS_EXPECT_TRUE(data_type_traits::IsValidShape(shape.data(), shape.data() + shape.size()));
     KRATOS_EXPECT_EQ(data_type_traits::Size(shape.begin(), shape.end()), 720);
 
     // generate the data
@@ -1072,7 +1072,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedDenseMatrixCopyFromContiguousDataW
     shape[6] = 2;       // array_1d dim
 
     KRATOS_EXPECT_EQ(data_type_traits::Dimension, shape.size());
-    KRATOS_EXPECT_TRUE(data_type_traits::IsValidShape(shape.begin(), shape.end()));
+    KRATOS_EXPECT_TRUE(data_type_traits::IsValidShape(shape.data(), shape.data() + shape.size()));
     KRATOS_EXPECT_EQ(data_type_traits::Size(shape.begin(), shape.end()), 720);
 
     // generate the data
