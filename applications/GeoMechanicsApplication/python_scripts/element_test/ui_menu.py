@@ -1,6 +1,6 @@
 import os
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk, scrolledtext
+from tkinter import filedialog, messagebox, ttk, scrolledtext, Menu
 from ui_builder import GeotechTestUI
 from ui_udsm_parser import udsm_parser
 
@@ -190,8 +190,57 @@ def show_license_agreement():
     tk.Button(button_frame, text="Accept", width=15, command=accept).pack(side="left", padx=10)
     tk.Button(button_frame, text="Decline", width=15, command=decline).pack(side="right", padx=10)
 
+def show_about_window():
+    about_win = tk.Toplevel()
+    about_win.title("About")
+    about_win.geometry("500x400")
+    about_win.resizable(False, False)
+    about_win.grab_set()
+
+    tk.Label(about_win, text="Deltares Soil Element Test Suite", font=("Segoe UI", 14, "bold")).pack(pady=(20, 5))
+    tk.Label(about_win, text="Version 0.1.0 ~ Alpha Release", font=("Segoe UI", 12)).pack(pady=(0, 5))
+    tk.Label(about_win, text="Powered by:", font=("Segoe UI", 12)).pack(pady=(0, 5))
+
+    image_frame = tk.Frame(about_win)
+    image_frame.pack(pady=10)
+
+    try:
+        path1 = os.path.join(os.path.dirname(__file__), "assets", "kratos.png")
+        path2 = os.path.join(os.path.dirname(__file__), "assets", "deltares.png")
+
+        photo1 = tk.PhotoImage(file=path1)
+        photo2 = tk.PhotoImage(file=path2)
+
+        label1 = tk.Label(image_frame, image=photo1)
+        label1.image = photo1
+        label1.pack(pady=2)
+
+        label2 = tk.Label(image_frame, image=photo2)
+        label2.image = photo2
+        label2.pack(pady=15)
+
+    except Exception:
+        tk.Label(about_win, text="[One or both images could not be loaded]", fg="red").pack()
+
+    tk.Label(about_win, text="Contact: kratos@deltares.nl", font=("Segoe UI", 12)).pack(pady=(0, 2))
+    tk.Button(about_win, text="Close", command=about_win.destroy).pack(pady=10)
+
+
 def create_menu():
     root = tk.Tk()
+
+    menubar = Menu(root)
+    root.config(menu=menubar)
+
+    file_menu = Menu(menubar, tearoff=0)
+    file_menu.add_command(label="Exit", command=lambda: root.quit())
+    menubar.add_cascade(label="File", menu=file_menu)
+
+    about_menu = Menu(menubar, tearoff=0)
+    about_menu.add_command(label="License", command=show_license_agreement)
+    about_menu.add_command(label="About", command=show_about_window)
+    menubar.add_cascade(label="Help", menu=about_menu)
+
     if not os.path.exists(LICENSE_FLAG_PATH):
         show_license_agreement()
 
