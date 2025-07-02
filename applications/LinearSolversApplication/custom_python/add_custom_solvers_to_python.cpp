@@ -27,6 +27,7 @@
 #include "custom_solvers/eigen_dense_direct_solver.h"
 #include "custom_solvers/eigen_dense_eigenvalue_solver.h"
 #include "custom_solvers/eigensystem_solver.h"
+#include "custom_solvers/eigen_cholmod_solver.hpp" // EigenCholmodSolver
 
 #if defined USE_EIGEN_MKL
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
@@ -232,6 +233,11 @@ void AddCustomSolversToPython(pybind11::module& m)
     register_solver<EigenPardisoLDLTSolver<complex>>(m, "ComplexPardisoLDLTSolver");
     register_solver<EigenPardisoLLTSolver<complex>>(m, "ComplexPardisoLLTSolver");
 #endif // defined USE_EIGEN_MKL
+
+#ifdef KRATOS_USE_EIGEN_SUITESPARSE
+    register_solver<EigenCholmodSolver<double>>(m, "CholmodSolver");
+    register_solver<EigenCholmodSolver<complex>>(m, "ComplexCholmodSolver");
+#endif // KRATOS_USE_EIGEN_SUITESPARSE
 
     register_base_dense_solver(m);
 
