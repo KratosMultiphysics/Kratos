@@ -60,10 +60,12 @@ void GeoLinearElasticLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
         << "Constitutive laws in the geomechanics application need a valid provided strain" << std::endl;
 
     if (r_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+		std::cout << "Calculating constitutive matrix for GeoLinearElasticLaw" << std::endl;
         CalculateElasticMatrix(rValues.GetConstitutiveMatrix(), rValues);
     }
 
     if (r_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+		std::cout << "Calculating PK2 stress for GeoLinearElasticLaw" << std::endl;
         CalculatePK2Stress(rValues.GetStrainVector(), rValues.GetStressVector(), rValues);
     }
 
