@@ -58,37 +58,43 @@ double SumOfWeights(const Geo::IntegrationPointVectorType& rIntegrationPoints)
     return std::accumulate(weights.cbegin(), weights.cend(), 0.0);
 }
 
-void ExpectLocalCoordinatesIncludeRangeBounds(const Geo::IntegrationPointVectorType& rIntegrationPoints, const size_t direction_index)
+void ExpectLocalCoordinatesIncludeRangeBounds(const Geo::IntegrationPointVectorType& rIntegrationPoints, const double iso_lower_bound, const double iso_upper_bound, const size_t direction_index)
 {
     constexpr auto tolerance = 1.0e-6;
 
-    auto is_at_lower_bound_of_xi = [tolerance, direction_index](const auto& rPoint) {
-        return std::abs(rPoint[direction_index] + 1.0) <= tolerance;
+    auto is_at_lower_bound_of_iso_coord = [tolerance, iso_lower_bound, direction_index](const auto& rPoint) {
+        // lower_bound is 0 or a negative number
+        return std::abs(rPoint[direction_index] - iso_lower_bound) <= tolerance;
     };
-    KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), is_at_lower_bound_of_xi))
+    KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), is_at_lower_bound_of_iso_coord))
 
-    auto is_at_upper_bound_of_xi = [tolerance, direction_index](const auto& rPoint) {
-        return std::abs(rPoint[direction_index] - 1.0) <= tolerance;
+    auto is_at_upper_bound_of_iso_coord = [tolerance, iso_upper_bound, direction_index](const auto& rPoint) {
+        // upper_bound is 0 or a positive number
+        return std::abs(rPoint[direction_index] - iso_upper_bound) <= tolerance;
     };
-    KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), is_at_upper_bound_of_xi))
+    KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), is_at_upper_bound_of_iso_coord))
 }
 
-void ExpectLineLocalCoordinatesAreInRange(const Geo::IntegrationPointVectorType& rIntegrationPoints)
+void ExpectLocalCoordinatesAreInRange(const Geo::IntegrationPointVectorType& rIntegrationPoints, const double iso_lower_bound, const double iso_upper_bound, const size_t direction_index)
 {
     constexpr auto tolerance = 1.0e-6;
 
-    auto xi_is_in_range = [tolerance](const auto& rPoint) {
-        return std::abs(rPoint[0]) - 1.0 <= tolerance;
+    auto iso_coord_is_in_range = [tolerance, iso_lower_bound, iso_upper_bound, direction_index](const auto& rPoint) {
+        return rPoint[direction_index] - iso_upper_bound <= tolerance && iso_lower_bound - rPoint[direction_index] <= tolerance;;
     };
-    KRATOS_EXPECT_TRUE(std::all_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), xi_is_in_range))
-    // The isoparametric space is 1D (xi only), so the other parameters should be equal to zero
-    auto non_xi_coordinates_must_be_near_zero = [tolerance](const auto& rPoint) {
-        return (std::abs(rPoint[1]) <= tolerance) && (std::abs(rPoint[2]) <= tolerance);
+    KRATOS_EXPECT_TRUE(std::all_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), iso_coord_is_in_range))
+}
+
+void ExpectLocalCoordinatesAreZero(const Geo::IntegrationPointVectorType& rIntegrationPoints, const size_t direction_index)
+{
+    constexpr auto tolerance = 1.0e-6;
+
+    auto iso_coordinate_must_be_near_zero = [tolerance, direction_index](const auto& rPoint) {
+        return (std::abs(rPoint[direction_index]) <= tolerance);
     };
     KRATOS_EXPECT_TRUE(std::all_of(rIntegrationPoints.begin(), rIntegrationPoints.end(),
-                                   non_xi_coordinates_must_be_near_zero))
+                                   iso_coordinate_must_be_near_zero))
 }
-
 } // namespace
 
 namespace Kratos::Testing
@@ -130,8 +136,10 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedLobattoSchemesMustBeInRangeAndIncl
     for (auto number : SupportedNumbersOfPointsForLobattoIntegration()) {
         const auto scheme = MakeLobattoIntegrationScheme(number);
 
-        ExpectLineLocalCoordinatesAreInRange(scheme->GetIntegrationPoints());
-        ExpectLocalCoordinatesIncludeRangeBounds(scheme->GetIntegrationPoints(), size_t(0));
+        ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), -1.0, 1.0, static_cast<size_t>(0));
+        ExpectLocalCoordinatesAreZero(scheme->GetIntegrationPoints(), static_cast<size_t>(1));
+        ExpectLocalCoordinatesAreZero(scheme->GetIntegrationPoints(), static_cast<size_t>(2));
+        ExpectLocalCoordinatesIncludeRangeBounds(scheme->GetIntegrationPoints(), -1.0, 1.0, static_cast<size_t>(0));
     }
 }
 
@@ -194,8 +202,26 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedQuadrilateralLumpedSchemesMustBeIn
     for (auto number : SupportedNumbersOfPointsForQuadrilateralLumpedIntegration()) {
         const auto scheme = MakeLumpedIntegrationScheme(number);
 
-        ExpectLocalCoordinatesIncludeRangeBounds(scheme->GetIntegrationPoints(), size_t(0));
-        ExpectLocalCoordinatesIncludeRangeBounds(scheme->GetIntegrationPoints(), size_t(1));
+        ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), -1.0, 1.0, static_cast<size_t>(0));
+        ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), -1.0, 1.0, static_cast<size_t>(1));
+        ExpectLocalCoordinatesAreZero(scheme->GetIntegrationPoints(), static_cast<size_t>(2));
+        ExpectLocalCoordinatesIncludeRangeBounds(scheme->GetIntegrationPoints(), -1.0, 1.0, static_cast<size_t>(0));
+        ExpectLocalCoordinatesIncludeRangeBounds(scheme->GetIntegrationPoints(), -1.0, 1.0, static_cast<size_t>(1));
     }
 }
+
+KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedTriangleLumpedSchemesMustBeInRangeAndIncludeBounds,
+                                  KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    for (auto number : SupportedNumbersOfPointsForTriangleLumpedIntegration()) {
+        const auto scheme = MakeLumpedIntegrationScheme(number);
+
+        ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), 0.0, 1.0, static_cast<size_t>(0));
+        ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), 0.0, 1.0, static_cast<size_t>(1));
+        ExpectLocalCoordinatesAreZero(scheme->GetIntegrationPoints(), static_cast<size_t>(2));
+        ExpectLocalCoordinatesIncludeRangeBounds(scheme->GetIntegrationPoints(), 0.0, 1.0, size_t(0));
+        ExpectLocalCoordinatesIncludeRangeBounds(scheme->GetIntegrationPoints(), 0.0, 1.0, size_t(1));
+    }
+}
+
 } // namespace Kratos::Testing
