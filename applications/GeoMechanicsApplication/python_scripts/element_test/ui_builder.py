@@ -210,19 +210,24 @@ class GeotechTestUI:
 
         if test_name == TRIAXIAL:
             self._init_plot_canvas(num_plots=5)
+            ttk.Label(self.test_input_frame, text="Triaxial Input Data", font=("Arial", 12, "bold")).pack(anchor="w", padx=5, pady=(5, 0))
+            self._add_test_type_dropdown(self.test_input_frame)
             self.triaxial_widgets = self._create_entries(
                 self.test_input_frame,
-                "Triaxial Input Data",
+                "",
                 [INIT_PRESSURE_LABEL, MAX_STRAIN_LABEL, NUM_STEPS_LABEL, DURATION_LABEL],
                 [FL2_UNIT_LABEL, PERCENTAGE_UNIT_LABEL, WITHOUT_UNIT_LABEL, SECONDS_UNIT_LABEL],
                 {INIT_PRESSURE_LABEL: "100", MAX_STRAIN_LABEL: "20",
                  NUM_STEPS_LABEL: "100", DURATION_LABEL: "1.0"}
             )
+
         elif test_name == DIRECT_SHEAR:
             self._init_plot_canvas(num_plots=4)
+            ttk.Label(self.test_input_frame, text="Direct Simple Shear Input Data", font=("Arial", 12, "bold")).pack(anchor="w", padx=5, pady=(5, 0))
+            self._add_test_type_dropdown(self.test_input_frame)
             self.shear_widgets = self._create_entries(
                 self.test_input_frame,
-                "Direct Simple Shear Input Data",
+                "",
                 [INIT_PRESSURE_LABEL, MAX_STRAIN_LABEL, NUM_STEPS_LABEL, DURATION_LABEL],
                 [FL2_UNIT_LABEL, PERCENTAGE_UNIT_LABEL, WITHOUT_UNIT_LABEL, SECONDS_UNIT_LABEL],
                 {INIT_PRESSURE_LABEL: "100", MAX_STRAIN_LABEL: "20",
@@ -230,6 +235,27 @@ class GeotechTestUI:
             )
 
         log_message(f"{test_name} test selected.", "info")
+
+
+    def _add_test_type_dropdown(self, parent):
+        ttk.Label(parent, text="Type of Test:", font=("Arial", 10, "bold")).pack(anchor="w", padx=5, pady=(5, 2))
+
+        self.test_type_var = tk.StringVar(value="Drained")
+        self.test_type_menu = ttk.Combobox(
+            parent,
+            textvariable=self.test_type_var,
+            values=["Drained"],
+            state="readonly",
+            width=12
+        )
+        self.test_type_menu.pack(anchor="w", padx=10, pady=(0, 10))
+
+        def on_select(event):
+            if self.test_type_var.get() == "Undrained":
+                self.test_type_var.set("Drained")
+                log_message("Undrained test is not yet available.", "warn")
+
+        self.test_type_menu.bind("<<ComboboxSelected>>", on_select)
 
     def _run_simulation(self):
         try:
