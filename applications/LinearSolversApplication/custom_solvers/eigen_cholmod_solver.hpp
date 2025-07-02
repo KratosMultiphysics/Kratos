@@ -50,11 +50,11 @@ public:
             case Eigen::ComputationInfo::Success:
                 break;
             case Eigen::ComputationInfo::NumericalIssue:
-                KRATOS_ERROR << "cholmod factorization ran into a numerical issue";
+                KRATOS_ERROR << "CHOLMOD factorization ran into a numerical issue";
             case Eigen::ComputationInfo::NoConvergence:
-                KRATOS_ERROR << "cholmod factorization failed to converge";
+                KRATOS_ERROR << "CHOLMOD factorization failed to converge";
             case Eigen::ComputationInfo::InvalidInput:
-                KRATOS_ERROR << "invalid input was provided for cholmod";
+                KRATOS_ERROR << "invalid input was provided for CHOLMOD";
         } // switch report
         return true;
 
@@ -70,11 +70,11 @@ public:
             case Eigen::ComputationInfo::Success:
                 break;
             case Eigen::ComputationInfo::NumericalIssue:
-                KRATOS_ERROR << "cholmod solver ran into a numerical issue";
+                KRATOS_ERROR << "CHOLMOD solver ran into a numerical issue";
             case Eigen::ComputationInfo::NoConvergence:
-                KRATOS_ERROR << "cholmod solver failed to converge";
+                KRATOS_ERROR << "CHOLMOD solver failed to converge";
             case Eigen::ComputationInfo::InvalidInput:
-                KRATOS_ERROR << "invalid input was provided for cholmod";
+                KRATOS_ERROR << "invalid input was provided for CHOLMOD";
         } // switch report
         return true;
     }
