@@ -42,7 +42,7 @@ Matrix Line2DInterfaceStressState::CalculateBMatrix(const Matrix&, const Vector&
 
 Vector Line2DInterfaceStressState::CalculateGreenLagrangeStrain(const Matrix&) const
 {
-    KRATOS_ERROR << "For interfaces, it is not possible to calculate the Green-Lagrange "
+    KRATOS_ERROR << "For line interfaces, it is not possible to calculate the Green-Lagrange "
                     "strain based on a deformation gradient.\n";
 }
 
@@ -77,6 +77,70 @@ void Line2DInterfaceStressState::save(Serializer&) const
 }
 
 void Line2DInterfaceStressState::load(Serializer&)
+{
+    // No data members to be loaded (yet)
+}
+
+Matrix PlaneInterfaceStressState::CalculateBMatrix(const Matrix&, const Vector& rN, const Geometry<Node>& rGeometry) const
+{
+    KRATOS_ERROR_IF(rN.empty())
+        << "Shape function values are empty. Therefore, the B matrix can not be computed.\n";
+    KRATOS_ERROR_IF_NOT(rN.size() == rGeometry.size() / 2)
+        << "The number of shape functions should be equal to the number of node pairs. Therefore, "
+           "the B matrix can not be computed.\n";
+
+    Matrix result = ZeroMatrix(GetVoigtSize(), rGeometry.WorkingSpaceDimension() * rGeometry.size());
+
+    // Adapt this implementation to account for the second shear component
+    const auto number_of_u_dofs_per_side = result.size2() / 2;
+    for (unsigned int i = 0; i < rGeometry.size() / 2; ++i) {
+        result(0, i * rGeometry.WorkingSpaceDimension() + 1)                             = -rN[i];
+        result(0, i * rGeometry.WorkingSpaceDimension() + 1 + number_of_u_dofs_per_side) = rN[i];
+
+        result(1, i * rGeometry.WorkingSpaceDimension())                             = -rN[i];
+        result(1, i * rGeometry.WorkingSpaceDimension() + number_of_u_dofs_per_side) = rN[i];
+    }
+
+    return result;
+}
+
+Vector PlaneInterfaceStressState::CalculateGreenLagrangeStrain(const Matrix&) const
+{
+    KRATOS_ERROR << "For plane interfaces, it is not possible to calculate the Green-Lagrange "
+                    "strain based on a deformation gradient.\n";
+}
+
+std::unique_ptr<StressStatePolicy> PlaneInterfaceStressState::Clone() const
+{
+    return std::make_unique<PlaneInterfaceStressState>();
+}
+
+const Vector& PlaneInterfaceStressState::GetVoigtVector() const { return VoigtVectorInterface3D; }
+
+SizeType PlaneInterfaceStressState::GetVoigtSize() const { return VOIGT_SIZE_3D_INTERFACE; }
+
+SizeType PlaneInterfaceStressState::GetStressTensorSize() const
+{
+    KRATOS_ERROR << "For plane interfaces, the stress tensor size is not implemented.\n";
+}
+
+Vector PlaneInterfaceStressState::DefineInterfaceVoigtVector()
+{
+    Vector result{VOIGT_SIZE_3D_INTERFACE};
+    result <<= 1.0, 0.0, 0.0;
+
+    return result;
+}
+
+const Vector PlaneInterfaceStressState::VoigtVectorInterface3D =
+    PlaneInterfaceStressState::DefineInterfaceVoigtVector();
+
+void PlaneInterfaceStressState::save(Serializer&) const
+{
+    // No data members to be saved (yet)
+}
+
+void PlaneInterfaceStressState::load(Serializer&)
 {
     // No data members to be loaded (yet)
 }
