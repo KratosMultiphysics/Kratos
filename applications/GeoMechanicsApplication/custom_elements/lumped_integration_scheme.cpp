@@ -13,8 +13,8 @@
 #include "lumped_integration_scheme.h"
 
 #include <geometries/geometry.h>
-#include <geometries/triangle_2d_6.h>
 #include <geometries/quadrilateral_2d_8.h>
+#include <geometries/triangle_2d_6.h>
 #include <includes/node.h>
 
 namespace Kratos
@@ -78,8 +78,8 @@ Geo::IntegrationPointVectorType LumpedIntegrationScheme::CreateIntegrationPoints
 
         return {{Point(-1.0, -1.0), lumping_factors[0]}, {Point(1.0, -1.0), lumping_factors[1]},
                 {Point(1.0, 1.0), lumping_factors[2]},   {Point(-1.0, 1.0), lumping_factors[3]},
-                {Point(0.0, -1.0), lumping_factors[4]},    {Point(1.0, 0.0), lumping_factors[5]},
-                {Point(0.0, 1.0), lumping_factors[6]},     {Point(-1.0, 0.0), lumping_factors[7]}};
+                {Point(0.0, -1.0), lumping_factors[4]},  {Point(1.0, 0.0), lumping_factors[5]},
+                {Point(0.0, 1.0), lumping_factors[6]},   {Point(-1.0, 0.0), lumping_factors[7]}};
     }
     default:
         KRATOS_ERROR << "Can't construct Lumped integration scheme: no support for "
