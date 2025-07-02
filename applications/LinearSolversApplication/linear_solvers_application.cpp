@@ -119,6 +119,8 @@ void KratosLinearSolversApplication::Register()
     KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_llt_complex", ComplexPardisoLLTFactory);
 
 #endif // defined USE_EIGEN_MKL
+
+#ifdef KRATOS_USE_EIGEN_SUITESPARSE
     // Real CHOLMOD.
     {
         static auto factory = EigenDirectSolver<EigenCholmodSolver<double>>::Factory();
@@ -154,9 +156,7 @@ void KratosLinearSolversApplication::Register()
         static auto factory = EigenDirectSolver<EigenUmfPackSolver<complex>>::Factory();
         KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("umfpack_complex", factory);
     }
-#ifdef KRATOS_USE_EIGEN_SUITESPARSE
-
-#endif
+#endif // KRATOS_USE_EIGEN_SUITESPARSE
 }
 
 } // namespace Kratos
