@@ -46,26 +46,26 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    EXPECT_FALSE(std::is_copy_constructible_v<InterfaceStressState>);
-    EXPECT_FALSE(std::is_copy_assignable_v<InterfaceStressState>);
-    EXPECT_TRUE(std::is_move_constructible_v<InterfaceStressState>);
-    EXPECT_TRUE(std::is_move_assignable_v<InterfaceStressState>);
+    EXPECT_FALSE(std::is_copy_constructible_v<Line2DInterfaceStressState>);
+    EXPECT_FALSE(std::is_copy_assignable_v<Line2DInterfaceStressState>);
+    EXPECT_TRUE(std::is_move_constructible_v<Line2DInterfaceStressState>);
+    EXPECT_TRUE(std::is_move_assignable_v<Line2DInterfaceStressState>);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CloneCreatesCorrectInstance, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
-        std::make_unique<InterfaceStressState>();
+        std::make_unique<Line2DInterfaceStressState>();
 
     const auto p_cloned_policy = p_stress_state_policy->Clone();
-    KRATOS_EXPECT_NE(dynamic_cast<InterfaceStressState*>(p_cloned_policy.get()), nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<Line2DInterfaceStressState*>(p_cloned_policy.get()), nullptr);
     KRATOS_EXPECT_NE(p_cloned_policy.get(), p_stress_state_policy.get());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ThrowsWhenInputtingEmptyShapeFunctionValues,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto stress_state_policy = InterfaceStressState{};
+    const auto stress_state_policy = Line2DInterfaceStressState{};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto b_matrix = stress_state_policy.CalculateBMatrix({}, {}, {}),
@@ -75,7 +75,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ThrowsWhenInputtingEmptyShapeFunc
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ThrowsWhenNumberOfShapeFunctionsIsNotEqualToNumberOfNodePairs,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto stress_state_policy = InterfaceStressState{};
+    const auto stress_state_policy = Line2DInterfaceStressState{};
     const auto geometry            = CreateThreePlusThree2DLineInterfaceGeometry();
 
     Vector shape_function_values(2);
@@ -90,14 +90,14 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ThrowsWhenNumberOfShapeFunctionsI
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsExpectedVoigtSize, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto stress_state_policy = InterfaceStressState{};
+    const auto stress_state_policy = Line2DInterfaceStressState{};
 
     KRATOS_EXPECT_EQ(stress_state_policy.GetVoigtSize(), 2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsExpectedVoigtVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto stress_state_policy = InterfaceStressState{};
+    const auto stress_state_policy = Line2DInterfaceStressState{};
 
     const auto& voigt_vector = stress_state_policy.GetVoigtVector();
 
@@ -109,7 +109,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsExpectedVoigtVector, Krato
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectBMatrixForThreePlusThreeNodesGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto stress_state_policy = InterfaceStressState{};
+    const auto stress_state_policy = Line2DInterfaceStressState{};
     const auto geometry            = CreateThreePlusThree2DLineInterfaceGeometry();
 
     Vector shape_function_values(3);
@@ -128,7 +128,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectBMatrixForThreePlus
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto stress_state_policy = InterfaceStressState{};
+    const auto stress_state_policy = Line2DInterfaceStressState{};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto strain = stress_state_policy.CalculateGreenLagrangeStrain({}),
@@ -138,7 +138,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStrain, Krato
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStressTensorSize, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto stress_state_policy = InterfaceStressState{};
+    const auto stress_state_policy = Line2DInterfaceStressState{};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto strain = stress_state_policy.GetStressTensorSize(),
@@ -149,8 +149,9 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CanBeSavedAndLoadedThroughInterfa
 {
     // Arrange
     const auto scoped_registration =
-        ScopedSerializerRegistration{"InterfaceStressState"s, InterfaceStressState{}};
-    const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<InterfaceStressState>()};
+        ScopedSerializerRegistration{"InterfaceStressState"s, Line2DInterfaceStressState{}};
+    const auto p_policy =
+        std::unique_ptr<StressStatePolicy>{std::make_unique<Line2DInterfaceStressState>()};
     auto serializer = StreamSerializer{};
 
     // Act

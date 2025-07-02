@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-Matrix InterfaceStressState::CalculateBMatrix(const Matrix&, const Vector& rN, const Geometry<Node>& rGeometry) const
+Matrix Line2DInterfaceStressState::CalculateBMatrix(const Matrix&, const Vector& rN, const Geometry<Node>& rGeometry) const
 {
     KRATOS_ERROR_IF(rN.empty())
         << "Shape function values are empty. Therefore, the B matrix can not be computed.\n";
@@ -40,27 +40,27 @@ Matrix InterfaceStressState::CalculateBMatrix(const Matrix&, const Vector& rN, c
     return result;
 }
 
-Vector InterfaceStressState::CalculateGreenLagrangeStrain(const Matrix&) const
+Vector Line2DInterfaceStressState::CalculateGreenLagrangeStrain(const Matrix&) const
 {
     KRATOS_ERROR << "For interfaces, it is not possible to calculate the Green-Lagrange "
                     "strain based on a deformation gradient.\n";
 }
 
-std::unique_ptr<StressStatePolicy> InterfaceStressState::Clone() const
+std::unique_ptr<StressStatePolicy> Line2DInterfaceStressState::Clone() const
 {
-    return std::make_unique<InterfaceStressState>();
+    return std::make_unique<Line2DInterfaceStressState>();
 }
 
-const Vector& InterfaceStressState::GetVoigtVector() const { return VoigtVectorInterface2D; }
+const Vector& Line2DInterfaceStressState::GetVoigtVector() const { return VoigtVectorInterface2D; }
 
-SizeType InterfaceStressState::GetVoigtSize() const { return VOIGT_SIZE_2D_INTERFACE; }
+SizeType Line2DInterfaceStressState::GetVoigtSize() const { return VOIGT_SIZE_2D_INTERFACE; }
 
-SizeType InterfaceStressState::GetStressTensorSize() const
+SizeType Line2DInterfaceStressState::GetStressTensorSize() const
 {
     KRATOS_ERROR << "For interfaces, the stress tensor size is not implemented.\n";
 }
 
-Vector InterfaceStressState::DefineInterfaceVoigtVector()
+Vector Line2DInterfaceStressState::DefineInterfaceVoigtVector()
 {
     Vector result{VOIGT_SIZE_2D_INTERFACE};
     result <<= 1.0, 0.0;
@@ -68,15 +68,15 @@ Vector InterfaceStressState::DefineInterfaceVoigtVector()
     return result;
 }
 
-const Vector InterfaceStressState::VoigtVectorInterface2D =
-    InterfaceStressState::DefineInterfaceVoigtVector();
+const Vector Line2DInterfaceStressState::VoigtVectorInterface2D =
+    Line2DInterfaceStressState::DefineInterfaceVoigtVector();
 
-void InterfaceStressState::save(Serializer&) const
+void Line2DInterfaceStressState::save(Serializer&) const
 {
     // No data members to be saved (yet)
 }
 
-void InterfaceStressState::load(Serializer&)
+void Line2DInterfaceStressState::load(Serializer&)
 {
     // No data members to be loaded (yet)
 }
