@@ -2,11 +2,11 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from master.applications.OptimizationApplication.python_scripts.utilities.helper_utilities import IsSameContainerExpression
-from numpy import tanh
-
-from applications.OptimizationApplication.python_scripts.utilities.component_data_view import ComponentDataView
-from applications.OptimizationApplication.python_scripts.utilities.union_utilities import ContainerExpressionTypes, SupportedSensitivityFieldVariableTypes
+from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
+from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes, SupportedSensitivityFieldVariableTypes
+from numpy import exp
 
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
@@ -32,8 +32,6 @@ class LevelSetControl(Control):
             "density"                           : 1.0,
             "young_modulus"                     : 1.0,
             "k"                                 : 1000.0                                 
-                }
-            ]
         }""")
         
         #            "density_projection_settings"       : {},
@@ -52,12 +50,10 @@ class LevelSetControl(Control):
         controlled_model_names_parts = parameters["controlled_model_part_names"].GetStringArray()
         if len(controlled_model_names_parts) == 0:
             raise RuntimeError(f"No model parts are provided for SimpControl. [ control name = \"{self.GetName()}\"]")
-        # self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", controlled_model_names_parts, False)
+        self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", controlled_model_names_parts, False)
         # self.model_part: 'typing.Optional[Kratos.ModelPart]' = None
 
         self.consider_recursive_property_update = parameters["consider_recursive_property_update"].GetBool()
-
-        
 
     def Initialize(self) -> None:
         self.un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
@@ -76,7 +72,15 @@ class LevelSetControl(Control):
             break
         is_density_defined = element.Properties.Has(Kratos.DENSITY)
         is_youngs_modulus_defined = element.Properties.Has(Kratos.YOUNG_MODULUS)
-        if not(is_density_defined & is_youngs_modulus_defined):
+        if is_density_defined:
+            if is_youngs_modulus_defined:
+                Kratos.Logger.PrintWarning(self.__class__.__name__, f"Elements of {self.model_part.FullName()} defines both DENSITY and YOUNG_MODULUS. Using DENSITY for initial field calculation and ignoring YOUNG_MODULUS.")
+            density = Kratos.Expression.ElementExpression(self.model_part)
+            KratosOA.PropertiesVariableExpressionIO.Read(density, Kratos.DENSITY)
+        elif is_youngs_modulus_defined:
+            young_modulus = Kratos.Expression.ElementExpression(self.model_part)
+            KratosOA.PropertiesVariableExpressionIO.Read(young_modulus, Kratos.YOUNG_MODULUS)
+        else:
             raise RuntimeError(f"Elements of {self.model_part.FullName()} does not define either DENSITY or YOUNG_MODULUS.")
 
         # # get the control field
@@ -98,6 +102,7 @@ class LevelSetControl(Control):
 
     def GetEmptyField(self) -> ContainerExpressionTypes:
         field = Kratos.Expression.ElementExpression(self.model_part)
+        # field = Kratos.Expression.NodalExpression(self.model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(field, 0.0)
         return field
 
@@ -177,13 +182,48 @@ class LevelSetControl(Control):
             un_buffered_data.SetValue(f"dDENSITY_d{self.GetName()}", self.d_density_d_phi.Clone(), overwrite=True)
             un_buffered_data.SetValue(f"dYOUNG_MODULUS_d{self.GetName()}", self.d_young_modulus_d_phi.Clone(), overwrite=True)
 
-
     def _ComputePhysicalVariableField(self, physical_variable) -> ContainerExpressionTypes:
         # Get variable value
         base_value = self.parameters[physical_variable.Name().lower()].GetDouble()
-        # Compute Heaviside
-        heaviside = 0.5 * (1.0 + tanh(self.k * self.control_phi))
-        return base_value * heaviside
+        # phi * -2k
+        phi_expr = self.control_phi.Clone()
+        phi_expr *= - 2 * self.k
+        # Heaviside computations
+        e_container = self.GetEmptyField()
+        Kratos.Expression.LiteralExpressionIO.SetData(e_container, exp(1))
+        heaviside = Kratos.Expression.Utils.Pow(e_container, phi_expr)
+        heaviside += 1
+        heaviside **= -1
+        heaviside *= base_value
+
+        return heaviside
+
+
+    def _ComputePhysicalVariableGradient(self, physical_variable)  -> ContainerExpressionTypes:
+        
+        # Calculate Dirac Delta function (derivative of Heaviside function w.r.t. phi)
+        # Get variable value
+        base_value = self.parameters[physical_variable.Name().lower()].GetDouble()
+        
+        # phi * 2k
+        phi_expr = self.control_phi.Clone()
+        phi_expr *= 2 * self.k
+        # e^2k*phi 
+        e_container = self.GetEmptyField()
+        Kratos.Expression.LiteralExpressionIO.SetData(e_container, exp(1))
+        exponent = Kratos.Expression.Utils.Pow(e_container, phi_expr)
+        # Calculating the numerator
+        d_H_d_phi = Kratos.Expression.Utils.Scale(exponent, 2 * self.k)
+        # Calculating denominator
+        exponent += 1
+        denominator = Kratos.Expression.Utils.Pow(exponent, 2.0)
+        d_H_d_phi /= denominator
+
+        # Multiply by base material value (scalar)
+        d_var_d_phi = d_H_d_phi * base_value
+
+        # return the sensitivity
+        return d_var_d_phi
 
 
     def _ComputeLevelSetGradientNorm(self, LSF: ContainerExpressionTypes) -> ContainerExpressionTypes:
@@ -196,15 +236,3 @@ class LevelSetControl(Control):
 
         # Return the norm expression
         return LFS_grad_norm
-    
-
-    def _ComputePhysicalVariableGradient(self, physical_variable)  -> ContainerExpressionTypes:
-        
-        # calculate Dirac Delta function (derivative of Heaviside function w.r.t. phi)
-        d_H_d_phi = self.k / 2 *(1 - pow(tanh(self.k * self.control_phi), 2))
-
-        # calculate variable sensitivity w.r.t. phi
-        d_var_d_phi = d_H_d_phi * physical_variable
-
-        # return the sensitivity
-        return d_var_d_phi

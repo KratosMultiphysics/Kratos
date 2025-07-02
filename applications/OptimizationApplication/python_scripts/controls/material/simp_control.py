@@ -191,10 +191,6 @@ class SimpControl(Control):
             self.filter.Update()
             return True
 
-            self.density_projection.Update()
-            self.young_modulus_projection.Update()
-            return True
-
         self.density_projection.Update()
         self.young_modulus_projection.Update()
         return False
