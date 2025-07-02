@@ -50,6 +50,8 @@ class KratosGeoMechanicsHydraulicHeads(KratosUnittest.TestCase):
         nodal_coordinates = test_helper.read_coordinates_from_post_msh_file(
             post_msh_file_path
         )
+        # Make sure that we check all nodes
+        self.assertEqual(len(nodal_coordinates), 251)
 
         analytical_hydraulic_heads = [
             self.calculate_head(head_bottom, head_top, coord[1])
