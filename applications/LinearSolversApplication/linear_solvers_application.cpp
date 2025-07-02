@@ -20,6 +20,7 @@
 #include "custom_solvers/eigen_sparse_lu_solver.h"
 #include "custom_solvers/eigen_sparse_qr_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
+#include "custom_solvers/eigen_cholmod_solver.hpp" // EigenCholmodSolver
 
 #if defined USE_EIGEN_MKL
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
@@ -116,6 +117,20 @@ void KratosLinearSolversApplication::Register()
     KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_llt_complex", ComplexPardisoLLTFactory);
 
 #endif // defined USE_EIGEN_MKL
+    // Real CHOLMOD.
+    {
+        static auto factory = EigenDirectSolver<EigenCholmodSolver<double>>::Factory();
+        KRATOS_REGISTER_LINEAR_SOLVER("cholmod", factory);
+    }
+
+    // Complex CHOLMOD.
+    {
+        static auto factory = EigenDirectSolver<EigenCholmodSolver<complex>>::Factory();
+        KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("cholmod_complex", factory);
+    }
+#ifdef KRATOS_USE_EIGEN_SUITESPARSE
+
+#endif
 }
 
 } // namespace Kratos
