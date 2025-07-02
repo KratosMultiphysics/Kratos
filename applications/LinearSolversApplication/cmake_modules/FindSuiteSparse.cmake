@@ -114,6 +114,7 @@ if (NOT SuiteSparse_FIND_COMPONENTS)
     CHOLMOD
     COLAMD
     SPQR
+    UMFPACK
   )
 
   foreach (component IN LISTS SuiteSparse_FIND_COMPONENTS)
@@ -139,6 +140,11 @@ if (CHOLMOD IN_LIST SuiteSparse_FIND_COMPONENTS)
 endif (CHOLMOD IN_LIST SuiteSparse_FIND_COMPONENTS)
 
 # SPQR depends on CHOLMOD.
+if (SPQR IN_LIST SuiteSparse_FIND_COMPONENTS)
+  list (APPEND SuiteSparse_IMPLICIT_COMPONENTS CHOLMOD)
+endif (SPQR IN_LIST SuiteSparse_FIND_COMPONENTS)
+
+# UMFPACK depends on CHOLMOD.
 if (SPQR IN_LIST SuiteSparse_FIND_COMPONENTS)
   list (APPEND SuiteSparse_IMPLICIT_COMPONENTS CHOLMOD)
 endif (SPQR IN_LIST SuiteSparse_FIND_COMPONENTS)
@@ -450,6 +456,17 @@ if (TARGET SuiteSparse::SPQR)
     set (SuiteSparse_SQPR_FOUND FALSE)
   endif (TARGET SuiteSparse::CHOLMOD)
 endif (TARGET SuiteSparse::SPQR)
+
+# UMFPACK requires CHOLMOD
+if (TARGET SuiteSparse::UMFPACK)
+  if (TARGET SuiteSparse::CHOLMOD)
+    set_property (TARGET SuiteSparse::UMFPACK APPEND PROPERTY
+      INTERFACE_LINK_LIBRARIES SuiteSparse::CHOLMOD)
+  else (TARGET SuiteSparse::CHOLMOD)
+    # Consider UMFPACK not found if CHOLMOD cannot be found
+    set (SuiteSparse_SQPR_FOUND FALSE)
+  endif (TARGET SuiteSparse::CHOLMOD)
+endif (TARGET SuiteSparse::UMFPACK)
 
 # Add SuiteSparse::Config as dependency to all components
 if (TARGET SuiteSparse::Config)
