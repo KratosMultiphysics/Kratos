@@ -132,6 +132,7 @@
 #include "custom_constitutive/small_strain_umat_3D_law.hpp"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_constitutive/truss_backbone_constitutive_law.h"
+#include "custom_constitutive/interface_linear_strain.h"
 
 namespace Kratos
 {
@@ -1007,7 +1008,7 @@ private:
     const LinearElastic2DBeamLaw       mLinearElastic2DBeamLaw;
     const TrussBackboneConstitutiveLaw mTrussBackboneConstitutiveLaw;
 
-    const GeoIncrementalElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw;
+    const GeoIncrementalElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfaceLinearStrain>()};
 
     const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff2D{std::make_unique<PlaneStrain>()};
     const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff3D{std::make_unique<ThreeDimensional>()};

@@ -22,17 +22,17 @@ namespace Kratos
 
 ConstitutiveLaw::Pointer GeoIncrementalElasticInterfaceLaw::Clone() const
 {
-    return std::make_shared<GeoIncrementalElasticInterfaceLaw>(*this);
+    return std::make_shared<GeoIncrementalElasticInterfaceLaw>(mConstitutiveLawDimension->Clone());
 }
 
 ConstitutiveLaw::SizeType GeoIncrementalElasticInterfaceLaw::WorkingSpaceDimension()
 {
-    return 2;
+    return mConstitutiveLawDimension->GetDimension();
 }
 
 ConstitutiveLaw::SizeType GeoIncrementalElasticInterfaceLaw::GetStrainSize() const
 {
-    return VOIGT_SIZE_2D_INTERFACE;
+    return mConstitutiveLawDimension->GetStrainSize();
 }
 
 Vector& GeoIncrementalElasticInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
