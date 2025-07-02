@@ -7,7 +7,7 @@ from ui_udsm_parser import udsm_parser
 import ctypes
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("deltares.ElementTestSuite.ui")
 
-from ui_labels import SELECT_UDSM, LINEAR_ELASTIC
+from ui_labels import APP_TITLE, APP_VERSION, SELECT_UDSM, LINEAR_ELASTIC
 
 LICENSE_FLAG_PATH = os.path.join(os.path.expanduser("~"), ".deltares_license_accepted")
 
@@ -197,8 +197,8 @@ def show_about_window():
     about_win.resizable(False, False)
     about_win.grab_set()
 
-    tk.Label(about_win, text="Deltares Soil Element Test Suite", font=("Segoe UI", 14, "bold")).pack(pady=(20, 5))
-    tk.Label(about_win, text="Version 0.1.0 ~ Alpha Release", font=("Segoe UI", 12)).pack(pady=(0, 5))
+    tk.Label(about_win, text=APP_TITLE, font=("Segoe UI", 14, "bold")).pack(pady=(20, 5))
+    tk.Label(about_win, text=APP_VERSION, font=("Segoe UI", 12)).pack(pady=(0, 5))
     tk.Label(about_win, text="Powered by:", font=("Segoe UI", 12)).pack(pady=(0, 5))
 
     image_frame = tk.Frame(about_win)
@@ -250,7 +250,7 @@ def create_menu():
     except Exception as e:
         print(f"Could not set icon: {e}")
 
-    root.title("Deltares Soil Element Test Suite - Version 0.1.0 ~ Alpha Release")
+    root.title(f"{APP_TITLE} - {APP_VERSION}")
     root.state('zoomed')
     root.resizable(True, True)
 

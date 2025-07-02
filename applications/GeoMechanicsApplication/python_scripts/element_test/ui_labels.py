@@ -1,5 +1,9 @@
 #-----------------------UI labels---------------------------
 
+# Application data
+APP_TITLE = "Deltares Soil Element Test Suite"
+APP_VERSION = "Version 0.1.0 ~ Alpha Release"
+
 # General test types
 TRIAXIAL = "Triaxial"
 DIRECT_SHEAR= "Direct Shear"
