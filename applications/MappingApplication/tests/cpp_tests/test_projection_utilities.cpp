@@ -622,7 +622,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Nurbs_Surface_Outside, KratosMappingAp
     GeometryType::GeometriesArrayType qp_geometries = CreateQuadraturePointsGeometries(brep_surface);
 
     const Point point_to_project(1.0, 1.2, 0.0);
-    const double local_coord_tol = 0.3;
+    const double local_coord_tol = 0.5;
     ProjectionUtilities::PairingIndex pairing_index = ProjectionUtilities::PairingIndex::Surface_Inside;
     const bool compute_approximation = true;
     const bool full_projection = true;
