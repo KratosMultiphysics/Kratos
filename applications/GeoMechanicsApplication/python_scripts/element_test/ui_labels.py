@@ -18,7 +18,7 @@ PERCENTAGE_UNIT_LABEL = "%"
 WITHOUT_UNIT_LABEL = ""
 
 # Menu labels
-SELECT_DLL = "Select DLL File"
+SELECT_UDSM = "Select UDSM File"
 LINEAR_ELASTIC = "Linear Elastic Model"
 
 
