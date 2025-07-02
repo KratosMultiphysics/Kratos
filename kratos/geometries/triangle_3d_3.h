@@ -896,7 +896,13 @@ public:
     {
         // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
         const auto center = this->Center();
-        const array_1d<double, 3> normal = this->UnitNormal(center);
+        array_1d<double, 3> normal = this->Normal(center);
+        const double norm_normal = norm_2(normal);
+        if (norm_normal < std::numeric_limits<double>::epsilon()) {
+            KRATOS_ERROR << "The Triangle3D3 is degenerated, the normal is zero. Cannot compute IsInside which requires projection" << std::endl;
+        } else {
+            normal = normal / norm_normal;
+        }
 
         // We compute the distance, if it is not in the plane we project
         const Point point_to_project(rPoint);
