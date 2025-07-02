@@ -19,7 +19,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalLinearElasticInterfaceLaw : public ConstitutiveLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalElasticInterfaceLaw : public ConstitutiveLaw
 {
 public:
     using BaseType = ConstitutiveLaw;
