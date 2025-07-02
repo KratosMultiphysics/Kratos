@@ -151,4 +151,9 @@ void PlaneInterfaceStressState::load(Serializer&)
     // No data members to be loaded (yet)
 }
 
+static_assert(!std::is_copy_constructible_v<PlaneInterfaceStressState>);
+static_assert(!std::is_copy_assignable_v<PlaneInterfaceStressState>);
+static_assert(std::is_move_constructible_v<PlaneInterfaceStressState>);
+static_assert(std::is_move_assignable_v<PlaneInterfaceStressState>);
+
 } // namespace Kratos
