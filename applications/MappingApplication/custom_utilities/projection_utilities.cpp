@@ -307,7 +307,7 @@ PairingIndex ProjectToIBRA(const GeometryType& rGeometry,
     CoordinatesArrayType projected_point_global_coords = ZeroVector(3);
     PairingIndex pairing_index;
 
-    if (geom_type == GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface or geom_type == GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface){
+    if (geom_type == GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface || geom_type == GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface){
         // Get the nurbs surface geometry
         const GeometryType::Pointer p_nurbs_surface = geom_parent.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
 
@@ -342,7 +342,7 @@ PairingIndex ProjectToIBRA(const GeometryType& rGeometry,
         }  else if (!ComputeApproximation) { // If the projection fails and no approximation is allowed, return unspecified
             return PairingIndex::Unspecified;
         }
-    } else if (geom_type == GeometryData::KratosGeometryType::Kratos_Brep_Surface or geom_type == GeometryData::KratosGeometryType::Kratos_Nurbs_Surface){
+    } else if (geom_type == GeometryData::KratosGeometryType::Kratos_Brep_Surface || geom_type == GeometryData::KratosGeometryType::Kratos_Nurbs_Surface){
         // Get the nurbs surface geometry
         const GeometryType::Pointer p_nurbs_surface = geom_parent.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
 
@@ -367,7 +367,7 @@ PairingIndex ProjectToIBRA(const GeometryType& rGeometry,
             rProjectionDistance = norm_2(rPointToProject - projected_point_global_coords);
         } else if (!ComputeApproximation) { // If the projection fails and no approximation is allowed, return unspecified
             return PairingIndex::Unspecified;
-        } else if (geom_parent.ProjectionPointGlobalToLocalSpace(rPointToProject, local_surface_coords, LocalCoordTol)) { // If the initial projection fails and an approximation is allowed, try to project with a larger tolerance
+        } else if (geom_parent.ProjectionPointGlobalToLocalSpace(rPointToProject, local_surface_coords, LocalCoordTol)) { // If the initial projection fails and an approximation is allowed, try 
 
             // Evaluate the shape functions at the local coordinates and get the equations id vector
             p_nurbs_surface->ShapeFunctionsValues(rShapeFunctionValues, local_surface_coords);
