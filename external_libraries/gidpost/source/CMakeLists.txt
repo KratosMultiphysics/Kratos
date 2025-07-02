@@ -6,6 +6,12 @@ set (gidpost_source
   gidpost.c gidpost_cluster.c gidpostFILES.c gidpostInt.c  gidpostfor.c gidpostforAPI.c
   gidpostHash.c hashtab.c recycle.c lookupa.c)
 
+file(GLOB SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/source/*.c")
+
+foreach(file ${SOURCE_FILES})
+    set_source_files_properties(${file} PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+endforeach()
+
 # find  package already done in  ../CmakeLists.txt
 # find_package(HDF5)
 # if (HDF5_FOUND)
