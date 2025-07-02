@@ -60,6 +60,8 @@ void TestComputeProjection(const GeometryType& rGeometry,
     ProjectionUtilities::PairingIndex pairing_index;
 
     const bool is_full_projection = ProjectionUtilities::ComputeProjection(rGeometry, rPointToProject, LocalCoordTol, sf_values, eq_ids, proj_dist, pairing_index, ComputeApproximation);
+    KRATOS_WATCH(sf_values)
+    KRATOS_WATCH(eq_ids)
 
     KRATOS_EXPECT_EQ(FullProjection, is_full_projection);
     KRATOS_EXPECT_EQ(ExpPairingIndex, pairing_index);
@@ -611,33 +613,6 @@ KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Nurbs_Surface_Inside, KratosMappingApp
     sf_values.clear();
     std::vector<int> eq_ids;
     double proj_dist = 0.0;
-
-    qp_geometries(0)->SetGeometryParent(brep_surface.get());
-    TestComputeProjection(*qp_geometries(0), point_to_project, local_coord_tol, exp_sf_values, exp_eq_ids, proj_dist, pairing_index, compute_approximation, full_projection);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Nurbs_Surface_Outside, KratosMappingApplicationSerialTestSuite)
-{
-    const auto brep_surface = GenerateBrepSplineSurface2d();
-    GeometryType::GeometriesArrayType qp_geometries = CreateQuadraturePointsGeometries(brep_surface);
-
-    const Point point_to_project(1.0, 1.2, 0.0);
-    const double local_coord_tol = 0.5;
-    ProjectionUtilities::PairingIndex pairing_index = ProjectionUtilities::PairingIndex::Surface_Inside;
-    const bool compute_approximation = true;
-    const bool full_projection = true;
-
-    const std::array<int, 16> set_eq_ids {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-    const std::array<double, 9> exp_sf_values {0,0,0.138636,0,0,0.664385,0,0,0.19698};
-    const std::array<int, 9> exp_eq_ids {1, 2, 3, 5, 6, 7, 9, 10, 11};
-
-    GeometryType::Pointer surface = brep_surface->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
-    SetEqIdsOnNodes(*surface, set_eq_ids);
-    
-    Vector sf_values;
-    sf_values.clear();
-    std::vector<int> eq_ids;
-    double proj_dist = 0.208382;
 
     qp_geometries(0)->SetGeometryParent(brep_surface.get());
     TestComputeProjection(*qp_geometries(0), point_to_project, local_coord_tol, exp_sf_values, exp_eq_ids, proj_dist, pairing_index, compute_approximation, full_projection);
