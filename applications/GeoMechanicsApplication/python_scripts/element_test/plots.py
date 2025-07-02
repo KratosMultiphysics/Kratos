@@ -138,7 +138,7 @@ def plot_mohr_coulomb_direct_shear(ax, sigma_1, sigma_3, cohesion=None, friction
     ax.grid(True)
     ax.invert_xaxis()
 
-    epsilon = 0.01
+    epsilon = 0.1
     relative_diff = np.abs(sigma_1 - sigma_3) / max(np.abs(sigma_1), 1e-6)
 
     if relative_diff < epsilon:
