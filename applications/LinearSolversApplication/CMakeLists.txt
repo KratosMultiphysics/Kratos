@@ -125,7 +125,10 @@ if( USE_EIGEN_MKL MATCHES ON )
 endif()
 
 if (USE_EIGEN_SUITESPARSE)
-    target_link_libraries(KratosLinearSolversCore PUBLIC SuiteSparse::CHOLMOD)
+    target_link_libraries(KratosLinearSolversCore PUBLIC
+                          SuiteSparse::CHOLMOD
+                          SuiteSparse::SPQR
+                          SuiteSparse::UMFPACK)
 endif()
 
 # changing the .dll suffix to .pyd
