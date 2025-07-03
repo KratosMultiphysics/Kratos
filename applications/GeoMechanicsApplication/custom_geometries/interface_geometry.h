@@ -286,17 +286,18 @@ private:
     {
         const auto points = this->Points();
 
-        // The first side coincides with the first half of the element nodes
+        // The first side is defined by the first half of the element nodes
         auto begin_of_second_side = points.ptr_begin() + (points.size() / 2);
         const auto nodes_of_first_side = PointerVector<Node>{points.ptr_begin(), begin_of_second_side};
 
-        // The second side coincides with the second half of the element nodes. However, the nodes
-        // must be traversed in opposite direction.
+        // The second side is defined by with the second half of the element nodes. However, the
+        // nodes must be traversed in opposite direction.
         auto nodes_of_second_side = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
         auto end_of_corner_points = nodes_of_second_side.ptr_begin() + GetNumberOfCornerPoints();
 
-        // For line geometries we want to reverse all 'corner points', while for planes we don't
-        // change the starting node, but only reverse the order of the rest of the corner points.
+        // For line geometries we want to reverse all 'corner points' of the second side, while
+        // for planes we don't change the starting node, but only reverse the order of the rest
+        // of the corner points.
         auto begin_of_corner_points_to_reverse =
             mMidGeometry->GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear
                 ? nodes_of_second_side.ptr_begin()

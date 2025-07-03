@@ -4,7 +4,7 @@ Geometries are responsible for calculating several geometric properties, such as
 ## Interface Geometry
 The Interface Geometry is a custom geometry that can be used to define a line or a plane interface between two different domains. 
 
-The geometry is defined by two lines or planes, one on each side of the interface. The two sides of the interface connect to other model parts. Most calculations are performed on the 'mid-geometry', which is defined by the midpoints of the two lines/planes. They are depicted as the grey lines in the figures below. This means, that if a certain property is queried at a certain position on the interface, the call is forwarded to the underlying mid-geometry.
+The geometry is defined by two lines or planes, one on each side of the interface. The two sides of the interface connect to other model parts. Most calculations are performed on the 'mid-geometry', which is defined by the midpoints of the two lines/planes. The midpoints are calculated for each node pair by taking the average position. The mid-geometries are depicted as the grey lines in the figures below. This means, that if a certain property is queried at a certain position on the interface, the call is forwarded to the underlying mid-geometry.
 
 At this point, the following interfaces are supported
 - 2+2 and 3+3 line interface geometries, based on the [2D2Line](../../../kratos/geometries/line_2d_2.h) and [2D3Line](../../../kratos/geometries/line_2d_3.h) geometries respectively.
