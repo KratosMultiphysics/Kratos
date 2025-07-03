@@ -13,6 +13,10 @@ set( CMAKE_INCLUDE_CURRENT_DIR ON )
 
 message( "**** configuring KratosLinearSolversApplication ****" )
 
+# Options.
+option(USE_EIGEN_MKL
+       "Compile the LinearSolversApplication with support for solvers from Intel MKL."
+       OFF)
 ################### PYBIND11
 include(pybind11Tools)
 
