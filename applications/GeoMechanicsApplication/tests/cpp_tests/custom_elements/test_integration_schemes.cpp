@@ -87,11 +87,9 @@ void ExpectLocalCoordinatesAreInRange(const Geo::IntegrationPointVectorType& rIn
                                       double                                 IsoUpperBound,
                                       std::size_t                            DirectionIndex)
 {
-    constexpr auto tolerance = 1.0e-6;
-
-    auto iso_coord_is_in_range = [tolerance, IsoLowerBound, IsoUpperBound, DirectionIndex](const auto& rPoint) {
-        return rPoint[DirectionIndex] - IsoUpperBound <= tolerance &&
-               IsoLowerBound - rPoint[DirectionIndex] <= tolerance;
+    auto iso_coord_is_in_range = [IsoLowerBound, IsoUpperBound, DirectionIndex](const auto& rPoint) {
+        return rPoint[DirectionIndex] - IsoUpperBound <= Testing::Defaults::absolute_tolerance &&
+               IsoLowerBound - rPoint[DirectionIndex] <= Testing::Defaults::absolute_tolerance;
     };
     KRATOS_EXPECT_TRUE(std::all_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), iso_coord_is_in_range))
 }
