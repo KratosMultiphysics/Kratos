@@ -3,6 +3,8 @@
 # Application data
 APP_TITLE = "Deltares Soil Element Test Suite"
 APP_VERSION = "Version 0.1.0 ~ Alpha Release"
+APP_NAME = "SoilElementSuite"
+APP_AUTHOR = "Deltares"
 
 # General test types
 TRIAXIAL = "Triaxial"
