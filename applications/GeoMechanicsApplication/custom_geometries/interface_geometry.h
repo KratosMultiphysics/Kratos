@@ -22,28 +22,29 @@ namespace Kratos
 {
 
 template <typename MidGeometryType>
-class LineInterfaceGeometry : public Geometry<Node>
+class InterfaceGeometry : public Geometry<Node>
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(LineInterfaceGeometry);
+    KRATOS_CLASS_POINTER_DEFINITION(InterfaceGeometry);
 
     using BaseType = Geometry<Node>;
 
-    LineInterfaceGeometry() = default;
+    InterfaceGeometry() = default;
 
-    explicit LineInterfaceGeometry(const PointsArrayType& rThisPoints)
-        : LineInterfaceGeometry(0, rThisPoints)
+    explicit InterfaceGeometry(const PointsArrayType& rThisPoints)
+        : InterfaceGeometry(0, rThisPoints)
     {
     }
 
-    LineInterfaceGeometry(IndexType NewGeometryId, const PointsArrayType& rThisPoints)
+    InterfaceGeometry(IndexType NewGeometryId, const PointsArrayType& rThisPoints)
         : BaseType(NewGeometryId, rThisPoints)
     {
-        KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6))
-            << "Number of nodes must be 2+2 or 3+3\n";
+        KRATOS_ERROR_IF_NOT((rThisPoints.size() == 4) || (rThisPoints.size() == 6 || rThisPoints.size() == 12) ||
+                            (rThisPoints.size() == 8) || (rThisPoints.size() == 16))
+            << "Number of nodes must be 2+2, 3+3, 6+6, 4+4 or 8+8\n";
 
-        mMidLineGeometry = std::make_unique<MidGeometryType>(CreatePointsOfMidLine());
-        this->SetGeometryData(&mMidLineGeometry->GetGeometryData());
+        mMidGeometry = std::make_unique<MidGeometryType>(CreatePointsOfMidGeometry());
+        this->SetGeometryData(&mMidGeometry->GetGeometryData());
     }
 
     [[nodiscard]] BaseType::Pointer Create(const PointsArrayType& rThisPoints) const override
@@ -54,64 +55,65 @@ public:
 
     [[nodiscard]] BaseType::Pointer Create(const IndexType NewGeometryId, const PointsArrayType& rThisPoints) const override
     {
-        return std::make_shared<LineInterfaceGeometry>(NewGeometryId, rThisPoints);
+        return std::make_shared<InterfaceGeometry>(NewGeometryId, rThisPoints);
     }
+
+    [[nodiscard]] double Area() const override { return mMidGeometry->Area(); }
 
     [[nodiscard]] double ShapeFunctionValue(IndexType ShapeFunctionIndex,
                                             const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidLineGeometry->ShapeFunctionValue(ShapeFunctionIndex, rLocalCoordinate);
+        return mMidGeometry->ShapeFunctionValue(ShapeFunctionIndex, rLocalCoordinate);
     }
 
     Vector& ShapeFunctionsValues(Vector& rResult, const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidLineGeometry->ShapeFunctionsValues(rResult, rLocalCoordinate);
+        return mMidGeometry->ShapeFunctionsValues(rResult, rLocalCoordinate);
     }
 
     Matrix& ShapeFunctionsLocalGradients(Matrix& rResult, const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidLineGeometry->ShapeFunctionsLocalGradients(rResult, rLocalCoordinate);
+        return mMidGeometry->ShapeFunctionsLocalGradients(rResult, rLocalCoordinate);
     }
 
     Matrix& Jacobian(Matrix& rResult, const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidLineGeometry->Jacobian(rResult, rLocalCoordinate);
+        return mMidGeometry->Jacobian(rResult, rLocalCoordinate);
     }
 
     [[nodiscard]] double DeterminantOfJacobian(const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidLineGeometry->DeterminantOfJacobian(rLocalCoordinate);
+        return mMidGeometry->DeterminantOfJacobian(rLocalCoordinate);
     }
 
     Matrix& InverseOfJacobian(Matrix& rResult, const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        KRATOS_ERROR << "Inverse of Jacobian is not implemented for the line interface geometry\n";
+        KRATOS_ERROR << "Inverse of Jacobian is not implemented for the interface geometry\n";
     }
 
-    [[nodiscard]] double Length() const override { return mMidLineGeometry->Length(); }
+    [[nodiscard]] double Length() const override { return mMidGeometry->Length(); }
 
-    [[nodiscard]] double DomainSize() const override { return mMidLineGeometry->DomainSize(); }
+    [[nodiscard]] double DomainSize() const override { return mMidGeometry->DomainSize(); }
 
     [[nodiscard]] std::string Info() const override
     {
-        return "An interface geometry consisting of two sub-geometries with Info: " +
-               mMidLineGeometry->Info();
+        return "An interface geometry consisting of two sub-geometries with Info: " + mMidGeometry->Info();
     }
 
     CoordinatesArrayType& PointLocalCoordinates(CoordinatesArrayType& rResult,
                                                 const CoordinatesArrayType& rGlobalCoordinate) const override
     {
-        return mMidLineGeometry->PointLocalCoordinates(rResult, rGlobalCoordinate);
+        return mMidGeometry->PointLocalCoordinates(rResult, rGlobalCoordinate);
     }
 
     Matrix& PointsLocalCoordinates(Matrix& rResult) const override
     {
-        return mMidLineGeometry->PointsLocalCoordinates(rResult);
+        return mMidGeometry->PointsLocalCoordinates(rResult);
     }
 
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
-    void PrintData(std::ostream& rOStream) const override { mMidLineGeometry->PrintData(rOStream); }
+    void PrintData(std::ostream& rOStream) const override { mMidGeometry->PrintData(rOStream); }
 
     [[nodiscard]] static std::string IntegrationSchemeFunctionalityNotImplementedMessage()
     {
@@ -210,22 +212,20 @@ public:
 
     GeometriesArrayType GenerateEdges() const override
     {
-        const auto points = this->Points();
+        KRATOS_ERROR_IF_NOT(mMidGeometry->GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear)
+            << "Edges can only be generated for line geometries. This is a planar interface "
+               "geometry, which does not support edges.\n";
 
-        // The first edge coincides with the first side of the element
-        auto begin_of_second_side = points.ptr_begin() + (points.size() / 2);
-        const auto nodes_of_first_edge = PointerVector<Node>{points.ptr_begin(), begin_of_second_side};
+        return GenerateTwoSides();
+    }
 
-        // The second edge coincides with the second side of the element. However, the nodes must be
-        // traversed in opposite direction.
-        auto nodes_of_second_edge = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
-        std::swap(nodes_of_second_edge(0), nodes_of_second_edge(1)); // end nodes
-        std::reverse(nodes_of_second_edge.ptr_begin() + 2, nodes_of_second_edge.ptr_end()); // any high-order nodes
+    GeometriesArrayType GenerateFaces() const override
+    {
+        KRATOS_ERROR_IF(mMidGeometry->GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear)
+            << "Faces can only be generated for planar geometries. This is a line "
+               "interface geometry, which does not support faces.\n";
 
-        auto result = GeometriesArrayType{};
-        result.push_back(std::make_shared<MidGeometryType>(nodes_of_first_edge));
-        result.push_back(std::make_shared<MidGeometryType>(nodes_of_second_edge));
-        return result;
+        return GenerateTwoSides();
     }
 
     void CreateIntegrationPoints(IntegrationPointsArrayType& rIntegrationPoints,
@@ -257,21 +257,23 @@ public:
     }
 
 private:
-    [[nodiscard]] PointerVector<Node> CreatePointsOfMidLine() const
+    [[nodiscard]] PointerVector<Node> CreatePointsOfMidGeometry() const
     {
-        const auto points                  = this->Points();
-        const auto number_of_midline_nodes = std::size_t{points.size() / 2};
-        auto       result                  = PointerVector<Node>{number_of_midline_nodes};
+        const auto points                       = this->Points();
+        const auto number_of_mid_geometry_nodes = std::size_t{points.size() / 2};
+        auto       result                       = PointerVector<Node>{number_of_mid_geometry_nodes};
 
         auto is_null = [](const auto& rNodePtr) { return rNodePtr == nullptr; };
         if (std::any_of(points.ptr_begin(), points.ptr_end(), is_null)) {
-            // At least one point is not defined, so the points of the mid-line can't be computed.
-            // As a result, all the mid-line points will be undefined.
+            // At least one point is not defined, so the points of the mid-geometry can't be
+            // computed. As a result, all the mid-geometry points will be undefined.
+            // This happens on element registration: the 'blue-print' element, creates a
+            // geometry with a vector of null pointers to its nodes of the correct length.
             return result;
         }
 
         auto begin_of_first_side  = points.ptr_begin();
-        auto begin_of_second_side = begin_of_first_side + number_of_midline_nodes;
+        auto begin_of_second_side = begin_of_first_side + number_of_mid_geometry_nodes;
         auto make_mid_point       = [](const auto& pPoint1, const auto& pPoint2) {
             return make_intrusive<Node>(pPoint1->Id(), Point{(*pPoint1 + *pPoint2) / 2});
         };
@@ -280,7 +282,50 @@ private:
         return result;
     }
 
-    std::unique_ptr<BaseType> mMidLineGeometry;
+    [[nodiscard]] GeometriesArrayType GenerateTwoSides() const
+    {
+        const auto points = this->Points();
+
+        // The first side is defined by the first half of the element nodes
+        auto begin_of_second_side = points.ptr_begin() + (points.size() / 2);
+        const auto nodes_of_first_side = PointerVector<Node>{points.ptr_begin(), begin_of_second_side};
+
+        // The second side is defined by the second half of the element nodes. However, the
+        // nodes must be traversed in opposite direction.
+        auto nodes_of_second_side = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
+        auto end_of_corner_points = nodes_of_second_side.ptr_begin() + GetNumberOfCornerPoints();
+
+        // For line geometries we want to reverse all 'corner points' of the second side, while
+        // for planes we don't change the starting node, but only reverse the order of the rest
+        // of the corner points.
+        auto begin_of_corner_points_to_reverse =
+            mMidGeometry->GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear
+                ? nodes_of_second_side.ptr_begin()
+                : nodes_of_second_side.ptr_begin() + 1;
+        std::reverse(begin_of_corner_points_to_reverse, end_of_corner_points);
+        std::reverse(end_of_corner_points, nodes_of_second_side.ptr_end()); // any high-order nodes
+
+        auto result = GeometriesArrayType{};
+        result.push_back(std::make_shared<MidGeometryType>(nodes_of_first_side));
+        result.push_back(std::make_shared<MidGeometryType>(nodes_of_second_side));
+        return result;
+    }
+
+    [[nodiscard]] std::size_t GetNumberOfCornerPoints() const
+    {
+        switch (mMidGeometry->GetGeometryFamily()) {
+        case GeometryData::KratosGeometryFamily::Kratos_Linear:
+            return 2;
+        case GeometryData::KratosGeometryFamily::Kratos_Triangle:
+            return 3;
+        case GeometryData::KratosGeometryFamily::Kratos_Quadrilateral:
+            return 4;
+        default:
+            KRATOS_ERROR << "The geometry family of the mid-geometry is not supported\n";
+        }
+    }
+
+    std::unique_ptr<BaseType> mMidGeometry;
 };
 
 } // namespace Kratos

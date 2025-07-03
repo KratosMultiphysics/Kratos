@@ -13,7 +13,7 @@
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/interface_plane.h"
 #include "custom_elements/line_interface_element.h"
-#include "custom_geometries/line_interface_geometry.h"
+#include "custom_geometries/interface_geometry.h"
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
@@ -25,8 +25,8 @@ namespace
 {
 
 using namespace Kratos;
-using LineInterfaceGeometry2D2Plus2Noded = LineInterfaceGeometry<Line2D2<Node>>;
-using LineInterfaceGeometry2D3Plus3Noded = LineInterfaceGeometry<Line2D3<Node>>;
+using LineInterfaceGeometry2D2Plus2Noded = InterfaceGeometry<Line2D2<Node>>;
+using LineInterfaceGeometry2D3Plus3Noded = InterfaceGeometry<Line2D3<Node>>;
 
 PointerVector<Node> CreateNodes()
 {

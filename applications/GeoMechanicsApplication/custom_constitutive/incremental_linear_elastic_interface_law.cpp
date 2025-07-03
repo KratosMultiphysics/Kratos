@@ -12,7 +12,6 @@
 //
 
 #include "incremental_linear_elastic_interface_law.h"
-#include "custom_geometries/line_interface_geometry.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include "geo_mechanics_application_variables.h"

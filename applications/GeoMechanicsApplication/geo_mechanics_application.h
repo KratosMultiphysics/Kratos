@@ -52,7 +52,7 @@
 #include "custom_conditions/thermal_point_flux_condition.h"
 
 // Geometries
-#include "custom_geometries/line_interface_geometry.h"
+#include "custom_geometries/interface_geometry.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -600,11 +600,9 @@ private:
         std::make_unique<ThreeDimensionalStressState>()};
 
     const LineInterfaceElement mULineInterfacePlaneStrainElement2Plus2N{
-        0, Kratos::make_shared<LineInterfaceGeometry<Line2D2<NodeType>>>(
-               Element::GeometryType::PointsArrayType(4))};
+        0, Kratos::make_shared<InterfaceGeometry<Line2D2<NodeType>>>(Element::GeometryType::PointsArrayType(4))};
     const LineInterfaceElement mULineInterfacePlaneStrainElement3Plus3N{
-        0, Kratos::make_shared<LineInterfaceGeometry<Line2D3<NodeType>>>(
-               Element::GeometryType::PointsArrayType(6))};
+        0, Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6))};
 
     // Updated-Lagrangian elements:
     const UPwUpdatedLagrangianElement<2, 3> mUPwUpdatedLagrangianElement2D3N{
