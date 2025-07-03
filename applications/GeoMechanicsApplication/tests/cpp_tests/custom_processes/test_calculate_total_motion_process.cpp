@@ -55,7 +55,12 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateTotalMotionProcessDisplacement, KratosGeoMech
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateTotalMotionProcessRotation, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+    Model model;
+    auto& r_model_part = model.CreateModelPart("dummy", 2);
 
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CalculateTotalMotionProcess(r_model_part, Parameters(R"({"variable_name": "ROTATION"})")),
+        "TOTAL_ROTATION and INCREMENTAL_ROTATION are not implemented yet");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateTotalMotionProcessUndefined, KratosGeoMechanicsFastSuiteWithoutKernel)
