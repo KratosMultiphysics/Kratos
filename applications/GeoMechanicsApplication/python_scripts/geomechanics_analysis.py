@@ -173,7 +173,6 @@ class GeoMechanicsAnalysis(AnalysisStage):
                     self._GetSolver().GetComputingModelPart(),
                     Kratos.Parameters("""{"variable_name": "DISPLACEMENT"}""")).Execute()
 
-
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
