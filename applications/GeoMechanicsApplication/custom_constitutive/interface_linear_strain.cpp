@@ -21,7 +21,7 @@ namespace Kratos
 
 Matrix InterfaceLinearStrain::CalculateElasticMatrix(double YoungsModulus, double PoissonsRatio) const
 {
-    KRATOS_ERROR << "not yet implemented";
+    KRATOS_ERROR << "InterfaceLinearStrain::CalculateElasticMatrix is not yet implemented";
     return ZeroMatrix(4, 4);
 }
 
@@ -36,13 +36,13 @@ std::size_t InterfaceLinearStrain::GetDimension() const { return N_DIM_2D; }
 
 std::size_t InterfaceLinearStrain::GetNumberOfNormalComponents() const
 {
-    KRATOS_ERROR << "not yet implemented";
+    KRATOS_ERROR << "InterfaceLinearStrain::GetNumberOfNormalComponents is not yet implemented";
     return 3;
 }
 
 Flags InterfaceLinearStrain::GetSpatialType() const
 {
-    KRATOS_ERROR << "not yet implemented";
+    KRATOS_ERROR << "InterfaceLinearStrain::GetSpatialType is not yet implemented";
     return ConstitutiveLaw::PLANE_STRAIN_LAW;
 }
 
