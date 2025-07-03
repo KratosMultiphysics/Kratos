@@ -26,6 +26,7 @@ class LevelSetControl(Control):
 
         default_settings = Kratos.Parameters("""{
             "controlled_model_part_names"       : [""],
+            "control_variable_name"             : "",
             "output_all_fields"                 : true,
             "echo_level"                        : 0,
             "consider_recursive_property_update": false,
@@ -33,10 +34,7 @@ class LevelSetControl(Control):
             "young_modulus"                     : 1.0,
             "k"                                 : 1000.0                                 
         }""")
-        
-        #            "density_projection_settings"       : {},
-        #            "young_modulus_projection_settings" : {},
-        #            "filter_settings"                   : {},
+
 
         #fill in missing info from defaults
         parameters.ValidateAndAssignDefaults(default_settings)
@@ -44,8 +42,12 @@ class LevelSetControl(Control):
         self.output_all_fields = parameters["output_all_fields"].GetBool()
         self.echo_level = parameters["echo_level"].GetInt()
         self.k = parameters["k"].GetDouble()
-
-        self.controlled_physical_variables = [Kratos.DENSITY, Kratos.YOUNG_MODULUS]
+    
+        control_variable_name = parameters["control_variable_name"].GetString()
+        control_variable_type = Kratos.KratosGlobals.GetVariableType(control_variable_name)
+        if control_variable_type != "Double":
+            raise RuntimeError(f"{control_variable_name} with {control_variable_type} type is not supported. Only supports double variables")
+        self.controlled_physical_variable = Kratos.KratosGlobals.GetVariable(control_variable_name)
 
         controlled_model_names_parts = parameters["controlled_model_part_names"].GetStringArray()
         if len(controlled_model_names_parts) == 0:
@@ -98,7 +100,7 @@ class LevelSetControl(Control):
         pass
 
     def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
-        return self.controlled_physical_variables
+        return [self.controlled_physical_variable]
 
     def GetEmptyField(self) -> ContainerExpressionTypes:
         field = Kratos.Expression.ElementExpression(self.model_part)
@@ -115,17 +117,17 @@ class LevelSetControl(Control):
         
         # check if one gradient is provided and is it density/Young's modulus
         if len(keys) != 1:
-            raise RuntimeError(f"Sensitivity w.r.t. DENSITY or YOUNG_MODULUS expected for control \"{self.GetName()}\". \"{len(keys)}\" variables provided.")
-        phys_control_var = next(iter(keys))
-        if  Kratos.DENSITY not in keys and Kratos.YOUNG_MODULUS not in keys:
-            raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. DENSITY or YOUNG_MODULUS not found. Following is the variable:\n \"{phys_control_var.Name()}\"")
-
+            raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
+        
+        if self.controlled_physical_variable not in keys:
+            raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. {self.controlled_physical_variable.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
+        
         # first access the physical partial sensitivity of the response function w.r.t the control variable (rho or E)
-        d_j_d_variable = physical_gradient_variable_container_expression_map[phys_control_var]
+        d_j_d_variable = physical_gradient_variable_container_expression_map[self.controlled_physical_variable]
 
         # now compute response function total sensitivity w.r.t. phi
         ### or use d_density_d_phi as a filter?
-        d_variable_d_phi = self._ComputePhysicalVariableGradient(phys_control_var)
+        d_variable_d_phi = self._ComputePhysicalVariableGradient()
         d_j_d_phi = d_j_d_variable * d_variable_d_phi
 
         return d_j_d_phi
@@ -156,35 +158,25 @@ class LevelSetControl(Control):
 
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
         
-        # rho = H(phi)*rho_0
-        density = self._ComputePhysicalVariableField(Kratos.DENSITY)
-        KratosOA.PropertiesVariableExpressionIO.Write(density, Kratos.DENSITY)
+        # var = H(phi)*var_0
+        physical_variable = self._ComputePhysicalVariableField()
+        KratosOA.PropertiesVariableExpressionIO.Write(physical_variable, self.controlled_physical_variable)
         if self.consider_recursive_property_update:
-            KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(density.GetContainer(), Kratos.DENSITY)
-        self.un_buffered_data.SetValue("DENSITY", density.Clone(), overwrite=True)
-
-        youngs_modulus = self._ComputePhysicalVariableField(Kratos.YOUNG_MODULUS)
-        KratosOA.PropertiesVariableExpressionIO.Write(youngs_modulus, Kratos.YOUNG_MODULUS)
-        if self.consider_recursive_property_update:
-            KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(youngs_modulus.GetContainer(), Kratos.YOUNG_MODULUS)
-        self.un_buffered_data.SetValue("YOUNG_MODULUS", youngs_modulus.Clone(), overwrite=True)
+            KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(physical_variable.GetContainer(), self.controlled_physical_variable)
+        self.un_buffered_data.SetValue(self.controlled_physical_variable.Name(), physical_variable.Clone(), overwrite=True)
 
         # now calculate the total sensitivities of density w.r.t. phi
-        self.d_density_d_phi = self._ComputePhysicalVariableGradient(Kratos.DENSITY)
-
-        # now calculate the total sensitivities of young modulus w.r.t. simp_physical_phi
-        self.d_young_modulus_d_phi = self._ComputePhysicalVariableGradient(Kratos.YOUNG_MODULUS)
+        self.d_variable_d_phi = self._ComputePhysicalVariableGradient()
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
         un_buffered_data.SetValue(f"{self.GetName()}", self.control_phi.Clone(),overwrite=True)
         if self.output_all_fields:
-            un_buffered_data.SetValue(f"dDENSITY_d{self.GetName()}", self.d_density_d_phi.Clone(), overwrite=True)
-            un_buffered_data.SetValue(f"dYOUNG_MODULUS_d{self.GetName()}", self.d_young_modulus_d_phi.Clone(), overwrite=True)
+            un_buffered_data.SetValue(f"d{self.controlled_physical_variable.Name()}_d{self.GetName()}", self.d_variable_d_phi.Clone(), overwrite=True)
 
-    def _ComputePhysicalVariableField(self, physical_variable) -> ContainerExpressionTypes:
+    def _ComputePhysicalVariableField(self) -> ContainerExpressionTypes:
         # Get variable value
-        base_value = self.parameters[physical_variable.Name().lower()].GetDouble()
+        base_value = self.parameters[self.controlled_physical_variable.Name().lower()].GetDouble()
         # phi * -2k
         phi_expr = self.control_phi.Clone()
         phi_expr *= - 2 * self.k
@@ -199,11 +191,11 @@ class LevelSetControl(Control):
         return heaviside
 
 
-    def _ComputePhysicalVariableGradient(self, physical_variable)  -> ContainerExpressionTypes:
+    def _ComputePhysicalVariableGradient(self)  -> ContainerExpressionTypes:
         
         # Calculate Dirac Delta function (derivative of Heaviside function w.r.t. phi)
         # Get variable value
-        base_value = self.parameters[physical_variable.Name().lower()].GetDouble()
+        base_value = self.parameters[self.controlled_physical_variable.Name().lower()].GetDouble()
         
         # phi * 2k
         phi_expr = self.control_phi.Clone()
