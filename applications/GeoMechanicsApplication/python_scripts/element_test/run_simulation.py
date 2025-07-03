@@ -52,9 +52,10 @@ def set_project_parameters(project_path, num_steps, end_time, initial_stress):
 def set_mdpa(mdpa_path, max_strain, init_pressure, num_steps, end_time, test_type):
     editor = MdpaEditor(mdpa_path)
     editor.update_maximum_strain(max_strain)
-    editor.update_initial_effective_cell_pressure(init_pressure)
     editor.update_end_time(end_time)
     editor.update_first_timestep(num_steps, end_time)
+    if test_type == "triaxial":
+        editor.update_initial_effective_cell_pressure(init_pressure)
     if test_type == "direct_shear":
         editor.update_middle_maximum_strain(max_strain)
 
