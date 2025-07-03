@@ -163,6 +163,17 @@ class Shell3pElementTests(KratosUnittest.TestCase):
         for node in surface:
             self.assertAlmostEqual(node.GetValue(KM.DISPLACEMENT_X), 0)
             self.assertAlmostEqual(node.GetValue(KM.DISPLACEMENT_Y), 0)
+        
+        print("w at cp0",surface[0].Z)
+        print("w at cp1",surface[1].Z)
+        print("w at cp2",surface[2].Z)
+        print("w at cp3",surface[3].Z)
+        print("w at cp4",surface[4].Z)
+        print("w at cp5",surface[5].Z)
+        print("w at cp6",surface[6].Z)
+        print("w at cp7",surface[7].Z)
+        print("w at cp8",surface[8].Z)
+
 
         self.assertAlmostEqual(surface[0].Z, 0.0)
         self.assertAlmostEqual(surface[3].Z, 0.0)
@@ -236,3 +247,6 @@ class Shell3pElementTests(KratosUnittest.TestCase):
         self.assertAlmostEqual(surface[2].Z, -0.223839729168301)
         self.assertAlmostEqual(surface[5].Z, -0.223958628927084)
         self.assertAlmostEqual(surface[8].Z, -0.223839729168301)
+
+if __name__ == '__main__':
+    KratosUnittest.main()
