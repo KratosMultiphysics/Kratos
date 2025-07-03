@@ -17,6 +17,11 @@ message( "**** configuring KratosLinearSolversApplication ****" )
 option(USE_EIGEN_MKL
        "Compile the LinearSolversApplication with support for solvers from Intel MKL."
        OFF)
+
+option(USE_EIGEN_SUITESPARSE
+       "Compile the LinearSolversApplication with support for solvers from SuiteSparse."
+       OFF)
+
 ################### PYBIND11
 include(pybind11Tools)
 
