@@ -68,8 +68,6 @@ Begin SubModelPart Top_displacement // Group Top_displacement // Subtree Top_dis
             2
             6
     End SubModelPartNodes
-    Begin SubModelPartConditions
-    End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart Middle_displacement // Group Middle_displacement // Subtree Middle_displacement
@@ -81,7 +79,5 @@ Begin SubModelPart Middle_displacement // Group Middle_displacement // Subtree M
             4
             7
     End SubModelPartNodes
-    Begin SubModelPartConditions
-    End SubModelPartConditions
 End SubModelPart
 
