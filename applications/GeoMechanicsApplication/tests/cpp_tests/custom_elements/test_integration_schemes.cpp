@@ -90,8 +90,7 @@ void ExpectLocalCoordinatesAreInRange(const Geo::IntegrationPointVectorType& rIn
 {
     constexpr auto tolerance = 1.0e-6;
 
-    auto iso_coord_is_in_range = [tolerance, IsoLowerBound, IsoUpperBound,
-                                  DirectionIndex](const auto& rPoint) {
+    auto iso_coord_is_in_range = [tolerance, IsoLowerBound, IsoUpperBound, DirectionIndex](const auto& rPoint) {
         return rPoint[DirectionIndex] - IsoUpperBound <= tolerance &&
                IsoLowerBound - rPoint[DirectionIndex] <= tolerance;
     };
@@ -108,10 +107,11 @@ void ExpectLocalCoordinatesAreZero(const Geo::IntegrationPointVectorType& rInteg
     KRATOS_EXPECT_TRUE(std::all_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), iso_coordinate_must_be_near_zero))
 }
 
-std::vector<double> ComputeWeightsForLumpedIntegration(const size_t NumberOfPoints) {
-    const auto                scheme             = MakeLumpedIntegrationScheme(NumberOfPoints);
-    auto                      integration_points = scheme->GetIntegrationPoints();
-    std::vector<double>       weights;
+std::vector<double> ComputeWeightsForLumpedIntegration(const size_t NumberOfPoints)
+{
+    const auto          scheme             = MakeLumpedIntegrationScheme(NumberOfPoints);
+    auto                integration_points = scheme->GetIntegrationPoints();
+    std::vector<double> weights;
     weights.reserve(integration_points.size());
     std::transform(integration_points.begin(), integration_points.end(), std::back_inserter(weights),
                    [](const auto& rIntegrationPoint) { return rIntegrationPoint.Weight(); });
@@ -252,21 +252,21 @@ KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromTriangle6LumpedSchemes, KratosGeoMec
 {
     const std::vector<double> expected_weights{0.0328638, 0.0328638, 0.0328638, 0.300469,
                                                0.300469,  0.300469}; // regression values see core test test_triangle_2d_6
-    auto actual_weights = ComputeWeightsForLumpedIntegration(6);
+    auto                      actual_weights = ComputeWeightsForLumpedIntegration(6);
     KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, 1.0E-6)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromTriangle3LumpedSchemes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const std::vector<double> expected_weights{1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0};
-    auto actual_weights = ComputeWeightsForLumpedIntegration(3);
+    auto                      actual_weights = ComputeWeightsForLumpedIntegration(3);
     KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, 1.0E-6)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromQuadrilateral4LumpedSchemes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const std::vector<double> expected_weights{1.0 / 4.0, 1.0 / 4.0, 1.0 / 4.0, 1.0 / 4.0};
-    auto actual_weights = ComputeWeightsForLumpedIntegration(4);
+    auto                      actual_weights = ComputeWeightsForLumpedIntegration(4);
     KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, 1.0E-6)
 }
 
