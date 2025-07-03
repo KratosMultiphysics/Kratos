@@ -5,17 +5,15 @@ from platformdirs import user_data_dir
 from pathlib import Path
 from ui_builder import GeotechTestUI
 from ui_udsm_parser import udsm_parser
+from ui_labels import APP_TITLE, APP_VERSION, APP_NAME, APP_AUTHOR, SELECT_UDSM, LINEAR_ELASTIC, FONT_SEGOE_UI
 
 import ctypes
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("deltares.ElementTestSuite.ui")
-
-from ui_labels import APP_TITLE, APP_VERSION, APP_NAME, APP_AUTHOR, SELECT_UDSM, LINEAR_ELASTIC
 
 data_dir = Path(user_data_dir(APP_NAME, APP_AUTHOR))
 data_dir.mkdir(parents=True, exist_ok=True)
 
 LICENSE_FLAG_PATH = data_dir / "license_accepted.flag"
-
 
 
 def show_license_agreement():
@@ -203,9 +201,9 @@ def show_about_window():
     about_win.resizable(False, False)
     about_win.grab_set()
 
-    tk.Label(about_win, text=APP_TITLE, font=("Segoe UI", 14, "bold")).pack(pady=(20, 5))
-    tk.Label(about_win, text=APP_VERSION, font=("Segoe UI", 12)).pack(pady=(0, 5))
-    tk.Label(about_win, text="Powered by:", font=("Segoe UI", 12)).pack(pady=(0, 5))
+    tk.Label(about_win, text=APP_TITLE, font=(FONT_SEGOE_UI, 14, "bold")).pack(pady=(20, 5))
+    tk.Label(about_win, text=APP_VERSION, font=(FONT_SEGOE_UI, 12)).pack(pady=(0, 5))
+    tk.Label(about_win, text="Powered by:", font=(FONT_SEGOE_UI, 12)).pack(pady=(0, 5))
 
     image_frame = tk.Frame(about_win)
     image_frame.pack(pady=10)
@@ -228,7 +226,7 @@ def show_about_window():
     except Exception:
         tk.Label(about_win, text="[One or both images could not be loaded]", fg="red").pack()
 
-    tk.Label(about_win, text="Contact: kratos@deltares.nl", font=("Segoe UI", 12)).pack(pady=(0, 2))
+    tk.Label(about_win, text="Contact: kratos@deltares.nl", font=(FONT_SEGOE_UI, 12)).pack(pady=(0, 2))
     tk.Button(about_win, text="Close", command=about_win.destroy).pack(pady=10)
 
 

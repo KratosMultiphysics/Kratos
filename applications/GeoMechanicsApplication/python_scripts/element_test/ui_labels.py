@@ -54,3 +54,6 @@ TITLE_SHEAR_VS_STRAIN = "τₓᵧ vs εₓᵧ"
 # Legends
 LEGEND_MC = "Mohr-Coulomb"
 LEGEND_MC_FAILURE = "Failure Criterion: τ = σ' tan(φ°) + c'"
+
+# Font labels
+FONT_SEGOE_UI = "Segoe UI"
