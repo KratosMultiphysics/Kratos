@@ -48,37 +48,49 @@ Geo::IntegrationPointVectorType LumpedIntegrationScheme::CreateIntegrationPoints
                 {Point(1.0, 1.0), 1.0 / 4.0},
                 {Point(-1.0, 1.0), 1.0 / 4.0}};
     case 6: {
-        Geometry<Node>::PointsArrayType points;
-        points.push_back(Node::Pointer(new Node(1, 0.0, 0.0, 0.0)));
-        points.push_back(Node::Pointer(new Node(2, 1.0, 0.0, 0.0)));
-        points.push_back(Node::Pointer(new Node(3, 0.0, 1.0, 0.0)));
-        points.push_back(Node::Pointer(new Node(4, 0.5, 0.0, 0.0)));
-        points.push_back(Node::Pointer(new Node(5, 0.5, 0.5, 0.0)));
-        points.push_back(Node::Pointer(new Node(6, 0.0, 0.5, 0.0)));
-        auto geom            = Triangle2D6<Node>(points);
+        const auto points = std::vector<Point>{Point(0.0, 0.0), Point(1.0, 0.0), Point(0.0, 1.0),
+                                               Point(0.5, 0.0), Point(0.5, 0.5), Point(0.0, 0.5)};
+        std::vector<std::size_t> node_ids(points.size());
+        std::iota(node_ids.begin(), node_ids.end(), std::size_t{1});
+        auto node_ptrs = Geometry<Node>::PointsArrayType{};
+        for (auto i = std::size_t{0}; i < node_ids.size(); ++i) {
+            node_ptrs.push_back(make_intrusive<Node>(node_ids[i], points[i]));
+        }
+
+        auto geom            = Triangle2D6<Node>(node_ptrs);
         auto lumping_factors = Vector{};
         geom.LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::DIAGONAL_SCALING);
-        return {{Point(0.0, 0.0), lumping_factors[0]}, {Point(1.0, 0.0), lumping_factors[1]},
-                {Point(0.0, 1.0), lumping_factors[2]}, {Point(0.5, 0.0), lumping_factors[3]},
-                {Point(1.0, 0.5), lumping_factors[4]}, {Point(0.0, 0.5), lumping_factors[5]}};
+
+        auto make_integration_point = [](const Point& rPoint, double Weight) {
+            return Geo::IntegrationPointType{rPoint, Weight};
+        };
+        Geo::IntegrationPointVectorType result;
+        std::transform(points.cbegin(), points.cend(), lumping_factors.cbegin(),
+                       std::back_inserter(result), make_integration_point);
+        return result;
     }
     case 8: {
-        Geometry<Node>::PointsArrayType points;
-        points.push_back(Node::Pointer(new Node(1, -1.0, -1.0, 0.0)));
-        points.push_back(Node::Pointer(new Node(2, 1.0, -1.0, 0.0)));
-        points.push_back(Node::Pointer(new Node(3, 1.0, 1.0, 0.0)));
-        points.push_back(Node::Pointer(new Node(4, -1.0, 1.0, 0.0)));
-        points.push_back(Node::Pointer(new Node(5, 0.0, -1.0, 0.0)));
-        points.push_back(Node::Pointer(new Node(6, 1.0, 0.0, 0.0)));
-        points.push_back(Node::Pointer(new Node(7, 0.0, 1.0, 0.0)));
-        points.push_back(Node::Pointer(new Node(8, -1.0, 0.0, 0.0)));
-        auto geom            = Quadrilateral2D8<Node>(points);
+        const auto points = std::vector<Point>{Point(-1.0, -1.0), Point(1.0, -1.0), Point(1.0, 1.0),
+                                               Point(-1.0, 1.0),  Point(0.0, -1.0), Point(1.0, 0.0),
+                                               Point(0.0, 1.0),   Point(-1.0, 0.0)};
+        std::vector<std::size_t> node_ids(points.size());
+        std::iota(node_ids.begin(), node_ids.end(), std::size_t{1});
+        auto node_ptrs = Geometry<Node>::PointsArrayType{};
+        for (auto i = std::size_t{0}; i < node_ids.size(); ++i) {
+            node_ptrs.push_back(make_intrusive<Node>(node_ids[i], points[i]));
+        }
+
+        auto geom            = Quadrilateral2D8<Node>(node_ptrs);
         auto lumping_factors = Vector{};
         geom.LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::DIAGONAL_SCALING);
-        return {{Point(-1.0, -1.0), lumping_factors[0]}, {Point(1.0, -1.0), lumping_factors[1]},
-                {Point(1.0, 1.0), lumping_factors[2]},   {Point(-1.0, 1.0), lumping_factors[3]},
-                {Point(0.0, -1.0), lumping_factors[4]},  {Point(1.0, 0.0), lumping_factors[5]},
-                {Point(0.0, 1.0), lumping_factors[6]},   {Point(-1.0, 0.0), lumping_factors[7]}};
+
+        auto make_integration_point = [](const Point& rPoint, double Weight) {
+            return Geo::IntegrationPointType{rPoint, Weight};
+        };
+        Geo::IntegrationPointVectorType result;
+        std::transform(points.cbegin(), points.cend(), lumping_factors.cbegin(),
+                       std::back_inserter(result), make_integration_point);
+        return result;
     }
     default:
         KRATOS_ERROR << "Can't construct Lumped integration scheme: no support for "
