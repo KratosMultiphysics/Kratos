@@ -290,7 +290,7 @@ private:
         auto begin_of_second_side = points.ptr_begin() + (points.size() / 2);
         const auto nodes_of_first_side = PointerVector<Node>{points.ptr_begin(), begin_of_second_side};
 
-        // The second side is defined by with the second half of the element nodes. However, the
+        // The second side is defined by the second half of the element nodes. However, the
         // nodes must be traversed in opposite direction.
         auto nodes_of_second_side = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
         auto end_of_corner_points = nodes_of_second_side.ptr_begin() + GetNumberOfCornerPoints();
