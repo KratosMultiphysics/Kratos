@@ -403,6 +403,46 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncr
                                        expected_relative_displacement, Defaults::relative_tolerance)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncrementForPlane, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto law_parameters        = ConstitutiveLaw::Parameters{};
+    auto relative_displacement = Vector{ZeroVector{3}};
+    law_parameters.SetStrainVector(relative_displacement);
+    auto traction = Vector{ZeroVector{3}};
+    law_parameters.SetStressVector(traction);
+    auto properties                        = Properties{};
+    properties[INTERFACE_NORMAL_STIFFNESS] = 20.0;
+    properties[INTERFACE_SHEAR_STIFFNESS]  = 10.0;
+    law_parameters.SetMaterialProperties(properties);
+    auto law = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
+    const auto initial_relative_displacement = Vector{ScalarVector{3, 5.0}};
+    const auto initial_traction              = Vector{ScalarVector{3, 30.0}};
+    auto p_initial_state = make_intrusive<InitialState>(initial_relative_displacement, initial_traction);
+    law.SetInitialState(p_initial_state);
+    const auto dummy_geometry              = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(properties, dummy_geometry, dummy_shape_function_values);
+
+    // First step
+    relative_displacement <<= 5.1, 5.3, 5.5;
+    law.CalculateMaterialResponseCauchy(law_parameters);
+    law.FinalizeMaterialResponseCauchy(law_parameters);
+
+    // Second step
+    relative_displacement <<= 5.2, 5.6, 6.0;
+    law.CalculateMaterialResponseCauchy(law_parameters);
+    law.FinalizeMaterialResponseCauchy(law_parameters);
+
+    auto expected_traction = Vector{3};
+    expected_traction <<= 30.0 + (5.1 - 5.0) * 20.0 + (5.2 - 5.1) * 20.0,
+        30.0 + (5.3 - 5.0) * 10.0 + (5.6 - 5.3) * 10.0, 30.0 + (5.5 - 5.0) * 10.0 + (6.0 - 5.5) * 10.0;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStressVector(), expected_traction, Defaults::relative_tolerance)
+    auto expected_relative_displacement = Vector{3};
+    expected_relative_displacement <<= 5.0 + (5.1 - 5.0) + (5.2 - 5.1), 5.0 + (5.3 - 5.0) + (5.6 - 5.3),  5.0 + (5.5 - 5.0) + (6.0 - 5.5);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStrainVector(),
+                                       expected_relative_displacement, Defaults::relative_tolerance)
+}
+
 KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFromASerializer,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
