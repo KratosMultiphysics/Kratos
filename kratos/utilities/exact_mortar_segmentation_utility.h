@@ -81,7 +81,7 @@ public:
     ///@{
 
     /// The definition of the class
-    using ClassType = ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>
+    using ClassType = ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>;
     
     /// Geometric definitions
     using GeometryType = Geometry<Node>;
