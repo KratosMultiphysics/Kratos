@@ -1,4 +1,5 @@
 /* AMGCL */
+#include "includes/define.h"
 #include <amgcl/adapter/crs_tuple.hpp>
 #include <amgcl/adapter/ublas.hpp>
 #include <amgcl/adapter/zero_copy.hpp>
@@ -19,6 +20,10 @@
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/amgcl_solver.h"
+
+// STL Includes
+#include <variant> // std::variant
+
 
 namespace Kratos {
 
@@ -272,4 +277,265 @@ void AMGCLSolve(
 }
 
 
+template <class TSparse, class TDense, class TReorderer>
+struct AMGCLSolver<TSparse,TDense,TReorderer>::Impl
+{
+    using Scalar = typename TSparse::DataType;
+
+    template <int StaticSize>
+    using BackendMatrix = std::conditional_t<
+        StaticSize == 1,
+        Scalar,
+        amgcl::static_matrix<Scalar,StaticSize,StaticSize>
+    >;
+
+    template <int StaticSize>
+    using BackendVector = std::conditional_t<
+        StaticSize == 1,
+        Scalar,
+        amgcl::static_matrix<Scalar,StaticSize,1>
+    >;
+
+    template <class TBackend>
+    using MakeSolver = amgcl::make_solver<
+        amgcl::runtime::preconditioner<TBackend>,
+        amgcl::runtime::solver::wrapper<TBackend>
+    >;
+
+    std::variant<
+         std::monostate
+        ,MakeSolver<amgcl::backend::builtin<BackendMatrix<1>>>
+        ,MakeSolver<amgcl::backend::builtin<BackendMatrix<2>>>
+        ,MakeSolver<amgcl::backend::builtin<BackendMatrix<3>>>
+        ,MakeSolver<amgcl::backend::builtin<BackendMatrix<4>>>
+        ,MakeSolver<amgcl::backend::builtin<BackendMatrix<5>>>
+        ,MakeSolver<amgcl::backend::builtin<BackendMatrix<6>>>
+        #ifdef AMGCL_GPGPU
+        ,MakeSolver<amgcl::backend::vexcl<BackendMatrix<1>>>
+        ,MakeSolver<amgcl::backend::vexcl<BackendMatrix<2>>>
+        ,MakeSolver<amgcl::backend::vexcl<BackendMatrix<3>>>
+        ,MakeSolver<amgcl::backend::vexcl<BackendMatrix<4>>>
+        ,MakeSolver<amgcl::backend::vexcl<BackendMatrix<5>>>
+        ,MakeSolver<amgcl::backend::vexcl<BackendMatrix<6>>>
+        #endif
+    > mSolver;
+}; // struct AMGCLSolver::Impl
+
+
+template <class TSparse, class TDense, class TReorderer>
+AMGCLSolver<TSparse,TDense,TReorderer>::AMGCLSolver()
+    : AMGCLSolver(Parameters())
+{
 }
+
+
+template <class TSparse, class TDense, class TReorderer>
+AMGCLSolver<TSparse,TDense,TReorderer>::AMGCLSolver(Parameters Settings)
+{
+    KRATOS_TRY
+    mpImpl.emplace(new Impl);
+    this->ApplySettings(Settings);
+    KRATOS_CATCH("")
+}
+
+
+template <class TSparse, class TDense, class TReorderer>
+AMGCLSolver<TSparse,TDense,TReorderer>::AMGCLSolver(const std::string& rSmootherName,
+                                                    const std::string& rSolverName,
+                                                    double Tolerance,
+                                                    int MaxIterationsNumber,
+                                                    int Verbosity,
+                                                    int GMRESSize)
+    : mTolerance(Tolerance),
+      mMaxIterationsNumber(MaxIterationsNumber),
+      mVerbosity(Verbosity),
+      mBlockSize(1),
+      mGMRESSize(GMRESSize),
+      mCoarseEnough(1000),
+      mFallbackToGMRES(false),
+      mProvideCoordinates(false),
+      mUseBlockMatricesIfPossible(false)
+{
+    KRATOS_TRY
+    mpImpl.emplace(new Impl);
+    Parameters settings;
+    settings.AddString("smoother_type", rSmootherName);
+    settings.AddString("krylov_type", rSolverName);
+    settings.AddString("coarsening_type", "aggregation");
+    this->ApplySettings(settings);
+    KRATOS_CATCH("")
+}
+
+
+template <class TSparse, class TDense, class TReorderer>
+AMGCLSolver<TSparse,TDense,TReorderer>::AMGCLSolver(AMGCLSmoother Smoother,
+                                                    AMGCLIterativeSolverType Solver,
+                                                    AMGCLCoarseningType Coarsening,
+                                                    double Tolerance,
+                                                    int MaxIterationsNumber,
+                                                    int Verbosity,
+                                                    int GMRESSize,
+                                                    bool ProvideCoordinates)
+    : mTolerance(Tolerance),
+      mMaxIterationsNumber(MaxIterationsNumber),
+      mVerbosity(Verbosity),
+      mBlockSize(1),
+      mGMRESSize(GMRESSize),
+      mCoarseEnough(1000),
+      mFallbackToGMRES(false),
+      mProvideCoordinates(ProvideCoordinates),
+      mUseBlockMatricesIfPossible(false)
+{
+    KRATOS_TRY
+    mpImpl.emplace(new Impl);
+    KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 0) << "Setting up AMGCL for iterative solve " << std::endl;
+
+    // Choose smoother in the list "gauss_seidel, multicolor_gauss_seidel, ilu0, parallel_ilu0, ilut, damped_jacobi, spai0, chebyshev"
+    SetSmootherType(Smoother);
+    // Setting iterative solver
+    SetIterativeSolverType(Solver);
+    // Setting coarsening type
+    SetCoarseningType(Coarsening);
+    KRATOS_CATCH("")
+}
+
+
+template <class TSparse, class TDense, class TReorderer>
+AMGCLSolver<TSparse,TDense,TReorderer>::AMGCLSolver(AMGCLSolver&&) noexcept = default;
+
+
+template <class TSparse, class TDense, class TReorderer>
+AMGCLSolver<TSparse,TDense,TReorderer>::~AMGCLSolver() = default;
+
+
+template <class TSparse, class TDense, class TReorderer>
+void AMGCLSolver<TSparse,TDense,TReorderer>::InitializeSolutionStep(SparseMatrixType& rLhs,
+                                                                    VectorType& rSolution,
+                                                                    VectorType& rRhs)
+{
+    KRATOS_TRY
+    if (mUseGPGPU) {
+        // ILU0 in a GPU backend has approximate iterative implementation.
+        // Increase the default number of iterations to make ILU0 more robust.
+        int ilu0_iters = 9;
+        if (amgclParams.get<std::string>("precond.type", "") == "ilu0")
+            amgclParams.put("precond.solve.iters", ilu0_iters);
+        if (amgclParams.get<std::string>("precond.relax.type", "") == "ilu0")
+            amgclParams.put("precond.relax.solve.iters", ilu0_iters);
+    }
+
+    #ifdef AMGCL_GPGPU
+    if (mUseGPGPU && vexcl_context()) {
+        auto &ctx = vexcl_context();
+
+        typedef amgcl::backend::vexcl<TValue> Backend;
+        typedef amgcl::make_solver<
+            amgcl::runtime::preconditioner<Backend>,
+            amgcl::runtime::solver::wrapper<Backend>
+            > Solver;
+
+        typename Backend::params bprm;
+        bprm.q = ctx;
+
+        Solver solve(amgcl::adapter::zero_copy(
+                    TUblasSparseSpace<TValue>::Size1(rA),
+                    rA.index1_data().begin(),
+                    rA.index2_data().begin(),
+                    rA.value_data().begin()),
+                amgclParams, bprm);
+
+        vex::vector<TValue> b(ctx, rB.size(), &rB[0]);
+        vex::vector<TValue> x(ctx, rX.size(), &rX[0]);
+
+        std::tie(rIterationNumber, rResidual) = solve(b, x);
+
+        vex::copy(x.begin(), x.end(), rX.begin());
+
+        if(verbosity_level > 1 )
+            std::cout << "AMGCL Memory Occupation : " << amgcl::human_readable_memory(amgcl::backend::bytes(solve)) << std::endl;
+    } else
+    #endif
+    {
+        typedef amgcl::backend::builtin<TValue> Backend;
+        typedef amgcl::make_solver<
+            amgcl::runtime::preconditioner<Backend>,
+            amgcl::runtime::solver::wrapper<Backend>
+            > Solver;
+
+        Solver solve(amgcl::adapter::zero_copy(
+                    TUblasSparseSpace<double>::Size1(rA),
+                    rA.index1_data().begin(),
+                    rA.index2_data().begin(),
+                    rA.value_data().begin()),
+                amgclParams);
+
+        std::tie(rIterationNumber, rResidual) = solve(rB, rX);
+
+        if(verbosity_level > 1 )
+            std::cout << "AMGCL Memory Occupation : " << amgcl::human_readable_memory(amgcl::backend::bytes(solve)) << std::endl;
+    }
+    KRATOS_CATCH("")
+}
+
+
+template <class TSparse, class TDense, class TReorderer>
+void AMGCLSolver<TSparse,TDense,TReorderer>::ApplySettings(Parameters Settings)
+{
+    Parameters default_parameters = this->GetDefaultParameters();
+
+    KRATOS_TRY
+    Settings.ValidateAndAssignDefaults(default_parameters);
+    KRATOS_CATCH("")
+
+    KRATOS_TRY
+    CheckIfSelectedOptionIsAvailable(Settings,
+                                     "preconditioner_type",
+                                     {
+                                        "amg",
+                                        "relaxation",
+                                        "dummy"
+                                     });
+    KRATOS_CATCH("")
+
+    KRATOS_TRY
+    const std::string preconditioner_type = Settings["preconditioner_type"].GetString();
+    mAMGCLParameters.put("precond.class", preconditioner_type);
+    mUseAMGPreconditioning = preconditioner_type == "amg";
+    if(preconditioner_type == "relaxation") {
+        mAMGCLParameters.put("precond.type", Settings["smoother_type"].GetString());
+    }
+
+    mProvideCoordinates = Settings["provide_coordinates"].GetBool();
+    mCoarseEnough = Settings["coarse_enough"].GetInt();
+
+    mBlockSize = Settings["block_size"].GetInt(); //set the mndof to an inital number
+    mTolerance = Settings["tolerance"].GetDouble();
+    mMaxIterationsNumber = Settings["max_iteration"].GetInt();
+    mVerbosity=Settings["verbosity"].GetInt();
+    mGMRESSize = Settings["gmres_krylov_space_dimension"].GetInt();
+
+    mFallbackToGMRES = false;
+    this->SetIterativeSolverType(Settings["krylov_type"].GetString())
+
+    //settings only needed if full AMG is used
+    if(mUseAMGPreconditioning)
+    {
+        this->SetSmootherType(Settings["smoother_type"].GetString());
+        this->SetCoarseningType(Settings["coarsening_type"].GetString());
+
+        int max_levels = Settings["max_levels"].GetInt();
+        if(max_levels >= 0)
+            mAMGCLParameters.put("precond.max_levels",  max_levels);
+
+        mAMGCLParameters.put("precond.npre",  Settings["pre_sweeps"].GetInt());
+        mAMGCLParameters.put("precond.npost",  Settings["post_sweeps"].GetInt());
+    }
+
+    mUseBlockMatricesIfPossible = Settings["use_block_matrices_if_possible"].GetBool();
+
+    mUseGPGPU = Settings["use_gpgpu"].GetBool();
+    KRATOS_CATCH("")
+}
+
+
+} // namespace Kratos
