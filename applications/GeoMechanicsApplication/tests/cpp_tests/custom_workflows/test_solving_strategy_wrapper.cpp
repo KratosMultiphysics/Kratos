@@ -199,11 +199,10 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartFromStrategyWrapper_ReturnsCorrectModelPar
 {
     Model model;
     auto& r_model_part = CreateDummyModelPart(model);
-    auto  wrapper = CreateWrapperWithDefaultProcessInfoEntries(r_model_part);
+    auto  wrapper      = CreateWrapperWithDefaultProcessInfoEntries(r_model_part);
 
     KRATOS_EXPECT_EQ(wrapper.GetModelPart().Name(), "dummy");
 }
-
 
 KRATOS_TEST_CASE_IN_SUITE(IncrementStepNumberFromStrategyWrapper, KratosGeoMechanicsFastSuite)
 {

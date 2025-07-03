@@ -56,9 +56,11 @@ public:
         return static_cast<std::size_t>(mpModelPart->GetProcessInfo()[STEP]);
     }
 
-    [[nodiscard]] ModelPart& GetModelPart() override {
+    [[nodiscard]] ModelPart& GetModelPart() override
+    {
         ++mCountGetModelPartCalled;
-        return *mpModelPart; }
+        return *mpModelPart;
+    }
 
     void IncrementStepNumber() override { ++mpModelPart->GetProcessInfo()[STEP]; }
 
@@ -132,14 +134,14 @@ public:
 private:
     TimeStepEndState::ConvergenceState mConvergenceState{TimeStepEndState::ConvergenceState::converged};
     Model                 mModel;
-    ModelPart*            mpModelPart                                  = nullptr;
-    bool                  mIsCloned                                    = false;
-    bool                  mIsRestoreCalled                             = false;
-    std::size_t           mCountInitializeOutputCalled                 = 0;
-	std::size_t           mCountGetModelPartCalled                     = 0;
-    std::size_t           mCountOutputProcessCalled                    = 0;
-    std::size_t           mCountFinalizeSolutionStepCalled             = 0;
-    std::size_t           mCountFinalizeOutputCalled                   = 0;
+    ModelPart*            mpModelPart                      = nullptr;
+    bool                  mIsCloned                        = false;
+    bool                  mIsRestoreCalled                 = false;
+    std::size_t           mCountInitializeOutputCalled     = 0;
+    std::size_t           mCountGetModelPartCalled         = 0;
+    std::size_t           mCountOutputProcessCalled        = 0;
+    std::size_t           mCountFinalizeSolutionStepCalled = 0;
+    std::size_t           mCountFinalizeOutputCalled       = 0;
     std::function<void()> mOutputProcessCallback;
 };
 
@@ -311,7 +313,6 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectGetModelPartForEveryStep, KratosGeoMechanicsFast
 
     KRATOS_EXPECT_EQ(2, solver_strategy->GetCountGetModelPartCalled());
 }
-
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectOutputProcessCalledForEveryStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
