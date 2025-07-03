@@ -25,10 +25,6 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalLinearElasticInterface
 public:
     using BaseType = ConstitutiveLaw;
 
-    GeoIncrementalLinearElasticInterfaceLaw():
-mConstitutiveLawDimension(nullptr)
-    {
-    }
     GeoIncrementalLinearElasticInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> rConstitutiveLawDimension):
     mConstitutiveLawDimension(std::move(rConstitutiveLawDimension))
     {
@@ -57,6 +53,10 @@ mConstitutiveLawDimension(nullptr)
                const ProcessInfo&  rCurrentProcessInfo) const override;
 
 private:
+    GeoIncrementalLinearElasticInterfaceLaw():
+mConstitutiveLawDimension(nullptr)
+    {
+    }
     std::unique_ptr<ConstitutiveLawDimension> mConstitutiveLawDimension;
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
