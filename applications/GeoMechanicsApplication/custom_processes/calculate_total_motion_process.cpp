@@ -57,5 +57,6 @@ void CalculateTotalMotionProcess::Execute()
 	}
 	else {
 		KRATOS_ERROR << "Variables " << mResultsVariableName << " and/or " << mIncrementalVariableName << " not found in the model part." << std::endl;
+	}
 }
 } // namespace Kratos
