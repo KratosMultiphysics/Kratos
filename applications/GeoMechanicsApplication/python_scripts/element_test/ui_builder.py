@@ -264,7 +264,7 @@ class GeotechTestUI:
             if not self.is_linear_elastic and self.mohr_checkbox.get():
                 cohesion_phi_indices = (int(self.cohesion_var.get()), int(self.phi_var.get()))
 
-            index = self.model_dict["model_name"].index(self.model_var.get()) + 1 if self.dll_path else -2
+            index = self.model_dict["model_name"].index(self.model_var.get()) + 1 if self.dll_path else None
             test_type = self.current_test.get()
 
             log_message("Calculating...", "info")
