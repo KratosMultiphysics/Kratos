@@ -118,12 +118,6 @@ def AssembleTestSuites():
                         KratosGeoMechanicsHydraulicHeads,
     ]
 
-    # Create an array with the selected tests
-    # nightSuite will contain the following tests:
-    # - testSmallExample
-    # - testNightlyFirstExample
-    # - testNightlySecondExample
-
     night_test_cases = [
                         KratosGeoMechanicsSettlementWorkflowCppRoute,
                         KratosGeoMechanicsSettlementWorkflowPyRoute,

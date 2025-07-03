@@ -286,7 +286,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInN
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForThreePlusThreeNodedPlanarGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry            = CreateThreePlusThreeNoded3DPlanarInterfaceGeometry();
+    const auto geometry                     = CreateThreePlusThreeNoded3DPlanarInterfaceGeometry();
     const auto local_coord_first_node_pair  = array_1d<double, 3>{0.0, 0.0, 0.0};
     const auto local_coord_second_node_pair = array_1d<double, 3>{1.0, 0.0, 0.0};
     const auto local_coord_third_node_pair  = array_1d<double, 3>{0.0, 1.0, 0.0};
