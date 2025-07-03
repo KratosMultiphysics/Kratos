@@ -1,15 +1,21 @@
 import os
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk, scrolledtext, Menu
+from platformdirs import user_data_dir
+from pathlib import Path
 from ui_builder import GeotechTestUI
 from ui_udsm_parser import udsm_parser
 
 import ctypes
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("deltares.ElementTestSuite.ui")
 
-from ui_labels import APP_TITLE, APP_VERSION, SELECT_UDSM, LINEAR_ELASTIC
+from ui_labels import APP_TITLE, APP_VERSION, APP_NAME, APP_AUTHOR, SELECT_UDSM, LINEAR_ELASTIC
 
-LICENSE_FLAG_PATH = os.path.join(os.path.expanduser("~"), ".deltares_license_accepted")
+data_dir = Path(user_data_dir(APP_NAME, APP_AUTHOR))
+data_dir.mkdir(parents=True, exist_ok=True)
+
+LICENSE_FLAG_PATH = data_dir / "license_accepted.flag"
+
 
 
 def show_license_agreement():
