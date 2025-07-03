@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "test_head_extrapolate",
+        "problem_name": "test_nodal_hydraulic_head_2",
         "start_time": 0.0,
         "end_time": 1.0,
         "echo_level": 1,
@@ -13,7 +13,7 @@
         "domain_size": 2,
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "test_head_extrapolate"
+            "input_filename": "test_nodal_hydraulic_head"
         },
         "material_import_settings": {
             "materials_filename": "MaterialParameters.json"
@@ -85,7 +85,7 @@
                 "process_name": "GiDOutputProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain.porous_computational_model_part",
-                    "output_name": "test_head_extrapolate_1",
+                    "output_name": "test_nodal_hydraulic_head_2",
                     "postprocess_parameters": {
                         "result_file_configuration": {
                             "gidpost_flags": {
@@ -140,7 +140,7 @@
                     "is_fixed": true,
                     "fluid_pressure_type": "Hydrostatic",
                     "gravity_direction": 1,
-                    "reference_coordinate": 1.0,
+                    "reference_coordinate": 0.0,
                     "table": 0,
                     "pressure_tension_cut_off": 0.0,
                     "specific_weight": 9810
