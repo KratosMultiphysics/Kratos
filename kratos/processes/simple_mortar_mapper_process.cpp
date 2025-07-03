@@ -595,11 +595,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-IntegrationMethod SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::GetIntegrationMethod()
+GeometryData::IntegrationMethod SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::GetIntegrationMethod()
 {
     const int integration_order = mThisParameters["integration_order"].GetInt();
-    switch ( integration_order )
-    {
+    switch ( integration_order ) {
         case 1: return GeometryData::IntegrationMethod::GI_GAUSS_1;
         case 2: return GeometryData::IntegrationMethod::GI_GAUSS_2;
         case 3: return GeometryData::IntegrationMethod::GI_GAUSS_3;
