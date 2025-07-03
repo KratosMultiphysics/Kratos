@@ -2,7 +2,7 @@ import traceback
 from ui_logger import log_message
 from run_simulation import run_simulation
 
-def run_gui_builder(test_type, dll_path, index, umat_parameters, input_widgets, cohesion_phi_indices, axes):
+def run_gui_builder(test_type, dll_path, index, material_parameters, input_widgets, cohesion_phi_indices, axes):
     try:
 
         sigma_init = float(input_widgets["Initial effective cell pressure |σ'ₓₓ|"].get())
@@ -17,7 +17,7 @@ def run_gui_builder(test_type, dll_path, index, umat_parameters, input_widgets, 
             test_type=test_type,
             dll_path=dll_path or "",
             index=index,
-            umat_parameters=umat_parameters,
+            material_parameters=material_parameters,
             num_steps=n_steps,
             end_time=duration,
             maximum_strain=eps_max,

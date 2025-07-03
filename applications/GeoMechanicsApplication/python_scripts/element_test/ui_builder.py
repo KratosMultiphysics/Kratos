@@ -258,7 +258,7 @@ class GeotechTestUI:
             log_message("Validating input...", "info")
             self.root.update_idletasks()
 
-            umat_params = [e.get() for e in self.entry_widgets.values()]
+            material_params = [e.get() for e in self.entry_widgets.values()]
 
             cohesion_phi_indices = None
             if not self.is_linear_elastic and self.mohr_checkbox.get():
@@ -275,7 +275,7 @@ class GeotechTestUI:
                     test_type="triaxial",
                     dll_path=self.dll_path or "",
                     index=index,
-                    umat_parameters=[float(x) for x in umat_params],
+                    material_parameters=[float(x) for x in material_params],
                     input_widgets=self.triaxial_widgets,
                     cohesion_phi_indices=cohesion_phi_indices,
                     axes=self.axes
@@ -286,7 +286,7 @@ class GeotechTestUI:
                     test_type="direct_shear",
                     dll_path=self.dll_path or "",
                     index=index,
-                    umat_parameters=[float(x) for x in umat_params],
+                    material_parameters=[float(x) for x in material_params],
                     input_widgets=self.shear_widgets,
                     cohesion_phi_indices=cohesion_phi_indices,
                     axes=self.axes
