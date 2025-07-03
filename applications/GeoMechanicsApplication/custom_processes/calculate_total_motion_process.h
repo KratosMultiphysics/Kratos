@@ -23,15 +23,15 @@ public:
 
     CalculateTotalMotionProcess(ModelPart& rModelPart, const Parameters& rSettings);
 
-    CalculateTotalMotionProcess(const CalculateTotalMotionProcess&) = delete;
+    CalculateTotalMotionProcess(const CalculateTotalMotionProcess&)            = delete;
     CalculateTotalMotionProcess& operator=(const CalculateTotalMotionProcess&) = delete;
 
     void Execute() override;
 
 private:
-    ModelPart& mrModelPart;
+    ModelPart&  mrModelPart;
     std::string mResultsVariableName;
-	std::string mIncrementalVariableName;
+    std::string mIncrementalVariableName;
 };
 
 } // namespace Kratos

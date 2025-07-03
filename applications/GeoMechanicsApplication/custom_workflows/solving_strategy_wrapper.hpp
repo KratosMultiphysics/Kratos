@@ -66,6 +66,8 @@ public:
 
     double GetTimeIncrement() const override { return mrModelPart.GetProcessInfo()[DELTA_TIME]; }
 
+    ModelPart& GetModelPart() override { return mrModelPart; }
+
     void SetTimeIncrement(double TimeIncrement) override
     {
         mrModelPart.GetProcessInfo()[DELTA_TIME] = TimeIncrement;
@@ -93,21 +95,6 @@ public:
         CopyNodalSolutionStepValues(DISPLACEMENT, index_of_old_value, index_of_new_value);
         CopyNodalSolutionStepValues(WATER_PRESSURE, index_of_old_value, index_of_new_value);
         CopyNodalSolutionStepValues(ROTATION, index_of_old_value, index_of_new_value);
-    }
-
-    void AccumulateTotalDisplacementField() override
-    {
-        for (auto& node : mrModelPart.Nodes()) {
-            node.GetSolutionStepValue(TOTAL_DISPLACEMENT) += node.GetSolutionStepValue(INCREMENTAL_DISPLACEMENT);
-        }
-    }
-
-    void ComputeIncrementalDisplacementField() override
-    {
-        for (auto& node : mrModelPart.Nodes()) {
-            node.GetSolutionStepValue(INCREMENTAL_DISPLACEMENT) =
-                node.GetSolutionStepValue(DISPLACEMENT, 0) - node.GetSolutionStepValue(DISPLACEMENT, 1);
-        }
     }
 
     void OutputProcess() override

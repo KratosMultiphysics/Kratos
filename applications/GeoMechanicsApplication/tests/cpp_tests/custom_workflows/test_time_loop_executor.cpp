@@ -56,6 +56,8 @@ public:
         return static_cast<std::size_t>(mpModelPart->GetProcessInfo()[STEP]);
     }
 
+    [[nodiscard]] ModelPart& GetModelPart() override { return *mpModelPart; }
+
     void IncrementStepNumber() override { ++mpModelPart->GetProcessInfo()[STEP]; }
 
     void CloneTimeStep() override { mIsCloned = true; }
@@ -66,19 +68,10 @@ public:
 
     [[nodiscard]] bool IsRestoreCalled() const { return mIsRestoreCalled; }
 
-    void AccumulateTotalDisplacementField() override
-    {
-        ++mCountAccumulateTotalDisplacementFieldCalled;
-    }
 
     [[nodiscard]] std::size_t GetCountAccumulateTotalDisplacementFieldCalled() const
     {
         return mCountAccumulateTotalDisplacementFieldCalled;
-    }
-
-    void ComputeIncrementalDisplacementField() override
-    {
-        // intentionally empty
     }
 
     void OutputProcess() override

@@ -18,45 +18,40 @@
 namespace Kratos
 {
 
-CalculateTotalMotionProcess::CalculateTotalMotionProcess(ModelPart& rModelPart,
-                                                                const Parameters& rParameters)
-	: Process(Flags()), mrModelPart{ rModelPart }, mResultsVariableName{ "" },
-	mIncrementalVariableName{ "" }
+CalculateTotalMotionProcess::CalculateTotalMotionProcess(ModelPart& rModelPart, const Parameters& rParameters)
+    : Process(Flags()), mrModelPart{rModelPart}, mResultsVariableName{""}, mIncrementalVariableName{""}
 {
-
     // check if variable name is displacement or rotation
-	if (rParameters["variable_name"].GetString() == "DISPLACEMENT") {
-		mResultsVariableName = "TOTAL_DISPLACEMENT";
-		mIncrementalVariableName = "INCREMENTAL_DISPLACEMENT";
-	}
-	else if (rParameters["variable_name"].GetString() == "ROTATION") {
-		KRATOS_ERROR << "TOTAL_ROTATION and INCREMENTAL_ROTATION are not implemented yet" << std::endl;
+    if (rParameters["variable_name"].GetString() == "DISPLACEMENT") {
+        mResultsVariableName     = "TOTAL_DISPLACEMENT";
+        mIncrementalVariableName = "INCREMENTAL_DISPLACEMENT";
+    } else if (rParameters["variable_name"].GetString() == "ROTATION") {
+        KRATOS_ERROR << "TOTAL_ROTATION and INCREMENTAL_ROTATION are not implemented yet" << std::endl;
 
-	}
-	else {
-		KRATOS_ERROR << "Invalid variable name: " << rParameters["variable_name"].GetString() << ". Expected DISPLACEMENT or ROTATION." << std::endl;
-	}
+    } else {
+        KRATOS_ERROR << "Invalid variable name: " << rParameters["variable_name"].GetString()
+                     << ". Expected DISPLACEMENT or ROTATION." << std::endl;
+    }
 }
 
 void CalculateTotalMotionProcess::Execute()
 {
+    if (KratosComponents<Variable<array_1d<double, 3>>>::Has(mResultsVariableName) &&
+        KratosComponents<Variable<array_1d<double, 3>>>::Has(mIncrementalVariableName)) {
+        const Variable<array_1d<double, 3>>& rResultVariable =
+            KratosComponents<Variable<array_1d<double, 3>>>::Get(mResultsVariableName);
 
-	if (KratosComponents< Variable< array_1d<double, 3> > >::Has(mResultsVariableName) && KratosComponents< Variable< array_1d<double, 3> > >::Has(mIncrementalVariableName)) {
+        const Variable<array_1d<double, 3>>& rIncrementalVariable =
+            KratosComponents<Variable<array_1d<double, 3>>>::Get(mIncrementalVariableName);
 
-		const Variable<array_1d<double, 3>>& rResultVariable =
-			KratosComponents<Variable<array_1d<double, 3>>>::Get(mResultsVariableName);
-
-		const Variable<array_1d<double, 3>>& rIncrementalVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get(mIncrementalVariableName);
-
-
-		block_for_each(mrModelPart.Nodes(), [rResultVariable, rIncrementalVariable](Node& rNode) {
-
-			rNode.FastGetSolutionStepValue(rResultVariable) = rNode.FastGetSolutionStepValue(rResultVariable) + rNode.FastGetSolutionStepValue(rIncrementalVariable);
-
-			});
-	}
-	else {
-		KRATOS_ERROR << "Variables " << mResultsVariableName << " and/or " << mIncrementalVariableName << " not found in the model part." << std::endl;
-	}
+        block_for_each(mrModelPart.Nodes(), [rResultVariable, rIncrementalVariable](Node& rNode) {
+            rNode.FastGetSolutionStepValue(rResultVariable) =
+                rNode.FastGetSolutionStepValue(rResultVariable) +
+                rNode.FastGetSolutionStepValue(rIncrementalVariable);
+        });
+    } else {
+        KRATOS_ERROR << "Variables " << mResultsVariableName << " and/or "
+                     << mIncrementalVariableName << " not found in the model part." << std::endl;
+    }
 }
 } // namespace Kratos

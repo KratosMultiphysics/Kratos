@@ -195,6 +195,16 @@ KRATOS_TEST_CASE_IN_SUITE(GetStepNumberFromStrategyWrapper_ReturnsCorrectNumber,
     KRATOS_EXPECT_EQ(wrapper.GetStepNumber(), 3);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GetModelPartFromStrategyWrapper_ReturnsCorrectModelPart, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = CreateDummyModelPart(model);
+    auto  wrapper = CreateWrapperWithDefaultProcessInfoEntries(r_model_part);
+
+    KRATOS_EXPECT_EQ(wrapper.GetModelPart().Name(), "dummy");
+}
+
+
 KRATOS_TEST_CASE_IN_SUITE(IncrementStepNumberFromStrategyWrapper, KratosGeoMechanicsFastSuite)
 {
     Model model;
@@ -205,27 +215,6 @@ KRATOS_TEST_CASE_IN_SUITE(IncrementStepNumberFromStrategyWrapper, KratosGeoMecha
     KRATOS_EXPECT_EQ(wrapper.GetStepNumber(), 4);
     wrapper.IncrementStepNumber();
     KRATOS_EXPECT_EQ(wrapper.GetStepNumber(), 5);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(ComputeIncrementalDisplacementField, KratosGeoMechanicsFastSuite)
-{
-    Model model;
-    auto& r_model_part     = CreateDummyModelPart(model);
-    auto  strategy_wrapper = CreateWrapperWithEmptyProcessInfo(r_model_part);
-    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-    r_model_part.AddNodalSolutionStepVariable(INCREMENTAL_DISPLACEMENT);
-
-    auto p_node = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-
-    const auto displacement_start_time_step       = array_1d<double, 3>{3.0, 2.0, 1.0};
-    const auto displacement_end_time_step         = array_1d<double, 3>{6.0, 4.0, 2.0};
-    p_node->GetSolutionStepValue(DISPLACEMENT, 1) = displacement_start_time_step;
-    p_node->GetSolutionStepValue(DISPLACEMENT, 0) = displacement_end_time_step;
-    strategy_wrapper.ComputeIncrementalDisplacementField();
-
-    const auto expected_incremental_displacement =
-        array_1d<double, 3>{displacement_end_time_step - displacement_start_time_step};
-    KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(INCREMENTAL_DISPLACEMENT), expected_incremental_displacement);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RestorePositionsAndDOFVectorToStartOfStep_UpdatesPosition, KratosGeoMechanicsFastSuite)
