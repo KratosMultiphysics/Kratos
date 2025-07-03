@@ -59,7 +59,7 @@ Matrix& GeoIncrementalLinearElasticInterfaceLaw::CalculateValue(ConstitutiveLaw:
     } else {
         KRATOS_ERROR << "Can't calculate value of " << rThisVariable.Name() << ": unsupported variable\n";
     }
-    
+
     return rValue;
 }
 
@@ -84,7 +84,7 @@ void GeoIncrementalLinearElasticInterfaceLaw::CalculateMaterialResponseCauchy(Co
 {
     rValues.GetStressVector() =
         mPreviousTraction +
-        prod(ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
+        prod(ConstitutiveLawUtilities::MakeGeneralInterfaceConstitutiveMatrix(
                  rValues.GetMaterialProperties()[INTERFACE_NORMAL_STIFFNESS],
                  rValues.GetMaterialProperties()[INTERFACE_SHEAR_STIFFNESS], GetStrainSize()),
              rValues.GetStrainVector() - mPreviousRelativeDisplacement);
