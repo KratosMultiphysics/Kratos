@@ -152,7 +152,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkUPwSchemePredict_UpdatesVariablesDerivatives, K
     // These expected numbers result from the calculations in UpdateVariablesDerivatives
     const auto     expected_acceleration      = Kratos::array_1d<double, 3>{-6.75, -9.0, -11.25};
     const auto     expected_velocity          = Kratos::array_1d<double, 3>{-4.5, -6.0, -7.5};
-    constexpr auto expected_dt_water_pressure = 1.0 / 3.0;
+    constexpr auto expected_dt_water_pressure = 3.0;
 
     const auto actual_acceleration =
         tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(ACCELERATION, 0);
