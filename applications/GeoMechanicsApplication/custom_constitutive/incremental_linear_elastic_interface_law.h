@@ -13,9 +13,9 @@
 
 #pragma once
 
+#include "constitutive_law_dimension.h"
 #include "includes/constitutive_law.h"
 #include "includes/kratos_export_api.h"
-#include "constitutive_law_dimension.h"
 
 namespace Kratos
 {
@@ -25,15 +25,16 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalLinearElasticInterface
 public:
     using BaseType = ConstitutiveLaw;
 
-    GeoIncrementalLinearElasticInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> rConstitutiveLawDimension):
-    mConstitutiveLawDimension(std::move(rConstitutiveLawDimension))
+    GeoIncrementalLinearElasticInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> rConstitutiveLawDimension)
+        : mConstitutiveLawDimension(std::move(rConstitutiveLawDimension))
     {
     }
-    ~GeoIncrementalLinearElasticInterfaceLaw() override                              = default;
-    GeoIncrementalLinearElasticInterfaceLaw(const GeoIncrementalLinearElasticInterfaceLaw&)            = delete;
+
+    ~GeoIncrementalLinearElasticInterfaceLaw() override = default;
+    GeoIncrementalLinearElasticInterfaceLaw(const GeoIncrementalLinearElasticInterfaceLaw&) = delete;
     GeoIncrementalLinearElasticInterfaceLaw& operator=(const GeoIncrementalLinearElasticInterfaceLaw&) = delete;
-    GeoIncrementalLinearElasticInterfaceLaw(GeoIncrementalLinearElasticInterfaceLaw&&)                 = delete;
-    GeoIncrementalLinearElasticInterfaceLaw& operator=(GeoIncrementalLinearElasticInterfaceLaw&&)      = delete;
+    GeoIncrementalLinearElasticInterfaceLaw(GeoIncrementalLinearElasticInterfaceLaw&&) = delete;
+    GeoIncrementalLinearElasticInterfaceLaw& operator=(GeoIncrementalLinearElasticInterfaceLaw&&) = delete;
 
     [[nodiscard]] Pointer  Clone() const override;
     SizeType               WorkingSpaceDimension() override;
@@ -53,10 +54,8 @@ public:
                const ProcessInfo&  rCurrentProcessInfo) const override;
 
 private:
-    GeoIncrementalLinearElasticInterfaceLaw():
-mConstitutiveLawDimension(nullptr)
-    {
-    }
+    GeoIncrementalLinearElasticInterfaceLaw() : mConstitutiveLawDimension(nullptr) {}
+
     std::unique_ptr<ConstitutiveLawDimension> mConstitutiveLawDimension;
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

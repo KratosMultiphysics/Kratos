@@ -109,4 +109,14 @@ Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      Nor
     return result;
 }
 
+Matrix ConstitutiveLawUtilities::MakeGeneralInterfaceConstitutiveMatrix(double      NormalStiffness,
+                                                                        double      ShearStiffness,
+                                                                        std::size_t TractionSize)
+{
+    auto result = MakeInterfaceConstitutiveMatrix(NormalStiffness, ShearStiffness, TractionSize);
+    if (TractionSize == 3) {
+        result(2, 2) = result(1, 1);
+    }
+    return result;
+}
 } // namespace Kratos
