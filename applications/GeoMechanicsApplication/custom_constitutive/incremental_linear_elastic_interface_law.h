@@ -20,24 +20,24 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalElasticInterfaceLaw : public ConstitutiveLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalLinearElasticInterfaceLaw : public ConstitutiveLaw
 {
 public:
     using BaseType = ConstitutiveLaw;
 
-    GeoIncrementalElasticInterfaceLaw():
+    GeoIncrementalLinearElasticInterfaceLaw():
 mConstitutiveLawDimension(nullptr)
     {
     }
-    GeoIncrementalElasticInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> rConstitutiveLawDimension):
+    GeoIncrementalLinearElasticInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> rConstitutiveLawDimension):
     mConstitutiveLawDimension(std::move(rConstitutiveLawDimension))
     {
     }
-    ~GeoIncrementalElasticInterfaceLaw() override                              = default;
-    GeoIncrementalElasticInterfaceLaw(const GeoIncrementalElasticInterfaceLaw&)            = delete;
-    GeoIncrementalElasticInterfaceLaw& operator=(const GeoIncrementalElasticInterfaceLaw&) = delete;
-    GeoIncrementalElasticInterfaceLaw(GeoIncrementalElasticInterfaceLaw&&)                 = delete;
-    GeoIncrementalElasticInterfaceLaw& operator=(GeoIncrementalElasticInterfaceLaw&&)      = delete;
+    ~GeoIncrementalLinearElasticInterfaceLaw() override                              = default;
+    GeoIncrementalLinearElasticInterfaceLaw(const GeoIncrementalLinearElasticInterfaceLaw&)            = delete;
+    GeoIncrementalLinearElasticInterfaceLaw& operator=(const GeoIncrementalLinearElasticInterfaceLaw&) = delete;
+    GeoIncrementalLinearElasticInterfaceLaw(GeoIncrementalLinearElasticInterfaceLaw&&)                 = delete;
+    GeoIncrementalLinearElasticInterfaceLaw& operator=(GeoIncrementalLinearElasticInterfaceLaw&&)      = delete;
 
     [[nodiscard]] Pointer  Clone() const override;
     SizeType               WorkingSpaceDimension() override;

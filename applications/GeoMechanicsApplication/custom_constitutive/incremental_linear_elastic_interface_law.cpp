@@ -11,7 +11,7 @@
 //                   Anne van de Graaf
 //
 
-#include "incremental_elastic_interface_law.h"
+#include "incremental_linear_elastic_interface_law.h"
 #include "custom_geometries/line_interface_geometry.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_constants.h"
@@ -20,22 +20,22 @@
 namespace Kratos
 {
 
-ConstitutiveLaw::Pointer GeoIncrementalElasticInterfaceLaw::Clone() const
+ConstitutiveLaw::Pointer GeoIncrementalLinearElasticInterfaceLaw::Clone() const
 {
-    return std::make_shared<GeoIncrementalElasticInterfaceLaw>(mConstitutiveLawDimension->Clone());
+    return std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(mConstitutiveLawDimension->Clone());
 }
 
-ConstitutiveLaw::SizeType GeoIncrementalElasticInterfaceLaw::WorkingSpaceDimension()
+ConstitutiveLaw::SizeType GeoIncrementalLinearElasticInterfaceLaw::WorkingSpaceDimension()
 {
     return mConstitutiveLawDimension->GetDimension();
 }
 
-ConstitutiveLaw::SizeType GeoIncrementalElasticInterfaceLaw::GetStrainSize() const
+ConstitutiveLaw::SizeType GeoIncrementalLinearElasticInterfaceLaw::GetStrainSize() const
 {
     return mConstitutiveLawDimension->GetStrainSize();
 }
 
-Vector& GeoIncrementalElasticInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
+Vector& GeoIncrementalLinearElasticInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == STRAIN) {
         rValue = mPreviousRelativeDisplacement;
@@ -48,7 +48,7 @@ Vector& GeoIncrementalElasticInterfaceLaw::GetValue(const Variable<Vector>& rThi
     return rValue;
 }
 
-Matrix& GeoIncrementalElasticInterfaceLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+Matrix& GeoIncrementalLinearElasticInterfaceLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                                                                 const Variable<Matrix>& rThisVariable,
                                                                 Matrix& rValue)
 {
@@ -63,14 +63,14 @@ Matrix& GeoIncrementalElasticInterfaceLaw::CalculateValue(ConstitutiveLaw::Param
     return rValue;
 }
 
-ConstitutiveLaw::StressMeasure GeoIncrementalElasticInterfaceLaw::GetStressMeasure()
+ConstitutiveLaw::StressMeasure GeoIncrementalLinearElasticInterfaceLaw::GetStressMeasure()
 {
     return ConstitutiveLaw::StressMeasure_Cauchy;
 }
 
-bool GeoIncrementalElasticInterfaceLaw::IsIncremental() { return true; }
+bool GeoIncrementalLinearElasticInterfaceLaw::IsIncremental() { return true; }
 
-void GeoIncrementalElasticInterfaceLaw::InitializeMaterial(const Properties&,
+void GeoIncrementalLinearElasticInterfaceLaw::InitializeMaterial(const Properties&,
                                                                  const ConstitutiveLaw::GeometryType&,
                                                                  const Vector&)
 {
@@ -80,7 +80,7 @@ void GeoIncrementalElasticInterfaceLaw::InitializeMaterial(const Properties&,
         HasInitialState() ? GetInitialState().GetInitialStressVector() : ZeroVector{GetStrainSize()};
 }
 
-void GeoIncrementalElasticInterfaceLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void GeoIncrementalLinearElasticInterfaceLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     rValues.GetStressVector() =
         mPreviousTraction +
@@ -90,15 +90,15 @@ void GeoIncrementalElasticInterfaceLaw::CalculateMaterialResponseCauchy(Constitu
              rValues.GetStrainVector() - mPreviousRelativeDisplacement);
 }
 
-bool GeoIncrementalElasticInterfaceLaw::RequiresInitializeMaterialResponse() { return false; }
+bool GeoIncrementalLinearElasticInterfaceLaw::RequiresInitializeMaterialResponse() { return false; }
 
-void GeoIncrementalElasticInterfaceLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void GeoIncrementalLinearElasticInterfaceLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     mPreviousRelativeDisplacement = rValues.GetStrainVector();
     mPreviousTraction             = rValues.GetStressVector();
 }
 
-int GeoIncrementalElasticInterfaceLaw::Check(const Properties& rMaterialProperties,
+int GeoIncrementalLinearElasticInterfaceLaw::Check(const Properties& rMaterialProperties,
                                                    const ConstitutiveLaw::GeometryType& rElementGeometry,
                                                    const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -121,14 +121,14 @@ int GeoIncrementalElasticInterfaceLaw::Check(const Properties& rMaterialProperti
     return result;
 }
 
-void GeoIncrementalElasticInterfaceLaw::save(Serializer& rSerializer) const
+void GeoIncrementalLinearElasticInterfaceLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
     rSerializer.save("PreviousRelativeDisplacement", mPreviousRelativeDisplacement);
     rSerializer.save("PreviousTraction", mPreviousTraction);
 }
 
-void GeoIncrementalElasticInterfaceLaw::load(Serializer& rSerializer)
+void GeoIncrementalLinearElasticInterfaceLaw::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
     rSerializer.load("PreviousRelativeDisplacement", mPreviousRelativeDisplacement);

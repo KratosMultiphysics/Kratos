@@ -114,7 +114,7 @@
 #include "custom_elements/geo_cr_beam_element_linear_2D2N.hpp"
 
 // constitutive models
-#include "custom_constitutive/incremental_elastic_interface_law.h"
+#include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
 #include "custom_constitutive/linear_elastic_2D_beam_law.h"
@@ -1008,7 +1008,7 @@ private:
     const LinearElastic2DBeamLaw       mLinearElastic2DBeamLaw;
     const TrussBackboneConstitutiveLaw mTrussBackboneConstitutiveLaw;
 
-    const GeoIncrementalElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfaceLinearStrain>()};
+    const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfaceLinearStrain>()};
 
     const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff2D{std::make_unique<PlaneStrain>()};
     const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff3D{std::make_unique<ThreeDimensional>()};
