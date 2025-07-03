@@ -20,6 +20,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/triangle_3d_6.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -318,7 +319,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValues
     // Note that the shape function values are evaluated per nodal pair!
     Vector expected_result{2};
     expected_result <<= 0.25, 0.75;
-    KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, 1e-6)
+    KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValuesAtPosition_ForThreePlusThreeNodedGeometry,
@@ -333,7 +334,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValues
     // Note that the shape function values are evaluated per nodal pair!
     Vector expected_result{3};
     expected_result <<= -0.125, 0.375, 0.75;
-    KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, 1e-6)
+    KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPosition_ForTwoPlusTwoNodedGeometry,
@@ -347,7 +348,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPos
 
     Matrix expected_result(2, 1);
     expected_result <<= -0.5, 0.5;
-    KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, 1e-6)
+    KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPosition_ForThreePlusThreeNodedGeometry,
@@ -361,7 +362,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPos
 
     Matrix expected_result(3, 1);
     expected_result <<= 0.0, 1.0, -1.0;
-    KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, 1e-6)
+    KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForTwoPlusTwoNodedGeometry,
@@ -375,7 +376,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForTwoPlusTwo
 
     Matrix expected_result(2, 1);
     expected_result <<= 3.25, 0.0;
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(result, expected_result, 1e-6)
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(result, expected_result, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForThreePlusThreeNodedGeometry,
@@ -389,7 +390,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForThreePlusT
 
     Matrix expected_result(2, 1);
     expected_result <<= 3.0, -0.1;
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(result, expected_result, 1e-6)
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(result, expected_result, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_ForTwoPlusTwoNodedGeometry,
@@ -398,7 +399,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_
     const auto geometry = CreateTwoPlusTwoNoded2DLineInterfaceGeometry();
     const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
-    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DeterminantOfJacobian(xi), 3.25, 1e-6)
+    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DeterminantOfJacobian(xi), 3.25, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_ForThreePlusThreeNodedGeometry,
@@ -407,7 +408,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectDeterminantOfJacobian_
     const auto geometry = CreateThreePlusThreeNoded2DLineInterfaceGeometry();
     const auto xi       = array_1d<double, 3>{0.5, 0.0, 0.0};
 
-    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DeterminantOfJacobian(xi), std::sqrt(9.01), 1e-6)
+    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DeterminantOfJacobian(xi), std::sqrt(9.01), Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectWorkingSpaceDimension, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -427,59 +428,40 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingInverseJacobian, K
         "Inverse of Jacobian is not implemented for the interface geometry")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoLineInterfaceGeometry_LengthReturnsTheLengthOfUnderlyingLineGeometry,
+KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoLineInterfaceGeometry_LengthDomainSizeAndAreaReturnTheLengthOfUnderlyingLineGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateTwoPlusTwoNoded2DLineInterfaceGeometry();
 
     constexpr auto expected_length = 6.5;
-    KRATOS_EXPECT_RELATIVE_NEAR(geometry.Length(), expected_length, 1e-6)
+    KRATOS_EXPECT_RELATIVE_NEAR(geometry.Length(), expected_length, Defaults::relative_tolerance)
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.DomainSize(), geometry.Length());
+
+    // The underlying line geometry defines the area to be the same as the length.
+    // Although this might be counterintuitive, this behavior propagates to the
+    // interface geometry.
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.Area(), geometry.Length());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeNodedLineInterfaceGeometry_LengthReturnsTheLengthOfUnderlyingLineGeometry,
+KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeNodedLineInterfaceGeometry_LengthDomainSizeAndAreaReturnTheLengthOfUnderlyingLineGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateThreePlusThreeNoded2DLineInterfaceGeometry();
 
     // This number was not calculated by hand, meaning this unit test is a regression test.
     constexpr auto expected_length = 6.504159;
-    KRATOS_EXPECT_RELATIVE_NEAR(geometry.Length(), expected_length, 1e-6)
-}
-
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CalculatedArea_IsTheSameAsTheLength, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto geometry = CreateThreePlusThreeNoded2DLineInterfaceGeometry();
+    KRATOS_EXPECT_RELATIVE_NEAR(geometry.Length(), expected_length, Defaults::relative_tolerance)
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.DomainSize(), geometry.Length());
     KRATOS_EXPECT_DOUBLE_EQ(geometry.Area(), geometry.Length());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_GivesCorrectArea_ForPlanarMidGeometry, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeNodedPlanarInterfaceGeometry_AreaAndDomainSizeReturnsTheAreaOfUnderlyingLineGeometry,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = CreateThreePlusThreeNoded3DPlanarInterfaceGeometry();
+
     KRATOS_EXPECT_DOUBLE_EQ(geometry.Area(), 0.5);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoNodedLineInterfaceGeometry_DomainSizeReturnsTheLengthOfUnderlyingLineGeometry,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto geometry = CreateTwoPlusTwoNoded2DLineInterfaceGeometry();
-
-    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DomainSize(), geometry.Length(), 1e-6)
-}
-
-KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeNodedLineInterfaceGeometry_DomainSizeReturnsTheLengthOfUnderlyingLineGeometry,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto geometry = CreateThreePlusThreeNoded2DLineInterfaceGeometry();
-
-    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DomainSize(), geometry.Length(), 1e-6)
-}
-
-KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeNodedPlanarInterfaceGeometry_DomainSizeReturnsTheAreaOfUnderlyingLineGeometry,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto geometry = CreateThreePlusThreeNoded3DPlanarInterfaceGeometry();
-
-    KRATOS_EXPECT_RELATIVE_NEAR(geometry.DomainSize(), geometry.Area(), 1e-6)
+    KRATOS_EXPECT_DOUBLE_EQ(geometry.DomainSize(), geometry.Area());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GlobalCoordinatesAreCorrectlyMappedToLocalCoordinate_ForTwoPlusTwoNodedLineInterfaceGeometry,
@@ -492,7 +474,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalCoordinatesAreCorrectlyMappedToLocalCoordinate_F
     result                     = geometry.PointLocalCoordinates(result, global_position);
 
     const auto expected_result = array_1d<double, 3>{0.5, 0.0, 0.0};
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(result, expected_result, 1e-6)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(result, expected_result, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GlobalCoordinatesAreCorrectlyMappedToLocalCoordinate_ForThreePlusThreeNodedLineInterfaceGeometry,
@@ -505,7 +487,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalCoordinatesAreCorrectlyMappedToLocalCoordinate_F
     result                     = geometry.PointLocalCoordinates(result, global_position);
 
     const auto expected_result = array_1d<double, 3>{0.5, 0.0, 0.0};
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(result, expected_result, 1e-6)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(result, expected_result, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GetLocalCoordinatesOfAllNodesOfThreePlusThreeNodedLineInterfaceGeometry,
@@ -518,7 +500,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetLocalCoordinatesOfAllNodesOfThreePlusThreeNodedLine
 
     Matrix expected_result{3, 1};
     expected_result <<= -1.0, 1.0, 0.0;
-    KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, 1e-6)
+    KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoLineInterfaceGeometryHasTwoEdgesWithOppositeOrientations,
