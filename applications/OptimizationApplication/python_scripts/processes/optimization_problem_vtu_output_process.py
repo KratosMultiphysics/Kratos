@@ -182,18 +182,25 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
         # get all the component names at the first writing point
         if len(self.list_of_component_names) == 1 and self.list_of_component_names[0] == "all":
             self.list_of_component_names = GetAllComponentFullNamesWithData(self.optimization_problem)
+        #raise RuntimeError(f"Component names:{self.list_of_component_names}")
 
         list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]' = []
         for component_name in self.list_of_component_names:
             list_of_components.append(GetComponentHavingDataByFullName(component_name, self.optimization_problem))
+        #raise RuntimeError(f"List of components: {list_of_components}")
 
         global_values_map = self.optimization_problem.GetProblemDataContainer().GetMap()
+        #raise RuntimeError(f"Global values map: {global_values_map}")
         for global_k, global_v in global_values_map.items():
              # first check whether this is part of requested list of components
             found_valid_component = False
             for component in list_of_components:
                 component_data = ComponentDataView(component, self.optimization_problem)
+                print(f"CHECKED COMPONENT: {component}")
                 if global_k.startswith(component_data.GetDataPath()):
+                     print(f"VALIDATED COMPONENT: {component}")
+                     if component == "algorithm":
+                         print("_____________________________________________________________")
                      found_valid_component = True
                      break
 
@@ -204,8 +211,12 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
                    isinstance(global_v, Kratos.Expression.ElementExpression):
                     self._AddContainerExpression(ContainerExpressionData(global_k, global_v))
                 elif isinstance(global_v, KratosOA.CollectiveExpression):
+                    print("***********************************************************************")
                     for i, _ in enumerate(global_v.GetContainerExpressions()):
+                        print(f"{global_v.GetContainerExpressions()}")
+                        #raise RuntimeError(f"SIIN ON MIDAGI LISATUD: {CollectiveExpressionData(global_k, global_v, i)}")
                         self._AddContainerExpression(CollectiveExpressionData(global_k, global_v, i))
+                        print("FIRST IS WRITTEN")
 
     def _AddContainerExpression(self, expression_data: ExpressionData):
         found_vtu_output = False
