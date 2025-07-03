@@ -56,7 +56,9 @@ public:
         return static_cast<std::size_t>(mpModelPart->GetProcessInfo()[STEP]);
     }
 
-    [[nodiscard]] ModelPart& GetModelPart() override { return *mpModelPart; }
+    [[nodiscard]] ModelPart& GetModelPart() override {
+        ++mCountGetModelPartCalled;
+        return *mpModelPart; }
 
     void IncrementStepNumber() override { ++mpModelPart->GetProcessInfo()[STEP]; }
 
@@ -67,6 +69,11 @@ public:
     void RestorePositionsAndDOFVectorToStartOfStep() override { mIsRestoreCalled = true; }
 
     [[nodiscard]] bool IsRestoreCalled() const { return mIsRestoreCalled; }
+
+    [[nodiscard]] std::size_t GetCountGetModelPartCalled() const
+    {
+        return mCountGetModelPartCalled;
+    }
 
     void OutputProcess() override
     {
@@ -129,6 +136,7 @@ private:
     bool                  mIsCloned                                    = false;
     bool                  mIsRestoreCalled                             = false;
     std::size_t           mCountInitializeOutputCalled                 = 0;
+	std::size_t           mCountGetModelPartCalled                     = 0;
     std::size_t           mCountOutputProcessCalled                    = 0;
     std::size_t           mCountFinalizeSolutionStepCalled             = 0;
     std::size_t           mCountFinalizeOutputCalled                   = 0;
@@ -296,6 +304,14 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectRestoreCalledForTwoCycles, KratosGeoMechanicsFas
 
     KRATOS_EXPECT_TRUE(solver_strategy->IsRestoreCalled())
 }
+
+KRATOS_TEST_CASE_IN_SUITE(ExpectGetModelPartForEveryStep, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto solver_strategy = RunFixedCycleTimeLoop(1);
+
+    KRATOS_EXPECT_EQ(2, solver_strategy->GetCountGetModelPartCalled());
+}
+
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectOutputProcessCalledForEveryStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {

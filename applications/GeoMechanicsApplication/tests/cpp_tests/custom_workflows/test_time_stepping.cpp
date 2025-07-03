@@ -47,7 +47,7 @@ public:
     MOCK_METHOD(double, GetTimeIncrement, (), (const, override));
     MOCK_METHOD(void, SetTimeIncrement, (double TimeIncrement), (override));
     MOCK_METHOD(std::size_t, GetStepNumber, (), (const, override));
-	MOCK_METHOD(ModelPart&, GetModelPart, (), (override));
+    MOCK_METHOD(ModelPart&, GetModelPart, (), (override));
     MOCK_METHOD(void, IncrementStepNumber, (), (override));
     MOCK_METHOD(void, CloneTimeStep, (), (override));
     MOCK_METHOD(void, RestorePositionsAndDOFVectorToStartOfStep, (), (override));
