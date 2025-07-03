@@ -250,12 +250,7 @@ class GeotechTestUI:
         )
         self.test_type_menu.pack(anchor="w", padx=10, pady=(0, 10))
 
-        def on_select(event):
-            if self.test_type_var.get() == "Undrained":
-                self.test_type_var.set("Drained")
-                log_message("Undrained test is not yet available.", "warn")
-
-        self.test_type_menu.bind("<<ComboboxSelected>>", on_select)
+        self.test_type_menu.bind("<<ComboboxSelected>>")
 
     def _run_simulation(self):
         try:
