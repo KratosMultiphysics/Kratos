@@ -23,10 +23,10 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
+#include "custom_utilities/registration_utilities.h"
 #include <boost/numeric/ublas/assignment.hpp>
 #include <sstream>
 #include <string>
-#include "custom_utilities/registration_utilities.h"
 
 using namespace Kratos;
 using namespace std::string_literals;
@@ -69,7 +69,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesUsesCauchyStressMeasure, 
     KRATOS_EXPECT_EQ(law.GetStressMeasure(), ConstitutiveLaw::StressMeasure_Cauchy);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesUsesCauchyStressMeasurein3D, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesUsesCauchyStressMeasureForPlane,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto law = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
 
@@ -403,7 +404,8 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncr
                                        expected_relative_displacement, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncrementForPlane, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncrementForPlane,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto law_parameters        = ConstitutiveLaw::Parameters{};
     auto relative_displacement = Vector{ZeroVector{3}};
@@ -438,7 +440,8 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncr
         30.0 + (5.3 - 5.0) * 10.0 + (5.6 - 5.3) * 10.0, 30.0 + (5.5 - 5.0) * 10.0 + (6.0 - 5.5) * 10.0;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStressVector(), expected_traction, Defaults::relative_tolerance)
     auto expected_relative_displacement = Vector{3};
-    expected_relative_displacement <<= 5.0 + (5.1 - 5.0) + (5.2 - 5.1), 5.0 + (5.3 - 5.0) + (5.6 - 5.3),  5.0 + (5.5 - 5.0) + (6.0 - 5.5);
+    expected_relative_displacement <<= 5.0 + (5.1 - 5.0) + (5.2 - 5.1),
+        5.0 + (5.3 - 5.0) + (5.6 - 5.3), 5.0 + (5.5 - 5.0) + (6.0 - 5.5);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStrainVector(),
                                        expected_relative_displacement, Defaults::relative_tolerance)
 }
@@ -466,8 +469,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
     law_parameters.SetStressVector(traction);
     law.FinalizeMaterialResponseCauchy(law_parameters);
 
-    const auto scoped_registration_law = ScopedSerializerRegistration{
-        "InterfaceLinearStrain"s, InterfaceLinearStrain{}};
+    const auto scoped_registration_law =
+        ScopedSerializerRegistration{"InterfaceLinearStrain"s, InterfaceLinearStrain{}};
     auto       serializer = Serializer{new std::stringstream{}};
     const auto tag        = "test_tag"s;
     serializer.save(tag, law);
@@ -510,8 +513,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
     law_parameters.SetStressVector(traction);
     law.FinalizeMaterialResponseCauchy(law_parameters);
 
-    const auto scoped_registration_law = ScopedSerializerRegistration{
-        "InterfacePlaneStrain"s, InterfacePlaneStrain{}};
+    const auto scoped_registration_law =
+        ScopedSerializerRegistration{"InterfacePlaneStrain"s, InterfacePlaneStrain{}};
     auto       serializer = Serializer{new std::stringstream{}};
     const auto tag        = "test_tag"s;
     serializer.save(tag, law);

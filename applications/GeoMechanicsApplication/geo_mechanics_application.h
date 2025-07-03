@@ -118,6 +118,7 @@
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
 #include "custom_constitutive/interface_linear_strain.h"
+#include "custom_constitutive/interface_plane_strain.h"
 #include "custom_constitutive/linear_elastic_2D_beam_law.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
@@ -1010,6 +1011,8 @@ private:
 
     const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw{
         std::make_unique<InterfaceLinearStrain>()};
+    const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLawPlane{
+        std::make_unique<InterfacePlaneStrain>()};
 
     const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff2D{std::make_unique<PlaneStrain>()};
     const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff3D{std::make_unique<ThreeDimensional>()};
