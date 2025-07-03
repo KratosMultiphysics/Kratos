@@ -860,7 +860,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             residual_norm[i_size] = 0.0;
         }
 
-        block_for_each(mDestinationModelPart.Nodes(), [&](NodeType& rNode) {
+        block_for_each(mDestinationModelPart.Nodes(), [&](Node& rNode) {
             if(mOptions.Is(DESTINATION_IS_HISTORICAL)) {
                 MortarUtilities::AddAreaWeightedNodalValue<TVarType, MortarUtilitiesSettings::SaveAsHistoricalVariable>(rNode, *mpDestinationVariable, ref_area);
             } else {
