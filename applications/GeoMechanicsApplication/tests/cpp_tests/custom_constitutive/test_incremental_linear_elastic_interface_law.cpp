@@ -21,6 +21,7 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 #include "custom_constitutive/interface_linear_strain.h"
+#include "custom_constitutive/interface_plane_strain.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <sstream>
@@ -39,6 +40,13 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesHas2DWorkingSpace, Kratos
     KRATOS_EXPECT_EQ(law.WorkingSpaceDimension(), 2);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesHas3DWorkingSpace, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto law = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
+
+    KRATOS_EXPECT_EQ(law.WorkingSpaceDimension(), 3);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesHasStrainSizeOfTwo, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto law = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfaceLinearStrain>()};
@@ -46,9 +54,23 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesHasStrainSizeOfTwo, Krato
     KRATOS_EXPECT_EQ(law.GetStrainSize(), 2);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesHasStrainSizeOfThree, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto law = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
+
+    KRATOS_EXPECT_EQ(law.GetStrainSize(), 3);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesUsesCauchyStressMeasure, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto law = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfaceLinearStrain>()};
+
+    KRATOS_EXPECT_EQ(law.GetStressMeasure(), ConstitutiveLaw::StressMeasure_Cauchy);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesUsesCauchyStressMeasurein3D, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto law = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
 
     KRATOS_EXPECT_EQ(law.GetStressMeasure(), ConstitutiveLaw::StressMeasure_Cauchy);
 }
