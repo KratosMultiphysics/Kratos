@@ -166,12 +166,22 @@ class GeoMechanicsAnalysis(AnalysisStage):
                 raise RuntimeError('The maximum number of cycles is reached without convergence!')
 
             if self._GetSolver().settings["solver_type"].GetString() == "U_Pw":
-                KratosGeo.CalculateIncrementalDisplacementProcess(
-                    self._GetSolver().GetComputingModelPart(), Kratos.Parameters()).Execute()
+                KratosGeo.CalculateIncrementalMotionProcess(
+                    self._GetSolver().GetComputingModelPart(),
+                    Kratos.Parameters("""{"variable_name": "DISPLACEMENT"}""")).Execute()
 
                 KratosGeo.CalculateTotalMotionProcess(
                     self._GetSolver().GetComputingModelPart(),
                     Kratos.Parameters("""{"variable_name": "DISPLACEMENT"}""")).Execute()
+
+                if self._GetSolver().settings["rotation_dofs"].GetBool():
+                    KratosGeo.CalculateIncrementalMotionProcess(
+                        self._GetSolver().GetComputingModelPart(),
+                        Kratos.Parameters("""{"variable_name": "ROTATION"}""")).Execute()
+
+                    KratosGeo.CalculateTotalMotionProcess(
+                        self._GetSolver().GetComputingModelPart(),
+                        Kratos.Parameters("""{"variable_name": "ROTATION"}""")).Execute()
 
 
             self.FinalizeSolutionStep()

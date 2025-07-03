@@ -17,7 +17,7 @@
 #include <memory>
 #include <vector>
 
-#include "custom_processes/calculate_incremental_displacement_process.h"
+#include "custom_processes/calculate_incremental_motion_process.h"
 #include "custom_processes/calculate_total_motion_process.h"
 #include "scoped_output_file_access.h"
 #include "strategy_wrapper.hpp"
@@ -68,7 +68,7 @@ public:
         ScopedOutputFileAccess        limit_output_file_access_to_this_scope{*mStrategyWrapper};
 
         auto incremental_displacement_process =
-            CalculateIncrementalDisplacementProcess(mStrategyWrapper->GetModelPart(), {});
+            CalculateIncrementalMotionProcess(mStrategyWrapper->GetModelPart(), Parameters(R"({"variable_name": "DISPLACEMENT"})"));
 
         auto total_displacement_process = CalculateTotalMotionProcess(
             mStrategyWrapper->GetModelPart(), Parameters(R"({"variable_name": "DISPLACEMENT"})"));

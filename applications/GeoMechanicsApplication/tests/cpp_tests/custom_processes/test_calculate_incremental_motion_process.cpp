@@ -10,7 +10,7 @@
 //  Main authors:    Aron Noordam
 //
 
-#include "custom_processes/calculate_incremental_displacement_process.h"
+#include "custom_processes/calculate_incremental_motion_process.h"
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
@@ -19,7 +19,7 @@ namespace Kratos::Testing
 
 using namespace Kratos;
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalDisplacementProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalMotionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // set up model part
     Model model;
@@ -46,7 +46,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalDisplacementProcess, KratosGeoMech
     p_node_2->FastGetSolutionStepValue(DISPLACEMENT, 1) = Kratos::array_1d<double, 3>{11.0, 8.0, 14.0};
 
     // initialize process to be tested
-    auto process = CalculateIncrementalDisplacementProcess(r_model_part, {});
+	auto process = CalculateIncrementalDisplacementProcess(r_model_part, Parameters(R"({"variable_name": "DISPLACEMENT"})"));
     process.Execute();
 
     const auto expected_incremental_displacement_1 = Kratos::array_1d<double, 3>{-3.0, -3.0, -3.0};
