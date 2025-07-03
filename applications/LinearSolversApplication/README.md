@@ -219,7 +219,7 @@ source /opt/intel/oneapi/setvars.sh intel64
 
 Install the *SuiteSparse* package on your system, and set the `USE_EIGEN_SUITESPARSE` flag in your *CMake* configuration to `ON`. One way of doing this is appending the list of arguments you pass to *CMake* in your configure script with:
 ```bash
--DUSE_EIGEN_SUITESPARSE
+-DUSE_EIGEN_SUITESPARSE:BOOL=ON
 ```
 
 ### Installing *SuiteSparse*
