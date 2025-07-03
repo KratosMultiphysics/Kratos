@@ -26,6 +26,7 @@
 #include <boost/numeric/ublas/assignment.hpp>
 #include <sstream>
 #include <string>
+#include "custom_utilities/registration_utilities.h"
 
 using namespace Kratos;
 using namespace std::string_literals;
@@ -240,7 +241,7 @@ KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplace
     KRATOS_EXPECT_VECTOR_NEAR(value, zero_vector, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplacementAndZeroTractionIn3D,
+KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplacementAndZeroTractionForPlane,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto law = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
@@ -279,7 +280,7 @@ KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialIn
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, initial_traction, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialInitializationIn3D,
+KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialInitializationForPlane,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto law = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
@@ -337,7 +338,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelat
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStressVector(), expected_traction, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelativeDisplacementAndStiffnessIn3D,
+KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelativeDisplacementAndStiffnessForPlane,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto law_parameters        = ConstitutiveLaw::Parameters{};
@@ -425,11 +426,57 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
     law_parameters.SetStressVector(traction);
     law.FinalizeMaterialResponseCauchy(law_parameters);
 
+    const auto scoped_registration_law = ScopedSerializerRegistration{
+        "InterfaceLinearStrain"s, InterfaceLinearStrain{}};
     auto       serializer = Serializer{new std::stringstream{}};
     const auto tag        = "test_tag"s;
     serializer.save(tag, law);
 
-    auto restored_law = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfaceLinearStrain>()};
+    auto restored_law = GeoIncrementalLinearElasticInterfaceLaw{nullptr};
+    serializer.load(tag, restored_law);
+
+    auto value = Vector{};
+    restored_law.GetValue(STRAIN, value);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, relative_displacement, Defaults::relative_tolerance)
+    restored_law.GetValue(CAUCHY_STRESS_VECTOR, value);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, traction, Defaults::relative_tolerance)
+    KRATOS_EXPECT_TRUE(restored_law.HasInitialState())
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(restored_law.GetInitialState().GetInitialStrainVector(),
+                                       initial_relative_displacement, Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(restored_law.GetInitialState().GetInitialStressVector(),
+                                       initial_traction, Defaults::relative_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFromASerializerForPlane,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto law = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
+    const auto initial_relative_displacement = Vector{ScalarVector{3, 0.5}};
+    const auto initial_traction              = Vector{ScalarVector{3, 30.0}};
+    auto p_initial_state = make_intrusive<InitialState>(initial_relative_displacement, initial_traction);
+    law.SetInitialState(p_initial_state);
+
+    const auto dummy_properties            = Properties{};
+    const auto dummy_geometry              = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(dummy_properties, dummy_geometry, dummy_shape_function_values);
+
+    auto law_parameters        = ConstitutiveLaw::Parameters{};
+    auto relative_displacement = Vector{3};
+    relative_displacement <<= 0.1, 0.3, 0.5;
+    law_parameters.SetStrainVector(relative_displacement);
+    auto traction = Vector{3};
+    traction <<= 20.0, 45.0, 45.0;
+    law_parameters.SetStressVector(traction);
+    law.FinalizeMaterialResponseCauchy(law_parameters);
+
+    const auto scoped_registration_law = ScopedSerializerRegistration{
+        "InterfacePlaneStrain"s, InterfacePlaneStrain{}};
+    auto       serializer = Serializer{new std::stringstream{}};
+    const auto tag        = "test_tag"s;
+    serializer.save(tag, law);
+
+    auto restored_law = GeoIncrementalLinearElasticInterfaceLaw{nullptr};
     serializer.load(tag, restored_law);
 
     auto value = Vector{};
