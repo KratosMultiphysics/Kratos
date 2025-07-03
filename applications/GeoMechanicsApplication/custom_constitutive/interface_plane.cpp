@@ -22,7 +22,7 @@ namespace Kratos
 Matrix InterfacePlane::CalculateElasticMatrix(double YoungsModulus, double PoissonsRatio) const
 {
     KRATOS_ERROR << "InterfacePlane::CalculateElasticMatrix is not yet implemented";
-    return ZeroMatrix(4, 4);
+    return ZeroMatrix(4, 4);// NOSONAR: required to satisfy return type
 }
 
 std::unique_ptr<ConstitutiveLawDimension> InterfacePlane::Clone() const
@@ -37,13 +37,13 @@ std::size_t InterfacePlane::GetDimension() const { return N_DIM_2D; }
 std::size_t InterfacePlane::GetNumberOfNormalComponents() const
 {
     KRATOS_ERROR << "InterfacePlane::GetNumberOfNormalComponents is not yet implemented";
-    return 3;
+    return 3;// NOSONAR: required to satisfy return type
 }
 
 Flags InterfacePlane::GetSpatialType() const
 {
     KRATOS_ERROR << "InterfacePlane::GetSpatialType is not yet implemented";
-    return ConstitutiveLaw::PLANE_STRAIN_LAW;
+    return ConstitutiveLaw::PLANE_STRAIN_LAW;// NOSONAR: required to satisfy return type
 }
 
 void InterfacePlane::save(Serializer&) const

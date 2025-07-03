@@ -22,7 +22,7 @@ namespace Kratos
 Matrix InterfaceThreeDimensional::CalculateElasticMatrix(double YoungsModulus, double PoissonsRatio) const
 {
     KRATOS_ERROR << "InterfaceThreeDimensional::CalculateElasticMatrix is not yet implemented";
-    return ZeroMatrix(4, 4);
+    return ZeroMatrix(4, 4);// NOSONAR: required to satisfy return type
 }
 
 std::unique_ptr<ConstitutiveLawDimension> InterfaceThreeDimensional::Clone() const
@@ -37,13 +37,13 @@ std::size_t InterfaceThreeDimensional::GetDimension() const { return N_DIM_3D; }
 std::size_t InterfaceThreeDimensional::GetNumberOfNormalComponents() const
 {
     KRATOS_ERROR << "InterfaceThreeDimensional::GetNumberOfNormalComponents is not yet implemented";
-    return 3;
+    return 3;// NOSONAR: required to satisfy return type
 }
 
 Flags InterfaceThreeDimensional::GetSpatialType() const
 {
     KRATOS_ERROR << "InterfaceThreeDimensional::GetSpatialType is not yet implemented";
-    return ConstitutiveLaw::PLANE_STRAIN_LAW;
+    return ConstitutiveLaw::PLANE_STRAIN_LAW;// NOSONAR: required to satisfy return type
 }
 
 void InterfaceThreeDimensional::save(Serializer&) const
