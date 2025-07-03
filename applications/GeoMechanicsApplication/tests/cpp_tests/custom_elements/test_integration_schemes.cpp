@@ -64,52 +64,52 @@ double SumOfWeights(const Geo::IntegrationPointVectorType& rIntegrationPoints)
 }
 
 void ExpectLocalCoordinatesIncludeRangeBounds(const Geo::IntegrationPointVectorType& rIntegrationPoints,
-                                              double      iso_lower_bound,
-                                              double      iso_upper_bound,
-                                              std::size_t direction_index)
+                                              double      IsoLowerBound,
+                                              double      IsoUpperBound,
+                                              std::size_t DirectionIndex)
 {
     constexpr auto tolerance = 1.0e-6;
 
-    auto is_at_lower_bound_of_iso_coord = [tolerance, iso_lower_bound, direction_index](const auto& rPoint) {
+    auto is_at_lower_bound_of_iso_coord = [tolerance, IsoLowerBound, DirectionIndex](const auto& rPoint) {
         // lower_bound is 0 or a negative number
-        return std::abs(rPoint[direction_index] - iso_lower_bound) <= tolerance;
+        return std::abs(rPoint[DirectionIndex] - IsoLowerBound) <= tolerance;
     };
     KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), is_at_lower_bound_of_iso_coord))
 
-    auto is_at_upper_bound_of_iso_coord = [tolerance, iso_upper_bound, direction_index](const auto& rPoint) {
+    auto is_at_upper_bound_of_iso_coord = [tolerance, IsoUpperBound, DirectionIndex](const auto& rPoint) {
         // upper_bound is 0 or a positive number
-        return std::abs(rPoint[direction_index] - iso_upper_bound) <= tolerance;
+        return std::abs(rPoint[DirectionIndex] - IsoUpperBound) <= tolerance;
     };
     KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), is_at_upper_bound_of_iso_coord))
 }
 
 void ExpectLocalCoordinatesAreInRange(const Geo::IntegrationPointVectorType& rIntegrationPoints,
-                                      double                                 iso_lower_bound,
-                                      double                                 iso_upper_bound,
-                                      std::size_t                            direction_index)
+                                      double                                 IsoLowerBound,
+                                      double                                 IsoUpperBound,
+                                      std::size_t                            DirectionIndex)
 {
     constexpr auto tolerance = 1.0e-6;
 
-    auto iso_coord_is_in_range = [tolerance, iso_lower_bound, iso_upper_bound,
-                                  direction_index](const auto& rPoint) {
-        return rPoint[direction_index] - iso_upper_bound <= tolerance &&
-               iso_lower_bound - rPoint[direction_index] <= tolerance;
+    auto iso_coord_is_in_range = [tolerance, IsoLowerBound, IsoUpperBound,
+                                  DirectionIndex](const auto& rPoint) {
+        return rPoint[DirectionIndex] - IsoUpperBound <= tolerance &&
+               IsoLowerBound - rPoint[DirectionIndex] <= tolerance;
     };
     KRATOS_EXPECT_TRUE(std::all_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), iso_coord_is_in_range))
 }
 
-void ExpectLocalCoordinatesAreZero(const Geo::IntegrationPointVectorType& rIntegrationPoints, const size_t direction_index)
+void ExpectLocalCoordinatesAreZero(const Geo::IntegrationPointVectorType& rIntegrationPoints, const size_t DirectionIndex)
 {
     constexpr auto tolerance = 1.0e-6;
 
-    auto iso_coordinate_must_be_near_zero = [tolerance, direction_index](const auto& rPoint) {
-        return (std::abs(rPoint[direction_index]) <= tolerance);
+    auto iso_coordinate_must_be_near_zero = [tolerance, DirectionIndex](const auto& rPoint) {
+        return (std::abs(rPoint[DirectionIndex]) <= tolerance);
     };
     KRATOS_EXPECT_TRUE(std::all_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), iso_coordinate_must_be_near_zero))
 }
 
-std::vector<double> ComputeWeightsForLumpedIntegration(const size_t number_of_points) {
-    const auto                scheme             = MakeLumpedIntegrationScheme(number_of_points);
+std::vector<double> ComputeWeightsForLumpedIntegration(const size_t NumberOfPoints) {
+    const auto                scheme             = MakeLumpedIntegrationScheme(NumberOfPoints);
     auto                      integration_points = scheme->GetIntegrationPoints();
     std::vector<double>       weights;
     weights.reserve(integration_points.size());
