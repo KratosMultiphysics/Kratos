@@ -55,7 +55,7 @@ Geo::IntegrationPointVectorType LumpedIntegrationScheme::CreateIntegrationPoints
         points.push_back(Node::Pointer(new Node(4, 0.5, 0.0, 0.0)));
         points.push_back(Node::Pointer(new Node(5, 0.5, 0.5, 0.0)));
         points.push_back(Node::Pointer(new Node(6, 0.0, 0.5, 0.0)));
-        auto geom          = Triangle2D6<Node>(points);
+        auto geom            = Triangle2D6<Node>(points);
         auto lumping_factors = Vector{};
         geom.LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::DIAGONAL_SCALING);
         return {{Point(0.0, 0.0), lumping_factors[0]}, {Point(1.0, 0.0), lumping_factors[1]},
@@ -72,7 +72,7 @@ Geo::IntegrationPointVectorType LumpedIntegrationScheme::CreateIntegrationPoints
         points.push_back(Node::Pointer(new Node(6, 1.0, 0.0, 0.0)));
         points.push_back(Node::Pointer(new Node(7, 0.0, 1.0, 0.0)));
         points.push_back(Node::Pointer(new Node(8, -1.0, 0.0, 0.0)));
-        auto geom          = Quadrilateral2D8<Node>(points);
+        auto geom            = Quadrilateral2D8<Node>(points);
         auto lumping_factors = Vector{};
         geom.LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::DIAGONAL_SCALING);
         return {{Point(-1.0, -1.0), lumping_factors[0]}, {Point(1.0, -1.0), lumping_factors[1]},

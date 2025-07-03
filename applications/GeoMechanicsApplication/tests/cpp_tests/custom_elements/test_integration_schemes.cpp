@@ -47,8 +47,8 @@ std::vector<std::size_t> SupportedNumbersOfPointsForQuadrilateralLumpedIntegrati
 
 std::vector<std::size_t> SupportedNumbersOfPointsForLumpedIntegration()
 {
-    auto result = SupportedNumbersOfPointsForTriangleLumpedIntegration();
-    auto sup_quad_num   = SupportedNumbersOfPointsForQuadrilateralLumpedIntegration();
+    auto result       = SupportedNumbersOfPointsForTriangleLumpedIntegration();
+    auto sup_quad_num = SupportedNumbersOfPointsForQuadrilateralLumpedIntegration();
     std::move(sup_quad_num.begin(), sup_quad_num.end(), std::back_inserter(result));
     return result;
 }
