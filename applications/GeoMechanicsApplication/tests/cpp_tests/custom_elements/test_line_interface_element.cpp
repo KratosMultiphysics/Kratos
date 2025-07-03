@@ -44,8 +44,8 @@ std::shared_ptr<Properties> CreateLinearElasticMaterialProperties(double NormalS
     auto result                                  = std::make_shared<Properties>();
     result->GetValue(INTERFACE_NORMAL_STIFFNESS) = NormalStiffness;
     result->GetValue(INTERFACE_SHEAR_STIFFNESS)  = ShearStiffness;
-    result->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(
-        std::make_unique<InterfacePlane>());
+    result->GetValue(CONSTITUTIVE_LAW) =
+        std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlane>());
 
     return result;
 }
