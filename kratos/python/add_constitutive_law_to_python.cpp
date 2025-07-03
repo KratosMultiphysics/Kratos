@@ -101,16 +101,12 @@ void AddConstitutiveLawToPython(pybind11::module& m)
     py::class_< ConstitutiveLaw, ConstitutiveLaw::Pointer , Flags >(m,"ConstitutiveLaw")
         .def(py::init<>() )
         .def("Clone",&ConstitutiveLaw::Clone)
-        // Use py::overload_cast for overloaded C++ functions
         .def("Create", py::overload_cast<Kratos::Parameters>(&ConstitutiveLaw::Create))
         .def("Create", py::overload_cast<Kratos::Parameters, const Properties&>(&ConstitutiveLaw::Create))
         .def("WorkingSpaceDimension",&ConstitutiveLaw::WorkingSpaceDimension)
         .def("GetStrainSize",&ConstitutiveLaw::GetStrainSize)
         .def("GetStressMeasure",&ConstitutiveLaw::GetStressMeasure)
         .def("IsIncremental",&ConstitutiveLaw::IsIncremental)
-        // For methods overloaded on template arguments, py::overload_cast provides a
-        // clean way to specify which C++ function to bind. py::const_ is used to
-        // select the const version of the method.
         .def("Has", py::overload_cast<const Variable<bool>&>(&ConstitutiveLaw::Has, py::const_))
         .def("Has", py::overload_cast<const Variable<int>&>(&ConstitutiveLaw::Has, py::const_))
         .def("Has", py::overload_cast<const Variable<double>&>(&ConstitutiveLaw::Has, py::const_))
@@ -134,7 +130,6 @@ void AddConstitutiveLawToPython(pybind11::module& m)
         .def("CalculateValue", [](ConstitutiveLaw& rCL, ConstitutiveLaw::Parameters& rP, const Variable<array_1d<double,3>>& rVar) { array_1d<double,3> v; rCL.CalculateValue(rP, rVar, v); return v; })
         .def("CalculateValue", [](ConstitutiveLaw& rCL, ConstitutiveLaw::Parameters& rP, const Variable<Vector>& rVar) { Vector v; rCL.CalculateValue(rP, rVar, v); return v; })
         .def("CalculateValue", [](ConstitutiveLaw& rCL, ConstitutiveLaw::Parameters& rP, const Variable<Matrix>& rVar) { Matrix v; rCL.CalculateValue(rP, rVar, v); return v; })
-        // For virtual methods with a simple signature, a direct pointer is sufficient.
         .def("CalculateMaterialResponse", &ConstitutiveLaw::CalculateMaterialResponse)
         .def("CalculateMaterialResponsePK1",&ConstitutiveLaw::CalculateMaterialResponsePK1)
         .def("CalculateMaterialResponsePK2",&ConstitutiveLaw::CalculateMaterialResponsePK2)
