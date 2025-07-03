@@ -17,7 +17,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceLinearStrain : public ConstitutiveLawDimension
+class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfacePlane : public ConstitutiveLawDimension
 {
 public:
     [[nodiscard]] Matrix CalculateElasticMatrix(double YoungsModulus, double PoissonsRatio) const override;
