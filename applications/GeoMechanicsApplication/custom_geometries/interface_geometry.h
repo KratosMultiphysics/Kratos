@@ -267,6 +267,8 @@ private:
         if (std::any_of(points.ptr_begin(), points.ptr_end(), is_null)) {
             // At least one point is not defined, so the points of the mid-geometry can't be
             // computed. As a result, all the mid-geometry points will be undefined.
+            // This happens on element registration: the 'blue-print' element, creates a
+            // geometry with a vector of null pointers to its nodes of the correct length.
             return result;
         }
 

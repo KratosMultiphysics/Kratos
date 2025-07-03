@@ -319,7 +319,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValues
     // Note that the shape function values are evaluated per nodal pair!
     Vector expected_result{2};
     expected_result <<= 0.25, 0.75;
-    KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValuesAtPosition_ForThreePlusThreeNodedGeometry,
@@ -334,7 +334,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValues
     // Note that the shape function values are evaluated per nodal pair!
     Vector expected_result{3};
     expected_result <<= -0.125, 0.375, 0.75;
-    KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPosition_ForTwoPlusTwoNodedGeometry,
@@ -348,7 +348,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPos
 
     Matrix expected_result(2, 1);
     expected_result <<= -0.5, 0.5;
-    KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPosition_ForThreePlusThreeNodedGeometry,
@@ -362,7 +362,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPos
 
     Matrix expected_result(3, 1);
     expected_result <<= 0.0, 1.0, -1.0;
-    KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForTwoPlusTwoNodedGeometry,
@@ -376,7 +376,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForTwoPlusTwo
 
     Matrix expected_result(2, 1);
     expected_result <<= 3.25, 0.0;
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(result, expected_result, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(result, expected_result, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForThreePlusThreeNodedGeometry,
@@ -500,7 +500,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetLocalCoordinatesOfAllNodesOfThreePlusThreeNodedLine
 
     Matrix expected_result{3, 1};
     expected_result <<= -1.0, 1.0, 0.0;
-    KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoLineInterfaceGeometryHasTwoEdgesWithOppositeOrientations,
