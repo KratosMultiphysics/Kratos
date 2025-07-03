@@ -73,23 +73,23 @@ Geo::IntegrationPointVectorType LumpedIntegrationScheme::CreateIntegrationPoints
     // locations coincide with node-pairs, numbering follows the node-pairs too, weights as in lumped mass matrix from diagonal scaling of a surface element ( see geometry.h )
     switch (NumberOfPoints) {
     case 3: {
-        const auto points = std::vector<Point>{Point(0.0, 0.0), Point(1.0, 0.0), Point(0.0, 1.0)};
+        const auto points = std::vector{Point(0.0, 0.0), Point(1.0, 0.0), Point(0.0, 1.0)};
         return MakeLumpedIntegrationPointsVector<Triangle2D3<Node>>(points);
     }
     case 4: {
         const auto points =
-            std::vector<Point>{Point(-1.0, -1.0), Point(1.0, -1.0), Point(1.0, 1.0), Point(-1.0, 1.0)};
+            std::vector{Point(-1.0, -1.0), Point(1.0, -1.0), Point(1.0, 1.0), Point(-1.0, 1.0)};
         return MakeLumpedIntegrationPointsVector<Quadrilateral2D4<Node>>(points);
     }
     case 6: {
-        const auto points = std::vector<Point>{Point(0.0, 0.0), Point(1.0, 0.0), Point(0.0, 1.0),
-                                               Point(0.5, 0.0), Point(0.5, 0.5), Point(0.0, 0.5)};
+        const auto points = std::vector{Point(0.0, 0.0), Point(1.0, 0.0), Point(0.0, 1.0),
+                                        Point(0.5, 0.0), Point(0.5, 0.5), Point(0.0, 0.5)};
         return MakeLumpedIntegrationPointsVector<Triangle2D6<Node>>(points);
     }
     case 8: {
-        const auto points = std::vector<Point>{Point(-1.0, -1.0), Point(1.0, -1.0), Point(1.0, 1.0),
-                                               Point(-1.0, 1.0),  Point(0.0, -1.0), Point(1.0, 0.0),
-                                               Point(0.0, 1.0),   Point(-1.0, 0.0)};
+        const auto points =
+            std::vector{Point(-1.0, -1.0), Point(1.0, -1.0), Point(1.0, 1.0), Point(-1.0, 1.0),
+                        Point(0.0, -1.0),  Point(1.0, 0.0),  Point(0.0, 1.0), Point(-1.0, 0.0)};
         return MakeLumpedIntegrationPointsVector<Quadrilateral2D8<Node>>(points);
     }
     default:
