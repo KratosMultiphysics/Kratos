@@ -99,7 +99,7 @@ public:
     {
         std::visit([&](auto pVariable) {
             auto p_container_io = this->CreateIO(*pVariable, rArgs...);
-            this->InitImpl(this->GetReturnDataShape(*p_container_io, *pContainer), pContainer, p_container_io);
+            this->InitImpl(this->GetDataShape(*p_container_io, *pContainer), pContainer, p_container_io);
         }, pVariable);
     }
 
@@ -170,7 +170,7 @@ private:
     }
 
     template<class TCurrentIOType, class TContainerType>
-    std::vector<unsigned int> GetReturnDataShape(
+    std::vector<unsigned int> GetDataShape(
         const TCurrentIOType& rIO,
         const TContainerType& rContainer)
     {
