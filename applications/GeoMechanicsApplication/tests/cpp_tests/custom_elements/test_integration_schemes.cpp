@@ -148,10 +148,10 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedLobattoSchemesMustBeInRangeAndIncl
         const auto scheme = MakeLobattoIntegrationScheme(number);
 
         ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), -1.0, 1.0, std::size_t{0});
-        ExpectLocalCoordinatesAreZero(scheme->GetIntegrationPoints(), std::size_t{1});
-        ExpectLocalCoordinatesAreZero(scheme->GetIntegrationPoints(), std::size_t{2});
         ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), -1.0, std::size_t{0});
         ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 1.0, std::size_t{0});
+        ExpectLocalCoordinatesAreZero(scheme->GetIntegrationPoints(), std::size_t{1});
+        ExpectLocalCoordinatesAreZero(scheme->GetIntegrationPoints(), std::size_t{2});
     }
 }
 
@@ -215,11 +215,11 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedQuadrilateralLumpedSchemesMustBeIn
 
         ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), -1.0, 1.0, std::size_t{0});
         ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), -1.0, 1.0, std::size_t{1});
-        ExpectLocalCoordinatesAreZero(scheme->GetIntegrationPoints(), std::size_t{2});
         ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), -1.0, std::size_t{0});
         ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 1.0, std::size_t{0});
         ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), -1.0, std::size_t{1});
         ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 1.0, std::size_t{1});
+        ExpectLocalCoordinatesAreZero(scheme->GetIntegrationPoints(), std::size_t{2});
     }
 }
 
@@ -231,11 +231,11 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedTriangleLumpedSchemesMustBeInRange
 
         ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), 0.0, 1.0, std::size_t{0});
         ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), 0.0, 1.0, std::size_t{1});
-        ExpectLocalCoordinatesAreZero(scheme->GetIntegrationPoints(), std::size_t{2});
         ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 0.0, std::size_t{0});
         ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 1.0, std::size_t{0});
         ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 0.0, std::size_t{1});
         ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 1.0, std::size_t{1});
+        ExpectLocalCoordinatesAreZero(scheme->GetIntegrationPoints(), std::size_t{2});
     }
 }
 
