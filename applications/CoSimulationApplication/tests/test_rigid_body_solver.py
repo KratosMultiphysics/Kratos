@@ -548,7 +548,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                         "Parameters": {
                             "model_part_name": "Main.RigidBody",
                             "variable_name": "BODY_FORCE_Y",
-                            "is_fixed": true,
+                            "is_fixed": false,
                             "value": -981
                         }
                     },
@@ -559,7 +559,7 @@ class TestRigidBodySolver(KratosUnittest.TestCase):
                         "Parameters": {
                             "model_part_name": "Main.RigidBody",
                             "variable_name": "BODY_MOMENT_Y",
-                            "is_fixed": true,
+                            "is_fixed": false,
                             "value": -98.1
                         }
                     }
