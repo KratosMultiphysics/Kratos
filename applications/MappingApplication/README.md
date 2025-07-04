@@ -252,6 +252,17 @@ Internally it constructs the mapping matrix, hence it offers the usage of the tr
 
 **Supported mesh topologies**: This mapper only works with nodes and hence supports any mesh topology
 
+#### Nearest Neighbor for IGA scenarios
+
+The NearestNeighborMapperIGA is a simple and robust Mapper for IGA/FEM partitioned simulations. For each node on the FEM side, it finds the closest integration point on the IGA interface.
+During mapping, it evaluates the IGA shape functions at that location to assemble the mapping matrix.
+
+This mapper is suited for cases where the origin domain is discretized with IGA elements and the destination with any node-based discretization technique (e.g., FEM or FCV).
+
+Internally, it constructs the mapping matrix, which also allows the use of its transpose for conservative mapping (e.g., mapping forces from FEM to IGA). In cases of highly inhomogeneous interface discretizations, using the transpose may introduce oscillations in the mapped values.
+
+**Supported mesh topologies**: This mapper operates on nodes and supports any mesh topology. The only requirement is that the origin domain must be the IGA domain; otherwise, the mapping problem is not well defined.
+
 #### Nearest Element
 
 The _NearestElementMapper_ projects nodes to the elements( or conditions) on other side of the interface. Mapping is then done by interpolating the values of the nodes of the elements by using the shape functions at the projected position.
