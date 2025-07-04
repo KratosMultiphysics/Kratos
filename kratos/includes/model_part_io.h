@@ -74,7 +74,7 @@ public:
     using PropertiesContainerType = BaseType::PropertiesContainerType;
 
     /// The geometry map type within ModelPart
-    using GeometriesMapType = BaseType::GeometriesMapType;
+    using GeometryContainerType = BaseType::GeometryContainerType;
 
     /// Alias for the elements container type.
     using ElementsContainerType = BaseType::ElementsContainerType;
@@ -742,7 +742,7 @@ private:
      * @brief Reads geometry data block from the input stream into the given geometries container.
      * @param rThisGeometries Reference to the container of geometries.
      */
-    void ReadGeometryDataBlock(GeometriesMapType& rThisGeometries);
+    void ReadGeometryDataBlock(GeometryContainerType& rThisGeometries);
 
     /**
      * @brief Reads scalar variable data for each geometry in the container.
@@ -751,7 +751,7 @@ private:
      * @param rVariable The scalar variable to read.
      */
     template<class TVariableType>
-    void ReadGeometryScalarVariableData(GeometriesMapType& rThisGeometries, const TVariableType& rVariable);
+    void ReadGeometryScalarVariableData(GeometryContainerType& rThisGeometries, const TVariableType& rVariable);
 
     /**
      * @brief Reads vectorial variable data for each geometry in the container.
@@ -762,7 +762,7 @@ private:
      * @param Dummy Dummy parameter to help with template deduction.
      */
     template<class TVariableType, class TDataType>
-    void ReadGeometryVectorialVariableData(GeometriesMapType& rThisGeometries, const TVariableType& rVariable, TDataType Dummy);
+    void ReadGeometryVectorialVariableData(GeometryContainerType& rThisGeometries, const TVariableType& rVariable, TDataType Dummy);
 
     /**
      * @brief Writes a data block for the specified object container.
