@@ -82,12 +82,12 @@ public:
     VariableTensorAdaptor(
         TContainerPointerType pContainer,
         VariableType pVariable,
-        const std::vector<unsigned int>& rReturnDataShape,
+        const std::vector<unsigned int>& rDataShape,
         TIOArgs&&... rArgs)
     {
         std::visit([&](auto pVariable) {
             auto p_container_io = this->CreateIO(*pVariable, rArgs...);
-            this->InitImpl(rReturnDataShape, pContainer, p_container_io);
+            this->InitImpl(rDataShape, pContainer, p_container_io);
         }, pVariable);
     }
 
@@ -187,20 +187,20 @@ private:
 
     template<class TContainerPointerType, class TCurrentIOPointerType>
     void InitImpl(
-        const std::vector<unsigned int>& rReturnDataShape,
+        const std::vector<unsigned int>& rDataShape,
         TContainerPointerType pContainer,
         TCurrentIOPointerType pIO)
     {
         using return_type = typename TCurrentIOPointerType::element_type::ReturnType;
 
-        KRATOS_ERROR_IF_NOT(DataTypeTraits<return_type>::IsValidShape(rReturnDataShape.begin(), rReturnDataShape.end()))
-            << "Invalid return data shape provided. [ return data shape provided = " << rReturnDataShape
+        KRATOS_ERROR_IF_NOT(DataTypeTraits<return_type>::IsValidShape(rDataShape.begin(), rDataShape.end()))
+            << "Invalid return data shape provided. [ return data shape provided = " << rDataShape
             << ", max possible sizes in each dimension  = "
             << DataTypeTraits<return_type>::Shape(return_type{}) << " ].\n";
 
         // setting the tensor shape
-        this->mShape.resize(rReturnDataShape.size() + 1);
-        std::copy(rReturnDataShape.begin(), rReturnDataShape.end(), this->mShape.begin() + 1);
+        this->mShape.resize(rDataShape.size() + 1);
+        std::copy(rDataShape.begin(), rDataShape.end(), this->mShape.begin() + 1);
         this->mShape[0] = pContainer->size();
 
         this->mpIO = pIO;

@@ -195,29 +195,29 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
     using historical_variable_tensor_adaptor = VariableTensorAdaptor<HistoricalIO, const int>;
     py::class_<historical_variable_tensor_adaptor, historical_variable_tensor_adaptor::Pointer, historical_variable_tensor_adaptor::BaseType>(tensor_adaptor_sub_module, "HistoricalVariableTensorAdaptor")
         .def(py::init<ModelPart::NodesContainerType::Pointer, historical_variable_tensor_adaptor::VariableType, const int>(), py::arg("container"), py::arg("variable"), py::arg("step_index") = 0)
-        .def(py::init<ModelPart::NodesContainerType::Pointer, historical_variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&, const int>(), py::arg("container"), py::arg("variable"), py::arg("return_data_shape"), py::arg("step_index") = 0)
+        .def(py::init<ModelPart::NodesContainerType::Pointer, historical_variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&, const int>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"), py::arg("step_index") = 0)
         ;
 
     using gauss_point_variable_tensor_adaptor = VariableTensorAdaptor<GaussPointIO, const ProcessInfo&>;
     py::class_<gauss_point_variable_tensor_adaptor, gauss_point_variable_tensor_adaptor::Pointer, gauss_point_variable_tensor_adaptor::BaseType>(tensor_adaptor_sub_module, "GaussPointVariableTensorAdaptor")
         .def(py::init<ModelPart::ConditionsContainerType::Pointer, gauss_point_variable_tensor_adaptor::VariableType, const ProcessInfo&>(), py::arg("container"), py::arg("variable"), py::arg("process_info"))
-        .def(py::init<ModelPart::ConditionsContainerType::Pointer, gauss_point_variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&, const ProcessInfo&>(), py::arg("container"), py::arg("variable"), py::arg("return_data_shape"), py::arg("process_info"))
+        .def(py::init<ModelPart::ConditionsContainerType::Pointer, gauss_point_variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&, const ProcessInfo&>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"), py::arg("process_info"))
         .def(py::init<ModelPart::ElementsContainerType::Pointer, gauss_point_variable_tensor_adaptor::VariableType, const ProcessInfo&>(), py::arg("container"), py::arg("variable"), py::arg("process_info"))
-        .def(py::init<ModelPart::ElementsContainerType::Pointer, gauss_point_variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&, const ProcessInfo&>(), py::arg("container"), py::arg("variable"), py::arg("return_data_shape"), py::arg("process_info"))
+        .def(py::init<ModelPart::ElementsContainerType::Pointer, gauss_point_variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&, const ProcessInfo&>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"), py::arg("process_info"))
         ;
 
     using variable_tensor_adaptor = VariableTensorAdaptor<NonHistoricalIO>;
     pybind11::class_<variable_tensor_adaptor, variable_tensor_adaptor::Pointer, variable_tensor_adaptor::BaseType>(tensor_adaptor_sub_module, "VariableTensorAdaptor")
         .def(py::init<ModelPart::NodesContainerType::Pointer, variable_tensor_adaptor::VariableType>(), py::arg("container"), py::arg("variable"))
-        .def(py::init<ModelPart::NodesContainerType::Pointer, variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("variable"), py::arg("return_data_shape"))
+        .def(py::init<ModelPart::NodesContainerType::Pointer, variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"))
         .def(py::init<ModelPart::ConditionsContainerType::Pointer, variable_tensor_adaptor::VariableType>(), py::arg("container"), py::arg("variable"))
-        .def(py::init<ModelPart::ConditionsContainerType::Pointer, variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("variable"), py::arg("return_data_shape"))
+        .def(py::init<ModelPart::ConditionsContainerType::Pointer, variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"))
         .def(py::init<ModelPart::ElementsContainerType::Pointer, variable_tensor_adaptor::VariableType>(), py::arg("container"), py::arg("variable"))
-        .def(py::init<ModelPart::ElementsContainerType::Pointer, variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("variable"), py::arg("return_data_shape"))
+        .def(py::init<ModelPart::ElementsContainerType::Pointer, variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"))
         .def(py::init<ModelPart::PropertiesContainerType::Pointer, variable_tensor_adaptor::VariableType>(), py::arg("container"), py::arg("variable"))
-        .def(py::init<ModelPart::PropertiesContainerType::Pointer, variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("variable"), py::arg("return_data_shape"))
+        .def(py::init<ModelPart::PropertiesContainerType::Pointer, variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"))
         .def(py::init<ModelPart::GeometriesMapType::Pointer, variable_tensor_adaptor::VariableType>(), py::arg("container"), py::arg("variable"))
-        .def(py::init<ModelPart::GeometriesMapType::Pointer, variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("variable"), py::arg("return_data_shape"))
+        .def(py::init<ModelPart::GeometriesMapType::Pointer, variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"))
         ;
 
 }
