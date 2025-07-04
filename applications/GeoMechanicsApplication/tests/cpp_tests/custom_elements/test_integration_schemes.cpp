@@ -47,7 +47,7 @@ std::vector<std::size_t> SupportedNumbersOfPointsForQuadrilateralLumpedIntegrati
 
 std::vector<std::size_t> SupportedNumbersOfPointsForLumpedIntegration()
 {
-    auto result       = SupportedNumbersOfPointsForTriangleLumpedIntegration();
+    auto       result       = SupportedNumbersOfPointsForTriangleLumpedIntegration();
     const auto sup_quad_num = SupportedNumbersOfPointsForQuadrilateralLumpedIntegration();
     std::copy(sup_quad_num.begin(), sup_quad_num.end(), std::back_inserter(result));
     return result;
@@ -121,16 +121,28 @@ KRATOS_TEST_CASE_IN_SUITE(ALobattoIntegrationSchemeIsAnIntegrationScheme, Kratos
     KRATOS_EXPECT_NE(dynamic_cast<const IntegrationScheme*>(&p_scheme), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NumberOfIntegrationPointsMatchesTheNumberOfPointsGivenAtConstructionTime,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+class ParametrizedInterfaceIntegrationMethodSuite
+    : public ::testing::TestWithParam<std::tuple<std::size_t, std::function<std::unique_ptr<IntegrationScheme>(std::size_t)>>>
 {
-    for (auto number : SupportedNumbersOfPointsForLobattoIntegration()) {
-        const auto p_scheme = MakeLobattoIntegrationScheme(number);
+};
 
-        KRATOS_EXPECT_EQ(p_scheme->GetNumberOfIntegrationPoints(), number);
-        KRATOS_EXPECT_EQ(p_scheme->GetIntegrationPoints().size(), number);
-    }
+TEST_P(ParametrizedInterfaceIntegrationMethodSuite, NumberOfIntegrationPointsMatchesTheNumberOfPointsGivenAtConstructionTime)
+{
+    const auto [number, scheme_creator] = GetParam();
+    const auto p_scheme                 = scheme_creator(number);
+
+    KRATOS_EXPECT_EQ(p_scheme->GetNumberOfIntegrationPoints(), number);
+    KRATOS_EXPECT_EQ(p_scheme->GetIntegrationPoints().size(), number);
 }
+
+INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
+                         ParametrizedInterfaceIntegrationMethodSuite,
+                         ::testing::Values(std::make_tuple(std::size_t{2}, MakeLobattoIntegrationScheme),
+                                           std::make_tuple(std::size_t{3}, MakeLobattoIntegrationScheme),
+                                           std::make_tuple(std::size_t{3}, MakeLumpedIntegrationScheme),
+                                           std::make_tuple(std::size_t{6}, MakeLumpedIntegrationScheme),
+                                           std::make_tuple(std::size_t{4}, MakeLumpedIntegrationScheme),
+                                           std::make_tuple(std::size_t{8}, MakeLumpedIntegrationScheme)));
 
 KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLobattoSchemesEqualsTwo,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -173,17 +185,6 @@ KRATOS_TEST_CASE_IN_SUITE(ALumpedIntegrationSchemeIsAnIntegrationScheme, KratosG
     const auto     p_scheme         = LumpedIntegrationScheme{number_of_points};
 
     KRATOS_EXPECT_NE(dynamic_cast<const IntegrationScheme*>(&p_scheme), nullptr);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(NumberOfLumpedIntegrationPointsMatchesTheNumberOfPointsGivenAtConstructionTime,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    for (auto number : SupportedNumbersOfPointsForLumpedIntegration()) {
-        const auto p_scheme = MakeLumpedIntegrationScheme(number);
-
-        KRATOS_EXPECT_EQ(p_scheme->GetNumberOfIntegrationPoints(), number);
-        KRATOS_EXPECT_EQ(p_scheme->GetIntegrationPoints().size(), number);
-    }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLumpedSchemesEqualsOne,
