@@ -20,8 +20,12 @@ This also decreases memory fragmentation, and freeing structures
 # include "recycle.h"
 #endif
 
-reroot *remkroot(size)
-size_t  size;
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif // _WIN32
+
+reroot *remkroot( size_t  size)
 {
    reroot *r = (reroot *)remalloc(sizeof(reroot), "recycle.c, root");
    r->list = (recycle *)0;
@@ -32,8 +36,7 @@ size_t  size;
    return r;
 }
 
-void  refree(r)
-struct reroot *r;
+void  refree( struct reroot *r)
 {
    recycle *temp;
    if ((temp = r->list)) while (r->list)
@@ -47,8 +50,7 @@ struct reroot *r;
 }
 
 /* to be called from the macro renew only */
-char  *renewx(r)
-struct reroot *r;
+char  *renewx( struct reroot *r)
 {
    recycle *temp;
    if (r->trash)
@@ -59,30 +61,34 @@ struct reroot *r;
       memset(temp, 0, r->size);
    }
    else
-   {  /* allocate a new block of nodes */
-      r->numleft = r->size*((ub4)1<<r->logsize);
+   {  /* allocate a new block of G_nodes */
+      r->numleft =(word)(r->size*(size_t)((ub4)1<<r->logsize));
       if (r->numleft < REMAX) ++r->logsize;
       temp = (recycle *)remalloc(sizeof(recycle) + r->numleft, 
 				 "recycle.c, data");
       temp->next = r->list;
       r->list = temp;
-      r->numleft-=r->size;
+      r->numleft-=(word)(r->size);
       temp = (recycle *)((char *)(r->list+1)+r->numleft);
    }
    return (char *)temp;
 }
 
-char   *remalloc(len, purpose)
-size_t  len;
-char   *purpose;
+char   *remalloc(
+    size_t  len,
+    char   *purpose
+                 )
 {
   char *x = (char *)malloc(len);
   if (!x)
   {
-    fprintf(stderr, "malloc of %u failed for %s\n", 
+    fprintf(stderr, "GiDPost: malloc of %u failed for %s\n", 
 	    ( unsigned int)len, purpose);
     exit(SUCCESS);
   }
   return x;
 }
 
+#ifndef _WIN32
+#pragma GCC diagnostic pop
+#endif // _WIN32
