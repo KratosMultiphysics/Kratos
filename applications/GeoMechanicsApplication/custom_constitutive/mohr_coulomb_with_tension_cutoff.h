@@ -73,7 +73,6 @@ private:
                                                     double        PoissonsRatio) const;
     Vector               RearrangeEigenValuesAndVectors(const Vector& rPrincipalStressVector,
                                                         const Vector& rMappedPrincipalStressVector,
-                                                        bool&         ipl,
                                                         int&          rMappingStage);
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
