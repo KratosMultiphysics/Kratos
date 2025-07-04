@@ -75,7 +75,7 @@ KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_CanBeSavedAndLoadedThroughInterfac
                        0.5 * std::sqrt(3.0) - 1, Defaults::absolute_tolerance);
     auto expected_derivative = Vector(2);
     expected_derivative <<= 0.5, 1.0;
-    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_coulomb_yield_surface->DerivativeOfFlowFunction(sigma_tau, 2),
+    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_coulomb_yield_surface->DerivativeOfFlowFunction(sigma_tau, 1),
                               expected_derivative, Defaults::absolute_tolerance);
 }
 
@@ -119,7 +119,7 @@ KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoadedThroughInterface, Kra
     KRATOS_EXPECT_NEAR(p_loaded_tension_cut_off->YieldFunctionValue(sigma_tau), 0.0, Defaults::absolute_tolerance);
     auto expected_derivative = Vector(2);
     expected_derivative <<= 1.0, 1.0;
-    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_tension_cut_off->DerivativeOfFlowFunction(sigma_tau, 2),
+    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_tension_cut_off->DerivativeOfFlowFunction(sigma_tau, 1),
                               expected_derivative, Defaults::absolute_tolerance);
 }
 

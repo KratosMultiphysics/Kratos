@@ -34,7 +34,7 @@ public:
                                  double TensileStrength);
 
     [[nodiscard]] bool IsAdmissibleSigmaTau(const Vector& rTrialSigmaTau) const;
-    [[nodiscard]] Vector DoReturnMapping(const Properties& rProperties, const Vector& rTrialSigmaTau, int MappingStage) const;
+    [[nodiscard]] Vector DoReturnMapping(const Properties& rProperties, const Vector& rTrialSigmaTau, int MappingType) const;
 
 private:
     CoulombYieldSurface mCoulombYieldSurface;

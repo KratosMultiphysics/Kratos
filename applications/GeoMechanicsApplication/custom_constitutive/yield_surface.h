@@ -26,7 +26,7 @@ public:
     virtual ~YieldSurface() = default;
 
     [[nodiscard]] virtual double YieldFunctionValue(const Vector& rSigmaTau) const = 0;
-    [[nodiscard]] virtual Vector DerivativeOfFlowFunction(const Vector& rSigmaTau, int MappingStage) const = 0;
+    [[nodiscard]] virtual Vector DerivativeOfFlowFunction(const Vector& rSigmaTau, int MappingType) const = 0;
 
 private:
     friend class Serializer;
