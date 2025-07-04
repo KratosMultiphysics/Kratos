@@ -25,8 +25,8 @@ namespace Kratos
 {
     // External interfacial force, e.g. for including the electromagentic coupling
     KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( DROPLET_DYNAMICS_APPLICATION, EXT_INT_FORCE)
-    
-    //Auxiliary variable to store maximum element size (h_{max})
+
+        //Auxiliary variable to store maximum element size (h_{max})
     KRATOS_DEFINE_APPLICATION_VARIABLE( DROPLET_DYNAMICS_APPLICATION, double, NODAL_H_MAX)
 
     // Smoothing surface auxiliary distance

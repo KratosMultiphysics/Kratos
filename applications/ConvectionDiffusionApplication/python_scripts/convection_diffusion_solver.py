@@ -246,8 +246,8 @@ class ConvectionDiffusionSolver(PythonSolver):
 
         # Adding nodal area variable (some solvers use it. TODO: Ask)
         #target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        # If LaplacianElement is used
-        if (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
+        # If LaplacianElement or ConservativeLevelsetElement is used
+        if self.settings["element_replace_settings"]["element_name"].GetString() in ["LaplacianElement","ConservativeLevelsetElement"]:
             target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
 
         # If MPI distributed, add the PARTITION_INDEX
@@ -368,7 +368,42 @@ class ConvectionDiffusionSolver(PythonSolver):
         convection_diffusion_solution_strategy = self._GetSolutionStrategy()
         convection_diffusion_solution_strategy.Solve()
 
+    def ComputeNormals(self):
+        computing_model_part = self.GetComputingModelPart()
+        domain_size = computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        if (domain_size == 2):
+            local_gradient_TEMPERATURE = KratosMultiphysics.ComputeNodalGradientProcess2D(computing_model_part, KratosMultiphysics.TEMPERATURE, KratosMultiphysics.TEMPERATURE_GRADIENT)
+        else :
+            local_gradient_TEMPERATURE = KratosMultiphysics.ComputeNodalGradientProcess(computing_model_part, KratosMultiphysics.TEMPERATURE, KratosMultiphysics.TEMPERATURE_GRADIENT)
+        local_gradient_TEMPERATURE.Execute()
+
+        for node in computing_model_part.Nodes:
+                gradx = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_X, 0)
+                grady = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Y, 0)
+                if (domain_size == 3):         
+                    gradz = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Z, 0)
+                    grad_norm = (gradx**2 + grady**2+ gradz**2)**(0.5)
+                else:
+                    grad_norm = (gradx**2 + grady**2)**(0.5)
+                if ( grad_norm > 0.0000001 ):
+                    normalx=gradx/(grad_norm)
+                    normaly=grady/(grad_norm)
+                    if (domain_size == 3):         
+                        normalz=gradz/(grad_norm)
+                else:
+                    normalx = normaly = normalz = 0.0
+                node.SetSolutionStepValue(KratosMultiphysics.NORMAL_X, 0, normalx)
+                node.SetSolutionStepValue(KratosMultiphysics.NORMAL_Y, 0, normaly)
+                if (domain_size == 3):
+                    node.SetSolutionStepValue(KratosMultiphysics.NORMAL_Z, 0, normalz)
+
     def InitializeSolutionStep(self):
+
+        if self.settings["element_replace_settings"]["element_name"].GetString() in ["ConservativeLevelsetElement2D3N","ConservativeLevelsetElement2D4N","ConservativeLevelsetElement3D4N","ConservativeLevelsetElement3D8N"]:
+            step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+            if (step == 1):
+                self.ComputeNormals()
+
         self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
@@ -545,7 +580,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         ## Elements
         ## Note that we check for the elements that require substitution to allow for custom elements
         element_name = self.settings["element_replace_settings"]["element_name"].GetString()
-        element_list = ["EulerianConvDiff","LaplacianElement","MixedLaplacianElement","AdjointHeatDiffusionElement","QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit","AxisymmetricEulerianConvectionDiffusion"]
+        element_list = ["EulerianConvDiff","LaplacianElement","MixedLaplacianElement","AdjointHeatDiffusionElement","QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit","AxisymmetricEulerianConvectionDiffusion","ConservativeLevelsetElement"]
         if element_name in element_list:
             num_nodes_elements = 0
             if (len(self.main_model_part.Elements) > 0):

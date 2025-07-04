@@ -6,6 +6,7 @@ message("**** configuring KratosDropletDynamicsApplication ****")
 include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../ConvectionDiffusionApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../FluidDynamicsApplication )
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
 

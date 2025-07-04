@@ -87,8 +87,8 @@ void DropletDynamicsElement<TElementData>::CalculateLocalSystem(
         const double zeta = 5.0e-1;//1.0;//0.7;//
         const double surface_tension_coefficient = 0.072;//0.0;
         
-        const double theta_advancing = 60.0 * PI / 180.0;//180.0*PI/180.0;//149.0*PI/180.0;//129.78*PI/
-        const double theta_receding = 60.0 * PI / 180.0;//0.0*PI/180.0;//115.0*PI/180.0;//129.78*PI/
+        const double theta_advancing = 105.0 * PI / 180.0;//180.0*PI/180.0;//149.0*PI/180.0;//129.78*PI/
+        const double theta_receding = 105.0 * PI / 180.0;//0.0*PI/180.0;//115.0*PI/180.0;//129.78*PI/
 
         const double micro_length_scale = 1.0e-9;
 
@@ -2295,17 +2295,17 @@ force_sum_vector = ZeroVector(Dim); // Initialize with zeros
         // }
         // normal_avg /= norm_2(normal_avg);
 
-        if (this->Has(ELEMENT_CUT_NORMAL_AVERAGED)) {
-            // Use the pre-computed averaged normal
-            normal_avg = this->GetValue(ELEMENT_CUT_NORMAL_AVERAGED);
-            KRATOS_INFO("OOOOOOOOOOOOOOOOOOOOOOOOOOOKKKKKKKKKKKKKKKKKKKKKKK")<< std::endl;
-        } else {
+       if (this->Has(ELEMENT_CUT_NORMAL_AVERAGED)) {
+           // Use the pre-computed averaged normal
+           normal_avg = this->GetValue(ELEMENT_CUT_NORMAL_AVERAGED);
+           KRATOS_INFO("OOOOOOOOOOOOOOOOOOOOOOOOOOOKKKKKKKKKKKKKKKKKKKKKKK")<< std::endl;
+       } else {
             // Fall back to original method
             for (unsigned int intgp = 0; intgp < NumIntGP; intgp++) {
                 normal_avg += rIntWeights(intgp)*rIntNormalsNeg[intgp];
             }
             normal_avg /= norm_2(normal_avg);
-        }
+       }
 
         const double effective_density = 0.5*(positive_density + negative_density);
         const double effective_viscosity = 0.5*(positive_viscosity + negative_viscosity);
@@ -2375,7 +2375,7 @@ if ((1-1e-5) < unit_vector[2] && unit_vector[2] < (1+1e-5)) {
             ////////
             double contact_angle_micro_gp = contact_angle_macro_gp;
 
-            double zeta_effective = zeta*0.0;
+            double zeta_effective = zeta*0.46875*0.2;
 
             const double contact_velocity_gp = inner_prod(wall_tangent,velocity_gp);
 
@@ -2458,7 +2458,7 @@ if ((1-1e-5) < unit_vector[2] && unit_vector[2] < (1+1e-5)) {
                     std::sin(contact_angle_micro_gp)*wall_normal_gp;
             contact_vector_microS = std::cos(contact_angle_micro_gp)*wall_tangent;
             
-            double h_coeff = 0.01;
+            double h_coeff = 0.46875;
             if (contact_angle_micro_gp<=0.0 || contact_angle_micro_gp>=PI){
                 h_coeff = 0.0;
             }
@@ -2473,8 +2473,8 @@ for (unsigned int i = 0; i < NumNodes; i++) {
     for (unsigned int dimi = 0; dimi < Dim; dimi++) {
         // Calculate the force component (tangential - normal)
         double force_component = 
-            coefficientS * wall_tangent[dimi] * (rCLWeights[i_cl])[clgp] * (rCLShapeFunctions[i_cl])(clgp, i) - 
-            coefficient * contact_vector_microS[dimi] * (rCLWeights[i_cl])[clgp] * (rCLShapeFunctions[i_cl])(clgp, i);
+            h_coeff*coefficientS * wall_tangent[dimi] * (rCLWeights[i_cl])[clgp] * (rCLShapeFunctions[i_cl])(clgp, i) - 
+            h_coeff*coefficient * contact_vector_microS[dimi] * (rCLWeights[i_cl])[clgp] * (rCLShapeFunctions[i_cl])(clgp, i);
         
         // Add to the dimension sum
         force_sum_by_dim[dimi] += force_component;

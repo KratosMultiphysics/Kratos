@@ -42,8 +42,8 @@ PYBIND11_MODULE(KratosDropletDynamicsApplication,m)
 
     //registering variables in python
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,EXT_INT_FORCE)
-    
-    //Auxiliary variable to store maximum element size (h_{max})
+
+        //Auxiliary variable to store maximum element size (h_{max})
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,NODAL_H_MAX)
 
     // Smoothed surface to calculate DISTANCE_GRADIENT

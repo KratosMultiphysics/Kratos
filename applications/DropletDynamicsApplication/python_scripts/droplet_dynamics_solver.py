@@ -1,20 +1,26 @@
+import math
+import sys
+import time
+import importlib
+
 # Importing the Kratos Library
 import KratosMultiphysics
 from KratosMultiphysics import auxiliary_solver_utilities
 from KratosMultiphysics.python_solver import PythonSolver
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+#import KratosMultiphysics.ConvectionDiffusionApplication as KratosConv
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.DropletDynamicsApplication as KratosDroplet
 
 # Import base class file
+#from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_solver import ConvectionDiffusionSolver
 #from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 #from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_two_fluids_solver import NavierStokesTwoFluidsSolver
 
 from pathlib import Path
-
-import math
+import json
 
 def CreateSolver(model, custom_settings):
     return DropletDynamicsSolver(model, custom_settings)
@@ -84,18 +90,28 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
                 "theta_advancing" : 130,
                 "theta_receding" : 130
             },                                               
-            "distance_reinitialization": "variational",
+            "distance_reinitialization": "none",
             "parallel_redistance_max_layers" : 25,
             "distance_smoothing": false,
-            "distance_smoothing_coefficient": 1.0,
+            "distance_smoothing_coefficient": 0.0,
             "distance_modification_settings": {
                 "model_part_name": "",
-                "distance_threshold": 1e-7,
+                "distance_threshold": 1e-5,
                 "continuous_distance": true,
                 "check_at_each_time_step": true,
                 "avoid_almost_empty_elements": false,
                 "deactivate_full_negative_elements": false
-            }
+            },
+            "convection_diffusion_settings": {
+                "Perform_conservative_law": false,
+                "echo_level": 0,
+                "parallel_type": "",
+                "max_substeps": 100,
+                "time_step": 0.001,
+                "power_value_in_epsilon_Calculation": 0.9,
+                "denominator_value_in_epsilon_Calculation": 2.0,
+                "convergenge_tolerence": 0.0001                            
+            }                                    
         }""")
 
         default_settings.AddMissingParameters(super(DropletDynamicsSolver, cls).GetDefaultParameters())
@@ -105,6 +121,9 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
     def __init__(self, model, custom_settings):
         """Initializing the solver."""
         # TODO: DO SOMETHING IN HERE TO REMOVE THE "time_order" FROM THE DEFAULT SETTINGS BUT KEEPING THE BACKWARDS COMPATIBILITY
+
+        #Defining a pseudo time variable for extracting the convection diffusion results
+        self.pseudo_time = 0
 
         if custom_settings.Has("levelset_convection_settings"):
             if custom_settings["levelset_convection_settings"].Has("levelset_splitting"):
@@ -216,6 +235,7 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.NODAL_H_MAX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
@@ -291,6 +311,10 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
             computing_model_part,
             computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+        
+        # Initializing level-set function
+        if ( self.settings["convection_diffusion_settings"]["Perform_conservative_law"].GetBool() == True ):
+            self._Initialize_Conservative_LevelSet_Function()
 
         # Finding nodal and elemental neighbors
         data_communicator = computing_model_part.GetCommunicator().GetDataCommunicator()
@@ -354,93 +378,6 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
-        # INTERSECTION LENGTH CALCULATION - CORRECT VERSION
-        timestamp = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-        points_filename = f"intersection_points_{timestamp:.6f}.txt"
-        combined_filename = f"intersection_data_{timestamp:.6f}.txt"
-        averaged_normals_filename = f"averaged_normals_{timestamp:.6f}.txt"
-
-        # Step 1: Clear and collect intersection points
-        KratosDroplet.IntersectionPointsUtility.ClearIntersectionPoints()
-        for element in self.main_model_part.Elements:
-            KratosDroplet.IntersectionPointsUtility.CollectElementIntersectionPoints(element)
-
-        # Step 2: Save intersection points to file
-        # KratosDroplet.IntersectionPointsUtility.SaveIntersectionPointsToFile(points_filename)
-        # KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Saved intersection points to {points_filename}")
-
-        # Step 3: Calculate and store element intersection lengths
-        num_elements = KratosDroplet.CalculateAndStoreElementIntersectionLengths(self.main_model_part)
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, 
-                                            f"Calculated and stored intersection lengths for {num_elements} elements")
-
-        # Step 4: Calculate interface averages
-        KratosDroplet.InterfaceAveragesUtility.ClearInterfaceAverages()
-        KratosDroplet.InterfaceAveragesUtility.ComputeModelPartInterfaceAverages(self.main_model_part)
-
-        # Step 5: Collect intersection data with normals
-        num_elements = KratosDroplet.CollectIntersectionDataWithNormal(self.main_model_part)
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, 
-                                            f"Collected {num_elements} elements with intersection data and normals")
-
-        # Step 6: Save the collected data to file
-        # KratosDroplet.SaveIntersectionDataWithNormalToFile(combined_filename)
-        # KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, 
-        #                                     f"Saved intersection data with normals to {combined_filename}")
-
-        # Step 7: Set cut normals on elements
-        num_elements_with_normals = KratosDroplet.SetElementCutNormals(self.main_model_part)
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,
-                                           f"Set cut normals for {num_elements_with_normals} elements")
-        
-        # Step 8: Compute averaged normals with 1 neighbor level
-        num_elements_averaged = KratosDroplet.ComputeAndStoreAveragedNormals(
-            self.main_model_part, 2, "ELEMENT_CUT_NORMAL_AVERAGED")
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,
-            f"Computed averaged normals for {num_elements_averaged} elements")
-    
-        # Step 9: Save the averaged normals to file with timestamped filename
-        # KratosDroplet.SaveAveragedNormalsToFile(self.main_model_part, averaged_normals_filename)
-        # KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,
-        #     f"Saved averaged normals to {averaged_normals_filename}")
-        ###############################
-        # Step 4: Read the intersection lengths from elements and save to file
-        # Create a map to pass to SaveIntersectionLengthsToFile
-        intersection_lengths = {}
-        for element in self.main_model_part.Elements:
-            length = KratosDroplet.GetElementIntersectionLength(element)
-            if length > 0.0:  # Only save elements that have a valid intersection length
-                intersection_lengths[element.Id] = length
-    
-        # # Save to file
-        # KratosDroplet.SaveIntersectionLengthsToFile(intersection_lengths, lengths_filename)
-        # KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, 
-        #                                    f"Saved {len(intersection_lengths)} intersection lengths to {lengths_filename}")
-        
-
-        # # Save element average normals to file
-        # normals_filename = f"element_normals_{timestamp:.6f}.txt"
-        # KratosDroplet.SaveElementAverageNormalsToFile(self.main_model_part, normals_filename)
-        # KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, 
-        #                                     f"Saved element average normals to {normals_filename}")
-        
-        # # Clear any existing intersection points from previous steps
-        # KratosDroplet.IntersectionPointsUtility.ClearIntersectionPoints()
-    
-        # # Collect intersection points from all elements
-        # for element in self.main_model_part.Elements:
-        #     KratosDroplet.IntersectionPointsUtility.CollectElementIntersectionPoints(element)
-        
-        # # # Run diagnostic to check how many elements are split by the level-set
-        # # KratosDroplet.IntersectionPointsUtility.DiagnosticOutput(self.main_model_part)
-    
-        # # Get all intersection points
-        # points = KratosDroplet.IntersectionPointsUtility.GetIntersectionPoints()
-        # KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Collected {len(points)} intersection points.")
-    
-        # # Save intersection points to file
-        # KratosDroplet.IntersectionPointsUtility.SaveIntersectionPointsToFile("intersection_points.txt")
-
         # filtering noises is necessary for curvature calculation
         # distance gradient is used as a boundary condition for smoothing process
         self._GetDistanceGradientProcess().Execute()
@@ -449,7 +386,7 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
 
         # distance gradient is called again to comply with the smoothed/modified DISTANCE
         self._GetDistanceGradientProcess().Execute()
-
+        ################################
         # for node in self.main_model_part.Nodes:
         #     gx = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X)
         #     gy = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y)
@@ -472,7 +409,7 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
             if node.GetSolutionStepValue(KratosDroplet.CONTACT_ANGLE_MICRO,0) != 0.0:
                 contact_angle = node.GetSolutionStepValue(KratosDroplet.CONTACT_ANGLE_MICRO,0)
 
-        diff = abs(contact_angle - 100)
+        diff = abs(contact_angle - 75)
         if diff < 1:
             beta = 1
         elif diff > 9:
@@ -489,23 +426,22 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
             gx /= g
             gy /= g
             gz /= g
-            # node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,gx)
-            # node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,gy)
-            # node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Z,gz)
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,gx)
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,gy)
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Z,gz)
             if node.Y == 0.0:
                 if beta > 0.0:
-                    gy = math.cos(contact_angle*3.1416/180) + beta*(math.cos(100.0*3.1416/180)- math.cos(contact_angle*3.1416/180))
+                    gy = math.cos(contact_angle*3.1416/180) + beta*(math.cos(75.0*3.1416/180)- math.cos(contact_angle*3.1416/180))
                     if node.X > 0.015:
-                        gx = math.sin(contact_angle*3.1416/180) + beta*(math.sin(100.0*3.1416/180)- math.sin(contact_angle*3.1416/180))
+                        gx = math.sin(contact_angle*3.1416/180) + beta*(math.sin(75.0*3.1416/180)- math.sin(contact_angle*3.1416/180))
                     elif node.X < 0.015:
-                        gx = -(math.sin(contact_angle*3.1416/180) + beta*(math.sin(100.0*3.1416/180)- math.sin(contact_angle*3.1416/180)))
+                        gx = -(math.sin(contact_angle*3.1416/180) + beta*(math.sin(75.0*3.1416/180)- math.sin(contact_angle*3.1416/180)))
 
                     g = (gx**2+gy**2+gz**2)**0.5
 
-                    # node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,gx/g)
-                    # node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,gy/g)
-                    # node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Z,gz/g)
-
+                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,gx/g)
+                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,gy/g)
+                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Z,gz/g)
 
             # if node.Y == 0.0:
             #     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,0.50754)
@@ -615,7 +551,8 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         #                 node.SetSolutionStepValue(KratosDroplet.NORMAL_VECTOR_Y,ny2)
         #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_X,gx)
         #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT_Y,gy)
-
+        #################################
+ 
         # curvature is calculated using nodal distance gradient
         self._GetDistanceCurvatureProcess().Execute()
 
@@ -640,6 +577,95 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
         self._SetNodalProperties()
 
+        #################################
+        # INTERSECTION LENGTH CALCULATION - CORRECT VERSION
+        timestamp = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        points_filename = f"intersection_points_{timestamp:.6f}.txt"
+        combined_filename = f"intersection_data_{timestamp:.6f}.txt"
+        averaged_normals_filename = f"averaged_normals_{timestamp:.6f}.txt"
+
+        # Step 1: Clear and collect intersection points
+        KratosDroplet.IntersectionPointsUtility.ClearIntersectionPoints()
+        for element in self.main_model_part.Elements:
+            KratosDroplet.IntersectionPointsUtility.CollectElementIntersectionPoints(element)
+
+        # Step 2: Save intersection points to file
+        # KratosDroplet.IntersectionPointsUtility.SaveIntersectionPointsToFile(points_filename)
+        # KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Saved intersection points to {points_filename}")
+
+        # Step 3: Calculate and store element intersection lengths
+        num_elements = KratosDroplet.CalculateAndStoreElementIntersectionLengths(self.main_model_part)
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, 
+                                            f"Calculated and stored intersection lengths for {num_elements} elements")
+
+        # Step 4: Calculate interface averages
+        KratosDroplet.InterfaceAveragesUtility.ClearInterfaceAverages()
+        KratosDroplet.InterfaceAveragesUtility.ComputeModelPartInterfaceAverages(self.main_model_part)
+
+        # Step 5: Collect intersection data with normals
+        num_elements = KratosDroplet.CollectIntersectionDataWithNormal(self.main_model_part)
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, 
+                                            f"Collected {num_elements} elements with intersection data and normals")
+
+        # Step 6: Save the collected data to file
+        # KratosDroplet.SaveIntersectionDataWithNormalToFile(combined_filename)
+        # KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, 
+        #                                     f"Saved intersection data with normals to {combined_filename}")
+
+        # Step 7: Set cut normals on elements
+        num_elements_with_normals = KratosDroplet.SetElementCutNormals(self.main_model_part)
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,
+                                           f"Set cut normals for {num_elements_with_normals} elements")
+        
+        # Step 8: Compute averaged normals with 1 neighbor level
+        num_elements_averaged = KratosDroplet.ComputeAndStoreAveragedNormals(
+            self.main_model_part, 3, "ELEMENT_CUT_NORMAL_AVERAGED")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,
+            f"Computed averaged normals for {num_elements_averaged} elements")
+    
+        # Step 9: Save the averaged normals to file with timestamped filename
+        # KratosDroplet.SaveAveragedNormalsToFile(self.main_model_part, averaged_normals_filename)
+        # KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,
+        #     f"Saved averaged normals to {averaged_normals_filename}")
+        ###############################
+        # Step 4: Read the intersection lengths from elements and save to file
+        # Create a map to pass to SaveIntersectionLengthsToFile
+        intersection_lengths = {}
+        for element in self.main_model_part.Elements:
+            length = KratosDroplet.GetElementIntersectionLength(element)
+            if length > 0.0:  # Only save elements that have a valid intersection length
+                intersection_lengths[element.Id] = length
+    
+        # # Save to file
+        # KratosDroplet.SaveIntersectionLengthsToFile(intersection_lengths, lengths_filename)
+        # KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, 
+        #                                    f"Saved {len(intersection_lengths)} intersection lengths to {lengths_filename}")
+        
+
+        # # Save element average normals to file
+        # normals_filename = f"element_normals_{timestamp:.6f}.txt"
+        # KratosDroplet.SaveElementAverageNormalsToFile(self.main_model_part, normals_filename)
+        # KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, 
+        #                                     f"Saved element average normals to {normals_filename}")
+        
+        # # Clear any existing intersection points from previous steps
+        # KratosDroplet.IntersectionPointsUtility.ClearIntersectionPoints()
+    
+        # # Collect intersection points from all elements
+        # for element in self.main_model_part.Elements:
+        #     KratosDroplet.IntersectionPointsUtility.CollectElementIntersectionPoints(element)
+        
+        # # # Run diagnostic to check how many elements are split by the level-set
+        # # KratosDroplet.IntersectionPointsUtility.DiagnosticOutput(self.main_model_part)
+    
+        # # Get all intersection points
+        # points = KratosDroplet.IntersectionPointsUtility.GetIntersectionPoints()
+        # KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Collected {len(points)} intersection points.")
+    
+        # # Save intersection points to file
+        # KratosDroplet.IntersectionPointsUtility.SaveIntersectionPointsToFile("intersection_points.txt")
+        ################################
+
         # Initialize the solver current step
         self._GetSolutionStrategy().InitializeSolutionStep()
 
@@ -663,6 +689,13 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
 
     def FinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
+        # Performing The Conservative Law
+        if ( self.settings["convection_diffusion_settings"]["Perform_conservative_law"].GetBool() == True ):
+            # step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+            # if step == 2 or step%12==0:
+            self._PerformConservativeLaw()
+            self._SetNodalProperties()
+            self._GetDistanceGradientProcess().Execute()
 
         # Recompute the distance field according to the new level-set position
         if self._reinitialization_type != "none":
@@ -1196,6 +1229,302 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         contact_angle_evaluator = KratosDroplet.ContactAngleEvaluatorProcess(self.main_model_part, contact_angle_settings)
 
         return contact_angle_evaluator
+    
+
+#####################################################################################################################
+
+    # Initialization of distance function distribution
+    def _Initialize_Conservative_LevelSet_Function(self):
+
+        find_nodal_h_max = KratosDroplet.FindNodalHProcessMax(self.main_model_part)
+        find_nodal_h_max.Execute()
+
+        # Find Maximum Value of Nodal_h inside the Model_Part   
+        self.nodal_h_max = 0.0
+        for node in self.main_model_part.Nodes:
+            nodal_h = node.GetSolutionStepValue(KratosDroplet.NODAL_H_MAX)
+            if (nodal_h > self.nodal_h_max):
+                self.nodal_h_max = nodal_h
+        print ("Maximum Value of Nodal_H = ",self.nodal_h_max)
+        power = self.settings["convection_diffusion_settings"]["power_value_in_epsilon_Calculation"].GetDouble()
+        denominator = self.settings["convection_diffusion_settings"]["denominator_value_in_epsilon_Calculation"].GetDouble()
+        self.epsilon = self.nodal_h_max**(power)/denominator
+        print ("Epsilon = ",self.epsilon)
+
+        # Initialization of distance function
+        for node in self.main_model_part.Nodes:
+            distance = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            conservative_distance = (1 / ( 1 + (math.e)**( -distance/self.epsilon) )) - 0.5
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, conservative_distance)
+
+#####################################################################################################################
+
+    def _PerformConservativeLaw(self):
+
+        if (self.settings["domain_size"].GetInt() == 2):
+            KratosDroplet.FindConservativeElementsProcess(self.main_model_part).Execute()
+
+        self.convergenge_tolerence = self.settings["convection_diffusion_settings"]["convergenge_tolerence"].GetDouble()
+        nodes1 = self.main_model_part.Nodes
+        ndes1_num = len(nodes1)
+
+        for node in nodes1:
+            dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE, 0)
+            if (dist > 0.4999995):
+                dist = 0.5
+            elif (dist < -0.4999995):
+                dist = -0.5
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, dist)
+
+        def CreateAnalysisStageWithFlushInstance(cls, global_model, parameters, epsilon, convergenge_tolerence):
+            class AnalysisStageWithFlush(cls):
+
+                def __init__(self, model,project_parameters, epsilon, convergenge_tolerence, flush_frequency=10.0):
+                    super().__init__(model,project_parameters)
+                    self.flush_frequency = flush_frequency
+                    self.domain_size = project_parameters["solver_settings"]["domain_size"].GetInt()
+                    if (self.domain_size == 3):
+                        KratosMultiphysics.ModelPartIO(project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self._GetSolver().GetComputingModelPart()) 
+                        project_parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("use_input_model_part")
+                    self.last_flush = time.time()
+                    self.epsilon = epsilon
+                    self.convergenge_tolerence = convergenge_tolerence
+                    self.pseudo_steps_to_convergence = -1
+                    sys.stdout.flush()
+
+                def Initialize(self):
+                    super().Initialize()
+                    self.tolerence = 1.0
+
+                    nodes2 = self._GetSolver().GetComputingModelPart().Nodes
+                    nodes2_num = len(nodes2)
+                    print(ndes1_num, nodes2_num) 
+
+                    for node in nodes2:
+                        node.SetSolutionStepValue(KratosMultiphysics.FLAG_VARIABLE, 1)
+                        node.SetSolutionStepValue(KratosMultiphysics.DENSITY, 1.0)
+                        node.SetSolutionStepValue(KratosMultiphysics.SPECIFIC_HEAT, 1.0)
+                        node.SetSolutionStepValue(KratosMultiphysics.CONDUCTIVITY, self.epsilon)
+
+                    # Synchronize nodes based on ID
+                    nodes_mapping = {}
+                    for node in nodes2:
+                        node_id = node.Id
+                        corresponding_node1 = nodes1[node_id]
+                        nodes_mapping[node] = corresponding_node1 
+
+                    for node in nodes2:
+                        dist = nodes_mapping[node].GetSolutionStepValue(KratosMultiphysics.DISTANCE, 0)
+                        dist += 0.5
+                        node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, dist)
+
+                    for elem in self._GetSolver().GetComputingModelPart().Elements:
+                        flag = 1
+                        for node in elem.GetNodes():
+                            temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)
+                            if ( 0.000001 <= temp <= 0.999999 ):
+                                flag = 0
+                        if flag == 0:
+                            for node in elem.GetNodes():
+                                node.SetSolutionStepValue(KratosMultiphysics.FLAG_VARIABLE, 0)
+
+                    sys.stdout.flush()
+
+
+                def InitializeSolutionStep(self): 
+                    super().InitializeSolutionStep()
+                    nodes2 = self._GetSolver().GetComputingModelPart().Nodes
+
+                    step = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP]
+                    if (step == 1):
+                        for node in nodes2:
+                            normalx = node.GetSolutionStepValue(KratosMultiphysics.NORMAL_X, 0)
+                            normaly = node.GetSolutionStepValue(KratosMultiphysics.NORMAL_Y, 0)
+                            if (self.domain_size == 3):
+                                normalz = node.GetSolutionStepValue(KratosMultiphysics.NORMAL_Z, 0)
+                            flag = node.GetSolutionStepValue(KratosMultiphysics.FLAG_VARIABLE)
+                            if (flag > 0.5):
+                                normalx = normaly = normalz = 0.0
+                            node.SetSolutionStepValue(KratosMultiphysics.NORMAL_X, 0, normalx)
+                            node.SetSolutionStepValue(KratosMultiphysics.NORMAL_Y, 0, normaly)
+                            if (self.domain_size == 3):
+                                node.SetSolutionStepValue(KratosMultiphysics.NORMAL_Z, 0, normalz)
+
+                    for node in nodes2:
+                        gradx = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_X, 0)
+                        grady = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Y, 0)
+                        node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_X, 1, gradx)
+                        node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Y, 1, grady)
+                        if (self.domain_size == 3):
+                            gradz = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Z, 0)
+                            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Z, 1, gradz)
+
+                def FinalizeSolutionStep(self):
+                    super().FinalizeSolutionStep()
+
+                    if (self.domain_size == 3):
+                        local_gradient_TEMPERATURE = KratosMultiphysics.ComputeNodalGradientProcess(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.TEMPERATURE, KratosMultiphysics.TEMPERATURE_GRADIENT)
+                    else:
+                        local_gradient_TEMPERATURE = KratosMultiphysics.ComputeNodalGradientProcess2D(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.TEMPERATURE, KratosMultiphysics.TEMPERATURE_GRADIENT)
+                    local_gradient_TEMPERATURE.Execute()
+
+                    nodes2 = self._GetSolver().GetComputingModelPart().Nodes
+
+                    max_norm_of_temp_grad = 0.0
+                    max_norm_of_temp_grad_prev = 0.0
+                    max_diff = 0.0
+                    for node in nodes2:
+                        gradx = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_X, 1)
+                        grady = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Y, 1)
+                        gradz = 0.0
+                        if (self.domain_size == 3):
+                            gradz = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Z, 1)
+                        norm_of_temp_grad_prev = math.sqrt(gradx**2 + grady**2 + gradz**2)
+                        if ( norm_of_temp_grad_prev > max_norm_of_temp_grad_prev ):
+                           max_norm_of_temp_grad_prev = norm_of_temp_grad_prev
+                        gradx = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_X, 0)
+                        grady = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Y, 0)
+                        if (self.domain_size == 3):
+                            gradz = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Z, 0)
+                        norm_of_temp_grad = math.sqrt(gradx**2 + grady**2 + gradz**2)
+                        if ( abs(norm_of_temp_grad - norm_of_temp_grad_prev) > max_diff ):
+                           max_diff = abs(norm_of_temp_grad - norm_of_temp_grad_prev)
+                        if ( norm_of_temp_grad > max_norm_of_temp_grad ):
+                           max_norm_of_temp_grad = norm_of_temp_grad
+                    self.tolerence = max_diff/max_norm_of_temp_grad_prev
+                    print("max_norm_of_temp_grad = ", max_norm_of_temp_grad)
+                    print("tolerence = ", self.tolerence)
+
+                    # Synchronize nodes based on ID
+                    nodes_mapping = {}
+                    for node in nodes2:
+                        node_id = node.Id
+                        corresponding_node1 = nodes1[node_id]
+                        nodes_mapping[node] = corresponding_node1
+
+                    for node in nodes2:
+                        temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)
+                        temp -= 0.5
+                        nodes_mapping[node].SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, temp)
+
+                    if self.parallel_type == "OpenMP":
+                        now = time.time()
+                        if now - self.last_flush > self.flush_frequency:
+                            sys.stdout.flush()
+                            self.last_flush = now
+
+                def KeepAdvancingSolutionLoop(self):
+                    super().KeepAdvancingSolutionLoop()
+                    self.pseudo_steps_to_convergence += 1
+                    if (self.time < self.end_time):
+                        return  self.tolerence > self.convergenge_tolerence
+                    else:
+                        step = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP]
+                        KratosMultiphysics.Logger.PrintWarning("Convergence was not achieved after", step,"pseudo time steps.")
+                        return self.time < self.end_time
+
+            return AnalysisStageWithFlush(global_model, parameters, epsilon, convergenge_tolerence)
+
+        parameters = KratosMultiphysics.Parameters("""{ "problem_data": {     
+        "start_time": 0.0
+        },    
+        "solver_settings": {
+            "solver_type": "transient",
+            "analysis_type": "non_linear",
+            "model_part_name": "ThermalModelPart",
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": "ConsModelPart"
+            },
+            "element_replace_settings": {
+                "element_name": "ConservativeLevelsetElement",
+                "condition_name": "ThermalFace"
+            },
+            "compute_reactions": false,
+            "convergence_criterion": "residual_criterion",
+            "solution_relative_tolerance": 1e-05,
+            "solution_absolute_tolerance": 1e-07,
+            "residual_relative_tolerance": 1e-05,
+            "residual_absolute_tolerance": 1e-07,
+            "time_stepping": {
+            },
+            "auxiliary_variables_list": [
+                "FLAG_VARIABLE"
+            ]
+        },
+        "output_processes": {
+            "gid_output": [
+                {
+                    "python_module": "gid_output_process",
+                    "kratos_module": "KratosMultiphysics",
+                    "process_name": "GiDOutputProcess",
+                "Parameters": { }
+                }
+            ]
+        }
+        }""")
+
+
+        """pre-pending the absolut path of the files in the Project Parameters"""
+        output_name = f'gid_output/Conv_{self.pseudo_time}'
+        output_params = KratosMultiphysics.Parameters("""{
+            "model_part_name": "ThermalModelPart",
+            "postprocess_parameters": {
+                "result_file_configuration": {
+                    "gidpost_flags": {
+                        "GiDPostMode": "GiD_PostBinary",
+                        "WriteDeformedMeshFlag": "WriteDeformed",
+                        "WriteConditionsFlag": "WriteConditions",
+                        "MultiFileFlag": "SingleFile"
+                    },
+                    "file_label": "time",
+                    "output_control_type": "time",
+                    "output_interval": 1e-05,
+                    "body_output": true,
+                    "node_output": false,
+                    "skin_output": false,
+                    "plane_output": [],
+                    "nodal_results": [
+                        "TEMPERATURE",
+                        "NORMAL",
+                        "TEMPERATURE_GRADIENT",
+                        "FLAG_VARIABLE"
+                    ],
+                    "gauss_point_results": [],
+                    "nodal_nonhistorical_results": []
+                },
+                "point_data_configuration": []
+            },
+            "output_name": ""
+        }""")
+        output_params["output_name"].SetString(output_name)
+        parameters["output_processes"]["gid_output"][0]["Parameters"] = output_params       
+        self.pseudo_time +=1
+
+        if (self.settings["domain_size"].GetInt() == 3):
+            parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(self.settings["model_import_settings"]["input_filename"].GetString())
+
+        parameters["problem_data"].AddEmptyValue("echo_level").SetInt(self.settings["convection_diffusion_settings"]["echo_level"].GetInt())
+        parameters["problem_data"].AddEmptyValue("parallel_type").SetString(self.settings["convection_diffusion_settings"]["parallel_type"].GetString())
+        parameters["solver_settings"].AddEmptyValue("domain_size").SetInt(self.settings["domain_size"].GetInt())
+        parameters["solver_settings"]["time_stepping"].AddEmptyValue("time_step").SetDouble(self.settings["convection_diffusion_settings"]["time_step"].GetDouble())
+        parameters["problem_data"].AddEmptyValue("end_time").SetDouble((self.settings["convection_diffusion_settings"]["max_substeps"].GetInt())*(self.settings["convection_diffusion_settings"]["time_step"].GetDouble()))
+
+        analysis_stage_module_name = "KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis"
+        analysis_stage_class_name = analysis_stage_module_name.split('.')[-1]
+        analysis_stage_class_name = ''.join(x.title() for x in analysis_stage_class_name.split('_'))
+
+        analysis_stage_module = importlib.import_module(analysis_stage_module_name)
+        analysis_stage_class = getattr(analysis_stage_module, analysis_stage_class_name)
+
+        global_model = KratosMultiphysics.Model()
+        simulation = CreateAnalysisStageWithFlushInstance(analysis_stage_class, global_model, parameters, self.epsilon, self.convergenge_tolerence)
+        simulation.Run()
+
+        # Write the number of pseudo time steps to a text file
+        with open('pseudo_steps_to_convergence.txt', 'a') as file:
+             file.write(str(simulation.pseudo_steps_to_convergence) + '\n')
+
 
 
 
