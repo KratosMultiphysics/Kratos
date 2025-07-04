@@ -130,10 +130,10 @@ std::string BinaryExpression<TOperationType>::Info() const
 }
 
 // template instantiations
-template class BinaryExpression<BinaryOperations::Addition>;
-template class BinaryExpression<BinaryOperations::Substraction>;
-template class BinaryExpression<BinaryOperations::Multiplication>;
-template class BinaryExpression<BinaryOperations::Division>;
-template class BinaryExpression<BinaryOperations::Power>;
+template class KRATOS_API(KRATOS_CORE) BinaryExpression<BinaryOperations::Addition>;
+template class KRATOS_API(KRATOS_CORE) BinaryExpression<BinaryOperations::Substraction>;
+template class KRATOS_API(KRATOS_CORE) BinaryExpression<BinaryOperations::Multiplication>;
+template class KRATOS_API(KRATOS_CORE) BinaryExpression<BinaryOperations::Division>;
+template class KRATOS_API(KRATOS_CORE) BinaryExpression<BinaryOperations::Power>;
 
 } // namespace Kratos

@@ -6,7 +6,7 @@
 namespace Kratos
 {
 
-void AMGCLSolve(
+KRATOS_API(TRILINOS_APPLICATION) void AMGCLSolve(
     int block_size,
     TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::MatrixType& rA,
     TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::VectorType& rX,

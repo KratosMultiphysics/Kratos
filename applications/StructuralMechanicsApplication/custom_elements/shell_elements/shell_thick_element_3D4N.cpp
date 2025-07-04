@@ -1661,7 +1661,7 @@ void ShellThickElement3D4N<TKinematics>::load(Serializer& rSerializer)
     rSerializer.load("EAS", mEASStorage);
 }
 
-template class ShellThickElement3D4N<ShellKinematics::LINEAR>;
-template class ShellThickElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL>;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D4N<ShellKinematics::LINEAR>;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL>;
 
 }

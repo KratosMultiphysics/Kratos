@@ -539,22 +539,22 @@ void VariableExpressionDataIO<std::vector<Matrix>>::Read(
 }
 
 // template instantiations
-template class VariableExpressionDataIO<int>;
-template class VariableExpressionDataIO<double>;
-template class VariableExpressionDataIO<array_1d<double, 3>>;
-template class VariableExpressionDataIO<array_1d<double, 4>>;
-template class VariableExpressionDataIO<array_1d<double, 6>>;
-template class VariableExpressionDataIO<array_1d<double, 9>>;
-template class VariableExpressionDataIO<Vector>;
-template class VariableExpressionDataIO<Matrix>;
+template class KRATOS_API(KRATOS_CORE) VariableExpressionDataIO<int>;
+template class KRATOS_API(KRATOS_CORE) VariableExpressionDataIO<double>;
+template class KRATOS_API(KRATOS_CORE) VariableExpressionDataIO<array_1d<double, 3>>;
+template class KRATOS_API(KRATOS_CORE) VariableExpressionDataIO<array_1d<double, 4>>;
+template class KRATOS_API(KRATOS_CORE) VariableExpressionDataIO<array_1d<double, 6>>;
+template class KRATOS_API(KRATOS_CORE) VariableExpressionDataIO<array_1d<double, 9>>;
+template class KRATOS_API(KRATOS_CORE) VariableExpressionDataIO<Vector>;
+template class KRATOS_API(KRATOS_CORE) VariableExpressionDataIO<Matrix>;
 
-template class VariableExpressionDataIO<std::vector<int>>;
-template class VariableExpressionDataIO<std::vector<double>>;
-template class VariableExpressionDataIO<std::vector<array_1d<double, 3>>>;
-template class VariableExpressionDataIO<std::vector<array_1d<double, 4>>>;
-template class VariableExpressionDataIO<std::vector<array_1d<double, 6>>>;
-template class VariableExpressionDataIO<std::vector<array_1d<double, 9>>>;
-template class VariableExpressionDataIO<std::vector<Vector>>;
-template class VariableExpressionDataIO<std::vector<Matrix>>;
+template class KRATOS_API(KRATOS_CORE) VariableExpressionDataIO<std::vector<int>>;
+template class KRATOS_API(KRATOS_CORE) VariableExpressionDataIO<std::vector<double>>;
+template class KRATOS_API(KRATOS_CORE) VariableExpressionDataIO<std::vector<array_1d<double, 3>>>;
+template class KRATOS_API(KRATOS_CORE) VariableExpressionDataIO<std::vector<array_1d<double, 4>>>;
+template class KRATOS_API(KRATOS_CORE) VariableExpressionDataIO<std::vector<array_1d<double, 6>>>;
+template class KRATOS_API(KRATOS_CORE) VariableExpressionDataIO<std::vector<array_1d<double, 9>>>;
+template class KRATOS_API(KRATOS_CORE) VariableExpressionDataIO<std::vector<Vector>>;
+template class KRATOS_API(KRATOS_CORE) VariableExpressionDataIO<std::vector<Matrix>>;
 
 } // namespace Kratos

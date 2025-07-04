@@ -377,7 +377,6 @@ namespace Kratos
     }
 
 
-    template class DivideTriangle2D3<Node>;
-    template class DivideTriangle2D3<IndexedPoint>;
-
+    template class KRATOS_API(KRATOS_CORE) DivideTriangle2D3<Node>;
+    template class KRATOS_API(KRATOS_CORE) DivideTriangle2D3<IndexedPoint>;
 };
