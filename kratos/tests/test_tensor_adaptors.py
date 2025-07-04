@@ -34,6 +34,15 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         for i in range(10):
             cls.model_part.CreateNewNode(i + 1, i, i + 1, i + 2)
 
+        for i in range(20):
+            cls.model_part.CreateNewProperties(i + 1)
+
+        for i in range(10):
+            cls.model_part.CreateNewCondition("LineCondition2D2N", i + 1, [i + 1, ((i + 1) % 10 + 1)], cls.model_part.GetProperties(i + 1))
+
+        for i in range(10):
+            cls.model_part.CreateNewElement("Element3D2N", i + 1, [i + 1, ((i + 1) % 10 + 1)], cls.model_part.GetProperties(i + 1))
+
     def setUp(self):
         Kratos.VariableUtils().ClearNonHistoricalData(self.model_part.Nodes)
         Kratos.VariableUtils().ClearNonHistoricalData(self.model_part.Conditions)
@@ -57,8 +66,28 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         setter(self.model_part.Nodes, lambda x, y, z: x.SetSolutionStepValue(y, 0, z * 1.5))
         setter(self.model_part.Nodes, lambda x, y, z: x.SetSolutionStepValue(y, 1, z * 1.5))
         setter(self.model_part.Nodes, lambda x, y, z: x.SetValue(y, z * 2.1))
+        setter(self.model_part.Properties, lambda x, y, z: x.SetValue(y, z * 6.1))
+        setter(self.model_part.Conditions, lambda x, y, z: x.SetValue(y, z * 3.1))
+        setter(self.model_part.Elements, lambda x, y, z: x.SetValue(y, z * 4.1))
 
-    def test_Shape(self):
+    def test_Shape1(self):
+        t_adaptor_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.VELOCITY)
+        self.assertVectorAlmostEqual(t_adaptor_1.Shape(), [10, 3])
+        self.assertVectorAlmostEqual(t_adaptor_1.GetDataShape(), [3])
+
+        t_adaptor_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.NORMAL_SHAPE_DERIVATIVE)
+        self.assertVectorAlmostEqual(t_adaptor_1.Shape(), [10, 3, 2])
+        self.assertVectorAlmostEqual(t_adaptor_1.GetDataShape(), [3, 2])
+
+        t_adaptor_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.PK2_STRESS_TENSOR)
+        self.assertVectorAlmostEqual(t_adaptor_1.Shape(), [10, 0, 0])
+        self.assertVectorAlmostEqual(t_adaptor_1.GetDataShape(), [0, 0])
+
+        t_adaptor_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.PK2_STRESS_TENSOR, data_shape=[5,6])
+        self.assertVectorAlmostEqual(t_adaptor_1.Shape(), [10, 5, 6])
+        self.assertVectorAlmostEqual(t_adaptor_1.GetDataShape(), [5, 6])
+
+    def test_Shape2(self):
         t_adaptor_1 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY)
         t_adaptor_1.CollectData()
 
@@ -110,7 +139,6 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         for node in self.model_part.Nodes:
             self.assertEqual(node.GetSolutionStepValue(Kratos.VELOCITY_Y), node.GetSolutionStepValue(Kratos.DENSITY) * 3)
 
-
     def test_NonInitializedVars(self):
         t_adaptor_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.INITIAL_STRAIN)
         numpy_data = t_adaptor_1.data
@@ -135,81 +163,35 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
             numpy_array = numpy.zeros(shape=(t_adaptor.Shape()), dtype=numpy.float16)
             t_adaptor.data = numpy_array
 
+    def test_ConditionVariableTensorAdaptor(self):
+        self.__TestVariableTensorAdaptor(self.model_part.Conditions)
 
+    def test_ElementVariableTensorAdaptor(self):
+        self.__TestVariableTensorAdaptor(self.model_part.Elements)
 
+    def test_PropertyVariableTensorAdaptor(self):
+        self.__TestVariableTensorAdaptor(self.model_part.Properties)
 
-    #     for input_var, output_var in zip(self.input_list_of_variables, self.output_list_of_variables):
+    def __TestVariableTensorAdaptor(self, container):
+        for input_var, output_var in zip(self.input_list_of_variables, self.output_list_of_variables):
+            read_tensor_adaptor = Kratos.TensorAdaptors.VariableTensorAdaptor(container, input_var)
+            read_tensor_adaptor.CollectData()
 
-            # read_tensor_adaptor.CollectData()
+            write_tensor_adaptor = Kratos.TensorAdaptors.VariableTensorAdaptor(read_tensor_adaptor.GetContainer(), output_var, data_shape=read_tensor_adaptor.GetDataShape())
 
-            # write_tensor_adaptor = Kratos.TensorAdaptors.VariableTensorAdaptor(read_tensor_adaptor.GetContainer(), output_var, step_index=1, shape=read_tensor_adaptor.Shape())
+            # modify the write tensor data
+            write_tensor_adaptor.data = read_tensor_adaptor.data * 2
 
-    #         # modify the write tensor data
-    #         write_tensor_adaptor.data = read_tensor_adaptor.data * 2
+            write_tensor_adaptor.StoreData()
+            for entity in container:
+                self.__CheckValues(entity.GetValue(input_var) * 2, entity.GetValue(output_var))
 
-    #         write_tensor_adaptor.StoreData()
-    #         for entity in self.model_part.Nodes:
-    #             self.__CheckValues(entity.GetSolutionStepValue(input_var) * 2, entity.GetSolutionStepValue(output_var, 1))
+            # modify the read tensor data
+            read_tensor_adaptor.data *= 6
 
-    #         # modify the read tensor data
-    #         read_tensor_adaptor.data *= 6
-
-    #         read_tensor_adaptor.StoreData()
-    #         for entity in self.model_part.Nodes:
-    #             self.__CheckValues(entity.GetSolutionStepValue(input_var), entity.GetSolutionStepValue(output_var, 1) * 3)
-
-    # def test_NodalNonHistoricalVariableTensorAdaptor(self):
-    #     read_tensor_adaptor = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE, step_index=1)
-    #     read_tensor_adaptor = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
-    #     read_tensor_adaptor = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, [Kratos.VELOCITY, Kratos.PRESSURE])
-
-
-
-    #     read_tensor_adaptor = Kratos.TensorAdaptors.GaussPointVariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE, process_info=)
-
-    #     read_tensor_adaptor = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
-    #     write_tensor_adaptor = Kratos.TensorAdaptors.VariableTensorAdaptor(read_tensor_adaptor.GetContainer(), Kratos.DENSITY, shape=read_tensor_adaptor.Shape())
-
-    #     read_tensor_adaptor.CollectData()
-
-    #     # modify the write tensor data
-    #     a = write_tensor_adaptor.data
-    #     b = read_tensor_adaptor.data
-
-    #     a = b
-
-    #     write_tensor_adaptor.data = read_tensor_adaptor.data
-
-    #     write_tensor_adaptor.GetData()[:] = read_tensor_adaptor.GetData() * 2
-
-    #     write_tensor_adaptor.SetData(read_tensor_adaptor.GetData() * 2)
-
-    #     write_tensor_adaptor.StoreData()
-
-    #     for entity in self.model_part.Nodes:
-    #         self.__CheckValues(entity.GetValue(Kratos.PRESSURE) * 2, entity.GetValue(Kratos.DENSITY))
-
-    #     # modify the read tensor data
-    #     read_tensor_adaptor.data *= 6
-
-    #     read_tensor_adaptor.StoreData()
-    #     for entity in self.model_part.Nodes:
-    #         self.__CheckValues(entity.GetValue(Kratos.PRESSURE), entity.GetValue(Kratos.DENSITY) * 3)
-
-    # def test_NodalNonHistoricalVariableTensorAdaptor(self):
-    #     self.__TestVariableTensorAdaptor(self.model_part.Nodes, lambda x, y: x.GetValue(y))
-
-    # def test_ConditionVariableTensorAdaptor(self):
-    #     self.__TestVariableTensorAdaptor(self.model_part.Conditions, lambda x, y: x.GetValue(y))
-
-    # def test_ElementVariableTensorAdaptor(self):
-    #     self.__TestVariableTensorAdaptor(self.model_part.Elements, lambda x, y: x.GetValue(y))
-
-    # def test_PropertyVariableTensorAdaptor(self):
-    #     self.__TestVariableTensorAdaptor(self.model_part.Properties, lambda x, y: x.GetValue(y))
-
-    # def __TestVariableTensorAdaptor(self, container, getter_method, **kwargs):
-
+            read_tensor_adaptor.StoreData()
+            for entity in container:
+                self.__CheckValues(entity.GetValue(input_var), entity.GetValue(output_var) * 3)
 
     def __CheckValues(self, value_1, value_2):
         if isinstance(value_1, float):
