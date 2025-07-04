@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Richard Faasse
+//                   Gennady Markelov
 //
 
 #pragma once

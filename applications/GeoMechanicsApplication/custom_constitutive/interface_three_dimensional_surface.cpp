@@ -8,13 +8,13 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Richard Faasse
+//                   Gennady Markelov
 //
 
 #include "interface_three_dimensional_surface.h"
 
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_constants.h"
-#include "includes/constitutive_law.h"
 
 namespace Kratos
 {

@@ -1009,7 +1009,7 @@ private:
 
     const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw{
         std::make_unique<InterfacePlaneStrain>()};
-    const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLawPlane{
+    const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw3DSurface{
         std::make_unique<InterfaceThreeDimensionalSurface>()};
 
     const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff2D{std::make_unique<PlaneStrain>()};

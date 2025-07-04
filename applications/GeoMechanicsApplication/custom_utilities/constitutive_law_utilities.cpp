@@ -108,4 +108,5 @@ Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      Nor
     result(1, 1) = ShearStiffness;
     return result;
 }
+
 } // namespace Kratos

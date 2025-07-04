@@ -125,7 +125,7 @@ void GeoIncrementalLinearElasticInterfaceLaw::save(Serializer& rSerializer) cons
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
     rSerializer.save("PreviousRelativeDisplacement", mPreviousRelativeDisplacement);
     rSerializer.save("PreviousTraction", mPreviousTraction);
-    rSerializer.save("ConstitutiveLawDimension", mInterfaceConstitutiveLawDimension);
+    rSerializer.save("InterfaceConstitutiveLawDimension", mInterfaceConstitutiveLawDimension);
 }
 
 void GeoIncrementalLinearElasticInterfaceLaw::load(Serializer& rSerializer)
@@ -133,7 +133,7 @@ void GeoIncrementalLinearElasticInterfaceLaw::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
     rSerializer.load("PreviousRelativeDisplacement", mPreviousRelativeDisplacement);
     rSerializer.load("PreviousTraction", mPreviousTraction);
-    rSerializer.load("ConstitutiveLawDimension", mInterfaceConstitutiveLawDimension);
+    rSerializer.load("InterfaceConstitutiveLawDimension", mInterfaceConstitutiveLawDimension);
 }
 
 } // namespace Kratos
