@@ -1,5 +1,5 @@
 def GetNormTypeContainer(item_container, norm_type):
-    if (norm_type == "none"):
+    if (norm_type == "none" or norm_type == "value"):
         return item_container.ValueMethods
     else:
         return item_container.NormMethods
