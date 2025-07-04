@@ -78,7 +78,9 @@ public:
     ///@name Life cycle
     ///@{
 
-    template<class TContainerPointerType>
+    template<
+        class TContainerPointerType,
+        typename = std::enable_if_t<TIOType<double>::template IsAllowedContainer<typename TContainerPointerType::element_type>>>
     VariableTensorAdaptor(
         TContainerPointerType pContainer,
         VariableType pVariable,
@@ -91,7 +93,9 @@ public:
         }, pVariable);
     }
 
-    template<class TContainerPointerType>
+    template<
+        class TContainerPointerType,
+        typename = std::enable_if_t<TIOType<double>::template IsAllowedContainer<typename TContainerPointerType::element_type>>>
     VariableTensorAdaptor(
         TContainerPointerType pContainer,
         VariableType pVariable,
@@ -194,7 +198,7 @@ private:
         using return_type = typename TCurrentIOPointerType::element_type::ReturnType;
 
         KRATOS_ERROR_IF_NOT(DataTypeTraits<return_type>::IsValidShape(rDataShape.begin(), rDataShape.end()))
-            << "Invalid return data shape provided. [ return data shape provided = " << rDataShape
+            << "Invalid data shape provided. [ data shape provided = " << rDataShape
             << ", max possible sizes in each dimension  = "
             << DataTypeTraits<return_type>::Shape(return_type{}) << " ].\n";
 
@@ -221,11 +225,11 @@ private:
             << "Tensor adapter shape = " << this->mShape << ", container size = " << rContainer.size()
             << ", TensorAdaptor = " << *this << " ].\n";
 
+        // The case with following constexpr becoming false will never be reached
+        // at runtime because, this class's constructors are enabled only
+        // for the TContainerTypes which the TIOType is allowed.
         if constexpr(TContainerIOType::template IsAllowedContainer<TContainerType>) {
             CopyToContiguousArray(rContainer, rContainerIO, this->mData.data().begin(), this->mShape.begin(), this->mShape.end());
-        } else {
-            KRATOS_ERROR << "It is prohibited to use " << ModelPart::Container<TContainerType>::GetEntityName()
-                        << " containers with " <<  rContainerIO.Info () << ".";
         }
 
         KRATOS_CATCH("");
@@ -246,11 +250,11 @@ private:
 
         const std::vector<unsigned int> shape(this->mShape.begin() + 1, this->mShape.end());
 
+        // The case with following constexpr becoming false will never be reached
+        // at runtime because, this class's constructors are enabled only
+        // for the TContainerTypes which the TIOType is allowed.
         if constexpr(TContainerIOType::template IsAllowedContainer<TContainerType>) {
             CopyFromContiguousDataArray(rContainer, rContainerIO, this->mData.data().begin(), this->mShape.begin(), this->mShape.end());
-        } else {
-            KRATOS_ERROR << "It is prohibited to use " << ModelPart::Container<TContainerType>::GetEntityName()
-                         << " containers with " <<  rContainerIO.Info () << ".";
         }
 
         KRATOS_CATCH("");
