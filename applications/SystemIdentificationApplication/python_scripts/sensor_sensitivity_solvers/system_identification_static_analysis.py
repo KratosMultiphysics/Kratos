@@ -5,6 +5,7 @@ from KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solve
 from KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers.sensor_sensitivity_adjoint_static_solver import SensorSensitivityAdjointStaticSolver
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
+from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import GetContainerExpression
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _):
     return SystemIdentificationStaticAnalysis(model, parameters["settings"])
@@ -32,6 +33,15 @@ class SystemIdentificationStaticAnalysis(ResponseSensitivityAnalysis):
         process_info = self._GetSolver().GetComputingModelPart().ProcessInfo
         Kratos.Logger.PrintInfo(self._GetSimulationName(), f"Step {process_info[Kratos.STEP]}: Computed sensitivities for response \"{process_info[KratosSI.SENSOR_NAME]}\" using \"{process_info[KratosSI.TEST_ANALYSIS_NAME]}\" analysis.")
 
+    def GetSensitivities(self, model_part: Kratos.ModelPart) -> 'dict[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3], ExpressionUnionType]':
+        sensitivity_variables: 'dict[ExpressionDataLocation, list[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3]]]' = self._GetSolver().GetSensitivtyVariables()
+
+        result: 'dict[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3], ExpressionUnionType]' = {}
+        for data_location, variables in sensitivity_variables.items():
+            for variable in variables:
+                result[variable] = GetContainerExpression(model_part, data_location, variable)
+        return result
+    
 if __name__ == "__main__":
     from sys import argv
 
