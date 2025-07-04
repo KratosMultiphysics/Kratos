@@ -12,39 +12,35 @@
 
 #include "interface_three_dimensional_surface.h"
 
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include "includes/constitutive_law.h"
-#include "includes/exception.h"
 
 namespace Kratos
 {
 
-Matrix InterfaceThreeDimensionalSurface::CalculateElasticMatrix(double YoungsModulus, double PoissonsRatio) const
+Matrix InterfaceThreeDimensionalSurface::MakeInterfaceConstitutiveMatrix(double NormalStiffness,
+                                                                         double ShearStiffness,
+                                                                         std::size_t TractionSize) const
 {
-    KRATOS_ERROR << "InterfaceThreeDimensionalSurface::CalculateElasticMatrix is not yet implemented";
-    return ZeroMatrix(4, 4);// NOSONAR: required to satisfy return type
+    auto result = ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
+        NormalStiffness, ShearStiffness, TractionSize);
+    result(2, 2) = result(1, 1);
+
+    return result;
 }
 
-std::unique_ptr<ConstitutiveLawDimension> InterfaceThreeDimensionalSurface::Clone() const
+std::unique_ptr<InterfaceConstitutiveLawDimension> InterfaceThreeDimensionalSurface::Clone() const
 {
     return std::make_unique<InterfaceThreeDimensionalSurface>();
 }
 
-std::size_t InterfaceThreeDimensionalSurface::GetStrainSize() const { return VOIGT_SIZE_3D_INTERFACE; }
+std::size_t InterfaceThreeDimensionalSurface::GetStrainSize() const
+{
+    return VOIGT_SIZE_3D_INTERFACE;
+}
 
 std::size_t InterfaceThreeDimensionalSurface::GetDimension() const { return N_DIM_3D; }
-
-std::size_t InterfaceThreeDimensionalSurface::GetNumberOfNormalComponents() const
-{
-    KRATOS_ERROR << "InterfaceThreeDimensionalSurface::GetNumberOfNormalComponents is not yet implemented";
-    return 3;// NOSONAR: required to satisfy return type
-}
-
-Flags InterfaceThreeDimensionalSurface::GetSpatialType() const
-{
-    KRATOS_ERROR << "InterfaceThreeDimensionalSurface::GetSpatialType is not yet implemented";
-    return ConstitutiveLaw::PLANE_STRAIN_LAW;// NOSONAR: required to satisfy return type
-}
 
 void InterfaceThreeDimensionalSurface::save(Serializer&) const
 {

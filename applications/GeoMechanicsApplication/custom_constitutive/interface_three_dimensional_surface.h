@@ -12,20 +12,20 @@
 
 #pragma once
 
-#include "constitutive_law_dimension.h"
+#include "interface_constitutive_law_dimension.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceThreeDimensionalSurface : public ConstitutiveLawDimension
+class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceThreeDimensionalSurface : public InterfaceConstitutiveLawDimension
 {
 public:
-    [[nodiscard]] Matrix CalculateElasticMatrix(double YoungsModulus, double PoissonsRatio) const override;
-    [[nodiscard]] std::unique_ptr<ConstitutiveLawDimension> Clone() const override;
-    [[nodiscard]] std::size_t                               GetStrainSize() const override;
-    [[nodiscard]] std::size_t                               GetDimension() const override;
-    [[nodiscard]] std::size_t GetNumberOfNormalComponents() const override;
-    [[nodiscard]] Flags       GetSpatialType() const override;
+    [[nodiscard]] Matrix MakeInterfaceConstitutiveMatrix(double      NormalStiffness,
+                                                         double      ShearStiffness,
+                                                         std::size_t TractionSize) const override;
+    [[nodiscard]] std::unique_ptr<InterfaceConstitutiveLawDimension> Clone() const override;
+    [[nodiscard]] std::size_t                                        GetStrainSize() const override;
+    [[nodiscard]] std::size_t                                        GetDimension() const override;
 
 private:
     friend class Serializer;
