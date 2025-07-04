@@ -1,6 +1,6 @@
 {
     "problem_data"     : {
-        "problem_name"  : "triaxial",
+        "problem_name"  : "direct_shear",
         "parallel_type" : "OpenMP",
         "echo_level"    : 1,
         "start_time"    : 0.0,
@@ -53,7 +53,7 @@
         "line_search_tolerance"              : 0.5,
         "rotation_dofs"                      : false,
         "problem_domain_sub_model_part_list" : ["Soil"],
-        "processes_sub_model_part_list"      : ["Fixed_base","Fixed_side","Lateral_load","Top_displacement","Soil"],
+        "processes_sub_model_part_list"      : ["Fixed_base","Soil","Top_displacement","Middle_displacement"],
         "body_domain_sub_model_part_list"    : ["Soil"],
         "linear_solver_settings"             : {
             "solver_type" : "LinearSolversApplication.sparse_lu",
@@ -68,8 +68,8 @@
             "Parameters"    : {
                 "model_part_name" : "PorousDomain.Fixed_base",
                 "variable_name"   : "DISPLACEMENT",
-                "active"          : [false,true,false],
-                "is_fixed"        : [false,true,false],
+                "active"          : [true,true,false],
+                "is_fixed"        : [true,true,false],
                 "value"           : [0.0,0.0,0.0],
                 "table"           : [0,0,0]
             }
@@ -78,12 +78,24 @@
             "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
             "process_name"  : "ApplyVectorConstraintTableProcess",
             "Parameters"    : {
-                "model_part_name" : "PorousDomain.Fixed_side",
+                "model_part_name" : "PorousDomain.Top_displacement",
                 "variable_name"   : "DISPLACEMENT",
-                "active"          : [true,false,false],
-                "is_fixed"        : [true,false,false],
+                "active"          : [true,true,false],
+                "is_fixed"        : [true,true,false],
                 "value"           : [0.0,0.0,0.0],
-                "table"           : [0,0,0]
+                "table"           : [1,0,0]
+            }
+        },{
+            "python_module" : "apply_vector_constraint_table_process",
+            "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
+            "process_name"  : "ApplyVectorConstraintTableProcess",
+            "Parameters"    : {
+                "model_part_name" : "PorousDomain.Middle_displacement",
+                "variable_name"   : "DISPLACEMENT",
+                "active"          : [true,true,false],
+                "is_fixed"        : [true,true,false],
+                "value"           : [0.0,0.0,0.0],
+                "table"           : [2,0,0]
             }
         },{
         "python_module": "apply_scalar_constraint_table_process",
@@ -99,36 +111,12 @@
             }
         }],
         "loads_process_list"       : [{
-            "python_module" : "apply_normal_load_table_process",
-            "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
-            "process_name"  : "apply_normal_load_table_process",
-            "Parameters"    : {
-                "model_part_name"      : "PorousDomain.Lateral_load",
-                "variable_name"        : "NORMAL_CONTACT_STRESS",
-                "active"               : [true,false],
-                "value"                : [0.0,0.0],
-                "fluid_pressure_type"  : "Uniform",
-                "table"                : [1,0]
-            }
-        },{
-            "python_module" : "apply_vector_constraint_table_process",
-            "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
-            "process_name"  : "ApplyVectorConstraintTableProcess",
-            "Parameters"    : {
-                "model_part_name" : "PorousDomain.Top_displacement",
-                "variable_name"   : "DISPLACEMENT",
-                "active"          : [false,true,false],
-                "is_fixed"        : [false,true,false],
-                "value"           : [0.0,0.0,0.0],
-                "table"           : [0,2,0]
-            }
-        },{
             "python_module": "apply_initial_uniform_stress_field",
             "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
             "process_name":  "ApplyInitialUniformStressField",
             "Parameters":    {
                 "model_part_name": "PorousDomain.Soil",
-                "value": [0.0, 0.0, 0.0, 0.0]
+                "value": [-100,-100.0,-100,0.0]
             }
         }]
     },
