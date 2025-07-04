@@ -62,22 +62,19 @@ double SumOfWeights(const Geo::IntegrationPointVectorType& rIntegrationPoints)
     return std::accumulate(weights.cbegin(), weights.cend(), 0.0);
 }
 
-void ExpectLocalCoordinatesIncludeRangeBounds(const Geo::IntegrationPointVectorType& rIntegrationPoints,
-                                              double      IsoLowerBound,
-                                              double      IsoUpperBound,
-                                              std::size_t DirectionIndex)
+bool IsAtBound(const Geo::IntegrationPointType& rPoint, double Bound, std::size_t DirectionIndex)
 {
-    auto is_at_lower_bound_of_iso_coord = [IsoLowerBound, DirectionIndex](const auto& rPoint) {
-        // lower_bound is 0 or a negative number
-        return std::abs(rPoint[DirectionIndex] - IsoLowerBound) <= Testing::Defaults::absolute_tolerance;
-    };
-    KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), is_at_lower_bound_of_iso_coord))
+    return std::abs(rPoint[DirectionIndex] - Bound) <= Testing::Defaults::absolute_tolerance;
+}
 
-    auto is_at_upper_bound_of_iso_coord = [IsoUpperBound, DirectionIndex](const auto& rPoint) {
-        // upper_bound is 0 or a positive number
-        return std::abs(rPoint[DirectionIndex] - IsoUpperBound) <= Testing::Defaults::absolute_tolerance;
+void ExpectLocalCoordinatesIncludeRangeBound(const Geo::IntegrationPointVectorType& rIntegrationPoints,
+                                             double      Bound,
+                                             std::size_t DirectionIndex)
+{
+    auto is_at_bound_of_iso_coord = [Bound, DirectionIndex](const auto& rPoint) {
+        return std::abs(rPoint[DirectionIndex] - Bound) <= Testing::Defaults::absolute_tolerance;
     };
-    KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), is_at_upper_bound_of_iso_coord))
+    KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), is_at_bound_of_iso_coord))
 }
 
 void ExpectLocalCoordinatesAreInRange(const Geo::IntegrationPointVectorType& rIntegrationPoints,
@@ -153,7 +150,8 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedLobattoSchemesMustBeInRangeAndIncl
         ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), -1.0, 1.0, std::size_t{0});
         ExpectLocalCoordinatesAreZero(scheme->GetIntegrationPoints(), std::size_t{1});
         ExpectLocalCoordinatesAreZero(scheme->GetIntegrationPoints(), std::size_t{2});
-        ExpectLocalCoordinatesIncludeRangeBounds(scheme->GetIntegrationPoints(), -1.0, 1.0, std::size_t{0});
+        ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), -1.0, std::size_t{0});
+        ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 1.0, std::size_t{0});
     }
 }
 
@@ -218,8 +216,10 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedQuadrilateralLumpedSchemesMustBeIn
         ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), -1.0, 1.0, std::size_t{0});
         ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), -1.0, 1.0, std::size_t{1});
         ExpectLocalCoordinatesAreZero(scheme->GetIntegrationPoints(), std::size_t{2});
-        ExpectLocalCoordinatesIncludeRangeBounds(scheme->GetIntegrationPoints(), -1.0, 1.0, std::size_t{0});
-        ExpectLocalCoordinatesIncludeRangeBounds(scheme->GetIntegrationPoints(), -1.0, 1.0, std::size_t{1});
+        ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), -1.0, std::size_t{0});
+        ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 1.0, std::size_t{0});
+        ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), -1.0, std::size_t{1});
+        ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 1.0, std::size_t{1});
     }
 }
 
@@ -232,8 +232,10 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedTriangleLumpedSchemesMustBeInRange
         ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), 0.0, 1.0, std::size_t{0});
         ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), 0.0, 1.0, std::size_t{1});
         ExpectLocalCoordinatesAreZero(scheme->GetIntegrationPoints(), std::size_t{2});
-        ExpectLocalCoordinatesIncludeRangeBounds(scheme->GetIntegrationPoints(), 0.0, 1.0, std::size_t{0});
-        ExpectLocalCoordinatesIncludeRangeBounds(scheme->GetIntegrationPoints(), 0.0, 1.0, std::size_t{1});
+        ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 0.0, std::size_t{0});
+        ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 1.0, std::size_t{0});
+        ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 0.0, std::size_t{1});
+        ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 1.0, std::size_t{1});
     }
 }
 
