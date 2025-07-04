@@ -90,7 +90,7 @@ public:
     using ReturnType = TDataType;
 
     template<class TContainerType>
-    using IsAllowedContainer = IsInList<TContainerType, ModelPart::NodesContainerType>;
+    static constexpr bool IsAllowedContainer = IsInList<TContainerType, ModelPart::NodesContainerType>::value;
 
     KRATOS_CLASS_POINTER_DEFINITION(HistoricalIO);
 
@@ -152,14 +152,14 @@ public:
     using ReturnType = TDataType;
 
     template<class TContainerType>
-    using IsAllowedContainer = IsInList<TContainerType,
-                                        ModelPart::NodesContainerType,
-                                        ModelPart::ConditionsContainerType,
-                                        ModelPart::ElementsContainerType,
-                                        ModelPart::PropertiesContainerType,
-                                        ModelPart::GeometriesMapType,
-                                        ModelPart::MasterSlaveConstraintContainerType
-                                    >;
+    static constexpr bool IsAllowedContainer = IsInList<TContainerType,
+                                                        ModelPart::NodesContainerType,
+                                                        ModelPart::ConditionsContainerType,
+                                                        ModelPart::ElementsContainerType,
+                                                        ModelPart::PropertiesContainerType,
+                                                        ModelPart::GeometriesMapType,
+                                                        ModelPart::MasterSlaveConstraintContainerType
+                                                    >::value;
 
     KRATOS_CLASS_POINTER_DEFINITION(NonHistoricalIO);
 
@@ -215,9 +215,10 @@ public:
     using ReturnType = std::vector<TDataType>;
 
     template<class TContainerType>
-    using IsAllowedContainer = IsInList<TContainerType,
-                                        ModelPart::ConditionsContainerType,
-                                        ModelPart::ElementsContainerType>;
+    static constexpr bool IsAllowedContainer = IsInList<TContainerType,
+                                                        ModelPart::ConditionsContainerType,
+                                                        ModelPart::ElementsContainerType
+                                                        >::value;
 
     KRATOS_CLASS_POINTER_DEFINITION(GaussPointIO);
 
