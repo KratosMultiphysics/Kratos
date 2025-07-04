@@ -17,8 +17,6 @@
 #include <memory>
 #include <vector>
 
-#include "custom_processes/calculate_incremental_displacement_process.h"
-#include "custom_processes/calculate_total_motion_process.h"
 #include "scoped_output_file_access.h"
 #include "strategy_wrapper.hpp"
 #include "time_incrementor.h"
@@ -66,20 +64,13 @@ public:
         std::vector<TimeStepEndState> result;
         TimeStepEndState              NewEndState = EndState;
         ScopedOutputFileAccess        limit_output_file_access_to_this_scope{*mStrategyWrapper};
-
-        auto incremental_displacement_process =
-            CalculateIncrementalDisplacementProcess(mStrategyWrapper->GetModelPart(), {});
-
-        auto total_displacement_process = CalculateTotalMotionProcess(
-            mStrategyWrapper->GetModelPart(), Parameters(R"({"variable_name": "DISPLACEMENT"})"));
-
         while (mTimeIncrementor->WantNextStep(NewEndState) && !IsCancelled()) {
             mStrategyWrapper->IncrementStepNumber();
             // clone without end time, the end time is overwritten anyway
             mStrategyWrapper->CloneTimeStep();
             NewEndState = RunCycleLoop(NewEndState);
-            incremental_displacement_process.Execute();
-            total_displacement_process.Execute();
+            mStrategyWrapper->ComputeIncrementalDisplacementField();
+            mStrategyWrapper->AccumulateTotalDisplacementField();
             mStrategyWrapper->FinalizeSolutionStep();
             mStrategyWrapper->OutputProcess();
             result.emplace_back(NewEndState);

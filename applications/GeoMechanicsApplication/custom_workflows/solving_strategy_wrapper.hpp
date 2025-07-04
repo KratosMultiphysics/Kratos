@@ -15,6 +15,8 @@
 #include "strategy_wrapper.hpp"
 #include <memory>
 
+#include "custom_processes/calculate_incremental_displacement_process.h"
+#include "custom_processes/calculate_total_motion_process.h"
 #include "geo_mechanics_application_variables.h"
 #include "geo_output_writer.h"
 #include "includes/variables.h"
@@ -66,8 +68,6 @@ public:
 
     double GetTimeIncrement() const override { return mrModelPart.GetProcessInfo()[DELTA_TIME]; }
 
-    ModelPart& GetModelPart() override { return mrModelPart; }
-
     void SetTimeIncrement(double TimeIncrement) override
     {
         mrModelPart.GetProcessInfo()[DELTA_TIME] = TimeIncrement;
@@ -95,6 +95,19 @@ public:
         CopyNodalSolutionStepValues(DISPLACEMENT, index_of_old_value, index_of_new_value);
         CopyNodalSolutionStepValues(WATER_PRESSURE, index_of_old_value, index_of_new_value);
         CopyNodalSolutionStepValues(ROTATION, index_of_old_value, index_of_new_value);
+    }
+
+    void AccumulateTotalDisplacementField() override
+    {
+        auto process =
+            CalculateTotalMotionProcess(mrModelPart, Parameters(R"({"variable_name": "DISPLACEMENT"})"));
+        process.Execute();
+    }
+
+    void ComputeIncrementalDisplacementField() override
+    {
+        auto process = CalculateIncrementalDisplacementProcess(mrModelPart, {});
+        process.Execute();
     }
 
     void OutputProcess() override

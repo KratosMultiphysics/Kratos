@@ -195,10 +195,6 @@ class GeoMechanicsAnalysis(AnalysisStage):
     def _CreateSolver(self):
         return geomechanics_solvers_wrapper.CreateSolver(self.model, self.project_parameters)
 
-    def _CalculateTotalDisplacement(self, node):
-        total_displacement = node.GetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT) + node.GetSolutionStepValue(KratosGeo.INCREMENTAL_DISPLACEMENT)
-        node.SetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT, total_displacement)
-
     def _GetOrderOfProcessesInitialization(self):
         return ["constraints_process_list",
                 "loads_process_list",

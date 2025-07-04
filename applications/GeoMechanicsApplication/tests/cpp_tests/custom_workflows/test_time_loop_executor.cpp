@@ -56,12 +56,6 @@ public:
         return static_cast<std::size_t>(mpModelPart->GetProcessInfo()[STEP]);
     }
 
-    [[nodiscard]] ModelPart& GetModelPart() override
-    {
-        ++mCountGetModelPartCalled;
-        return *mpModelPart;
-    }
-
     void IncrementStepNumber() override { ++mpModelPart->GetProcessInfo()[STEP]; }
 
     void CloneTimeStep() override { mIsCloned = true; }
@@ -72,9 +66,19 @@ public:
 
     [[nodiscard]] bool IsRestoreCalled() const { return mIsRestoreCalled; }
 
-    [[nodiscard]] std::size_t GetCountGetModelPartCalled() const
+    void AccumulateTotalDisplacementField() override
     {
-        return mCountGetModelPartCalled;
+        ++mCountAccumulateTotalDisplacementFieldCalled;
+    }
+
+    [[nodiscard]] std::size_t GetCountAccumulateTotalDisplacementFieldCalled() const
+    {
+        return mCountAccumulateTotalDisplacementFieldCalled;
+    }
+
+    void ComputeIncrementalDisplacementField() override
+    {
+        // intentionally empty
     }
 
     void OutputProcess() override
@@ -134,14 +138,14 @@ public:
 private:
     TimeStepEndState::ConvergenceState mConvergenceState{TimeStepEndState::ConvergenceState::converged};
     Model                 mModel;
-    ModelPart*            mpModelPart                      = nullptr;
-    bool                  mIsCloned                        = false;
-    bool                  mIsRestoreCalled                 = false;
-    std::size_t           mCountInitializeOutputCalled     = 0;
-    std::size_t           mCountGetModelPartCalled         = 0;
-    std::size_t           mCountOutputProcessCalled        = 0;
-    std::size_t           mCountFinalizeSolutionStepCalled = 0;
-    std::size_t           mCountFinalizeOutputCalled       = 0;
+    ModelPart*            mpModelPart                                  = nullptr;
+    bool                  mIsCloned                                    = false;
+    bool                  mIsRestoreCalled                             = false;
+    std::size_t           mCountInitializeOutputCalled                 = 0;
+    std::size_t           mCountAccumulateTotalDisplacementFieldCalled = 0;
+    std::size_t           mCountOutputProcessCalled                    = 0;
+    std::size_t           mCountFinalizeSolutionStepCalled             = 0;
+    std::size_t           mCountFinalizeOutputCalled                   = 0;
     std::function<void()> mOutputProcessCallback;
 };
 
@@ -307,11 +311,11 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectRestoreCalledForTwoCycles, KratosGeoMechanicsFas
     KRATOS_EXPECT_TRUE(solver_strategy->IsRestoreCalled())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectGetModelPartForEveryStep, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ExpectDisplacementFieldUpdateForEveryStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto solver_strategy = RunFixedCycleTimeLoop(1);
 
-    KRATOS_EXPECT_EQ(2, solver_strategy->GetCountGetModelPartCalled());
+    KRATOS_EXPECT_EQ(2, solver_strategy->GetCountAccumulateTotalDisplacementFieldCalled());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectOutputProcessCalledForEveryStep, KratosGeoMechanicsFastSuiteWithoutKernel)
