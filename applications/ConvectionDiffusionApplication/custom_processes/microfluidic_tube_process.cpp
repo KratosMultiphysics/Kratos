@@ -56,7 +56,7 @@ MicrofluidicTubeProcess::MicrofluidicTubeProcess(
 
 }
 
-double MicrofluidicTubeProcess::GetVelocityValue(Node<3> node)
+double MicrofluidicTubeProcess::GetVelocityValue(Node node)
 {
     return 0.0;
 }
@@ -190,7 +190,7 @@ void MicrofluidicTubeProcess::SetSystemProperties()
         rElement.SetProperties(mrModelPart.pGetProperties(1));
     });
 
-    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+    block_for_each(mrModelPart.Nodes(), [&](Node& rNode){
         rNode.FastGetSolutionStepValue(SPECIFIC_HEAT) = mSpecificHeat;
     });
     // std::cout << "Setting C = " << mSpecificHeat << std::endl;

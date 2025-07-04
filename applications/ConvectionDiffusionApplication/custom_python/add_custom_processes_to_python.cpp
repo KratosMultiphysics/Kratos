@@ -22,6 +22,7 @@
 // Response Functions
 #include "custom_processes/manufactured_body_force_process.h"
 #include "custom_processes/microfluidic_tube_process.h"
+#include "custom_processes/boussinesq_concentration_field_process.h"
 
 
 namespace Kratos {
@@ -32,15 +33,20 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     namespace py = pybind11;
 
     // Processes
-    py::class_<ManufacturedBodyForceProcess, ManufacturedBodyForceProcess::Pointer, Process>
-    (m, "ManufacturedBodyForceProcess")
-    .def(py::init< ModelPart&>())
-    .def(py::init< ModelPart&, Parameters& >())
-    ;
+    // py::class_<ManufacturedBodyForceProcess, ManufacturedBodyForceProcess::Pointer, Process>
+    // (m, "ManufacturedBodyForceProcess")
+    // .def(py::init< ModelPart&>())
+    // .def(py::init< ModelPart&, Parameters& >())
+    // ;
 
     py::class_<MicrofluidicTubeProcess, MicrofluidicTubeProcess::Pointer, Process>
     (m, "MicrofluidicTubeProcess")
     .def(py::init< ModelPart&>())
+    .def(py::init< ModelPart&, Parameters& >())
+    ;
+
+    py::class_<BoussinesqConcentrationFieldProcess, BoussinesqConcentrationFieldProcess::Pointer, Process>
+    (m, "BoussinesqConcentrationFieldProcess")
     .def(py::init< ModelPart&, Parameters& >())
     ;
 }

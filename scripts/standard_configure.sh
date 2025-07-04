@@ -27,7 +27,7 @@ export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set basic configuration
 export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"Debug"}
-export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3.10-dbg"}
+export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3.10"}
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=

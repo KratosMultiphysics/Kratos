@@ -163,7 +163,7 @@ public:
 
     const Parameters GetDefaultParameters() const override;
 
-    double GetVelocityValue(Node<3> node);
+    double GetVelocityValue(Node node);
 
     void SetOutletVelocityAndPressure();
 

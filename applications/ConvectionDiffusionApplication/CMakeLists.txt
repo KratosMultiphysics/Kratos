@@ -9,6 +9,7 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/convection_diffusion_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/convection_diffusion_application_variables.cpp
 
+    # Elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisymmetric_eulerian_convection_diffusion.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/eulerian_conv_diff.cpp
 
@@ -24,13 +25,18 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_diffusion_element.cpp
 
+    # Conditions
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisymmetric_thermal_face.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/thermal_face.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/flux_condition.cpp
-
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/adjoint_thermal_face.cpp
 
+    # Utilities
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/embedded_mls_constraint_process.cpp
+
+    # Process
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/boussinesq_concentration_field_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/microfluidic_tube_process.cpp
 )
 
 ## define python interface sources
@@ -38,6 +44,7 @@ set( KRATOS_CONVECTION_DIFFUSION_PYTHON_INTERFACE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_convection_diffusion_python_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_response_functions_to_python.cpp
 )
 
