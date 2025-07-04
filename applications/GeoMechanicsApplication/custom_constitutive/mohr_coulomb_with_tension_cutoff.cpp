@@ -159,14 +159,42 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
 
     auto trial_sigma_tau =
         StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_trial_stress_vector);
-    while (!mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
-        trial_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(r_prop, trial_sigma_tau);
-        principal_trial_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
-            trial_sigma_tau, principal_trial_stress_vector);
 
-        principal_trial_stress_vector = this->RearrangeEigenValuesAndVectors(principal_trial_stress_vector);
-        trial_sigma_tau =
-            StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_trial_stress_vector);
+    int          count        = 0;
+    int          mappingStage = 2;
+    Vector       mapped_principal_trial_stress_vector;
+    const Vector original_principal_trial_stress_vector = principal_trial_stress_vector;
+
+    while (!mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau) && count < 1) {
+        count++;
+        Vector mapped_trial_sigma_tau =
+            mCoulombWithTensionCutOffImpl.DoReturnMapping(r_prop, trial_sigma_tau, mappingStage);
+        mapped_principal_trial_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
+            mapped_trial_sigma_tau, principal_trial_stress_vector);
+
+        bool ipl                      = false;
+        principal_trial_stress_vector = this->RearrangeEigenValuesAndVectors(
+            original_principal_trial_stress_vector, mapped_principal_trial_stress_vector, ipl, mappingStage);
+        if (ipl) {
+            trial_sigma_tau =
+                StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_trial_stress_vector);
+            // auto val = mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau);
+            trial_sigma_tau =
+                mCoulombWithTensionCutOffImpl.DoReturnMapping(r_prop, trial_sigma_tau, mappingStage);
+
+            principal_trial_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
+                trial_sigma_tau, principal_trial_stress_vector);
+            if (mappingStage == 1) {
+                principal_trial_stress_vector[1] = principal_trial_stress_vector[0];
+            } else if (mappingStage == 3) {
+                principal_trial_stress_vector[1] = principal_trial_stress_vector[2];
+            }
+            break;
+        } else {
+            trial_sigma_tau               = mapped_trial_sigma_tau;
+            principal_trial_stress_vector = mapped_principal_trial_stress_vector;
+            break;
+        }
     }
 
     mStressVector = StressStrainUtilities::RotatePrincipalStresses(
@@ -174,18 +202,24 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     rParameters.GetStressVector() = mStressVector;
 }
 
-Vector MohrCoulombWithTensionCutOff::RearrangeEigenValuesAndVectors(const Vector& rPrincipalStressVector)
+Vector MohrCoulombWithTensionCutOff::RearrangeEigenValuesAndVectors(const Vector& rPrincipalStressVector,
+                                                                    const Vector& rMappedPrincipalStressVector,
+                                                                    bool& ipl,
+                                                                    int&  rMappingStage)
 {
     auto result = rPrincipalStressVector;
-    if (result[0] < result[1]) {
+    if (rMappedPrincipalStressVector[0] < rMappedPrincipalStressVector[1]) {
         double average = (result[0] + result[1]) * 0.5;
-        result[0] = average;
-        result[1] = average;
-    }
-    else if(result[1] < result[2]) {
+        result[0]      = average;
+        result[1]      = average;
+        ipl            = true;
+        rMappingStage  = 1;
+    } else if (rMappedPrincipalStressVector[1] < rMappedPrincipalStressVector[2]) {
         double average = (result[1] + result[2]) * 0.5;
-        result[1] = average;
-        result[2] = average;
+        result[1]      = average;
+        result[2]      = average;
+        ipl            = true;
+        rMappingStage  = 3;
     }
     return result;
 }

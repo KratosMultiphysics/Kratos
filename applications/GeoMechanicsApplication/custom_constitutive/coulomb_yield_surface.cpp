@@ -30,10 +30,16 @@ double CoulombYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
     return rSigmaTau[1] + rSigmaTau[0] * std::sin(mFrictionAngle) - mCohesion * std::cos(mFrictionAngle);
 }
 
-Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&) const
+Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, int MappingStage) const
 {
     Vector result(2);
-    result <<= std::sin(mDilatationAngle), 1.0;
+    if (MappingStage == 2) {
+        result <<= std::sin(mDilatationAngle), 1.0;
+    } else if (MappingStage == 1) {
+        result <<= -(1.0 - 3.0 * std::sin(mDilatationAngle)) / 4.0, (3.0 - std::sin(mDilatationAngle)) / 4.0;
+    } else if (MappingStage == 3) {
+        result <<= (1.0 + 3.0 * std::sin(mDilatationAngle)) / 4.0, (3.0 + std::sin(mDilatationAngle)) / 4.0;
+    }
     return result;
 }
 
