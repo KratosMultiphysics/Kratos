@@ -95,7 +95,8 @@
               "plane_output": [],
               "nodal_results": [
                 "DISPLACEMENT",
-                "ROTATION"
+                "ROTATION",
+                "TOTAL_ROTATION"
               ],
               "gauss_point_results": [
                 "FORCE"

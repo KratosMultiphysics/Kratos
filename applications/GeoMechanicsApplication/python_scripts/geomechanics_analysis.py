@@ -58,6 +58,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
         self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = self.reset_displacements
         if self.reset_displacements:
             self.ResetIfHasNodalSolutionStepVariable(KratosGeo.TOTAL_DISPLACEMENT)
+            self.ResetIfHasNodalSolutionStepVariable(KratosGeo.TOTAL_ROTATION)
 
             KratosMultiphysics.VariableUtils().UpdateCurrentToInitialConfiguration(self._GetSolver().GetComputingModelPart().Nodes)
 
@@ -174,7 +175,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
                     self._GetSolver().GetComputingModelPart(),
                     Kratos.Parameters("""{"variable_name": "DISPLACEMENT"}""")).Execute()
 
-                if self._GetSolver().settings["rotation_dofs"].GetBool():
+                if self._GetSolver().main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.ROTATION):
                     KratosGeo.CalculateIncrementalMotionProcess(
                         self._GetSolver().GetComputingModelPart(),
                         Kratos.Parameters("""{"variable_name": "ROTATION"}""")).Execute()
