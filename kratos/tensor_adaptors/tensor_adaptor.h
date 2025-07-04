@@ -67,35 +67,63 @@ public:
     ///@{
 
     /**
-     * @brief Fill the internal data from Kratos data structures
+     * @brief Fill the internal data from Kratos data structures.
      */
     virtual void CollectData() = 0;
 
     /**
-     * @brief Store internal data to the given TContainerType container.
-     *
+     * @brief Store internal data to the given Kratos data structure.
      */
     virtual void StoreData() = 0;
 
+    /**
+     * @brief Get the data container which is associated with the TensorAdaptor.
+     */
     virtual ContainerType GetContainer() const = 0;
 
+    /**
+     * @brief Moves the internal data.
+     * @warning The TensorAdaptor should not be used after the move is called.
+     * @return DenseVector<TDataType>   Dense vector containing the internal data.
+     */
     DenseVector<TDataType> MoveData() { return std::move(mData); }
 
+    /**
+     * @brief Return a view of the internal data structure.
+     */
     Kratos::span<const TDataType>  ViewData() const  { return Kratos::span<const TDataType>(mData.data().begin(), mData.data().end()); }
 
+    /**
+     * @brief Return a view of the internal data structure.
+     */
     Kratos::span<TDataType> ViewData() { return Kratos::span<TDataType>(mData.data().begin(), mData.data().end()); }
 
     /**
-     * @brief Get the Shape of the tensor
+     * @brief Get the Shape of the tensor adaptor.
+     * @details The first dimension of the tensor adaptor shape will represent the number of entities in the
+     *          container. The rest of the dimensions will represent the shape of the data it caries for each of the
+     *          entities.
+     * @return DenseVector<unsigned int>    Shape of the tensor adaptor.
      */
     DenseVector<unsigned int> Shape() const { return mShape; };
 
+    /**
+     * @brief Get the data which the tensor carries for each of the entities.
+     * @details This method returns the shape of the data which the tensor adaptor carries for the entities
+     *          of the container. This will be always one dimension less than what is given in \ref Shape, because
+     *          this will not contain the dimension representing number of entities in the container.
+     *
+     * @return DenseVector<unsigned int>    Shape of the data which is for one entity.
+     */
     DenseVector<unsigned int> GetDataShape() const {
         DenseVector<unsigned int> data_shape(mShape.size() - 1);
         std::copy(mShape.begin() + 1, mShape.end(), data_shape.begin());
         return data_shape;
-     }
+    }
 
+    /**
+     * @brief Total size of the tensor.
+     */
     int Size() const { return std::accumulate(mShape.data().begin(), mShape.data().end(), 1, std::multiplies<int>{}); }
 
     ///@}
