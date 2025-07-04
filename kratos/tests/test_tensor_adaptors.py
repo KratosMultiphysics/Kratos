@@ -163,6 +163,9 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
             numpy_array = numpy.zeros(shape=(t_adaptor.Shape()), dtype=numpy.float16)
             t_adaptor.data = numpy_array
 
+    def test_NodeVariableTensorAdaptor(self):
+        self.__TestVariableTensorAdaptor(self.model_part.Nodes)
+
     def test_ConditionVariableTensorAdaptor(self):
         self.__TestVariableTensorAdaptor(self.model_part.Conditions)
 
