@@ -1321,6 +1321,13 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_SaveLoad, KratosGeoMechanic
     auto p_loaded_element = CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
     SetBasicPropertiesAndVariables(p_loaded_element);
     //serializer.load("test_tag"s, p_loaded_element);
+    p_loaded_element->GetProperties().SetValue(BIOT_COEFFICIENT, 0.5);
+    p_loaded_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
+    p_loaded_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
+    p_loaded_element->GetProperties().SetValue(POROSITY, 0.1);
+    p_loaded_element->GetProperties().SetValue(IGNORE_UNDRAINED, false);
+    p_loaded_element->Initialize(dummy_process_info);
+    p_loaded_element->InitializeSolutionStep(dummy_process_info);
 
     // Assert
     Vector actual_right_hand_side;
