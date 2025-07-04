@@ -230,6 +230,7 @@ class ExplicitStrategy():
             self.bond_contact_area_small_percentage = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaSmallPercentage"].GetDouble()
             self.bond_contact_area_small_minimum = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaSmallMinimum"].GetDouble()
             self.bond_contact_area_small_maximum = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaSmallMaximum"].GetDouble()
+            self.bond_generate_percentage = DEM_parameters["AdjustBondContactAreaSettings"]["BondGeneratePercentage"].GetDouble()
 
         # PRINTING VARIABLES
         self.print_export_id = DEM_parameters["PostExportId"].GetBool()
@@ -358,6 +359,7 @@ class ExplicitStrategy():
             self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_SMALL_PERCENTAGE, self.bond_contact_area_small_percentage)
             self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_SMALL_MINIMUM, self.bond_contact_area_small_minimum)
             self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_SMALL_MAXIMUM, self.bond_contact_area_small_maximum)
+            self.spheres_model_part.ProcessInfo.SetValue(BOND_GENERATE_PERCENTAGE, self.bond_generate_percentage)
 
         # SEARCH-RELATED
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT, self.search_increment)
