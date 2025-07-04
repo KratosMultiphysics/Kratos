@@ -19,9 +19,8 @@ namespace Kratos
 {
 
 CalculateTotalMotionProcess::CalculateTotalMotionProcess(ModelPart& rModelPart, const Parameters& rParameters)
-    : Process(Flags()), mrModelPart{rModelPart}, mResultsVariableName{""}, mIncrementalVariableName{""}
+    : Process(Flags()), mrModelPart{rModelPart}
 {
-    // check if variable name is displacement or rotation
     if (rParameters["variable_name"].GetString() == "DISPLACEMENT") {
         mResultsVariableName     = "TOTAL_DISPLACEMENT";
         mIncrementalVariableName = "INCREMENTAL_DISPLACEMENT";
@@ -46,8 +45,7 @@ void CalculateTotalMotionProcess::Execute()
             KratosComponents<Variable<array_1d<double, 3>>>::Get(mIncrementalVariableName);
 
         block_for_each(mrModelPart.Nodes(), [rResultVariable, rIncrementalVariable](Node& rNode) {
-            rNode.FastGetSolutionStepValue(rResultVariable) =
-                rNode.FastGetSolutionStepValue(rResultVariable) +
+            rNode.FastGetSolutionStepValue(rResultVariable) +=
                 rNode.FastGetSolutionStepValue(rIncrementalVariable);
         });
     } else {
