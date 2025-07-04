@@ -28,9 +28,17 @@ namespace Kratos {
 ///@{
 
 /**
- * @brief Base class or all the tensor adaptor types.
+ * @brief This class is used to read and write Variables of double
+ *        type from any type of container and any type of \p TIOType.
+ *        Examples are:
+ *              Reading and writing from nodal historical data
+ *              Reading and writing from data value containers for nodes, conditions, elements, properties container, ...
+ *              Reading and writing from gauss points in conditions and elements containers.
+ *              ...
+ *
+ * @tparam TIOType      Type of the IO to be used.
+ * @tparam TIOArgs
  */
-
 template<template<class> class TIOType, class... TIOArgs>
 class KRATOS_API(KRATOS_CORE) VariableTensorAdaptor: public TensorAdaptor<double> {
 public:
@@ -213,7 +221,7 @@ private:
             << "Tensor adapter shape = " << this->mShape << ", container size = " << rContainer.size()
             << ", TensorAdaptor = " << *this << " ].\n";
 
-        if constexpr(TContainerIOType::template IsAllowedContainer<TContainerType>::value) {
+        if constexpr(TContainerIOType::template IsAllowedContainer<TContainerType>) {
             CopyToContiguousArray(rContainer, rContainerIO, this->mData.data().begin(), this->mShape.begin(), this->mShape.end());
         } else {
             KRATOS_ERROR << "It is prohibited to use " << ModelPart::Container<TContainerType>::GetEntityName()
@@ -238,7 +246,7 @@ private:
 
         const std::vector<unsigned int> shape(this->mShape.begin() + 1, this->mShape.end());
 
-        if constexpr(TContainerIOType::template IsAllowedContainer<TContainerType>::value) {
+        if constexpr(TContainerIOType::template IsAllowedContainer<TContainerType>) {
             CopyFromContiguousDataArray(rContainer, rContainerIO, this->mData.data().begin(), this->mShape.begin(), this->mShape.end());
         } else {
             KRATOS_ERROR << "It is prohibited to use " << ModelPart::Container<TContainerType>::GetEntityName()
