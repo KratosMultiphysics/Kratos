@@ -40,7 +40,7 @@ NonLinearRateDependentPlasticFlowRule::NonLinearRateDependentPlasticFlowRule(Yie
 
 }
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 NonLinearRateDependentPlasticFlowRule& NonLinearRateDependentPlasticFlowRule::operator=(NonLinearRateDependentPlasticFlowRule const& rOther)

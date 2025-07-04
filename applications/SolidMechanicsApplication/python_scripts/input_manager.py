@@ -6,7 +6,7 @@ import KratosMultiphysics
 class InputManager(object):
     """The base class for solid mechanic input parameters and materials.
 
-    This class provides functions for seting parts to input parameters,
+    This class provides functions for setting parts to input parameters,
     and material parameters
 
     """

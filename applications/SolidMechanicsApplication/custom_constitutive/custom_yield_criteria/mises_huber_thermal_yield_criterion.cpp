@@ -41,7 +41,7 @@ MisesHuberThermalYieldCriterion::MisesHuberThermalYieldCriterion(HardeningLawPoi
 
 }
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 MisesHuberThermalYieldCriterion& MisesHuberThermalYieldCriterion::operator=(MisesHuberThermalYieldCriterion const& rOther)

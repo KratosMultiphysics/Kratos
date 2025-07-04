@@ -424,7 +424,7 @@ public:
      * Gauss-Seidel-method
      * @param A the given symmetric matrix where the eigenvectors have to be calculated.
      * @param vectors where the eigenvectors will be stored
-     * @param lambda wher the eigenvalues will be stored
+     * @param lambda where the eigenvalues will be stored
      * @param zero_tolerance the largest value considered to be zero
      * @param max_iterations allowed
      */
@@ -1190,7 +1190,7 @@ public:
     }
 
     /**
-    * Transforms a given 6*1 Vector to a corresponing symmetric Tensor of second order (3*3)
+    * Transforms a given 6*1 Vector to a corresponding symmetric Tensor of second order (3*3)
     * @param Vector the given vector
     * @param Tensor the symmetric second order tensor
     */
@@ -1221,7 +1221,7 @@ public:
     }
 
     /**
-    * Transforms a given symmetric Tensor of second order (3*3) to a corresponing 6*1 Vector
+    * Transforms a given symmetric Tensor of second order (3*3) to a corresponding 6*1 Vector
     * @param Tensor the given symmetric second order tensor
     * @param Vector the vector
     */
@@ -1323,7 +1323,7 @@ public:
     }
 
     /**
-    * Transforms a given 6*6 Matrix to a corresponing 4th order tensor
+    * Transforms a given 6*6 Matrix to a corresponding 4th order tensor
     * @param Tensor the given Matrix
     * @param Vector the Tensor
     */
@@ -1373,7 +1373,7 @@ public:
 
     }
     /**
-    * Transforms a given 6*6 Matrix to a corresponing 4th order tensor
+    * Transforms a given 6*6 Matrix to a corresponding 4th order tensor
     * @param Tensor the given Matrix
     * @param Vector the Tensor
     */
@@ -1418,7 +1418,7 @@ public:
 
     }
     /**
-    * Transforms a given 4th order tensor to a corresponing 6*6 Matrix
+    * Transforms a given 4th order tensor to a corresponding 6*6 Matrix
     * @param Tensor the given Tensor
     * @param Vector the Matrix
     */
@@ -1492,7 +1492,7 @@ public:
     }
 
     /**
-     * Transforms a given 4th order tensor to a corresponing 6*6 Matrix
+     * Transforms a given 4th order tensor to a corresponding 6*6 Matrix
      * @param Tensor the given Tensor
      * @param Vector the Matrix
      */
