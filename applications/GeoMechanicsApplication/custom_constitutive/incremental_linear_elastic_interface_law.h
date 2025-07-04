@@ -15,6 +15,7 @@
 
 #include "includes/constitutive_law.h"
 #include "includes/kratos_export_api.h"
+#include "interface_constitutive_law_dimension.h"
 
 namespace Kratos
 {
@@ -23,6 +24,17 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalLinearElasticInterface
 {
 public:
     using BaseType = ConstitutiveLaw;
+
+    explicit GeoIncrementalLinearElasticInterfaceLaw(std::unique_ptr<InterfaceConstitutiveLawDimension> rConstitutiveLawDimension)
+        : mInterfaceConstitutiveLawDimension(std::move(rConstitutiveLawDimension))
+    {
+    }
+
+    ~GeoIncrementalLinearElasticInterfaceLaw() override = default;
+    GeoIncrementalLinearElasticInterfaceLaw(const GeoIncrementalLinearElasticInterfaceLaw&) = delete;
+    GeoIncrementalLinearElasticInterfaceLaw& operator=(const GeoIncrementalLinearElasticInterfaceLaw&) = delete;
+    GeoIncrementalLinearElasticInterfaceLaw(GeoIncrementalLinearElasticInterfaceLaw&&) = delete;
+    GeoIncrementalLinearElasticInterfaceLaw& operator=(GeoIncrementalLinearElasticInterfaceLaw&&) = delete;
 
     [[nodiscard]] Pointer  Clone() const override;
     SizeType               WorkingSpaceDimension() override;
@@ -42,6 +54,9 @@ public:
                const ProcessInfo&  rCurrentProcessInfo) const override;
 
 private:
+    GeoIncrementalLinearElasticInterfaceLaw() : mInterfaceConstitutiveLawDimension(nullptr) {}
+
+    std::unique_ptr<InterfaceConstitutiveLawDimension> mInterfaceConstitutiveLawDimension;
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
