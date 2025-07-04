@@ -105,8 +105,8 @@ namespace Kratos
     boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
     boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
     array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
-    array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
-    array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
+    array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimension coincides with space dimension
+    array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimension coincides with space dimension
     ///////////////////////////////////////////////////////////////////////////////////
 
 
@@ -285,8 +285,8 @@ namespace Kratos
     boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
     boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
     array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
-    array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
-    array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
+    array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimension coincides with space dimension
+    array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimension coincides with space dimension
     array_1d<double,3> ms_temp_vec_np = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux0 = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux1 = ZeroVector(3); //dimension = number of nodes
