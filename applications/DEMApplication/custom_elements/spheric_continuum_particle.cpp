@@ -77,7 +77,6 @@ namespace Kratos {
 
             int r_other_continuum_group = neighbour_iterator->mContinuumGroup; // finding out neighbor's Continuum Group Id
             if ((r_other_continuum_group  == this->mContinuumGroup) && (this->mContinuumGroup != 0)) {
-
                 mIniNeighbourIds[continuum_ini_size] = neighbour_iterator->Id();
                 //mIniNeighbourDelta[continuum_ini_size] = initial_delta;
                 mIniNeighbourDelta[static_cast<int>(neighbour_iterator->Id())] = initial_delta;
