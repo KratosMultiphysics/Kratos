@@ -254,7 +254,7 @@ Internally it constructs the mapping matrix, hence it offers the usage of the tr
 
 #### Nearest Neighbor for IGA scenarios
 
-The NearestNeighborMapperIGA is a simple and robust Mapper for IGA/FEM partitioned simulations. For each node on the FEM side, it finds the closest integration point on the IGA interface.
+The _NearestNeighborMapperIGA_ is a simple and robust Mapper for IGA/FEM partitioned simulations. For each node on the FEM side, it finds the closest integration point on the IGA interface.
 During mapping, it evaluates the IGA shape functions at that location to assemble the mapping matrix.
 
 This mapper is suited for cases where the origin domain is discretized with IGA elements and the destination with any node-based discretization technique (e.g., FEM or FCV).
