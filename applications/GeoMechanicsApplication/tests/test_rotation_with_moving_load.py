@@ -30,7 +30,7 @@ class KratosGeoMechanicsRotationWithMovingLoadTests(KratosUnittest.TestCase):
 
         # This test is a regression test, if rotation is not added to the
         # newmark upw scheme as a variable that needs to be predicted and
-        # updated, the results will be different.
+        # updated, the results will be different. TOTAL_ROTATION should be equal to ROTATION
         self.assertAlmostEqual(-0.000177858, rotations_for_node_1[2])
         self.assertAlmostEqual(-0.000177858, total_rotations_for_node_1[2])
 
