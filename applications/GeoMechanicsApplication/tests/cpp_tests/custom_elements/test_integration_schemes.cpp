@@ -99,8 +99,8 @@ void ExpectLocalCoordinatesAreZero(const Geo::IntegrationPointVectorType& rInteg
 
 std::vector<double> ComputeWeightsForLumpedIntegration(const size_t NumberOfPoints)
 {
-    const auto          scheme             = MakeLumpedIntegrationScheme(NumberOfPoints);
-    auto                integration_points = scheme->GetIntegrationPoints();
+    const auto          p_scheme           = MakeLumpedIntegrationScheme(NumberOfPoints);
+    auto                integration_points = p_scheme->GetIntegrationPoints();
     std::vector<double> weights;
     weights.reserve(integration_points.size());
     std::transform(integration_points.begin(), integration_points.end(), std::back_inserter(weights),
@@ -116,19 +116,19 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(ALobattoIntegrationSchemeIsAnIntegrationScheme, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr auto number_of_points = 2;
-    const auto     scheme           = LobattoIntegrationScheme{number_of_points};
+    const auto     p_scheme         = LobattoIntegrationScheme{number_of_points};
 
-    KRATOS_EXPECT_NE(dynamic_cast<const IntegrationScheme*>(&scheme), nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<const IntegrationScheme*>(&p_scheme), nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NumberOfIntegrationPointsMatchesTheNumberOfPointsGivenAtConstructionTime,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     for (auto number : SupportedNumbersOfPointsForLobattoIntegration()) {
-        const auto scheme = MakeLobattoIntegrationScheme(number);
+        const auto p_scheme = MakeLobattoIntegrationScheme(number);
 
-        KRATOS_EXPECT_EQ(scheme->GetNumberOfIntegrationPoints(), number);
-        KRATOS_EXPECT_EQ(scheme->GetIntegrationPoints().size(), number);
+        KRATOS_EXPECT_EQ(p_scheme->GetNumberOfIntegrationPoints(), number);
+        KRATOS_EXPECT_EQ(p_scheme->GetIntegrationPoints().size(), number);
     }
 }
 
@@ -136,8 +136,8 @@ KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLobattoSchem
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     for (auto number : SupportedNumbersOfPointsForLobattoIntegration()) {
-        const auto scheme = MakeLobattoIntegrationScheme(number);
-        KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(scheme->GetIntegrationPoints()), 2.0, Defaults::relative_tolerance)
+        const auto p_scheme = MakeLobattoIntegrationScheme(number);
+        KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(p_scheme->GetIntegrationPoints()), 2.0, Defaults::relative_tolerance)
     }
 }
 
@@ -170,19 +170,19 @@ KRATOS_TEST_CASE_IN_SUITE(AttemptingToMakeALobattoSchemeWithAnUnsupportedNumberO
 KRATOS_TEST_CASE_IN_SUITE(ALumpedIntegrationSchemeIsAnIntegrationScheme, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr auto number_of_points = 3;
-    const auto     scheme           = LumpedIntegrationScheme{number_of_points};
+    const auto     p_scheme         = LumpedIntegrationScheme{number_of_points};
 
-    KRATOS_EXPECT_NE(dynamic_cast<const IntegrationScheme*>(&scheme), nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<const IntegrationScheme*>(&p_scheme), nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NumberOfLumpedIntegrationPointsMatchesTheNumberOfPointsGivenAtConstructionTime,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     for (auto number : SupportedNumbersOfPointsForLumpedIntegration()) {
-        const auto scheme = MakeLumpedIntegrationScheme(number);
+        const auto p_scheme = MakeLumpedIntegrationScheme(number);
 
-        KRATOS_EXPECT_EQ(scheme->GetNumberOfIntegrationPoints(), number);
-        KRATOS_EXPECT_EQ(scheme->GetIntegrationPoints().size(), number);
+        KRATOS_EXPECT_EQ(p_scheme->GetNumberOfIntegrationPoints(), number);
+        KRATOS_EXPECT_EQ(p_scheme->GetIntegrationPoints().size(), number);
     }
 }
 
@@ -190,8 +190,8 @@ KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLumpedScheme
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     for (auto number : SupportedNumbersOfPointsForLumpedIntegration()) {
-        const auto scheme = MakeLumpedIntegrationScheme(number);
-        KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(scheme->GetIntegrationPoints()), 1.0, Defaults::relative_tolerance)
+        const auto p_scheme = MakeLumpedIntegrationScheme(number);
+        KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(p_scheme->GetIntegrationPoints()), 1.0, Defaults::relative_tolerance)
     }
 }
 
@@ -211,15 +211,15 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedQuadrilateralLumpedSchemesMustBeIn
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     for (auto number : SupportedNumbersOfPointsForQuadrilateralLumpedIntegration()) {
-        const auto scheme = MakeLumpedIntegrationScheme(number);
+        const auto p_scheme = MakeLumpedIntegrationScheme(number);
 
-        ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), -1.0, 1.0, std::size_t{0});
-        ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), -1.0, 1.0, std::size_t{1});
-        ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), -1.0, std::size_t{0});
-        ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 1.0, std::size_t{0});
-        ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), -1.0, std::size_t{1});
-        ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 1.0, std::size_t{1});
-        ExpectLocalCoordinatesAreZero(scheme->GetIntegrationPoints(), std::size_t{2});
+        ExpectLocalCoordinatesAreInRange(p_scheme->GetIntegrationPoints(), -1.0, 1.0, std::size_t{0});
+        ExpectLocalCoordinatesAreInRange(p_scheme->GetIntegrationPoints(), -1.0, 1.0, std::size_t{1});
+        ExpectLocalCoordinatesIncludeRangeBound(p_scheme->GetIntegrationPoints(), -1.0, std::size_t{0});
+        ExpectLocalCoordinatesIncludeRangeBound(p_scheme->GetIntegrationPoints(), 1.0, std::size_t{0});
+        ExpectLocalCoordinatesIncludeRangeBound(p_scheme->GetIntegrationPoints(), -1.0, std::size_t{1});
+        ExpectLocalCoordinatesIncludeRangeBound(p_scheme->GetIntegrationPoints(), 1.0, std::size_t{1});
+        ExpectLocalCoordinatesAreZero(p_scheme->GetIntegrationPoints(), std::size_t{2});
     }
 }
 
@@ -227,15 +227,15 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedTriangleLumpedSchemesMustBeInRange
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     for (auto number : SupportedNumbersOfPointsForTriangleLumpedIntegration()) {
-        const auto scheme = MakeLumpedIntegrationScheme(number);
+        const auto p_scheme = MakeLumpedIntegrationScheme(number);
 
-        ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), 0.0, 1.0, std::size_t{0});
-        ExpectLocalCoordinatesAreInRange(scheme->GetIntegrationPoints(), 0.0, 1.0, std::size_t{1});
-        ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 0.0, std::size_t{0});
-        ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 1.0, std::size_t{0});
-        ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 0.0, std::size_t{1});
-        ExpectLocalCoordinatesIncludeRangeBound(scheme->GetIntegrationPoints(), 1.0, std::size_t{1});
-        ExpectLocalCoordinatesAreZero(scheme->GetIntegrationPoints(), std::size_t{2});
+        ExpectLocalCoordinatesAreInRange(p_scheme->GetIntegrationPoints(), 0.0, 1.0, std::size_t{0});
+        ExpectLocalCoordinatesAreInRange(p_scheme->GetIntegrationPoints(), 0.0, 1.0, std::size_t{1});
+        ExpectLocalCoordinatesIncludeRangeBound(p_scheme->GetIntegrationPoints(), 0.0, std::size_t{0});
+        ExpectLocalCoordinatesIncludeRangeBound(p_scheme->GetIntegrationPoints(), 1.0, std::size_t{0});
+        ExpectLocalCoordinatesIncludeRangeBound(p_scheme->GetIntegrationPoints(), 0.0, std::size_t{1});
+        ExpectLocalCoordinatesIncludeRangeBound(p_scheme->GetIntegrationPoints(), 1.0, std::size_t{1});
+        ExpectLocalCoordinatesAreZero(p_scheme->GetIntegrationPoints(), std::size_t{2});
     }
 }
 
