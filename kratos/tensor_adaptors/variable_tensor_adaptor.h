@@ -37,10 +37,22 @@ namespace Kratos {
  *              ...
  *
  * @tparam TIOType      Type of the IO to be used.
- * @tparam TIOArgs
+ * @tparam TIOArgs      Types of arguments required to construct an object of TIOType.
  */
 template<template<class> class TIOType, class... TIOArgs>
 class KRATOS_API(KRATOS_CORE) VariableTensorAdaptor: public TensorAdaptor<double> {
+private:
+    ///@name Private class definitions
+    ///@{
+
+    template<class... TDataType>
+    struct VariantTypeHelper
+    {
+        using VariableVariantType = std::variant<Variable<TDataType> const *...>;
+        using IOVariantType = std::variant<typename TIOType<TDataType>::Pointer...>;
+    };
+
+    ///@}
 public:
 
     ///@name Type definitions
@@ -54,30 +66,34 @@ public:
 
     using ContainerType = typename BaseType::ContainerType;
 
-    using VariableType = std::variant<
-                                    Variable<double> const *,
-                                    Variable<array_1d<double, 3>> const *,
-                                    Variable<array_1d<double, 4>> const *,
-                                    Variable<array_1d<double, 6>> const *,
-                                    Variable<array_1d<double, 9>> const *,
-                                    Variable<Vector> const *,
-                                    Variable<Matrix> const *
-                                >;
+    using VariantHelper = VariantTypeHelper<double,
+                                            array_1d<double, 3>,
+                                            array_1d<double, 4>,
+                                            array_1d<double, 6>,
+                                            array_1d<double, 9>,
+                                            Vector,
+                                            Matrix>;
 
-    using IOType = std::variant<
-                                    typename TIOType<double>::Pointer,
-                                    typename TIOType<array_1d<double, 3>>::Pointer,
-                                    typename TIOType<array_1d<double, 4>>::Pointer,
-                                    typename TIOType<array_1d<double, 6>>::Pointer,
-                                    typename TIOType<array_1d<double, 9>>::Pointer,
-                                    typename TIOType<Vector>::Pointer,
-                                    typename TIOType<Matrix>::Pointer
-                                >;
+
+    using VariableType = typename VariantHelper::VariableVariantType;
+
+    using IOType = typename VariantHelper::IOVariantType;
 
     ///@}
     ///@name Life cycle
     ///@{
 
+    /**
+     * @brief Construct a new Variable Tensor Adaptor object
+     * @details These constructors are only enabled if the given @p TContainerPointerType
+     *          is a valid container type to be used with the TIOType.
+     *
+     * @tparam TContainerPointerType        Pointer type of the container.
+     * @param pContainer                    Pointer to the container.
+     * @param pVariable                     Variable to be used in the tensor adaptor for collecting and/or storing data.
+     * @param rDataShape                    Required data shape. This should be a valid shape.
+     * @param rArgs                         Arguments required to construct an object of @p TIOType.
+     */
     template<
         class TContainerPointerType,
         typename = std::enable_if_t<TIOType<double>::template IsAllowedContainer<typename TContainerPointerType::element_type>>>
@@ -92,7 +108,16 @@ public:
             this->InitImpl(rDataShape, pContainer, p_container_io);
         }, pVariable);
     }
-
+    /**
+     * @brief Construct a new Variable Tensor Adaptor object
+     * @details These constructors are only enabled if the given @p TContainerPointerType
+     *          is a valid container type to be used with the TIOType.
+     *
+     * @tparam TContainerPointerType        Pointer type of the container.
+     * @param pContainer                    Pointer to the container.
+     * @param pVariable                     Variable to be used in the tensor adaptor for collecting and/or storing data.
+     * @param rArgs                         Arguments required to construct an object of @p TIOType.
+     */
     template<
         class TContainerPointerType,
         typename = std::enable_if_t<TIOType<double>::template IsAllowedContainer<typename TContainerPointerType::element_type>>>
