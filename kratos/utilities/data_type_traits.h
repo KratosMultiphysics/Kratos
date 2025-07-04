@@ -1055,6 +1055,10 @@ public:
             for (unsigned int i = 0; i < *pShapeBegin; ++i) {
                 ValueTraits::template CopyToContiguousData<TIteratorType>(pContiguousDataBegin + i * stride, rContainer[i], pShapeBegin + 1, pShapeEnd);
             }
+        } else {
+            KRATOS_ERROR
+                << "The given number of components are larger than the data size of DenseVector [ number of components in the dimension = "
+                << *pShapeBegin << ", number of components available in the data = " << rContainer.size() << " ].\n";
         }
     }
 
@@ -1108,6 +1112,10 @@ public:
             for (unsigned int i = 0; i < *pShapeBegin; ++i) {
                 ValueTraits::template CopyFromContiguousData<TIteratorType>(rContainer[i], pContiguousDataBegin + i * stride, pShapeBegin + 1, pShapeEnd);
             }
+        } else {
+            KRATOS_ERROR
+                << "The given number of components are larger than the data size of DenseVector [ number of components in the dimension = "
+                << *pShapeBegin << ", number of components available in the data = " << rContainer.size() << " ].\n";
         }
     }
 
@@ -1465,6 +1473,11 @@ public:
                     ValueTraits::template CopyToContiguousData<TIteratorType>(pContiguousDataBegin + i * stride * (*pShapeBegin) + j * stride, rContainer(i, j), pShapeBegin + 2, pShapeEnd);
                 }
             }
+        } else {
+            KRATOS_ERROR
+                << "The given number of components are larger than the data size of DenseMatrix [ number of components in the dimensions = ("
+                << *pShapeBegin << ", " << *(pShapeBegin + 1) << "), number of components available in the data = ("
+                << rContainer.size1() << ", " << rContainer.size2() << " ].\n";
         }
     }
 
@@ -1522,6 +1535,11 @@ public:
                     ValueTraits::template CopyFromContiguousData<TIteratorType>(rContainer(i, j), pContiguousDataBegin + i * stride * (*pShapeBegin) + j * stride, pShapeBegin + 2, pShapeEnd);
                 }
             }
+        } else {
+            KRATOS_ERROR
+                << "The given number of components are larger than the data size of DenseMatrix [ number of components in the dimensions = ("
+                << *pShapeBegin << ", " << *(pShapeBegin + 1) << "), number of components available in the data = ("
+                << rContainer.size1() << ", " << rContainer.size2() << " ].\n";
         }
     }
 
@@ -1820,6 +1838,10 @@ public:
         // here we only check for the dynamic size.
         if (*pShapeBegin <= rContainer.size()) {
             std::copy(rContainer.begin(), rContainer.begin() + (*pShapeBegin), pContiguousDataBegin);
+        } else {
+            KRATOS_ERROR
+                << "The given number of components are larger than the data size of std::string [ number of components in the dimension = "
+                << *pShapeBegin << ", number of components available in the data = " << rContainer.size() << " ].\n";
         }
     }
 
@@ -2189,6 +2211,10 @@ public:
             for (unsigned int i = 0; i < *pShapeBegin; ++i) {
                 ValueTraits::template CopyToContiguousData<TIteratorType>(pContiguousDataBegin + i * stride, rContainer[i], pShapeBegin + 1, pShapeEnd);
             }
+        } else {
+            KRATOS_ERROR
+                << "The given number of components are larger than the data size of std::vector [ number of components in the dimension = "
+                << *pShapeBegin << ", number of components available in the data = " << rContainer.size() << " ].\n";
         }
     }
 
@@ -2242,6 +2268,10 @@ public:
             for (unsigned int i = 0; i < *pShapeBegin; ++i) {
                 ValueTraits::template CopyFromContiguousData<TIteratorType>(rContainer[i], pContiguousDataBegin + i * stride, pShapeBegin + 1, pShapeEnd);
             }
+        } else {
+            KRATOS_ERROR
+                << "The given number of components are larger than the data size of std::vector [ number of components in the dimension = "
+                << *pShapeBegin << ", number of components available in the data = " << rContainer.size() << " ].\n";
         }
     }
 
