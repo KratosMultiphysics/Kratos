@@ -62,6 +62,7 @@ namespace Kratos
       - base_fluid_density from the Parameters in the constructor: double that defines the density of the base fluid (mandatory)
       - particles_density from the Parameters in the constructor: double that defines the density of the particles' suspension (mandatory)
       - gravity from the Parameters passed in the constructor: an array that defines the gravity vector (mandatory).
+      - modify_pressure from the Parameters passed in the constructor: bool that asserts if the constant term of the body force is absorbed within the pressure
 
       With this, the process calculates the Boussinesq force and assings it to the BODY_FORCE solution step variable of each node.
       The force is set to (1 + (rho_p - rho_0)/rho_0 * phi) * g ,
@@ -190,6 +191,7 @@ namespace Kratos
 
       double mRho0;
       double mRhoP;
+      bool mModifyPressure;
 
       ///@}
       ///@name Private Operators

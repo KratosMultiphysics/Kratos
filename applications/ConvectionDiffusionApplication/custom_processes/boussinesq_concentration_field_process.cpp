@@ -54,6 +54,12 @@ namespace Kratos
 
         mRhoP = SolidDensityParam.GetDouble();
 
+        if(!rParameters.Has("modify_pressure"))
+        {
+            mModifyPressure = false;
+        } else {
+            mModifyPressure = rParameters["modify_pressure"].GetBool();
+        }
     }
 
     BoussinesqConcentrationFieldProcess::~BoussinesqConcentrationFieldProcess()
@@ -116,7 +122,16 @@ namespace Kratos
             double phi = iNode->FastGetSolutionStepValue(CONCENTRATION);
             double delta_rho = (mRhoP - mRho0) / mRho0;
 
-            iNode->FastGetSolutionStepValue(BODY_FORCE) += (1. + delta_rho * phi) * mrGravity;
+            if(mModifyPressure)
+            {
+                array_1d<double, 3> r_vec = iNode->Coordinates();
+                double gravity_field_potential = r_vec[0] * mrGravity[0] + r_vec[1] * mrGravity[1] + r_vec[2] * mrGravity[2];
+
+                iNode->FastGetSolutionStepValue(BODY_FORCE) += delta_rho * phi * mrGravity;
+                iNode->FastGetSolutionStepValue(PRESSURE) += gravity_field_potential;
+            } else {
+                iNode->FastGetSolutionStepValue(BODY_FORCE) += (1. + delta_rho * phi) * mrGravity;
+            }
         }
     }
 

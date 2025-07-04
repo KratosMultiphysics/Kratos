@@ -19,7 +19,8 @@ class ApplyBoussinesqForceProcess(KratosMultiphysics.Process):
             "model_part_name" : "CHOOSE_FLUID_MODELPART_NAME",
             "base_fluid_density" : 1000.0,
             "particles_density" : 1200.0,
-            "gravity" : [0.0,0.0,0.0]
+            "gravity" : [0.0,0.0,0.0],
+            "modify_pressure" : false
         }  """ )
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -28,14 +29,15 @@ class ApplyBoussinesqForceProcess(KratosMultiphysics.Process):
         self.fluid_model_part = Model[settings["model_part_name"].GetString()]
 
         # Save the ambient temperature in the fluid model part ProcessInfo
-        base_density = settings["base_fluid_density"].GetDouble()
-        particles_density = settings["particles_density"].GetDouble()
+        # self.fluid_model_part = Model[settings["model_part_name"].GetString()]
+        # base_density = settings["base_fluid_density"].GetDouble()
+        # particles_density = settings["particles_density"].GetDouble()
 
         # Set the Boussinesq force process
-        self.BoussinesqCFProcess = CD.BoussinesqConcentrationFieldProcess(self.fluid_model_part, settings)
+        self.BoussinesqCDProcess = CD.BoussinesqConcentrationFieldProcess(self.fluid_model_part, settings)
 
     def ExecuteInitialize(self):
-        self.BoussinesqForceProcess.ExecuteInitialize()
+        self.BoussinesqCDProcess.ExecuteInitialize()
 
     def ExecuteInitializeSolutionStep(self):
-        self.BoussinesqForceProcess.ExecuteInitializeSolutionStep()
+        self.BoussinesqCDProcess.ExecuteInitializeSolutionStep()
