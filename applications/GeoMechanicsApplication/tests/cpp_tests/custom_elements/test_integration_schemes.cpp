@@ -67,17 +67,15 @@ void ExpectLocalCoordinatesIncludeRangeBounds(const Geo::IntegrationPointVectorT
                                               double      IsoUpperBound,
                                               std::size_t DirectionIndex)
 {
-    constexpr auto tolerance = 1.0e-6;
-
-    auto is_at_lower_bound_of_iso_coord = [tolerance, IsoLowerBound, DirectionIndex](const auto& rPoint) {
+    auto is_at_lower_bound_of_iso_coord = [IsoLowerBound, DirectionIndex](const auto& rPoint) {
         // lower_bound is 0 or a negative number
-        return std::abs(rPoint[DirectionIndex] - IsoLowerBound) <= tolerance;
+        return std::abs(rPoint[DirectionIndex] - IsoLowerBound) <= Testing::Defaults::absolute_tolerance;
     };
     KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), is_at_lower_bound_of_iso_coord))
 
-    auto is_at_upper_bound_of_iso_coord = [tolerance, IsoUpperBound, DirectionIndex](const auto& rPoint) {
+    auto is_at_upper_bound_of_iso_coord = [IsoUpperBound, DirectionIndex](const auto& rPoint) {
         // upper_bound is 0 or a positive number
-        return std::abs(rPoint[DirectionIndex] - IsoUpperBound) <= tolerance;
+        return std::abs(rPoint[DirectionIndex] - IsoUpperBound) <= Testing::Defaults::absolute_tolerance;
     };
     KRATOS_EXPECT_TRUE(std::any_of(rIntegrationPoints.begin(), rIntegrationPoints.end(), is_at_upper_bound_of_iso_coord))
 }
