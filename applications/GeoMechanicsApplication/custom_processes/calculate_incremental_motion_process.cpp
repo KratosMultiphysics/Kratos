@@ -20,9 +20,8 @@ namespace Kratos
 
     CalculateIncrementalMotionProcess::CalculateIncrementalMotionProcess(ModelPart& rModelPart,
                                                                                  const Parameters& rParameters)
-    : Process(Flags()), mrModelPart{rModelPart}, mResultsVariableName{ "" }, mBaseVariableName{ "" }
+    : Process(Flags()), mrModelPart{rModelPart}
 {
-        // check if variable name is displacement or rotation
         mBaseVariableName = rParameters["variable_name"].GetString();
         if (mBaseVariableName == "DISPLACEMENT") {
             mResultsVariableName = "INCREMENTAL_DISPLACEMENT";
