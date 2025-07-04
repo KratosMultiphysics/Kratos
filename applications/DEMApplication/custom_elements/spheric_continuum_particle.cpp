@@ -75,8 +75,20 @@ namespace Kratos {
             double radius_sum = GetRadius() + neighbour_iterator->GetRadius();
             double initial_delta = radius_sum - distance;
 
+            bool set_continuum_contact = true;
+            if (r_process_info[ADJUST_BOND_CONTACT_AREA_OPTION]){
+
+                const double bond_generate_percentage = r_process_info[BOND_GENERATE_PERCENTAGE]; // e.g = 0.3
+
+                const double random_value = static_cast<double>(rand()) / RAND_MAX;
+
+                if (random_value > bond_generate_percentage) {
+                    set_continuum_contact = false;
+                }
+            }
+            
             int r_other_continuum_group = neighbour_iterator->mContinuumGroup; // finding out neighbor's Continuum Group Id
-            if ((r_other_continuum_group  == this->mContinuumGroup) && (this->mContinuumGroup != 0)) {
+            if ((r_other_continuum_group  == this->mContinuumGroup) && (this->mContinuumGroup != 0) && set_continuum_contact) {
                 mIniNeighbourIds[continuum_ini_size] = neighbour_iterator->Id();
                 //mIniNeighbourDelta[continuum_ini_size] = initial_delta;
                 mIniNeighbourDelta[static_cast<int>(neighbour_iterator->Id())] = initial_delta;
@@ -86,29 +98,29 @@ namespace Kratos {
                 //mArrayOfDeltaDisplacements.push_back(vector_of_zeros);
                 ContinuumInitialNeighborsElements.push_back(neighbour_iterator);
                 continuum_ini_size++;
+
+                //calculate the initial contact area
+                double ini_bond_contact_area = 0.0;
+                CalculateInitialBondContactArea(distance, GetSearchRadius(), 
+                                                neighbour_iterator->GetSearchRadius(), 
+                                                GetRadius(), 
+                                                neighbour_iterator->GetRadius(), 
+                                                ini_bond_contact_area,
+                                                r_process_info);
+                mIniBondContactArea[static_cast<int>(neighbour_iterator->Id())] = ini_bond_contact_area;
+                double V_bond = 0.0;
+                double R_bond = std::sqrt(ini_bond_contact_area / Globals::Pi);
+                CalculateBondVolume(distance, GetRadius(), neighbour_iterator->GetRadius(), R_bond, V_bond);
+                mBondVolume[static_cast<int>(neighbour_iterator->Id())] = V_bond;
             } else {
                 DiscontinuumInitialNeighborsIds.push_back(neighbour_iterator->Id());
                 //DiscontinuumInitialNeighborsDeltas.push_back(initial_delta);
                 mIniNeighbourDelta[static_cast<int>(neighbour_iterator->Id())] = initial_delta;
                 DiscontinuumInitialNeighborsElements.push_back(neighbour_iterator);
                 discontinuum_ini_size++;
+                mIniBondContactArea[static_cast<int>(neighbour_iterator->Id())] = 0.0;
+                mBondVolume[static_cast<int>(neighbour_iterator->Id())] = 0.0;
             }
-
-            //calculate the initial conatct area
-            double ini_bond_contact_area = 0.0;
-            CalculateInitialBondContactArea(distance, GetSearchRadius(), 
-                                            neighbour_iterator->GetSearchRadius(), 
-                                            GetRadius(), 
-                                            neighbour_iterator->GetRadius(), 
-                                            ini_bond_contact_area,
-                                            r_process_info);
-            mIniBondContactArea[static_cast<int>(neighbour_iterator->Id())] = ini_bond_contact_area;
-
-            //TODO: This implementation is right only when all the particles are cememnted.
-            double V_bond = 0.0;
-            double R_bond = std::sqrt(ini_bond_contact_area / Globals::Pi);
-            CalculateBondVolume(distance, GetRadius(), neighbour_iterator->GetRadius(), R_bond, V_bond);
-            mBondVolume[static_cast<int>(neighbour_iterator->Id())] = V_bond;
         }
 
         mContinuumInitialNeighborsSize = continuum_ini_size;
