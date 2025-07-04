@@ -52,9 +52,9 @@ public:
     ///@{
 
     /**
-     * @brief Returns whther the given @ref TCheckIndex is dynamic.
+     * @brief Returns whther the given @p TCheckIndex is dynamic.
      *
-     * This method returns true if the @ref TCheckIndex of the dimension
+     * This method returns true if the @p TCheckIndex of the dimension
      * corresponds to a dynamic type. If not, this returns false.
      *
      * @tparam TCheckIndex          User input dimension index.
@@ -70,10 +70,9 @@ public:
     /**
      * @brief Checks if the given shape is valid.
      * @details This method checks if the given shape is valid in the sense
-     *          that, dimensionality is correct as well as the values for each
-     *          static dimension is less or equal to the actual data types
-     *          static dimension value.
-     *
+     *          that, dimensionality is correct as well as the number of components for each
+     *          static dimension is less or equal to the actual static data types'
+     *          number of components.
      * @param pShapeBegin           Beginning of the shape array.
      * @param pShapeEnd             End of the shape array.
      */
@@ -101,9 +100,9 @@ public:
     /**
      * @brief Get the size of the underlying container given the shape
      *
-     * This method returns number of @ref PrimitiveType values contained recursively
-     * using the given shape with @ref pShapeBegin indicating the pointer to the
-     * start of the shape array and @ref pShapeEnd indicating the pointer to the
+     * This method returns number of @p PrimitiveType values contained recursively
+     * using the given shape with @p pShapeBegin indicating the pointer to the
+     * start of the shape array and @p pShapeEnd indicating the pointer to the
      * end of the shape array.
      *
      * @param pShapeBegin           Begining of the shape array.
@@ -120,9 +119,8 @@ public:
 
     /**
      * @brief Returns a vector with the shape of the value.
-     *
-     * Scalars have the shape of [] (an empty vector).
-     *
+     * @details This return the shape of the value. Scalars have
+     *          shape of [] (an empty vector).
      * @return std::vector<TIndexType>    Returns an empty vector as the shape.
      */
     template<class TIndexType = unsigned int>
@@ -218,11 +216,11 @@ public:
     /**
      * @brief Copies the given Value to contiguous array.
      *
-     * This method copies content of the @ref rValue to a contiguous array
-     * at @ref pContiguousDataBegin. The array pointed by @ref pContiguousDataBegin
+     * This method copies content of the @p rValue to a contiguous array
+     * at @p pContiguousDataBegin. The array pointed by @p pContiguousDataBegin
      * should be sized correctly.
      *
-     * @warning This may seg fault if the @ref pContiguousDataBegin is not correctly sized.
+     * @warning This may seg fault if the @p pContiguousDataBegin is not correctly sized.
      *
      * @param pContiguousDataBegin      Starting value pointer of the contiguous array.
      * @param rValue                    Value to be copied to contiguous array.
@@ -237,8 +235,8 @@ public:
     /**
      * @brief Copies the given container element value to contiguous array.
      *
-     * This method copies all the elements of @ref rContainer recursively to the
-     * provided @ref pContiguousDataBegin.
+     * This method copies all the elements of @p rContainer recursively to the
+     * provided @p pContiguousDataBegin.
      *
      * @warning This may segfault if the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
@@ -261,10 +259,10 @@ public:
     /**
      * @brief Copies data from contiguous array to rValue.
      *
-     * This method copies data from contiguous array to the passed @ref rValue.
+     * This method copies data from contiguous array to the passed @p rValue.
      * The contiguous array is given by the @refpContiguousDataBegin.
      *
-     * @warning This may seg fault if the @ref pContiguousDataBegin is not correctly sized.
+     * @warning This may seg fault if the @p pContiguousDataBegin is not correctly sized.
      *
      * @param rValue                Output value which contains copied values.
      * @param pContiguousDataBegin  Array to copy data from.
@@ -279,10 +277,10 @@ public:
     /**
      * @brief Copies contiguous values to the container.
      *
-     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
-     * to the @ref rContainer.
+     * This method copies all the contiguous values in the given @p pContiguousDataBegin pointer
+     * to the @p rContainer.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param rContainer            Container to copy values to.
@@ -359,9 +357,9 @@ public:
     ///@{
 
     /**
-     * @brief Returns whther the given @ref TCheckIndex is dynamic.
+     * @brief Returns whther the given @p TCheckIndex is dynamic.
      *
-     * This method returns true if the @ref TCheckIndex of the dimension
+     * This method returns true if the @p TCheckIndex of the dimension
      * corresponds to a dynamic type. If not, this returns false.
      *
      * @tparam TCheckIndex          User input dimension index.
@@ -377,10 +375,9 @@ public:
     /**
      * @brief Checks if the given shape is valid.
      * @details This method checks if the given shape is valid in the sense
-     *          that, dimensionality is correct as well as the values for each
-     *          static dimension is less or equal to the actual data types
-     *          static dimension value.
-     *
+     *          that, dimensionality is correct as well as the number of components for each
+     *          static dimension is less or equal to the actual static data types'
+     *          number of components.
      * @param pShapeBegin           Beginning of the shape array.
      * @param pShapeEnd             End of the shape array.
      */
@@ -397,8 +394,8 @@ public:
     /**
      * @brief Gets the size of underlying rContainer.
      *
-     * This method returns number of @ref PrimitiveType values contained in
-     * the @ref rContainer recursively.
+     * This method returns number of @p PrimitiveType values contained in
+     * the @p rContainer recursively.
      *
      * @param rContainer        The container to calculate the size.
      * @return TIndexType       Number of primitive type values in rContainer.
@@ -416,9 +413,9 @@ public:
     /**
      * @brief Get the size of the underlying container given the shape
      *
-     * This method returns number of @ref PrimitiveType values contained recursively
-     * using the given shape with @ref pShapeBegin indicating the pointer to the
-     * start of the shape array and @ref pShapeEnd indicating the pointer to the
+     * This method returns number of @p PrimitiveType values contained recursively
+     * using the given shape with @p pShapeBegin indicating the pointer to the
+     * start of the shape array and @p pShapeEnd indicating the pointer to the
      * end of the shape array.
      *
      * @param pShapeBegin           Begining of the shape array.
@@ -440,7 +437,7 @@ public:
      * in a recursive manner.
      *
      * @param rContainer                    Value to compute the shape.
-     * @return std::vector<TIndexType>    Shape of the @ref rContainer.
+     * @return std::vector<TIndexType>    Shape of the @p rContainer.
      */
     template<class TIndexType = unsigned int>
     static inline std::vector<TIndexType> Shape(const ContainerType& rContainer)
@@ -480,13 +477,13 @@ public:
     /**
      * @brief Reshapes the given value to given shape.
      *
-     * This method reshapes the given @ref rContainer to the @ref rShape
+     * This method reshapes the given @p rContainer to the @p rShape
      * recursively.
      *
-     * If this method has changed size of @ref rContainer or any of the elements
+     * If this method has changed size of @p rContainer or any of the elements
      * of the container, then true is returned. False is returned if no
-     * change is required in @ref rContainer to comply with the given
-     * @ref rShape.
+     * change is required in @p rContainer to comply with the given
+     * @p rShape.
      *
      * @param rContainer    Container to be resized recursively.
      * @param rShape        Shape to be used in resizing.
@@ -504,13 +501,13 @@ public:
     /**
      * @brief Reshapes the given value to given shape.
      *
-     * This method reshapes the given @ref rContainer to the shape given by @ref pShapeBegin
-     * and @ref pShapeEnd recursively.
+     * This method reshapes the given @p rContainer to the shape given by @p pShapeBegin
+     * and @p pShapeEnd recursively.
      *
-     * If this method has changed size of @ref rContainer or any of the elements
+     * If this method has changed size of @p rContainer or any of the elements
      * of the container, then true is returned. False is returned if no
-     * change is required in @ref rContainer to comply with the given shape
-     * represented by @ref pShapeBegin and @ref pShapeEnd.
+     * change is required in @p rContainer to comply with the given shape
+     * represented by @p pShapeBegin and @p pShapeEnd.
      *
      * @param rContainer    Container to be resized recursively.
      * @param pShapeBegin   Begin of the shape vector.
@@ -542,8 +539,8 @@ public:
     /**
      * @brief Get the Contiguous data pointer of the given container.
      *
-     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
-     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * This method returns the underlying contiguous data ppinter of the given @p rContainer.
+     * If the underlying data structure of @p rContainer is not contiguous, this will
      * throw a compiler time error.
      *
      * @param rValue                    Container to retireve the contiguous array pointer.
@@ -574,8 +571,8 @@ public:
     /**
      * @brief Get the Contiguous data pointer of the given container.
      *
-     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
-     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * This method returns the underlying contiguous data ppinter of the given @p rContainer.
+     * If the underlying data structure of @p rContainer is not contiguous, this will
      * throw a compiler time error.
      *
      * @param rValue                    Container to retireve the contiguous array pointer.
@@ -606,10 +603,10 @@ public:
     /**
      * @brief Copies the given container element value to contiguous array.
      *
-     * This method copies all the elements of @ref rContainer recursively to the
-     * provided @ref pContiguousDataBegin.
+     * This method copies all the elements of @p rContainer recursively to the
+     * provided @p pContiguousDataBegin.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param pContiguousDataBegin      Contiguous array pointer.
@@ -628,10 +625,10 @@ public:
     /**
      * @brief Copies the given container element value to contiguous array.
      *
-     * This method copies all the elements of @ref rContainer recursively to the
-     * provided @ref pContiguousDataBegin.
+     * This method copies all the elements of @p rContainer recursively to the
+     * provided @p pContiguousDataBegin.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param pContiguousDataBegin      Contiguous array pointer.
@@ -655,10 +652,10 @@ public:
     /**
      * @brief Copies contiguous values to the container.
      *
-     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
-     * to the @ref rContainer.
+     * This method copies all the contiguous values in the given @p pContiguousDataBegin pointer
+     * to the @p rContainer.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param rContainer            Container to copy values to.
@@ -677,10 +674,10 @@ public:
     /**
      * @brief Copies contiguous values to the container.
      *
-     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
-     * to the @ref rContainer.
+     * This method copies all the contiguous values in the given @p pContiguousDataBegin pointer
+     * to the @p rContainer.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param rContainer            Container to copy values to.
@@ -759,9 +756,9 @@ public:
     ///@{
 
     /**
-     * @brief Returns whther the given @ref TCheckIndex is dynamic.
+     * @brief Returns whther the given @p TCheckIndex is dynamic.
      *
-     * This method returns true if the @ref TCheckIndex of the dimension
+     * This method returns true if the @p TCheckIndex of the dimension
      * corresponds to a dynamic type. If not, this returns false.
      *
      * @tparam TCheckIndex          User input dimension index.
@@ -777,10 +774,9 @@ public:
     /**
      * @brief Checks if the given shape is valid.
      * @details This method checks if the given shape is valid in the sense
-     *          that, dimensionality is correct as well as the values for each
-     *          static dimension is less or equal to the actual data types
-     *          static dimension value.
-     *
+     *          that, dimensionality is correct as well as the number of components for each
+     *          static dimension is less or equal to the actual static data types'
+     *          number of components.
      * @param pShapeBegin           Beginning of the shape array.
      * @param pShapeEnd             End of the shape array.
      */
@@ -800,8 +796,8 @@ public:
     /**
      * @brief Gets the size of underlying rContainer.
      *
-     * This method returns number of @ref PrimitiveType values contained in
-     * the @ref rContainer recursively.
+     * This method returns number of @p PrimitiveType values contained in
+     * the @p rContainer recursively.
      *
      * @param rContainer        The container to calculate the size.
      * @return TIndexType       Number of primitive type values in rContainer.
@@ -815,9 +811,9 @@ public:
     /**
      * @brief Get the size of the underlying container given the shape
      *
-     * This method returns number of @ref PrimitiveType values contained recursively
-     * using the given shape with @ref pShapeBegin indicating the pointer to the
-     * start of the shape array and @ref pShapeEnd indicating the pointer to the
+     * This method returns number of @p PrimitiveType values contained recursively
+     * using the given shape with @p pShapeBegin indicating the pointer to the
+     * start of the shape array and @p pShapeEnd indicating the pointer to the
      * end of the shape array.
      *
      * @param pShapeBegin           Begining of the shape array.
@@ -839,7 +835,7 @@ public:
      * in a recursive manner.
      *
      * @param rContainer                    Value to compute the shape.
-     * @return std::vector<TIndexType>    Shape of the @ref rContainer.
+     * @return std::vector<TIndexType>    Shape of the @p rContainer.
      */
     template<class TIndexType = unsigned int>
     static inline std::vector<TIndexType> Shape(const ContainerType& rContainer)
@@ -879,13 +875,13 @@ public:
     /**
      * @brief Reshapes the given value to given shape.
      *
-     * This method reshapes the given @ref rContainer to the @ref rShape
+     * This method reshapes the given @p rContainer to the @p rShape
      * recursively.
      *
-     * If this method has changed size of @ref rContainer or any of the elements
+     * If this method has changed size of @p rContainer or any of the elements
      * of the container, then true is returned. False is returned if no
-     * change is required in @ref rContainer to comply with the given
-     * @ref rShape.
+     * change is required in @p rContainer to comply with the given
+     * @p rShape.
      *
      * @param rContainer    Container to be resized recursively.
      * @param rShape        Shape to be used in resizing.
@@ -903,13 +899,13 @@ public:
     /**
      * @brief Reshapes the given value to given shape.
      *
-     * This method reshapes the given @ref rContainer to the shape given by @ref pShapeBegin
-     * and @ref pShapeEnd recursively.
+     * This method reshapes the given @p rContainer to the shape given by @p pShapeBegin
+     * and @p pShapeEnd recursively.
      *
-     * If this method has changed size of @ref rContainer or any of the elements
+     * If this method has changed size of @p rContainer or any of the elements
      * of the container, then true is returned. False is returned if no
-     * change is required in @ref rContainer to comply with the given shape
-     * represented by @ref pShapeBegin and @ref pShapeEnd.
+     * change is required in @p rContainer to comply with the given shape
+     * represented by @p pShapeBegin and @p pShapeEnd.
      *
      * @param rContainer    Container to be resized recursively.
      * @param pShapeBegin   Begin of the shape vector.
@@ -946,8 +942,8 @@ public:
     /**
      * @brief Get the Contiguous data pointer of the given container.
      *
-     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
-     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * This method returns the underlying contiguous data ppinter of the given @p rContainer.
+     * If the underlying data structure of @p rContainer is not contiguous, this will
      * throw a compiler time error.
      *
      * @param rValue                    Container to retireve the contiguous array pointer.
@@ -978,8 +974,8 @@ public:
     /**
      * @brief Get the Contiguous data pointer of the given container.
      *
-     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
-     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * This method returns the underlying contiguous data ppinter of the given @p rContainer.
+     * If the underlying data structure of @p rContainer is not contiguous, this will
      * throw a compiler time error.
      *
      * @param rValue                    Container to retireve the contiguous array pointer.
@@ -1010,10 +1006,10 @@ public:
     /**
      * @brief Copies the given container element value to contiguous array.
      *
-     * This method copies all the elements of @ref rContainer recursively to the
-     * provided @ref pContiguousDataBegin.
+     * This method copies all the elements of @p rContainer recursively to the
+     * provided @p pContiguousDataBegin.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param pContiguousDataBegin      Contiguous array pointer.
@@ -1034,10 +1030,10 @@ public:
     /**
      * @brief Copies the given container element value to contiguous array.
      *
-     * This method copies all the elements of @ref rContainer recursively to the
-     * provided @ref pContiguousDataBegin.
+     * This method copies all the elements of @p rContainer recursively to the
+     * provided @p pContiguousDataBegin.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param pContiguousDataBegin      Contiguous array pointer.
@@ -1065,10 +1061,10 @@ public:
     /**
      * @brief Copies contiguous values to the container.
      *
-     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
-     * to the @ref rContainer.
+     * This method copies all the contiguous values in the given @p pContiguousDataBegin pointer
+     * to the @p rContainer.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param rContainer            Container to copy values to.
@@ -1089,10 +1085,10 @@ public:
     /**
      * @brief Copies contiguous values to the container.
      *
-     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
-     * to the @ref rContainer.
+     * This method copies all the contiguous values in the given @p pContiguousDataBegin pointer
+     * to the @p rContainer.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param rContainer            Container to copy values to.
@@ -1168,9 +1164,9 @@ public:
     ///@{
 
     /**
-     * @brief Returns whther the given @ref TCheckIndex is dynamic.
+     * @brief Returns whther the given @p TCheckIndex is dynamic.
      *
-     * This method returns true if the @ref TCheckIndex of the dimension
+     * This method returns true if the @p TCheckIndex of the dimension
      * corresponds to a dynamic type. If not, this returns false.
      *
      * @tparam TCheckIndex          User input dimension index.
@@ -1186,10 +1182,9 @@ public:
     /**
      * @brief Checks if the given shape is valid.
      * @details This method checks if the given shape is valid in the sense
-     *          that, dimensionality is correct as well as the values for each
-     *          static dimension is less or equal to the actual data types
-     *          static dimension value.
-     *
+     *          that, dimensionality is correct as well as the number of components for each
+     *          static dimension is less or equal to the actual static data types'
+     *          number of components.
      * @param pShapeBegin           Beginning of the shape array.
      * @param pShapeEnd             End of the shape array.
      */
@@ -1208,8 +1203,8 @@ public:
     /**
      * @brief Gets the size of underlying rContainer.
      *
-     * This method returns number of @ref PrimitiveType values contained in
-     * the @ref rContainer recursively.
+     * This method returns number of @p PrimitiveType values contained in
+     * the @p rContainer recursively.
      *
      * @param rContainer        The container to calculate the size.
      * @return TIndexType       Number of primitive type values in rContainer.
@@ -1223,9 +1218,9 @@ public:
     /**
      * @brief Get the size of the underlying container given the shape
      *
-     * This method returns number of @ref PrimitiveType values contained recursively
-     * using the given shape with @ref pShapeBegin indicating the pointer to the
-     * start of the shape array and @ref pShapeEnd indicating the pointer to the
+     * This method returns number of @p PrimitiveType values contained recursively
+     * using the given shape with @p pShapeBegin indicating the pointer to the
+     * start of the shape array and @p pShapeEnd indicating the pointer to the
      * end of the shape array.
      *
      * @param pShapeBegin           Begining of the shape array.
@@ -1247,7 +1242,7 @@ public:
      * in a recursive manner.
      *
      * @param rContainer                    Value to compute the shape.
-     * @return std::vector<TIndexType>    Shape of the @ref rContainer.
+     * @return std::vector<TIndexType>    Shape of the @p rContainer.
      */
     template<class TIndexType = unsigned int>
     static inline std::vector<TIndexType> Shape(const ContainerType& rContainer)
@@ -1288,13 +1283,13 @@ public:
     /**
      * @brief Reshapes the given value to given shape.
      *
-     * This method reshapes the given @ref rContainer to the @ref rShape
+     * This method reshapes the given @p rContainer to the @p rShape
      * recursively.
      *
-     * If this method has changed size of @ref rContainer or any of the elements
+     * If this method has changed size of @p rContainer or any of the elements
      * of the container, then true is returned. False is returned if no
-     * change is required in @ref rContainer to comply with the given
-     * @ref rShape.
+     * change is required in @p rContainer to comply with the given
+     * @p rShape.
      *
      * @param rContainer    Container to be resized recursively.
      * @param rShape        Shape to be used in resizing.
@@ -1312,13 +1307,13 @@ public:
     /**
      * @brief Reshapes the given value to given shape.
      *
-     * This method reshapes the given @ref rContainer to the shape given by @ref pShapeBegin
-     * and @ref pShapeEnd recursively.
+     * This method reshapes the given @p rContainer to the shape given by @p pShapeBegin
+     * and @p pShapeEnd recursively.
      *
-     * If this method has changed size of @ref rContainer or any of the elements
+     * If this method has changed size of @p rContainer or any of the elements
      * of the container, then true is returned. False is returned if no
-     * change is required in @ref rContainer to comply with the given shape
-     * represented by @ref pShapeBegin and @ref pShapeEnd.
+     * change is required in @p rContainer to comply with the given shape
+     * represented by @p pShapeBegin and @p pShapeEnd.
      *
      * @param rContainer    Container to be resized recursively.
      * @param pShapeBegin   Begin of the shape vector.
@@ -1355,8 +1350,8 @@ public:
     /**
      * @brief Get the Contiguous data pointer of the given container.
      *
-     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
-     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * This method returns the underlying contiguous data ppinter of the given @p rContainer.
+     * If the underlying data structure of @p rContainer is not contiguous, this will
      * throw a compiler time error.
      *
      * @param rValue                    Container to retireve the contiguous array pointer.
@@ -1387,8 +1382,8 @@ public:
     /**
      * @brief Get the Contiguous data pointer of the given container.
      *
-     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
-     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * This method returns the underlying contiguous data ppinter of the given @p rContainer.
+     * If the underlying data structure of @p rContainer is not contiguous, this will
      * throw a compiler time error.
      *
      * @param rValue                    Container to retireve the contiguous array pointer.
@@ -1419,10 +1414,10 @@ public:
     /**
      * @brief Copies the given container element value to contiguous array.
      *
-     * This method copies all the elements of @ref rContainer recursively to the
-     * provided @ref pContiguousDataBegin.
+     * This method copies all the elements of @p rContainer recursively to the
+     * provided @p pContiguousDataBegin.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param pContiguousDataBegin      Contiguous array pointer.
@@ -1443,10 +1438,10 @@ public:
     /**
      * @brief Copies the given container element value to contiguous array.
      *
-     * This method copies all the elements of @ref rContainer recursively to the
-     * provided @ref pContiguousDataBegin.
+     * This method copies all the elements of @p rContainer recursively to the
+     * provided @p pContiguousDataBegin.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param pContiguousDataBegin      Contiguous array pointer.
@@ -1476,10 +1471,10 @@ public:
     /**
      * @brief Copies contiguous values to the container.
      *
-     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
-     * to the @ref rContainer.
+     * This method copies all the contiguous values in the given @p pContiguousDataBegin pointer
+     * to the @p rContainer.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param rContainer            Container to copy values to.
@@ -1500,10 +1495,10 @@ public:
     /**
      * @brief Copies contiguous values to the container.
      *
-     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
-     * to the @ref rContainer.
+     * This method copies all the contiguous values in the given @p pContiguousDataBegin pointer
+     * to the @p rContainer.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param rContainer            Container to copy values to.
@@ -1579,9 +1574,9 @@ public:
     ///@{
 
     /**
-     * @brief Returns whther the given @ref TCheckIndex is dynamic.
+     * @brief Returns whther the given @p TCheckIndex is dynamic.
      *
-     * This method returns true if the @ref TCheckIndex of the dimension
+     * This method returns true if the @p TCheckIndex of the dimension
      * corresponds to a dynamic type. If not, this returns false.
      *
      * @tparam TCheckIndex          User input dimension index.
@@ -1597,10 +1592,9 @@ public:
     /**
      * @brief Checks if the given shape is valid.
      * @details This method checks if the given shape is valid in the sense
-     *          that, dimensionality is correct as well as the values for each
-     *          static dimension is less or equal to the actual data types
-     *          static dimension value.
-     *
+     *          that, dimensionality is correct as well as the number of components for each
+     *          static dimension is less or equal to the actual static data types'
+     *          number of components.
      * @param pShapeBegin           Beginning of the shape array.
      * @param pShapeEnd             End of the shape array.
      */
@@ -1620,8 +1614,8 @@ public:
     /**
      * @brief Gets the size of underlying rContainer.
      *
-     * This method returns number of @ref PrimitiveType values contained in
-     * the @ref rContainer recursively.
+     * This method returns number of @p PrimitiveType values contained in
+     * the @p rContainer recursively.
      *
      * @param rContainer        The container to calculate the size.
      * @return TIndexType       Number of primitive type values in rContainer.
@@ -1635,9 +1629,9 @@ public:
     /**
      * @brief Get the size of the underlying container given the shape
      *
-     * This method returns number of @ref PrimitiveType values contained recursively
-     * using the given shape with @ref pShapeBegin indicating the pointer to the
-     * start of the shape array and @ref pShapeEnd indicating the pointer to the
+     * This method returns number of @p PrimitiveType values contained recursively
+     * using the given shape with @p pShapeBegin indicating the pointer to the
+     * start of the shape array and @p pShapeEnd indicating the pointer to the
      * end of the shape array.
      *
      * @param pShapeBegin           Begining of the shape array.
@@ -1659,7 +1653,7 @@ public:
      * in a recursive manner.
      *
      * @param rContainer                    Value to compute the shape.
-     * @return std::vector<TIndexType>    Shape of the @ref rContainer.
+     * @return std::vector<TIndexType>    Shape of the @p rContainer.
      */
     template<class TIndexType = unsigned int>
     static inline std::vector<TIndexType> Shape(const ContainerType& rContainer)
@@ -1693,13 +1687,13 @@ public:
     /**
      * @brief Reshapes the given value to given shape.
      *
-     * This method reshapes the given @ref rContainer to the @ref rShape
+     * This method reshapes the given @p rContainer to the @p rShape
      * recursively.
      *
-     * If this method has changed size of @ref rContainer or any of the elements
+     * If this method has changed size of @p rContainer or any of the elements
      * of the container, then true is returned. False is returned if no
-     * change is required in @ref rContainer to comply with the given
-     * @ref rShape.
+     * change is required in @p rContainer to comply with the given
+     * @p rShape.
      *
      * @param rContainer    Container to be resized recursively.
      * @param rShape        Shape to be used in resizing.
@@ -1717,13 +1711,13 @@ public:
     /**
      * @brief Reshapes the given value to given shape.
      *
-     * This method reshapes the given @ref rContainer to the shape given by @ref pShapeBegin
-     * and @ref pShapeEnd recursively.
+     * This method reshapes the given @p rContainer to the shape given by @p pShapeBegin
+     * and @p pShapeEnd recursively.
      *
-     * If this method has changed size of @ref rContainer or any of the elements
+     * If this method has changed size of @p rContainer or any of the elements
      * of the container, then true is returned. False is returned if no
-     * change is required in @ref rContainer to comply with the given shape
-     * represented by @ref pShapeBegin and @ref pShapeEnd.
+     * change is required in @p rContainer to comply with the given shape
+     * represented by @p pShapeBegin and @p pShapeEnd.
      *
      * @param rContainer    Container to be resized recursively.
      * @param pShapeBegin   Begin of the shape vector.
@@ -1755,8 +1749,8 @@ public:
     /**
      * @brief Get the Contiguous data pointer of the given container.
      *
-     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
-     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * This method returns the underlying contiguous data ppinter of the given @p rContainer.
+     * If the underlying data structure of @p rContainer is not contiguous, this will
      * throw a compiler time error.
      *
      * @param rValue                    Container to retireve the contiguous array pointer.
@@ -1770,8 +1764,8 @@ public:
     /**
      * @brief Get the Contiguous data pointer of the given container.
      *
-     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
-     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * This method returns the underlying contiguous data ppinter of the given @p rContainer.
+     * If the underlying data structure of @p rContainer is not contiguous, this will
      * throw a compiler time error.
      *
      * @param rValue                    Container to retireve the contiguous array pointer.
@@ -1785,10 +1779,10 @@ public:
     /**
      * @brief Copies the given container element value to contiguous array.
      *
-     * This method copies all the elements of @ref rContainer recursively to the
-     * provided @ref pContiguousDataBegin.
+     * This method copies all the elements of @p rContainer recursively to the
+     * provided @p pContiguousDataBegin.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param pContiguousDataBegin      Contiguous array pointer.
@@ -1804,10 +1798,10 @@ public:
     /**
      * @brief Copies the given container element value to contiguous array.
      *
-     * This method copies all the elements of @ref rContainer recursively to the
-     * provided @ref pContiguousDataBegin.
+     * This method copies all the elements of @p rContainer recursively to the
+     * provided @p pContiguousDataBegin.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param pContiguousDataBegin      Contiguous array pointer.
@@ -1832,10 +1826,10 @@ public:
     /**
      * @brief Copies contiguous values to the container.
      *
-     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
-     * to the @ref rContainer.
+     * This method copies all the contiguous values in the given @p pContiguousDataBegin pointer
+     * to the @p rContainer.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param rContainer            Container to copy values to.
@@ -1851,10 +1845,10 @@ public:
     /**
      * @brief Copies contiguous values to the container.
      *
-     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
-     * to the @ref rContainer.
+     * This method copies all the contiguous values in the given @p pContiguousDataBegin pointer
+     * to the @p rContainer.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param rContainer            Container to copy values to.
@@ -1923,9 +1917,9 @@ public:
     ///@{
 
     /**
-     * @brief Returns whther the given @ref TCheckIndex is dynamic.
+     * @brief Returns whther the given @p TCheckIndex is dynamic.
      *
-     * This method returns true if the @ref TCheckIndex of the dimension
+     * This method returns true if the @p TCheckIndex of the dimension
      * corresponds to a dynamic type. If not, this returns false.
      *
      * @tparam TCheckIndex          User input dimension index.
@@ -1941,10 +1935,9 @@ public:
     /**
      * @brief Checks if the given shape is valid.
      * @details This method checks if the given shape is valid in the sense
-     *          that, dimensionality is correct as well as the values for each
-     *          static dimension is less or equal to the actual data types
-     *          static dimension value.
-     *
+     *          that, dimensionality is correct as well as the number of components for each
+     *          static dimension is less or equal to the actual static data types'
+     *          number of components.
      * @param pShapeBegin           Beginning of the shape array.
      * @param pShapeEnd             End of the shape array.
      */
@@ -1963,8 +1956,8 @@ public:
     /**
      * @brief Gets the size of underlying rContainer.
      *
-     * This method returns number of @ref PrimitiveType values contained in
-     * the @ref rContainer recursively.
+     * This method returns number of @p PrimitiveType values contained in
+     * the @p rContainer recursively.
      *
      * @param rContainer        The container to calculate the size.
      * @return TIndexType       Number of primitive type values in rContainer.
@@ -1978,9 +1971,9 @@ public:
     /**
      * @brief Get the size of the underlying container given the shape
      *
-     * This method returns number of @ref PrimitiveType values contained recursively
-     * using the given shape with @ref pShapeBegin indicating the pointer to the
-     * start of the shape array and @ref pShapeEnd indicating the pointer to the
+     * This method returns number of @p PrimitiveType values contained recursively
+     * using the given shape with @p pShapeBegin indicating the pointer to the
+     * start of the shape array and @p pShapeEnd indicating the pointer to the
      * end of the shape array.
      *
      * @param pShapeBegin           Begining of the shape array.
@@ -2002,7 +1995,7 @@ public:
      * in a recursive manner.
      *
      * @param rContainer                    Value to compute the shape.
-     * @return std::vector<TIndexType>    Shape of the @ref rContainer.
+     * @return std::vector<TIndexType>    Shape of the @p rContainer.
      */
     template<class TIndexType = unsigned int>
     static inline std::vector<TIndexType> Shape(const ContainerType& rContainer)
@@ -2042,13 +2035,13 @@ public:
     /**
      * @brief Reshapes the given value to given shape.
      *
-     * This method reshapes the given @ref rContainer to the @ref rShape
+     * This method reshapes the given @p rContainer to the @p rShape
      * recursively.
      *
-     * If this method has changed size of @ref rContainer or any of the elements
+     * If this method has changed size of @p rContainer or any of the elements
      * of the container, then true is returned. False is returned if no
-     * change is required in @ref rContainer to comply with the given
-     * @ref rShape.
+     * change is required in @p rContainer to comply with the given
+     * @p rShape.
      *
      * @param rContainer    Container to be resized recursively.
      * @param rShape        Shape to be used in resizing.
@@ -2066,13 +2059,13 @@ public:
     /**
      * @brief Reshapes the given value to given shape.
      *
-     * This method reshapes the given @ref rContainer to the shape given by @ref pShapeBegin
-     * and @ref pShapeEnd recursively.
+     * This method reshapes the given @p rContainer to the shape given by @p pShapeBegin
+     * and @p pShapeEnd recursively.
      *
-     * If this method has changed size of @ref rContainer or any of the elements
+     * If this method has changed size of @p rContainer or any of the elements
      * of the container, then true is returned. False is returned if no
-     * change is required in @ref rContainer to comply with the given shape
-     * represented by @ref pShapeBegin and @ref pShapeEnd.
+     * change is required in @p rContainer to comply with the given shape
+     * represented by @p pShapeBegin and @p pShapeEnd.
      *
      * @param rContainer    Container to be resized recursively.
      * @param pShapeBegin   Begin of the shape vector.
@@ -2109,8 +2102,8 @@ public:
     /**
      * @brief Get the Contiguous data pointer of the given container.
      *
-     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
-     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * This method returns the underlying contiguous data ppinter of the given @p rContainer.
+     * If the underlying data structure of @p rContainer is not contiguous, this will
      * throw a compiler time error.
      *
      * @param rValue                    Container to retireve the contiguous array pointer.
@@ -2128,8 +2121,8 @@ public:
     /**
      * @brief Get the Contiguous data pointer of the given container.
      *
-     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
-     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * This method returns the underlying contiguous data ppinter of the given @p rContainer.
+     * If the underlying data structure of @p rContainer is not contiguous, this will
      * throw a compiler time error.
      *
      * @param rValue                    Container to retireve the contiguous array pointer.
@@ -2147,10 +2140,10 @@ public:
     /**
      * @brief Copies the given container element value to contiguous array.
      *
-     * This method copies all the elements of @ref rContainer recursively to the
-     * provided @ref pContiguousDataBegin.
+     * This method copies all the elements of @p rContainer recursively to the
+     * provided @p pContiguousDataBegin.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param pContiguousDataBegin      Contiguous array pointer.
@@ -2171,10 +2164,10 @@ public:
     /**
      * @brief Copies the given container element value to contiguous array.
      *
-     * This method copies all the elements of @ref rContainer recursively to the
-     * provided @ref pContiguousDataBegin.
+     * This method copies all the elements of @p rContainer recursively to the
+     * provided @p pContiguousDataBegin.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param pContiguousDataBegin      Contiguous array pointer.
@@ -2202,10 +2195,10 @@ public:
     /**
      * @brief Copies contiguous values to the container.
      *
-     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
-     * to the @ref rContainer.
+     * This method copies all the contiguous values in the given @p pContiguousDataBegin pointer
+     * to the @p rContainer.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param rContainer            Container to copy values to.
@@ -2226,10 +2219,10 @@ public:
     /**
      * @brief Copies contiguous values to the container.
      *
-     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
-     * to the @ref rContainer.
+     * This method copies all the contiguous values in the given @p pContiguousDataBegin pointer
+     * to the @p rContainer.
      *
-     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     * @warning This may seg-fault if the the contiguous array given by @p pContiguousDataBegin
      *          is not correctly sized.
      *
      * @param rContainer            Container to copy values to.
