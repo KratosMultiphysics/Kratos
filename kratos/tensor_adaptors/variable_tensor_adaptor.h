@@ -222,7 +222,7 @@ private:
     {
         using return_type = typename TCurrentIOPointerType::element_type::ReturnType;
 
-        KRATOS_ERROR_IF_NOT(DataTypeTraits<return_type>::IsValidShape(rDataShape.begin(), rDataShape.end()))
+        KRATOS_ERROR_IF_NOT(DataTypeTraits<return_type>::IsValidShape(rDataShape.data(), rDataShape.data() + rDataShape.size()))
             << "Invalid data shape provided. [ data shape provided = " << rDataShape
             << ", max possible sizes in each dimension  = "
             << DataTypeTraits<return_type>::Shape(return_type{}) << " ].\n";

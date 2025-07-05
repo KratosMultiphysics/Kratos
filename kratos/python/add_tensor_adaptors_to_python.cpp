@@ -118,7 +118,7 @@ void SetNumpyArray(
             << "Passed data is not compatible [ array = "
             << r_array << ", Tensor adaptor = " << rTensorAdaptor << " ].\n";
 
-        std::vector<int> shape(r_array.ndim());
+        std::vector<unsigned int> shape(r_array.ndim());
         std::copy(r_array.shape(), r_array.shape() + r_array.ndim(), shape.begin());
 
         const auto& r_shape = rTensorAdaptor.Shape();
