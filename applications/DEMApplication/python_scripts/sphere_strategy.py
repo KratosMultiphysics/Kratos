@@ -230,7 +230,10 @@ class ExplicitStrategy():
             self.bond_contact_area_small_percentage = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaSmallPercentage"].GetDouble()
             self.bond_contact_area_small_minimum = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaSmallMinimum"].GetDouble()
             self.bond_contact_area_small_maximum = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaSmallMaximum"].GetDouble()
-            self.bond_generate_percentage = DEM_parameters["AdjustBondContactAreaSettings"]["BondGeneratePercentage"].GetDouble()
+            if not "BondGeneratePercentage" in DEM_parameters.keys():
+                self.bond_generate_percentage = 1.0
+            else:
+                self.bond_generate_percentage = DEM_parameters["AdjustBondContactAreaSettings"]["BondGeneratePercentage"].GetDouble()
 
         # PRINTING VARIABLES
         self.print_export_id = DEM_parameters["PostExportId"].GetBool()

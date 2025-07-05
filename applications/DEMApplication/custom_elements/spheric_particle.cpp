@@ -1748,7 +1748,7 @@ void SphericParticle::ComputeMaxShearStrain(const ProcessInfo& r_process_info) {
         gamma_max = 0.5 * std::abs(eps_max - eps_min);
     }
 
-    GetGeometry()[0].FastGetSolutionStepValue(MAX_SHEAR_STRESS) = gamma_max;
+    GetGeometry()[0].FastGetSolutionStepValue(MAX_SHEAR_STRAIN) = gamma_max;
 
     KRATOS_CATCH("")
 }

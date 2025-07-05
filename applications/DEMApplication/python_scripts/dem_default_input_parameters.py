@@ -210,7 +210,7 @@ def GetDefaultInputParameters():
             "PostDeltaDisplacement"            : false,
             "print_CN_graph"                   : false,
             "PostDamageRatio"                  : false,
-            "PostMaxShearStress"               : false,
+            "PostMaxShearStrain"               : false,
             "output_configuration" : {
                 "print_number_of_neighbours_histogram" : false
             },
