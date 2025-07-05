@@ -36,6 +36,7 @@ public:
 
     void ExecuteInitialize() override;
     void ExecuteInitializeSolutionStep() override;
+    void ExecuteFinalize() override;
 
     std::string Info() const override;
 
