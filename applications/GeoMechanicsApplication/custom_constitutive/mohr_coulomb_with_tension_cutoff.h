@@ -71,6 +71,9 @@ private:
     [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector,
                                                     double        YoungsModulus,
                                                     double        PoissonsRatio) const;
+    Vector               RearrangeEigenValuesAndVectors(const Vector& rPrincipalStressVector,
+                                                        const Vector& rMappedPrincipalStressVector,
+                                                        int&          rMappingType);
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
