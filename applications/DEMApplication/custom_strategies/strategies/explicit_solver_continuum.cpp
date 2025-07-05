@@ -143,7 +143,9 @@ namespace Kratos {
         r_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(NEIGHBOUR_IDS);
         r_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(NEIGHBOURS_CONTACT_AREAS);
 
-        CalculateMeanContactArea();
+        if (!r_process_info[ADJUST_BOND_CONTACT_AREA_OPTION]) {
+            CalculateMeanContactArea();
+        }
         CalculateMaxSearchDistance();
         ComputeNodalArea();
 
@@ -951,9 +953,11 @@ namespace Kratos {
                 mListOfSphericContinuumParticles[i]->CreateContinuumConstitutiveLaws();
             }
 
-            #pragma omp for
-            for (int i = 0; i < number_of_particles; i++) {
-                mListOfSphericContinuumParticles[i]->ContactAreaWeighting(r_process_info);
+            if (!r_process_info[ADJUST_BOND_CONTACT_AREA_OPTION]) {
+                #pragma omp for
+                for (int i = 0; i < number_of_particles; i++) {
+                    mListOfSphericContinuumParticles[i]->ContactAreaWeighting(r_process_info);
+                }
             }
         }
 
