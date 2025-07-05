@@ -29,6 +29,10 @@ namespace Kratos {
  *
  * @tparam TDataType        Arithmetic data type
  */
+
+template<class T, class... TList>
+struct IsInList: public std::disjunction<std::is_same<T, TList>...> {};
+
 template<class TDataType> class DataTypeTraits
 {
 public:
