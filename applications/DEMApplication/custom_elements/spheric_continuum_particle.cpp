@@ -134,6 +134,8 @@ namespace Kratos {
             //mIniNeighbourDelta[continuum_ini_size + k] = DiscontinuumInitialNeighborsDeltas[k];
             mNeighbourElements[continuum_ini_size + k] = DiscontinuumInitialNeighborsElements[k];
         }
+
+        GetGeometry()[0].FastGetSolutionStepValue(INITIAL_BOND_NUMBER) = mContinuumInitialNeighborsSize;
     }//SetInitialSphereContacts
 
     void SphericContinuumParticle::CreateContinuumConstitutiveLaws() {

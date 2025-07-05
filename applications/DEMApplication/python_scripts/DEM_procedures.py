@@ -487,6 +487,8 @@ class Procedures():
         model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
         model_part.AddNodalSolutionStepVariable(NEIGHBOUR_SIZE)
         model_part.AddNodalSolutionStepVariable(DAMAGE_RATIO)
+        model_part.AddNodalSolutionStepVariable(DEM_PRESSURE)
+        model_part.AddNodalSolutionStepVariable(INITIAL_BOND_NUMBER)
 
         # ROTATION RELATED PROPERTIES
         if self.DEM_parameters["RotationOption"].GetBool():

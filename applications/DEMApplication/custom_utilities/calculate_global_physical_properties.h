@@ -635,7 +635,7 @@ class SphericElementGlobalPhysicsCalculator
 
                 for (ElementsArrayType::iterator it = GetElementPartitionBegin(sphere_model_part, k); it != GetElementPartitionEnd(sphere_model_part, k); ++it){
 
-                    double bond_number = (it)->GetGeometry()[0].mContinuumInitialNeighborsSize;
+                    double bond_number = (it)->GetGeometry()[0].FastGetSolutionStepValue(INITIAL_BOND_NUMBER);
                     total_bond_broken += (it)->GetGeometry()[0].FastGetSolutionStepValue(DAMAGE_RATIO) * bond_number;
                     total_bonds += bond_number;
                 }
