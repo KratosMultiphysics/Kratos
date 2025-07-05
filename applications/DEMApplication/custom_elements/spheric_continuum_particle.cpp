@@ -118,6 +118,8 @@ namespace Kratos {
                 mIniNeighbourDelta[static_cast<int>(neighbour_iterator->Id())] = initial_delta;
                 DiscontinuumInitialNeighborsElements.push_back(neighbour_iterator);
                 discontinuum_ini_size++;
+                mIniBondContactArea[static_cast<int>(neighbour_iterator->Id())] = 0.0;
+                mBondVolume[static_cast<int>(neighbour_iterator->Id())] = 0.0;
             }
         }
 
