@@ -11,12 +11,12 @@ from numpy import exp
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
-        raise RuntimeError(f"LevelSetControl instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"LevelSetControlHJ instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
     if not parameters.Has("settings"):
-        raise RuntimeError(f"LevelSetControl instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return LevelSetControl(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
+        raise RuntimeError(f"LevelSetControlHJ instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+    return LevelSetControlHJ(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
 
-class LevelSetControl(Control):
+class LevelSetControlHJ(Control):
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> None:
         super().__init__(name)
 
@@ -136,6 +136,17 @@ class LevelSetControl(Control):
             self.control_phi = control_field
             self._UpdateAndOutputFields(update)
             return True
+
+        # # level-set update: d_phi = ( -v * grad(phi) ) * d_t
+        # # get norm of grad(phi)
+        # phi_grad_norm = self._ComputeLevelSetGradientNorm(self.control_phi)
+
+        # # get design velocity v, dj/dE missing
+        # design_velocity = - self.d_young_modulus_d_phi
+
+        # # get update value
+        # update = design_velocity * phi_grad_norm
+
         return False
 
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
@@ -174,11 +185,24 @@ class LevelSetControl(Control):
         Kratos.Expression.LiteralExpressionIO.SetData(e, exp(1))
         return Kratos.Expression.Utils.Pow(Kratos.Expression.Utils.Pow(e, self.control_phi * self.k * (-2)) + 1, -1)
 
+
     def _ComputeHeavisideGradient(self)  -> ContainerExpressionTypes:
         # Calculate Dirac Delta function (derivative of Heaviside function w.r.t. phi)
         e = self.control_phi.Clone()
         Kratos.Expression.LiteralExpressionIO.SetData(e, exp(1))
         return Kratos.Expression.Utils.Pow(Kratos.Expression.Utils.Pow(e, self.control_phi * self.k * 2) + 1, -2) * Kratos.Expression.Utils.Pow(e, self.control_phi * self.k * 2) * self.k * 2
+
+
+    def _ComputeLevelSetGradientNorm(self, LSF: ContainerExpressionTypes) -> ContainerExpressionTypes:
+        # Compute gradient (vector expression)
+        LSF_grad = KratosOA.GradientComputationUtility().ComputeNodalGradient(self.model_part, LSF)
+
+        # Compute norm of the gradient
+        LFS_grad_norm = KratosOA.ContainerExpression[Kratos.ModelPart](self.model_part)
+        LFS_grad_norm.EvaluateNormOf(LSF_grad)
+
+        # Return the norm expression
+        return LFS_grad_norm
 
     @staticmethod
     def ComputeHeavisideValue(phi: ContainerExpressionTypes, k: float) -> ContainerExpressionTypes:  
@@ -205,7 +229,7 @@ if __name__ == "__main__":
     Kratos.Expression.VariableExpressionIO.Read(phi, Kratos.DENSITY, is_historical=False)
 
     # Calculate heaviside with fuction
-    haviside_phi = LevelSetControl.ComputeHeavisideValue(phi, k)
+    haviside_phi = LevelSetControlHJ.ComputeHeavisideValue(phi, k)
 
     print(f"Heaviside function: \n{haviside_phi.Evaluate()}")
 
@@ -216,13 +240,13 @@ if __name__ == "__main__":
     print(f"Numpy Heaviside: \n{numpy_heaviside}")
 
     # Calculate Heaviside gradient with function
-    heaviside_gradient_phi = LevelSetControl.ComputeHevisideGradientValue(phi, k)
+    heaviside_gradient_phi = LevelSetControlHJ.ComputeHevisideGradientValue(phi, k)
 
     print(f"Heaviside gradient function: \n{heaviside_gradient_phi.Evaluate()}")
 
     # Calculate Heaviside gradient manually with finite differences
     perturbation = 1e-5
-    FD_heaviside_gradient = (LevelSetControl.ComputeHeavisideValue(phi + perturbation, k) - LevelSetControl.ComputeHeavisideValue(phi, k))/perturbation
+    FD_heaviside_gradient = (LevelSetControlHJ.ComputeHeavisideValue(phi + perturbation, k) - LevelSetControlHJ.ComputeHeavisideValue(phi, k))/perturbation
 
     print(f"Heaviside gradient FD: \n{FD_heaviside_gradient.Evaluate()}")
 
