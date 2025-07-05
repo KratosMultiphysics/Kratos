@@ -44,6 +44,7 @@ class VtkOutput():
         self.PostRollingResistanceMoment = self.DEM_parameters["PostRollingResistanceMoment"].GetBool()
         self.PostNeighbourSize = GetBoolParameterIfItExists(self.DEM_parameters, "PostNeighbourSize")
         self.PostDamageRatio = GetBoolParameterIfItExists(self.DEM_parameters, "PostDamageRatio")
+        self.PostMaxShearStress = GetBoolParameterIfItExists(self.DEM_parameters, "PostMaxShearStress")
         
         # for contacts
         self.PostLocalContactForce = GetBoolParameterIfItExists(self.DEM_parameters, "PostLocalContactForce")
@@ -160,6 +161,9 @@ class VtkOutput():
         if self.PostDamageRatio:
             self.damage_ratio = np.empty(number_of_nodes)
 
+        if self.PostMaxShearStress:
+            self.max_shear_stress = np.empty(number_of_nodes)
+
         i = 0
         for node in self.spheres_model_part.Nodes:
             self.particles_X[i] = node.X
@@ -235,6 +239,9 @@ class VtkOutput():
             
             if self.PostDamageRatio:
                 self.damage_ratio[i] = node.GetSolutionStepValue(DAMAGE_RATIO)
+
+            if self.PostMaxShearStress:
+                self.max_shear_stress[i] = node.GetSolutionStepValue(MAX_SHEAR_STRESS)
 
             i += 1
 
@@ -462,6 +469,9 @@ class VtkOutput():
             
             if self.PostDamageRatio:
                 particles_output_dict['damage_ratio'] = self.damage_ratio
+
+            if self.PostMaxShearStress:
+                particles_output_dict['max_shear_stress'] = self.max_shear_stress
 
             hl.pointsToVTK(path, self.particles_X, self.particles_Y, self.particles_Z, particles_output_dict)
 

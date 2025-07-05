@@ -487,6 +487,7 @@ class Procedures():
         model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
         model_part.AddNodalSolutionStepVariable(NEIGHBOUR_SIZE)
         model_part.AddNodalSolutionStepVariable(DAMAGE_RATIO)
+        model_part.AddNodalSolutionStepVariable(MAX_SHEAR_STRESS)
         model_part.AddNodalSolutionStepVariable(DEM_PRESSURE)
         model_part.AddNodalSolutionStepVariable(INITIAL_BOND_NUMBER)
 
@@ -1334,6 +1335,7 @@ class DEMIo():
         self.PostNodalArea = self.DEM_parameters["PostNodalArea"].GetBool()
         self.PostNeighbourSize = GetBoolParameterIfItExists(self.DEM_parameters, "PostNeighbourSize")
         self.PostDamageRatio = GetBoolParameterIfItExists(self.DEM_parameters, "PostDamageRatio")
+        self.PostMaxShearStress = GetBoolParameterIfItExists(self.DEM_parameters, "PostMaxShearStress")
         self.PostNormalImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostNormalImpactVelocity")
         self.PostTangentialImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostTangentialImpactVelocity")
         self.PostControlModule = GetBoolParameterIfItExists(self.DEM_parameters, "PostControlModule")
@@ -1501,6 +1503,10 @@ class DEMIo():
         if "PostDamageRatio" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostDamageRatio"].GetBool():
                 self.PushPrintVar(self.PostDamageRatio, DAMAGE_RATIO, self.spheres_variables)
+
+        if "PostMaxShearStress" in self.DEM_parameters.keys():
+            if self.DEM_parameters["PostMaxShearStress"].GetBool():
+                self.PushPrintVar(self.PostMaxShearStress, MAX_SHEAR_STRESS, self.spheres_variables)
 
         if self.PostGluedSphere:
             self.PushPrintVar(self.PostGluedSphere, IS_STICKY, self.spheres_variables)

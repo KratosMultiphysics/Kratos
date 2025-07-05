@@ -155,6 +155,7 @@ virtual void FinalizeStressTensor(const ProcessInfo& r_process_info, double& rRe
 virtual void SymmetrizeStressTensor();
 virtual void ComputeStrainTensor(const ProcessInfo& r_process_info);
 virtual void ComputeDifferentialStrainTensor(const ProcessInfo& r_process_info);
+virtual void ComputeMaxShearStrain(const ProcessInfo& r_process_info);
 virtual void SymmetrizeDifferentialStrainTensor();
 virtual void CorrectRepresentativeVolume(double& rRepresentative_Volume/*, bool& is_smaller_than_sphere*/);
 virtual void ComputeReactions();

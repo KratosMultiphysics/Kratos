@@ -1661,6 +1661,7 @@ void SphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info){
         ComputeDifferentialStrainTensor(r_process_info);
         SymmetrizeDifferentialStrainTensor();
         ComputeStrainTensor(r_process_info);
+        ComputeMaxShearStrain(r_process_info);
 
         FinalizeStressTensor(r_process_info, rRepresentative_Volume);
         SymmetrizeStressTensor();
@@ -1676,6 +1677,80 @@ void SphericParticle::ComputeStrainTensor(const ProcessInfo& r_process_info) {
             (*mStrainTensor)(i,j) += (*mDifferentialStrainTensor)(i,j);
         }
     }
+}
+
+void SphericParticle::ComputeMaxShearStrain(const ProcessInfo& r_process_info) {
+    
+    KRATOS_TRY
+
+    const int Dim = r_process_info[DOMAIN_SIZE];
+
+    double gamma_max = 0.0;
+
+    if (Dim == 2) {
+        // Read 2D strain tensor components
+        double exx = (*mStrainTensor)(0, 0);
+        double eyy = (*mStrainTensor)(1, 1);
+        double exy = 0.5 * ((*mStrainTensor)(0, 1) + (*mStrainTensor)(1, 0));  // Ensure symmetry
+
+        // Compute principal strains (eigenvalues of 2x2 matrix)
+        double avg = 0.5 * (exx + eyy);
+        double diff = 0.5 * (exx - eyy);
+        double radius = std::sqrt(diff * diff + exy * exy);
+
+        double eps1 = avg + radius;
+        double eps2 = avg - radius;
+
+        gamma_max = 0.5 * std::abs(eps1 - eps2);
+    }
+
+    else if (Dim == 3) {
+        // Read 3D strain tensor components
+        double exx = (*mStrainTensor)(0, 0);
+        double eyy = (*mStrainTensor)(1, 1);
+        double ezz = (*mStrainTensor)(2, 2);
+        double exy = 0.5 * ((*mStrainTensor)(0, 1) + (*mStrainTensor)(1, 0));
+        double exz = 0.5 * ((*mStrainTensor)(0, 2) + (*mStrainTensor)(2, 0));
+        double eyz = 0.5 * ((*mStrainTensor)(1, 2) + (*mStrainTensor)(2, 1));
+
+        // Characteristic polynomial coefficients for symmetric 3x3 matrix
+        double I1 = exx + eyy + ezz;  // trace
+        double I2 = exx*eyy + exx*ezz + eyy*ezz - exy*exy - exz*exz - eyz*eyz;
+        double I3 = exx*(eyy*ezz - eyz*eyz) - exy*(exy*ezz - eyz*exz) + exz*(exy*eyz - eyy*exz);
+
+        // Solve cubic equation: λ³ - I1λ² + I2λ - I3 = 0
+        // Use trigonometric solution for 3 real roots
+        double Q = (3.0*I2 - I1*I1) / 9.0;
+        double R = (9.0*I1*I2 - 27.0*I3 - 2.0*I1*I1*I1) / 54.0;
+        double D = Q*Q*Q + R*R;
+
+        double eps1, eps2, eps3;
+
+        if (D < 0.0) {
+            // Three real roots
+            double theta = std::acos(R / std::sqrt(-Q*Q*Q));
+            double sqrtQ = std::sqrt(-Q);
+            eps1 = 2.0 * sqrtQ * std::cos(theta / 3.0) + I1 / 3.0;
+            eps2 = 2.0 * sqrtQ * std::cos((theta + 2.0*Globals::Pi) / 3.0) + I1 / 3.0;
+            eps3 = 2.0 * sqrtQ * std::cos((theta + 4.0*Globals::Pi) / 3.0) + I1 / 3.0;
+        } else {
+            // One real root and two complex (shouldn’t happen for strain)
+            double A = -std::cbrt(R + std::sqrt(D));
+            double B = (A == 0.0) ? 0.0 : Q / A;
+            eps1 = A + B + I1 / 3.0;
+            eps2 = eps3 = I1 / 3.0 - 0.5 * (A + B);  // Not really valid for DEM
+        }
+
+        // Sort to find max and min
+        double eps_max = std::max({eps1, eps2, eps3});
+        double eps_min = std::min({eps1, eps2, eps3});
+
+        gamma_max = 0.5 * std::abs(eps_max - eps_min);
+    }
+
+    GetGeometry()[0].FastGetSolutionStepValue(MAX_SHEAR_STRESS) = gamma_max;
+
+    KRATOS_CATCH("")
 }
 
 void SphericParticle::ComputeDifferentialStrainTensor(const ProcessInfo& r_process_info) {
