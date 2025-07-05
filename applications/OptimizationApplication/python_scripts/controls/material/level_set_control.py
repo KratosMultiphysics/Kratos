@@ -206,13 +206,19 @@ class LevelSetControl(Control):
 
     @staticmethod
     def ComputeHeavisideValue(phi: ContainerExpressionTypes, k: float) -> ContainerExpressionTypes:  
-        e_container = phi.Clone()
-        Kratos.Expression.LiteralExpressionIO.SetData(e_container, exp(1))
-        return Kratos.Expression.Utils.Pow(Kratos.Expression.Utils.Pow(e_container, phi * k * (-2)) + 1, -1)
+        e = phi.Clone()
+        Kratos.Expression.LiteralExpressionIO.SetData(e, exp(1))
+        return Kratos.Expression.Utils.Pow(Kratos.Expression.Utils.Pow(e, phi * k * (-2)) + 1, -1)
+    @staticmethod
+    def ComputeHevisideGradientValue(phi: ContainerExpressionTypes, k: float) -> ContainerExpressionTypes:
+        e = phi.Clone()
+        Kratos.Expression.LiteralExpressionIO.SetData(e, exp(1))
+        return Kratos.Expression.Utils.Pow(Kratos.Expression.Utils.Pow(e, phi * k * 2) + 1, -2) * Kratos.Expression.Utils.Pow(e, phi * k * 2) * k * 2
 
     
 if __name__ == "__main__":
     import numpy
+    # Prep for data
     model = Kratos.Model()
     model_part = model.CreateModelPart("test")
     k = 0.1
@@ -222,13 +228,29 @@ if __name__ == "__main__":
     phi = Kratos.Expression.NodalExpression(model_part)
     Kratos.Expression.VariableExpressionIO.Read(phi, Kratos.DENSITY, is_historical=False)
 
+    # Calculate heaviside with fuction
     haviside_phi = LevelSetControl.ComputeHeavisideValue(phi, k)
 
-    print(haviside_phi.Evaluate())
+    print(f"Heaviside function: \n{haviside_phi.Evaluate()}")
 
-    # manual calculation
+    # manual calculation of heaviside
     numpy_phi = phi.Evaluate()
     numpy_heaviside = 1 / (1 + numpy.exp(numpy_phi * k * (-2)))
 
-    print(numpy_heaviside)
-    
+    print(f"Numpy Heaviside: \n{numpy_heaviside}")
+
+    # Calculate Heaviside gradient with function
+    heaviside_gradient_phi = LevelSetControl.ComputeHevisideGradientValue(phi, k)
+
+    print(f"Heaviside gradient function: \n{heaviside_gradient_phi.Evaluate()}")
+
+    # Calculate Heaviside gradient manually with finite differences
+    perturbation = 1e-5
+    FD_heaviside_gradient = (LevelSetControl.ComputeHeavisideValue(phi + perturbation, k) - LevelSetControl.ComputeHeavisideValue(phi, k))/perturbation
+
+    print(f"Heaviside gradient FD: \n{FD_heaviside_gradient.Evaluate()}")
+
+    # Calculate Heaviside gradient with numpy
+    numpy_heaviside_gradient = numpy.exp(numpy_phi * k * 2) * k * 2 / (1 + numpy.exp(numpy_phi * k * 2))**2
+
+    print(f"Heaviside gradient numpy: \n{numpy_heaviside_gradient}")
