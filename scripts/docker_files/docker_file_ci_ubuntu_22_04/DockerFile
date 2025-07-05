@@ -80,7 +80,8 @@ RUN git clone https://github.com/MmgTools/ParMmg /tmp/ParMmg_5ffc6ad && \
     cd /
 
 # Install Boost (form zip)
-RUN wget -P /workspace/boost https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz && \
+RUN mkdir -p /workspace/boost && \
+    wget -P /workspace/boost https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz && \
     tar -C /workspace/boost -xzf /workspace/boost/boost_1_87_0.tar.gz && \
     rm /workspace/boost/boost_1_87_0.tar.gz
 
