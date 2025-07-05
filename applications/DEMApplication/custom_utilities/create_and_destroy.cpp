@@ -1527,27 +1527,27 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             const double period_2 = mHighPoint[2] - mLowPoint[2];
 
             if (coor[0] > mHighPoint[0]) {
-                displ[0] -= period_0;
+                //displ[0] -= period_0;
                 coor[0] -= period_0;
             }
             else if (coor[0] < mLowPoint[0]) {
-                displ[0] += period_0;
+                //displ[0] += period_0;
                 coor[0] += period_0;
             }
             if (coor[1] > mHighPoint[1]) {
-                displ[1] -= period_1;
+                //displ[1] -= period_1;
                 coor[1] -= period_1;
             }
             else if (coor[1] < mLowPoint[1]) {
-                displ[1] += period_1;
+                //displ[1] += period_1;
                 coor[1] += period_1;
             }
             if (coor[2] > mHighPoint[2]) {
-                displ[2] -= period_2;
+                //displ[2] -= period_2;
                 coor[2] -= period_2;
             }
             else if (coor[2] < mLowPoint[2]) {
-                displ[2] += period_2;
+                //displ[2] += period_2;
                 coor[2] += period_2;
             }
         });
@@ -1575,8 +1575,8 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         block_for_each(rNodes, [&](ModelPart::NodeType& rNode) {
             array_1d<double, 3 >& coor = rNode.Coordinates();
-            array_1d<double, 3 >& displ = rNode.FastGetSolutionStepValue(DISPLACEMENT);
-            displ += shift_vector;
+            //array_1d<double, 3 >& displ = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+            //displ += shift_vector;
             coor += shift_vector;
         });
 
