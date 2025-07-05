@@ -36,6 +36,7 @@ echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 ${KRATOS_CMAKE_OPTIONS_FLAGS}                                       \
 -DUSE_MPI=ON                                                        \
+-DBOOST_ROOT="/workspace/boost/boost_1_87_0"                        \
 -DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O0 -Wall"             \
 -DCMAKE_POLICY_VERSION_MINIMUM=3.5                                  \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos"                      \
