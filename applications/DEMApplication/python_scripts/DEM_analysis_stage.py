@@ -892,6 +892,9 @@ class DEMAnalysisStage(AnalysisStage):
     def MeasureTotalSpheresVolume(self):
         return self.DEMPropertiesMeasureUtility.MeasureTotalSpheresVolume()
     
+    def MeasureTotalBondBrokenRatio(self):
+        return self.DEMPropertiesMeasureUtility.MeasureTotalBondBrokenRatio()
+    
     def RemoveRigidBodyMotion(self):
         self.DEMPropertiesMeasureUtility.RemoveRigidBodyMotion()
 

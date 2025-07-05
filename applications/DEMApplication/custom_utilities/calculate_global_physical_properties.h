@@ -624,6 +624,30 @@ class SphericElementGlobalPhysicsCalculator
             return total_particle_number;
         }
 
+        double CalculateTotalBondBrokenRatio(ModelPart& sphere_model_part)
+        {
+            OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), sphere_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+            double total_bond_broken = 0.0;
+            double total_bonds = 0.0;
+
+            #pragma omp parallel for reduction(+ : total_bond_broken, total_bonds)
+            for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+                for (ElementsArrayType::iterator it = GetElementPartitionBegin(sphere_model_part, k); it != GetElementPartitionEnd(sphere_model_part, k); ++it){
+
+                    double bond_number = (it)->GetGeometry()[0].mContinuumInitialNeighborsSize;
+                    total_bond_broken += (it)->GetGeometry()[0].FastGetSolutionStepValue(DAMAGE_RATIO) * bond_number;
+                    total_bonds += bond_number;
+                }
+            }
+
+            if (total_bonds > 0.0)
+            {
+                return total_bond_broken / total_bonds;
+            }
+            return 0.0;
+        }
+
         void RemoveRigidBodyMotion(ModelPart& r_model_part)
         {
             const double total_mass = CalculateTotalMass(r_model_part);

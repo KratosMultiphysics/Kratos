@@ -240,6 +240,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CalculateSumOfInternalForces", &SphericElementGlobalPhysicsCalculator::CalculateSumOfInternalForces)
         .def("CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius", &SphericElementGlobalPhysicsCalculator::CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius)
         .def("CalculateSumOfParticlesWithinSphere", &SphericElementGlobalPhysicsCalculator::CalculateSumOfParticlesWithinSphere)
+        .def("CalculateTotalBondBrokenRatio", &SphericElementGlobalPhysicsCalculator::CalculateTotalBondBrokenRatio)
         .def("RemoveRigidBodyMotion", &SphericElementGlobalPhysicsCalculator::RemoveRigidBodyMotion)
         ;
     
