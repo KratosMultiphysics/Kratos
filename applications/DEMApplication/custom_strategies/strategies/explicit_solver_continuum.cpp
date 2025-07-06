@@ -786,8 +786,8 @@ namespace Kratos {
             ratio = maximum_across_threads;
         }
 
-        if (ratio < 1.0) { //it should be larger than 1.0, otherwise we are not extending the search radius
-            ratio = 1.0;
+        if (ratio < 1.5) { //it should be larger than 1.0, otherwise we are not extending the search radius
+            ratio = 1.5; // this value is used to ensure a minimum search radius amplification
         }
 
         const double max_ratio = r_process_info[MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS];
