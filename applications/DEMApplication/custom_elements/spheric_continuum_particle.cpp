@@ -717,7 +717,7 @@ namespace Kratos {
         if(mContinuumInitialNeighborsSize) {
             GetGeometry()[0].FastGetSolutionStepValue(DAMAGE_RATIO) = double(BrokenBondsCounter) / mContinuumInitialNeighborsSize;
         } else {
-            GetGeometry()[0].FastGetSolutionStepValue(DAMAGE_RATIO) = 1.0;
+            GetGeometry()[0].FastGetSolutionStepValue(DAMAGE_RATIO) = 0.0; // No neighbors present, no damage. Or DAMAGE_RATIO = 1.0.
         }
 
     }
