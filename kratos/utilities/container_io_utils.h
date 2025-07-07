@@ -310,7 +310,10 @@ void CopyFromContiguousDataArray(
     using value_type_traits = DataTypeTraits<return_type>;
 
     return_type dummy_value;
-    value_type_traits::Reshape(dummy_value, &*(pShapeBegin + 1), &*(pShapeBegin + std::distance(pShapeBegin, pShapeEnd)));
+    if constexpr(DataTypeTraits<return_type>::Dimension > 0) {
+        // skip for all the primitive types which does not need reshaping.
+        value_type_traits::Reshape(dummy_value, &*(pShapeBegin + 1), &*(pShapeBegin) + std::distance(pShapeBegin, pShapeEnd));
+    }
 
     const auto stride = value_type_traits::Size(pShapeBegin + 1, pShapeEnd);
 
