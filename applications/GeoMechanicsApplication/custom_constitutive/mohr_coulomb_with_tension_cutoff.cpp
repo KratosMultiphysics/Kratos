@@ -169,10 +169,13 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
         Vector mapped_principal_trial_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
             mapped_trial_sigma_tau, principal_trial_stress_vector);
 
-        principal_trial_stress_vector = this->AveragingPrincipalStressComponents(
-            principal_trial_stress_vector, mapped_principal_trial_stress_vector);
         mapping_type = FindMappingType(mapped_principal_trial_stress_vector);
-        if (mapping_type != 1) {
+        if (mapping_type == 1) {
+            mStressVector = StressStrainUtilities::RotatePrincipalStresses(
+                mapped_principal_trial_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
+        } else {
+            principal_trial_stress_vector = this->AveragingPrincipalStressComponents(
+                principal_trial_stress_vector, mapped_principal_trial_stress_vector);
             trial_sigma_tau =
                 StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_trial_stress_vector);
             trial_sigma_tau =
@@ -180,11 +183,9 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
             principal_trial_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
                 trial_sigma_tau, principal_trial_stress_vector);
             principal_trial_stress_vector[1] = principal_trial_stress_vector[mapping_type];
-        } else {
-            principal_trial_stress_vector = mapped_principal_trial_stress_vector;
+            mStressVector                    = StressStrainUtilities::RotatePrincipalStresses(
+                principal_trial_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
         }
-        mStressVector = StressStrainUtilities::RotatePrincipalStresses(
-            principal_trial_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
     }
 
     rParameters.GetStressVector() = mStressVector;
