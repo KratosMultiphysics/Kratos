@@ -43,7 +43,7 @@ auto CreateThreePlusThree2DLineInterfaceGeometry()
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CloneCreatesCorrectInstance, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_CloneCreatesCorrectInstance, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<Line2DInterfaceStressState>();
@@ -53,7 +53,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CloneCreatesCorrectInstance, Krat
     KRATOS_EXPECT_NE(p_cloned_policy.get(), p_stress_state_policy.get());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ThrowsWhenInputtingEmptyShapeFunctionValues,
+KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ThrowsWhenInputtingEmptyShapeFunctionValues,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto stress_state_policy = Line2DInterfaceStressState{};
@@ -156,6 +156,26 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CanBeSavedAndLoadedThroughInterfa
     auto expected_voigt_vector = Vector{2};
     expected_voigt_vector <<= 1.0, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(p_loaded_policy->GetVoigtVector(), expected_voigt_vector, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_CloneCreatesCorrectInstance, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto p_stress_state_policy =
+        std::unique_ptr<StressStatePolicy>{std::make_unique<PlaneInterfaceStressState>()};
+
+    const auto p_cloned_policy = p_stress_state_policy->Clone();
+    KRATOS_EXPECT_NE(dynamic_cast<PlaneInterfaceStressState*>(p_cloned_policy.get()), nullptr);
+    KRATOS_EXPECT_NE(p_cloned_policy.get(), p_stress_state_policy.get());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_ThrowsWhenInputtingEmptyShapeFunctionValues,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto stress_state_policy = PlaneInterfaceStressState{};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto b_matrix = stress_state_policy.CalculateBMatrix({}, {}, {}),
+        "Shape function values are empty. Therefore, the B matrix can not be computed.\n");
 }
 
 } // namespace Kratos::Testing
