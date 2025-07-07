@@ -1,5 +1,8 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication # registering the mappers
+import KratosMultiphysics.StructuralMechanicsApplication as SMA
+import KratosMultiphysics.IgaApplication as Iga
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 import basic_mapper_tests
 import blade_mapping_test
 import quadratic_mapper_tests
@@ -168,7 +171,6 @@ class BasicTestsLineMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
             "mapper_type": "nearest_element",
             "interface_submodel_part_origin": "neumann_boundary_iga",
             "interface_submodel_part_destination": "dirichlet_boundary_fem",
-            "is_origin_iga": true,
             "echo_level" : 0
         }""")
         cls.setUpMapper(mapper_params)
@@ -330,7 +332,6 @@ class BasicTestsSurfaceMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
             "mapper_type": "nearest_element",
             "interface_submodel_part_origin": "neumann_boundary_iga",
             "interface_submodel_part_destination": "dirichlet_boundary_fem",
-            "is_origin_iga": true,
             "echo_level" : 0
         }""")
         cls.setUpMapper(mapper_params)
