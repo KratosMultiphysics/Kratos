@@ -91,7 +91,7 @@
 #include "custom_elements/calculation_contribution.h"
 #include "custom_elements/drained_U_Pw_small_strain_element.hpp"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
-#include "custom_elements/line_interface_element.h"
+#include "custom_elements/interface_element.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_elements/steady_state_Pw_element.hpp"
 #include "custom_elements/steady_state_Pw_interface_element.hpp"
@@ -597,9 +597,9 @@ private:
         0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<ThreeDimensionalStressState>()};
 
-    const LineInterfaceElement mULineInterfacePlaneStrainElement2Plus2N{
+    const InterfaceElement mULineInterfacePlaneStrainElement2Plus2N{
         0, Kratos::make_shared<InterfaceGeometry<Line2D2<NodeType>>>(Element::GeometryType::PointsArrayType(4))};
-    const LineInterfaceElement mULineInterfacePlaneStrainElement3Plus3N{
+    const InterfaceElement mULineInterfacePlaneStrainElement3Plus3N{
         0, Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6))};
 
     // Updated-Lagrangian elements:

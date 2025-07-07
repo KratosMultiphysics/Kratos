@@ -9,7 +9,7 @@
 //
 //  Main authors:    Richard Faasse
 //
-#include "line_interface_element.h"
+#include "interface_element.h"
 
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
@@ -60,7 +60,7 @@ std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(
 namespace Kratos
 {
 
-LineInterfaceElement::LineInterfaceElement(IndexType NewId,
+InterfaceElement::InterfaceElement(IndexType NewId,
                                            const Geometry<GeometricalObject::NodeType>::Pointer& rGeometry,
                                            const Properties::Pointer& rProperties)
     : Element(NewId, rGeometry, rProperties),
@@ -69,33 +69,33 @@ LineInterfaceElement::LineInterfaceElement(IndexType NewId,
 {
 }
 
-LineInterfaceElement::LineInterfaceElement(IndexType NewId, const GeometryType::Pointer& rGeometry)
+InterfaceElement::InterfaceElement(IndexType NewId, const GeometryType::Pointer& rGeometry)
     : Element(NewId, rGeometry),
       mIntegrationScheme(std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2)),
       mStressStatePolicy(std::make_unique<InterfaceStressState>())
 {
 }
 
-Element::Pointer LineInterfaceElement::Create(IndexType               NewId,
+Element::Pointer InterfaceElement::Create(IndexType               NewId,
                                               const NodesArrayType&   rNodes,
                                               PropertiesType::Pointer pProperties) const
 {
     return Create(NewId, this->GetGeometry().Create(rNodes), pProperties);
 }
 
-Element::Pointer LineInterfaceElement::Create(IndexType               NewId,
+Element::Pointer InterfaceElement::Create(IndexType               NewId,
                                               GeometryType::Pointer   pGeometry,
                                               PropertiesType::Pointer pProperties) const
 {
-    return make_intrusive<LineInterfaceElement>(NewId, pGeometry, pProperties);
+    return make_intrusive<InterfaceElement>(NewId, pGeometry, pProperties);
 }
 
-void LineInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
+void InterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
     rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
-void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo&)
+void InterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo&)
 {
     // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
     // will also include water pressure contributions and coupling terms.
@@ -104,7 +104,7 @@ void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix
         CalculateConstitutiveMatricesAtIntegrationPoints(), CalculateIntegrationCoefficients());
 }
 
-void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector, const ProcessInfo&)
+void InterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector, const ProcessInfo&)
 {
     // Currently, the right-hand side only includes the internal force vector. In the future, it
     // will also include water pressure contributions and coupling terms.
@@ -116,7 +116,7 @@ void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHan
         local_b_matrices, tractions, integration_coefficients);
 }
 
-void LineInterfaceElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+void InterfaceElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                                                 VectorType&        rRightHandSideVector,
                                                 const ProcessInfo& rCurrentProcessInfo)
 {
@@ -124,7 +124,7 @@ void LineInterfaceElement::CalculateLocalSystem(MatrixType&        rLeftHandSide
     CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 }
 
-void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+void InterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
                                                         std::vector<Vector>&    rOutput,
                                                         const ProcessInfo&      rCurrentProcessInfo)
 {
@@ -140,7 +140,7 @@ void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& 
     }
 }
 
-void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+void InterfaceElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
                                                         std::vector<ConstitutiveLaw::Pointer>& rOutput,
                                                         const ProcessInfo&)
 {
@@ -150,12 +150,12 @@ void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<Constitut
     rOutput = mConstitutiveLaws;
 }
 
-void LineInterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
+void InterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
     rElementalDofList = GetDofs();
 }
 
-void LineInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void InterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     Element::Initialize(rCurrentProcessInfo);
 
@@ -170,7 +170,7 @@ void LineInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     }
 }
 
-int LineInterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+int InterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     int error = Element::Check(rCurrentProcessInfo);
     if (error != 0) return error;
@@ -189,14 +189,14 @@ int LineInterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     return 0;
 }
 
-Element::DofsVectorType LineInterfaceElement::GetDofs() const
+Element::DofsVectorType InterfaceElement::GetDofs() const
 {
     const auto no_Pw_geometry_yet = Geometry<Node>{};
     return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetGeometry(), no_Pw_geometry_yet,
                                                       GetGeometry().WorkingSpaceDimension());
 }
 
-std::vector<Matrix> LineInterfaceElement::CalculateLocalBMatricesAtIntegrationPoints() const
+std::vector<Matrix> InterfaceElement::CalculateLocalBMatricesAtIntegrationPoints() const
 {
     const auto& r_integration_points = mIntegrationScheme->GetIntegrationPoints();
     const auto  shape_function_values_at_integration_points =
@@ -221,7 +221,7 @@ std::vector<Matrix> LineInterfaceElement::CalculateLocalBMatricesAtIntegrationPo
     return result;
 }
 
-std::vector<double> LineInterfaceElement::CalculateIntegrationCoefficients() const
+std::vector<double> InterfaceElement::CalculateIntegrationCoefficients() const
 {
     const auto determinants_of_jacobian = CalculateDeterminantsOfJacobiansAtIntegrationPoints(
         mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
@@ -229,12 +229,12 @@ std::vector<double> LineInterfaceElement::CalculateIntegrationCoefficients() con
                                                     determinants_of_jacobian, this);
 }
 
-std::vector<Matrix> LineInterfaceElement::CalculateConstitutiveMatricesAtIntegrationPoints()
+std::vector<Matrix> InterfaceElement::CalculateConstitutiveMatricesAtIntegrationPoints()
 {
     return ::CalculateConstitutiveMatricesAtIntegrationPoints(mConstitutiveLaws, GetProperties());
 }
 
-std::vector<Vector> LineInterfaceElement::CalculateRelativeDisplacementsAtIntegrationPoints(
+std::vector<Vector> InterfaceElement::CalculateRelativeDisplacementsAtIntegrationPoints(
     const std::vector<Matrix>& rLocalBMatrices) const
 {
     const Geometry<Node> no_Pw_geometry;
@@ -255,7 +255,7 @@ std::vector<Vector> LineInterfaceElement::CalculateRelativeDisplacementsAtIntegr
     return result;
 }
 
-std::vector<Vector> LineInterfaceElement::CalculateTractionsAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements)
+std::vector<Vector> InterfaceElement::CalculateTractionsAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements)
 {
     // We have to make a copy of each relative displacement vector, since setting it at the
     // constitutive law parameters requires a reference to a _mutable_ object!

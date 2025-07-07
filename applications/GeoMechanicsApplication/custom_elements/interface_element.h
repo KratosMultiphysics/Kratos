@@ -21,28 +21,28 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) LineInterfaceElement : public Element
+class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceElement : public Element
 {
 public:
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LineInterfaceElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(InterfaceElement);
 
     using Element::GeometryType;
     using Element::PropertiesType;
 
     // Following the UPwBaseElement example, we will follow the rule of 5
     // to avoid the noexcept code smell.
-    LineInterfaceElement()                                           = default;
-    ~LineInterfaceElement() override                                 = default;
-    LineInterfaceElement(const LineInterfaceElement&)                = delete;
-    LineInterfaceElement& operator=(const LineInterfaceElement&)     = delete;
-    LineInterfaceElement(LineInterfaceElement&&) noexcept            = default;
-    LineInterfaceElement& operator=(LineInterfaceElement&&) noexcept = default;
+    InterfaceElement()                                           = default;
+    ~InterfaceElement() override                                 = default;
+    InterfaceElement(const InterfaceElement&)                = delete;
+    InterfaceElement& operator=(const InterfaceElement&)     = delete;
+    InterfaceElement(InterfaceElement&&) noexcept            = default;
+    InterfaceElement& operator=(InterfaceElement&&) noexcept = default;
 
-    LineInterfaceElement(IndexType                      NewId,
+    InterfaceElement(IndexType                      NewId,
                          const GeometryType::Pointer&   rGeometry,
                          const PropertiesType::Pointer& rProperties);
 
-    LineInterfaceElement(IndexType NewId, const GeometryType::Pointer& rGeometry);
+    InterfaceElement(IndexType NewId, const GeometryType::Pointer& rGeometry);
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 

@@ -11,7 +11,7 @@
 //
 
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
-#include "custom_elements/line_interface_element.h"
+#include "custom_elements/interface_element.h"
 #include "custom_geometries/interface_geometry.h"
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -56,10 +56,10 @@ ModelPart& CreateModelPartWithDisplacementVariable(Model& rModel)
     return r_result;
 }
 
-LineInterfaceElement CreateLineInterfaceElementWithUDofs(const Properties::Pointer&     rProperties,
+InterfaceElement CreateLineInterfaceElementWithUDofs(const Properties::Pointer&     rProperties,
                                                          const Geometry<Node>::Pointer& rGeometry)
 {
-    auto result = LineInterfaceElement{1, rGeometry, rProperties};
+    auto result = InterfaceElement{1, rGeometry, rProperties};
     for (auto& node : result.GetGeometry()) {
         node.AddDof(DISPLACEMENT_X);
         node.AddDof(DISPLACEMENT_Y);
@@ -68,7 +68,7 @@ LineInterfaceElement CreateLineInterfaceElementWithUDofs(const Properties::Point
     return result;
 }
 
-LineInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(Model& rModel,
+InterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(Model& rModel,
                                                                                         const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
@@ -82,7 +82,7 @@ LineInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWi
     return CreateLineInterfaceElementWithUDofs(rProperties, p_geometry);
 }
 
-LineInterfaceElement CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(
+InterfaceElement CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(
     Model& rModel, const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
@@ -98,7 +98,7 @@ LineInterfaceElement CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWi
     return CreateLineInterfaceElementWithUDofs(rProperties, p_geometry);
 }
 
-LineInterfaceElement CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(
+InterfaceElement CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(
     Model& rModel, const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
@@ -144,7 +144,7 @@ using namespace Kratos;
 
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementIsAnElement, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const LineInterfaceElement element;
+    const InterfaceElement element;
     auto                       p_casted_element = dynamic_cast<const Element*>(&element);
     KRATOS_CHECK_NOT_EQUAL(p_casted_element, nullptr);
 }
@@ -152,7 +152,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementIsAnElement, KratosGeoMechanicsFas
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementCanCreateInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const LineInterfaceElement element;
+    const InterfaceElement element;
     const auto p_geometry   = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodes());
     const auto p_properties = std::make_shared<Properties>();
 
@@ -175,7 +175,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementCanCreateInstanceWithNodeInput, Kr
     // The source element needs to have a geometry, otherwise the version of the
     // Create method with a node input will fail.
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
-    const LineInterfaceElement element(0, p_geometry, p_properties);
+    const InterfaceElement element(0, p_geometry, p_properties);
 
     // Act
     const auto p_created_element = element.Create(1, nodes, p_properties);
