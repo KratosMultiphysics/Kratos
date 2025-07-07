@@ -1,11 +1,16 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication # registering the mappers
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
-import KratosMultiphysics.IgaApplication as Iga
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import basic_mapper_tests
 import blade_mapping_test
 import quadratic_mapper_tests
+
+try:
+    import KratosMultiphysics.IgaApplication as Iga
+    iga_available = True
+except ImportError:
+    iga_available = False
 
 def GetFilePath(file_name):
     return Path(__file__).resolve().parent / "mdpa_files" / file_name
@@ -164,6 +169,7 @@ class QuadraticMapperTestsSwitchedSides(quadratic_mapper_tests.QuadraticMapperTe
         }""")
         super().setUpMapper(mapper_params, switch_sides=True)
 
+@KratosUnittest.skipUnless(iga_available, "Skipping test because IgaApplication is not available")
 class BasicTestsLineMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
@@ -324,7 +330,7 @@ class BasicTestsLineMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     def test_Map_USE_TRANSPOSE_constant_scalar_both_non_historical(self):
         pass
 
-
+@KratosUnittest.skipUnless(iga_available, "Skipping test because IgaApplication is not available")
 class BasicTestsSurfaceMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
