@@ -788,6 +788,39 @@ def calculate_slices(data, slice_thickness):
 
     return slices, slice_bounds
 
+def compute_centroids(slices, slice_bounds):
+    """
+    For each slice, finds its centroid
+    """
+    num_slices = len(slices)
+
+    centroids = [None] * num_slices
+    centroid_zs = [None] * num_slices
+    centroid_ids = [None] * num_slices
+
+    for i in range(num_slices):
+        print(f"Computing centroid for Slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um)")
+        slice_points = slices[i]
+
+        if len(slice_points) == 0:
+            raise ValueError(
+                f"Slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um) contains no points"
+            )
+
+        centroid = np.mean(slice_points, axis=0)
+
+        centroids[i] = centroid
+        centroid_ids[i] = i + 1
+
+    # Filter out None values
+    valid_centroids = [c for c in centroids if c is not None]
+    centroids = np.array(valid_centroids)
+    centroid_zs = [z for z in centroid_zs if z is not None]
+    centroid_ids = [id for id in centroid_ids if id is not None]
+
+
+
+    return centroids, centroid_ids
 
 if __name__ == "__main__":
     # Read filepath as argument
@@ -859,39 +892,16 @@ if __name__ == "__main__":
 
     # ==== Compute data slices ====
     slices, slice_bounds = calculate_slices(data, slice_thickness)
-    num_slices = len(slices)
 
 
     # ==== Compute centroids for slices ====
-    centroids = [None] * num_slices
-    centroid_zs = [None] * num_slices
-    centroid_ids = [None] * num_slices
-
-    for i in range(num_slices):
-        print(f"Computing centroid for Slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um)")
-        slice_points = slices[i]
-
-        if len(slice_points) == 0:
-            raise ValueError(
-                f"Slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um) contains no points"
-            )
-
-        centroid = np.mean(slice_points, axis=0)
-        centroid_z = centroid[2]
-
-        centroids[i] = centroid
-        centroid_zs[i] = centroid_z
-        centroid_ids[i] = i + 1
-
-    # Filter out None values
-    valid_centroids = [c for c in centroids if c is not None]
-    centroids = np.array(valid_centroids)
-    centroid_zs = [z for z in centroid_zs if z is not None]
-    centroid_ids = [id for id in centroid_ids if id is not None]
+    centroids, centroid_ids = compute_centroids(slices, slice_bounds)
 
     centroids_x, centroids_y, centroids_z = centroids[:, 0], centroids[:, 1], centroids[:, 2]
 
     # ==== Fit ellipses to slices ====
+    num_slices = len(slices)
+
     ellipse_params = [None] * num_slices
     ellipse_centers = [None] * num_slices
 
@@ -907,7 +917,7 @@ if __name__ == "__main__":
         ellipse_center = None
         if ellipse is not None:
             center_x, center_y, a, b, eccentricity, theta = ellipse
-            ellipse_center = [center_x, center_y, centroid_zs[i]]
+            ellipse_center = [center_x, center_y, centroids_z[i]]
 
         ellipse_params[i] = ellipse
         ellipse_centers[i] = ellipse_center
@@ -1014,7 +1024,7 @@ if __name__ == "__main__":
         plot_contour(x, y, z, contour_levels)
 
     if plot_ellipse_metrics_toggle:
-        plot_ellipse_metrics(ellipse_params, centroid_zs)
+        plot_ellipse_metrics(ellipse_params, centroids_z)
 
     if plot_individual_slices_grid_toggle:
         plot_individual_slices_grid(slices, centroids, slice_bounds, num_slices, plot_ellipses_in_slices)
@@ -1023,7 +1033,7 @@ if __name__ == "__main__":
         plot_individual_slices_separately(
             slices,
             centroids,
-            centroid_zs,
+            centroids_z,
             centroid_ids,
             ellipse_params,
             slice_bounds,
