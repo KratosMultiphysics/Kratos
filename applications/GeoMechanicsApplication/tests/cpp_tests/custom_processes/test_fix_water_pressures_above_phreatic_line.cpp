@@ -25,8 +25,7 @@ Parameters CreateParametersWithConstantPhreaticLineAtHeight(double height)
                 "model_part_name": "foo",
                 "x_coordinates": [0.0],
                 "y_coordinates": [)" +
-                      std::to_string(height) + R"(],
-                "z_coordinates": [0.0]
+                      std::to_string(height) + R"(]
             }  )"};
 }
 
@@ -54,12 +53,12 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_ThrowsUponConstr
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    constexpr double y_node_1     = 0.0;
-    constexpr double y_node_2     = -2.0;
+    constexpr auto y_node_1     = 0.0;
+    constexpr auto y_node_2     = -2.0;
     auto             model        = Model{};
     auto&            r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
 
-    auto test_parameters = Parameters{R"(
+    const auto test_parameters = Parameters{R"(
             {
                 "model_part_name": "foo",
                 "x_coordinates": [],
@@ -67,7 +66,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_ThrowsUponConstr
             }  )"};
 
     // Act & Assert
-    const std::string expected_error_message = "The x_coordinates and/or y_coordinates "
+    const std::string expected_error_message = "The x_coordinates and y_coordinates "
                                                "of the phreatic line must be non-empty vectors.";
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         FixWaterPressuresAbovePhreaticLineProcess(r_model_part, test_parameters), expected_error_message);
@@ -82,7 +81,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_ThrowsUponConstr
     auto             model        = Model{};
     auto&            r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
 
-    auto test_parameters = Parameters{R"(
+    const auto test_parameters = Parameters{R"(
             {
                 "model_part_name": "foo",
                 "x_coordinates": [1.0],
@@ -223,7 +222,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_InterpolatesMult
     r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
     r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
 
-    auto test_parameters = Parameters{R"(
+    const auto test_parameters = Parameters{R"(
             {
                 "model_part_name": "foo",
                 "x_coordinates": [0.0, 1.0],

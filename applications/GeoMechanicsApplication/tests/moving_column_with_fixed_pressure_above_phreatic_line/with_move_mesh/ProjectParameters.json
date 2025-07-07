@@ -19,8 +19,7 @@
       "materials_filename": "../common/MaterialParameters.json"
     },
     "time_stepping": {
-      "time_step": 3600.0,
-      "max_delta_time_factor": 8640000000.0
+      "time_step": 3600.0
     },
     "buffer_size": 2,
     "echo_level": 1,
@@ -39,7 +38,7 @@
     "min_iterations": 6,
     "max_iterations": 15,
     "number_cycles": 1,
-    "reduction_factor": 0.5,
+    "reduction_factor": 1.0,
     "increase_factor": 1.0,
     "calculate_reactions": true,
     "rotation_dofs": false,
@@ -75,11 +74,9 @@
               "body_output": true,
               "node_output": false,
               "skin_output": false,
-              "plane_output": [],
               "nodal_results": ["WATER_PRESSURE", "TOTAL_DISPLACEMENT"],
               "gauss_point_results": []
-            },
-            "point_data_configuration": []
+            }
           }
         }
       }
@@ -143,8 +140,8 @@
         "Parameters": {
           "model_part_name": "PorousDomain.Soil",
           "variable_name": "DISPLACEMENT",
-          "active": [true, true, true],
-          "is_fixed": [true, true, true],
+          "active": [true, true, false],
+          "is_fixed": [true, true, false],
           "value": [0.0, 0.0, 0.0],
           "table": [0, 3, 0]
         }

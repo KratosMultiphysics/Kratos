@@ -18,6 +18,10 @@
 
 namespace Kratos
 {
+
+class ModelPart;
+class Parameters;
+
 ///
 /// @brief This process fixes the water pressure DoF to zero for all nodes in the modelpart above the phreatic line.
 /// The position of the phreatic line is defined by a table of x and y coordinates (but is constant in time).

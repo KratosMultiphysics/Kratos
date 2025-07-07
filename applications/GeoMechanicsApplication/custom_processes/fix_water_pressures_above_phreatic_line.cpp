@@ -14,6 +14,7 @@
 #include "fix_water_pressures_above_phreatic_line.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -25,13 +26,14 @@ FixWaterPressuresAbovePhreaticLineProcess::FixWaterPressuresAbovePhreaticLinePro
     const auto x_coordinates = rSettings["x_coordinates"].GetVector();
     const auto y_coordinates = rSettings["y_coordinates"].GetVector();
 
-    KRATOS_ERROR_IF(x_coordinates.empty() || y_coordinates.empty())
-        << "The x_coordinates and/or y_coordinates of the phreatic line must be "
-           "non-empty vectors.\n";
-
     KRATOS_ERROR_IF(x_coordinates.size() != y_coordinates.size())
         << "The lengths of the x_coordinates and y_coordinates of the phreatic line must be "
            "equal.\n";
+
+    KRATOS_ERROR_IF(x_coordinates.empty())
+        << "The x_coordinates and y_coordinates of the phreatic line must be "
+           "non-empty vectors.\n";
+
 
     for (std::size_t i = 0; i < x_coordinates.size(); ++i) {
         mPhreaticLineTable.insert(x_coordinates[i], y_coordinates[i]);
@@ -44,8 +46,8 @@ void FixWaterPressuresAbovePhreaticLineProcess::ExecuteInitializeSolutionStep()
         const auto current_coordinates =
             rNode.GetInitialPosition() + rNode.FastGetSolutionStepValue(TOTAL_DISPLACEMENT);
         if (current_coordinates[1] > mPhreaticLineTable(current_coordinates[0])) {
-            rNode.FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
             rNode.Fix(WATER_PRESSURE);
+            rNode.FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
         } else {
             rNode.Free(WATER_PRESSURE);
         }
