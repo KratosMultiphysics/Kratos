@@ -461,6 +461,23 @@ private:
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     ) const;
 
+    /**
+     *  CHECKLEO
+    * This functions updates the ACTUATED constitutive variables
+    * @param rActualMetric: The actual metric
+    * @param rThisActuatedConstitutiveVariables: The constitutive variables to be calculated
+    * @param rValues: The CL parameters
+    * @param ThisStressMeasure: The stress measure considered
+    */
+    void CalculateActuatedConstitutiveVariables(
+        const IndexType IntegrationPointIndex,
+        KinematicVariables& rActualMetric,
+        ConstitutiveVariables& rThisActuatedConstitutiveVariablesMembrane,
+        ConstitutiveVariables& rThisActuatedConstitutiveVariablesCurvature,
+        ConstitutiveLaw::Parameters& rValues,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure
+    ) const;
+
     inline void CalculateAndAddKm(
         MatrixType& rLeftHandSideMatrix,
         const Matrix& B,
