@@ -30,12 +30,15 @@ Matrix Line2DInterfaceStressState::CalculateBMatrix(const Matrix&, const Vector&
     Matrix result = ZeroMatrix(GetVoigtSize(), rGeometry.WorkingSpaceDimension() * rGeometry.size());
 
     const auto number_of_u_dofs_per_side = result.size2() / 2;
+    // Define the order in which the degrees of freedom at any node must be processed to compute the
+    // normal component first and then the tangential component
+    const auto component_order = std::vector<std::size_t>{1, 0};
     for (unsigned int i = 0; i < rGeometry.size() / 2; ++i) {
-        result(0, i * rGeometry.WorkingSpaceDimension() + 1)                             = -rN[i];
-        result(0, i * rGeometry.WorkingSpaceDimension() + 1 + number_of_u_dofs_per_side) = rN[i];
-
-        result(1, i * rGeometry.WorkingSpaceDimension())                             = -rN[i];
-        result(1, i * rGeometry.WorkingSpaceDimension() + number_of_u_dofs_per_side) = rN[i];
+        for (unsigned int j = 0; j < component_order.size(); ++j) {
+            result(j, i * rGeometry.WorkingSpaceDimension() + component_order[j]) = -rN[i];
+            result(j, i * rGeometry.WorkingSpaceDimension() + component_order[j] + number_of_u_dofs_per_side) =
+                rN[i];
+        }
     }
 
     return result;
