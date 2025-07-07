@@ -3,8 +3,10 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import splprep, splev, griddata
 from skimage.measure import EllipseModel
 import csv
-import os
 from math import ceil, sqrt
+import argparse
+from pathlib import Path
+
 
 
 # ==== Ellipse Fitting Function ====
@@ -65,7 +67,7 @@ def plot_3d_geometry(x, y, z, spline, cx, cy, cz, ellipse_spline, ecx, ecy, ecz,
             zz = np.full_like(xx, bound)
             ax.plot_surface(xx, yy, zz, alpha=0.1, color="gray")
 
-    ax.set_title("3D Hole Geometry with Splines\n" + filepath)
+    ax.set_title("3D Hole Geometry with Splines\n" + filename)
     ax.set_xlabel("X (um)")
     ax.set_ylabel("Y (um)")
     ax.set_zlabel("Z (um)")
@@ -104,7 +106,7 @@ def plot_outliers(x, y, z, surface_outliers, deep_outliers, plot_outlier_types):
             label="Deep Outliers",
             s=5,
         )
-    ax.set_title("Filtered vs. Kept Points\n" + filepath)
+    ax.set_title("Filtered vs. Kept Points\n" + filename)
     ax.set_xlabel("X (um)")
     ax.set_ylabel("Y (um)")
     ax.set_zlabel("Z (um)")
@@ -138,7 +140,7 @@ def plot_xy_centers_path(
             )
             return  # Nothing to plot
 
-    title += filepath
+    title += filename
 
     fig, ax = plt.subplots(figsize=(8, 8))
 
@@ -245,7 +247,7 @@ def plot_superposed_slices_xy(
                         color="black",
                         bbox=dict(facecolor="white", alpha=0.8, edgecolor="none"),
                     )
-    ax.set_title("XY Projection of All Slices\n" + filepath)
+    ax.set_title("XY Projection of All Slices\n" + filename)
     ax.set_xlabel("X (um)")
     ax.set_ylabel("Y (um)")
     ax.axis("square")
@@ -314,7 +316,7 @@ def plot_ellipses_and_axes(
         )
 
     # Set title and optional subtitle
-    title = "XY projection of all ellipses with centers and major axes\n" + filepath
+    title = "XY projection of all ellipses with centers and major axes\n" + filename
     if shift_to_common_center:
         title += "\nEllipses shifted to common center"
     ax.set_title(title)
@@ -344,7 +346,7 @@ def plot_contour(x, y, z, contour_levels):
 
     fig, ax = plt.subplots(figsize=(8, 8))
     contour = ax.contourf(X, Y, Z, levels=contour_levels, cmap="viridis_r")
-    ax.set_title("Filled Contour Plot of Hole Depth (XY Projection)\n" + filepath)
+    ax.set_title("Filled Contour Plot of Hole Depth (XY Projection)\n" + filename)
     ax.set_xlabel("X (um)")
     ax.set_ylabel("Y (um)")
     ax.axis("square")
@@ -375,7 +377,7 @@ def plot_ellipse_metrics(ellipse_params, centroid_zs):
 
         ax1.plot(depths, eccentricities, ".-", color="blue", markersize=12, label="Eccentricity")
         ax1.set_ylabel("Eccentricity")
-        ax1.set_title("Ellipse eccentricity vs. depth\n" + filepath)
+        ax1.set_title("Ellipse eccentricity vs. depth\n" + filename)
         ax1.grid(True, alpha=0.3)
         ax1.set_ylim(0, 1)
         ax1.legend(loc="upper right")
@@ -383,7 +385,7 @@ def plot_ellipse_metrics(ellipse_params, centroid_zs):
         ax2.plot(depths, thetas, ".-", color="red", markersize=12, label="Major axis angle (0 to 180º)")
         ax2.set_xlabel("Depth (Z, um)")
         ax2.set_ylabel("Major axis angle (degrees)")
-        ax2.set_title("Ellipse major axis angle vs. depth\n" + filepath)
+        ax2.set_title("Ellipse major axis angle vs. depth\n" + filename)
         ax2.grid(True, alpha=0.3)
         ax2.set_ylim(0, 180)
         ax2.set_yticks([30 * i for i in range(7)])
@@ -393,7 +395,7 @@ def plot_ellipse_metrics(ellipse_params, centroid_zs):
         ax3.plot(depths, shifted_thetas, ".-", color="green", markersize=12, label="Major axis angle (-90º to 90º)")
         ax3.set_xlabel("Depth (Z, um)")
         ax3.set_ylabel("Major axis angle (degrees)")
-        ax3.set_title("Ellipse major axis angle vs. depth\n" + filepath)
+        ax3.set_title("Ellipse major axis angle vs. depth\n" + filename)
         ax3.grid(True, alpha=0.3)
         ax3.set_ylim(-90, 90)
         ax3.set_yticks([-90 + 30 * i for i in range(7)])
@@ -459,7 +461,7 @@ def plot_individual_slices_grid(slices, centroids, slice_bounds, num_slices, plo
                 labels.append("Fitted Ellipse")
                 handles.append(ec)
                 labels.append("Ellipse Center")
-        ax.set_title(f"Slice {valid_slices[plot_idx] + 1} (z ∈ [{z_start:.2f}, {z_end:.2f}] um)\n" + filepath)
+        ax.set_title(f"Slice {valid_slices[plot_idx] + 1} (z ∈ [{z_start:.2f}, {z_end:.2f}] um)\n" + filename)
         ax.set_xlabel("X (um)")
         ax.set_ylabel("Y (um)")
         ax.axis("square")
@@ -474,7 +476,7 @@ def plot_individual_slices_grid(slices, centroids, slice_bounds, num_slices, plo
     if handles:  # Only add legend if there are valid handles
         fig.legend(handles, labels, loc="lower center", ncol=len(handles), bbox_to_anchor=(0.5, 0.01))
 
-    plt.suptitle("XY Projection of Slices with Centroids and Ellipses\n" + filepath, fontsize=14)
+    plt.suptitle("XY Projection of Slices with Centroids and Ellipses\n" + filename, fontsize=14)
     plt.subplots_adjust(top=0.87, bottom=0.1)  # Adjust bottom to accommodate legend
     plt.tight_layout()
     plt.show()
@@ -543,7 +545,7 @@ def plot_individual_slices_separately(
             labels.append("Ellipse Center")
 
         # Set plot properties
-        ax.set_title(f"Slice {idx} (z ∈ [{z_start:.2f}, {z_end:.2f}] um)\n" + filepath)
+        ax.set_title(f"Slice {idx} (z ∈ [{z_start:.2f}, {z_end:.2f}] um)\n" + filename)
         ax.set_xlabel("X (um)")
         ax.set_ylabel("Y (um)")
         ax.axis("square")
@@ -745,10 +747,62 @@ def subsample_data(data, max_points, random_seed):
 
     return data
 
+def calculate_slices(data, slice_thickness):
+    """
+    Calculates the data slices
+    """
+    z = data[:, 2]
+
+    # ==== Create Slices Variable ====
+    z_min, z_max = z.min(), z.max()
+    print(f"z_max={float(z_max)}, z_min={float(z_min)}")
+    num_slices = ceil((z_max - z_min)/slice_thickness)
+
+    # Generate slice boundaries from top (z_max) to bottom (z_min)
+    slice_bounds, step = np.linspace(z_max, z_max - num_slices*slice_thickness, num_slices+1, retstep=True)
+
+    
+    # Initialize list to store slices
+    slices = []
+
+    # Create slices
+    for i in range(num_slices):
+        z_start, z_end = slice_bounds[i], slice_bounds[i + 1]
+        
+        # Mask for points in the current slice
+        mask = (z <= z_start) & (z > z_end)
+        
+        slices.append(data[mask])
+
+    # Optional: Remove empty slices (unlikely, but safe)
+    for s in slices:
+        if len(s) <= 0:
+            raise ValueError("There are empty slices")
+
+    slices = [s for s in slices if len(s) > 0]
+
+
+    print(f"{slice_bounds=}")
+    print(f"{len(slice_bounds)=}")
+    print(f"{num_slices=}")
+
+    return slices, slice_bounds
+
 
 if __name__ == "__main__":
+    # Read filepath as argument
+    parser = argparse.ArgumentParser(description="Make plots and extract metrics of the measurements of a bore.")
+    parser.add_argument("--filepath", required=True, help="Path to file containing the data file.")
+
+    args = parser.parse_args()
+
+    filepath = args.filepath
+
+    filename = Path(filepath).stem
+    
+
+
     # ==== Configurable Parameters ====
-    filepath = "10W10P01.dat"  # Path to the CSV file
     sample_x_min = 0
     sample_x_max = 50
     sample_y_min = 0
@@ -757,7 +811,7 @@ if __name__ == "__main__":
     max_points = 500000  # Max number of points to use for entire dataset
     subsample_points = False  # Toggle for random subsampling of entire dataset
 
-    num_slices = 10  # Number of slices between top and bottom
+    slice_thickness = 1.5 # Thickness of each slice in um
     deep_outlier_quantile_threshold = (
         0.0005  # Lower quantile for discarding deep outliers. Set it to None to not discard any.
     )
@@ -799,24 +853,14 @@ if __name__ == "__main__":
         data, shallow_z_threshold, deep_outlier_quantile_threshold
     )
 
-    # Random subsample after filtering
+    # ==== Random subsample after filtering ====
     if subsample_points and max_points < len(data):
         data = subsample_data(data, max_points, random_seed)
 
-    x, y, z = data[:, 0], data[:, 1], data[:, 2]
+    # ==== Compute data slices ====
+    slices, slice_bounds = calculate_slices(data, slice_thickness)
+    num_slices = len(slices)
 
-    # ==== Create Slices Variable ====
-    z_min, z_max = z.min(), z.max()
-    slice_bounds = np.linspace(z_max, z_min, num_slices + 1)  # Reversed for shallowest (1) to deepest (N)
-    slices = [None] * num_slices
-    for i in range(num_slices):
-        z_start, z_end = slice_bounds[i], slice_bounds[i + 1]
-        mask = (
-            (data[:, 2] <= z_start) & (data[:, 2] > z_end)
-            if i < num_slices - 1
-            else (data[:, 2] <= z_start) & (data[:, 2] >= z_end)
-        )
-        slices[i] = data[mask]
 
     # ==== Compute centroids for slices ====
     centroids = [None] * num_slices
@@ -894,6 +938,8 @@ if __name__ == "__main__":
     print(f"Average Torsion: {avg_torsion:.6f} um^-1")
 
     # ==== Plotting ====
+    x, y, z = data[:, 0], data[:, 1], data[:, 2]
+
     if plot_3d_geometry_toggle:
         plot_3d_geometry(
             x,
