@@ -391,6 +391,14 @@ private:
     /// The vector containing the constitutive laws for all integration points.
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
+    //CHECKLEO - temporary predefined actuation variables
+    double mACTUATION_ALPHA = 0.0;
+    double mACTUATION_BETA = 0.0;
+    double mACTUATION_GAMMA = 0.0;
+    double mACTUATION_KAPPA_1 = 0.0;
+    double mACTUATION_KAPPA_2 = 0.0;
+    double mACTUATION_KAPPA_12 = 0.0;
+
     ///@}
     ///@name Operations
     ///@{

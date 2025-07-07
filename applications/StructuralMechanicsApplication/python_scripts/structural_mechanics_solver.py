@@ -236,6 +236,7 @@ class MechanicalSolver(PythonSolver):
         KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "DOF's ADDED")
 
+        #CHECKLEO
         print("end of AddDofs  in MechanicalSolver:")
         print("DOFs added to the model part: ", dofs_and_reactions_to_add)
         # raise RuntimeError(1)

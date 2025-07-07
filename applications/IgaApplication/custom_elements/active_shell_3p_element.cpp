@@ -34,6 +34,14 @@ namespace Kratos
 
         const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
+        //CHECKLEO - temporary predefined actuation variables
+        mACTUATION_ALPHA = 0.1;
+        mACTUATION_BETA = 0.2;
+        mACTUATION_GAMMA = 0.3;
+        mACTUATION_KAPPA_1 = 0.4;
+        mACTUATION_KAPPA_2 = 0.5;
+        mACTUATION_KAPPA_12 = 0.6;
+
         // Prepare memory
         if (m_A_ab_covariant_vector.size() != r_number_of_integration_points)
             m_A_ab_covariant_vector.resize(r_number_of_integration_points);
@@ -657,6 +665,15 @@ namespace Kratos
         rValues.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+        // CHECKLEO Testausgabe der Variable
+        std::cout << "mACTUATION_ALPHA in CalculateConstitutiveVariables: " << mACTUATION_ALPHA << std::endl;
+        std::cout << "mACTUATION_BETA in CalculateConstitutiveVariables: " << mACTUATION_BETA << std::endl;
+        std::cout << "mACTUATION_GAMMA in CalculateConstitutiveVariables: " << mACTUATION_GAMMA << std::endl;
+        std::cout << "mACTUATION_KAPPA_1 in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_1 << std::endl;
+        std::cout << "mACTUATION_KAPPA_2 in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_2 << std::endl;
+        std::cout << "mACTUATION_KAPPA_12 in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_12 << std::endl;
+
 
         array_1d<double, 3> strain_vector = 0.5 * (rActualKinematic.a_ab_covariant - m_A_ab_covariant_vector[IntegrationPointIndex]);
         noalias(rThisConstitutiveVariablesMembrane.StrainVector) = prod(m_T_vector[IntegrationPointIndex], strain_vector);
@@ -1518,17 +1535,18 @@ namespace Kratos
 
         const SizeType number_of_control_points = GetGeometry().size();
 
-        if (rResult.size() != 9 * number_of_control_points)
-            rResult.resize(9 * number_of_control_points, false);
+        if (rResult.size() != 3 * number_of_control_points)
+            rResult.resize(3 * number_of_control_points, false);
 
         const IndexType pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
 
         for (IndexType i = 0; i < number_of_control_points; ++i) {
-            const IndexType index = i * 9;
+            const IndexType index = i * 3;
             rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X, pos).EquationId();
             rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
             rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
 
+            // Add actuation dofs
             // rResult[index + 3] = GetGeometry()[i].GetDof(ACTUATION_STRAINS_X).EquationId();
             // rResult[index + 4] = GetGeometry()[i].GetDof(ACTUATION_STRAINS_Y).EquationId();
             // rResult[index + 5] = GetGeometry()[i].GetDof(ACTUATION_STRAINS_Z).EquationId();
@@ -1536,12 +1554,12 @@ namespace Kratos
             // rResult[index + 7] = GetGeometry()[i].GetDof(ACTUATION_CURAVTURES_Y).EquationId();
             // rResult[index + 8] = GetGeometry()[i].GetDof(ACTUATION_CURAVTURES_Z).EquationId();
 
-            rResult[index + 3] = GetGeometry()[i].GetDof(ACTUATION_ALPHA).EquationId();
-            rResult[index + 4] = GetGeometry()[i].GetDof(ACTUATION_BETA).EquationId();
-            rResult[index + 5] = GetGeometry()[i].GetDof(ACTUATION_GAMMA).EquationId();
-            rResult[index + 6] = GetGeometry()[i].GetDof(ACTUATION_KAPPA_1).EquationId();
-            rResult[index + 7] = GetGeometry()[i].GetDof(ACTUATION_KAPPA_2).EquationId();
-            rResult[index + 8] = GetGeometry()[i].GetDof(ACTUATION_KAPPA_12).EquationId();
+            // rResult[index + 3] = GetGeometry()[i].GetDof(ACTUATION_ALPHA).EquationId();
+            // rResult[index + 4] = GetGeometry()[i].GetDof(ACTUATION_BETA).EquationId();
+            // rResult[index + 5] = GetGeometry()[i].GetDof(ACTUATION_GAMMA).EquationId();
+            // rResult[index + 6] = GetGeometry()[i].GetDof(ACTUATION_KAPPA_1).EquationId();
+            // rResult[index + 7] = GetGeometry()[i].GetDof(ACTUATION_KAPPA_2).EquationId();
+            // rResult[index + 8] = GetGeometry()[i].GetDof(ACTUATION_KAPPA_12).EquationId();
         }
 
         KRATOS_CATCH("")
@@ -1557,13 +1575,15 @@ namespace Kratos
         const SizeType number_of_control_points = GetGeometry().size();
 
         rElementalDofList.resize(0);
-        rElementalDofList.reserve(9 * number_of_control_points);
+        rElementalDofList.reserve(3 * number_of_control_points);
 
         for (IndexType i = 0; i < number_of_control_points; ++i) {
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
 
+
+            // Add actuation dofs
             // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_STRAINS_X));
             // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_STRAINS_Y));
             // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_STRAINS_Z));
@@ -1571,12 +1591,12 @@ namespace Kratos
             // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_CURAVTURES_Y));
             // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_CURAVTURES_Z));
 
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_ALPHA));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_BETA));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_GAMMA));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_KAPPA_1));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_KAPPA_2));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_KAPPA_12));
+            // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_ALPHA));
+            // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_BETA));
+            // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_GAMMA));
+            // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_KAPPA_1));
+            // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_KAPPA_2));
+            // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_KAPPA_12));
         }
 
         KRATOS_CATCH("")
