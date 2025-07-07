@@ -21,11 +21,11 @@ def fit_ellipse_least_squares(points_2d):
     - Tuple: (cx, cy, a, b, eccentricity, theta) or None if fitting fails.
     """
     if len(points_2d) < 5:
-        return None
+        raise ValueError("Not enough points to fit the ellipse")
 
     model = EllipseModel()
     if not model.estimate(points_2d):
-        return None
+        raise ValueError("Couldn't fit the ellipse to the data")
 
     cx, cy, a, b, theta = model.params  # (x, y, a, b, theta)
     if b > a:
@@ -176,7 +176,6 @@ def plot_superposed_slices_xy(
     centroids,
     centroid_ids,
     ellipse_params,
-    num_slices,
     plot_centroids_in_all_slices_xy,
     plot_ellipses_in_all_slices_xy,
     plot_ellipse_centers=False,
@@ -198,6 +197,7 @@ def plot_superposed_slices_xy(
     - plot_ellipses_in_all_slices_xy: Boolean to toggle ellipse plotting.
     - sample_x_min, sample_x_max, sample_y_min, sample_y_max: Axis limits.
     """
+    num_slices = len(slices)
     fig, ax = plt.subplots(figsize=(8, 8))
     colors = plt.cm.viridis(np.linspace(0, 1, num_slices))  # Distinct colors for slices
     for i in range(num_slices):
@@ -259,8 +259,7 @@ def plot_superposed_slices_xy(
 
 
 def plot_ellipses_and_axes(
-    ellipse_params,
-    num_slices,
+    ellipses,
     shift_to_common_center=False,
     sample_x_min=0,
     sample_x_max=50,
@@ -276,11 +275,12 @@ def plot_ellipses_and_axes(
     - shift_to_common_center: Boolean to shift all ellipses to a common center (default: False).
     - sample_x_min, sample_x_max, sample_y_min, sample_y_max: Axis limits (default: 0, 50, 0, 50).
     """
+    num_ellipses = len(ellipses)
     fig, ax = plt.subplots(figsize=(8, 8))
-    colors = plt.cm.viridis(np.linspace(0, 1, num_slices))  # Distinct colors for slices
+    colors = plt.cm.viridis(np.linspace(0, 1, num_ellipses))  # Distinct colors for slices
     common_center_x, common_center_y = ((sample_x_max + sample_x_min) / 2, (sample_y_max + sample_y_min) / 2)
 
-    for i in range(num_slices):
+    for i in range(num_ellipses):
         if ellipse_params[i] is None:
             continue
         cx, cy, a, b, _, theta = ellipse_params[i]
@@ -818,9 +818,41 @@ def compute_centroids(slices, slice_bounds):
     centroid_zs = [z for z in centroid_zs if z is not None]
     centroid_ids = [id for id in centroid_ids if id is not None]
 
-
-
     return centroids, centroid_ids
+
+
+def compute_ellipses(slices, slice_bounds):
+    """
+    Find the ellipse that best fits each spline using least squares
+    """
+    num_slices = len(slices)
+
+    ellipses = [None] * num_slices
+    ellipse_centers = [None] * num_slices
+
+    for i in range(num_slices):
+        print(f"Fitting ellipse for Slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um)")
+        slice_points = slices[i]
+
+        if len(slice_points) == 0:
+            raise ValueError("Empty slice")
+
+        points_2d = slice_points[:, :2]  # [x, y]  
+
+        center_x, center_y, a, b, eccentricity, angle = fit_ellipse_least_squares(points_2d)
+        center_z = np.mean(slice_points[:, 2]) # Set the ellipse's depth as the "center of mass" in depth of the points in the slice
+
+        ellipse_center = [center_x, center_y, center_z]
+        ellipse_centers[i] = ellipse_center
+
+        ellipse_dict = {"center": ellipse_center, "a": a, "b": b, "eccentricity": eccentricity, "angle": angle}
+        ellipses[i] = ellipse_dict            
+            
+
+    ellipse_centers = np.array(ellipse_centers)
+
+    return ellipse_dict, ellipse_centers
+
 
 if __name__ == "__main__":
     # Read filepath as argument
@@ -900,30 +932,8 @@ if __name__ == "__main__":
     centroids_x, centroids_y, centroids_z = centroids[:, 0], centroids[:, 1], centroids[:, 2]
 
     # ==== Fit ellipses to slices ====
-    num_slices = len(slices)
-
-    ellipse_params = [None] * num_slices
-    ellipse_centers = [None] * num_slices
-
-    for i in range(num_slices):
-        print(f"Fitting ellipse for Slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um)")
-        slice_points = slices[i]
-
-        if len(slice_points) == 0:
-            continue
-
-        points_2d = slice_points[:, :2]  # [x, y]
-        ellipse = fit_ellipse_least_squares(points_2d)
-        ellipse_center = None
-        if ellipse is not None:
-            center_x, center_y, a, b, eccentricity, theta = ellipse
-            ellipse_center = [center_x, center_y, centroids_z[i]]
-
-        ellipse_params[i] = ellipse
-        ellipse_centers[i] = ellipse_center
-
-    valid_ellipse_centers = [ec for ec in ellipse_centers if ec is not None]
-    ellipse_centers = np.array(valid_ellipse_centers) if len(valid_ellipse_centers) > 0 else np.array([])
+    ellipses, ellipse_centers = compute_ellipses(slices, slice_bounds)
+    
     ellipses_x, ellipses_y, ellipses_z = ellipse_centers[:, 0], ellipse_centers[:, 1], ellipse_centers[:, 2]
 
     # ==== Fit splines ====
@@ -988,7 +998,6 @@ if __name__ == "__main__":
             centroids,
             centroid_ids,
             ellipse_params,
-            num_slices,
             plot_centroids_in_superposed_slices_xy,
             plot_ellipses_in_all_slices_xy=True,
             plot_ellipse_centers=True,
@@ -1000,8 +1009,7 @@ if __name__ == "__main__":
 
     if plot_ellipses_and_axes_toggle:
         plot_ellipses_and_axes(
-            ellipse_params,
-            num_slices,
+            ellipses,
             shift_to_common_center=ellipses_shift_to_common_center,
             sample_x_min=sample_x_min,
             sample_x_max=sample_x_max,
