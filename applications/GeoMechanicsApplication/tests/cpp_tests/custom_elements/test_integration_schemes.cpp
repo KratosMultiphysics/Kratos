@@ -62,11 +62,6 @@ double SumOfWeights(const Geo::IntegrationPointVectorType& rIntegrationPoints)
     return std::accumulate(weights.cbegin(), weights.cend(), 0.0);
 }
 
-bool IsAtBound(const Geo::IntegrationPointType& rPoint, double Bound, std::size_t DirectionIndex)
-{
-    return std::abs(rPoint[DirectionIndex] - Bound) <= Testing::Defaults::absolute_tolerance;
-}
-
 void ExpectLocalCoordinatesIncludeRangeBound(const Geo::IntegrationPointVectorType& rIntegrationPoints,
                                              double      Bound,
                                              std::size_t DirectionIndex)
