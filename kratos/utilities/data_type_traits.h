@@ -1474,7 +1474,7 @@ public:
             const auto stride = ValueTraits::Size(pShapeBegin + 2, pShapeEnd);
             for (unsigned int i = 0; i < *pShapeBegin; ++i) {
                 for (unsigned int j = 0; j < *(pShapeBegin + 1); ++j) {
-                    ValueTraits::template CopyToContiguousData<TIteratorType>(pContiguousDataBegin + i * stride * (*pShapeBegin) + j * stride, rContainer(i, j), pShapeBegin + 2, pShapeEnd);
+                    ValueTraits::template CopyToContiguousData<TIteratorType>(pContiguousDataBegin + i * stride * (*(pShapeBegin + 1)) + j * stride, rContainer(i, j), pShapeBegin + 2, pShapeEnd);
                 }
             }
         } else {
@@ -1536,7 +1536,7 @@ public:
             const auto stride = ValueTraits::Size(pShapeBegin + 2, pShapeEnd);
             for (unsigned int i = 0; i < *pShapeBegin; ++i) {
                 for (unsigned int j = 0; j < *(pShapeBegin + 1); ++j) {
-                    ValueTraits::template CopyFromContiguousData<TIteratorType>(rContainer(i, j), pContiguousDataBegin + i * stride * (*pShapeBegin) + j * stride, pShapeBegin + 2, pShapeEnd);
+                    ValueTraits::template CopyFromContiguousData<TIteratorType>(rContainer(i, j), pContiguousDataBegin + i * stride * (*(pShapeBegin + 1)) + j * stride, pShapeBegin + 2, pShapeEnd);
                 }
             }
         } else {
