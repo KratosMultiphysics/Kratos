@@ -63,28 +63,24 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateTotalMotionProcessRotation, KratosGeoMechanic
     auto p_node_1 = r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0);
     auto p_node_2 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
 
-    std::vector<intrusive_ptr<Node>> nodes = { p_node_1, p_node_2 };
+    std::vector<intrusive_ptr<Node>> nodes = {p_node_1, p_node_2};
 
-    p_node_1->FastGetSolutionStepValue(TOTAL_ROTATION, 0) = Kratos::array_1d<double, 3>{ 1.0, 2.0, 3.0 };
+    p_node_1->FastGetSolutionStepValue(TOTAL_ROTATION, 0) = Kratos::array_1d<double, 3>{1.0, 2.0, 3.0};
     p_node_1->FastGetSolutionStepValue(INCREMENTAL_ROTATION, 0) =
-        Kratos::array_1d<double, 3>{ -4.0, -5.0, -6.0 };
+        Kratos::array_1d<double, 3>{-4.0, -5.0, -6.0};
 
-    p_node_2->FastGetSolutionStepValue(TOTAL_ROTATION, 0) = Kratos::array_1d<double, 3>{ 7.0, 12.0, 9.0 };
-    p_node_2->FastGetSolutionStepValue(INCREMENTAL_ROTATION, 0) =
-        Kratos::array_1d<double, 3>{ 6.0, 11.0, 8.0 };
+    p_node_2->FastGetSolutionStepValue(TOTAL_ROTATION, 0) = Kratos::array_1d<double, 3>{7.0, 12.0, 9.0};
+    p_node_2->FastGetSolutionStepValue(INCREMENTAL_ROTATION, 0) = Kratos::array_1d<double, 3>{6.0, 11.0, 8.0};
 
-    auto process =
-        CalculateTotalMotionProcess(r_model_part, Parameters(R"({"variable_name": "ROTATION"})"));
+    auto process = CalculateTotalMotionProcess(r_model_part, Parameters(R"({"variable_name": "ROTATION"})"));
 
     process.Execute();
 
-    const auto expected_total_rotation_1 = Kratos::array_1d<double, 3>{ -3.0, -3.0, -3.0 };
-    const auto expected_total_rotation_2 = Kratos::array_1d<double, 3>{ 13.0, 23.0, 17.0 };
+    const auto expected_total_rotation_1 = Kratos::array_1d<double, 3>{-3.0, -3.0, -3.0};
+    const auto expected_total_rotation_2 = Kratos::array_1d<double, 3>{13.0, 23.0, 17.0};
 
-    KRATOS_CHECK_VECTOR_NEAR(p_node_1->FastGetSolutionStepValue(TOTAL_ROTATION),
-        expected_total_rotation_1, 1e-12)
-    KRATOS_CHECK_VECTOR_NEAR(p_node_2->FastGetSolutionStepValue(TOTAL_ROTATION),
-        expected_total_rotation_2, 1e-12)
+    KRATOS_CHECK_VECTOR_NEAR(p_node_1->FastGetSolutionStepValue(TOTAL_ROTATION), expected_total_rotation_1, 1e-12)
+    KRATOS_CHECK_VECTOR_NEAR(p_node_2->FastGetSolutionStepValue(TOTAL_ROTATION), expected_total_rotation_2, 1e-12)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateTotalMotionProcessUndefined, KratosGeoMechanicsFastSuiteWithoutKernel)

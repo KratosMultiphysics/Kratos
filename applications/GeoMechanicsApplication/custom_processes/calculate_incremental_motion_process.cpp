@@ -18,26 +18,23 @@
 namespace Kratos
 {
 
-    CalculateIncrementalMotionProcess::CalculateIncrementalMotionProcess(ModelPart& rModelPart,
-                                                                                 const Parameters& rParameters)
+CalculateIncrementalMotionProcess::CalculateIncrementalMotionProcess(ModelPart&        rModelPart,
+                                                                     const Parameters& rParameters)
     : Process(Flags()), mrModelPart{rModelPart}
 {
-        mBaseVariableName = rParameters["variable_name"].GetString();
-        if (mBaseVariableName == "DISPLACEMENT") {
-            mResultsVariableName = "INCREMENTAL_DISPLACEMENT";
-        }
-        else if (mBaseVariableName == "ROTATION") {
-            mResultsVariableName = "INCREMENTAL_ROTATION";
-        }
-        else {
-            KRATOS_ERROR << "Invalid variable name: " << rParameters["variable_name"].GetString()
-                << ". Expected DISPLACEMENT or ROTATION." << std::endl;
-        }
+    mBaseVariableName = rParameters["variable_name"].GetString();
+    if (mBaseVariableName == "DISPLACEMENT") {
+        mResultsVariableName = "INCREMENTAL_DISPLACEMENT";
+    } else if (mBaseVariableName == "ROTATION") {
+        mResultsVariableName = "INCREMENTAL_ROTATION";
+    } else {
+        KRATOS_ERROR << "Invalid variable name: " << rParameters["variable_name"].GetString()
+                     << ". Expected DISPLACEMENT or ROTATION." << std::endl;
+    }
 }
 
 void CalculateIncrementalMotionProcess::Execute()
 {
-
     if (KratosComponents<Variable<array_1d<double, 3>>>::Has(mResultsVariableName) &&
         KratosComponents<Variable<array_1d<double, 3>>>::Has(mBaseVariableName)) {
         const Variable<array_1d<double, 3>>& rResultVariable =
@@ -48,12 +45,12 @@ void CalculateIncrementalMotionProcess::Execute()
 
         block_for_each(mrModelPart.Nodes(), [rResultVariable, rBaseVariable](Node& rNode) {
             rNode.FastGetSolutionStepValue(rResultVariable) =
-                rNode.FastGetSolutionStepValue(rBaseVariable, 0) - rNode.FastGetSolutionStepValue(rBaseVariable, 1);
-            });
-    }
-    else {
-        KRATOS_ERROR << "Variables " << mResultsVariableName << " and/or "
-            << mBaseVariableName << " not found in the model part." << std::endl;
+                rNode.FastGetSolutionStepValue(rBaseVariable, 0) -
+                rNode.FastGetSolutionStepValue(rBaseVariable, 1);
+        });
+    } else {
+        KRATOS_ERROR << "Variables " << mResultsVariableName << " and/or " << mBaseVariableName
+                     << " not found in the model part." << std::endl;
     }
 }
 } // namespace Kratos

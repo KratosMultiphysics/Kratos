@@ -25,7 +25,7 @@ CalculateTotalMotionProcess::CalculateTotalMotionProcess(ModelPart& rModelPart, 
         mResultsVariableName     = "TOTAL_DISPLACEMENT";
         mIncrementalVariableName = "INCREMENTAL_DISPLACEMENT";
     } else if (rParameters["variable_name"].GetString() == "ROTATION") {
-        mResultsVariableName = "TOTAL_ROTATION";
+        mResultsVariableName     = "TOTAL_ROTATION";
         mIncrementalVariableName = "INCREMENTAL_ROTATION";
 
     } else {
