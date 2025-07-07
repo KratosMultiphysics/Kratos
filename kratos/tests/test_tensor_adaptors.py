@@ -48,14 +48,6 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         Kratos.VariableUtils().ClearNonHistoricalData(self.model_part.Conditions)
         Kratos.VariableUtils().ClearNonHistoricalData(self.model_part.Elements)
 
-        # # clear the values at the output vars
-        # for var in self.output_list_of_variables:
-        #     Kratos.VariableUtils().SetHistoricalVariableToZero(var, self.model_part.Nodes)
-
-        # # clear the values at the input vars
-        # for var in self.input_list_of_variables:
-        #     Kratos.VariableUtils().SetHistoricalVariableToZero(var, self.model_part.Nodes)
-
         def setter(container, setter_method):
             for entity in container:
                 setter_method(entity, Kratos.PRESSURE, entity.Id + 1)
@@ -166,6 +158,35 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         with self.assertRaises(RuntimeError):
             numpy_array = numpy.zeros(shape=(t_adaptor.Shape()), dtype=numpy.float16)
             t_adaptor.data = numpy_array
+
+    def test_NumpyArrayAssignment(self):
+        t_adaptor_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
+        t_adaptor_1.CollectData()
+
+        numpy_ta_1 = t_adaptor_1.data
+
+        t_adaptor_2 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.DENSITY)
+        t_adaptor_2.data = numpy_ta_1
+        t_adaptor_2.StoreData()
+
+        for node in self.model_part.Nodes:
+            self.assertEqual(node.GetValue(Kratos.PRESSURE), node.GetValue(Kratos.DENSITY))
+
+        # now change the values of pressure in every node
+        t_adaptor_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
+        t_adaptor_1.CollectData()
+        t_adaptor_1.data *= 2
+        t_adaptor_1.StoreData()
+
+        numpy_ta_1 = t_adaptor_1.data
+        numpy_ta_2 = t_adaptor_2.data
+
+        # now assign numpy_ta_1 to numpy_ta_2, just only copying the data
+        numpy_ta_2[:] = numpy_ta_1
+
+        t_adaptor_2.StoreData()
+        for node in self.model_part.Nodes:
+            self.assertEqual(node.GetValue(Kratos.PRESSURE), node.GetValue(Kratos.DENSITY))
 
     def test_NodeVariableTensorAdaptor(self):
         self.__TestVariableTensorAdaptor(self.model_part.Nodes)
