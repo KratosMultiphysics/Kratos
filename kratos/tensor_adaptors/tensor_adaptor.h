@@ -23,6 +23,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "includes/ublas_interface.h"
 #include "intrusive_ptr/intrusive_ptr.hpp"
 
