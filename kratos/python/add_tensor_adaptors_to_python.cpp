@@ -19,13 +19,14 @@
 #include <pybind11/functional.h>
 
 // Project includes
-#include "includes/model_part.h"
 #include "includes/define_python.h"
+#include "includes/model_part.h"
 #include "utilities/container_io_utils.h"
+#include "utilities/parallel_utilities.h"
+
+// Tensor adaptors
 #include "tensor_adaptors/tensor_adaptor.h"
 #include "tensor_adaptors/variable_tensor_adaptor.h"
-#include "numpy_utils.h"
-#include "utilities/parallel_utilities.h"
 
 // Include base h
 #include "add_tensor_adaptors_to_python.h"
@@ -33,13 +34,6 @@
 namespace Kratos::Python {
 
 namespace Detail {
-
-using PybindArrayType = std::variant<
-                            pybind11::array_t<int>,
-                            pybind11::array_t<bool>,
-                            pybind11::array_t<double>
-                        >;
-
 
 template<class TDataType>
 class TensorAdaptorTrampoline final : public TensorAdaptor<TDataType> {
