@@ -204,6 +204,7 @@ void AddBaseTensorAdaptor(
         .def("Size", &tensor_adaptor::Size)
         .def("__str__", PrintObject<tensor_adaptor>)
         .def("ViewData", &Detail::GetPybindArray<TDataType>)
+        .def("SetData", &Detail::SetPybindArray<TDataType>, pybind11::arg("array").noconvert())
         .def_property("data",
             &Detail::GetPybindArray<TDataType>,
             pybind11::cpp_function(
