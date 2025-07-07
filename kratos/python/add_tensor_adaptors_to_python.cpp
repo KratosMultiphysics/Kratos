@@ -27,6 +27,7 @@
 // Tensor adaptors
 #include "tensor_adaptors/tensor_adaptor.h"
 #include "tensor_adaptors/variable_tensor_adaptor.h"
+#include "tensor_adaptors/equation_ids_tensor_adaptor.h"
 
 // Include base h
 #include "add_tensor_adaptors_to_python.h"
@@ -287,6 +288,11 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
         .def(py::init<ModelPart::GeometriesMapType::Pointer, variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"))
         ;
 
+    using equation_ids_tensor_adaptor = EquationIdsTensorAdaptor;
+    pybind11::class_<equation_ids_tensor_adaptor, equation_ids_tensor_adaptor::Pointer, equation_ids_tensor_adaptor::BaseType>(tensor_adaptor_sub_module, "EquationIdsTensorAdaptor")
+        .def(py::init<ModelPart::ConditionsContainerType::Pointer, ProcessInfo::Pointer>(), pybind11::arg("container"), pybind11::arg("process_info"))
+        .def(py::init<ModelPart::ElementsContainerType::Pointer, ProcessInfo::Pointer>(), pybind11::arg("container"), pybind11::arg("process_info"))
+        ;
 }
 
 } // namespace Kratos::Python.
