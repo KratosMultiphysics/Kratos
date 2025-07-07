@@ -169,8 +169,9 @@ class GeoMechanicsAnalysis(AnalysisStage):
                 KratosGeo.CalculateIncrementalDisplacementProcess(
                     self._GetSolver().GetComputingModelPart(), Kratos.Parameters()).Execute()
 
-                for node in self._GetSolver().GetComputingModelPart().Nodes:
-                    self._CalculateTotalDisplacement(node)
+                KratosGeo.CalculateTotalMotionProcess(
+                    self._GetSolver().GetComputingModelPart(),
+                    Kratos.Parameters("""{"variable_name": "DISPLACEMENT"}""")).Execute()
 
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
@@ -193,10 +194,6 @@ class GeoMechanicsAnalysis(AnalysisStage):
 
     def _CreateSolver(self):
         return geomechanics_solvers_wrapper.CreateSolver(self.model, self.project_parameters)
-
-    def _CalculateTotalDisplacement(self, node):
-        total_displacement = node.GetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT) + node.GetSolutionStepValue(KratosGeo.INCREMENTAL_DISPLACEMENT)
-        node.SetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT, total_displacement)
 
     def _GetOrderOfProcessesInitialization(self):
         return ["constraints_process_list",
