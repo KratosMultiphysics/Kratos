@@ -805,7 +805,7 @@ if __name__ == "__main__":
 
     x, y, z = data[:, 0], data[:, 1], data[:, 2]
 
-    # ==== Create Global Slices Variable ====
+    # ==== Create Slices Variable ====
     z_min, z_max = z.min(), z.max()
     slice_bounds = np.linspace(z_max, z_min, num_slices + 1)  # Reversed for shallowest (1) to deepest (N)
     slices = [None] * num_slices
