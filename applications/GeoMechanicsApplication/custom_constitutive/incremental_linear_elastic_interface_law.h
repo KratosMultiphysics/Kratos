@@ -13,9 +13,9 @@
 
 #pragma once
 
+#include "constitutive_law_dimension.h"
 #include "includes/constitutive_law.h"
 #include "includes/kratos_export_api.h"
-#include "constitutive_law_dimension.h"
 
 namespace Kratos
 {

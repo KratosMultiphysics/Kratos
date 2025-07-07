@@ -20,8 +20,7 @@ namespace Kratos
 
 ConstitutiveLaw::Pointer GeoIncrementalLinearElasticInterfaceLaw::Clone() const
 {
-    return std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(
-        mConstitutiveLawDimension->Clone());
+    return std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(mConstitutiveLawDimension->Clone());
 }
 
 ConstitutiveLaw::SizeType GeoIncrementalLinearElasticInterfaceLaw::WorkingSpaceDimension()
@@ -52,9 +51,7 @@ Matrix& GeoIncrementalLinearElasticInterfaceLaw::CalculateValue(ConstitutiveLaw:
                                                                 Matrix& rValue)
 {
     if (rThisVariable == CONSTITUTIVE_MATRIX) {
-        const auto& r_properties = rParameterValues.GetMaterialProperties();
-        rValue = mConstitutiveLawDimension->CalculateElasticMatrix(
-            r_properties[INTERFACE_NORMAL_STIFFNESS], r_properties[INTERFACE_SHEAR_STIFFNESS]);
+        rValue = mConstitutiveLawDimension->CalculateElasticMatrix(rParameterValues.GetMaterialProperties());
     } else {
         KRATOS_ERROR << "Can't calculate value of " << rThisVariable.Name() << ": unsupported variable\n";
     }
@@ -83,9 +80,7 @@ void GeoIncrementalLinearElasticInterfaceLaw::CalculateMaterialResponseCauchy(Co
 {
     rValues.GetStressVector() =
         mPreviousTraction +
-        prod(mConstitutiveLawDimension->CalculateElasticMatrix(
-                 rValues.GetMaterialProperties()[INTERFACE_NORMAL_STIFFNESS],
-                 rValues.GetMaterialProperties()[INTERFACE_SHEAR_STIFFNESS]),
+        prod(mConstitutiveLawDimension->CalculateElasticMatrix(rValues.GetMaterialProperties()),
              rValues.GetStrainVector() - mPreviousRelativeDisplacement);
 }
 

@@ -75,9 +75,8 @@ KRATOS_TEST_CASE_IN_SUITE(IncrementalLinearElasticConstitutiveLawIsAvailableAfte
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementsAreAvailableAfterGeoAppRegistration, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KratosGeoMechanicsApplication geo_app;
-    const auto                    element_type_names =
-        std::vector<std::string>{"GeoULineInterfacePlaneStrainElement2Plus2N",
-                                 "GeoULineInterfacePlaneStrainElement3Plus3N"};
+    const auto                    element_type_names = std::vector<std::string>{
+        "GeoULineInterfacePlaneStrainElement2Plus2N", "GeoULineInterfacePlaneStrainElement3Plus3N"};
 
     for (const auto& r_name : element_type_names) {
         KRATOS_EXPECT_FALSE(KratosComponents<Element>::Has(r_name))

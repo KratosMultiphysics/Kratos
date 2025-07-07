@@ -15,14 +15,15 @@
 
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_constants.h"
+#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
 
-Matrix InterfaceThreeDimensionalSurface::CalculateElasticMatrix(double NormalStiffness, double ShearStiffness) const
+Matrix InterfaceThreeDimensionalSurface::CalculateElasticMatrix(const Properties& rProperties) const
 {
     auto result = ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
-        NormalStiffness, ShearStiffness, GetStrainSize());
+        rProperties[INTERFACE_NORMAL_STIFFNESS], rProperties[INTERFACE_SHEAR_STIFFNESS], GetStrainSize());
     result(2, 2) = result(1, 1);
 
     return result;
