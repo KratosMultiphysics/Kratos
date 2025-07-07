@@ -154,7 +154,7 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
     def test_SupportedNdArrays(self):
         t_adaptor = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.DENSITY)
 
-        for i, numpy_dtype in enumerate([numpy.bool, numpy.uint8, numpy.uint16, numpy.uint32, numpy.uint64, numpy.int8, numpy.int16, numpy.int32, numpy.int64, numpy.float32, numpy.float64, numpy.float128]):
+        for i, numpy_dtype in enumerate([bool, numpy.uint8, numpy.uint16, numpy.uint32, numpy.uint64, numpy.int8, numpy.int16, numpy.int32, numpy.int64, numpy.float32, numpy.float64, numpy.float128]):
             numpy_array = numpy.array(numpy.random.random((t_adaptor.Shape())), dtype=numpy_dtype)
             t_adaptor.data = numpy_array
             t_adaptor.StoreData()
