@@ -71,8 +71,8 @@ private:
     [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector,
                                                     double        YoungsModulus,
                                                     double        PoissonsRatio) const;
-    Vector AveragingPrincipalStressComponents(const Vector& rPrincipalStressVector, int MappingType);
-    int FindMappingType(const Vector& rMappedPrincipalStressVector);
+    static Vector AveragingPrincipalStressComponents(const Vector& rPrincipalStressVector, int MappingType);
+    static int FindMappingType(const Vector& rMappedPrincipalStressVector);
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
