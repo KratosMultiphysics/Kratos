@@ -188,6 +188,14 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         for node in self.model_part.Nodes:
             self.assertEqual(node.GetValue(Kratos.PRESSURE), node.GetValue(Kratos.DENSITY))
 
+    def test_TensorAdaptorMoveData(self):
+        t_adaptor_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
+        t_adaptor_1.CollectData()
+
+        numpy_data = t_adaptor_1.MoveData()
+        for i, node in enumerate(self.model_part.Nodes):
+            self.assertEqual(numpy_data[i], node.GetValue(Kratos.PRESSURE))
+
     def test_NodeVariableTensorAdaptor(self):
         self.__TestVariableTensorAdaptor(self.model_part.Nodes)
 
