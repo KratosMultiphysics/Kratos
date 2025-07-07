@@ -105,6 +105,40 @@ pybind11::array_t<TDataType> GetPybindArray(TensorAdaptor<TDataType>& rTensorAda
     }
 }
 
+template<class TDataType>
+pybind11::array_t<TDataType> MovePybindArray(TensorAdaptor<TDataType>& rTensorAdaptor)
+{
+    const auto& r_shape = rTensorAdaptor.Shape();
+
+    std::vector<std::size_t> c_shape(r_shape.size());
+    std::copy(r_shape.begin(), r_shape.end(), c_shape.begin());
+    std::vector<std::size_t> strides(c_shape.size());
+
+    std::size_t stride_items = 1;
+    for (int i = c_shape.size() - 1; i >= 0; --i) {
+        strides[i] = sizeof(TDataType) * stride_items;
+        stride_items *= c_shape[i];
+    }
+
+    if (rTensorAdaptor.Size() > 0) {
+        DenseVector<TDataType> values = rTensorAdaptor.MoveData();
+        TDataType * moved_values = new TDataType[values.size()];
+        std::copy(values.data().begin(), values.data().end(), moved_values);
+
+        pybind11::capsule release(moved_values, [](void* a){ delete[] reinterpret_cast<TDataType*>(a); });
+        return pybind11::array_t<TDataType>(pybind11::buffer_info(
+            moved_values,                   // Pointer to data
+            sizeof(TDataType),                                  // Size of one item
+            pybind11::format_descriptor<TDataType>::format(),   // Python format descriptor
+            c_shape.size(),                                     // Number of dimensions
+            c_shape,                                            // Shape of the array
+            strides                                             // Strides
+        ), release);
+    } else {
+        return pybind11::array_t<TDataType>(c_shape, strides);
+    }
+}
+
 template<class TTensorDataType, class TPybindArrayType>
 void AssignData(
     TensorAdaptor<TTensorDataType>& rTensorAdaptor,
@@ -204,6 +238,7 @@ void AddBaseTensorAdaptor(
         .def("Size", &tensor_adaptor::Size)
         .def("__str__", PrintObject<tensor_adaptor>)
         .def("ViewData", &Detail::GetPybindArray<TDataType>)
+        .def("MoveData", &Detail::MovePybindArray<TDataType>)
         .def("SetData", &Detail::SetPybindArray<TDataType>, pybind11::arg("array").noconvert())
         .def_property("data",
             &Detail::GetPybindArray<TDataType>,
