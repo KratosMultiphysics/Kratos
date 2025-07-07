@@ -209,6 +209,10 @@ void AddBaseTensorAdaptor(
             pybind11::cpp_function(
                 &Detail::SetPybindArray<TDataType>,
                 pybind11::arg("self"),
+                // no convert makes sure that the numpy arrays are
+                // not converted, hence nothing will be copied. numpy
+                // array will be passed as it is to the SetPybindArray
+                // method.
                 pybind11::arg("array").noconvert())
             )
     ;
