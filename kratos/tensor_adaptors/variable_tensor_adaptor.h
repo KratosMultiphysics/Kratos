@@ -250,6 +250,11 @@ private:
             << "Tensor adapter shape = " << this->mShape << ", container size = " << rContainer.size()
             << ", TensorAdaptor = " << *this << " ].\n";
 
+        KRATOS_ERROR_IF_NOT(this->mData.size() == this->Size())
+            << "Data container size mismatch [ mData.size() = "
+            << this->mData.size() << ", shape size = " << this->Size()
+            << ", shape = " << this->mShape << " ].\n";
+
         // The case with following constexpr becoming false will never be reached
         // at runtime because, this class's constructors are enabled only
         // for the TContainerTypes which the TIOType is allowed.
@@ -272,6 +277,11 @@ private:
             << "First dimension of the initialized tensor adaptor mismatch with the container size [ "
             << "Tensor adapter shape = " << this->mShape << ", container size = " << rContainer.size()
             << ", TensorAdaptor = " << *this << " ].\n";
+
+        KRATOS_ERROR_IF_NOT(this->mData.size() == this->Size())
+            << "Data container size mismatch [ mData.size() = "
+            << this->mData.size() << ", shape size = " << this->Size()
+            << ", shape = " << this->mShape << " ].\n";
 
         const std::vector<unsigned int> shape(this->mShape.begin() + 1, this->mShape.end());
 
