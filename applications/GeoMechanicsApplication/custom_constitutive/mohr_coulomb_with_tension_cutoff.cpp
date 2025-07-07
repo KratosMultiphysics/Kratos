@@ -166,22 +166,22 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
         int    mapping_type = 1;
         Vector mapped_sigma_tau =
             mCoulombWithTensionCutOffImpl.DoReturnMapping(r_prop, trial_sigma_tau, mapping_type);
-        Vector mapped_principal_trial_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
+        Vector mapped_principal_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
             mapped_sigma_tau, principal_trial_stress_vector);
 
-        mapping_type = FindMappingType(mapped_principal_trial_stress_vector);
+        mapping_type = FindMappingType(mapped_principal_stress_vector);
         if (mapping_type == 1) {
             mStressVector = StressStrainUtilities::RotatePrincipalStresses(
-                mapped_principal_trial_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
+                mapped_principal_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
         } else {
             principal_trial_stress_vector = this->AveragingPrincipalStressComponents(
                 principal_trial_stress_vector, mapping_type);
             trial_sigma_tau =
                 StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_trial_stress_vector);
-            trial_sigma_tau =
+            mapped_sigma_tau =
                 mCoulombWithTensionCutOffImpl.DoReturnMapping(r_prop, trial_sigma_tau, mapping_type);
             principal_trial_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
-                trial_sigma_tau, principal_trial_stress_vector);
+                mapped_sigma_tau, principal_trial_stress_vector);
             principal_trial_stress_vector[1] = principal_trial_stress_vector[mapping_type];
             mStressVector                    = StressStrainUtilities::RotatePrincipalStresses(
                 principal_trial_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
