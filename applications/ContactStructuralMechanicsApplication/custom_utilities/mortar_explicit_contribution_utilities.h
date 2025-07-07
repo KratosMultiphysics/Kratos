@@ -76,6 +76,9 @@ public:
     /// Point definition
     using PointType = Point;
 
+    /// Geometry point type definition
+    using GeometryPointType = Geometry<PointType>;
+
     /// Geometry type definition
     using GeometryType = Geometry<Node>;
 
@@ -204,7 +207,7 @@ public:
         GeneralVariables& rVariables,
         const ConditionArrayListType& rConditionsPointsSlave,
         BoundedMatrix<double, TNumNodes, TNumNodes>& rAe,
-        const IntegrationMethod& rIntegrationMethod,
+        const GeometryData::IntegrationMethod& rIntegrationMethod,
         const double AxiSymCoeff = 1.0
         );
 

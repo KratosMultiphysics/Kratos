@@ -1,26 +1,22 @@
+import os
+import math
 import tkinter as tk
 from tkinter import ttk, scrolledtext
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import threading
-
-from run_triaxial_simulation import run_triaxial_simulation
-from ui_logger import init_log_widget, log_message, clear_log
-from ui_udsm_parser import input_parameters_format_to_unicode
 import traceback
 
+from ui_runner import run_gui_builder
+from ui_logger import init_log_widget, log_message, clear_log
+from ui_udsm_parser import input_parameters_format_to_unicode
 
-MAX_STRAIN_LABEL = "Maximum Strain |εᵧᵧ|"
-INIT_PRESSURE_LABEL = "Initial effective cell pressure |σ'ₓₓ|"
-STRESS_INC_LABEL = "Stress increment |σ'ᵧᵧ|"
-NUM_STEPS_LABEL = "Number of steps"
-DURATION_LABEL = "Duration"
-FL2_UNIT_LABEL = "kN/m²"
-SECONDS_UNIT_LABEL = "s"
-PERCENTAGE_UNIT_LABEL = "%"
-WITHOUT_UNIT_LABEL = ""
-
+from ui_labels import (
+    TRIAXIAL, DIRECT_SHEAR,
+    MAX_STRAIN_LABEL, INIT_PRESSURE_LABEL, STRESS_INC_LABEL, NUM_STEPS_LABEL, DURATION_LABEL,
+    FL2_UNIT_LABEL, SECONDS_UNIT_LABEL, PERCENTAGE_UNIT_LABEL, WITHOUT_UNIT_LABEL
+)
 
 class GeotechTestUI:
     def __init__(self, root, parent_frame, test_name, dll_path, model_dict, external_widgets=None):
@@ -33,15 +29,18 @@ class GeotechTestUI:
 
         self.model_var = tk.StringVar(root)
         self.model_var.set(model_dict["model_name"][0])
-        self.current_test = tk.StringVar(value="Triaxial")
+        self.current_test = tk.StringVar(value=TRIAXIAL)
 
         self._init_frames()
-        self._init_dropdown_section()
-        self._init_plot_canvas()
-        self._create_input_fields()
+
+        self.plot_frame = ttk.Frame(self.parent, padding="5", width=800, height=600)
+        self.plot_frame.pack(side="right", fill="both", expand=True, padx=5, pady=5)
 
         self.is_running = False
         self.external_widgets = external_widgets if external_widgets else []
+
+        self._init_dropdown_section()
+        self._create_input_fields()
 
     def _start_simulation_thread(self):
         if self.is_running:
@@ -67,17 +66,18 @@ class GeotechTestUI:
         self.log_frame = ttk.Frame(self.left_frame, padding="5")
         self.log_frame.pack(fill="x", padx=10, pady=(0, 10))
 
-    def _init_plot_canvas(self):
-        self.plot_frame = ttk.Frame(self.parent, padding="5", width=800, height=600)
-        self.plot_frame.pack(side="right", fill="both", expand=True, padx=5, pady=5)
+    def _init_plot_canvas(self, num_plots):
+        self._destroy_existing_plot_canvas()
 
-        self.fig = plt.figure(figsize=(12, 15))
-        self.gs = GridSpec(3, 2, figure=self.fig, wspace=0.4, hspace=0.6)
-        self.axes = [self.fig.add_subplot(self.gs[i]) for i in range(5)]
+        self.fig = plt.figure(figsize=(12, 8), dpi=100)
+        rows = math.ceil(math.sqrt(num_plots))
+        cols = math.ceil(num_plots / rows)
+
+        self.gs = GridSpec(rows, cols, figure=self.fig, wspace=0.4, hspace=0.6)
+        self.axes = [self.fig.add_subplot(self.gs[i]) for i in range(num_plots)]
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.plot_frame)
+        self.canvas.draw()
         self.canvas.get_tk_widget().pack(fill="both", expand=True)
-        if len(self.fig.axes) == 6:
-            self.fig.delaxes(self.fig.axes[5])
 
     def _init_dropdown_section(self):
         ttk.Label(self.dropdown_frame, text="Select a Model:", font=("Arial", 12, "bold")).pack(anchor="w", padx=5, pady=5)
@@ -108,14 +108,7 @@ class GeotechTestUI:
         params = self.model_dict["param_names"][index]
         units = self.model_dict.get("param_units", [[]])[index]
 
-        raw_defaults = {
-            "1. E": "10000", "2. n_ur": "0.3", "3. c'": "0.0", "4. f_peak": "30.0",
-            "5. y_peak": "0.0", "6. s_t, cut-off": "0.0", "7. yield function (MC=1 DP=2 MNC=3 MN=4)": "1",
-            "8. n_un (UMAT)": "0.3", "YOUNG_MODULUS": "10000", "POISSON_RATIO": "0.3"
-        }
-        default_values = {
-            input_parameters_format_to_unicode(k): v for k, v in raw_defaults.items()
-        }
+        default_values = {}
         self.entry_widgets = self._create_entries(self.param_frame, "Soil Input Parameters", params, units, default_values)
 
         self.mohr_checkbox = tk.BooleanVar()
@@ -129,13 +122,20 @@ class GeotechTestUI:
         self.test_selector_frame.pack(fill="x", pady=(10, 5))
 
         self.test_buttons = {}
-        for test_name in ["Triaxial", "Oedometer", "Direct Shear"]:
+        self.test_images = {
+            TRIAXIAL: tk.PhotoImage(file=os.path.join(os.path.dirname(__file__), "assets", "triaxial.png")),
+            DIRECT_SHEAR: tk.PhotoImage(file=os.path.join(os.path.dirname(__file__), "assets", "direct_shear.png"))
+        }
+
+        for test_name in [TRIAXIAL, DIRECT_SHEAR]:
             btn = tk.Button(
                 self.test_selector_frame,
                 text=test_name,
-                font=("Arial", 8, "bold"),
-                width=10,
-                height=10,
+                image=self.test_images[test_name],
+                compound="top",
+                font=("Arial", 10, "bold"),
+                width=100,
+                height=100,
                 relief="raised",
                 command=lambda name=test_name: self._switch_test(name)
             )
@@ -145,7 +145,7 @@ class GeotechTestUI:
         self.test_input_frame = ttk.Frame(self.param_frame, padding="10")
         self.test_input_frame.pack(fill="both", expand=True)
 
-        self._switch_test("Triaxial")
+        self._switch_test(TRIAXIAL)
 
         self.run_button = ttk.Button(self.button_frame, text="Run Calculation", command=self._start_simulation_thread)
         self.run_button.pack(pady=5)
@@ -201,84 +201,99 @@ class GeotechTestUI:
 
         for name, button in self.test_buttons.items():
             if name == test_name:
-                button.config(relief="sunken", bg="#d9d9d9", state="disabled")
+                button.config(relief="sunken", bg="SystemButtonFace", state="normal")
             else:
                 button.config(relief="raised", bg="SystemButtonFace", state="normal")
 
         for w in self.test_input_frame.winfo_children():
             w.destroy()
 
-        if test_name == "Triaxial":
+        if test_name == TRIAXIAL:
+            self._init_plot_canvas(num_plots=5)
+            ttk.Label(self.test_input_frame, text="Triaxial Input Data", font=("Arial", 12, "bold")).pack(anchor="w", padx=5, pady=(5, 0))
+            self._add_test_type_dropdown(self.test_input_frame)
             self.triaxial_widgets = self._create_entries(
                 self.test_input_frame,
-                "Triaxial Input Data",
+                "",
                 [INIT_PRESSURE_LABEL, MAX_STRAIN_LABEL, NUM_STEPS_LABEL, DURATION_LABEL],
                 [FL2_UNIT_LABEL, PERCENTAGE_UNIT_LABEL, WITHOUT_UNIT_LABEL, SECONDS_UNIT_LABEL],
-                {INIT_PRESSURE_LABEL: "100", MAX_STRAIN_LABEL: "10",
+                {INIT_PRESSURE_LABEL: "100", MAX_STRAIN_LABEL: "20",
                  NUM_STEPS_LABEL: "100", DURATION_LABEL: "1.0"}
             )
-        elif test_name == "Oedometer":
-            self.oedometer_widgets = self._create_entries(
-                self.test_input_frame,
-                "Oedometer Input Data",
-                [DURATION_LABEL, STRESS_INC_LABEL, NUM_STEPS_LABEL],
-                [FL2_UNIT_LABEL, FL2_UNIT_LABEL, WITHOUT_UNIT_LABEL],
-                {DURATION_LABEL: "1.0", STRESS_INC_LABEL: "100", NUM_STEPS_LABEL: "100"}
-            )
-        elif test_name == "Direct Shear":
+
+        elif test_name == DIRECT_SHEAR:
+            self._init_plot_canvas(num_plots=4)
+            ttk.Label(self.test_input_frame, text="Direct Simple Shear Input Data", font=("Arial", 12, "bold")).pack(anchor="w", padx=5, pady=(5, 0))
+            self._add_test_type_dropdown(self.test_input_frame)
             self.shear_widgets = self._create_entries(
                 self.test_input_frame,
-                "Direct Shear Input Data",
+                "",
                 [INIT_PRESSURE_LABEL, MAX_STRAIN_LABEL, NUM_STEPS_LABEL, DURATION_LABEL],
-                [FL2_UNIT_LABEL, PERCENTAGE_UNIT_LABEL, "", SECONDS_UNIT_LABEL],
-                {INIT_PRESSURE_LABEL: "100", MAX_STRAIN_LABEL: "10",
+                [FL2_UNIT_LABEL, PERCENTAGE_UNIT_LABEL, WITHOUT_UNIT_LABEL, SECONDS_UNIT_LABEL],
+                {INIT_PRESSURE_LABEL: "100", MAX_STRAIN_LABEL: "20",
                  NUM_STEPS_LABEL: "100", DURATION_LABEL: "1.0"}
             )
 
         log_message(f"{test_name} test selected.", "info")
 
+
+    def _add_test_type_dropdown(self, parent):
+        ttk.Label(parent, text="Type of Test:", font=("Arial", 10, "bold")).pack(anchor="w", padx=5, pady=(5, 2))
+
+        self.test_type_var = tk.StringVar(value="Drained")
+        self.test_type_menu = ttk.Combobox(
+            parent,
+            textvariable=self.test_type_var,
+            values=["Drained"],
+            state="readonly",
+            width=12
+        )
+        self.test_type_menu.pack(anchor="w", padx=10, pady=(0, 10))
+
+        self.test_type_menu.bind("<<ComboboxSelected>>")
+
     def _run_simulation(self):
-        clear_log()
         try:
             log_message("Starting calculation... Please wait...", "info")
             log_message("Validating input...", "info")
             self.root.update_idletasks()
 
-            umat_params = [e.get() for e in self.entry_widgets.values()]
-
-            if self.current_test.get() != "Triaxial":
-                raise NotImplementedError(f"{self.current_test.get()} simulation not yet implemented.")
-
-            eps_max = float(self.triaxial_widgets[MAX_STRAIN_LABEL].get())
-            sigma_init = float(self.triaxial_widgets[INIT_PRESSURE_LABEL].get())
-            n_steps = float(self.triaxial_widgets[NUM_STEPS_LABEL].get())
-            duration = float(self.triaxial_widgets[DURATION_LABEL].get())
-
-            if any(val <= 0 for val in [eps_max, n_steps, duration]) or sigma_init < 0:
-                raise ValueError("All values must be positive and non-zero.")
+            material_params = [e.get() for e in self.entry_widgets.values()]
 
             cohesion_phi_indices = None
             if not self.is_linear_elastic and self.mohr_checkbox.get():
                 cohesion_phi_indices = (int(self.cohesion_var.get()), int(self.phi_var.get()))
 
-            index = self.model_dict["model_name"].index(self.model_var.get()) + 1 if self.dll_path else -2
+            index = self.model_dict["model_name"].index(self.model_var.get()) + 1 if self.dll_path else None
+            test_type = self.current_test.get()
 
             log_message("Calculating...", "info")
             self.root.update_idletasks()
 
-            run_triaxial_simulation(
-                dll_path=self.dll_path or "",
-                index=index,
-                umat_parameters=[float(x) for x in umat_params],
-                num_steps=n_steps,
-                end_time=duration,
-                maximum_strain=eps_max,
-                initial_effective_cell_pressure=sigma_init,
-                cohesion_phi_indices=cohesion_phi_indices,
-                axes=self.axes
-            )
+            if test_type == TRIAXIAL:
+                run_gui_builder(
+                    test_type="triaxial",
+                    dll_path=self.dll_path or "",
+                    index=index,
+                    material_parameters=[float(x) for x in material_params],
+                    input_widgets=self.triaxial_widgets,
+                    cohesion_phi_indices=cohesion_phi_indices,
+                    axes=self.axes
+                )
+
+            elif test_type == DIRECT_SHEAR:
+                run_gui_builder(
+                    test_type="direct_shear",
+                    dll_path=self.dll_path or "",
+                    index=index,
+                    material_parameters=[float(x) for x in material_params],
+                    input_widgets=self.shear_widgets,
+                    cohesion_phi_indices=cohesion_phi_indices,
+                    axes=self.axes
+                )
+
             self.canvas.draw()
-            log_message("Simulation completed successfully.", "info")
+            log_message(f"{test_type} test completed successfully.", "info")
 
         except Exception:
             log_message("An error occurred during simulation:", "error")
@@ -316,3 +331,11 @@ class GeotechTestUI:
             self.model_menu.configure(state="disabled")
         else:
             self.model_menu.configure(state="readonly")
+
+    def _destroy_existing_plot_canvas(self):
+        if hasattr(self, "plot_frame") and self.plot_frame.winfo_exists():
+            for widget in self.plot_frame.winfo_children():
+                widget.destroy()
+        self.fig = None
+        self.canvas = None
+        self.axes = []
