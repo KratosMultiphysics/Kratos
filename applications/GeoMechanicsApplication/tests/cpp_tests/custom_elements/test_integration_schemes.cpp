@@ -123,8 +123,8 @@ class ParametrizedInterfaceIntegrationMethodSuite
 
 TEST_P(ParametrizedInterfaceIntegrationMethodSuite, NumberOfIntegrationPointsMatchesTheNumberOfPointsGivenAtConstructionTime)
 {
-    const auto [number, scheme_creator] = GetParam();
-    const auto p_scheme                 = scheme_creator(number);
+    const auto& [number, scheme_creator] = GetParam();
+    const auto p_scheme                  = scheme_creator(number);
 
     KRATOS_EXPECT_EQ(p_scheme->GetNumberOfIntegrationPoints(), number);
     KRATOS_EXPECT_EQ(p_scheme->GetIntegrationPoints().size(), number);
