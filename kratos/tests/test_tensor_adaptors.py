@@ -10,6 +10,7 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("test")
         cls.model_part.SetBufferSize(2)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.NODAL_VAUX)
 
         cls.input_list_of_variables = [
                 Kratos.PRESSURE,                # double
@@ -41,7 +42,15 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
             cls.model_part.CreateNewCondition("LineCondition2D2N", i + 1, [i + 1, ((i + 1) % 10 + 1)], cls.model_part.GetProperties(i + 1))
 
         for i in range(10):
-            cls.model_part.CreateNewElement("Element3D2N", i + 1, [i + 1, ((i + 1) % 10 + 1)], cls.model_part.GetProperties(i + 1))
+            cls.model_part.CreateNewElement("EdgeBasedGradientRecoveryElement3D2N", i + 1, [i + 1, ((i + 1) % 10 + 1)], cls.model_part.GetProperties(i + 1))
+
+        Kratos.VariableUtils().AddDof(Kratos.NODAL_VAUX_X, cls.model_part)
+        Kratos.VariableUtils().AddDof(Kratos.NODAL_VAUX_Y, cls.model_part)
+        Kratos.VariableUtils().AddDof(Kratos.NODAL_VAUX_Z, cls.model_part)
+
+        builder_and_solver = Kratos.ResidualBasedBlockBuilderAndSolver(Kratos.LinearSolverFactory().Create(Kratos.Parameters("""{"solver_type": "skyline_lu_factorization"}""")))
+        builder_and_solver.SetUpDofSet(Kratos.ResidualBasedBDFDisplacementScheme(), cls.model_part)
+        builder_and_solver.SetUpSystem(cls.model_part)
 
     def setUp(self):
         Kratos.VariableUtils().ClearNonHistoricalData(self.model_part.Nodes)
@@ -207,6 +216,21 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
 
     def test_PropertyVariableTensorAdaptor(self):
         self.__TestVariableTensorAdaptor(self.model_part.Properties)
+
+    def test_ElementEquationIdsTensorAdaptor(self):
+        self.__TestEquationIdsTensorAdaptor(self.model_part.Elements)
+
+    def __TestEquationIdsTensorAdaptor(self, container):
+        tensor_adaptor = Kratos.TensorAdaptors.EquationIdsTensorAdaptor(container, self.model_part.ProcessInfo)
+        tensor_adaptor.CollectData()
+
+        numpy_data = tensor_adaptor.data
+
+        for i, entity in enumerate(container):
+            self.assertVectorAlmostEqual(numpy_data[i, :], entity.EquationIdVector(self.model_part.ProcessInfo))
+
+        with self.assertRaises(RuntimeError):
+            tensor_adaptor.StoreData()
 
     def __TestVariableTensorAdaptor(self, container):
         for input_var, output_var in zip(self.input_list_of_variables, self.output_list_of_variables):
