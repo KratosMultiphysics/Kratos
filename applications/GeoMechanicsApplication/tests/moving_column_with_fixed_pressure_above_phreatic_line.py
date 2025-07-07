@@ -62,7 +62,7 @@ class KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine(
             reader.nodal_values_at_time("WATER_PRESSURE", 25200.0, output_data, [27])[
                 0
             ],
-            -3678.75,
+            -3750.0,
             5,
         )
         # When it's moving upwards again, we have another theoretical cross-over time at 151200 seconds. However,
@@ -70,7 +70,7 @@ class KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine(
         # the real cross-over happens one step later.
         self.assertAlmostEqual(
             reader.nodal_values_at_time("WATER_PRESSURE", 154800, output_data, [27])[0],
-            -3678.75,
+            -3750.0,
             5,
         )
         self.assertAlmostEqual(

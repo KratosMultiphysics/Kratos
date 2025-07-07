@@ -95,14 +95,14 @@
           "model_part_name": "PorousDomain.Top",
           "variable_name": "WATER_PRESSURE",
           "is_fixed": true,
-          "table": 0,
+          "table": [0,0],
           "fluid_pressure_type": "Phreatic_Multi_Line",
           "gravity_direction": 1,
           "out_of_plane_direction": 2,
           "x_coordinates": [0.0, 1.0],
           "y_coordinates": [-2.0, -2.0],
           "z_coordinates": [0.0, 0.0],
-          "specific_weight": 9810.0
+          "specific_weight": 10000.0
         }
       },
        {
@@ -113,14 +113,14 @@
           "model_part_name": "PorousDomain.Bottom",
           "variable_name": "WATER_PRESSURE",
           "is_fixed": true,
-          "table": 0,
+          "table": [0,0],
           "fluid_pressure_type": "Phreatic_Multi_Line",
           "gravity_direction": 1,
           "out_of_plane_direction": 2,
           "x_coordinates": [0.0, 1.0],
           "y_coordinates": [-2.0, -2.0],
           "z_coordinates": [0.0, 0.0],
-          "specific_weight": 9810.0
+          "specific_weight": 10000.0
         }
       }
     ],
