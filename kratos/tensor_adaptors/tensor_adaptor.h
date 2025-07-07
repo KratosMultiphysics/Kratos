@@ -124,7 +124,7 @@ public:
     /**
      * @brief Total size of the tensor.
      */
-    int Size() const { return std::accumulate(mShape.data().begin(), mShape.data().end(), 1, std::multiplies<int>{}); }
+    unsigned int Size() const { return std::accumulate(mShape.data().begin(), mShape.data().end(), 1, std::multiplies<unsigned int>{}); }
 
     ///@}
     ///@name Input and output
