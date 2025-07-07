@@ -19,18 +19,16 @@
 namespace Kratos
 {
 
-Matrix InterfaceThreeDimensionalSurface::MakeInterfaceConstitutiveMatrix(double NormalStiffness,
-                                                                         double ShearStiffness,
-                                                                         std::size_t TractionSize) const
+Matrix InterfaceThreeDimensionalSurface::CalculateElasticMatrix(double NormalStiffness, double ShearStiffness) const
 {
     auto result = ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
-        NormalStiffness, ShearStiffness, TractionSize);
+        NormalStiffness, ShearStiffness, GetStrainSize());
     result(2, 2) = result(1, 1);
 
     return result;
 }
 
-std::unique_ptr<InterfaceConstitutiveLawDimension> InterfaceThreeDimensionalSurface::Clone() const
+std::unique_ptr<ConstitutiveLawDimension> InterfaceThreeDimensionalSurface::Clone() const
 {
     return std::make_unique<InterfaceThreeDimensionalSurface>();
 }
@@ -41,6 +39,13 @@ std::size_t InterfaceThreeDimensionalSurface::GetStrainSize() const
 }
 
 std::size_t InterfaceThreeDimensionalSurface::GetDimension() const { return N_DIM_3D; }
+
+std::size_t InterfaceThreeDimensionalSurface::GetNumberOfNormalComponents() const { return 1; }
+
+Flags InterfaceThreeDimensionalSurface::GetSpatialType() const
+{
+    return ConstitutiveLaw::THREE_DIMENSIONAL_LAW;
+}
 
 void InterfaceThreeDimensionalSurface::save(Serializer&) const
 {

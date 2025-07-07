@@ -19,14 +19,13 @@
 namespace Kratos
 {
 
-Matrix InterfacePlaneStrain::MakeInterfaceConstitutiveMatrix(double      NormalStiffness,
-                                                             double      ShearStiffness,
-                                                             std::size_t TractionSize) const
+Matrix InterfacePlaneStrain::CalculateElasticMatrix(double NormalStiffness, double ShearStiffness) const
 {
-    return ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(NormalStiffness, ShearStiffness, TractionSize);
+    return ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
+        NormalStiffness, ShearStiffness, GetStrainSize());
 }
 
-std::unique_ptr<InterfaceConstitutiveLawDimension> InterfacePlaneStrain::Clone() const
+std::unique_ptr<ConstitutiveLawDimension> InterfacePlaneStrain::Clone() const
 {
     return std::make_unique<InterfacePlaneStrain>();
 }
@@ -34,6 +33,10 @@ std::unique_ptr<InterfaceConstitutiveLawDimension> InterfacePlaneStrain::Clone()
 std::size_t InterfacePlaneStrain::GetStrainSize() const { return VOIGT_SIZE_2D_INTERFACE; }
 
 std::size_t InterfacePlaneStrain::GetDimension() const { return N_DIM_2D; }
+
+std::size_t InterfacePlaneStrain::GetNumberOfNormalComponents() const { return 1; }
+
+Flags InterfacePlaneStrain::GetSpatialType() const { return ConstitutiveLaw::PLANE_STRAIN_LAW; }
 
 void InterfacePlaneStrain::save(Serializer&) const
 {

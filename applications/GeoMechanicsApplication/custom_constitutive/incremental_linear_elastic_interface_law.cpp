@@ -21,17 +21,17 @@ namespace Kratos
 ConstitutiveLaw::Pointer GeoIncrementalLinearElasticInterfaceLaw::Clone() const
 {
     return std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(
-        mInterfaceConstitutiveLawDimension->Clone());
+        mConstitutiveLawDimension->Clone());
 }
 
 ConstitutiveLaw::SizeType GeoIncrementalLinearElasticInterfaceLaw::WorkingSpaceDimension()
 {
-    return mInterfaceConstitutiveLawDimension->GetDimension();
+    return mConstitutiveLawDimension->GetDimension();
 }
 
 ConstitutiveLaw::SizeType GeoIncrementalLinearElasticInterfaceLaw::GetStrainSize() const
 {
-    return mInterfaceConstitutiveLawDimension->GetStrainSize();
+    return mConstitutiveLawDimension->GetStrainSize();
 }
 
 Vector& GeoIncrementalLinearElasticInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
@@ -53,8 +53,8 @@ Matrix& GeoIncrementalLinearElasticInterfaceLaw::CalculateValue(ConstitutiveLaw:
 {
     if (rThisVariable == CONSTITUTIVE_MATRIX) {
         const auto& r_properties = rParameterValues.GetMaterialProperties();
-        rValue = mInterfaceConstitutiveLawDimension->MakeInterfaceConstitutiveMatrix(
-            r_properties[INTERFACE_NORMAL_STIFFNESS], r_properties[INTERFACE_SHEAR_STIFFNESS], GetStrainSize());
+        rValue = mConstitutiveLawDimension->CalculateElasticMatrix(
+            r_properties[INTERFACE_NORMAL_STIFFNESS], r_properties[INTERFACE_SHEAR_STIFFNESS]);
     } else {
         KRATOS_ERROR << "Can't calculate value of " << rThisVariable.Name() << ": unsupported variable\n";
     }
@@ -83,9 +83,9 @@ void GeoIncrementalLinearElasticInterfaceLaw::CalculateMaterialResponseCauchy(Co
 {
     rValues.GetStressVector() =
         mPreviousTraction +
-        prod(mInterfaceConstitutiveLawDimension->MakeInterfaceConstitutiveMatrix(
+        prod(mConstitutiveLawDimension->CalculateElasticMatrix(
                  rValues.GetMaterialProperties()[INTERFACE_NORMAL_STIFFNESS],
-                 rValues.GetMaterialProperties()[INTERFACE_SHEAR_STIFFNESS], GetStrainSize()),
+                 rValues.GetMaterialProperties()[INTERFACE_SHEAR_STIFFNESS]),
              rValues.GetStrainVector() - mPreviousRelativeDisplacement);
 }
 
@@ -125,7 +125,7 @@ void GeoIncrementalLinearElasticInterfaceLaw::save(Serializer& rSerializer) cons
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
     rSerializer.save("PreviousRelativeDisplacement", mPreviousRelativeDisplacement);
     rSerializer.save("PreviousTraction", mPreviousTraction);
-    rSerializer.save("InterfaceConstitutiveLawDimension", mInterfaceConstitutiveLawDimension);
+    rSerializer.save("ConstitutiveLawDimension", mConstitutiveLawDimension);
 }
 
 void GeoIncrementalLinearElasticInterfaceLaw::load(Serializer& rSerializer)
@@ -133,7 +133,7 @@ void GeoIncrementalLinearElasticInterfaceLaw::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
     rSerializer.load("PreviousRelativeDisplacement", mPreviousRelativeDisplacement);
     rSerializer.load("PreviousTraction", mPreviousTraction);
-    rSerializer.load("InterfaceConstitutiveLawDimension", mInterfaceConstitutiveLawDimension);
+    rSerializer.load("ConstitutiveLawDimension", mConstitutiveLawDimension);
 }
 
 } // namespace Kratos
