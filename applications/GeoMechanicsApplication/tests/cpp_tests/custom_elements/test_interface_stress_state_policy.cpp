@@ -11,7 +11,7 @@
 //
 
 #include "custom_elements/interface_stress_state.h"
-#include "custom_geometries/line_interface_geometry.h"
+#include "custom_geometries/interface_geometry.h"
 #include "custom_utilities/registration_utilities.h"
 #include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -36,7 +36,7 @@ auto CreateThreePlusThree2DLineInterfaceGeometry()
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(5, 5.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(6, 2.5, 0.0, 0.0));
-    return LineInterfaceGeometry<Line2D3<Node>>{1, nodes};
+    return InterfaceGeometry<Line2D3<Node>>{1, nodes};
 }
 
 } // namespace
