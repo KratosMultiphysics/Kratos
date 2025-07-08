@@ -29,13 +29,25 @@ namespace
 auto CreateThreePlusThree2DLineInterfaceGeometry()
 {
     PointerVector<Node> nodes;
-    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(3, 2.5, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(5, 5.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(6, 2.5, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(2, 5.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(3, 2.5, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(4, 0.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(5, 5.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(6, 2.5, 0.0, 0.0));
     return InterfaceGeometry<Line2D3<Node>>{1, nodes};
+}
+
+auto CreateThreePlusThreePlaneInterfaceGeometry()
+{
+    PointerVector<Node> nodes;
+    nodes.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(2, 2.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(3, 0.0, 2.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(4, 0.0, 0.0, 0.2));
+    nodes.push_back(make_intrusive<Node>(5, 2.0, 0.0, 0.2));
+    nodes.push_back(make_intrusive<Node>(6, 0.0, 2.0, 0.2));
+    return InterfaceGeometry<Triangle3D3<Node>>{1, nodes};
 }
 
 } // namespace
@@ -63,7 +75,7 @@ KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ThrowsWhenInputtingEmptySha
         "Shape function values are empty. Therefore, the B matrix can not be computed.\n");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ThrowsWhenNumberOfShapeFunctionsIsNotEqualToNumberOfNodePairs,
+KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ThrowsWhenNumberOfShapeFunctionsIsNotEqualToNumberOfNodePairs,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto stress_state_policy = Line2DInterfaceStressState{};
@@ -176,6 +188,22 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_ThrowsWhenInputtingEmptyShap
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto b_matrix = stress_state_policy.CalculateBMatrix({}, {}, {}),
         "Shape function values are empty. Therefore, the B matrix can not be computed.\n");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_ThrowsWhenNumberOfShapeFunctionsIsNotEqualToNumberOfNodePairs,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto stress_state_policy = PlaneInterfaceStressState{};
+    const auto geometry            = CreateThreePlusThreePlaneInterfaceGeometry();
+
+    Vector shape_function_values(2);
+    shape_function_values <<= 1.0, 2.0;
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto b_matrix =
+            stress_state_policy.CalculateBMatrix({}, shape_function_values, geometry),
+        "The number of shape functions should be equal to the number of node pairs. Therefore, "
+        "the B matrix can not be computed.\n");
 }
 
 } // namespace Kratos::Testing
