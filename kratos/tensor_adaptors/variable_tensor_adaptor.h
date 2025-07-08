@@ -20,6 +20,7 @@
 
 // Project includes
 #include "tensor_adaptor.h"
+#include "tensor_adaptor_utils.h"
 #include "utilities/container_io_utils.h"
 
 namespace Kratos {
@@ -102,10 +103,18 @@ public:
         VariableType pVariable,
         const std::vector<unsigned int>& rDataShape,
         TIOArgs&&... rArgs)
+        : mpContainer(pContainer)
     {
         std::visit([&](auto pVariable) {
-            auto p_container_io = this->CreateIO(*pVariable, rArgs...);
-            this->InitImpl(rDataShape, pContainer, p_container_io);
+            auto p_io = this->CreateIO(*pVariable, rArgs...);
+
+            // set the shape
+            this->mShape.resize(rDataShape.size() + 1);
+            this->mShape[0] = pContainer->size();
+            std::copy(rDataShape.begin(), rDataShape.end(), this->mShape.begin() + 1);
+
+            TensorAdaptorUtils::InitializeData(*pContainer, *p_io, this->Shape(), this->mData);
+            mpIO = p_io;
         }, pVariable);
     }
     /**
@@ -125,10 +134,19 @@ public:
         TContainerPointerType pContainer,
         VariableType pVariable,
         TIOArgs&&... rArgs)
+        : mpContainer(pContainer)
     {
         std::visit([&](auto pVariable) {
-            auto p_container_io = this->CreateIO(*pVariable, rArgs...);
-            this->InitImpl(this->GetDataShape(*p_container_io, *pContainer), pContainer, p_container_io);
+            auto p_io = this->CreateIO(*pVariable, rArgs...);
+
+            // set the shape
+            const auto& r_data_shape = this->GetDataShape(*p_io, *pContainer);
+            this->mShape.resize(r_data_shape.size() + 1);
+            this->mShape[0] = pContainer->size();
+            std::copy(r_data_shape.begin(), r_data_shape.end(), this->mShape.begin() + 1);
+
+            TensorAdaptorUtils::InitializeData(*pContainer, *p_io, this->Shape(), this->mData);
+            mpIO = p_io;
         }, pVariable);
     }
 
@@ -144,8 +162,8 @@ public:
      */
     void CollectData() override
     {
-        std::visit([this](auto pContainer, auto pContainerIO){
-            this->CollectDataImpl(*pContainer, *pContainerIO);
+        std::visit([this](auto pContainer, auto pIO){
+            TensorAdaptorUtils::CollectData(*pContainer, *pIO, this->Shape(), this->mData);
         }, mpContainer, mpIO);
     }
 
@@ -155,8 +173,8 @@ public:
      */
     void StoreData() override
     {
-        std::visit([this](auto pContainer, auto pContainerIO){
-            this->StoreDataImpl(*pContainer, *pContainerIO);
+        std::visit([this](auto pContainer, auto pIO){
+            TensorAdaptorUtils::StoreData(*pContainer, *pIO, this->Shape(), this->mData);
         }, mpContainer, mpIO);
     }
 
@@ -171,8 +189,8 @@ public:
 
     std::string Info() const override
     {
-        return std::visit([this](auto pContainer, auto pContainerIO) {
-            return this->InfoImpl(*pContainer, *pContainerIO);
+        return std::visit([this](auto pContainer, auto pIO) {
+            return TensorAdaptorUtils::Info(*pContainer, *pIO, this->Shape());
         }, mpContainer, mpIO);
     }
 
@@ -212,99 +230,6 @@ private:
         }
 
         return DataTypeTraits<return_type>::template Shape<unsigned int>(dummy);
-    }
-
-    template<class TContainerPointerType, class TCurrentIOPointerType>
-    void InitImpl(
-        const std::vector<unsigned int>& rDataShape,
-        TContainerPointerType pContainer,
-        TCurrentIOPointerType pIO)
-    {
-        using return_type = typename TCurrentIOPointerType::element_type::ReturnType;
-
-        KRATOS_ERROR_IF_NOT(DataTypeTraits<return_type>::IsValidShape(rDataShape.data(), rDataShape.data() + rDataShape.size()))
-            << "Invalid data shape provided. [ data shape provided = " << rDataShape
-            << ", max possible sizes in each dimension  = "
-            << DataTypeTraits<return_type>::Shape(return_type{}) << " ].\n";
-
-        // setting the tensor shape
-        this->mShape.resize(rDataShape.size() + 1);
-        std::copy(rDataShape.begin(), rDataShape.end(), this->mShape.begin() + 1);
-        this->mShape[0] = pContainer->size();
-
-        this->mpIO = pIO;
-        this->mpContainer = pContainer;
-        this->mData.resize(this->Size(), false);
-    }
-
-    template<class TContainerType, class TContainerIOType>
-    void CollectDataImpl(
-        const TContainerType& rContainer,
-        const TContainerIOType& rContainerIO)
-    {
-        KRATOS_TRY
-
-        // sanity checks
-        KRATOS_ERROR_IF_NOT(this->mShape[0] == rContainer.size())
-            << "First dimension of the initialized tensor adaptor mismatch with the container size [ "
-            << "Tensor adapter shape = " << this->mShape << ", container size = " << rContainer.size()
-            << ", TensorAdaptor = " << *this << " ].\n";
-
-        KRATOS_ERROR_IF_NOT(this->mData.size() == this->Size())
-            << "Data container size mismatch [ mData.size() = "
-            << this->mData.size() << ", shape size = " << this->Size()
-            << ", shape = " << this->mShape << " ].\n";
-
-        // The case with following constexpr becoming false will never be reached
-        // at runtime because, this class's constructors are enabled only
-        // for the TContainerTypes which the TIOType is allowed.
-        if constexpr(TContainerIOType::template IsAllowedContainer<TContainerType>) {
-            CopyToContiguousArray(rContainer, rContainerIO, this->mData.data().begin(), this->mShape.begin(), this->mShape.end());
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    template<class TContainerType, class TContainerIOType>
-    void StoreDataImpl(
-        TContainerType& rContainer,
-        const TContainerIOType& rContainerIO)
-    {
-        KRATOS_TRY
-
-        // sanity checks
-        KRATOS_ERROR_IF_NOT(this->mShape[0] == rContainer.size())
-            << "First dimension of the initialized tensor adaptor mismatch with the container size [ "
-            << "Tensor adapter shape = " << this->mShape << ", container size = " << rContainer.size()
-            << ", TensorAdaptor = " << *this << " ].\n";
-
-        KRATOS_ERROR_IF_NOT(this->mData.size() == this->Size())
-            << "Data container size mismatch [ mData.size() = "
-            << this->mData.size() << ", shape size = " << this->Size()
-            << ", shape = " << this->mShape << " ].\n";
-
-        const std::vector<unsigned int> shape(this->mShape.begin() + 1, this->mShape.end());
-
-        // The case with following constexpr becoming false will never be reached
-        // at runtime because, this class's constructors are enabled only
-        // for the TContainerTypes which the TIOType is allowed.
-        if constexpr(TContainerIOType::template IsAllowedContainer<TContainerType>) {
-            CopyFromContiguousDataArray(rContainer, rContainerIO, this->mData.data().begin(), this->mShape.begin(), this->mShape.end());
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    template<class TContainerType, class TContainerIOType>
-    std::string InfoImpl(
-        const TContainerType& rContainer,
-        const TContainerIOType& rIO) const
-    {
-        std::stringstream msg;
-        msg << "VariableTensorAdaptor: " << rIO.Info() << " with " << rContainer.size()
-            << " " << ModelPart::Container<TContainerType>::GetEntityName() << "(s) having shape "
-            << this->Shape() << " ].";
-        return msg.str();
     }
 
     ///@}
