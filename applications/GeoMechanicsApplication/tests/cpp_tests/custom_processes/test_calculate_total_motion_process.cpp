@@ -13,6 +13,7 @@
 #include "custom_processes/calculate_total_motion_process.h"
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 using namespace Kratos;
 
@@ -48,9 +49,9 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateTotalMotionProcessDisplacement, KratosGeoMech
     const auto expected_total_displacement_2 = Kratos::array_1d<double, 3>{13.0, 23.0, 17.0};
 
     KRATOS_CHECK_VECTOR_NEAR(p_node_1->FastGetSolutionStepValue(TOTAL_DISPLACEMENT),
-                             expected_total_displacement_1, 1e-12)
+                             expected_total_displacement_1, Defaults::absolute_tolerance)
     KRATOS_CHECK_VECTOR_NEAR(p_node_2->FastGetSolutionStepValue(TOTAL_DISPLACEMENT),
-                             expected_total_displacement_2, 1e-12)
+                             expected_total_displacement_2, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateTotalMotionProcessRotation, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -79,8 +80,10 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateTotalMotionProcessRotation, KratosGeoMechanic
     const auto expected_total_rotation_1 = Kratos::array_1d<double, 3>{-3.0, -3.0, -3.0};
     const auto expected_total_rotation_2 = Kratos::array_1d<double, 3>{13.0, 23.0, 17.0};
 
-    KRATOS_CHECK_VECTOR_NEAR(p_node_1->FastGetSolutionStepValue(TOTAL_ROTATION), expected_total_rotation_1, 1e-12)
-    KRATOS_CHECK_VECTOR_NEAR(p_node_2->FastGetSolutionStepValue(TOTAL_ROTATION), expected_total_rotation_2, 1e-12)
+    KRATOS_CHECK_VECTOR_NEAR(p_node_1->FastGetSolutionStepValue(TOTAL_ROTATION),
+                             expected_total_rotation_1, Defaults::absolute_tolerance)
+    KRATOS_CHECK_VECTOR_NEAR(p_node_2->FastGetSolutionStepValue(TOTAL_ROTATION),
+                             expected_total_rotation_2, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateTotalMotionProcessUndefined, KratosGeoMechanicsFastSuiteWithoutKernel)

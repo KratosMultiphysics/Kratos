@@ -13,6 +13,7 @@
 #include "custom_processes/calculate_incremental_motion_process.h"
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 namespace Kratos::Testing
 {
@@ -54,9 +55,9 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalMotionProcessDisplacement, KratosG
     const auto expected_incremental_displacement_2 = Kratos::array_1d<double, 3>{-4.0, 4.0, -5.0};
 
     KRATOS_CHECK_VECTOR_NEAR(p_node_1->FastGetSolutionStepValue(INCREMENTAL_DISPLACEMENT),
-                             expected_incremental_displacement_1, 1e-12)
+                             expected_incremental_displacement_1, Defaults::absolute_tolerance)
     KRATOS_CHECK_VECTOR_NEAR(p_node_2->FastGetSolutionStepValue(INCREMENTAL_DISPLACEMENT),
-                             expected_incremental_displacement_2, 1e-12)
+                             expected_incremental_displacement_2, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalMotionProcessRotation, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -78,7 +79,6 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalMotionProcessRotation, KratosGeoMe
         p_node->AddDof(ROTATION_Z);
     }
 
-    // set up displacement values
     p_node_1->FastGetSolutionStepValue(ROTATION, 0) = Kratos::array_1d<double, 3>{1.0, 2.0, 3.0};
     p_node_1->FastGetSolutionStepValue(ROTATION, 1) = Kratos::array_1d<double, 3>{4.0, 5.0, 6.0};
 
@@ -94,9 +94,9 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalMotionProcessRotation, KratosGeoMe
     const auto expected_incremental_rotation_2 = Kratos::array_1d<double, 3>{-4.0, 4.0, -5.0};
 
     KRATOS_CHECK_VECTOR_NEAR(p_node_1->FastGetSolutionStepValue(INCREMENTAL_ROTATION),
-                             expected_incremental_rotation_1, 1e-12)
+                             expected_incremental_rotation_1, Defaults::absolute_tolerance)
     KRATOS_CHECK_VECTOR_NEAR(p_node_2->FastGetSolutionStepValue(INCREMENTAL_ROTATION),
-                             expected_incremental_rotation_2, 1e-12)
+                             expected_incremental_rotation_2, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalMotionProcessUndefined, KratosGeoMechanicsFastSuiteWithoutKernel)

@@ -20,22 +20,20 @@ class KratosGeoMechanicsRotationWithMovingLoadTests(KratosUnittest.TestCase):
         res_path = os.path.join(file_path, test_name + result_extension)
         simulation_output = reader.read_output_from(res_path)
         rotations = simulation_output["results"]["ROTATION"]
-        total_rotations = simulation_output["results"]["TOTAL_ROTATION"]
-        incremental_rotations = simulation_output["results"]["INCREMENTAL_ROTATION"]
 
         # Validation for Time = 1.0, validate total and incremental rotations also for time 1.5
         rotations_time_1 = reader.get_values_at_time(1.0, rotations)
         rotations_for_node_1 = reader.get_value_at_node(1, rotations_time_1)
 
-        total_rotations_time_1 = reader.get_values_at_time(1.0, total_rotations)
-        total_rotations_time_1_5 = reader.get_values_at_time(1.5, total_rotations)
-        total_rotations_for_node_1_time_1 = reader.get_value_at_node(1, total_rotations_time_1)
-        total_rotations_for_node_1_time_1_5 = reader.get_value_at_node(1, total_rotations_time_1_5)
+        total_rotations_for_node_1_time_1 = reader.nodal_values_at_time("TOTAL_ROTATION", 1,
+                                                                        simulation_output, [1])[0]
+        total_rotations_for_node_1_time_1_5 = reader.nodal_values_at_time("TOTAL_ROTATION", 1.5,
+                                                                          simulation_output, [1])[0]
 
-        incremental_rotation_time_1 = reader.get_values_at_time(1, incremental_rotations)
-        incremental_rotations_time_1_5 = reader.get_values_at_time(1.5, incremental_rotations)
-        incremental_rotations_for_node_1_time_1 = reader.get_value_at_node(1, incremental_rotation_time_1)
-        incremental_rotations_for_node_1_time_1_5 = reader.get_value_at_node(1, incremental_rotations_time_1_5)
+        incremental_rotations_for_node_1_time_1 = reader.nodal_values_at_time("INCREMENTAL_ROTATION", 1,
+                                                                              simulation_output, [1])[0]
+        incremental_rotations_for_node_1_time_1_5 = reader.nodal_values_at_time("INCREMENTAL_ROTATION", 1.5,
+                                                                                simulation_output, [1])[0]
 
         # This test is a regression test, if rotation is not added to the
         # newmark upw scheme as a variable that needs to be predicted and
