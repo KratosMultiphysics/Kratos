@@ -47,12 +47,12 @@ public:
         return msg.str();
     }
 
-    template<class TContainerType, class TIOType>
+    template<class TContainerType, class TIOType, class TPrimitiveDataType>
     static void InitializeData(
         const TContainerType& rContainer,
         const TIOType& rIO,
         const DenseVector<unsigned int>& rTensorAdaptorShape,
-        DenseVector<typename DataTypeTraits<typename TIOType::ReturnType>::PrimitiveType>& rData)
+        DenseVector<TPrimitiveDataType>& rData)
     {
         using return_type = typename TIOType::ReturnType;
 
@@ -69,12 +69,12 @@ public:
         rData.resize(DataTypeTraits<return_type>::Size(rTensorAdaptorShape.begin() + 1, rTensorAdaptorShape.end()) * rContainer.size(), false);
     }
 
-    template<class TContainerType, class TIOType>
+    template<class TContainerType, class TIOType, class TPrimitiveDataType>
     static void CollectData(
         const TContainerType& rContainer,
         const TIOType& rIO,
         const DenseVector<unsigned int>& rTensorAdaptorShape,
-        DenseVector<typename DataTypeTraits<typename TIOType::ReturnType>::PrimitiveType>& rData)
+        DenseVector<TPrimitiveDataType>& rData)
     {
         KRATOS_TRY
 
@@ -98,12 +98,12 @@ public:
         KRATOS_CATCH("");
     }
 
-    template<class TContainerType, class TIOType>
+    template<class TContainerType, class TIOType, class TPrimitiveDataType>
     static void StoreData(
         TContainerType& rContainer,
         const TIOType& rIO,
         const DenseVector<unsigned int>& rTensorAdaptorShape,
-        const DenseVector<typename DataTypeTraits<typename TIOType::ReturnType>::PrimitiveType>& rData)
+        const DenseVector<TPrimitiveDataType>& rData)
     {
         KRATOS_TRY
 
