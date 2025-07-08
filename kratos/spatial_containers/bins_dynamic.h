@@ -73,8 +73,8 @@ public:
     /// Pointer definition of BinsDynamic
     KRATOS_CLASS_POINTER_DEFINITION(BinsDynamic);
 
-    enum { Dimension = TDimension };
-
+    constexpr static std::size_t Dimension = TDimension;
+    
     using PointType = TPointType;
     using BoundingBoxType = BoundingBox<PointType>;
     using ObjectType = typename GetObjectType<PointType>::type;

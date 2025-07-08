@@ -37,7 +37,7 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
 
 public:
 
-    enum { Dimension = TDimension };
+    constexpr static std::size_t Dimension = TDimension;
 
     typedef TPointType                                  PointType;
     typedef TContainerType                              ContainerType;

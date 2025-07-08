@@ -59,7 +59,7 @@ public:
   ///@name Type Definitions
   ///@{
 
-  enum { Dimension = TConfigure::Dimension };
+  constexpr static std::size_t Dimension = TConfigure::Dimension;
 
   typedef TConfigure                                    Configure;
   typedef typename TConfigure::PointType                PointType;
