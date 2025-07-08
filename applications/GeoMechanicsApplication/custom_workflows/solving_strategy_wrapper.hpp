@@ -15,7 +15,7 @@
 #include "strategy_wrapper.hpp"
 #include <memory>
 
-#include "custom_processes/calculate_incremental_displacement_process.h"
+#include "custom_processes/calculate_incremental_motion_process.h"
 #include "custom_processes/calculate_total_motion_process.h"
 #include "geo_mechanics_application_variables.h"
 #include "geo_output_writer.h"
@@ -106,7 +106,7 @@ public:
 
     void ComputeIncrementalDisplacementField() override
     {
-        auto process = CalculateIncrementalDisplacementProcess(mrModelPart, {});
+        auto process = CalculateIncrementalMotionProcess(mrModelPart, Parameters(R"({"variable_name": "DISPLACEMENT"})"));
         process.Execute();
     }
 
