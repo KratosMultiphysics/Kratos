@@ -34,18 +34,17 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, int MappingT
 {
     Vector result(2);
     switch (MappingType) {
-    case 1:
-        result <<= std::sin(mDilatationAngle), 1.0;
-        break;
     case 0:
         result <<= -(1.0 - 3.0 * std::sin(mDilatationAngle)) / 4.0, (3.0 - std::sin(mDilatationAngle)) / 4.0;
+        break;
+    case 1:
+        result <<= std::sin(mDilatationAngle), 1.0;
         break;
     case 2:
         result <<= (1.0 + 3.0 * std::sin(mDilatationAngle)) / 4.0, (3.0 + std::sin(mDilatationAngle)) / 4.0;
         break;
     default:
         KRATOS_ERROR << "Wrong Mapping Type " << MappingType << ": unsupported variable\n";
-        break;
     }
     return result;
 }
