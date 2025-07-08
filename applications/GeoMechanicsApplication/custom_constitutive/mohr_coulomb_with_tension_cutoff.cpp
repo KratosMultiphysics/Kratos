@@ -195,13 +195,9 @@ Vector MohrCoulombWithTensionCutOff::AveragingPrincipalStressComponents(const Ve
 {
     auto result = rPrincipalStressVector;
     if (MappingType == 0) {
-        double average = (result[0] + result[1]) * 0.5;
-        result[0]      = average;
-        result[1]      = average;
+        std::fill(result.begin(), result.begin()+1, (rPrincipalStressVector[0] + rPrincipalStressVector[1]) * 0.5);
     } else if (MappingType == 2) {
-        double average = (result[1] + result[2]) * 0.5;
-        result[1]      = average;
-        result[2]      = average;
+        std::fill(result.begin()+1, result.begin()+2, (rPrincipalStressVector[1] + rPrincipalStressVector[2]) * 0.5);
     }
     return result;
 }
