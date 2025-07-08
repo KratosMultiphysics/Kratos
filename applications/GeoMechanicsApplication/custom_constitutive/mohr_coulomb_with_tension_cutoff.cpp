@@ -149,19 +149,19 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
             mpConstitutiveDimension->CalculateElasticMatrix(r_prop[YOUNG_MODULUS], r_prop[POISSON_RATIO]);
     }
 
-    const auto trail_stress_vector = CalculateTrialStressVector(
+    const auto trial_stress_vector = CalculateTrialStressVector(
         rParameters.GetStrainVector(), r_prop[YOUNG_MODULUS], r_prop[POISSON_RATIO]);
 
     Vector principal_trial_stress_vector;
     Matrix rotation_matrix;
     StressStrainUtilities::CalculatePrincipalStresses(
-        trail_stress_vector, principal_trial_stress_vector, rotation_matrix);
+        trial_stress_vector, principal_trial_stress_vector, rotation_matrix);
 
     auto trial_sigma_tau =
         StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_trial_stress_vector);
 
     if (mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
-        mStressVector = trail_stress_vector;
+        mStressVector = trial_stress_vector;
     } else {
         int    mapping_type = 1;
         Vector mapped_sigma_tau =
@@ -169,6 +169,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
         Vector mapped_principal_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
             mapped_sigma_tau, principal_trial_stress_vector);
 
+        // for interchanging principal stresses, retry mapping with averaged principal streses.
         mapping_type = FindMappingType(mapped_principal_stress_vector);
         if (mapping_type != 1) {
             Vector averaged_principal_trial_stress_vector =
@@ -179,6 +180,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
                 mCoulombWithTensionCutOffImpl.DoReturnMapping(r_prop, trial_sigma_tau, mapping_type);
             mapped_principal_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
                 mapped_sigma_tau, averaged_principal_trial_stress_vector);
+            // mapping type is sort of an enum, but below used for indexing.
             mapped_principal_stress_vector[1] = mapped_principal_stress_vector[mapping_type];
         }
         mStressVector = StressStrainUtilities::RotatePrincipalStresses(
