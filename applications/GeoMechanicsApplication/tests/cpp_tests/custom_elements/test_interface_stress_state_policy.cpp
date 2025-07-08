@@ -91,22 +91,22 @@ KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ThrowsWhenNumberOfShapeFunc
         "the B matrix can not be computed.\n");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsExpectedVoigtSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ReturnsExpectedVoigtSize, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto stress_state_policy = Line2DInterfaceStressState{};
 
     KRATOS_EXPECT_EQ(stress_state_policy.GetVoigtSize(), 2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsExpectedVoigtVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ReturnsExpectedVoigtVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto stress_state_policy = Line2DInterfaceStressState{};
 
-    const auto& voigt_vector = stress_state_policy.GetVoigtVector();
+    const auto& r_voigt_vector = stress_state_policy.GetVoigtVector();
 
     Vector expected_voigt_vector(2);
     expected_voigt_vector <<= 1.0, 0.0;
-    KRATOS_EXPECT_VECTOR_NEAR(expected_voigt_vector, voigt_vector, 1.0e-6)
+    KRATOS_EXPECT_VECTOR_NEAR(expected_voigt_vector, r_voigt_vector, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectBMatrixForThreePlusThreeNodesGeometry,
@@ -204,6 +204,24 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_ThrowsWhenNumberOfShapeFunct
             stress_state_policy.CalculateBMatrix({}, shape_function_values, geometry),
         "The number of shape functions should be equal to the number of node pairs. Therefore, "
         "the B matrix can not be computed.\n");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_ReturnsExpectedVoigtSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto stress_state_policy = PlaneInterfaceStressState{};
+
+    KRATOS_EXPECT_EQ(stress_state_policy.GetVoigtSize(), 3);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_ReturnsExpectedVoigtVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto stress_state_policy = PlaneInterfaceStressState{};
+
+    const auto& r_voigt_vector = stress_state_policy.GetVoigtVector();
+
+    Vector expected_voigt_vector(3);
+    expected_voigt_vector <<= 1.0, 0.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(expected_voigt_vector, r_voigt_vector, Defaults::absolute_tolerance)
 }
 
 } // namespace Kratos::Testing
