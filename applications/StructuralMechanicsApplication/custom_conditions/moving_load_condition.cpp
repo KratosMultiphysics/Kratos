@@ -442,7 +442,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
 
     // Get global displacement vector
     Vector displacement_vector;
-	this->GetVectorVariableVector(displacement_vector, displacement_variable);
+    this->GetVectorVariableVector(displacement_vector, displacement_variable);
 
     // check if rotation degrees of freedom are active
     const bool has_rot_dof = this->HasRotDof();
@@ -464,7 +464,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
     if (has_rot_dof) {
         for (IndexType ii = 0; ii < TNumNodes; ++ii) {
 
-			array_1d<double, 3> nodal_rotation = GetGeometry()[ii].FastGetSolutionStepValue(rotational_variable);
+            array_1d<double, 3> nodal_rotation = GetGeometry()[ii].FastGetSolutionStepValue(rotational_variable);
 
             nodal_rotation_matrix(0, ii) = nodal_rotation[0];
             nodal_rotation_matrix(1, ii) = nodal_rotation[1];
@@ -585,10 +585,9 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
 
     KRATOS_TRY
 
+    const auto [rotational_variable, displacement_variable] = GetRotationalAndDisplacementVariables();
+
     // Get global displacement vector
-    
-	const auto [rotational_variable, displacement_variable] = GetRotationalAndDisplacementVariables();
-    
     Vector displacement_vector;
     this->GetVectorVariableVector(displacement_vector, displacement_variable);
 
@@ -757,13 +756,12 @@ std::pair<Variable<array_1d<double, 3>>, Variable<array_1d<double, 3>>> MovingLo
             return std::make_pair(rotational_variable, displacement_variable);
         }
         else {
-			KRATOS_ERROR << "the variables TOTAL_ROTATION and/or TOTAL_DISPLACEMENT are not defined in the installed applications." << std::endl;
+            KRATOS_ERROR << "the variables TOTAL_ROTATION and/or TOTAL_DISPLACEMENT are not defined in the installed applications." << std::endl;
         }
     }
     
     const auto& rotational_variable = ROTATION;
     const auto& displacement_variable = DISPLACEMENT;
-
 
     return std::make_pair(rotational_variable, displacement_variable);
 }
