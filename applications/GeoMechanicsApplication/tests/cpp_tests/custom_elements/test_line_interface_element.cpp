@@ -57,7 +57,7 @@ ModelPart& CreateModelPartWithDisplacementVariable(Model& rModel)
 }
 
 InterfaceElement CreateLineInterfaceElementWithUDofs(const Properties::Pointer&     rProperties,
-                                                         const Geometry<Node>::Pointer& rGeometry)
+                                                     const Geometry<Node>::Pointer& rGeometry)
 {
     auto result = InterfaceElement{1, rGeometry, rProperties};
     for (auto& node : result.GetGeometry()) {
@@ -69,7 +69,7 @@ InterfaceElement CreateLineInterfaceElementWithUDofs(const Properties::Pointer& 
 }
 
 InterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(Model& rModel,
-                                                                                        const Properties::Pointer& rProperties)
+                                                                                    const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
 
@@ -145,7 +145,7 @@ using namespace Kratos;
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementIsAnElement, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const InterfaceElement element;
-    auto                       p_casted_element = dynamic_cast<const Element*>(&element);
+    auto                   p_casted_element = dynamic_cast<const Element*>(&element);
     KRATOS_CHECK_NOT_EQUAL(p_casted_element, nullptr);
 }
 
@@ -174,7 +174,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementCanCreateInstanceWithNodeInput, Kr
 
     // The source element needs to have a geometry, otherwise the version of the
     // Create method with a node input will fail.
-    const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
+    const auto             p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
     const InterfaceElement element(0, p_geometry, p_properties);
 
     // Act

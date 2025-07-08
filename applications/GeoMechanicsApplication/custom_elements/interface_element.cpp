@@ -60,32 +60,38 @@ std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(
 namespace Kratos
 {
 
-InterfaceElement::InterfaceElement(IndexType NewId,
-                                           const Geometry<GeometricalObject::NodeType>::Pointer& rGeometry,
-                                           const Properties::Pointer& rProperties)
-    : Element(NewId, rGeometry, rProperties),
-      mIntegrationScheme(std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2)),
-      mStressStatePolicy(std::make_unique<InterfaceStressState>())
+InterfaceElement::InterfaceElement(IndexType                                             NewId,
+                                   const Geometry<GeometricalObject::NodeType>::Pointer& rGeometry,
+                                   const Properties::Pointer& rProperties)
+    : Element(NewId, rGeometry, rProperties), mStressStatePolicy(std::make_unique<InterfaceStressState>())
 {
+    if (GetGeometry().LocalSpaceDimension() == 1) {
+        mIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);
+    } else {
+        mIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);
+    }
 }
 
 InterfaceElement::InterfaceElement(IndexType NewId, const GeometryType::Pointer& rGeometry)
-    : Element(NewId, rGeometry),
-      mIntegrationScheme(std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2)),
-      mStressStatePolicy(std::make_unique<InterfaceStressState>())
+    : Element(NewId, rGeometry), mStressStatePolicy(std::make_unique<InterfaceStressState>())
 {
+    if (GetGeometry().LocalSpaceDimension() == 1) {
+        mIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);
+    } else {
+        mIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);
+    }
 }
 
 Element::Pointer InterfaceElement::Create(IndexType               NewId,
-                                              const NodesArrayType&   rNodes,
-                                              PropertiesType::Pointer pProperties) const
+                                          const NodesArrayType&   rNodes,
+                                          PropertiesType::Pointer pProperties) const
 {
     return Create(NewId, this->GetGeometry().Create(rNodes), pProperties);
 }
 
 Element::Pointer InterfaceElement::Create(IndexType               NewId,
-                                              GeometryType::Pointer   pGeometry,
-                                              PropertiesType::Pointer pProperties) const
+                                          GeometryType::Pointer   pGeometry,
+                                          PropertiesType::Pointer pProperties) const
 {
     return make_intrusive<InterfaceElement>(NewId, pGeometry, pProperties);
 }
@@ -117,16 +123,16 @@ void InterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSid
 }
 
 void InterfaceElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                                                VectorType&        rRightHandSideVector,
-                                                const ProcessInfo& rCurrentProcessInfo)
+                                            VectorType&        rRightHandSideVector,
+                                            const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
     CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 }
 
 void InterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                                        std::vector<Vector>&    rOutput,
-                                                        const ProcessInfo&      rCurrentProcessInfo)
+                                                    std::vector<Vector>&    rOutput,
+                                                    const ProcessInfo&      rCurrentProcessInfo)
 {
     if (rVariable == STRAIN) {
         const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
@@ -141,8 +147,8 @@ void InterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVar
 }
 
 void InterfaceElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                                        std::vector<ConstitutiveLaw::Pointer>& rOutput,
-                                                        const ProcessInfo&)
+                                                    std::vector<ConstitutiveLaw::Pointer>& rOutput,
+                                                    const ProcessInfo&)
 {
     KRATOS_ERROR_IF_NOT(rVariable == CONSTITUTIVE_LAW)
         << "Cannot calculate on integration points: got unexpected variable " << rVariable.Name() << "\n";
@@ -210,9 +216,16 @@ std::vector<Matrix> InterfaceElement::CalculateLocalBMatricesAtIntegrationPoints
         // For interface elements, the shape function gradients are not used, since these are
         // non-continuum elements. Therefore, we pass an empty matrix.
         const auto dummy_gradients = Matrix{};
-        return Matrix{prod(
-            GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(r_geometry, rIntegrationPoint),
-            p_policy->CalculateBMatrix(dummy_gradients, rShapeFunctionValuesAtIntegrationPoint, r_geometry))};
+        Matrix     rotation_matrix;
+        if (r_geometry.LocalSpaceDimension() == 1) {
+            rotation_matrix =
+                GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(r_geometry, rIntegrationPoint);
+        } else if (r_geometry.LocalSpaceDimension() == 2) {
+            rotation_matrix = GeometryUtilities::Calculate2DRotationMatrixForPlaneGeometry(
+                r_geometry, rIntegrationPoint);
+        }
+        return Matrix{prod(rotation_matrix, p_policy->CalculateBMatrix(dummy_gradients, rShapeFunctionValuesAtIntegrationPoint,
+                                                                       r_geometry))};
     };
     std::transform(shape_function_values_at_integration_points.begin(),
                    shape_function_values_at_integration_points.end(), r_integration_points.begin(),
@@ -234,8 +247,7 @@ std::vector<Matrix> InterfaceElement::CalculateConstitutiveMatricesAtIntegration
     return ::CalculateConstitutiveMatricesAtIntegrationPoints(mConstitutiveLaws, GetProperties());
 }
 
-std::vector<Vector> InterfaceElement::CalculateRelativeDisplacementsAtIntegrationPoints(
-    const std::vector<Matrix>& rLocalBMatrices) const
+std::vector<Vector> InterfaceElement::CalculateRelativeDisplacementsAtIntegrationPoints(const std::vector<Matrix>& rLocalBMatrices) const
 {
     const Geometry<Node> no_Pw_geometry;
     const auto           dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(

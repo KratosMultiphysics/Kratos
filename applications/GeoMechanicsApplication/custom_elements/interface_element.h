@@ -31,16 +31,14 @@ public:
 
     // Following the UPwBaseElement example, we will follow the rule of 5
     // to avoid the noexcept code smell.
-    InterfaceElement()                                           = default;
-    ~InterfaceElement() override                                 = default;
+    InterfaceElement()                                       = default;
+    ~InterfaceElement() override                             = default;
     InterfaceElement(const InterfaceElement&)                = delete;
     InterfaceElement& operator=(const InterfaceElement&)     = delete;
     InterfaceElement(InterfaceElement&&) noexcept            = default;
     InterfaceElement& operator=(InterfaceElement&&) noexcept = default;
 
-    InterfaceElement(IndexType                      NewId,
-                         const GeometryType::Pointer&   rGeometry,
-                         const PropertiesType::Pointer& rProperties);
+    InterfaceElement(IndexType NewId, const GeometryType::Pointer& rGeometry, const PropertiesType::Pointer& rProperties);
 
     InterfaceElement(IndexType NewId, const GeometryType::Pointer& rGeometry);
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
