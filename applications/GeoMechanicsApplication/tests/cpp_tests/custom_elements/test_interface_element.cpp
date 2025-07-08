@@ -26,8 +26,8 @@ namespace
 using namespace Kratos;
 using LineInterfaceGeometry2D2Plus2Noded = InterfaceGeometry<Line2D2<Node>>;
 using LineInterfaceGeometry2D3Plus3Noded = InterfaceGeometry<Line2D3<Node>>;
-using TriangleInterfaceGeometry2D3Plus3Noded = InterfaceGeometry<Triangle2D3<Node>>;
-using TriangleInterfaceGeometry2D6Plus6Noded = InterfaceGeometry<Triangle2D6<Node>>;
+using TriangleInterfaceGeometry3D3Plus3Noded = InterfaceGeometry<Triangle3D3<Node>>;
+using TriangleInterfaceGeometry3D6Plus6Noded = InterfaceGeometry<Triangle3D6<Node>>;
 
 PointerVector<Node> CreateNodes()
 {
@@ -78,6 +78,7 @@ InterfaceElement CreateInterfaceElementWithUDofs(const Properties::Pointer&     
     for (auto& node : result.GetGeometry()) {
         node.AddDof(DISPLACEMENT_X);
         node.AddDof(DISPLACEMENT_Y);
+        node.AddDof(DISPLACEMENT_Z);
     }
 
     return result;
@@ -162,7 +163,7 @@ InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(Mo
     nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(4, 1.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(5, 1.0, 1.0, 0.0));
-    const auto p_geometry = std::make_shared<TriangleInterfaceGeometry2D3Plus3Noded>(nodes);
+    const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
     return CreateInterfaceElementWithUDofs(rProperties, p_geometry);
 }
 
@@ -184,7 +185,7 @@ InterfaceElement CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplace
     nodes.push_back(r_model_part.CreateNewNode(9, 0.5, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(10, 1.0, 0.5, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(11, 0.5, 0.5, 0.0));
-    const auto p_geometry = std::make_shared<TriangleInterfaceGeometry2D6Plus6Noded>(nodes);
+    const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D6Plus6Noded>(nodes);
     return CreateInterfaceElementWithUDofs(rProperties, p_geometry);
 }
 
@@ -200,7 +201,7 @@ InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacemen
     nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(4, 0.5 * std::sqrt(3.0), 0.5, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(5, 0.5 * std::sqrt(3.0)-0.5, 0.5+0.5* std::sqrt(3.0), 0.0));
-    const auto p_geometry = std::make_shared<TriangleInterfaceGeometry2D3Plus3Noded>(nodes);
+    const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
     return CreateInterfaceElementWithUDofs(rProperties, p_geometry);
 }
 
@@ -633,7 +634,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithGeometryIn
 {
     // Arrange
     const InterfaceElement element;
-    const auto p_geometry   = std::make_shared<TriangleInterfaceGeometry2D3Plus3Noded>(Create6NodesForTriangle());
+    const auto p_geometry   = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(Create6NodesForTriangle());
     const auto p_properties = std::make_shared<Properties>();
 
     // Act
@@ -654,7 +655,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithNodeInput,
 
     // The source element needs to have a geometry, otherwise the version of the
     // Create method with a node input will fail.
-    const auto             p_geometry = std::make_shared<TriangleInterfaceGeometry2D3Plus3Noded>(nodes);
+    const auto             p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
     const InterfaceElement element(0, p_geometry, p_properties);
 
     // Act
@@ -681,10 +682,11 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsTheExpectedDoFList, Kr
     element.GetDofList(degrees_of_freedom, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(degrees_of_freedom.size(), 12);
-    for (std::size_t i = 0; i < degrees_of_freedom.size(); i += 2) {
+    KRATOS_EXPECT_EQ(degrees_of_freedom.size(), 18);
+    for (std::size_t i = 0; i < degrees_of_freedom.size(); i += 3) {
         KRATOS_EXPECT_EQ(degrees_of_freedom[i]->GetVariable(), DISPLACEMENT_X);
         KRATOS_EXPECT_EQ(degrees_of_freedom[i + 1]->GetVariable(), DISPLACEMENT_Y);
+        KRATOS_EXPECT_EQ(degrees_of_freedom[i + 2]->GetVariable(), DISPLACEMENT_Z);
     }
 }
 
@@ -703,6 +705,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsTheExpectedEquationIdV
 
         ++i;
         node.pGetDof(DISPLACEMENT_Y)->SetEquationId(i);
+
+        ++i;
+        node.pGetDof(DISPLACEMENT_Z)->SetEquationId(i);
     }
 
     // Act
@@ -711,7 +716,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsTheExpectedEquationIdV
     element.EquationIdVector(equation_id_vector, dummy_process_info);
 
     // Assert
-    const Element::EquationIdVectorType expected_ids = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+    const Element::EquationIdVectorType expected_ids = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18};
     KRATOS_EXPECT_VECTOR_EQ(equation_id_vector, expected_ids)
 }
 
@@ -938,9 +943,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelati
     element.CalculateOnIntegrationPoints(STRAIN, relative_displacements_at_integration_points, dummy_process_info);
 
     // Assert
-    Vector expected_relative_displacement{2};
-    expected_relative_displacement <<= 0.5, 0.2;
-    KRATOS_EXPECT_EQ(relative_displacements_at_integration_points.size(), 2);
+    Vector expected_relative_displacement{3};
+    expected_relative_displacement <<= 0.5, 0.2, 0.2;
+    KRATOS_EXPECT_EQ(relative_displacements_at_integration_points.size(), 3);
     for (const auto& r_relative_displacement : relative_displacements_at_integration_points) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_relative_displacement, expected_relative_displacement,
                                            Defaults::relative_tolerance)
@@ -972,9 +977,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_R
     element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, tractions_at_integration_points, dummy_process_info);
 
     // Assert
-    Vector expected_traction{2};
-    expected_traction <<= 10.0, 2.0;
-    KRATOS_EXPECT_EQ(tractions_at_integration_points.size(), 2);
+    Vector expected_traction{3};
+    expected_traction <<= 10.0, 2.0, 4.0;
+    KRATOS_EXPECT_EQ(tractions_at_integration_points.size(), 4);
     for (const auto& r_traction : tractions_at_integration_points) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_traction, expected_traction, Defaults::relative_tolerance)
     }
