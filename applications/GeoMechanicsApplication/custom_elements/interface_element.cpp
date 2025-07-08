@@ -17,6 +17,7 @@
 #include "custom_utilities/geometry_utilities.h"
 #include "interface_stress_state.h"
 #include "lobatto_integration_scheme.h"
+#include "lumped_integration_scheme.h"
 
 namespace
 {
@@ -68,7 +69,7 @@ InterfaceElement::InterfaceElement(IndexType                                    
     if (GetGeometry().LocalSpaceDimension() == 1) {
         mIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);
     } else {
-        mIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);
+        mIntegrationScheme = std::make_unique<LumpedIntegrationScheme>(GetGeometry().PointsNumber() / 2);
     }
 }
 
@@ -78,7 +79,7 @@ InterfaceElement::InterfaceElement(IndexType NewId, const GeometryType::Pointer&
     if (GetGeometry().LocalSpaceDimension() == 1) {
         mIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);
     } else {
-        mIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);
+        mIntegrationScheme = std::make_unique<LumpedIntegrationScheme>(GetGeometry().PointsNumber() / 2);
     }
 }
 
