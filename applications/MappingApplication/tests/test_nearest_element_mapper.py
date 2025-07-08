@@ -1,6 +1,5 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication # registering the mappers
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import basic_mapper_tests
 import blade_mapping_test

@@ -1,6 +1,4 @@
 import KratosMultiphysics as KM
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
-import KratosMultiphysics.IgaApplication as Iga
 import KratosMultiphysics.MappingApplication # registering the mappers
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import ParallelEnvironment, IsDistributedRun
@@ -18,9 +16,11 @@ from pathlib import Path
 def GetFilePath(file_name):
     return Path(__file__).resolve().parent / "mdpa_files" / file_name
 
+@KratosUnittest.skipIfApplicationsNotAvailable("IgaApplication")
 class BasicTestsLineMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
+        import KratosMultiphysics.IgaApplication as Iga
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_neighbor_iga",
             "interface_submodel_part_origin": "neumann_boundary_iga",
@@ -179,11 +179,11 @@ class BasicTestsLineMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     def test_Map_USE_TRANSPOSE_constant_scalar_both_non_historical(self):
         pass
 
-
-    
+@KratosUnittest.skipIfApplicationsNotAvailable("IgaApplication")
 class BasicTestsSurfaceMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
+        import KratosMultiphysics.IgaApplication as Iga
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_neighbor_iga",
             "interface_submodel_part_origin": "neumann_boundary_iga",
