@@ -8,6 +8,37 @@ from scipy.interpolate import griddata
 
 
 # ==== Plotting Functions ====
+def plot_cloud_and_slices(x, y, z, slice_bounds, sample_limits, filename):
+    """
+    Plot 3D point cloud and slicing planes.
+
+    Parameters:
+    - x, y, z: Arrays of point coordinates.
+    - slice_bounds: Array of z-boundaries for slices.
+    - sample_limits: Coordinates of the corners of the sample
+    - filename: name of the file plotted
+    """
+    sample_x_min, sample_x_max, sample_y_min, sample_y_max = sample_limits
+
+    fig = plt.figure(figsize=(10, 8))
+    ax = fig.add_subplot(111, projection="3d")
+    ax.scatter(x, y, z, s=1, alpha=0.3, label="Point Cloud")
+
+
+    for bound in slice_bounds:
+        xx, yy = np.meshgrid(
+            np.linspace(sample_x_min, sample_x_max, 10), np.linspace(sample_y_min, sample_y_max, 10)
+        )
+        zz = np.full_like(xx, bound)
+        ax.plot_surface(xx, yy, zz, alpha=0.1, color="gray")
+
+    ax.set_title("3D hole geometry with splice planes\n" + filename)
+    ax.set_xlabel("X (um)")
+    ax.set_ylabel("Y (um)")
+    ax.set_zlabel("Z (um)")
+    ax.legend()
+    plt.show()
+
 def plot_3d_geometry(x, y, z, spline, cx, cy, cz, ellipse_spline, ecx, ecy, ecz, slice_bounds, plot_planes, sample_limits, filename):
     """
     Plot 3D point cloud, medial spline, ellipse center spline, centroids, ellipse centers, and optional slicing planes.
