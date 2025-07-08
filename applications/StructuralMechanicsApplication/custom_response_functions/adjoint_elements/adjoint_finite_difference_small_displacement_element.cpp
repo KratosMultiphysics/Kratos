@@ -189,7 +189,7 @@ void AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::load(Ser
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType);
 }
 
-template class AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement>;
+template class KRATOS_API(KRATOS_STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement>;
 
 } // namespace Kratos.
 

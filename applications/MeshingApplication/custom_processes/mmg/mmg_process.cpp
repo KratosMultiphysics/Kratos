@@ -1530,8 +1530,8 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class MmgProcess<MMGLibrary::MMG2D>;
-template class MmgProcess<MMGLibrary::MMG3D>;
-template class MmgProcess<MMGLibrary::MMGS>;
+template class KRATOS_API(MESHING_APPLICATION) MmgProcess<MMGLibrary::MMG2D>;
+template class KRATOS_API(MESHING_APPLICATION) MmgProcess<MMGLibrary::MMG3D>;
+template class KRATOS_API(MESHING_APPLICATION) MmgProcess<MMGLibrary::MMGS>;
 
 }// namespace Kratos.

@@ -258,18 +258,18 @@ void EraseNodalVariable(ModelPart& rModelPart, const Variable<TDataType>& rVaria
     KRATOS_CATCH("");
 }
 
-void KRATOS_API(MAPPING_APPLICATION) FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLocalSystems,
+KRATOS_API(MAPPING_APPLICATION) void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLocalSystems,
                                  const std::vector<double>& rBoundingBoxes,
                                  const SizeType BufferSizeEstimate,
                                  std::vector<std::vector<double>>& rSendBuffer,
                                  std::vector<int>& rSendSizes);
 
-void KRATOS_API(MAPPING_APPLICATION) CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>& rRecvBuffer,
+KRATOS_API(MAPPING_APPLICATION) void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>& rRecvBuffer,
                                           const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                           const int CommRank,
                                           MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer);
 
-void FillBufferAfterLocalSearch(MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer,
+KRATOS_API(MAPPING_APPLICATION) void FillBufferAfterLocalSearch(MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer,
                                 const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                 const int CommRank,
                                 std::vector<std::vector<char>>& rSendBuffer,
@@ -278,7 +278,7 @@ void FillBufferAfterLocalSearch(MapperInterfaceInfoPointerVectorType& rMapperInt
 void AssignInterfaceInfosAfterRemoteSearch(const MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer,
                                            MapperLocalSystemPointerVectorPointer& rpMapperLocalSystems);
 
-void DeserializeMapperInterfaceInfosFromBuffer(
+KRATOS_API(MAPPING_APPLICATION) void DeserializeMapperInterfaceInfosFromBuffer(
     const std::vector<std::vector<char>>& rSendBuffer,
     const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
     const int CommRank,

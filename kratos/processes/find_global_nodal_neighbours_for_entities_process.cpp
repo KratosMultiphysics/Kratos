@@ -35,40 +35,40 @@
 
 namespace Kratos
 {
-template <>
-ModelPart::ElementsContainerType& FindNodalNeighboursForEntitiesProcess<ModelPart::ElementsContainerType>::GetContainer()
+
+template <class TContainerType>
+TContainerType& FindNodalNeighboursForEntitiesProcess<TContainerType>::GetContainer()
 {
-    return this->mrModelPart.Elements();
+    if constexpr (std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
+        return this->mrModelPart.Elements();
+    } else if constexpr (std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+        return this->mrModelPart.Conditions();
+    } else {
+        KRATOS_ERROR << "Unsupported container type" << std::endl;
+    }
 }
 
-template <>
-ModelPart::ConditionsContainerType& FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>::GetContainer()
-{
-    return this->mrModelPart.Conditions();
-}
-
-template <>
-void FindNodalNeighboursForEntitiesProcess<ModelPart::ElementsContainerType>::AddHangingNodeIds(
+template <class TContainerType>
+void FindNodalNeighboursForEntitiesProcess<TContainerType>::AddHangingNodeIds(
     std::unordered_map<int, std::unordered_map<int, std::vector<int>>>& rNeighbourIds) const
 {
-    // do nothing in here since mettis partitioner is based on elements, there
+    // do nothing for elements here since mettis partitioner is based on elements, there
     // cannot be any hanging nodes. If metis partitioner is based on conditions, then
     // this process need not to be used with elements, so this method won't be called.
-}
 
-template <>
-void FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>::AddHangingNodeIds(
-    std::unordered_map<int, std::unordered_map<int, std::vector<int>>>& rNeighbourIds) const
-{
-    // if the metis partitioner is based on conditions, this will still work,
-    // but with this additional cost of checking.
+    if constexpr (std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+        // if the metis partitioner is based on conditions, this will still work,
+        // but with this additional cost of checking.
 
-    // this loop cannot run in parallel, since std::unordered_maps adds the key if it
-    // is not found, otherwise do nothing.
-    for (const NodeType& rNode : mrModelPart.Nodes()) {
-        const int i_owner_rank = rNode.FastGetSolutionStepValue(PARTITION_INDEX);
-        const auto node_id = rNode.Id();
-        rNeighbourIds[i_owner_rank][node_id];
+        // this loop cannot run in parallel, since std::unordered_maps adds the key if it
+        // is not found, otherwise do nothing.
+        for (const NodeType& rNode : mrModelPart.Nodes()) {
+            const int i_owner_rank = rNode.FastGetSolutionStepValue(PARTITION_INDEX);
+            const auto node_id = rNode.Id();
+            rNeighbourIds[i_owner_rank][node_id];
+        }
+    } else {
+        KRATOS_ERROR << "Unsupported container type" << std::endl;
     }
 }
 
@@ -320,7 +320,7 @@ void FindNodalNeighboursForEntitiesProcess<TContainerType>::AddUnique(
 
 // template instantiations
 
-template class FindNodalNeighboursForEntitiesProcess<ModelPart::ElementsContainerType>;
-template class FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>;
+template class KRATOS_API(KRATOS_CORE) FindNodalNeighboursForEntitiesProcess<ModelPart::ElementsContainerType>;
+template class KRATOS_API(KRATOS_CORE) FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>;
 
 } // namespace Kratos.

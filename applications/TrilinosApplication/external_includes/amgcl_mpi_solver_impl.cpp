@@ -38,6 +38,7 @@
 // Project includes
 #include "trilinos_space.h"
 #include "custom_utilities/trilinos_solver_utilities.h"
+#include "external_includes/amgcl_mpi_solve_functions.h"
 
 namespace Kratos
 {
