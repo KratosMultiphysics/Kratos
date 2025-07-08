@@ -37,7 +37,7 @@ def fit_ellipse_least_squares(points_2d):
 
 
 # ==== Plotting Functions ====
-def plot_3d_geometry(x, y, z, spline, cx, cy, cz, ellipse_spline, ecx, ecy, ecz, slice_bounds, plot_planes):
+def plot_3d_geometry(x, y, z, spline, cx, cy, cz, ellipse_spline, ecx, ecy, ecz, slice_bounds, plot_planes, sample_limits):
     """
     Plot 3D point cloud, medial spline, ellipse center spline, centroids, ellipse centers, and optional slicing planes.
 
@@ -49,7 +49,10 @@ def plot_3d_geometry(x, y, z, spline, cx, cy, cz, ellipse_spline, ecx, ecy, ecz,
     - ecx, ecy, ecz: Arrays of ellipse center coordinates.
     - slice_bounds: Array of z-boundaries for slices.
     - plot_planes: Boolean to toggle slicing plane plotting.
+    - sample_limits: Coordinates of the corners of the sample
     """
+    sample_x_min, sample_x_max, sample_y_min, sample_y_max = sample_limits
+
     fig = plt.figure(figsize=(10, 8))
     ax = fig.add_subplot(111, projection="3d")
     ax.scatter(x, y, z, s=1, alpha=0.3, label="Point Cloud")
@@ -115,17 +118,18 @@ def plot_outliers(x, y, z, surface_outliers, deep_outliers, plot_outlier_types):
 
 
 def plot_xy_centers_path(
-    plot_xy_centroids, plot_xy_ellipse_centers, cx, cy, cz, centroid_ids, ellipse_centers, ellipse_params
-):
+    plot_xy_centroids, plot_xy_ellipse_centers, cx, cy, cz, centroid_ids, ellipse_centers, sample_limits):
     """
     Plot XY projection of centroid and ellipse center paths with annotations.
 
     Parameters:
+    - plot_xy_centroids, plot_xy_ellipse_centers: toggle the polotting of the centroids and of the ellipse centers resp.
     - cx, cy, cz: Arrays of centroid coordinates.
     - centroid_ids: List of slice indices (1-based).
     - ellipse_centers: Array of ellipse center coordinates.
-    - ellipse_params: List of ellipse parameters or None.
     """
+    sample_x_min, sample_x_max, sample_y_min, sample_y_max = sample_limits
+
     if plot_xy_centroids:
         if plot_xy_ellipse_centers:
             title = "XY Projection of centroid and ellipse center paths\n"
@@ -149,6 +153,7 @@ def plot_xy_centers_path(
         for i, (x_, y_, z_, idx) in enumerate(zip(cx, cy, cz, centroid_ids)):
             label = f"{idx}"
             ax.annotate(label, (x_, y_), textcoords="offset points", xytext=(0, 6), ha="center", fontsize=8)
+    
 
     if plot_xy_ellipse_centers:
         if len(ellipse_centers) > 0:
@@ -156,9 +161,10 @@ def plot_xy_centers_path(
             for i, (x_, y_, z_, idx) in enumerate(
                 zip(ellipse_centers[:, 0], ellipse_centers[:, 1], ellipse_centers[:, 2], centroid_ids)
             ):
-                if ellipse_params[i] is not None:
-                    label = f"{idx}"
-                    ax.annotate(label, (x_, y_), textcoords="offset points", xytext=(0, -12), ha="center", fontsize=8)
+                label = f"{idx}"
+                ax.annotate(label, (x_, y_), textcoords="offset points", xytext=(0, -12), ha="center", fontsize=8)
+        else:
+            raise ValueError("There are no ellipse centers")
 
     ax.set_title(title)
     ax.set_xlabel("X (um)")
@@ -175,14 +181,11 @@ def plot_superposed_slices_xy(
     slices,
     centroids,
     centroid_ids,
-    ellipse_params,
+    ellipses,
+    sample_limits,
     plot_centroids_in_all_slices_xy,
     plot_ellipses_in_all_slices_xy,
-    plot_ellipse_centers=False,
-    sample_x_min=0,
-    sample_x_max=50,
-    sample_y_min=0,
-    sample_y_max=50,
+    plot_ellipse_centers
 ):
     """
     Plot XY projection of all slices with optional centroids and ellipses.
@@ -191,13 +194,16 @@ def plot_superposed_slices_xy(
     - slices: List of point arrays for each slice (slices[i] for slice i+1).
     - centroids: List of centroid coordinates for each slice.
     - centroid_ids: List of slice indices (1-based).
-    - ellipse_params: List of ellipse parameters or None.
+    - ellipses: List of ellipses.
     - num_slices: Total number of slices.
     - plot_centroids_in_all_slices_xy: Boolean to toggle centroid plotting.
     - plot_ellipses_in_all_slices_xy: Boolean to toggle ellipse plotting.
-    - sample_x_min, sample_x_max, sample_y_min, sample_y_max: Axis limits.
+    - sample_limits: (sample_x_min, sample_x_max, sample_y_min, sample_y_max)
     """
+
     num_slices = len(slices)
+    sample_x_min, sample_x_max, sample_y_min, sample_y_max = sample_limits
+
     fig, ax = plt.subplots(figsize=(8, 8))
     colors = plt.cm.viridis(np.linspace(0, 1, num_slices))  # Distinct colors for slices
     for i in range(num_slices):
@@ -217,9 +223,17 @@ def plot_superposed_slices_xy(
                     ha="center",
                     fontsize=8,
                 )
-            if plot_ellipses_in_all_slices_xy and ellipse_params[i] is not None:
-                cx, cy, a, b, _, theta = ellipse_params[i]
+
+            ellipse = ellipses[i]
+            if plot_ellipses_in_all_slices_xy and ellipse is not None:
+                center = ellipse["center"]
+                cx, cy = center[0], center[1]
+                a = ellipse["a"]
+                b = ellipse["b"]
+                theta = ellipse["angle"]
+
                 t = np.linspace(0, 2 * np.pi, 100)
+
                 x_ellipse = cx + a * np.cos(t) * np.cos(theta) - b * np.sin(t) * np.sin(theta)
                 y_ellipse = cy + a * np.cos(t) * np.sin(theta) + b * np.sin(t) * np.cos(theta)
                 ax.plot(x_ellipse, y_ellipse, "-", color="black", linewidth=3.5)
@@ -260,30 +274,36 @@ def plot_superposed_slices_xy(
 
 def plot_ellipses_and_axes(
     ellipses,
-    shift_to_common_center=False,
-    sample_x_min=0,
-    sample_x_max=50,
-    sample_y_min=0,
-    sample_y_max=50,
+    sample_limits,
+    shift_to_common_center=False
 ):
     """
     Plot all ellipses, their centers, and major axes in the same XY plot, with optional centering.
 
     Parameters:
-    - ellipse_params: List of ellipse parameters (cx, cy, a, b, eccentricity, theta) or None.
+    - ellipses: List of ellipses.
     - num_slices: Total number of slices.
     - shift_to_common_center: Boolean to shift all ellipses to a common center (default: False).
-    - sample_x_min, sample_x_max, sample_y_min, sample_y_max: Axis limits (default: 0, 50, 0, 50).
+    - sample_limits = (sample_x_min, sample_x_max, sample_y_min, sample_y_max)
     """
     num_ellipses = len(ellipses)
+    sample_x_min, sample_x_max, sample_y_min, sample_y_max = sample_limits
+
     fig, ax = plt.subplots(figsize=(8, 8))
     colors = plt.cm.viridis(np.linspace(0, 1, num_ellipses))  # Distinct colors for slices
     common_center_x, common_center_y = ((sample_x_max + sample_x_min) / 2, (sample_y_max + sample_y_min) / 2)
 
     for i in range(num_ellipses):
-        if ellipse_params[i] is None:
-            continue
-        cx, cy, a, b, _, theta = ellipse_params[i]
+        ellipse = ellipses[i]
+        if ellipse is None:
+            raise ValueError("An ellipse is None")
+
+        center = ellipse["center"]
+        cx, cy = center[0], center[1]
+        a = ellipse["a"]
+        b = ellipse["b"]
+        theta = ellipse["angle"]
+
         idx = i + 1
 
         # Adjust coordinates if shifting to common center
@@ -330,14 +350,18 @@ def plot_ellipses_and_axes(
     plt.show()
 
 
-def plot_contour(x, y, z, contour_levels):
+def plot_contour(x, y, z, contour_levels, sample_limits):
     """
     Plot filled contour plot of hole depth in XY projection.
 
     Parameters:
     - x, y, z: Arrays of point coordinates.
     - contour_levels: Number of contour levels.
+    - sample_limits = (sample_x_min, sample_x_max, sample_y_min, sample_y_max)
     """
+    
+    sample_x_min, sample_x_max, sample_y_min, sample_y_max = sample_limits
+
     x_grid = np.linspace(sample_x_min, sample_x_max, 100)
     y_grid = np.linspace(sample_y_min, sample_y_max, 100)
     X, Y = np.meshgrid(x_grid, y_grid)
@@ -357,72 +381,68 @@ def plot_contour(x, y, z, contour_levels):
     plt.show()
 
 
-def plot_ellipse_metrics(ellipse_params, centroid_zs):
+def plot_ellipse_metrics(ellipses):
     """
     Plot eccentricity and major axis angle vs. depth.
 
     Parameters:
     - ellipse_params: List of ellipse parameters or None.
-    - centroid_zs: List of centroid z-values.
     """
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(8, 6), sharex=True)
-    valid_slices = [
-        (i, params, z) for i, (params, z) in enumerate(zip(ellipse_params, centroid_zs)) if params is not None
-    ]
-    if valid_slices:
-        # slice_indices = [i + 1 for i, _, _ in valid_slices]
-        eccentricities = [params[4] for _, params, _ in valid_slices]
-        thetas = [np.degrees(params[5]) % 360 for _, params, _ in valid_slices]  # Convert to degrees
-        depths = [z for _, _, z in valid_slices]
 
-        ax1.plot(depths, eccentricities, ".-", color="blue", markersize=12, label="Eccentricity")
-        ax1.set_ylabel("Eccentricity")
-        ax1.set_title("Ellipse eccentricity vs. depth\n" + filename)
-        ax1.grid(True, alpha=0.3)
-        ax1.set_ylim(0, 1)
-        ax1.legend(loc="upper right")
+    eccentricities = [ellipse["eccentricity"] for ellipse in ellipses]
+    thetas = [np.degrees(ellipse["angle"]) % 360 for ellipse in ellipses]  # Convert to degrees
+    depths = [ellipse["center"][2] for ellipse in ellipses]
 
-        ax2.plot(depths, thetas, ".-", color="red", markersize=12, label="Major axis angle (0 to 180º)")
-        ax2.set_xlabel("Depth (Z, um)")
-        ax2.set_ylabel("Major axis angle (degrees)")
-        ax2.set_title("Ellipse major axis angle vs. depth\n" + filename)
-        ax2.grid(True, alpha=0.3)
-        ax2.set_ylim(0, 180)
-        ax2.set_yticks([30 * i for i in range(7)])
-        ax2.legend(loc="upper right")
+    ax1.plot(depths, eccentricities, ".-", color="blue", markersize=12, label="Eccentricity")
+    ax1.set_ylabel("Eccentricity")
+    ax1.set_title("Ellipse eccentricity vs. depth\n" + filename)
+    ax1.grid(True, alpha=0.3)
+    ax1.set_ylim(0, 1)
+    ax1.legend(loc="upper right")
 
-        shifted_thetas = [thetas[i] if thetas[i] <= 90 else thetas[i] - 180 for i in range(len(thetas))]
-        ax3.plot(depths, shifted_thetas, ".-", color="green", markersize=12, label="Major axis angle (-90º to 90º)")
-        ax3.set_xlabel("Depth (Z, um)")
-        ax3.set_ylabel("Major axis angle (degrees)")
-        ax3.set_title("Ellipse major axis angle vs. depth\n" + filename)
-        ax3.grid(True, alpha=0.3)
-        ax3.set_ylim(-90, 90)
-        ax3.set_yticks([-90 + 30 * i for i in range(7)])
-        ax3.legend(loc="upper right")
+    ax2.plot(depths, thetas, ".-", color="red", markersize=12, label="Major axis angle (0 to 180º)")
+    ax2.set_xlabel("Depth (Z, um)")
+    ax2.set_ylabel("Major axis angle (degrees)")
+    ax2.set_title("Ellipse major axis angle vs. depth\n" + filename)
+    ax2.grid(True, alpha=0.3)
+    ax2.set_ylim(0, 180)
+    ax2.set_yticks([30 * i for i in range(7)])
+    ax2.legend(loc="upper right")
 
-        plt.tight_layout()
-        plt.show()
+    shifted_thetas = [thetas[i] if thetas[i] <= 90 else thetas[i] - 180 for i in range(len(thetas))]
+    ax3.plot(depths, shifted_thetas, ".-", color="green", markersize=12, label="Major axis angle (-90º to 90º)")
+    ax3.set_xlabel("Depth (Z, um)")
+    ax3.set_ylabel("Major axis angle (degrees)")
+    ax3.set_title("Ellipse major axis angle vs. depth\n" + filename)
+    ax3.grid(True, alpha=0.3)
+    ax3.set_ylim(-90, 90)
+    ax3.set_yticks([-90 + 30 * i for i in range(7)])
+    ax3.legend(loc="upper right")
+
+    plt.tight_layout()
+    plt.show()
 
 
-def plot_individual_slices_grid(slices, centroids, slice_bounds, num_slices, plot_ellipses_in_slices):
+def plot_individual_slices_grid(slices, slice_bounds, centroids, ellipses, sample_limits, plot_ellipses_in_slices):
     """
     Plot individual slices in a subplot grid with points, centroids, and optional ellipses.
 
     Parameters:
     - slices: List of point arrays for each slice (slices[i] for slice i+1).
-    - centroids: List of centroid coordinates for each slice.
     - slice_bounds: Array of z-boundaries for slices.
-    - num_slices: Total number of slices.
+    - centroids: List of centroid coordinates for each slice.
+    - ellipses: List of ellipses.
     - plot_ellipses_in_slices: Boolean to toggle ellipse plotting.
     """
+    num_slices = len(slices)
     valid_slices = [i for i in range(num_slices) if len(slices[i]) > 0]
     n_plots = len(valid_slices)
     n_cols = ceil(sqrt(n_plots))
     n_rows = ceil(n_plots / n_cols)
 
-    x_min, x_max = sample_x_min, sample_x_max
-    y_min, y_max = sample_y_min, sample_y_max
+    
+    x_min, x_max, y_min, y_max = sample_limits
 
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(4 * n_cols, 4 * n_rows))
     # plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=10)
@@ -449,8 +469,14 @@ def plot_individual_slices_grid(slices, centroids, slice_bounds, num_slices, plo
             handles.append(pt)
             labels.append("Centroid")
         # Plot ellipse and center if enabled
-        if plot_ellipses_in_slices and ellipse_params[i] is not None:
-            cx, cy, a, b, eccentricity, theta = ellipse_params[i]
+        ellipse = ellipses[i]
+        if plot_ellipses_in_slices and ellipse is not None:
+            center = ellipse["center"]
+            cx, cy = center[0], center[1]
+            a = ellipse["a"]
+            b = ellipse["b"]
+            theta = ellipse["angle"]
+
             t = np.linspace(0, 2 * np.pi, 100)
             x_ellipse = cx + a * np.cos(t) * np.cos(theta) - b * np.sin(t) * np.sin(theta)
             y_ellipse = cy + a * np.cos(t) * np.sin(theta) + b * np.sin(t) * np.cos(theta)
@@ -484,30 +510,29 @@ def plot_individual_slices_grid(slices, centroids, slice_bounds, num_slices, plo
 
 def plot_individual_slices_separately(
     slices,
-    centroids,
-    centroid_zs,
-    centroid_ids,
-    ellipse_params,
     slice_bounds,
-    plot_ellipses_in_slices,
-    num_slices,
+    centroids,
+    centroid_ids,
+    ellipses,
+    sample_limits,
+    plot_ellipses_in_slices
 ):
     """
     Plot each valid slice in a separate figure with points, centroid, and optional ellipse.
 
     Parameters:
     - slices: List of point arrays for each slice (slices[i] for slice i+1).
-    - centroids: List of centroid coordinates for each slice.
-    - centroid_zs: List of centroid z-values.
-    - centroid_ids: List of slice indices (1-based).
-    - ellipse_params: List of ellipse parameters or None.
     - slice_bounds: Array of z-boundaries for slices.
+    - centroids: List of centroid coordinates for each slice.
+    - centroid_ids: List of slice indices (1-based).
+    - ellipses: List of ellipse parameters or None.
+    - sample_limits = (sample_x_min, sample_x_max, sample_y_min, sample_y_max).
     - plot_ellipses_in_slices: Boolean to toggle ellipse plotting.
-    - num_slices: Total number of slices.
     """
-    x_min, x_max = sample_x_min, sample_x_max
-    y_min, y_max = sample_y_min, sample_y_max
+    
+    sample_x_min, sample_x_max, sample_y_min, sample_y_max = sample_limits
 
+    num_slices = len(slices)
     for i in range(num_slices):
         slice_points = slices[i]
         if len(slice_points) == 0:
@@ -532,8 +557,15 @@ def plot_individual_slices_separately(
         labels.append("Centroid")
 
         # Plot ellipse and center if enabled
-        if plot_ellipses_in_slices and ellipse_params[i] is not None:
-            cx, cy, a, b, eccentricity, theta = ellipse_params[i]
+        ellipse = ellipses[i]
+        if plot_ellipses_in_slices and ellipse is not None:
+            center = ellipse["center"]
+            cx, cy = center[0], center[1]
+            a = ellipse["a"]
+            b = ellipse["b"]
+            theta = ellipse["angle"]
+
+
             t = np.linspace(0, 2 * np.pi, 100)
             x_ellipse = cx + a * np.cos(t) * np.cos(theta) - b * np.sin(t) * np.sin(theta)
             y_ellipse = cy + a * np.cos(t) * np.sin(theta) + b * np.sin(t) * np.cos(theta)
@@ -549,8 +581,8 @@ def plot_individual_slices_separately(
         ax.set_xlabel("X (um)")
         ax.set_ylabel("Y (um)")
         ax.axis("square")
-        ax.set_xlim(x_min, x_max)
-        ax.set_ylim(y_min, y_max)
+        ax.set_xlim(sample_x_min, sample_x_max)
+        ax.set_ylim(sample_y_min, sample_y_max)
         ax.grid(True, alpha=0.3)
 
         # Add legend
@@ -828,7 +860,6 @@ def compute_ellipses(slices, slice_bounds):
     num_slices = len(slices)
 
     ellipses = [None] * num_slices
-    ellipse_centers = [None] * num_slices
 
     for i in range(num_slices):
         print(f"Fitting ellipse for Slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um)")
@@ -842,16 +873,13 @@ def compute_ellipses(slices, slice_bounds):
         center_x, center_y, a, b, eccentricity, angle = fit_ellipse_least_squares(points_2d)
         center_z = np.mean(slice_points[:, 2]) # Set the ellipse's depth as the "center of mass" in depth of the points in the slice
 
-        ellipse_center = [center_x, center_y, center_z]
-        ellipse_centers[i] = ellipse_center
+        ellipse_center = np.array([center_x, center_y, center_z])
 
         ellipse_dict = {"center": ellipse_center, "a": a, "b": b, "eccentricity": eccentricity, "angle": angle}
         ellipses[i] = ellipse_dict            
             
 
-    ellipse_centers = np.array(ellipse_centers)
-
-    return ellipse_dict, ellipse_centers
+    return ellipses
 
 
 if __name__ == "__main__":
@@ -872,11 +900,12 @@ if __name__ == "__main__":
     sample_x_max = 50
     sample_y_min = 0
     sample_y_max = 50
+    sample_limits = (sample_x_min, sample_x_max, sample_y_min, sample_y_max)
 
     max_points = 500000  # Max number of points to use for entire dataset
     subsample_points = False  # Toggle for random subsampling of entire dataset
 
-    slice_thickness = 1.5 # Thickness of each slice in um
+    slice_thickness = 0.8 # Thickness of each slice in um
     deep_outlier_quantile_threshold = (
         0.0005  # Lower quantile for discarding deep outliers. Set it to None to not discard any.
     )
@@ -932,8 +961,14 @@ if __name__ == "__main__":
     centroids_x, centroids_y, centroids_z = centroids[:, 0], centroids[:, 1], centroids[:, 2]
 
     # ==== Fit ellipses to slices ====
-    ellipses, ellipse_centers = compute_ellipses(slices, slice_bounds)
-    
+    ellipses = compute_ellipses(slices, slice_bounds)
+
+    ellipse_centers = []
+    for ellipse in ellipses:
+        ellipse_centers.append(ellipse["center"])
+
+    ellipse_centers = np.array(ellipse_centers)
+
     ellipses_x, ellipses_y, ellipses_z = ellipse_centers[:, 0], ellipse_centers[:, 1], ellipse_centers[:, 2]
 
     # ==== Fit splines ====
@@ -975,6 +1010,7 @@ if __name__ == "__main__":
             ellipses_z,
             slice_bounds,
             plot_planes,
+            sample_limits
         )
 
     if plot_outliers_toggle:
@@ -989,7 +1025,7 @@ if __name__ == "__main__":
             centroids_z,
             centroid_ids,
             ellipse_centers,
-            ellipse_params,
+            sample_limits
         )
 
     if plot_superposed_slices_xy_toggle:
@@ -997,54 +1033,43 @@ if __name__ == "__main__":
             slices,
             centroids,
             centroid_ids,
-            ellipse_params,
+            ellipses,
+            sample_limits,
             plot_centroids_in_superposed_slices_xy,
             plot_ellipses_in_all_slices_xy=True,
-            plot_ellipse_centers=True,
-            sample_x_min=sample_x_min,
-            sample_x_max=sample_x_max,
-            sample_y_min=sample_y_min,
-            sample_y_max=sample_y_max,
+            plot_ellipse_centers=True
         )
 
     if plot_ellipses_and_axes_toggle:
         plot_ellipses_and_axes(
             ellipses,
-            shift_to_common_center=ellipses_shift_to_common_center,
-            sample_x_min=sample_x_min,
-            sample_x_max=sample_x_max,
-            sample_y_min=sample_y_min,
-            sample_y_max=sample_y_max,
+            sample_limits,
+            shift_to_common_center=ellipses_shift_to_common_center
         )
 
     if plot_ellipses_and_axes_toggle:
         plot_ellipses_and_axes(
-            ellipse_params,
-            num_slices,
-            shift_to_common_center=not ellipses_shift_to_common_center,
-            sample_x_min=sample_x_min,
-            sample_x_max=sample_x_max,
-            sample_y_min=sample_y_min,
-            sample_y_max=sample_y_max,
+            ellipses,
+            sample_limits,
+            shift_to_common_center=not ellipses_shift_to_common_center
         )
 
     if plot_contour_toggle:
-        plot_contour(x, y, z, contour_levels)
+        plot_contour(x, y, z, contour_levels, sample_limits)
 
     if plot_ellipse_metrics_toggle:
-        plot_ellipse_metrics(ellipse_params, centroids_z)
+        plot_ellipse_metrics(ellipses)
 
     if plot_individual_slices_grid_toggle:
-        plot_individual_slices_grid(slices, centroids, slice_bounds, num_slices, plot_ellipses_in_slices)
+        plot_individual_slices_grid(slices, slice_bounds, centroids, ellipses, sample_limits, plot_ellipses_in_slices)
 
     if plot_slice_views_one_by_one:
         plot_individual_slices_separately(
             slices,
-            centroids,
-            centroids_z,
-            centroid_ids,
-            ellipse_params,
             slice_bounds,
+            centroids,
+            centroid_ids,
+            ellipses,
+            sample_limits,
             plot_ellipses_in_slices,
-            num_slices,
         )
