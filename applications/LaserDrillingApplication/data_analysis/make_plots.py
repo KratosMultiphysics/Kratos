@@ -1,6 +1,6 @@
-from data_manipulation import read_single_bore, clean_data, remove_surface_and_outliers, subsample_data, calculate_slices, compute_centroids, compute_ellipses, fit_spline_3d, compute_derivatives_spline, compute_curvature, compute_torsion
+from data_manipulation_functions import read_single_bore, clean_data, remove_surface_and_outliers, subsample_data, calculate_slice_bounds, calculate_slices, compute_centroids, compute_ellipses, fit_spline_3d, compute_derivatives_spline, compute_curvature, compute_torsion
 
-from plotting_functions import plot_3d_geometry, plot_outliers, plot_xy_centers_path, plot_superposed_slices_xy, plot_ellipses_and_axes, plot_contour, plot_ellipse_metrics, plot_individual_slices_grid, plot_individual_slices_separately
+from plotting_functions import plot_cloud_and_slices, plot_3d_geometry, plot_outliers, plot_xy_centers_path, plot_superposed_slices_xy, plot_ellipses_and_axes, plot_contour, plot_ellipse_metrics, plot_individual_slices_grid, plot_individual_slices_separately
 
 import numpy as np
 import argparse
@@ -10,7 +10,7 @@ if __name__ == "__main__":
     """
     This script takes as its argument a name of a dataset corresponding to one bore and makes multiple plots
     """
-    
+
     # Read filepath as argument
     parser = argparse.ArgumentParser(description="Make plots and extract metrics of the measurements of a bore.")
     parser.add_argument("--filepath", required=True, help="Path to file containing the data file.")
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     filepath = args.filepath
 
     filename = Path(filepath).stem
-    
+    print(f"Plots for {filename}")
 
 
     # ==== Configurable Parameters ====
@@ -79,8 +79,14 @@ if __name__ == "__main__":
     if subsample_points and max_points < len(data):
         data = subsample_data(data, max_points, random_seed)
 
+    x, y, z = data[:, 0], data[:, 1], data[:, 2]
+
     # ==== Compute data slices ====
-    slices, slice_bounds = calculate_slices(data, slice_thickness)
+    slice_bounds = calculate_slice_bounds(data, slice_thickness)
+
+    plot_cloud_and_slices(x, y, z, slice_bounds, sample_limits, filename)
+
+    slices = calculate_slices(data, slice_bounds)
 
 
     # ==== Compute centroids for slices ====
@@ -121,7 +127,6 @@ if __name__ == "__main__":
     print(f"Average Torsion: {avg_torsion:.6f} um^-1")
 
     # ==== Plotting ====
-    x, y, z = data[:, 0], data[:, 1], data[:, 2]
 
     if plot_3d_geometry_toggle:
         plot_3d_geometry(
