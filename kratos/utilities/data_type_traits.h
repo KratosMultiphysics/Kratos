@@ -310,7 +310,7 @@ private:
         if constexpr(TCheckIndex == 0) {
             return false;
         } else {
-            static_assert(TCheckIndex != TCheckIndex, "Invalid dimension index.");
+            static_assert(false, "Invalid dimension index.");
         }
     }
 
