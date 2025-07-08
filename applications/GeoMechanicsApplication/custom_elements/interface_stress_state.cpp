@@ -100,14 +100,16 @@ Matrix PlaneInterfaceStressState::CalculateBMatrix(const Matrix&, const Vector& 
 
     Matrix result = ZeroMatrix(GetVoigtSize(), rGeometry.WorkingSpaceDimension() * rGeometry.size());
 
-    // Adapt this implementation to account for the second shear component
     const auto number_of_u_dofs_per_side = result.size2() / 2;
+    // Define the order in which the degrees of freedom at any node must be processed to compute the
+    // normal component first and then the two tangential components
+    const auto component_order = std::vector<std::size_t>{2, 0, 1};
     for (unsigned int i = 0; i < rGeometry.size() / 2; ++i) {
-        result(0, i * rGeometry.WorkingSpaceDimension() + 1)                             = -rN[i];
-        result(0, i * rGeometry.WorkingSpaceDimension() + 1 + number_of_u_dofs_per_side) = rN[i];
-
-        result(1, i * rGeometry.WorkingSpaceDimension())                             = -rN[i];
-        result(1, i * rGeometry.WorkingSpaceDimension() + number_of_u_dofs_per_side) = rN[i];
+        for (unsigned int j = 0; j < component_order.size(); ++j) {
+            result(j, i * rGeometry.WorkingSpaceDimension() + component_order[j]) = -rN[i];
+            result(j, i * rGeometry.WorkingSpaceDimension() + component_order[j] + number_of_u_dofs_per_side) =
+                rN[i];
+        }
     }
 
     return result;

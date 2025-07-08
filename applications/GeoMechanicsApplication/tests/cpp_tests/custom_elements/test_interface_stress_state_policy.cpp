@@ -109,7 +109,7 @@ KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ReturnsExpectedVoigtVector,
     KRATOS_EXPECT_VECTOR_NEAR(expected_voigt_vector, r_voigt_vector, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectBMatrixForThreePlusThreeNodesGeometry,
+KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ReturnsCorrectBMatrixForThreePlusThreeNodesGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto stress_state_policy = Line2DInterfaceStressState{};
@@ -126,7 +126,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectBMatrixForThreePlus
                           0.125, 0, -0.375, 0, -0.75, 0, -0.125, 0, 0.375, 0, 0.75, 0;
     // clang-format on
 
-    KRATOS_EXPECT_MATRIX_NEAR(b_matrix, expected_b_matrix, 1.0e-6)
+    KRATOS_EXPECT_MATRIX_NEAR(b_matrix, expected_b_matrix, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -222,6 +222,27 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_ReturnsExpectedVoigtVector, 
     Vector expected_voigt_vector(3);
     expected_voigt_vector <<= 1.0, 0.0, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(expected_voigt_vector, r_voigt_vector, Defaults::absolute_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_ReturnsCorrectBMatrixForThreePlusThreeNodesGeometry,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto stress_state_policy = PlaneInterfaceStressState{};
+    const auto geometry            = CreateThreePlusThreePlaneInterfaceGeometry();
+
+    Vector shape_function_values(3);
+    shape_function_values <<= -0.125, 0.375, 0.75;
+
+    const auto b_matrix = stress_state_policy.CalculateBMatrix({}, shape_function_values, geometry);
+
+    // clang-format off
+    Matrix expected_b_matrix(3, 18);
+    expected_b_matrix <<= 0.0,   0.0,   0.125,  0.0,    0.0,   -0.375,  0.0,   0.0,  -0.75,  0.0,    0.0,   -0.125, 0.0,   0.0,   0.375, 0.0,  0.0,  0.75,
+                          0.125, 0.0,   0.0,   -0.375,  0.0,    0.0,   -0.75,  0.0,   0.0,  -0.125,  0.0,    0.0,   0.375, 0.0,   0.0,   0.75, 0.0,  0.0,
+                          0.0,   0.125, 0.0,    0.0,   -0.375,  0.0,    0.0,  -0.75,  0.0,   0.0,   -0.125,  0.0,   0.0,   0.375, 0.0,   0.0,  0.75, 0.0;
+    // clang-format on
+
+    KRATOS_EXPECT_MATRIX_NEAR(b_matrix, expected_b_matrix, Defaults::absolute_tolerance)
 }
 
 } // namespace Kratos::Testing
