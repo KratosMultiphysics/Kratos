@@ -265,7 +265,7 @@ Internally, it constructs the mapping matrix, which also allows the use of its t
 
 #### Nearest Element
 
-The _NearestElementMapper_ projects nodes to the elements( or conditions) on other side of the interface. Mapping is then done by interpolating the values of the nodes of the elements by using the shape functions at the projected position.
+The _NearestElementMapper_ projects nodes to the elements( or conditions) on other side of the interface. Mapping is then done by interpolating the values of the nodes of the elements by using the shape functions at the projected position. The NearestElementMapper supports IGA/FEM partitioned simulations where the origin must be the IGA domain. Each FEM node is projected onto the IGA surface or its boundary curves, and the shape functions are evaluated at that point to assemble the mapping matrix.
 
 This mapper is best suited for problems where the _NearestNeighborMapper_ cannot be used, i.e. for cases where the discretization on the interfaces is different. Note that it is less robust than the _NearestNeighborMapper_ due to the projections it performs. In case a projection fails, it uses an approximation that is similar to the approach of the _NearestNeighborMapper_. This can be disabled by setting `use_approximation` to `false` in the mapper-settings.
 
