@@ -1,43 +1,10 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from scipy.interpolate import splprep, splev, griddata
-from skimage.measure import EllipseModel
-import csv
-from math import ceil, sqrt
-import argparse
-from pathlib import Path
-
-
-
-# ==== Ellipse Fitting Function ====
-def fit_ellipse_least_squares(points_2d):
-    """
-    Fit an ellipse to all given 2D points using least-squares method.
-
-    Parameters:
-    - points_2d: Nx2 array of (x, y) points.
-
-    Returns:
-    - Tuple: (cx, cy, a, b, eccentricity, theta) or None if fitting fails.
-    """
-    if len(points_2d) < 5:
-        raise ValueError("Not enough points to fit the ellipse")
-
-    model = EllipseModel()
-    if not model.estimate(points_2d):
-        raise ValueError("Couldn't fit the ellipse to the data")
-
-    cx, cy, a, b, theta = model.params  # (x, y, a, b, theta)
-    if b > a:
-        a, b = b, a
-        theta += np.pi / 2
-
-    eccentricity = np.sqrt(1 - (b**2 / a**2))
-    return (cx, cy, a, b, eccentricity, theta)
+import numpy as np
+from scipy.interpolate import griddata
 
 
 # ==== Plotting Functions ====
-def plot_3d_geometry(x, y, z, spline, cx, cy, cz, ellipse_spline, ecx, ecy, ecz, slice_bounds, plot_planes, sample_limits):
+def plot_3d_geometry(x, y, z, spline, cx, cy, cz, ellipse_spline, ecx, ecy, ecz, slice_bounds, plot_planes, sample_limits, filename):
     """
     Plot 3D point cloud, medial spline, ellipse center spline, centroids, ellipse centers, and optional slicing planes.
 
@@ -78,7 +45,7 @@ def plot_3d_geometry(x, y, z, spline, cx, cy, cz, ellipse_spline, ecx, ecy, ecz,
     plt.show()
 
 
-def plot_outliers(x, y, z, surface_outliers, deep_outliers, plot_outlier_types):
+def plot_outliers(x, y, z, surface_outliers, deep_outliers, plot_outlier_types, filename):
     """
     Plot used points and optional surface/deep outliers in 3D.
 
@@ -118,7 +85,7 @@ def plot_outliers(x, y, z, surface_outliers, deep_outliers, plot_outlier_types):
 
 
 def plot_xy_centers_path(
-    plot_xy_centroids, plot_xy_ellipse_centers, cx, cy, cz, centroid_ids, ellipse_centers, sample_limits):
+    plot_xy_centroids, plot_xy_ellipse_centers, cx, cy, cz, centroid_ids, ellipse_centers, sample_limits, filename):
     """
     Plot XY projection of centroid and ellipse center paths with annotations.
 
@@ -185,7 +152,8 @@ def plot_superposed_slices_xy(
     sample_limits,
     plot_centroids_in_all_slices_xy,
     plot_ellipses_in_all_slices_xy,
-    plot_ellipse_centers
+    plot_ellipse_centers, 
+    filename
 ):
     """
     Plot XY projection of all slices with optional centroids and ellipses.
@@ -275,6 +243,8 @@ def plot_superposed_slices_xy(
 def plot_ellipses_and_axes(
     ellipses,
     sample_limits,
+    slice_bounds,
+    filename,
     shift_to_common_center=False
 ):
     """
@@ -313,7 +283,8 @@ def plot_ellipses_and_axes(
         t = np.linspace(0, 2 * np.pi, 100)
         x_ellipse = plot_cx + a * np.cos(t) * np.cos(theta) - b * np.sin(t) * np.sin(theta)
         y_ellipse = plot_cy + a * np.cos(t) * np.sin(theta) + b * np.sin(t) * np.cos(theta)
-        ax.plot(x_ellipse, y_ellipse, "-", color=colors[i], linewidth=2, label=f"Slice {idx}")
+        z_start, z_end = slice_bounds[i], slice_bounds[i + 1]
+        ax.plot(x_ellipse, y_ellipse, "-", color=colors[i], linewidth=2, label=f"Slice {idx} (z ∈ [{z_start:.2f}, {z_end:.2f}] um)")
 
         # Plot ellipse center
         ax.plot(plot_cx, plot_cy, "*", color=colors[i], markersize=10)
@@ -350,7 +321,7 @@ def plot_ellipses_and_axes(
     plt.show()
 
 
-def plot_contour(x, y, z, contour_levels, sample_limits):
+def plot_contour(x, y, z, contour_levels, sample_limits, filename):
     """
     Plot filled contour plot of hole depth in XY projection.
 
@@ -381,7 +352,7 @@ def plot_contour(x, y, z, contour_levels, sample_limits):
     plt.show()
 
 
-def plot_ellipse_metrics(ellipses):
+def plot_ellipse_metrics(ellipses, filename):
     """
     Plot eccentricity and major axis angle vs. depth.
 
@@ -424,7 +395,7 @@ def plot_ellipse_metrics(ellipses):
     plt.show()
 
 
-def plot_individual_slices_grid(slices, slice_bounds, centroids, ellipses, sample_limits, plot_ellipses_in_slices):
+def plot_individual_slices_grid(slices, slice_bounds, centroids, ellipses, sample_limits, plot_ellipses_in_slices, filename):
     """
     Plot individual slices in a subplot grid with points, centroids, and optional ellipses.
 
@@ -438,8 +409,8 @@ def plot_individual_slices_grid(slices, slice_bounds, centroids, ellipses, sampl
     num_slices = len(slices)
     valid_slices = [i for i in range(num_slices) if len(slices[i]) > 0]
     n_plots = len(valid_slices)
-    n_cols = ceil(sqrt(n_plots))
-    n_rows = ceil(n_plots / n_cols)
+    n_cols = int(np.ceil(np.sqrt(n_plots)))
+    n_rows = int(np.ceil(n_plots / n_cols))
 
     
     x_min, x_max, y_min, y_max = sample_limits
@@ -515,7 +486,8 @@ def plot_individual_slices_separately(
     centroid_ids,
     ellipses,
     sample_limits,
-    plot_ellipses_in_slices
+    plot_ellipses_in_slices,
+    filename
 ):
     """
     Plot each valid slice in a separate figure with points, centroid, and optional ellipse.
@@ -591,485 +563,3 @@ def plot_individual_slices_separately(
 
         plt.tight_layout()
         plt.show()
-
-
-def calculate_chord_length(a):
-    """
-    Calculate the chord length of a curve, that is, the distance from its endpoints,
-    given by points in array a of shape (N,3) where the columns represent
-    the (x,y,z) coordinates of the points
-    """
-    ax, ay, az = a[:, 0], a[:, 1], a[:, 2]
-    return np.linalg.norm([ax[-1] - ax[0], ay[-1] - ay[0], az[-1] - az[0]])
-
-
-def calculate_arc_length(a):
-    """
-    Calculate the arc-length of a curve given by points in array a of shape (N,3)
-    where the columns represent the (x,y,z) coordinates of the points
-    """
-    return np.sum(np.linalg.norm(np.diff(np.array(a), axis=0), axis=1))
-
-
-def calculate_tortuosity(a):
-    """
-    Calculate the tortuosity of a curve given by points in array a of shape (N,3)
-    where the columns represent the (x,y,z) coordinates of the points
-    """
-    arc_length = calculate_arc_length(a)
-    chord_length = calculate_chord_length(a)
-    return arc_length / chord_length
-
-
-def fit_spline_3d(x, y, z, t_arr, spline_order=3):
-    """
-    Fits a spline through 3D points defined by x, y, z coordinates.
-
-    Parameters:
-        x, y, z (array-like): Coordinates of the points.
-        t_arr (array of float): Values of the spline parameter where to evaluate the spline.
-        spline_order (int): The order of the spline (default: 3).
-
-    Returns:
-        spline_points (np.ndarray): Array of shape (num_points, 3) with the fitted spline.
-        tck (tuple): The B-spline representation returned by splprep.
-
-    Raises:
-        ValueError: If fewer than 2 points are provided or fitting fails.
-    """
-    if len(x) < 2:
-        raise ValueError(f"Need at least 2 points to fit a spline, got {len(x)}.")
-
-    try:
-        k = min(spline_order, len(x) - 1)
-        tck, _ = splprep([x, y, z], s=0, k=k)
-        spline = splev(t_arr, tck)
-        spline_points = np.array(spline).T
-        return spline, spline_points, tck
-    except Exception as e:
-        raise ValueError(f"Failed to fit spline: {str(e)}")
-
-
-def compute_derivatives_spline(t_arr, tck):
-    """
-    Given a list of points and the knots of a spline, it computes the first,
-    second and third derivatives of the spline at said points.
-    """
-    dx, dy, dz = splev(t_arr, tck, der=1)
-    ddx, ddy, ddz = splev(t_arr, tck, der=2)
-    dddx, dddy, dddz = splev(t_arr, tck, der=3)
-
-    # Each row represents the (n-th order) derivative at a point in the spline (column 1 = x, column 2 = y, column 3 = z)
-    D1 = np.vstack((dx, dy, dz)).T
-    D2 = np.vstack((ddx, ddy, ddz)).T
-    D3 = np.vstack((dddx, dddy, dddz)).T
-
-    return D1, D2, D3
-
-
-def compute_curvature(D1, D2):
-    """
-    Computes the local curvature of a curve given its first (D1) and second (D2) derivatives
-    """
-
-    cross = np.cross(D1, D2)
-    numerator = np.linalg.norm(cross, axis=1)
-    denominator = np.linalg.norm(D1, axis=1) ** 3
-    curvature = numerator / denominator
-    curvature = np.where(np.isfinite(curvature), curvature, 0)  # Handle division by zero
-
-    return curvature
-
-
-def compute_torsion(D1, D2, D3):
-    """
-    Computes the local torsion of a curve given its first (D1), second (D2) and third (D3) derivatives
-    """
-    cross = np.cross(D1, D2)
-    torsion_numerator = np.einsum("ij,ij->i", cross, D3)
-    torsion_denominator = np.linalg.norm(cross, axis=1) ** 2
-    torsion = torsion_numerator / torsion_denominator
-    torsion = np.where(np.isfinite(torsion), torsion, 0)  # Handle division by zero
-
-    return torsion
-
-
-def read_single_bore(filepath):
-    """
-    Reads the data of a single bore (from files like those named 10W5P02.dat)
-    """
-    data = []
-    try:
-        with open(filepath, "r") as file:
-            reader = csv.reader(file, delimiter=" ")
-            for row in reader:
-                try:
-                    point = [float(coord) for coord in row if coord.strip()]
-                    if len(point) == 3 and all(np.isfinite(point)):
-                        data.append(point)
-                except ValueError:
-                    continue
-    except FileNotFoundError:
-        raise FileNotFoundError(f"Error: File {filepath} not found.")
-
-    data = np.array(data)
-
-    return data
-
-
-def clean_data(data):
-    """
-    Removes invalid data
-    """
-    total_points = len(data)
-
-    # Remove non-numerical or NaN entries
-    valid_mask = np.isfinite(data).all(axis=1)
-    data_clean = data[valid_mask]
-    num_nan = total_points - len(data)
-    print(f"Discarded {num_nan} non-numerical/NaN points ({100 * num_nan / total_points:.2f}%)")
-
-    return data_clean
-
-
-def remove_surface_and_outliers(data, shallow_z_threshold, deep_outlier_quantile_threshold):
-    """
-    Removes the points corresponding to the surface by removing the points shallower than
-    shallow_z_threshold (points closer to the surface than shallow_z_threshold), and removes
-    outliers that lie too deep in the sample that correspond to wrongly measured data by
-    removing the deep_outlier_quantile_threshold deepest points
-    """
-
-    z_vals = data[:, 2]
-
-    # If shallow_z_threshold is None, do not exclude any points from the surface
-    surface_mask = np.zeros_like(z_vals, dtype=bool) if shallow_z_threshold is None else z_vals > shallow_z_threshold
-
-    # Similarly, to not exclude deep outliers
-    if deep_outlier_quantile_threshold is None:
-        deep_mask = np.zeros_like(z_vals, dtype=bool)
-    else:
-        z_deep_cutoff = np.quantile(z_vals, deep_outlier_quantile_threshold)
-        deep_mask = z_vals < z_deep_cutoff
-
-    keep_mask = ~(surface_mask | deep_mask)
-
-    surface_outliers = data[surface_mask]
-    deep_outliers = data[deep_mask]
-    data = data[keep_mask]
-
-    num_surface_outliers = len(surface_outliers)
-    num_deep_outliers = len(deep_outliers)
-    total_points = len(data)
-
-    print(f"Discarded {num_surface_outliers} surface outliers({100 * num_surface_outliers / total_points:.2f}%)")
-    print(f"Discarded {num_deep_outliers} deep outliers({100 * num_deep_outliers / total_points:.2f}%)")
-
-    return data, surface_outliers, deep_outliers
-
-
-def subsample_data(data, max_points, random_seed):
-    """
-    Subsamples the data by randomly keeping max_points and discarding the rest
-    """
-
-    np.random.seed(random_seed)
-    indices = np.random.choice(len(data), max_points, replace=False)
-    data = data[indices]
-
-    return data
-
-def calculate_slices(data, slice_thickness):
-    """
-    Calculates the data slices
-    """
-    z = data[:, 2]
-
-    # ==== Create Slices Variable ====
-    z_min, z_max = z.min(), z.max()
-    print(f"z_max={float(z_max)}, z_min={float(z_min)}")
-    num_slices = ceil((z_max - z_min)/slice_thickness)
-
-    # Generate slice boundaries from top (z_max) to bottom (z_min)
-    slice_bounds, step = np.linspace(z_max, z_max - num_slices*slice_thickness, num_slices+1, retstep=True)
-
-    
-    # Initialize list to store slices
-    slices = []
-
-    # Create slices
-    for i in range(num_slices):
-        z_start, z_end = slice_bounds[i], slice_bounds[i + 1]
-        
-        # Mask for points in the current slice
-        mask = (z <= z_start) & (z > z_end)
-        
-        slices.append(data[mask])
-
-    # Optional: Remove empty slices (unlikely, but safe)
-    for s in slices:
-        if len(s) <= 0:
-            raise ValueError("There are empty slices")
-
-    slices = [s for s in slices if len(s) > 0]
-
-
-    print(f"{slice_bounds=}")
-    print(f"{len(slice_bounds)=}")
-    print(f"{num_slices=}")
-
-    return slices, slice_bounds
-
-def compute_centroids(slices, slice_bounds):
-    """
-    For each slice, finds its centroid
-    """
-    num_slices = len(slices)
-
-    centroids = [None] * num_slices
-    centroid_zs = [None] * num_slices
-    centroid_ids = [None] * num_slices
-
-    for i in range(num_slices):
-        print(f"Computing centroid for Slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um)")
-        slice_points = slices[i]
-
-        if len(slice_points) == 0:
-            raise ValueError(
-                f"Slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um) contains no points"
-            )
-
-        centroid = np.mean(slice_points, axis=0)
-
-        centroids[i] = centroid
-        centroid_ids[i] = i + 1
-
-    # Filter out None values
-    valid_centroids = [c for c in centroids if c is not None]
-    centroids = np.array(valid_centroids)
-    centroid_zs = [z for z in centroid_zs if z is not None]
-    centroid_ids = [id for id in centroid_ids if id is not None]
-
-    return centroids, centroid_ids
-
-
-def compute_ellipses(slices, slice_bounds):
-    """
-    Find the ellipse that best fits each spline using least squares
-    """
-    num_slices = len(slices)
-
-    ellipses = [None] * num_slices
-
-    for i in range(num_slices):
-        print(f"Fitting ellipse for Slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um)")
-        slice_points = slices[i]
-
-        if len(slice_points) == 0:
-            raise ValueError("Empty slice")
-
-        points_2d = slice_points[:, :2]  # [x, y]  
-
-        center_x, center_y, a, b, eccentricity, angle = fit_ellipse_least_squares(points_2d)
-        center_z = np.mean(slice_points[:, 2]) # Set the ellipse's depth as the "center of mass" in depth of the points in the slice
-
-        ellipse_center = np.array([center_x, center_y, center_z])
-
-        ellipse_dict = {"center": ellipse_center, "a": a, "b": b, "eccentricity": eccentricity, "angle": angle}
-        ellipses[i] = ellipse_dict            
-            
-
-    return ellipses
-
-
-if __name__ == "__main__":
-    # Read filepath as argument
-    parser = argparse.ArgumentParser(description="Make plots and extract metrics of the measurements of a bore.")
-    parser.add_argument("--filepath", required=True, help="Path to file containing the data file.")
-
-    args = parser.parse_args()
-
-    filepath = args.filepath
-
-    filename = Path(filepath).stem
-    
-
-
-    # ==== Configurable Parameters ====
-    sample_x_min = 0
-    sample_x_max = 50
-    sample_y_min = 0
-    sample_y_max = 50
-    sample_limits = (sample_x_min, sample_x_max, sample_y_min, sample_y_max)
-
-    max_points = 500000  # Max number of points to use for entire dataset
-    subsample_points = False  # Toggle for random subsampling of entire dataset
-
-    slice_thickness = 0.8 # Thickness of each slice in um
-    deep_outlier_quantile_threshold = (
-        0.0005  # Lower quantile for discarding deep outliers. Set it to None to not discard any.
-    )
-
-    shallow_z_threshold = (
-        -1
-    )  # Discard points shallower than this z (closer to surface). Set it to None to not discard any.
-    random_seed = 42  # Seed for reproducibility
-    contour_levels = 10  # Number of contour levels for depth plot
-
-    spline_order = 3  # Spline interpolation order
-    n_spline_points = 500  # Number of points in the splines
-
-    # Plot toggles
-    plot_3d_geometry_toggle = True  # Plot of the point cloud with the fitted spline(s) through the center(s)
-    plot_planes = True
-    plot_outliers_toggle = False
-    plot_outlier_types = "deep"  # Options: "all", "surface", "deep"
-    plot_xy_center_approximations = True
-    plot_xy_centroids = False
-    plot_xy_ellipse_centers = True
-    plot_z_histogram = False  # Optional histogram to guide shallow_z_threshold
-    plot_superposed_slices_xy_toggle = True  # Toggle for XY view of all slices superposed
-    plot_centroids_in_superposed_slices_xy = False  # Toggle for centroids in XY view of superposed slices
-    plot_ellipses_in_superposed_slices_xy = True  # Toggle for centroids in XY view of superposed slices
-    plot_ellipse_centers_in_superposed_slices_xy = True  # Toggle for ellipses' centers in XY view of superposed slices
-    plot_ellipses_and_axes_toggle = True  # Toggle for plot the of all ellipses
-    ellipses_shift_to_common_center = False  # Toggle to shift all ellipses so that they have the same center
-    plot_contour_toggle = False  # Toggle for contour plot
-    plot_ellipses_in_slices = True  # Toggle for plotting ellipses in slice views
-    plot_ellipse_metrics_toggle = True  # Toggle for eccentricity and theta vs. depth plot
-    plot_individual_slices_grid_toggle = True
-    plot_slice_views_one_by_one = False  # Toggle for XY view of each slices
-
-    # ==== Read and Clean the Data ====
-    data_raw = read_single_bore(filepath)
-    data = clean_data(data_raw)
-    data, surface_outliers, deep_outliers = remove_surface_and_outliers(
-        data, shallow_z_threshold, deep_outlier_quantile_threshold
-    )
-
-    # ==== Random subsample after filtering ====
-    if subsample_points and max_points < len(data):
-        data = subsample_data(data, max_points, random_seed)
-
-    # ==== Compute data slices ====
-    slices, slice_bounds = calculate_slices(data, slice_thickness)
-
-
-    # ==== Compute centroids for slices ====
-    centroids, centroid_ids = compute_centroids(slices, slice_bounds)
-
-    centroids_x, centroids_y, centroids_z = centroids[:, 0], centroids[:, 1], centroids[:, 2]
-
-    # ==== Fit ellipses to slices ====
-    ellipses = compute_ellipses(slices, slice_bounds)
-
-    ellipse_centers = []
-    for ellipse in ellipses:
-        ellipse_centers.append(ellipse["center"])
-
-    ellipse_centers = np.array(ellipse_centers)
-
-    ellipses_x, ellipses_y, ellipses_z = ellipse_centers[:, 0], ellipse_centers[:, 1], ellipse_centers[:, 2]
-
-    # ==== Fit splines ====
-    t_arr = np.linspace(0, 1, n_spline_points)
-
-    centroid_spline, centroid_spline_np, centroid_tck = fit_spline_3d(
-        centroids_x, centroids_y, centroids_z, t_arr, spline_order=spline_order
-    )
-
-    ellipse_spline, ellipse_spline_np, ellipse_tck = fit_spline_3d(
-        ellipses_x, ellipses_y, ellipses_z, t_arr, spline_order=spline_order
-    )
-
-    # ==== Compute Curvature and Torsion (for Centroid Spline) ====
-    D1_centroid, D2_centroid, D3_centroid = compute_derivatives_spline(t_arr, centroid_tck)
-    curvature_centroid = compute_curvature(D1_centroid, D2_centroid)
-    torsion_centroid = compute_torsion(D1_centroid, D2_centroid, D3_centroid)
-
-    avg_curvature = np.mean(curvature_centroid)
-    avg_torsion = np.mean(torsion_centroid)
-    print(f"Average Curvature: {avg_curvature:.6f} um^-1")
-    print(f"Average Torsion: {avg_torsion:.6f} um^-1")
-
-    # ==== Plotting ====
-    x, y, z = data[:, 0], data[:, 1], data[:, 2]
-
-    if plot_3d_geometry_toggle:
-        plot_3d_geometry(
-            x,
-            y,
-            z,
-            centroid_spline,
-            centroids_x,
-            centroids_y,
-            centroids_z,
-            ellipse_spline,
-            ellipses_x,
-            ellipses_y,
-            ellipses_z,
-            slice_bounds,
-            plot_planes,
-            sample_limits
-        )
-
-    if plot_outliers_toggle:
-        plot_outliers(x, y, z, surface_outliers, deep_outliers, plot_outlier_types)
-
-    if plot_xy_center_approximations:
-        plot_xy_centers_path(
-            plot_xy_centroids,
-            plot_xy_ellipse_centers,
-            centroids_x,
-            centroids_y,
-            centroids_z,
-            centroid_ids,
-            ellipse_centers,
-            sample_limits
-        )
-
-    if plot_superposed_slices_xy_toggle:
-        plot_superposed_slices_xy(
-            slices,
-            centroids,
-            centroid_ids,
-            ellipses,
-            sample_limits,
-            plot_centroids_in_superposed_slices_xy,
-            plot_ellipses_in_all_slices_xy=True,
-            plot_ellipse_centers=True
-        )
-
-    if plot_ellipses_and_axes_toggle:
-        plot_ellipses_and_axes(
-            ellipses,
-            sample_limits,
-            shift_to_common_center=ellipses_shift_to_common_center
-        )
-
-    if plot_ellipses_and_axes_toggle:
-        plot_ellipses_and_axes(
-            ellipses,
-            sample_limits,
-            shift_to_common_center=not ellipses_shift_to_common_center
-        )
-
-    if plot_contour_toggle:
-        plot_contour(x, y, z, contour_levels, sample_limits)
-
-    if plot_ellipse_metrics_toggle:
-        plot_ellipse_metrics(ellipses)
-
-    if plot_individual_slices_grid_toggle:
-        plot_individual_slices_grid(slices, slice_bounds, centroids, ellipses, sample_limits, plot_ellipses_in_slices)
-
-    if plot_slice_views_one_by_one:
-        plot_individual_slices_separately(
-            slices,
-            slice_bounds,
-            centroids,
-            centroid_ids,
-            ellipses,
-            sample_limits,
-            plot_ellipses_in_slices,
-        )
