@@ -1654,6 +1654,13 @@ namespace Kratos
             rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
 
             // Add actuation dofs
+            // rResult[index + 3] = GetGeometry()[i].GetDof(ACTUATION_STRAINS_XX).EquationId();
+            // rResult[index + 4] = GetGeometry()[i].GetDof(ACTUATION_STRAINS_YY).EquationId();
+            // rResult[index + 5] = GetGeometry()[i].GetDof(ACTUATION_STRAINS_XY).EquationId();
+            // rResult[index + 6] = GetGeometry()[i].GetDof(ACTUATION_CURAVTURES_XX).EquationId();
+            // rResult[index + 7] = GetGeometry()[i].GetDof(ACTUATION_CURAVTURES_YY).EquationId();
+            // rResult[index + 8] = GetGeometry()[i].GetDof(ACTUATION_CURAVTURES_XY).EquationId();
+
             // rResult[index + 3] = GetGeometry()[i].GetDof(ACTUATION_STRAINS_X).EquationId();
             // rResult[index + 4] = GetGeometry()[i].GetDof(ACTUATION_STRAINS_Y).EquationId();
             // rResult[index + 5] = GetGeometry()[i].GetDof(ACTUATION_STRAINS_Z).EquationId();
@@ -1691,6 +1698,13 @@ namespace Kratos
 
 
             // Add actuation dofs
+            // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_STRAINS_XX));
+            // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_STRAINS_YY));
+            // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_STRAINS_XY));
+            // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_CURAVTURES_XX));
+            // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_CURAVTURES_YY));
+            // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_CURAVTURES_XY));
+
             // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_STRAINS_X));
             // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_STRAINS_Y));
             // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ACTUATION_STRAINS_Z));
