@@ -11,7 +11,7 @@ RUN wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCT
     apt-key add /tmp/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB && \
     rm /tmp/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB && \
     echo deb https://apt.repos.intel.com/oneapi all main > /etc/apt/sources.list.d/oneAPI.list
-    
+
 # Update again with the new ppa
 RUN add-apt-repository ppa:git-core/ppa && \
     apt-get -y update
@@ -47,6 +47,7 @@ RUN apt-get install -y --no-install-recommends \
     libtrilinos-kokkos-dev \
     libtrilinos-kokkos-kernels-dev \
     libtrilinos-shylu-dev \
+    libsuitesparse-dev \
     libmedc-dev \
     openmpi-bin \
     python3-dev \
@@ -58,7 +59,7 @@ RUN python3 -m pip install --upgrade pip
 
 # Install Python packages
 RUN pip3 install numpy scipy sympy parameterized
-   
+
 # install MMG 5.5
 RUN git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /tmp/mmg_5_5_1 && \
     mkdir /tmp/mmg_5_5_1/build && \
@@ -67,7 +68,7 @@ RUN git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /tmp/mmg_5_5
     cmake .. -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_C_FLAGS="-w" -DCMAKE_CXX_FLAGS="-w" -DCMAKE_INSTALL_PREFIX="/external_libraries/mmg/mmg_5_5_1" -DUSE_SCOTCH=OFF -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
     make -j2 install && \
     cd /
-    
+
 # install PARMMG
 RUN git clone https://github.com/MmgTools/ParMmg /tmp/ParMmg_5ffc6ad && \
     mkdir /tmp/ParMmg_5ffc6ad/build && \
