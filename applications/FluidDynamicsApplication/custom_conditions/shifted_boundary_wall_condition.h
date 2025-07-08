@@ -313,7 +313,7 @@ protected:
      * This function computes the penalty coefficient for the Nitsche normal imposition (penalization and stabilization)
      * @param rN the current Gauss pt. shape functions vector
      * @param DeltaTime time step
-     * @param Penalty Nitsche penalty coefficient (gamma)
+     * @param Gamma Nitsche penalty coefficient (gamma)
      * @param ParentSize size/ volume of the parent element
      * @param EffectiveViscosity effective viscosity
      * @return double The normal penalty coefficient value
@@ -321,14 +321,14 @@ protected:
     double ComputeSlipNormalPenaltyCoefficient(
         const Vector& rN,
         const double DeltaTime,
-        const double Penalty,
+        const double Gamma,
         const double ParentSize,
         const double EffectiveViscosity) const;
 
     /**
      * This function computes the penalty coefficients for the Nitsche tangential imposition
      * @param SlipLength slip length for Navier-slip (zero for no-slip)
-     * @param Penalty Nitsche penalty coefficient (gamma)
+     * @param Gamma Nitsche penalty coefficient (gamma)
      * @param ParentSize size/ volume of the parent element
      * @param EffectiveViscosity effective viscosity
      * @return a pair of double containing the two coefficients
@@ -337,21 +337,23 @@ protected:
         const Vector& rN,
         const double SlipLength,
         const double DeltaTime,
-        const double Penalty,
+        const double Gamma,
         const double ParentSize,
         const double EffectiveViscosity) const;
 
     /**
      * This function computes the Nitsche coefficients for the Nitsche tangential imposition
      * @param SlipLength slip length for Navier-slip (zero for no-slip)
-     * @param Penalty Nitsche penalty coefficient (gamma)
+     * @param Gamma Nitsche penalty coefficient (gamma)
+     * @param CharactLength Characteristic length of the problem
      * @param ParentSize size/ volume of the parent element
      * @param EffectiveViscosity effective viscosity
      * @return a pair of double containing the two coefficients
      */
     std::pair<const double, const double> ComputeSlipTangentialNitscheCoefficients(
         const double SlipLength,
-        const double Penalty,
+        const double Gamma,
+        const double CharactLength,
         const double ParentSize,
         const double EffectiveViscosity) const;
 
