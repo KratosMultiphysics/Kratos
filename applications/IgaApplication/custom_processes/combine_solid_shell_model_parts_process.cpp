@@ -25,7 +25,7 @@ namespace Kratos
 {
 	void CombineSolidShellModelPartsProcess::ExecuteInitialize() {
 
-		// 1. Get (trimming) curve from shell model part that lies on the coupling inerface of the shell
+		// 1. Get (trimming) curve from shell model part that lies on the coupling interface of the shell
 		// Should be done before CombineModelParts(), because CombineModelParts() reorders geometry IDs
 		ModelPart& IgaModelPart = _Model.GetModelPart("IgaModelPart");
 		Vector coupled_brep_ids = _Parameters["coupled_brep_id"].GetVector();
@@ -189,6 +189,8 @@ namespace Kratos
 			filename = "data/IP_Shell_" + std::to_string(it+1) + ".vtk";
 			selectpart = 1;
 			writeVTKFile(filename, Coupled_Quadrature_Point_Geometries, selectpart);
+
+			//14. Check constitutive variables
 		}
 	}
 
@@ -203,8 +205,9 @@ namespace Kratos
 		ReorderGeometryIds(CoupleIdCounter, ShellModelPart);
 
 		CoupleIdCounter = 1;
-		ReorderNodeIds(CoupleIdCounter, SolidModelPart);
+	
 		ReorderNodeIds(CoupleIdCounter, ShellModelPart);
+		ReorderNodeIds(CoupleIdCounter, SolidModelPart);
 
 		CoupleIdCounter = 1;
 		ReorderElementIds(CoupleIdCounter, SolidModelPart);
