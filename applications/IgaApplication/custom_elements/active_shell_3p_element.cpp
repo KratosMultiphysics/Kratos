@@ -361,6 +361,10 @@ namespace Kratos
                 actuated_constitutive_variables_curvature,
                 constitutive_law_parameters,
                 ConstitutiveLaw::StressMeasure_PK2);
+            
+            //CHECKLEO - output of the actuated constitutive variables
+            std::cout << "StrainVector membrane: " << actuated_constitutive_variables_membrane.StrainVector << std::endl;
+            std::cout << "StrainVector curvature: " << actuated_constitutive_variables_curvature.StrainVector << std::endl;
 
             // calculate B MATRICES
             Matrix BMembrane = ZeroMatrix(3, mat_size);
@@ -714,18 +718,30 @@ namespace Kratos
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
         // CHECKLEO Testausgabe der Variable
-        std::cout << "mACTUATION_ALPHA in CalculateConstitutiveVariables: " << mACTUATION_ALPHA << std::endl;
-        std::cout << "mACTUATION_BETA in CalculateConstitutiveVariables: " << mACTUATION_BETA << std::endl;
-        std::cout << "mACTUATION_GAMMA in CalculateConstitutiveVariables: " << mACTUATION_GAMMA << std::endl;
-        std::cout << "mACTUATION_KAPPA_1 in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_1 << std::endl;
-        std::cout << "mACTUATION_KAPPA_2 in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_2 << std::endl;
+        std::cout << "mACTUATION_ALPHA    in CalculateConstitutiveVariables: " << mACTUATION_ALPHA << std::endl;
+        std::cout << "mACTUATION_BETA     in CalculateConstitutiveVariables: " << mACTUATION_BETA << std::endl;
+        std::cout << "mACTUATION_GAMMA    in CalculateConstitutiveVariables: " << mACTUATION_GAMMA << std::endl;
+        std::cout << "mACTUATION_KAPPA_1  in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_1 << std::endl;
+        std::cout << "mACTUATION_KAPPA_2  in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_2 << std::endl;
         std::cout << "mACTUATION_KAPPA_12 in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_12 << std::endl;
 
+        std::cout << "m_A_ab_covariant_vector[IntegrationPointIndex]: " << m_A_ab_covariant_vector[IntegrationPointIndex] << std::endl;
 
-        array_1d<double, 3> strain_vector = 0.5 * (rActualKinematic.a_ab_covariant - m_A_ab_covariant_vector[IntegrationPointIndex]);
+        array_1d<double, 3> strain_vector;
+        // strain part -> Vektor (E11,E22;E12)
+        strain_vector[0] = (mACTUATION_ALPHA + 0.5 * std::pow(mACTUATION_ALPHA, 2)) * m_A_ab_covariant_vector[IntegrationPointIndex][0];
+        strain_vector[1] = 0.5 * (mACTUATION_ALPHA + mACTUATION_BETA + mACTUATION_ALPHA*mACTUATION_BETA) * m_A_ab_covariant_vector[IntegrationPointIndex][1];
+        strain_vector[2] = (mACTUATION_BETA + 0.5 * std::pow(mACTUATION_BETA, 2)) * m_A_ab_covariant_vector[IntegrationPointIndex][2];
+        //shear part
+        strain_vector[2] = 0.5 * (m_A_ab_covariant_vector[IntegrationPointIndex][2] * cos(mACTUATION_GAMMA) + m_dA_vector[IntegrationPointIndex] * sin(mACTUATION_GAMMA) - m_A_ab_covariant_vector[IntegrationPointIndex][2] ) * 2;
         noalias(rThisActuatedConstitutiveVariablesMembrane.StrainVector) = prod(m_T_vector[IntegrationPointIndex], strain_vector);
 
-        array_1d<double, 3> curvature_vector = rActualKinematic.b_ab_covariant - m_B_ab_covariant_vector[IntegrationPointIndex];
+        //bending part
+        array_1d<double, 3> curvature_vector;
+        curvature_vector[0] = mACTUATION_KAPPA_1;     //CHECK: This might not be coorect as it is not multiplied with the zeta -> preintegration 
+        curvature_vector[1] = mACTUATION_KAPPA_2;
+        curvature_vector[2] = mACTUATION_KAPPA_12;
+        
         noalias(rThisActuatedConstitutiveVariablesCurvature.StrainVector) = prod(m_T_vector[IntegrationPointIndex], curvature_vector);
 
         // Constitive Matrices DMembrane and DCurvature
