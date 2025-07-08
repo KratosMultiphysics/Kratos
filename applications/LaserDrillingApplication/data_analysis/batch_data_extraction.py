@@ -4,7 +4,7 @@ Extract data from a set of files
 
 import argparse
 from pathlib import Path
-from data_manipulation_functions import read_single_bore, clean_data, remove_surface_and_outliers, subsample_data, calculate_slices
+from data_manipulation_functions import read_single_bore, clean_data, remove_surface_and_outliers, subsample_data, calculate_slice_bounds, calculate_slices
 
 def parse_filename(file):
     """Extract power, pulses, and ID from filename like '10W20P03.dat'"""
@@ -84,7 +84,16 @@ if __name__ == "__main__":
             data = subsample_data(data, max_points, random_seed)
 
         # ==== Compute data slices ====
-        slices, slice_bounds = calculate_slices(data, slice_thickness)
+        slice_bounds = calculate_slice_bounds(data, slice_thickness)
+
+        # plot_cloud_and_slices(x, y, z, slice_bounds, sample_limits, filename)
+        try:
+            slices = calculate_slices(data, slice_bounds)
+        except ValueError:
+            # Emtpy slice, handle gracefully so that the script can 
+            # move on to the next data file. Note the file that is 
+            # failing for manual review later.
+            pass
 
         print(slice_bounds)
 
