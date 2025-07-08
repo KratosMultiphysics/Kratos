@@ -1,6 +1,3 @@
-import sys
-sys.path.append(r"C:\software_development\Kratos2\bin\Debug")
-sys.path.append(r"C:\software_development\Kratos2\bin\Debug\libs")
 
 import KratosMultiphysics
 
