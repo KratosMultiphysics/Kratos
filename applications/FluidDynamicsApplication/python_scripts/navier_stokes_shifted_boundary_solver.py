@@ -35,6 +35,7 @@ class ShiftedBoundaryFormulation(object):
             "boundary_model_parts"         : [],
             "enclosed_areas"               : [],
             "slip_length"                  : 1.0e8,
+            "charact_length"               : 1.0,
             "penalty_coefficient"          : 10.0,
             "dynamic_tau"                  : 1.0,
             "level_set_type"               : "point-based",
@@ -62,6 +63,7 @@ class ShiftedBoundaryFormulation(object):
         self.process_info_data[KM.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
         self.process_info_data[KM.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
         self.process_info_data[KM_CFD.SLIP_LENGTH] = formulation_settings["slip_length"].GetDouble()
+        self.process_info_data[KM_CFD.EMBEDDED_CHARACT_LENGTH] = formulation_settings["charact_length"].GetDouble()
 
         # Get names of boundary model parts, whether they enclose and area and set post-processing computations for them
         self.skin_model_part_names = formulation_settings["boundary_model_parts"].GetStringArray()
