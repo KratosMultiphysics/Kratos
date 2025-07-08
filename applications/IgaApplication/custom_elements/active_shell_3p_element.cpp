@@ -378,6 +378,18 @@ namespace Kratos
                 BCurvature,
                 kinematic_variables);
 
+            // calculate ACTUATED B MATRICES
+            Matrix ActuatedBMembrane = ZeroMatrix(3, mat_size);
+            // Matrix BCurvature = ZeroMatrix(3, mat_size);
+            CalculateActuatedBMembrane(
+                point_number,
+                ActuatedBMembrane,
+                kinematic_variables);
+            // CalculateActuatedBCurvature(
+            //     point_number,
+            //     BCurvature,
+            //     kinematic_variables);
+
             // Nonlinear Deformation
             SecondVariations second_variations_strain(mat_size);
             SecondVariations second_variations_curvature(mat_size);
@@ -762,6 +774,38 @@ namespace Kratos
     }
 
     void ActiveShell3pElement::CalculateBMembrane(
+        const IndexType IntegrationPointIndex,
+        Matrix& rB,
+        const KinematicVariables& rActualKinematic) const
+    {
+        const SizeType number_of_control_points = GetGeometry().size();
+        const SizeType mat_size = number_of_control_points * 3;
+
+        const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
+
+        if (rB.size1() != 3 || rB.size2() != mat_size)
+            rB.resize(3, mat_size);
+        noalias(rB) = ZeroMatrix(3, mat_size);
+
+        for (IndexType r = 0; r < mat_size; r++)
+        {
+            // local node number kr and dof direction dirr
+            IndexType kr = r / 3;
+            IndexType dirr = r % 3;
+
+            array_1d<double, 3> dE_curvilinear;
+            // strain
+            dE_curvilinear[0] = r_DN_De(kr, 0) * rActualKinematic.a1(dirr);
+            dE_curvilinear[1] = r_DN_De(kr, 1) * rActualKinematic.a2(dirr);
+            dE_curvilinear[2] = 0.5 * (r_DN_De(kr, 0) * rActualKinematic.a2(dirr) + rActualKinematic.a1(dirr) * r_DN_De(kr, 1));
+
+            rB(0, r) = m_T_vector[IntegrationPointIndex](0, 0) * dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](0, 1) * dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](0, 2) * dE_curvilinear[2];
+            rB(1, r) = m_T_vector[IntegrationPointIndex](1, 0) * dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](1, 1) * dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](1, 2) * dE_curvilinear[2];
+            rB(2, r) = m_T_vector[IntegrationPointIndex](2, 0) * dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](2, 1) * dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](2, 2) * dE_curvilinear[2];
+        }
+    }
+
+    void ActiveShell3pElement::CalculateActuatedBMembrane(
         const IndexType IntegrationPointIndex,
         Matrix& rB,
         const KinematicVariables& rActualKinematic) const

@@ -439,6 +439,17 @@ private:
         Matrix& rB,
         const KinematicVariables& rActualKinematic) const;
 
+    void CalculateActuatedBMembrane(
+    const IndexType IntegrationPointIndex,
+    Matrix& rB,
+    const KinematicVariables& rActualKinematic) const;
+
+    // void CalculateActuatedBCurvature(
+    //     const IndexType IntegrationPointIndex,
+    //     Matrix& rB,
+    //     const KinematicVariables& rActualKinematic) const;
+
+
     void CalculateSecondVariationStrainCurvature(
         const IndexType IntegrationPointIndex,
         SecondVariations& rSecondVariationsStrain,
