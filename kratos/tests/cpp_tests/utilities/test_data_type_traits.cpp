@@ -1058,6 +1058,29 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedDenseMatrixCopyToContiguousDataWit
 
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsDenseMatrixCopyToFromContiguousDataWithShape, KratosCoreFastSuite)
+{
+    DenseMatrix<double> input(5, 2);
+    for (unsigned int i = 0; i < 10; ++i) {
+        *(input.data().begin() + i) = i;
+    }
+
+    std::vector<unsigned int> shape = {5, 2};
+    std::vector<double> contiguous_data(10);
+    DataTypeTraits<DenseMatrix<double>>::CopyToContiguousData(contiguous_data.data(), input, shape.begin(), shape.end());
+
+    for (unsigned int i = 0; i < 10; ++i) {
+        KRATOS_EXPECT_EQ(contiguous_data[i], i);
+    }
+
+    DenseMatrix<double> output(5, 2);
+    DataTypeTraits<DenseMatrix<double>>::CopyFromContiguousData(output, contiguous_data.data(), shape.begin(), shape.end());
+
+    for (unsigned int i = 0; i < 10; ++i) {
+        KRATOS_EXPECT_EQ(*(input.data().begin() + i), *(output.data().begin() + i));
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedDenseMatrixCopyFromContiguousDataWithShape, KratosCoreFastSuite)
 {
     using data_type_traits = DataTypeTraits<std::vector<DenseMatrix<array_1d<std::vector<DenseVector<array_1d<int, 3>>>, 10>>>>;
