@@ -5,6 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import basic_mapper_tests
 import blade_mapping_test
 import quadratic_mapper_tests
+from pathlib import Path
 
 def GetFilePath(file_name):
     return Path(__file__).resolve().parent / "mdpa_files" / file_name
@@ -225,7 +226,6 @@ class BasicTestsLineMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
         cls.model_part_destination.ProcessInfo[KM.TIME] = 0.0 # needed for the check-processes
         cls.model_part_origin.ProcessInfo[KM.DELTA_TIME] = 1.0 # needed for the check-processes
         cls.model_part_destination.ProcessInfo[KM.DELTA_TIME] = 1.0 # needed for the check-processes
-
         cls.ReadModelParts()
 
     @classmethod
@@ -330,6 +330,7 @@ class BasicTestsLineMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
 class BasicTestsSurfaceMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
+        import KratosMultiphysics.IgaApplication as Iga
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_element",
             "interface_submodel_part_origin": "neumann_boundary_iga",
