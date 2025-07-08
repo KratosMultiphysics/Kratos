@@ -185,6 +185,7 @@ def remove_surface_and_outliers(data, shallow_z_threshold, deep_outlier_quantile
     outliers that lie too deep in the sample that correspond to wrongly measured data by
     removing the deep_outlier_quantile_threshold deepest points
     """
+    total_points = len(data)
 
     z_vals = data[:, 2]
 
@@ -206,8 +207,10 @@ def remove_surface_and_outliers(data, shallow_z_threshold, deep_outlier_quantile
 
     num_surface_outliers = len(surface_outliers)
     num_deep_outliers = len(deep_outliers)
-    total_points = len(data)
 
+
+    # print(f"{num_surface_outliers=}")
+    # print(f"{total_points=}")
     print(f"Discarded {num_surface_outliers} surface outliers({100 * num_surface_outliers / total_points:.2f}%)")
     print(f"Discarded {num_deep_outliers} deep outliers({100 * num_deep_outliers / total_points:.2f}%)")
 
@@ -225,46 +228,52 @@ def subsample_data(data, max_points, random_seed):
 
     return data
 
-def calculate_slices(data, slice_thickness):
+def calculate_slice_bounds(data, slice_thickness):
     """
-    Calculates the data slices
+    Calculates the slice bounds
     """
     z = data[:, 2]
 
     # ==== Create Slices Variable ====
     z_min, z_max = z.min(), z.max()
     print(f"z_max={float(z_max)}, z_min={float(z_min)}")
+
+
     num_slices = int(np.ceil((z_max - z_min)/slice_thickness))
 
     # Generate slice boundaries from top (z_max) to bottom (z_min)
-    slice_bounds, step = np.linspace(z_max, z_max - num_slices*slice_thickness, num_slices+1, retstep=True)
+    slice_bounds = np.linspace(z_max, z_max - num_slices*slice_thickness, num_slices+1)
+    # print(slice_bounds)
+    return slice_bounds
 
-    
+def calculate_slices(data, slice_bounds):
+    """
+    Calculates the data slices
+    """
+    z = data[:, 2]
+
+    num_slices = slice_bounds.size-1
     # Initialize list to store slices
     slices = []
 
     # Create slices
     for i in range(num_slices):
         z_start, z_end = slice_bounds[i], slice_bounds[i + 1]
+        # print(f"{i=}")
+        # print(f"{z_start=}, {z_end=}")
         
         # Mask for points in the current slice
         mask = (z <= z_start) & (z > z_end)
         
-        slices.append(data[mask])
+        data_in_slice = data[mask]
+        # print(data_in_slice)
 
-    # Optional: Remove empty slices (unlikely, but safe)
-    for s in slices:
-        if len(s) <= 0:
-            raise ValueError("There are empty slices")
+        if len(data_in_slice) <= 0:
+            raise ValueError(f"Empty slice between {z_start=}, {z_end=}")
 
-    slices = [s for s in slices if len(s) > 0]
+        slices.append(data_in_slice)
 
-
-    print(f"{slice_bounds=}")
-    print(f"{len(slice_bounds)=}")
-    print(f"{num_slices=}")
-
-    return slices, slice_bounds
+    return slices
 
 def compute_centroids(slices, slice_bounds):
     """
