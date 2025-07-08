@@ -1,3 +1,7 @@
+"""
+Functions to load the data, clean it and fit it
+"""
+
 import numpy as np
 from scipy.interpolate import splprep, splev
 from skimage.measure import EllipseModel
