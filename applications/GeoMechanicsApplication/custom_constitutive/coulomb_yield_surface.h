@@ -29,7 +29,8 @@ public:
     CoulombYieldSurface(double FrictionAngleInRad, double Cohesion, double DilatationAngleInRad);
 
     [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
-    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&, int MappingType) const override;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&, std::size_t AveragingType) const;
 
 private:
     friend class Serializer;

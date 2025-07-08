@@ -30,10 +30,15 @@ double CoulombYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
     return rSigmaTau[1] + rSigmaTau[0] * std::sin(mFrictionAngle) - mCohesion * std::cos(mFrictionAngle);
 }
 
-Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, int MappingType) const
+Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
+{
+    return DerivativeOfFlowFunction(rSigmaTau, std::size_t{1});
+}
+
+Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, std::size_t AveragingType) const
 {
     Vector result(2);
-    switch (MappingType) {
+    switch (AveragingType) {
     case 0:
         result <<= -(1.0 - 3.0 * std::sin(mDilatationAngle)) / 4.0, (3.0 - std::sin(mDilatationAngle)) / 4.0;
         break;
@@ -44,7 +49,7 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, int MappingT
         result <<= (1.0 + 3.0 * std::sin(mDilatationAngle)) / 4.0, (3.0 + std::sin(mDilatationAngle)) / 4.0;
         break;
     default:
-        KRATOS_ERROR << "Wrong Mapping Type " << MappingType << ": unsupported variable\n";
+        KRATOS_ERROR << "Unsupported Averaging Type: " << AveragingType << "\n";
     }
     return result;
 }

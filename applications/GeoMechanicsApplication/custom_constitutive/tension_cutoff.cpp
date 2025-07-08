@@ -29,7 +29,7 @@ double TensionCutoff::YieldFunctionValue(const Vector& rSigmaTau) const
     return principal_stress_vector[0] - mTensileStrength;
 }
 
-Vector TensionCutoff::DerivativeOfFlowFunction(const Vector&, int MappingType) const
+Vector TensionCutoff::DerivativeOfFlowFunction(const Vector&) const
 {
     return Vector{ScalarVector{2, 1.0}};
 }

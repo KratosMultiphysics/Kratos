@@ -163,25 +163,25 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     if (mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
         mStressVector = trial_stress_vector;
     } else {
-        int    mapping_type = 1;
-        Vector mapped_sigma_tau =
-            mCoulombWithTensionCutOffImpl.DoReturnMapping(r_prop, trial_sigma_tau, mapping_type);
+        std::size_t averaging_type = 1;
+        Vector      mapped_sigma_tau =
+            mCoulombWithTensionCutOffImpl.DoReturnMapping(r_prop, trial_sigma_tau, averaging_type);
         Vector mapped_principal_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
             mapped_sigma_tau, principal_trial_stress_vector);
 
         // for interchanging principal stresses, retry mapping with averaged principal streses.
-        mapping_type = FindMappingType(mapped_principal_stress_vector);
-        if (mapping_type != 1) {
+        averaging_type = FindAveragingType(mapped_principal_stress_vector);
+        if (averaging_type != std::size_t{1}) {
             Vector averaged_principal_trial_stress_vector =
-                AveragingPrincipalStressComponents(principal_trial_stress_vector, mapping_type);
+                AveragePrincipalStressComponents(principal_trial_stress_vector, averaging_type);
             trial_sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(
                 averaged_principal_trial_stress_vector);
             mapped_sigma_tau =
-                mCoulombWithTensionCutOffImpl.DoReturnMapping(r_prop, trial_sigma_tau, mapping_type);
+                mCoulombWithTensionCutOffImpl.DoReturnMapping(r_prop, trial_sigma_tau, averaging_type);
             mapped_principal_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
                 mapped_sigma_tau, averaged_principal_trial_stress_vector);
             // mapping type is sort of an enum, but below used for indexing.
-            mapped_principal_stress_vector[1] = mapped_principal_stress_vector[mapping_type];
+            mapped_principal_stress_vector[1] = mapped_principal_stress_vector[averaging_type];
         }
         mStressVector = StressStrainUtilities::RotatePrincipalStresses(
             mapped_principal_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
@@ -190,21 +190,23 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     rParameters.GetStressVector() = mStressVector;
 }
 
-Vector MohrCoulombWithTensionCutOff::AveragingPrincipalStressComponents(const Vector& rPrincipalStressVector,
-                                                                        int MappingType)
+Vector MohrCoulombWithTensionCutOff::AveragePrincipalStressComponents(const Vector& rPrincipalStressVector,
+                                                                      std::size_t AveragingType)
 {
     auto result = rPrincipalStressVector;
-    if (MappingType == 0) {
-        std::fill(result.begin(), result.begin()+1, (rPrincipalStressVector[0] + rPrincipalStressVector[1]) * 0.5);
-    } else if (MappingType == 2) {
-        std::fill(result.begin()+1, result.begin()+2, (rPrincipalStressVector[1] + rPrincipalStressVector[2]) * 0.5);
+    if (AveragingType == 0) {
+        std::fill(result.begin(), result.begin() + 1,
+                  (rPrincipalStressVector[0] + rPrincipalStressVector[1]) * 0.5);
+    } else if (AveragingType == 2) {
+        std::fill(result.begin() + 1, result.begin() + 2,
+                  (rPrincipalStressVector[1] + rPrincipalStressVector[2]) * 0.5);
     }
     return result;
 }
 
-int MohrCoulombWithTensionCutOff::FindMappingType(const Vector& rMappedPrincipalStressVector)
+std::size_t MohrCoulombWithTensionCutOff::FindAveragingType(const Vector& rMappedPrincipalStressVector)
 {
-    int result = 1;
+    std::size_t result = 1;
     if (rMappedPrincipalStressVector[0] < rMappedPrincipalStressVector[1]) {
         result = 0;
     } else if (rMappedPrincipalStressVector[1] < rMappedPrincipalStressVector[2]) {

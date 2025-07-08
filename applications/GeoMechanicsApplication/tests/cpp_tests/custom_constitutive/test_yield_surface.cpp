@@ -54,16 +54,16 @@ KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_CanBeSavedAndLoadedThroughInterfac
     // Arrange
     const auto scoped_registration =
         ScopedSerializerRegistration{"CoulombYieldSurface"s, CoulombYieldSurface{}};
-    constexpr auto friction_angle          = MathUtils<>::DegreesToRadians(60.0);
-    constexpr auto cohesion                = 2.0;
-    constexpr auto dilatancy_angle         = MathUtils<>::DegreesToRadians(30.0);
-    auto           p_coulomb_yield_surface = std::unique_ptr<YieldSurface>(
-        std::make_unique<CoulombYieldSurface>(friction_angle, cohesion, dilatancy_angle));
+    constexpr auto friction_angle  = MathUtils<>::DegreesToRadians(60.0);
+    constexpr auto cohesion        = 2.0;
+    constexpr auto dilatancy_angle = MathUtils<>::DegreesToRadians(30.0);
+    auto           p_coulomb_yield_surface =
+        std::make_unique<CoulombYieldSurface>(friction_angle, cohesion, dilatancy_angle);
     auto serializer = StreamSerializer{};
 
     // Act
     serializer.save("test_tag"s, p_coulomb_yield_surface);
-    auto p_loaded_coulomb_yield_surface = std::unique_ptr<YieldSurface>{};
+    auto p_loaded_coulomb_yield_surface = std::unique_ptr<CoulombYieldSurface>{};
     serializer.load("test_tag"s, p_loaded_coulomb_yield_surface);
 
     // Assert
@@ -75,8 +75,8 @@ KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_CanBeSavedAndLoadedThroughInterfac
                        0.5 * std::sqrt(3.0) - 1, Defaults::absolute_tolerance);
     auto expected_derivative = Vector(2);
     expected_derivative <<= 0.5, 1.0;
-    const int mapping_type = 1;
-    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_coulomb_yield_surface->DerivativeOfFlowFunction(sigma_tau, mapping_type),
+    const std::size_t averaging_type = 1;
+    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_coulomb_yield_surface->DerivativeOfFlowFunction(sigma_tau, averaging_type),
                               expected_derivative, Defaults::absolute_tolerance);
 }
 
@@ -120,8 +120,7 @@ KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoadedThroughInterface, Kra
     KRATOS_EXPECT_NEAR(p_loaded_tension_cut_off->YieldFunctionValue(sigma_tau), 0.0, Defaults::absolute_tolerance);
     auto expected_derivative = Vector(2);
     expected_derivative <<= 1.0, 1.0;
-    const int mapping_type = 1;
-    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_tension_cut_off->DerivativeOfFlowFunction(sigma_tau, mapping_type),
+    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_tension_cut_off->DerivativeOfFlowFunction(sigma_tau),
                               expected_derivative, Defaults::absolute_tolerance);
 }
 
