@@ -74,7 +74,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(BinsDynamic);
 
     constexpr static std::size_t Dimension = TDimension;
-    
+
     using PointType = TPointType;
     using BoundingBoxType = BoundingBox<PointType>;
     using ObjectType = typename GetObjectType<PointType>::type;
@@ -345,20 +345,20 @@ public:
         std::array<double, 3> lengths;
         double average_length = 0.0;
 
-        for (int i = 0; i < Dimension; i++) {
+        for (std::size_t i = 0; i < Dimension; i++) {
             lengths[i] = GetMaxPoint()[i] - GetMinPoint()[i];
             average_length += lengths[i];
         }
         average_length *= 1.0 / 3.0;
 
         if (average_length < std::numeric_limits<double>::epsilon()) {
-            for(int i = 0; i < Dimension; i++) {
+            for(std::size_t i = 0; i < Dimension; i++) {
                 mN[i] = 1;
             }
             return;
         }
 
-        for (int i = 0; i < Dimension; i++) {
+        for (std::size_t i = 0; i < Dimension; i++) {
              mN[i] = static_cast<std::size_t>(lengths[i] / average_length * (double)average_number_of_cells) + 1;
 
             if (mN[i] > 1) {
