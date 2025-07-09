@@ -22,10 +22,12 @@
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
 #include "custom_strategies/strategies/residualbased_newton_raphson_strategy_linear_elastic_dynamic.hpp"
+#include "custom_strategies/strategies/residualbased_newton_raphson_strategy_noh_bathe.hpp"
 #include "solving_strategies/strategies/solving_strategy.h"
 
 // builders and solvers
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_linear_elastic_dynamic.h"
+#include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_noh_bathe.h"
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_mass_and_damping.h"
 
 // schemes
@@ -79,6 +81,8 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
         GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
     using GeoMechanicNewtonRaphsonStrategyLinearElasticDynamicType =
         GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    using GeoMechanicNewtonRaphsonStrategyNohBatheType =
+        GeoMechanicNewtonRaphsonStrategyNohBathe<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
     py::class_<NewmarkQuasistaticUPwSchemeType, typename NewmarkQuasistaticUPwSchemeType::Pointer, BaseSchemeType>(
         m, "NewmarkQuasistaticUPwScheme", py::module_local())
@@ -133,6 +137,11 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
         .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
                       BuilderAndSolverType::Pointer, int, bool, bool>());
 
+    py::class_<GeoMechanicNewtonRaphsonStrategyNohBatheType, typename GeoMechanicNewtonRaphsonStrategyNohBatheType::Pointer, BaseSolvingStrategyType>(
+        m, "GeoMechanicNewtonRaphsonStrategyNohBathe")
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
+                      BuilderAndSolverType::Pointer, int, bool, bool>());
+
     using ResidualBasedBlockBuilderAndSolverWithMassAndDampingType =
         ResidualBasedBlockBuilderAndSolverWithMassAndDamping<SparseSpaceType, LocalSpaceType, LinearSolverType>;
     py::class_<ResidualBasedBlockBuilderAndSolverWithMassAndDampingType,
@@ -146,6 +155,12 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
     py::class_<ResidualBasedBlockBuilderAndSolverLinearElasticDynamicType,
                ResidualBasedBlockBuilderAndSolverLinearElasticDynamicType::Pointer, BuilderAndSolverType>(
         m, "ResidualBasedBlockBuilderAndSolverLinearElasticDynamic")
+        .def(py::init<LinearSolverType::Pointer, double, double, bool>());
+
+    using ResidualBasedBlockBuilderAndSolverNohBatheType =
+        ResidualBasedBlockBuilderAndSolverNohBathe<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    py::class_<ResidualBasedBlockBuilderAndSolverNohBatheType, ResidualBasedBlockBuilderAndSolverNohBatheType::Pointer, BuilderAndSolverType>(
+        m, "ResidualBasedBlockBuilderAndSolverNohBathe")
         .def(py::init<LinearSolverType::Pointer, double, double, bool>());
 }
 

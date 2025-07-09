@@ -2,6 +2,9 @@ import time as timer
 import os
 import sys
 
+
+sys.path.append(r"C:\software_development\Kratos4\bin\Release")
+sys.path.append(r"C:\software_development\Kratos4\bin\Release\libs")
 sys.path.append(os.path.join('..','..','..'))
 
 import KratosMultiphysics as Kratos
@@ -169,8 +172,8 @@ class GeoMechanicsAnalysis(AnalysisStage):
                 KratosGeo.CalculateIncrementalDisplacementProcess(
                     self._GetSolver().GetComputingModelPart(), Kratos.Parameters()).Execute()
 
-                for node in self._GetSolver().GetComputingModelPart().Nodes:
-                    self._CalculateTotalDisplacement(node)
+                # for node in self._GetSolver().GetComputingModelPart().Nodes:
+                #     self._CalculateTotalDisplacement(node)
 
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
@@ -222,10 +225,13 @@ if __name__ == '__main__':
         err_msg += '    "python geomechanics_analysis.py <my-parameter-file>.json"\n'
         raise TypeError(err_msg)
 
-    if len(argv) == 2: # ProjectParameters is being passed from outside
-        parameter_file_name = argv[1]
-    else: # using default name
-        parameter_file_name = "ProjectParameters.json"
+    # if len(argv) == 2: # ProjectParameters is being passed from outside
+    #     parameter_file_name = argv[1]
+    # else: # using default name
+    #     parameter_file_name = "ProjectParameters.json"
+
+    os.chdir(r"C:\software_development\stem2\benchmark_tests\test_1d_wave_prop_drained_soil\benchmark_tests\test_1d_wave_prop_drained_soil\inputs_kratos")
+    parameter_file_name = "ProjectParameters_stage_1.json"
 
     with open(parameter_file_name,'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
