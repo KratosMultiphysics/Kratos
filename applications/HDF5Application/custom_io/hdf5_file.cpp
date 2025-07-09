@@ -1049,7 +1049,7 @@ void File::ReadDataSetImpl(
     BuiltinTimer timer;
     // Check that full path exists.
     KRATOS_ERROR_IF_NOT(IsDataSet(rPath))
-        << "Path is not a data set: " << rPath << std::endl;
+        << "Path is not a data set: " << rPath << " in file " << this->GetFileName() << std::endl;
 
     const auto& file_space_dims = GetDataDimensions(rPath);
 
