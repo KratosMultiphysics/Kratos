@@ -128,6 +128,7 @@ namespace Kratos
 
 		/* ADJ ELEMENTS */
 		const AdjointSmallDisplacementElement mAdjointSmallDisplacementElement3D4N;
+		const AdjointSmallDisplacementElement mAdjointSmallDisplacementElement3D10N;
 
 		// Helmholtz elements
 		const HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 1>> mHelmholtzSurfaceElement3D3N;
