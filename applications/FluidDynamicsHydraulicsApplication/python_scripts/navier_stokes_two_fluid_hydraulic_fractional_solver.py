@@ -609,20 +609,20 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
         return is_converged
 
-    def _ComputeDeltaTime(self):
-        dt = super()._ComputeDeltaTime()
-        self.dt = max(dt,self.previous_dt)
-        if dt > self.previous_dt:
-            self.dt =self.previous_dt
-        step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-        if step>2.0:
-            maximum_iterations = self.settings["maximum_iterations"].GetDouble()
-            iterations_ratio = self.old_iterations/maximum_iterations
-            alpha = 0.8
-            if iterations_ratio < 0.5:
-                self.previous_dt /= alpha
-                self.dt = self.previous_dt
-            elif iterations_ratio > 0.9:
-                self.previous_dt *=alpha
-                self.dt = self.previous_dt
-        return self.dt
+    # def _ComputeDeltaTime(self):
+    #     dt = super()._ComputeDeltaTime()
+    #     self.dt = max(dt,self.previous_dt)
+    #     if dt > self.previous_dt:
+    #         self.dt =self.previous_dt
+    #     step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+    #     if step>2.0:
+    #         maximum_iterations = self.settings["maximum_iterations"].GetDouble()
+    #         iterations_ratio = self.old_iterations/maximum_iterations
+    #         alpha = 0.8
+    #         if iterations_ratio < 0.5:
+    #             self.previous_dt /= alpha
+    #             self.dt = self.previous_dt
+    #         elif iterations_ratio > 0.9:
+    #             self.previous_dt *=alpha
+    #             self.dt = self.previous_dt
+    #     return self.dt
