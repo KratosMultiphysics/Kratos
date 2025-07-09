@@ -233,6 +233,8 @@ def calculate_slice_bounds(data, slice_thickness):
     Calculates the slice bounds
     """
     z = data[:, 2]
+    if z.size <= 0:
+        raise IndexError("Empty list of z values in the data received by calculate_slice_bounds.")
 
     # ==== Create Slices Variable ====
     z_min, z_max = z.min(), z.max()
