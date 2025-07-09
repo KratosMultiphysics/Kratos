@@ -4,7 +4,7 @@ Extract data from a set of files
 
 import argparse
 from pathlib import Path
-from data_manipulation_functions import read_single_bore, clean_data, remove_surface_and_outliers, subsample_data, calculate_slice_bounds, calculate_slices
+from data_manipulation_functions import read_single_bore, clean_data, remove_surface_and_outliers, subsample_data, calculate_slice_bounds, calculate_slices, compute_ellipses
 
 def parse_filename(file):
     """Extract power, pulses, and ID from filename like '10W20P03.dat'"""
@@ -60,18 +60,23 @@ if __name__ == "__main__":
 
     folder = Path(folderpath)
 
-    for file in folder.glob("*.dat"):
+    
+    failed_files = {} # Dictionary of files that failed for some reason
+    number_of_files = sum(1 for _ in folder.glob("*.dat"))
+    print(f"{number_of_files=}")
+
+    for i, file in enumerate(folder.glob("*.dat")):
         filename = file.stem
-        print(filename)
-        
+        print(f"Analyzing file {filename}: {i+1}/{number_of_files}")
+
         power, pulses, identifier = parse_filename(file)
         
         experiment = {
+        "filename": filename,
+        "material": material,
         "power": power,
         "pulses": pulses,
-        "id": identifier,
-        "material": material,
-        "filename": filename
+        "id": identifier
         }
 
         # ==== Read and Clean the Data ====
@@ -84,7 +89,12 @@ if __name__ == "__main__":
             data = subsample_data(data, max_points, random_seed)
 
         # ==== Compute data slices ====
-        slice_bounds = calculate_slice_bounds(data, slice_thickness)
+        try:
+            slice_bounds = calculate_slice_bounds(data, slice_thickness)
+        except IndexError:
+            failed_files[filename] = "Empty data list"
+            print("Error in file" + filename)
+            continue
 
         # plot_cloud_and_slices(x, y, z, slice_bounds, sample_limits, filename)
         try:
@@ -93,10 +103,21 @@ if __name__ == "__main__":
             # Emtpy slice, handle gracefully so that the script can 
             # move on to the next data file. Note the file that is 
             # failing for manual review later.
-            pass
+            failed_files[filename] = "Empty slice"
+            print("Error in file" + filename)
+            continue
 
-        print(slice_bounds)
+        try:
+            ellipses = compute_ellipses(slices, slice_bounds)
+        except ValueError:
+            failed_files[filename] = "Error calculating ellipses"
+            print("Error in file" + filename)
+            continue
 
+        experiment["ellipses"] = ellipses
+
+        # print(slice_bounds)
+    print("The following files failed:" + str(failed_files))
 
 
 
