@@ -5,6 +5,7 @@ from plotting_functions import plot_cloud_and_slices, plot_3d_geometry, plot_out
 import numpy as np
 import argparse
 from pathlib import Path
+import json
 
 if __name__ == "__main__":
     """
@@ -15,42 +16,46 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Make plots and extract metrics of the measurements of a bore.")
     parser.add_argument("--filepath", required=True, help="Path to file containing the data file.")
     parser.add_argument("--keep-surface-and-outliers", required=False, action="store_true", help="Toggle to keep outliers. Optional (by default, they are removed).")
+    parser.add_argument("--parameters-file", required=True, help="Path of the file that contains the parameters to be used")
 
 
     args = parser.parse_args()
 
     filepath = args.filepath
     keep_surface_and_outliers_toggle = args.keep_surface_and_outliers
+    parameters_file = args.parameters_file
+
     # remove_surface_and_outliers_toggle = False if args.remove_surface_and_outliers == "False" else True
-    print(f"{args.keep_surface_and_outliers=}")
+    # print(f"{args.keep_surface_and_outliers=}")
     print(f"{keep_surface_and_outliers_toggle=}")
     filename = Path(filepath).stem
     print(f"Plots for {filename}")
 
 
-    # ==== Configurable Parameters ====
-    sample_x_min = 0
-    sample_x_max = 50
-    sample_y_min = 0
-    sample_y_max = 50
-    sample_limits = (sample_x_min, sample_x_max, sample_y_min, sample_y_max)
+        # Read parameters
+    with open(parameters_file, "r") as params_file:
+        params = json.load(params_file)
 
-    max_points = 500000  # Max number of points to use for entire dataset
-    subsample_points = False  # Toggle for random subsampling of entire dataset
+    # ==== Configure Parameters ====
+    try:
+        sample_x_min = params["sample_x_min"]
+        sample_x_max = params["sample_x_max"]
+        sample_y_min = params["sample_y_min"]
+        sample_y_max = params["sample_y_max"]
+        sample_limits = (sample_x_min, sample_x_max, sample_y_min, sample_y_max)
 
-    slice_thickness = 1.5 # Thickness of each slice in um
-    deep_outlier_quantile_threshold = (
-        0.0005  # Lower quantile for discarding deep outliers. Set it to None to not discard any.
-    )
-
-    shallow_z_threshold = (
-        -1
-    )  # Discard points shallower than this z (closer to surface). Set it to None to not discard any.
-    random_seed = 42  # Seed for reproducibility
-    contour_levels = 10  # Number of contour levels for depth plot
-
-    spline_order = 3  # Spline interpolation order
-    n_spline_points = 500  # Number of points in the splines
+        max_points = params["max_points"]  # Max number of points to use for entire dataset
+        subsample_points = params["subsample_points"]  # Toggle for random subsampling of entire dataset
+        slice_thickness = params["slice_thickness"] # Thickness of each slice in um
+        deep_outlier_quantile_threshold = params["deep_outlier_quantile_threshold"]  # Lower quantile for discarding deep outliers. Set it to None to not discard any.
+        
+        shallow_z_threshold = params["shallow_z_threshold"] # Discard points shallower than this z (closer to surface). Set it to None to not discard any.
+        random_seed = params["random_seed"]  # Seed for reproducibility
+        spline_order = params["spline_order"]  # Spline interpolation order
+        n_spline_points = params["n_spline_points"]  # Number of points in the splines
+    except KeyError:
+        print("Missing parameters in the parameters JSON file.")
+        exit(-1)
 
     # Plot toggles
     plot_3d_geometry_toggle = True  # Plot of the point cloud with the fitted spline(s) through the center(s)
@@ -213,6 +218,8 @@ if __name__ == "__main__":
         )
 
     if plot_contour_toggle:
+        contour_levels = len(slices)
+
         plot_contour(x, y, z, contour_levels, sample_limits, filename)
 
     if plot_ellipse_metrics_toggle:

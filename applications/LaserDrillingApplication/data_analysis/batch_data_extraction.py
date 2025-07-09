@@ -47,7 +47,7 @@ if __name__ == "__main__":
     with open(parameters_file, "r") as params_file:
         params = json.load(params_file)
 
-    # ==== Configurable Parameters ====
+    # ==== Configure Parameters ====
     try:
         sample_x_min = params["sample_x_min"]
         sample_x_max = params["sample_x_max"]
