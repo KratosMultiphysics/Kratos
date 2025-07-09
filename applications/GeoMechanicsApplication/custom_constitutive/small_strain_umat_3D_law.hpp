@@ -119,9 +119,6 @@ public:
     /// Static definition of the dimension
     static constexpr SizeType Dimension = N_DIM_3D;
 
-    /// Static definition of the VoigtSize
-    static constexpr SizeType VoigtSize = VOIGT_SIZE_3D;
-
     /// Pointer definition of SmallStrainUMAT3DLaw
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUMAT3DLaw);
 
@@ -155,7 +152,7 @@ public:
     /**
      * @brief Voigt tensor size:
      */
-    [[nodiscard]] SizeType GetStrainSize() const override { return VoigtSize; }
+    [[nodiscard]] SizeType GetStrainSize() const override { return TVoigtSize; }
 
     /**
      * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
