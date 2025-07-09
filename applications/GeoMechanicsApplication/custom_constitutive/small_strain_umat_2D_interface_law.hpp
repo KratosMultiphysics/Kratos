@@ -45,7 +45,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUMAT2DInterfaceLaw : public SmallStrainUMAT3DLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUMAT2DInterfaceLaw : public SmallStrainUMAT3DLaw<3>
 {
 public:
     // The base class ConstitutiveLaw type definition

@@ -103,6 +103,7 @@ using pF_UMATMod = void (*)(double*       STRESS,
 /** Detail class definition.
  */
 
+template <unsigned int TVoigtSize>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUMAT3DLaw : public ConstitutiveLaw
 {
 public:
@@ -352,8 +353,6 @@ protected:
 
     void CalculateConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix);
     void CalculateStress(ConstitutiveLaw::Parameters& rValues, Vector& rStressVector);
-
-    int GetStateVariableIndex(const Variable<double>& rThisVariable);
 
     ///@}
     ///@name Protected Inquiry

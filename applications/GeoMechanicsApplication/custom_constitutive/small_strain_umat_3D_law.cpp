@@ -108,7 +108,8 @@ using f_UMATMod = void (*)(double*       STRESS,
                            int*          kinc);
 #endif
 
-SmallStrainUMAT3DLaw::SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLaw& rOther)
+template <unsigned int TVoigtSize>
+SmallStrainUMAT3DLaw<TVoigtSize>::SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLaw& rOther)
     : ConstitutiveLaw(rOther),
       mStressVector(rOther.mStressVector),
       mStressVectorFinalized(rOther.mStressVectorFinalized),
@@ -129,7 +130,8 @@ SmallStrainUMAT3DLaw::SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLaw& rOther)
     KRATOS_CATCH("")
 }
 
-ConstitutiveLaw::Pointer SmallStrainUMAT3DLaw::Clone() const
+template <unsigned int TVoigtSize>
+ConstitutiveLaw::Pointer SmallStrainUMAT3DLaw<TVoigtSize>::Clone() const
 {
     KRATOS_TRY
 
@@ -138,7 +140,8 @@ ConstitutiveLaw::Pointer SmallStrainUMAT3DLaw::Clone() const
     KRATOS_CATCH("")
 }
 
-SmallStrainUMAT3DLaw& SmallStrainUMAT3DLaw::operator=(const SmallStrainUMAT3DLaw& rOther)
+template <unsigned int TVoigtSize>
+SmallStrainUMAT3DLaw<TVoigtSize>& SmallStrainUMAT3DLaw<TVoigtSize>::operator=(const SmallStrainUMAT3DLaw<TVoigtSize>& rOther)
 {
     KRATOS_TRY
 
@@ -161,7 +164,8 @@ SmallStrainUMAT3DLaw& SmallStrainUMAT3DLaw::operator=(const SmallStrainUMAT3DLaw
     KRATOS_CATCH("")
 }
 
-void SmallStrainUMAT3DLaw::GetLawFeatures(Features& rFeatures)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::GetLawFeatures(Features& rFeatures)
 {
     // Set the type of law
     rFeatures.mOptions.Set(THREE_DIMENSIONAL_LAW);
@@ -179,7 +183,8 @@ void SmallStrainUMAT3DLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mStrainSize = GetStrainSize();
 }
 
-int SmallStrainUMAT3DLaw::Check(const Properties&   rMaterialProperties,
+template <unsigned int TVoigtSize>
+int SmallStrainUMAT3DLaw<TVoigtSize>::Check(const Properties&   rMaterialProperties,
                                 const GeometryType& rElementGeometry,
                                 const ProcessInfo&  rCurrentProcessInfo) const
 {
@@ -194,7 +199,8 @@ int SmallStrainUMAT3DLaw::Check(const Properties&   rMaterialProperties,
     return 0;
 }
 
-void SmallStrainUMAT3DLaw::InitializeMaterial(const Properties&   rMaterialProperties,
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::InitializeMaterial(const Properties&   rMaterialProperties,
                                               const GeometryType& rElementGeometry,
                                               const Vector&       rShapeFunctionsValues)
 
@@ -211,7 +217,8 @@ void SmallStrainUMAT3DLaw::InitializeMaterial(const Properties&   rMaterialPrope
     KRATOS_CATCH("")
 }
 
-void SmallStrainUMAT3DLaw::ResetStateVariables(const Properties& rMaterialProperties)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::ResetStateVariables(const Properties& rMaterialProperties)
 {
     KRATOS_TRY
     // reset state variables
@@ -228,7 +235,8 @@ void SmallStrainUMAT3DLaw::ResetStateVariables(const Properties& rMaterialProper
     KRATOS_CATCH("")
 }
 
-void SmallStrainUMAT3DLaw::ResetMaterial(const Properties&   rMaterialProperties,
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::ResetMaterial(const Properties&   rMaterialProperties,
                                          const GeometryType& rElementGeometry,
                                          const Vector&       rShapeFunctionsValues)
 {
@@ -254,7 +262,8 @@ void SmallStrainUMAT3DLaw::ResetMaterial(const Properties&   rMaterialProperties
     KRATOS_CATCH("")
 }
 
-bool SmallStrainUMAT3DLaw::loadUMAT(const Properties& rMaterialProperties)
+template <unsigned int TVoigtSize>
+bool SmallStrainUMAT3DLaw<TVoigtSize>::loadUMAT(const Properties& rMaterialProperties)
 {
     KRATOS_TRY
 
@@ -269,7 +278,8 @@ bool SmallStrainUMAT3DLaw::loadUMAT(const Properties& rMaterialProperties)
     KRATOS_CATCH("")
 }
 
-bool SmallStrainUMAT3DLaw::loadUMATLinux(const Properties& rMaterialProperties)
+template <unsigned int TVoigtSize>
+bool SmallStrainUMAT3DLaw<TVoigtSize>::loadUMATLinux(const Properties& rMaterialProperties)
 {
 #ifdef KRATOS_COMPILED_IN_LINUX
     void* lib_handle;
@@ -310,7 +320,8 @@ bool SmallStrainUMAT3DLaw::loadUMATLinux(const Properties& rMaterialProperties)
 #endif
 }
 
-bool SmallStrainUMAT3DLaw::loadUMATWindows(const Properties& rMaterialProperties)
+template <unsigned int TVoigtSize>
+bool SmallStrainUMAT3DLaw<TVoigtSize>::loadUMATWindows(const Properties& rMaterialProperties)
 {
 #ifdef KRATOS_COMPILED_IN_WINDOWS
 
@@ -350,7 +361,8 @@ bool SmallStrainUMAT3DLaw::loadUMATWindows(const Properties& rMaterialProperties
 #endif
 }
 
-void SmallStrainUMAT3DLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
 
@@ -359,7 +371,8 @@ void SmallStrainUMAT3DLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Paramet
     KRATOS_CATCH("")
 }
 
-void SmallStrainUMAT3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
 
@@ -368,7 +381,8 @@ void SmallStrainUMAT3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramet
     KRATOS_CATCH("")
 }
 
-void SmallStrainUMAT3DLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
 
@@ -377,7 +391,8 @@ void SmallStrainUMAT3DLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::P
     KRATOS_CATCH("")
 }
 
-void SmallStrainUMAT3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
 
@@ -405,7 +420,8 @@ void SmallStrainUMAT3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
     KRATOS_CATCH("")
 }
 
-void SmallStrainUMAT3DLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues)
 {
     const Vector& r_strain_vector = rValues.GetStrainVector();
 
@@ -414,22 +430,26 @@ void SmallStrainUMAT3DLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Para
     }
 }
 
-void SmallStrainUMAT3DLaw::SetExternalStressVector(Vector& rStressVector)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::SetExternalStressVector(Vector& rStressVector)
 {
     std::copy(mStressVector.begin(), mStressVector.end(), rStressVector.begin());
 }
 
-void SmallStrainUMAT3DLaw::SetInternalStressVector(const Vector& rStressVector)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::SetInternalStressVector(const Vector& rStressVector)
 {
     std::copy(rStressVector.begin(), rStressVector.end(), mStressVectorFinalized.begin());
 }
 
-void SmallStrainUMAT3DLaw::SetInternalStrainVector(const Vector& rStrainVector)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::SetInternalStrainVector(const Vector& rStrainVector)
 {
     std::copy(rStrainVector.begin(), rStrainVector.end(), mStrainVectorFinalized.begin());
 }
 
-void SmallStrainUMAT3DLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix)
 {
     if (rValues.GetMaterialProperties()[IS_FORTRAN_UDSM]) {
         // transfer fortran style matrix to C++ style
@@ -447,7 +467,8 @@ void SmallStrainUMAT3DLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& r
     }
 }
 
-void SmallStrainUMAT3DLaw::CalculateConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::CalculateConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix)
 {
     KRATOS_TRY
 
@@ -461,7 +482,8 @@ void SmallStrainUMAT3DLaw::CalculateConstitutiveMatrix(ConstitutiveLaw::Paramete
     KRATOS_CATCH("")
 }
 
-void SmallStrainUMAT3DLaw::CalculateStress(ConstitutiveLaw::Parameters& rValues, Vector& rStressVector)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::CalculateStress(ConstitutiveLaw::Parameters& rValues, Vector& rStressVector)
 {
     KRATOS_TRY
 
@@ -475,7 +497,8 @@ void SmallStrainUMAT3DLaw::CalculateStress(ConstitutiveLaw::Parameters& rValues,
     KRATOS_CATCH("")
 }
 
-void SmallStrainUMAT3DLaw::CallUMAT(ConstitutiveLaw::Parameters& rValues)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::CallUMAT(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
 
@@ -519,25 +542,29 @@ void SmallStrainUMAT3DLaw::CallUMAT(ConstitutiveLaw::Parameters& rValues)
     KRATOS_CATCH("")
 }
 
-void SmallStrainUMAT3DLaw::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     InitializeMaterialResponseCauchy(rValues);
 }
 
-void SmallStrainUMAT3DLaw::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     InitializeMaterialResponseCauchy(rValues);
 }
 
-void SmallStrainUMAT3DLaw::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     InitializeMaterialResponseCauchy(rValues);
 }
 
-void SmallStrainUMAT3DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
 
@@ -557,38 +584,44 @@ void SmallStrainUMAT3DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Par
     KRATOS_CATCH("")
 }
 
-void SmallStrainUMAT3DLaw::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     FinalizeMaterialResponseCauchy(rValues);
 }
 
-void SmallStrainUMAT3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     FinalizeMaterialResponseCauchy(rValues);
 }
 
-void SmallStrainUMAT3DLaw::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     FinalizeMaterialResponseCauchy(rValues);
 }
 
-void SmallStrainUMAT3DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     UpdateInternalStrainVectorFinalized(rValues);
     mStateVariablesFinalized = mStateVariables;
     mStressVectorFinalized   = mStressVector;
 }
 
-void SmallStrainUMAT3DLaw::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters& rValues)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters& rValues)
 {
     const Vector& rStrainVector = rValues.GetStrainVector();
     this->SetInternalStrainVector(rStrainVector);
 }
 
-double& SmallStrainUMAT3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+template <unsigned int TVoigtSize>
+double& SmallStrainUMAT3DLaw<TVoigtSize>::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                                              const Variable<double>&      rThisVariable,
                                              double&                      rValue)
 {
@@ -603,7 +636,8 @@ double& SmallStrainUMAT3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParam
     return rValue;
 }
 
-Vector& SmallStrainUMAT3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+template <unsigned int TVoigtSize>
+Vector& SmallStrainUMAT3DLaw<TVoigtSize>::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                                              const Variable<Vector>&      rThisVariable,
                                              Vector&                      rValue)
 {
@@ -620,7 +654,7 @@ Vector& SmallStrainUMAT3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParam
         rFlags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // We compute the stress
-        SmallStrainUMAT3DLaw::CalculateMaterialResponseCauchy(rParameterValues);
+        SmallStrainUMAT3DLaw<TVoigtSize>::CalculateMaterialResponseCauchy(rParameterValues);
         rValue = rParameterValues.GetStressVector();
 
         // Previous flags restored
@@ -631,7 +665,8 @@ Vector& SmallStrainUMAT3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParam
     return rValue;
 }
 
-Matrix& SmallStrainUMAT3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+template <unsigned int TVoigtSize>
+Matrix& SmallStrainUMAT3DLaw<TVoigtSize>::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                                              const Variable<Matrix>&      rThisVariable,
                                              Matrix&                      rValue)
 {
@@ -643,7 +678,8 @@ Matrix& SmallStrainUMAT3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParam
     return rValue;
 }
 
-Vector& SmallStrainUMAT3DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
+template <unsigned int TVoigtSize>
+Vector& SmallStrainUMAT3DLaw<TVoigtSize>::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == STATE_VARIABLES) {
         if (rValue.size() != mStateVariablesFinalized.size())
@@ -660,7 +696,8 @@ Vector& SmallStrainUMAT3DLaw::GetValue(const Variable<Vector>& rThisVariable, Ve
     return rValue;
 }
 
-double& SmallStrainUMAT3DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue)
+template <unsigned int TVoigtSize>
+double& SmallStrainUMAT3DLaw<TVoigtSize>::GetValue(const Variable<double>& rThisVariable, double& rValue)
 {
     int index = ConstitutiveLawUtilities::GetStateVariableIndex(rThisVariable);
 
@@ -672,7 +709,8 @@ double& SmallStrainUMAT3DLaw::GetValue(const Variable<double>& rThisVariable, do
     return rValue;
 }
 
-void SmallStrainUMAT3DLaw::SetValue(const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::SetValue(const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo)
 {
     const int index = ConstitutiveLawUtilities::GetStateVariableIndex(rVariable);
 
@@ -682,7 +720,8 @@ void SmallStrainUMAT3DLaw::SetValue(const Variable<double>& rVariable, const dou
     mStateVariablesFinalized[index] = rValue;
 }
 
-void SmallStrainUMAT3DLaw::SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
+template <unsigned int TVoigtSize>
+void SmallStrainUMAT3DLaw<TVoigtSize>::SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
 {
     if ((rVariable == STATE_VARIABLES) && (rValue.size() == mStateVariablesFinalized.size())) {
         std::copy(rValue.begin(), rValue.end(), mStateVariablesFinalized.begin());
@@ -690,5 +729,7 @@ void SmallStrainUMAT3DLaw::SetValue(const Variable<Vector>& rVariable, const Vec
         std::copy(rValue.begin(), rValue.end(), mStressVectorFinalized.begin());
     }
 }
+
+template class SmallStrainUMAT3DLaw<3>;
 
 } // Namespace Kratos
