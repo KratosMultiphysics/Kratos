@@ -30,7 +30,7 @@
 namespace Kratos
 {
 
-class FlagIO
+class FlagsIO
 {
 public:
     ///@name Type definitions
@@ -38,11 +38,20 @@ public:
 
     using ReturnType = bool;
 
+    template<class TContainerType>
+    static constexpr bool IsAllowedContainer = IsInList<
+                                                    TContainerType,
+                                                    ModelPart::NodesContainerType,
+                                                    ModelPart::ConditionsContainerType,
+                                                    ModelPart::ElementsContainerType>::value;
+
+    KRATOS_CLASS_POINTER_DEFINITION(FlagsIO);
+
     ///@}
     ///@name Life cycle
     ///@{
 
-    FlagIO(const Flags& rFlag) : mFlag(rFlag) {}
+    FlagsIO(const Flags& rFlag) : mFlag(rFlag) {}
 
     ///@}
     ///@name Public operations
