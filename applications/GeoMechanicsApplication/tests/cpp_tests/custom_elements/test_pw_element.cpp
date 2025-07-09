@@ -1319,8 +1319,12 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_SaveLoad, KratosGeoMechanic
     // Act
     serializer.save("test_tag"s, p_element);
     auto p_loaded_element = CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
+    KratosComponents<VariableData>::Add("WATER_PRESSURE", WATER_PRESSURE);
+    KratosComponents<VariableData>::Add("DT_WATER_PRESSURE", DT_WATER_PRESSURE);
+    KratosComponents<VariableData>::Add("VOLUME_ACCELERATION", VOLUME_ACCELERATION);
+    KratosComponents<VariableData>::Add("HYDRAULIC_DISCHARGE", HYDRAULIC_DISCHARGE);
+//    serializer.load("test_tag"s, p_loaded_element);
     SetBasicPropertiesAndVariables(p_loaded_element);
-    //serializer.load("test_tag"s, p_loaded_element);
     p_loaded_element->GetProperties().SetValue(BIOT_COEFFICIENT, 0.5);
     p_loaded_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
     p_loaded_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
