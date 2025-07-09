@@ -13,7 +13,7 @@
     "domain_size": 2,
     "model_import_settings": {
       "input_type": "mdpa",
-      "input_filename": "../common/mesh"
+      "input_filename": "mesh"
     },
     "material_import_settings": {
       "materials_filename": "../common/MaterialParameters.json"
@@ -92,7 +92,7 @@
           "model_part_name": "PorousDomain.Top",
           "variable_name": "WATER_PRESSURE",
           "is_fixed": true,
-          "table": [0,0],
+          "table": [1,1],
           "fluid_pressure_type": "Phreatic_Multi_Line",
           "gravity_direction": 1,
           "out_of_plane_direction": 2,
@@ -110,7 +110,7 @@
           "model_part_name": "PorousDomain.Bottom",
           "variable_name": "WATER_PRESSURE",
           "is_fixed": true,
-          "table": [0,0],
+          "table": [1,1],
           "fluid_pressure_type": "Phreatic_Multi_Line",
           "gravity_direction": 1,
           "out_of_plane_direction": 2,

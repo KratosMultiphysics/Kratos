@@ -1,3 +1,9 @@
+Begin Table 1 TIME HYDRAULIC_HEAD
+   0.00000000  0.000000000
+   86400.0000 2.000000000
+  172800.0000  0.000000000
+End Table
+
 Begin Table 3 TIME DISPLACEMENT_Y
    0.00000000  0.000000000
    86400.0000 -2.000000000
@@ -229,6 +235,9 @@ Begin SubModelPart Top
     3
     14
   End SubModelPartNodes
+  Begin SubModelPartTables
+    1
+  End SubModelPartTables
 End SubModelPart
 
 Begin SubModelPart Bottom
@@ -237,4 +246,7 @@ Begin SubModelPart Bottom
     4
     24
   End SubModelPartNodes
+  Begin SubModelPartTables
+      1
+  End SubModelPartTables
 End SubModelPart
