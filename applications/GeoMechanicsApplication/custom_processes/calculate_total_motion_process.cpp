@@ -25,7 +25,8 @@ CalculateTotalMotionProcess::CalculateTotalMotionProcess(ModelPart& rModelPart, 
         mResultsVariableName     = "TOTAL_DISPLACEMENT";
         mIncrementalVariableName = "INCREMENTAL_DISPLACEMENT";
     } else if (rParameters["variable_name"].GetString() == "ROTATION") {
-        KRATOS_ERROR << "TOTAL_ROTATION and INCREMENTAL_ROTATION are not implemented yet" << std::endl;
+        mResultsVariableName     = "TOTAL_ROTATION";
+        mIncrementalVariableName = "INCREMENTAL_ROTATION";
 
     } else {
         KRATOS_ERROR << "Invalid variable name: " << rParameters["variable_name"].GetString()
