@@ -2,17 +2,14 @@
     "problem_data": {
         "problem_name": "RigidBody",
         "start_time": 0.0,
-        "end_time": 0.05
+        "end_time": 0.1
     },
     "solver_settings": {
         "domain_size": 3,
         "echo_level": 0,
         "buffer_size": 3,
         "model_import_settings": {
-            "input_type": "none",
-            "input_filename": "Main",
-            "restart_load_file_label": "11.0",
-            "input_output_path": "restart/rigid_body"
+            "input_type": "none"
         },
         "time_integration_parameters": {
             "rho_inf": 1,
@@ -48,9 +45,7 @@
             }
         ]
     },
-    "output_processes": [
-         
-    ],
+    "output_processes": [],
     "processes": {
         "gravity": [],
         "initial_conditions_process_list": [
@@ -85,74 +80,11 @@
                 }
             }
         ],
-        "boundary_conditions_process_list": [
-            {
-                "python_module": "assign_vector_variable_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "AssignVectorVariableProcess",
-                "Parameters": {
-                    "model_part_name": "Main.RootPoint",
-                    "variable_name": "IMPOSED_DISPLACEMENT",
-                    "interval": [
-                        3.14159,
-                        6.28318
-                    ],
-                    "constrained": [
-                        false,
-                        false,
-                        false
-                    ],
-                    "value": [
-                        "0.0001 * sin(20 * t)",
-                        0.0,
-                        0.0
-                    ]
-                }
-            },
-            {
-                "python_module": "assign_scalar_variable_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "AssignScalarVariableProcess",
-                "Parameters": {
-                    "model_part_name": "Main.RootPoint",
-                    "variable_name": "IMPOSED_ROTATION_Z",
-                    "interval": [
-                        5,
-                        "End"
-                    ],
-                    "constrained": false,
-                    "value": "-0.0015*(t-5)/7"
-                }
-            },
-            {
-                "python_module": "assign_vector_variable_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "AssignVectorVariableProcess",
-                "Parameters": {
-                    "model_part_name": "Main.RigidBody",
-                    "variable_name": "IMPOSED_FORCE",
-                    "interval": [
-                        6,
-                        6.5
-                    ],
-                    "constrained": [
-                        false,
-                        false,
-                        false
-                    ],
-                    "value": [
-                        0.0,
-                        -5.0,
-                        0.0
-                    ]
-                }
-            }
-        ],
+        "boundary_conditions_process_list": [],
         "auxiliar_process_list": [
             {
                 "python_module": "from_json_check_result_process",
                 "kratos_module": "KratosMultiphysics",
-                "help": "",
                 "process_name": "FromJsonCheckResultProcess",
                 "Parameters": {
                     "check_variables": [
@@ -175,9 +107,9 @@
                         "ANGULAR_ACCELERATION_Y",
                         "ANGULAR_ACCELERATION_Z"
                     ],
-                    "input_file_name": "rbs_test/Barc2DRigidBody/barc_2d_rigid_body_csd_test_result.json",
+                    "input_file_name": "rbs_test/RBS_fluid/RBS_test_result.json",
                     "model_part_name": "Main.RigidBody",
-                    "time_frequency": 0.005
+                    "time_frequency": 0.004
                 }
             }
         ]

@@ -35,17 +35,22 @@ class RBSTestFactory(KratosUnittest.TestCase):
             self.test.Run()
 
 
-class TestRBSStandalone(RBSTestFactory):
+class TestRBSstandalone(RBSTestFactory):
+    # Test to check the usage of the rigid body solver as a standalone solver.
     file_name = "rbs_test/RBS_standalone/RBS_standalone"
     cosim_run = False
 
 class TestRBSRBS(RBSTestFactory):
+    # Checks for basic CoSim functionality by testing the communication between to RBSs,
+    # including some imposed motion on the root point and imposed force on the body.
     file_name = "rbs_test/RBS_RBS/RBS_RBS"
     cosim_run = True
 
-@KratosUnittest.skipIfApplicationsNotAvailable("FluidDynamicsApplication", "MappingApplication", "LinearSolversApplication")
-class TestBarc2DRigidBody(RBSTestFactory):
-    file_name = "rbs_test/Barc2DRigidBody/Barc2DRigidBody"
+@KratosUnittest.skipIfApplicationsNotAvailable("FluidDynamicsApplication", "MeshMovingApplication")
+class TestRBSfluid(RBSTestFactory):
+    # Basic coupling with a dummy fluid model. On top of testing the communication between the two solvers,
+    # this test checks the behavior of the coupling operations "compute_resultants" and "impose_mesh_displacement".
+    file_name = "rbs_test/RBS_fluid/RBS_fluid"
     cosim_run = True
 
 

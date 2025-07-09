@@ -8,9 +8,9 @@ from test_function_callback_utility import TestGenericCallFunction
 from test_ping_pong_coupling import TestPingPong
 from test_processes import TestCreatePointBasedEntitiesProcess
 from test_mok_fsi import TestMokFSI
-from rbs_test_factory import TestRBSStandalone
+from rbs_test_factory import TestRBSstandalone
 from rbs_test_factory import TestRBSRBS
-from rbs_test_factory import TestBarc2DRigidBody
+from rbs_test_factory import TestRBSfluid
 
 from test_coupling_interface_data import TestCouplingInterfaceData
 from test_data_transfer_operators import TestDataTransferOperators
@@ -56,9 +56,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCreatePointBasedEntitiesProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure_aux_tests]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRBSStandalone]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRBSstandalone]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRBSRBS]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestBarc2DRigidBody]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRBSfluid]))
     
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCouplingInterfaceData]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))

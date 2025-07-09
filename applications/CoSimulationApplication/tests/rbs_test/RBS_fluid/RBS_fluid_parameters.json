@@ -2,7 +2,7 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 0.05,
+        "end_time" : 0.1,
         "echo_level" : 0,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
@@ -82,7 +82,7 @@
             {
                 "type" : "solver_wrappers.kratos.fluid_dynamics_wrapper",
                 "solver_wrapper_settings" : {
-                    "input_file"  : "rbs_test/Barc2DRigidBody/ProjectParametersCFDFSI"
+                    "input_file"  : "rbs_test/RBS_fluid/ProjectParametersFluid"
                 },
                 "data" : {
                     "disp" : {
@@ -120,7 +120,7 @@
             {
                 "type" : "solver_wrappers.rigid_body.rigid_body_solver_wrapper",
                 "solver_wrapper_settings" : {
-                    "input_file"  : "rbs_test/Barc2DRigidBody/ProjectParametersCSDFSI"
+                    "input_file"  : "rbs_test/RBS_fluid/ProjectParametersRBS"
                 },
                 "data" : {
                     "disp" : {
