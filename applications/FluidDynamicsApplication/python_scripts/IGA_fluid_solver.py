@@ -50,7 +50,7 @@ class IGAFluidSolver(navier_stokes_monolithic_solver.NavierStokesMonolithicSolve
     file_name = os.path.join(directory, "true_points.txt")
     if os.path.exists(file_name):
         os.remove(file_name)
-    name_mdpa_true_boundary = "mdpa_files/Weird_shape3..."
+    name_mdpa_true_boundary = "mdpa_files/inner1"
     # name_mdpa_true_boundary = "mdpa_files/sphere" 
     file_mdpa_exists = os.path.isfile(os.path.join(name_mdpa_true_boundary + ".mdpa"))
     

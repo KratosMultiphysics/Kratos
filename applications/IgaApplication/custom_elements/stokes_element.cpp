@@ -1103,8 +1103,28 @@ void StokesElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
         rOutput_pressure += r_N(0, i) * output_solution_step_value_pressure;
     } 
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Declare gradient components
+    double du_dx = 0.0, du_dy = 0.0;
+    double dv_dx = 0.0, dv_dy = 0.0;
+
+    // Compute gradients of velocity using DN_DX
     const ShapeDerivativesType& DN_DX = DN_De[0];
+
+    for (IndexType i = 0; i < nb_nodes; ++i)
+    {
+        const double u_x_i = r_geometry[i].GetSolutionStepValue(VELOCITY_X);
+        const double u_y_i = r_geometry[i].GetSolutionStepValue(VELOCITY_Y);
+
+        du_dx += DN_DX(i, 0) * u_x_i;
+        du_dy += DN_DX(i, 1) * u_x_i;
+
+        dv_dx += DN_DX(i, 0) * u_y_i;
+        dv_dy += DN_DX(i, 1) * u_y_i;
+    }
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
 
     // constitutive law
     Matrix B = ZeroMatrix(3,nb_nodes*mDim);
@@ -1126,13 +1146,13 @@ void StokesElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
 
     // double yielded_state = 0.0;
-    // const double sigma_y = 0;
+    const double sigma_y = 5;
 
     // const double sigma_y = 500;
 
     // const double sigma_y = 395;
     // const double sigma_y = 790;
-    const double sigma_y = 987.5;
+    // const double sigma_y = 987.5;
     // const double sigma_y = 1086;
     // const double sigma_y = 1145.5;
     Vector& StressVector = this_constitutive_variables.StressVector;
@@ -1171,6 +1191,21 @@ void StokesElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
                     << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << r_geometry.Center().Z() << " " << integration_points[0].Weight() << std::endl;
         output_file.close();
         }   
+
+        // Output to file including gradients
+        std::ofstream output_file2("txt_files/output_results_GPs_gradients.txt", std::ios::app);
+        if (output_file2.is_open()) {
+            output_file2 << std::scientific << std::setprecision(14); // Set precision to 10^-14
+
+            output_file2 << du_dx << " " << du_dy << " " << dv_dx << " " << dv_dy << " "  // gradients
+                        << r_geometry.Center().X() << " "
+                        << r_geometry.Center().Y() << " "
+                        << r_geometry.Center().Z() << " "
+                        << integration_points[0].Weight() << std::endl;
+
+            output_file2.close();
+        }
+
 
         // Same but saving the yielded stress value
         std::ofstream yield_output_file("txt_files/yielded_states_GPs.txt", std::ios::app);
