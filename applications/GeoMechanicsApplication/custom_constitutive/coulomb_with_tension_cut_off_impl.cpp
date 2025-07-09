@@ -114,9 +114,9 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleSigmaTau(const Vector& rTrialSigm
     return coulomb_yield_function_value < coulomb_tolerance && tension_yield_function_value < tension_tolerance;
 }
 
-Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperties,
-                                                     const Vector&     rTrialSigmaTau,
-                                                     std::size_t       AveragingType) const
+Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties &rProperties,
+                                                     const Vector &rTrialSigmaTau,
+                                                     CoulombYieldSurface::CoulombAveragingType AveragingType) const
 {
     const auto apex = CalculateApex(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties),
                                     ConstitutiveLawUtilities::GetCohesion(rProperties));

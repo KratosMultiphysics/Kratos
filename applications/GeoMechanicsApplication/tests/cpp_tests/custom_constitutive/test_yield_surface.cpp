@@ -75,8 +75,7 @@ KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_CanBeSavedAndLoadedThroughInterfac
                        0.5 * std::sqrt(3.0) - 1, Defaults::absolute_tolerance);
     auto expected_derivative = Vector(2);
     expected_derivative <<= 0.5, 1.0;
-    const std::size_t averaging_type = 1;
-    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_coulomb_yield_surface->DerivativeOfFlowFunction(sigma_tau, averaging_type),
+    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_coulomb_yield_surface->DerivativeOfFlowFunction(sigma_tau),
                               expected_derivative, Defaults::absolute_tolerance);
 }
 

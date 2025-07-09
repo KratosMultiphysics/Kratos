@@ -32,24 +32,24 @@ double CoulombYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
 
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
 {
-    return DerivativeOfFlowFunction(rSigmaTau, std::size_t{1});
+    return DerivativeOfFlowFunction(rSigmaTau, CoulombAveragingType::NO_AVERAGING);
 }
 
-Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, std::size_t AveragingType) const
+Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, CoulombAveragingType AveragingType) const
 {
     Vector result(2);
     switch (AveragingType) {
-    case 0:
+    case CoulombAveragingType::LOWEST_PRINCIPAL_STRESSES:
         result <<= -(1.0 - 3.0 * std::sin(mDilatationAngle)) / 4.0, (3.0 - std::sin(mDilatationAngle)) / 4.0;
         break;
-    case 1:
+    case CoulombAveragingType::NO_AVERAGING:
         result <<= std::sin(mDilatationAngle), 1.0;
         break;
-    case 2:
+    case CoulombAveragingType::HIGHEST_PRINCIPAL_STRESSES:
         result <<= (1.0 + 3.0 * std::sin(mDilatationAngle)) / 4.0, (3.0 + std::sin(mDilatationAngle)) / 4.0;
         break;
     default:
-        KRATOS_ERROR << "Unsupported Averaging Type: " << AveragingType << "\n";
+        KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
     }
     return result;
 }

@@ -24,13 +24,15 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface : public YieldSu
 public:
     KRATOS_CLASS_POINTER_DEFINITION(CoulombYieldSurface);
 
+    enum class CoulombAveragingType {LOWEST_PRINCIPAL_STRESSES=0, NO_AVERAGING=1, HIGHEST_PRINCIPAL_STRESSES=2};
+
     CoulombYieldSurface() = default;
 
     CoulombYieldSurface(double FrictionAngleInRad, double Cohesion, double DilatationAngleInRad);
 
     [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
-    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&, std::size_t AveragingType) const;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&, CoulombAveragingType AveragingType) const;
 
 private:
     friend class Serializer;
