@@ -27,6 +27,7 @@
 // Tensor adaptors
 #include "tensor_adaptors/tensor_adaptor.h"
 #include "tensor_adaptors/variable_tensor_adaptor.h"
+#include "tensor_adaptors/flags_tensor_adaptor.h"
 #include "tensor_adaptors/equation_ids_tensor_adaptor.h"
 
 // Include base h
@@ -292,6 +293,13 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
     pybind11::class_<equation_ids_tensor_adaptor, equation_ids_tensor_adaptor::Pointer, equation_ids_tensor_adaptor::BaseType>(tensor_adaptor_sub_module, "EquationIdsTensorAdaptor")
         .def(py::init<ModelPart::ConditionsContainerType::Pointer, ProcessInfo::Pointer>(), pybind11::arg("container"), pybind11::arg("process_info"))
         .def(py::init<ModelPart::ElementsContainerType::Pointer, ProcessInfo::Pointer>(), pybind11::arg("container"), pybind11::arg("process_info"))
+        ;
+
+    using flags_tensor_adaptor = FlagsTensorAdaptor;
+    pybind11::class_<flags_tensor_adaptor, flags_tensor_adaptor::Pointer, flags_tensor_adaptor::BaseType>(tensor_adaptor_sub_module, "FlagsTensorAdaptor")
+        .def(py::init<ModelPart::NodesContainerType::Pointer, const Flags&>(), pybind11::arg("container"), pybind11::arg("flag"))
+        .def(py::init<ModelPart::ConditionsContainerType::Pointer, const Flags&>(), pybind11::arg("container"), pybind11::arg("flag"))
+        .def(py::init<ModelPart::ElementsContainerType::Pointer, const Flags&>(), pybind11::arg("container"), pybind11::arg("flag"))
         ;
 }
 
