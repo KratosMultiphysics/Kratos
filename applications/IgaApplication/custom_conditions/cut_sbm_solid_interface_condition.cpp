@@ -17,12 +17,12 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/extended_sbm_solid_interface_condition.h"
+#include "custom_conditions/cut_sbm_solid_interface_condition.h"
 
 namespace Kratos
 {
 
-void ExtendedSbmSolidInterfaceCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void CutSbmSolidInterfaceCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMaterial();
     InitializeMemberVariables();
@@ -30,7 +30,7 @@ void ExtendedSbmSolidInterfaceCondition::Initialize(const ProcessInfo& rCurrentP
 }
 
 
-void ExtendedSbmSolidInterfaceCondition::InitializeMaterial()
+void CutSbmSolidInterfaceCondition::InitializeMaterial()
 {
     KRATOS_TRY
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
@@ -47,7 +47,7 @@ void ExtendedSbmSolidInterfaceCondition::InitializeMaterial()
 
 }
 
-void ExtendedSbmSolidInterfaceCondition::InitializeMemberVariables()
+void CutSbmSolidInterfaceCondition::InitializeMemberVariables()
 {
     // // Compute class memeber variables
     const auto& r_geometry = GetGeometry();
@@ -58,7 +58,7 @@ void ExtendedSbmSolidInterfaceCondition::InitializeMemberVariables()
     // Initialize DN_DX
     mDim = r_DN_De[0].size2();
 
-    KRATOS_ERROR_IF(mDim != 2) << "ExtendedSbmSolidInterfaceCondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
+    KRATOS_ERROR_IF(mDim != 2) << "CutSbmSolidInterfaceCondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
     
     Vector mesh_size_uv = this->GetValue(KNOT_SPAN_SIZES);
     double h = std::min(mesh_size_uv[0], mesh_size_uv[1]);
@@ -107,7 +107,7 @@ void ExtendedSbmSolidInterfaceCondition::InitializeMemberVariables()
     SetValue(INTEGRATION_WEIGHT, integration_weight);
 }
 
-void ExtendedSbmSolidInterfaceCondition::InitializeSbmMemberVariables()
+void CutSbmSolidInterfaceCondition::InitializeSbmMemberVariables()
 {
     //TODO:
     const auto& r_geometry = this->GetGeometry();
@@ -134,7 +134,7 @@ void ExtendedSbmSolidInterfaceCondition::InitializeSbmMemberVariables()
     //     << p_sur_minus .X() << ' ' << p_sur_minus .Y() << ' ' << p_sur_minus .Z() << '\n';
 }
 
-void ExtendedSbmSolidInterfaceCondition::CalculateLocalSystem(
+void CutSbmSolidInterfaceCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -165,7 +165,7 @@ void ExtendedSbmSolidInterfaceCondition::CalculateLocalSystem(
     KRATOS_CATCH("")
 }
 
-void ExtendedSbmSolidInterfaceCondition::CalculateLeftHandSide(
+void CutSbmSolidInterfaceCondition::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
 )
@@ -339,9 +339,9 @@ void ExtendedSbmSolidInterfaceCondition::CalculateLeftHandSide(
             const int id1 = 2*idim;
             const int iglob = 2*i+idim;
 
-            Vector extended_sigma_w_n_plus = ZeroVector(3);
-            extended_sigma_w_n_plus[0] = (DB_sum_plus(0, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(2, iglob)* mNormalPhysicalSpace[1]);
-            extended_sigma_w_n_plus[1] = (DB_sum_plus(2, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(1, iglob)* mNormalPhysicalSpace[1]);
+            Vector Cut_sigma_w_n_plus = ZeroVector(3);
+            Cut_sigma_w_n_plus[0] = (DB_sum_plus(0, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(2, iglob)* mNormalPhysicalSpace[1]);
+            Cut_sigma_w_n_plus[1] = (DB_sum_plus(2, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(1, iglob)* mNormalPhysicalSpace[1]);
 
             for (IndexType j = 0; j < number_of_control_points_plus; j++) {
                 // PENALTY TERM
@@ -354,7 +354,7 @@ void ExtendedSbmSolidInterfaceCondition::CalculateLeftHandSide(
                     // // PENALTY FREE g_n = 0
                     // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
                     // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) -= 0.5*mNitschePenalty*N_sum_vec_plus(j)*extended_sigma_w_n_plus[jdim] * integration_weight;
+                    rLeftHandSideMatrix(iglob, jglob) -= 0.5*mNitschePenalty*N_sum_vec_plus(j)*Cut_sigma_w_n_plus[jdim] * integration_weight;
                 }
 
             }
@@ -371,7 +371,7 @@ void ExtendedSbmSolidInterfaceCondition::CalculateLeftHandSide(
                     // // PENALTY FREE g_n = 0
                     // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
                     // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) += 0.5*mNitschePenalty*N_sum_vec_minus(j)*extended_sigma_w_n_plus[jdim] * integration_weight;
+                    rLeftHandSideMatrix(iglob, jglob) += 0.5*mNitschePenalty*N_sum_vec_minus(j)*Cut_sigma_w_n_plus[jdim] * integration_weight;
                 }
             }
         }
@@ -384,9 +384,9 @@ void ExtendedSbmSolidInterfaceCondition::CalculateLeftHandSide(
             const int iloc = 2*i+idim;
             const int iglob = 2*i+idim + shift_dof;
 
-            Vector extended_sigma_w_n_minus = ZeroVector(3);
-            extended_sigma_w_n_minus[0] = (DB_sum_minus(0, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(2, iloc)* mNormalPhysicalSpace[1]);
-            extended_sigma_w_n_minus[1] = (DB_sum_minus(2, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(1, iloc)* mNormalPhysicalSpace[1]);
+            Vector Cut_sigma_w_n_minus = ZeroVector(3);
+            Cut_sigma_w_n_minus[0] = (DB_sum_minus(0, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(2, iloc)* mNormalPhysicalSpace[1]);
+            Cut_sigma_w_n_minus[1] = (DB_sum_minus(2, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(1, iloc)* mNormalPhysicalSpace[1]);
 
             for (IndexType j = 0; j < number_of_control_points_plus; j++) {
                 // PENALTY TERM
@@ -399,7 +399,7 @@ void ExtendedSbmSolidInterfaceCondition::CalculateLeftHandSide(
                     // // PENALTY FREE g_n = 0
                     // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
                     // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) -= 0.5*mNitschePenalty*N_sum_vec_plus(j)*extended_sigma_w_n_minus[jdim] * integration_weight;
+                    rLeftHandSideMatrix(iglob, jglob) -= 0.5*mNitschePenalty*N_sum_vec_plus(j)*Cut_sigma_w_n_minus[jdim] * integration_weight;
                 }
 
             }
@@ -416,7 +416,7 @@ void ExtendedSbmSolidInterfaceCondition::CalculateLeftHandSide(
                     // // PENALTY FREE g_n = 0
                     // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
                     // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) += 0.5*mNitschePenalty*N_sum_vec_minus(j)*extended_sigma_w_n_minus[jdim] * integration_weight;
+                    rLeftHandSideMatrix(iglob, jglob) += 0.5*mNitschePenalty*N_sum_vec_minus(j)*Cut_sigma_w_n_minus[jdim] * integration_weight;
                 }
             }
         }
@@ -425,7 +425,7 @@ void ExtendedSbmSolidInterfaceCondition::CalculateLeftHandSide(
     KRATOS_CATCH("")
 }
 
-void ExtendedSbmSolidInterfaceCondition::CalculateRightHandSide(
+void CutSbmSolidInterfaceCondition::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
 )
@@ -557,9 +557,9 @@ void ExtendedSbmSolidInterfaceCondition::CalculateRightHandSide(
             const int id1 = 2*idim;
             const int iglob = 2*i+idim;
 
-            Vector extended_sigma_w_n_plus = ZeroVector(3);
-            extended_sigma_w_n_plus[0] = (DB_sum_plus(0, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(2, iglob)* mNormalPhysicalSpace[1]);
-            extended_sigma_w_n_plus[1] = (DB_sum_plus(2, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(1, iglob)* mNormalPhysicalSpace[1]);
+            Vector Cut_sigma_w_n_plus = ZeroVector(3);
+            Cut_sigma_w_n_plus[0] = (DB_sum_plus(0, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(2, iglob)* mNormalPhysicalSpace[1]);
+            Cut_sigma_w_n_plus[1] = (DB_sum_plus(2, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(1, iglob)* mNormalPhysicalSpace[1]);
 
             // PENALTY RESIDUAL TERM
             rRightHandSideVector[iglob] -= N_sum_vec_plus(i) * (old_displacement_plus-old_displacement_minus)[idim] * penalty_integration;
@@ -567,7 +567,7 @@ void ExtendedSbmSolidInterfaceCondition::CalculateRightHandSide(
             // PENALTY FREE RESIDUAL TERM
             for (IndexType jdim = 0; jdim < 2; jdim++) {
                 rRightHandSideVector[iglob] += 0.5*mNitschePenalty * (old_displacement_plus-old_displacement_minus)[jdim]  
-                                            * extended_sigma_w_n_plus[jdim] * integration_weight;
+                                            * Cut_sigma_w_n_plus[jdim] * integration_weight;
             }
         }
     }
@@ -579,9 +579,9 @@ void ExtendedSbmSolidInterfaceCondition::CalculateRightHandSide(
             const int iloc = 2*i+idim;
             const int iglob = 2*i+idim + shift_dof;
 
-            Vector extended_sigma_w_n_minus = ZeroVector(3);
-            extended_sigma_w_n_minus[0] = (DB_sum_minus(0, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(2, iloc)* mNormalPhysicalSpace[1]);
-            extended_sigma_w_n_minus[1] = (DB_sum_minus(2, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(1, iloc)* mNormalPhysicalSpace[1]);
+            Vector Cut_sigma_w_n_minus = ZeroVector(3);
+            Cut_sigma_w_n_minus[0] = (DB_sum_minus(0, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(2, iloc)* mNormalPhysicalSpace[1]);
+            Cut_sigma_w_n_minus[1] = (DB_sum_minus(2, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(1, iloc)* mNormalPhysicalSpace[1]);
 
             // PENALTY RESIDUAL TERM
             rRightHandSideVector[iglob] += N_sum_vec_minus(i) * (old_displacement_plus-old_displacement_minus)[idim] * penalty_integration;
@@ -589,7 +589,7 @@ void ExtendedSbmSolidInterfaceCondition::CalculateRightHandSide(
             // PENALTY FREE RESIDUAL TERM
             for (IndexType jdim = 0; jdim < 2; jdim++) {
                 rRightHandSideVector[iglob] += 0.5*mNitschePenalty * (old_displacement_plus-old_displacement_minus)[jdim]  
-                                            * extended_sigma_w_n_minus[jdim] * integration_weight;
+                                            * Cut_sigma_w_n_minus[jdim] * integration_weight;
             }
         }
     }
@@ -597,7 +597,7 @@ void ExtendedSbmSolidInterfaceCondition::CalculateRightHandSide(
     KRATOS_CATCH("")
 }
 
-void ExtendedSbmSolidInterfaceCondition::EquationIdVector(
+void CutSbmSolidInterfaceCondition::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo
 ) const
@@ -632,7 +632,7 @@ void ExtendedSbmSolidInterfaceCondition::EquationIdVector(
     }
 }
 
-void ExtendedSbmSolidInterfaceCondition::GetDofList(
+void CutSbmSolidInterfaceCondition::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo
 ) const
@@ -664,7 +664,7 @@ void ExtendedSbmSolidInterfaceCondition::GetDofList(
 };
 
 
-void ExtendedSbmSolidInterfaceCondition::GetSolutionCoefficientVectorPlus(
+void CutSbmSolidInterfaceCondition::GetSolutionCoefficientVectorPlus(
     Vector& rValues) const
 {
     const auto& r_surrogate_geometry_plus = GetGeometryPlus();
@@ -686,7 +686,7 @@ void ExtendedSbmSolidInterfaceCondition::GetSolutionCoefficientVectorPlus(
     }
 }
 
-void ExtendedSbmSolidInterfaceCondition::GetSolutionCoefficientVectorMinus(
+void CutSbmSolidInterfaceCondition::GetSolutionCoefficientVectorMinus(
     Vector& rValues) const
 {
     const auto& r_surrogate_geometry_minus = GetGeometryMinus();
@@ -708,7 +708,7 @@ void ExtendedSbmSolidInterfaceCondition::GetSolutionCoefficientVectorMinus(
     }
 }
 
-void ExtendedSbmSolidInterfaceCondition::CalculateB(
+void CutSbmSolidInterfaceCondition::CalculateB(
     const GeometryType& rGeometry,
     Matrix& rB, 
     Matrix& r_DN_DX) const
@@ -732,7 +732,7 @@ void ExtendedSbmSolidInterfaceCondition::CalculateB(
     }
 }
 
-void ExtendedSbmSolidInterfaceCondition::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
+void CutSbmSolidInterfaceCondition::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
                                     ConstitutiveVariables& rConstitutiVariables)
 {
     // Set constitutive law flags:
@@ -750,7 +750,7 @@ void ExtendedSbmSolidInterfaceCondition::ApplyConstitutiveLaw(SizeType matSize, 
 }
 
 
-void ExtendedSbmSolidInterfaceCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void CutSbmSolidInterfaceCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     ConstitutiveLaw::Parameters constitutive_law_parameters(
         GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -800,7 +800,7 @@ void ExtendedSbmSolidInterfaceCondition::FinalizeSolutionStep(const ProcessInfo&
     // //---------------------
 }
 
-void ExtendedSbmSolidInterfaceCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
+void CutSbmSolidInterfaceCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
     //--------------------------------------------------------------------------------------------
     // calculate the constitutive law response
     ConstitutiveLaw::Parameters constitutive_law_parameters(
@@ -809,7 +809,7 @@ void ExtendedSbmSolidInterfaceCondition::InitializeSolutionStep(const ProcessInf
     mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 }
 
-void ExtendedSbmSolidInterfaceCondition::ComputeTaylorExpansionContribution(
+void CutSbmSolidInterfaceCondition::ComputeTaylorExpansionContribution(
     const GeometryType& rGeometry,
     const Vector& rDistanceVector, 
     Vector& H_sum_vec)
@@ -869,7 +869,7 @@ void ExtendedSbmSolidInterfaceCondition::ComputeTaylorExpansionContribution(
     }
 }
 
-void ExtendedSbmSolidInterfaceCondition::ComputeGradientTaylorExpansionContribution(
+void CutSbmSolidInterfaceCondition::ComputeGradientTaylorExpansionContribution(
     const GeometryType& rGeometry,
     const Vector& rDistanceVector, 
     Matrix& grad_H_sum)
@@ -952,7 +952,7 @@ void ExtendedSbmSolidInterfaceCondition::ComputeGradientTaylorExpansionContribut
 }
 
 // Function to compute a single term in the Taylor expansion
-double ExtendedSbmSolidInterfaceCondition::ComputeTaylorTerm(
+double CutSbmSolidInterfaceCondition::ComputeTaylorTerm(
     const double derivative, 
     const double dx, 
     const IndexType n_k, 
@@ -962,7 +962,7 @@ double ExtendedSbmSolidInterfaceCondition::ComputeTaylorTerm(
     return derivative * std::pow(dx, n_k) * std::pow(dy, k) / (MathUtils<double>::Factorial(k) * MathUtils<double>::Factorial(n_k));    
 }
 
-double ExtendedSbmSolidInterfaceCondition::ComputeTaylorTerm3D(
+double CutSbmSolidInterfaceCondition::ComputeTaylorTerm3D(
     const double derivative, 
     const double dx, 
     const IndexType k_x, 

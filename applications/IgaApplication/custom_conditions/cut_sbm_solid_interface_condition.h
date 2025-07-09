@@ -26,15 +26,15 @@
 namespace Kratos
 {
 /// Condition for penalty support condition
-class KRATOS_API(IGA_APPLICATION) ExtendedSbmLoadSolidCondition
+class KRATOS_API(IGA_APPLICATION) CutSbmSolidInterfaceCondition
     : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer definition of ExtendedSbmLoadSolidCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ExtendedSbmLoadSolidCondition);
+    /// Counted pointer definition of CutSbmSolidInterfaceCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CutSbmSolidInterfaceCondition);
 
     /// Size types
     using SizeType = std::size_t;
@@ -47,14 +47,14 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Constructor with Id and geometry
-    ExtendedSbmLoadSolidCondition(
+    CutSbmSolidInterfaceCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {};
 
     /// Constructor with Id, geometry and property
-    ExtendedSbmLoadSolidCondition(
+    CutSbmSolidInterfaceCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -62,11 +62,11 @@ public:
     {};
 
     /// Default constructor
-    ExtendedSbmLoadSolidCondition() : Condition()
+    CutSbmSolidInterfaceCondition() : Condition()
     {};
 
     /// Destructor
-    virtual ~ExtendedSbmLoadSolidCondition() override
+    virtual ~CutSbmSolidInterfaceCondition() override
     {};
 
     ///@}
@@ -80,7 +80,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<ExtendedSbmLoadSolidCondition>(
+        return Kratos::make_intrusive<CutSbmSolidInterfaceCondition>(
             NewId, pGeom, pProperties);
     };
 
@@ -91,7 +91,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<ExtendedSbmLoadSolidCondition>(
+        return Kratos::make_intrusive<CutSbmSolidInterfaceCondition>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -157,11 +157,20 @@ public:
      * 
      * @param rValues solution coefficients at the previous time step
      */
-    void GetSolutionCoefficientVector(
+    void GetSolutionCoefficientVectorPlus(
+        Vector& rValues) const;
+    
+    /**
+     * @brief Get the solution coefficient at the previous time step in the two-dimensional case.
+     * 
+     * @param rValues solution coefficients at the previous time step
+     */
+    void GetSolutionCoefficientVectorMinus(
         Vector& rValues) const;
 
 
     ///@}
+
     ///@name Input and output
     ///@{
 
@@ -169,14 +178,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "\"ExtendedSbmLoadSolidCondition\" #" << Id();
+        buffer << "\"CutSbmSolidInterfaceCondition\" #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "\"ExtendedSbmLoadSolidCondition\" #" << Id();
+        rOStream << "\"CutSbmSolidInterfaceCondition\" #" << Id();
     }
 
     /// Print object's data.
@@ -248,6 +257,7 @@ void InitializeSbmMemberVariables();
  * @param r_DN_DX The shape function derivatives in the global coordinate system
  */
 void CalculateB(
+    const GeometryType& rGeometry,
     Matrix& rB,
     Matrix& r_DN_DX) const;
 
@@ -268,16 +278,26 @@ void ApplyConstitutiveLaw(
 /**
  * @brief 
  * 
+ * @param rGeometry 
+ * @param rDistanceVector 
  * @param H_sum_vec 
  */
-void ComputeTaylorExpansionContribution(Vector& H_sum_vec);
+void ComputeTaylorExpansionContribution(
+    const GeometryType& rGeometry,
+    const Vector& rDistanceVector, 
+    Vector& H_sum_vec);
 
 /**
  * @brief 
  * 
+ * @param rGeometry 
+ * @param rDistanceVector 
  * @param grad_H_sum 
  */
-void ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum);
+void ComputeGradientTaylorExpansionContribution(
+    const GeometryType& rGeometry,
+    const Vector& rDistanceVector, 
+    Matrix& grad_H_sum);
 
 /**
  * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
@@ -314,10 +334,11 @@ double ComputeTaylorTerm3D(
     // sbm variables
     array_1d<double, 3> mNormalParameterSpace;
     array_1d<double, 3> mNormalPhysicalSpace;
-    Vector mDistanceVector;
-    unsigned int mDim;
+    Vector mDistanceVectorPlus; // referenced woth the normal
+    Vector mDistanceVectorMinus;
     double mPenalty;
     double mNitschePenalty;
+    unsigned int mDim;
     IndexType mBasisFunctionsOrder;
 
 ///@}
@@ -326,11 +347,18 @@ private:
 
     ///@name Operations
     ///@{
-    const GeometryType& GetSurrogateGeometry() const
+    const GeometryType& GetGeometryPlus() const
     {
         return *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
     }
-    ///@}
+
+    const GeometryType& GetGeometryMinus() const
+    {
+        return *this->GetValue(NEIGHBOUR_GEOMETRIES)[1];
+    }
+
+    /// @}
+
     ///@name Serialization
     ///@{
 

@@ -13,56 +13,60 @@
 // External includes
 
 // Project includes
-#include "snake_extended_sbm_process.h"
+#include "snake_cut_sbm_process.h"
 #include "iga_application_variables.h"
 
 namespace Kratos
 {
 
-SnakeExtendedSbmProcess::SnakeExtendedSbmProcess(
+SnakeCutSbmProcess::SnakeCutSbmProcess(
     Model& rModel, Parameters ThisParameters) : 
     SnakeSbmProcess(rModel, ThisParameters)
 {
 
+    KRATOS_ERROR_IF_NOT(ThisParameters.Has("cut_element_name")) << "::[SnakeCutSbmProcess]::" 
+                    << "Missing \"cut_element_name\" section." << std::endl;
+    KRATOS_ERROR_IF_NOT(ThisParameters.Has("cut_interface_condition_name")) << "::[SnakeCutSbmProcess]::" 
+                    << "Missing \"cut_interface_condition_name\" section." << std::endl;
+    
+    mpCutElementsSubModelPart = &(mpIgaModelPart->CreateSubModelPart("CutElements"));
+    mpCutInterfaceSubModelPart = &(mpIgaModelPart->CreateSubModelPart("CutInterfaces"));
+    mCutElementName = ThisParameters["cut_element_name"].GetString();
+    mCutInterfaceConditionName = ThisParameters["cut_interface_condition_name"].GetString();
 }
 
-void SnakeExtendedSbmProcess::CreateSbmExtendedGeometries()
+void SnakeCutSbmProcess::CreateSbmExtendedGeometries()
 {
-    FindClosestTruePointToSurrogateVertex();
+    if (mpSkinModelPartInnerInitial->NumberOfNodes()>0 || mpSkinModelPartInnerInitial->NumberOfGeometries()>0) 
+    {
+        const auto& r_surrogate_sub_model_part_inner = mpIgaModelPart->GetSubModelPart("surrogate_inner");
+        const auto& r_skin_sub_model_part_inner = mpSkinModelPart->GetSubModelPart("inner");
+        FindClosestTruePointToSurrogateVertex<true>(r_skin_sub_model_part_inner, r_surrogate_sub_model_part_inner);
+    }
+    if (mpSkinModelPartOuterInitial->NumberOfNodes()>0 || mpSkinModelPartOuterInitial->NumberOfGeometries()>0) 
+    {
+        const auto& r_surrogate_sub_model_part_outer = mpIgaModelPart->GetSubModelPart("surrogate_outer");
+        const auto& r_skin_sub_model_part_outer = mpSkinModelPart->GetSubModelPart("outer");
+        FindClosestTruePointToSurrogateVertex<false>(r_skin_sub_model_part_outer, r_surrogate_sub_model_part_outer);
+    }
 }
 
-void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertex()
+template <bool TIsInnerLoop>
+void SnakeCutSbmProcess::FindClosestTruePointToSurrogateVertex(
+    const ModelPart& rSkinSubModelPart,
+    const ModelPart& rSurrogateSubModelPart)
 {
     // get the data
     mEchoLevel = mThisParameters["echo_level"].GetInt();
-    std::string iga_model_part_name = mThisParameters["model_part_name"].GetString();
-    std::string skin_model_part_name = mThisParameters["skin_model_part_name"].GetString();
-    std::string skin_model_part_inner_initial_name = mThisParameters["skin_model_part_inner_initial_name"].GetString();
+    ModelPart& r_cut_sbm_sub_model_part = mpIgaModelPart->CreateSubModelPart("extended_sbm");
     
-    // Loop over the surrogate vertex and call the search in radius or something like that
-    // TODO: Outer boyndary
-    const bool is_inner = true;
-    
-    std::string surrogate_sub_model_part_name; 
-    std::string skin_sub_model_part_name; 
-    surrogate_sub_model_part_name = "surrogate_inner";
-    skin_sub_model_part_name = "inner";
-
-    //FIXME:
-    ModelPart& r_extended_sbm_sub_model_part = mpIgaModelPart->CreateSubModelPart("extended_sbm");
-    ModelPart& r_cut_elements_sub_model_part = mpIgaModelPart->CreateSubModelPart("CutElements");
-    ModelPart& r_interface_extended_sbm_sub_model_part = mpIgaModelPart->CreateSubModelPart("interface_extended_sbm");
-
-    ModelPart& r_skin_sub_model_part = mpSkinModelPart->GetSubModelPart(skin_sub_model_part_name);
-    ModelPart& r_surrogate_sub_model_part = mpIgaModelPart->GetSubModelPart(surrogate_sub_model_part_name);
-
     // Create the testBins for the search in radius
     PointVector points;
-    for (auto &i_cond : r_skin_sub_model_part.Conditions()) {
+    for (auto &i_cond : rSkinSubModelPart.Conditions()) {
         points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
     }
     // Get the mesh sizes from the surrogate model part
-    const Vector& knot_span_sizes = r_surrogate_sub_model_part.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+    const Vector& knot_span_sizes = rSurrogateSubModelPart.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
 
     double knot_span_reference_size = knot_span_sizes[0];
     if (knot_span_sizes[1] > knot_span_reference_size) {knot_span_reference_size = knot_span_sizes[1];}
@@ -93,28 +97,39 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertex()
                             p_surface->pGetGeometryPart(Geometry<typename PointerVector<NodeType>::value_type>::BACKGROUND_GEOMETRY_INDEX));
     IntegrationInfo surface_integration_info = p_nurbs_surface->GetDefaultIntegrationInfo();
 
-    // std::string condition_name = "ExtendedSbmSolidCondition";
-    std::string condition_name = "ExtendedSbmLoadSolidCondition";
-    std::string interface_condition_name = "ExtendedSbmSolidInterfaceCondition";
-    std::string element_name = "ExtendedSbmSolidElement";
-    // std::string element_name = "SolidElement";
+    // std::string condition_name = "CutSbmSolidCondition";
+    std::string condition_name = "CutSbmLoadSolidCondition";
 
     // Loop over the nodes of the surrogate sub model part
     IndexType iel = 1;
     SizeType number_of_shape_functions_derivatives = 7;
 
-    IndexType first_condition_id = r_surrogate_sub_model_part.pGetElement(iel)->GetGeometry()[0].Id();
-    IndexType last_condition_id = r_surrogate_sub_model_part.pGetElement(iel)->GetGeometry()[1].Id();
+    IndexType first_condition_id;
+    IndexType last_condition_id;
+    IndexType starting_brep_id;
+    SizeType size_surrogate_loop;
 
-    SizeType size_surrogate_loop = last_condition_id - first_condition_id + 1;
+    const bool is_inner = TIsInnerLoop;
+    if constexpr (TIsInnerLoop)  {
+        first_condition_id = rSurrogateSubModelPart.pGetElement(iel)->GetGeometry()[0].Id();
+        last_condition_id = rSurrogateSubModelPart.pGetElement(iel)->GetGeometry()[1].Id();
+        size_surrogate_loop = last_condition_id - first_condition_id + 1;
+        starting_brep_id = 6; //1 surface + 4 external boundaries
+    }
+    else {
+        size_surrogate_loop = rSurrogateSubModelPart.NumberOfConditions();
+        first_condition_id = 1;
+        last_condition_id = size_surrogate_loop;
+        starting_brep_id = 2; //1 surface 
+    }
 
-    const SizeType n_int_div = 3;
+    const SizeType n_int_div = 1;
 
     for (SizeType j = 0; j < size_surrogate_loop; ++j) {
-        auto p_brep_geometry = mpIgaModelPart->pGetGeometry(6 + j);
+        auto p_brep_geometry = mpIgaModelPart->pGetGeometry(starting_brep_id + j);
         auto p_brep_curve_on_surface_surrogate1_surrogate2 = std::dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_brep_geometry);
 
-        KRATOS_ERROR_IF(!p_brep_curve_on_surface_surrogate1_surrogate2) <<  ":::[SnakeExtendedSbmProcess]::: the geometry with id " << p_brep_curve_on_surface_surrogate1_surrogate2->Id() 
+        KRATOS_ERROR_IF(!p_brep_curve_on_surface_surrogate1_surrogate2) <<  ":::[SnakeCutSbmProcess]::: the geometry with id " << p_brep_curve_on_surface_surrogate1_surrogate2->Id() 
                                             << " is not a BrepCurveOnSurfaceType." << std::endl;
 
         NurbsInterval brep_domain_interval = p_brep_curve_on_surface_surrogate1_surrogate2->DomainInterval();
@@ -150,7 +165,7 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertex()
         const double tol = 1.0e-12;
         bool check_cond_1 = false;
         bool check_cond_2 = false;
-        for (auto& r_surrogate_node : r_surrogate_sub_model_part.Nodes())
+        for (auto& r_surrogate_node : rSurrogateSubModelPart.Nodes())
         {
             // Check if this node coincides with surrogate_vertex_1
             if (norm_2(r_surrogate_node.Coordinates() - surrogate_vertex_1) < tol)
@@ -219,7 +234,7 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertex()
                 p_surrogate_vertex_1 << std::endl;
             
             const IndexType id_closest_true_node = results[nearest_node_id]->Id();
-            const auto skin_vertex_1 = r_skin_sub_model_part.pGetNode(id_closest_true_node);
+            const auto skin_vertex_1 = rSkinSubModelPart.pGetNode(id_closest_true_node);
             
             // search the projection of the second vertex
             DynamicBinsPointerType p_surrogate_vertex_2 = DynamicBinsPointerType(new PointType(1, surrogate_vertex_2[0], surrogate_vertex_2[1], surrogate_vertex_2[2]));
@@ -228,20 +243,33 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertex()
             SizeType obtained_results_2 = testBins.SearchInRadius(*p_surrogate_vertex_2, search_radius, results.begin(), list_of_distances.begin(), number_of_results);
             
             minimum_distance = 1e14;
+            double second_minimum_distance = 1e14;
             // Find the nearest node
             nearest_node_id;
+            IndexType second_nearest_node_id;
             for (IndexType k = 0; k < obtained_results_2; k++) {
                 double current_distance = list_of_distances[k];   
                 if (current_distance < minimum_distance) { 
                     minimum_distance = current_distance;
                     nearest_node_id = k;
                 }
+                else if (current_distance < second_minimum_distance && current_distance > minimum_distance) {
+                    second_minimum_distance = current_distance;
+                    second_nearest_node_id = k;
+                }
             }
+
             KRATOS_ERROR_IF(obtained_results_2 == 0) << "::[SnakeSbmProcess]:: Zero points found in serch for projection of point: " <<
                 p_surrogate_vertex_2 << std::endl;
             
-            const IndexType id_closest_true_node_2 = results[nearest_node_id]->Id();
-            const auto skin_vertex_2 = r_skin_sub_model_part.pGetNode(id_closest_true_node_2);
+            IndexType id_closest_true_node_2 = results[nearest_node_id]->Id();
+
+            if (id_closest_true_node_2 == id_closest_true_node) {
+                // If the closest node is the same as the first one, use the second closest node
+                id_closest_true_node_2 = results[second_nearest_node_id]->Id();
+            }
+            
+            const auto skin_vertex_2 = rSkinSubModelPart.pGetNode(id_closest_true_node_2);
         
             Vector active_range_knot_vector = ZeroVector(2);
             active_range_knot_vector[0] = 0;
@@ -276,16 +304,16 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertex()
             IndexType id_skin_middle_point = 0.5*(id_closest_true_node + id_closest_true_node_2); 
 
             if (id_closest_true_node < id_closest_true_node_2) 
-                    id_skin_middle_point = 0.5*(r_skin_sub_model_part.NumberOfNodes() + id_closest_true_node + id_closest_true_node_2);
+                    id_skin_middle_point = 0.5*(rSkinSubModelPart.NumberOfNodes() + id_closest_true_node + id_closest_true_node_2);
 
-                    if (id_skin_middle_point > r_skin_sub_model_part.Nodes().back().Id()) 
-                        id_skin_middle_point -= r_skin_sub_model_part.NumberOfNodes();
-                    else if (id_skin_middle_point > r_skin_sub_model_part.Nodes().front().Id())
-                        id_skin_middle_point += r_skin_sub_model_part.NumberOfNodes();
+                    if (id_skin_middle_point > rSkinSubModelPart.Nodes().back().Id()) 
+                        id_skin_middle_point -= rSkinSubModelPart.NumberOfNodes();
+                    else if (id_skin_middle_point > rSkinSubModelPart.Nodes().front().Id())
+                        id_skin_middle_point += rSkinSubModelPart.NumberOfNodes();
 
 
-            if (id_skin_middle_point > r_skin_sub_model_part.Nodes().back().Id()) {
-                id_skin_middle_point = id_skin_middle_point - r_skin_sub_model_part.Nodes().back().Id();
+            if (id_skin_middle_point > rSkinSubModelPart.Nodes().back().Id()) {
+                id_skin_middle_point = id_skin_middle_point - rSkinSubModelPart.Nodes().back().Id();
             }
             Node::Pointer p_skin_middle_brep_point = mpSkinModelPart->pGetNode(id_skin_middle_point);
 
@@ -329,7 +357,7 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertex()
             
             this->CreateConditions(
                 brep_quadrature_point_list_skin1_skin2.ptr_begin(), brep_quadrature_point_list_skin1_skin2.ptr_end(),
-                r_extended_sbm_sub_model_part, condition_name, id, PropertiesPointerType(), knot_span_sizes, neighbour_geometries_skin1_skin2);
+                r_cut_sbm_sub_model_part, condition_name, id, PropertiesPointerType(), knot_span_sizes, neighbour_geometries_skin1_skin2);
 
             
             // surrogate_1 - surrogate_2
@@ -357,12 +385,12 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertex()
                                                             surface_integration_points, surface_integration_info);
 
             IndexType id_element = 1;
-            if (r_cut_elements_sub_model_part.GetRootModelPart().Elements().size() > 0)
-                id_element = r_cut_elements_sub_model_part.GetRootModelPart().Elements().back().Id() + 1;
+            if (mpCutElementsSubModelPart->GetRootModelPart().Elements().size() > 0)
+                id_element = mpCutElementsSubModelPart->GetRootModelPart().Elements().back().Id() + 1;
 
             this->CreateElements(
                 surface_quadrature_point_list.ptr_begin(), surface_quadrature_point_list.ptr_end(),
-                r_cut_elements_sub_model_part, element_name, id_element, PropertiesPointerType(), neighbour_geometries_skin1_skin2);
+                *mpCutElementsSubModelPart, mCutElementName, id_element, PropertiesPointerType(), neighbour_geometries_skin1_skin2);
         }
     }
     
@@ -372,7 +400,7 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertex()
     {
         is_entering = !is_entering;
 
-        const auto& surrogate_condition = r_surrogate_sub_model_part.pGetCondition(i_cond_id);
+        const auto& surrogate_condition = rSurrogateSubModelPart.pGetCondition(i_cond_id);
 
         const auto& p_surrogate_1 = surrogate_condition->GetGeometry()(0);
         const auto& p_surrogate_2 = surrogate_condition->GetGeometry()(1); 
@@ -403,7 +431,7 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertex()
                 p_surrogate_vertex_1 << std::endl;
             
             const IndexType id_closest_true_node = results[nearest_node_id]->Id();
-            const auto skin_vertex_1 = r_skin_sub_model_part.pGetNode(id_closest_true_node);
+            const auto skin_vertex_1 = rSkinSubModelPart.pGetNode(id_closest_true_node);
 
 
             Vector active_range_knot_vector = ZeroVector(2);
@@ -468,7 +496,7 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertex()
             }
             this->CreateConditions(
                 brep_quadrature_point_list_surrogate1_skin1.ptr_begin(), brep_quadrature_point_list_surrogate1_skin1.ptr_end(),
-                r_interface_extended_sbm_sub_model_part, interface_condition_name, id, PropertiesPointerType(), knot_span_sizes, neighbour_geometries);
+                *mpCutInterfaceSubModelPart, mCutInterfaceConditionName, id, PropertiesPointerType(), knot_span_sizes, neighbour_geometries);
         }
 
         if (!is_second_surrogate_already_computed) {
@@ -490,7 +518,7 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertex()
                 p_surrogate_vertex_2 << std::endl;
             
             const IndexType id_closest_true_node = results[nearest_node_id]->Id();
-            const auto skin_vertex_2 = r_skin_sub_model_part.pGetNode(id_closest_true_node);
+            const auto skin_vertex_2 = rSkinSubModelPart.pGetNode(id_closest_true_node);
 
 
             Vector active_range_knot_vector = ZeroVector(2);
@@ -560,7 +588,7 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertex()
 
             this->CreateConditions(
                 brep_quadrature_point_list_surrogate2_skin2.ptr_begin(), brep_quadrature_point_list_surrogate2_skin2.ptr_end(),
-                r_interface_extended_sbm_sub_model_part, interface_condition_name, id, PropertiesPointerType(), knot_span_sizes, neighbour_geometries);
+                *mpCutInterfaceSubModelPart, mCutInterfaceConditionName, id, PropertiesPointerType(), knot_span_sizes, neighbour_geometries);
 
         }
     }
@@ -569,7 +597,7 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertex()
 }
 
 
-bool SnakeExtendedSbmProcess::ProjectToSkinBoundary(
+bool SnakeCutSbmProcess::ProjectToSkinBoundary(
         const ModelPart* pSkinModelPart,
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rProjectedPoint,
@@ -635,7 +663,7 @@ bool SnakeExtendedSbmProcess::ProjectToSkinBoundary(
 }
 
 
-void SnakeExtendedSbmProcess::CreateConditions(
+void SnakeCutSbmProcess::CreateConditions(
     typename GeometriesArrayType::ptr_iterator rGeometriesBegin,
     typename GeometriesArrayType::ptr_iterator rGeometriesEnd,
     ModelPart& rModelPart,
@@ -672,7 +700,7 @@ void SnakeExtendedSbmProcess::CreateConditions(
 }
 
 
-void SnakeExtendedSbmProcess::CreateElements(
+void SnakeCutSbmProcess::CreateElements(
     typename GeometriesArrayType::ptr_iterator rGeometriesBegin,
     typename GeometriesArrayType::ptr_iterator rGeometriesEnd,
     ModelPart& rModelPart,
@@ -713,7 +741,7 @@ void SnakeExtendedSbmProcess::CreateElements(
 // ------------------------------------------------------------------
 // 1-D Gauss–Legendre on [0,1]
 // ------------------------------------------------------------------
-void SnakeExtendedSbmProcess::GaussLegendreOnUnitInterval(
+void SnakeCutSbmProcess::GaussLegendreOnUnitInterval(
     const std::size_t      Order,
     std::vector<double>&   rXi,
     std::vector<double>&   rWeight)
@@ -761,7 +789,7 @@ void SnakeExtendedSbmProcess::GaussLegendreOnUnitInterval(
 // ------------------------------------------------------------------
 // Global point on Brep curve
 // ------------------------------------------------------------------
-array_1d<double,3> SnakeExtendedSbmProcess::GlobalPoint(
+array_1d<double,3> SnakeCutSbmProcess::GlobalPoint(
     const GeometryType& rCurve,
     const double         T)
 {
@@ -776,7 +804,7 @@ array_1d<double,3> SnakeExtendedSbmProcess::GlobalPoint(
 // ------------------------------------------------------------------
 // Coons patch mapping X(ξ,η)
 // ------------------------------------------------------------------
-array_1d<double,3> SnakeExtendedSbmProcess::CoonsPoint(
+array_1d<double,3> SnakeCutSbmProcess::CoonsPoint(
     const double                  Xi,
     const double                  Eta,
     const GeometryType&          rB0,
@@ -807,7 +835,7 @@ array_1d<double,3> SnakeExtendedSbmProcess::CoonsPoint(
 // ------------------------------------------------------------------
 // Finite-difference derivative ∂X/∂ξ or ∂X/∂η
 // ------------------------------------------------------------------
-array_1d<double,3> SnakeExtendedSbmProcess::CoonsDerivativeFD(
+array_1d<double,3> SnakeCutSbmProcess::CoonsDerivativeFD(
     const double                  Xi,
     const double                  Eta,
     const bool                    WithRespectToXi,
@@ -835,8 +863,8 @@ array_1d<double,3> SnakeExtendedSbmProcess::CoonsDerivativeFD(
 // ------------------------------------------------------------------
 // Build Gauss points on the curved quadrilateral (tensor-product)
 // ------------------------------------------------------------------
-SnakeExtendedSbmProcess::IntegrationPointsArrayType
-SnakeExtendedSbmProcess::CreateCoonsPatchGaussPoints(
+SnakeCutSbmProcess::IntegrationPointsArrayType
+SnakeCutSbmProcess::CreateCoonsPatchGaussPoints(
     const std::size_t             Order,
     const GeometryType&           rB0,
     const GeometryType&           rL0,
@@ -890,7 +918,7 @@ SnakeExtendedSbmProcess::CreateCoonsPatchGaussPoints(
 }
 
 
-void SnakeExtendedSbmProcess::BuildParabolicNurbsData(
+void SnakeCutSbmProcess::BuildParabolicNurbsData(
     Node::Pointer         pNode0,
     Node::Pointer         pNodeM,
     Node::Pointer         pNode2,
@@ -948,7 +976,7 @@ void SnakeExtendedSbmProcess::BuildParabolicNurbsData(
 }
 
 
-void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertexByNurbs()
+void SnakeCutSbmProcess::FindClosestTruePointToSurrogateVertexByNurbs()
 {
     // // get the data
     // mEchoLevel = mThisParameters["echo_level"].GetInt();
@@ -960,15 +988,15 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertexByNurbs()
     // // TODO: Outer boyndary
     // const bool is_inner = true;
     
-    // std::string surrogate_sub_model_part_name; 
+    // std::string rSurrogateSubModelPartName; 
     // std::string skin_sub_model_part_name; 
-    // surrogate_sub_model_part_name = "surrogate_inner";
+    // rSurrogateSubModelPartName = "surrogate_inner";
     // skin_sub_model_part_name = "inner";
 
-    // ModelPart& r_extended_sbm_sub_model_part = mpIgaModelPart->CreateSubModelPart("extended_sbm");
+    // ModelPart& r_cut_sbm_sub_model_part = mpIgaModelPart->CreateSubModelPart("extended_sbm");
 
-    // ModelPart& r_skin_sub_model_part = mpSkinModelPart->GetSubModelPart(skin_sub_model_part_name);
-    // ModelPart& r_surrogate_sub_model_part = mpIgaModelPart->GetSubModelPart(surrogate_sub_model_part_name);
+    // ModelPart& rSkinSubModelPart = mpSkinModelPart->GetSubModelPart(skin_sub_model_part_name);
+    // ModelPart& rSurrogateSubModelPart = mpIgaModelPart->GetSubModelPart(rSurrogateSubModelPartName);
 
     // auto p_surface = mpIgaModelPart->pGetGeometry(1);
     // IndexType id_brep_curve_on_surface = (mpIgaModelPart->GeometriesEnd()-1)->Id() + 1;
@@ -979,7 +1007,7 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertexByNurbs()
     // IntegrationInfo surface_integration_info = p_nurbs_surface->GetDefaultIntegrationInfo();
 
     // // Get the mesh sizes from the surrogate model part
-    // const Vector& knot_span_sizes = r_surrogate_sub_model_part.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+    // const Vector& knot_span_sizes = rSurrogateSubModelPart.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
 
     // double knot_span_reference_size = knot_span_sizes[0];
     // if (knot_span_sizes[1] > knot_span_reference_size) {knot_span_reference_size = knot_span_sizes[1];}
@@ -993,8 +1021,8 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertexByNurbs()
     // IndexType iel = 1;
     // SizeType number_of_shape_functions_derivatives = 5;
 
-    // IndexType first_condition_id = r_surrogate_sub_model_part.pGetElement(iel)->GetGeometry()[0].Id();
-    // IndexType last_condition_id = r_surrogate_sub_model_part.pGetElement(iel)->GetGeometry()[1].Id();
+    // IndexType first_condition_id = rSurrogateSubModelPart.pGetElement(iel)->GetGeometry()[0].Id();
+    // IndexType last_condition_id = rSurrogateSubModelPart.pGetElement(iel)->GetGeometry()[1].Id();
 
     // SizeType size_surrogate_loop = last_condition_id - first_condition_id + 1;
 
@@ -1002,7 +1030,7 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertexByNurbs()
     //     auto p_brep_geometry = mpIgaModelPart->pGetGeometry(6 + j);
     //     auto p_brep_curve_on_surface_surrogate1_surrogate2 = std::dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_brep_geometry);
 
-    //     KRATOS_ERROR_IF(!p_brep_curve_on_surface_surrogate1_surrogate2) <<  ":::[SnakeExtendedSbmProcess]::: the geometry with id " << p_brep_curve_on_surface_surrogate1_surrogate2->Id() 
+    //     KRATOS_ERROR_IF(!p_brep_curve_on_surface_surrogate1_surrogate2) <<  ":::[SnakeCutSbmProcess]::: the geometry with id " << p_brep_curve_on_surface_surrogate1_surrogate2->Id() 
     //                                         << " is not a BrepCurveOnSurfaceType." << std::endl;
 
     //     NurbsInterval brep_domain_interval = p_brep_curve_on_surface_surrogate1_surrogate2->DomainInterval();
@@ -1119,7 +1147,7 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertexByNurbs()
 
     //         if (skin_middle_point_local_coords[0] > t1) 
     //             skin_middle_point_local_coords[0] -= t1-t0;
-    //         else if (skin_middle_point_local_coords[0] > r_skin_sub_model_part.Nodes().front().Id())
+    //         else if (skin_middle_point_local_coords[0] > rSkinSubModelPart.Nodes().front().Id())
     //             skin_middle_point_local_coords[0] += t1-t0;
 
     //     CoordinatesArrayType skin_middle_point = ZeroVector(3);
@@ -1166,7 +1194,7 @@ void SnakeExtendedSbmProcess::FindClosestTruePointToSurrogateVertexByNurbs()
     //     std::string identifier_name = "TRUE_BOUNDARY";
     //     this->CreateConditions(
     //         brep_quadrature_point_list_skin1_skin2.ptr_begin(), brep_quadrature_point_list_skin1_skin2.ptr_end(),
-    //         r_extended_sbm_sub_model_part, condition_name, id, PropertiesPointerType(), knot_span_sizes, surrogate_brep_middle_geometry, identifier_name);
+    //         r_cut_sbm_sub_model_part, condition_name, id, PropertiesPointerType(), knot_span_sizes, surrogate_brep_middle_geometry, identifier_name);
 
         
     //     // surrogate_1 - surrogate_2

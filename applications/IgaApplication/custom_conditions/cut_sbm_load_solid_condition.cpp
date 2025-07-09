@@ -17,12 +17,12 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/extended_sbm_load_solid_condition.h"
+#include "custom_conditions/cut_sbm_load_solid_condition.h"
 
 namespace Kratos
 {
 
-void ExtendedSbmLoadSolidCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void CutSbmLoadSolidCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMemberVariables();
     InitializeSbmMemberVariables();
@@ -30,7 +30,7 @@ void ExtendedSbmLoadSolidCondition::Initialize(const ProcessInfo& rCurrentProces
 }
 
 
-void ExtendedSbmLoadSolidCondition::InitializeMaterial()
+void CutSbmLoadSolidCondition::InitializeMaterial()
 {
     KRATOS_TRY
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
@@ -48,7 +48,7 @@ void ExtendedSbmLoadSolidCondition::InitializeMaterial()
 
 }
 
-void ExtendedSbmLoadSolidCondition::InitializeMemberVariables()
+void CutSbmLoadSolidCondition::InitializeMemberVariables()
 {
     // // Compute class memeber variables
     const auto& r_geometry = GetGeometry();
@@ -59,7 +59,7 @@ void ExtendedSbmLoadSolidCondition::InitializeMemberVariables()
     // Initialize DN_DX
     mDim = r_DN_De[0].size2();
 
-    KRATOS_ERROR_IF(mDim != 2) << "ExtendedSbmLoadSolidCondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
+    KRATOS_ERROR_IF(mDim != 2) << "CutSbmLoadSolidCondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
     
     Vector mesh_size_uv = this->GetValue(KNOT_SPAN_SIZES);
     double h = std::min(mesh_size_uv[0], mesh_size_uv[1]);
@@ -95,7 +95,7 @@ void ExtendedSbmLoadSolidCondition::InitializeMemberVariables()
     SetValue(INTEGRATION_WEIGHT, integration_weight);
 }
 
-void ExtendedSbmLoadSolidCondition::InitializeSbmMemberVariables()
+void CutSbmLoadSolidCondition::InitializeSbmMemberVariables()
 {
     const auto& r_geometry = this->GetGeometry();
     const auto& r_surrogate_geometry = GetSurrogateGeometry();
@@ -103,23 +103,23 @@ void ExtendedSbmLoadSolidCondition::InitializeSbmMemberVariables()
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = r_geometry.Center().Coordinates() - r_surrogate_geometry.Center().Coordinates();
 
-    // const Point&  p_true = r_geometry.Center();            // true boundary
-    // const Point&  p_sur  = r_surrogate_geometry.Center();  // surrogate
+    const Point&  p_true = r_geometry.Center();            // true boundary
+    const Point&  p_sur  = r_surrogate_geometry.Center();  // surrogate
 
-    // std::ofstream out("centers.txt", std::ios::app);       // append mode
-    // out << std::setprecision(15)                           // full precision
-    //     << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
-    //     << p_sur .X() << ' ' << p_sur .Y() << ' ' << p_sur .Z() << '\n';
+    std::ofstream out("centers.txt", std::ios::app);       // append mode
+    out << std::setprecision(15)                           // full precision
+        << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
+        << p_sur .X() << ' ' << p_sur .Y() << ' ' << p_sur .Z() << '\n';
 }
 
-void ExtendedSbmLoadSolidCondition::CalculateLocalSystem(
+void CutSbmLoadSolidCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    const SizeType mat_size = GetValue(NEIGHBOUR_GEOMETRIES)[0]->size() * 2;
+    const SizeType mat_size = GetSurrogateGeometry().size() * 2;
 
     if (rRightHandSideVector.size() != mat_size)
         rRightHandSideVector.resize(mat_size);
@@ -135,7 +135,7 @@ void ExtendedSbmLoadSolidCondition::CalculateLocalSystem(
     KRATOS_CATCH("")
 }
 
-void ExtendedSbmLoadSolidCondition::CalculateLeftHandSide(
+void CutSbmLoadSolidCondition::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
 )
@@ -145,7 +145,7 @@ void ExtendedSbmLoadSolidCondition::CalculateLeftHandSide(
     KRATOS_CATCH("")
 }
 
-void ExtendedSbmLoadSolidCondition::CalculateRightHandSide(
+void CutSbmLoadSolidCondition::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
 )
@@ -178,57 +178,13 @@ void ExtendedSbmLoadSolidCondition::CalculateRightHandSide(
     const double x = r_true_geometry.Center().X();
     const double y = r_true_geometry.Center().Y();
 
-    // // cosinusoidal
+    // // // cosinusoidal
     g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[0]; 
     g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[1]; 
 
-    // g_N[0] = E/(1-nu*nu) * mNormalPhysicalSpace[0] +  E/2/(1+nu) * mNormalPhysicalSpace[1]; 
-    // g_N[1] = E/2/(1+nu) * mNormalPhysicalSpace[0] + E*nu/(1-nu*nu)* mNormalPhysicalSpace[1]; 
+    // // g_N[0] = E/(1-nu*nu) * mNormalPhysicalSpace[0] +  E/2/(1+nu) * mNormalPhysicalSpace[1]; 
+    // // g_N[1] = E/2/(1+nu) * mNormalPhysicalSpace[0] + E*nu/(1-nu*nu)* mNormalPhysicalSpace[1]; 
 
-
-    // sol::: u = x**2, v  x*y
-    // const double A = E / (1.0 - nu * nu);  // E/(1-ν²)
-    // const double B = E / (2.0 * (1.0 + nu)); // E/[2(1+ν)]
-
-    // const double nx = mNormalPhysicalSpace[0];
-    // const double ny = mNormalPhysicalSpace[1];
-
-    // // trazione analitica t = σ·n
-    // g_N[0] = A * (2.0 + nu) * x * nx   // σxx n_x
-    //     + B * y * ny;               // σxy n_y
-
-    // g_N[1] = B * y * nx                // σxy n_x
-    //     + A * (1.0 + 2.0 * nu) * x * ny; // σyy n_y
-
-    // sol::: u = x*y, v = x*y
-    // const double A = E / (1.0 - nu*nu);
-    // const double B = E / (2.0 * (1.0 + nu));
-
-    // const double nx = mNormalPhysicalSpace[0];
-    // const double ny = mNormalPhysicalSpace[1];
-
-    // g_N[0] =  A*(y + nu*x)*nx + B*(x + y)*ny;
-    // g_N[1] =  B*(x + y)*nx   + A*(x + nu*y)*ny;
-
-
-    // sol:: x**2-7/20*y**2
-    // const double A = E / (1.0 - nu*nu);          // plane-stress
-    // const double B = E / (2.0 * (1.0 + nu));
-    // const double alpha = 2.0 * (1.0 + nu) / (1.0 - nu*nu); // = A/B
-    // const double beta  = (1.0 - nu*nu) / (2.0 * (1.0 + nu)); // = B/A
-
-    // const double nx = mNormalPhysicalSpace[0];
-    // const double ny = mNormalPhysicalSpace[1];
-
-    // // t_x = σxx n_x + σxy n_y
-    // g_N[0] =
-    //     ( 2.0*A*x - 2.0*A*nu*beta*y ) * nx +
-    //     ( 2.0*B*x - 2.0*B*alpha*y )  * ny;
-
-    // // t_y = σxy n_x + σyy n_y
-    // g_N[1] =
-    //     ( 2.0*B*x - 2.0*B*alpha*y ) * nx +
-    //     ( 2.0*A*nu*x - 2.0*A*beta*y ) * ny;
 
     for (IndexType i = 0; i < number_of_control_points; i++) {
         for (IndexType zdim = 0; zdim < 2; zdim++) {
@@ -243,7 +199,7 @@ void ExtendedSbmLoadSolidCondition::CalculateRightHandSide(
 }
 
 
-    void ExtendedSbmLoadSolidCondition::EquationIdVector(
+    void CutSbmLoadSolidCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -262,7 +218,7 @@ void ExtendedSbmLoadSolidCondition::CalculateRightHandSide(
         }
     }
 
-    void ExtendedSbmLoadSolidCondition::GetDofList(
+    void CutSbmLoadSolidCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -281,7 +237,7 @@ void ExtendedSbmLoadSolidCondition::CalculateRightHandSide(
     };
 
 
-    void ExtendedSbmLoadSolidCondition::GetSolutionCoefficientVector(
+    void CutSbmLoadSolidCondition::GetSolutionCoefficientVector(
         Vector& rValues) const
     {
         const auto& r_geometry = GetSurrogateGeometry();
@@ -301,7 +257,7 @@ void ExtendedSbmLoadSolidCondition::CalculateRightHandSide(
         }
     }
 
-    void ExtendedSbmLoadSolidCondition::CalculateB(
+    void CutSbmLoadSolidCondition::CalculateB(
         Matrix& rB, 
         Matrix& r_DN_DX) const
     {
@@ -325,7 +281,7 @@ void ExtendedSbmLoadSolidCondition::CalculateRightHandSide(
         }
     }
 
-    void ExtendedSbmLoadSolidCondition::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
+    void CutSbmLoadSolidCondition::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
                                         ConstitutiveVariables& rConstitutiVariables)
     {
         // Set constitutive law flags:
@@ -343,7 +299,7 @@ void ExtendedSbmLoadSolidCondition::CalculateRightHandSide(
     }
 
 
-    void ExtendedSbmLoadSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+    void CutSbmLoadSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -393,16 +349,30 @@ void ExtendedSbmLoadSolidCondition::CalculateRightHandSide(
         // //---------------------
     }
 
-void ExtendedSbmLoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
+void CutSbmLoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
     //--------------------------------------------------------------------------------------------
     // calculate the constitutive law response
     ConstitutiveLaw::Parameters constitutive_law_parameters(
         GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
 
     mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+
+    for (unsigned int i = 0; i < GetSurrogateGeometry().size(); i++) {
+            // if (r_geometry[i].GetId() == 420) 
+            // {
+            //     KRATOS_WATCH(r_geometry[i].Coordinates())
+            //     KRATOS_WATCH(DN_DX(i,0))
+            //     KRATOS_WATCH(DN_DX(i,1))
+            // }
+        
+            std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
+            outputFile << GetSurrogateGeometry()[i].GetId() << "  " <<GetSurrogateGeometry()[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
+            outputFile.close();
+        }
+
 }
 
-void ExtendedSbmLoadSolidCondition::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
+void CutSbmLoadSolidCondition::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
 {
     const auto& r_geometry = GetSurrogateGeometry();
     const SizeType number_of_control_points = r_geometry.PointsNumber();
@@ -460,7 +430,7 @@ void ExtendedSbmLoadSolidCondition::ComputeTaylorExpansionContribution(Vector& H
     }
 }
 
-void ExtendedSbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum)
+void CutSbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum)
 {
     const auto& r_geometry = GetSurrogateGeometry();
     const SizeType number_of_control_points = r_geometry.PointsNumber();
@@ -541,7 +511,7 @@ void ExtendedSbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(M
 }
 
 // Function to compute a single term in the Taylor expansion
-double ExtendedSbmLoadSolidCondition::ComputeTaylorTerm(
+double CutSbmLoadSolidCondition::ComputeTaylorTerm(
     const double derivative, 
     const double dx, 
     const IndexType n_k, 
@@ -551,7 +521,7 @@ double ExtendedSbmLoadSolidCondition::ComputeTaylorTerm(
     return derivative * std::pow(dx, n_k) * std::pow(dy, k) / (MathUtils<double>::Factorial(k) * MathUtils<double>::Factorial(n_k));    
 }
 
-double ExtendedSbmLoadSolidCondition::ComputeTaylorTerm3D(
+double CutSbmLoadSolidCondition::ComputeTaylorTerm3D(
     const double derivative, 
     const double dx, 
     const IndexType k_x, 

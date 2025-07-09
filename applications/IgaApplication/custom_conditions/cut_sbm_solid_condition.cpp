@@ -17,12 +17,12 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/extended_sbm_solid_condition.h"
+#include "custom_conditions/cut_sbm_solid_condition.h"
 
 namespace Kratos
 {
 
-void ExtendedSbmSolidCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void CutSbmSolidCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMaterial();
     InitializeMemberVariables();
@@ -30,7 +30,7 @@ void ExtendedSbmSolidCondition::Initialize(const ProcessInfo& rCurrentProcessInf
 }
 
 
-void ExtendedSbmSolidCondition::InitializeMaterial()
+void CutSbmSolidCondition::InitializeMaterial()
 {
     KRATOS_TRY
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
@@ -47,7 +47,7 @@ void ExtendedSbmSolidCondition::InitializeMaterial()
 
 }
 
-void ExtendedSbmSolidCondition::InitializeMemberVariables()
+void CutSbmSolidCondition::InitializeMemberVariables()
 {
     // // Compute class memeber variables
     const auto& r_geometry = GetGeometry();
@@ -58,7 +58,7 @@ void ExtendedSbmSolidCondition::InitializeMemberVariables()
     // Initialize DN_DX
     mDim = r_DN_De[0].size2();
 
-    KRATOS_ERROR_IF(mDim != 2) << "ExtendedSbmSolidCondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
+    KRATOS_ERROR_IF(mDim != 2) << "CutSbmSolidCondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
     
     Vector mesh_size_uv = this->GetValue(KNOT_SPAN_SIZES);
     double h = std::min(mesh_size_uv[0], mesh_size_uv[1]);
@@ -108,7 +108,7 @@ void ExtendedSbmSolidCondition::InitializeMemberVariables()
     SetValue(INTEGRATION_WEIGHT, integration_weight);
 }
 
-void ExtendedSbmSolidCondition::InitializeSbmMemberVariables()
+void CutSbmSolidCondition::InitializeSbmMemberVariables()
 {
     const auto& r_geometry = this->GetGeometry();
     const auto& r_surrogate_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
@@ -125,7 +125,7 @@ void ExtendedSbmSolidCondition::InitializeSbmMemberVariables()
         << p_sur .X() << ' ' << p_sur .Y() << ' ' << p_sur .Z() << '\n';
 }
 
-void ExtendedSbmSolidCondition::CalculateLocalSystem(
+void CutSbmSolidCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -148,7 +148,7 @@ void ExtendedSbmSolidCondition::CalculateLocalSystem(
     KRATOS_CATCH("")
 }
 
-void ExtendedSbmSolidCondition::CalculateLeftHandSide(
+void CutSbmSolidCondition::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
 )
@@ -210,9 +210,9 @@ void ExtendedSbmSolidCondition::CalculateLeftHandSide(
                 // PENALTY TERM
                 rLeftHandSideMatrix(iglob, 2*j+idim) += N_sum_vec(i)*N_sum_vec(j)* penalty_integration;
 
-                Vector extended_sigma_w_n = ZeroVector(3);
-                extended_sigma_w_n[0] = (DB_sum(0, iglob)* mNormalPhysicalSpace[0] + DB_sum(2, iglob)* mNormalPhysicalSpace[1]);
-                extended_sigma_w_n[1] = (DB_sum(2, iglob)* mNormalPhysicalSpace[0] + DB_sum(1, iglob)* mNormalPhysicalSpace[1]);
+                Vector Cut_sigma_w_n = ZeroVector(3);
+                Cut_sigma_w_n[0] = (DB_sum(0, iglob)* mNormalPhysicalSpace[0] + DB_sum(2, iglob)* mNormalPhysicalSpace[1]);
+                Cut_sigma_w_n[1] = (DB_sum(2, iglob)* mNormalPhysicalSpace[0] + DB_sum(1, iglob)* mNormalPhysicalSpace[1]);
 
                 for (IndexType jdim = 0; jdim < 2; jdim++) {
                     const int id2 = (id1+2)%3;
@@ -226,7 +226,7 @@ void ExtendedSbmSolidCondition::CalculateLeftHandSide(
                     // // PENALTY FREE g_n = 0
                     // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
                     // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) -= mNitschePenalty*N_sum_vec(j)*extended_sigma_w_n[jdim] * integration_weight;
+                    rLeftHandSideMatrix(iglob, jglob) -= mNitschePenalty*N_sum_vec(j)*Cut_sigma_w_n[jdim] * integration_weight;
                 }
 
             }
@@ -236,7 +236,7 @@ void ExtendedSbmSolidCondition::CalculateLeftHandSide(
     KRATOS_CATCH("")
 }
 
-void ExtendedSbmSolidCondition::CalculateRightHandSide(
+void CutSbmSolidCondition::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
 )
@@ -306,12 +306,12 @@ void ExtendedSbmSolidCondition::CalculateRightHandSide(
             // PENALTY TERM
             rRightHandSideVector[iglob] += N_sum_vec(i)*(u_D - old_displacement)[idim]* penalty_integration;
 
-            Vector extended_sigma_w_n = ZeroVector(3);
-            extended_sigma_w_n[0] = (DB_sum(0, iglob)* mNormalPhysicalSpace[0] + DB_sum(2, iglob)* mNormalPhysicalSpace[1]);
-            extended_sigma_w_n[1] = (DB_sum(2, iglob)* mNormalPhysicalSpace[0] + DB_sum(1, iglob)* mNormalPhysicalSpace[1]);
+            Vector Cut_sigma_w_n = ZeroVector(3);
+            Cut_sigma_w_n[0] = (DB_sum(0, iglob)* mNormalPhysicalSpace[0] + DB_sum(2, iglob)* mNormalPhysicalSpace[1]);
+            Cut_sigma_w_n[1] = (DB_sum(2, iglob)* mNormalPhysicalSpace[0] + DB_sum(1, iglob)* mNormalPhysicalSpace[1]);
 
             for (IndexType jdim = 0; jdim < 2; jdim++) {
-                rRightHandSideVector(iglob) -= mNitschePenalty*(u_D[jdim]-old_displacement[jdim])*extended_sigma_w_n[jdim] * integration_weight;
+                rRightHandSideVector(iglob) -= mNitschePenalty*(u_D[jdim]-old_displacement[jdim])*Cut_sigma_w_n[jdim] * integration_weight;
             }
 
             // residual terms
@@ -327,14 +327,14 @@ void ExtendedSbmSolidCondition::CalculateRightHandSide(
     KRATOS_CATCH("")
 }
 
-    int ExtendedSbmSolidCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+    int CutSbmSolidCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
             << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyLaplacianCondition" << std::endl;
         return 0;
     }
 
-    void ExtendedSbmSolidCondition::EquationIdVector(
+    void CutSbmSolidCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -353,7 +353,7 @@ void ExtendedSbmSolidCondition::CalculateRightHandSide(
         }
     }
 
-    void ExtendedSbmSolidCondition::GetDofList(
+    void CutSbmSolidCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -372,7 +372,7 @@ void ExtendedSbmSolidCondition::CalculateRightHandSide(
     };
 
 
-    void ExtendedSbmSolidCondition::GetSolutionCoefficientVector(
+    void CutSbmSolidCondition::GetSolutionCoefficientVector(
         Vector& rValues) const
     {
         const auto& r_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
@@ -392,7 +392,7 @@ void ExtendedSbmSolidCondition::CalculateRightHandSide(
         }
     }
 
-    void ExtendedSbmSolidCondition::CalculateB(
+    void CutSbmSolidCondition::CalculateB(
         Matrix& rB, 
         Matrix& r_DN_DX) const
     {
@@ -416,7 +416,7 @@ void ExtendedSbmSolidCondition::CalculateRightHandSide(
         }
     }
 
-    void ExtendedSbmSolidCondition::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
+    void CutSbmSolidCondition::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
                                         ConstitutiveVariables& rConstitutiVariables)
     {
         // Set constitutive law flags:
@@ -434,7 +434,7 @@ void ExtendedSbmSolidCondition::CalculateRightHandSide(
     }
 
 
-    void ExtendedSbmSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+    void CutSbmSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -484,7 +484,7 @@ void ExtendedSbmSolidCondition::CalculateRightHandSide(
         // //---------------------
     }
 
-void ExtendedSbmSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
+void CutSbmSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
     //--------------------------------------------------------------------------------------------
     // calculate the constitutive law response
     ConstitutiveLaw::Parameters constitutive_law_parameters(
@@ -493,7 +493,7 @@ void ExtendedSbmSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurre
     mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 }
 
-void ExtendedSbmSolidCondition::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
+void CutSbmSolidCondition::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
 {
     const auto& r_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
     const SizeType number_of_control_points = r_geometry.PointsNumber();
@@ -551,7 +551,7 @@ void ExtendedSbmSolidCondition::ComputeTaylorExpansionContribution(Vector& H_sum
     }
 }
 
-void ExtendedSbmSolidCondition::ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum)
+void CutSbmSolidCondition::ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum)
 {
     const auto& r_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
     const SizeType number_of_control_points = r_geometry.PointsNumber();
@@ -632,7 +632,7 @@ void ExtendedSbmSolidCondition::ComputeGradientTaylorExpansionContribution(Matri
 }
 
 // Function to compute a single term in the Taylor expansion
-double ExtendedSbmSolidCondition::ComputeTaylorTerm(
+double CutSbmSolidCondition::ComputeTaylorTerm(
     const double derivative, 
     const double dx, 
     const IndexType n_k, 
@@ -642,7 +642,7 @@ double ExtendedSbmSolidCondition::ComputeTaylorTerm(
     return derivative * std::pow(dx, n_k) * std::pow(dy, k) / (MathUtils<double>::Factorial(k) * MathUtils<double>::Factorial(n_k));    
 }
 
-double ExtendedSbmSolidCondition::ComputeTaylorTerm3D(
+double CutSbmSolidCondition::ComputeTaylorTerm3D(
     const double derivative, 
     const double dx, 
     const IndexType k_x, 

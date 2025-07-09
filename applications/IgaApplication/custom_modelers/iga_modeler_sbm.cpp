@@ -374,7 +374,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbm(
     const int domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
     double search_radius;
     if (domain_size == 2) {
-        search_radius = std::sqrt(2.0) * knot_span_reference_size;
+        search_radius = 2*std::sqrt(2.0) * knot_span_reference_size;
     } else {
         KRATOS_ERROR << "This method is only implemented for 2D (DOMAIN_SIZE == 2). "
                     << "Current DOMAIN_SIZE: " << domain_size << std::endl;

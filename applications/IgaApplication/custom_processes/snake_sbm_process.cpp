@@ -24,7 +24,7 @@ SnakeSbmProcess::SnakeSbmProcess(
     mpModel(&rModel),
     mThisParameters(ThisParameters)
 {
-    mThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
+    mThisParameters.AddMissingParameters(this->GetDefaultParameters());
 
     mEchoLevel = mThisParameters["echo_level"].GetInt();
     mLambdaInner = mThisParameters["lambda_inner"].GetDouble();

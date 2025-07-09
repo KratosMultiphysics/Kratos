@@ -19,12 +19,12 @@
 #include "includes/convection_diffusion_settings.h"
 
 // Application includes
-#include "custom_elements/extended_sbm_solid_element.h"
+#include "custom_elements/cut_sbm_solid_element.h"
 
 namespace Kratos
 {
 
-ExtendedSbmSolidElement::ExtendedSbmSolidElement(
+CutSbmSolidElement::CutSbmSolidElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
     : Element(
@@ -33,7 +33,7 @@ ExtendedSbmSolidElement::ExtendedSbmSolidElement(
 {
 }
 
-ExtendedSbmSolidElement::ExtendedSbmSolidElement(
+CutSbmSolidElement::CutSbmSolidElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties)
@@ -44,29 +44,29 @@ ExtendedSbmSolidElement::ExtendedSbmSolidElement(
 {
 }
 
-Element::Pointer ExtendedSbmSolidElement::Create(
+Element::Pointer CutSbmSolidElement::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<ExtendedSbmSolidElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<CutSbmSolidElement>(NewId, GetSurrogateGeometry().Create(ThisNodes), pProperties);
 }
 
-Element::Pointer ExtendedSbmSolidElement::Create(
+Element::Pointer CutSbmSolidElement::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<ExtendedSbmSolidElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<CutSbmSolidElement>(NewId, pGeom, pProperties);
 }
 
 // Deconstructor
 
-ExtendedSbmSolidElement::~ExtendedSbmSolidElement()
+CutSbmSolidElement::~CutSbmSolidElement()
 {
 }
 
-void ExtendedSbmSolidElement:: Initialize(const ProcessInfo& rCurrentProcessInfo)
+void CutSbmSolidElement:: Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMemberVariables();
     InitializeSbmMemberVariables();
@@ -74,7 +74,7 @@ void ExtendedSbmSolidElement:: Initialize(const ProcessInfo& rCurrentProcessInfo
 }
 
 
-void ExtendedSbmSolidElement::InitializeMaterial()
+void CutSbmSolidElement::InitializeMaterial()
 {
     KRATOS_TRY
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
@@ -94,7 +94,7 @@ void ExtendedSbmSolidElement::InitializeMaterial()
 
 }
 
-void ExtendedSbmSolidElement::InitializeMemberVariables()
+void CutSbmSolidElement::InitializeMemberVariables()
 {
     // // Compute class memeber variables
     const auto& r_geometry = GetGeometry();
@@ -105,7 +105,7 @@ void ExtendedSbmSolidElement::InitializeMemberVariables()
     // Initialize DN_DX
     mDim = r_DN_De[0].size2();
 
-    KRATOS_ERROR_IF(mDim != 2) << "ExtendedSbmSolidElement momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
+    KRATOS_ERROR_IF(mDim != 2) << "CutSbmSolidElement momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
     
     // Compute basis function order (Note: it is not allow to use different orders in different directions)
     if (mDim == 3) {
@@ -127,7 +127,7 @@ void ExtendedSbmSolidElement::InitializeMemberVariables()
     SetValue(INTEGRATION_WEIGHT, integration_weight);
 }
 
-void ExtendedSbmSolidElement::InitializeSbmMemberVariables()
+void CutSbmSolidElement::InitializeSbmMemberVariables()
 {
     const auto& r_geometry = this->GetGeometry();
     const auto& r_surrogate_geometry = GetSurrogateGeometry();
@@ -135,16 +135,16 @@ void ExtendedSbmSolidElement::InitializeSbmMemberVariables()
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = r_geometry.Center().Coordinates() - r_surrogate_geometry.Center().Coordinates();
 
-    // const Point&  p_true = r_geometry.Center();            // true boundary
-    // const Point&  p_sur  = r_surrogate_geometry.Center();  // surrogate
+    const Point&  p_true = r_geometry.Center();            // true boundary
+    const Point&  p_sur  = r_surrogate_geometry.Center();  // surrogate
 
-    // std::ofstream out("centers.txt", std::ios::app);       // append mode
-    // out << std::setprecision(15)                           // full precision
-    //     << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
-    //     << p_sur .X() << ' ' << p_sur .Y() << ' ' << p_sur .Z() << '\n';
+    std::ofstream out("centers.txt", std::ios::app);       // append mode
+    out << std::setprecision(15)                           // full precision
+        << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
+        << p_sur .X() << ' ' << p_sur .Y() << ' ' << p_sur .Z() << '\n';
 }
 
-void ExtendedSbmSolidElement::CalculateLocalSystem(
+void CutSbmSolidElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -167,7 +167,7 @@ void ExtendedSbmSolidElement::CalculateLocalSystem(
     KRATOS_CATCH("")
 }
 
-void ExtendedSbmSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+void CutSbmSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -212,7 +212,7 @@ void ExtendedSbmSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMat
     KRATOS_CATCH("")
 }
 
-void ExtendedSbmSolidElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
+void CutSbmSolidElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -269,10 +269,11 @@ void ExtendedSbmSolidElement::CalculateRightHandSide(VectorType& rRightHandSideV
     // RHS = ExtForces - K*temp;
     noalias(rRightHandSideVector) -= integration_weight * prod(trans(B_sum), r_stress_vector_on_true); 
 
+    
     KRATOS_CATCH("")
 }
 
-void ExtendedSbmSolidElement::EquationIdVector(
+void CutSbmSolidElement::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -291,7 +292,7 @@ void ExtendedSbmSolidElement::EquationIdVector(
         }
     }
 
-void ExtendedSbmSolidElement::GetDofList(
+void CutSbmSolidElement::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo
 ) const
@@ -312,7 +313,7 @@ void ExtendedSbmSolidElement::GetDofList(
 
 
 
-int ExtendedSbmSolidElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+int CutSbmSolidElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     // Verify that the constitutive law exists
     if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
@@ -335,17 +336,17 @@ int ExtendedSbmSolidElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 }
 
 
-Element::IntegrationMethod ExtendedSbmSolidElement::GetIntegrationMethod() const
+Element::IntegrationMethod CutSbmSolidElement::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
 
 
 
-void ExtendedSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void CutSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     ConstitutiveLaw::Parameters constitutive_law_parameters(
-        GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
 
     mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 
@@ -368,7 +369,7 @@ void ExtendedSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentPr
         CalculateB(B_sum, grad_N_sum);
 
         // obtain the tangent constitutive matrix at the true position
-        ConstitutiveLaw::Parameters values_true(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters values_true(GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
 
         Vector old_displacement_coefficient_vector(mat_size);
         GetSolutionCoefficientVector(old_displacement_coefficient_vector);
@@ -386,16 +387,23 @@ void ExtendedSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentPr
         // //---------------------
 }
 
-void ExtendedSbmSolidElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
+void CutSbmSolidElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
     ConstitutiveLaw::Parameters constitutive_law_parameters(
-        GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
 
     mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+
+    // for (unsigned int i = 0; i < GetSurrogateGeometry().size(); i++) {
+
+    //     std::ofstream outputFile("txt_files/Id_active_control_points.txt", std::ios::app);
+    //     outputFile << GetSurrogateGeometry()[i].GetId() << "  " <<GetSurrogateGeometry()[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
+    //     outputFile.close();
+    // }
 }
 
 
 
-void ExtendedSbmSolidElement::CalculateOnIntegrationPoints(
+void CutSbmSolidElement::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
@@ -416,7 +424,7 @@ void ExtendedSbmSolidElement::CalculateOnIntegrationPoints(
         KRATOS_WARNING("VARIABLE PRINT STILL NOT IMPLEMENTED N THE IGA FRAMEWORK");
     }
 }
-void ExtendedSbmSolidElement::CalculateOnIntegrationPoints(
+void CutSbmSolidElement::CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3 >>& rVariable,
         std::vector<array_1d<double, 3 >>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
@@ -439,7 +447,7 @@ void ExtendedSbmSolidElement::CalculateOnIntegrationPoints(
 }
 
 
-void ExtendedSbmSolidElement::CalculateB(
+void CutSbmSolidElement::CalculateB(
         Matrix& rB, 
         Matrix& r_DN_DX) const
     {
@@ -465,7 +473,7 @@ void ExtendedSbmSolidElement::CalculateB(
 
 
 
-void ExtendedSbmSolidElement::GetSolutionCoefficientVector(
+void CutSbmSolidElement::GetSolutionCoefficientVector(
         Vector& rValues) const
     {
         const auto& r_surrogate_geometry = GetSurrogateGeometry();
@@ -485,7 +493,7 @@ void ExtendedSbmSolidElement::GetSolutionCoefficientVector(
         }
     }
 
-void ExtendedSbmSolidElement::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
+void CutSbmSolidElement::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
                                         ConstitutiveVariables& rConstitutiVariables)
 {
     // Set constitutive law flags:
@@ -502,7 +510,7 @@ void ExtendedSbmSolidElement::ApplyConstitutiveLaw(SizeType matSize, Vector& rSt
     mpConstitutiveLaw->CalculateMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_Cauchy); 
 }
 
-void ExtendedSbmSolidElement::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
+void CutSbmSolidElement::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
 {
     const auto& r_geometry = GetSurrogateGeometry();
     const SizeType number_of_control_points = r_geometry.PointsNumber();
@@ -561,7 +569,7 @@ void ExtendedSbmSolidElement::ComputeTaylorExpansionContribution(Vector& H_sum_v
 }
 
 
-void ExtendedSbmSolidElement::ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum)
+void CutSbmSolidElement::ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum)
 {
     const auto& r_geometry = GetSurrogateGeometry();
     const SizeType number_of_control_points = r_geometry.PointsNumber();
@@ -642,7 +650,7 @@ void ExtendedSbmSolidElement::ComputeGradientTaylorExpansionContribution(Matrix&
 }
 
 // Function to compute a single term in the Taylor expansion
-double ExtendedSbmSolidElement::ComputeTaylorTerm(
+double CutSbmSolidElement::ComputeTaylorTerm(
     const double derivative, 
     const double dx, 
     const IndexType n_k, 
@@ -652,7 +660,7 @@ double ExtendedSbmSolidElement::ComputeTaylorTerm(
     return derivative * std::pow(dx, n_k) * std::pow(dy, k) / (MathUtils<double>::Factorial(k) * MathUtils<double>::Factorial(n_k));    
 }
 
-double ExtendedSbmSolidElement::ComputeTaylorTerm3D(
+double CutSbmSolidElement::ComputeTaylorTerm3D(
     const double derivative, 
     const double dx, 
     const IndexType k_x, 

@@ -34,7 +34,7 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mStokesElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
-    , mExtendedSbmSolidElement(0, Element::GeometryType::Pointer(
+    , mCutSbmSolidElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mOutputCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
@@ -70,11 +70,11 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSbmLoadSolidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mExtendedSbmSolidCondition(0, Condition::GeometryType::Pointer(
+    , mCutSbmSolidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mExtendedSbmLoadSolidCondition(0, Condition::GeometryType::Pointer(
+    , mCutSbmLoadSolidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mExtendedSbmSolidInterfaceCondition(0, Condition::GeometryType::Pointer(
+    , mCutSbmSolidInterfaceCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
 {
 }
@@ -99,7 +99,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("LaplacianIGAElement", mLaplacianIGAElement)
     KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
     KRATOS_REGISTER_ELEMENT("StokesElement", mStokesElement)
-    KRATOS_REGISTER_ELEMENT("ExtendedSbmSolidElement", mExtendedSbmSolidElement)
+    KRATOS_REGISTER_ELEMENT("CutSbmSolidElement", mCutSbmSolidElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)
@@ -119,9 +119,9 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("LoadSolidCondition", mLoadSolidCondition)
     KRATOS_REGISTER_CONDITION("SbmSolidCondition", mSbmSolidCondition)
     KRATOS_REGISTER_CONDITION("SbmLoadSolidCondition", mSbmLoadSolidCondition)
-    KRATOS_REGISTER_CONDITION("ExtendedSbmSolidCondition", mExtendedSbmSolidCondition)
-    KRATOS_REGISTER_CONDITION("ExtendedSbmLoadSolidCondition", mExtendedSbmLoadSolidCondition)
-    KRATOS_REGISTER_CONDITION("ExtendedSbmSolidInterfaceCondition", mExtendedSbmSolidInterfaceCondition)
+    KRATOS_REGISTER_CONDITION("CutSbmSolidCondition", mCutSbmSolidCondition)
+    KRATOS_REGISTER_CONDITION("CutSbmLoadSolidCondition", mCutSbmLoadSolidCondition)
+    KRATOS_REGISTER_CONDITION("CutSbmSolidInterfaceCondition", mCutSbmSolidInterfaceCondition)
 
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
@@ -129,6 +129,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_MODELER("RefinementModeler", mRefinementModeler);
     KRATOS_REGISTER_MODELER("NurbsGeometryModeler", mNurbsGeometryModeler);
     KRATOS_REGISTER_MODELER("NurbsGeometryModelerSbm", mNurbsGeometryModelerSbm);
+    KRATOS_REGISTER_MODELER("NurbsGeometryModelerCutSbm", mNurbsGeometryModelerCutSbm);
     KRATOS_REGISTER_MODELER("ImportNurbsSbmModeler", mImportNurbsSbmModeler);
 
     // VARIABLES

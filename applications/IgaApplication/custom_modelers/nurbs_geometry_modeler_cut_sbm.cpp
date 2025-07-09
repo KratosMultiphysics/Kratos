@@ -7,14 +7,13 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Nicolo' Antonelli
-//                   Andrea Gorgi
+//  Main authors:    Andrea Gorgi
 //
 
 // Project includes
-#include "nurbs_geometry_modeler_sbm.h"
+#include "nurbs_geometry_modeler_cut_sbm.h"
 #include "custom_utilities/create_breps_sbm_utilities.h"
-#include "custom_processes/snake_sbm_process.h"
+#include "custom_processes/snake_cut_sbm_process.h"
 #include "iga_application_variables.h"
 
 namespace Kratos
@@ -26,7 +25,7 @@ namespace Kratos
 ///@}
 ///@name Private Operations
 ///@{
-void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(
+void NurbsGeometryModelerCutSbm::CreateAndAddRegularGrid2D(
     ModelPart& rModelPart, 
     const Point& A_xyz, 
     const Point& B_xyz,
@@ -132,6 +131,8 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(
     snake_parameters.AddDouble("echo_level", mEchoLevel);
     snake_parameters.AddString("skin_model_part_inner_initial_name", skin_model_part_inner_initial_name);
     snake_parameters.AddString("skin_model_part_outer_initial_name", skin_model_part_outer_initial_name);
+    snake_parameters.AddString("cut_element_name", mParameters["cut_element_name"].GetString());
+    snake_parameters.AddString("cut_interface_condition_name", mParameters["cut_interface_condition_name"].GetString());
     if (mParameters.Has("lambda_inner"))
         snake_parameters.AddDouble("lambda_inner", mParameters["lambda_inner"].GetDouble());
     if (mParameters.Has("lambda_outer"))
@@ -140,16 +141,18 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(
         snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
 
     // Create the surrogate_sub_model_part for inner and outer
-    SnakeSbmProcess snake_sbm_process(*mpModel, snake_parameters);
-    snake_sbm_process.Execute();
+    SnakeCutSbmProcess snake_sbm_process(*mpModel, snake_parameters);
+    snake_sbm_process.ExecuteInitialize();
 
     // Create the breps for the outer sbm boundary
     CreateBrepsSbmUtilities<Node, Point, true> CreateBrepsSbmUtilities(mEchoLevel);
     CreateBrepsSbmUtilities.CreateSurrogateBoundary(mpSurface, surrogate_sub_model_part_inner, surrogate_sub_model_part_outer, A_uvw, B_uvw, r_iga_model_part);
+
+    snake_sbm_process.Execute();
 }
 
 // 3D 
-void NurbsGeometryModelerSbm::CreateAndAddRegularGrid3D( 
+void NurbsGeometryModelerCutSbm::CreateAndAddRegularGrid3D( 
     ModelPart& rModelPart,
     const Point& A_xyz,
     const Point& B_xyz,
@@ -256,7 +259,7 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid3D(
     if (mParameters.Has("number_of_inner_loops"))
         snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
     
-    KRATOS_ERROR << "The NurbsGeometryModelerSbm is not yet implemented for 3D. " 
+    KRATOS_ERROR << "The NurbsGeometryModelerCutSbm is not yet implemented for 3D. " 
         << "Please use the 2D version or implement the 3D version." << std::endl;
 
     // TODO: NEXT PR SnakeSbmProcess in 3D
@@ -271,7 +274,7 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid3D(
 }
 
 
-const Parameters NurbsGeometryModelerSbm::GetDefaultParameters() const
+const Parameters NurbsGeometryModelerCutSbm::GetDefaultParameters() const
 {
     return Parameters(R"(
     {
@@ -285,11 +288,13 @@ const Parameters NurbsGeometryModelerSbm::GetDefaultParameters() const
         "number_of_knot_spans" : [10, 10],
         "lambda_inner": 0.5,
         "lambda_outer": 0.5,
-        "number_of_inner_loops": 0
+        "number_of_inner_loops": 0,
+        "cut_element_name": "",
+        "cut_interface_condition_name": ""
     })");
 }
 
-const Parameters NurbsGeometryModelerSbm::GetValidParameters() const
+const Parameters NurbsGeometryModelerCutSbm::GetValidParameters() const
 {
     return Parameters(R"(
     {
@@ -306,7 +311,9 @@ const Parameters NurbsGeometryModelerSbm::GetValidParameters() const
         "number_of_inner_loops": 0,
         "skin_model_part_inner_initial_name": "skin_model_part_inner_initial",
         "skin_model_part_outer_initial_name": "skin_model_part_outer_initial",
-        "skin_model_part_name": "skin_model_part"
+        "skin_model_part_name": "skin_model_part",
+        "cut_element_name": "",
+        "cut_interface_condition_name": ""
     })");
 }
 

@@ -46,7 +46,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class KRATOS_API(IGA_APPLICATION) ExtendedSbmSolidElement : public Element
+class KRATOS_API(IGA_APPLICATION) CutSbmSolidElement : public Element
 {
 protected:
     /**
@@ -84,8 +84,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of ExtendedSbmSolidElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ExtendedSbmSolidElement);
+    /// Counted pointer of CutSbmSolidElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CutSbmSolidElement);
 
     // static constexpr std::size_t NumNodes = TDim + 1;
 
@@ -96,17 +96,17 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Default constructor.
-    ExtendedSbmSolidElement(
+    CutSbmSolidElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
-    ExtendedSbmSolidElement(
+    CutSbmSolidElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~ExtendedSbmSolidElement();
+    virtual ~CutSbmSolidElement();
 
     ///@}
     ///@name Operators
@@ -188,7 +188,7 @@ public:
     void InitializeSbmMemberVariables();
 
 
-    ExtendedSbmSolidElement() : Element()
+    CutSbmSolidElement() : Element()
     {
     }
 
@@ -214,7 +214,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "ExtendedSbmSolidElement #" << Id();
+        buffer << "CutSbmSolidElement #" << Id();
         return buffer.str();
     }
 
@@ -422,7 +422,7 @@ private:
 
     ///@}
 
-}; // Class ExtendedSbmSolidElement
+}; // Class CutSbmSolidElement
 
 ///@}
 

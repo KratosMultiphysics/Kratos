@@ -28,12 +28,12 @@ namespace Kratos
 ///@{
 
 /**
- * @class SnakeExtendedSbmProcess
+ * @class SnakeCutSbmProcess
  * @brief Process class for implementing Snake-based Surrogate Boundary Method (SBM).
  * This class provides various functions to create and manipulate surrogate boundaries
  * for Iga models in Kratos.
  */
-class KRATOS_API(IGA_APPLICATION) SnakeExtendedSbmProcess
+class KRATOS_API(IGA_APPLICATION) SnakeCutSbmProcess
     : public SnakeSbmProcess
 {
 
@@ -56,19 +56,19 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of SnakeExtendedSbmProcess
-    KRATOS_CLASS_POINTER_DEFINITION(SnakeExtendedSbmProcess);
+    /// Pointer definition of SnakeCutSbmProcess
+    KRATOS_CLASS_POINTER_DEFINITION(SnakeCutSbmProcess);
 
     ///@name Life Cycle
     ///@{
 
     /// Constructor
-    SnakeExtendedSbmProcess(
+    SnakeCutSbmProcess(
         Model& rModel,
         Parameters ThisParameters);
 
     /// Destructor.
-    ~SnakeExtendedSbmProcess() = default;
+    ~SnakeCutSbmProcess() = default;
 
     ///@}
     ///@name Operations
@@ -90,28 +90,47 @@ public:
     void ExecuteBeforeSolutionLoop() override
     {};
 
-    // const Parameters GetDefaultParameters() const override
-    // {
-    //     const Parameters default_parameters = Parameters(R"(
-    //     {
-    //         "model_part_name" : "",
-    //         "skin_model_part_inner_initial_name" : "SkinModelPartInnerInitial",
-    //         "skin_model_part_outer_initial_name" : "SkinModelPartOuterInitial",
-    //         "skin_model_part_name" : "SkinModelPart",
-    //         "echo_level" : 0,
-    //         "lambda_inner" : 0.5,
-    //         "lambda_outer" : 0.5,
-    //         "number_of_inner_loops": 0
-    //     })" );
+    const Parameters GetDefaultParameters() const override
+    {
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "model_part_name" : "",
+            "skin_model_part_inner_initial_name" : "SkinModelPartInnerInitial",
+            "skin_model_part_outer_initial_name" : "SkinModelPartOuterInitial",
+            "skin_model_part_name" : "SkinModelPart",
+            "echo_level" : 0,
+            "lambda_inner" : 0.5,
+            "lambda_outer" : 0.5,
+            "number_of_inner_loops": 0,
+            "cut_element_name": "",
+            "cut_interface_condition_name": ""
+        })" );
 
-    //     return default_parameters;
-    // }
+        return default_parameters;
+    }
     
 private:
+
+    ModelPart* mpCutElementsSubModelPart = nullptr; 
+    ModelPart* mpCutInterfaceSubModelPart = nullptr; 
+    std::string mCutElementName;
+    std::string mCutInterfaceConditionName;
 
     void CreateSbmExtendedGeometries();
 
     void FindClosestTruePointToSurrogateVertex();
+
+    /**
+     * @brief 
+     * 
+     * @tparam TIsInnerLoop 
+     * @param rSkinSubModelPart 
+     * @param rSurrogateSubModelPart 
+     */
+    template <bool TIsInnerLoop>
+    void FindClosestTruePointToSurrogateVertex(
+        const ModelPart& rSkinSubModelPart,
+        const ModelPart& rSurrogateSubModelPart);
 
     void FindClosestTruePointToSurrogateVertexByNurbs();
 
@@ -243,6 +262,6 @@ private:
         Vector&                 rWeights,
         const double            tm = 0.5);
         
-}; // Class SnakeExtendedSbmProcess
+}; // Class SnakeCutSbmProcess
 
 }  // namespace Kratos.
