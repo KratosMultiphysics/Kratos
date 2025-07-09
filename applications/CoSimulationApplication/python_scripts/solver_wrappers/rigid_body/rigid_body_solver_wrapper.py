@@ -27,7 +27,6 @@ class RigidBodySolverWrapper(CoSimulationSolverWrapper):
         input_file_name = self.settings["solver_wrapper_settings"]["input_file"].GetString()
         self._rigid_body_solver = self._CreateRigidBodySolver(self.model, self.project_parameters)
 
-    # TODO: Do we need this?
     @classmethod
     def _CreateRigidBodySolver(cls, model, parameters):
         return RigidBodySolver(model, parameters)
@@ -56,35 +55,9 @@ class RigidBodySolverWrapper(CoSimulationSolverWrapper):
         self._rigid_body_solver.FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
-        #self._rigid_body_solver.SetSolutionStepValue("ROOT_POINT_DISPLACEMENT", self._rigid_body_solver.root_point_model_part[KM.DISPLACEMENT], 0)
-        #self._rigid_body_solver.SetSolutionStepValue("ROOT_POINT_ROTATION",     self._rigid_body_solver.root_point_model_part[KM.ROTATION], 0)
-        #self._rigid_body_solver.SetSolutionStepValue("FORCE",                   self._rigid_body_solver.rigid_body_model_part[KM.FORCE], 0)
-        #self._rigid_body_solver.SetSolutionStepValue("MOMENT",                  self._rigid_body_solver.rigid_body_model_part[KM.MOMENT], 0)
-
         self._rigid_body_solver.SolveSolutionStep()
 
-        #self._rigid_body_solver.rigid_body_model_part[KM.DISPLACEMENT] =    self._rigid_body_solver.GetSolutionStepValue("DISPLACEMENT", 0)
-        #self._rigid_body_solver.rigid_body_model_part[KM.ROTATION] =        self._rigid_body_solver.GetSolutionStepValue("ROTATION", 0)
-        #self._rigid_body_solver.root_point_model_part[KM.REACTION] =        self._rigid_body_solver.GetSolutionStepValue("REACTION", 0)
-        #self._rigid_body_solver.root_point_model_part[KM.REACTION_MOMENT] = self._rigid_body_solver.GetSolutionStepValue("REACTION_MOMENT", 0)
-
     def Check(self):
-        '''
-        # making sure only a set of vaiables can be used
-        admissible_variables = [
-            "ROOT_POINT_DISPLACEMENT",
-            "ROOT_POINT_ROTATION",
-            "FORCE",
-            "MOMENT",
-            "DISPLACEMENT",
-            "ROTATION",
-            "REACTION",
-            "REACTION_MOMENT"
-        ]
-        for data in self.data_dict.values():
-            if data.variable.Name() not in admissible_variables:
-                raise Exception('Variable "{}" of interface data "{}" of solver "{}" cannot be used for the Rigid Body Solver!\nOnly the following variables are allowed: {}'.format(data.variable.Name(), data.name, data.solver_name, admissible_variables))
-        '''
         for process in self._rigid_body_solver._list_of_processes:
             process.Check()
     

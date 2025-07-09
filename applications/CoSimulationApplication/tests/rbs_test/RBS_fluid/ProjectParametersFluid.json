@@ -78,12 +78,12 @@
                 "scaling": false,
                 "use_block_matrices_if_possible": true
             },
-            "volume_model_part_name": "FluidParts_Fluid",
+            "volume_model_part_name": "FluidModelPart.FluidParts_Fluid",
             "skin_parts": [
-                "AutomaticInlet2D_Boundary_Inlet",
-                "Outlet2D_Boundary_Outlet",
-                "Slip2D",
-                "NoSlip2D_Boundary_NoSlipStructure"
+                "FluidModelPart.AutomaticInlet2D_Boundary_Inlet",
+                "FluidModelPart.Outlet2D_Boundary_Outlet",
+                "FluidModelPart.Slip2D",
+                "FluidModelPart.NoSlip2D_Boundary_NoSlipStructure"
             ],
             "no_skin_parts": [],
             "time_stepping": {
