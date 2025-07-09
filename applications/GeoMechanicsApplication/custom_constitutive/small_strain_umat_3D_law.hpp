@@ -322,13 +322,13 @@ public:
 protected:
     ///@name Protected member Variables
     ///@{
-    array_1d<double, VOIGT_SIZE_3D> mStressVector;
-    array_1d<double, VOIGT_SIZE_3D> mStressVectorFinalized;
+    array_1d<double, TVoigtSize> mStressVector;
+    array_1d<double, TVoigtSize> mStressVectorFinalized;
 
-    array_1d<double, VOIGT_SIZE_3D> mDeltaStrainVector;
-    array_1d<double, VOIGT_SIZE_3D> mStrainVectorFinalized;
+    array_1d<double, TVoigtSize> mDeltaStrainVector;
+    array_1d<double, TVoigtSize> mStrainVectorFinalized;
 
-    double mMatrixD[VOIGT_SIZE_3D][VOIGT_SIZE_3D];
+    double mMatrixD[TVoigtSize][TVoigtSize];
 
     ///@}
     ///@name Protected Operators

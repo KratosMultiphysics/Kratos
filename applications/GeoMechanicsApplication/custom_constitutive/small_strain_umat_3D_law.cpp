@@ -123,8 +123,8 @@ SmallStrainUMAT3DLaw<TVoigtSize>::SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLa
 {
     KRATOS_TRY
 
-    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i)
-        for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j)
+    for (unsigned int i = 0; i < TVoigtSize; ++i)
+        for (unsigned int j = 0; j < TVoigtSize; ++j)
             mMatrixD[i][j] = rOther.mMatrixD[i][j];
 
     KRATOS_CATCH("")
@@ -155,8 +155,8 @@ SmallStrainUMAT3DLaw<TVoigtSize>& SmallStrainUMAT3DLaw<TVoigtSize>::operator=(co
     this->mDeltaStrainVector       = rOther.mDeltaStrainVector;
     this->mStrainVectorFinalized   = rOther.mStrainVectorFinalized;
 
-    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i)
-        for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j)
+    for (unsigned int i = 0; i < TVoigtSize; ++i)
+        for (unsigned int j = 0; j < TVoigtSize; ++j)
             this->mMatrixD[i][j] = rOther.mMatrixD[i][j];
 
     return *this;
@@ -253,8 +253,8 @@ void SmallStrainUMAT3DLaw<TVoigtSize>::ResetMaterial(const Properties&   rMateri
     noalias(mDeltaStrainVector)     = ZeroVector(mDeltaStrainVector.size());
     noalias(mStrainVectorFinalized) = ZeroVector(mStrainVectorFinalized.size());
 
-    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i)
-        for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j)
+    for (unsigned int i = 0; i < TVoigtSize; ++i)
+        for (unsigned int j = 0; j < TVoigtSize; ++j)
             mMatrixD[i][j] = 0.0;
 
     mIsModelInitialized = false;
@@ -454,14 +454,14 @@ void SmallStrainUMAT3DLaw<TVoigtSize>::CopyConstitutiveMatrix(ConstitutiveLaw::P
 {
     if (rValues.GetMaterialProperties()[IS_FORTRAN_UDSM]) {
         // transfer fortran style matrix to C++ style
-        for (unsigned int i = 0; i < VOIGT_SIZE_3D; i++) {
-            for (unsigned int j = 0; j < VOIGT_SIZE_3D; j++) {
+        for (unsigned int i = 0; i < TVoigtSize; i++) {
+            for (unsigned int j = 0; j < TVoigtSize; j++) {
                 rConstitutiveMatrix(i, j) = mMatrixD[j][i];
             }
         }
     } else {
-        for (unsigned int i = 0; i < VOIGT_SIZE_3D; i++) {
-            for (unsigned int j = 0; j < VOIGT_SIZE_3D; j++) {
+        for (unsigned int i = 0; i < TVoigtSize; i++) {
+            for (unsigned int j = 0; j < TVoigtSize; j++) {
                 rConstitutiveMatrix(i, j) = mMatrixD[i][j];
             }
         }
@@ -525,7 +525,7 @@ void SmallStrainUMAT3DLaw<TVoigtSize>::CallUMAT(ConstitutiveLaw::Parameters& rVa
 
     int ndi   = N_DIM_3D;
     int nshr  = 3;
-    int ntens = VOIGT_SIZE_3D;
+    int ntens = TVoigtSize;
 
     // stresses and state variables in the beginning of the steps needs to be given:
     mStressVector   = mStressVectorFinalized;
