@@ -22,6 +22,23 @@
 
 #include <cmath>
 
+namespace
+{
+using namespace Kratos;
+
+std::size_t AveragingTypeToArrayIndex(CoulombYieldSurface::CoulombAveragingType AveragingType)
+{
+    switch (AveragingType) {
+    case CoulombYieldSurface::CoulombAveragingType::LOWEST_PRINCIPAL_STRESSES:
+        return 0;
+    case CoulombYieldSurface::CoulombAveragingType::HIGHEST_PRINCIPAL_STRESSES:
+        return 2;
+    default:
+        return 1;
+    }
+}
+} // namespace
+
 namespace Kratos
 {
 
@@ -180,7 +197,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
             mapped_principal_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
                 mapped_sigma_tau, averaged_principal_trial_stress_vector);
             mapped_principal_stress_vector[1] =
-                mapped_principal_stress_vector[static_cast<std::size_t>(averaging_type)];
+                mapped_principal_stress_vector[AveragingTypeToArrayIndex(averaging_type)];
         }
         mStressVector = StressStrainUtilities::RotatePrincipalStresses(
             mapped_principal_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());

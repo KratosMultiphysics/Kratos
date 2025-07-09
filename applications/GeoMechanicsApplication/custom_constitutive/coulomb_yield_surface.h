@@ -25,9 +25,9 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(CoulombYieldSurface);
 
     enum class CoulombAveragingType {
-        LOWEST_PRINCIPAL_STRESSES  = 0,
-        NO_AVERAGING               = 1,
-        HIGHEST_PRINCIPAL_STRESSES = 2
+        NO_AVERAGING,
+        LOWEST_PRINCIPAL_STRESSES,
+        HIGHEST_PRINCIPAL_STRESSES
     };
 
     CoulombYieldSurface() = default;
