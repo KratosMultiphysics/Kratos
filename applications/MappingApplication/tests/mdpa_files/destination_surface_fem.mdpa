@@ -107,7 +107,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements TotalLagrangianElement2D4N// GUI group identifier: Structure
+Begin Elements Element2D4N// GUI group identifier: Structure
       2049          0       1182       1183       1187       1186 
       2050          0       1177       1178       1183       1182 
       2051          0       1171       1172       1178       1177 
@@ -174,7 +174,7 @@ Begin Elements TotalLagrangianElement2D4N// GUI group identifier: Structure
       2112          0        844        849        850        845 
 End Elements
 
-Begin Conditions PointLoadCondition2D1N// GUI group identifier: StructureInterface
+Begin Conditions PointCondition2D1N// GUI group identifier: StructureInterface
 1 0 836 
 2 0 839 
 3 0 848 
