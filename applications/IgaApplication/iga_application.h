@@ -170,12 +170,8 @@ private:
     const IgaModelerSbm mIgaModelerSbm;
     const RefinementModeler mRefinementModeler;
     const NurbsGeometryModeler mNurbsGeometryModeler;
-<<<<<<< HEAD
     const NurbsGeometryModelerSbm mNurbsGeometryModelerSbm;
     const ImportNurbsSbmModeler mImportNurbsSbmModeler;
-=======
-    const CouplingGeometryModeler mCouplingGeometryModeler;
->>>>>>> e495f07bc3 (add coupling geometry modeler)
 
     ///@}
     ///@name Private methods
