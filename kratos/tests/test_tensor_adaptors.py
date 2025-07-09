@@ -57,19 +57,28 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         Kratos.VariableUtils().ClearNonHistoricalData(self.model_part.Conditions)
         Kratos.VariableUtils().ClearNonHistoricalData(self.model_part.Elements)
 
-        def setter(container, setter_method):
+        def value_setter(container, setter_method):
             for entity in container:
                 setter_method(entity, Kratos.PRESSURE, entity.Id + 1)
                 setter_method(entity, Kratos.VELOCITY, Kratos.Vector([entity.Id * 2 + 1, entity.Id * 3 + 1, entity.Id * 4 + 1]))
                 setter_method(entity, Kratos.EXTERNAL_FORCES_VECTOR, Kratos.Vector([entity.Id * 2 + 1, entity.Id * 3 + 1, entity.Id * 4 + 1, entity.Id * 2 + 1, entity.Id * 3 + 1]))
                 setter_method(entity, Kratos.NORMAL_SHAPE_DERIVATIVE, Kratos.Matrix([[entity.Id * 2 + 1, entity.Id * 3 + 1], [entity.Id * 4 + 1, entity.Id * 2 + 1], [entity.Id * 3 + 1, entity.Id * 4 + 1]]))
 
-        setter(self.model_part.Nodes, lambda x, y, z: x.SetSolutionStepValue(y, 0, z * 1.5))
-        setter(self.model_part.Nodes, lambda x, y, z: x.SetSolutionStepValue(y, 1, z * 1.5))
-        setter(self.model_part.Nodes, lambda x, y, z: x.SetValue(y, z * 2.1))
-        setter(self.model_part.Properties, lambda x, y, z: x.SetValue(y, z * 6.1))
-        setter(self.model_part.Conditions, lambda x, y, z: x.SetValue(y, z * 3.1))
-        setter(self.model_part.Elements, lambda x, y, z: x.SetValue(y, z * 4.1))
+        def flag_setter(container):
+            for entity in container:
+                entity.Set(Kratos.SLIP, entity.Id % 2)
+                entity.Set(Kratos.SELECTED, False)
+
+        value_setter(self.model_part.Nodes, lambda x, y, z: x.SetSolutionStepValue(y, 0, z * 1.5))
+        value_setter(self.model_part.Nodes, lambda x, y, z: x.SetSolutionStepValue(y, 1, z * 1.5))
+        value_setter(self.model_part.Nodes, lambda x, y, z: x.SetValue(y, z * 2.1))
+        value_setter(self.model_part.Properties, lambda x, y, z: x.SetValue(y, z * 6.1))
+        value_setter(self.model_part.Conditions, lambda x, y, z: x.SetValue(y, z * 3.1))
+        value_setter(self.model_part.Elements, lambda x, y, z: x.SetValue(y, z * 4.1))
+
+        flag_setter(self.model_part.Nodes)
+        flag_setter(self.model_part.Conditions)
+        flag_setter(self.model_part.Elements)
 
     def test_Shape1(self):
         t_adaptor_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.VELOCITY)
@@ -219,6 +228,32 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
 
     def test_ElementEquationIdsTensorAdaptor(self):
         self.__TestEquationIdsTensorAdaptor(self.model_part.Elements)
+
+    def test_NodalFlagsTensorAdaptor(self):
+        self.__TestFlagsTensorAdaptor(self.model_part.Nodes)
+
+    def test_ConditionFlagsTensorAdaptor(self):
+        self.__TestFlagsTensorAdaptor(self.model_part.Conditions)
+
+    def test_ElementFlagsTensorAdaptor(self):
+        self.__TestFlagsTensorAdaptor(self.model_part.Elements)
+
+    def __TestFlagsTensorAdaptor(self, container):
+        tensor_adaptor_read = Kratos.TensorAdaptors.FlagsTensorAdaptor(container, Kratos.SLIP)
+        tensor_adaptor_read.CollectData()
+
+        numpy_data_read = tensor_adaptor_read.data
+        for i, entity in enumerate(container):
+            self.assertEqual(numpy_data_read[i], entity.Is(Kratos.SLIP))
+
+        tensor_adaptor_write = Kratos.TensorAdaptors.FlagsTensorAdaptor(tensor_adaptor_read.GetContainer(), Kratos.SELECTED)
+        numpy_data_write = tensor_adaptor_write.data
+
+        numpy_data_write[:] = numpy.invert(numpy_data_read)
+        tensor_adaptor_write.StoreData()
+
+        for entity in container:
+            self.assertEqual(entity.Is(Kratos.SLIP), not entity.Is(Kratos.SELECTED))
 
     def __TestEquationIdsTensorAdaptor(self, container):
         tensor_adaptor = Kratos.TensorAdaptors.EquationIdsTensorAdaptor(container, self.model_part.ProcessInfo)
