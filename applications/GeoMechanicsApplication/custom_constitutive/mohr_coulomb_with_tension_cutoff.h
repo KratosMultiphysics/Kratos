@@ -71,7 +71,8 @@ private:
     [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector,
                                                     double        YoungsModulus,
                                                     double        PoissonsRatio) const;
-    static Vector AveragePrincipalStressComponents(const Vector& rPrincipalStressVector, CoulombYieldSurface::CoulombAveragingType AveragingType);
+    static Vector        AveragePrincipalStressComponents(const Vector& rPrincipalStressVector,
+                                                          CoulombYieldSurface::CoulombAveragingType AveragingType);
     static CoulombYieldSurface::CoulombAveragingType FindAveragingType(const Vector& rMappedPrincipalStressVector);
 
     friend class Serializer;

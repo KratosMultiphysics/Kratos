@@ -163,8 +163,8 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     if (mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
         mStressVector = trial_stress_vector;
     } else {
-        auto      mapped_sigma_tau =
-            mCoulombWithTensionCutOffImpl.DoReturnMapping(r_prop, trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
+        auto mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
+            r_prop, trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
         auto mapped_principal_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
             mapped_sigma_tau, principal_trial_stress_vector);
 
@@ -179,7 +179,8 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
                 mCoulombWithTensionCutOffImpl.DoReturnMapping(r_prop, trial_sigma_tau, averaging_type);
             mapped_principal_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
                 mapped_sigma_tau, averaged_principal_trial_stress_vector);
-            mapped_principal_stress_vector[1] = mapped_principal_stress_vector[static_cast<std::size_t>(averaging_type)];
+            mapped_principal_stress_vector[1] =
+                mapped_principal_stress_vector[static_cast<std::size_t>(averaging_type)];
         }
         mStressVector = StressStrainUtilities::RotatePrincipalStresses(
             mapped_principal_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());

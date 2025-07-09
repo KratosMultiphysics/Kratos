@@ -24,7 +24,11 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface : public YieldSu
 public:
     KRATOS_CLASS_POINTER_DEFINITION(CoulombYieldSurface);
 
-    enum class CoulombAveragingType {LOWEST_PRINCIPAL_STRESSES=0, NO_AVERAGING=1, HIGHEST_PRINCIPAL_STRESSES=2};
+    enum class CoulombAveragingType {
+        LOWEST_PRINCIPAL_STRESSES  = 0,
+        NO_AVERAGING               = 1,
+        HIGHEST_PRINCIPAL_STRESSES = 2
+    };
 
     CoulombYieldSurface() = default;
 
