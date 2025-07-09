@@ -14,14 +14,10 @@
 
 // System includes
 #include <vector>
-#include <variant>
-#include <sstream>
-#include <type_traits>
 
 // Project includes
 #include "includes/define.h"
 #include "containers/flags.h"
-#include "includes/ublas_interface.h"
 #include "includes/model_part.h"
 #include "utilities/data_type_traits.h"
 
