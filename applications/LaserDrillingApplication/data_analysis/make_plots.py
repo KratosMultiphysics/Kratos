@@ -76,6 +76,7 @@ if __name__ == "__main__":
     plot_ellipses_in_slices = True  # Toggle for plotting ellipses in slice views
     plot_ellipse_metrics_toggle = True  # Toggle for eccentricity and theta vs. depth plot
     plot_individual_slices_grid_toggle = True
+    plot_individual_slices_grid_centroids = False
     plot_slice_views_one_by_one = False  # Toggle for XY view of each slices
 
     # ==== Read and Clean the Data ====
@@ -226,7 +227,7 @@ if __name__ == "__main__":
         plot_ellipse_metrics(ellipses, filename)
 
     if plot_individual_slices_grid_toggle:
-        plot_individual_slices_grid(slices, slice_bounds, centroids, ellipses, sample_limits, plot_ellipses_in_slices, filename)
+        plot_individual_slices_grid(slices, slice_bounds, centroids, ellipses, sample_limits, plot_individual_slices_grid_centroids, plot_ellipses_in_slices, filename)
 
     if plot_slice_views_one_by_one:
         plot_individual_slices_separately(

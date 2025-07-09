@@ -430,7 +430,7 @@ def plot_ellipse_metrics(ellipses, filename):
     plt.show()
 
 
-def plot_individual_slices_grid(slices, slice_bounds, centroids, ellipses, sample_limits, plot_ellipses_in_slices, filename):
+def plot_individual_slices_grid(slices, slice_bounds, centroids, ellipses, sample_limits, plot_centroids, plot_ellipses_in_slices, filename, save_path=None):
     """
     Plot individual slices in a subplot grid with points, centroids, and optional ellipses.
 
@@ -439,7 +439,10 @@ def plot_individual_slices_grid(slices, slice_bounds, centroids, ellipses, sampl
     - slice_bounds: Array of z-boundaries for slices.
     - centroids: List of centroid coordinates for each slice.
     - ellipses: List of ellipses.
+    - plot_centroids: Boolean to toggle centroid plotting.
     - plot_ellipses_in_slices: Boolean to toggle ellipse plotting.
+    - filename: File being plotted
+    - export_path: path to save to a file or None to not save the figure
     """
     num_slices = len(slices)
     valid_slices = [i for i in range(num_slices) if len(slices[i]) > 0]
@@ -462,18 +465,21 @@ def plot_individual_slices_grid(slices, slice_bounds, centroids, ellipses, sampl
             continue
 
         z_start, z_end = slice_bounds[i], slice_bounds[i + 1]
-        centroid = centroids[i]
         ax = axes[plot_idx]
         # Plot slice points
-        sc = ax.scatter(slice_points[:, 0], slice_points[:, 1], s=3, c="gray")
+        sc = ax.scatter(slice_points[:, 0], slice_points[:, 1], marker=".", s=1, linewidth=0, c="gray")
         if plot_idx == 0:
             handles.append(sc)
             labels.append("Slice Points")
+
         # Plot centroid
-        pt = ax.plot(centroid[0], centroid[1], "ro")[0]
-        if plot_idx == 0:
-            handles.append(pt)
-            labels.append("Centroid")
+        if plot_centroids:
+            centroid = centroids[i]
+            pt = ax.plot(centroid[0], centroid[1], "ro")[0]
+            if plot_idx == 0:
+                handles.append(pt)
+                labels.append("Centroid")
+
         # Plot ellipse and center if enabled
         ellipse = ellipses[i]
         if plot_ellipses_in_slices and ellipse is not None:
@@ -493,6 +499,7 @@ def plot_individual_slices_grid(slices, slice_bounds, centroids, ellipses, sampl
                 labels.append("Fitted Ellipse")
                 handles.append(ec)
                 labels.append("Ellipse Center")
+
         ax.set_title(f"Slice {valid_slices[plot_idx] + 1} (z ∈ [{z_start:.2f}, {z_end:.2f}] um)\n" + filename)
         ax.set_xlabel("X (um)")
         ax.set_ylabel("Y (um)")
@@ -511,7 +518,11 @@ def plot_individual_slices_grid(slices, slice_bounds, centroids, ellipses, sampl
     plt.suptitle("XY Projection of Slices with Centroids and Ellipses\n" + filename, fontsize=14)
     plt.subplots_adjust(top=0.87, bottom=0.1)  # Adjust bottom to accommodate legend
     plt.tight_layout()
-    plt.show()
+    
+    if save_path is None:
+        plt.show()
+    else:
+        fig.savefig(save_path, dpi=300)
 
 
 def plot_individual_slices_separately(
