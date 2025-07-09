@@ -1,5 +1,5 @@
 """
-Extract data from a set of files
+Extract ellipses from a folder with files of geometry point clouds
 """
 
 import argparse
@@ -23,20 +23,23 @@ def parse_filename(file):
 
 if __name__ == "__main__":
     """
-    This script takes as its argument the path of a folder containing multiple bore measurements, extracts some information from each dataset and
-    exports it to a json
+    This script takes as its argument the path of a folder containing multiple bore measurements, extracts the ellipses from each dataset and exports them to a json
     """
 
     # Read arguments
-    parser = argparse.ArgumentParser(description="Process multiple bore measurements.")
+    parser = argparse.ArgumentParser(description="Process multiple bore measurements to extract ellipses.")
+
     parser.add_argument("--input-folder", required=True, help="Path to a folder containing the data files.")
     parser.add_argument("--output-file", required=True, help="Path to the output JSON file (note that it will be overwritten).")
+    parser.add_argument("--output-failures", required=True, help="Path to the output JSON file that conatins the list of data files that failed and the reason.")
     parser.add_argument("--parameters-file", required=True, help="Path of the file that contains the parameters to be used")
     parser.add_argument("--material", required=True, help="Material name to associate with all experiments")
 
     args = parser.parse_args()
+
     folderpath = args.input_folder
     output_file = args.output_file
+    output_failures = args.output_failures
     parameters_file = args.parameters_file
     material = args.material
 
@@ -72,20 +75,14 @@ if __name__ == "__main__":
     number_of_files = sum(1 for _ in folder.glob("*.dat"))
     print(f"{number_of_files=}")
 
-    experiments = []
+    experiments = {}
     for i, file in enumerate(folder.glob("*.dat")):
         filename = file.stem
         print(f"Analyzing file {filename}: {i+1}/{number_of_files}")
 
         power, pulses, identifier = parse_filename(file)
         
-        experiment = {
-        "filename": filename,
-        "material": material,
-        "power": power,
-        "pulses": pulses,
-        "id": identifier
-        }
+
 
         # ==== Read and Clean the Data ====
         data_raw = read_single_bore(file)
@@ -122,14 +119,27 @@ if __name__ == "__main__":
             print("Error in file" + filename)
             continue
 
-        experiment["ellipses"] = ellipses
-        experiments.append(experiment)
+        experiment = {
+        "material": material,
+        "power": power,
+        "pulses": pulses,
+        "id": identifier,
+        "ellipses" : ellipses
+        }
+        
+        
+        experiments[filename] = experiment
         # print(slice_bounds)
     
     with open(output_file, "w") as fout:
         json.dump(experiments, fout, indent=2)
 
-    print("The following files failed:" + str(failed_files))
+    if len(failed_files) > 0:
+        with open(output_failures, "w") as fout:
+            json.dump(failed_files, fout, indent=2)
 
+        print("The following files failed:" + str(failed_files))
+    else:
+        print("No files failed")
 
 
