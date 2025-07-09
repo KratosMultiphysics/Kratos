@@ -330,7 +330,7 @@ def compute_ellipses(slices, slice_bounds):
         center_x, center_y, a, b, eccentricity, angle = fit_ellipse_least_squares(points_2d)
         center_z = np.mean(slice_points[:, 2]) # Set the ellipse's depth as the "center of mass" in depth of the points in the slice
 
-        ellipse_center = np.array([center_x, center_y, center_z])
+        ellipse_center = [center_x, center_y, center_z]
 
         ellipse_dict = {"center": ellipse_center, "a": a, "b": b, "eccentricity": eccentricity, "angle": angle}
         ellipses[i] = ellipse_dict            
