@@ -14,11 +14,16 @@ if __name__ == "__main__":
     # Read filepath as argument
     parser = argparse.ArgumentParser(description="Make plots and extract metrics of the measurements of a bore.")
     parser.add_argument("--filepath", required=True, help="Path to file containing the data file.")
+    parser.add_argument("--keep-surface-and-outliers", required=False, action="store_true", help="Toggle to keep outliers. Optional (by default, they are removed).")
+
 
     args = parser.parse_args()
 
     filepath = args.filepath
-
+    keep_surface_and_outliers_toggle = args.keep_surface_and_outliers
+    # remove_surface_and_outliers_toggle = False if args.remove_surface_and_outliers == "False" else True
+    print(f"{args.keep_surface_and_outliers=}")
+    print(f"{keep_surface_and_outliers_toggle=}")
     filename = Path(filepath).stem
     print(f"Plots for {filename}")
 
@@ -71,9 +76,9 @@ if __name__ == "__main__":
     # ==== Read and Clean the Data ====
     data_raw = read_single_bore(filepath)
     data = clean_data(data_raw)
-    data, surface_outliers, deep_outliers = remove_surface_and_outliers(
-        data, shallow_z_threshold, deep_outlier_quantile_threshold
-    )
+
+    if not keep_surface_and_outliers_toggle:
+        data, surface_outliers, deep_outliers = remove_surface_and_outliers(data, shallow_z_threshold, deep_outlier_quantile_threshold)
 
     # ==== Random subsample after filtering ====
     if subsample_points and max_points < len(data):
@@ -82,11 +87,19 @@ if __name__ == "__main__":
     x, y, z = data[:, 0], data[:, 1], data[:, 2]
 
     # ==== Compute data slices ====
-    slice_bounds = calculate_slice_bounds(data, slice_thickness)
+    try:
+        slice_bounds = calculate_slice_bounds(data, slice_thickness)
+    except IndexError:
+        print("Empty data list")
+        exit(-1)
 
     plot_cloud_and_slices(x, y, z, slice_bounds, sample_limits, filename)
 
-    slices = calculate_slices(data, slice_bounds)
+    try:
+        slices = calculate_slices(data, slice_bounds)
+    except ValueError:
+        print("There are empty slices")
+        exit(-1)
 
 
     # ==== Compute centroids for slices ====
@@ -95,7 +108,12 @@ if __name__ == "__main__":
     centroids_x, centroids_y, centroids_z = centroids[:, 0], centroids[:, 1], centroids[:, 2]
 
     # ==== Fit ellipses to slices ====
-    ellipses = compute_ellipses(slices, slice_bounds)
+    try:
+        ellipses = compute_ellipses(slices, slice_bounds)
+    except ValueError:
+        print("Errors computing the ellipses")
+        exit(-1)
+
 
     ellipse_centers = []
     for ellipse in ellipses:
