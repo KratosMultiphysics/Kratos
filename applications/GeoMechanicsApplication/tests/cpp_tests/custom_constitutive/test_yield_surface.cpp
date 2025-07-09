@@ -58,12 +58,13 @@ KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_CanBeSavedAndLoadedThroughInterfac
     constexpr auto cohesion        = 2.0;
     constexpr auto dilatancy_angle = MathUtils<>::DegreesToRadians(30.0);
     auto           p_coulomb_yield_surface =
-        std::make_unique<CoulombYieldSurface>(friction_angle, cohesion, dilatancy_angle);
+        std::unique_ptr<YieldSurface>(
+        std::make_unique<CoulombYieldSurface>(friction_angle, cohesion, dilatancy_angle));
     auto serializer = StreamSerializer{};
 
     // Act
     serializer.save("test_tag"s, p_coulomb_yield_surface);
-    auto p_loaded_coulomb_yield_surface = std::unique_ptr<CoulombYieldSurface>{};
+    auto p_loaded_coulomb_yield_surface = std::unique_ptr<YieldSurface>{};;
     serializer.load("test_tag"s, p_loaded_coulomb_yield_surface);
 
     // Assert

@@ -163,15 +163,15 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     if (mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
         mStressVector = trial_stress_vector;
     } else {
-        Vector      mapped_sigma_tau =
+        auto      mapped_sigma_tau =
             mCoulombWithTensionCutOffImpl.DoReturnMapping(r_prop, trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
-        Vector mapped_principal_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
+        auto mapped_principal_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
             mapped_sigma_tau, principal_trial_stress_vector);
 
-        // for interchanging principal stresses, retry mapping with averaged principal streses.
-        auto averaging_type = FindAveragingType(mapped_principal_stress_vector);
+        // for interchanging principal stresses, retry mapping with averaged principal stresses.
+        const auto averaging_type = FindAveragingType(mapped_principal_stress_vector);
         if (averaging_type != CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING) {
-            Vector averaged_principal_trial_stress_vector =
+            const auto averaged_principal_trial_stress_vector =
                 AveragePrincipalStressComponents(principal_trial_stress_vector, averaging_type);
             trial_sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(
                 averaged_principal_trial_stress_vector);
@@ -204,13 +204,13 @@ Vector MohrCoulombWithTensionCutOff::AveragePrincipalStressComponents(const Vect
 
 CoulombYieldSurface::CoulombAveragingType MohrCoulombWithTensionCutOff::FindAveragingType(const Vector& rMappedPrincipalStressVector)
 {
-    CoulombYieldSurface::CoulombAveragingType result = CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING;
     if (rMappedPrincipalStressVector[0] < rMappedPrincipalStressVector[1]) {
-        result = CoulombYieldSurface::CoulombAveragingType::LOWEST_PRINCIPAL_STRESSES;
-    } else if (rMappedPrincipalStressVector[1] < rMappedPrincipalStressVector[2]) {
-        result = CoulombYieldSurface::CoulombAveragingType::HIGHEST_PRINCIPAL_STRESSES;
+        return CoulombYieldSurface::CoulombAveragingType::LOWEST_PRINCIPAL_STRESSES;
     }
-    return result;
+    if (rMappedPrincipalStressVector[1] < rMappedPrincipalStressVector[2]) {
+        return CoulombYieldSurface::CoulombAveragingType::HIGHEST_PRINCIPAL_STRESSES;
+    }
+    return CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING;
 }
 
 Vector MohrCoulombWithTensionCutOff::CalculateTrialStressVector(const Vector& rStrainVector,
