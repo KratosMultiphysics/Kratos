@@ -994,7 +994,7 @@ private:
     const SmallStrainUDSM2DInterfaceLaw mSmallStrainUDSM2DInterfaceLaw{};
     const SmallStrainUDSM3DInterfaceLaw mSmallStrainUDSM3DInterfaceLaw{};
 
-    const SmallStrainUMAT3DLaw<3>            mSmallStrainUMAT3DLaw{};
+    const SmallStrainUMAT3DLaw<VOIGT_SIZE_3D>            mSmallStrainUMAT3DLaw{};
     const SmallStrainUMAT2DPlaneStrainLaw mSmallStrainUMAT2DPlaneStrainLaw{};
     const SmallStrainUMAT2DInterfaceLaw   mSmallStrainUMAT2DInterfaceLaw{};
     const SmallStrainUMAT3DInterfaceLaw   mSmallStrainUMAT3DInterfaceLaw{};

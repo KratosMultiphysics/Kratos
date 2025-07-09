@@ -45,7 +45,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUMAT3DInterfaceLaw : public SmallStrainUMAT3DLaw<3>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUMAT3DInterfaceLaw : public SmallStrainUMAT3DLaw<VOIGT_SIZE_3D>
 {
 public:
     // The process info type definition
