@@ -12,7 +12,7 @@ of [design patterns](#bibliography).
 Currently, the following policies are implemented (still under development):
 
 1. The [StressStatePolicy](#stressstatepolicy) - this is used to calculate several stress-related properties depending
-   on the configuration. There are three flavours: `ThreeDimensionalStressState`, `PlaneStrainStressState` and `AxisymmetricStressState`.
+   on the configuration.
 2. The [Integration coefficient calculator](#integration-coefficient-calculator)
 
 ## StressStatePolicy
@@ -27,7 +27,7 @@ Currently, there are five different stress state implementations:
 2. `PlaneStrainStressState`
 3. `AxisymmetricStressState`
 4. `Line2DInterfaceStressState`
-5. `PlaneInterfaceStressState`
+5. `SurfaceInterfaceStressState`
 
 They all derive from the same interface (`StressStatePolicy`) and can be used interchangeably to calculate the B-matrix and the Green Lagrange Strain vector. See the following schematic for the structure of the
 stress state policies:
@@ -143,12 +143,21 @@ N_1 / r & 0 & N_2 / r & 0 & N_3 / r & 0\\
 ```
 Note that in our geomechanics code base, the radial coordinate $r$ is equal to $x$.
 
-For interface stress states, the $`B`$ matrix relates the nodal displacement vector $`u`$ (with length "number of nodes" times "number of displacement degrees of freedom per node") of an interface element to the relative displacement vector $`\Delta u`$ at an integration point (with length 2 or 3, depending on the exact interface configuration): $`\Delta u = B \cdot u`$.   In essence, to calculate a relative displacement component at an integration point we need to subtract the relevant displacement component at the first side from the corresponding one at the second side.  Given the shape function values $`N_i`$ at the integration point and the nodal displacement vector $`u`$ of the element, we can calculate these pairs of displacement components.  In addition, the $`B`$ matrix needs to take into account that the relative displacement(s) in normal direction (which precede(s) the one(s) in tangential direction) depends on degrees of freedom that are listed _after_ the degrees of freedom that are needed for the relative displacement(s) in tangential direction.  For instance, for a 3+3 two-dimensional line interface, the $`B`$ matrix looks as follows:
+For interface stress states, the $`B`$ matrix relates the nodal displacement vector $`u`$ (with length "number of nodes" times "number of displacement degrees of freedom per node") of an interface element to the relative displacement vector $`\Delta u`$ at an integration point (with length 2 or 3, depending on the exact interface configuration): $`\Delta u = B \cdot u`$.   In essence, to calculate a relative displacement component at an integration point we need to subtract the relevant displacement component at the first side from the corresponding one at the second side.  Given the shape function values $`N_i`$ at the integration point and the nodal displacement vector $`u`$ of the element, we can calculate these pairs of displacement components.  In addition, the $`B`$ matrix needs to take into account that the relative displacement(s) in normal direction (which precede(s) the one(s) in tangential direction) depends on degrees of freedom that are listed _after_ the degrees of freedom that are needed for the relative displacement(s) in tangential direction.  For instance, for a 2+2 two-dimensional line interface, the $`B`$ matrix looks as follows:
 ```math
 B =
 \begin{bmatrix}
- 0   & -N_1 &  0   & -N_2 &  0   & -N_3 & 0   & N_1 & 0   & N_2 & 0   & N_3 \\
--N_1 &  0   & -N_2 &  0   & -N_3 &  0   & N_1 & 0   & N_2 & 0   & N_3 & 0
+ 0   & -N_1 &  0   & -N_2 & 0   & N_1 & 0   & N_2 \\
+-N_1 &  0   & -N_2 &  0   & N_1 & 0   & N_2 & 0
+\end{bmatrix}
+```
+and for a 3+3 surface interface, the $`B`$ matrix looks as follows:
+```math
+B =
+\begin{bmatrix}
+ 0   &  0   & -N_1 &  0   &  0   & -N_2 &  0   &  0   & -N_3 & 0   & 0   & N_1 & 0   & 0   & N_2 & 0   & 0   & N_3 \\
+-N_1 &  0   & 0    & -N_2 &  0   &  0   & -N_3 &  0   &  0   & N_1 & 0   & 0   & N_2 & 0   & 0   & N_3 & 0   & 0   \\
+ 0   & -N_1 & 0    & 0    & -N_2 &  0   &  0   & -N_3 &  0   & 0   & N_1 & 0   & 0   & N_2 & 0   & 0   & N_3 & 0
 \end{bmatrix}
 ```
 The generalization here is how the components of the relative displacement vector (normal and tangential components) relate to the displacement degrees of freedom at the nodes.  This differs depending on the exact interface element configuration. 
