@@ -42,12 +42,17 @@ Vector AveragePrincipalStressComponents(const Vector& rPrincipalStressVector,
                                         CoulombYieldSurface::CoulombAveragingType AveragingType)
 {
     auto result = rPrincipalStressVector;
-    if (AveragingType == CoulombYieldSurface::CoulombAveragingType::LOWEST_PRINCIPAL_STRESSES) {
+    switch (AveragingType) {
+    case CoulombYieldSurface::CoulombAveragingType::LOWEST_PRINCIPAL_STRESSES:
         std::fill(result.begin(), result.begin() + 1,
                   (rPrincipalStressVector[0] + rPrincipalStressVector[1]) * 0.5);
-    } else if (AveragingType == CoulombYieldSurface::CoulombAveragingType::HIGHEST_PRINCIPAL_STRESSES) {
+        break;
+    case CoulombYieldSurface::CoulombAveragingType::HIGHEST_PRINCIPAL_STRESSES:
         std::fill(result.begin() + 1, result.begin() + 2,
                   (rPrincipalStressVector[1] + rPrincipalStressVector[2]) * 0.5);
+        break;
+    default:
+        break;
     }
     return result;
 }
