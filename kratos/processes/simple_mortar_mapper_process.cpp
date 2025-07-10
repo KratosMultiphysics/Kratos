@@ -595,11 +595,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-IntegrationMethod SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::GetIntegrationMethod()
+GeometryData::IntegrationMethod SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::GetIntegrationMethod()
 {
     const int integration_order = mThisParameters["integration_order"].GetInt();
-    switch ( integration_order )
-    {
+    switch ( integration_order ) {
         case 1: return GeometryData::IntegrationMethod::GI_GAUSS_1;
         case 2: return GeometryData::IntegrationMethod::GI_GAUSS_2;
         case 3: return GeometryData::IntegrationMethod::GI_GAUSS_3;
@@ -860,7 +859,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             residual_norm[i_size] = 0.0;
         }
 
-        block_for_each(mDestinationModelPart.Nodes(), [&](NodeType& rNode) {
+        block_for_each(mDestinationModelPart.Nodes(), [&](Node& rNode) {
             if(mOptions.Is(DESTINATION_IS_HISTORICAL)) {
                 MortarUtilities::AddAreaWeightedNodalValue<TVarType, MortarUtilitiesSettings::SaveAsHistoricalVariable>(rNode, *mpDestinationVariable, ref_area);
             } else {

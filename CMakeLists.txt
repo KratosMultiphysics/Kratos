@@ -235,6 +235,18 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -funroll-loops -Wall -Wno-unknown-pragmas  ")
         set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
         message(STATUS "Additional default options were set for LLVM/Clang compiler")
+      elseif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+          # "IntelLLVM": Intel's NextGen LLVM compiler (icx)
+          set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+        else (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+          # "Intel": Intel's Classic compiler (icc)
+          message(FATAL_ERROR "Intel Classic compiler is not supported on Windows")
+        endif()
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+        set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
+        message(STATUS "Additional default options were set for Intel Compiler")
       endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
@@ -284,9 +296,13 @@ endif(${MSVC})
 
 # Common flags for MSVC
 if(${MSVC})
-  message(STATUS "Detected compiler as MSVC")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc /Zc:__cplusplus -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+      message(STATUS "Detected compiler as IntelLLVM with MSVC backend")
+  else (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+      message(STATUS "Detected compiler as MSVC")
+  endif(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc /DNOMINMAX -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc /DNOMINMAX /Zc:__cplusplus -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
   string( REPLACE "/W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS} )
   string( REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
   # CMake does not select the correct runtime library for FullDebug now, no idea why
@@ -344,7 +360,7 @@ if(KRATOS_BUILD_TESTING MATCHES ON)
 
   # restore the current directory's old `COMPILE_OPTIONS`
   set_directory_properties(PROPERTIES COMPILE_OPTIONS "${kratos_root_compile_options}")
-endif(KRATOS_BUILD_TESTING MATCHES ON) 
+endif(KRATOS_BUILD_TESTING MATCHES ON)
 
 # Benchmarking
 if(KRATOS_BUILD_BENCHMARK MATCHES ON)
@@ -690,6 +706,7 @@ message("\t Model 'CreateModelPart' behavior change (no error thrown if model pa
 message("\t Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769")
 message("\t Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774")
 message("\t Behavior change of Testing. Please ensure you use KRATOS_EXPECT for testing instead of KRATOS_CHECK")
+message("\t Removal of misused EXTENDED_GAUSS integration rules and unification across geometries: https://github.com/KratosMultiphysics/Kratos/pull/13444")
 
 # Compiling the clipper library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/clipper)
