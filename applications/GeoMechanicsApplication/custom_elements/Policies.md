@@ -21,19 +21,20 @@ The stress state policy is used to easily configure elements to have a specific 
 stress state is to convert strain tensors to [strain vectors](#strain-vectors), define the strain-displacement relation
 by filling the [B-matrix](#b-matrix).
 
-There are three different
-stress state implementations:
+Currently, there are five different stress state implementations:
 
 1. `ThreeDimensionalStressState`
 2. `PlaneStrainStressState`
 3. `AxisymmetricStressState`
+4. `Line2DInterfaceStressState`
+5. `PlaneInterfaceStressState`
 
 They all derive from the same interface (`StressStatePolicy`) and can be used interchangeably to calculate the B-matrix and the Green Lagrange Strain vector. See the following schematic for the structure of the
 stress state policies:
 
 ![stress_state_policies.svg](stress_state_policies.svg)
 
-For simple code examples of the functionalities described in the next sections, we refer to the unit tests for [3D](../tests/cpp_tests/test_three_dimensional_stress_state.cpp), [plane strain](../tests/cpp_tests/test_plane_strain_stress_state.cpp) and [axisymmetric](../tests/cpp_tests/test_axisymmetric_stress_state.cpp) stress states.
+For simple code examples of the functionalities described in the next sections, we refer to the unit tests for [3D](../tests/cpp_tests/custom_elements/test_three_dimensional_stress_state.cpp), [plane strain](../tests/cpp_tests/custom_elements/test_plane_strain_stress_state.cpp), [axisymmetric](../tests/cpp_tests/custom_elements/test_axisymmetric_stress_state.cpp), and [interface](../tests/cpp_tests/custom_elements/test_interface_stress_state_policy.cpp) stress states.
 
 ### Strain vectors
 
@@ -63,14 +64,16 @@ For the plane strain stress state, it is defined as:
                                  \epsilon_{xy} \end{bmatrix}
 ```
 
-Lastly, for the axisymmetric stress state, it is defined as:
+For the axisymmetric stress state, it is defined as:
 ```math
 \vec{\epsilon} = \begin{bmatrix} \epsilon_{xx} \\
                                  \epsilon_{yy} \\
                                  u_r/r \\
                                  \epsilon_{xy} \end{bmatrix}
 ```
-Where $u_r$ is the radial displacement and $r$ is the radial coordinate (in our geomechanics code base, the radial coordinate is equal to $x$). 
+Where $u_r$ is the radial displacement and $r$ is the radial coordinate (in our geomechanics code base, the radial coordinate is equal to $x$).
+
+For the interface stress states, it is _not_ possible to calculate the Green-Lagrange strain based on the deformation gradient.
 
 ### B-matrix
 The B-matrix is used to relate strains and displacements. Therefore, its elements are filled with the spatial gradients of the shape functions ($N$).
@@ -129,6 +132,16 @@ N_1 / r & 0 & N_2 / r & 0 & N_3 / r & 0\\
 \end{bmatrix}
 ```
 Note that in our geomechanics code base, the radial coordinate $r$ is equal to $x$.
+
+For interface stress states, the $`B`$ matrix relates the nodal displacement vector $`u`$ (with length "number of nodes" times "number of displacement degrees of freedom per node") of an interface element to the relative displacement vector $`\Delta u`$ at an integration point (with length 2 or 3, depending on the exact interface configuration): $`\Delta u = B \cdot u`$.   In essence, to calculate a relative displacement component at an integration point we need to subtract the relevant displacement component at the first side from the corresponding one at the second side.  Given the shape function values $`N_i`$ at the integration point and the nodal displacement vector $`u`$ of the element, we can calculate these pairs of displacement components.  In addition, the $`B`$ matrix needs to take into account that the relative displacement(s) in normal direction (which precede(s) the one(s) in tangential direction) depends on degrees of freedom that are listed _after_ the degrees of freedom that are needed for the relative displacement(s) in tangential direction.  For instance, for a 3+3 two-dimensional line interface, the $`B`$ matrix looks as follows:
+```math
+B =
+\begin{bmatrix}
+ 0   & -N_1 &  0   & -N_2 &  0   & -N_3 & 0   & N_1 & 0   & N_2 & 0   & N_3 \\
+-N_1 &  0   & -N_2 &  0   & -N_3 &  0   & N_1 & 0   & N_2 & 0   & N_3 & 0
+\end{bmatrix}
+```
+The generalization here is how the components of the relative displacement vector (normal and tangential components) relate to the displacement degrees of freedom at the nodes.  This differs depending on the exact interface element configuration. 
 
 ## Integration coefficient calculator
 

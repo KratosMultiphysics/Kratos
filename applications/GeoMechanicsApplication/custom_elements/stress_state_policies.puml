@@ -25,7 +25,21 @@ class AxisymmetricStressState {
   +std::unique_ptr<StressStatePolicy> Clone()
 }
 
+class Line2DInterfaceStressState {
+  +Matrix CalculateBMatrix()
+  +Vector CalculateGreenLagrangeStrain()
+  +std::unique_ptr<StressStatePolicy> Clone()
+}
+
+class PlaneInterfaceStressState {
+  +Matrix CalculateBMatrix()
+  +Vector CalculateGreenLagrangeStrain()
+  +std::unique_ptr<StressStatePolicy> Clone()
+}
+
 StressStatePolicy <|-- ThreeDimensionalStressState
 StressStatePolicy <|-- PlaneStrainStressState
 StressStatePolicy <|-- AxisymmetricStressState
+StressStatePolicy <|-- Line2DInterfaceStressState
+StressStatePolicy <|-- PlaneInterfaceStressState
 @enduml
