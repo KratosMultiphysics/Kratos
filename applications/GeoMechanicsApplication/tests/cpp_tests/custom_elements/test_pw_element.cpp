@@ -1322,7 +1322,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_SaveLoad, KratosGeoMechanic
 
     // Act
     serializer.save("test_tag"s, p_element);
-    auto p_loaded_element = make_intrusive<PwElement<2, 3>>(); // CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
+    auto p_loaded_element = make_intrusive<PwElement<2, 3>>();
+    // the following Add actions are needed to load the saved element
     KratosComponents<VariableData>::Add("WATER_PRESSURE", WATER_PRESSURE);
     KratosComponents<VariableData>::Add("DT_WATER_PRESSURE", DT_WATER_PRESSURE);
     KratosComponents<VariableData>::Add("VOLUME_ACCELERATION", VOLUME_ACCELERATION);
