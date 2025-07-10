@@ -19,23 +19,6 @@ class ComputeResultantsOperation(CoSimulationCouplingOperation):
         self.reference_point = self.settings["reference_point"].GetVector()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
 
-    def Initialize(self):
-        pass
-
-    def Finalize(self):
-        pass
-
-    def InitializeSolutionStep(self):
-        pass
-
-    def FinalizeSolutionStep(self):
-        pass
-
-    def InitializeCouplingIteration(self):
-        pass
-
-    def FinalizeCouplingIteration(self):
-        pass
 
     def Execute(self):
 
@@ -56,11 +39,6 @@ class ComputeResultantsOperation(CoSimulationCouplingOperation):
         model_part[KMC.RESULTANT_FORCE] = force
         model_part[KMC.RESULTANT_MOMENT] = moment
 
-    def PrintInfo(self):
-        pass
-
-    def Check(self):
-        pass
 
     @classmethod
     def _GetDefaultParameters(cls):
