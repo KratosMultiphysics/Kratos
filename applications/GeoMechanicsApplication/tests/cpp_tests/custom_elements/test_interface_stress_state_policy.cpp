@@ -129,7 +129,7 @@ KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ReturnsCorrectBMatrixForThr
     KRATOS_EXPECT_MATRIX_NEAR(b_matrix, expected_b_matrix, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_Throws_WhenAskingForStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto stress_state_policy = Line2DInterfaceStressState{};
 
@@ -139,20 +139,22 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStrain, Krato
         "strain based on a deformation gradient.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStressTensorSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_Throws_WhenAskingForStressTensorSize,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto stress_state_policy = Line2DInterfaceStressState{};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto strain = stress_state_policy.GetStressTensorSize(),
+        [[maybe_unused]] const auto size = stress_state_policy.GetStressTensorSize(),
         "For line interfaces, the stress tensor size is not implemented.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_CanBeSavedAndLoadedThroughInterface,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto scoped_registration =
-        ScopedSerializerRegistration{"InterfaceStressState"s, Line2DInterfaceStressState{}};
+        ScopedSerializerRegistration{"Line2DInterfaceStressState"s, Line2DInterfaceStressState{}};
     const auto p_policy =
         std::unique_ptr<StressStatePolicy>{std::make_unique<Line2DInterfaceStressState>()};
     auto serializer = StreamSerializer{};
@@ -243,6 +245,48 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_ReturnsCorrectBMatrixForThre
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_NEAR(b_matrix, expected_b_matrix, Defaults::absolute_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_Throws_WhenAskingForStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto stress_state_policy = PlaneInterfaceStressState{};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto strain = stress_state_policy.CalculateGreenLagrangeStrain({}),
+        "For plane interfaces, it is not possible to calculate the Green-Lagrange "
+        "strain based on a deformation gradient.")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_Throws_WhenAskingForStressTensorSize,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto stress_state_policy = PlaneInterfaceStressState{};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto size = stress_state_policy.GetStressTensorSize(),
+        "For plane interfaces, the stress tensor size is not implemented.")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_CanBeSavedAndLoadedThroughInterface,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto scoped_registration =
+        ScopedSerializerRegistration{"PlaneInterfaceStressState"s, PlaneInterfaceStressState{}};
+    const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<PlaneInterfaceStressState>()};
+    auto serializer = StreamSerializer{};
+
+    // Act
+    serializer.save("test_tag"s, p_policy);
+    auto p_loaded_policy = std::unique_ptr<StressStatePolicy>{};
+    serializer.load("test_tag"s, p_loaded_policy);
+
+    // Assert
+    ASSERT_NE(p_loaded_policy, nullptr);
+    KRATOS_EXPECT_EQ(p_loaded_policy->GetVoigtSize(), VOIGT_SIZE_3D_INTERFACE);
+    auto expected_voigt_vector = Vector{3};
+    expected_voigt_vector <<= 1.0, 0.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_policy->GetVoigtVector(), expected_voigt_vector, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
