@@ -107,19 +107,19 @@ To incorporate the Mohr-Coulomb model with tensile cutoff in numerical simulatio
 
 5. If after mapping, the condidition $`\sigma_1 \ge \sigma_2 \ge \sigma_3`$ is not valid, average the principal stresses of stage 2 and the direction of the mapping and map the principal stresses again.
   - if $`\sigma_1 \le \sigma_2`$ set:
-    ```math
+```math
        \sigma_1 = \sigma_2 = \frac{\sigma_1 + \sigma_2}{2}
-    ```
-    ```math
-       \frac{\partial G}{\partial \sigma_1} = \frac{\partial G}{\partial \sigma_2} = \frac{\frac{\partial G}{\partial \sigma_1} + \frac{\partial G}{\partial \sigma_2}}{2}
-    ```
+```
+```math
+       \frac{\partial G}{\partial \sigma_1} = \frac{\partial G}{\partial \sigma_2} = \frac{1}{2} \left( \frac{\partial G}{\partial \sigma_1} + \frac{\partial G}{\partial \sigma_2} \right)
+```
   - if $`\sigma_2 \ge \sigma_3`$ set:
-    ```math
+```math
        \sigma_3 = \sigma_2 = \frac{\sigma_3 + \sigma_2}{2}
-    ```
-    ```math
-       \frac{\partial G}{\partial \sigma_3} = \frac{\partial G}{\partial \sigma_2} = \frac{\frac{\partial G}{\partial \sigma_3} + \frac{\partial G}{\partial \sigma_2}}{2}
-    ```
+```
+```math
+       \frac{\partial G}{\partial \sigma_3} = \frac{\partial G}{\partial \sigma_2} = \frac{1}{2} \left( \frac{\partial G}{\partial \sigma_3} + \frac{\partial G}{\partial \sigma_2} \right)
+```
     This mapping is based on a new Mohr-Coulomb diagram with modified zones, based on the averaged of the derivatives of flow functions $\frac{\partial G}{\partial \boldsymbol{\sigma}}$.
 
 6. Rotate the mapped stress vector back, by appying the rotation matrix.
