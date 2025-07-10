@@ -16,10 +16,11 @@
         "echo_level": 0,
         "analysis_type": "non_linear",
         "model_import_settings": {
-            "input_type": "use_input_model_part"
+            "input_type": "mdpa",
+            "input_filename": "../Structure"
         },
         "material_import_settings": {
-            "materials_filename": "auxiliary_files_2/StructuralMaterials.json"
+            "materials_filename": "StructuralMaterials.json"
         },
         "line_search": false,
         "convergence_criterion": "residual_criterion",
@@ -29,7 +30,7 @@
         "residual_absolute_tolerance": 1e-9,
         "max_iteration": 10,
         "use_old_stiffness_in_first_iteration": false,
-        "rotation_dofs": true,
+        "rotation_dofs": false,
         "volumetric_strain_dofs": false,
         "move_mesh_flag": false
     },
@@ -70,7 +71,7 @@
                 "Parameters": {
                     "model_part_name": "Structure.LineLoad2D_right",
                     "variable_name": "SURFACE_LOAD",
-                    "modulus": 0.1,
+                    "modulus": 0.01,
                     "direction": [
                         1.0,
                         0.0,
@@ -86,6 +87,50 @@
         "list_other_processes": []
     },
     "output_processes": {
+        "vtk_output": [
+            {
+                "Parameters": {
+                    "condition_data_value_variables": [],
+                    "element_data_value_variables": [
+                        "YOUNG_MODULUS"
+                    ],
+                    "file_format": "binary",
+                    "model_part_name": "Structure",
+                    "nodal_data_value_variables": [],
+                    "nodal_solution_step_data_variables": [
+                        "DISPLACEMENT",
+                        "REACTION",
+                        "ROTATION"
+                    ],
+                    "gauss_point_variables_extrapolated_to_nodes": [
+                        "VON_MISES_STRESS",
+                        "GREEN_LAGRANGE_STRAIN_VECTOR"
+                    ],
+                    "output_control_type": "step",
+                    "output_interval": 1,
+                    "output_path": "Output",
+                    "output_precision": 7,
+                    "output_sub_model_parts": true,
+                    "save_output_files_in_folder": true
+                },
+                "help": "This process writes postprocessing files for Paraview",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "VtkOutputProcess",
+                "python_module": "vtk_output_process"
+            }
+        ],
+        "sensor_output": [
+            {
+                "Parameters": {
+                    "model_part_name": "Structure",
+                    "output_file_name": "../measured_data.csv",
+                    "@include_json": "../sensor_data.json"
+                },
+                "kratos_module": "KratosMultiphysics.SystemIdentificationApplication.processes",
+                "process_name": "SensorOutputProcess",
+                "python_module": "sensor_output_process"
+            }
+        ]
     },
     "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis"
 }
