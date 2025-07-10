@@ -1310,6 +1310,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_SaveLoad, KratosGeoMechanic
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
     p_element->InitializeSolutionStep(dummy_process_info);
+    Vector actual_right_hand_side;
+    Matrix actual_left_hand_side;
+    p_element->CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
 
     const auto triangle_2D3N = static_cast<Triangle2D3<Node>>(p_element->GetGeometry());
     const auto scoped_registration_geometry =
@@ -1337,24 +1340,17 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_SaveLoad, KratosGeoMechanic
     KratosComponents<VariableData>::Add("BULK_MODULUS_SOLID", BULK_MODULUS_SOLID);
     KratosComponents<VariableData>::Add("POROSITY", POROSITY);
     KratosComponents<VariableData>::Add("IGNORE_UNDRAINED", IGNORE_UNDRAINED);
+    KratosComponents<VariableData>::Add("RETENTION_LAW", RETENTION_LAW);
 
     serializer.load("test_tag"s, p_loaded_element);
 
     // Assert
-    Vector actual_right_hand_side;
-    Matrix actual_left_hand_side;
-    p_loaded_element->CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
+    Vector loaded_right_hand_side;
+    Matrix loaded_left_hand_side;
+    p_loaded_element->CalculateLocalSystem(loaded_left_hand_side, loaded_right_hand_side, dummy_process_info);
 
-    Matrix expected_left_hand_side(3, 3);
-    // clang-format off
-    expected_left_hand_side <<= -49.999999999999993,0,49.999999999999993,
-                                 0,0,0,
-                                 49.999999999999993,0,-49.999999999999993;
-    // clang-format on
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, loaded_left_hand_side, Defaults::relative_tolerance)
 
-    Vector expected_right_hand_side(3);
-    expected_right_hand_side <<= 500000, 0, -500000;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, loaded_right_hand_side, Defaults::relative_tolerance)
 }
 } // namespace Kratos::Testing
