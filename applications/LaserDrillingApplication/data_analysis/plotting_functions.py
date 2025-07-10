@@ -442,7 +442,7 @@ def plot_individual_slices_grid(slices, slice_bounds, centroids, ellipses, sampl
     - plot_centroids: Boolean to toggle centroid plotting.
     - plot_ellipses_in_slices: Boolean to toggle ellipse plotting.
     - filename: File being plotted
-    - export_path: path to save to a file or None to not save the figure
+    - save_path: path to save to a file or None to not save the figure
     """
     num_slices = len(slices)
     valid_slices = [i for i in range(num_slices) if len(slices[i]) > 0]
@@ -467,7 +467,7 @@ def plot_individual_slices_grid(slices, slice_bounds, centroids, ellipses, sampl
         z_start, z_end = slice_bounds[i], slice_bounds[i + 1]
         ax = axes[plot_idx]
         # Plot slice points
-        sc = ax.scatter(slice_points[:, 0], slice_points[:, 1], marker=".", s=1, linewidth=0, c="gray")
+        sc = ax.scatter(slice_points[:, 0], slice_points[:, 1], marker=".", s=15, linewidth=0, c="black")
         if plot_idx == 0:
             handles.append(sc)
             labels.append("Slice Points")
@@ -523,6 +523,7 @@ def plot_individual_slices_grid(slices, slice_bounds, centroids, ellipses, sampl
         plt.show()
     else:
         fig.savefig(save_path, dpi=300)
+        plt.close()
 
 
 def plot_individual_slices_separately(
