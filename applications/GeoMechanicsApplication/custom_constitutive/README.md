@@ -120,7 +120,7 @@ To incorporate the Mohr-Coulomb model with tensile cutoff in numerical simulatio
 ```math
        \frac{\partial G}{\partial \sigma_3} = \frac{\partial G}{\partial \sigma_2} = \frac{1}{2} \left( \frac{\partial G}{\partial \sigma_3} + \frac{\partial G}{\partial \sigma_2} \right)
 ```
-    This mapping is based on a new Mohr-Coulomb diagram with modified zones, based on the averaged of the derivatives of flow functions $\frac{\partial G}{\partial \boldsymbol{\sigma}}$.
+This mapping is based on a new Mohr-Coulomb diagram with modified zones, based on the averaged of the derivatives of flow functions $`\frac{\partial G}{\partial \boldsymbol{\sigma}}`$.
 
 6. Rotate the mapped stress vector back, by appying the rotation matrix.
 
