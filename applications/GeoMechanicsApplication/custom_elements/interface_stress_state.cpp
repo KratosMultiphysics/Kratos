@@ -16,10 +16,12 @@
 #include <boost/numeric/ublas/assignment.hpp>
 #include <type_traits>
 
-namespace Kratos
+namespace
 {
 
-Matrix Line2DInterfaceStressState::CalculateBMatrix(const Matrix&, const Vector& rN, const Geometry<Node>& rGeometry) const
+using namespace Kratos;
+
+Matrix CalculateBMatrix(const Vector& rN, const Geometry<Node>& rGeometry, const std::vector<std::size_t>& rComponentOrder)
 {
     KRATOS_ERROR_IF(rN.empty())
         << "Shape function values are empty. Therefore, the B matrix can not be computed.\n";
@@ -27,21 +29,34 @@ Matrix Line2DInterfaceStressState::CalculateBMatrix(const Matrix&, const Vector&
         << "The number of shape functions should be equal to the number of node pairs. Therefore, "
            "the B matrix can not be computed.\n";
 
-    Matrix result = ZeroMatrix(GetVoigtSize(), rGeometry.WorkingSpaceDimension() * rGeometry.size());
+    auto result =
+        Matrix{ZeroMatrix{rComponentOrder.size(), rGeometry.WorkingSpaceDimension() * rGeometry.size()}};
 
     const auto number_of_u_dofs_per_side = result.size2() / 2;
     // Define the order in which the degrees of freedom at any node must be processed to compute the
     // normal component first and then the tangential component
-    const auto component_order = std::vector<std::size_t>{1, 0};
     for (unsigned int i = 0; i < rGeometry.size() / 2; ++i) {
-        for (unsigned int j = 0; j < component_order.size(); ++j) {
-            result(j, i * rGeometry.WorkingSpaceDimension() + component_order[j]) = -rN[i];
-            result(j, i * rGeometry.WorkingSpaceDimension() + component_order[j] + number_of_u_dofs_per_side) =
+        for (unsigned int j = 0; j < rComponentOrder.size(); ++j) {
+            result(j, i * rGeometry.WorkingSpaceDimension() + rComponentOrder[j]) = -rN[i];
+            result(j, i * rGeometry.WorkingSpaceDimension() + rComponentOrder[j] + number_of_u_dofs_per_side) =
                 rN[i];
         }
     }
 
     return result;
+}
+
+} // namespace
+
+namespace Kratos
+{
+
+Matrix Line2DInterfaceStressState::CalculateBMatrix(const Matrix&, const Vector& rN, const Geometry<Node>& rGeometry) const
+{
+    // Define the order in which the degrees of freedom at any node must be processed to compute the
+    // normal component first and then the tangential component
+    const auto component_order = std::vector<std::size_t>{1, 0};
+    return ::CalculateBMatrix(rN, rGeometry, component_order);
 }
 
 Vector Line2DInterfaceStressState::CalculateGreenLagrangeStrain(const Matrix&) const
@@ -92,27 +107,10 @@ static_assert(std::is_move_assignable_v<Line2DInterfaceStressState>);
 
 Matrix PlaneInterfaceStressState::CalculateBMatrix(const Matrix&, const Vector& rN, const Geometry<Node>& rGeometry) const
 {
-    KRATOS_ERROR_IF(rN.empty())
-        << "Shape function values are empty. Therefore, the B matrix can not be computed.\n";
-    KRATOS_ERROR_IF_NOT(rN.size() == rGeometry.size() / 2)
-        << "The number of shape functions should be equal to the number of node pairs. Therefore, "
-           "the B matrix can not be computed.\n";
-
-    Matrix result = ZeroMatrix(GetVoigtSize(), rGeometry.WorkingSpaceDimension() * rGeometry.size());
-
-    const auto number_of_u_dofs_per_side = result.size2() / 2;
     // Define the order in which the degrees of freedom at any node must be processed to compute the
     // normal component first and then the two tangential components
     const auto component_order = std::vector<std::size_t>{2, 0, 1};
-    for (unsigned int i = 0; i < rGeometry.size() / 2; ++i) {
-        for (unsigned int j = 0; j < component_order.size(); ++j) {
-            result(j, i * rGeometry.WorkingSpaceDimension() + component_order[j]) = -rN[i];
-            result(j, i * rGeometry.WorkingSpaceDimension() + component_order[j] + number_of_u_dofs_per_side) =
-                rN[i];
-        }
-    }
-
-    return result;
+    return ::CalculateBMatrix(rN, rGeometry, component_order);
 }
 
 Vector PlaneInterfaceStressState::CalculateGreenLagrangeStrain(const Matrix&) const
