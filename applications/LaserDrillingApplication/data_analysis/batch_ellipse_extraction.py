@@ -6,6 +6,7 @@ import argparse
 from pathlib import Path
 import json
 from data_manipulation_functions import read_single_bore, clean_data, remove_surface_and_outliers, subsample_data, calculate_slice_bounds, calculate_slices, compute_ellipses
+from plotting_functions import plot_individual_slices_grid
 
 
 def parse_filename(file):
@@ -30,20 +31,28 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process multiple bore measurements to extract ellipses.")
 
     parser.add_argument("--input-folder", required=True, help="Path to a folder containing the data files.")
+    parser.add_argument("--parameters-file", required=True, help="Path of the file that contains the parameters to be used")
+
     parser.add_argument("--output-file", required=True, help="Path to the output JSON file (note that it will be overwritten).")
     parser.add_argument("--output-failures", required=True, help="Path to the output JSON file that conatins the list of data files that failed and the reason.")
-    parser.add_argument("--parameters-file", required=True, help="Path of the file that contains the parameters to be used")
+    parser.add_argument("--output-plots", required=False, help="Path to the output folder were the plots will be saved. If it is not specfied, plots are not generated.")
+
+
+
     parser.add_argument("--material", required=True, help="Material name to associate with all experiments")
 
     args = parser.parse_args()
 
     folderpath = args.input_folder
+    parameters_file = args.parameters_file
+
     output_file = args.output_file
     output_failures = args.output_failures
-    parameters_file = args.parameters_file
+    output_plots_path = args.output_plots
+
     material = args.material
 
-    folder = Path(folderpath)
+    input_data_folder = Path(folderpath)
 
     
     # Read parameters
@@ -72,12 +81,12 @@ if __name__ == "__main__":
         exit(-1)
 
     failed_files = {} # Dictionary of files that failed for some reason
-    number_of_files = sum(1 for _ in folder.glob("*.dat"))
+    number_of_files = sum(1 for _ in input_data_folder.glob("*.dat"))
     print(f"{number_of_files=}")
 
     experiments = {}
-    for i, file in enumerate(folder.glob("*.dat")):
-        filename = file.stem
+    for i, file in enumerate(input_data_folder.glob("*.dat")):
+        filename = file.name
         print(f"Analyzing file {filename}: {i+1}/{number_of_files}")
 
         power, pulses, identifier = parse_filename(file)
@@ -129,11 +138,17 @@ if __name__ == "__main__":
         
         
         experiments[filename] = experiment
-        # print(slice_bounds)
+        
+        # Make the plot and export it
+        if output_plots_path is not None:
+            plot_path = Path(output_plots_path, file.stem)
+            plot_individual_slices_grid(slices, slice_bounds, centroids=None, ellipses=ellipses, sample_limits=sample_limits, plot_centroids=False, plot_ellipses_in_slices=True, filename=filename, save_path=plot_path)
     
+    # Export the JSON with the ellipses
     with open(output_file, "w") as fout:
         json.dump(experiments, fout, indent=2)
 
+    # Export the JSON with the failures
     if len(failed_files) > 0:
         with open(output_failures, "w") as fout:
             json.dump(failed_files, fout, indent=2)
