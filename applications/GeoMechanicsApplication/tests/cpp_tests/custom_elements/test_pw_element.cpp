@@ -18,8 +18,8 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
 #include "custom_utilities/registration_utilities.h"
+#include <boost/numeric/ublas/assignment.hpp>
 
 namespace
 {
@@ -1312,26 +1312,33 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_SaveLoad, KratosGeoMechanic
     p_element->InitializeSolutionStep(dummy_process_info);
 
     const auto triangle_2D3N = static_cast<Triangle2D3<Node>>(p_element->GetGeometry());
-    const auto scoped_registration_geometry = ScopedSerializerRegistration{p_element->GetGeometry().Name(), triangle_2D3N};
+    const auto scoped_registration_geometry =
+        ScopedSerializerRegistration{p_element->GetGeometry().Name(), triangle_2D3N};
     const auto scoped_registration_law = ScopedSerializerRegistration{"SaturatedLaw"s, SaturatedLaw()};
     auto serializer = StreamSerializer{};
 
     // Act
     serializer.save("test_tag"s, p_element);
-    auto p_loaded_element = CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
+    auto p_loaded_element = make_intrusive<PwElement<2, 3>>(); // CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
     KratosComponents<VariableData>::Add("WATER_PRESSURE", WATER_PRESSURE);
     KratosComponents<VariableData>::Add("DT_WATER_PRESSURE", DT_WATER_PRESSURE);
     KratosComponents<VariableData>::Add("VOLUME_ACCELERATION", VOLUME_ACCELERATION);
     KratosComponents<VariableData>::Add("HYDRAULIC_DISCHARGE", HYDRAULIC_DISCHARGE);
-//    serializer.load("test_tag"s, p_loaded_element);
-    SetBasicPropertiesAndVariables(p_loaded_element);
-    p_loaded_element->GetProperties().SetValue(BIOT_COEFFICIENT, 0.5);
-    p_loaded_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
-    p_loaded_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
-    p_loaded_element->GetProperties().SetValue(POROSITY, 0.1);
-    p_loaded_element->GetProperties().SetValue(IGNORE_UNDRAINED, false);
-    p_loaded_element->Initialize(dummy_process_info);
-    p_loaded_element->InitializeSolutionStep(dummy_process_info);
+    KratosComponents<VariableData>::Add("DENSITY_WATER", DENSITY_WATER);
+    KratosComponents<VariableData>::Add("DYNAMIC_VISCOSITY", DYNAMIC_VISCOSITY);
+    KratosComponents<VariableData>::Add("PERMEABILITY_XX", PERMEABILITY_XX);
+    KratosComponents<VariableData>::Add("PERMEABILITY_YY", PERMEABILITY_YY);
+    KratosComponents<VariableData>::Add("PERMEABILITY_XY", PERMEABILITY_XY);
+    KratosComponents<VariableData>::Add("PERMEABILITY_ZZ", PERMEABILITY_ZZ);
+    KratosComponents<VariableData>::Add("PERMEABILITY_YZ", PERMEABILITY_YZ);
+    KratosComponents<VariableData>::Add("PERMEABILITY_ZX", PERMEABILITY_ZX);
+    KratosComponents<VariableData>::Add("BIOT_COEFFICIENT", BIOT_COEFFICIENT);
+    KratosComponents<VariableData>::Add("BULK_MODULUS_FLUID", BULK_MODULUS_FLUID);
+    KratosComponents<VariableData>::Add("BULK_MODULUS_SOLID", BULK_MODULUS_SOLID);
+    KratosComponents<VariableData>::Add("POROSITY", POROSITY);
+    KratosComponents<VariableData>::Add("IGNORE_UNDRAINED", IGNORE_UNDRAINED);
+
+    serializer.load("test_tag"s, p_loaded_element);
 
     // Assert
     Vector actual_right_hand_side;
