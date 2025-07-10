@@ -82,7 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ThrowsWhenNumberOfShapeFunc
     const auto geometry            = CreateThreePlusThree2DLineInterfaceGeometry();
 
     Vector shape_function_values(2);
-    shape_function_values <<= 1.0, 2.0;
+    shape_function_values <<= 1.0, 0.0;
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto b_matrix =
@@ -199,7 +199,7 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_ThrowsWhenNumberOfShapeFunct
     const auto geometry            = CreateThreePlusThreePlaneInterfaceGeometry();
 
     Vector shape_function_values(2);
-    shape_function_values <<= 1.0, 2.0;
+    shape_function_values <<= 1.0, 0.0;
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto b_matrix =
