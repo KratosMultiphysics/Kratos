@@ -73,7 +73,17 @@ For the axisymmetric stress state, it is defined as:
 ```
 Where $u_r$ is the radial displacement and $r$ is the radial coordinate (in our geomechanics code base, the radial coordinate is equal to $x$).
 
-For the interface stress states, it is _not_ possible to calculate the Green-Lagrange strain based on the deformation gradient.
+For the interface stress states, it is _not_ possible to calculate the Green-Lagrange strain based on the deformation gradient.  Interface elements use relative displacements as strain measure.  For two-dimensional line interface elements, the relative displacements are:
+```math
+\vec{\Delta u} = \begin{bmatrix}\Delta u_n \\
+                                \Delta u_t \end{bmatrix}
+```
+and for surface interface elements, the relative displacements are:
+```math
+\vec{\Delta u} = \begin{bmatrix}\Delta u_n \\
+                                \Delta u_t \\
+                                \Delta u_s \end{bmatrix}
+```
 
 ### B-matrix
 The B-matrix is used to relate strains and displacements. Therefore, its elements are filled with the spatial gradients of the shape functions ($N$).

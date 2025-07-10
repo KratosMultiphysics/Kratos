@@ -38,7 +38,7 @@ auto CreateThreePlusThree2DLineInterfaceGeometry()
     return InterfaceGeometry<Line2D3<Node>>{1, nodes};
 }
 
-auto CreateThreePlusThreePlaneInterfaceGeometry()
+auto CreateThreePlusThreeSurfaceInterfaceGeometry()
 {
     PointerVector<Node> nodes;
     nodes.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -172,31 +172,31 @@ KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_CanBeSavedAndLoadedThroughI
     KRATOS_EXPECT_VECTOR_NEAR(p_loaded_policy->GetVoigtVector(), expected_voigt_vector, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_CloneCreatesCorrectInstance, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_CloneCreatesCorrectInstance, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto p_stress_state_policy =
-        std::unique_ptr<StressStatePolicy>{std::make_unique<PlaneInterfaceStressState>()};
+        std::unique_ptr<StressStatePolicy>{std::make_unique<SurfaceInterfaceStressState>()};
 
     const auto p_cloned_policy = p_stress_state_policy->Clone();
-    KRATOS_EXPECT_NE(dynamic_cast<PlaneInterfaceStressState*>(p_cloned_policy.get()), nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<SurfaceInterfaceStressState*>(p_cloned_policy.get()), nullptr);
     KRATOS_EXPECT_NE(p_cloned_policy.get(), p_stress_state_policy.get());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_ThrowsWhenInputtingEmptyShapeFunctionValues,
+KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_ThrowsWhenInputtingEmptyShapeFunctionValues,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto stress_state_policy = PlaneInterfaceStressState{};
+    const auto stress_state_policy = SurfaceInterfaceStressState{};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto b_matrix = stress_state_policy.CalculateBMatrix({}, {}, {}),
         "Shape function values are empty. Therefore, the B matrix can not be computed.\n");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_ThrowsWhenNumberOfShapeFunctionsIsNotEqualToNumberOfNodePairs,
+KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_ThrowsWhenNumberOfShapeFunctionsIsNotEqualToNumberOfNodePairs,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto stress_state_policy = PlaneInterfaceStressState{};
-    const auto geometry            = CreateThreePlusThreePlaneInterfaceGeometry();
+    const auto stress_state_policy = SurfaceInterfaceStressState{};
+    const auto geometry            = CreateThreePlusThreeSurfaceInterfaceGeometry();
 
     Vector shape_function_values(2);
     shape_function_values <<= 1.0, 0.0;
@@ -208,16 +208,16 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_ThrowsWhenNumberOfShapeFunct
         "the B matrix can not be computed.\n");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_ReturnsExpectedVoigtSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_ReturnsExpectedVoigtSize, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto stress_state_policy = PlaneInterfaceStressState{};
+    const auto stress_state_policy = SurfaceInterfaceStressState{};
 
     KRATOS_EXPECT_EQ(stress_state_policy.GetVoigtSize(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_ReturnsExpectedVoigtVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_ReturnsExpectedVoigtVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto stress_state_policy = PlaneInterfaceStressState{};
+    const auto stress_state_policy = SurfaceInterfaceStressState{};
 
     const auto& r_voigt_vector = stress_state_policy.GetVoigtVector();
 
@@ -226,11 +226,11 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_ReturnsExpectedVoigtVector, 
     KRATOS_EXPECT_VECTOR_NEAR(expected_voigt_vector, r_voigt_vector, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_ReturnsCorrectBMatrixForThreePlusThreeNodesGeometry,
+KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_ReturnsCorrectBMatrixForThreePlusThreeNodesGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto stress_state_policy = PlaneInterfaceStressState{};
-    const auto geometry            = CreateThreePlusThreePlaneInterfaceGeometry();
+    const auto stress_state_policy = SurfaceInterfaceStressState{};
+    const auto geometry            = CreateThreePlusThreeSurfaceInterfaceGeometry();
 
     Vector shape_function_values(3);
     shape_function_values <<= -0.125, 0.375, 0.75;
@@ -247,33 +247,34 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_ReturnsCorrectBMatrixForThre
     KRATOS_EXPECT_MATRIX_NEAR(b_matrix, expected_b_matrix, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_Throws_WhenAskingForStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_Throws_WhenAskingForStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto stress_state_policy = PlaneInterfaceStressState{};
+    const auto stress_state_policy = SurfaceInterfaceStressState{};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto strain = stress_state_policy.CalculateGreenLagrangeStrain({}),
-        "For plane interfaces, it is not possible to calculate the Green-Lagrange "
+        "For surface interfaces, it is not possible to calculate the Green-Lagrange "
         "strain based on a deformation gradient.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_Throws_WhenAskingForStressTensorSize,
+KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_Throws_WhenAskingForStressTensorSize,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto stress_state_policy = PlaneInterfaceStressState{};
+    const auto stress_state_policy = SurfaceInterfaceStressState{};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto size = stress_state_policy.GetStressTensorSize(),
-        "For plane interfaces, the stress tensor size is not implemented.")
+        "For surface interfaces, the stress tensor size is not implemented.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceStressState_CanBeSavedAndLoadedThroughInterface,
+KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_CanBeSavedAndLoadedThroughInterface,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto scoped_registration =
-        ScopedSerializerRegistration{"PlaneInterfaceStressState"s, PlaneInterfaceStressState{}};
-    const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<PlaneInterfaceStressState>()};
+        ScopedSerializerRegistration{"SurfaceInterfaceStressState"s, SurfaceInterfaceStressState{}};
+    const auto p_policy =
+        std::unique_ptr<StressStatePolicy>{std::make_unique<SurfaceInterfaceStressState>()};
     auto serializer = StreamSerializer{};
 
     // Act

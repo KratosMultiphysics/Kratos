@@ -36,7 +36,7 @@ private:
     void load(Serializer&) override;
 };
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) PlaneInterfaceStressState final : public StressStatePolicy
+class KRATOS_API(GEO_MECHANICS_APPLICATION) SurfaceInterfaceStressState final : public StressStatePolicy
 {
 public:
     [[nodiscard]] Matrix CalculateBMatrix(const Matrix&, const Vector& rN, const Geometry<Node>& rGeometry) const override;

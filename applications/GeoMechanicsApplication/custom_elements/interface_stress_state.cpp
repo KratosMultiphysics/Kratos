@@ -105,7 +105,7 @@ static_assert(!std::is_copy_assignable_v<Line2DInterfaceStressState>);
 static_assert(std::is_move_constructible_v<Line2DInterfaceStressState>);
 static_assert(std::is_move_assignable_v<Line2DInterfaceStressState>);
 
-Matrix PlaneInterfaceStressState::CalculateBMatrix(const Matrix&, const Vector& rN, const Geometry<Node>& rGeometry) const
+Matrix SurfaceInterfaceStressState::CalculateBMatrix(const Matrix&, const Vector& rN, const Geometry<Node>& rGeometry) const
 {
     // Define the order in which the degrees of freedom at any node must be processed to compute the
     // normal component first and then the two tangential components
@@ -113,27 +113,27 @@ Matrix PlaneInterfaceStressState::CalculateBMatrix(const Matrix&, const Vector& 
     return ::CalculateBMatrix(rN, rGeometry, component_order);
 }
 
-Vector PlaneInterfaceStressState::CalculateGreenLagrangeStrain(const Matrix&) const
+Vector SurfaceInterfaceStressState::CalculateGreenLagrangeStrain(const Matrix&) const
 {
-    KRATOS_ERROR << "For plane interfaces, it is not possible to calculate the Green-Lagrange "
+    KRATOS_ERROR << "For surface interfaces, it is not possible to calculate the Green-Lagrange "
                     "strain based on a deformation gradient.\n";
 }
 
-std::unique_ptr<StressStatePolicy> PlaneInterfaceStressState::Clone() const
+std::unique_ptr<StressStatePolicy> SurfaceInterfaceStressState::Clone() const
 {
-    return std::make_unique<PlaneInterfaceStressState>();
+    return std::make_unique<SurfaceInterfaceStressState>();
 }
 
-const Vector& PlaneInterfaceStressState::GetVoigtVector() const { return VoigtVectorInterface3D; }
+const Vector& SurfaceInterfaceStressState::GetVoigtVector() const { return VoigtVectorInterface3D; }
 
-SizeType PlaneInterfaceStressState::GetVoigtSize() const { return VOIGT_SIZE_3D_INTERFACE; }
+SizeType SurfaceInterfaceStressState::GetVoigtSize() const { return VOIGT_SIZE_3D_INTERFACE; }
 
-SizeType PlaneInterfaceStressState::GetStressTensorSize() const
+SizeType SurfaceInterfaceStressState::GetStressTensorSize() const
 {
-    KRATOS_ERROR << "For plane interfaces, the stress tensor size is not implemented.\n";
+    KRATOS_ERROR << "For surface interfaces, the stress tensor size is not implemented.\n";
 }
 
-Vector PlaneInterfaceStressState::DefineInterfaceVoigtVector()
+Vector SurfaceInterfaceStressState::DefineInterfaceVoigtVector()
 {
     Vector result{VOIGT_SIZE_3D_INTERFACE};
     result <<= 1.0, 0.0, 0.0;
@@ -141,22 +141,22 @@ Vector PlaneInterfaceStressState::DefineInterfaceVoigtVector()
     return result;
 }
 
-const Vector PlaneInterfaceStressState::VoigtVectorInterface3D =
-    PlaneInterfaceStressState::DefineInterfaceVoigtVector();
+const Vector SurfaceInterfaceStressState::VoigtVectorInterface3D =
+    SurfaceInterfaceStressState::DefineInterfaceVoigtVector();
 
-void PlaneInterfaceStressState::save(Serializer&) const
+void SurfaceInterfaceStressState::save(Serializer&) const
 {
     // No data members to be saved (yet)
 }
 
-void PlaneInterfaceStressState::load(Serializer&)
+void SurfaceInterfaceStressState::load(Serializer&)
 {
     // No data members to be loaded (yet)
 }
 
-static_assert(!std::is_copy_constructible_v<PlaneInterfaceStressState>);
-static_assert(!std::is_copy_assignable_v<PlaneInterfaceStressState>);
-static_assert(std::is_move_constructible_v<PlaneInterfaceStressState>);
-static_assert(std::is_move_assignable_v<PlaneInterfaceStressState>);
+static_assert(!std::is_copy_constructible_v<SurfaceInterfaceStressState>);
+static_assert(!std::is_copy_assignable_v<SurfaceInterfaceStressState>);
+static_assert(std::is_move_constructible_v<SurfaceInterfaceStressState>);
+static_assert(std::is_move_assignable_v<SurfaceInterfaceStressState>);
 
 } // namespace Kratos
