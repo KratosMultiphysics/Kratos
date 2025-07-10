@@ -16,7 +16,7 @@ def _CheckMandatoryInputParameters(project_parameters):
     # The project parameters need to have at least these base fields
     for key in ["problem_data", "solver_settings", "output_processes", "processes"]:
         if not project_parameters.Has(key):
-            msg = 'The key "' + key + '" was not found in the project parameters '
+            msg = f'The key "{key}" was not found in the project parameters '
             msg += 'and it is necessary to configure the RigidBodySolver.'
             raise Exception(msg)
     
