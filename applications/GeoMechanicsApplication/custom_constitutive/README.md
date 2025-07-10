@@ -113,7 +113,7 @@ To incorporate the Mohr-Coulomb model with tensile cutoff in numerical simulatio
 ```math
        \frac{\partial G}{\partial \sigma_1} = \frac{\partial G}{\partial \sigma_2} = \frac{1}{2} \left( \frac{\partial G}{\partial \sigma_1} + \frac{\partial G}{\partial \sigma_2} \right)
 ```
-  - if $`\sigma_2 \ge \sigma_3`$ set:
+  - if $`\sigma_2 \le \sigma_3`$ set:
 ```math
        \sigma_3 = \sigma_2 = \frac{\sigma_3 + \sigma_2}{2}
 ```
