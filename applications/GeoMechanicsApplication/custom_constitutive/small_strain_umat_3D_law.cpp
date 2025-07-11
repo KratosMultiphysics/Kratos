@@ -443,19 +443,19 @@ void SmallStrainUMAT3DLaw<TVoigtSize>::UpdateInternalDeltaStrainVector(Constitut
 template <unsigned int TVoigtSize>
 void SmallStrainUMAT3DLaw<TVoigtSize>::SetExternalStressVector(Vector& rStressVector)
 {
-    std::copy(mStressVector.begin(), mStressVector.end(), rStressVector.begin());
+    std::copy_n(mStressVector.begin(), TVoigtSize, rStressVector.begin());
 }
 
 template <unsigned int TVoigtSize>
 void SmallStrainUMAT3DLaw<TVoigtSize>::SetInternalStressVector(const Vector& rStressVector)
 {
-    std::copy(rStressVector.begin(), rStressVector.end(), mStressVectorFinalized.begin());
+    std::copy_n(rStressVector.begin(), TVoigtSize, mStressVectorFinalized.begin());
 }
 
 template <unsigned int TVoigtSize>
 void SmallStrainUMAT3DLaw<TVoigtSize>::SetInternalStrainVector(const Vector& rStrainVector)
 {
-    std::copy(rStrainVector.begin(), rStrainVector.end(), mStrainVectorFinalized.begin());
+    std::copy_n(rStrainVector.begin(), TVoigtSize, mStrainVectorFinalized.begin());
 }
 
 template <unsigned int TVoigtSize>
@@ -535,7 +535,7 @@ void SmallStrainUMAT3DLaw<TVoigtSize>::CallUMAT(ConstitutiveLaw::Parameters& rVa
 
     int ndi   = mpConstitutiveDimension->GetNumberOfNormalComponents();
     int ntens = TVoigtSize;
-    int nshr  = ntens - ndi;;
+    int nshr  = ntens - ndi;
 
     // stresses and state variables in the beginning of the steps needs to be given:
     mStressVector   = mStressVectorFinalized;
@@ -699,10 +699,10 @@ Vector& SmallStrainUMAT3DLaw<TVoigtSize>::GetValue(const Variable<Vector>& rThis
 
         noalias(rValue) = mStateVariablesFinalized;
     } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
-        if (rValue.size() != mStressVectorFinalized.size())
-            rValue.resize(mStressVectorFinalized.size());
-
-        noalias(rValue) = mStressVectorFinalized;
+        if (rValue.size() != TVoigtSize) rValue.resize(TVoigtSize);
+        for (unsigned int i = 0; i < TVoigtSize; ++i) {
+            rValue[i] = mStressVectorFinalized[i];
+        }
     }
 
     return rValue;
@@ -741,11 +741,12 @@ void SmallStrainUMAT3DLaw<TVoigtSize>::SetValue(const Variable<Vector>& rVariabl
 {
     if ((rVariable == STATE_VARIABLES) && (rValue.size() == mStateVariablesFinalized.size())) {
         std::copy(rValue.begin(), rValue.end(), mStateVariablesFinalized.begin());
-    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == mStressVectorFinalized.size())) {
-        std::copy(rValue.begin(), rValue.end(), mStressVectorFinalized.begin());
+    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == TVoigtSize)) {
+        std::copy_n(rValue.begin(), TVoigtSize, mStressVectorFinalized.begin());
     }
 }
 
 template class SmallStrainUMAT3DLaw<VOIGT_SIZE_3D>;
+template class SmallStrainUMAT3DLaw<VOIGT_SIZE_2D_PLANE_STRAIN>;
 
 } // Namespace Kratos
