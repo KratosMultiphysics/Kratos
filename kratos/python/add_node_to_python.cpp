@@ -71,36 +71,6 @@ bool NodeSolutionStepsDataHas(Node& rThisNode, const TVariableType& rThisVariabl
     return rThisNode.SolutionStepsDataHas(rThisVariable);
 }
 
-void PointSetX0(Node& ThisPoint, double Value)
-{
-    ThisPoint.X0() = Value;
-}
-
-void PointSetY0(Node& ThisPoint, double Value)
-{
-    ThisPoint.Y0() = Value;
-}
-
-void PointSetZ0(Node& ThisPoint, double Value)
-{
-    ThisPoint.Z0() = Value;
-}
-
-double PointGetX0(Node& ThisPoint)
-{
-    return ThisPoint.X0();
-}
-
-double PointGetY0(Node& ThisPoint)
-{
-    return ThisPoint.Y0();
-}
-
-double PointGetZ0(Node& ThisPoint)
-{
-    return ThisPoint.Z0();
-}
-
 template< class TBinderType, typename TContainerType, typename TVariableType > void IndexingUtility(TBinderType& binder)
     {
         //data value container
@@ -171,13 +141,18 @@ void  AddNodeToPython(pybind11::module& m)
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<DenseMatrix<double> > >);
     node_binder.def("__str__", PrintObject<Node>);
     node_binder.def("OverwriteSolutionStepData", &Node::OverwriteSolutionStepData);
-    node_binder.def_property("X0", PointGetX0, PointSetX0);
-    node_binder.def_property("Y0", PointGetY0, PointSetY0);
-    node_binder.def_property("Z0", PointGetZ0, PointSetZ0);
+    node_binder.def_property("X0",
+        [](Node& rNode) { return rNode.X0(); },
+        [](Node& rNode, double Value) { rNode.X0() = Value; });
+    node_binder.def_property("Y0",
+        [](Node& rNode) { return rNode.Y0(); },
+        [](Node& rNode, double Value) { rNode.Y0() = Value; });
+    node_binder.def_property("Z0",
+        [](Node& rNode) { return rNode.Z0(); },
+        [](Node& rNode, double Value) { rNode.Z0() = Value; });
     node_binder.def_property("Id", &Node::GetId, &Node::SetId);
 
     PointerVectorSetPythonInterface<MeshType::NodesContainerType>().CreateInterface(m,"NodesArray");
-
 }
 
 }  // namespace Kratos::Python.
