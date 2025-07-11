@@ -83,8 +83,8 @@ double& GeoLinearElasticLaw::CalculateValue(ConstitutiveLaw::Parameters& rParame
                                             double&                      rValue)
 {
     if (rThisVariable == STRAIN_ENERGY) {
-        const Vector& r_strain_vector = rParameterValues.GetStrainVector();
-        Vector&       r_stress_vector = rParameterValues.GetStressVector();
+        const auto& r_strain_vector = rParameterValues.GetStrainVector();
+        auto&       r_stress_vector = rParameterValues.GetStressVector();
         this->CalculatePK2Stress(r_strain_vector, r_stress_vector, rParameterValues);
 
         rValue = 0.5 * inner_prod(r_strain_vector, r_stress_vector); // Strain energy = 0.5*E:C:E
