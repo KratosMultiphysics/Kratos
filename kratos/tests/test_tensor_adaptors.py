@@ -56,6 +56,7 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         Kratos.VariableUtils().ClearNonHistoricalData(self.model_part.Nodes)
         Kratos.VariableUtils().ClearNonHistoricalData(self.model_part.Conditions)
         Kratos.VariableUtils().ClearNonHistoricalData(self.model_part.Elements)
+        Kratos.VariableUtils().ClearNonHistoricalData(self.model_part.Properties)
 
         def value_setter(container, setter_method):
             for entity in container:
@@ -80,40 +81,35 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         flag_setter(self.model_part.Conditions)
         flag_setter(self.model_part.Elements)
 
-    def test_Shape1(self):
-        t_adaptor_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.VELOCITY)
-        self.assertVectorAlmostEqual(t_adaptor_1.Shape(), [10, 3])
-        self.assertVectorAlmostEqual(t_adaptor_1.GetDataShape(), [3])
+    def test_ShapeHistoricalVariableTensorAdaptor(self):
+        self.__TestTensorAdaptorShape(self.model_part.Nodes, Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor)
 
-        t_adaptor_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.NORMAL_SHAPE_DERIVATIVE)
-        self.assertVectorAlmostEqual(t_adaptor_1.Shape(), [10, 3, 2])
-        self.assertVectorAlmostEqual(t_adaptor_1.GetDataShape(), [3, 2])
+    def test_ShapeVariableTensorAdaptorNodes(self):
+        self.__TestTensorAdaptorShape(self.model_part.Nodes, Kratos.TensorAdaptors.VariableTensorAdaptor)
 
-        t_adaptor_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.PK2_STRESS_TENSOR)
-        self.assertVectorAlmostEqual(t_adaptor_1.Shape(), [10, 0, 0])
-        self.assertVectorAlmostEqual(t_adaptor_1.GetDataShape(), [0, 0])
+    def test_ShapeVariableTensorAdaptorConditions(self):
+        self.__TestTensorAdaptorShape(self.model_part.Conditions, Kratos.TensorAdaptors.VariableTensorAdaptor)
 
-        t_adaptor_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.PK2_STRESS_TENSOR, data_shape=[5,6])
-        self.assertVectorAlmostEqual(t_adaptor_1.Shape(), [10, 5, 6])
-        self.assertVectorAlmostEqual(t_adaptor_1.GetDataShape(), [5, 6])
+    def test_ShapeVariableTensorAdaptorElements(self):
+        self.__TestTensorAdaptorShape(self.model_part.Elements, Kratos.TensorAdaptors.VariableTensorAdaptor)
 
-    def test_Shape2(self):
-        t_adaptor_1 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY)
-        t_adaptor_1.CollectData()
+    def test_ShapeVariableTensorAdaptorProperties(self):
+        self.__TestTensorAdaptorShape(self.model_part.Properties, Kratos.TensorAdaptors.VariableTensorAdaptor)
 
-        t_adaptor_2 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY, data_shape=[2])
-        t_adaptor_2.CollectData()
+    def test_CustomHistoricalVariableTensorAdaptor(self):
+        self.__TestCustomShape(self.model_part.Nodes, Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor)
 
-        t_adaptor_3 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY, data_shape=[1])
-        t_adaptor_3.CollectData()
+    def test_CustomVariableTensorAdaptorNodes(self):
+        self.__TestCustomShape(self.model_part.Nodes, Kratos.TensorAdaptors.VariableTensorAdaptor)
 
-        t_adaptor_4 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY_X)
-        t_adaptor_4.CollectData()
+    def test_CustomVariableTensorAdaptorConditions(self):
+        self.__TestCustomShape(self.model_part.Conditions, Kratos.TensorAdaptors.VariableTensorAdaptor)
 
-        self.assertVectorAlmostEqual(t_adaptor_4.data, t_adaptor_3.data)
-        self.assertVectorAlmostEqual(t_adaptor_3.data, t_adaptor_1.data[:, 0])
-        for v1, v2 in zip(t_adaptor_2.data, t_adaptor_1.data[:, :2]):
-            self.assertVectorAlmostEqual(v1, v2)
+    def test_CustomVariableTensorAdaptorElements(self):
+        self.__TestCustomShape(self.model_part.Elements, Kratos.TensorAdaptors.VariableTensorAdaptor)
+
+    def test_CustomVariableTensorAdaptorProperties(self):
+        self.__TestCustomShape(self.model_part.Properties, Kratos.TensorAdaptors.VariableTensorAdaptor)
 
     def test_ScopedView(self):
         t_adaptor_1 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY_X)
@@ -214,6 +210,10 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         for i, node in enumerate(self.model_part.Nodes):
             self.assertEqual(numpy_data[i], node.GetValue(Kratos.PRESSURE))
 
+        # now the tensor adaptor should be unusable
+        with self.assertRaises(RuntimeError):
+            t_adaptor_1.data
+
     def test_NodeVariableTensorAdaptor(self):
         self.__TestVariableTensorAdaptor(self.model_part.Nodes)
 
@@ -272,7 +272,7 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
             read_tensor_adaptor = Kratos.TensorAdaptors.VariableTensorAdaptor(container, input_var)
             read_tensor_adaptor.CollectData()
 
-            write_tensor_adaptor = Kratos.TensorAdaptors.VariableTensorAdaptor(read_tensor_adaptor.GetContainer(), output_var, data_shape=read_tensor_adaptor.GetDataShape())
+            write_tensor_adaptor = Kratos.TensorAdaptors.VariableTensorAdaptor(read_tensor_adaptor.GetContainer(), output_var, data_shape=read_tensor_adaptor.DataShape())
 
             # modify the write tensor data
             write_tensor_adaptor.data = read_tensor_adaptor.data * 2
@@ -287,6 +287,41 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
             read_tensor_adaptor.StoreData()
             for entity in container:
                 self.__CheckValues(entity.GetValue(input_var), entity.GetValue(output_var) * 3)
+
+    def __TestTensorAdaptorShape(self, container, TensorAdaptorType):
+        t_adaptor_1 = TensorAdaptorType(container, Kratos.VELOCITY)
+        self.assertVectorAlmostEqual(t_adaptor_1.Shape(), [len(container), 3])
+        self.assertVectorAlmostEqual(t_adaptor_1.DataShape(), [3])
+
+        t_adaptor_1 = TensorAdaptorType(container, Kratos.NORMAL_SHAPE_DERIVATIVE)
+        self.assertVectorAlmostEqual(t_adaptor_1.Shape(), [len(container), 3, 2])
+        self.assertVectorAlmostEqual(t_adaptor_1.DataShape(), [3, 2])
+
+        t_adaptor_1 = TensorAdaptorType(container, Kratos.PK2_STRESS_TENSOR)
+        self.assertVectorAlmostEqual(t_adaptor_1.Shape(), [len(container), 0, 0])
+        self.assertVectorAlmostEqual(t_adaptor_1.DataShape(), [0, 0])
+
+        t_adaptor_1 = TensorAdaptorType(container, Kratos.PK2_STRESS_TENSOR, data_shape=[5,6])
+        self.assertVectorAlmostEqual(t_adaptor_1.Shape(), [len(container), 5, 6])
+        self.assertVectorAlmostEqual(t_adaptor_1.DataShape(), [5, 6])
+
+    def __TestCustomShape(self, container, TensorAdaptorType):
+        t_adaptor_1 = TensorAdaptorType(container, Kratos.VELOCITY)
+        t_adaptor_1.CollectData()
+
+        t_adaptor_2 = TensorAdaptorType(container, Kratos.VELOCITY, data_shape=[2])
+        t_adaptor_2.CollectData()
+
+        t_adaptor_3 = TensorAdaptorType(container, Kratos.VELOCITY, data_shape=[1])
+        t_adaptor_3.CollectData()
+
+        t_adaptor_4 = TensorAdaptorType(container, Kratos.VELOCITY_X)
+        t_adaptor_4.CollectData()
+
+        self.assertVectorAlmostEqual(t_adaptor_4.data, t_adaptor_3.data)
+        self.assertVectorAlmostEqual(t_adaptor_3.data, t_adaptor_1.data[:, 0])
+        for v1, v2 in zip(t_adaptor_2.data, t_adaptor_1.data[:, :2]):
+            self.assertVectorAlmostEqual(v1, v2)
 
     def __CheckValues(self, value_1, value_2):
         if isinstance(value_1, float):
