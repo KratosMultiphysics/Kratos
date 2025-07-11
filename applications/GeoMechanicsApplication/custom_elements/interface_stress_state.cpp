@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Richard Faasse
+//                   Anne van de Graaf
 //
 #include "interface_stress_state.h"
 #include "geo_mechanics_application_constants.h"
@@ -33,9 +34,9 @@ Matrix CalculateBMatrix(const Vector& rN, const Geometry<Node>& rGeometry, const
         Matrix{ZeroMatrix{rComponentOrder.size(), rGeometry.WorkingSpaceDimension() * rGeometry.size()}};
 
     const auto number_of_u_dofs_per_side = result.size2() / 2;
-    // Define the order in which the degrees of freedom at any node must be processed to compute the
-    // normal component first and then the tangential component
     for (unsigned int i = 0; i < rGeometry.size() / 2; ++i) {
+        // Use the order in which the degrees of freedom at any node must be processed to compute
+        // the normal component(s) first and then the tangential component(s)
         for (unsigned int j = 0; j < rComponentOrder.size(); ++j) {
             result(j, i * rGeometry.WorkingSpaceDimension() + rComponentOrder[j]) = -rN[i];
             result(j, i * rGeometry.WorkingSpaceDimension() + rComponentOrder[j] + number_of_u_dofs_per_side) =
@@ -62,7 +63,7 @@ Matrix Line2DInterfaceStressState::CalculateBMatrix(const Matrix&, const Vector&
 Vector Line2DInterfaceStressState::CalculateGreenLagrangeStrain(const Matrix&) const
 {
     KRATOS_ERROR << "For line interfaces, it is not possible to calculate the Green-Lagrange "
-                    "strain based on a deformation gradient.\n";
+                    "strain.\n";
 }
 
 std::unique_ptr<StressStatePolicy> Line2DInterfaceStressState::Clone() const
@@ -116,7 +117,7 @@ Matrix SurfaceInterfaceStressState::CalculateBMatrix(const Matrix&, const Vector
 Vector SurfaceInterfaceStressState::CalculateGreenLagrangeStrain(const Matrix&) const
 {
     KRATOS_ERROR << "For surface interfaces, it is not possible to calculate the Green-Lagrange "
-                    "strain based on a deformation gradient.\n";
+                    "strain.\n";
 }
 
 std::unique_ptr<StressStatePolicy> SurfaceInterfaceStressState::Clone() const
