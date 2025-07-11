@@ -385,6 +385,7 @@ def plot_ellipse_metrics(ellipses, filename):
     depths = [ellipse["center"][2] for ellipse in ellipses]
 
     ax1.plot(depths, eccentricities, ".-", color="blue", markersize=12, label="Eccentricity")
+    ax1.set_xlabel("Depth (Z, um)")
     ax1.set_ylabel("Eccentricity")
     ax1.set_title("Ellipse eccentricity vs. depth\n" + filename)
     ax1.grid(True, alpha=0.3)
