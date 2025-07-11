@@ -99,8 +99,7 @@ if __name__ == "__main__":
         print("Empty data list")
         exit(-1)
 
-    slice_bounds_tmp = slice_bounds if plot_planes else None
-    plot_3d_geometry(x, y, z, sample_limits, filename, slice_bounds=slice_bounds_tmp)
+    plot_3d_geometry(x, y, z, sample_limits, filename, slice_bounds=slice_bounds if plot_planes else None)
 
     try:
         slices = calculate_slices(data, slice_bounds)
@@ -154,8 +153,6 @@ if __name__ == "__main__":
     # ==== Plotting ====
 
     if plot_3d_geometry_toggle:
-        print("plot_3d_geometry")
-        print(plot_planes)
         plot_3d_geometry(
             x,
             y,
@@ -170,7 +167,7 @@ if __name__ == "__main__":
             ellipses_x,
             ellipses_y,
             ellipses_z,
-            slice_bounds            
+            slice_bounds=slice_bounds if plot_planes else None            
         )
 
     if plot_outliers_toggle:
