@@ -94,9 +94,9 @@ protected:
                       bool,
                       bool CalculateResidualVectorFlag);
 
-    void InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
+    void InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo&);
 
-    void CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber);
+    void CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber) const;
 
     virtual void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber);
 

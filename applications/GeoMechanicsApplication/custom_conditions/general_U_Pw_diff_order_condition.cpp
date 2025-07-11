@@ -162,8 +162,7 @@ void GeneralUPwDiffOrderCondition::CalculateAll(const Matrix&,
     KRATOS_CATCH("")
 }
 
-void GeneralUPwDiffOrderCondition::InitializeConditionVariables(ConditionVariables& rVariables,
-                                                                const ProcessInfo& rCurrentProcessInfo)
+void GeneralUPwDiffOrderCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo&)
 {
     const auto& r_geom      = GetGeometry();
     const auto  num_u_nodes = r_geom.PointsNumber();
@@ -183,7 +182,7 @@ void GeneralUPwDiffOrderCondition::InitializeConditionVariables(ConditionVariabl
     r_geom.Jacobian(rVariables.JContainer, this->GetIntegrationMethod());
 }
 
-void GeneralUPwDiffOrderCondition::CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber)
+void GeneralUPwDiffOrderCondition::CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber) const
 {
     KRATOS_TRY
 
