@@ -84,6 +84,7 @@ and for surface interface elements, the relative displacements are:
                                 \Delta u_t \\
                                 \Delta u_s \end{bmatrix}
 ```
+Here, $`\Delta u_n`$ is the relative displacement component in normal direction, and $`\Delta u_t`$ and $`\Delta u_s`$ are the relative displacement components in the tangential directions. 
 
 ### B-matrix
 The B-matrix is used to relate strains and displacements. Therefore, its elements are filled with the spatial gradients of the shape functions ($N$).
