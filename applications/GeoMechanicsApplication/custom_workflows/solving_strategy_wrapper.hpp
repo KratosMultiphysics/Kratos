@@ -106,7 +106,8 @@ public:
 
     void ComputeIncrementalDisplacementField() override
     {
-        auto process = CalculateIncrementalMotionProcess(mrModelPart, Parameters(R"({"variable_name": "DISPLACEMENT"})"));
+        auto process = CalculateIncrementalMotionProcess(
+            mrModelPart, Parameters(R"({"variable_name": "DISPLACEMENT"})"));
         process.Execute();
     }
 
