@@ -17,6 +17,7 @@
 // Project includes
 #include "utilities/data_type_traits.h"
 #include "utilities/parallel_utilities.h"
+#include "tensor_adaptor_utils.h"
 
 // Include base h
 #include "equation_ids_tensor_adaptor.h"
@@ -26,24 +27,24 @@ namespace Kratos {
 namespace EquationIdsTensorAdaptorHelpers {
 
 template <class TContainerType>
-void CollectDataImpl(
-    DenseVector<int>& rData,
+void CollectData(
+    Kratos::span<int> Span,
     const unsigned int Stride,
     const TContainerType& rContainer,
     const ProcessInfo& rProcessInfo)
 {
     if constexpr(IsInList<TContainerType, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>::value) {
-        IndexPartition<IndexType>(rContainer.size()).for_each(std::vector<IndexType>{}, [&rData, &rContainer, &rProcessInfo, Stride](const auto Index, auto& rTLS){
+        IndexPartition<IndexType>(rContainer.size()).for_each(std::vector<IndexType>{}, [Span, &rContainer, &rProcessInfo, Stride](const auto Index, auto& rTLS){
             const auto& r_entity = *(rContainer.begin() + Index);
             r_entity.EquationIdVector(rTLS, rProcessInfo);
 
-            KRATOS_ERROR_IF_NOT(rTLS.size() == Stride)
+            KRATOS_DEBUG_ERROR_IF_NOT(rTLS.size() == Stride)
                 << "Non-uniform equation id vectors are found in container having " << rContainer.size()
                 << " " << ModelPart::Container<TContainerType>::GetEntityName() << "(s)"
                 << " [ Required size of equation ids = " << Stride << ", found EquationIds = "
                 << rTLS << " ].\n";
 
-            std::copy(rTLS.begin(), rTLS.end(), rData.data().begin() + Index * Stride);
+            std::copy(rTLS.begin(), rTLS.end(), Span.data() + Index * Stride);
         });
     } else {
         KRATOS_ERROR << "EquationIdsTensorAdaptor only works with ModelPart::ConditionsContainerType or ModelPart::ElementsContainerType.\n";
@@ -71,26 +72,17 @@ EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(
     : mpProcessInfo(pProcessInfo),
       mpContainer(pContainer)
 {
-    KRATOS_ERROR_IF(pContainer->empty())
-        << "Cannot create an EquationIdsTensorAdaptor with an empty container.\n";
+    const auto& r_getter = [pProcessInfo](auto& rEquationIde, const auto& rEntity){
+        rEntity.EquationIdVector(rEquationIde, *pProcessInfo);
+    };
 
-    std::vector<IndexType> equation_ids;
-    pContainer->front().EquationIdVector(equation_ids, *mpProcessInfo);
-
-    // setting the tensor shape
-    this->mShape.resize(2);
-    this->mShape[0] = pContainer->size();  // first dimension is number of entities
-    this->mShape[1] = equation_ids.size(); // second dimension is number of equation ids per entity
-
-    // correctly size the underlying container
-    this->mData.resize(this->Size(), false);
+    this->SetShape(TensorAdaptorUtils::GetTensorShape<std::vector<IndexType>>(*pContainer, r_getter));
 }
-
 
 void EquationIdsTensorAdaptor::CollectData()
 {
     std::visit([this](auto pContainer) {
-        EquationIdsTensorAdaptorHelpers::CollectDataImpl(this->mData, this->mShape[1], *pContainer, *(this->mpProcessInfo));
+        EquationIdsTensorAdaptorHelpers::CollectData(this->ViewData(), this->Shape()[1], *pContainer, *(this->mpProcessInfo));
     }, mpContainer);
 }
 
@@ -106,9 +98,9 @@ EquationIdsTensorAdaptor::ContainerType EquationIdsTensorAdaptor::GetContainer()
 
 std::string EquationIdsTensorAdaptor::Info() const
 {
-    return std::visit([this](auto pContainer) {
-        return EquationIdsTensorAdaptorHelpers::InfoImpl(this->mShape, *pContainer);
-    }, mpContainer);
+    // return std::visit([this](auto pContainer) {
+    //     return EquationIdsTensorAdaptorHelpers::InfoImpl(this->mShape, *pContainer);
+    // }, mpContainer);
 }
 
 // template instantiations
