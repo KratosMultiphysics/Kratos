@@ -8,63 +8,47 @@ from scipy.interpolate import griddata
 
 
 # ==== Plotting Functions ====
-def plot_cloud_and_slices(x, y, z, slice_bounds, sample_limits, filename):
-    """
-    Plot 3D point cloud and slicing planes.
-
-    Parameters:
-    - x, y, z: Arrays of point coordinates.
-    - slice_bounds: Array of z-boundaries for slices.
-    - sample_limits: Coordinates of the corners of the sample
-    - filename: name of the file plotted
-    """
-    sample_x_min, sample_x_max, sample_y_min, sample_y_max = sample_limits
-
-    fig = plt.figure(figsize=(10, 8))
-    ax = fig.add_subplot(111, projection="3d")
-    ax.scatter(x, y, z, s=1, alpha=0.3, label="Point Cloud")
-
-
-    for bound in slice_bounds:
-        xx, yy = np.meshgrid(
-            np.linspace(sample_x_min, sample_x_max, 10), np.linspace(sample_y_min, sample_y_max, 10)
-        )
-        zz = np.full_like(xx, bound)
-        ax.plot_surface(xx, yy, zz, alpha=0.1, color="gray")
-
-    ax.set_title("3D hole geometry with splice planes\n" + filename)
-    ax.set_xlabel("X (um)")
-    ax.set_ylabel("Y (um)")
-    ax.set_zlabel("Z (um)")
-    ax.legend()
-    plt.show()
-
-def plot_3d_geometry(x, y, z, spline, cx, cy, cz, ellipse_spline, ecx, ecy, ecz, slice_bounds, plot_planes, sample_limits, filename):
+def plot_3d_geometry(x, y, z, sample_limits, filename, centroid_spline=None, cx=None, cy=None, cz=None, ellipse_spline=None, ecx=None, ecy=None, ecz=None, slice_bounds=None):
     """
     Plot 3D point cloud, medial spline, ellipse center spline, centroids, ellipse centers, and optional slicing planes.
 
     Parameters:
     - x, y, z: Arrays of point coordinates.
-    - spline: Tuple of (x, y, z) medial spline coordinates (through centroids).
+    - sample_limits: Coordinates of the corners of the sample
+
+    - centroid_spline: Tuple of (x, y, z) medial spline coordinates (through centroids).
     - cx, cy, cz: Arrays of centroid coordinates.
     - ellipse_spline: Tuple of (x, y, z) ellipse center spline coordinates.
     - ecx, ecy, ecz: Arrays of ellipse center coordinates.
     - slice_bounds: Array of z-boundaries for slices.
-    - plot_planes: Boolean to toggle slicing plane plotting.
-    - sample_limits: Coordinates of the corners of the sample
+    - filename: the name of the file to be plotted.
     """
     sample_x_min, sample_x_max, sample_y_min, sample_y_max = sample_limits
 
     fig = plt.figure(figsize=(10, 8))
     ax = fig.add_subplot(111, projection="3d")
-    ax.scatter(x, y, z, s=1, alpha=0.3, label="Point Cloud")
-    ax.plot(*spline, c="r", lw=2, label="Medial Spline")
-    ax.scatter(cx, cy, cz, c="k", label="Centroids")
-    if ellipse_spline is not None:
-        ax.plot(*ellipse_spline, c="g", lw=2, label="Ellipse Center Spline")
-        ax.scatter(ecx, ecy, ecz, c="g", marker="*", s=100, label="Ellipse Centers")
 
-    if plot_planes:
+    # Point cloud
+    ax.scatter(x, y, z, s=1, alpha=0.3, label="Point cloud")
+    
+    # Centroids and spline
+    if cx is not None and cy is not None and cz is not None:
+        ax.scatter(cx, cy, cz, c="k", label="Centroids")
+
+    if centroid_spline is not None:
+        ax.plot(*centroid_spline, c="r", lw=2, label="Centroid spline")
+
+
+    
+    # Ellipses and spline
+    if ecx is not None and ecy is not None and ecz is not None:
+        ax.scatter(ecx, ecy, ecz, c="g", marker="*", s=100, label="Ellipse Centers")
+    
+    if ellipse_spline is not None:
+        ax.plot(*ellipse_spline, c="g", lw=2, label="Ellipse center spline")
+
+
+    if slice_bounds is not None:
         for bound in slice_bounds:
             xx, yy = np.meshgrid(
                 np.linspace(sample_x_min, sample_x_max, 10), np.linspace(sample_y_min, sample_y_max, 10)
@@ -72,7 +56,7 @@ def plot_3d_geometry(x, y, z, spline, cx, cy, cz, ellipse_spline, ecx, ecy, ecz,
             zz = np.full_like(xx, bound)
             ax.plot_surface(xx, yy, zz, alpha=0.1, color="gray")
 
-    ax.set_title("3D Hole Geometry with Splines\n" + filename)
+    ax.set_title("Hole geometry\n" + filename)
     ax.set_xlabel("X (um)")
     ax.set_ylabel("Y (um)")
     ax.set_zlabel("Z (um)")

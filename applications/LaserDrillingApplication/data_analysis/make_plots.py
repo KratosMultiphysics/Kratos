@@ -1,6 +1,6 @@
 from data_manipulation_functions import read_single_bore, clean_data, remove_surface_and_outliers, subsample_data, calculate_slice_bounds, calculate_slices, compute_centroids, compute_ellipses, fit_spline_3d, compute_derivatives_spline, compute_curvature, compute_torsion
 
-from plotting_functions import plot_cloud_and_slices, plot_3d_geometry, plot_outliers, plot_xy_centers_path, plot_superposed_slices_xy, plot_ellipses_and_axes, plot_contour, plot_ellipse_metrics, plot_individual_slices_grid, plot_individual_slices_separately
+from plotting_functions import plot_3d_geometry, plot_outliers, plot_xy_centers_path, plot_superposed_slices_xy, plot_ellipses_and_axes, plot_contour, plot_ellipse_metrics, plot_individual_slices_grid, plot_individual_slices_separately
 
 import numpy as np
 import argparse
@@ -99,7 +99,8 @@ if __name__ == "__main__":
         print("Empty data list")
         exit(-1)
 
-    plot_cloud_and_slices(x, y, z, slice_bounds, sample_limits, filename)
+    slice_bounds_tmp = slice_bounds if plot_planes else None
+    plot_3d_geometry(x, y, z, sample_limits, filename, slice_bounds=slice_bounds_tmp)
 
     try:
         slices = calculate_slices(data, slice_bounds)
@@ -153,10 +154,14 @@ if __name__ == "__main__":
     # ==== Plotting ====
 
     if plot_3d_geometry_toggle:
+        print("plot_3d_geometry")
+        print(plot_planes)
         plot_3d_geometry(
             x,
             y,
             z,
+            sample_limits,
+            filename,
             centroid_spline,
             centroids_x,
             centroids_y,
@@ -165,10 +170,7 @@ if __name__ == "__main__":
             ellipses_x,
             ellipses_y,
             ellipses_z,
-            slice_bounds,
-            plot_planes,
-            sample_limits,
-            filename
+            slice_bounds            
         )
 
     if plot_outliers_toggle:
