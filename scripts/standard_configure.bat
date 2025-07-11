@@ -20,7 +20,7 @@ rem Warning: In windows this option only works if you run through a terminal wit
 rem set KRATOS_INSTALL_PYTHON_USING_LINKS=ON 
 
 rem Set basic configuration
-if not defined KRATOS_BUILD_TYPE set KRATOS_BUILD_TYPE=Release
+if not defined KRATOS_BUILD_TYPE set KRATOS_BUILD_TYPE=RelWithDebInfo
 if not defined BOOST_ROOT set BOOST_ROOT=C:\Users\boost_1_87_0
 if not defined PYTHON_EXECUTABLE set PYTHON_EXECUTABLE=C:\Users\Alkhlaifat\AppData\Local\Programs\Python\Python313\python.exe
 
