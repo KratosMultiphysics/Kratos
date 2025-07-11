@@ -18,8 +18,8 @@
 // External includes
 
 // Project includes
+#include "containers/flags.h"
 #include "tensor_adaptor.h"
-#include "utilities/container_io_utils.h"
 
 namespace Kratos {
 
@@ -32,9 +32,7 @@ public:
     ///@name Type definitions
     ///@{
 
-    using Pointer = Kratos::intrusive_ptr<FlagsTensorAdaptor>;
-
-    using ConstPointer = Kratos::intrusive_ptr<const FlagsTensorAdaptor>;
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FlagsTensorAdaptor);
 
     using BaseType = TensorAdaptor<bool>;
 
@@ -79,9 +77,9 @@ private:
     ///@name Private member variables
     ///@{
 
-    FlagsIO::Pointer mpIO;
-
     ContainerType mpContainer;
+
+    Flags mFlags;
 
     ///@}
 };
