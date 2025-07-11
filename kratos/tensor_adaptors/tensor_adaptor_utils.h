@@ -15,11 +15,13 @@
 // System includes
 #include <string>
 #include <sstream>
+#include <variant>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "utilities/data_type_traits.h"
 #include "utilities/container_io_utils.h"
 
@@ -31,102 +33,139 @@ namespace Kratos {
 class KRATOS_API(KRATOS_CORE) TensorAdaptorUtils
 {
 public:
+    ///@name Type definitions
+    ///@{
+
+    using VariablePointerType = std::variant<
+                                        Variable<double> const *,
+                                        Variable<array_1d<double, 3>> const *,
+                                        Variable<array_1d<double, 4>> const *,
+                                        Variable<array_1d<double, 6>> const *,
+                                        Variable<array_1d<double, 9>> const *,
+                                        Variable<Vector> const *,
+                                        Variable<Matrix> const *
+                                    >;
+
+    ///@}
     ///@name Public static operations
     ///@{
 
-    template<class TContainerType, class TIOType>
-    static std::string Info(
+    template<class TDataType, class TContainerType, class TGetterType>
+    static DenseVector<unsigned int> GetTensorShape(
         const TContainerType& rContainer,
-        const TIOType& rIO,
-        const DenseVector<unsigned int>& rShape)
-    {
-        std::stringstream msg;
-        msg << "TensorAdaptor: " << rIO.Info() << " with " << rContainer.size()
-            << " " << ModelPart::Container<TContainerType>::GetEntityName() << "(s) having shape "
-            << rShape << " ].";
-        return msg.str();
-    }
-
-    template<class TContainerType, class TIOType, class TPrimitiveDataType>
-    static void InitializeData(
-        const TContainerType& rContainer,
-        const TIOType& rIO,
-        const DenseVector<unsigned int>& rTensorAdaptorShape,
-        DenseVector<TPrimitiveDataType>& rData)
-    {
-        using return_type = typename TIOType::ReturnType;
-
-        KRATOS_ERROR_IF_NOT(rTensorAdaptorShape[0] == rContainer.size())
-            << "First dimension of the initialized tensor adaptor mismatch with the container size [ "
-            << Info(rContainer, rIO, rTensorAdaptorShape) << " ].\n";
-
-        KRATOS_ERROR_IF_NOT(DataTypeTraits<return_type>::IsValidShape(rTensorAdaptorShape.data().begin() + 1, rTensorAdaptorShape.data().begin() + rTensorAdaptorShape.size()))
-            << "Invalid data shape provided. [ data shape provided = " << rTensorAdaptorShape
-            << ", max possible sizes in each dimension  = "
-            << DataTypeTraits<return_type>::Shape(return_type{})
-            << ", " << Info(rContainer, rIO, rTensorAdaptorShape) << " ].\n";
-
-        rData.resize(DataTypeTraits<return_type>::Size(rTensorAdaptorShape.begin() + 1, rTensorAdaptorShape.end()) * rContainer.size(), false);
-    }
-
-    template<class TContainerType, class TIOType, class TPrimitiveDataType>
-    static void CollectData(
-        const TContainerType& rContainer,
-        const TIOType& rIO,
-        const DenseVector<unsigned int>& rTensorAdaptorShape,
-        DenseVector<TPrimitiveDataType>& rData)
+        const TGetterType& rGetter)
     {
         KRATOS_TRY
 
-        // sanity checks
-        KRATOS_ERROR_IF_NOT(rTensorAdaptorShape[0] == rContainer.size())
-            << "First dimension of the initialized tensor adaptor mismatch with the container size [ "
-            << Info(rContainer, rIO, rTensorAdaptorShape) << " ].\n";
+        using value_traits = DataTypeTraits<TDataType>;
 
-        KRATOS_ERROR_IF_NOT(rData.size() == rContainer.size() * DataTypeTraits<typename TIOType::ReturnType>::Size(rTensorAdaptorShape.begin() + 1, rTensorAdaptorShape.end()))
-            << "Data container size mismatch [ mData.size() = "
-            << rData.size() << ", shape size = " << rContainer.size() * DataTypeTraits<typename TIOType::ReturnType>::Size(rTensorAdaptorShape.begin() + 1, rTensorAdaptorShape.end())
-            << ", " << Info(rContainer, rIO, rTensorAdaptorShape) << " ].\n";
+        KRATOS_ERROR_IF(rContainer.empty())
+            << "The given container does not have any "
+            << ModelPart::Container<TContainerType>::GetEntityName() << "s.\n";
 
-        if constexpr(TIOType::template IsAllowedContainer<TContainerType>) {
-            CopyToContiguousArray(rContainer, rIO, rData.data().begin(), rTensorAdaptorShape.begin(), rTensorAdaptorShape.end());
-        } else {
-            KRATOS_ERROR << "The IOType " << rIO.Info() << " does not support containers with "
-                         << ModelPart::Container<TContainerType>::GetEntityName() << ".\n";
-        }
+        TDataType dummy{};
+        rGetter(dummy, rContainer.front());
+
+        DenseVector<unsigned int> tensor_shape(value_traits::Dimension + 1);
+        tensor_shape[0] = rContainer.size();
+        DataTypeTraits<TDataType>::Shape(dummy, tensor_shape.data().begin() + 1, tensor_shape.data().begin() + tensor_shape.size());
+
+        return tensor_shape;
 
         KRATOS_CATCH("");
     }
 
-    template<class TContainerType, class TIOType, class TPrimitiveDataType>
-    static void StoreData(
+    template<class TDataType, class TContainerType, class TIntegerType>
+    static DenseVector<unsigned int> GetTensorShape(
+        const TContainerType& rContainer,
+        TIntegerType const * rDataShapeBegin,
+        TIntegerType const * rDataShapeEnd)
+    {
+        KRATOS_TRY
+
+        using value_traits = DataTypeTraits<TDataType>;
+
+        KRATOS_ERROR_IF(rContainer.empty())
+            << "The given container does not have any "
+            << ModelPart::Container<TContainerType>::GetEntityName() << "s.\n";
+
+        KRATOS_ERROR_IF_NOT(value_traits::IsValidShape(rDataShapeBegin, rDataShapeEnd))
+            << "Invalid data shape provided. [ data shape provided = [" << StringUtilities::JoinValues(rDataShapeBegin, rDataShapeEnd, ",")
+            << "], max possible sizes in each dimension  = "
+            << value_traits::Shape(TDataType{}) << " ].\n";
+
+        DenseVector<unsigned int> tensor_shape(value_traits::Dimension + 1);
+        tensor_shape[0] = rContainer.size();
+        std::copy(rDataShapeBegin, rDataShapeEnd, tensor_shape.begin() + 1);
+
+        return tensor_shape;
+
+        KRATOS_CATCH("");
+    }
+
+    template <class TContainerType, class TDataType, class TGetterType>
+    static auto GetTensorShape(
+        const TContainerType& rContainer,
+        const Variable<TDataType>& rVariable,
+        const TGetterType& rGetter)
+    {
+        return TensorAdaptorUtils::GetTensorShape<TDataType>(rContainer, rGetter);
+    }
+
+    template <class TContainerType, class TDataType, class TIntegerType>
+    static auto GetTensorShape(
+        const TContainerType& rContainer,
+        const Variable<TDataType>& rVariable,
+        TIntegerType const * pDataShapeBegin,
+        TIntegerType const * pDataShapeEnd)
+    {
+        return TensorAdaptorUtils::GetTensorShape<TDataType>(rContainer, pDataShapeBegin, pDataShapeEnd);
+    }
+
+    template <class TContainerType, class TDataType, class TSpanType, class TGetterType>
+    static void CollectVariableData(
+        const DenseVector<unsigned int>& rTensorShape,
+        const TContainerType& rContainer,
+        const Variable<TDataType>& rVariable,
+        const TSpanType& Span,
+        const TGetterType& rGetter)
+    {
+        KRATOS_TRY
+
+        CopyToContiguousArrayNew<TDataType>(
+            rContainer, Span, rTensorShape.data().begin(),
+            rTensorShape.data().begin() + rTensorShape.size(), rGetter);
+
+        KRATOS_CATCH("");
+    }
+
+    template <class TContainerType, class TDataType, class TSpanType, class TSetterType>
+    static void StoreVariableData(
+        const DenseVector<unsigned int>& rTensorShape,
         TContainerType& rContainer,
-        const TIOType& rIO,
-        const DenseVector<unsigned int>& rTensorAdaptorShape,
-        const DenseVector<TPrimitiveDataType>& rData)
+        const Variable<TDataType>& rVariable,
+        const TSpanType& Span,
+        const TSetterType& rSetter)
     {
         KRATOS_TRY
 
-        // sanity checks
-        KRATOS_ERROR_IF_NOT(rTensorAdaptorShape[0] == rContainer.size())
-            << "First dimension of the initialized tensor adaptor mismatch with the container size [ "
-            << Info(rContainer, rIO, rTensorAdaptorShape) << " ].\n";
-
-        KRATOS_ERROR_IF_NOT(rData.size() == rContainer.size() * DataTypeTraits<typename TIOType::ReturnType>::Size(rTensorAdaptorShape.begin() + 1, rTensorAdaptorShape.end()))
-            << "Data container size mismatch [ mData.size() = "
-            << rData.size() << ", shape size = " << rContainer.size() * DataTypeTraits<typename TIOType::ReturnType>::Size(rTensorAdaptorShape.begin() + 1, rTensorAdaptorShape.end())
-            << ", " << Info(rContainer, rIO, rTensorAdaptorShape) << " ].\n";
-
-        const std::vector<unsigned int> shape(rTensorAdaptorShape.begin() + 1, rTensorAdaptorShape.end());
-
-        if constexpr(TIOType::template IsAllowedContainer<TContainerType>) {
-            CopyFromContiguousDataArray(rContainer, rIO, rData.data().begin(), rTensorAdaptorShape.begin(), rTensorAdaptorShape.end());
-        } else {
-            KRATOS_ERROR << "The IOType " << rIO.Info() << " does not support containers with "
-                         << ModelPart::Container<TContainerType>::GetEntityName() << ".\n";
-        }
+        CopyFromContiguousDataArrayNew<TDataType>(
+            rContainer, Span, rTensorShape.data().begin(),
+            rTensorShape.data().begin() + rTensorShape.size(), rSetter);
 
         KRATOS_CATCH("");
+    }
+
+    template<class TContainerType>
+    static std::string Info(
+        const std::string& rPrefix,
+        const DenseVector<unsigned int>& rTensorShape,
+        const TContainerType& rContainer)
+    {
+        std::stringstream info;
+        info << rPrefix << "number of " << ModelPart::Container<TContainerType>::GetEntityName()
+             << "(s) = " << rContainer.size() << ", shape = " << rTensorShape << ".\n";
+        return info.str();
     }
 
     ///@}
