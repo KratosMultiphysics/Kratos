@@ -28,7 +28,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-#include "external_includes/amgcl_mpi_solve_functions.h"
 #include "linear_solvers/amgcl_solver.h"
 
 namespace Kratos
