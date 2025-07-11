@@ -35,7 +35,7 @@ Matrix GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(const Geometr
     return result;
 }
 
-Matrix GeometryUtilities::Calculate2DRotationMatrixForPlaneGeometry(const Geometry<Node>& rGeometry,
+Matrix GeometryUtilities::Calculate3DRotationMatrixForPlaneGeometry(const Geometry<Node>& rGeometry,
                                                                     const array_1d<double, 3>& rLocalCoordinate)
 {
     Matrix jacobian;
@@ -49,9 +49,9 @@ Matrix GeometryUtilities::Calculate2DRotationMatrixForPlaneGeometry(const Geomet
 
     // clang-format off
     Matrix result(3, 3);
-    result <<= tangential_vector_1[0], tangential_vector_1[1], tangential_vector_1[2],
-               tangential_vector_2[0], tangential_vector_2[1], tangential_vector_2[2],
-               normal_vector[0],       normal_vector[1],       normal_vector[2];
+    result <<= tangential_vector_1[0], tangential_vector_2[0], normal_vector[0],
+               tangential_vector_1[1], tangential_vector_2[1], normal_vector[1],
+               tangential_vector_1[2], tangential_vector_2[2], normal_vector[2];
     // clang-format on
 
     return result;

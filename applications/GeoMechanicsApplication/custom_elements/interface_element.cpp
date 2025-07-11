@@ -222,7 +222,7 @@ std::vector<Matrix> InterfaceElement::CalculateLocalBMatricesAtIntegrationPoints
             rotation_matrix =
                 GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(r_geometry, rIntegrationPoint);
         } else if (r_geometry.LocalSpaceDimension() == 2) {
-            rotation_matrix = GeometryUtilities::Calculate2DRotationMatrixForPlaneGeometry(
+            rotation_matrix = GeometryUtilities::Calculate3DRotationMatrixForPlaneGeometry(
                 r_geometry, rIntegrationPoint);
         }
         return Matrix{prod(rotation_matrix, p_policy->CalculateBMatrix(dummy_gradients, rShapeFunctionValuesAtIntegrationPoint,
