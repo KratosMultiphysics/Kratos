@@ -23,13 +23,13 @@ public:
 
     CalculateIncrementalMotionProcess(ModelPart& rModelPart, const Parameters& rSettings);
 
-    CalculateIncrementalMotionProcess(const CalculateIncrementalMotionProcess&) = delete;
+    CalculateIncrementalMotionProcess(const CalculateIncrementalMotionProcess&)            = delete;
     CalculateIncrementalMotionProcess& operator=(const CalculateIncrementalMotionProcess&) = delete;
 
     void Execute() override;
 
 private:
-    ModelPart& mrModelPart;
+    ModelPart&  mrModelPart;
     std::string mResultsVariableName;
     std::string mBaseVariableName;
 };
