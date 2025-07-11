@@ -22,7 +22,7 @@
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
-#include "integration_coefficient_modifier_for_thermal_element.h"
+#include "integration_coefficients_calculator.h"
 
 namespace Kratos
 {
@@ -35,26 +35,32 @@ public:
 
     explicit TransientThermalElement(IndexType NewId = 0) : Element(NewId) {}
 
-    TransientThermalElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : Element(NewId, pGeometry),
-          mIntegrationCoefficientsCalculator{std::make_unique<IntegrationCoefficientModifierForThermalElement>()}
+    TransientThermalElement(IndexType             NewId,
+                            GeometryType::Pointer pGeometry,
+                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : Element(NewId, pGeometry), mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
     {
     }
 
-    TransientThermalElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    TransientThermalElement(IndexType               NewId,
+                            GeometryType::Pointer   pGeometry,
+                            PropertiesType::Pointer pProperties,
+                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
         : Element(NewId, pGeometry, pProperties),
-          mIntegrationCoefficientsCalculator{std::make_unique<IntegrationCoefficientModifierForThermalElement>()}
+          mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
     {
     }
 
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<TransientThermalElement>(NewId, GetGeometry().Create(rThisNodes), pProperties);
+        return make_intrusive<TransientThermalElement>(NewId, GetGeometry().Create(rThisNodes), pProperties,
+                                                       this->CloneIntegrationCoefficientModifier());
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return make_intrusive<TransientThermalElement>(NewId, pGeom, pProperties);
+        return make_intrusive<TransientThermalElement>(NewId, pGeom, pProperties,
+                                                       this->CloneIntegrationCoefficientModifier());
     }
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
@@ -129,6 +135,11 @@ public:
         KRATOS_CATCH("")
 
         return 0;
+    }
+
+    std::unique_ptr<IntegrationCoefficientModifier> CloneIntegrationCoefficientModifier() const
+    {
+        return mIntegrationCoefficientsCalculator.CloneModifier();
     }
 
 private:

@@ -12,8 +12,7 @@
 //                   Pooyan Dadvand
 //
 
-#if !defined(KRATOS_GID_OUTPUT_H_INCLUDED)
-#define  KRATOS_GID_OUTPUT_H_INCLUDED
+#pragma once
 
 // System includes
 #include <iostream>
@@ -1556,5 +1555,3 @@ inline std::ostream& operator << (std::ostream& rOStream, const GidIO<>& rThis)
 }// namespace Kratos.
 
 ///@}
-
-#endif // KRATOS_GID_OUTPUT_H_INCLUDED  defined

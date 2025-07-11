@@ -11,7 +11,7 @@
 //
 
 #include "custom_elements/interface_stress_state.h"
-#include "custom_geometries/line_interface_geometry.h"
+#include "custom_geometries/interface_geometry.h"
 #include "custom_utilities/registration_utilities.h"
 #include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -36,7 +36,7 @@ auto CreateThreePlusThree2DLineInterfaceGeometry()
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(5, 5.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(6, 2.5, 0.0, 0.0));
-    return LineInterfaceGeometry<Line2D3<Node>>{1, nodes};
+    return InterfaceGeometry<Line2D3<Node>>{1, nodes};
 }
 
 } // namespace
@@ -124,21 +124,6 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectBMatrixForThreePlus
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_NEAR(b_matrix, expected_b_matrix, 1.0e-6)
-}
-
-KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_ReturnsCorrectIntegrationCoefficient, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto interface_stress_state = InterfaceStressState{};
-
-    const Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
-
-    constexpr auto detJ                   = 2.0;
-    const auto     calculated_coefficient = interface_stress_state.CalculateIntegrationCoefficient(
-        integration_point, detJ, LineInterfaceGeometry<Line2D3<Node>>());
-
-    // The expected number is calculated as follows:
-    // weight * detJ = 0.5 * 2.0 = 1.0
-    KRATOS_EXPECT_NEAR(calculated_coefficient, 1.0, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceStressState_Throws_WhenAskingForStrain, KratosGeoMechanicsFastSuiteWithoutKernel)

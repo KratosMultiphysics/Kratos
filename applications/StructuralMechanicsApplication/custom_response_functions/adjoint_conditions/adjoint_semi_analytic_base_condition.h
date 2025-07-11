@@ -87,7 +87,7 @@ public:
     ///@{
 
     ///@}
-    ///@name Informations
+    ///@name Information
     ///@{
 
     ///@}

@@ -9,7 +9,7 @@ if kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication"):
 
 #A simply supported square plate under compressive loading is computed
 #The test compares the buckling load/multiplier between one model with symmetry conditions (quarter of the plate) and a full model
-#Futhermore the results are checked against a reference solution from abaqus (element S4R)
+#Furthermore the results are checked against a reference solution from abaqus (element S4R)
 #http://130.149.89.49:2080/v6.8/books/bmk/default.htm?startat=ch01s02ach17.html
 
 

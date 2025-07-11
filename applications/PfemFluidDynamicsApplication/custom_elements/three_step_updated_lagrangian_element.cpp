@@ -136,7 +136,7 @@ namespace Kratos
     for (SizeType i = 0; i < NumNodes; ++i)
     {
       if (this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION))
-      { // it must be checked once at the begining only
+      { // it must be checked once at the beginning only
 
         // // stored body force information for the closed domain test with analytical solution
         // double posX = (this->GetGeometry()[0].X() + this->GetGeometry()[1].X() + this->GetGeometry()[2].X()) / 3.0;
