@@ -24,7 +24,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/ublas_interface.h"
 #include "intrusive_ptr/intrusive_ptr.hpp"
 
 namespace Kratos {
@@ -42,9 +41,7 @@ public:
     ///@name Type definitions
     ///@{
 
-    using Pointer = Kratos::intrusive_ptr<TensorAdaptor>;
-
-    using ConstPointer = Kratos::intrusive_ptr<const TensorAdaptor>;
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TensorAdaptor);
 
     using ContainerType = std::variant<
                                 ModelPart::NodesContainerType::Pointer,
@@ -61,7 +58,18 @@ public:
 
     TensorAdaptor() = default;
 
-    virtual ~TensorAdaptor() = default;
+    /**
+     * @brief Destroy the Tensor Adaptor
+     * @details This method destroys the TensorAdaptor and
+     *          the internal data as well if it is still owned by the TensorAdaptor.
+     *
+     */
+    virtual ~TensorAdaptor()
+    {
+        if (mpData) {
+            delete[] mpData;
+        }
+    }
 
     ///@}
     ///@name Public operations
@@ -85,19 +93,38 @@ public:
     /**
      * @brief Moves the internal data.
      * @warning The TensorAdaptor should not be used after the move is called.
-     * @return DenseVector<TDataType>   Dense vector containing the internal data.
+     *          The management of the data should be carried out by the owner of the
+     *          returned Kratos::span. Otherwise, there will be memory leaks.
+     * @throws If the internal data is already moved.
+     * @return Kratos::span<TDataType>  Returns a span containing the internal data.
      */
-    DenseVector<TDataType> MoveData() { return std::move(mData); }
+    Kratos::span<TDataType> MoveData()
+    {
+        KRATOS_ERROR_IF_NOT(mpData) << "The data is already moved [ " << *this << " ].\n";
+        auto p_data = mpData;
+        mpData = nullptr;
+        return Kratos::span<TDataType>(p_data, p_data + this->Size());
+    }
 
     /**
      * @brief Return a view of the internal data structure.
+     * @throws If the internal data is already moved.
      */
-    Kratos::span<const TDataType>  ViewData() const  { return Kratos::span<const TDataType>(mData.data().begin(), mData.data().end()); }
+    Kratos::span<const TDataType>  ViewData() const
+    {
+        KRATOS_ERROR_IF_NOT(mpData) << "The data is already moved [ " << *this << " ].\n";
+        return Kratos::span<const TDataType>(mpData, mpData + this->Size());
+    }
 
     /**
      * @brief Return a view of the internal data structure.
+     * @throws If the internal data is already moved.
      */
-    Kratos::span<TDataType> ViewData() { return Kratos::span<TDataType>(mData.data().begin(), mData.data().end()); }
+    Kratos::span<TDataType> ViewData()
+    {
+        KRATOS_ERROR_IF_NOT(mpData) << "The data is already moved [ " << *this << " ].\n";
+        return Kratos::span<TDataType>(mpData, mpData + this->Size());
+    }
 
     /**
      * @brief Get the Shape of the tensor adaptor.
@@ -106,46 +133,88 @@ public:
      *          entities.
      * @return DenseVector<unsigned int>    Shape of the tensor adaptor.
      */
-    DenseVector<unsigned int> Shape() const { return mShape; };
+    DenseVector<unsigned int> Shape() const
+    {
+        return mShape;
+    };
 
     /**
-     * @brief Get the data which the tensor carries for each of the entities.
+     * @brief Get the shape of the data which the tensor carries for each of the entities.
      * @details This method returns the shape of the data which the tensor adaptor carries for the entities
      *          of the container. This will be always one dimension less than what is given in \ref Shape, because
      *          this will not contain the dimension representing number of entities in the container.
      *
      * @return DenseVector<unsigned int>    Shape of the data which is for one entity.
      */
-    DenseVector<unsigned int> GetDataShape() const {
+    DenseVector<unsigned int> DataShape() const
+    {
         DenseVector<unsigned int> data_shape(mShape.size() - 1);
         std::copy(mShape.begin() + 1, mShape.end(), data_shape.begin());
         return data_shape;
     }
 
     /**
-     * @brief Total size of the tensor.
+     * @brief Total size of the tensor adaptor.
      */
-    unsigned int Size() const { return std::accumulate(mShape.data().begin(), mShape.data().end(), 1, std::multiplies<unsigned int>{}); }
+    unsigned int Size() const
+    {
+        return std::accumulate(mShape.data().begin(), mShape.data().end(), 1, std::multiplies<unsigned int>{});
+    }
 
     ///@}
     ///@name Input and output
     ///@{
 
+    /**
+     * @brief Provides some information about the TensorAdaptor.
+     */
     virtual std::string Info() const = 0;
 
     ///@}
 
 protected:
-    ///@name Protected member variables
+    ///@name Protected operations
     ///@{
 
-    DenseVector<TDataType> mData;
+    void SetShape(const DenseVector<unsigned int>& rNewShape)
+    {
+        KRATOS_TRY
 
-    DenseVector<unsigned int> mShape;
+        KRATOS_ERROR_IF(rNewShape.empty())
+            << "The tensors cannot have an empty shape. It should have atleast "
+            << "first dimension which represents number of items in the container [ "
+            << *this << " ].\n";
+
+        // checks whether the mShape is empty, that means
+        // the SetShape method is not yet called. This is because, once this method is called
+        // the mShape size cannot be zero. It will at least have size 1 representing the size of the container.
+        KRATOS_ERROR_IF_NOT(this->Shape().empty())
+            << "The tensor is already initialized with a shape [ new shape = " << rNewShape
+            << ", current shape = " << this->Shape() << ", " << *this << " ].\n";
+
+        // set the shape
+        mShape = rNewShape;
+
+        // get the new size
+        const auto new_size = this->Size();
+
+        // allocate new memory
+        mpData = new TDataType[new_size];
+
+        KRATOS_CATCH("");
+    }
 
     ///@}
 
 private:
+    ///@name Private member variables
+    ///@{
+
+    TDataType * mpData = nullptr; // nullptr is used to indicate there is no owning data.
+
+    DenseVector<unsigned int> mShape;
+
+    ///@}
     ///@name Private operations
     ///@{
 
