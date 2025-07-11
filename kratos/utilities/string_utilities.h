@@ -15,6 +15,7 @@
 
 // System includes
 #include <string>
+#include <sstream>
 #include <vector>
 
 // External includes
@@ -211,6 +212,24 @@ namespace StringUtilities
         const std::string& rInputString,
         const std::string& rStopCharacter = ""
         );
+
+    template<class TIteratorType>
+    [[nodiscard]] std::string KRATOS_API(KRATOS_CORE) JoinValues(
+        TIteratorType Begin,
+        TIteratorType End,
+        const std::string& rDelimiter)
+    {
+        std::stringstream result;
+
+        if (std::distance(Begin, End) > 0) {
+            result << *Begin;
+            for (auto it = Begin + 1; it != End; ++it) {
+                result << rDelimiter << *it;
+            }
+        }
+
+        return result.str();
+    }
 
     /**
      * @brief Prints the data of an object of type TClass to the given output stream with indentation.
