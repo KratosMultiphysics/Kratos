@@ -90,11 +90,11 @@ protected:
 
     void CalculateAll(const Matrix&,
                       Vector&            rRightHandSideVector,
-                      const ProcessInfo& rCurrentProcessInfo,
+                      const ProcessInfo&,
                       bool,
                       bool CalculateResidualVectorFlag);
 
-    void InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo&);
+    void InitializeConditionVariables(ConditionVariables& rVariables);
 
     void CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber) const;
 

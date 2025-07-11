@@ -130,7 +130,7 @@ void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResul
 
 void GeneralUPwDiffOrderCondition::CalculateAll(const Matrix&,
                                                 Vector&            rRightHandSideVector,
-                                                const ProcessInfo& rCurrentProcessInfo,
+                                                const ProcessInfo&,
                                                 bool,
                                                 bool CalculateResidualVectorFlag)
 {
@@ -138,7 +138,7 @@ void GeneralUPwDiffOrderCondition::CalculateAll(const Matrix&,
 
     // Definition of variables
     ConditionVariables Variables;
-    this->InitializeConditionVariables(Variables, rCurrentProcessInfo);
+    this->InitializeConditionVariables(Variables);
 
     // Loop over integration points
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
@@ -162,7 +162,7 @@ void GeneralUPwDiffOrderCondition::CalculateAll(const Matrix&,
     KRATOS_CATCH("")
 }
 
-void GeneralUPwDiffOrderCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo&)
+void GeneralUPwDiffOrderCondition::InitializeConditionVariables(ConditionVariables& rVariables)
 {
     const auto& r_geom      = GetGeometry();
     const auto  num_u_nodes = r_geom.PointsNumber();
