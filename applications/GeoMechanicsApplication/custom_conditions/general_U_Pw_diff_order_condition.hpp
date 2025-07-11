@@ -59,11 +59,9 @@ public:
 
     void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
 
-    void CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
-                              Vector&            rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo&) override;
 
-    void CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo&) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
@@ -88,11 +86,7 @@ protected:
     // Member Variables
     Geometry<Node>::Pointer mpPressureGeometry;
 
-    void CalculateAll(const Matrix&,
-                      Vector&            rRightHandSideVector,
-                      const ProcessInfo&,
-                      bool,
-                      bool CalculateResidualVectorFlag);
+    void CalculateAll(Vector& rRightHandSideVector, bool CalculateResidualVectorFlag);
 
     void InitializeConditionVariables(ConditionVariables& rVariables);
 
