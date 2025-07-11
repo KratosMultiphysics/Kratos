@@ -153,7 +153,7 @@ public:
     /**
      * @brief Dimension of the law:
      */
-    SizeType WorkingSpaceDimension() override { return Dimension; }
+    SizeType WorkingSpaceDimension() override { return mpConstitutiveDimension->GetDimension(); }
 
     /**
      * @brief Voigt tensor size:

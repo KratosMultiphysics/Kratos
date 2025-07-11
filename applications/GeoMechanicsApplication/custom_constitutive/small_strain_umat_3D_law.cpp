@@ -178,7 +178,7 @@ template <unsigned int TVoigtSize>
 void SmallStrainUMAT3DLaw<TVoigtSize>::GetLawFeatures(Features& rFeatures)
 {
     // Set the type of law
-    rFeatures.mOptions.Set(THREE_DIMENSIONAL_LAW);
+    rFeatures.mOptions.Set(mpConstitutiveDimension->GetSpatialType());
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
 
     rFeatures.mOptions.Set(ISOTROPIC);
@@ -435,7 +435,7 @@ void SmallStrainUMAT3DLaw<TVoigtSize>::UpdateInternalDeltaStrainVector(Constitut
 {
     const Vector& r_strain_vector = rValues.GetStrainVector();
 
-    for (unsigned int i = 0; i < mDeltaStrainVector.size(); ++i) {
+    for (unsigned int i = 0; i < TVoigtSize; ++i) {
         mDeltaStrainVector[i] = r_strain_vector(i) - mStrainVectorFinalized[i];
     }
 }
@@ -533,9 +533,9 @@ void SmallStrainUMAT3DLaw<TVoigtSize>::CallUMAT(ConstitutiveLaw::Parameters& rVa
     double SCD; // ?
     char   materialName;
 
-    int ndi   = N_DIM_3D;
-    int nshr  = 3;
+    int ndi   = mpConstitutiveDimension->GetNumberOfNormalComponents();
     int ntens = TVoigtSize;
+    int nshr  = ntens - ndi;;
 
     // stresses and state variables in the beginning of the steps needs to be given:
     mStressVector   = mStressVectorFinalized;
