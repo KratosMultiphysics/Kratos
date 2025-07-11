@@ -24,7 +24,6 @@ Matrix InterfaceThreeDimensionalSurface::CalculateElasticMatrix(const Properties
 {
     auto result = ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
         rProperties[INTERFACE_NORMAL_STIFFNESS], rProperties[INTERFACE_SHEAR_STIFFNESS], GetStrainSize());
-    result(2, 2) = result(1, 1);
 
     return result;
 }

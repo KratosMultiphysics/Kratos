@@ -25,16 +25,16 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalLinearElasticInterface
 public:
     using BaseType = ConstitutiveLaw;
 
-    explicit GeoIncrementalLinearElasticInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> rConstitutiveLawDimension)
-        : mConstitutiveLawDimension(std::move(rConstitutiveLawDimension))
+    explicit GeoIncrementalLinearElasticInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveLawDimension)
+        : mpConstitutiveLawDimension(std::move(pConstitutiveLawDimension))
     {
     }
 
     ~GeoIncrementalLinearElasticInterfaceLaw() override = default;
     GeoIncrementalLinearElasticInterfaceLaw(const GeoIncrementalLinearElasticInterfaceLaw&) = delete;
     GeoIncrementalLinearElasticInterfaceLaw& operator=(const GeoIncrementalLinearElasticInterfaceLaw&) = delete;
-    GeoIncrementalLinearElasticInterfaceLaw(GeoIncrementalLinearElasticInterfaceLaw&&) = delete;
-    GeoIncrementalLinearElasticInterfaceLaw& operator=(GeoIncrementalLinearElasticInterfaceLaw&&) = delete;
+    GeoIncrementalLinearElasticInterfaceLaw(GeoIncrementalLinearElasticInterfaceLaw&&) noexcept = delete;
+    GeoIncrementalLinearElasticInterfaceLaw& operator=(GeoIncrementalLinearElasticInterfaceLaw&&) noexcept = delete;
 
     [[nodiscard]] Pointer  Clone() const override;
     SizeType               WorkingSpaceDimension() override;
@@ -54,15 +54,15 @@ public:
                const ProcessInfo&  rCurrentProcessInfo) const override;
 
 private:
-    GeoIncrementalLinearElasticInterfaceLaw() : mConstitutiveLawDimension(nullptr) {}
+    GeoIncrementalLinearElasticInterfaceLaw() = default;
 
-    std::unique_ptr<ConstitutiveLawDimension> mConstitutiveLawDimension;
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 
-    Vector mPreviousRelativeDisplacement;
-    Vector mPreviousTraction;
+    Vector                                    mPreviousRelativeDisplacement;
+    Vector                                    mPreviousTraction;
+    std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveLawDimension;
 };
 
 } // namespace Kratos

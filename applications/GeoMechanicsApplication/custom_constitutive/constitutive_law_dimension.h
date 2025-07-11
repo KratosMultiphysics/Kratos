@@ -12,7 +12,6 @@
 #pragma once
 
 #include "containers/flags.h"
-#include "includes/properties.h"
 #include "includes/ublas_interface.h"
 
 #include <cstddef>
@@ -21,6 +20,7 @@
 namespace Kratos
 {
 
+class Properties;
 class Serializer;
 
 class ConstitutiveLawDimension

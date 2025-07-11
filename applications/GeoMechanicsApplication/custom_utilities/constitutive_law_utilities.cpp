@@ -105,7 +105,9 @@ Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      Nor
 {
     auto result  = Matrix{ZeroMatrix{TractionSize, TractionSize}};
     result(0, 0) = NormalStiffness;
-    result(1, 1) = ShearStiffness;
+    for (auto i = std::size_t{1}; i < TractionSize; i++) {
+        result(i, i) = ShearStiffness;
+    }
     return result;
 }
 

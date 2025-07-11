@@ -221,8 +221,8 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
                 AveragePrincipalStressComponents(principal_trial_stress_vector, averaging_type);
             trial_sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(
                 averaged_principal_trial_stress_vector);
-            mapped_sigma_tau =
-                mCoulombWithTensionCutOffImpl.DoReturnMapping(r_properties, trial_sigma_tau, averaging_type);
+            mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
+                r_properties, trial_sigma_tau, averaging_type);
             mapped_principal_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
                 mapped_sigma_tau, averaged_principal_trial_stress_vector);
             mapped_principal_stress_vector[1] =
