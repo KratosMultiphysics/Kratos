@@ -13,8 +13,8 @@
 
 #include "fix_water_pressures_above_phreatic_line.h"
 #include "geo_mechanics_application_variables.h"
-#include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -33,7 +33,6 @@ FixWaterPressuresAbovePhreaticLineProcess::FixWaterPressuresAbovePhreaticLinePro
     KRATOS_ERROR_IF(x_coordinates.empty())
         << "The x_coordinates and y_coordinates of the phreatic line must be "
            "non-empty vectors.\n";
-
 
     for (std::size_t i = 0; i < x_coordinates.size(); ++i) {
         mPhreaticLineTable.insert(x_coordinates[i], y_coordinates[i]);

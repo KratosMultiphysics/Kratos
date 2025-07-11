@@ -55,8 +55,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_ThrowsUponConstr
     // Arrange
     constexpr auto y_node_1     = 0.0;
     constexpr auto y_node_2     = -2.0;
-    auto             model        = Model{};
-    auto&            r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
+    auto           model        = Model{};
+    auto&          r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
 
     const auto test_parameters = Parameters{R"(
             {
@@ -76,10 +76,10 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_ThrowsUponConstr
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    constexpr double y_node_1     = 0.0;
-    constexpr double y_node_2     = -2.0;
-    auto             model        = Model{};
-    auto&            r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
+    constexpr auto y_node_1     = 0.0;
+    constexpr auto y_node_2     = -2.0;
+    auto           model        = Model{};
+    auto&          r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
 
     const auto test_parameters = Parameters{R"(
             {
@@ -99,11 +99,11 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FixesAllWaterPre
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    constexpr double y_node_1     = 0.0;
-    constexpr double y_node_2     = -1.0;
-    auto             model        = Model{};
-    auto&            r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
-    auto             test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(-2.0);
+    constexpr auto y_node_1     = 0.0;
+    constexpr auto y_node_2     = -1.0;
+    auto           model        = Model{};
+    auto&          r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
+    const auto     test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(-2.0);
     r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
     r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
@@ -122,14 +122,14 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_DoesNothingWhenA
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    constexpr double y_node_1     = 0.0;
-    constexpr double y_node_2     = -1.0;
-    auto             model        = Model{};
-    auto&            r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
+    constexpr auto y_node_1     = 0.0;
+    constexpr auto y_node_2     = -1.0;
+    auto           model        = Model{};
+    auto&          r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
     r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
     r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
 
-    auto test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(1.0);
+    const auto test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(1.0);
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
 
     // Act
@@ -146,15 +146,15 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_OnlyFixesNodesAb
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    constexpr double y_node_1     = 0.0;
-    constexpr double y_node_2     = -1.0;
-    auto             model        = Model{};
-    auto&            r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
+    constexpr auto y_node_1     = 0.0;
+    constexpr auto y_node_2     = -1.0;
+    auto           model        = Model{};
+    auto&          r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
 
     r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
     r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
 
-    auto test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(-0.5);
+    const auto test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(-0.5);
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
 
     // Act
@@ -171,15 +171,15 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FreesNodesWhenTh
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    constexpr double y_node_1     = 0.0;
-    constexpr double y_node_2     = -2.0;
-    auto             model        = Model{};
-    auto&            r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
+    constexpr auto y_node_1     = 0.0;
+    constexpr auto y_node_2     = -2.0;
+    auto           model        = Model{};
+    auto&          r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
 
     r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
     r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
 
-    auto test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(-0.5);
+    const auto test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(-0.5);
 
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
 
