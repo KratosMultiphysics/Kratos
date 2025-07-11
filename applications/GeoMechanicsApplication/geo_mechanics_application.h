@@ -822,6 +822,10 @@ private:
         0, Kratos::make_shared<Triangle3D3<NodeType>>(Condition::GeometryType::PointsArrayType(3))};
     const UPwNormalFaceLoadCondition<3, 4> mUPwNormalFaceLoadCondition3D4N{
         0, Kratos::make_shared<Quadrilateral3D4<NodeType>>(Condition::GeometryType::PointsArrayType(4))};
+    const UPwNormalFaceLoadCondition<3, 6> mUPwNormalFaceLoadCondition3D6N{
+        0, Kratos::make_shared<Triangle3D6<NodeType>>(Condition::GeometryType::PointsArrayType(6))};
+    const UPwNormalFaceLoadCondition<3, 8> mUPwNormalFaceLoadCondition3D8N{
+        0, Kratos::make_shared<Quadrilateral3D8<NodeType>>(Condition::GeometryType::PointsArrayType(8))};
 
     const UPwNormalFluxCondition<2, 2> mUPwNormalFluxCondition2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Condition::GeometryType::PointsArrayType(2))};
