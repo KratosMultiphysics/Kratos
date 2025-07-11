@@ -18,15 +18,13 @@ namespace Kratos
 
 bool GeoLinearElasticLaw::RequiresInitializeMaterialResponse()
 {
-    // Avoid that `ConstitutiveLaw::InitializeMaterialResponse` throws
-    // an exception
+    // Avoid that `ConstitutiveLaw::InitializeMaterialResponse` throws an exception
     return false;
 }
 
 bool GeoLinearElasticLaw::RequiresFinalizeMaterialResponse()
 {
-    // Avoid that `ConstitutiveLaw::FinalizeMaterialResponse` throws
-    // an exception
+    // Avoid that `ConstitutiveLaw::FinalizeMaterialResponse` throws an exception
     return false;
 }
 
@@ -85,8 +83,8 @@ double& GeoLinearElasticLaw::CalculateValue(ConstitutiveLaw::Parameters& rParame
                                             double&                      rValue)
 {
     if (rThisVariable == STRAIN_ENERGY) {
-        Vector& r_strain_vector = rParameterValues.GetStrainVector();
-        Vector& r_stress_vector = rParameterValues.GetStressVector();
+        const Vector& r_strain_vector = rParameterValues.GetStrainVector();
+        Vector&       r_stress_vector = rParameterValues.GetStressVector();
         this->CalculatePK2Stress(r_strain_vector, r_stress_vector, rParameterValues);
 
         rValue = 0.5 * inner_prod(r_strain_vector, r_stress_vector); // Strain energy = 0.5*E:C:E
