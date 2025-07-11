@@ -141,16 +141,18 @@ void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Paramete
     auto trial_sigma_tau = CalculateTrialTractionVector(rConstitutiveLawParameters.GetStrainVector(),
                                                         r_properties[INTERFACE_NORMAL_STIFFNESS],
                                                         r_properties[INTERFACE_SHEAR_STIFFNESS]);
+    auto mapped_sigma_tau = trial_sigma_tau;
+
     const auto negative = std::signbit(trial_sigma_tau[1]);
     trial_sigma_tau[1]  = std::abs(trial_sigma_tau[1]);
 
     if (!mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
-        trial_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(r_properties, trial_sigma_tau);
+        mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
+            r_properties, trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
+        if (negative) mapped_sigma_tau[1] *= -1.0;
     }
 
-    if (negative) trial_sigma_tau[1] *= -1.0;
-
-    mTractionVector                              = trial_sigma_tau;
+    mTractionVector                              = mapped_sigma_tau;
     rConstitutiveLawParameters.GetStressVector() = mTractionVector;
 }
 

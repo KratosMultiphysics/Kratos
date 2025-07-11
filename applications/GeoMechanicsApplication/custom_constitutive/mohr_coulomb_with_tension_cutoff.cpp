@@ -22,6 +22,54 @@
 
 #include <cmath>
 
+namespace
+{
+using namespace Kratos;
+
+std::size_t AveragingTypeToArrayIndex(CoulombYieldSurface::CoulombAveragingType AveragingType)
+{
+    switch (AveragingType) {
+    case CoulombYieldSurface::CoulombAveragingType::LOWEST_PRINCIPAL_STRESSES:
+        return 0;
+    case CoulombYieldSurface::CoulombAveragingType::HIGHEST_PRINCIPAL_STRESSES:
+        return 2;
+    default:
+        return 1;
+    }
+}
+
+Vector AveragePrincipalStressComponents(const Vector& rPrincipalStressVector,
+                                        CoulombYieldSurface::CoulombAveragingType AveragingType)
+{
+    auto result = rPrincipalStressVector;
+    switch (AveragingType) {
+    case CoulombYieldSurface::CoulombAveragingType::LOWEST_PRINCIPAL_STRESSES:
+        std::fill(result.begin(), result.begin() + 1,
+                  (rPrincipalStressVector[0] + rPrincipalStressVector[1]) * 0.5);
+        break;
+    case CoulombYieldSurface::CoulombAveragingType::HIGHEST_PRINCIPAL_STRESSES:
+        std::fill(result.begin() + 1, result.begin() + 2,
+                  (rPrincipalStressVector[1] + rPrincipalStressVector[2]) * 0.5);
+        break;
+    default:
+        break;
+    }
+    return result;
+}
+
+CoulombYieldSurface::CoulombAveragingType FindAveragingType(const Vector& rMappedPrincipalStressVector)
+{
+    if (rMappedPrincipalStressVector[0] < rMappedPrincipalStressVector[1]) {
+        return CoulombYieldSurface::CoulombAveragingType::LOWEST_PRINCIPAL_STRESSES;
+    }
+    if (rMappedPrincipalStressVector[1] < rMappedPrincipalStressVector[2]) {
+        return CoulombYieldSurface::CoulombAveragingType::HIGHEST_PRINCIPAL_STRESSES;
+    }
+    return CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING;
+}
+
+} // namespace
+
 namespace Kratos
 {
 
@@ -148,27 +196,42 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
         rParameters.GetConstitutiveMatrix() = mpConstitutiveDimension->CalculateElasticMatrix(r_properties);
     }
 
-    const auto trail_stress_vector = CalculateTrialStressVector(rParameters.GetStrainVector(), r_properties);
+    const auto trial_stress_vector = CalculateTrialStressVector(rParameters.GetStrainVector(), r_properties);
 
     Vector principal_trial_stress_vector;
     Matrix rotation_matrix;
     StressStrainUtilities::CalculatePrincipalStresses(
-        trail_stress_vector, principal_trial_stress_vector, rotation_matrix);
+        trial_stress_vector, principal_trial_stress_vector, rotation_matrix);
 
     auto trial_sigma_tau =
         StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_trial_stress_vector);
-    while (!mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
-        trial_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(r_properties, trial_sigma_tau);
-        principal_trial_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
-            trial_sigma_tau, principal_trial_stress_vector);
 
-        StressStrainUtilities::ReorderEigenValuesAndVectors(principal_trial_stress_vector, rotation_matrix);
-        trial_sigma_tau =
-            StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_trial_stress_vector);
+    if (mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
+        mStressVector = trial_stress_vector;
+    } else {
+        auto mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
+            r_properties, trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
+        auto mapped_principal_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
+            mapped_sigma_tau, principal_trial_stress_vector);
+
+        // for interchanging principal stresses, retry mapping with averaged principal stresses.
+        const auto averaging_type = FindAveragingType(mapped_principal_stress_vector);
+        if (averaging_type != CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING) {
+            const auto averaged_principal_trial_stress_vector =
+                AveragePrincipalStressComponents(principal_trial_stress_vector, averaging_type);
+            trial_sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(
+                averaged_principal_trial_stress_vector);
+            mapped_sigma_tau =
+                mCoulombWithTensionCutOffImpl.DoReturnMapping(r_properties, trial_sigma_tau, averaging_type);
+            mapped_principal_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
+                mapped_sigma_tau, averaged_principal_trial_stress_vector);
+            mapped_principal_stress_vector[1] =
+                mapped_principal_stress_vector[AveragingTypeToArrayIndex(averaging_type)];
+        }
+        mStressVector = StressStrainUtilities::RotatePrincipalStresses(
+            mapped_principal_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
     }
 
-    mStressVector = StressStrainUtilities::RotatePrincipalStresses(
-        principal_trial_stress_vector, rotation_matrix, mpConstitutiveDimension->GetStrainSize());
     rParameters.GetStressVector() = mStressVector;
 }
 
