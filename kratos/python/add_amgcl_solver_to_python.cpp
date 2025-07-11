@@ -33,39 +33,12 @@ void  AddAMGCLSolverToPython(pybind11::module& m)
 
     namespace py = pybind11;
 
-    py::enum_<AMGCLSmoother>(m, "AMGCLSmoother")
-        .value("SPAI0", SPAI0)
-        .value("SPAI1", SPAI1)
-        .value("ILU0", ILU0)
-        .value("DAMPED_JACOBI", DAMPED_JACOBI)
-        .value("GAUSS_SEIDEL", GAUSS_SEIDEL)
-        .value("CHEBYSHEV", CHEBYSHEV)
-        ;
-
-    py::enum_<AMGCLIterativeSolverType>(m, "AMGCLIterativeSolverType")
-        .value("GMRES", GMRES)
-        .value("LGMRES", LGMRES)
-        .value("FGMRES", FGMRES)
-        .value("BICGSTAB", BICGSTAB)
-        .value("CG", CG)
-        .value("BICGSTAB_WITH_GMRES_FALLBACK", BICGSTAB_WITH_GMRES_FALLBACK)
-        .value("BICGSTAB2", BICGSTAB2)
-        ;
-
-    py::enum_<AMGCLCoarseningType>(m, "AMGCLCoarseningType")
-        .value("RUGE_STUBEN", RUGE_STUBEN)
-        .value("AGGREGATION", AGGREGATION)
-        .value("SA", SA)
-        .value("SA_EMIN", SA_EMIN)
-        ;
-
     using AMGCLSolverType = AMGCLSolver<SpaceType, LocalSpaceType>;
     py::class_<AMGCLSolverType, std::shared_ptr<AMGCLSolverType>, LinearSolverType>(m, "AMGCLSolver")
-        .def(py::init<AMGCLSmoother, AMGCLIterativeSolverType, double, int, int, int>())
-        .def(py::init<AMGCLSmoother, AMGCLIterativeSolverType, AMGCLCoarseningType, double, int, int, int, bool>())
+        .def(py::init<const std::string&, const std::string&, double, int, int, int>())
+        .def(py::init<const std::string&, const std::string&, const std::string&, double, int, int, int, bool>())
         .def(py::init<>())
         .def(py::init<Parameters>())
-        .def("GetResidualNorm", &AMGCLSolverType::GetResidualNorm)
         ;
 
     using AMGCL_NS_SolverType = AMGCL_NS_Solver<SpaceType, LocalSpaceType>;
