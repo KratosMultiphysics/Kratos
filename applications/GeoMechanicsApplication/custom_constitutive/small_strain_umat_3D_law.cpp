@@ -109,6 +109,15 @@ using f_UMATMod = void (*)(double*       STRESS,
 #endif
 
 template <unsigned int TVoigtSize>
+SmallStrainUMAT3DLaw<TVoigtSize>::SmallStrainUMAT3DLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
+    : ConstitutiveLaw{}, mpConstitutiveDimension(std::move(pConstitutiveDimension))
+{
+}
+
+template <unsigned int TVoigtSize>
+SmallStrainUMAT3DLaw<TVoigtSize>::~SmallStrainUMAT3DLaw() = default;
+
+template <unsigned int TVoigtSize>
 SmallStrainUMAT3DLaw<TVoigtSize>::SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLaw& rOther)
     : ConstitutiveLaw(rOther),
       mStressVector(rOther.mStressVector),
@@ -118,8 +127,8 @@ SmallStrainUMAT3DLaw<TVoigtSize>::SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLa
       mIsModelInitialized(rOther.mIsModelInitialized),
       mIsUMATLoaded(rOther.mIsUMATLoaded),
       mStateVariables(rOther.mStateVariables),
-      mStateVariablesFinalized(rOther.mStateVariablesFinalized)
-
+      mStateVariablesFinalized(rOther.mStateVariablesFinalized),
+      mpConstitutiveDimension(rOther.mpConstitutiveDimension->Clone())
 {
     KRATOS_TRY
 
@@ -154,6 +163,7 @@ SmallStrainUMAT3DLaw<TVoigtSize>& SmallStrainUMAT3DLaw<TVoigtSize>::operator=(co
     this->mStressVectorFinalized   = rOther.mStressVectorFinalized;
     this->mDeltaStrainVector       = rOther.mDeltaStrainVector;
     this->mStrainVectorFinalized   = rOther.mStrainVectorFinalized;
+    this->mpConstitutiveDimension = rOther.mpConstitutiveDimension->Clone();
 
     for (unsigned int i = 0; i < TVoigtSize; ++i)
         for (unsigned int j = 0; j < TVoigtSize; ++j)

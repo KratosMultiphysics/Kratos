@@ -16,6 +16,7 @@
 #include "includes/define.h"
 #include <iostream>
 #include <string>
+#include <memory>
 
 // Project includes
 #include "includes/constitutive_law.h"
@@ -23,6 +24,7 @@
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
+#include "constitutive_law_dimension.h"
 
 namespace Kratos
 {
@@ -38,6 +40,8 @@ namespace Kratos
    KSLAY,   double* KSPT,    int* KSTEP, int* KINC);
 
 */
+
+class ConstitutiveLawDimension;
 
 using pF_UMATMod = void (*)(double*       STRESS,
                             double*       STATEV,
@@ -127,7 +131,9 @@ public:
     //@{
 
     SmallStrainUMAT3DLaw()           = default;
-    ~SmallStrainUMAT3DLaw() override = default;
+    explicit SmallStrainUMAT3DLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
+
+    ~SmallStrainUMAT3DLaw() override;
     SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLaw& rOther);
     SmallStrainUMAT3DLaw& operator=(const SmallStrainUMAT3DLaw& rOther);
     SmallStrainUMAT3DLaw(SmallStrainUMAT3DLaw&&)            = delete;
@@ -377,6 +383,7 @@ private:
 
     Vector mStateVariables;
     Vector mStateVariablesFinalized;
+    std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
 
     ///@}
     ///@name Private Operators
@@ -413,6 +420,7 @@ private:
         rSerializer.save("StressVectorFinalized", mStressVectorFinalized);
         rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
         rSerializer.save("StateVariablesFinalized", mStateVariablesFinalized);
+        rSerializer.save("ConstitutitiveLawDimension", mpConstitutiveDimension);
     }
 
     void load(Serializer& rSerializer) override
@@ -422,6 +430,7 @@ private:
         rSerializer.load("StressVectorFinalized", mStressVectorFinalized);
         rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
         rSerializer.load("StateVariablesFinalized", mStateVariablesFinalized);
+        rSerializer.load("ConstitutitiveLawDimension", mpConstitutiveDimension);
     }
 
     ///@}
