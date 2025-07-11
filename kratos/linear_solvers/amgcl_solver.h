@@ -50,7 +50,7 @@ namespace Kratos {
  */
 template< class TSparseSpaceType, class TDenseSpaceType,
           class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-class AMGCLSolver : public LinearSolver< TSparseSpaceType,
+class KRATOS_API(KRATOS_CORE) AMGCLSolver : public LinearSolver< TSparseSpaceType,
     TDenseSpaceType, TReordererType>
 {
 public:

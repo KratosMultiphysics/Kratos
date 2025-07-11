@@ -47,7 +47,8 @@ namespace Kratos
  */
 template< class TSparseSpaceType, class TDenseSpaceType,
           class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-class AmgclMPISolver : public AMGCLSolver< TSparseSpaceType,TDenseSpaceType, TReordererType >
+class KRATOS_API(TRILINOS_APPLICATION) AmgclMPISolver
+    : public AMGCLSolver< TSparseSpaceType,TDenseSpaceType, TReordererType >
 {
 public:
     ///@name Type Definitions
