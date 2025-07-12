@@ -31,6 +31,7 @@
 #include "tensor_adaptors/flags_tensor_adaptor.h"
 #include "tensor_adaptors/equation_ids_tensor_adaptor.h"
 #include "tensor_adaptors/gauss_point_variable_tensor_adaptor.h"
+#include "tensor_adaptors/node_position_tensor_adaptor.h"
 
 // Include base h
 #include "add_tensor_adaptors_to_python.h"
@@ -284,6 +285,11 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
         .def(py::init<ModelPart::NodesContainerType::Pointer, const Flags&>(), pybind11::arg("container"), pybind11::arg("flag"))
         .def(py::init<ModelPart::ConditionsContainerType::Pointer, const Flags&>(), pybind11::arg("container"), pybind11::arg("flag"))
         .def(py::init<ModelPart::ElementsContainerType::Pointer, const Flags&>(), pybind11::arg("container"), pybind11::arg("flag"))
+        ;
+
+    pybind11::class_<NodePositionTensorAdaptor, NodePositionTensorAdaptor::Pointer, NodePositionTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "NodePositionTensorAdaptor")
+        .def(py::init<ModelPart::NodesContainerType::Pointer, Globals::Configuration>(), py::arg("container"), py::arg("configuration"))
+        .def(py::init<ModelPart::NodesContainerType::Pointer, Globals::Configuration, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("configuration"), py::arg("data_shape"))
         ;
 }
 
