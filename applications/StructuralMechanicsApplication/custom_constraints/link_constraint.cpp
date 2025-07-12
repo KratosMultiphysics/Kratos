@@ -54,15 +54,15 @@ struct LinkConstraint::Impl
                   static_cast<ValueType>(0));
 
         // Compute constraint violation.
-        double current_norm = 0.0;
+        double current_norm_square = 0.0;
         for (std::size_t i_component=0ul; i_component<Dimensions; ++i_component) {
             const auto current_diff = rLastPositions[i_component] - rLastPositions[i_component + Dimensions]
                                     + rLastDisplacements[i_component] - rLastDisplacements[i_component + Dimensions];
-            current_norm += current_diff * current_diff;
+            current_norm_square += current_diff * current_diff;
         } // for i_component in range(Dimensions)
 
-        KRATOS_ERROR_IF_NOT(current_norm) << "degenerate link constraint";
-        const auto current_norm_root = std::sqrt(current_norm);
+        KRATOS_ERROR_IF_NOT(current_norm_square) << "degenerate link constraint";
+        const auto current_norm = std::sqrt(current_norm_square);
 
         // Dof order:
         // {u^0_x, ..., u^0_w, u^1_x, ..., u^1_w}
