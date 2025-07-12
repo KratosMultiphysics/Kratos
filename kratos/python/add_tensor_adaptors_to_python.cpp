@@ -30,6 +30,7 @@
 #include "tensor_adaptors/variable_tensor_adaptor.h"
 #include "tensor_adaptors/flags_tensor_adaptor.h"
 #include "tensor_adaptors/equation_ids_tensor_adaptor.h"
+#include "tensor_adaptors/gauss_point_variable_tensor_adaptor.h"
 
 // Include base h
 #include "add_tensor_adaptors_to_python.h"
@@ -269,13 +270,10 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
         .def(py::init<VariableTensorAdaptor::ContainerPointerType, VariableTensorAdaptor::VariablePointerType, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"))
         ;
 
-    // using gauss_point_variable_tensor_adaptor = VariableTensorAdaptor<GaussPointIO, const ProcessInfo&>;
-    // py::class_<gauss_point_variable_tensor_adaptor, gauss_point_variable_tensor_adaptor::Pointer, gauss_point_variable_tensor_adaptor::BaseType>(tensor_adaptor_sub_module, "GaussPointVariableTensorAdaptor")
-    //     .def(py::init<ModelPart::ConditionsContainerType::Pointer, gauss_point_variable_tensor_adaptor::VariableType, const ProcessInfo&>(), py::arg("container"), py::arg("variable"), py::arg("process_info"))
-    //     .def(py::init<ModelPart::ConditionsContainerType::Pointer, gauss_point_variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&, const ProcessInfo&>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"), py::arg("process_info"))
-    //     .def(py::init<ModelPart::ElementsContainerType::Pointer, gauss_point_variable_tensor_adaptor::VariableType, const ProcessInfo&>(), py::arg("container"), py::arg("variable"), py::arg("process_info"))
-    //     .def(py::init<ModelPart::ElementsContainerType::Pointer, gauss_point_variable_tensor_adaptor::VariableType, const std::vector<unsigned int>&, const ProcessInfo&>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"), py::arg("process_info"))
-    //     ;
+    py::class_<GaussPointVariableTensorAdaptor, GaussPointVariableTensorAdaptor::Pointer, GaussPointVariableTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "GaussPointVariableTensorAdaptor")
+        .def(py::init<ModelPart::ConditionsContainerType::Pointer, GaussPointVariableTensorAdaptor::VariablePointerType, ProcessInfo::Pointer>(), py::arg("container"), py::arg("variable"), py::arg("process_info"))
+        .def(py::init<ModelPart::ElementsContainerType::Pointer, GaussPointVariableTensorAdaptor::VariablePointerType, ProcessInfo::Pointer>(), py::arg("container"), py::arg("variable"), py::arg("process_info"))
+        ;
 
     pybind11::class_<EquationIdsTensorAdaptor, EquationIdsTensorAdaptor::Pointer, EquationIdsTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "EquationIdsTensorAdaptor")
         .def(py::init<ModelPart::ConditionsContainerType::Pointer, ProcessInfo::Pointer>(), pybind11::arg("container"), pybind11::arg("process_info"))
