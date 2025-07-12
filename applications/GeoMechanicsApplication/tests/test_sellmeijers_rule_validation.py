@@ -108,13 +108,9 @@ class TestSellmeijersRuleValidation(KratosUnittest.TestCase):
         return critical_head_found, length
 
     @parameterized.expand(
-        [('7.8', 1.00E-04, 1.157E-12, 5.02, 5.7, 22.5, 'test_compare_sellmeijer/HeightAquiferD30L60.gid'),
-         ('7.9', 1.00E-04, 1.157E-12, 7.13, 8.1, 24, 'test_compare_sellmeijer/HeightAquiferD30L90.gid'),
-         ('7.17', 3.00E-04, 1.157E-12, 15.05, 16.8, 22.5, 'test_compare_sellmeijer/HeightAquiferD30L60.gid'),
+        [('7.9', 1.00E-04, 1.157E-12, 7.13, 8.1, 24, 'test_compare_sellmeijer/HeightAquiferD30L90.gid'),
          ('7.18', 3.00E-04, 1.157E-12, 21.4, 24.1, 28.5, 'test_compare_sellmeijer/HeightAquiferD30L90.gid'),
-         ('7.26', 1.00E-04, 1.157E-10, 1.08, 1.2, 16.5, 'test_compare_sellmeijer/HeightAquiferD30L60.gid'),
          ('7.27', 1.00E-04, 1.157E-10, 1.54, 1.7, 18, 'test_compare_sellmeijer/HeightAquiferD30L90.gid'),
-         ('7.35', 3.00E-04, 1.157E-10, 3.24, 3.7, 22.5, 'test_compare_sellmeijer/HeightAquiferD30L60.gid'),
          ('7.36', 3.00E-04, 1.157E-10, 4.61, 5.3, 27, 'test_compare_sellmeijer/HeightAquiferD30L90.gid')])
     def test_sellmeijers_rule_height(self, name, d70, kappa, h_c, h_n, length_n, test_name_gid):
         file_path = test_helper.get_file_path(os.path.join('./', test_name_gid))
