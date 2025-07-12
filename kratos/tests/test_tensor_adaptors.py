@@ -238,6 +238,48 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
     def test_ElementFlagsTensorAdaptor(self):
         self.__TestFlagsTensorAdaptor(self.model_part.Elements)
 
+    def test_NodePositionTensorAdaptor1(self):
+        node_position_ta = Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.model_part.Nodes, Kratos.Configuration.Current)
+        node_position_ta.CollectData()
+
+        numpy_data = node_position_ta.data
+        for i, node in enumerate(self.model_part.Nodes):
+            self.assertVectorAlmostEqual(numpy_data[i, :], [node.X, node.Y, node.Z])
+
+        node_position_ta_1 = Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.model_part.Nodes, Kratos.Configuration.Current, [2])
+        node_position_ta_1.CollectData()
+        numpy_data_1 = node_position_ta_1.data
+        for i, node in enumerate(self.model_part.Nodes):
+            self.assertVectorAlmostEqual(numpy_data_1[i, :], [node.X, node.Y])
+
+        numpy_data_1[:] = numpy_data[:, 0:2] * 2
+        node_position_ta_1.StoreData()
+        for i, node in enumerate(self.model_part.Nodes):
+            self.assertEqual(node.X, numpy_data[i, 0] * 2)
+            self.assertEqual(node.Y, numpy_data[i, 1] * 2)
+            self.assertEqual(node.Z, numpy_data[i, 2])
+
+    def test_NodePositionTensorAdaptor2(self):
+        node_position_ta = Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.model_part.Nodes, Kratos.Configuration.Initial)
+        node_position_ta.CollectData()
+
+        numpy_data = node_position_ta.data
+        for i, node in enumerate(self.model_part.Nodes):
+            self.assertVectorAlmostEqual(numpy_data[i, :], [node.X0, node.Y0, node.Z0])
+
+        node_position_ta_1 = Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.model_part.Nodes, Kratos.Configuration.Initial, [2])
+        node_position_ta_1.CollectData()
+        numpy_data_1 = node_position_ta_1.data
+        for i, node in enumerate(self.model_part.Nodes):
+            self.assertVectorAlmostEqual(numpy_data_1[i, :], [node.X0, node.Y0])
+
+        numpy_data_1[:] = numpy_data[:, 0:2] * 2
+        node_position_ta_1.StoreData()
+        for i, node in enumerate(self.model_part.Nodes):
+            self.assertEqual(node.X0, numpy_data[i, 0] * 2)
+            self.assertEqual(node.Y0, numpy_data[i, 1] * 2)
+            self.assertEqual(node.Z0, numpy_data[i, 2])
+
     def __TestFlagsTensorAdaptor(self, container):
         tensor_adaptor_read = Kratos.TensorAdaptors.FlagsTensorAdaptor(container, Kratos.SLIP)
         tensor_adaptor_read.CollectData()
