@@ -51,8 +51,7 @@ class LinkConstraintProcess(KratosMultiphysics.Process):
                 self.__dimensions,
                 self.__is_mesh_moved)
 
-            if not self.__is_active:
-                constraint.Set(KratosMultiphysics.ACTIVE, False)
+            constraint.Set(KratosMultiphysics.ACTIVE, self.__is_active)
 
             self.__constraints.append(constraint)
             self.__model_part.AddMasterSlaveConstraint(constraint)
