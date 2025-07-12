@@ -123,14 +123,6 @@ void SteadyStatePwPipingElement<2, 4>::CalculateLength(const GeometryType& Geom)
     KRATOS_CATCH("")
 }
 
-template <>
-void SteadyStatePwPipingElement<3, 6>::CalculateLength(const GeometryType& Geom)
-{
-    KRATOS_ERROR << " Length of SteadyStatePwPipingElement3D6N element is not "
-                    "implemented"
-                 << std::endl;
-}
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<bool>& rVariable, std::vector<bool>& rValues, const ProcessInfo& rCurrentProcessInfo)
@@ -254,16 +246,6 @@ double SteadyStatePwPipingElement<2, 4>::CalculateHeadGradient(const PropertiesT
     return std::abs((nodalHead[3] + nodalHead[0]) / 2 - (nodalHead[2] + nodalHead[1]) / 2) / dx;
 }
 
-template <>
-double SteadyStatePwPipingElement<3, 6>::CalculateHeadGradient(const PropertiesType& Prop,
-                                                               const GeometryType&   Geom,
-                                                               double                dx)
-{
-    KRATOS_ERROR << " head gradient calculation of "
-                    "SteadyStatePwPipingElement3D6N element is not implemented"
-                 << std::endl;
-}
-
 /// <summary>
 /// Calculates the equilibrium pipe height of a piping element according to Sellmeijers rule
 /// </summary>
@@ -303,5 +285,4 @@ bool SteadyStatePwPipingElement<TDim, TNumNodes>::InEquilibrium(const Properties
 }
 
 template class SteadyStatePwPipingElement<2, 4>;
-template class SteadyStatePwPipingElement<3, 6>;
 } // Namespace Kratos
