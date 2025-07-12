@@ -98,9 +98,9 @@ EquationIdsTensorAdaptor::ContainerPointerType EquationIdsTensorAdaptor::GetCont
 
 std::string EquationIdsTensorAdaptor::Info() const
 {
-    // return std::visit([this](auto pContainer) {
-    //     return EquationIdsTensorAdaptorHelpers::InfoImpl(this->mShape, *pContainer);
-    // }, mpContainer);
+    return std::visit([this](auto pContainer) {
+        return TensorAdaptorUtils::Info("EquationIdsTensorAdaptor ", this->Shape(), *pContainer);
+    }, mpContainer);
 }
 
 // template instantiations
