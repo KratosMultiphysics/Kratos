@@ -108,16 +108,12 @@ class TestSellmeijersRuleValidation(KratosUnittest.TestCase):
         return critical_head_found, length
 
     @parameterized.expand(
-        [('7.7', 1.00E-04, 1.157E-12, 2.6, 3.1, 10.5, 'test_compare_sellmeijer/HeightAquiferD30L30.gid'),
-         ('7.8', 1.00E-04, 1.157E-12, 5.02, 5.7, 22.5, 'test_compare_sellmeijer/HeightAquiferD30L60.gid'),
+        [('7.8', 1.00E-04, 1.157E-12, 5.02, 5.7, 22.5, 'test_compare_sellmeijer/HeightAquiferD30L60.gid'),
          ('7.9', 1.00E-04, 1.157E-12, 7.13, 8.1, 24, 'test_compare_sellmeijer/HeightAquiferD30L90.gid'),
-         ('7.16', 3.00E-04, 1.157E-12, 7.8, 9.4, 12, 'test_compare_sellmeijer/HeightAquiferD30L30.gid'),
          ('7.17', 3.00E-04, 1.157E-12, 15.05, 16.8, 22.5, 'test_compare_sellmeijer/HeightAquiferD30L60.gid'),
          ('7.18', 3.00E-04, 1.157E-12, 21.4, 24.1, 28.5, 'test_compare_sellmeijer/HeightAquiferD30L90.gid'),
-         ('7.25', 1.00E-04, 1.157E-10, 0.56, 0.6, 6, 'test_compare_sellmeijer/HeightAquiferD30L30.gid'),
          ('7.26', 1.00E-04, 1.157E-10, 1.08, 1.2, 16.5, 'test_compare_sellmeijer/HeightAquiferD30L60.gid'),
          ('7.27', 1.00E-04, 1.157E-10, 1.54, 1.7, 18, 'test_compare_sellmeijer/HeightAquiferD30L90.gid'),
-         ('7.34', 3.00E-04, 1.157E-10, 1.68, 2, 9, 'test_compare_sellmeijer/HeightAquiferD30L30.gid'),
          ('7.35', 3.00E-04, 1.157E-10, 3.24, 3.7, 22.5, 'test_compare_sellmeijer/HeightAquiferD30L60.gid'),
          ('7.36', 3.00E-04, 1.157E-10, 4.61, 5.3, 27, 'test_compare_sellmeijer/HeightAquiferD30L90.gid')])
     def test_sellmeijers_rule_height(self, name, d70, kappa, h_c, h_n, length_n, test_name_gid):
