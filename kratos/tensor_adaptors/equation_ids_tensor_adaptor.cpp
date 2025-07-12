@@ -91,7 +91,7 @@ void EquationIdsTensorAdaptor::StoreData()
     KRATOS_ERROR << "Equation ids storing is not allowed.";
 }
 
-EquationIdsTensorAdaptor::ContainerType EquationIdsTensorAdaptor::GetContainer() const
+EquationIdsTensorAdaptor::ContainerPointerType EquationIdsTensorAdaptor::GetContainer() const
 {
     return mpContainer;
 }

@@ -22,7 +22,7 @@
 namespace Kratos {
 
 VariableTensorAdaptor::VariableTensorAdaptor(
-    ContainerType pContainer,
+    ContainerPointerType pContainer,
     VariablePointerType pVariable)
     : mpContainer(pContainer),
       mpVariable(pVariable)
@@ -38,7 +38,7 @@ VariableTensorAdaptor::VariableTensorAdaptor(
 }
 
 VariableTensorAdaptor::VariableTensorAdaptor(
-    ContainerType pContainer,
+    ContainerPointerType pContainer,
     VariablePointerType pVariable,
     const std::vector<unsigned int>& rDataShape)
     : mpContainer(pContainer),
@@ -79,7 +79,7 @@ void VariableTensorAdaptor::StoreData()
         mpContainer, mpVariable);
 }
 
-VariableTensorAdaptor::ContainerType VariableTensorAdaptor::GetContainer() const
+VariableTensorAdaptor::ContainerPointerType VariableTensorAdaptor::GetContainer() const
 {
     return mpContainer;
 }

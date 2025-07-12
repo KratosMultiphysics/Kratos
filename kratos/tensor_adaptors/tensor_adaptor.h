@@ -43,14 +43,14 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TensorAdaptor);
 
-    using ContainerType = std::variant<
-                                ModelPart::NodesContainerType::Pointer,
-                                ModelPart::ConditionsContainerType::Pointer,
-                                ModelPart::ElementsContainerType::Pointer,
-                                ModelPart::PropertiesContainerType::Pointer,
-                                // ModelPart::MasterSlaveConstraintContainerType::Pointer,
-                                ModelPart::GeometryContainerType::GeometriesMapType::Pointer
-                            >;
+    using ContainerPointerType = std::variant<
+                                        ModelPart::NodesContainerType::Pointer,
+                                        ModelPart::ConditionsContainerType::Pointer,
+                                        ModelPart::ElementsContainerType::Pointer,
+                                        ModelPart::PropertiesContainerType::Pointer,
+                                        // ModelPart::MasterSlaveConstraintContainerType::Pointer,
+                                        ModelPart::GeometryContainerType::GeometriesMapType::Pointer
+                                    >;
 
     ///@}
     ///@name Life cycle
@@ -88,7 +88,7 @@ public:
     /**
      * @brief Get the data container which is associated with the TensorAdaptor.
      */
-    virtual ContainerType GetContainer() const = 0;
+    virtual ContainerPointerType GetContainer() const = 0;
 
     /**
      * @brief Moves the internal data.

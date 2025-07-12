@@ -81,7 +81,7 @@ void HistoricalVariableTensorAdaptor::StoreData()
         mpVariable);
 }
 
-HistoricalVariableTensorAdaptor::ContainerType HistoricalVariableTensorAdaptor::GetContainer() const
+HistoricalVariableTensorAdaptor::ContainerPointerType HistoricalVariableTensorAdaptor::GetContainer() const
 {
     return mpContainer;
 }

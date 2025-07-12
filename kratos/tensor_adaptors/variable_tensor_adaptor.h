@@ -37,8 +37,6 @@ public:
 
     using BaseType = TensorAdaptor<double>;
 
-    using ContainerType = typename BaseType::ContainerType;
-
     using VariablePointerType = TensorAdaptorUtils::VariablePointerType;
 
     ///@}
@@ -46,11 +44,11 @@ public:
     ///@
 
     VariableTensorAdaptor(
-        ContainerType pContainer,
+        ContainerPointerType pContainer,
         VariablePointerType pVariable);
 
     VariableTensorAdaptor(
-        ContainerType pContainer,
+        ContainerPointerType pContainer,
         VariablePointerType pVariable,
         const std::vector<unsigned int>& rDataShape);
 
@@ -73,7 +71,7 @@ public:
      */
     void StoreData() override;
 
-    ContainerType GetContainer() const override;
+    ContainerPointerType GetContainer() const override;
 
     ///@}
     ///@name Input and output
@@ -87,7 +85,7 @@ private:
     ///@name Private member variables
     ///@{
 
-    ContainerType mpContainer;
+    ContainerPointerType mpContainer;
 
     VariablePointerType mpVariable;
 

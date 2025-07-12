@@ -38,8 +38,6 @@ public:
 
     using BaseType = TensorAdaptor<double>;
 
-    using ContainerType = typename BaseType::ContainerType;
-
     using VariablePointerType = TensorAdaptorUtils::VariablePointerType;
 
     ///@}
@@ -76,7 +74,7 @@ public:
      */
     void StoreData() override;
 
-    ContainerType GetContainer() const override;
+    ContainerPointerType GetContainer() const override;
 
     ///@}
     ///@name Input and output

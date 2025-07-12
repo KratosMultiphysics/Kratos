@@ -63,7 +63,7 @@ public:
      */
     void StoreData() override;
 
-    ContainerType GetContainer() const override;
+    ContainerPointerType GetContainer() const override;
 
     ///@}
     ///@name Input and output
@@ -77,7 +77,7 @@ private:
     ///@name Private member variables
     ///@{
 
-    ContainerType mpContainer;
+    ContainerPointerType mpContainer;
 
     Flags mFlags;
 

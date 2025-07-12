@@ -95,7 +95,7 @@ void FlagsTensorAdaptor::StoreData()
         mpContainer);
 }
 
-FlagsTensorAdaptor::ContainerType FlagsTensorAdaptor::GetContainer() const
+FlagsTensorAdaptor::ContainerPointerType FlagsTensorAdaptor::GetContainer() const
 {
     return this->mpContainer;
 }

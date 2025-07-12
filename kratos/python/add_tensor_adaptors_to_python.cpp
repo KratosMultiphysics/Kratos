@@ -265,8 +265,8 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
         ;
 
     pybind11::class_<VariableTensorAdaptor, VariableTensorAdaptor::Pointer, VariableTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "VariableTensorAdaptor")
-        .def(py::init<VariableTensorAdaptor::ContainerType, VariableTensorAdaptor::VariablePointerType>(), py::arg("container"), py::arg("variable"))
-        .def(py::init<VariableTensorAdaptor::ContainerType, VariableTensorAdaptor::VariablePointerType, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"))
+        .def(py::init<VariableTensorAdaptor::ContainerPointerType, VariableTensorAdaptor::VariablePointerType>(), py::arg("container"), py::arg("variable"))
+        .def(py::init<VariableTensorAdaptor::ContainerPointerType, VariableTensorAdaptor::VariablePointerType, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"))
         ;
 
     // using gauss_point_variable_tensor_adaptor = VariableTensorAdaptor<GaussPointIO, const ProcessInfo&>;
