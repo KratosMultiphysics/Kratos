@@ -2,6 +2,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+from KratosMultiphysics.KratosUnittest import WorkFolderScope
 
 # --- STD Imports ---
 import pathlib
@@ -9,18 +10,6 @@ import contextlib
 import os
 from typing import Generator
 import math
-
-import KratosMultiphysics.analysis_stage
-
-
-@contextlib.contextmanager
-def CaseWorkingDirectory(case_directory: pathlib.Path) -> Generator[None, None, None]:
-    original_directory = pathlib.Path(os.getcwd())
-    os.chdir(case_directory)
-    try:
-        yield
-    finally:
-        os.chdir(original_directory)
 
 
 class TestLinkConstraint(KratosMultiphysics.KratosUnittest.TestCase):
@@ -63,7 +52,7 @@ class TestLinkConstraint(KratosMultiphysics.KratosUnittest.TestCase):
         script_directory = pathlib.Path(__file__).absolute().parent
         dimensions = 2
 
-        with CaseWorkingDirectory(script_directory / "constraints"):
+        with WorkFolderScope("constraints", pathlib.Path(__file__).absolute()):
             # Load config.
             with open("link_constraint_2d.json") as project_parameters_file:
                 parameters = KratosMultiphysics.Parameters(project_parameters_file.read())
@@ -109,10 +98,9 @@ class TestLinkConstraint(KratosMultiphysics.KratosUnittest.TestCase):
 
 
     def __Run3D(self, move_mesh_flag: bool) -> None:
-        script_directory = pathlib.Path(__file__).absolute().parent
         dimensions = 3
 
-        with CaseWorkingDirectory(script_directory / "constraints"):
+        with WorkFolderScope("constraints", pathlib.Path(__file__).absolute()):
             # Load config.
             with open("link_constraint_3d.json") as project_parameters_file:
                 parameters = KratosMultiphysics.Parameters(project_parameters_file.read())
