@@ -132,7 +132,7 @@ public:
     {
         KRATOS_TRY
 
-        CopyToContiguousArrayNew<TDataType>(
+        ContainerIOUtils::CopyToContiguousArray<TDataType>(
             rContainer, Span, rTensorShape.data().begin(),
             rTensorShape.data().begin() + rTensorShape.size(), rGetter);
 
@@ -149,7 +149,7 @@ public:
     {
         KRATOS_TRY
 
-        CopyFromContiguousDataArrayNew<TDataType>(
+        ContainerIOUtils::CopyFromContiguousDataArray<TDataType>(
             rContainer, Span, rTensorShape.data().begin(),
             rTensorShape.data().begin() + rTensorShape.size(), rSetter);
 

@@ -52,7 +52,7 @@ void FlagsTensorAdaptor::CollectData()
                                    ModelPart::NodesContainerType,
                                    ModelPart::ConditionsContainerType,
                                    ModelPart::ElementsContainerType>::value) {
-                CopyToContiguousArrayNew<bool>(
+                ContainerIOUtils::CopyToContiguousArray<bool>(
                     *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
                     r_tensor_shape.data().begin() + r_tensor_shape.size(),
                     [this](bool& rValue, const auto& rEntity) {
@@ -79,7 +79,7 @@ void FlagsTensorAdaptor::StoreData()
                                    ModelPart::ConditionsContainerType,
                                    ModelPart::ElementsContainerType>::value) {
                 const auto& r_tensor_shape = this->Shape();
-                CopyFromContiguousDataArrayNew<bool>(
+                ContainerIOUtils::CopyFromContiguousDataArray<bool>(
                     *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
                     r_tensor_shape.data().begin() + r_tensor_shape.size(),
                     [this](const bool& rValue, auto& rEntity) {

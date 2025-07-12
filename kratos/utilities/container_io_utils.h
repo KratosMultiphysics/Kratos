@@ -13,408 +13,194 @@
 #pragma once
 
 // System includes
-#include <vector>
 
 // External includes
-#include <span/span.hpp>
 
 // Project includes
 #include "includes/define.h"
-#include "containers/flags.h"
-#include "includes/model_part.h"
 #include "utilities/data_type_traits.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/string_utilities.h"
 
 // Application includes
 
 namespace Kratos
 {
+///@name Kratos classes
+///@{
 
-class FlagsIO
+class KRATOS_API(KRATOS_CORE) ContainerIOUtils
 {
 public:
-    ///@name Type definitions
+    ///@name Public static operations
     ///@{
 
-    using ReturnType = bool;
-
-    template<class TContainerType>
-    static constexpr bool IsAllowedContainer = IsInList<
-                                                    TContainerType,
-                                                    ModelPart::NodesContainerType,
-                                                    ModelPart::ConditionsContainerType,
-                                                    ModelPart::ElementsContainerType>::value;
-
-    KRATOS_CLASS_POINTER_DEFINITION(FlagsIO);
-
-    ///@}
-    ///@name Life cycle
-    ///@{
-
-    FlagsIO(const Flags& rFlag) : mFlag(rFlag) {}
-
-    ///@}
-    ///@name Public operations
-    ///@{
-
-    template<class TEntityType>
-    inline void GetValue(
-        ReturnType& rOutput,
-        const TEntityType& rEntity) const
+    /**
+     * @brief Copies the values of each entity given by getter method in the container to contiguous array.
+     * @details This method copies the values of each entity given by the getter method in the container to
+     *          the given span.
+     *              The @p TGetterType can be a lambda function or a function having the following signature
+     *                  [](TDataType& rValue, const EntityType& rEntity) -> void.
+     *                  The @p rGetter should get the value from @p rEntity and store it in the @p rValue input
+     *                  variable. The full size value should be read, even if you want to have few components
+     *                  of the @p rValue in the final contiguous array.
+     *
+     *              The @p pShapeBegin and @p pShapeEnd represents the required shape of the contiguous array
+     *              represented by @p rDataSpan. Therefore, first dimension of the shape should represent the
+     *              number of entities in the @p rContainer. The rest of the values of shape represent number of
+     *              components in respective dimensions in the @p rValue of which is taken from the @p rGetter.
+     *              This may be a subset of the @p TDataType.
+     *                  Ex: if the @p TDataType is @ref array_1d<double_3> then, The vector representing
+     *                      [ @p pShapeBegin + 1, @p pShapeEnd ) may be [1], [2] or [3].
+     *                      if the @p TDataType is a dynamic type such as @ref DenseVector or @ref DenseMatrix,
+     *                      then, the [ @p pShapeBegin + 1, @p pShapeEnd ) should represent values in each dimension
+     *                      less than or equal to the values in each dimension of @p rValue.
+     *
+     *              The @p rDataSpan should represent a data span which can hold all the entities' data
+     *              which are reshaped to the [ @p pShapeBegin, @p pShapeEnd ) shape.
+     *
+     * @throws If the first dimension of the shape represented by [ @p pShapeBegin, @p pShapeEnd ) is
+     *         not equal to the number of entities in the @p rContainer.
+     * @throws If the shape represented by [ @p pShapeBegin + 1, @p pShapeEnd ) is not a valid shape
+     *         representing @p TDataType.
+     * @throws If the size of the given @p rDataSpan does not hold enough memory allocated to
+     *         put all the values.
+     *
+     * @tparam TDataType            The type of the value in each entity which is taken from the @p rGetter.
+     * @tparam TContainerType       The type of the container containing all the entities.
+     * @tparam TSpanType            The type of the span, to which all the retrieved and resized data from each entity will be copied to.
+     * @tparam TIntegerType         The type of the integer used to represent the shape.
+     * @tparam TGetterType          The type of the getter function.
+     * @param rContainer            The container containing all the entities.
+     * @param rDataSpan             The span, to which all the retrieved and resized data from each entity will be copied to.
+     * @param pShapeBegin           Begining of the shape.
+     * @param pShapeEnd             End of the shape.
+     * @param rGetter               The getter function which retrieves values of @p TDataType from each entity in @p rContainer.
+     */
+    template<class TDataType, class TContainerType, class TSpanType, class TIntegerType, class TGetterType>
+    static void CopyToContiguousArray(
+        const TContainerType& rContainer,
+        const TSpanType& rDataSpan,
+        TIntegerType const * pShapeBegin,
+        TIntegerType const * pShapeEnd,
+        const TGetterType& rGetter)
     {
-        rOutput = rEntity.Is(mFlag);
+        KRATOS_TRY
+
+        using value_type_traits = DataTypeTraits<TDataType>;
+
+        KRATOS_ERROR_IF_NOT(pShapeBegin[0] == rContainer.size())
+            << "First dimension of the  shape mismatch with the container size [ "
+            << " container size = " << rContainer.size() << ", first dimension of the shape = " << pShapeBegin[0] << " ].\n";
+
+        KRATOS_ERROR_IF_NOT(DataTypeTraits<TDataType>::IsValidShape(pShapeBegin + 1, pShapeEnd))
+            << "Invalid data shape provided. [ data shape provided = ["
+            << StringUtilities::JoinValues(pShapeBegin + 1, pShapeEnd, ",")
+            << "], max possible sizes in each dimension  = "
+            << DataTypeTraits<TDataType>::Shape(TDataType{}) << " ].\n";
+
+        KRATOS_ERROR_IF_NOT(rDataSpan.size() == pShapeBegin[0] * DataTypeTraits<TDataType>::Size(pShapeBegin + 1, pShapeEnd))
+            << "The span size mismatch with required size from the given shape [ "
+            << "span size = " << rDataSpan.size() << ", shape = [" << StringUtilities::JoinValues(pShapeBegin, pShapeEnd, ",") << "] ].\n";
+
+        const auto stride = value_type_traits::Size(pShapeBegin + 1, pShapeEnd);
+
+        IndexPartition<unsigned int>(rContainer.size()).for_each(TDataType{}, [&rContainer,  &rGetter, pShapeBegin, pShapeEnd, stride, rDataSpan](const auto Index, auto& rTLS) {
+            const auto& r_entity = *(rContainer.begin() + Index);
+            rGetter(rTLS, r_entity);
+            auto p_subrange_begin = rDataSpan.data() + Index * stride;
+            value_type_traits::CopyToContiguousData(p_subrange_begin, rTLS, pShapeBegin + 1, pShapeEnd);
+        });
+
+        KRATOS_CATCH("");
     }
 
-    template<class TEntityType>
-    inline void SetValue(
-        const ReturnType& rInput,
-        TEntityType& rEntity) const
+    /**
+     * @brief Copies the values to each entity set by a setter method in the container from the contiguous array.
+     * @details This method copies the values from contiguous array represented by the given span to each entity set by the setter method in the container.
+     *              The @p TSetterType can be a lambda function or a function having the following signature
+     *                  [](const TDataType& rValue, EntityType& rEntity) -> void.
+     *                  The @p rSetter should set the value in @p rEntity to the @p rValue input.
+     *                  The full size value should be written, even if the contiguous array represents
+     *                  few components of the @p rValue .
+     *
+     *              The @p pShapeBegin and @p pShapeEnd represents the shape of the contiguous array
+     *              represented by @p rDataSpan. Therefore, first dimension of the shape should represent the
+     *              number of entities in the @p rContainer. The rest of the values of shape represent number of
+     *              components in respective dimensions in the @p rValue of which is set from the @p rSetter.
+     *              This may be a subset of the @p TDataType.
+     *                  Ex: if the @p TDataType is @ref array_1d<double_3> then, The vector representing
+     *                      [ @p pShapeBegin + 1, @p pShapeEnd ) may be [1], [2] or [3].
+     *                      if the @p TDataType is a dynamic type such as @ref DenseVector or @ref DenseMatrix,
+     *                      then, the [ @p pShapeBegin + 1, @p pShapeEnd ) should represent values in each dimension
+     *                      less than or equal to the values in each dimension of @p rValue.
+     *
+     *              The @p rDataSpan should represent a data span which can hold all the entities' data
+     *              which are reshaped to the [ @p pShapeBegin, @p pShapeEnd ) shape.
+     *
+     * @throws If the first dimension of the shape represented by [ @p pShapeBegin, @p pShapeEnd ) is
+     *         not equal to the number of entities in the @p rContainer.
+     * @throws If the shape represented by [ @p pShapeBegin + 1, @p pShapeEnd ) is not a valid shape
+     *         representing @p TDataType.
+     * @throws If the size of the given @p rDataSpan does not hold enough memory allocated to
+     *         put all the values.
+     *
+     * @tparam TDataType            The type of the value in each entity which is written by the @p rSetter.
+     * @tparam TContainerType       The type of the container containing all the entities.
+     * @tparam TSpanType            The type of the span, to which all the stored and resized data read to each entity.
+     * @tparam TIntegerType         The type of the integer used to represent the shape.
+     * @tparam TSetterType          The type of the setter function.
+     * @param rContainer            The container containing all the entities.
+     * @param rDataSpan             The span, from which all the read and resized data to each entity will be written to.
+     * @param pShapeBegin           Begining of the shape.
+     * @param pShapeEnd             End of the shape.
+     * @param rSetter               The setter function which sets values of @p TDataType to each entity in @p rContainer.
+     */
+    template<class TDataType, class TContainerType, class TSpanType, class TIntegerType, class TSetterType>
+    static void CopyFromContiguousDataArray(
+        TContainerType& rContainer,
+        const TSpanType& rDataSpan,
+        TIntegerType const * pShapeBegin,
+        TIntegerType const * pShapeEnd,
+        const TSetterType& rSetter)
     {
-        rEntity.Set(mFlag, rInput);
+        KRATOS_TRY
+
+        using value_type_traits = DataTypeTraits<TDataType>;
+
+        KRATOS_ERROR_IF_NOT(pShapeBegin[0] == rContainer.size())
+            << "First dimension of the  shape mismatch with the container size [ "
+            << " container size = " << rContainer.size() << ", first dimension of the shape = " << pShapeBegin[0] << " ].\n";
+
+        KRATOS_ERROR_IF_NOT(DataTypeTraits<TDataType>::IsValidShape(pShapeBegin + 1, pShapeEnd))
+            << "Invalid data shape provided. [ data shape provided = ["
+            << StringUtilities::JoinValues(pShapeBegin + 1, pShapeEnd, ",")
+            << "], max possible sizes in each dimension  = "
+            << DataTypeTraits<TDataType>::Shape(TDataType{}) << " ].\n";
+
+        KRATOS_ERROR_IF_NOT(rDataSpan.size() == pShapeBegin[0] * DataTypeTraits<TDataType>::Size(pShapeBegin + 1, pShapeEnd))
+            << "The span size mismatch with required size from the given shape [ "
+            << "span size = " << rDataSpan.size() << ", shape = [" << StringUtilities::JoinValues(pShapeBegin, pShapeEnd, ",") << "] ].\n";
+
+        const auto stride = value_type_traits::Size(pShapeBegin + 1, pShapeEnd);
+
+        TDataType dummy_value{};
+        if constexpr(DataTypeTraits<TDataType>::Dimension > 0) {
+            // skip for all the primitive types which does not need reshaping.
+            value_type_traits::Reshape(dummy_value, &*(pShapeBegin + 1), &*(pShapeBegin) + std::distance(pShapeBegin, pShapeEnd));
+        }
+
+        IndexPartition<unsigned int>(rContainer.size()).for_each(dummy_value, [&rContainer, &rSetter, rDataSpan, pShapeBegin, pShapeEnd, stride](const auto Index, auto& rTLS) {
+            auto p_subrange_begin = rDataSpan.data() + Index * stride;
+            value_type_traits::CopyFromContiguousData(rTLS, p_subrange_begin, pShapeBegin + 1, pShapeEnd);
+            rSetter(rTLS, *(rContainer.begin() + Index));
+        });
+
+        KRATOS_CATCH("");
     }
-
-    std::string Info() const
-    {
-        return "Flag";
-    }
-
-    ///@}
-
-private:
-    ///@name Private member variables
-    ///@{
-
-    const Flags& mFlag;
 
     ///@}
 };
 
-template<class TDataType>
-class HistoricalIO
-{
-public:
-    ///@name Type definitions
-    ///@{
-
-    using ReturnType = TDataType;
-
-    template<class TContainerType>
-    static constexpr bool IsAllowedContainer = IsInList<TContainerType, ModelPart::NodesContainerType>::value;
-
-    KRATOS_CLASS_POINTER_DEFINITION(HistoricalIO);
-
-    ///@}
-    ///@name Life cycle
-    ///@{
-
-    HistoricalIO(
-        const Variable<TDataType>& rVariable,
-        const int StepIndex)
-        : mpVariable(&rVariable),
-          mStepIndex(StepIndex) {}
-
-    ///@}
-    ///@name Public operations
-    ///@{
-
-    inline void GetValue(
-        ReturnType& rOutput,
-        const Node& rNode) const
-    {
-        rOutput = rNode.FastGetSolutionStepValue(*mpVariable, mStepIndex);
-    }
-
-    inline void SetValue(
-        const ReturnType& rInput,
-        Node& rNode) const
-    {
-        rNode.FastGetSolutionStepValue(*mpVariable, mStepIndex) = rInput;
-    }
-
-    std::string Info() const
-    {
-        std::stringstream info;
-        info << "Historical " << mpVariable->Name() << " at Step = " << mStepIndex;
-        return info.str();
-    }
-
-    ///@}
-
-private:
-    ///@name Private member variables
-    ///@{
-
-    const Variable<TDataType>* mpVariable;
-
-    const int mStepIndex;
-
-    ///@}
-};
-
-template<class TDataType>
-class NonHistoricalIO
-{
-public:
-    ///@name Type definitions
-    ///@{
-
-    using ReturnType = TDataType;
-
-    template<class TContainerType>
-    static constexpr bool IsAllowedContainer = IsInList<TContainerType,
-                                                        ModelPart::NodesContainerType,
-                                                        ModelPart::ConditionsContainerType,
-                                                        ModelPart::ElementsContainerType,
-                                                        ModelPart::PropertiesContainerType,
-                                                        ModelPart::GeometriesMapType,
-                                                        ModelPart::MasterSlaveConstraintContainerType
-                                                    >::value;
-
-    KRATOS_CLASS_POINTER_DEFINITION(NonHistoricalIO);
-
-    ///@}
-    ///@name Life cycle
-    ///@{
-
-    NonHistoricalIO(const Variable<TDataType>& rVariable) : mpVariable(&rVariable) {}
-
-    ///@}
-    ///@name Public operations
-    ///@{
-
-    template<class TEntityType>
-    inline void GetValue(
-        ReturnType& rOutput,
-        const TEntityType& rEntity) const
-    {
-        rOutput = rEntity.GetValue(*mpVariable);
-    }
-
-    template<class TEntityType>
-    inline void SetValue(
-        const ReturnType& rInput,
-        TEntityType& rEntity) const
-    {
-        rEntity.SetValue(*mpVariable, rInput);
-    }
-
-    std::string Info() const
-    {
-        return mpVariable->Name();
-    }
-
-    ///@}
-
-private:
-    ///@name Private member variables
-    ///@{
-
-    const Variable<TDataType>* mpVariable;
-
-    ///@}
-};
-
-template<class TDataType>
-class GaussPointIO
-{
-public:
-    ///@name Type definitions
-    ///@{
-
-    using ReturnType = std::vector<TDataType>;
-
-    template<class TContainerType>
-    static constexpr bool IsAllowedContainer = IsInList<TContainerType,
-                                                        ModelPart::ConditionsContainerType,
-                                                        ModelPart::ElementsContainerType
-                                                        >::value;
-
-    KRATOS_CLASS_POINTER_DEFINITION(GaussPointIO);
-
-    ///@}
-    ///@name Life cycle
-    ///@{
-
-    GaussPointIO(
-        const Variable<TDataType>& rVariable,
-        const ProcessInfo& rProcessInfo)
-        : mpVariable(&rVariable),
-          mrProcessInfo(rProcessInfo) {}
-
-    ///@}
-    ///@name Public operations
-    ///@{
-
-    template<class TEntityType>
-    inline void GetValue(
-        ReturnType& rOutput,
-        const TEntityType& rEntity) const
-    {
-        const_cast<TEntityType&>(rEntity).CalculateOnIntegrationPoints(*mpVariable, rOutput, mrProcessInfo);
-    }
-
-    template<class TEntityType>
-    inline void SetValue(
-        const ReturnType& rInput,
-        TEntityType& rEntity) const
-    {
-        rEntity.SetValuesOnIntegrationPoints(*mpVariable, rInput, mrProcessInfo);
-    }
-
-    std::string Info() const
-    {
-        return "Gauss point " + mpVariable->Name();
-    }
-
-    ///@}
-
-private:
-    ///@name Private member variables
-    ///@{
-
-    const Variable<TDataType>* mpVariable;
-
-    const ProcessInfo& mrProcessInfo;
-
-    ///@}
-};
-
-template<class TContainerType, class TContainerDataIO, class TIteratorType>
-void CopyToContiguousArray(
-    const TContainerType& rContainer,
-    const TContainerDataIO& rContainerDataIO,
-    typename DataTypeTraits<typename TContainerDataIO::ReturnType>::PrimitiveType* pBegin,
-    TIteratorType pShapeBegin,
-    TIteratorType pShapeEnd)
-{
-    KRATOS_TRY
-
-    using return_type = typename TContainerDataIO::ReturnType;
-
-    using value_type_traits = DataTypeTraits<return_type>;
-
-    const auto stride = value_type_traits::Size(pShapeBegin + 1, pShapeEnd);
-
-    IndexPartition<unsigned int>(rContainer.size()).for_each(typename TContainerDataIO::ReturnType{}, [&rContainer,  &rContainerDataIO, pShapeBegin, pShapeEnd, stride, pBegin](const auto Index, auto& rTLS) {
-        rContainerDataIO.GetValue(rTLS, *(rContainer.begin() + Index));
-        auto p_subrange_begin = pBegin + Index * stride;
-        value_type_traits::CopyToContiguousData(p_subrange_begin, rTLS, pShapeBegin + 1, pShapeEnd);
-    });
-
-    KRATOS_CATCH("");
-}
-
-
-
-template<class TDataType, class TContainerType, class TIntegerType, class TGetterType>
-void CopyToContiguousArrayNew(
-    const TContainerType& rContainer,
-    const Kratos::span<typename DataTypeTraits<TDataType>::PrimitiveType>& rDataSpan,
-    TIntegerType const * pShapeBegin,
-    TIntegerType const * pShapeEnd,
-    const TGetterType& rGetter)
-{
-    KRATOS_TRY
-
-    using value_type_traits = DataTypeTraits<TDataType>;
-
-    KRATOS_ERROR_IF_NOT(pShapeBegin[0] == rContainer.size())
-        << "First dimension of the  shape mismatch with the container size [ "
-        << " container size = " << rContainer.size() << ", first dimension of the shape = " << pShapeBegin[0] << " ].\n";
-
-    KRATOS_ERROR_IF_NOT(DataTypeTraits<TDataType>::IsValidShape(pShapeBegin + 1, pShapeEnd))
-        << "Invalid data shape provided. [ data shape provided = ["
-        << StringUtilities::JoinValues(pShapeBegin + 1, pShapeEnd, ",")
-        << "], max possible sizes in each dimension  = "
-        << DataTypeTraits<TDataType>::Shape(TDataType{}) << " ].\n";
-
-    KRATOS_ERROR_IF_NOT(rDataSpan.size() == pShapeBegin[0] * DataTypeTraits<TDataType>::Size(pShapeBegin + 1, pShapeEnd))
-        << "The span size mismatch with required size from the given shape [ "
-        << "span size = " << rDataSpan.size() << ", shape = [" << StringUtilities::JoinValues(pShapeBegin, pShapeEnd, ",") << "] ].\n";
-
-    const auto stride = value_type_traits::Size(pShapeBegin + 1, pShapeEnd);
-
-    IndexPartition<unsigned int>(rContainer.size()).for_each(TDataType{}, [&rContainer,  &rGetter, pShapeBegin, pShapeEnd, stride, rDataSpan](const auto Index, auto& rTLS) {
-        rGetter(rTLS, *(rContainer.begin() + Index));
-        auto p_subrange_begin = rDataSpan.data() + Index * stride;
-        value_type_traits::CopyToContiguousData(p_subrange_begin, rTLS, pShapeBegin + 1, pShapeEnd);
-    });
-
-    KRATOS_CATCH("");
-}
-
-template<class TContainerType, class TContainerDataIO, class TIteratorType>
-void CopyFromContiguousDataArray(
-    TContainerType& rContainer,
-    const TContainerDataIO& rContainerDataIO,
-    typename DataTypeTraits<typename TContainerDataIO::ReturnType>::PrimitiveType const * pBegin,
-    TIteratorType pShapeBegin,
-    TIteratorType pShapeEnd)
-{
-    KRATOS_TRY
-
-    using return_type = typename TContainerDataIO::ReturnType;
-
-    using value_type_traits = DataTypeTraits<return_type>;
-
-    return_type dummy_value{};
-    if constexpr(DataTypeTraits<return_type>::Dimension > 0) {
-        // skip for all the primitive types which does not need reshaping.
-        value_type_traits::Reshape(dummy_value, &*(pShapeBegin + 1), &*(pShapeBegin) + std::distance(pShapeBegin, pShapeEnd));
-    }
-
-    const auto stride = value_type_traits::Size(pShapeBegin + 1, pShapeEnd);
-
-    IndexPartition<unsigned int>(rContainer.size()).for_each(dummy_value, [&rContainer, &rContainerDataIO, pBegin, pShapeBegin, pShapeEnd, stride](const auto Index, auto& rTLS) {
-        auto p_subrange_begin = pBegin + Index * stride;
-        value_type_traits::CopyFromContiguousData(rTLS, p_subrange_begin, pShapeBegin + 1, pShapeEnd);
-        rContainerDataIO.SetValue(rTLS, *(rContainer.begin() + Index));
-    });
-
-    KRATOS_CATCH("");
-}
-
-template<class TDataType, class TContainerType, class TSpanType, class TIntegerType, class TSetterType>
-void CopyFromContiguousDataArrayNew(
-    TContainerType& rContainer,
-    const TSpanType& rDataSpan,
-    TIntegerType const * pShapeBegin,
-    TIntegerType const * pShapeEnd,
-    const TSetterType& rSetter)
-{
-    KRATOS_TRY
-
-    using value_type_traits = DataTypeTraits<TDataType>;
-
-    KRATOS_ERROR_IF_NOT(pShapeBegin[0] == rContainer.size())
-        << "First dimension of the  shape mismatch with the container size [ "
-        << " container size = " << rContainer.size() << ", first dimension of the shape = " << pShapeBegin[0] << " ].\n";
-
-    KRATOS_ERROR_IF_NOT(DataTypeTraits<TDataType>::IsValidShape(pShapeBegin + 1, pShapeEnd))
-        << "Invalid data shape provided. [ data shape provided = ["
-        << StringUtilities::JoinValues(pShapeBegin + 1, pShapeEnd, ",")
-        << "], max possible sizes in each dimension  = "
-        << DataTypeTraits<TDataType>::Shape(TDataType{}) << " ].\n";
-
-    KRATOS_ERROR_IF_NOT(rDataSpan.size() == pShapeBegin[0] * DataTypeTraits<TDataType>::Size(pShapeBegin + 1, pShapeEnd))
-        << "The span size mismatch with required size from the given shape [ "
-        << "span size = " << rDataSpan.size() << ", shape = [" << StringUtilities::JoinValues(pShapeBegin, pShapeEnd, ",") << "] ].\n";
-
-    const auto stride = value_type_traits::Size(pShapeBegin + 1, pShapeEnd);
-
-    TDataType dummy_value{};
-    if constexpr(DataTypeTraits<TDataType>::Dimension > 0) {
-        // skip for all the primitive types which does not need reshaping.
-        value_type_traits::Reshape(dummy_value, &*(pShapeBegin + 1), &*(pShapeBegin) + std::distance(pShapeBegin, pShapeEnd));
-    }
-
-    IndexPartition<unsigned int>(rContainer.size()).for_each(dummy_value, [&rContainer, &rSetter, rDataSpan, pShapeBegin, pShapeEnd, stride](const auto Index, auto& rTLS) {
-        auto p_subrange_begin = rDataSpan.data() + Index * stride;
-        value_type_traits::CopyFromContiguousData(rTLS, p_subrange_begin, pShapeBegin + 1, pShapeEnd);
-        rSetter(rTLS, *(rContainer.begin() + Index));
-    });
-
-    KRATOS_CATCH("");
-}
-
+///@}
 } // namespace Kratos
