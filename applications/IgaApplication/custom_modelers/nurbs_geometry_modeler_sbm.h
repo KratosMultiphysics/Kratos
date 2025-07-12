@@ -51,7 +51,8 @@ public:
         const Parameters ModelerParameters = Parameters())
         : NurbsGeometryModeler(rModel, ModelerParameters)
     {
-        mParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
+        mParameters.ValidateDefaults(this->GetValidParameters());
+        mParameters.AddMissingParameters(this->GetDefaultParameters());
     }
 
     /// Destructor.
@@ -67,6 +68,7 @@ public:
 
     // Get the default parameters
     const Parameters GetDefaultParameters() const override;
+    const Parameters GetValidParameters() const;
 
     ///@}
     ///@name Stages
@@ -95,6 +97,28 @@ protected:
         const SizeType NumKnotSpansU, 
         const SizeType NumKnotSpansV, 
         const bool AddSurfaceToModelPart) override;
+
+    /**
+     * @brief Creates a regular grid composed out of bivariant B-splines.
+     * @param PointA Lower point of bounding 3D box.
+     * @param PointB Upper point of bounding 3D box.
+     * @param Order  Polynomial degree in each direction u,v,w.
+     * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v,w.
+     * @note The CP'S are defined as nodes and added to the rModelPart.
+     **/
+    void CreateAndAddRegularGrid3D(
+        ModelPart& rModelPart, 
+        const Point& A_xyz, 
+        const Point& B_xyz, 
+        const Point& A_uvw, 
+        const Point& B_uvw,
+        const SizeType OrderU, 
+        const SizeType OrderV, 
+        const SizeType OrderW, 
+        const SizeType NumKnotSpansU, 
+        const SizeType NumKnotSpansV, 
+        const SizeType NumKnotSpansW, 
+        const bool AddVolumeToModelPart) override;
 
 private:
 

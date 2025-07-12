@@ -3,6 +3,19 @@
 # Check if the BOOST_ROOT environment variable is defined
 if(DEFINED ENV{BOOST_ROOT})
   set(BOOST_ROOT $ENV{BOOST_ROOT})
+  # Attempt to find the Boost library using CMake's find_package
+  find_package(Boost)
+
+  # If Boost is found with the specified BOOST_ROOT, set the include and library directories
+  if(Boost_FOUND)
+    # Check that boost/any.hpp exists in the BOOST_ROOT include directory
+    if(EXISTS "${BOOST_ROOT}/boost/any.hpp")
+      set(BOOST_INCLUDEDIR "${Boost_INCLUDE_DIRS}")
+      set(BOOST_LIBRARYDIR "${Boost_LIBRARY_DIRS}")
+    endif(EXISTS "${BOOST_ROOT}/boost/any.hpp")
+  else (Boost_FOUND)
+    message(FATAL_ERROR "It was not possible to find Boost in your machine with BOOST_ROOT=${BOOST_ROOT}. Please define BOOST_ROOT correctly if you have it installed.")
+  endif(Boost_FOUND)
 else(DEFINED ENV{BOOST_ROOT})
   # Check if BOOST_INCLUDEDIR and BOOST_LIBRARYDIR are already defined as environment variables
   if(DEFINED ENV{BOOST_INCLUDEDIR})
