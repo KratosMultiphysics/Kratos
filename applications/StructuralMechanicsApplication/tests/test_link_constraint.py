@@ -29,7 +29,6 @@ class TestLinkConstraint(KratosMultiphysics.KratosUnittest.TestCase):
     @staticmethod
     def __GetNodeDistance(first: KratosMultiphysics.Node,
                           second: KratosMultiphysics.Node,
-                          dimensions: int,
                           initial_configuration: bool = False) -> float:
         initial_positions: "list[list[float]]" = [[first.X0, first.Y0, first.Z0],
                                                   [second.X0, second.Y0, second.Z0]]
@@ -40,7 +39,7 @@ class TestLinkConstraint(KratosMultiphysics.KratosUnittest.TestCase):
                                                second.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y),
                                                second.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)]]
         distance: float = 0.0
-        for i_component in range(dimensions):
+        for i_component in range(3):
             diff: float = initial_positions[0][i_component] - initial_positions[1][i_component]
             if not initial_configuration:
                 diff += displacements[0][i_component] - displacements[1][i_component]
@@ -49,7 +48,6 @@ class TestLinkConstraint(KratosMultiphysics.KratosUnittest.TestCase):
 
 
     def __Run2D(self, move_mesh_flag: bool) -> None:
-        script_directory = pathlib.Path(__file__).absolute().parent
         dimensions = 2
 
         with WorkFolderScope("constraints", pathlib.Path(__file__).absolute()):
@@ -79,8 +77,8 @@ class TestLinkConstraint(KratosMultiphysics.KratosUnittest.TestCase):
             constrained_node_ids: "tuple[int,int]" = (2, 3)
             first: KratosMultiphysics.Node = root_model_part.GetNode(constrained_node_ids[0])
             second: KratosMultiphysics.Node = root_model_part.GetNode(constrained_node_ids[1])
-            initial_distance: float = self.__GetNodeDistance(first, second, 2, initial_configuration = True)
-            distance: float = self.__GetNodeDistance(first, second, dimensions)
+            initial_distance: float = self.__GetNodeDistance(first, second, initial_configuration = True)
+            distance: float = self.__GetNodeDistance(first, second)
             self.assertAlmostEqual(distance, initial_distance, places = 3)
 
             # Run the analysis until the first step and check whether constraints are not satisfied.
@@ -92,8 +90,8 @@ class TestLinkConstraint(KratosMultiphysics.KratosUnittest.TestCase):
             constrained_node_ids: "tuple[int,int]" = (2, 3)
             first: KratosMultiphysics.Node = root_model_part.GetNode(constrained_node_ids[0])
             second: KratosMultiphysics.Node = root_model_part.GetNode(constrained_node_ids[1])
-            initial_distance: float = self.__GetNodeDistance(first, second, 2, initial_configuration = True)
-            distance: float = self.__GetNodeDistance(first, second, dimensions)
+            initial_distance: float = self.__GetNodeDistance(first, second, initial_configuration = True)
+            distance: float = self.__GetNodeDistance(first, second)
             self.assertNotAlmostEqual(distance, initial_distance, places = 0)
 
 
@@ -115,8 +113,8 @@ class TestLinkConstraint(KratosMultiphysics.KratosUnittest.TestCase):
             constrained_node_ids: "tuple[int,int]" = (2, 3)
             first: KratosMultiphysics.Node = root_model_part.GetNode(constrained_node_ids[0])
             second: KratosMultiphysics.Node = root_model_part.GetNode(constrained_node_ids[1])
-            initial_distance: float = self.__GetNodeDistance(first, second, 2, initial_configuration = True)
-            distance: float = self.__GetNodeDistance(first, second, dimensions)
+            initial_distance: float = self.__GetNodeDistance(first, second, initial_configuration = True)
+            distance: float = self.__GetNodeDistance(first, second)
             self.assertAlmostEqual(distance, initial_distance, places = 3)
 
 
