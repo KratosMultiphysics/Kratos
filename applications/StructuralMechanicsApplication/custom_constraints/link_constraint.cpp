@@ -36,13 +36,10 @@ struct LinkConstraint::Impl
                                       const std::array<ValueType,6>& rLastDisplacements,
                                       const unsigned Dimensions)
     {
-        // Make sure we don't try to allocate an underflown unsigned integer.
-        KRATOS_ERROR_IF_NOT(Dimensions);
-
         // Set output sizes.
-        rRelationMatrix.resize(1, 2 * Dimensions);
-        rHessian.resize(2 * Dimensions, 2 * Dimensions);
-        rConstraintGaps.resize(1);
+        rRelationMatrix.resize(1, 2 * Dimensions, false);
+        rHessian.resize(2 * Dimensions, 2 * Dimensions, false);
+        rConstraintGaps.resize(1, false);
 
         // Initialize outputs.
         rConstraintGaps[0] = 0.0;
@@ -73,10 +70,10 @@ struct LinkConstraint::Impl
             const auto current_diff = rLastPositions[i_component] - rLastPositions[i_component + Dimensions]
                                     + rLastDisplacements[i_component] - rLastDisplacements[i_component + Dimensions];
 
-            rRelationMatrix(0, i_component) = current_diff / current_norm_root;
+            rRelationMatrix(0, i_component) = current_diff / current_norm;
             rRelationMatrix(0, i_component + Dimensions) = -rRelationMatrix(0, i_component);
 
-            const auto hessian_entry = (current_norm_root - current_diff * current_diff / current_norm_root) / current_norm;
+            const auto hessian_entry = (current_norm - current_diff * current_diff / current_norm) / current_norm;
 
             rHessian(i_component, i_component) = hessian_entry;
             rHessian(i_component, i_component + Dimensions) = -hessian_entry;
@@ -158,7 +155,7 @@ struct LinkConstraint::Impl
 
     /// @details MasterSlaveConstraint::GetSlaveDofsVector and MasterSlaveConstraint::GetMasterDofsVector
     ///          require arrays of mutable Dof pointers, which are only obtainable from mutable nodes,
-    ///          so the nodes pointers stored here cannot be immutable. Risky business.
+    ///          so the nodes' pointers stored here cannot be immutable. Risky business.
     std::array<Node*,2> mNodePair;
 
     std::array<ValueType,6> mLastPositions;
