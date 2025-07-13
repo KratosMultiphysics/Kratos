@@ -116,13 +116,14 @@ public:
     }
 
     /**
-     * @brief Copies the values to each entity set by a setter method in the container from the contiguous array.
-     * @details This method copies the values from contiguous array represented by the given span to each entity set by the setter method in the container.
-     *              The @p TSetterType can be a lambda function or a function having the following signature
-     *                  [](const TDataType& rValue, EntityType& rEntity) -> void.
-     *                  The @p rSetter should set the value in @p rEntity to the @p rValue input.
-     *                  The full size value should be written, even if the contiguous array represents
-     *                  few components of the @p rValue .
+     * @brief Copy data from contiguous array to values given by the reference getter of each entity.
+     * @details This method copies data from the contiguous array to values given by the reference getter
+     *          of each entity.
+     *              The @p rReferenceGetter lambda function should have the following signature.
+     *                  []( EntityType& rEntity) -> TDataType&
+     *              The reference getter should return a reference to the data which needs its' values
+     *              copied from the contiguous array. The size checks for the dynamic types will be done
+     *              in this method and errors will be thrown.
      *
      *              The @p pShapeBegin and @p pShapeEnd represents the shape of the contiguous array
      *              represented by @p rDataSpan. Therefore, first dimension of the shape should represent the
@@ -136,33 +137,35 @@ public:
      *                      less than or equal to the values in each dimension of @p rValue.
      *
      *              The @p rDataSpan should represent a data span which can hold all the entities' data
-     *              which are reshaped to the [ @p pShapeBegin, @p pShapeEnd ) shape.
      *
+     *              which are reshaped to the [ @p pShapeBegin, @p pShapeEnd ) shape.
      * @throws If the first dimension of the shape represented by [ @p pShapeBegin, @p pShapeEnd ) is
      *         not equal to the number of entities in the @p rContainer.
      * @throws If the shape represented by [ @p pShapeBegin + 1, @p pShapeEnd ) is not a valid shape
      *         representing @p TDataType.
      * @throws If the size of the given @p rDataSpan does not hold enough memory allocated to
      *         put all the values.
+     * @throws If the @p TDataType values is dynamic and they are not correctly sized in any of the
+     *         entities.
      *
      * @tparam TDataType            The type of the value in each entity which is written by the @p rSetter.
      * @tparam TContainerType       The type of the container containing all the entities.
      * @tparam TSpanType            The type of the span, to which all the stored and resized data read to each entity.
      * @tparam TIntegerType         The type of the integer used to represent the shape.
-     * @tparam TSetterType          The type of the setter function.
+     * @tparam TReferenceGetterType The type of the reference getter function.
      * @param rContainer            The container containing all the entities.
      * @param rDataSpan             The span, from which all the read and resized data to each entity will be written to.
      * @param pShapeBegin           Begining of the shape.
      * @param pShapeEnd             End of the shape.
-     * @param rSetter               The setter function which sets values of @p TDataType to each entity in @p rContainer.
+     * @param rReferenceGetter      The reference getter function which gets the reference values of @p TDataType to each entity in @p rContainer.
      */
-    template<class TDataType, class TContainerType, class TSpanType, class TIntegerType, class TSetterType>
+    template<class TDataType, class TContainerType, class TSpanType, class TIntegerType, class TReferenceGetterType>
     static void CopyFromContiguousDataArray(
         TContainerType& rContainer,
         const TSpanType& rDataSpan,
         TIntegerType const * pShapeBegin,
         TIntegerType const * pShapeEnd,
-        const TSetterType& rSetter)
+        const TReferenceGetterType& rReferenceGetter)
     {
         KRATOS_TRY
 
@@ -190,10 +193,9 @@ public:
             value_type_traits::Reshape(dummy_value, &*(pShapeBegin + 1), &*(pShapeBegin) + std::distance(pShapeBegin, pShapeEnd));
         }
 
-        IndexPartition<unsigned int>(rContainer.size()).for_each(dummy_value, [&rContainer, &rSetter, rDataSpan, pShapeBegin, pShapeEnd, stride](const auto Index, auto& rTLS) {
+        IndexPartition<unsigned int>(rContainer.size()).for_each(dummy_value, [&rContainer, &rReferenceGetter, rDataSpan, pShapeBegin, pShapeEnd, stride](const auto Index, auto& rTLS) {
             auto p_subrange_begin = rDataSpan.data() + Index * stride;
-            value_type_traits::CopyFromContiguousData(rTLS, p_subrange_begin, pShapeBegin + 1, pShapeEnd);
-            rSetter(rTLS, *(rContainer.begin() + Index));
+            value_type_traits::CopyFromContiguousData(rReferenceGetter(*(rContainer.begin() + Index)), p_subrange_begin, pShapeBegin + 1, pShapeEnd);
         });
 
         KRATOS_CATCH("");
