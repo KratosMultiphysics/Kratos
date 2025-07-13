@@ -74,8 +74,8 @@ void HistoricalVariableTensorAdaptor::StoreData()
         [this](auto pVariable) {
             TensorAdaptorUtils::StoreVariableData(
                 this->Shape(), *this->mpContainer, *pVariable, this->ViewData(),
-                [pVariable, this](const auto& rValue, auto& rEntity) {
-                    rEntity.FastGetSolutionStepValue(*pVariable, this->mStepIndex) = rValue;
+                [pVariable, this](auto& rEntity) -> auto& {
+                    return rEntity.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
                 });
         },
         mpVariable);

@@ -79,12 +79,14 @@ void FlagsTensorAdaptor::StoreData()
                                    ModelPart::ConditionsContainerType,
                                    ModelPart::ElementsContainerType>::value) {
                 const auto& r_tensor_shape = this->Shape();
-                ContainerIOUtils::CopyFromContiguousDataArray<bool>(
-                    *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
-                    r_tensor_shape.data().begin() + r_tensor_shape.size(),
-                    [this](const bool& rValue, auto& rEntity) {
-                        rEntity.Set(this->mFlags, rValue);
-                    });
+
+                KRATOS_ERROR_IF_NOT(this->Size() == pContainer->size())
+                    << "Size mismatch [ Container size = " << pContainer->size()
+                    << ", data span size = " << this->Size() << " ].\n";
+
+                IndexPartition<IndexType>(pContainer->size()).for_each([this, pContainer](const auto Index) {
+                    (pContainer->begin() + Index)->Set(this->mFlags, *(this->ViewData().data() + Index));
+                });
             }
             else {
                 KRATOS_ERROR

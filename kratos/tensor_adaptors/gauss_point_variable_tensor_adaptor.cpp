@@ -64,24 +64,6 @@ void CollectData(
     }
 }
 
-template<class TContainerType, class TDataType, class TSpanType, class TIntegerType>
-void StoreData(
-    const TContainerType& rContainer,
-    const Variable<TDataType>& rVariable,
-    const ProcessInfo& rProcessInfo,
-    const TSpanType& rDataSpan,
-    TIntegerType const * pShapeBegin,
-    TIntegerType const * pShapeEnd)
-{
-    if constexpr(IsInList<TContainerType, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>::value) {
-        ContainerIOUtils::CopyFromContiguousDataArray<std::vector<TDataType>>(
-            rContainer, rDataSpan, pShapeBegin, pShapeEnd,
-            [&rVariable, &rProcessInfo](const auto& rValues, auto& rEntity) {
-                rEntity.SetValuesOnIntegrationPoints(rVariable, rValues, rProcessInfo);
-            });
-    }
-}
-
 } // namespace GaussPointVariableTensorAdaptorHelperUtilities
 
 template<class TContainerPointerType>
@@ -116,15 +98,7 @@ void GaussPointVariableTensorAdaptor::CollectData()
 
 void GaussPointVariableTensorAdaptor::StoreData()
 {
-    std::visit(
-        [this](auto pContainer, auto pVariable) {
-            const auto& tensor_shape = this->Shape();
-            GaussPointVariableTensorAdaptorHelperUtilities::StoreData(
-                *pContainer, *pVariable, *this->mpProcessInfo, this->ViewData(),
-                tensor_shape.data().begin(),
-                tensor_shape.data().begin() + tensor_shape.size());
-        },
-        mpContainer, mpVariable);
+    KRATOS_ERROR << "Storing gauss point data is not supported.";
 }
 
 GaussPointVariableTensorAdaptor::ContainerPointerType GaussPointVariableTensorAdaptor::GetContainer() const

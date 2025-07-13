@@ -57,6 +57,15 @@ void VariableTensorAdaptor::CollectData()
 {
     std::visit(
         [this](auto pContainer, auto pVariable) {
+            TensorAdaptorUtils::CheckAndSetValues(
+                this->Shape(), *pContainer, *pVariable,
+                [pVariable](const auto& rEntity) {
+                    return rEntity.Has(*pVariable);
+                },
+                [pVariable](const auto& rValue, auto& rEntity) {
+                    rEntity.SetValue(*pVariable, rValue);
+                });
+
             TensorAdaptorUtils::CollectVariableData(
                 this->Shape(), *pContainer, *pVariable, this->ViewData(),
                 [pVariable](auto& rValue, const auto& rEntity) {
@@ -70,10 +79,20 @@ void VariableTensorAdaptor::StoreData()
 {
     std::visit(
         [this](auto pContainer, auto pVariable) {
-            TensorAdaptorUtils::StoreVariableData(
-                this->Shape(), *pContainer, *pVariable, this->ViewData(),
+
+            TensorAdaptorUtils::CheckAndSetValues(
+                this->Shape(), *pContainer, *pVariable,
+                [pVariable](const auto& rEntity) {
+                    return rEntity.Has(*pVariable);
+                },
                 [pVariable](const auto& rValue, auto& rEntity) {
                     rEntity.SetValue(*pVariable, rValue);
+                });
+
+            TensorAdaptorUtils::StoreVariableData(
+                this->Shape(), *pContainer, *pVariable, this->ViewData(),
+                [pVariable](auto& rEntity) -> auto& {
+                    return rEntity.GetValue(*pVariable);
                 });
         },
         mpContainer, mpVariable);

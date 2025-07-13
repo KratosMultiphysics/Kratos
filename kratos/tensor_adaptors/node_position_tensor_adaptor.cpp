@@ -84,20 +84,18 @@ void NodePositionTensorAdaptor::StoreData()
             ContainerIOUtils::CopyFromContiguousDataArray<array_1d<double, 3>>(
                 *mpContainer, this->ViewData(), r_shape.data().begin(),
                 r_shape.data().begin() + r_shape.size(),
-                [&r_shape](const auto& rCoordinates, Node& rNode) {
+                [&r_shape](Node& rNode) -> auto& {
                     // get the current coordinates
-                    auto& r_current_coordinates = rNode.Coordinates();
-                    std::copy(rCoordinates.begin(), rCoordinates.begin() + r_shape[1], r_current_coordinates.begin());
+                    return rNode.Coordinates();
                 });
             break;
         case Globals::Configuration::Initial:
             ContainerIOUtils::CopyFromContiguousDataArray<array_1d<double, 3>>(
                 *mpContainer, this->ViewData(), r_shape.data().begin(),
                 r_shape.data().begin() + r_shape.size(),
-                [&r_shape](const auto& rCoordinates, Node& rNode) {
+                [&r_shape](Node& rNode) -> auto& {
                     // get the current coordinates
-                    auto& r_current_coordinates = rNode.GetInitialPosition();
-                    std::copy(rCoordinates.begin(), rCoordinates.begin() + r_shape[1], r_current_coordinates.begin());
+                    return rNode.GetInitialPosition();
                 });
     }
 }
