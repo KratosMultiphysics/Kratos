@@ -70,9 +70,6 @@ public:
     /// DOF array type definition
     using DofsArrayType = typename BaseType::DofsArrayType;
 
-    /// Effective DOFs map type definition
-    using EffectiveDofsMapType = typename BaseType::EffectiveDofsMapType;
-
     /// DOF pointer vector type definition
     using DofPointerVectorType = typename BaseType::DofPointerVectorType;
 
@@ -116,15 +113,12 @@ public:
         const ModelPart& rModelPart,
         const DofsArrayType& rDofSet,
         DofsArrayType& rEffectiveDofSet,
-        EffectiveDofsMapType& rEffectiveDofIdMap,
         TSparseMatrixType& rConstraintsRelationMatrix,
         TSparseVectorType& rConstraintsConstantVector) override
     {
         // Clear the provided effective DOFs map
         KRATOS_WARNING_IF("EliminationBuilder", !rEffectiveDofSet.empty()) << "Provided effective DOFs set is not empty. About to clear it." << std::endl;
-        KRATOS_WARNING_IF("EliminationBuilder", !rEffectiveDofIdMap.empty()) << "Provided effective DOFs ids map is not empty. About to clear it." << std::endl;
         rEffectiveDofSet.clear();
-        rEffectiveDofIdMap.clear();
 
         //FIXME: Do the IsActiveConstraints in here and set a flag that stays "forever"
 
@@ -243,7 +237,6 @@ public:
 
         } else {
             rEffectiveDofSet = rDofSet; // If there are no constraints the effective DOF set is the standard one
-            rEffectiveDofIdMap = EffectiveDofsMapType(); // Create an empty master ids map as the standard DOF equation ids can be used
         }
     }
 

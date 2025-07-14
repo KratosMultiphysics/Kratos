@@ -167,9 +167,6 @@ public:
     /// DOF array type definition
     using DofsArrayType = ModelPart::DofsArrayType;
 
-    /// Effective DOFs map type definition
-    using EffectiveDofsMapType = std::unordered_map<typename DofType::Pointer, IndexType>;
-
     /// DOF pointer vector type definition
     using DofPointerVectorType = typename MasterSlaveConstraint::DofPointerVectorType;
 
@@ -278,9 +275,8 @@ public:
 
     virtual void ConstructMasterSlaveConstraintsStructure(
         const ModelPart& rModelPart,
-        const typename DofsArrayType::Pointer pDofSet,
-        typename DofsArrayType::Pointer pEffectiveDofSet,
-        EffectiveDofsMapType& rEffectiveDofIdMap,
+        const DofsArrayType& rDofSet,
+        DofsArrayType& rEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
         KRATOS_ERROR << "Calling base class ConstructMasterSlaveConstraintsStructure." << std::endl;
@@ -346,8 +342,7 @@ public:
     }
 
     virtual void ApplyLinearSystemConstraints(
-        const DofsArrayType &rDofArray,
-        const EffectiveDofsMapType &rDofIdMap,
+        const DofsArrayType& rEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         KRATOS_ERROR << "Calling base class 'ApplyLinearSystemConstraints'." << std::endl;
@@ -413,7 +408,6 @@ public:
     void CalculateSolutionVector(
         const DofsArrayType& rDofSet,
         const DofsArrayType& rEffectiveDofSet,
-        const EffectiveDofsMapType& rEffectiveDofIdMap,
         const TSparseMatrixType& rConstraintsRelationMatrix,
         const TSystemVectorType& rConstraintsConstantVector,
         TSystemVectorType& rSolutionVector) const
@@ -424,12 +418,12 @@ public:
         IndexPartition<IndexType>(rEffectiveDofSet.size()).for_each([&](IndexType Index) {
             // Get effective DOF
             auto p_dof = *(rEffectiveDofSet.ptr_begin() + Index);
-            auto p_dof_find = rEffectiveDofIdMap.find(p_dof);
-            KRATOS_ERROR_IF(p_dof_find == rEffectiveDofIdMap.end()) << "DOF cannot be found in DOF id map." << std::endl;
+            auto p_dof_find = rEffectiveDofSet.find(*p_dof);
+            KRATOS_ERROR_IF(p_dof_find == rEffectiveDofSet.end()) << "DOF cannot be found in effective DOF set." << std::endl;
 
             // Get value from DOF and set it in the auxiliary solution values vector
             // Note that the corresponding row is retrieved from the effective DOF ids map
-            y[p_dof_find->second] = p_dof->GetSolutionStepValue();
+            y[p_dof_find->EffectiveEquationId()] = p_dof->GetSolutionStepValue();
         });
 
         // Check solution vector size

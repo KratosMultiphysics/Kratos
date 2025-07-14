@@ -132,9 +132,6 @@ public:
     /// DoF array type definition
     using DofsArrayType = ModelPart::DofsArrayType;
 
-    /// Effective DOFs map type definition
-    using EffectiveDofsMapType = typename BuilderType::EffectiveDofsMapType;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -245,7 +242,6 @@ public:
     virtual void InitializeSolutionStep(
         DofsArrayType::Pointer pDofSet,
         DofsArrayType::Pointer pEffectiveDofSet,
-        EffectiveDofsMapType& rEffectiveDofIdMap,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer,
         const bool ReformDofSets = true)
     {
@@ -366,13 +362,12 @@ public:
     virtual void ConstructMasterSlaveConstraintsStructure(
         const DofsArrayType::Pointer pDofSet,
         DofsArrayType::Pointer pEffectiveDofSet,
-        EffectiveDofsMapType &rEffectiveDofIdMap,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         KRATOS_TRY
 
         // Call the assembly helper to set the master-slave constraints
-        (this->GetBuilder()).ConstructMasterSlaveConstraintsStructure(*mpModelPart, pDofSet, pEffectiveDofSet, rEffectiveDofIdMap, rLinearSystemContainer);
+        (this->GetBuilder()).ConstructMasterSlaveConstraintsStructure(*mpModelPart, *pDofSet, *pEffectiveDofSet, rLinearSystemContainer);
 
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() >= 2) << "Finished constraints initialization." << std::endl;
 
@@ -920,7 +915,7 @@ public:
 
     virtual void BuildMasterSlaveConstraints(
         const DofsArrayType& rDofSet,
-        const EffectiveDofsMapType& rDofIdMap,
+        const DofsArrayType& rEffectiveDofSet,
         TSparseMatrixType& rConstraintsRelationMatrix,
         TSystemVectorType& rConstraintsConstantVector)
     {
@@ -948,7 +943,7 @@ public:
             rConstraintsConstantVector.BeginAssemble();
 
             TLSType aux_tls;
-            #pragma omp parallel firstprivate(rDofIdMap, consts_begin, r_process_info)
+            #pragma omp parallel firstprivate(rEffectiveDofSet, consts_begin, r_process_info)
             {
                 // Auxiliary set to store the inactive constraints slave DOFs (required by the block build)
                 std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;
@@ -980,9 +975,9 @@ public:
                     }
                     for (IndexType i_master = 0; i_master < n_masters; ++i_master) {
                         auto p_master = *(r_master_dofs.begin() + i_master);
-                        auto p_master_find = rDofIdMap.find(p_master);
-                        KRATOS_ERROR_IF(p_master_find == rDofIdMap.end()) << "Master DOF cannot be found in DOF ids map." << std::endl;
-                        r_master_eq_ids[i_master] = p_master_find->second;
+                        auto p_master_find = rEffectiveDofSet.find(*p_master);
+                        KRATOS_ERROR_IF(p_master_find == rEffectiveDofSet.end()) << "Master DOF cannot be found in effective DOF set." << std::endl;
+                        r_master_eq_ids[i_master] = p_master_find->EffectiveEquationId();
                     }
 
                     // Assemble the constraints local contributions to the global system
@@ -1012,10 +1007,10 @@ public:
             // We search for each DOF in the effective DOF ids map, if present it means its effective
             IndexPartition<IndexType>(rDofSet.size()).for_each([&](IndexType Index){
                 const auto p_dof = *(rDofSet.ptr_begin() + Index);
-                const auto p_dof_find = rDofIdMap.find(p_dof);
-                if (p_dof_find != rDofIdMap.end()) {
+                const auto p_dof_find = rEffectiveDofSet.find(*p_dof);
+                if (p_dof_find != rEffectiveDofSet.end()) {
                     rConstraintsConstantVector[p_dof->EquationId()] = 0.0;
-                    rConstraintsRelationMatrix(p_dof->EquationId(), p_dof_find->second) = 1.0;
+                    rConstraintsRelationMatrix(p_dof->EquationId(), p_dof_find->EffectiveEquationId()) = 1.0;
                 }
             });
 
@@ -1036,26 +1031,25 @@ public:
 
     virtual void BuildLinearSystemConstraints(
         const DofsArrayType &rDofSet,
-        const EffectiveDofsMapType &rDofIdMap,
+        const DofsArrayType &rEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         BuiltinTimer build_linear_system_constraints_time;
 
         auto p_constraints_T = rLinearSystemContainer.pConstraintsT;
         auto p_constraints_q = rLinearSystemContainer.pConstraintsQ;
-        BuildMasterSlaveConstraints(rDofSet, rDofIdMap, *p_constraints_T, *p_constraints_q);
+        BuildMasterSlaveConstraints(rDofSet, rEffectiveDofSet, *p_constraints_T, *p_constraints_q);
 
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Build linear system constraints time: " << build_linear_system_constraints_time << std::endl;
     }
 
     virtual void ApplyLinearSystemConstraints(
-        const DofsArrayType &rDofArray,
-        const EffectiveDofsMapType &rDofIdMap,
+        const DofsArrayType &rEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         BuiltinTimer apply_linear_system_constraints_time;
 
-        GetBuilder().ApplyLinearSystemConstraints(rDofArray, rDofIdMap, rLinearSystemContainer);
+        GetBuilder().ApplyLinearSystemConstraints(rEffectiveDofSet, rLinearSystemContainer);
 
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Apply linear system constraints time: " << apply_linear_system_constraints_time << std::endl;
     }
@@ -1125,7 +1119,6 @@ public:
     virtual void Predict(
         DofsArrayType::Pointer pDofSet,
         DofsArrayType::Pointer pEffectiveDofSet,
-        EffectiveDofsMapType &rEffectiveDofIdMap,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Predict\' method. Call derived class one." << std::endl;
@@ -1141,7 +1134,7 @@ public:
      */
     virtual void Update(
         DofsArrayType& rDofSet,
-        EffectiveDofsMapType& rEffectiveDofIdMap,
+        DofsArrayType& rEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Update\' method. Call derived class one." << std::endl;
@@ -1150,29 +1143,28 @@ public:
     void UpdateConstraintsLooseDofs(
         const TSystemVectorType& rEffectiveDx,
         DofsArrayType& rDofSet,
-        EffectiveDofsMapType& rEffectiveDofIdMap)
+        DofsArrayType& rEffectiveDofSet)
     {
         if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
             // Create a temporary std::unordered_set to make the search efficient
             std::unordered_set<typename DofType::Pointer> aux_dof_set(rDofSet.GetContainer().begin(), rDofSet.GetContainer().end());
 
             // Find the loose constraint DOFs by comparing the standard DOF set to the effective one
-            // Those nodes appearing in the effective DOFs map but not in the standard DOF set are loose DOFs
-            std::vector<std::pair<typename DofType::Pointer, IndexType>> loose_dofs;
-            loose_dofs.reserve(rEffectiveDofIdMap.size());
-            for (auto& rEffectiveDofPair : rEffectiveDofIdMap) {
-                auto p_dof = rEffectiveDofPair.first;
-                if (aux_dof_set.find(p_dof) == aux_dof_set.end()) {
-                    loose_dofs.push_back(rEffectiveDofPair);
+            // Those nodes appearing in the effective DOFs set but not in the standard DOF set are loose DOFs
+            std::vector<typename DofType::Pointer> loose_dofs;
+            loose_dofs.reserve(rEffectiveDofSet.size());
+            for (unsigned int i = 0; i < rEffectiveDofSet.size(); ++i) {
+                auto p_eff_dof = rEffectiveDofSet.ptr_begin() + i;
+                if (aux_dof_set.find(*p_eff_dof) == aux_dof_set.end()) {
+                    loose_dofs.push_back(*p_eff_dof);
                 }
             }
 
             // Update the constraint loose DOFs with the effective solution increment values
             IndexPartition<IndexType>(loose_dofs.size()).for_each([&](IndexType Index){
-                auto loose_dof_info = loose_dofs[Index];
-                auto p_loose_dof = loose_dof_info.first;
+                auto p_loose_dof = loose_dofs[Index];
                 if (p_loose_dof->IsFree()) {
-                    p_loose_dof->GetSolutionStepValue() += rEffectiveDx[loose_dof_info.second];
+                    p_loose_dof->GetSolutionStepValue() += rEffectiveDx[p_loose_dof->EffectiveEquationId()];
                 }
             });
         }
