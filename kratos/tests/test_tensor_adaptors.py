@@ -157,7 +157,10 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         t_adaptor_2.data = t_adaptor_1.data
         t_adaptor_2.StoreData()
 
-        t_adaptor_3 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.CONSTITUTIVE_MATRIX)
+        with self.assertRaises(RuntimeError):
+            t_adaptor_3 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.CONSTITUTIVE_MATRIX)
+
+        t_adaptor_3 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.CONSTITUTIVE_MATRIX, data_shape=[2,3])
 
         with self.assertRaises(RuntimeError):
             t_adaptor_3.CollectData()
@@ -177,7 +180,10 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         with self.assertRaises(RuntimeError):
             t_adaptor_4.StoreData()
 
-        t_adaptor_5 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.NORMAL_SHAPE_DERIVATIVE, step_index=6)
+        with self.assertRaises(RuntimeError):
+            t_adaptor_5 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.NORMAL_SHAPE_DERIVATIVE, step_index=6)
+
+        t_adaptor_5 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.NORMAL_SHAPE_DERIVATIVE, data_shape=[2,3], step_index=6)
         with self.assertRaises(RuntimeError):
             t_adaptor_5.CollectData()
 
