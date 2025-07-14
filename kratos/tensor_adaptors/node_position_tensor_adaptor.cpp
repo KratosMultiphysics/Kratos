@@ -84,7 +84,7 @@ void NodePositionTensorAdaptor::StoreData()
             ContainerIOUtils::CopyFromContiguousDataArray<array_1d<double, 3>>(
                 *mpContainer, this->ViewData(), r_shape.data().begin(),
                 r_shape.data().begin() + r_shape.size(),
-                [&r_shape](Node& rNode) -> auto& {
+                [](Node& rNode) -> auto& {
                     // get the current coordinates
                     return rNode.Coordinates();
                 });
@@ -93,7 +93,7 @@ void NodePositionTensorAdaptor::StoreData()
             ContainerIOUtils::CopyFromContiguousDataArray<array_1d<double, 3>>(
                 *mpContainer, this->ViewData(), r_shape.data().begin(),
                 r_shape.data().begin() + r_shape.size(),
-                [&r_shape](Node& rNode) -> auto& {
+                [](Node& rNode) -> auto& {
                     // get the current coordinates
                     return rNode.GetInitialPosition();
                 });
