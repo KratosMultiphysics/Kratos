@@ -57,7 +57,7 @@ namespace Kratos
   }
 
 
-  //*******************************ASSIGMENT OPERATOR***********************************
+  //******************************ASSIGNMENT OPERATOR***********************************
   //************************************************************************************
 
   ContactDomainCondition&  ContactDomainCondition::operator=(ContactDomainCondition const& rOther)
@@ -616,7 +616,7 @@ namespace Kratos
     GeometryType& MasterGeometry = mContactVariables.GetMasterGeometry();
 
 
-    //Get the parent coodinates derivative [dN/d£]
+    //Get the parent coordinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = MasterGeometry.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
 
@@ -1690,7 +1690,7 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
-  //Note: in the restart the contact mesh is generated from the begining
+  //Note: in the restart the contact mesh is generated from the beginning
 
   void ContactDomainCondition::save( Serializer& rSerializer ) const
   {

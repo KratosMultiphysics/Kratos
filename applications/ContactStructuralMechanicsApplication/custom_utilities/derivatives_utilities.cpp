@@ -924,7 +924,7 @@ bool DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
 {
     KRATOS_TRY
 
-    // We initilize the Ae components
+    // We initialize the Ae components
     AeData ae_data;
     ae_data.Initialize();
 

@@ -1,0 +1,104 @@
+{
+    "problem_data":{
+        "problem_name" : "RBS1",
+        "start_time"   : 0.0,
+        "end_time"     : 4.0
+    },
+    "solver_settings":{
+        "domain_size":3,
+        "echo_level":0,
+        "buffer_size":3,
+        "model_import_settings":{
+            "input_type":"none",
+            "input_filename":"Main",
+            "restart_load_file_label":"11.005",
+            "input_output_path":"restart/RBS1"
+        },
+        "time_integration_parameters":{
+            "rho_inf": 1,
+            "time_step": 0.005
+        },
+        "active_dofs":[
+            {
+                "dof":"displacement_x",
+                "constrained": false,
+                "system_parameters":{
+                    "mass": 10.0,
+                    "stiffness" : 4000.0,
+                    "damping": 10.0
+                }
+            },{
+                "dof":"rotation_z",
+                "constrained": false,
+                "system_parameters":{
+                    "mass": 10.0,
+                    "stiffness" : 1000.0,
+                    "damping": 10.0
+                }
+            }
+        ]
+    },
+    "output_processes":[],
+    "processes":{
+        "gravity":[],
+        "initial_conditions_process_list":[],
+        "boundary_conditions_process_list":[
+            {
+                "python_module" : "assign_vector_variable_process",
+                "kratos_module" : "KratosMultiphysics",
+                "process_name"  : "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name" : "Main.RigidBody",
+                    "variable_name"   : "IMPOSED_FORCE",
+                    "interval"        : [0, "End"],
+                    "constrained"     : [false,false,false],
+                    "value"           : ["5*sin((5+2*t)*t)", 0.0, 0.0]
+                }
+            },{
+                "python_module" : "assign_vector_variable_process",
+                "kratos_module" : "KratosMultiphysics",
+                "process_name"  : "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name" : "Main.RootPoint",
+                    "variable_name"   : "IMPOSED_ROTATION",
+                    "interval"        : [2.0, "End"],
+                    "constrained"     : [false,false,false],
+                    "value"           : [0.0, 0.0, "0.001*sin(10*t)"]
+                }
+            }
+        ],
+        "auxiliar_process_list":[
+            {
+                "python_module": "from_json_check_result_process",
+                "kratos_module": "KratosMultiphysics",
+                "help": "",
+                "process_name": "FromJsonCheckResultProcess",
+                "Parameters": {
+                    "check_variables": [
+                        "DISPLACEMENT_X",
+                        "DISPLACEMENT_Y",
+                        "DISPLACEMENT_Z",
+                        "ROTATION_X",
+                        "ROTATION_Y",
+                        "ROTATION_Z",
+                        "VELOCITY_X",
+                        "VELOCITY_Y",
+                        "VELOCITY_Z",
+                        "ANGULAR_VELOCITY_X",
+                        "ANGULAR_VELOCITY_Y",
+                        "ANGULAR_VELOCITY_Z",
+                        "ACCELERATION_X",
+                        "ACCELERATION_Y",
+                        "ACCELERATION_Z",
+                        "ANGULAR_ACCELERATION_X",
+                        "ANGULAR_ACCELERATION_Y",
+                        "ANGULAR_ACCELERATION_Z"
+                    ],
+                    "input_file_name": "rbs_test/RBS_RBS/RBS1_test_result.json",
+                    "model_part_name": "Main.RigidBody",
+                    "time_frequency": 0.005
+                }
+            }
+        ]
+    }
+}

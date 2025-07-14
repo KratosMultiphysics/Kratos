@@ -75,7 +75,6 @@ The typical structure of a JSON file is like the following:
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "ImposeVectorValueByComponentsProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "is_fixed_x"      : true,
@@ -91,7 +90,6 @@ The typical structure of a JSON file is like the following:
             "help"                  : "This process ",
             "process_name"          : "ApplyConstantVectorValueProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "SelfWeight2D_Self_weight_Auto1",
                 "variable_name"   : "VOLUME_ACCELERATION",
                 "factor"          : 9.8,

@@ -12,6 +12,7 @@
 
 #include "containers/model.h"
 #include "custom_elements/plane_strain_stress_state.h"
+#include "custom_utilities/registration_utilities.h"
 #include "includes/checks.h"
 #include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -20,6 +21,7 @@
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <string>
+#include <type_traits>
 
 using namespace Kratos;
 using namespace std::string_literals;
@@ -55,22 +57,6 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixGivesCorrectResults, KratosGeoMechanic
     KRATOS_CHECK_MATRIX_NEAR(calculated_matrix, expected_matrix, 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_ReturnsCorrectIntegrationCoefficient, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
-
-    // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
-    Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
-
-    const auto detJ                   = 2.0;
-    const auto calculated_coefficient = p_stress_state_policy->CalculateIntegrationCoefficient(
-        integration_point, detJ, ModelSetupUtilities::Create2D3NTriangleGeometry());
-
-    // The expected number is calculated as follows:
-    // 2.0 (detJ) * 0.5 (weight) = 1.0
-    KRATOS_EXPECT_NEAR(calculated_coefficient, 1.0, 1e-5);
-}
-
 KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_ReturnsCorrectGreenLagrangeStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
@@ -91,6 +77,14 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_ReturnsCorrectGreenLagrangeStra
     KRATOS_CHECK_VECTOR_NEAR(calculated_strain, expected_vector, 1e-12)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    EXPECT_FALSE(std::is_copy_constructible_v<PlaneStrainStressState>);
+    EXPECT_FALSE(std::is_copy_assignable_v<PlaneStrainStressState>);
+    EXPECT_TRUE(std::is_move_constructible_v<PlaneStrainStressState>);
+    EXPECT_TRUE(std::is_move_assignable_v<PlaneStrainStressState>);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectClone, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
@@ -98,6 +92,7 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectClone, KratosGeoMec
     const auto p_clone = p_stress_state_policy->Clone();
 
     KRATOS_EXPECT_NE(dynamic_cast<PlaneStrainStressState*>(p_clone.get()), nullptr);
+    KRATOS_EXPECT_NE(p_clone.get(), p_stress_state_policy.get());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectVoigtVector, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -128,7 +123,8 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectStressTensorSize, K
 KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto scoped_registration = ScopedSerializerRegistrationOfAllStressStatePolicies{};
+    const auto scoped_registration =
+        ScopedSerializerRegistration{"PlaneStrainStressState"s, PlaneStrainStressState{}};
     const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<PlaneStrainStressState>()};
     auto serializer = StreamSerializer{};
 

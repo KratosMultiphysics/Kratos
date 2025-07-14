@@ -516,7 +516,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      // Compute strenght type parameter
+      // Compute strength type parameter
       rVariables.RateFactor = 0.0;
 
       const SizeType& VoigtSize = rVariables.GetModelData().GetVoigtSize();

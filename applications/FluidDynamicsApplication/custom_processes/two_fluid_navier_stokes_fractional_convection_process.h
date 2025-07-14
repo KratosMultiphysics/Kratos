@@ -80,7 +80,7 @@ namespace Kratos
 
         /*
          * @brief Construct a new Navier Stokes Fractional Convection Process object
-         * NS Fractional convection proces model constructor
+         * NS Fractional convection process model constructor
          * @param rModel Model container
          * @param pLinearSolver Linear solver to be used in the level set convection problem
          * @param ThisParameters Json settings encapsulating the process configuration (see also GetDefaultParameters)

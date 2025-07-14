@@ -25,14 +25,20 @@ class Serializer;
 class KRATOS_API(GEO_MECHANICS_APPLICATION) StressStatePolicy
 {
 public:
+    StressStatePolicy()          = default;
     virtual ~StressStatePolicy() = default;
+
+    // To avoid the slicing problem, copying this class has been prohibited.
+    // Use member `Clone` to make deep copies.
+    StressStatePolicy(const StressStatePolicy&)            = delete;
+    StressStatePolicy& operator=(const StressStatePolicy&) = delete;
+
+    StressStatePolicy(StressStatePolicy&&) noexcept            = default;
+    StressStatePolicy& operator=(StressStatePolicy&&) noexcept = default;
 
     [[nodiscard]] virtual Matrix CalculateBMatrix(const Matrix&         rDN_DX,
                                                   const Vector&         rN,
                                                   const Geometry<Node>& rGeometry) const = 0;
-    [[nodiscard]] virtual double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
-                                                                 double DetJ,
-                                                                 const Geometry<Node>& rGeometry) const = 0;
     [[nodiscard]] virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const = 0;
     [[nodiscard]] virtual std::unique_ptr<StressStatePolicy> Clone() const               = 0;
     [[nodiscard]] virtual const Vector&                      GetVoigtVector() const      = 0;

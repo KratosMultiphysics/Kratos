@@ -721,7 +721,7 @@ namespace Kratos {
 
             const double tolerance = 1e-10;
             const std::vector<double> stress_vector_reference({-203.494282789073, 1627.95426231258, 305.24142418361});
-            Matrix c_matrix_reference(3, 3);
+            Matrix c_matrix_reference = ZeroMatrix(3, 3);
             c_matrix_reference(0, 0) = 406.98856557814611;
             c_matrix_reference(0, 1) = -203.49428278907305;
             c_matrix_reference(1, 0) = -203.49428278907305;

@@ -71,8 +71,7 @@ Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const
 
 void LinearNodalExtrapolator::AddRowsForMidsideNodes(const GeometryType& rGeometry, Matrix& rExtrapolationMatrix)
 {
-    const auto global_to_local_mapping =
-        NodeUtilities::CreateGlobalToLocalNodeIndexMap(rGeometry.Points());
+    const auto global_to_local_mapping = NodeUtilities::CreateGlobalToLocalNodeIndexMap(rGeometry.Points());
 
     rExtrapolationMatrix.resize(rGeometry.PointsNumber(), rExtrapolationMatrix.size2());
     for (const auto& edge : rGeometry.GenerateEdges()) {

@@ -33,7 +33,7 @@ PYBIND11_MODULE(KratosMappingMPIExtension,m)
     AddMappingToPython<MPIMapperDefinitions::SparseSpaceType, MPIMapperDefinitions::DenseSpaceType>(m);
 
     // Macros for registering mappers
-    // wil be removed once using the core factories
+    // will be removed once using the core factories
     #define KRATOS_REGISTER_MAPPER(MapperType, MapperName)                                                   \
         {                                                                                                    \
         Model current_model;                                                                                 \

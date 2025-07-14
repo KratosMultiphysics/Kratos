@@ -8,68 +8,38 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Wijtze Pieter Kikstra
-//
+//                   Richard Faasse
 
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
+#include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
 
 namespace Kratos::Testing
 {
 using namespace Kratos;
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTetrahedra3D10ElementReturnsGI_GAUSS_2, KratosGeoMechanicsFastSuiteWithoutKernel)
+class ParametrizedIntegrationMethodSuite
+    : public ::testing::TestWithParam<std::tuple<Element::Pointer, GeometryData::IntegrationMethod>>
 {
-    // Arrange
+};
+
+TEST_P(ParametrizedIntegrationMethodSuite, TestElementReturnsCorrectIntegrationMethod)
+{
     Model model;
-    const auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D10NUPwDiffOrderElement(model);
-    const auto& element = r_model_part.Elements().front();
+    const auto& [r_element, expected_integration_method] = GetParam();
 
-    // Act & Assert
-    KRATOS_EXPECT_EQ(element.GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_2);
+    KRATOS_EXPECT_EQ(r_element->GetIntegrationMethod(), expected_integration_method)
+        << "\nIntegration method is not as expected for the element with the following geometry: "
+        << r_element->GetGeometry().Info();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTriangle2D3ElementReturnsGI_GAUSS_2, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    Model       model;
-    const auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
-    const auto& element      = r_model_part.Elements().front();
-
-    // Act & Assert
-    KRATOS_EXPECT_EQ(element.GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_2);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTriangle2D6ElementReturnsGI_GAUSS_2, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    Model model;
-    const auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D6NDiffOrderElement(model);
-    const auto& element = r_model_part.Elements().front();
-
-    // Act & Assert
-    KRATOS_EXPECT_EQ(element.GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_2);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTriangle2D10ElementReturnsGI_GAUSS_4, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    Model       model;
-    const auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D10NElement(model);
-    const auto& element      = r_model_part.Elements().front();
-
-    // Act & Assert
-    KRATOS_EXPECT_EQ(element.GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_4);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainTriangle2D15ElementReturnsGI_GAUSS_5, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    Model       model;
-    const auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D15NElement(model);
-    const auto& element      = r_model_part.Elements().front();
-
-    // Act & Assert
-    KRATOS_EXPECT_EQ(element.GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_5);
-}
+INSTANTIATE_TEST_SUITE_P(
+    KratosGeoMechanicsFastSuiteWithoutKernel,
+    ParametrizedIntegrationMethodSuite,
+    ::testing::Values(
+        std::make_tuple(ElementSetupUtilities::Create2D3NElement(), GeometryData::IntegrationMethod::GI_GAUSS_2),
+        std::make_tuple(ElementSetupUtilities::Create2D6NElement(), GeometryData::IntegrationMethod::GI_GAUSS_2),
+        std::make_tuple(ElementSetupUtilities::Create2D10NElement(), GeometryData::IntegrationMethod::GI_GAUSS_4),
+        std::make_tuple(ElementSetupUtilities::Create2D15NElement(), GeometryData::IntegrationMethod::GI_GAUSS_5),
+        std::make_tuple(ElementSetupUtilities::Create3D10NElement(), GeometryData::IntegrationMethod::GI_GAUSS_2)));
 
 } // namespace Kratos::Testing

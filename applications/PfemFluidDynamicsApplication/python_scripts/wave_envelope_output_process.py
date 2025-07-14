@@ -80,7 +80,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
     def PrintOutput(self):
         """Print the wave height corresponding to each gauge and schedule the next output.
 
-        The previous output files are overwitten. If the simulation
+        The previous output files are overwritten. If the simulation
         does not reach the end, an envelope will be kept.
         """
         file_settings = self.settings["output_file_settings"]

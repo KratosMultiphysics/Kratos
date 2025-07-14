@@ -36,7 +36,7 @@ void CreateEntitiesFromGeometries(
     ModelPart& rModelPart)
 {
     // Create the entities container and allocate space
-    TEntitiesContainerType entities_to_add;
+    std::vector<typename TEntitiesContainerType::pointer> entities_to_add;
     entities_to_add.reserve(rModelPart.NumberOfGeometries());
 
     // Get current max element id

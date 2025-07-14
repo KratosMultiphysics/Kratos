@@ -95,7 +95,8 @@ To incorporate the Mohr-Coulomb model with tensile cutoff in numerical simulatio
 
 4. Evaluate the condition and mapping
   - If the trial stress falls in the elastic zone, it stays unchanged. No mapping is applied.
-  - If the trial stress falls in the axial zone. The trial stress then needs to be mapped back to the cutoff curve.
+  - If the trial stress falls in the tensile apex return zone. The trial stress then needs to be mapped back to the apex.
+  - If the trial stress falls in the tensile cutoff zone. The trial stress then needs to be mapped back to the tension cutoff line.
   - If it falls in the tensile corner return zone, then it needs to be mapped to the corner point.
   - In the case of regular failure zone, then it is mapped back to the Mohr-Coulomb curve along the normal direction of flow function. The flow function is defined by
   
@@ -104,7 +105,22 @@ To incorporate the Mohr-Coulomb model with tensile cutoff in numerical simulatio
 ```
   where $`\psi`$ is the dilatancy angle.
 
-5. If after mapping, the condidition $`\sigma_1 \ge \sigma_2 \ge \sigma_3`$ is not valid, rearrang the principal stresses and repeat the process, namely go to point 3.
+5. If after mapping, the condidition $`\sigma_1 \ge \sigma_2 \ge \sigma_3`$ is not valid, average the principal stresses of stage 2 and the direction of the mapping and map the principal stresses again.
+  - if $`\sigma_1 \le \sigma_2`$ set:
+```math
+       \sigma_1 = \sigma_2 = \frac{\sigma_1 + \sigma_2}{2}
+```
+```math
+       \frac{\partial G}{\partial \sigma_1} = \frac{\partial G}{\partial \sigma_2} = \frac{1}{2} \left( \frac{\partial G}{\partial \sigma_1} + \frac{\partial G}{\partial \sigma_2} \right)
+```
+  - if $`\sigma_2 \le \sigma_3`$ set:
+```math
+       \sigma_3 = \sigma_2 = \frac{\sigma_3 + \sigma_2}{2}
+```
+```math
+       \frac{\partial G}{\partial \sigma_3} = \frac{\partial G}{\partial \sigma_2} = \frac{1}{2} \left( \frac{\partial G}{\partial \sigma_3} + \frac{\partial G}{\partial \sigma_2} \right)
+```
+This mapping is based on a new Mohr-Coulomb diagram with modified zones, based on the averaged of the derivatives of flow functions $`\frac{\partial G}{\partial \boldsymbol{\sigma}}`$.
 
 6. Rotate the mapped stress vector back, by appying the rotation matrix.
 

@@ -29,7 +29,7 @@ model_part_str = '''-Main- model part
         Number of Properties  : 1
         Number of Elements    : 4
         Number of Conditions  : 5
-        Number of Constraints : 0
+        Number of Constraints : 2
 
     -Inlets- model part
         Number of tables : 1

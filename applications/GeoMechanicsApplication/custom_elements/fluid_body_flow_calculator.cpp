@@ -38,8 +38,8 @@ Vector FluidBodyFlowCalculator::RHSContribution()
     const auto               projected_gravity_on_integration_points =
         mInputProvider.GetProjectedGravityAtIntegrationPoints();
 
-    const auto fluid_body_vector_length  = shape_function_gradients[0].size1();
-    auto result = Vector{ZeroVector(fluid_body_vector_length)};
+    const auto fluid_body_vector_length = shape_function_gradients[0].size1();
+    auto       result                   = Vector{ZeroVector(fluid_body_vector_length)};
     for (unsigned int integration_point_index = 0;
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {
         const auto relative_permeability =

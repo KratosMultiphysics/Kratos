@@ -2,7 +2,6 @@
 import KratosMultiphysics
 from KratosMultiphysics.read_csv_table_utility import ReadCsvTableUtility
 
-
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -43,7 +42,6 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"            : "This process sets a given scalar value for a certain variable in all the nodes of a submodelpart",
-            "mesh_id"         : 0,
             "model_part_name" : "please_specify_model_part_name",
             "variable_name"   : "SPECIFY_VARIABLE_NAME",
             "interval"        : [0.0, 1e30],
@@ -74,7 +72,6 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             raise Exception(msg)
 
         self.model_part = Model[settings["model_part_name"].GetString()]
-        self.mesh = self.model_part.GetMesh(settings["mesh_id"].GetInt())
         self.is_fixed = settings["constrained"].GetBool()
 
         self.value_is_numeric = False
@@ -88,7 +85,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             self.aux_function = KratosMultiphysics.GenericFunctionUtility(self.function_string, settings["local_axes"])
 
             if self.aux_function.DependsOnSpace():
-                self.cpp_apply_function_utility = KratosMultiphysics.ApplyFunctionToNodesUtility(self.mesh.Nodes, self.aux_function )
+                self.cpp_apply_function_utility = KratosMultiphysics.ApplyFunctionToNodesUtility(self.model_part.Nodes, self.aux_function )
         else:
             self.table = ReadCsvTableUtility(settings["value"]).Read(self.model_part)
 
@@ -117,19 +114,19 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             self.step_is_active = True
 
             if self.is_fixed:
-                self.variable_utils.ApplyFixity(self.variable, self.is_fixed, self.mesh.Nodes)
+                self.variable_utils.ApplyFixity(self.variable, self.is_fixed, self.model_part.Nodes)
 
             if self.value_is_numeric:
-                self.variable_utils.SetVariable(self.variable, self.value, self.mesh.Nodes)
+                self.variable_utils.SetVariable(self.variable, self.value, self.model_part.Nodes)
             elif self.value_is_function:
                 if self.aux_function.DependsOnSpace() == False: #depends on time only
                     self.value = self.aux_function.CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0)
-                    self.variable_utils.SetVariable(self.variable, self.value, self.mesh.Nodes)
+                    self.variable_utils.SetVariable(self.variable, self.value, self.model_part.Nodes)
                 else: #most general case - space varying function (possibly also time varying)
                     self.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
             else:
                 self.value = self.table.GetValue(current_time)
-                self.variable_utils.SetVariable(self.variable, self.value, self.mesh.Nodes)
+                self.variable_utils.SetVariable(self.variable, self.value, self.model_part.Nodes)
 
     def ExecuteFinalizeSolutionStep(self):
         """This method is executed in order to finalize the current step
@@ -141,6 +138,6 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             # Here we free all of the nodes in the mesh
             if self.is_fixed:
                 fixity_status  = False
-                self.variable_utils.ApplyFixity(self.variable, fixity_status, self.mesh.Nodes)
+                self.variable_utils.ApplyFixity(self.variable, fixity_status, self.model_part.Nodes)
 
         self.step_is_active = False

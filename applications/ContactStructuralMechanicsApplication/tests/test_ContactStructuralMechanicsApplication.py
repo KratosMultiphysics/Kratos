@@ -69,7 +69,7 @@ from SmallTests import TwoDSimplestWithFrictionPatchMatchingTestContact   as TTw
 from SmallTests import ThreeDSimplestPatchMatchingTestContact             as TThreeDSimplestPatchMatchingTestContact
 from SmallTests import ThreeDSimplestWithFrictionPatchMatchingTestContact as TThreeDSimplestWithFrictionPatchMatchingTestContact
 
-## NIGTHLY TESTS
+## NIGHTLY TESTS
 # Mesh tying tests
 from NightlyTests import SimplestPatchTestThreeDTriQuadMeshTying as TSimplestPatchTestThreeDTriQuadMeshTying
 from NightlyTests import SimplestPatchTestThreeDQuadTriMeshTying as TSimplestPatchTestThreeDQuadTriMeshTying
@@ -335,7 +335,7 @@ def AssembleTestSuites():
 
         ### BEGIN VALIDATION SUITE ###
 
-        # For very long tests that should not be in nighly and you can use to validate
+        # For very long tests that should not be in nightly and you can use to validate
         validationSuite = suites['validation']
         validationSuite.addTests(nightlySuite)
 
@@ -487,9 +487,9 @@ def AssembleTestSuites():
               TThreeDSimplestPatchMatchingSlopeTestContact,
               TThreeDPatchMatchingTestContact,
               TThreeDPatchNotMatchingTestContact,
-              #### NIGTHLY
+              #### NIGHTLY
               TALMTaylorPatchTestContact,
-              #####TALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
+              #####TALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memory error, correct it)
               TALMHertzSimpleSphereTestContact,
               TComponentsALMTaylorPatchTestContact,
               TALMPureFrictionalTestContact,
@@ -504,7 +504,7 @@ def AssembleTestSuites():
               TBeamContactWithFrictionTest,
               TPlateTest,  # TODO: Fix this
               ### VALIDATION
-              #####TComponentsALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
+              #####TComponentsALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memory error, correct it)
               TALMHertzSimpleTestContact,
               TALMHertzCompleteTestContact,
               TALMBeamsTestContact,

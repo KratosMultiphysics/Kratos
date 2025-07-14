@@ -9,7 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # SMALL TESTS
 import SmallTests
 
-# NIGTHLY TESTS
+# NIGHTLY TESTS
 import NightTests
 from test_cut_pfem_2d import TestCutPfem
 
@@ -25,7 +25,7 @@ def AssembleTestSuites():
     # NIGHTLY TESTS
     night_suite = NightTests.SetTestSuite(suites)
 
-    # inlude small suite in night suite
+    # include small suite in night suite
     night_suite.addTests(small_suite)
 
     # ALL TESTS

@@ -89,6 +89,7 @@
 #include "custom_elements/solid_elements/total_lagrangian_q1p0_mixed_element.h"
 #include "custom_elements/solid_elements/small_displacement_mixed_strain_displacement_element.h"
 #include "custom_elements/beam_elements/timoshenko_beam_element_2D2N.h"
+#include "custom_elements/beam_elements/timoshenko_beam_element_3D2N.h"
 #include "custom_elements/beam_elements/timoshenko_beam_element_2D3N.h"
 #include "custom_elements/beam_elements/timoshenko_curved_beam_element_2D3N.h"
 
@@ -123,6 +124,7 @@
 #include "custom_constitutive/user_provided_linear_elastic_law.h"
 // Constitutive laws for the Timoshenko beams
 #include "custom_constitutive/timoshenko_beam_elastic_constitutive_law.h"
+#include "custom_constitutive/timoshenko_beam_elastic_constitutive_law_3d.h"
 #include "custom_constitutive/timoshenko_plane_strain_beam_elastic_constitutive_law.h"
 
 
@@ -285,6 +287,7 @@ private:
     const CrBeamElement2D2N mCrBeamElement2D2N;
     const CrBeamElementLinear2D2N mCrLinearBeamElement2D2N;
     const LinearTimoshenkoBeamElement2D2N mLinearTimoshenkoBeamElement2D2N;
+    const LinearTimoshenkoBeamElement3D2N mLinearTimoshenkoBeamElement3D2N;
     const LinearTimoshenkoBeamElement2D3N mLinearTimoshenkoBeamElement2D3N;
     const LinearTimoshenkoCurvedBeamElement2D3N mLinearTimoshenkoCurvedBeamElement2D3N;
 
@@ -529,6 +532,7 @@ private:
     const UserProvidedLinearElasticLaw<2> mUserProvidedLinearElastic2DLaw;
     const UserProvidedLinearElasticLaw<3> mUserProvidedLinearElastic3DLaw;
     const TimoshenkoBeamElasticConstitutiveLaw mTimoshenkoBeamElasticConstitutiveLaw;
+    const TimoshenkoBeamElasticConstitutiveLaw3D mTimoshenkoBeamElasticConstitutiveLaw3D;
     const TimoshenkoBeamPlaneStrainElasticConstitutiveLaw mTimoshenkoBeamPlaneStrainElasticConstitutiveLaw;
 
     ///@}

@@ -234,7 +234,7 @@ void BaseShellElement<TCoordinateTransformation>::Initialize(const ProcessInfo& 
 
         if (Has(LOCAL_MATERIAL_AXIS_1)) {
             // calculate the angle between the prescribed direction and the local axis 1
-            // this is currently required in teh derived classes TODO refactor
+            // this is currently required in the derived classes TODO refactor
 
             std::vector<array_1d<double, 3>> local_axes_1;
             std::vector<array_1d<double, 3>> local_axes_2;
