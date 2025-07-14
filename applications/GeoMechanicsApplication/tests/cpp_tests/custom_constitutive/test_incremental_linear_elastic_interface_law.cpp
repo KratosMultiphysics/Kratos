@@ -34,61 +34,78 @@ using namespace std::string_literals;
 namespace Kratos::Testing
 {
 
+inline GeoIncrementalLinearElasticInterfaceLaw MakeLaw2D()
+{
+    return GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
+}
+
+inline GeoIncrementalLinearElasticInterfaceLaw MakeLaw3D()
+{
+    return GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfaceThreeDimensionalSurface>()};
+}
+
+inline void InitializeLawMaterial(GeoIncrementalLinearElasticInterfaceLaw& law,
+                                  const Properties& properties = Properties{})
+{
+    const auto dummy_geometry              = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(properties, dummy_geometry, dummy_shape_function_values);
+}
+
+inline void SetInitialState(GeoIncrementalLinearElasticInterfaceLaw& law,
+                            const Vector&                            initial_relative_displacement,
+                            const Vector&                            initial_traction)
+{
+    auto p_initial_state = make_intrusive<InitialState>(initial_relative_displacement, initial_traction);
+    law.SetInitialState(p_initial_state);
+}
+
+inline Properties MakeProperties(double normal_stiffness, double shear_stiffness)
+{
+    Properties properties;
+    properties[INTERFACE_NORMAL_STIFFNESS] = normal_stiffness;
+    properties[INTERFACE_SHEAR_STIFFNESS]  = shear_stiffness;
+    return properties;
+}
+
 KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_HasCorrectWorkingSpace, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // 2D  case
-    auto law_2D = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
-
+    auto law_2D = MakeLaw2D();
     KRATOS_EXPECT_EQ(law_2D.WorkingSpaceDimension(), 2);
 
-    // 3D  case
-    auto law_3D =
-        GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfaceThreeDimensionalSurface>()};
-
+    auto law_3D = MakeLaw3D();
     KRATOS_EXPECT_EQ(law_3D.WorkingSpaceDimension(), 3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_HasCorrectStrainSize, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // 2D  case
-    const auto law_2D = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
-
+    const auto law_2D = MakeLaw2D();
     KRATOS_EXPECT_EQ(law_2D.GetStrainSize(), 2);
 
-    // 3D  case
-    const auto law_3D =
-        GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfaceThreeDimensionalSurface>()};
-
+    const auto law_3D = MakeLaw3D();
     KRATOS_EXPECT_EQ(law_3D.GetStrainSize(), 3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_UsesCauchyStressMeasure, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // 2D  case
-    auto law_2D = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
-
+    auto law_2D = MakeLaw2D();
     KRATOS_EXPECT_EQ(law_2D.GetStressMeasure(), ConstitutiveLaw::StressMeasure_Cauchy);
 
-    // 3D  case
-    auto law_3D =
-        GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfaceThreeDimensionalSurface>()};
-
+    auto law_3D = MakeLaw3D();
     KRATOS_EXPECT_EQ(law_3D.GetStressMeasure(), ConstitutiveLaw::StressMeasure_Cauchy);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_IsIncremental, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto law = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
-
-    KRATOS_EXPECT_TRUE(law.IsIncremental())
+    auto law_2D = MakeLaw2D();
+    KRATOS_EXPECT_TRUE(law_2D.IsIncremental())
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CloneOfLinearElasticLawForInterfaces_IsIndependentOfOriginal,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto original_law =
-        GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
-    auto p_cloned_law = original_law.Clone();
+    const auto original_law = MakeLaw2D();
+    auto       p_cloned_law = original_law.Clone();
 
     KRATOS_EXPECT_NE(p_cloned_law.get(), nullptr);
     KRATOS_EXPECT_NE(p_cloned_law.get(), &original_law);
@@ -97,16 +114,12 @@ KRATOS_TEST_CASE_IN_SUITE(CloneOfLinearElasticLawForInterfaces_IsIndependentOfOr
 
 KRATOS_TEST_CASE_IN_SUITE(CloneOfLinearElasticLawForInterfaces_HasCorrectStrainSize, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // 2D  case
-    const auto original_law_2D =
-        GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
+    const auto original_law_2D = MakeLaw2D();
     const auto p_cloned_law_2D = original_law_2D.Clone();
-
     KRATOS_EXPECT_EQ(p_cloned_law_2D->GetStrainSize(), 2);
 
     // 3D  case
-    const auto original_law_3D =
-        GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfaceThreeDimensionalSurface>()};
+    const auto original_law_3D = MakeLaw3D();
     const auto p_cloned_law_3D = original_law_3D.Clone();
 
     KRATOS_EXPECT_EQ(p_cloned_law_3D->GetStrainSize(), 3);
@@ -115,15 +128,14 @@ KRATOS_TEST_CASE_IN_SUITE(CloneOfLinearElasticLawForInterfaces_HasCorrectStrainS
 KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_DoesNotRequireInitializationOfMaterialResponse,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto law = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
-
+    auto law = MakeLaw2D();
     KRATOS_EXPECT_FALSE(law.RequiresInitializeMaterialResponse())
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_ChecksForCorrectMaterialProperties,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto law = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
+    const auto law          = MakeLaw2D();
     auto       properties   = Properties{};
     const auto geometry     = InterfaceGeometry<Line2D2<Node>>{};
     const auto process_info = ProcessInfo{};
@@ -166,7 +178,7 @@ KRATOS_TEST_CASE_IN_SUITE(TheCalculatedConstitutiveMatrixIsADiagonalMatrixContai
     auto law_parameters = ConstitutiveLaw::Parameters{};
     law_parameters.SetMaterialProperties(material_properties);
 
-    auto law_2D = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
+    auto law_2D = MakeLaw2D();
 
     // 2D  case
     // Act
@@ -184,8 +196,7 @@ KRATOS_TEST_CASE_IN_SUITE(TheCalculatedConstitutiveMatrixIsADiagonalMatrixContai
 
     // 3D  case
     // Arrange
-    auto law_3D =
-        GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfaceThreeDimensionalSurface>()};
+    auto law_3D = MakeLaw3D();
 
     // Act
     actual_constitutive_matrix.clear();
@@ -205,7 +216,7 @@ KRATOS_TEST_CASE_IN_SUITE(TheCalculatedConstitutiveMatrixIsADiagonalMatrixContai
 KRATOS_TEST_CASE_IN_SUITE(TryingToCalculateTheValueOfAnUnsupportedMatrixVariableRaisesAnError,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto law = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
+    auto        law                                = MakeLaw2D();
     const auto& r_some_unsupported_matrix_variable = ENGINEERING_STRAIN_TENSOR;
     auto        dummy_parameters                   = ConstitutiveLaw::Parameters{};
     auto        value                              = Matrix{};
@@ -218,13 +229,11 @@ KRATOS_TEST_CASE_IN_SUITE(TryingToCalculateTheValueOfAnUnsupportedMatrixVariable
 KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplacementAndZeroTraction,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto dummy_properties            = Properties{};
-    const auto dummy_geometry              = Geometry<Node>{};
-    const auto dummy_shape_function_values = Vector{};
+    const auto dummy_properties = Properties{};
 
     // 2D  case
-    auto law_2D = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
-    law_2D.InitializeMaterial(dummy_properties, dummy_geometry, dummy_shape_function_values);
+    auto law_2D = MakeLaw2D();
+    InitializeLawMaterial(law_2D, dummy_properties);
 
     auto value = Vector{};
     law_2D.GetValue(STRAIN, value);
@@ -234,9 +243,8 @@ KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplace
     KRATOS_EXPECT_VECTOR_NEAR(value, zero_vector_2D, Defaults::absolute_tolerance)
 
     // 3D  case
-    auto law_3D =
-        GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfaceThreeDimensionalSurface>()};
-    law_3D.InitializeMaterial(dummy_properties, dummy_geometry, dummy_shape_function_values);
+    auto law_3D = MakeLaw3D();
+    InitializeLawMaterial(law_3D, dummy_properties);
 
     value.clear();
     law_3D.GetValue(STRAIN, value);
@@ -253,13 +261,10 @@ KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialIn
     const auto initial_relative_displacement = Vector{ScalarVector{2, 0.5}};
     const auto initial_traction              = Vector{ScalarVector{2, 30.0}};
     auto p_initial_state = make_intrusive<InitialState>(initial_relative_displacement, initial_traction);
-    auto law_2D = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
+    auto law_2D = MakeLaw2D();
     law_2D.SetInitialState(p_initial_state);
-
-    const auto dummy_properties            = Properties{};
-    const auto dummy_geometry              = Geometry<Node>{};
-    const auto dummy_shape_function_values = Vector{};
-    law_2D.InitializeMaterial(dummy_properties, dummy_geometry, dummy_shape_function_values);
+    const auto dummy_properties = Properties{};
+    InitializeLawMaterial(law_2D, dummy_properties);
 
     auto value = Vector{};
     law_2D.GetValue(STRAIN, value);
@@ -271,11 +276,9 @@ KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialIn
     const auto initial_relative_displacement_3D = Vector{ScalarVector{3, 0.5}};
     const auto initial_traction_3D              = Vector{ScalarVector{3, 30.0}};
     p_initial_state = make_intrusive<InitialState>(initial_relative_displacement_3D, initial_traction_3D);
-    auto law_3D =
-        GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfaceThreeDimensionalSurface>()};
+    auto law_3D = MakeLaw3D();
     law_3D.SetInitialState(p_initial_state);
-
-    law_3D.InitializeMaterial(dummy_properties, dummy_geometry, dummy_shape_function_values);
+    InitializeLawMaterial(law_3D, dummy_properties);
 
     value.clear();
     law_3D.GetValue(STRAIN, value);
@@ -287,7 +290,7 @@ KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialIn
 KRATOS_TEST_CASE_IN_SUITE(TryingToGetTheValueOfAnUnsupportedVectorVariableRaisesAnError,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto law = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
+    auto        law                                = MakeLaw2D();
     const auto& r_some_unsupported_vector_variable = GREEN_LAGRANGE_STRAIN_VECTOR;
 
     auto value = Vector{};
@@ -299,6 +302,7 @@ KRATOS_TEST_CASE_IN_SUITE(TryingToGetTheValueOfAnUnsupportedVectorVariableRaises
 KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelativeDisplacementAndStiffness,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+    // Arange
     auto properties                        = Properties{};
     properties[INTERFACE_NORMAL_STIFFNESS] = 20.0;
     properties[INTERFACE_SHEAR_STIFFNESS]  = 10.0;
@@ -312,10 +316,8 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelat
     law_parameters.SetStressVector(traction);
 
     law_parameters.SetMaterialProperties(properties);
-    auto law_2d = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
-    const auto dummy_geometry              = Geometry<Node>{};
-    const auto dummy_shape_function_values = Vector{};
-    law_2d.InitializeMaterial(properties, dummy_geometry, dummy_shape_function_values);
+    auto law_2d = MakeLaw2D();
+    InitializeLawMaterial(law_2d, properties);
 
     law_2d.CalculateMaterialResponseCauchy(law_parameters);
 
@@ -329,9 +331,8 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelat
     law_parameters.SetStrainVector(relative_displacement);
     traction = Vector{ZeroVector{3}};
     law_parameters.SetMaterialProperties(properties);
-    auto law_3D =
-        GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfaceThreeDimensionalSurface>()};
-    law_3D.InitializeMaterial(properties, dummy_geometry, dummy_shape_function_values);
+    auto law_3D = MakeLaw3D();
+    InitializeLawMaterial(law_3D, properties);
 
     law_3D.CalculateMaterialResponseCauchy(law_parameters);
 
@@ -348,7 +349,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncr
 
     auto law_parameters = ConstitutiveLaw::Parameters{};
 
-    // 3D  case
+    // 2D  case
     auto relative_displacement = Vector{ZeroVector{2}};
     law_parameters.SetStrainVector(relative_displacement);
     auto traction = Vector{ZeroVector{2}};
@@ -358,11 +359,9 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncr
     const auto initial_relative_displacement = Vector{ScalarVector{2, 5.0}};
     const auto initial_traction              = Vector{ScalarVector{2, 30.0}};
     auto p_initial_state = make_intrusive<InitialState>(initial_relative_displacement, initial_traction);
-    auto law_2D = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
+    auto law_2D = MakeLaw2D();
     law_2D.SetInitialState(p_initial_state);
-    const auto dummy_geometry              = Geometry<Node>{};
-    const auto dummy_shape_function_values = Vector{};
-    law_2D.InitializeMaterial(properties, dummy_geometry, dummy_shape_function_values);
+    InitializeLawMaterial(law_2D, properties);
 
     // First step
     relative_displacement <<= 5.1, 5.3;
@@ -392,10 +391,9 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncr
     const auto initial_traction_3D              = Vector{ScalarVector{3, 30.0}};
     auto       p_initial_state_3D =
         make_intrusive<InitialState>(initial_relative_displacement_3D, initial_traction_3D);
-    auto law_3D =
-        GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfaceThreeDimensionalSurface>()};
+    auto law_3D = MakeLaw3D();
     law_3D.SetInitialState(p_initial_state_3D);
-    law_3D.InitializeMaterial(properties, dummy_geometry, dummy_shape_function_values);
+    InitializeLawMaterial(law_3D, properties);
 
     // First step
     relative_displacement <<= 5.1, 5.3, 5.5;
@@ -422,16 +420,14 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // 2D  case
-    auto law_2D = GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
+    auto       law_2D                        = MakeLaw2D();
     const auto initial_relative_displacement = Vector{ScalarVector{2, 0.5}};
     const auto initial_traction              = Vector{ScalarVector{2, 30.0}};
     auto p_initial_state = make_intrusive<InitialState>(initial_relative_displacement, initial_traction);
     law_2D.SetInitialState(p_initial_state);
 
-    const auto dummy_properties            = Properties{};
-    const auto dummy_geometry              = Geometry<Node>{};
-    const auto dummy_shape_function_values = Vector{};
-    law_2D.InitializeMaterial(dummy_properties, dummy_geometry, dummy_shape_function_values);
+    const auto dummy_properties = Properties{};
+    InitializeLawMaterial(law_2D, dummy_properties);
 
     auto law_parameters        = ConstitutiveLaw::Parameters{};
     auto relative_displacement = Vector{2};
@@ -463,13 +459,12 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
                                        initial_traction, Defaults::relative_tolerance)
 
     // 3D case
-    auto law_3D =
-        GeoIncrementalLinearElasticInterfaceLaw{std::make_unique<InterfaceThreeDimensionalSurface>()};
+    auto       law_3D                           = MakeLaw3D();
     const auto initial_relative_displacement_3D = Vector{ScalarVector{3, 0.5}};
     const auto initial_traction_3D              = Vector{ScalarVector{3, 30.0}};
     auto p_initial_state_3D = make_intrusive<InitialState>(initial_relative_displacement, initial_traction);
     law_3D.SetInitialState(p_initial_state);
-    law_3D.InitializeMaterial(dummy_properties, dummy_geometry, dummy_shape_function_values);
+    InitializeLawMaterial(law_3D, dummy_properties);
 
     relative_displacement = Vector{3};
     relative_displacement <<= 0.1, 0.3, 0.5;
@@ -479,8 +474,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
     law_parameters.SetStressVector(traction);
     law_3D.FinalizeMaterialResponseCauchy(law_parameters);
 
-    const auto scoped_registration_law_3D =
-    ScopedSerializerRegistration{"InterfaceThreeDimensionalSurface"s, InterfaceThreeDimensionalSurface{}};
+    const auto scoped_registration_law_3D = ScopedSerializerRegistration{
+        "InterfaceThreeDimensionalSurface"s, InterfaceThreeDimensionalSurface{}};
     const auto tag_3D = "test_tag"s;
     serializer.save(tag_3D, law_3D);
 
