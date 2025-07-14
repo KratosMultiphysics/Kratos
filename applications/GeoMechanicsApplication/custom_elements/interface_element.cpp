@@ -64,7 +64,7 @@ namespace Kratos
 InterfaceElement::InterfaceElement(IndexType                                             NewId,
                                    const Geometry<GeometricalObject::NodeType>::Pointer& rGeometry,
                                    const Properties::Pointer& rProperties)
-    : Element(NewId, rGeometry, rProperties), mStressStatePolicy(std::make_unique<InterfaceStressState>())
+    : Element(NewId, rGeometry, rProperties), mStressStatePolicy(std::make_unique<Line2DInterfaceStressState>())
 {
     if (GetGeometry().LocalSpaceDimension() == 1) {
         mIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);
@@ -74,7 +74,7 @@ InterfaceElement::InterfaceElement(IndexType                                    
 }
 
 InterfaceElement::InterfaceElement(IndexType NewId, const GeometryType::Pointer& rGeometry)
-    : Element(NewId, rGeometry), mStressStatePolicy(std::make_unique<InterfaceStressState>())
+    : Element(NewId, rGeometry), mStressStatePolicy(std::make_unique<Line2DInterfaceStressState>())
 {
     if (GetGeometry().LocalSpaceDimension() == 1) {
         mIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);
