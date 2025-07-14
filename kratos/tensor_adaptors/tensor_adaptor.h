@@ -49,7 +49,7 @@ public:
                                         ModelPart::ElementsContainerType::Pointer,
                                         ModelPart::PropertiesContainerType::Pointer,
                                         // ModelPart::MasterSlaveConstraintContainerType::Pointer,
-                                        ModelPart::GeometryContainerType::GeometriesMapType::Pointer
+                                        ModelPart::GeometryContainerType::Pointer
                                     >;
 
     ///@}
