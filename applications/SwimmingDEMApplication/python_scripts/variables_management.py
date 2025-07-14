@@ -362,7 +362,6 @@ class VariablesManager:
         # Nodal density
         if 'EXACT_MATERIAL_ACCELERATION' in self.dem_nodal_results:
             self.coupling_fluid_vars += [SDEM.EXACT_MATERIAL_ACCELERATION]
-        self.coupling_fluid_vars += [SDEM.NODAL_DENSITY]
 
         if parameters["custom_fluid"]["fluid_model_type"].GetInt() == 0:
             self.coupling_fluid_vars += [SDEM.AVERAGED_FLUID_VELOCITY]
@@ -408,8 +407,10 @@ class VariablesManager:
         self.coupling_dem_vars = []
 
         # Nodal density
-        self.coupling_dem_vars += [SDEM.NODAL_DENSITY_PROJECTED]
-        self.coupling_dem_vars += [SDEM.NODAL_DENSITY]
+        if 'NODAL_DENSITY_PROJECTED' in self.dem_nodal_results:
+            self.coupling_dem_vars += [SDEM.NODAL_DENSITY_PROJECTED]
+        if 'NODAL_DENSITY' in self.dem_nodal_results:
+            self.coupling_fluid_vars += [SDEM.NODAL_DENSITY]
         if 'EXACT_MATERIAL_ACCELERATION' in self.dem_nodal_results:
             self.coupling_dem_vars += [SDEM.EXACT_MATERIAL_ACCELERATION]
 
