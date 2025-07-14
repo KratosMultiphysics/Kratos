@@ -747,5 +747,6 @@ void SmallStrainUMATLaw<TVoigtSize>::SetValue(const Variable<Vector>& rVariable,
 }
 
 template class SmallStrainUMATLaw<VOIGT_SIZE_3D>;
+template class SmallStrainUMATLaw<VOIGT_SIZE_2D_INTERFACE>;
 
 } // Namespace Kratos
