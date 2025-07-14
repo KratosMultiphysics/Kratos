@@ -14,12 +14,11 @@
 #pragma once
 
 #include "constitutive_law_dimension.h"
-#include "includes/kratos_export_api.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) ThreeDimensional : public ConstitutiveLawDimension
+class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfacePlaneStrain : public ConstitutiveLawDimension
 {
 public:
     [[nodiscard]] Matrix CalculateElasticMatrix(const Properties& rProperties) const override;
