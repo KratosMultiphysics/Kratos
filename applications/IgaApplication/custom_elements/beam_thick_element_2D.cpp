@@ -544,7 +544,6 @@ namespace Kratos
         const Matrix& rDDN_DDe) const
     {
         const SizeType number_of_points = GetGeometry().size();
-        const SizeType working_space_dimension = 2;
 
         for (IndexType k = 0; k < number_of_points; k++)
         {
