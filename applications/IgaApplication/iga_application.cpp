@@ -18,11 +18,11 @@ KratosIgaApplication::KratosIgaApplication()
     : KratosApplication("IgaApplication")
     , mTrussElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mTrussEmbeddedEdgeElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mBeamThinElement2D(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mBeamThickElement2D(0, Element::GeometryType::Pointer(
-        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
-    , mTrussEmbeddedEdgeElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mIgaMembraneElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
