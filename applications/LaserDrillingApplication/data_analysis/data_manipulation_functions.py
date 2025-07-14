@@ -6,6 +6,7 @@ import numpy as np
 from scipy.interpolate import splprep, splev
 from skimage.measure import EllipseModel
 import csv
+from pathlib import Path
 
 
 
@@ -177,6 +178,29 @@ def clean_data(data):
 
     return data_clean
 
+def clean_and_export_csv(input_path, output_path=None, fmt=["%.3f", "%.3f", "%.6f"], delimiter=","):
+    """
+    Reads the data file from a bore, removes the invalid data and exports the clean data to a csv.
+    Useful to visualize the files in e.g. Paraview
+    """
+    
+    input_path = Path(input_path)
+    print("Cleaning and exporting as CSV" + input_path.name)
+
+    data_clean = clean_data(read_single_bore(input_path))
+    
+    if output_path is None:
+        output_path =input_path.with_stem(input_path.stem + "_clean").with_suffix(".csv")
+    
+    
+    try:
+        np.savetxt(output_path, data_clean, fmt, delimiter)
+    except:
+        raise
+    else:
+        print("Exported as " + output_path)
+
+    
 
 def remove_surface_and_outliers(data, shallow_z_threshold, deep_outlier_quantile_threshold):
     """
