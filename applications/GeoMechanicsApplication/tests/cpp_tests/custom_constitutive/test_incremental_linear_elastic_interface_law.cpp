@@ -52,20 +52,15 @@ inline void InitializeLawMaterial(GeoIncrementalLinearElasticInterfaceLaw& law,
     law.InitializeMaterial(properties, dummy_geometry, dummy_shape_function_values);
 }
 
-inline void SetInitialState(GeoIncrementalLinearElasticInterfaceLaw& law,
-                            const Vector&                            initial_relative_displacement,
-                            const Vector&                            initial_traction)
+inline void TestStrainAndStress(GeoIncrementalLinearElasticInterfaceLaw& law,
+                                const Vector&                            expected_strain,
+                                const Vector&                            expected_stress)
 {
-    auto p_initial_state = make_intrusive<InitialState>(initial_relative_displacement, initial_traction);
-    law.SetInitialState(p_initial_state);
-}
-
-inline Properties MakeProperties(double normal_stiffness, double shear_stiffness)
-{
-    Properties properties;
-    properties[INTERFACE_NORMAL_STIFFNESS] = normal_stiffness;
-    properties[INTERFACE_SHEAR_STIFFNESS]  = shear_stiffness;
-    return properties;
+    auto value = Vector{};
+    law.GetValue(STRAIN, value);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, expected_strain, Defaults::relative_tolerance)
+    law.GetValue(CAUCHY_STRESS_VECTOR, value);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, expected_stress, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_HasCorrectWorkingSpace, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -235,23 +230,13 @@ KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplace
     auto law_2D = MakeLaw2D();
     InitializeLawMaterial(law_2D, dummy_properties);
 
-    auto value = Vector{};
-    law_2D.GetValue(STRAIN, value);
-    const auto zero_vector_2D = Vector{ZeroVector{2}};
-    KRATOS_EXPECT_VECTOR_NEAR(value, zero_vector_2D, Defaults::absolute_tolerance)
-    law_2D.GetValue(CAUCHY_STRESS_VECTOR, value);
-    KRATOS_EXPECT_VECTOR_NEAR(value, zero_vector_2D, Defaults::absolute_tolerance)
+    TestStrainAndStress(law_2D, Vector{ZeroVector{2}}, Vector{ZeroVector{2}});
 
     // 3D  case
     auto law_3D = MakeLaw3D();
     InitializeLawMaterial(law_3D, dummy_properties);
 
-    value.clear();
-    law_3D.GetValue(STRAIN, value);
-    const auto zero_vector_3D = Vector{ZeroVector{3}};
-    KRATOS_EXPECT_VECTOR_NEAR(value, zero_vector_3D, Defaults::absolute_tolerance)
-    law_3D.GetValue(CAUCHY_STRESS_VECTOR, value);
-    KRATOS_EXPECT_VECTOR_NEAR(value, zero_vector_3D, Defaults::absolute_tolerance)
+    TestStrainAndStress(law_3D, Vector{ZeroVector{3}}, Vector{ZeroVector{3}});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialInitialization,
@@ -266,11 +251,7 @@ KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialIn
     const auto dummy_properties = Properties{};
     InitializeLawMaterial(law_2D, dummy_properties);
 
-    auto value = Vector{};
-    law_2D.GetValue(STRAIN, value);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, initial_relative_displacement, Defaults::relative_tolerance)
-    law_2D.GetValue(CAUCHY_STRESS_VECTOR, value);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, initial_traction, Defaults::relative_tolerance)
+    TestStrainAndStress(law_2D, initial_relative_displacement, initial_traction);
 
     // 3D  case
     const auto initial_relative_displacement_3D = Vector{ScalarVector{3, 0.5}};
@@ -280,11 +261,7 @@ KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialIn
     law_3D.SetInitialState(p_initial_state);
     InitializeLawMaterial(law_3D, dummy_properties);
 
-    value.clear();
-    law_3D.GetValue(STRAIN, value);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, initial_relative_displacement_3D, Defaults::relative_tolerance)
-    law_3D.GetValue(CAUCHY_STRESS_VECTOR, value);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, initial_traction_3D, Defaults::relative_tolerance)
+    TestStrainAndStress(law_3D, initial_relative_displacement_3D, initial_traction_3D);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TryingToGetTheValueOfAnUnsupportedVectorVariableRaisesAnError,
@@ -447,11 +424,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
     auto restored_law_2D = GeoIncrementalLinearElasticInterfaceLaw{nullptr};
     serializer.load(tag_2D, restored_law_2D);
 
-    auto value = Vector{};
-    restored_law_2D.GetValue(STRAIN, value);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, relative_displacement, Defaults::relative_tolerance)
-    restored_law_2D.GetValue(CAUCHY_STRESS_VECTOR, value);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, traction, Defaults::relative_tolerance)
+    TestStrainAndStress(restored_law_2D, relative_displacement, traction);
     KRATOS_EXPECT_TRUE(restored_law_2D.HasInitialState())
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(restored_law_2D.GetInitialState().GetInitialStrainVector(),
                                        initial_relative_displacement, Defaults::relative_tolerance)
@@ -482,11 +455,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
     auto restored_law_3D = GeoIncrementalLinearElasticInterfaceLaw{nullptr};
     serializer.load(tag_3D, restored_law_3D);
 
-    value.clear();
-    restored_law_3D.GetValue(STRAIN, value);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, relative_displacement, Defaults::relative_tolerance)
-    restored_law_3D.GetValue(CAUCHY_STRESS_VECTOR, value);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, traction, Defaults::relative_tolerance)
+    TestStrainAndStress(restored_law_3D, relative_displacement, traction);
     KRATOS_EXPECT_TRUE(restored_law_3D.HasInitialState())
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(restored_law_3D.GetInitialState().GetInitialStrainVector(),
                                        initial_relative_displacement, Defaults::relative_tolerance)
