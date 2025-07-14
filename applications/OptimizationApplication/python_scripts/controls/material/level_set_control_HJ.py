@@ -6,7 +6,6 @@ from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities i
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes, SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics import FindGlobalNodalNeighboursProcess
 from KratosMultiphysics import FindGlobalNodalElementalNeighboursProcess
 import numpy as np
 
@@ -33,19 +32,20 @@ class LevelSetControlHJ(Control):
             "consider_recursive_property_update": false,
             "density"                           : 1.0,
             "young_modulus"                     : 1.0,
-            "k"                                 : 500.0,
-            "initial_phi_value"                 : 0.01
+            "k"                                 : 400.0,
+            "initial_phi_value"                 : 0.0
         }""")
 
 
         #fill in missing info from defaults
         parameters.ValidateAndAssignDefaults(default_settings)
 
+        self.controlled_physical_variables = [Kratos.DENSITY, Kratos.YOUNG_MODULUS]
         self.output_all_fields = parameters["output_all_fields"].GetBool()
         self.echo_level = parameters["echo_level"].GetInt()
+        self.density = parameters["density"].GetDouble()
         self.k = parameters["k"].GetDouble()
         self.initial_phi = parameters["initial_phi_value"].GetDouble()
-        self.controlled_physical_variables = [Kratos.DENSITY, Kratos.YOUNG_MODULUS]
 
         controlled_model_names_parts = parameters["controlled_model_part_names"].GetStringArray()
         if len(controlled_model_names_parts) == 0:
@@ -83,11 +83,12 @@ class LevelSetControlHJ(Control):
         else:
             raise RuntimeError(f"Elements of {self.model_part.FullName()} does not define either DENSITY or YOUNG_MODULUS.")
 
+
         # # get the control field
-        # CHANGE LOAD AND DISPLACEENT ELEMENTS TO MATERIAL
         self.control_phi = self.GetEmptyField()
-        Kratos.Expression.LiteralExpressionIO.SetData(self.control_phi, self.initial_phi)
-        self.design_velocity = self.GetEmptyField()
+        self._InitializeSignedDistance((2,0.5), 1, 0.25)
+        #Kratos.Expression.LiteralExpressionIO.SetData(self.control_phi, self.initial_phi)
+        #self.design_velocity = self.GetEmptyField()
 
         # get element neighbours
         self.element_neighbours = self._GetNeighbouringElements()
@@ -105,7 +106,7 @@ class LevelSetControlHJ(Control):
                     delta_x[d] = center_2[d] - center_1[d]
                 self.length = sum(delta_x[i]**2 for i in range(domain_size))**0.5
                 break
-        #self.length = element.GetGeometry().MinEdgeLength()
+        # self.length = element.GetGeometry().MinEdgeLength()
 
         self._UpdateAndOutputFields(self.GetEmptyField())
 
@@ -130,7 +131,6 @@ class LevelSetControlHJ(Control):
 
         # Convert sets to sorted lists
         #element_neighbors = {eid: sorted(list(neighs)) for eid, neighs in element_neighbors.items()}
-
         return element_neighbors
 
     def _ComputeStructuredElementNeighbours(self) -> dict:
@@ -173,6 +173,61 @@ class LevelSetControlHJ(Control):
 
         return structured_neighbours
 
+    def _InitializeSignedDistance(self, center=(0.5, 0.5), half_width = 0.25 , half_height = 0.25):
+        """
+        Initializes the level-set function (control_phi) as a signed distance function
+        to a rectangle centered at `center` with given half-width.
+
+        Parameters:
+        - center: Tuple (x, y) indicating the rectangle center
+        - half_width: Half of the side length of the rectangle (assumes square shape)
+        """
+
+        distances = []
+
+        for element in self.model_part.Elements:
+            centroid = element.GetGeometry().Center()
+            x, y = centroid[0], centroid[1]
+
+            dx = max(abs(x - center[0]) - half_width, 0.0)
+            dy = max(abs(y - center[1]) - half_height, 0.0)
+            distance = np.sqrt(dx**2 + dy**2)
+
+            # Negative if inside rectangle
+            if abs(x - center[0]) < half_width and abs(y - center[1]) < half_height:
+                distance *= -1
+
+            distances.append(distance)
+
+        numpy_array = np.array(distances, dtype=np.float64)
+        ##matrix = np.reshape(numpy_array, (80,20))
+        ##np.savetxt("output_phi.txt", matrix)
+        # Write it into element expression
+        signed_distance_function = Kratos.Expression.ElementExpression(self.model_part)
+        Kratos.Expression.CArrayExpressionIO.Read(signed_distance_function, numpy_array)
+
+        # Store the signed distance function
+        self.control_phi = signed_distance_function.Clone()
+
+    def _ConvertNodalToElemental(self, nodal: ContainerExpressionTypes):
+        nodal = nodal.Evaluate()
+        elemental = [0] * self.model_part.NumberOfElements()
+        
+        for i, node in enumerate(nodal):
+            val= np.sqrt(node[0]**2 + node[1]**2 + node[2]**2)
+            nodal[i] = val
+
+        element: Kratos.Element
+        node: Kratos.Node
+        for element in self.model_part.Elements:
+            for node in element.GetNodes():
+                elemental[element.Id - 1] += nodal[node.Id-1][0] / 8
+
+        elemental = np.array(elemental, dtype=np.float64)
+        elemental_expression = Kratos.Expression.ElementExpression(self.model_part)
+        Kratos.Expression.CArrayExpressionIO.Read(elemental_expression, elemental)
+        return elemental_expression
+
     def Check(self) -> None:
         #self.filter.Check()
         pass
@@ -188,9 +243,17 @@ class LevelSetControlHJ(Control):
         field = Kratos.Expression.ElementExpression(self.model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(field, 0.0)
         return field
+    
+    def GetEmptyNodalField(self) -> ContainerExpressionTypes:
+        field = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(field, 0.0)
+        return field
 
     def GetControlField(self) -> ContainerExpressionTypes:
         return self.control_phi.Clone()
+    
+    def GetElements(self) -> float:
+        return self.model_part.NumberOfElements()
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
         # Get physical variables
@@ -202,16 +265,18 @@ class LevelSetControlHJ(Control):
 
         # first calculate the density partial sensitivity of the response function
         d_j_d_density = physical_gradient_variable_container_expression_map[Kratos.DENSITY]
+        ##print(f"D_J_D_RHO: {d_j_d_density.Evaluate()}")
 
         # second calculate the young modulus partial sensitivity of the response function
         d_j_d_youngs = physical_gradient_variable_container_expression_map[Kratos.YOUNG_MODULUS]
+        ##print(f"D_J_D_E: {d_j_d_youngs.Evaluate()}")
 
         # now compute response function total sensitivity w.r.t. phi
         d_j_d_phi = d_j_d_density * self.d_density_d_phi + d_j_d_youngs * self.d_young_modulus_d_phi
+        ##print(f"D_RHO_D_PHI: {self.d_density_d_phi.Evaluate()}\nD_E_D_PHI: {self.d_young_modulus_d_phi.Evaluate()}\nD_J_D_PHI: {d_j_d_phi.Evaluate()}")
 
         # save also as design velosity
-        self.design_velocity = - d_j_d_phi
-        print(f"DJ_DPHI: {d_j_d_phi.Evaluate()}\n")
+        #self.design_velocity = - d_j_d_phi
 
         return d_j_d_phi
 
@@ -223,19 +288,19 @@ class LevelSetControlHJ(Control):
 
         update = control_field - self.control_phi
 
+        print(f"Control field: {self.control_phi.Evaluate()}\nUpdated control field:{control_field.Evaluate()}\nUpdate: {update.Evaluate()}")
         # CFL condition for timestep
-        dt = max(abs(self.design_velocity.Evaluate())) * self.length
+        #dt = self._ComputeCFLCondition(self.design_velocity)
 
         # level-set update: d_phi = ( -v * |grad(phi)| ) * d_t
-        #phi_grad_norm = self._ComputePhiGradientNorm(control_field)
-        phi_grad_norm2 = self._ComputePhiGradientNorm2(control_field)
+        #phi_grad_norm2 = self._ComputePhiGradientNorm2(control_field, self.design_velocity)
 
-        print(f"Time step is: {dt}\n MAX DESIGN VELOCITY:{max(abs(self.design_velocity.Evaluate()))}\nCONTROL PHI: {self.control_phi.Evaluate()}")
+        #print(f"Time step is: {dt}\n MAX DESIGN VELOCITY:{max(abs(self.design_velocity.Evaluate()))}\nCONTROL PHI: {self.control_phi.Evaluate()}")
         # get update value
-        update += phi_grad_norm2 * self.design_velocity * dt
-
+        #update += phi_grad_norm2 * self.design_velocity * dt
+        print(f"NORMAALNE: {Kratos.Expression.Utils.NormL2(update)}")
         if Kratos.Expression.Utils.NormL2(update) > 1e-15:
-            self.control_phi += update
+            self.control_phi = control_field
             self._UpdateAndOutputFields(update)
             return True
 
@@ -243,9 +308,10 @@ class LevelSetControlHJ(Control):
 
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
         
-        heaviside = self._ComputeHeaviside()
+        heaviside = Kratos.Expression.Utils.Collapse(self._ComputeHeaviside())
         # update physical variable fields: density = H(phi)*density_0
-        density = heaviside * self.parameters["density"].GetDouble()
+        density = heaviside * self.density
+
         KratosOA.PropertiesVariableExpressionIO.Write(density, Kratos.DENSITY)
         if self.consider_recursive_property_update:
             KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(density.GetContainer(), Kratos.DENSITY)
@@ -259,9 +325,10 @@ class LevelSetControlHJ(Control):
         self.un_buffered_data.SetValue("YOUNG_MODULUS", youngs_modulus.Clone(), overwrite=True)
 
         # Calculate the Dirac Delta of phi (dH/d_phi)
-        dirac_delta = self._ComputeHeavisideGradient()
+        dirac_delta = Kratos.Expression.Utils.Collapse(self._ComputeHeavisideGradient())
+
         # now calculate the total sensitivities of density and E w.r.t. phi
-        self.d_density_d_phi = dirac_delta * self.parameters["density"].GetDouble()
+        self.d_density_d_phi = dirac_delta * self.density
         self.d_young_modulus_d_phi = dirac_delta * self.parameters["young_modulus"].GetDouble()
 
         # now output the fields
@@ -272,8 +339,9 @@ class LevelSetControlHJ(Control):
             un_buffered_data.SetValue(f"dDENSITY_d{self.GetName()}", self.d_density_d_phi.Clone(), overwrite=True)
             un_buffered_data.SetValue(f"dYOUNG_MODULUS_d{self.GetName()}", self.d_young_modulus_d_phi.Clone(), overwrite=True)
 
-        print(f"*************************************************\nDIRAC DELTA: {self.d_density_d_phi.Evaluate()}\nDIRAC ITSELF: {dirac_delta.Evaluate()}")
-        print(f"HEAVISIDE: {heaviside.Evaluate()}\nCONTROL PHI: {self.control_phi.Evaluate()}\nDENSITY: {density.Evaluate()}\nYOUNG'S MODULUS: {youngs_modulus.Evaluate()}")
+        # print(f"*************************************************\nDENSITY SENSITIVITY: {self.d_density_d_phi.Evaluate()}\nDIRAC ITSELF: {dirac_delta.Evaluate()}")
+        # np.savetxt("output.txt", dirac_delta.Evaluate())
+        # print(f"HEAVISIDE: {heaviside.Evaluate()}\nCONTROL PHI: {self.control_phi.Evaluate()}\nDENSITY: {density.Evaluate()}\nYOUNG'S MODULUS: {youngs_modulus.Evaluate()}")
 
     def _ComputeHeaviside(self) -> ContainerExpressionTypes:
         e = self.control_phi.Clone()
@@ -282,9 +350,17 @@ class LevelSetControlHJ(Control):
 
     def _ComputeHeavisideGradient(self)  -> ContainerExpressionTypes:
         # Calculate Dirac Delta function (derivative of Heaviside function w.r.t. phi)
-        e = self.control_phi.Clone()
+        e = self.GetEmptyField()
         Kratos.Expression.LiteralExpressionIO.SetData(e, np.exp(1))
-        return Kratos.Expression.Utils.Pow(Kratos.Expression.Utils.Pow(e, self.control_phi * self.k * 2) + 1, -2) * Kratos.Expression.Utils.Pow(e, self.control_phi * self.k * 2) * self.k * 2
+        dirac_delta = self.GetEmptyField()
+        dirac_delta = Kratos.Expression.Utils.Pow(Kratos.Expression.Utils.Pow(e, self.control_phi * self.k * 2) + 1, -2) * Kratos.Expression.Utils.Pow(e, self.control_phi * self.k * 2) * self.k * 2
+
+        # Replace NaNs with 0.0
+        values = np.nan_to_num(dirac_delta.Evaluate(), nan=0.0)
+
+        # Write back the cleaned values
+        Kratos.Expression.CArrayExpressionIO.Read(dirac_delta, values)
+        return dirac_delta
 
     def _ComputePhiGradientNorm(self, control_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
 
@@ -343,11 +419,10 @@ class LevelSetControlHJ(Control):
 
         return element_data
 
-    def _ComputePhiGradientNorm2(self, control_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        
+    def _ComputePhiGradientNorm2(self, design_velocity: ContainerExpressionTypes) -> ContainerExpressionTypes:
         # Evaluate φ field
-        phi_data = control_field.Evaluate()
-        v = self.design_velocity.Evaluate()
+        phi_data = self.control_phi.Evaluate()
+        v = design_velocity.Evaluate()
         grad_norm = self.GetEmptyField()
 
         element : Kratos.Element
@@ -395,9 +470,11 @@ class LevelSetControlHJ(Control):
 
         # Write it into element expression
         Kratos.Expression.VariableExpressionIO.Read(grad_norm, Kratos.DENSITY_AIR)
-
+        
         return grad_norm
 
+    def _ComputeCFLCondition(self, design_velocity: ContainerExpressionTypes) -> float:
+        return max(abs(design_velocity.Evaluate())) * self.length
 
     @staticmethod
     def ComputeHeavisideValue(phi: ContainerExpressionTypes, k: float) -> ContainerExpressionTypes:  
