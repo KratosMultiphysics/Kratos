@@ -130,6 +130,7 @@ KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping_TDim_TBaseTypeOfS
 
 BinBasedDEMFluidCoupledMapping(Parameters& rParameters, SpatialSearch::Pointer pSpSearch=NULL)
                              : mMustCalculateMaxNodalArea(true),
+                               mUseSteadyFluid(false),
                                mFluidDeltaTime(0.0),
                                mFluidLastCouplingFromDEMTime(0.0),
                                mMaxNodalAreaInv(0.0),
@@ -339,6 +340,7 @@ class VariablesContainer
 };
 
 bool mMustCalculateMaxNodalArea;
+bool mUseSteadyFluid;
 double mFluidDeltaTime;
 double mFluidLastCouplingFromDEMTime;
 double mMinFluidFraction;

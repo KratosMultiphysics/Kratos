@@ -925,7 +925,6 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ProjectF
              const VariableData *r_destination_variable,
              double alpha)
 {
-    std::cout << "In ProjectFluidAccelUsingShapeFunctionsAtGaussPoints" << std::endl;
     Geometry<Node>& r_geometry = p_elem->GetGeometry();
     const SizeType local_space_dimension = r_geometry.LocalSpaceDimension();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
@@ -954,7 +953,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ProjectF
         }
     }
 
-    std::cout << "Vel gauss points = " << vel_gauss_points << std::endl;
+    // std::cout << "Vel gauss points = " << vel_gauss_points << std::endl;
 
     array_1d<double, 3> fluid_accel_eval = ZeroVector(3);
     for (unsigned int g = 0; g < r_number_integration_points; g++)
@@ -981,7 +980,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ProjectF
         double Weight = r_integrations_points[g].Weight() * detJ_vector[g];
         volume += Weight;
     }
-    std::cout << "Volume = " << volume << std::endl;
+    // std::cout << "Volume = " << volume << std::endl;
 
     for (unsigned i = 0; i < TDim; i++)
     {
@@ -1397,7 +1396,6 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
     const Variable<array_1d<double, 3> >& r_destination_variable,
     double alpha)
 {
-    // Geometry of the element of the origin model part
     Geometry<Node >& geom = p_elem->GetGeometry();
     unsigned int NumNodes = geom.size();
     Vector N_fast = ZeroVector(NumNodes);
@@ -1408,20 +1406,25 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
         N_fast[NumNodes-1] -= N_fast[i];
     }
 
+
+    short previous_step = mUseSteadyFluid ? 0 : 1;
     array_1d<double, 3>& first_origin_datum = geom[0].FastGetSolutionStepValue(r_origin_variable);
-    array_1d<double, 3>& first_origin_datum_old = geom[0].FastGetSolutionStepValue(r_origin_variable, 1);
+    array_1d<double, 3>& first_origin_datum_old = geom[0].FastGetSolutionStepValue(r_origin_variable, previous_step);
+
     double step_datum_fast[TDim];
 
     for (unsigned int j = 0; j < TDim; ++j){
+        first_origin_datum_old[j] = first_origin_datum[j];
         step_datum_fast[j] = N_fast[0] * (alpha * first_origin_datum[j] + (1.0 - alpha) * first_origin_datum_old[j]);
     }
     // Destination data
 
     for (unsigned int i = 1; i < NumNodes; ++i){
         array_1d<double, 3>& origin_datum = geom[i].FastGetSolutionStepValue(r_origin_variable);
-        array_1d<double, 3>& origin_datum_old = geom[i].FastGetSolutionStepValue(r_origin_variable, 1);
+        array_1d<double, 3>& origin_datum_old = geom[i].FastGetSolutionStepValue(r_origin_variable, previous_step);
 
         for (unsigned int j = 0; j < TDim; ++j){
+            origin_datum_old[j] = origin_datum[j];
             step_datum_fast[j] += N_fast[i] * (alpha * origin_datum[j] + (1.0 - alpha) * origin_datum_old[j]);
         }
     }
@@ -1448,12 +1451,14 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
 
     double NumNodes = geom.size();
 
+    short previous_step = mUseSteadyFluid ? 0 : 1;
+
     // Destination data
     double& step_data = p_node->FastGetSolutionStepValue(r_destination_variable);
-    step_data += N[0] * (alpha * geom[0].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[0].FastGetSolutionStepValue(r_origin_variable, 1));
+    step_data += N[0] * (alpha * geom[0].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[0].FastGetCurrentSolutionStepValue(r_origin_variable, previous_step));
 
     for (unsigned int i = 1; i < NumNodes; ++i){
-      step_data += N[i] * (alpha * geom[i].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[i].FastGetSolutionStepValue(r_origin_variable, 1));
+        step_data += N[i] * (alpha * geom[i].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[0].FastGetCurrentSolutionStepValue(r_origin_variable, previous_step));
     }
 }
 //***************************************************************************************************************
