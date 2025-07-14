@@ -1481,7 +1481,7 @@ public:
             KRATOS_ERROR
                 << "The given number of components are larger than the data size of DenseMatrix [ number of components in the dimensions = ("
                 << *pShapeBegin << ", " << *(pShapeBegin + 1) << "), number of components available in the data = ("
-                << rContainer.size1() << ", " << rContainer.size2() << " ].\n";
+                << rContainer.size1() << ", " << rContainer.size2() << ") ].\n";
         }
     }
 
