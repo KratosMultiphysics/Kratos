@@ -104,7 +104,7 @@ std::string EquationIdsTensorAdaptor::Info() const
 }
 
 // template instantiations
-template EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(ModelPart::ConditionsContainerType::Pointer, ProcessInfo::Pointer);
-template EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(ModelPart::ElementsContainerType::Pointer, ProcessInfo::Pointer);
+template KRATOS_API(KRATOS_CORE) EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(ModelPart::ConditionsContainerType::Pointer, ProcessInfo::Pointer);
+template KRATOS_API(KRATOS_CORE) EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(ModelPart::ElementsContainerType::Pointer, ProcessInfo::Pointer);
 
 } // namespace Kratos
