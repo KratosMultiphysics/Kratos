@@ -35,7 +35,7 @@ namespace Kratos {
  * @brief Base class or all the tensor adaptor types.
  */
 template<class TDataType>
-class KRATOS_API(KRATOS_CORE) TensorAdaptor {
+class TensorAdaptor {
 public:
 
     ///@name Type definitions
