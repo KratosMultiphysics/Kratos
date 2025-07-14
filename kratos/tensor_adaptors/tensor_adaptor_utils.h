@@ -162,7 +162,7 @@ public:
         std::vector<primitive_type> zeros(data_type_traits::Size(zero), primitive_type{});
         data_type_traits::CopyFromContiguousData(zero, zeros.data());
 
-        block_for_each(rContainer, [&rVariable, &zero, &rChecker, &rSetter](auto& rEntity) {
+        block_for_each(rContainer, [&zero, &rChecker, &rSetter](auto& rEntity) {
             if (!rChecker(rEntity)) {
                 rSetter(zero, rEntity);
             }
