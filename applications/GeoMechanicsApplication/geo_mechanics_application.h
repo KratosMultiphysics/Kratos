@@ -129,7 +129,7 @@
 #include "custom_constitutive/small_strain_umat_2D_interface_law.hpp"
 #include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
 #include "custom_constitutive/small_strain_umat_3D_interface_law.hpp"
-#include "custom_constitutive/small_strain_umat_3D_law.hpp"
+#include "custom_constitutive/small_strain_umat_law.hpp"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_constitutive/truss_backbone_constitutive_law.h"
 
@@ -994,7 +994,7 @@ private:
     const SmallStrainUDSM2DInterfaceLaw mSmallStrainUDSM2DInterfaceLaw{};
     const SmallStrainUDSM3DInterfaceLaw mSmallStrainUDSM3DInterfaceLaw{};
 
-    const SmallStrainUMAT3DLaw<VOIGT_SIZE_3D> mSmallStrainUMAT3DLaw{std::make_unique<ThreeDimensional>()};
+    const SmallStrainUMATLaw<VOIGT_SIZE_3D> mSmallStrainUMAT3DLaw{std::make_unique<ThreeDimensional>()};
     const SmallStrainUMAT2DPlaneStrainLaw mSmallStrainUMAT2DPlaneStrainLaw{std::make_unique<ThreeDimensional>()};
     const SmallStrainUMAT2DInterfaceLaw mSmallStrainUMAT2DInterfaceLaw{std::make_unique<ThreeDimensional>()};
     const SmallStrainUMAT3DInterfaceLaw mSmallStrainUMAT3DInterfaceLaw{std::make_unique<ThreeDimensional>()};

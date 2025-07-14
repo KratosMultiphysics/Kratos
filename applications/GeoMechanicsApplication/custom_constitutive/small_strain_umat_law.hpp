@@ -108,7 +108,7 @@ using pF_UMATMod = void (*)(double*       STRESS,
  */
 
 template <unsigned int TVoigtSize>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUMAT3DLaw : public ConstitutiveLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUMATLaw : public ConstitutiveLaw
 {
 public:
     // The process info type definition
@@ -123,21 +123,21 @@ public:
     /// Static definition of the dimension
     static constexpr SizeType Dimension = N_DIM_3D;
 
-    /// Pointer definition of SmallStrainUMAT3DLaw
-    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUMAT3DLaw);
+    /// Pointer definition of SmallStrainUMATLaw
+    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUMATLaw);
 
     //@}
     //@name Life Cycle
     //@{
 
-    SmallStrainUMAT3DLaw() = default;
-    explicit SmallStrainUMAT3DLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
+    SmallStrainUMATLaw() = default;
+    explicit SmallStrainUMATLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
-    ~SmallStrainUMAT3DLaw() override;
-    SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLaw& rOther);
-    SmallStrainUMAT3DLaw& operator=(const SmallStrainUMAT3DLaw& rOther);
-    SmallStrainUMAT3DLaw(SmallStrainUMAT3DLaw&&)            = delete;
-    SmallStrainUMAT3DLaw& operator=(SmallStrainUMAT3DLaw&&) = delete;
+    ~SmallStrainUMATLaw() override;
+    SmallStrainUMATLaw(const SmallStrainUMATLaw& rOther);
+    SmallStrainUMATLaw& operator=(const SmallStrainUMATLaw& rOther);
+    SmallStrainUMATLaw(SmallStrainUMATLaw&&)            = delete;
+    SmallStrainUMATLaw& operator=(SmallStrainUMATLaw&&) = delete;
 
     /**
      * @brief Clone method
@@ -308,7 +308,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    [[nodiscard]] std::string Info() const override { return "SmallStrainUMAT3DLaw"; }
+    [[nodiscard]] std::string Info() const override { return "SmallStrainUMATLaw"; }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
@@ -316,7 +316,7 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        rOStream << "SmallStrainUMAT3DLaw Data";
+        rOStream << "SmallStrainUMATLaw Data";
     }
 
     ///@}
@@ -443,7 +443,7 @@ private:
 
     ///@}
 
-}; // Class SmallStrainUMAT3DLaw
+}; // Class SmallStrainUMATLaw
 
 ///@}
 

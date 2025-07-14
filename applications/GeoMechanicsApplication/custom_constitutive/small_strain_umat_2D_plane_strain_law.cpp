@@ -80,7 +80,7 @@ void SmallStrainUMAT2DPlaneStrainLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Pa
 Vector& SmallStrainUMAT2DPlaneStrainLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == STATE_VARIABLES) {
-        SmallStrainUMAT3DLaw::GetValue(rThisVariable, rValue);
+        SmallStrainUMATLaw::GetValue(rThisVariable, rValue);
     } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
         if (rValue.size() != VoigtSize) rValue.resize(VoigtSize);
         for (unsigned int i = 0; i < VoigtSize; ++i) {
@@ -95,7 +95,7 @@ void SmallStrainUMAT2DPlaneStrainLaw::SetValue(const Variable<Vector>& rVariable
                                                const ProcessInfo&      rCurrentProcessInfo)
 {
     if (rVariable == STATE_VARIABLES) {
-        SmallStrainUMAT3DLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
+        SmallStrainUMATLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
     } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
         this->SetInternalStressVector(rValue);
     }

@@ -97,7 +97,7 @@ indexStress3D SmallStrainUMAT3DInterfaceLaw::getIndex3D(const indexStress3DInter
 Vector& SmallStrainUMAT3DInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == STATE_VARIABLES) {
-        SmallStrainUMAT3DLaw::GetValue(rThisVariable, rValue);
+        SmallStrainUMATLaw::GetValue(rThisVariable, rValue);
     } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
         if (rValue.size() != VoigtSize) rValue.resize(VoigtSize);
 
@@ -113,7 +113,7 @@ void SmallStrainUMAT3DInterfaceLaw::SetValue(const Variable<Vector>& rVariable,
                                              const ProcessInfo&      rCurrentProcessInfo)
 {
     if (rVariable == STATE_VARIABLES) {
-        SmallStrainUMAT3DLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
+        SmallStrainUMATLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
     } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
         this->SetInternalStressVector(rValue);
     }

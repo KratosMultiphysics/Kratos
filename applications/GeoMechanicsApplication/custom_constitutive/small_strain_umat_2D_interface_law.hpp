@@ -16,7 +16,7 @@
 #include "includes/define.h"
 
 // Project includes
-#include "small_strain_umat_3D_law.hpp"
+#include "small_strain_umat_law.hpp"
 
 namespace Kratos
 {
@@ -46,7 +46,7 @@ namespace Kratos
 /** Detail class definition.
  */
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUMAT2DInterfaceLaw
-    : public SmallStrainUMAT3DLaw<VOIGT_SIZE_3D>
+    : public SmallStrainUMATLaw<VOIGT_SIZE_3D>
 {
 public:
     // The base class ConstitutiveLaw type definition
@@ -67,7 +67,7 @@ public:
     SmallStrainUMAT2DInterfaceLaw() = default;
 
     explicit SmallStrainUMAT2DInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
-        : SmallStrainUMAT3DLaw<VOIGT_SIZE_3D>(std::move(pConstitutiveDimension))
+        : SmallStrainUMATLaw<VOIGT_SIZE_3D>(std::move(pConstitutiveDimension))
     {
     }
 
@@ -81,10 +81,10 @@ public:
     ConstitutiveLaw::Pointer Clone() const override;
 
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
-    using SmallStrainUMAT3DLaw::GetValue;
+    using SmallStrainUMATLaw::GetValue;
 
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
-    using SmallStrainUMAT3DLaw::SetValue;
+    using SmallStrainUMATLaw::SetValue;
 
     /**
      * @brief Dimension of the law:
@@ -216,7 +216,7 @@ private:
 
     ///@}
 
-}; // Class SmallStrainUMAT3DLaw
+}; // Class SmallStrainUMAT2DInterfaceLaw
 
 ///@}
 
