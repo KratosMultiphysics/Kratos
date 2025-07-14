@@ -17,7 +17,6 @@
 #include "custom_geometries/interface_geometry.h"
 #include "geo_mechanics_application_variables.h"
 #include "geometries/line_2d_2.h"
-#include "geometries/line_3d_2.h"
 #include "includes/checks.h"
 #include "includes/serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -84,6 +83,14 @@ void TestStrainAndStress(GeoIncrementalLinearElasticInterfaceLaw& rLaw,
 
 namespace Kratos::Testing
 {
+KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    EXPECT_FALSE(std::is_copy_constructible_v<GeoIncrementalLinearElasticInterfaceLaw>);
+    EXPECT_FALSE(std::is_copy_assignable_v<GeoIncrementalLinearElasticInterfaceLaw>);
+    EXPECT_TRUE(std::is_move_constructible_v<GeoIncrementalLinearElasticInterfaceLaw>);
+    EXPECT_TRUE(std::is_move_assignable_v<GeoIncrementalLinearElasticInterfaceLaw>);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_HasCorrectWorkingSpace, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto law_2D = CreateLaw2D();
@@ -142,6 +149,17 @@ KRATOS_TEST_CASE_IN_SUITE(CloneOfLinearElasticLawForInterfaces_HasCorrectStrainS
     const auto p_cloned_law_3D = original_law_3D.Clone();
 
     KRATOS_EXPECT_EQ(p_cloned_law_3D->GetStrainSize(), 3);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_MovedLawHasCorrectStrainSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto       original_law_2D = CreateLaw2D();
+    const auto moved_law_2D(std::move(original_law_2D));
+    KRATOS_EXPECT_EQ(moved_law_2D.GetStrainSize(), 2);
+
+    auto       original_law_3D = CreateLaw3D();
+    const auto moved_law_3D    = std::move(original_law_3D);
+    KRATOS_EXPECT_EQ(moved_law_3D.GetStrainSize(), 3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_DoesNotRequireInitializationOfMaterialResponse,
