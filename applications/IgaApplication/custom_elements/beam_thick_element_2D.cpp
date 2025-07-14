@@ -252,6 +252,10 @@ namespace Kratos
         double curvature = rActualKinematic.b_11_covariant - m_B_11_covariant_vector[IntegrationPointIndex]; //TO DO
         double shear = 0.0; //TO DO
 
+        noalias(rThisConstitutiveVariablesMembrane.StrainValue) = strain;
+        noalias(rThisConstitutiveVariablesCurvature.StrainValue) = curvature;
+        noalias(rThisConstitutiveVariablesShear.StrainValue) = shear;
+
         double thickness = this->GetProperties().GetValue(THICKNESS);
         double cross_area = this->GetProperties().GetValue(CROSS_AREA);
         double E = this->GetProperties().GetValue(YOUNG_MODULUS);
@@ -342,8 +346,8 @@ namespace Kratos
             rB[index] = (alpha1 - rActualKinematic.beta * alpha2 - rActualKinematic.beta_deriv * rActualKinematic.a2[1]) * r_DN_De(i, 0)
                       + ((alpha2 * rActualKinematic.beta_deriv) * rActualKinematic.a1[0] * r_DN_De(i, 0)) 
                       + (r_DDN_DDe(i, 0) * (rActualKinematic.a1[0] * rActualKinematic.beta + rActualKinematic.a1[1]) / rActualKinematic.dL)
-                      + (r_DN_De(i, 0) * (rActualKinematic.a1[0] * (e3 + e1 * rActualKinematic.beta) + rActualKinematic.a1[1] * (-e1 + e3 * rActualKinematic.beta)) / pow(rActualKinematic.dL, 3)); 
-                      + (r_DN_De(i, 0) * (rActualKinematic.a1[0] * (f2 + f1 * rActualKinematic.beta) + rActualKinematic.a1[1] * (-f1 + f2 * rActualKinematic.beta)) / pow(rActualKinematic.dL, 3)); 
+                      + (r_DN_De(i, 0) * (rActualKinematic.a1[0] * (e3 + e1 * rActualKinematic.beta) + rActualKinematic.a1[1] * (-e1 + e3 * rActualKinematic.beta)) / pow(rActualKinematic.dL, 3))
+                      + (r_DN_De(i, 0) * (rActualKinematic.a1[0] * (f2 + f1 * rActualKinematic.beta) + rActualKinematic.a1[1] * (-f1 + f2 * rActualKinematic.beta)) / pow(rActualKinematic.dL, 3))
                       + (r_DN_De(i, 0) * (rActualKinematic.a1[0] * (g2 + g1 * rActualKinematic.beta) + rActualKinematic.a1[1] * (-g1 + g2 * rActualKinematic.beta)) / pow(rActualKinematic.dL, 3)); 
             rB[index + 1] = (alpha2 + rActualKinematic.beta * alpha1 + rActualKinematic.beta_deriv * rActualKinematic.a2[0]) * r_DN_De(i, 0)
                           + ((alpha1 * rActualKinematic.beta_deriv) * rActualKinematic.a1[1] * r_DN_De(i, 0))
@@ -540,7 +544,7 @@ namespace Kratos
         const Matrix& rDDN_DDe) const
     {
         const SizeType number_of_points = GetGeometry().size();
-        const SizeType working_space_dimension = 3;
+        const SizeType working_space_dimension = 2;
 
         for (IndexType k = 0; k < number_of_points; k++)
         {

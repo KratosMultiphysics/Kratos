@@ -233,6 +233,9 @@ namespace Kratos
         double strain = 0.5 * (rActualKinematic.a_11_covariant - m_A_11_covariant_vector[IntegrationPointIndex]);
         double curvature = rActualKinematic.b_11_covariant - m_B_11_covariant_vector[IntegrationPointIndex];
 
+        noalias(rThisConstitutiveVariablesMembrane.StrainValue) = strain;
+        noalias(rThisConstitutiveVariablesCurvature.StrainValue) = curvature;
+
         double thickness = this->GetProperties().GetValue(THICKNESS);
         double cross_area = this->GetProperties().GetValue(CROSS_AREA);
         double E = this->GetProperties().GetValue(YOUNG_MODULUS);
@@ -456,7 +459,7 @@ namespace Kratos
         const Matrix& rDDN_DDe) const
     {
         const SizeType number_of_points = GetGeometry().size();
-        const SizeType working_space_dimension = 3;
+        const SizeType working_space_dimension = 2;
 
         for (IndexType k = 0; k < number_of_points; k++)
         {
