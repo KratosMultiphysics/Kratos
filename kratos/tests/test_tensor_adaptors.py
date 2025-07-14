@@ -157,6 +157,33 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         t_adaptor_2.data = t_adaptor_1.data
         t_adaptor_2.StoreData()
 
+        t_adaptor_3 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.CONSTITUTIVE_MATRIX)
+
+        with self.assertRaises(RuntimeError):
+            t_adaptor_3.CollectData()
+
+        with self.assertRaises(RuntimeError):
+            t_adaptor_3.StoreData()
+
+        t_adaptor_4 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.NORMAL_SHAPE_DERIVATIVE)
+
+        # there are some nodes which does not have the NORMAL_SHAPE_DERIVATIVE
+        # so following should raise an error
+        with self.assertRaises(RuntimeError):
+            t_adaptor_4.CollectData()
+
+        # there are some nodes which does not have the NORMAL_SHAPE_DERIVATIVE
+        # so following should raise an error
+        with self.assertRaises(RuntimeError):
+            t_adaptor_4.StoreData()
+
+        t_adaptor_5 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.NORMAL_SHAPE_DERIVATIVE, step_index=6)
+        with self.assertRaises(RuntimeError):
+            t_adaptor_5.CollectData()
+
+        with self.assertRaises(RuntimeError):
+            t_adaptor_5.StoreData()
+
     def test_SupportedNdArrays(self):
         t_adaptor = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.DENSITY)
 
