@@ -32,9 +32,7 @@ public:
     ///@name Type definitions
     ///@{
 
-    using Pointer = Kratos::intrusive_ptr<EquationIdsTensorAdaptor>;
-
-    using ConstPointer = Kratos::intrusive_ptr<const EquationIdsTensorAdaptor>;
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EquationIdsTensorAdaptor);
 
     using BaseType = TensorAdaptor<int>;
 
