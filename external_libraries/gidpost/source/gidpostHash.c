@@ -41,7 +41,7 @@ int GiD_HashInit()
   }
            
   if (!hashTable) {
-    hashTable = hcreate(16);
+    hashTable = gid_hcreate(16);
     assert(hashTable);
     return 0;
   }
@@ -52,7 +52,7 @@ int GiD_HashDone()
 {
   _LOCK_;
   
-  hdestroy(hashTable);
+  gid_hdestroy(hashTable);
   refree(fd_pool);
   hashTable = NULL;
   fd_pool=NULL;
@@ -77,7 +77,7 @@ GiD_FILE  GiD_HashAdd( CPostFile *file)
   /* with fd as value */
   memcpy(key, &fd, sizeof(fd));
   /* insert data into hash table under key */
-  hadd(hashTable, key, sizeof(GiD_FILE), data);
+  gid_hadd(hashTable, key, sizeof(GiD_FILE), data);
 
   _UNLOCK_;
   
@@ -93,7 +93,7 @@ CPostFile *GiD_HashFind  (GiD_FILE fd)
   }
   _LOCK_;
 
-  if (hfind(hashTable, (ub1*)&fd, sizeof(GiD_FILE))) {
+  if (gid_hfind(hashTable, (ub1*)&fd, sizeof(GiD_FILE))) {
     data = hstuff(hashTable);
   }
 
@@ -109,11 +109,11 @@ int     GiD_HashRemove(GiD_FILE fd)
 
   _LOCK_;
   
-  if (hfind(hashTable, (ub1*)&fd, sizeof(GiD_FILE))) {
+  if (gid_hfind(hashTable, (ub1*)&fd, sizeof(GiD_FILE))) {
     /* free the key from the pool */
     redel(fd_pool, hkey(hashTable));
     /* free the hash entry */
-    hdel(hashTable);
+    gid_hdel(hashTable);
   }
 
   _UNLOCK_;

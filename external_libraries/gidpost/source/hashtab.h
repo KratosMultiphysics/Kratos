@@ -5,7 +5,7 @@ By Bob Jenkins, 1996.  hash.h.  Public Domain.
 This implements a hash table.
 * Keys are unique.  Adding an item fails if the key is already there.
 * Keys and items are pointed at, not copied.  If you change the value
-  of the key after it is inserted then hfind will not be able to find it.
+  of the key after it is inserted then gid_hfind will not be able to find it.
 * The hash table maintains a position that can be set and queried.
 * The table length doubles dynamically and never shrinks.  The insert
   that causes table doubling may take a long time.
@@ -13,17 +13,17 @@ This implements a hash table.
   Comparisons usually take 7 instructions.
   Computing a hash value takes 35+6n instructions for an n-byte key.
 
-  hcreate  - create a hash table
-  hdestroy - destroy a hash table
+  gid_hcreate  - create a hash table
+  gid_hdestroy - destroy a hash table
    hcount  - The number of items in the hash table
    hkey    - key at the current position
    hkeyl   - key length at the current position
    hstuff  - stuff at the current position
-  hfind    - find an item in the table
-   hadd    - insert an item into the table
-   hdel    - delete an item from the table
-  hstat    - print statistics about the table
-   hfirst  - position at the first item in the table
+  gid_hfind    - find an item in the table
+   gid_hadd    - insert an item into the table
+   gid_hdel    - delete an item from the table
+  gid_hstat    - print statistics about the table
+   gid_hfirst  - position at the first item in the table
    hnext   - move the position to the next item in the table
 --------------------------------------------------------------------
 */
@@ -65,16 +65,16 @@ typedef  struct htab  htab;
 
 /* PUBLIC FUNCTIONS */
 
-/* hcreate - create a hash table
+/* gid_hcreate - create a hash table
    ARGUMENTS:
      logsize - 1<<logsize will be the initial table length
    RETURNS:
      the new table
  */
-htab *hcreate( word logsize);
+htab *gid_hcreate( word logsize);
 
 
-/* hdestroy - destroy a hash table
+/* gid_hdestroy - destroy a hash table
    ARGUMENTS:
      t - the hash table to be destroyed.  Note that the items and keys
          will not be freed, the user created them and must destroy
@@ -82,7 +82,7 @@ htab *hcreate( word logsize);
    RETURNS:
      nothing
  */
-void  hdestroy( htab *t );
+void  gid_hdestroy( htab *t );
 
 
 /* hcount, hkey, hkeyl, hstuff
@@ -106,7 +106,7 @@ void  hdestroy( htab *t );
 
 
 
-/* hfind - move the current position to a given key
+/* gid_hfind - move the current position to a given key
    ARGUMENTS:
      t    - the hash table
      key  - the key to look for
@@ -115,10 +115,10 @@ void  hdestroy( htab *t );
      TRUE if the item exists, FALSE if it does not.
      If the item exists, moves the current position to that item.
  */
-word  hfind( htab *t, ub1 *key, ub4 keyl );
+word  gid_hfind( htab *t, ub1 *key, ub4 keyl );
 
 
-/* hadd - add a new item to the hash table
+/* gid_hadd - add a new item to the hash table
           change the position to point at the item with the key
    ARGUMENTS:
      t     - the hash table
@@ -128,10 +128,10 @@ word  hfind( htab *t, ub1 *key, ub4 keyl );
    RETURNS:
      FALSE if the operation fails (because that key is already there).
  */
-word  hadd( htab *t, ub1 *key, ub4 keyl, void *stuff );
+word  gid_hadd( htab *t, ub1 *key, ub4 keyl, void *stuff );
 
 
-/* hdel - delete the item at the current position
+/* gid_hdel - delete the item at the current position
           change the position to the following item
   ARGUMENTS:
     t    - the hash table
@@ -140,24 +140,24 @@ word  hadd( htab *t, ub1 *key, ub4 keyl, void *stuff );
   NOTE:
     This frees the item, but not the key or stuff stored in the item.
     If you want these then deal with them first.  For example:
-      if (hfind(tab, key, keyl))
+      if (gid_hfind(tab, key, keyl))
       {
         free(hkey(tab));
         free(hstuff(tab));
-        hdel(tab);
+        gid_hdel(tab);
       }
  */
-word  hdel( htab *t );
+word  gid_hdel( htab *t );
 
 
-/* hfirst - move position to the first item in the table
+/* gid_hfirst - move position to the first item in the table
   ARGUMENTS:
     t    - the hash table
   RETURNS:
     FALSE if there is no current item (meaning the table is empty)
   NOTE:
  */
-word hfirst( htab *t );
+word gid_hfirst( htab *t );
 
 
 /* hnext - move position to the next item in the table
@@ -167,7 +167,7 @@ word hfirst( htab *t );
     FALSE if the position wraps around to the beginning of the table
   NOTE:
     To see every item in the table, do
-      if (hfirst(t)) do
+      if (gid_hfirst(t)) do
       {
         key   = hkey(t);
         stuff = hstuff(t);
@@ -177,9 +177,9 @@ word hfirst( htab *t );
 /* word hnext(/o_ htab *t _o/); */
 #define hnext(t) \
   ((!(t)->ipos) ? FALSE :  \
-   ((t)->ipos=(t)->ipos->next) ? TRUE : hnbucket(t))
+   ((t)->ipos=(t)->ipos->next) ? TRUE : gid_hnbucket(t))
 
-/* hnbucket - PRIVATE - move to first item in the next nonempty bucket
+/* gid_hnbucket - PRIVATE - move to first item in the next nonempty bucket
   ARGUMENTS:
     t    - the hash table
   RETURNS:
@@ -187,10 +187,10 @@ word hfirst( htab *t );
   NOTE:
     This is private to hashtab; do not use it externally.
  */
-word hnbucket( htab *t );
+word gid_hnbucket( htab *t );
 
 
-/* hstat - print statistics about the hash table
+/* gid_hstat - print statistics about the hash table
   ARGUMENTS:
     t    - the hash table
   NOTE:
@@ -206,6 +206,6 @@ word hnbucket( htab *t );
     have n items.  That is, .3678 0, .3678 1, .1839 2, ...
     Also expect "existing" to be about 2.
  */
-void hstat( htab *t );
+void gid_hstat( htab *t );
 
 #endif   /* HASHTAB */
