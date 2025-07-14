@@ -59,14 +59,15 @@ void SetLawInitialState(GeoIncrementalLinearElasticInterfaceLaw& rLaw,
 }
 
 void TestInitialStates(GeoIncrementalLinearElasticInterfaceLaw& rLaw,
-                       const Vector&                            rInitialRelativeDisplacement,
-                       const Vector&                            rInitialTraction)
+                       const Vector& rExpectedInitialRelativeDisplacement,
+                       const Vector& rExpectedInitialTraction)
 {
     KRATOS_EXPECT_TRUE(rLaw.HasInitialState())
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(rLaw.GetInitialState().GetInitialStrainVector(),
-                                       rInitialRelativeDisplacement, Kratos::Testing::Defaults::relative_tolerance)
+                                       rExpectedInitialRelativeDisplacement,
+                                       Kratos::Testing::Defaults::relative_tolerance)
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(rLaw.GetInitialState().GetInitialStressVector(),
-                                       rInitialTraction, Kratos::Testing::Defaults::relative_tolerance)
+                                       rExpectedInitialTraction, Kratos::Testing::Defaults::relative_tolerance)
 }
 
 void TestStrainAndStress(GeoIncrementalLinearElasticInterfaceLaw& rLaw,
@@ -83,14 +84,6 @@ void TestStrainAndStress(GeoIncrementalLinearElasticInterfaceLaw& rLaw,
 
 namespace Kratos::Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    EXPECT_FALSE(std::is_copy_constructible_v<GeoIncrementalLinearElasticInterfaceLaw>);
-    EXPECT_FALSE(std::is_copy_assignable_v<GeoIncrementalLinearElasticInterfaceLaw>);
-    EXPECT_TRUE(std::is_move_constructible_v<GeoIncrementalLinearElasticInterfaceLaw>);
-    EXPECT_TRUE(std::is_move_assignable_v<GeoIncrementalLinearElasticInterfaceLaw>);
-}
-
 KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_HasCorrectWorkingSpace, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto law_2D = CreateLaw2D();

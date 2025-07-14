@@ -131,4 +131,9 @@ void GeoIncrementalLinearElasticInterfaceLaw::load(Serializer& rSerializer)
     rSerializer.load("ConstitutiveLawDimension", mpConstitutiveLawDimension);
 }
 
+// Instances of this class can not be copied but can be moved. Check that at compile time.
+static_assert(!std::is_copy_constructible_v<GeoIncrementalLinearElasticInterfaceLaw>);
+static_assert(!std::is_copy_assignable_v<GeoIncrementalLinearElasticInterfaceLaw>);
+static_assert(std::is_move_constructible_v<GeoIncrementalLinearElasticInterfaceLaw>);
+static_assert(std::is_move_assignable_v<GeoIncrementalLinearElasticInterfaceLaw>);
 } // namespace Kratos
