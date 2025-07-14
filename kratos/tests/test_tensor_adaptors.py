@@ -60,10 +60,11 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
 
         def value_setter(container, setter_method):
             for entity in container:
-                setter_method(entity, Kratos.PRESSURE, entity.Id + 1)
-                setter_method(entity, Kratos.VELOCITY, Kratos.Vector([entity.Id * 2 + 1, entity.Id * 3 + 1, entity.Id * 4 + 1]))
-                setter_method(entity, Kratos.EXTERNAL_FORCES_VECTOR, Kratos.Vector([entity.Id * 2 + 1, entity.Id * 3 + 1, entity.Id * 4 + 1, entity.Id * 2 + 1, entity.Id * 3 + 1]))
-                setter_method(entity, Kratos.NORMAL_SHAPE_DERIVATIVE, Kratos.Matrix([[entity.Id * 2 + 1, entity.Id * 3 + 1], [entity.Id * 4 + 1, entity.Id * 2 + 1], [entity.Id * 3 + 1, entity.Id * 4 + 1]]))
+                if entity.Id % 3 != 0:
+                    setter_method(entity, Kratos.PRESSURE, entity.Id + 1)
+                    setter_method(entity, Kratos.VELOCITY, Kratos.Vector([entity.Id * 2 + 1, entity.Id * 3 + 1, entity.Id * 4 + 1]))
+                    setter_method(entity, Kratos.EXTERNAL_FORCES_VECTOR, Kratos.Vector([entity.Id * 2 + 1, entity.Id * 3 + 1, entity.Id * 4 + 1, entity.Id * 2 + 1, entity.Id * 3 + 1]))
+                    setter_method(entity, Kratos.NORMAL_SHAPE_DERIVATIVE, Kratos.Matrix([[entity.Id * 2 + 1, entity.Id * 3 + 1, entity.Id, 2 * entity.Id], [entity.Id * 4 + 1, entity.Id * 2 + 1, entity.Id, 3 * entity.Id], [entity.Id * 3 + 1, entity.Id * 4 + 1, entity.Id, 4 * entity.Id]]))
 
         def flag_setter(container):
             for entity in container:
@@ -238,6 +239,18 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
     def test_ElementFlagsTensorAdaptor(self):
         self.__TestFlagsTensorAdaptor(self.model_part.Elements)
 
+    def test_NodalVariableTensorAdaptorPartial(self):
+        self.__TestVariableTensorAdaptorPartial(self.model_part.Nodes)
+
+    def test_ConditionVariableTensorAdaptorPartial(self):
+        self.__TestVariableTensorAdaptorPartial(self.model_part.Conditions)
+
+    def test_ElementVariableTensorAdaptorPartial(self):
+        self.__TestVariableTensorAdaptorPartial(self.model_part.Elements)
+
+    def test_PropertiesVariableTensorAdaptorPartial(self):
+        self.__TestVariableTensorAdaptorPartial(self.model_part.Properties)
+
     def test_NodePositionTensorAdaptor1(self):
         node_position_ta = Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.model_part.Nodes, Kratos.Configuration.Current)
         node_position_ta.CollectData()
@@ -330,14 +343,120 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
             for entity in container:
                 self.__CheckValues(entity.GetValue(input_var), entity.GetValue(output_var) * 3)
 
+    def __TestVariableTensorAdaptorPartial(self, container):
+        read_ta_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(container, Kratos.VELOCITY)
+        write_ta_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(container, Kratos.ACCELERATION)
+        read_ta_1.CollectData()
+        write_ta_1.data = read_ta_1.data
+        write_ta_1.StoreData()
+
+        read_ta_2 = Kratos.TensorAdaptors.VariableTensorAdaptor(container, Kratos.VELOCITY, data_shape=[2])
+        read_ta_2.CollectData()
+        write_ta_2 = Kratos.TensorAdaptors.VariableTensorAdaptor(container, Kratos.ACCELERATION, data_shape=read_ta_2.DataShape())
+        write_ta_2.data = read_ta_2.data * 2 # will only modify the first 2 components of the ACCELERATION
+        write_ta_2.StoreData()
+
+        for entity in container:
+            input = entity.GetValue(Kratos.VELOCITY)
+            output = entity.GetValue(Kratos.ACCELERATION)
+            self.assertEqual(input[0] * 2, output[0])
+            self.assertEqual(input[1] * 2, output[1])
+            self.assertEqual(input[2], output[2])
+
+        ## Vector types
+        read_ta_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(container, Kratos.EXTERNAL_FORCES_VECTOR)
+        write_ta_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(container, Kratos.INTERNAL_FORCES_VECTOR, data_shape=read_ta_1.DataShape())
+        read_ta_1.CollectData()
+        write_ta_1.data = read_ta_1.data
+        write_ta_1.StoreData()
+
+        read_ta_2 = Kratos.TensorAdaptors.VariableTensorAdaptor(container, Kratos.EXTERNAL_FORCES_VECTOR, data_shape=[3])
+        read_ta_2.CollectData()
+        write_ta_2 = Kratos.TensorAdaptors.VariableTensorAdaptor(container, Kratos.INTERNAL_FORCES_VECTOR, data_shape=read_ta_2.DataShape())
+        write_ta_2.data = read_ta_2.data * 2 # will only modify the first 3 components of the INTERNAL_FORCES_VECTOR
+        write_ta_2.StoreData()
+
+        for entity in container:
+            input = entity.GetValue(Kratos.EXTERNAL_FORCES_VECTOR)
+            output = entity.GetValue(Kratos.INTERNAL_FORCES_VECTOR)
+            self.assertEqual(input[0] * 2, output[0])
+            self.assertEqual(input[1] * 2, output[1])
+            self.assertEqual(input[2] * 2, output[2])
+            self.assertEqual(input[3], output[3])
+            self.assertEqual(input[4], output[4])
+
+        write_ta_3 = Kratos.TensorAdaptors.VariableTensorAdaptor(container, Kratos.BDF_COEFFICIENTS, data_shape=read_ta_2.DataShape())
+        write_ta_3.data = read_ta_2.data * 2 # will only have the first 3 components of the BDF_COEFFICIENTS
+        write_ta_3.StoreData()
+
+        for entity in container:
+            input = entity.GetValue(Kratos.EXTERNAL_FORCES_VECTOR)
+            output = entity.GetValue(Kratos.BDF_COEFFICIENTS)
+            self.assertEqual(output.Size(), 3)
+            self.assertEqual(input.Size(), 5)
+            self.assertEqual(input[0] * 2, output[0])
+            self.assertEqual(input[1] * 2, output[1])
+            self.assertEqual(input[2] * 2, output[2])
+
+        # Matrix type
+        read_ta_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(container, Kratos.NORMAL_SHAPE_DERIVATIVE)
+        write_ta_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(container, Kratos.PK2_STRESS_TENSOR, data_shape=read_ta_1.DataShape())
+        read_ta_1.CollectData()
+        write_ta_1.data = read_ta_1.data
+        write_ta_1.StoreData()
+
+        read_ta_2 = Kratos.TensorAdaptors.VariableTensorAdaptor(container, Kratos.NORMAL_SHAPE_DERIVATIVE, data_shape=[2, 3])
+        read_ta_2.CollectData()
+        write_ta_2 = Kratos.TensorAdaptors.VariableTensorAdaptor(container, Kratos.PK2_STRESS_TENSOR, data_shape=read_ta_2.DataShape())
+        write_ta_2.data = read_ta_2.data * 3 # will only modify the first (2,3) components of the PK2_STRESS_TENSOR
+        write_ta_2.StoreData()
+
+        for entity in container:
+            input = entity.GetValue(Kratos.NORMAL_SHAPE_DERIVATIVE)
+            output = entity.GetValue(Kratos.PK2_STRESS_TENSOR)
+            self.assertEqual(input.Size1(), 3)
+            self.assertEqual(input.Size2(), 4)
+            self.assertEqual(output.Size1(), 3)
+            self.assertEqual(output.Size2(), 4)
+            self.assertEqual(input[0, 0] * 3, output[0, 0])
+            self.assertEqual(input[0, 1] * 3, output[0, 1])
+            self.assertEqual(input[0, 2] * 3, output[0, 2])
+            self.assertEqual(input[0, 3], output[0, 3])
+            self.assertEqual(input[1, 0] * 3, output[1, 0])
+            self.assertEqual(input[1, 1] * 3, output[1, 1])
+            self.assertEqual(input[1, 2] * 3, output[1, 2])
+            self.assertEqual(input[1, 3], output[1, 3])
+            self.assertEqual(input[2, 0], output[2, 0])
+            self.assertEqual(input[2, 1], output[2, 1])
+            self.assertEqual(input[2, 2], output[2, 2])
+            self.assertEqual(input[2, 3], output[2, 3])
+
+        write_ta_2 = Kratos.TensorAdaptors.VariableTensorAdaptor(container, Kratos.CAUCHY_STRESS_TENSOR, data_shape=read_ta_2.DataShape())
+        write_ta_2.data = read_ta_2.data * 3 # will only have the first (2,3) components of the PK2_STRESS_TENSOR
+        write_ta_2.StoreData()
+
+        for entity in container:
+            input = entity.GetValue(Kratos.NORMAL_SHAPE_DERIVATIVE)
+            output = entity.GetValue(Kratos.CAUCHY_STRESS_TENSOR)
+            self.assertEqual(input.Size1(), 3)
+            self.assertEqual(input.Size2(), 4)
+            self.assertEqual(output.Size1(), 2)
+            self.assertEqual(output.Size2(), 3)
+            self.assertEqual(input[0, 0] * 3, output[0, 0])
+            self.assertEqual(input[0, 1] * 3, output[0, 1])
+            self.assertEqual(input[0, 2] * 3, output[0, 2])
+            self.assertEqual(input[1, 0] * 3, output[1, 0])
+            self.assertEqual(input[1, 1] * 3, output[1, 1])
+            self.assertEqual(input[1, 2] * 3, output[1, 2])
+
     def __TestTensorAdaptorShape(self, container, TensorAdaptorType):
         t_adaptor_1 = TensorAdaptorType(container, Kratos.VELOCITY)
         self.assertVectorAlmostEqual(t_adaptor_1.Shape(), [len(container), 3])
         self.assertVectorAlmostEqual(t_adaptor_1.DataShape(), [3])
 
         t_adaptor_1 = TensorAdaptorType(container, Kratos.NORMAL_SHAPE_DERIVATIVE)
-        self.assertVectorAlmostEqual(t_adaptor_1.Shape(), [len(container), 3, 2])
-        self.assertVectorAlmostEqual(t_adaptor_1.DataShape(), [3, 2])
+        self.assertVectorAlmostEqual(t_adaptor_1.Shape(), [len(container), 3, 4])
+        self.assertVectorAlmostEqual(t_adaptor_1.DataShape(), [3, 4])
 
         t_adaptor_1 = TensorAdaptorType(container, Kratos.PK2_STRESS_TENSOR)
         self.assertVectorAlmostEqual(t_adaptor_1.Shape(), [len(container), 0, 0])
