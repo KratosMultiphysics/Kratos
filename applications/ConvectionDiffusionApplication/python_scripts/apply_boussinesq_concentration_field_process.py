@@ -5,9 +5,9 @@ import KratosMultiphysics.ConvectionDiffusionApplication as CD
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyBoussinesqForceProcess(Model, settings["Parameters"])
+    return ApplyBoussinesqConcentrationFieldProcess(Model, settings["Parameters"])
 
-class ApplyBoussinesqForceProcess(KratosMultiphysics.Process):
+class ApplyBoussinesqConcentrationFieldProcess(KratosMultiphysics.Process):
 
     def __init__(self, Model, settings):
 

@@ -111,7 +111,8 @@ namespace Kratos
     {
         // Read the unkown variable
         ConvectionDiffusionSettings::Pointer p_settings = mrModelPart.GetProcessInfo()[CONVECTION_DIFFUSION_SETTINGS];
-        const Variable<double>& CONCENTRATION = p_settings->GetUnknownVariable();
+        const Variable<double>& CONCENTRATION_VAR = p_settings->GetUnknownVariable();
+        const Variable<double>& DENSITY_VAR = p_settings->GetDensityVariable();
 
         int num_nodes = mrModelPart.NumberOfNodes();
         #pragma omp parallel for firstprivate(num_nodes)
@@ -119,19 +120,23 @@ namespace Kratos
         {
             ModelPart::NodeIterator iNode = mrModelPart.NodesBegin() + i;
 
-            double phi = iNode->FastGetSolutionStepValue(CONCENTRATION);
-            double delta_rho = (mRhoP - mRho0) / mRho0;
+            // Change the body force (and pressure)
+            double phi = iNode->FastGetSolutionStepValue(CONCENTRATION_VAR);
+            double delta_rho = mRhoP - mRho0;
 
             if(mModifyPressure)
             {
                 array_1d<double, 3> r_vec = iNode->Coordinates();
                 double gravity_field_potential = r_vec[0] * mrGravity[0] + r_vec[1] * mrGravity[1] + r_vec[2] * mrGravity[2];
 
-                iNode->FastGetSolutionStepValue(BODY_FORCE) += delta_rho * phi * mrGravity;
-                iNode->FastGetSolutionStepValue(PRESSURE) += gravity_field_potential;
+                iNode->FastGetSolutionStepValue(BODY_FORCE) = (delta_rho / mRho0) * phi * mrGravity;
+                iNode->FastGetSolutionStepValue(PRESSURE) -= mRho0 * gravity_field_potential;
             } else {
-                iNode->FastGetSolutionStepValue(BODY_FORCE) += (1. + delta_rho * phi) * mrGravity;
+                iNode->FastGetSolutionStepValue(BODY_FORCE) += (1. + (delta_rho / mRho0) * phi) * mrGravity;
             }
+
+            // Change density
+            iNode->FastGetSolutionStepValue(DENSITY_VAR) = mRho0 + delta_rho * phi;
         }
     }
 
