@@ -12,7 +12,7 @@
 //
 
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
-#include "custom_geometries/line_interface_geometry.h"
+#include "custom_geometries/interface_geometry.h"
 #include "geo_mechanics_application_variables.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_3d_2.h"
@@ -82,7 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesChecksForCorrectMaterialP
 {
     const auto law          = GeoIncrementalLinearElasticInterfaceLaw{};
     auto       properties   = Properties{};
-    const auto geometry     = LineInterfaceGeometry<Line2D2<Node>>{};
+    const auto geometry     = InterfaceGeometry<Line2D2<Node>>{};
     const auto process_info = ProcessInfo{};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
