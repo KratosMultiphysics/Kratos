@@ -67,6 +67,13 @@ public:
     /// Pointer definition of SmallStrainUMAT3DInterfaceLaw
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUMAT3DInterfaceLaw);
 
+    SmallStrainUMAT3DInterfaceLaw() = default;
+
+    explicit SmallStrainUMAT3DInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
+        : SmallStrainUMAT3DLaw<VOIGT_SIZE_3D>(std::move(pConstitutiveDimension))
+    {
+    }
+
     //@}
     //@name Life Cycle
     //@{

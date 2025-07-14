@@ -15,16 +15,16 @@
 // System includes
 #include "includes/define.h"
 #include <iostream>
-#include <string>
 #include <memory>
+#include <string>
 
 // Project includes
 #include "includes/constitutive_law.h"
 #include "includes/serializer.h"
 
 // Application includes
-#include "geo_mechanics_application_variables.h"
 #include "constitutive_law_dimension.h"
+#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -130,7 +130,7 @@ public:
     //@name Life Cycle
     //@{
 
-    SmallStrainUMAT3DLaw()           = default;
+    SmallStrainUMAT3DLaw() = default;
     explicit SmallStrainUMAT3DLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
     ~SmallStrainUMAT3DLaw() override;
@@ -381,8 +381,8 @@ private:
 
     std::vector<int> mProjectDirectory;
 
-    Vector mStateVariables;
-    Vector mStateVariablesFinalized;
+    Vector                                    mStateVariables;
+    Vector                                    mStateVariablesFinalized;
     std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
 
     ///@}

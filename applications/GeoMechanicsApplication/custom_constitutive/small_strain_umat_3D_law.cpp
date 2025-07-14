@@ -163,7 +163,7 @@ SmallStrainUMAT3DLaw<TVoigtSize>& SmallStrainUMAT3DLaw<TVoigtSize>::operator=(co
     this->mStressVectorFinalized   = rOther.mStressVectorFinalized;
     this->mDeltaStrainVector       = rOther.mDeltaStrainVector;
     this->mStrainVectorFinalized   = rOther.mStrainVectorFinalized;
-    this->mpConstitutiveDimension = rOther.mpConstitutiveDimension->Clone();
+    this->mpConstitutiveDimension  = rOther.mpConstitutiveDimension->Clone();
 
     for (unsigned int i = 0; i < TVoigtSize; ++i)
         for (unsigned int j = 0; j < TVoigtSize; ++j)
