@@ -32,8 +32,17 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
     std::visit(
         [this, pContainer, StepIndex](auto pVariable) {
             this->SetShape(TensorAdaptorUtils::GetTensorShape(
-                *pContainer, *pVariable, [pVariable](auto& rValue, const auto& rEntity) {
-                    rValue = rEntity.GetValue(*pVariable);
+                *pContainer, *pVariable, [this, pVariable, StepIndex](auto& rValue, const Node& rNode) {
+                    KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(*pVariable))
+                        << "The " << pVariable->Name() << " is not in the solution step variables list of "
+                        << rNode << ".\n";
+
+                    KRATOS_ERROR_IF_NOT(static_cast<int>(rNode.GetBufferSize()) >= this->mStepIndex)
+                        << "The step index is larger than the nodal buffer size [ node buffer size = "
+                        << rNode.GetBufferSize() << ", step index = " << this->mStepIndex
+                        << ", node = " << rNode << " ].\n";
+
+                    rValue = rNode.FastGetSolutionStepValue(*pVariable, StepIndex);
                 }));
         },
         mpVariable);
