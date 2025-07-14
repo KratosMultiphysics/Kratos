@@ -252,9 +252,9 @@ namespace Kratos
         double curvature = rActualKinematic.b_11_covariant - m_B_11_covariant_vector[IntegrationPointIndex]; //TO DO
         double shear = 0.0; //TO DO
 
-        noalias(rThisConstitutiveVariablesMembrane.StrainValue) = strain;
-        noalias(rThisConstitutiveVariablesCurvature.StrainValue) = curvature;
-        noalias(rThisConstitutiveVariablesShear.StrainValue) = shear;
+        rThisConstitutiveVariablesMembrane.StrainValue = strain;
+        rThisConstitutiveVariablesCurvature.StrainValue = curvature;
+        rThisConstitutiveVariablesShear.StrainValue = shear;
 
         double thickness = this->GetProperties().GetValue(THICKNESS);
         double cross_area = this->GetProperties().GetValue(CROSS_AREA);
