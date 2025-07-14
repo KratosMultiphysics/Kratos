@@ -64,8 +64,8 @@ inline void register_vexcl_static_matrix_type() {
 #endif
 
 
-template <class TSparse, class TDense, class TReorderer>
-struct AMGCLSolver<TSparse,TDense,TReorderer>::Impl
+template <class TSparse, class TDense>
+struct AMGCLSolver<TSparse,TDense>::Impl
 {
     using Scalar = typename TSparse::DataType;
 
@@ -109,15 +109,15 @@ struct AMGCLSolver<TSparse,TDense,TReorderer>::Impl
 }; // struct AMGCLSolver::Impl
 
 
-template <class TSparse, class TDense, class TReorderer>
-AMGCLSolver<TSparse,TDense,TReorderer>::AMGCLSolver()
+template <class TSparse, class TDense>
+AMGCLSolver<TSparse,TDense>::AMGCLSolver()
     : AMGCLSolver(Parameters())
 {
 }
 
 
-template <class TSparse, class TDense, class TReorderer>
-AMGCLSolver<TSparse,TDense,TReorderer>::AMGCLSolver(Parameters Settings)
+template <class TSparse, class TDense>
+AMGCLSolver<TSparse,TDense>::AMGCLSolver(Parameters Settings)
     : mTolerance(0),
       mMaxIterationsNumber(0),
       mVerbosity(0),
@@ -135,13 +135,13 @@ AMGCLSolver<TSparse,TDense,TReorderer>::AMGCLSolver(Parameters Settings)
 }
 
 
-template <class TSparse, class TDense, class TReorderer>
-AMGCLSolver<TSparse,TDense,TReorderer>::AMGCLSolver(const std::string& rSmootherName,
-                                                    const std::string& rSolverName,
-                                                    double Tolerance,
-                                                    int MaxIterationsNumber,
-                                                    int Verbosity,
-                                                    int GMRESSize)
+template <class TSparse, class TDense>
+AMGCLSolver<TSparse,TDense>::AMGCLSolver(const std::string& rSmootherName,
+                                         const std::string& rSolverName,
+                                         double Tolerance,
+                                         int MaxIterationsNumber,
+                                         int Verbosity,
+                                         int GMRESSize)
     : mTolerance(Tolerance),
       mMaxIterationsNumber(MaxIterationsNumber),
       mVerbosity(Verbosity),
@@ -163,15 +163,15 @@ AMGCLSolver<TSparse,TDense,TReorderer>::AMGCLSolver(const std::string& rSmoother
 }
 
 
-template <class TSparse, class TDense, class TReorderer>
-AMGCLSolver<TSparse,TDense,TReorderer>::AMGCLSolver(const std::string& rSmootherName,
-                                                    const std::string& rSolverName,
-                                                    const std::string& rCoarseningName,
-                                                    double Tolerance,
-                                                    int MaxIterationsNumber,
-                                                    int Verbosity,
-                                                    int GMRESSize,
-                                                    bool ProvideCoordinates)
+template <class TSparse, class TDense>
+AMGCLSolver<TSparse,TDense>::AMGCLSolver(const std::string& rSmootherName,
+                                         const std::string& rSolverName,
+                                         const std::string& rCoarseningName,
+                                         double Tolerance,
+                                         int MaxIterationsNumber,
+                                         int Verbosity,
+                                         int GMRESSize,
+                                         bool ProvideCoordinates)
     : mTolerance(Tolerance),
       mMaxIterationsNumber(MaxIterationsNumber),
       mVerbosity(Verbosity),
@@ -193,16 +193,16 @@ AMGCLSolver<TSparse,TDense,TReorderer>::AMGCLSolver(const std::string& rSmoother
 }
 
 
-template <class TSparse, class TDense, class TReorderer>
-AMGCLSolver<TSparse,TDense,TReorderer>::AMGCLSolver(AMGCLSolver&&) noexcept = default;
+template <class TSparse, class TDense>
+AMGCLSolver<TSparse,TDense>::AMGCLSolver(AMGCLSolver&&) noexcept = default;
 
 
-template <class TSparse, class TDense, class TReorderer>
-AMGCLSolver<TSparse,TDense,TReorderer>::~AMGCLSolver() = default;
+template <class TSparse, class TDense>
+AMGCLSolver<TSparse,TDense>::~AMGCLSolver() = default;
 
 
-template <class TSparse, class TDense, class TReorderer>
-void AMGCLSolver<TSparse,TDense,TReorderer>::ApplySettings(Parameters Settings)
+template <class TSparse, class TDense>
+void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings)
 {
     Parameters default_parameters = this->GetDefaultParameters();
 
@@ -287,12 +287,12 @@ void AMGCLSolver<TSparse,TDense,TReorderer>::ApplySettings(Parameters Settings)
 }
 
 
-template <class TSparse, class TDense, class TReorderer>
-void AMGCLSolver<TSparse,TDense,TReorderer>::ProvideAdditionalData(SparseMatrixType& rA,
-                                                                   VectorType& rX,
-                                                                   VectorType& rB,
-                                                                   DofsArrayType& rDofSet,
-                                                                   ModelPart& rModelPart)
+template <class TSparse, class TDense>
+void AMGCLSolver<TSparse,TDense>::ProvideAdditionalData(SparseMatrixType& rA,
+                                                        VectorType& rX,
+                                                        VectorType& rB,
+                                                        DofsArrayType& rDofSet,
+                                                        ModelPart& rModelPart)
 {
     if (!mBlockSize.has_value()) {
         mBlockSize = 1;
@@ -381,10 +381,10 @@ void AMGCLSolver<TSparse,TDense,TReorderer>::ProvideAdditionalData(SparseMatrixT
 }
 
 
-template <class TSparse, class TDense, class TReorderer>
-void AMGCLSolver<TSparse,TDense,TReorderer>::InitializeSolutionStep(SparseMatrixType& rLhs,
-                                                                    VectorType& rSolution,
-                                                                    VectorType& rRhs)
+template <class TSparse, class TDense>
+void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType& rLhs,
+                                                         VectorType& rSolution,
+                                                         VectorType& rRhs)
 {
     // Sanity checks.
     KRATOS_ERROR_IF(   TSparse::Size1(rLhs) != TSparse::Size2(rLhs)
@@ -533,10 +533,10 @@ struct AMGCLStaticVectorTraits<amgcl::static_matrix<TValue,RowCount,ColumnCount>
 };
 
 
-template <class TSparse, class TDense, class TReorderer>
-bool AMGCLSolver<TSparse,TDense,TReorderer>::PerformSolutionStep(SparseMatrixType& rLhs,
-                                                                 VectorType& rSolution,
-                                                                 VectorType& rRhs)
+template <class TSparse, class TDense>
+bool AMGCLSolver<TSparse,TDense>::PerformSolutionStep(SparseMatrixType& rLhs,
+                                                      VectorType& rSolution,
+                                                      VectorType& rRhs)
 {
     KRATOS_TRY
 

@@ -42,15 +42,15 @@ struct AMGCLAdaptor<TUblasSparseSpace<TValue>>
 }; // struct AMGCLAdaptor
 
 
-template class AMGCLSolver<TUblasSparseSpace<double>,
-                           TUblasDenseSpace<double>,
-                           Reorderer<TUblasSparseSpace<double>,
-                                     TUblasDenseSpace<double>>>;
+template class AMGCLSolver<
+    TUblasSparseSpace<double>,
+    TUblasDenseSpace<double>
+>;
 
-template class AMGCLSolver<TUblasSparseSpace<float>,
-                           TUblasDenseSpace<double>,
-                           Reorderer<TUblasSparseSpace<float>,
-                                     TUblasDenseSpace<double>>>;
+template class AMGCLSolver<
+    TUblasSparseSpace<float>,
+    TUblasDenseSpace<double>
+>;
 
 
 } // namespace Kratos

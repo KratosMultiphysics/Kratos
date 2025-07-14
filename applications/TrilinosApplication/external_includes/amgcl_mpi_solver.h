@@ -45,10 +45,9 @@ namespace Kratos
  * @author Denis Demidov
  * @author Riccardo Rossi
  */
-template< class TSparseSpaceType, class TDenseSpaceType,
-          class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
+template< class TSparseSpaceType, class TDenseSpaceType>
 class KRATOS_API(TRILINOS_APPLICATION) AmgclMPISolver
-    : public AMGCLSolver< TSparseSpaceType,TDenseSpaceType, TReordererType >
+    : public AMGCLSolver< TSparseSpaceType,TDenseSpaceType >
 {
 public:
     ///@name Type Definitions
@@ -85,7 +84,7 @@ public:
      */
     AmgclMPISolver(Parameters ThisParameters = Parameters(R"({})"))
         :
-        AMGCLSolver< TSparseSpaceType,TDenseSpaceType, TReordererType>(ThisParameters) { }
+        AMGCLSolver< TSparseSpaceType,TDenseSpaceType>(ThisParameters) { }
 
     /// Copy constructor.
     AmgclMPISolver(const AmgclMPISolver& Other) = delete;
@@ -115,10 +114,10 @@ public:
 }; // Class AmgclMPISolver
 
 /// output stream function
-template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
+template<class TSparseSpaceType, class TDenseSpaceType>
 inline std::ostream& operator << (std::ostream& rOStream,
                                   const AmgclMPISolver<TSparseSpaceType,
-                                  TDenseSpaceType, TReordererType>& rThis)
+                                  TDenseSpaceType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

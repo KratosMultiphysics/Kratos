@@ -43,10 +43,10 @@ struct AMGCLAdaptor<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>>
 };
 
 
-template class AmgclMPISolver<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>,
-                              UblasSpace<double, Matrix, Vector>,
-                              Reorderer<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>,
-                                        UblasSpace<double, Matrix, Vector>>>;
+template class AmgclMPISolver<
+    TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>,
+    UblasSpace<double, Matrix, Vector>
+>;
 
 
 } // namespace Kratos

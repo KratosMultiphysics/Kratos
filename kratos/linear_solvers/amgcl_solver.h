@@ -48,10 +48,9 @@ namespace Kratos {
  * @author Denis Demidov
  * @author Riccardo Rossi
  */
-template< class TSparseSpaceType, class TDenseSpaceType,
-          class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-class KRATOS_API(KRATOS_CORE) AMGCLSolver : public LinearSolver< TSparseSpaceType,
-    TDenseSpaceType, TReordererType>
+template< class TSparseSpaceType, class TDenseSpaceType>
+class KRATOS_API(KRATOS_CORE) AMGCLSolver
+    : public LinearSolver< TSparseSpaceType,TDenseSpaceType>
 {
 public:
     ///@name Type Definitions
@@ -61,7 +60,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( AMGCLSolver );
 
     /// The base class definition
-    typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
+    typedef LinearSolver<TSparseSpaceType, TDenseSpaceType> BaseType;
 
     /// The sparse matric type
     typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
@@ -370,7 +369,7 @@ protected:
 
 template<class TSparseSpaceType, class TDenseSpaceType,class TReordererType>
 inline std::istream& operator >> (std::istream& rIStream, AMGCLSolver< TSparseSpaceType,
-                                  TDenseSpaceType, TReordererType>& rThis)
+                                  TDenseSpaceType>& rThis)
 {
     return rIStream;
 }
@@ -379,7 +378,7 @@ inline std::istream& operator >> (std::istream& rIStream, AMGCLSolver< TSparseSp
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
 inline std::ostream& operator << (std::ostream& rOStream,
                                   const AMGCLSolver<TSparseSpaceType,
-                                  TDenseSpaceType, TReordererType>& rThis)
+                                  TDenseSpaceType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
