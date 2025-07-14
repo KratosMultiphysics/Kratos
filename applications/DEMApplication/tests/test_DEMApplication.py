@@ -38,10 +38,13 @@ import test_moving_periodic_boundary
 import test_servo_control
 import test_properties_measure_utility
 import sys
-sys.path.append('DEM3D_chung_ooi_tests/test1_data')
-sys.path.append('DEM3D_chung_ooi_tests/test2_data')
-sys.path.append('DEM3D_chung_ooi_tests/test3_data')
-sys.path.append('DEM3D_chung_ooi_tests/test4_data')
+import os
+# append the path to the Chung Ooi tests 
+base_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base_path, 'DEM3D_chung_ooi_tests/test1_data'))
+sys.path.append(os.path.join(base_path, 'DEM3D_chung_ooi_tests/test2_data'))
+sys.path.append(os.path.join(base_path, 'DEM3D_chung_ooi_tests/test3_data'))
+sys.path.append(os.path.join(base_path, 'DEM3D_chung_ooi_tests/test4_data'))
 import Chung_Ooi_test_1
 import Chung_Ooi_test_2
 import Chung_Ooi_test_3
