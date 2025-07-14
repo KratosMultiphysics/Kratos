@@ -59,21 +59,19 @@ void HistoricalVariableTensorAdaptor::CollectData()
 {
     std::visit(
         [this](auto pVariable) {
-            block_for_each(*this->mpContainer, [this, pVariable](const Node& rNode) {
-                KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(*pVariable))
-                    << "The " << pVariable->Name() << " is not in the solution step variables list of "
-                    << rNode << ".\n";
-
-                KRATOS_ERROR_IF_NOT(rNode.GetBufferSize() >= this->mStepIndex)
-                    << "The step index is larger than the nodal buffer size [ node buffer size = "
-                    << rNode.GetBufferSize() << ", step index = " << this->mStepIndex
-                    << ", node = " << rNode << " ].\n";
-            });
-
             TensorAdaptorUtils::CollectVariableData(
                 this->Shape(), *this->mpContainer, *pVariable, this->ViewData(),
-                [pVariable, this](auto& rValue, const auto& rEntity) {
-                    rValue = rEntity.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
+                [pVariable, this](auto& rValue, const Node& rNode) {
+                    KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(*pVariable))
+                        << "The " << pVariable->Name() << " is not in the solution step variables list of "
+                        << rNode << ".\n";
+
+                    KRATOS_ERROR_IF_NOT(static_cast<int>(rNode.GetBufferSize()) >= this->mStepIndex)
+                        << "The step index is larger than the nodal buffer size [ node buffer size = "
+                        << rNode.GetBufferSize() << ", step index = " << this->mStepIndex
+                        << ", node = " << rNode << " ].\n";
+
+                    rValue = rNode.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
                 });
         },
         mpVariable);
@@ -83,21 +81,19 @@ void HistoricalVariableTensorAdaptor::StoreData()
 {
     std::visit(
         [this](auto pVariable) {
-            block_for_each(*this->mpContainer, [this, pVariable](const Node& rNode) {
-                KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(*pVariable))
-                    << "The " << pVariable->Name() << " is not in the solution step variables list of "
-                    << rNode << ".\n";
-
-                KRATOS_ERROR_IF_NOT(rNode.GetBufferSize() >= this->mStepIndex)
-                    << "The step index is larger than the nodal buffer size [ node buffer size = "
-                    << rNode.GetBufferSize() << ", step index = " << this->mStepIndex
-                    << ", node = " << rNode << " ].\n";
-            });
-
             TensorAdaptorUtils::StoreVariableData(
                 this->Shape(), *this->mpContainer, *pVariable, this->ViewData(),
-                [pVariable, this](auto& rEntity) -> auto& {
-                    return rEntity.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
+                [pVariable, this](Node& rNode) -> auto& {
+                    KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(*pVariable))
+                        << "The " << pVariable->Name() << " is not in the solution step variables list of "
+                        << rNode << ".\n";
+
+                    KRATOS_ERROR_IF_NOT(static_cast<int>(rNode.GetBufferSize()) >= this->mStepIndex)
+                        << "The step index is larger than the nodal buffer size [ node buffer size = "
+                        << rNode.GetBufferSize() << ", step index = " << this->mStepIndex
+                        << ", node = " << rNode << " ].\n";
+
+                    return rNode.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
                 });
         },
         mpVariable);
