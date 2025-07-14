@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Juan Ignacio Camarotti
 //
 
 // Project includes
@@ -28,27 +28,22 @@ namespace Kratos
 
         std::string origin_interface_sub_model_part_name;
         std::string destination_interface_sub_model_part_name;
+
         if (mParameters["is_interface_sub_model_parts_specified"].GetBool())
         {
             origin_interface_sub_model_part_name = mParameters["origin_interface_sub_model_part_name"].GetString();
             destination_interface_sub_model_part_name = mParameters["destination_interface_sub_model_part_name"].GetString();
         }
-        else
-        {
-            KRATOS_ERROR << "Not implemented yet" << std::endl;
-            // Some future functionality to automatically determine interfaces?
-            // (Create interface sub model parts in origin and destination modelparts)
-            // (set strings to correct values)
-            //origin_interface_sub_model_part_name = ???
-            //destination_interface_sub_model_part_name = ???
-        }
 
-        // create coupling conditions on interface depending on the dimension
-        const IndexType dim = 2;
-        if (dim == 2)
+        // create coupling conditions on interface depending on the formulation
+        const bool is_origin_iga = mParameters["is_origin_iga"].GetBool();
+        const bool is_surface_mapping = mParameters["is_surface_mapping"].GetBool();
+
+        if (is_origin_iga && is_surface_mapping == false)
         {
-            CreateInterfaceLineCouplingConditions(mpModels[0]->GetModelPart(origin_interface_sub_model_part_name));
-            CreateInterfaceLineCouplingConditions(mpModels.back()->GetModelPart(destination_interface_sub_model_part_name));
+            CreateIgaInterfaceBrepCurveOnSurface(mpModels[0]->GetModelPart(origin_interface_sub_model_part_name));
+            KRATOS_WATCH(mpModels[0]->GetModelPart(origin_interface_sub_model_part_name))
+            exit(0);
         }
         else
         {
@@ -104,6 +99,12 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(mParameters.Has("is_interface_sub_model_parts_specified"))
             << "Missing \"is_interface_sub_model_parts_specified\" in IgaFEMMappingGeometriesModeler Parameters." << std::endl;
 
+        KRATOS_ERROR_IF_NOT(mParameters.Has("is_origin_iga"))
+            << "Missing \"is_origin_iga\" in IgaFEMMappingGeometriesModeler Parameters." << std::endl;
+        
+        KRATOS_ERROR_IF_NOT(mParameters.Has("is_surface_mapping"))
+            << "Missing \"is_surface_mapping\" in IgaFEMMappingGeometriesModeler Parameters." << std::endl;
+
         if (mParameters["is_interface_sub_model_parts_specified"].GetBool())
         {
             KRATOS_ERROR_IF_NOT(mParameters.Has("origin_interface_sub_model_part_name"))
@@ -114,66 +115,71 @@ namespace Kratos
         }
     }
 
-    void IgaFEMMappingGeometriesModeler::CreateInterfaceLineCouplingConditions(ModelPart& rInterfaceModelPart)
-    {
+    // This implementation is to be changed after geometries allow the creation of GeometryType::Pointer from raw pointers (intrusive_ptr) -> no dynamic cast needed anymore
+    // In the future: const GeometryPointerType copy_brep_curve_on_surface_geometry = Kratos::make_intrusive<BrepCurveOnSurfacePointer::element_type>(&brep_curve_on_surface_geometry);
+    void IgaFEMMappingGeometriesModeler::CreateIgaInterfaceBrepCurveOnSurface(ModelPart& rInterfaceModelPart)
+    {   
+        // Create the sub model part for coupling conditions
         rInterfaceModelPart.CreateSubModelPart("coupling_conditions");
         ModelPart& coupling_conditions = rInterfaceModelPart.GetSubModelPart("coupling_conditions");
         const ModelPart& root_mp = rInterfaceModelPart.GetRootModelPart();
 
-        IndexType interface_node_id;
-        IndexType trial_interface_node_id;
-        IndexType trial_geom_node_id;
+        // This is the vector of brep curves on surface that will create the coupling conditions
+        std::vector<GeometryType::Pointer> p_brep_curve_on_surface_vector;
+
+        // Loop over all quadrature points in the interface model part to detect the different brep curves on surface
+        IndexType old_brep_curve_on_surface_id = 0;
+        for (auto cond_it = rInterfaceModelPart.ConditionsBegin(); cond_it != rInterfaceModelPart.ConditionsEnd(); ++cond_it){
+            // Get the quadrature point geometry
+            const GeometryPointerType p_geometry = cond_it->pGetGeometry();
+
+            // Get the parent geometry of the quadrature point (brep curve on surface)
+            const GeometryType& brep_curve_on_surface_geometry = p_geometry->GetGeometryParent(0);
+
+            // Get the id of the new brep curve on surface 
+            IndexType new_brep_curve_on_surface_id = brep_curve_on_surface_geometry.Id();
+
+            // If the brep curve on surface is not already in the vector, add it
+            if (new_brep_curve_on_surface_id != old_brep_curve_on_surface_id)
+            {
+                // Get the nurbs curve on surface geometry from the brep curve on surface geometry
+                const GeometryPointerType nurbs_curve_on_surface_geometry = brep_curve_on_surface_geometry.pGetGeometryPart(std::numeric_limits<IndexType>::max() - 2);
+
+                // Downcast it from the base class (geometry) to the derived class (NurbsCurveOnSurfaceGeometry) 
+                IgaFEMMappingGeometriesModeler::NurbsCurveOnSurfacePointer interface_nurbs_curve_on_surface_cast = std::dynamic_pointer_cast<IgaFEMMappingGeometriesModeler::NurbsCurveOnSurfacePointer::element_type>(nurbs_curve_on_surface_geometry); 
+
+                // Get a pointer to the underlying surface (get a pointer to the base class)
+                const GeometryPointerType interface_nurbs_surface = brep_curve_on_surface_geometry.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
+
+                // Downcast the pointer to the derived class (NurbsSurfaceGeometry)
+                IgaFEMMappingGeometriesModeler::NurbsSurfacePointer interface_nurbs_surface_cast = std::dynamic_pointer_cast<IgaFEMMappingGeometriesModeler::NurbsSurfacePointer::element_type>(interface_nurbs_surface); 
+                KRATOS_ERROR_IF_NOT(interface_nurbs_surface_cast)
+                    << "failed to downcast interface_nurbs_surface";
+
+                // Get the Nurbs curve in the parameter space 
+                auto p_nurbs_curve = interface_nurbs_curve_on_surface_cast->pGetCurve();
+
+                // intersection between curve and surface parameter space in terms of the curve 1D parameter space.
+                std::vector<double> curve_and_parameter_space_intersections;
+                nurbs_curve_on_surface_geometry->SpansLocalSpace(curve_and_parameter_space_intersections);
+
+                NurbsInterval active_range(curve_and_parameter_space_intersections.front(),curve_and_parameter_space_intersections.back());
+
+                GeometryType::Pointer p_reconstructed_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfacePointer::element_type>(interface_nurbs_surface_cast, p_nurbs_curve, active_range);
+                KRATOS_WATCH(p_reconstructed_brep_curve_on_surface->Center())
+                p_brep_curve_on_surface_vector.push_back(p_reconstructed_brep_curve_on_surface);
+
+                old_brep_curve_on_surface_id = new_brep_curve_on_surface_id;
+            }
+        }
 
         // Determine next condition number
         IndexType condition_id = (root_mp.NumberOfConditions() == 0)
             ? 1 : (root_mp.ConditionsEnd() - 1)->Id() + 1;
 
-        for (size_t node_index = 0; node_index < rInterfaceModelPart.NumberOfNodes() - 1; ++node_index)
-        {
-            interface_node_id = (rInterfaceModelPart.NodesBegin() + node_index)->Id();
-            std::vector< GeometryPointerType> p_geom_vec;
-            for (auto& ele_it: root_mp.Elements())
-            {
-                auto p_geom = ele_it.pGetGeometry();
-                for (size_t i = 0; i < p_geom->size(); i++)
-                {
-                    if ((*p_geom)[i].Id() == interface_node_id)
-                    {
-                        p_geom_vec.push_back(p_geom);
-                    }
-                }
-            }
-
-            if (p_geom_vec.size() == 0) KRATOS_ERROR << "Interface node not found in modelpart geom\n";
-
-            // Loop over all geometries that have nodes on the interface
-            for (size_t interface_geom_index = 0; interface_geom_index < p_geom_vec.size(); interface_geom_index++)
-            {
-                GeometryType& r_interface_geom = *(p_geom_vec[interface_geom_index]);
-
-                // Loop over remaining interface nodes, see if any of them are nodes in the interface geom
-                for (size_t geom_node_index = 0; geom_node_index < r_interface_geom.size(); geom_node_index++)
-                {
-                    trial_geom_node_id = r_interface_geom[geom_node_index].Id();
-
-                    for (size_t trial_index = node_index + 1; trial_index < rInterfaceModelPart.NumberOfNodes(); ++trial_index)
-                    {
-                        trial_interface_node_id = (rInterfaceModelPart.NodesBegin() + trial_index)->Id();
-                        if (trial_geom_node_id == trial_interface_node_id)
-                        {
-                            // Another interface node was found in the same geom, make line condition between them
-                            Geometry<GeometricalObject::NodeType>::PointsArrayType line_condition_points;
-                            line_condition_points.push_back(rInterfaceModelPart.pGetNode(interface_node_id));
-                            line_condition_points.push_back(rInterfaceModelPart.pGetNode(trial_interface_node_id));
-                            coupling_conditions.CreateNewCondition("LineCondition2D2N", condition_id,
-                                line_condition_points, rInterfaceModelPart.pGetProperties(0));
-                            condition_id += 1;
-                        }
-                    }
-                }
-            }
-
-
+        for (IndexType i = 0; i < p_brep_curve_on_surface_vector.size(); i++){
+            coupling_conditions.CreateNewCondition("BrepCurveOnSurface", condition_id, p_brep_curve_on_surface_vector[i], root_mp.ElementsBegin()->pGetProperties(), 0);
+            condition_id += 1;
         }
     }
 }

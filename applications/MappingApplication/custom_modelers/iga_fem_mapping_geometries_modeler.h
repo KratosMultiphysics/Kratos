@@ -7,10 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
-//                   Peter Wilson
-//                   Tobias Teschemacher
-//
+//  Main authors:    Juan Ignacio Camarotti
 
 #pragma once
 
@@ -21,6 +18,8 @@
 // Project includes
 #include "modeler/modeler.h"
 #include "custom_utilities/mapping_intersection_utilities.h"
+#include "geometries/brep_curve_on_surface.h"
+#include "geometries/nurbs_curve_on_surface_geometry.h"
 
 namespace Kratos
 {
@@ -46,6 +45,11 @@ public:
     typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::Pointer GeometryPointerType;
+
+    using NurbsCurveOnSurfacePointer = NurbsCurveOnSurfaceGeometry<3, PointerVector<Point>, PointerVector<NodeType>>::Pointer;
+    using NurbsSurfacePointer = NurbsSurfaceGeometry<3, PointerVector<NodeType>>::Pointer;
+    using BrepCurveOnSurfacePointer = BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>::Pointer;
+
 
     ///@}
     ///@name Life Cycle
@@ -123,9 +127,19 @@ private:
         rDestinationMP.SetConditions(coupling_conditions.pConditions());
     }
 
-    void CreateInterfaceLineCouplingConditions(ModelPart& rInterfaceModelPart);
+    void CreateIgaInterfaceBrepCurveOnSurface(ModelPart& rInterfaceModelPart);
 
     void CheckParameters();
+
+    const Parameters GetDefaultParameters() const override
+    {
+        return Parameters( R"({
+            "is_origin_iga"                : true,
+            "is_surface_mapping"          : false,
+            "use_initial_configuration"    : true,
+            "echo_level"                   : 0,
+        })");
+    }
 
 }; // Class IgaFEMMappingGeometriesModeler
 
