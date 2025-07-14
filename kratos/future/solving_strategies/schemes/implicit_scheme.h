@@ -37,6 +37,7 @@
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/solving_strategies/builders/builder.h"
 #include "future/solving_strategies/builders/block_builder.h"
+#include "future/solving_strategies/builders/elimination_builder.h"
 #endif
 
 namespace Kratos::Future
@@ -122,9 +123,14 @@ public:
     /// TLS type
     using TLSType = ImplicitThreadLocalStorage<DataType>;
 
-    /// Assembly helper type
-    //FIXME: This should be set in the constructor
-    using BuilderType = Future::BlockBuilder<TLSType, TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
+    /// Block builder type
+    using BuilderType = Future::Builder<TLSType, TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
+
+    /// Block builder type
+    using BlockBuilderType = Future::BlockBuilder<TLSType, TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
+
+    /// Elimination builder type
+    using EliminationBuilderType = Future::EliminationBuilder<TLSType, TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
 
     /// DoF type definition
     using DofType = Dof<DataType>;
@@ -159,7 +165,14 @@ public:
         // Set up the assembly helper
         Parameters build_settings = ThisParameters["build_settings"];
         build_settings.AddInt("echo_level", ThisParameters["echo_level"].GetInt());
-        mpBuilder = Kratos::make_unique<BuilderType>(rModelPart, build_settings);
+        const std::string builder_type = build_settings["name"].GetString();
+        if (builder_type == "block_builder") {
+            mpBuilder = Kratos::make_unique<BlockBuilderType>(rModelPart, build_settings); // TODO: Use the registry in here
+        } else if (builder_type == "elimination_builder") {
+            mpBuilder = Kratos::make_unique<EliminationBuilderType>(rModelPart, build_settings); // TODO: Use the registry in here
+        } else {
+            KRATOS_ERROR << "Wrong builder type \'" << builder_type << "\'. Available options are \'block_builder\' and \'elimination_builder\'." << std::endl;
+        }
     }
 
     /** Copy Constructor.
@@ -359,15 +372,18 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void ConstructMasterSlaveConstraintsStructure(
+    virtual void ConstructSystemConstraintsStructure(
         const DofsArrayType::Pointer pDofSet,
         DofsArrayType::Pointer pEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         KRATOS_TRY
 
-        // Call the assembly helper to set the master-slave constraints
+        // Call the builder to set the master-slave constraints structure
         (this->GetBuilder()).ConstructMasterSlaveConstraintsStructure(*mpModelPart, *pDofSet, *pEffectiveDofSet, rLinearSystemContainer);
+
+        // Call the builder to set the Dirichlet constraints structure
+        (this->GetBuilder()).ConstructDirichletConstraintsStructure(*pDofSet, *pEffectiveDofSet, rLinearSystemContainer);
 
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() >= 2) << "Finished constraints initialization." << std::endl;
 
@@ -916,8 +932,7 @@ public:
     virtual void BuildMasterSlaveConstraints(
         const DofsArrayType& rDofSet,
         const DofsArrayType& rEffectiveDofSet,
-        TSparseMatrixType& rConstraintsRelationMatrix,
-        TSystemVectorType& rConstraintsConstantVector)
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
         if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
             Timer::Start("BuildConstraints");
@@ -932,15 +947,19 @@ public:
             auto consts_begin = r_consts.begin();
             const std::size_t n_consts = r_consts.size();
 
+            // Get constraints arrays from the linear system container
+            auto& r_constraints_T = *(rLinearSystemContainer.pConstraintsT);
+            auto& r_constraints_q = *(rLinearSystemContainer.pConstraintsQ);
+
             // Initialize constraints arrays
-            rConstraintsRelationMatrix.SetValue(0.0);
-            rConstraintsConstantVector.SetValue(0.0);
+            r_constraints_T.SetValue(0.0);
+            r_constraints_q.SetValue(0.0);
 
             // We clear the inactive DOFs set
             std::unordered_set<IndexType> inactive_slave_dofs;
 
-            rConstraintsRelationMatrix.BeginAssemble();
-            rConstraintsConstantVector.BeginAssemble();
+            r_constraints_T.BeginAssemble();
+            r_constraints_q.BeginAssemble();
 
             TLSType aux_tls;
             #pragma omp parallel firstprivate(rEffectiveDofSet, consts_begin, r_process_info)
@@ -983,10 +1002,10 @@ public:
                     // Assemble the constraints local contributions to the global system
                     if (assemble_const) {
                         // Assemble relation matrix contribution
-                        rConstraintsRelationMatrix.Assemble(aux_tls.LocalMatrix, r_slave_eq_ids, r_master_eq_ids);
+                        r_constraints_T.Assemble(aux_tls.LocalMatrix, r_slave_eq_ids, r_master_eq_ids);
 
                         // Assemble constant vector contribution
-                        rConstraintsConstantVector.Assemble(aux_tls.LocalVector, r_slave_eq_ids);
+                        r_constraints_q.Assemble(aux_tls.LocalVector, r_slave_eq_ids);
                     } else {
                         auxiliar_inactive_slave_dofs.insert(r_slave_eq_ids.begin(), r_slave_eq_ids.end());
                     }
@@ -999,8 +1018,8 @@ public:
                 }
             }
 
-            rConstraintsRelationMatrix.FinalizeAssemble();
-            rConstraintsConstantVector.FinalizeAssemble();
+            r_constraints_T.FinalizeAssemble();
+            r_constraints_q.FinalizeAssemble();
 
             // Setting the missing effective but not constrain-related DOFs into the T and C system
             // For doing so we loop the standard DOF array (the one from elements and conditions)
@@ -1009,16 +1028,16 @@ public:
                 const auto p_dof = *(rDofSet.ptr_begin() + Index);
                 const auto p_dof_find = rEffectiveDofSet.find(*p_dof);
                 if (p_dof_find != rEffectiveDofSet.end()) {
-                    rConstraintsConstantVector[p_dof->EquationId()] = 0.0;
-                    rConstraintsRelationMatrix(p_dof->EquationId(), p_dof_find->EffectiveEquationId()) = 1.0;
+                    r_constraints_q[p_dof->EquationId()] = 0.0;
+                    r_constraints_T(p_dof->EquationId(), p_dof_find->EffectiveEquationId()) = 1.0;
                 }
             });
 
             // Setting inactive slave dofs in the T and C system
             //TODO: Can't this be parallel?
             for (auto eq_id : inactive_slave_dofs) {
-                rConstraintsConstantVector[eq_id] = 0.0;
-                rConstraintsRelationMatrix(eq_id, eq_id) = 1.0;
+                r_constraints_q[eq_id] = 0.0;
+                r_constraints_T(eq_id, eq_id) = 1.0;
             }
 
             KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Constraints build time: " << timer_constraints << std::endl;
@@ -1029,6 +1048,14 @@ public:
         }
     }
 
+    virtual void BuildDirichletConstraints(
+        const DofsArrayType& rDofSet,
+        const DofsArrayType& rEffectiveDofSet,
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
+    {
+        GetBuilder().BuildDirichletConstraints(rDofSet, rEffectiveDofSet, rLinearSystemContainer);
+    }
+
     virtual void BuildLinearSystemConstraints(
         const DofsArrayType &rDofSet,
         const DofsArrayType &rEffectiveDofSet,
@@ -1036,9 +1063,11 @@ public:
     {
         BuiltinTimer build_linear_system_constraints_time;
 
-        auto p_constraints_T = rLinearSystemContainer.pConstraintsT;
-        auto p_constraints_q = rLinearSystemContainer.pConstraintsQ;
-        BuildMasterSlaveConstraints(rDofSet, rEffectiveDofSet, *p_constraints_T, *p_constraints_q);
+        // Build the master-slave constraints relation matrix and constant vector
+        BuildMasterSlaveConstraints(rDofSet, rEffectiveDofSet, rLinearSystemContainer);
+
+        // Build the Dirichlet constraints relation matrix and constant vector
+        BuildDirichletConstraints(rDofSet, rEffectiveDofSet, rLinearSystemContainer);
 
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Build linear system constraints time: " << build_linear_system_constraints_time << std::endl;
     }

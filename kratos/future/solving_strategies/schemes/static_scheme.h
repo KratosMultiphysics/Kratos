@@ -229,7 +229,7 @@ public:
 
                 // Set up the system constraints
                 BuiltinTimer constraints_construction_time;
-                this->ConstructMasterSlaveConstraintsStructure(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
+                this->ConstructSystemConstraintsStructure(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Constraints construction time: " << constraints_construction_time << std::endl;
 
                 //TODO: Then we have a method to initialize all the standard arrays from the graph. In here we can make also initializations of the mass and damping matrix with the same graph
@@ -281,6 +281,8 @@ public:
         KRATOS_ERROR_IF_NOT(this->GetSchemeIsInitialized()) << "Initialize needs to be performed. Call Initialize() once before the solution loop." << std::endl;
         KRATOS_ERROR_IF_NOT(this->GetSchemeSolutionStepIsInitialized()) << "InitializeSolutionStep needs to be performed. Call InitializeSolutionStep() before Predict()." << std::endl;
 
+        // TODO: Check if we require something else here for the elimination
+
         // Applying constraints if needed
         const auto& r_model_part = this->GetModelPart();
         const auto& r_comm = r_model_part.GetCommunicator().GetDataCommunicator();
@@ -293,7 +295,7 @@ public:
             // Note that the constant vector is applied only once in here as we then solve for the solution increment
             auto p_constraints_T = rLinearSystemContainer.pConstraintsT;
             auto p_constraints_Q = rLinearSystemContainer.pConstraintsQ;
-            this->BuildMasterSlaveConstraints(*pDofSet, *pEffectiveDofSet, *p_constraints_T, *p_constraints_Q);
+            this->BuildMasterSlaveConstraints(*pDofSet, *pEffectiveDofSet, rLinearSystemContainer);
 
             // Fill the current values vector
             TSystemVectorType x(pEffectiveDofSet->size());

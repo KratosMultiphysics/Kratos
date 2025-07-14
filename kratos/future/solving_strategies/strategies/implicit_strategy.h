@@ -19,7 +19,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "utilities/builtin_timer.h"
 
 #ifdef KRATOS_USE_FUTURE
 #include "future/linear_solvers/linear_solver.h"
