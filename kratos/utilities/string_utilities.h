@@ -214,7 +214,7 @@ namespace StringUtilities
         );
 
     template<class TIteratorType>
-    [[nodiscard]] std::string KRATOS_API(KRATOS_CORE) JoinValues(
+    [[nodiscard]] std::string JoinValues(
         TIteratorType Begin,
         TIteratorType End,
         const std::string& rDelimiter)
