@@ -101,13 +101,14 @@ void ConstitutiveLawUtilities::CheckProperty(const Properties&       rMaterialPr
 
 Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      NormalStiffness,
                                                                  double      ShearStiffness,
-                                                                 std::size_t TractionSize)
+                                                                 std::size_t TractionSize,
+                                                                 std::size_t NumberOfNormalComponents)
 {
-    auto result  = Matrix{ZeroMatrix{TractionSize, TractionSize}};
-    result(0, 0) = NormalStiffness;
-    for (auto i = std::size_t{1}; i < TractionSize; i++) {
+    auto result = Matrix{ZeroMatrix{TractionSize, TractionSize}};
+    for (auto i = std::size_t{0}; i < NumberOfNormalComponents; ++i)
+        result(i, i) = NormalStiffness;
+    for (auto i = NumberOfNormalComponents; i < TractionSize; ++i)
         result(i, i) = ShearStiffness;
-    }
     return result;
 }
 
