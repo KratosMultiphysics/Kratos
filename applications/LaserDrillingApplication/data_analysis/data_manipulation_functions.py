@@ -202,10 +202,10 @@ def clean_and_export_csv(input_path, output_path=None, fmt=["%.3f", "%.3f", "%.6
 
     
 
-def remove_surface_and_outliers(data, shallow_z_threshold, deep_outlier_quantile_threshold):
+def remove_surface_and_outliers(data, shallow_z_threshold, deep_outlier_quantile_threshold=None):
     """
     Removes the points corresponding to the surface by removing the points shallower than
-    shallow_z_threshold (points closer to the surface than shallow_z_threshold), and removes
+    shallow_z_threshold (points closer to the surface than shallow_z_threshold), and (optionally) removes
     outliers that lie too deep in the sample that correspond to wrongly measured data by
     removing the deep_outlier_quantile_threshold deepest points
     """
