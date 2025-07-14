@@ -112,6 +112,8 @@ std::string NodePositionTensorAdaptor::Info() const
             return TensorAdaptorUtils::Info("NodePositionTensorAdaptor configuration = Initial, ", this->Shape(), *mpContainer);
         case Globals::Configuration::Current:
             return TensorAdaptorUtils::Info("NodePositionTensorAdaptor configuration = Current, ", this->Shape(), *mpContainer);
+        default:
+            return "";
     }
 }
 
