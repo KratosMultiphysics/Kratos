@@ -120,7 +120,7 @@ void VolumeCouplingElement::CalculateOnIntegrationPoints(
     SmallDisplacement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
 
     // Check if we are dealing with stress vectors and if the custom condition is met
-    if ((rVariable == CAUCHY_STRESS_VECTOR) && (rCurrentProcessInfo[ACTIVATION_LEVEL] > 0.0)) {
+    if (rVariable == CAUCHY_STRESS_VECTOR)  {
   
         const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
         const SizeType number_of_integration_points = integration_points.size();
@@ -168,7 +168,7 @@ void VolumeCouplingElement::CalculateOnIntegrationPoints(
 
         
     }
-    if ((rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) && (rCurrentProcessInfo[ACTIVATION_LEVEL] > 0.0)) {
+    if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
         const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
         const SizeType number_of_integration_points = integration_points.size();
         array_1d<double, 3> global_coordinates;

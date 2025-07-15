@@ -38,20 +38,33 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
     def InitializeCouplingIteration(self):
 
 
+   
         self.step+=1
         
-        pointload=-1*min(self.force_slope*self.step,self.max_force) # for 4 nodes gradually increasing point load
+        cof=0.8
+        tangential_stiffness = 1e5 
+        coord_tol= 1e-8 # tolerance for checking if the node is in the hybrid region
+        root_part = self.model["Structure"]              # or  self.model.GetModelPart("Structure")
+
+        # pointload=-1*min(self.force_slope*self.step,self.max_force) # for 4 nodes gradually increasing point load
         #pointload=-1*4*(1/9)*min(self.force_slope*self.step,self.max_force) # for 9 nodes gradually increasing point load
 
-        node_ids = [1,2,3,4]  # for assigning point loads to the top 4 nodes
+        # node_ids = [1,2,3,4]  # for assigning point loads to the top 4 nodes
         #node_ids =[145,146,147,148,149,150,151,152,153]  # for assigning point loads to the top 9 nodes
         #node_ids = [1,2,3,7,10,11,15,17,23,27,28,30,33,41,43,60]  # for assigning point loads to the top nodes
-
+        # node_ids = [1,2,3,7,10,11,15,17,23,27,28,30,33,41,43,60]  # for assigning friction to silo walls
 
         utils = VCA.DEMFEMVolumeCouplingUtilities()
 
-        # utils.AssignPointLoads(self.model_part,node_ids,pointload) # assigning point loads to the top nodes
-        utils.SetNodalCouplingWeightsOnFEMLinearly(self.model_part,self.y_fem_boundary,self.y_dem_boundary,self.tolerance,self.weight_fem_boundary,self.weight_dem_boundary) 
+        # utils.AssignPointLoads(self.model_part,cof,tangential_stiffness,coord_tol) # assigning point loads to the top nodes
+        # utils.SetNodalCouplingWeightsOnFEMLinearly(self.model_part,self.y_fem_boundary,self.y_dem_boundary,self.tolerance,self.weight_fem_boundary,self.weight_dem_boundary)
+        utils.SetNodalCouplingWeightsFromLayers( root_part,
+     {
+        "DISPLACEMENT_layer1": 0.0,
+        "DISPLACEMENT_layer2": 0.5,
+        "DISPLACEMENT_layer3": 1.0,
+    })
+ 
         utils.CalculateDisplacementDifference(self.model_part,self.dt) # calculating displacement difference
         utils.CalculateNodalCouplingForces(self.model_part,self.penalty_max) # calculating nodal coupling forces including point load
         utils.CalculateNodalDEMCouplingForces(self.model_part)

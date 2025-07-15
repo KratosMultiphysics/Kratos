@@ -175,7 +175,7 @@ void VolumeCouplingParticle::EvaluateBallToBallForcesForPositiveIndentiations(Sp
         for(int i=0; i<3; ++i)
         {   
             // std::cout<<"working############################\n";
-            LocalElasticContactForce[i] = LocalElasticContactForce[i]*(interpolated_weight); // unScale elastic contact force
+            LocalElasticContactForce[i] = LocalElasticContactForce[i]*(interpolated_weight); // unScale elastic contact force the unscaling is done to avoid cumilative scaling.
             ViscoDampingLocalContactForce[i] = ViscoDampingLocalContactForce[i]*(interpolated_weight); // unScale visco-damping contact force
         }
 

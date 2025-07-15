@@ -34,6 +34,10 @@
 #include "DEMFEM_volume_coupling_application.h"
 
 
+#include <unordered_map>     //  std::unordered_map
+#include <functional>        //  std::function   (for the DFS)
+
+
 namespace Kratos
 {
 class DEMFEMVolumeCouplingUtilities
@@ -53,16 +57,57 @@ virtual ~DEMFEMVolumeCouplingUtilities(){}
 //***************************************************************************************************************
 
 
-void AssignPointLoads(ModelPart& rFEMModelPart, std::vector<int>& node_ids, double& pointload)
+void AssignPointLoads(ModelPart& rFEMModelPart,
+                      const double cof,
+                      const double tangential_stiffness,
+                      const double coord_tol = 1e-8)          // geometric tolerance
 {
-    for (ModelPart::NodesContainerType::iterator node_it = rFEMModelPart.NodesBegin(); node_it != rFEMModelPart.NodesEnd(); ++node_it)
+    constexpr double disp_tol = 1e-12;                         // zero-displacement guard
+
+    for (auto& rNode : rFEMModelPart.Nodes())                  // loop over every node
     {
-        if (std::find(node_ids.begin(), node_ids.end(), node_it->Id()) != node_ids.end()) // assigning point loads - only if force is exerted on FEM.
-        {
-            array_1d<double, 3> point_load = ZeroVector(3);
-            point_load[1] = pointload;
-            node_it->FastGetSolutionStepValue(POINT_LOAD) = point_load;
+        // -----------------------------------------------------------------
+        // 1.  Keep only the nodes that sit on the requested boundaries
+        //     (bottom y = 0, or side walls x = 0 / x = 1 m)
+        // -----------------------------------------------------------------
+        const double x = rNode.X();                            // or rNode.Coordinates()[0]
+        const double y = rNode.Y();                            // or rNode.Coordinates()[1]
+
+        const bool on_bottom = std::abs(y)           < coord_tol;          // y = 0
+        const bool on_left   = std::abs(x)           < coord_tol;          // x = 0
+        const bool on_right  = std::abs(x - 1.0)     < coord_tol;          // x = 1 m
+
+        if (!(on_bottom || on_left || on_right))
+            continue;                                          // skip interior / top nodes
+
+        // -----------------------------------------------------------------
+        // 2.  Fetch kinematic variables
+        // -----------------------------------------------------------------
+        auto&       u = rNode.FastGetSolutionStepValue(DISPLACEMENT); // array_1d<3>
+        const auto& R = rNode.FastGetSolutionStepValue(REACTION);     // array_1d<3>
+
+        const double u_norm = norm_2(u);
+        if (u_norm < disp_tol) {                              // no displacement → no load
+            rNode.FastGetSolutionStepValue(POINT_LOAD).clear();
+            continue;
         }
+
+        // -----------------------------------------------------------------
+        // 3.  Direction opposite to displacement  (-û)
+        // -----------------------------------------------------------------
+        const array_1d<double,3> dir_neg = -u / u_norm;
+
+        // -----------------------------------------------------------------
+        // 4.  Coulomb-capped magnitude  (min(Kₜ|u|, μ|R|))
+        // -----------------------------------------------------------------
+        const double f_trial   = u_norm * tangential_stiffness; // Kt |u|
+        const double f_coulomb = cof * norm_2(R);               // μ |R|
+        const double magnitude = std::min(f_trial, f_coulomb);
+
+        // -----------------------------------------------------------------
+        // 5.  Assign point load
+        // -----------------------------------------------------------------
+        rNode.FastGetSolutionStepValue(POINT_LOAD) = dir_neg * magnitude;
     }
 }
 
@@ -89,6 +134,55 @@ void AssignPointLoads(ModelPart& rFEMModelPart, std::vector<int>& node_ids, doub
 //     }
 // }
 // }
+
+
+void SetNodalCouplingWeightsFromLayers(
+    ModelPart& rFEMModelPart,
+    const std::unordered_map<std::string,double>& rLayerWeights)
+{
+    // -------------------------------------------------------------
+    // 0)  Initialise all nodes to zero
+    // -------------------------------------------------------------
+    for (auto& rNode : rFEMModelPart.Nodes()) {
+        rNode.FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT) = 0.0;
+    }
+
+    // -------------------------------------------------------------
+    // 1)  Depth-first search through the SubModelPart tree
+    // -------------------------------------------------------------
+
+    
+    std::function<void(ModelPart&)> visit;
+    visit = [&](ModelPart& rPart)
+    {   
+        // print all visiting model part names
+        // std::cout << "Visiting ModelPart: " << rPart.Name() << std::endl;
+        auto it = rLayerWeights.find(rPart.Name());
+        if (it != rLayerWeights.end()) {          // name matches
+            const double weight = it->second;
+            // print out the layer name and weight
+            // std::cout << "Layer: " << rPart.Name() << ", Weight: " << weight << std::endl;
+            for (auto& rNode : rPart.Nodes()) {
+                rNode.FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT) = weight;
+            }
+        }
+
+        for (auto& rChild : rPart.SubModelParts())
+            visit(rChild);
+    };
+
+    visit(rFEMModelPart);
+
+    // -------------------------------------------------------------
+    // 2)  MPI: synchronise ghost nodes
+    // -------------------------------------------------------------
+    if (rFEMModelPart.IsDistributed()) {
+        rFEMModelPart.GetCommunicator()
+                        .SynchronizeVariable(NODAL_COUPLING_WEIGHT);
+    }
+}
+
+
 
 void SetNodalCouplingWeightsOnFEMLinearly(ModelPart& rFEMModelPart, double& y_fem_boundary, double& y_dem_boundary, double& tolerance, double& weight_fem_boundary, double& weight_dem_boundary)
 {
@@ -205,6 +299,7 @@ void CalculateNodalCouplingForces(ModelPart& rFEMModelPart, double& penalty_max)
                         {
                             double vol = penalties[dir] * w * J * shape_functions(i, n) * shape_functions(i, m);
                             elem_it->GetGeometry()[n].FastGetSolutionStepValue(POINT_LOAD)[dir] += vol * elem_it->GetGeometry()[n].FastGetSolutionStepValue(PENALIZE_DISPLACEMENT)[dir];
+                            elem_it->GetGeometry()[n].FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE)[dir] += vol * elem_it->GetGeometry()[n].FastGetSolutionStepValue(PENALIZE_DISPLACEMENT)[dir];
                         }
                     }
                 }
@@ -221,7 +316,7 @@ void CalculateNodalDEMCouplingForces(ModelPart& rFEMModelPart)
         double total_mass = node_it->FastGetSolutionStepValue(NODAL_MAUX);
         if (total_mass != 0) // check for hybrid region
         {
-             node_it->FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE) = -1 * node_it->FastGetSolutionStepValue(POINT_LOAD) / total_mass; // force to map to dem
+             node_it->FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE) = -1 * node_it->FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE) / total_mass; // force to map to dem
         }
     }
 }

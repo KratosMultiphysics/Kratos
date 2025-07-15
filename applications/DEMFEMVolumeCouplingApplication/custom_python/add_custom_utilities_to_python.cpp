@@ -8,7 +8,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "custom_utilities/utility_functions.h"
-
+#include <pybind11/stl.h>   
 
 namespace Kratos {
 
@@ -21,6 +21,7 @@ namespace Kratos {
             class_<DEMFEMVolumeCouplingUtilities> (m, "DEMFEMVolumeCouplingUtilities")
                 .def(init<>())
                 .def("SetNodalCouplingWeightsOnFEMLinearly", &DEMFEMVolumeCouplingUtilities::SetNodalCouplingWeightsOnFEMLinearly)
+                .def("SetNodalCouplingWeightsFromLayers", &DEMFEMVolumeCouplingUtilities::SetNodalCouplingWeightsFromLayers, arg("model_part"), arg("layer_weights"))
                 .def("CalculateDisplacementDifference", &DEMFEMVolumeCouplingUtilities::CalculateDisplacementDifference)
                 .def("AssignPointLoads", &DEMFEMVolumeCouplingUtilities::AssignPointLoads)
                 .def("CalculateNodalCouplingForces", &DEMFEMVolumeCouplingUtilities::CalculateNodalCouplingForces)
