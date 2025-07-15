@@ -1000,7 +1000,7 @@ private:
     const SmallStrainUMAT2DPlaneStrainLaw mSmallStrainUMAT2DPlaneStrainLaw{std::make_unique<ThreeDimensional>()};
     const SmallStrainUMAT2DInterfaceLaw mSmallStrainUMAT2DInterfaceLaw{std::make_unique<ThreeDimensional>()};
     const SmallStrainUMAT3DInterfaceLaw mSmallStrainUMAT3DInterfaceLaw{std::make_unique<ThreeDimensional>()};
-    const SmallStrainUMATLaw<VOIGT_SIZE_2D_INTERFACE> mSmallStrainUMAT2DLineInterfaceLaw{std::make_unique<ThreeDimensional>()};
+    const SmallStrainUMATLaw<VOIGT_SIZE_2D_INTERFACE> mSmallStrainUMAT2DLineInterfaceLaw{std::make_unique<InterfacePlaneStrain>()};
 
     const LinearElastic2DInterfaceLaw mLinearElastic2DInterfaceLaw;
     const LinearElastic3DInterfaceLaw mLinearElastic3DInterfaceLaw;
