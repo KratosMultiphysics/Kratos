@@ -158,7 +158,13 @@ public:
     /**
      * @brief Voigt tensor size:
      */
-    [[nodiscard]] SizeType GetStrainSize() const override { return TVoigtSize; }
+    [[nodiscard]] SizeType GetStrainSize() const override
+    {
+        // In other constitutive laws, we use mpConstitutiveDimension->GetStrainSize() here, but
+        // due to the C/Fortran interface, we need the VoigtSize to be known compile time. Therefore,
+        // we return the template argument TVoigtSize here.
+        return TVoigtSize;
+    }
 
     /**
      * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
