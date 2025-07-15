@@ -104,11 +104,11 @@ void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix
 {
     // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
     // will also include water pressure contributions and coupling terms.
+    const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
     rLeftHandSideMatrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
-        CalculateLocalBMatricesAtIntegrationPoints(),
+        local_b_matrices,
         CalculateConstitutiveMatricesAtIntegrationPoints(
-            rProcessInfo, CalculateRelativeDisplacementsAtIntegrationPoints(
-                              CalculateLocalBMatricesAtIntegrationPoints())),
+            rProcessInfo, CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices)),
         CalculateIntegrationCoefficients());
 }
 
