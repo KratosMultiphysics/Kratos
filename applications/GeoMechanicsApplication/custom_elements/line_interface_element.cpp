@@ -44,8 +44,7 @@ std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(const std::
 {
     auto get_constitutive_matrix = [&rProperties, &rProcessInfo](const auto& p_constitutive_law,
                                                                  auto rRelativeDisplacement) {
-        auto result         = Matrix{p_constitutive_law->GetStrainSize(),
-                                     p_constitutive_law->GetStrainSize()};
+        auto result = Matrix{p_constitutive_law->GetStrainSize(), p_constitutive_law->GetStrainSize()};
         auto law_parameters = ConstitutiveLaw::Parameters{};
         law_parameters.SetMaterialProperties(rProperties);
         law_parameters.SetStrainVector(rRelativeDisplacement);
@@ -242,7 +241,8 @@ std::vector<double> LineInterfaceElement::CalculateIntegrationCoefficients() con
 std::vector<Matrix> LineInterfaceElement::CalculateConstitutiveMatricesAtIntegrationPoints(
     const ProcessInfo& rProcessInfo, const std::vector<Vector>& rRelativeDisplacements)
 {
-    return ::CalculateConstitutiveMatricesAtIntegrationPoints(mConstitutiveLaws, GetProperties(), rProcessInfo, rRelativeDisplacements);
+    return ::CalculateConstitutiveMatricesAtIntegrationPoints(mConstitutiveLaws, GetProperties(),
+                                                              rProcessInfo, rRelativeDisplacements);
 }
 
 std::vector<Vector> LineInterfaceElement::CalculateRelativeDisplacementsAtIntegrationPoints(
@@ -271,7 +271,8 @@ std::vector<Vector> LineInterfaceElement::CalculateTractionsAtIntegrationPoints(
 {
     // We have to make a copy of each relative displacement vector, since setting it at the
     // constitutive law parameters requires a reference to a _mutable_ object!
-    auto calculate_traction = [&properties = GetProperties(), &rProcessInfo](auto RelativeDisplacement, auto& p_law) {
+    auto calculate_traction = [&properties = GetProperties(), &rProcessInfo](
+                                  auto RelativeDisplacement, auto& p_law) {
         auto law_parameters = ConstitutiveLaw::Parameters{};
         law_parameters.SetStrainVector(RelativeDisplacement);
         auto result = Vector{};

@@ -314,10 +314,7 @@ public:
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        rOStream << "SmallStrainUMATLaw Data";
-    }
+    void PrintData(std::ostream& rOStream) const override { rOStream << "SmallStrainUMATLaw Data"; }
 
     ///@}
     ///@name Friends
