@@ -168,15 +168,15 @@ void GeoApplyConstantScalarValueProcess::InternalApplyValue(const TVarType&     
                                                             const bool                    ToBeFixed,
                                                             const typename TVarType::Type Value)
 {
-    const std::size_t number_of_nodes = mrModelPart.Nodes().size();
-
-    if (number_of_nodes != 0) {
-        block_for_each(mrModelPart.Nodes(), [&](Node& rNode) {
-            if constexpr (std::is_same_v<TVarType, Variable<double>>) { // For nodes
-                if (ToBeFixed) {
-                    rNode.Fix(rVariable);
-                }
+    if (mrModelPart.Nodes().empty()) {
+        if constexpr (std::is_same_v<TVarType, Variable<double>>) {
+            if (ToBeFixed) {
+                block_for_each(mrModelPart.Nodes(),
+                               [&rVariable](Node& rNode) { rNode.Fix(rVariable); });
             }
+        }
+
+        block_for_each(mrModelPart.Nodes(), [&rVariable, &Value](Node& rNode) {
             rNode.FastGetSolutionStepValue(rVariable) = Value;
         });
     }
