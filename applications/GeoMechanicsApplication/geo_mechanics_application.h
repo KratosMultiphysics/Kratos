@@ -134,6 +134,7 @@
 #include "custom_constitutive/small_strain_umat_3D_law.hpp"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_constitutive/truss_backbone_constitutive_law.h"
+#include "custom_elements/interface_stress_state.h"
 
 namespace Kratos
 {
@@ -600,9 +601,11 @@ private:
         std::make_unique<ThreeDimensionalStressState>()};
 
     const InterfaceElement mULineInterfacePlaneStrainElement2Plus2N{
-        0, Kratos::make_shared<InterfaceGeometry<Line2D2<NodeType>>>(Element::GeometryType::PointsArrayType(4))};
+        0, Kratos::make_shared<InterfaceGeometry<Line2D2<NodeType>>>(Element::GeometryType::PointsArrayType(4)),
+        std::make_unique<Line2DInterfaceStressState>()};
     const InterfaceElement mULineInterfacePlaneStrainElement3Plus3N{
-        0, Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6))};
+        0, Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
+        std::make_unique<Line2DInterfaceStressState>()};
 
     // Updated-Lagrangian elements:
     const UPwUpdatedLagrangianElement<2, 3> mUPwUpdatedLagrangianElement2D3N{

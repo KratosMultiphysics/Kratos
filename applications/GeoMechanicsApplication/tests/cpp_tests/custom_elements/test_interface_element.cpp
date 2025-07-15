@@ -12,11 +12,12 @@
 
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/interface_plane_strain.h"
+#include "custom_elements/interface_element.h"
 #include "custom_geometries/interface_geometry.h"
 #include "geo_mechanics_application_variables.h"
+#include "custom_elements/interface_stress_state.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
-#include "custom_elements/interface_element.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <cstddef>
@@ -25,8 +26,8 @@ namespace
 {
 
 using namespace Kratos;
-using LineInterfaceGeometry2D2Plus2Noded = InterfaceGeometry<Line2D2<Node>>;
-using LineInterfaceGeometry2D3Plus3Noded = InterfaceGeometry<Line2D3<Node>>;
+using LineInterfaceGeometry2D2Plus2Noded     = InterfaceGeometry<Line2D2<Node>>;
+using LineInterfaceGeometry2D3Plus3Noded     = InterfaceGeometry<Line2D3<Node>>;
 using TriangleInterfaceGeometry3D3Plus3Noded = InterfaceGeometry<Triangle3D3<Node>>;
 using TriangleInterfaceGeometry3D6Plus6Noded = InterfaceGeometry<Triangle3D6<Node>>;
 
@@ -74,9 +75,9 @@ ModelPart& CreateModelPartWithDisplacementVariable(Model& rModel)
 }
 
 InterfaceElement CreateInterfaceElementWithUDofs(const Properties::Pointer&     rProperties,
-                                                     const Geometry<Node>::Pointer& rGeometry)
+                                                 const Geometry<Node>::Pointer& rGeometry)
 {
-    auto result = InterfaceElement{1, rGeometry, rProperties};
+    auto result = InterfaceElement{1, rGeometry, rProperties, std::make_unique<Line2DInterfaceStressState>()};
     for (auto& node : result.GetGeometry()) {
         node.AddDof(DISPLACEMENT_X);
         node.AddDof(DISPLACEMENT_Y);
@@ -154,7 +155,7 @@ Matrix CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(double Norma
 }
 
 InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(Model& rModel,
-                                                                                    const Properties::Pointer& rProperties)
+                                                                              const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
 
@@ -169,8 +170,8 @@ InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(Mo
     return CreateInterfaceElementWithUDofs(rProperties, p_geometry);
 }
 
-InterfaceElement CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplacementDoF(
-    Model& rModel, const Properties::Pointer& rProperties)
+InterfaceElement CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplacementDoF(Model& rModel,
+                                                                                        const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
 
@@ -191,18 +192,18 @@ InterfaceElement CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplace
     return CreateInterfaceElementWithUDofs(rProperties, p_geometry);
 }
 
-InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(
-    Model& rModel, const Properties::Pointer& rProperties)
+InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(Model& rModel,
+                                                                                     const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(1, 0.5 * std::sqrt(3.0), 0.5, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(2, 0.5 * std::sqrt(3.0)-0.5, 0.5+0.5* std::sqrt(3.0), 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, 0.5 * std::sqrt(3.0) - 0.5, 0.5 + 0.5 * std::sqrt(3.0), 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(4, 0.5 * std::sqrt(3.0), 0.5, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(5, 0.5 * std::sqrt(3.0)-0.5, 0.5+0.5* std::sqrt(3.0), 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(5, 0.5 * std::sqrt(3.0) - 0.5, 0.5 + 0.5 * std::sqrt(3.0), 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
     return CreateInterfaceElementWithUDofs(rProperties, p_geometry);
 }
@@ -216,7 +217,8 @@ using namespace Kratos;
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_IsAnElement, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const InterfaceElement element;
+    const InterfaceElement element(0,std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodes()),
+        std::make_unique<Line2DInterfaceStressState>());
     auto                   p_casted_element = dynamic_cast<const Element*>(&element);
     KRATOS_CHECK_NOT_EQUAL(p_casted_element, nullptr);
 }
@@ -224,7 +226,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_IsAnElement, KratosGeoMechanicsFastSu
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CreatesInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const InterfaceElement element;
+    const InterfaceElement element(0,std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodes()),
+        std::make_unique<Line2DInterfaceStressState>());
     const auto p_geometry   = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodes());
     const auto p_properties = std::make_shared<Properties>();
 
@@ -247,7 +250,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CreatesInstanceWithNodeInput, Kra
     // The source element needs to have a geometry, otherwise the version of the
     // Create method with a node input will fail.
     const auto             p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
-    const InterfaceElement element(0, p_geometry, p_properties);
+    const InterfaceElement element(0, p_geometry, p_properties, std::make_unique<Line2DInterfaceStressState>());
 
     // Act
     const auto p_created_element = element.Create(1, nodes, p_properties);
@@ -637,8 +640,10 @@ KRATOS_TEST_CASE_IN_SUITE(3Plus3NodedLineInterfaceElement_CalculateLocalSystem_R
 KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const InterfaceElement element;
-    const auto p_geometry   = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(Create6NodesForTriangle());
+    const InterfaceElement element(0,std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodes()),
+        std::make_unique<Line2DInterfaceStressState>());
+    const auto             p_geometry =
+        std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(Create6NodesForTriangle());
     const auto p_properties = std::make_shared<Properties>();
 
     // Act
@@ -659,8 +664,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithNodeInput,
 
     // The source element needs to have a geometry, otherwise the version of the
     // Create method with a node input will fail.
-    const auto             p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
-    const InterfaceElement element(0, p_geometry, p_properties);
+    const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
+    const InterfaceElement element(0, p_geometry, p_properties, std::make_unique<Line2DInterfaceStressState>());
 
     // Act
     const auto p_created_element = element.Create(1, nodes, p_properties);
@@ -720,7 +725,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsTheExpectedEquationIdV
     element.EquationIdVector(equation_id_vector, dummy_process_info);
 
     // Assert
-    const Element::EquationIdVectorType expected_ids = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18};
+    const Element::EquationIdVectorType expected_ids = {1,  2,  3,  4,  5,  6,  7,  8,  9,
+                                                        10, 11, 12, 13, 14, 15, 16, 17, 18};
     KRATOS_EXPECT_VECTOR_EQ(equation_id_vector, expected_ids)
 }
 
@@ -842,11 +848,13 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleIntrfaceElement_GetInitializedConstitutiveLawsAfterElementInitialization, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(TriangleIntrfaceElement_GetInitializedConstitutiveLawsAfterElementInitialization,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
-    p_properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
+    p_properties->GetValue(CONSTITUTIVE_LAW) =
+        std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
     Model model;
     auto element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(model, p_properties);
@@ -872,7 +880,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_HasCorrectNumberOfConstitutiv
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
-    p_properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
+    p_properties->GetValue(CONSTITUTIVE_LAW) =
+        std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
     Model model;
     auto element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(model, p_properties);

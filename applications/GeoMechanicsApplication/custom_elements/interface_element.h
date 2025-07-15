@@ -38,9 +38,14 @@ public:
     InterfaceElement(InterfaceElement&&) noexcept            = default;
     InterfaceElement& operator=(InterfaceElement&&) noexcept = default;
 
-    InterfaceElement(IndexType NewId, const GeometryType::Pointer& rGeometry, const PropertiesType::Pointer& rProperties);
+    InterfaceElement(IndexType                          NewId,
+                     const GeometryType::Pointer&       rGeometry,
+                     const PropertiesType::Pointer&     rProperties,
+                     std::unique_ptr<StressStatePolicy> pStressStatePolicy);
 
-    InterfaceElement(IndexType NewId, const GeometryType::Pointer& rGeometry);
+    InterfaceElement(IndexType                          NewId,
+                     const GeometryType::Pointer&       rGeometry,
+                     std::unique_ptr<StressStatePolicy> pStressStatePolicy);
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
@@ -72,7 +77,7 @@ private:
     std::vector<Vector> CalculateTractionsAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements);
 
     std::unique_ptr<IntegrationScheme>    mIntegrationScheme;
-    std::unique_ptr<StressStatePolicy>    mStressStatePolicy;
+    std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
 };

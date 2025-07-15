@@ -63,8 +63,9 @@ namespace Kratos
 
 InterfaceElement::InterfaceElement(IndexType                                             NewId,
                                    const Geometry<GeometricalObject::NodeType>::Pointer& rGeometry,
-                                   const Properties::Pointer& rProperties)
-    : Element(NewId, rGeometry, rProperties), mStressStatePolicy(std::make_unique<Line2DInterfaceStressState>())
+                                   const Properties::Pointer&         rProperties,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+    : Element(NewId, rGeometry, rProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
     if (GetGeometry().LocalSpaceDimension() == 1) {
         mIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);
@@ -73,8 +74,10 @@ InterfaceElement::InterfaceElement(IndexType                                    
     }
 }
 
-InterfaceElement::InterfaceElement(IndexType NewId, const GeometryType::Pointer& rGeometry)
-    : Element(NewId, rGeometry), mStressStatePolicy(std::make_unique<Line2DInterfaceStressState>())
+InterfaceElement::InterfaceElement(IndexType                          NewId,
+                                   const GeometryType::Pointer&       rGeometry,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+    : Element(NewId, rGeometry), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
     if (GetGeometry().LocalSpaceDimension() == 1) {
         mIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);
@@ -94,7 +97,7 @@ Element::Pointer InterfaceElement::Create(IndexType               NewId,
                                           GeometryType::Pointer   pGeometry,
                                           PropertiesType::Pointer pProperties) const
 {
-    return make_intrusive<InterfaceElement>(NewId, pGeometry, pProperties);
+    return make_intrusive<InterfaceElement>(NewId, pGeometry, pProperties, mpStressStatePolicy->Clone());
 }
 
 void InterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
@@ -211,7 +214,7 @@ std::vector<Matrix> InterfaceElement::CalculateLocalBMatricesAtIntegrationPoints
 
     auto result = std::vector<Matrix>{};
     result.reserve(shape_function_values_at_integration_points.size());
-    auto calculate_local_b_matrix = [&r_geometry = GetGeometry(), p_policy = mStressStatePolicy.get()](
+    auto calculate_local_b_matrix = [&r_geometry = GetGeometry(), p_policy = mpStressStatePolicy.get()](
                                         const auto& rShapeFunctionValuesAtIntegrationPoint,
                                         const auto& rIntegrationPoint) {
         // For interface elements, the shape function gradients are not used, since these are
