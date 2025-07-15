@@ -115,8 +115,7 @@ namespace Kratos
         }
     }
 
-    // This implementation is to be changed after geometries allow the creation of GeometryType::Pointer from raw pointers (intrusive_ptr) -> no dynamic cast needed anymore
-    // In the future: const GeometryPointerType copy_brep_curve_on_surface_geometry = Kratos::make_intrusive<BrepCurveOnSurfacePointer::element_type>(&brep_curve_on_surface_geometry);
+    // In this method, brep_curve_on_surface conditions are created on the iga interface. This is used later to compute the intersection with the FEM elements
     void IgaFEMMappingGeometriesModeler::CreateIgaInterfaceBrepCurveOnSurface(ModelPart& rInterfaceModelPart)
     {   
         // Create the sub model part for coupling conditions
@@ -139,36 +138,12 @@ namespace Kratos
             // Get the id of the new brep curve on surface 
             IndexType new_brep_curve_on_surface_id = brep_curve_on_surface_geometry.Id();
 
-            // If the brep curve on surface is not already in the vector, add it
-            if (new_brep_curve_on_surface_id != old_brep_curve_on_surface_id)
-            {
-                // Get the nurbs curve on surface geometry from the brep curve on surface geometry
-                const GeometryPointerType nurbs_curve_on_surface_geometry = brep_curve_on_surface_geometry.pGetGeometryPart(std::numeric_limits<IndexType>::max() - 2);
-
-                // Downcast it from the base class (geometry) to the derived class (NurbsCurveOnSurfaceGeometry) 
-                IgaFEMMappingGeometriesModeler::NurbsCurveOnSurfacePointer interface_nurbs_curve_on_surface_cast = std::dynamic_pointer_cast<IgaFEMMappingGeometriesModeler::NurbsCurveOnSurfacePointer::element_type>(nurbs_curve_on_surface_geometry); 
-
-                // Get a pointer to the underlying surface (get a pointer to the base class)
-                const GeometryPointerType interface_nurbs_surface = brep_curve_on_surface_geometry.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
-
-                // Downcast the pointer to the derived class (NurbsSurfaceGeometry)
-                IgaFEMMappingGeometriesModeler::NurbsSurfacePointer interface_nurbs_surface_cast = std::dynamic_pointer_cast<IgaFEMMappingGeometriesModeler::NurbsSurfacePointer::element_type>(interface_nurbs_surface); 
-                KRATOS_ERROR_IF_NOT(interface_nurbs_surface_cast)
-                    << "failed to downcast interface_nurbs_surface";
-
-                // Get the Nurbs curve in the parameter space 
-                auto p_nurbs_curve = interface_nurbs_curve_on_surface_cast->pGetCurve();
-
-                // intersection between curve and surface parameter space in terms of the curve 1D parameter space.
-                std::vector<double> curve_and_parameter_space_intersections;
-                nurbs_curve_on_surface_geometry->SpansLocalSpace(curve_and_parameter_space_intersections);
-
-                NurbsInterval active_range(curve_and_parameter_space_intersections.front(),curve_and_parameter_space_intersections.back());
-
-                GeometryType::Pointer p_reconstructed_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfacePointer::element_type>(interface_nurbs_surface_cast, p_nurbs_curve, active_range);
-                KRATOS_WATCH(p_reconstructed_brep_curve_on_surface->Center())
-                p_brep_curve_on_surface_vector.push_back(p_reconstructed_brep_curve_on_surface);
-
+            if (new_brep_curve_on_surface_id != old_brep_curve_on_surface_id){
+                for (auto geometry_itr = root_mp.GeometriesBegin(); geometry_itr != root_mp.GeometriesEnd(); geometry_itr ++){
+                    if (geometry_itr->Id() == new_brep_curve_on_surface_id){
+                        p_brep_curve_on_surface_vector.push_back(root_mp.pGetGeometry(geometry_itr->Id()));
+                    }
+                }
                 old_brep_curve_on_surface_id = new_brep_curve_on_surface_id;
             }
         }
