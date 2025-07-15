@@ -47,19 +47,28 @@ public:
 
     using ContainerType = typename BaseType::ContainerType;
 
+    typename BaseType::Pointer Clone() const override
+    {
+        PYBIND11_OVERRIDE_PURE(typename BaseType::Pointer,      /*return type*/
+                               BaseType,                        /*base type*/
+                               Clone                            /*function name*/
+        );
+    }
+
+
     void CollectData() override
     {
-        PYBIND11_OVERRIDE_PURE(void,        /*return type*/
-                               BaseType,    /*base type*/
-                               CollectData  /*function name*/
+        PYBIND11_OVERRIDE_PURE(void,                            /*return type*/
+                               BaseType,                        /*base type*/
+                               CollectData                      /*function name*/
         );
     }
 
     void StoreData() override
     {
-        PYBIND11_OVERRIDE_PURE(void,        /*return type*/
-                               BaseType,    /*base type*/
-                               StoreData    /*function name*/
+        PYBIND11_OVERRIDE_PURE(void,                            /*return type*/
+                               BaseType,                        /*base type*/
+                               StoreData                        /*function name*/
         );
     }
 
@@ -226,6 +235,7 @@ void AddBaseTensorAdaptor(
     // add the base tensor adaptor
     using tensor_adaptor = TensorAdaptor<TDataType>;
     pybind11::class_<tensor_adaptor, typename tensor_adaptor::Pointer>(rModule, rName.c_str())
+        .def("Clone", &tensor_adaptor::Clone)
         .def("CollectData", &tensor_adaptor::CollectData)
         .def("StoreData", &tensor_adaptor::StoreData)
         .def("GetContainer", &tensor_adaptor::GetContainer)
