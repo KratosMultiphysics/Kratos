@@ -39,16 +39,15 @@ public:
     GeoApplyConstantScalarValueProcess(ModelPart&              rModelPart,
                                        const Variable<double>& rVariable,
                                        double                  DoubleValue,
-                                       bool IsFixed);
+                                       bool                    IsFixed);
     GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, const Variable<int>& rVariable, int IntValue, bool IsFixed);
 
     GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, const Variable<bool>& rVariable, bool BoolValue, bool IsFixed);
 
     ~GeoApplyConstantScalarValueProcess() override = default;
 
-    void                           ExecuteInitialize() override;
-    void                           ExecuteFinalize() override;
-    [[nodiscard]] const Parameters GetDefaultParameters() const override;
+    void ExecuteInitialize() override;
+    void ExecuteFinalize() override;
 
     [[nodiscard]] std::string Info() const override { return "GeoApplyConstantScalarValueProcess"; }
 
@@ -65,7 +64,7 @@ private:
 
     template <class TVarType>
     void InternalApplyValueWithoutFixing(const TVarType& rVariable, typename TVarType::Type Value);
-    bool mIsFixed=false;
+    bool mIsFixed = false;
 };
 
 inline std::ostream& operator<<(std::ostream& rOStream, const GeoApplyConstantScalarValueProcess& rThis)

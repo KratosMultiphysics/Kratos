@@ -37,8 +37,15 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
     KRATOS_ERROR_IF_NOT(ThisParameters.Has("model_part_name"))
         << "Missing 'model_part_name' parameter in ThisParameters" << std::endl;
 
+    auto default_parameters = Parameters(R"(
+    {
+        "model_part_name" : "PLEASE_CHOOSE_MODEL_PART_NAME",
+        "variable_name"   : "PLEASE_PRESCRIBE_VARIABLE_NAME",
+        "is_fixed"        : false,
+        "value"           : 1.0
+    }  )");
     // Now validate against defaults -- this also ensures no type mismatch
-    ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+    ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
     mVariableName = ThisParameters["variable_name"].GetString();
     mIsFixed      = ThisParameters["is_fixed"].GetBool();
@@ -73,7 +80,7 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
 GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart& rModelPart,
                                                                        const Variable<double>& rVariable,
                                                                        const double DoubleValue,
-                                                                       const bool IsFixed)
+                                                                       const bool   IsFixed)
     : mrModelPart(rModelPart), mDoubleValue(DoubleValue), mIsFixed(IsFixed)
 {
     KRATOS_TRY;
@@ -89,8 +96,8 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
 
 GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart& rModelPart,
                                                                        const Variable<int>& rVariable,
-                                                                       const int   IntValue,
-                                                                       bool IsFixed)
+                                                                       const int IntValue,
+                                                                       bool      IsFixed)
     : mrModelPart(rModelPart), mIntValue(IntValue), mIsFixed(IsFixed)
 {
     KRATOS_TRY;
@@ -110,8 +117,8 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
 
 GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart& rModelPart,
                                                                        const Variable<bool>& rVariable,
-                                                                       const bool  BoolValue,
-                                                                       bool IsFixed)
+                                                                       const bool BoolValue,
+                                                                       bool       IsFixed)
     : mrModelPart(rModelPart), mBoolValue(BoolValue), mIsFixed(IsFixed)
 {
     KRATOS_TRY;
@@ -200,16 +207,5 @@ template void GeoApplyConstantScalarValueProcess::InternalApplyValueWithoutFixin
     const Variable<int>& rVariable, const int Value);
 template void GeoApplyConstantScalarValueProcess::InternalApplyValueWithoutFixing<Variable<double>>(
     const Variable<double>& rVariable, const double Value);
-
-const Parameters GeoApplyConstantScalarValueProcess::GetDefaultParameters() const
-{
-    return Parameters(R"(
-    {
-        "model_part_name" : "PLEASE_CHOOSE_MODEL_PART_NAME",
-        "variable_name"   : "PLEASE_PRESCRIBE_VARIABLE_NAME",
-        "is_fixed"        : false,
-        "value"           : 1.0
-    }  )");
-}
 
 } // namespace Kratos
