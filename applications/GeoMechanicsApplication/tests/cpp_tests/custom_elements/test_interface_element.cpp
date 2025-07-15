@@ -12,10 +12,11 @@
 
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/interface_plane_strain.h"
+#include "custom_constitutive/interface_three_dimensional_surface.h"
 #include "custom_elements/interface_element.h"
+#include "custom_elements/interface_stress_state.h"
 #include "custom_geometries/interface_geometry.h"
 #include "geo_mechanics_application_variables.h"
-#include "custom_elements/interface_stress_state.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
@@ -66,6 +67,17 @@ std::shared_ptr<Properties> CreateLinearElasticMaterialProperties(double NormalS
     return result;
 }
 
+std::shared_ptr<Properties> CreatePlanarElasticMaterialProperties(double NormalStiffness, double ShearStiffness)
+{
+    auto result                                  = std::make_shared<Properties>();
+    result->GetValue(INTERFACE_NORMAL_STIFFNESS) = NormalStiffness;
+    result->GetValue(INTERFACE_SHEAR_STIFFNESS)  = ShearStiffness;
+    result->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(
+        std::make_unique<InterfaceThreeDimensionalSurface>());
+
+    return result;
+}
+
 ModelPart& CreateModelPartWithDisplacementVariable(Model& rModel)
 {
     auto& r_result = rModel.CreateModelPart("Main");
@@ -74,10 +86,25 @@ ModelPart& CreateModelPartWithDisplacementVariable(Model& rModel)
     return r_result;
 }
 
-InterfaceElement CreateInterfaceElementWithUDofs(const Properties::Pointer&     rProperties,
-                                                 const Geometry<Node>::Pointer& rGeometry)
+InterfaceElement Create2DInterfaceElementWithUDofs(const Properties::Pointer&     rProperties,
+                                                   const Geometry<Node>::Pointer& rGeometry)
 {
-    auto result = InterfaceElement{1, rGeometry, rProperties, std::make_unique<Line2DInterfaceStressState>()};
+    auto result =
+        InterfaceElement{1, rGeometry, rProperties, std::make_unique<Line2DInterfaceStressState>()};
+    for (auto& node : result.GetGeometry()) {
+        node.AddDof(DISPLACEMENT_X);
+        node.AddDof(DISPLACEMENT_Y);
+        node.AddDof(DISPLACEMENT_Z);
+    }
+
+    return result;
+}
+
+InterfaceElement Create3DInterfaceElementWithUDofs(const Properties::Pointer&     rProperties,
+                                                   const Geometry<Node>::Pointer& rGeometry)
+{
+    auto result =
+        InterfaceElement{1, rGeometry, rProperties, std::make_unique<SurfaceInterfaceStressState>()};
     for (auto& node : result.GetGeometry()) {
         node.AddDof(DISPLACEMENT_X);
         node.AddDof(DISPLACEMENT_Y);
@@ -98,7 +125,7 @@ InterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUD
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
-    return CreateInterfaceElementWithUDofs(rProperties, p_geometry);
+    return Create2DInterfaceElementWithUDofs(rProperties, p_geometry);
 }
 
 InterfaceElement CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(
@@ -114,7 +141,7 @@ InterfaceElement CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDi
     nodes.push_back(r_model_part.CreateNewNode(4, 1.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(5, 0.5, 0.0, 0.0));
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D3Plus3Noded>(nodes);
-    return CreateInterfaceElementWithUDofs(rProperties, p_geometry);
+    return Create2DInterfaceElementWithUDofs(rProperties, p_geometry);
 }
 
 InterfaceElement CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(
@@ -128,7 +155,7 @@ InterfaceElement CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDispl
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 0.5 * std::sqrt(3.0), 0.5, 0.0));
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
-    return CreateInterfaceElementWithUDofs(rProperties, p_geometry);
+    return Create2DInterfaceElementWithUDofs(rProperties, p_geometry);
 }
 
 Matrix CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(double NormalStiffness, double ShearStiffness)
@@ -167,7 +194,7 @@ InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(Mo
     nodes.push_back(r_model_part.CreateNewNode(4, 1.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(5, 1.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
-    return CreateInterfaceElementWithUDofs(rProperties, p_geometry);
+    return Create3DInterfaceElementWithUDofs(rProperties, p_geometry);
 }
 
 InterfaceElement CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplacementDoF(Model& rModel,
@@ -189,7 +216,7 @@ InterfaceElement CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplace
     nodes.push_back(r_model_part.CreateNewNode(10, 1.0, 0.5, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(11, 0.5, 0.5, 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D6Plus6Noded>(nodes);
-    return CreateInterfaceElementWithUDofs(rProperties, p_geometry);
+    return Create3DInterfaceElementWithUDofs(rProperties, p_geometry);
 }
 
 InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(Model& rModel,
@@ -205,7 +232,7 @@ InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacemen
     nodes.push_back(r_model_part.CreateNewNode(4, 0.5 * std::sqrt(3.0), 0.5, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(5, 0.5 * std::sqrt(3.0) - 0.5, 0.5 + 0.5 * std::sqrt(3.0), 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
-    return CreateInterfaceElementWithUDofs(rProperties, p_geometry);
+    return Create3DInterfaceElementWithUDofs(rProperties, p_geometry);
 }
 
 } // namespace
@@ -217,17 +244,17 @@ using namespace Kratos;
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_IsAnElement, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const InterfaceElement element(0,std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodes()),
-        std::make_unique<Line2DInterfaceStressState>());
-    auto                   p_casted_element = dynamic_cast<const Element*>(&element);
+    const InterfaceElement element(0, std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodes()),
+                                   std::make_unique<Line2DInterfaceStressState>());
+    auto p_casted_element = dynamic_cast<const Element*>(&element);
     KRATOS_CHECK_NOT_EQUAL(p_casted_element, nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CreatesInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const InterfaceElement element(0,std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodes()),
-        std::make_unique<Line2DInterfaceStressState>());
+    const InterfaceElement element(0, std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodes()),
+                                   std::make_unique<Line2DInterfaceStressState>());
     const auto p_geometry   = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodes());
     const auto p_properties = std::make_shared<Properties>();
 
@@ -250,7 +277,8 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CreatesInstanceWithNodeInput, Kra
     // The source element needs to have a geometry, otherwise the version of the
     // Create method with a node input will fail.
     const auto             p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
-    const InterfaceElement element(0, p_geometry, p_properties, std::make_unique<Line2DInterfaceStressState>());
+    const InterfaceElement element(0, p_geometry, p_properties,
+                                   std::make_unique<Line2DInterfaceStressState>());
 
     // Act
     const auto p_created_element = element.Create(1, nodes, p_properties);
@@ -640,9 +668,9 @@ KRATOS_TEST_CASE_IN_SUITE(3Plus3NodedLineInterfaceElement_CalculateLocalSystem_R
 KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const InterfaceElement element(0,std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodes()),
-        std::make_unique<Line2DInterfaceStressState>());
-    const auto             p_geometry =
+    const InterfaceElement element(0, std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodes()),
+                                   std::make_unique<Line2DInterfaceStressState>());
+    const auto p_geometry =
         std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(Create6NodesForTriangle());
     const auto p_properties = std::make_shared<Properties>();
 
@@ -665,7 +693,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithNodeInput,
     // The source element needs to have a geometry, otherwise the version of the
     // Create method with a node input will fail.
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
-    const InterfaceElement element(0, p_geometry, p_properties, std::make_unique<Line2DInterfaceStressState>());
+    const InterfaceElement element(0, p_geometry, p_properties,
+                                   std::make_unique<Line2DInterfaceStressState>());
 
     // Act
     const auto p_created_element = element.Create(1, nodes, p_properties);
@@ -736,7 +765,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreatePlanarElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(model, p_properties);
@@ -749,8 +778,27 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     element.CalculateLeftHandSide(actual_left_hand_side, dummy_process_info);
 
     // Assert
-    const auto expected_left_hand_side =
-        CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(normal_stiffness, shear_stiffness);
+    Matrix expected_left_hand_side(18, 18);
+    // clang-format off
+    expected_left_hand_side <<= 3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,0,0,0,0,0,0,
+                                0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,0,0,0,0,0,
+                                0,0,6.666666667,0,0,0,0,0,0,0,0,-6.666666667,0,0,0,0,0,0,
+                                0,0,0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,0,0,0,
+                                0,0,0,0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,0,0,
+                                0,0,0,0,0,6.666666667,0,0,0,0,0,0,0,0,-6.666666667,0,0,0,
+                                0,0,0,0,0,0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,
+                                0,0,0,0,0,0,0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,
+                                0,0,0,0,0,0,0,0,6.666666667,0,0,0,0,0,0,0,0,-6.666666667,
+                               -3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,0,0,0,0,0,0,
+                                0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,0,0,0,0,0,
+                                0,0,-6.666666667,0,0,0,0,0,0,0,0,6.666666667,0,0,0,0,0,0,
+                                0,0,0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,0,0,0,
+                                0,0,0,0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,0,0,
+                                0,0,0,0,0,-6.666666667,0,0,0,0,0,0,0,0,6.666666667,0,0,0,
+                                0,0,0,0,0,0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,
+                                0,0,0,0,0,0,0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,
+                                0,0,0,0,0,0,0,0,-6.666666667,0,0,0,0,0,0,0,0,6.666666667;
+    // clang-format on
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
@@ -760,7 +808,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreatePlanarElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
@@ -773,17 +821,27 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     element.CalculateLeftHandSide(actual_left_hand_side, dummy_process_info);
 
     // Assert
-    auto expected_left_hand_side = Matrix{8, 8};
+    auto expected_left_hand_side = Matrix{18, 18};
     // clang-format off
     expected_left_hand_side <<=
-         6.25,       -2.16506351,  0.0,         0.0,        -6.25,        2.16506351,  0.0,         0.0,
-        -2.16506351,  8.75,        0.0,         0.0,         2.16506351, -8.75,        0.0,         0.0,
-         0.0,         0.0,         6.25,       -2.16506351,  0.0,         0.0,        -6.25,        2.16506351,
-         0.0,         0.0,        -2.16506351,  8.75,        0.0,         0.0,         2.16506351, -8.75,
-        -6.25,        2.16506351,  0.0,         0.0,         6.25,       -2.16506351,  0.0,         0.0,
-         2.16506351, -8.75,        0.0,         0.0,        -2.16506351,  8.75,        0.0,         0.0,
-         0.0,         0.0,        -6.25,        2.16506351,  0.0,         0.0,         6.25,       -2.16506351,
-         0.0,         0.0,         2.16506351, -8.75,        0.0,         0.0,        -2.16506351,  8.75;
+    4.166666667,0,-1.443375673,0,0,0,0,0,0,-4.166666667,0,1.443375673,0,0,0,0,0,0,
+    0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,0,0,0,0,0,
+    -1.443375673,0,5.833333333,0,0,0,0,0,0,1.443375673,0,-5.833333333,0,0,0,0,0,0,
+    0,0,0,4.166666667,0,-1.443375673,0,0,0,0,0,0,-4.166666667,0,1.443375673,0,0,0,
+    0,0,0,0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,0,0,
+    0,0,0,-1.443375673,0,5.833333333,0,0,0,0,0,0,1.443375673,0,-5.833333333,0,0,0,
+    0,0,0,0,0,0,4.166666667,0,-1.443375673,0,0,0,0,0,0,-4.166666667,0,1.443375673,
+    0,0,0,0,0,0,0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,
+    0,0,0,0,0,0,-1.443375673,0,5.833333333,0,0,0,0,0,0,1.443375673,0,-5.833333333,
+    -4.166666667,0,1.443375673,0,0,0,0,0,0,4.166666667,0,-1.443375673,0,0,0,0,0,0,
+    0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,0,0,0,0,0,
+    1.443375673,0,-5.833333333,0,0,0,0,0,0,-1.443375673,0,5.833333333,0,0,0,0,0,0,
+    0,0,0,-4.166666667,0,1.443375673,0,0,0,0,0,0,4.166666667,0,-1.443375673,0,0,0,
+    0,0,0,0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,0,0,
+    0,0,0,1.443375673,0,-5.833333333,0,0,0,0,0,0,-1.443375673,0,5.833333333,0,0,0,
+    0,0,0,0,0,0,-4.166666667,0,1.443375673,0,0,0,0,0,0,4.166666667,0,-1.443375673,
+    0,0,0,0,0,0,0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,
+    0,0,0,0,0,0,1.443375673,0,-5.833333333,0,0,0,0,0,0,-1.443375673,0,5.833333333;
     // clang-format on
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
@@ -794,7 +852,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreatePlanarElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(model, p_properties);
@@ -810,8 +868,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     element.CalculateRightHandSide(actual_right_hand_side, dummy_process_info);
 
     // Assert
-    auto expected_right_hand_side = Vector{8};
-    expected_right_hand_side <<= 1.0, 5.0, 1.0, 5.0, -1.0, -5.0, -1.0, -5.0;
+    auto expected_right_hand_side = Vector{18};
+    expected_right_hand_side <<= 0.6666666667, 1.666666667, -0, -0, -0, -0, -0.6666666667,
+        -1.666666667, -0, -0.6666666667, -1.666666667, -0, -0, -0, -0, 0.6666666667, 1.666666667, -0;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
@@ -821,7 +880,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreatePlanarElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
@@ -840,10 +899,10 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     element.CalculateRightHandSide(actual_right_hand_side, dummy_process_info);
 
     // Assert
-    auto expected_right_hand_side = Vector{8};
+    auto expected_right_hand_side = Vector{18};
     // clang-format off
-    expected_right_hand_side <<= -1.6339746,  4.83012702, -1.6339746,  4.83012702,
-                                  1.6339746, -4.83012702,  1.6339746, -4.83012702;
+    expected_right_hand_side <<=
+        -0.3199788333,1.776709,0.1108439193,-0,-0,-0,0.3199788333,-1.776709,-0.1108439193,0.3199788333,-1.776709,-0.1108439193,-0,-0,-0,-0.3199788333,1.776709,0.1108439193;
     // clang-format on
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
@@ -905,7 +964,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateLocalSystem_ReturnsE
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreatePlanarElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(model, p_properties);
@@ -922,12 +981,35 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateLocalSystem_ReturnsE
     element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
 
     // Assert
-    const auto expected_left_hand_side =
-        CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(normal_stiffness, shear_stiffness);
+    auto expected_left_hand_side = Matrix(18, 18);
+    // clang-format off
+    expected_left_hand_side <<=
+    3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,0,0,0,0,0,0,
+    0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,0,0,0,0,0,
+    0,0,6.666666667,0,0,0,0,0,0,0,0,-6.666666667,0,0,0,0,0,0,
+    0,0,0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,0,0,0,
+    0,0,0,0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,0,0,
+    0,0,0,0,0,6.666666667,0,0,0,0,0,0,0,0,-6.666666667,0,0,0,
+    0,0,0,0,0,0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,
+    0,0,0,0,0,0,0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,
+    0,0,0,0,0,0,0,0,6.666666667,0,0,0,0,0,0,0,0,-6.666666667,
+    -3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,0,0,0,0,0,0,
+    0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,0,0,0,0,0,
+    0,0,-6.666666667,0,0,0,0,0,0,0,0,6.666666667,0,0,0,0,0,0,
+    0,0,0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,0,0,0,
+    0,0,0,0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,0,0,
+    0,0,0,0,0,-6.666666667,0,0,0,0,0,0,0,0,6.666666667,0,0,0,
+    0,0,0,0,0,0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,
+    0,0,0,0,0,0,0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,
+    0,0,0,0,0,0,0,0,-6.666666667,0,0,0,0,0,0,0,0,6.666666667;
+    // clang-format on
+
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
-    auto expected_right_hand_side = Vector{8};
-    expected_right_hand_side <<= 1.0, 5.0, 1.0, 5.0, -1.0, -5.0, -1.0, -5.0;
+    auto expected_right_hand_side = Vector{18};
+    // clang-format off
+    expected_right_hand_side <<= 0.6666666667,1.666666667,-0,-0,-0,-0,-0.6666666667,-1.666666667,-0,-0.6666666667,-1.666666667,-0,-0,-0,-0,0.6666666667,1.666666667,-0;
+    // clang-format on
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
@@ -937,7 +1019,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelati
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreatePlanarElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
@@ -957,11 +1039,17 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelati
 
     // Assert
     Vector expected_relative_displacement{3};
-    expected_relative_displacement <<= 0.5, 0.2, 0.2;
+    expected_relative_displacement <<= 0.03839746, -0.0665063516, 0.5330127;
+    std::vector<Vector> expected_relative_displacements;
+    expected_relative_displacements.push_back(expected_relative_displacement);
+    expected_relative_displacements.push_back(ZeroVector(3));
+    expected_relative_displacement <<= -0.03839746, 0.0665063516, -0.5330127;
+    expected_relative_displacements.push_back(expected_relative_displacement);
+
     KRATOS_EXPECT_EQ(relative_displacements_at_integration_points.size(), 3);
-    for (const auto& r_relative_displacement : relative_displacements_at_integration_points) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_relative_displacement, expected_relative_displacement,
-                                           Defaults::relative_tolerance)
+    for (std::size_t i = 0; i < relative_displacements_at_integration_points.size(); i++) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(relative_displacements_at_integration_points[i],
+                                           expected_relative_displacements[i], Defaults::relative_tolerance)
     }
 }
 
@@ -971,7 +1059,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_R
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreatePlanarElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
@@ -991,10 +1079,16 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_R
 
     // Assert
     Vector expected_traction{3};
-    expected_traction <<= 10.0, 2.0, 4.0;
-    KRATOS_EXPECT_EQ(tractions_at_integration_points.size(), 4);
-    for (const auto& r_traction : tractions_at_integration_points) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_traction, expected_traction, Defaults::relative_tolerance)
+    expected_traction <<= 0.7679492, -0.665063516, 5.330127;
+    std::vector<Vector> expected_tractions;
+    expected_tractions.push_back(expected_traction);
+    expected_tractions.push_back(ZeroVector(3));
+    expected_traction <<= -0.7679492, 0.665063516, -5.330127;
+    expected_tractions.push_back(expected_traction);
+    KRATOS_EXPECT_EQ(tractions_at_integration_points.size(), 3);
+    for (std::size_t i = 0; i < tractions_at_integration_points.size(); i++) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(tractions_at_integration_points[i],
+                                           expected_tractions[i], Defaults::relative_tolerance)
     }
 }
 
@@ -1004,7 +1098,7 @@ KRATOS_TEST_CASE_IN_SUITE(6Plus6NodedTriangleInterfaceElement_CalculateLocalSyst
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreatePlanarElasticMaterialProperties(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplacementDoF(model, p_properties);
@@ -1022,39 +1116,55 @@ KRATOS_TEST_CASE_IN_SUITE(6Plus6NodedTriangleInterfaceElement_CalculateLocalSyst
     element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
 
     // Assert
-    auto expected_left_hand_side    = Matrix{ZeroMatrix{12, 12}};
-    expected_left_hand_side(0, 0)   = shear_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(1, 1)   = normal_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(2, 2)   = shear_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(3, 3)   = normal_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(4, 4)   = shear_stiffness * (2.0 / 3.0);
-    expected_left_hand_side(5, 5)   = normal_stiffness * (2.0 / 3.0);
-    expected_left_hand_side(6, 6)   = shear_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(7, 7)   = normal_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(8, 8)   = shear_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(9, 9)   = normal_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(10, 10) = shear_stiffness * (2.0 / 3.0);
-    expected_left_hand_side(11, 11) = normal_stiffness * (2.0 / 3.0);
-
-    expected_left_hand_side(0, 6)  = -shear_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(1, 7)  = -normal_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(2, 8)  = -shear_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(3, 9)  = -normal_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(4, 10) = -shear_stiffness * (2.0 / 3.0);
-    expected_left_hand_side(5, 11) = -normal_stiffness * (2.0 / 3.0);
-
-    expected_left_hand_side(6, 0)  = -shear_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(7, 1)  = -normal_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(8, 2)  = -shear_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(9, 3)  = -normal_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(10, 4) = -shear_stiffness * (2.0 / 3.0);
-    expected_left_hand_side(11, 5) = -normal_stiffness * (2.0 / 3.0);
+    auto expected_left_hand_side = Matrix(36, 36);
+    // clang-format off
+    expected_left_hand_side <<=
+    0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.6572769953,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,6.009389671,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-6.009389671,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,6.009389671,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-6.009389671,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6.009389671,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-6.009389671,
+    -0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,-0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,-0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,-0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.6572769953,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,-6.009389671,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6.009389671,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,-6.009389671,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6.009389671,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-6.009389671,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6.009389671;
+    // clang-format on
 
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
-    auto expected_right_hand_side = Vector{ZeroVector{12}};
-    expected_right_hand_side <<= 0.33333333, 1.66666667, 0.33333333, 1.66666667, 1.33333333,
-        6.66666667, -0.33333333, -1.66666667, -0.33333333, -1.66666667, -1.33333333, -6.66666667;
+    auto expected_right_hand_side = Vector(36);
+    expected_right_hand_side <<= -0, -0, -0, -0, -0, -0, -0, -0, -0, -0.6009389671, -1.502347418,
+        -0, -0.6009389671, -1.502347418, -0, -0.6009389671, -1.502347418, -0, -0, -0, -0, -0, -0,
+        -0, -0, -0, -0, 0.6009389671, 1.502347418, -0, 0.6009389671, 1.502347418, -0, 0.6009389671,
+        1.502347418, -0;
+    ;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 

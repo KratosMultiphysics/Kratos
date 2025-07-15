@@ -41,9 +41,10 @@ Matrix GeometryUtilities::Calculate3DRotationMatrixForPlaneGeometry(const Geomet
     Matrix jacobian;
     rGeometry.Jacobian(jacobian, rLocalCoordinate);
     const auto tangential_vector_1 = GeoMechanicsMathUtilities::Normalized(Vector{column(jacobian, 0)});
-    const auto tangential_vector_2 = GeoMechanicsMathUtilities::Normalized(Vector{Vector{column(jacobian, 1)} -
-        inner_prod(Vector{column(jacobian, 1)}, tangential_vector_1) * tangential_vector_1});
-    Vector     normal_vector(3);
+    const auto tangential_vector_2 = GeoMechanicsMathUtilities::Normalized(
+        Vector{Vector{column(jacobian, 1)} -
+               inner_prod(Vector{column(jacobian, 1)}, tangential_vector_1) * tangential_vector_1});
+    Vector normal_vector(3);
     MathUtils<>::CrossProduct(normal_vector, tangential_vector_1, tangential_vector_2);
     normal_vector = GeoMechanicsMathUtilities::Normalized(normal_vector);
 
