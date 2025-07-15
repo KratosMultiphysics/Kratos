@@ -335,6 +335,10 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
 
         self.assertVectorAlmostEqual(x0_u_ta.Shape(), [len(self.model_part.Nodes), 3])
 
+        self.assertVectorAlmostEqual(x0_u_ta.DataShape(), [3])
+
+        self.assertEqual(x0_u_ta.Size(), len(self.model_part.Nodes) * 3)
+
         x_ta = Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.model_part.Nodes, Kratos.Configuration.Current, data_shape=[1])
         a_ta = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.ACCELERATION, data_shape=[2])
         x_u_ta = CombinedTensorAdaptor([x_ta, a_ta], axis=1)
