@@ -44,7 +44,6 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
         "is_fixed"        : false,
         "value"           : 1.0
     }  )");
-    // Now validate against defaults -- this also ensures no type mismatch
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
     mVariableName = ThisParameters["variable_name"].GetString();
@@ -168,7 +167,7 @@ void GeoApplyConstantScalarValueProcess::InternalApplyValue(const TVarType&     
                                                             const bool                    ToBeFixed,
                                                             const typename TVarType::Type Value)
 {
-    if (mrModelPart.Nodes().empty()) {
+    if (!mrModelPart.Nodes().empty()) {
         if constexpr (std::is_same_v<TVarType, Variable<double>>) {
             if (ToBeFixed) {
                 block_for_each(mrModelPart.Nodes(),

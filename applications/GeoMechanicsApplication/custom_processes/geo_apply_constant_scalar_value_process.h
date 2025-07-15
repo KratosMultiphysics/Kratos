@@ -52,19 +52,20 @@ public:
     [[nodiscard]] std::string Info() const override { return "GeoApplyConstantScalarValueProcess"; }
 
 protected:
-    ModelPart&  mrModelPart;          /// Reference to the model part.
-    std::string mVariableName;        /// Name of the variable.
-    double      mDoubleValue = 0.0;   /// Double value.
-    int         mIntValue    = 0;     /// Integer value.
-    bool        mBoolValue   = false; /// Boolean value.
+    ModelPart&  mrModelPart;
+    std::string mVariableName;
 
 private:
+    double mDoubleValue = 0.0;
+    int    mIntValue    = 0;
+    bool   mBoolValue   = false;
+    bool   mIsFixed     = false;
+
     template <class TVarType>
     void InternalApplyValue(const TVarType& rVariable, bool ToBeFixed, typename TVarType::Type Value);
 
     template <class TVarType>
     void InternalApplyValueWithoutFixing(const TVarType& rVariable, typename TVarType::Type Value);
-    bool mIsFixed = false;
 };
 
 inline std::ostream& operator<<(std::ostream& rOStream, const GeoApplyConstantScalarValueProcess& rThis)
