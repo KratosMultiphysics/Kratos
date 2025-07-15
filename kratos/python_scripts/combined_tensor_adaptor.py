@@ -7,7 +7,7 @@ class CombinedTensorAdaptor:
        This CombinedTensorAdaptor behaves like a TensorAdaptor even though it is not derived from the TensorAdaptor
        base class.
     """
-    def __init__(self, list_of_tensor_adaptors: list[Union[Kratos.TensorAdaptors.BoolTensorAdaptor, Kratos.TensorAdaptors.IntTensorAdaptor, Kratos.TensorAdaptors.DoubleTensorAdaptor, 'CombinedTensorAdaptor']], axis = 0):
+    def __init__(self, list_of_tensor_adaptors: 'list[Union[Kratos.TensorAdaptors.BoolTensorAdaptor, Kratos.TensorAdaptors.IntTensorAdaptor, Kratos.TensorAdaptors.DoubleTensorAdaptor, CombinedTensorAdaptor]]', axis = 0):
         """Construct a CombinedTensor adaptor which concatenates the given TensorAdaptors and/or CombinedTensorAdaptors
            along the specified axis.
 
@@ -36,37 +36,37 @@ class CombinedTensorAdaptor:
             raise RuntimeError("Cannot construct a combined tensor adaptor with an empty list of tensor adaptors.")
 
         # get the initial parameters
-        self.__shape = self.__list_of_tensor_adaptors[0].Shape()
-        self.__dtype = self.__list_of_tensor_adaptors[0].ViewData().dtype
+        shape = self.__list_of_tensor_adaptors[0].Shape()
+        dtype = self.__list_of_tensor_adaptors[0].ViewData().dtype
 
         for current_tensor_adaptor in self.__list_of_tensor_adaptors:
-            if self.__shape.Size() < current_tensor_adaptor.Shape().Size():
-                self.__shape = current_tensor_adaptor.Shape()
+            if shape.Size() < current_tensor_adaptor.Shape().Size():
+                shape = current_tensor_adaptor.Shape()
 
-        if self.__axis >= self.__shape.Size():
-            raise RuntimeError(f"The axis should be less than the number of dimensions [ axis = {self.__axis}, shape = {self.__shape} ].\n")
+        if self.__axis >= shape.Size():
+            raise RuntimeError(f"The axis should be less than the number of dimensions [ axis = {self.__axis}, shape = {shape} ].\n")
 
-        self.__shape[self.__axis] = 0
+        shape[self.__axis] = 0
         for current_tensor_adaptor in self.__list_of_tensor_adaptors:
-            if current_tensor_adaptor.ViewData().dtype != self.__dtype:
-                raise RuntimeError(f"Only allowed to combine same type of data [ combined dtype =  {self.__dtype.name}, current tensor adaptor dtype = {current_tensor_adaptor.ViewData().dtype.name}, current tensor adaptor = {current_tensor_adaptor} ].\n")
+            if current_tensor_adaptor.ViewData().dtype != dtype:
+                raise RuntimeError(f"Only allowed to combine same type of data [ combined dtype =  {dtype.name}, current tensor adaptor dtype = {current_tensor_adaptor.ViewData().dtype.name}, current tensor adaptor = {current_tensor_adaptor} ].\n")
 
             # we add 1 to the end dimensions of the shape
             # so that they can be properly broadcasted using numpy
-            current_ta_shape = Kratos.DenseVectorUnsignedInt(self.__shape.Size(), 1)
+            current_ta_shape = Kratos.DenseVectorUnsignedInt(shape.Size(), 1)
             for i in range(current_tensor_adaptor.Shape().Size()):
                 current_ta_shape[i] = current_tensor_adaptor.Shape()[i]
 
             # now check whether the components of the dimensions match
-            for i in range(self.__shape.Size()):
-                if i != self.__axis and self.__shape[i] != current_ta_shape[i]:
-                    raise RuntimeError(f"Number of components in each dimension should match except in the axis dimension [ combined shape = {self.__shape}, axis = {self.__axis}, current_tensor adaptor shape = {current_ta_shape}, tensor adaptor = {current_tensor_adaptor} ].\n")
+            for i in range(shape.Size()):
+                if i != self.__axis and shape[i] != current_ta_shape[i]:
+                    raise RuntimeError(f"Number of components in each dimension should match except in the axis dimension [ combined shape = {shape}, axis = {self.__axis}, current_tensor adaptor shape = {current_ta_shape}, tensor adaptor = {current_tensor_adaptor} ].\n")
 
-            self.__shape[self.__axis] += current_ta_shape[self.__axis]
+            shape[self.__axis] += current_ta_shape[self.__axis]
             self.__list_of_tensor_adaptor_shapes.append(current_ta_shape)
 
         # now allocate the memory
-        self.__data: numpy.ndarray = numpy.empty(self.__shape, dtype=self.__dtype)
+        self.__data: numpy.ndarray = numpy.empty(shape, dtype=dtype)
 
     def GetTensorAdaptors(self):
         """Returns the list of tensor adaptors.
@@ -81,17 +81,17 @@ class CombinedTensorAdaptor:
                 else:
                     current_tensor_adaptor.CollectData()
 
-        list_of_numpy_arrays = [numpy.reshape(ta.ViewData(), shape=self.__list_of_tensor_adaptor_shapes[i], copy=False) for i, ta in enumerate(self.__list_of_tensor_adaptors)]
+        list_of_numpy_arrays = [numpy.reshape(ta.ViewData(), self.__list_of_tensor_adaptor_shapes[i], copy=False) for i, ta in enumerate(self.__list_of_tensor_adaptors)]
 
         # now do the numpy concatenation
         self.__data[:] = numpy.concatenate(list_of_numpy_arrays, axis = self.__axis)
 
     def StoreData(self, recursively = True) -> None:
-        slicing = [slice(None)] * self.__shape.Size()
+        slicing = [slice(None)] * len(self.__data.shape)
         slicing[self.__axis] = slice(0, 0)
         for i, ta in enumerate(self.__list_of_tensor_adaptors):
             slicing[self.__axis] = slice(slicing[self.__axis].stop, slicing[self.__axis].stop + self.__list_of_tensor_adaptor_shapes[i][self.__axis])
-            ta.data[:] = numpy.reshape(self.__data[tuple(slicing)], shape=ta.Shape(), copy=False)
+            ta.data[:] = numpy.reshape(self.__data[tuple(slicing)], ta.Shape(), copy=False)
 
         if recursively:
             for current_tensor_adaptor in self.__list_of_tensor_adaptors:
@@ -107,19 +107,13 @@ class CombinedTensorAdaptor:
         self.__data[:] = values
 
     def Shape(self) -> Kratos.DenseVectorUnsignedInt:
-        return Kratos.DenseVectorUnsignedInt(self.__shape)
+        return Kratos.DenseVectorUnsignedInt(list(self.__data.shape))
 
     def DataShape(self) -> Kratos.DenseVectorUnsignedInt:
-        result = Kratos.DenseVectorUnsignedInt(self.__shape.Size() - 1)
-        for i in range(self.__shape.Size() - 1):
-            result[i] = self.__shape[i + 1]
-        return result
+        return Kratos.DenseVectorUnsignedInt(list(self.__data.shape[1:]))
 
     def Size(self) -> int:
-        result = 1
-        for i in range(self.__shape.Size()):
-            result *= self.__shape[i]
-        return result
+        return self.__data.size
 
     @property
     def data(self):
