@@ -73,6 +73,14 @@ class CombinedTensorAdaptor:
         """
         return list(self.__list_of_tensor_adaptors)
 
+    def Clone(self) -> 'CombinedTensorAdaptor':
+        list_of_cloned_tensor_adaptors = []
+        for tensor_adaptor in self.GetTensorAdaptors():
+            list_of_cloned_tensor_adaptors.append(tensor_adaptor.Clone())
+        cloned_tensor_adaptor = CombinedTensorAdaptor(list_of_cloned_tensor_adaptors, self.__axis)
+        cloned_tensor_adaptor.data = self.__data
+        return cloned_tensor_adaptor
+
     def CollectData(self, recursively = True) -> None:
         if recursively:
             for current_tensor_adaptor in self.__list_of_tensor_adaptors:
