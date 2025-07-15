@@ -110,7 +110,7 @@ double VolumeCouplingElement::GetIntegrationWeight(const GeometryType::Integrati
 }
 
 
-
+// ######################################################################################### uncomment this function if you want to weight the stresses in the hybrid zone.
 void VolumeCouplingElement::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rOutput,
@@ -119,188 +119,100 @@ void VolumeCouplingElement::CalculateOnIntegrationPoints(
     // Call base class function to fill rOutput with stress values
     SmallDisplacement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
 
-    // Check if we are dealing with stress vectors and if the custom condition is met
-    if ((rVariable == CAUCHY_STRESS_VECTOR) && (rCurrentProcessInfo[ACTIVATION_LEVEL] > 0.0)) {
+    // // Check if we are dealing with stress vectors and if the custom condition is met
+    // if ((rVariable == CAUCHY_STRESS_VECTOR) && (rCurrentProcessInfo[ACTIVATION_LEVEL] > 0.0)) {
   
-        const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
-        const SizeType number_of_integration_points = integration_points.size();
-        array_1d<double, 3> global_coordinates;
+    //     const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
+    //     const SizeType number_of_integration_points = integration_points.size();
+    //     array_1d<double, 3> global_coordinates;
         
 
-            // Loop over each integration point
-            for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
+    //         // Loop over each integration point
+    //         for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
 
             
-            // Calculate the coupling weight for this integration point
-            auto N = row(this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod()), point_number);
-            double coupling_weight_on_this_integration_point = 0.0;
-            // check y cordinate of integration point to be less than 0.16
+    //         // Calculate the coupling weight for this integration point
+    //         auto N = row(this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod()), point_number);
+    //         double coupling_weight_on_this_integration_point = 0.0;
+    //         // check y cordinate of integration point to be less than 0.16
 
-            for (SizeType i = 0; i < this->GetGeometry().size(); ++i) 
-            {
-                //    if (this->GetGeometry().Center()[1] > 0.04) // this line is important to get expected max stress when using 0.5 , 0.1 weights etc.. // check y cordinate of integration point to be less than 0.16
-                //    {
-                    coupling_weight_on_this_integration_point += N[i] * this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT); 
-                //    }  //    coupling_weight_on_this_integration_point += this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT)/8;  // same weight on all integration points in the element  
-            }
+    //         for (SizeType i = 0; i < this->GetGeometry().size(); ++i) 
+    //         {
+    //             //    if (this->GetGeometry().Center()[1] > 0.04) // this line is important to get expected max stress when using 0.5 , 0.1 weights etc.. // check y cordinate of integration point to be less than 0.16
+    //             //    {
+    //                 coupling_weight_on_this_integration_point += N[i] * this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT); 
+    //             //    }  //    coupling_weight_on_this_integration_point += this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT)/8;  // same weight on all integration points in the element  
+    //         }
             
 
     
             
-            rOutput[point_number] *= (1-coupling_weight_on_this_integration_point);
+    //         rOutput[point_number] *= (1-coupling_weight_on_this_integration_point);
 
-            std::cout<<"integration point weight "<<(1-coupling_weight_on_this_integration_point)<<std::endl;
-            // print the location of the integration point
-            std::cout<<"integration point location: "<<integration_points[point_number].Coordinates()<<std::endl;
-            // print the location of the element
-            std::cout<<"element location: "<<this->GetGeometry().Center()<<std::endl;
-            // print the 'CAUCHY_STRESS_VECTOR' for this element
-            std::cout<<"CAUCHY_STRESS_VECTOR: "<<rOutput[point_number]<<std::endl;
-            // get cordinates of integration point using globalCoordinates function
-            //auto global_coordinates = ZeroVector(3);
+    //         std::cout<<"integration point weight "<<(1-coupling_weight_on_this_integration_point)<<std::endl;
+    //         // print the location of the integration point
+    //         std::cout<<"integration point location: "<<integration_points[point_number].Coordinates()<<std::endl;
+    //         // print the location of the element
+    //         std::cout<<"element location: "<<this->GetGeometry().Center()<<std::endl;
+    //         // print the 'CAUCHY_STRESS_VECTOR' for this element
+    //         std::cout<<"CAUCHY_STRESS_VECTOR: "<<rOutput[point_number]<<std::endl;
+    //         // get cordinates of integration point using globalCoordinates function
+    //         //auto global_coordinates = ZeroVector(3);
             
-            global_coordinates = this->GetGeometry().GlobalCoordinates(global_coordinates,integration_points[point_number].Coordinates());
-            // print the global coordinates of the integration point
-            std::cout<<"global coordinates: "<<global_coordinates<<std::endl;
+    //         global_coordinates = this->GetGeometry().GlobalCoordinates(global_coordinates,integration_points[point_number].Coordinates());
+    //         // print the global coordinates of the integration point
+    //         std::cout<<"global coordinates: "<<global_coordinates<<std::endl;
 
   
-            }
-
-        
-    }
-    if ((rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) && (rCurrentProcessInfo[ACTIVATION_LEVEL] > 0.0)) {
-        const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
-        const SizeType number_of_integration_points = integration_points.size();
-        array_1d<double, 3> global_coordinates;
-        
-  
-            for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
-
-            
-            // Calculate the coupling weight for this integration point
-            auto N = row(this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod()), point_number);
-            double coupling_weight_on_this_integration_point = 0.0;
-            
-
-            for (SizeType i = 0; i < this->GetGeometry().size(); ++i) 
-            {       
-                //    if (this->GetGeometry().Center()[1] > 0.04) // this line is important to get expected max stress  // check y cordinate of integration point to be less than 0.16
-                //    {
-                    coupling_weight_on_this_integration_point += N[i] * this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT); 
-                //    } 
-                //    coupling_weight_on_this_integration_point += this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT)/8;  // //same weight on all integration points in the element  
-            }
-            
-
-
-            
-            std::cout<<"integration point weight "<<(1-coupling_weight_on_this_integration_point)<<std::endl;
-            // print the location of the integration point
-            std::cout<<"integration point location: "<<integration_points[point_number].Coordinates()<<std::endl;
-            // print the location of the element
-            std::cout<<"element location: "<<this->GetGeometry().Center()<<std::endl;
-            // print the 'CAUCHY_STRAIN_VECTOR' for this element
-            std::cout<<"GREEN_LAGRANGE_STRAIN_VECTOR: "<<rOutput[point_number]<<std::endl;
-            // get cordinates of integration point using globalCoordinates function
-            //auto global_coordinates = ZeroVector(3);
-            
-            global_coordinates = this->GetGeometry().GlobalCoordinates(global_coordinates,integration_points[point_number].Coordinates());
-            // print the global coordinates of the integration point
-            std::cout<<"global coordinates: "<<global_coordinates<<std::endl;
-
-  
-            }
-         }
-    //         else
-    //         {       
-                
-    //             for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number)
-    //              {      
-    //                     double coupling_weight_on_this_integration_point = 0.0;
-    //                     std::cout<<"integration point weight "<<(1-coupling_weight_on_this_integration_point)<<std::endl;
-    //                     // print the location of the integration point
-    //                     std::cout<<"integration point location: "<<integration_points[point_number].Coordinates()<<std::endl;
-    //                     // print the location of the element
-    //                     std::cout<<"element location: "<<this->GetGeometry().Center()<<std::endl;
-    //                     // print the 'CAUCHY_STRESS_VECTOR' for this element
-    //                     std::cout<<"GREEN_LAGRANGE_STRAIN_VECTOR: "<<rOutput[point_number]<<std::endl;
-    //                     // get cordinates of integration point using globalCoordinates function
-    //                     //auto global_coordinates = ZeroVector(3);
-                        
-    //                     global_coordinates = this->GetGeometry().GlobalCoordinates(global_coordinates,integration_points[point_number].Coordinates());
-    //                     // print the global coordinates of the integration point
-    //                     std::cout<<"global coordinates: "<<global_coordinates<<std::endl;
-    //             }
     //         }
+
         
     // }
+    // if ((rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) && (rCurrentProcessInfo[ACTIVATION_LEVEL] > 0.0)) {
+    //     const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
+    //     const SizeType number_of_integration_points = integration_points.size();
+    //     array_1d<double, 3> global_coordinates;
+        
+  
+    //         for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
+
+            
+    //         // Calculate the coupling weight for this integration point
+    //         auto N = row(this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod()), point_number);
+    //         double coupling_weight_on_this_integration_point = 0.0;
+            
+
+    //         for (SizeType i = 0; i < this->GetGeometry().size(); ++i) 
+    //         {       
+    //             //    if (this->GetGeometry().Center()[1] > 0.04) // this line is important to get expected max stress  // check y cordinate of integration point to be less than 0.16
+    //             //    {
+    //                 coupling_weight_on_this_integration_point += N[i] * this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT); 
+    //             //    } 
+    //             //    coupling_weight_on_this_integration_point += this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT)/8;  // //same weight on all integration points in the element  
+    //         }
+            
+
+
+            
+    //         std::cout<<"integration point weight "<<(1-coupling_weight_on_this_integration_point)<<std::endl;
+    //         // print the location of the integration point
+    //         std::cout<<"integration point location: "<<integration_points[point_number].Coordinates()<<std::endl;
+    //         // print the location of the element
+    //         std::cout<<"element location: "<<this->GetGeometry().Center()<<std::endl;
+    //         // print the 'CAUCHY_STRAIN_VECTOR' for this element
+    //         std::cout<<"GREEN_LAGRANGE_STRAIN_VECTOR: "<<rOutput[point_number]<<std::endl;
+    //         // get cordinates of integration point using globalCoordinates function
+    //         //auto global_coordinates = ZeroVector(3);
+            
+    //         global_coordinates = this->GetGeometry().GlobalCoordinates(global_coordinates,integration_points[point_number].Coordinates());
+    //         // print the global coordinates of the integration point
+    //         std::cout<<"global coordinates: "<<global_coordinates<<std::endl;
+
+  
+    //         }
+     }
+
+
 }
+// #####################################################################################
 
-
-
-} // Namespace Kratos
-
-
-// namespace Kratos
-// {
-
-// VolumeCouplingElement::VolumeCouplingElement( IndexType NewId, GeometryType::Pointer pGeometry )
-//     : SmallDisplacement( NewId, pGeometry )
-// {
-    
-// }
-
-// VolumeCouplingElement::VolumeCouplingElement( ) // Default constructor needed for serialization
-//     : SmallDisplacement( )
-// {
-    
-// }
-
-// double VolumeCouplingElement::GetIntegrationWeight(
-//     const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
-//     const IndexType PointNumber,
-//     const double detJ
-//     ) const 
-// {
-
-//     auto N = row(this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod()), PointNumber);
-//     double interpolated_coupling_weight_at_int_point=0; 
-//     for (int i=0; i < this->GetGeometry().size(); i++)
-//     {
-//        interpolated_coupling_weight_at_int_point += N[i]*this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT);
-//     }
-//     return (1-interpolated_coupling_weight_at_int_point) * SmallDisplacement::GetIntegrationWeight(rThisIntegrationPoints,PointNumber,detJ);
-//     KRATOS_WATCH(interpolated_coupling_weight_at_int_point);
-// }
-
-
-// } // Namespace Kratos
-
-
-// Element::Pointer VolumeCouplingElement::Clone(IndexType NewId, NodesArrayType const& rThisNodes) const
-// {
-//     VolumeCouplingElement::Pointer p_new_elem = Kratos::make_intrusive<VolumeCouplingElement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
-//     p_new_elem->SetData(this->GetData());
-//     p_new_elem->Set(Flags(*this));
-
-//     // Setting integration method and constitutive law vector using the accessor methods
-//     p_new_elem->mThisIntegrationMethod=mThisIntegrationMethod;
-//     p_new_elem->mConstitutiveLawVector=mConstitutiveLawVector;
-
-//     return p_new_elem;
-// }
-// Element::Pointer VolumeCouplingElement::Clone(IndexType NewId, NodesArrayType const& rThisNodes) const
-// {
-//     VolumeCouplingElement::Pointer p_new_elem = Kratos::make_intrusive<VolumeCouplingElement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
-//     p_new_elem->SetData(this->GetData());
-//     p_new_elem->Set(Flags(*this));
-
-//     // Dynamic casting to the correct type
-//     BaseSolidElement* p_base_solid_elem = dynamic_cast<BaseSolidElement*>(p_new_elem.get());
-//     if (p_base_solid_elem != nullptr) {
-//         p_base_solid_elem->SetIntegrationMethod(mThisIntegrationMethod);
-//         p_base_solid_elem->SetConstitutiveLawVector(mConstitutiveLawVector);
-//     }
-
-//     return p_new_elem;
-// }
