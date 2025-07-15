@@ -18,7 +18,7 @@
 #include "includes/checks.h"
 
 // Application includes
-#include "small_displacement_mixed_strain_displacement_element.h"
+#include "small_displacement_mixed_strain_element.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 
