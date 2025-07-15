@@ -124,7 +124,7 @@ public:
     ///@{
 
     /**
-     * @brief This function is designed to be called as few times as possible. 
+     * @brief This function is designed to be called as few times as possible.
      * @details It creates the data structures that only depend on the connectivity of the matrix (and not on its coefficients) so that the memory can be allocated once and expensive operations can be done only when strictly  needed
      * @param rA. System matrix
      * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
@@ -151,8 +151,9 @@ public:
      * @param rA. System matrix
      * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
      * @param rB. Right hand side vector.
+     * @return @p true if the provided system was solved successfully satisfying the given requirements, @p false otherwise.
      */
-    virtual void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    virtual bool PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
     }
@@ -221,7 +222,7 @@ public:
 
     /**
      * @brief Checks if additional physical data is needed by the solver.
-     * @details Some solvers may require a minimum degree of knowledge of the structure of the matrix. 
+     * @details Some solvers may require a minimum degree of knowledge of the structure of the matrix.
      * For instance, when solving a mixed u-p problem, it is important to identify the row associated with v and p.
      * Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers,
      * which require knowledge of the spatial position of the nodes associated with a given degree of freedom (DOF).
@@ -234,7 +235,7 @@ public:
 
     /**
      * @brief Provides additional physical data required by the solver.
-     * @details Some solvers may require a minimum degree of knowledge of the structure of the matrix. 
+     * @details Some solvers may require a minimum degree of knowledge of the structure of the matrix.
      * For example, when solving a mixed u-p problem, it is important to identify the row associated with v and p.
      * Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers,
      * which require knowledge of the spatial position of the nodes associated with a given degree of freedom (DOF).
