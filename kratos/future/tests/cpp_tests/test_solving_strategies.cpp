@@ -390,14 +390,13 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild1D, KratosCoreFastSuite)
     // Note that in a standard case this happens at the strategy level
     auto p_dof_set = Kratos::make_shared<ModelPart::DofsArrayType>();
     auto p_eff_dof_set = Kratos::make_shared<ModelPart::DofsArrayType>();
-    SchemeType::EffectiveDofsMapType eff_dof_map;
 
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
     Future::LinearSystemContainer<CsrMatrix<>, SystemVector<>> linear_system_container;
 
     // Call the initialize solution step (note that this sets all the arrays above)
-    p_scheme->InitializeSolutionStep(p_dof_set, p_eff_dof_set, eff_dof_map, linear_system_container);
+    p_scheme->InitializeSolutionStep(p_dof_set, p_eff_dof_set, linear_system_container);
 
     // Call the build
     auto p_lhs = linear_system_container.pLhs;
@@ -455,14 +454,13 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
     // Note that in a standard case this happens at the strategy level
     auto p_dof_set = Kratos::make_shared<ModelPart::DofsArrayType>();
     auto p_eff_dof_set = Kratos::make_shared<ModelPart::DofsArrayType>();
-    SchemeType::EffectiveDofsMapType eff_dof_map;
 
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
     Future::LinearSystemContainer<CsrMatrix<>, SystemVector<>> linear_system_container;
 
     // Call the initialize solution step (note that this sets all the arrays above)
-    p_scheme->InitializeSolutionStep(p_dof_set, p_eff_dof_set, eff_dof_map, linear_system_container);
+    p_scheme->InitializeSolutionStep(p_dof_set, p_eff_dof_set, linear_system_container);
 
     // Call the build
     auto p_lhs = linear_system_container.pLhs;
@@ -527,7 +525,60 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
 #endif
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LinearStrategy, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(LinearStrategyEliminationBuild, KratosCoreFastSuite)
+{
+#ifdef KRATOS_USE_FUTURE
+    // Set up the test model part
+    Model test_model;
+    auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
+    const std::size_t num_elems = 2;
+    const double elem_size = 1.0;
+    SetUpTestModelPart1D(num_elems, elem_size, r_test_model_part);
+
+    // Create the scheme
+    Parameters scheme_settings = Parameters(R"({
+        "build_settings" : {
+            "name" : "elimination_builder"
+        }
+    })");
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
+
+    // Create the linear solver
+    Parameters amgcl_settings = Parameters(R"({
+    })");
+    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
+    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
+
+    // Create the strategy
+    Parameters strategy_settings = Parameters(R"({
+    })");
+    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
+
+    // Apply Dirichlet BCs
+    auto p_node_1 = r_test_model_part.pGetNode(1);
+    p_node_1->FastGetSolutionStepValue(DISTANCE, 0) = 1.0;
+    p_node_1->Fix(DISTANCE);
+
+    // Solve the problem
+    p_strategy->Initialize();
+    p_strategy->Check();
+    p_strategy->InitializeSolutionStep();
+    p_strategy->Predict();
+    p_strategy->SolveSolutionStep();
+    p_strategy->FinalizeSolutionStep();
+    p_strategy->Clear();
+
+    // Check results
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 2.5, 1.0e-12);
+    KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 3.0, 1.0e-12);
+#else
+    true;
+#endif
+}
+
+KRATOS_TEST_CASE_IN_SUITE(LinearStrategyBlockBuild, KratosCoreFastSuite)
 {
 #ifdef KRATOS_USE_FUTURE
     // Set up the test model part

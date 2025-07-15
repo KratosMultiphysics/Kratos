@@ -166,7 +166,6 @@ public:
         // Get system data
         auto& r_dof_set = this->GetDofSet();
         auto& r_eff_dof_set = this->GetEffectiveDofSet();
-        auto& r_eff_dof_map = this->GetEffectiveDofIdMap();
         auto& r_linear_system_container = this->GetLinearSystemContainer();
 
         // Get system arrays
@@ -189,8 +188,8 @@ public:
             p_scheme->Build(*p_lhs, *p_rhs);
             // p_scheme->ApplyMasterSlaveConstraints(p_lhs, p_eff_lhs, p_rhs, p_eff_rhs, p_dx, p_eff_dx, r_T, r_b);
             // p_scheme->ApplyDirichletConditions(r_eff_dof_set, r_eff_dof_map, *p_eff_lhs, *p_eff_rhs);
-            p_scheme->BuildLinearSystemConstraints(r_dof_set, r_eff_dof_map, r_linear_system_container);
-            p_scheme->ApplyLinearSystemConstraints(r_eff_dof_set, r_eff_dof_map, r_linear_system_container);
+            p_scheme->BuildLinearSystemConstraints(r_dof_set, r_eff_dof_set, r_linear_system_container);
+            p_scheme->ApplyLinearSystemConstraints(r_eff_dof_set, r_linear_system_container);
             this->SetStiffnessMatrixIsBuilt(true);
         } else {
             //FIXME: Do the RHS-only one!!!!
@@ -221,7 +220,7 @@ public:
         this->EchoInfo();
 
         // Update results (note that this also updates the mesh if needed)
-        p_scheme->Update(r_dof_set, r_eff_dof_map, r_linear_system_container);
+        p_scheme->Update(r_dof_set, r_eff_dof_set, r_linear_system_container);
 
         // Finalize current (unique) non linear iteration
         p_scheme->FinalizeNonLinIteration(r_linear_system_container);

@@ -122,9 +122,6 @@ public:
     /// DoF array type definition
     using DofsArrayType = ModelPart::DofsArrayType;
 
-    /// Effective DOFs map type definition
-    using EffectiveDofsMapType = typename BaseType::EffectiveDofsMapType;
-
     // /// TLS type definition
     // struct ThreadLocalStorage //FIXME: This will be ImplicitThreadLocalStorage when we create the implicit scheme --> Also we need to move them out of here.
     // {
@@ -204,14 +201,12 @@ public:
      * Note that steps from 1 to 4 can be done once if the DOF set does not change (i.e., the mesh and the constraints active/inactive status do not change in time)
      * @param rDofSet The array of DOFs from elements and conditions
      * @param rEffectiveDofSet The array of DOFs to be solved after the application of constraints
-     * @param rEffectiveDofIdMap A map relating each effective DOF to its effective id
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      * @param ReformDofSet Flag to indicate if the DOFs have changed and need to be updated
      */
     void InitializeSolutionStep(
         DofsArrayType::Pointer pDofSet,
         DofsArrayType::Pointer pEffectiveDofSet,
-        EffectiveDofsMapType &rEffectiveDofIdMap,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer,
         const bool ReformDofSets = true) override
     {
@@ -234,7 +229,7 @@ public:
 
                 // Set up the system constraints
                 BuiltinTimer constraints_construction_time;
-                this->ConstructMasterSlaveConstraintsStructure(pDofSet, pEffectiveDofSet, rEffectiveDofIdMap, rLinearSystemContainer);
+                this->ConstructSystemConstraintsStructure(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Constraints construction time: " << constraints_construction_time << std::endl;
 
                 //TODO: Then we have a method to initialize all the standard arrays from the graph. In here we can make also initializations of the mass and damping matrix with the same graph
@@ -278,7 +273,6 @@ public:
     void Predict(
         DofsArrayType::Pointer pDofSet,
         DofsArrayType::Pointer pEffectiveDofSet,
-        EffectiveDofsMapType& rEffectiveDofIdMap,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
         KRATOS_TRY
@@ -286,6 +280,8 @@ public:
         // Internal solution loop check to avoid repetitions
         KRATOS_ERROR_IF_NOT(this->GetSchemeIsInitialized()) << "Initialize needs to be performed. Call Initialize() once before the solution loop." << std::endl;
         KRATOS_ERROR_IF_NOT(this->GetSchemeSolutionStepIsInitialized()) << "InitializeSolutionStep needs to be performed. Call InitializeSolutionStep() before Predict()." << std::endl;
+
+        // TODO: Check if we require something else here for the elimination
 
         // Applying constraints if needed
         const auto& r_model_part = this->GetModelPart();
@@ -299,11 +295,11 @@ public:
             // Note that the constant vector is applied only once in here as we then solve for the solution increment
             auto p_constraints_T = rLinearSystemContainer.pConstraintsT;
             auto p_constraints_Q = rLinearSystemContainer.pConstraintsQ;
-            this->BuildMasterSlaveConstraints(*pDofSet, rEffectiveDofIdMap, *p_constraints_T, *p_constraints_Q);
+            this->BuildMasterSlaveConstraints(*pDofSet, *pEffectiveDofSet, rLinearSystemContainer);
 
             // Fill the current values vector
-            TSystemVectorType x(rEffectiveDofIdMap.size());
-            (this->GetBuilder()).CalculateSolutionVector(*pDofSet, *pEffectiveDofSet, rEffectiveDofIdMap, *p_constraints_T, *p_constraints_Q, x);
+            TSystemVectorType x(pEffectiveDofSet->size());
+            (this->GetBuilder()).CalculateSolutionVector(*pDofSet, *pEffectiveDofSet, *p_constraints_T, *p_constraints_Q, x);
 
             // Update DOFs with solution values
             block_for_each(*pDofSet, [&x](DofType& rDof){
@@ -328,7 +324,7 @@ public:
      */
     void Update(
         DofsArrayType &rDofSet,
-        EffectiveDofsMapType &rEffectiveDofIdMap,
+        DofsArrayType &rEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
     {
         KRATOS_TRY
@@ -339,7 +335,7 @@ public:
         auto& r_T = *(rLinearSystemContainer.pConstraintsT);
 
         // First update the constraints loose DOFs with the effective solution vector
-        this->UpdateConstraintsLooseDofs(r_eff_dx, rDofSet, rEffectiveDofIdMap);
+        this->UpdateConstraintsLooseDofs(r_eff_dx, rDofSet, rEffectiveDofSet);
 
         // Get the solution update vector from the effective one
         this->CalculateUpdateVector(r_T, r_eff_dx, r_dx);

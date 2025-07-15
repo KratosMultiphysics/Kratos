@@ -19,7 +19,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "utilities/builtin_timer.h"
 
 #ifdef KRATOS_USE_FUTURE
 #include "future/linear_solvers/linear_solver.h"
@@ -79,9 +78,6 @@ public:
 
     /// DOFs array type definition
     using DofsArrayType = typename ModelPart::DofsArrayType;
-
-    /// Effective DOFs map type definition
-    using EffectiveDofsMapType = std::unordered_map<typename Dof<DataType>::Pointer, IndexType>;
 
     /// Matrix type definition
     using SystemMatrixType = TSparseMatrixType;
@@ -197,7 +193,7 @@ public:
         KRATOS_TRY
 
         // Call the scheme InitializeSolutionStep
-        pGetScheme()->InitializeSolutionStep(mpDofSet, mpEffectiveDofSet, mEffectiveDofIdMap, mLinearSystemContainer, mReformDofsAtEachStep);
+        pGetScheme()->InitializeSolutionStep(mpDofSet, mpEffectiveDofSet, mLinearSystemContainer, mReformDofsAtEachStep);
 
         KRATOS_CATCH("")
     }
@@ -207,7 +203,7 @@ public:
         KRATOS_TRY
 
         // Call the time scheme predict (note that this also updates the mesh if needed)
-        pGetScheme()->Predict(mpDofSet, mpEffectiveDofSet, mEffectiveDofIdMap, mLinearSystemContainer);
+        pGetScheme()->Predict(mpDofSet, mpEffectiveDofSet, mLinearSystemContainer);
 
         KRATOS_CATCH("")
     }
@@ -531,21 +527,6 @@ public:
     {
         return *mpEffectiveDofSet;
     }
-    /**
-     * @brief It allows to get the map of effective DOFs
-     */
-    EffectiveDofsMapType& GetEffectiveDofIdMap()
-    {
-        return mEffectiveDofIdMap;
-    }
-
-    /**
-     * @brief It allows to get the map of effective DOFs
-     */
-    const EffectiveDofsMapType& GetEffectiveDofIdMap() const
-    {
-        return mEffectiveDofIdMap;
-    }
 
     ///@}
     ///@name Inquiry
@@ -723,11 +704,9 @@ private:
 
     LinearSolverPointerType mpLinearSolver = nullptr; /// The pointer to the linear solver
 
-    DofsArrayType::Pointer mpDofSet; /// The set containing the DOFs of the system
+    DofsArrayType::Pointer mpDofSet = Kratos::make_shared<DofsArrayType>(); /// The set containing the DOFs of the system
 
-    DofsArrayType::Pointer mpEffectiveDofSet; /// The PVS containing the effective DOFs of the system
-
-    EffectiveDofsMapType mEffectiveDofIdMap; /// The pointer to ids map containing the effective DOFs of the system
+    DofsArrayType::Pointer mpEffectiveDofSet = Kratos::make_shared<DofsArrayType>(); /// The PVS containing the effective DOFs of the system
 
     LinearSystemContainer<TSparseMatrixType, TSystemVectorType> mLinearSystemContainer;
 
