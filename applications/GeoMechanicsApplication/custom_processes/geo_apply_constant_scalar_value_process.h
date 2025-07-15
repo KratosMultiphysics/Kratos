@@ -32,8 +32,6 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoApplyConstantScalarValueProcess : public Process
 {
 public:
-    KRATOS_DEFINE_LOCAL_FLAG(VARIABLE_IS_FIXED);
-
     KRATOS_CLASS_POINTER_DEFINITION(GeoApplyConstantScalarValueProcess);
 
     GeoApplyConstantScalarValueProcess(Model& rModel, Parameters ThisParameters);
@@ -41,10 +39,10 @@ public:
     GeoApplyConstantScalarValueProcess(ModelPart&              rModelPart,
                                        const Variable<double>& rVariable,
                                        double                  DoubleValue,
-                                       Flags                   Options);
-    GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, const Variable<int>& rVariable, int IntValue, Flags options);
+                                       bool IsFixed);
+    GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, const Variable<int>& rVariable, int IntValue, bool IsFixed);
 
-    GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, const Variable<bool>& rVariable, bool BoolValue, Flags options);
+    GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, const Variable<bool>& rVariable, bool BoolValue, bool IsFixed);
 
     ~GeoApplyConstantScalarValueProcess() override = default;
 
@@ -67,6 +65,7 @@ private:
 
     template <class TVarType>
     void InternalApplyValueWithoutFixing(const TVarType& rVariable, typename TVarType::Type Value);
+    bool mIsFixed=false;
 };
 
 inline std::ostream& operator<<(std::ostream& rOStream, const GeoApplyConstantScalarValueProcess& rThis)

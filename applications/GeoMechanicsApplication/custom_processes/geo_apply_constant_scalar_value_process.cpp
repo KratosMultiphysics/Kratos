@@ -17,8 +17,6 @@
 namespace Kratos
 {
 
-KRATOS_CREATE_LOCAL_FLAG(GeoApplyConstantScalarValueProcess, VARIABLE_IS_FIXED, 0)
-
 GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(Model& rModel, Parameters ThisParameters)
     : GeoApplyConstantScalarValueProcess(
           rModel.GetModelPart(ThisParameters["model_part_name"].GetString()), ThisParameters)
@@ -43,8 +41,7 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
     ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     mVariableName = ThisParameters["variable_name"].GetString();
-    this->Set(VARIABLE_IS_FIXED, ThisParameters["is_fixed"].GetBool());
-
+    mIsFixed      = ThisParameters["is_fixed"].GetBool();
     if (KratosComponents<Variable<double>>::Has(mVariableName)) { // case of double variable
         mDoubleValue = ThisParameters["value"].GetDouble();
         KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents<Variable<double>>::Get(mVariableName)))
@@ -55,7 +52,7 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
         KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents<Variable<int>>::Get(mVariableName)))
             << "Trying to fix a variable that is not in the rModelPart - variable name is "
             << mVariableName << std::endl;
-        KRATOS_ERROR_IF(this->Is(VARIABLE_IS_FIXED))
+        KRATOS_ERROR_IF(mIsFixed)
             << "Sorry it is not possible to fix variables of type Variable<int>. Only double "
                "variables or vector components can be fixed"
             << std::endl;
@@ -64,7 +61,7 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
         KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents<Variable<bool>>::Get(mVariableName)))
             << "Trying to fix a variable that is not in the rModelPart - variable name is "
             << mVariableName << std::endl;
-        KRATOS_ERROR_IF(this->Is(VARIABLE_IS_FIXED))
+        KRATOS_ERROR_IF(mIsFixed)
             << "Sorry it is not possible to fix variables of type Variable<bool>. Only double "
                "variables or vector components can be fixed"
             << std::endl;
@@ -76,13 +73,11 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
 GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart& rModelPart,
                                                                        const Variable<double>& rVariable,
                                                                        const double DoubleValue,
-                                                                       const Flags  Options)
-    : Process(Options), mrModelPart(rModelPart), mDoubleValue(DoubleValue)
+                                                                       const bool IsFixed)
+    : mrModelPart(rModelPart), mDoubleValue(DoubleValue), mIsFixed(IsFixed)
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR_IF(this->IsDefined(VARIABLE_IS_FIXED) == false)
-        << "Please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)" << std::endl;
     KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has(rVariable))
         << "Trying to fix a variable that is not in the rModelPart - variable name is " << rVariable
         << std::endl;
@@ -95,14 +90,12 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
 GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart& rModelPart,
                                                                        const Variable<int>& rVariable,
                                                                        const int   IntValue,
-                                                                       const Flags Options)
-    : Process(Options), mrModelPart(rModelPart), mIntValue(IntValue)
+                                                                       bool IsFixed)
+    : mrModelPart(rModelPart), mIntValue(IntValue), mIsFixed(IsFixed)
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR_IF_NOT(this->IsDefined(VARIABLE_IS_FIXED))
-        << "Please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)" << std::endl;
-    KRATOS_ERROR_IF(this->Is(VARIABLE_IS_FIXED))
+    KRATOS_ERROR_IF(mIsFixed)
         << "Sorry it is not possible to fix variables of type Variable<int>. Only double variables "
            "or vector components can be fixed"
         << std::endl;
@@ -118,14 +111,12 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
 GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart& rModelPart,
                                                                        const Variable<bool>& rVariable,
                                                                        const bool  BoolValue,
-                                                                       const Flags options)
-    : Process(options), mrModelPart(rModelPart), mBoolValue(BoolValue)
+                                                                       bool IsFixed)
+    : mrModelPart(rModelPart), mBoolValue(BoolValue), mIsFixed(IsFixed)
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR_IF_NOT(this->IsDefined(VARIABLE_IS_FIXED))
-        << "Please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)" << std::endl;
-    KRATOS_ERROR_IF(this->Is(VARIABLE_IS_FIXED))
+    KRATOS_ERROR_IF(mIsFixed)
         << "Sorry it is not possible to fix variables of type Variable<bool>. Only double "
            "variables or vector components can be fixed"
         << std::endl;
@@ -142,10 +133,8 @@ void GeoApplyConstantScalarValueProcess::ExecuteInitialize()
 {
     KRATOS_TRY;
 
-    const bool is_fixed = this->Is(VARIABLE_IS_FIXED);
-
     if (KratosComponents<Variable<double>>::Has(mVariableName)) { // case of double variable
-        InternalApplyValue<>(KratosComponents<Variable<double>>::Get(mVariableName), is_fixed, mDoubleValue);
+        InternalApplyValue<>(KratosComponents<Variable<double>>::Get(mVariableName), mIsFixed, mDoubleValue);
     } else if (KratosComponents<Variable<int>>::Has(mVariableName)) { // Case of int variable
         InternalApplyValueWithoutFixing<>(KratosComponents<Variable<int>>::Get(mVariableName), mIntValue);
     } else if (KratosComponents<Variable<bool>>::Has(mVariableName)) { // Case of bool variable
@@ -161,7 +150,7 @@ void GeoApplyConstantScalarValueProcess::ExecuteInitialize()
 void GeoApplyConstantScalarValueProcess::ExecuteFinalize()
 {
     // Since DoF are by definition double variables, freeing DoF is only relevant for variables of type double.
-    if (this->Is(VARIABLE_IS_FIXED) && KratosComponents<Variable<double>>::Has(mVariableName)) {
+    if (mIsFixed && KratosComponents<Variable<double>>::Has(mVariableName)) {
         VariableUtils().ApplyFixity(KratosComponents<Variable<double>>::Get(mVariableName), false,
                                     mrModelPart.Nodes());
     }
