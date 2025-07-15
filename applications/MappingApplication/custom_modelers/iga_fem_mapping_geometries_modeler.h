@@ -149,7 +149,6 @@ private:
         rDestinationMP.SetNodalSolutionStepVariablesList(rReferenceMP.pGetNodalSolutionStepVariablesList());
         ModelPart& coupling_conditions = rReferenceMP.GetSubModelPart("coupling_conditions");
         rDestinationMP.SetConditions(coupling_conditions.pConditions());
-
     }
 
     void CopySubModelPartFEMInterface(ModelPart& rDestinationMP, ModelPart& rReferenceMP)

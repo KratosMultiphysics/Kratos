@@ -52,7 +52,7 @@ namespace Kratos
         } else {
             KRATOS_ERROR << "Not implemented yet" << std::endl; 
         }
-
+        
         // Transfer everything into the coupling modelpart
         ModelPart& coupling_interface_origin = (coupling_model_part.HasSubModelPart("interface_origin"))
             ? coupling_model_part.GetSubModelPart("interface_origin")
@@ -72,7 +72,6 @@ namespace Kratos
                 mpModels[1]->GetModelPart(destination_interface_sub_model_part_name));
         }
 
-
         KRATOS_ERROR_IF(coupling_interface_origin.NumberOfConditions() == 0 || coupling_interface_destination.NumberOfConditions() == 0)
             << "Coupling geometries are currently determined by conditions in the coupling sub model parts,"
             << " but there are currently not conditions in the coupling interface origin sub model part. Please specify some."
@@ -80,11 +79,12 @@ namespace Kratos
 
         if (is_surface_mapping == false)
         {
-            MappingIntersectionUtilities::FindIntersection1DGeometries2D(
+            IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometries(
                 coupling_interface_origin,
                 coupling_interface_destination,
+                is_origin_iga,
                 coupling_model_part, 1e-6);
-            MappingIntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
+            IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsCouplingInterface(
                 coupling_model_part, 1e-6);
         }
         else
