@@ -56,7 +56,7 @@ int GiD_PostInit()
   GiD_PostGetVersion(); // so that the 'static char *' are created (hdf5 may not be thread safe)
   const int ret = GiD_HashInit();
 #ifndef NDEBUG
-  printf( "Debug version: %s\n", GiD_PostGetVersion() );
+  // printf( "Debug version: %s\n", GiD_PostGetVersion() );
 #endif // NDEBUG
   return ret;
 }
