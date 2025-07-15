@@ -71,14 +71,14 @@ LineInterfaceElement::LineInterfaceElement(IndexType NewId,
                                            const Properties::Pointer& rProperties)
     : Element(NewId, rGeometry, rProperties),
       mIntegrationScheme(std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2)),
-      mStressStatePolicy(std::make_unique<InterfaceStressState>())
+      mStressStatePolicy(std::make_unique<Line2DInterfaceStressState>())
 {
 }
 
 LineInterfaceElement::LineInterfaceElement(IndexType NewId, const GeometryType::Pointer& rGeometry)
     : Element(NewId, rGeometry),
       mIntegrationScheme(std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2)),
-      mStressStatePolicy(std::make_unique<InterfaceStressState>())
+      mStressStatePolicy(std::make_unique<Line2DInterfaceStressState>())
 {
 }
 
