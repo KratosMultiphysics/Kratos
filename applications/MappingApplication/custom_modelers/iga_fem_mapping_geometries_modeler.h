@@ -46,11 +46,6 @@ public:
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::Pointer GeometryPointerType;
 
-    using NurbsCurveOnSurfacePointer = NurbsCurveOnSurfaceGeometry<3, PointerVector<Point>, PointerVector<NodeType>>::Pointer;
-    using NurbsSurfacePointer = NurbsSurfaceGeometry<3, PointerVector<NodeType>>::Pointer;
-    using BrepCurveOnSurfacePointer = BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>::Pointer;
-
-
     ///@}
     ///@name Life Cycle
     ///@{

@@ -32,9 +32,7 @@ namespace IgaMappingIntersectionUtilities
     typedef std::size_t IndexType;
 
     typedef Node NodeType;
-    typedef typename NodeType::Pointer NodePointerType;
     typedef Geometry<NodeType> GeometryType;
-    typedef typename GeometryType::Pointer GeometryPointerType;
 
     typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
