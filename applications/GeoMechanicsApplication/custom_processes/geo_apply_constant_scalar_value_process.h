@@ -40,23 +40,17 @@ public:
     GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, Parameters ThisParameters);
     GeoApplyConstantScalarValueProcess(ModelPart&              rModelPart,
                                        const Variable<double>& rVariable,
-                                       const double            DoubleValue,
-                                       const Flags             Options);
-    GeoApplyConstantScalarValueProcess(ModelPart&           rModelPart,
-                                       const Variable<int>& rVariable,
-                                       const int            IntValue,
-                                       const Flags          options);
+                                       double                  DoubleValue,
+                                       Flags                   Options);
+    GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, const Variable<int>& rVariable, int IntValue, Flags options);
 
-    GeoApplyConstantScalarValueProcess(ModelPart&            rModelPart,
-                                       const Variable<bool>& rVariable,
-                                       const bool            BoolValue,
-                                       const Flags           options);
+    GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, const Variable<bool>& rVariable, bool BoolValue, Flags options);
 
     ~GeoApplyConstantScalarValueProcess() override = default;
 
-    void             ExecuteInitialize() override;
-    void             ExecuteFinalize() override;
-    const Parameters GetDefaultParameters() const override;
+    void                           ExecuteInitialize() override;
+    void                           ExecuteFinalize() override;
+    [[nodiscard]] const Parameters GetDefaultParameters() const override;
 
     [[nodiscard]] std::string Info() const override { return "GeoApplyConstantScalarValueProcess"; }
 
@@ -69,10 +63,10 @@ protected:
 
 private:
     template <class TVarType>
-    void InternalApplyValue(const TVarType& rVariable, const bool ToBeFixed, const typename TVarType::Type Value);
+    void InternalApplyValue(const TVarType& rVariable, bool ToBeFixed, typename TVarType::Type Value);
 
     template <class TVarType>
-    void InternalApplyValueWithoutFixing(const TVarType& rVariable, const typename TVarType::Type Value);
+    void InternalApplyValueWithoutFixing(const TVarType& rVariable, typename TVarType::Type Value);
 };
 
 inline std::ostream& operator<<(std::ostream& rOStream, const GeoApplyConstantScalarValueProcess& rThis)
