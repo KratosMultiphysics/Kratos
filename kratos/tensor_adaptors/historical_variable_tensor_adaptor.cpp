@@ -64,6 +64,16 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
     }, mpVariable);
 }
 
+HistoricalVariableTensorAdaptor::BaseType::Pointer HistoricalVariableTensorAdaptor::Clone() const
+{
+    const auto& r_data_shape = this->DataShape();
+    auto p_tensor_adaptor = Kratos::make_intrusive<HistoricalVariableTensorAdaptor>(mpContainer, mpVariable, std::vector<unsigned int>(r_data_shape.begin(), r_data_shape.end()));
+    IndexPartition<IndexType>(p_tensor_adaptor->Size()).for_each([p_tensor_adaptor, this](const auto Index) {
+        p_tensor_adaptor->ViewData()[Index] = this->ViewData()[Index];
+    });
+    return p_tensor_adaptor;
+}
+
 void HistoricalVariableTensorAdaptor::CollectData()
 {
     std::visit(

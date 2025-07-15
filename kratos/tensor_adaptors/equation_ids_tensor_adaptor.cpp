@@ -63,6 +63,24 @@ std::string InfoImpl(
     return msg.str();
 }
 
+template<class TContainerPointerType, class TSpanType>
+TensorAdaptor<int>::Pointer Clone(
+    TContainerPointerType pContainer,
+    const ProcessInfo::Pointer pProcessInfo,
+    const TSpanType& rDataSpan)
+{
+    if constexpr(IsInList<std::remove_cv_t<std::decay_t<decltype(*pContainer)>>, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>::value) {
+        auto p_tensor_adaptor = Kratos::make_intrusive<EquationIdsTensorAdaptor>(pContainer, pProcessInfo);
+        IndexPartition<IndexType>(p_tensor_adaptor->Size()).for_each([p_tensor_adaptor, &rDataSpan](const auto Index) {
+            p_tensor_adaptor->ViewData()[Index] = rDataSpan[Index];
+        });
+        return p_tensor_adaptor;
+    } else {
+        KRATOS_ERROR << "EquationIdsTensorAdaptor only works with ModelPart::ConditionsContainerType or ModelPart::ElementsContainerType.\n";
+        return nullptr;
+    }
+}
+
 } // namespace EquationIdsTensorAdaptorHelpers
 
 template<class TContainerPointerType>
@@ -77,6 +95,13 @@ EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(
     };
 
     this->SetShape(TensorAdaptorUtils::GetTensorShape<std::vector<IndexType>>(*pContainer, r_getter));
+}
+
+EquationIdsTensorAdaptor::BaseType::Pointer EquationIdsTensorAdaptor::Clone() const
+{
+    return std::visit([this](auto pContainer) {
+        return EquationIdsTensorAdaptorHelpers::Clone(pContainer, this->mpProcessInfo, this->ViewData());
+    }, mpContainer);
 }
 
 void EquationIdsTensorAdaptor::CollectData()

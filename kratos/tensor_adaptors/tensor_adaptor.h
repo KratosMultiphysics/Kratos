@@ -75,6 +75,8 @@ public:
     ///@name Public operations
     ///@{
 
+    virtual TensorAdaptor::Pointer Clone() const = 0;
+
     /**
      * @brief Fill the internal data from Kratos data structures.
      */

@@ -64,6 +64,24 @@ void CollectData(
     }
 }
 
+template<class TContainerPointerType, class TDataType, class TSpanType>
+typename TensorAdaptor<typename DataTypeTraits<TDataType>::PrimitiveType>::Pointer Clone(
+    TContainerPointerType pContainer,
+    const Variable<TDataType>& rVariable,
+    const ProcessInfo::Pointer pProcessInfo,
+    const TSpanType& rDataSpan)
+{
+    if constexpr(IsInList<std::remove_pointer_t<TContainerPointerType>, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>::value) {
+        auto p_tensor_adaptor = Kratos::make_intrusive<GaussPointVariableTensorAdaptor>(pContainer, &rVariable, pProcessInfo);
+        IndexPartition<IndexType>(p_tensor_adaptor->Size()).for_each([p_tensor_adaptor, &rDataSpan](const auto Index) {
+            p_tensor_adaptor->ViewData()[Index] = rDataSpan[Index];
+        });
+        return p_tensor_adaptor;
+    } else {
+        return nullptr;
+    }
+}
+
 } // namespace GaussPointVariableTensorAdaptorHelperUtilities
 
 template<class TContainerPointerType>
@@ -81,6 +99,13 @@ GaussPointVariableTensorAdaptor::GaussPointVariableTensorAdaptor(
                 *pContainer, *pVariable, *this->mpProcessInfo));
         },
         mpVariable);
+}
+
+GaussPointVariableTensorAdaptor::BaseType::Pointer GaussPointVariableTensorAdaptor::Clone() const
+{
+    return std::visit([this](auto pContainer, auto pVariable) {
+        return GaussPointVariableTensorAdaptorHelperUtilities::Clone(pContainer, *pVariable, this->mpProcessInfo, this->ViewData());
+    }, mpContainer, mpVariable);
 }
 
 void GaussPointVariableTensorAdaptor::CollectData()
