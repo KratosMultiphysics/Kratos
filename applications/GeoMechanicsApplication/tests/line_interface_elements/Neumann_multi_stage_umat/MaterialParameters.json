@@ -13,8 +13,7 @@
                                              0.0,
                                              1e10],
               "STATE_VARIABLES"         :  [0.0]
-         },
-         "Tables": {}
+         }
       }
    }]
 }
