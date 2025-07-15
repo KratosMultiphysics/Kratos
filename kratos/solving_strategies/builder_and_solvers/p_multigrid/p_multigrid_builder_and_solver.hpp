@@ -271,6 +271,7 @@ public:
                               typename Interface::TSystemVectorType& rSolution,
                               typename Interface::TSystemVectorType& rRhs) override;
 
+    /// @}
     /// @name Assembly
     /// @{
 
@@ -431,12 +432,12 @@ private:
 
     PMultigridBuilderAndSolver& operator=(const PMultigridBuilderAndSolver& rRhs) = delete;
 
-    /// @details MSVC desperately wants to know about the destructor of Impl when trying to
-    ///          use PIMPL with an std::unique_ptr, up to the point that it ICE-s if I try
+    /// @details MSVC desperately wants to know about the destructor of @p Impl when trying to
+    ///          use PIMPL with an @p std::unique_ptr, up to the point that it ICE-s if I try
     ///          dodging it with a lambda. Hopefully a raw pointer will get the message
     ///          across its thick skull that it does not need to know what the destructor
     ///          does if it only ever sees a bloody pointer.
-    /// @todo Change Impl* to std::unique_ptr<Impl> when (if) MSVC sorts its shit out.
+    /// @todo Change @p Impl* to @p std::unique_ptr<Impl> when (if) MSVC sorts its shit out.
     struct Impl;
     Impl* mpImpl;
 }; // class PMultigridBuilderAndSolver

@@ -36,11 +36,12 @@ namespace Kratos {
 #endif
 
 
-/** @brief Computes \f$A += c * B\f$.
+/** @brief Computes \f$ A += c * B \f$.
  *  @tparam TValue Value type of the operand matrices.
  *  @param rLeft Left hand side matrix to add the scaled right hand matrix to.
  *  @param rRight Right hand matrix to scale and add to the left hand side.
  *  @param Coefficient Coefficient to scale the right hand side matrix by.
+ *  @warning The sparsity pattern of @p rLeft must be a superset of @p rRight.
  */
 template <class TValue>
 static void
@@ -568,7 +569,7 @@ void CheckMatrix(const typename TUblasSparseSpace<TValue>::MatrixType& rMatrix)
 
 /** @brief Compute a scaled matrix-vector product and add it to the provided output vector.
  *  @details Computes @f[
- *              r += a * A b
+ *              r += a * A @ b
  *           @f]
  *           where @p A is the input matrix, @p b the input vector, @p r the output vector and @p a the scaling coefficient.
  *           This function parallelizes on equal sized nonzero chunks instead of rows, which may lead to better

@@ -20,6 +20,7 @@
 namespace Kratos {
 
 
+/// @brief Dummy constraint assembler class that does not impose constraints.
 template <class TSparse, class TDense>
 class NoOpConstraintAssembler final : public ConstraintAssembler<TSparse,TDense>
 {

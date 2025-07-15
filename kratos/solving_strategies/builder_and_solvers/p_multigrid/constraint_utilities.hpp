@@ -26,40 +26,61 @@
 namespace Kratos::detail {
 
 
+/// @brief Compute the constraint gradient and gaps of a @ref LinearMasterSlaveConstraint.
+/// @details This utility function computes the constraint gradient of constraint gaps of a
+///          constraint that does not inherit from @ref MultifreedomConstraint. It also collects
+///          the constraint indices of the returned entries, as well as the IDs of the @ref Dof "DoFs"
+///          involved.
+/// @param rConstraintIndices Output vector containing the indices of each returned constraint equation.
+/// @param rDofIds Output vector of @ref Dof IDs that participate in the returned constraint equations.
+/// @param rRelationMatrix Output matrix containing the gradients of each constraint equation defined by
+///                        the input constraint. Each row represents a gradient of the constraint equation
+///                        whose constraint index is defined by the corresponding entry in @p rConstraintIndices.
+///                        Columns represent coefficients of DoFs that are identified by their IDs at the
+///                        corresponding position in @p rDofIds.
+/// @param rConstraintGaps Output vector of constraint gaps related to constraint equations defined by
+///                        @p rConstraintIndices.
+/// @param rConstraint Constraint to extract values from. It must not be an instance inheriting from
+///                    @ref MultifreedomConstraint.
+/// @param rSlaveDofIds List of slave @ref Dof "DoFs"' IDs.
+/// @param rMasterDofIds List of master @ref Dof "DoFs"' IDs.
+/// @param rConstraintIdMap Map relating slave DoF IDs to constraint equation indices, as well as the number
+///                         of constraint objects defining the constraint equation.
+/// @see ProcessMultifreedomConstraint
 inline void ProcessMasterSlaveConstraint(std::vector<std::size_t>& rConstraintIndices,
                                          std::vector<std::size_t>& rDofIds,
                                          MasterSlaveConstraint::MatrixType& rRelationMatrix,
                                          [[maybe_unused]] MasterSlaveConstraint::VectorType& rConstraintGaps,
                                          const MasterSlaveConstraint& rConstraint,
-                                         const std::vector<std::size_t>& rSlaveIds,
-                                         const std::vector<std::size_t>& rMasterIds,
+                                         const std::vector<std::size_t>& rSlaveDofIds,
+                                         const std::vector<std::size_t>& rMasterDofIds,
                                          const std::unordered_map<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
 {
     // Constraint identifiers are the slave DoFs' IDs.
-    rConstraintIndices.resize(rSlaveIds.size());
-    std::transform(rSlaveIds.begin(),
-                   rSlaveIds.end(),
+    rConstraintIndices.resize(rSlaveDofIds.size());
+    std::transform(rSlaveDofIds.begin(),
+                   rSlaveDofIds.end(),
                    rConstraintIndices.begin(),
                    [&rConstraintIdMap](std::size_t slave_id){
                         return rConstraintIdMap.at(slave_id).first;
                    });
 
     // Comb DoFs.
-    rDofIds.resize(rMasterIds.size() + rSlaveIds.size());
-    std::copy(rMasterIds.begin(), rMasterIds.end(), rDofIds.begin());
-    std::copy(rSlaveIds.begin(), rSlaveIds.end(), rDofIds.begin() + rMasterIds.size());
+    rDofIds.resize(rMasterDofIds.size() + rSlaveDofIds.size());
+    std::copy(rMasterDofIds.begin(), rMasterDofIds.end(), rDofIds.begin());
+    std::copy(rSlaveDofIds.begin(), rSlaveDofIds.end(), rDofIds.begin() + rMasterDofIds.size());
 
     // Reconstruct the constraint equations.
     if (rRelationMatrix.size2()) {
         rRelationMatrix.resize(rRelationMatrix.size1(),
-                               rRelationMatrix.size2() + rSlaveIds.size(),
+                               rRelationMatrix.size2() + rSlaveDofIds.size(),
                                /*preserve entries=*/true);
-        for (std::size_t i_slave=0ul; i_slave<rSlaveIds.size(); ++i_slave) {
+        for (std::size_t i_slave=0ul; i_slave<rSlaveDofIds.size(); ++i_slave) {
             // Fetch the number of constraint objects defining this constraint equation,
             // because the slave DoF's coefficient must add up to -1 after assembly.
-            const auto constraint_object_count = rConstraintIdMap.at(rSlaveIds[i_slave]).second;
-            rRelationMatrix(i_slave, rMasterIds.size() + i_slave) = -1.0 / constraint_object_count;
-        } // for i_slave in range(rSlaveIds.size())
+            const auto constraint_object_count = rConstraintIdMap.at(rSlaveDofIds[i_slave]).second;
+            rRelationMatrix(i_slave, rMasterDofIds.size() + i_slave) = -1.0 / constraint_object_count;
+        } // for i_slave in range(rSlaveDofIds.size())
     } // if rRelationMatrix.size2()
 
     // No need to move the constraint gaps from RHS to LHS
@@ -67,17 +88,22 @@ inline void ProcessMasterSlaveConstraint(std::vector<std::size_t>& rConstraintIn
     // u^s = T u^m + b
     // =>
     // 0 = A [u^m \\ u^s] + b
-    //std::transform(rConstraintGaps.begin(),
-    //               rConstraintGaps.end(),
-    //               rConstraintGaps.begin(),
-    //               [](auto constraint_gap){return -constraint_gap;});
 }
 
 
+/// @brief Collect @ref Dof IDs and constraint equation indices of a @ref MultifreedomConstraint.
+/// @param rConstraintIndices Output vector containing the indices of each returned constraint equation.
+/// @param rDofIds Output vector of @ref Dof IDs that participate in the returned constraint equations.
+/// @param rConstraint Constraint to extract values from. It must not be an instance inheriting from
+///                    @ref MultifreedomConstraint.
+/// @param rMasterDofIds List of master @ref Dof "DoFs"' IDs.
+/// @param rConstraintIdMap Map relating slave DoF IDs to constraint equation indices, as well as the number
+///                         of constraint objects defining the constraint equation.
+/// @see ProcessMasterSlaveConstraint
 inline void ProcessMultifreedomConstraint(std::vector<std::size_t>& rConstraintIndices,
                                           std::vector<std::size_t>& rDofIds,
                                           const MasterSlaveConstraint& rConstraint,
-                                          const std::vector<std::size_t>& rMasterIds,
+                                          const std::vector<std::size_t>& rMasterDofIds,
                                           const std::unordered_map<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
 {
     const auto& r_constraint_labels = rConstraint.GetData().GetValue(CONSTRAINT_LABELS);
@@ -89,7 +115,7 @@ inline void ProcessMultifreedomConstraint(std::vector<std::size_t>& rConstraintI
                         return rConstraintIdMap.at(constraint_label).first;
                    });
 
-    rDofIds = rMasterIds;
+    rDofIds = rMasterDofIds;
 }
 
 

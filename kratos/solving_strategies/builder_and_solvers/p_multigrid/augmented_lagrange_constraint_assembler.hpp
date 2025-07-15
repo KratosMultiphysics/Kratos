@@ -43,7 +43,6 @@ namespace Kratos {
  *                                 matrix' diagonal. See @ref Scaling for more information.
  *              - @p "max" Infinity norm (abs max) of the matrix' diagonal.
  *              - @p "norm" 2-norm of the matrix' diagonal.
- *          - @p "initial_lagrange_multiplier" Value to initialize lagrange multipliers with.
  *          - @p "tolerance" Target absolute norm of the constraint equations (without penalty scaling).
  *          - @p "max_iterations" Stop iterating if the desired tolerance was not reached after this many iterations.
  *          - @p "verbosity" Level of verbosity. Every level includes lower verbosity levels and

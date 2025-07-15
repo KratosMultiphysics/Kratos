@@ -51,8 +51,7 @@ class LinkConstraintProcess(KratosMultiphysics.Process):
                 self.__dimensions,
                 self.__is_mesh_moved)
 
-            if not self.__is_active:
-                constraint.Set(KratosMultiphysics.ACTIVE, False)
+            constraint.Set(KratosMultiphysics.ACTIVE, self.__is_active)
 
             self.__constraints.append(constraint)
             self.__model_part.AddMasterSlaveConstraint(constraint)
@@ -69,10 +68,12 @@ class LinkConstraintProcess(KratosMultiphysics.Process):
 
     def __GetLastConstraintId(self) -> int:
         constraint_count: int = len(self.__model_part.MasterSlaveConstraints)
+        last_constraint_id: int
         if constraint_count:
-            return self.__model_part.MasterSlaveConstraints[constraint_count - 1]
+            last_constraint_id = self.__model_part.MasterSlaveConstraints[constraint_count - 1]
         else:
-            return 0
+            last_constraint_id = 0
+        return self.__model_part.GetCommunicator().GetDataCommunicator().MaxAll(last_constraint_id)
 
 
 def Factory(parameters: KratosMultiphysics.Parameters,
