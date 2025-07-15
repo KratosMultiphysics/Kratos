@@ -100,7 +100,7 @@ class DerivativeRecoveryStrategy:
 
     def GetVorticityTool(self):
         #if self.pre_computed_derivatives:
-        return recoverer.VorticityRecoverer(self.parameters, self.fluid_model_part)
+        # return recoverer.VorticityRecoverer(self.parameters, self.fluid_model_part)
         if self.vorticity_type == 0:
             return recoverer.EmptyVorticityRecoverer(self.parameters, self.fluid_model_part)
         elif self.vorticity_type == 5: # NOT WORKING YET WITH VECTORS

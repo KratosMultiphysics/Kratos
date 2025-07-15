@@ -47,6 +47,7 @@ class ProjectionModule:
         self.projector_parameters.AddValue("n_particles_per_depth_distance", project_parameters["n_particles_in_depth"])
         self.projector_parameters.AddValue("body_force_per_unit_mass_variable_name", project_parameters["body_force_per_unit_mass_variable_name"])
         self.projector_parameters.AddValue("gentle_coupling_initiation", project_parameters["coupling"]["gentle_coupling_initiation"])
+        self.projector_parameters.AddValue("steady_fluid", project_parameters["coupling"]["steady_fluid"])
         self.search_strategy = DEM.OMP_DEMSearch()
         if "PeriodicDomainOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["PeriodicDomainOption"].GetBool():

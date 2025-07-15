@@ -1407,9 +1407,9 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
     }
 
 
-    short previous_step = mUseSteadyFluid ? 0 : 1;
+    alpha = mUseSteadyFluid ? 1.0 : alpha;
     array_1d<double, 3>& first_origin_datum = geom[0].FastGetSolutionStepValue(r_origin_variable);
-    array_1d<double, 3>& first_origin_datum_old = geom[0].FastGetSolutionStepValue(r_origin_variable, previous_step);
+    array_1d<double, 3>& first_origin_datum_old = geom[0].FastGetSolutionStepValue(r_origin_variable, 1);
 
     double step_datum_fast[TDim];
 
@@ -1421,7 +1421,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
 
     for (unsigned int i = 1; i < NumNodes; ++i){
         array_1d<double, 3>& origin_datum = geom[i].FastGetSolutionStepValue(r_origin_variable);
-        array_1d<double, 3>& origin_datum_old = geom[i].FastGetSolutionStepValue(r_origin_variable, previous_step);
+        array_1d<double, 3>& origin_datum_old = geom[i].FastGetSolutionStepValue(r_origin_variable, 1);
 
         for (unsigned int j = 0; j < TDim; ++j){
             origin_datum_old[j] = origin_datum[j];
@@ -1451,14 +1451,14 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
 
     double NumNodes = geom.size();
 
-    short previous_step = mUseSteadyFluid ? 0 : 1;
+    alpha = mUseSteadyFluid ? 1.0 : alpha;
 
     // Destination data
     double& step_data = p_node->FastGetSolutionStepValue(r_destination_variable);
-    step_data += N[0] * (alpha * geom[0].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[0].FastGetCurrentSolutionStepValue(r_origin_variable, previous_step));
+    step_data += N[0] * (alpha * geom[0].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[0].FastGetCurrentSolutionStepValue(r_origin_variable, 1));
 
     for (unsigned int i = 1; i < NumNodes; ++i){
-        step_data += N[i] * (alpha * geom[i].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[0].FastGetCurrentSolutionStepValue(r_origin_variable, previous_step));
+        step_data += N[i] * (alpha * geom[i].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[0].FastGetCurrentSolutionStepValue(r_origin_variable, 1));
     }
 }
 //***************************************************************************************************************

@@ -43,6 +43,7 @@ def GetDefaultInputParameters():
             "coupling_weighing_type" : 2,
             "coupling_weighing_type_comment" : "{fluid_to_DEM, DEM_to_fluid, fluid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2), averaging method (3)",
             "interaction_start_time" : 0.0,
+            "steady_fluid" : false,
 
             "forward_coupling" : {
                 "time_averaging_type" : 0

@@ -130,7 +130,6 @@ KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping_TDim_TBaseTypeOfS
 
 BinBasedDEMFluidCoupledMapping(Parameters& rParameters, SpatialSearch::Pointer pSpSearch=NULL)
                              : mMustCalculateMaxNodalArea(true),
-                               mUseSteadyFluid(false),
                                mFluidDeltaTime(0.0),
                                mFluidLastCouplingFromDEMTime(0.0),
                                mMaxNodalAreaInv(0.0),
@@ -147,10 +146,12 @@ BinBasedDEMFluidCoupledMapping(Parameters& rParameters, SpatialSearch::Pointer p
             "coupling_type": 1,
             "viscosity_modification_type" : 0,
             "n_particles_per_depth_distance" : 1,
-            "body_force_per_unit_mass_variable_name" : "BODY_FORCE"
+            "body_force_per_unit_mass_variable_name" : "BODY_FORCE",
+            "steady_fluid": false
         }  )" );
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
+    mUseSteadyFluid = rParameters["steady_fluid"].GetBool();
     mMinFluidFraction = rParameters["backward_coupling"]["min_fluid_fraction"].GetDouble();
     mCouplingType = rParameters["coupling_type"].GetInt();
     mTimeAveragingType = rParameters["forward_coupling"]["time_averaging_type"].GetInt();
