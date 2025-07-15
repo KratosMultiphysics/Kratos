@@ -81,7 +81,7 @@ class CombinedTensorAdaptor:
                 else:
                     current_tensor_adaptor.CollectData()
 
-        list_of_numpy_arrays = [numpy.reshape(ta.ViewData(), self.__list_of_tensor_adaptor_shapes[i], copy=False) for i, ta in enumerate(self.__list_of_tensor_adaptors)]
+        list_of_numpy_arrays = [self.__Reshape(ta.ViewData(), self.__list_of_tensor_adaptor_shapes[i]) for i, ta in enumerate(self.__list_of_tensor_adaptors)]
 
         # now do the numpy concatenation
         self.__data[:] = numpy.concatenate(list_of_numpy_arrays, axis = self.__axis)
@@ -91,7 +91,7 @@ class CombinedTensorAdaptor:
         slicing[self.__axis] = slice(0, 0)
         for i, ta in enumerate(self.__list_of_tensor_adaptors):
             slicing[self.__axis] = slice(slicing[self.__axis].stop, slicing[self.__axis].stop + self.__list_of_tensor_adaptor_shapes[i][self.__axis])
-            ta.data[:] = numpy.reshape(self.__data[tuple(slicing)], ta.Shape(), copy=False)
+            ta.SetData(self.__Reshape(self.__data[tuple(slicing)], ta.Shape()))
 
         if recursively:
             for current_tensor_adaptor in self.__list_of_tensor_adaptors:
@@ -114,6 +114,21 @@ class CombinedTensorAdaptor:
 
     def Size(self) -> int:
         return self.__data.size
+
+    def __Reshape(self, numpy_array: numpy.ndarray, new_shape: 'list[int]'):
+        """This is a wrapper method for numpy.reshape
+
+        The copy keywordarg is only introduced in numpy 2.1, hence all the other previous
+        versions, we cannot use it. The copy = False make sure that the reshaping of a
+        numpy array does not create a new copy of the underlying data. If it cannot reshape,
+        then it throws an error. This is a good check to have, eventhough our TensorAdaptor
+        will not require any copying for reshaping.
+        """
+        numpy_version_info = [int(v) for v in numpy.__version__.split(".")]
+        if numpy_version_info[0] > 2 or (numpy_version_info[0] == 2 and numpy_version_info[1] >= 1):
+            return numpy.reshape(numpy_array, new_shape, copy=False)
+        else:
+            return numpy.reshape(numpy_array, new_shape)
 
     @property
     def data(self):
