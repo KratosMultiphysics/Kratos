@@ -14,6 +14,7 @@
 
 // System includes
 #include <string>
+#include <variant>
 
 // External includes
 
@@ -35,6 +36,12 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FlagsTensorAdaptor);
 
     using BaseType = TensorAdaptor<bool>;
+
+    using TensorAdaptorContainerPointerType = std::variant<
+                                                    ModelPart::NodesContainerType::Pointer,
+                                                    ModelPart::ConditionsContainerType::Pointer,
+                                                    ModelPart::ElementsContainerType::Pointer
+                                                >;
 
     ///@}
     ///@name Life cycle
@@ -79,7 +86,7 @@ private:
     ///@name Private member variables
     ///@{
 
-    ContainerPointerType mpContainer;
+    TensorAdaptorContainerPointerType mpContainer;
 
     Flags mFlags;
 

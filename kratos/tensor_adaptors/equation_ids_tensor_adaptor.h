@@ -36,6 +36,11 @@ public:
 
     using BaseType = TensorAdaptor<int>;
 
+    using TensorAdaptorContainerPointerType = std::variant<
+                                                    ModelPart::ConditionsContainerType::Pointer,
+                                                    ModelPart::ElementsContainerType::Pointer
+                                                >;
+
     ///@}
     ///@name Life cycle
     ///@{
@@ -79,9 +84,9 @@ private:
     ///@name Private member variables
     ///@{
 
-    ProcessInfo::Pointer mpProcessInfo;
+    TensorAdaptorContainerPointerType mpContainer;
 
-    ContainerPointerType mpContainer;
+    ProcessInfo::Pointer mpProcessInfo;
 
     ///@}
 };

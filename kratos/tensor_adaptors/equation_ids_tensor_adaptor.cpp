@@ -33,22 +33,18 @@ void CollectData(
     const TContainerType& rContainer,
     const ProcessInfo& rProcessInfo)
 {
-    if constexpr(IsInList<TContainerType, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>::value) {
-        IndexPartition<IndexType>(rContainer.size()).for_each(std::vector<IndexType>{}, [Span, &rContainer, &rProcessInfo, Stride](const auto Index, auto& rTLS){
-            const auto& r_entity = *(rContainer.begin() + Index);
-            r_entity.EquationIdVector(rTLS, rProcessInfo);
+    IndexPartition<IndexType>(rContainer.size()).for_each(std::vector<IndexType>{}, [Span, &rContainer, &rProcessInfo, Stride](const auto Index, auto& rTLS){
+        const auto& r_entity = *(rContainer.begin() + Index);
+        r_entity.EquationIdVector(rTLS, rProcessInfo);
 
-            KRATOS_DEBUG_ERROR_IF_NOT(rTLS.size() == Stride)
-                << "Non-uniform equation id vectors are found in container having " << rContainer.size()
-                << " " << ModelPart::Container<TContainerType>::GetEntityName() << "(s)"
-                << " [ Required size of equation ids = " << Stride << ", found EquationIds = "
-                << rTLS << " ].\n";
+        KRATOS_DEBUG_ERROR_IF_NOT(rTLS.size() == Stride)
+            << "Non-uniform equation id vectors are found in container having " << rContainer.size()
+            << " " << ModelPart::Container<TContainerType>::GetEntityName() << "(s)"
+            << " [ Required size of equation ids = " << Stride << ", found EquationIds = "
+            << rTLS << " ].\n";
 
-            std::copy(rTLS.begin(), rTLS.end(), Span.data() + Index * Stride);
-        });
-    } else {
-        KRATOS_ERROR << "EquationIdsTensorAdaptor only works with ModelPart::ConditionsContainerType or ModelPart::ElementsContainerType.\n";
-    }
+        std::copy(rTLS.begin(), rTLS.end(), Span.data() + Index * Stride);
+    });
 }
 
 template<class TContainerType>
@@ -63,32 +59,14 @@ std::string InfoImpl(
     return msg.str();
 }
 
-template<class TContainerPointerType, class TSpanType>
-TensorAdaptor<int>::Pointer Clone(
-    TContainerPointerType pContainer,
-    const ProcessInfo::Pointer pProcessInfo,
-    const TSpanType& rDataSpan)
-{
-    if constexpr(IsInList<std::remove_cv_t<std::decay_t<decltype(*pContainer)>>, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>::value) {
-        auto p_tensor_adaptor = Kratos::make_intrusive<EquationIdsTensorAdaptor>(pContainer, pProcessInfo);
-        IndexPartition<IndexType>(p_tensor_adaptor->Size()).for_each([p_tensor_adaptor, &rDataSpan](const auto Index) {
-            p_tensor_adaptor->ViewData()[Index] = rDataSpan[Index];
-        });
-        return p_tensor_adaptor;
-    } else {
-        KRATOS_ERROR << "EquationIdsTensorAdaptor only works with ModelPart::ConditionsContainerType or ModelPart::ElementsContainerType.\n";
-        return nullptr;
-    }
-}
-
 } // namespace EquationIdsTensorAdaptorHelpers
 
 template<class TContainerPointerType>
 EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(
     TContainerPointerType pContainer,
     ProcessInfo::Pointer pProcessInfo)
-    : mpProcessInfo(pProcessInfo),
-      mpContainer(pContainer)
+    : mpContainer(pContainer),
+      mpProcessInfo(pProcessInfo)
 {
     const auto& r_getter = [pProcessInfo](auto& rEquationIde, const auto& rEntity){
         rEntity.EquationIdVector(rEquationIde, *pProcessInfo);
@@ -100,7 +78,11 @@ EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(
 EquationIdsTensorAdaptor::BaseType::Pointer EquationIdsTensorAdaptor::Clone() const
 {
     return std::visit([this](auto pContainer) {
-        return EquationIdsTensorAdaptorHelpers::Clone(pContainer, this->mpProcessInfo, this->ViewData());
+        auto p_tensor_adaptor = Kratos::make_intrusive<EquationIdsTensorAdaptor>(pContainer, this->mpProcessInfo);
+        IndexPartition<IndexType>(p_tensor_adaptor->Size()).for_each([p_tensor_adaptor, this](const auto Index) {
+            p_tensor_adaptor->ViewData()[Index] = this->ViewData()[Index];
+        });
+        return p_tensor_adaptor;
     }, mpContainer);
 }
 
@@ -118,7 +100,9 @@ void EquationIdsTensorAdaptor::StoreData()
 
 EquationIdsTensorAdaptor::ContainerPointerType EquationIdsTensorAdaptor::GetContainer() const
 {
-    return mpContainer;
+    return std::visit([](auto pContainer) -> BaseType::ContainerPointerType {
+        return pContainer;
+    }, mpContainer);
 }
 
 std::string EquationIdsTensorAdaptor::Info() const

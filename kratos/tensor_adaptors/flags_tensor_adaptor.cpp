@@ -56,59 +56,34 @@ void FlagsTensorAdaptor::CollectData()
     std::visit(
         [this](auto pContainer) {
             const auto& r_tensor_shape = this->Shape();
-
-            using container_type = std::remove_cv_t<std::decay_t<decltype(*pContainer)>>;
-
-            if constexpr (IsInList<container_type,
-                                   ModelPart::NodesContainerType,
-                                   ModelPart::ConditionsContainerType,
-                                   ModelPart::ElementsContainerType>::value) {
-                ContainerIOUtils::CopyToContiguousArray<bool>(
-                    *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
-                    r_tensor_shape.data().begin() + r_tensor_shape.size(),
-                    [this](bool& rValue, const auto& rEntity) {
-                        rValue = rEntity.Is(this->mFlags);
-                    });
-            }
-            else {
-                KRATOS_ERROR
-                    << "Flags tensor adaptor can only collect data from nodes, "
-                       "conditions or elements containers.";
-            }
-        },
-        mpContainer);
+            ContainerIOUtils::CopyToContiguousArray<bool>(
+                *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
+                r_tensor_shape.data().begin() + r_tensor_shape.size(),
+                [this](bool& rValue, const auto& rEntity) {
+                    rValue = rEntity.Is(this->mFlags);
+                });
+        }, mpContainer);
 }
 
 void FlagsTensorAdaptor::StoreData()
 {
     std::visit(
         [this](auto pContainer) {
-            using container_type = std::remove_cv_t<std::decay_t<decltype(*pContainer)>>;
+            KRATOS_ERROR_IF_NOT(this->Size() == pContainer->size())
+                << "Size mismatch [ Container size = " << pContainer->size()
+                << ", data span size = " << this->Size() << " ].\n";
 
-            if constexpr (IsInList<container_type,
-                                   ModelPart::NodesContainerType,
-                                   ModelPart::ConditionsContainerType,
-                                   ModelPart::ElementsContainerType>::value) {
-                KRATOS_ERROR_IF_NOT(this->Size() == pContainer->size())
-                    << "Size mismatch [ Container size = " << pContainer->size()
-                    << ", data span size = " << this->Size() << " ].\n";
-
-                IndexPartition<IndexType>(pContainer->size()).for_each([this, pContainer](const auto Index) {
-                    (pContainer->begin() + Index)->Set(this->mFlags, *(this->ViewData().data() + Index));
-                });
-            }
-            else {
-                KRATOS_ERROR
-                    << "Flags tensor adaptor can only collect data from nodes, "
-                       "conditions or elements containers.";
-            }
-        },
-        mpContainer);
+            IndexPartition<IndexType>(pContainer->size()).for_each([this, pContainer](const auto Index) {
+                (pContainer->begin() + Index)->Set(this->mFlags, *(this->ViewData().data() + Index));
+            });
+        }, mpContainer);
 }
 
 FlagsTensorAdaptor::ContainerPointerType FlagsTensorAdaptor::GetContainer() const
 {
-    return this->mpContainer;
+    return std::visit([](auto pContainer) -> BaseType::ContainerPointerType {
+        return pContainer;
+    }, mpContainer);
 }
 
 std::string FlagsTensorAdaptor::Info() const

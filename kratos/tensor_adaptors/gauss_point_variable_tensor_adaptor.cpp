@@ -64,24 +64,6 @@ void CollectData(
     }
 }
 
-template<class TContainerPointerType, class TDataType, class TSpanType>
-typename TensorAdaptor<typename DataTypeTraits<TDataType>::PrimitiveType>::Pointer Clone(
-    TContainerPointerType pContainer,
-    const Variable<TDataType>& rVariable,
-    const ProcessInfo::Pointer pProcessInfo,
-    const TSpanType& rDataSpan)
-{
-    if constexpr(IsInList<std::remove_pointer_t<TContainerPointerType>, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>::value) {
-        auto p_tensor_adaptor = Kratos::make_intrusive<GaussPointVariableTensorAdaptor>(pContainer, &rVariable, pProcessInfo);
-        IndexPartition<IndexType>(p_tensor_adaptor->Size()).for_each([p_tensor_adaptor, &rDataSpan](const auto Index) {
-            p_tensor_adaptor->ViewData()[Index] = rDataSpan[Index];
-        });
-        return p_tensor_adaptor;
-    } else {
-        return nullptr;
-    }
-}
-
 } // namespace GaussPointVariableTensorAdaptorHelperUtilities
 
 template<class TContainerPointerType>
@@ -104,7 +86,11 @@ GaussPointVariableTensorAdaptor::GaussPointVariableTensorAdaptor(
 GaussPointVariableTensorAdaptor::BaseType::Pointer GaussPointVariableTensorAdaptor::Clone() const
 {
     return std::visit([this](auto pContainer, auto pVariable) {
-        return GaussPointVariableTensorAdaptorHelperUtilities::Clone(pContainer, *pVariable, this->mpProcessInfo, this->ViewData());
+        auto p_tensor_adaptor = Kratos::make_intrusive<GaussPointVariableTensorAdaptor>(pContainer, this->mpVariable, this->mpProcessInfo);
+        IndexPartition<IndexType>(p_tensor_adaptor->Size()).for_each([p_tensor_adaptor, this](const auto Index) {
+            p_tensor_adaptor->ViewData()[Index] = this->ViewData()[Index];
+        });
+        return p_tensor_adaptor;
     }, mpContainer, mpVariable);
 }
 
@@ -128,7 +114,9 @@ void GaussPointVariableTensorAdaptor::StoreData()
 
 GaussPointVariableTensorAdaptor::ContainerPointerType GaussPointVariableTensorAdaptor::GetContainer() const
 {
-    return mpContainer;
+    return std::visit([](auto pContainer) -> BaseType::ContainerPointerType {
+        return pContainer;
+    }, mpContainer);
 }
 
 std::string GaussPointVariableTensorAdaptor::Info() const
