@@ -38,7 +38,7 @@ struct LinkConstraint::Impl
     {
         // Set output sizes.
         rRelationMatrix = ZeroMatrix(1, 2 * Dimensions);
-        rHessian        = ZeroMatrix(1, 2 * Dimensions);
+        rHessian        = ZeroMatrix(2 * Dimensions, 2 * Dimensions);
         rConstraintGaps = ZeroVector(1);
 
         // Compute constraint violation.
