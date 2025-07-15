@@ -3,7 +3,31 @@ from typing import Union
 import KratosMultiphysics as Kratos
 
 class CombinedTensorAdaptor:
+    """A tensor adaptor which may be used to combine given any TensorAdaptor and/or another CombinedTensorAdaptor
+       This CombinedTensorAdaptor behaves like a TensorAdaptor even though it is not derived from the TensorAdaptor
+       base class.
+    """
     def __init__(self, list_of_tensor_adaptors: list[Union[Kratos.TensorAdaptors.BoolTensorAdaptor, Kratos.TensorAdaptors.IntTensorAdaptor, Kratos.TensorAdaptors.DoubleTensorAdaptor, 'CombinedTensorAdaptor']], axis = 0):
+        """Construct a CombinedTensor adaptor which concatenates the given TensorAdaptors and/or CombinedTensorAdaptors
+           along the specified axis.
+
+           CombinedTensorAdaptor will have the maximum number of dimensions from all the number of dimensions provided by
+           list_of_tensor_adaptors.
+
+           If a provided TensorAdaptor / CombinedTensorAdaptor does not have the same number of dimensions as the previously mentioned maximum
+           number of dimensions, new dimensions will be added to the end of the shape having value "1", which is called
+           the modified tensor adaptor shape.
+
+        Args:
+            list_of_tensor_adaptors (list[Union[Kratos.TensorAdaptors.BoolTensorAdaptor, Kratos.TensorAdaptors.IntTensorAdaptor, Kratos.TensorAdaptors.DoubleTensorAdaptor, &#39;CombinedTensorAdaptor&#39;]]): _description_
+            axis (int, optional): _description_. Defaults to 0.
+
+        Raises:
+            RuntimeError: If the list_of_tensor_adaptors is empty.
+            RuntimeError: If the axis is equal or larger than the maximum number of dimensions found in the list_of_tensor_adaptors.
+            RuntimeError: IF list_of_tensor_adaptors contains TensorAdaptors / CombinedTensorAdaptors having different numpy.dtypes.
+            RuntimeError: If the modified tensor adaptor shape's number of components in each dimension does not match with other tensor adaptor's same except in the axis dimension.
+        """
         self.__list_of_tensor_adaptors = list_of_tensor_adaptors
         self.__list_of_tensor_adaptor_shapes: list[Kratos.DenseVectorUnsignedInt] = []
         self.__axis = axis
@@ -27,26 +51,13 @@ class CombinedTensorAdaptor:
             if current_tensor_adaptor.ViewData().dtype != self.__dtype:
                 raise RuntimeError(f"Only allowed to combine same type of data [ combined dtype =  {self.__dtype.name}, current tensor adaptor dtype = {current_tensor_adaptor.ViewData().dtype.name}, current tensor adaptor = {current_tensor_adaptor} ].\n")
 
-            current_ta_shape = current_tensor_adaptor.Shape()
+            # we add 1 to the end dimensions of the shape
+            # so that they can be properly broadcasted using numpy
+            current_ta_shape = Kratos.DenseVectorUnsignedInt(self.__shape.Size(), 1)
+            for i in range(current_tensor_adaptor.Shape().Size()):
+                current_ta_shape[i] = current_tensor_adaptor.Shape()[i]
 
-            # only missing one dimension. We can add it to the __axis dimension
-            # and check whether this tensor adaptor is compatible with addition.
-            current_new_shape = Kratos.DenseVectorUnsignedInt(current_ta_shape)
-            if current_ta_shape.Size() == self.__shape.Size() - 1:
-                current_new_shape = Kratos.DenseVectorUnsignedInt(self.__shape)
-                for i in range(self.__axis):
-                    current_new_shape[i] = current_ta_shape[i]
-                current_new_shape[self.__axis] = 1
-                for i in range(self.__axis, current_ta_shape.Size()):
-                    current_new_shape[i + self.__axis + 1] = current_ta_shape[i]
-
-            # from here on wards use the new shape
-            current_ta_shape = current_new_shape
-
-            # now check for number of dimensions
-            if self.__shape.Size() != current_ta_shape.Size():
-                raise RuntimeError(f"Number of dimensions should match in all the tensor adaptors [ combined shape = {self.__shape}, current tensor adaptor shape = {current_ta_shape}, tensor adaptor = {current_tensor_adaptor} ].\n")
-
+            # now check whether the components of the dimensions match
             for i in range(self.__shape.Size()):
                 if i != self.__axis and self.__shape[i] != current_ta_shape[i]:
                     raise RuntimeError(f"Number of components in each dimension should match except in the axis dimension [ combined shape = {self.__shape}, axis = {self.__axis}, current_tensor adaptor shape = {current_ta_shape}, tensor adaptor = {current_tensor_adaptor} ].\n")
@@ -58,9 +69,11 @@ class CombinedTensorAdaptor:
         self.__data: numpy.ndarray = numpy.empty(self.__shape, dtype=self.__dtype)
 
     def GetTensorAdaptors(self):
+        """Returns the list of tensor adaptors.
+        """
         return list(self.__list_of_tensor_adaptors)
 
-    def CollectData(self, recursively = False) -> None:
+    def CollectData(self, recursively = True) -> None:
         if recursively:
             for current_tensor_adaptor in self.__list_of_tensor_adaptors:
                 if isinstance(current_tensor_adaptor, CombinedTensorAdaptor):
@@ -73,7 +86,7 @@ class CombinedTensorAdaptor:
         # now do the numpy concatenation
         self.__data[:] = numpy.concatenate(list_of_numpy_arrays, axis = self.__axis)
 
-    def StoreData(self, recursively = False) -> None:
+    def StoreData(self, recursively = True) -> None:
         slicing = [slice(None)] * self.__shape.Size()
         slicing[self.__axis] = slice(0, 0)
         for i, ta in enumerate(self.__list_of_tensor_adaptors):
