@@ -40,18 +40,9 @@ struct LinkConstraint::Impl
         KRATOS_ERROR_IF_NOT(Dimensions);
 
         // Set output sizes.
-        rRelationMatrix.resize(1, 2 * Dimensions);
-        rHessian.resize(2 * Dimensions, 2 * Dimensions);
-        rConstraintGaps.resize(1);
-
-        // Initialize outputs.
-        rConstraintGaps[0] = 0.0;
-        std::fill(rRelationMatrix.data().begin(),
-                  rRelationMatrix.data().end(),
-                  static_cast<ValueType>(0));
-        std::fill(rHessian.data().begin(),
-                  rHessian.data().end(),
-                  static_cast<ValueType>(0));
+        rRelationMatrix = ZeroMatrix(1, 2 * Dimensions);
+        rHessian        = ZeroMatrix(1, 2 * Dimensions);
+        rConstraintGaps = ZeroVector(1);
 
         // Compute constraint violation.
         double current_norm = 0.0;
