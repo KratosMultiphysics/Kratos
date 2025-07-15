@@ -119,7 +119,40 @@ public:
 private:
     std::vector<Model*> mpModels;
 
-    void CopySubModelPart(ModelPart& rDestinationMP, ModelPart& rReferenceMP)
+    void CopySubModelPartIgaInterface(ModelPart& rDestinationMP, ModelPart& rReferenceMP)
+    {
+        // We just set the control points which have support on the interface (we are not interested in the CPs whose shape function is 0 on the interface)
+        // For that, we loop over the quadrature points and check its shape functions
+        
+        // Set to keep track of already added node IDs (avoid duplicates)
+        std::unordered_set<IndexType> added_node_ids;
+
+        for (auto& r_cond : rReferenceMP.Conditions()) {
+            auto& r_geom = r_cond.GetGeometry();
+            auto& r_N = r_geom.ShapeFunctionsValues();
+
+            // Loop over nodes in the geometry
+            for (std::size_t i = 0; i < r_geom.size(); ++i) {
+                const double N_i = r_N(0, i);
+
+                if (N_i > 1e-5) { // Node has influence at quadrature point
+                    const auto& node = r_geom[i];
+
+                    if (added_node_ids.insert(node.Id()).second) {
+                        // If node ID was not already added, add to destination
+                        rDestinationMP.AddNode(r_geom.pGetPoint(i));
+                    }
+                }
+            }
+        }
+
+        rDestinationMP.SetNodalSolutionStepVariablesList(rReferenceMP.pGetNodalSolutionStepVariablesList());
+        ModelPart& coupling_conditions = rReferenceMP.GetSubModelPart("coupling_conditions");
+        rDestinationMP.SetConditions(coupling_conditions.pConditions());
+
+    }
+
+    void CopySubModelPartFEMInterface(ModelPart& rDestinationMP, ModelPart& rReferenceMP)
     {
         rDestinationMP.SetNodes(rReferenceMP.pNodes());
         rDestinationMP.SetNodalSolutionStepVariablesList(rReferenceMP.pGetNodalSolutionStepVariablesList());
@@ -127,7 +160,9 @@ private:
         rDestinationMP.SetConditions(coupling_conditions.pConditions());
     }
 
-    void CreateIgaInterfaceBrepCurveOnSurface(ModelPart& rInterfaceModelPart);
+    void CreateIgaInterfaceBrepCurveOnSurfaceConditions(ModelPart& rInterfaceModelPart);
+
+    void CreateFEMInterfaceNurbsCurveConditions(ModelPart& rInterfaceModelPart);
 
     void CheckParameters();
 
