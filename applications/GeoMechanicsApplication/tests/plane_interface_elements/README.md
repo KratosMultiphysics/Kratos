@@ -3,15 +3,15 @@
 This folder contains integration tests for the plane interface elements with Neumann and Dirichlet boundary conditions. 
 
 ## Setup
-For these specific test cases, two non-connected plane interface elements with different orientations with triangular and quadraterial elements of and 3 + 3, 4 + 4, 6 + 6 and 8 + 8 nodes are used, as seen in the schematic below. Note that the node pairs are actually at the same location. The single stage tests use all three elements, whereas the multi-stage tests are limited to the horizontal element only.
+For these specific test cases, two non-connected planar interface elements with different orientations are used. These interfaces are embedded in triangular and quadrilateral meshes with node configurations of 3 + 3, 4 + 4, 6 + 6, and 8 + 8 nodes, as illustrated in the schematic below. Note that the node pairs are co-located—i.e., they occupy the same spatial positions. The single-stage tests utilize all three elements, whereas the multi-stage tests are limited to the horizontally aligned element only.
 
 ![Schematic](Schematic.svg)
 
-Two types of test cases (`Dirichlet_single_stage` and `Neumann_single_stage`) are performed in a single stage and a single time step. The Neumann test cases apply a normal and shear traction to one side of the interfaces, while the Dirichlet test case applies a fixed displacement. The other side of the interface is kept fixed.
+Two types of test cases—Dirichlet_single_stage and Neumann_single_stage—are performed in a single stage and consist of a single time step. In the Neumann test cases, a normal and shear traction is applied to one side of the interface, while the other side is fixed. In the Dirichlet test cases, a prescribed displacement is applied to one side of the interface, with the opposite side similarly constrained.
 
-There are more test cases (`Dirichlet_multi_stage` and `Neumann_multi_stage`), which involve two stages each. Per stage, two time steps are carried out.
+Additional test cases—Dirichlet_multi_stage and Neumann_multi_stage—involve two stages, with two time steps per stage.
 
-The traction applied in the Neumann test cases result in the same displacement field as the Dirichlet test cases for the interfaces, which are described using a linear elastic material model.
+The applied tractions in the Neumann test cases are selected such that they produce the same displacement field as the corresponding Dirichlet cases. All interfaces are modeled using a linear elastic material law.
 
 ## Assertions
 For all tests, the displacements, relative displacements and tractions are compared to the known linear elastic behavior:
