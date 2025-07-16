@@ -88,9 +88,6 @@ public:
     /// Geometry container type within ModelPart
     using GeometryContainerType = typename ModelPart::GeometryContainerType;
 
-    /// The geometry map type within ModelPart
-    using GeometriesMapType = typename ModelPart::GeometriesMapType;
-
     /// Elements container type within MeshType
     using ElementsContainerType = typename MeshType::ElementsContainerType;
 
