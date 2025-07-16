@@ -67,7 +67,7 @@ InterfaceElement::InterfaceElement(IndexType                                    
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy)
     : Element(NewId, rGeometry, rProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
-    MakeIntegrationSheme();
+    MakeIntegrationSchemeAndAssignFunction();
 }
 
 InterfaceElement::InterfaceElement(IndexType                          NewId,
@@ -75,15 +75,17 @@ InterfaceElement::InterfaceElement(IndexType                          NewId,
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy)
     : Element(NewId, rGeometry), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
-    MakeIntegrationSheme();
+    MakeIntegrationSchemeAndAssignFunction();
 }
 
-void InterfaceElement::MakeIntegrationSheme()
+void InterfaceElement::MakeIntegrationSchemeAndAssignFunction()
 {
     if (GetGeometry().LocalSpaceDimension() == 1) {
         mIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);
+        mfpCalculateRotationMatrix = GeometryUtilities::Calculate2DRotationMatrixForLineGeometry;
     } else {
         mIntegrationScheme = std::make_unique<LumpedIntegrationScheme>(GetGeometry().PointsNumber() / 2);
+        mfpCalculateRotationMatrix = GeometryUtilities::Calculate3DRotationMatrixForPlaneGeometry;
     }
 }
 
@@ -215,20 +217,13 @@ std::vector<Matrix> InterfaceElement::CalculateLocalBMatricesAtIntegrationPoints
 
     auto result = std::vector<Matrix>{};
     result.reserve(shape_function_values_at_integration_points.size());
-    auto calculate_local_b_matrix = [&r_geometry = GetGeometry(), p_policy = mpStressStatePolicy.get()](
-                                        const auto& rShapeFunctionValuesAtIntegrationPoint,
-                                        const auto& rIntegrationPoint) {
+    auto calculate_local_b_matrix = [&r_geometry = GetGeometry(), p_policy = mpStressStatePolicy.get(),
+                                     this](const auto& rShapeFunctionValuesAtIntegrationPoint,
+                                           const auto& rIntegrationPoint) {
         // For interface elements, the shape function gradients are not used, since these are
         // non-continuum elements. Therefore, we pass an empty matrix.
+        const auto rotation_matrix = mfpCalculateRotationMatrix(r_geometry, rIntegrationPoint);
         const auto dummy_gradients = Matrix{};
-        Matrix     rotation_matrix;
-        if (r_geometry.LocalSpaceDimension() == 1) {
-            rotation_matrix =
-                GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(r_geometry, rIntegrationPoint);
-        } else if (r_geometry.LocalSpaceDimension() == 2) {
-            rotation_matrix = GeometryUtilities::Calculate3DRotationMatrixForPlaneGeometry(
-                r_geometry, rIntegrationPoint);
-        }
         return Matrix{prod(rotation_matrix, p_policy->CalculateBMatrix(dummy_gradients, rShapeFunctionValuesAtIntegrationPoint,
                                                                        r_geometry))};
     };
