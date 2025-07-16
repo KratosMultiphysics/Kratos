@@ -304,4 +304,10 @@ void InterfaceElement::load(Serializer& rSerializer)
     // not fully implemented
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
 }
+
+// Instances of this class can not be copied but can be moved. Check that at compile time.
+static_assert(!std::is_copy_constructible_v<InterfaceElement>);
+static_assert(!std::is_copy_assignable_v<InterfaceElement>);
+static_assert(std::is_move_constructible_v<InterfaceElement>);
+static_assert(std::is_move_assignable_v<InterfaceElement>);
 } // namespace Kratos
