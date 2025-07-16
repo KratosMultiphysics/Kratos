@@ -25,7 +25,6 @@ namespace Kratos {
         const ProcessInfo& rCurrentProcessInfo
     ) const
     {
-        //KRATOS_WATCH("IsogeometricBeamElement::EquationIdVector");
         KRATOS_TRY;
 
         const auto& r_geometry = GetGeometry();
@@ -52,8 +51,6 @@ namespace Kratos {
         const ProcessInfo& rCurrentProcessInfo
     ) const
     {
-        //KRATOS_WATCH("IsogeometricBeamElement::GetDofList");
-
         KRATOS_TRY;
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_control_points = r_geometry.size();
@@ -452,12 +449,12 @@ namespace Kratos {
         r1_var.resize(3 * N_Dof);
         r1_var.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
-            for (int r = 0;r < N_Dof;r++)
+            for (size_t  r  = 0;r < N_Dof;r++)
             {
-                int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 ->rot_tan
-                int i = r / Dof_Node;     // index for the shape functions
+                size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 ->rot_tan
+                size_t i = r / Dof_Node;     // index for the shape functions
                 if (t == xyz)
                 {
                     r1_var(t * N_Dof + r) += _deriv[i];
@@ -469,17 +466,17 @@ namespace Kratos {
         r1_r1_var.resize(N_Dof);
         r1_r1_var.clear();
 
-        for (int r = 0;r < N_Dof;r++) //in the case
+        for (size_t  r  = 0;r < N_Dof;r++) //in the case
         {
-            for (int t = 0;t < 3;t++)
+            for (size_t  t   = 0;t < 3;t++)
             {
                 r1_r1_var(r) += r1_var[t * N_Dof + r] * _r1[t];
             }
         }
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
-            for (int r = 0;r < N_Dof;r++)
+            for (size_t  r  = 0;r < N_Dof;r++)
                 _t_var(t * N_Dof + r) += r1_var[t * N_Dof + r] / r1_dL - _r1[t] * r1_r1_var[r] / r1_dLpow3;
         }
 
@@ -501,10 +498,10 @@ namespace Kratos {
         r1_var.clear();
         for (size_t t = 0;t < 3;t++) //in the case
         {
-            for (int r = 0;r < N_Dof;r++) //in the case
+            for (size_t  r  = 0;r < N_Dof;r++) //in the case
             {
-                int xyz = r % Dof_Node;
-                int i = r / Dof_Node;
+                size_t xyz = r % Dof_Node;
+                size_t i = r / Dof_Node;
                 if (t == xyz && xyz < 3)
                     r1_var(t * N_Dof + r) = _deriv[i];
             }
@@ -515,9 +512,9 @@ namespace Kratos {
         r1_r1var.clear();
 
 
-        for (int r = 0;r < N_Dof;r++) //in the case
+        for (size_t  r  = 0;r < N_Dof;r++) //in the case
         {
-            int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+            size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
 
             if (xyz > 2)
                 r1_r1var(r) = 0;
@@ -537,9 +534,9 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++)
         {
-            for (int r = 0;r < N_Dof;r++)
+            for (size_t  r  = 0;r < N_Dof;r++)
             {
-                for (int s = 0;s < N_Dof;s++) //in the case
+                for (size_t  s  = 0;s < N_Dof;s++) //in the case
                 {
                     r1var_r1var(r, s) += r1_var[t * N_Dof + r] * r1_var[t * N_Dof + s];
                 }
@@ -549,14 +546,14 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++)
         {
-            for (int r = 0;r < N_Dof;r++)
+            for (size_t  r  = 0;r < N_Dof;r++)
             {
-                int xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-                int i = r / Dof_Node;     // index for the shape functions
-                for (int s = 0;s < N_Dof;s++)
+                size_t xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                //size_t i = r / Dof_Node;     // index for the shape functions
+                for (size_t  s  = 0;s < N_Dof;s++)
                 {
-                    int xyz_s = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-                    int j = s / Dof_Node;     // index for the shape functions
+                    size_t xyz_s = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                    //size_t j = s / Dof_Node;     // index for the shape functions
                     if (xyz_r > 2 || xyz_s > 2)
                         _t_var_var(r, s) += 0;
                     else
@@ -578,7 +575,7 @@ namespace Kratos {
 
         float r1r11 = inner_prod(_r1, _r2);
         //cfloat r1r111 = inner_prod(_r1,_r3);
-        float r11r11 = inner_prod(_r2, _r2);
+        //float r11r11 = inner_prod(_r2, _r2);
         float r1_dL = norm_2(_r1);
 
         Vector r1_var;
@@ -586,10 +583,10 @@ namespace Kratos {
         r1_var.clear();
         for (size_t t = 0;t < 3;t++) //in the case
         {
-            for (int r = 0;r < N_Dof;r++) //in the case
+            for (size_t  r  = 0;r < N_Dof;r++) //in the case
             {
-                int xyz = r % Dof_Node;
-                int i = r / Dof_Node;
+                size_t xyz = r % Dof_Node;
+                size_t i = r / Dof_Node;
                 if (t == xyz)
                     r1_var(t * N_Dof + r) = _deriv[i];
             }
@@ -601,10 +598,10 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++) //in the case
         {
-            for (int r = 0;r < N_Dof;r++) //in the case
+            for (size_t  r  = 0;r < N_Dof;r++) //in the case
             {
-                int xyz = r % Dof_Node;
-                int i = r / Dof_Node;
+                size_t xyz = r % Dof_Node;
+                size_t i = r / Dof_Node;
                 if (t == xyz)
                     r11_var(t * N_Dof + r) = _deriv2[i];
             }
@@ -620,9 +617,9 @@ namespace Kratos {
         r1_r11_var.resize(N_Dof);
         r1_r11_var.clear();
 
-        for (int r = 0;r < N_Dof;r++) //in the case
+        for (size_t  r  = 0;r < N_Dof;r++) //in the case
         {
-            int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+            size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
 
             if (xyz > 2)
             {
@@ -644,9 +641,9 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++) //in the case
         {
-            for (int r = 0;r < N_Dof;r++) //in the case
+            for (size_t  r  = 0;r < N_Dof;r++) //in the case
             {
-                int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
 
                 if (xyz > 2)
                     _t_deriv_var[t * N_Dof + r] = 0;
@@ -668,7 +665,7 @@ namespace Kratos {
         _t_deriv_var_var.clear();
 
         float r1r11 = inner_prod(_r1, _r2);
-        float r11r11 = inner_prod(_r2, _r2);
+        //float r11r11 = inner_prod(_r2, _r2);
         float r1_dL = norm_2(_r1);
         float r1_pow3 = pow(r1_dL, 3);
         float r1_pow5 = pow(r1_dL, 5);
@@ -682,10 +679,10 @@ namespace Kratos {
         r11_var.clear();
         for (size_t t = 0;t < 3;t++) //in the case
         {
-            for (int r = 0;r < N_Dof;r++) //in the case
+            for (size_t  r  = 0;r < N_Dof;r++) //in the case
             {
-                int xyz = r % Dof_Node;
-                int i = r / Dof_Node;
+                size_t xyz = r % Dof_Node;
+                size_t i = r / Dof_Node;
                 if (t == xyz)
                 {
                     r1_var(t * N_Dof + r) += _deriv[i];
@@ -704,9 +701,9 @@ namespace Kratos {
         r1_r11_var.resize(N_Dof);
         r1_r11_var.clear();
 
-        for (int r = 0;r < N_Dof;r++) //in the case
+        for (size_t  r  = 0;r < N_Dof;r++) //in the case
         {
-            int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z        
+            size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z        
             if (xyz > 2)
                 r1_r1_var(r) = 0;
             else
@@ -732,9 +729,9 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++)
         {
-            for (int r = 0;r < N_Dof;r++) //in the case
+            for (size_t  r  = 0;r < N_Dof;r++) //in the case
             {
-                for (int s = 0;s < N_Dof;s++) //in the case
+                for (size_t  s  = 0;s < N_Dof;s++) //in the case
                 {
                     r1_var_r1_var(r, s) += r1_var[t * N_Dof + r] * r1_var[t * N_Dof + s];
                     r1_var_r11_var(r, s) += r1_var[t * N_Dof + r] * r11_var[t * N_Dof + s];
@@ -745,12 +742,12 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++)
         {
-            for (int s = 0;s < N_Dof;s++)
+            for (size_t  s  = 0;s < N_Dof;s++)
             {
-                for (int r = 0;r < N_Dof;r++)
+                for (size_t  r  = 0;r < N_Dof;r++)
                 {
-                    int xyzr = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-                    int xyzs = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                    size_t xyzr = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                    size_t xyzs = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
                     if (xyzr > 2 || xyzs > 2)
                         _t_deriv_var_var(r, s) += 0;
                     else
@@ -793,10 +790,10 @@ namespace Kratos {
         r1derder_var.clear();
         for (size_t t = 0; t < 3; t++) //in the case
         {
-            for (int r = 0; r < N_Dof; r++) //in the case
+            for (size_t  r  = 0; r < N_Dof; r++) //in the case
             {
-                int xyz = r % Dof_Node;
-                int i = r / Dof_Node;
+                size_t xyz = r % Dof_Node;
+                size_t i = r / Dof_Node;
                 if (t == xyz)
                 {
                     r1_var(t * N_Dof + r) = _deriv[i];
@@ -831,9 +828,9 @@ namespace Kratos {
         r1_r1der_dervar.resize(N_Dof);
         r1_r1der_dervar.clear();
 
-        for (int r = 0; r < N_Dof; r++) //in the case
+        for (size_t  r  = 0; r < N_Dof; r++) //in the case
         {
-            int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+            size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
 
             if (xyz > 2)
             {
@@ -863,9 +860,9 @@ namespace Kratos {
 
         for (size_t t = 0; t < 3; t++) //in the case
         {
-            for (int r = 0; r < N_Dof; r++) //in the case
+            for (size_t  r  = 0; r < N_Dof; r++) //in the case
             {
-                int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
 
                 if (xyz > 2)
                     _t_deriv2_var[t * N_Dof + r] = 0;
@@ -913,12 +910,12 @@ namespace Kratos {
         //_mat_rod_var.resize(3*N_Dof,3);
         _mat_rod_var.clear();
 
-        int permutation[3][3][3];
-        for (int i = 0; i < 3; i++)
+        size_t permutation[3][3][3];
+        for (size_t i = 0; i < 3; i++)
         {
-            for (int j = 0; j < 3; j++)
+            for (size_t j = 0; j < 3; j++)
             {
-                for (int k = 0; k < 3; k++)
+                for (size_t k = 0; k < 3; k++)
                 {
                     permutation[i][j][k] = 0;
                 }
@@ -938,10 +935,10 @@ namespace Kratos {
         {
             for (size_t u = 0;u < 3;u++)
             {
-                for (int r = 0;r < N_Dof;r++)
+                for (size_t  r  = 0;r < N_Dof;r++)
                 {
-                    int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-                    int i = r / Dof_Node;     // index for the shape functions
+                    size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                    size_t i = r / Dof_Node;     // index for the shape functions
                     if (t == u)
                     {
                         if (xyz > 2)
@@ -1000,10 +997,10 @@ namespace Kratos {
         phi_var.resize(N_Dof);
         phi_var.clear();
 
-        for (int r = 0;r < N_Dof;r++) //in the case
+        for (size_t  r  = 0;r < N_Dof;r++) //in the case
         {
-            int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-            int i = r / Dof_Node;     // index for the shape functions
+            size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+            size_t i = r / Dof_Node;     // index for the shape functions
 
             if (xyz > 2)
                 phi_var(r) = _func[i];
@@ -1015,12 +1012,12 @@ namespace Kratos {
         {
             for (size_t u = 0;u < 3;u++)
             {
-                for (int s = 0;s < N_Dof;s++)
+                for (size_t  s  = 0;s < N_Dof;s++)
                 {
-                    int xyzs = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-                    for (int r = 0;r < N_Dof;r++)
+                    size_t xyzs = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                    for (size_t  r  = 0;r < N_Dof;r++)
                     {
-                        int xyzr = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                        size_t xyzr = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
 
                         if (t == u)
                         {
@@ -1075,7 +1072,7 @@ namespace Kratos {
         phi_var.resize(N_Dof);
         phi_var.clear();
 
-        for (int r = 0;r < N_Dof / Dof_Node;r++)
+        for (size_t  r  = 0;r < N_Dof / Dof_Node;r++)
         {
             phi_var(r * Dof_Node + 3) = _func(r);
         }
@@ -1084,7 +1081,7 @@ namespace Kratos {
         phi_der_var.resize(N_Dof);
         phi_der_var.clear();
 
-        for (int r = 0;r < N_Dof / Dof_Node;r++)
+        for (size_t  r  = 0;r < N_Dof / Dof_Node;r++)
         {
             phi_der_var(r * Dof_Node + 3) = _deriv(r);
         }
@@ -1093,10 +1090,10 @@ namespace Kratos {
         {
             for (size_t u = 0;u < 3;u++)
             {
-                for (int r = 0;r < N_Dof;r++)
+                for (size_t  r  = 0;r < N_Dof;r++)
                 {
-                    int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-                    int i = r / Dof_Node;     // index for the shape functions
+                    size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                    size_t i = r / Dof_Node;     // index for the shape functions
                     if (t == u)
                     {
                         if (xyz > 2)
@@ -1155,7 +1152,7 @@ namespace Kratos {
         phi_der_var.resize(N_Dof);
         phi_der_var.clear();
 
-        for (int r = 0;r < N_Dof / Dof_Node;r++)
+        for (size_t  r  = 0;r < N_Dof / Dof_Node;r++)
         {
             phi_var(r * Dof_Node + 3) = _func[r];
             phi_der_var(r * Dof_Node + 3) = _deriv(r);
@@ -1170,13 +1167,13 @@ namespace Kratos {
         {
             for (size_t u = 0;u < 3;u++)
             {
-                for (int r = 0;r < N_Dof;r++)
+                for (size_t  r  = 0;r < N_Dof;r++)
                 {
-                    int xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-                    for (int s = 0;s < N_Dof;s++)
+                    //size_t xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                    for (size_t  s  = 0;s < N_Dof;s++)
                     {
-                        int xyz_s = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-                        int i = r / Dof_Node;     // index for the shape functions
+                        //size_t xyz_s = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                        //size_t i= r / Dof_Node;     // index for the shape functions
                         if (t == u)
                         {
                             _mat_rod_der_var_var(t * N_Dof + r, u * N_Dof + s) += -phi_der_var(r) * phi_var(s) * cs - phi_der_var(s) * phi_var(r) * cs + sn * _phi_der * phi_var[r] * phi_var[s];
@@ -1253,10 +1250,10 @@ namespace Kratos {
         {
             for (size_t u = 0; u < 3; u++)
             {
-                for (int r = 0; r < N_Dof; r++)
+                for (size_t  r  = 0; r < N_Dof; r++)
                 {
-                    int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-                    int i = r / Dof_Node;     // index for the shape functions
+                    size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                    size_t i= r / Dof_Node;     // index for the shape functions
                     if (t == u)
                     {
                         if (xyz > 2)
@@ -1320,7 +1317,7 @@ namespace Kratos {
         phi_der_var.resize(N_Dof);
         phi_der_var.clear();
 
-        for (int r = 0;r < N_Dof / Dof_Node;r++)
+        for (size_t  r  = 0;r < N_Dof / Dof_Node;r++)
         {
             phi_var(r * Dof_Node + 3) = _func[r];
             phi_der_var(r * Dof_Node + 3) = _deriv(r);
@@ -1335,10 +1332,10 @@ namespace Kratos {
         {
             for (size_t u = 0;u < 3;u++)
             {
-                for (int r = 0;r < N_Dof;r++)
+                for (size_t  r  = 0;r < N_Dof;r++)
                 {
-                    int xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-                    int i = r / Dof_Node;     // index for the shape functions
+                    size_t xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                    size_t i= r / Dof_Node;     // index for the shape functions
                     if (t == u)
                     {
                         if (xyz_r > 2)
@@ -1360,10 +1357,10 @@ namespace Kratos {
                             _mat_rod_der_var(t * N_Dof + r, u) += cos(_phi) * _phi_der * permutation[t][k][u] * _vec_var[k * N_Dof + r] + sin(_phi) * permutation[t][k][u] * _vec_der_var[k * N_Dof + r]; //*_mat_identity(u,u)
                         }
                     }
-                    for (int s = 0;s < N_Dof;s++)
+                    for (size_t  s  = 0;s < N_Dof;s++)
                     {
-                        int xyz_s = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-                        int i = r / Dof_Node;     // index for the shape functions
+                        size_t xyz_s = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                        //size_t i = r / Dof_Node;     // index for the shape functions
                         if (t == u)
                         {
                             _mat_rod_var_var(t * N_Dof + r, u * N_Dof + s) += -cos(_phi) * phi_var[r] * phi_var[s];
@@ -1560,9 +1557,9 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++) //in the case
         {
-            for (int r = 0;r < N_Dof;r++)
+            for (size_t  r  = 0;r < N_Dof;r++)
             {
-                int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
                 for (size_t u = 0;u < 3;u++)
                 {
                     for (size_t k = 0;k < 3;k++)
@@ -1582,9 +1579,9 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++)
         {
-            for (int r = 0;r < N_Dof;r++) //in the case
+            for (size_t  r  = 0;r < N_Dof;r++) //in the case
             {
-                int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
                 //cint i = r/Dof_Node;     // index for the shape functions
 
                 if (xyz > 2)
@@ -1598,10 +1595,10 @@ namespace Kratos {
         {
             for (size_t u = 0;u < 3;u++)
             {
-                for (int r = 0;r < N_Dof;r++)
+                for (size_t  r  = 0;r < N_Dof;r++)
                 {
-                    int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-                    int i = r / Dof_Node;     // index for the shape functions
+                    size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                    //size_t i = r / Dof_Node;     // index for the shape functions
                     if (t == u)
                     {
                         if (xyz > 2)
@@ -1668,9 +1665,9 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++)
         {
-            for (int r = 0;r < N_Dof;r++) //in the case
+            for (size_t  r  = 0;r < N_Dof;r++) //in the case
             {
-                int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
 
                 if (xyz > 2)
                     T0_T_var(r) = 0;
@@ -1685,12 +1682,12 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++)
         {
-            for (int r = 0;r < N_Dof;r++) //in the case
+            for (size_t  r  = 0;r < N_Dof;r++) //in the case
             {
-                for (int s = 0;s < N_Dof;s++) //in the case
+                for (size_t  s  = 0;s < N_Dof;s++) //in the case
                 {
-                    int xyzr = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-                    int xyzs = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                    size_t xyzr = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                    size_t xyzs = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
 
                     if (xyzr > 2 || xyzs > 2)
                         T0_T_var_var(r, s) += 0;
@@ -1704,9 +1701,9 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++) //in the case
         {
-            for (int r = 0;r < N_Dof;r++)
+            for (size_t  r  = 0;r < N_Dof;r++)
             {
-                int xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                size_t xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
                 for (size_t u = 0;u < 3;u++)
                 {
                     for (size_t k = 0;k < 3;k++)
@@ -1724,12 +1721,12 @@ namespace Kratos {
         {
             for (size_t u = 0;u < 3;u++) //in the case
             {
-                for (int r = 0;r < N_Dof;r++)
+                for (size_t  r  = 0;r < N_Dof;r++)
                 {
-                    int xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
-                    for (int s = 0;s < N_Dof;s++)
+                    size_t xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                    for (size_t  s  = 0;s < N_Dof;s++)
                     {
-                        int xyz_s = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                        size_t xyz_s = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
                         for (size_t k = 0;k < 3;k++)
                         {
                             if (xyz_r > 2 || xyz_s > 2)
@@ -1746,12 +1743,12 @@ namespace Kratos {
         {
             for (size_t u = 0;u < 3;u++)
             {
-                for (int r = 0;r < N_Dof;r++)
+                for (size_t  r  = 0;r < N_Dof;r++)
                 {
-                    int xyzr = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 ->rot_tan
-                    for (int s = 0;s < N_Dof;s++)
+                    size_t xyzr = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 ->rot_tan
+                    for (size_t  s  = 0;s < N_Dof;s++)
                     {
-                        int xyzs = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 ->rot_tan
+                        size_t xyzs = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 ->rot_tan
                         if (xyzr > 2 || xyzs > 2) _mat_lam_var_var(t * N_Dof + r, u * N_Dof + s) = 0;
                         else
                         {
@@ -1833,13 +1830,13 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++) //in the case
         {
-            for (int r = 0;r < N_Dof;r++)
+            for (size_t  r  = 0;r < N_Dof;r++)
             {
                 for (size_t u = 0;u < 3;u++)
                 {
                     for (size_t k = 0;k < 3;k++)
                     {
-                        int xyz = r % Dof_Node;
+                        size_t xyz = r % Dof_Node;
                         if (xyz > 2)
                         {
                             cross_vec1_vec2_var[t * N_Dof + r] = 0;
@@ -1869,9 +1866,9 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++)
         {
-            for (int r = 0;r < N_Dof;r++) //in the case
+            for (size_t  r  = 0;r < N_Dof;r++) //in the case
             {
-                int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
 
                 if (xyz > 2)
                 {
@@ -1894,9 +1891,9 @@ namespace Kratos {
         {
             for (size_t u = 0;u < 3;u++)
             {
-                for (int r = 0;r < N_Dof;r++)
+                for (size_t  r  = 0;r < N_Dof;r++)
                 {
-                    int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                    size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
 
                     if (xyz > 2)
                         _mat_lam_der_var(t * N_Dof + r, u) += 0;
@@ -2022,13 +2019,13 @@ namespace Kratos {
 
         for (size_t t = 0; t < 3; t++) //in the case
         {
-            for (int r = 0; r < N_Dof; r++)
+            for (size_t  r  = 0; r < N_Dof; r++)
             {
                 for (size_t u = 0; u < 3; u++)
                 {
                     for (size_t k = 0; k < 3; k++)
                     {
-                        int xyz = r % Dof_Node;
+                        size_t xyz = r % Dof_Node;
                         if (xyz > 2)
                         {
                             cross_vec1_vec2var[t * N_Dof + r] = 0;
@@ -2075,9 +2072,9 @@ namespace Kratos {
 
         for (size_t t = 0; t < 3; t++)
         {
-            for (int r = 0; r < N_Dof; r++) //in the case
+            for (size_t  r  = 0; r < N_Dof; r++) //in the case
             {
-                int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
 
                 if (xyz > 2)
                 {
@@ -2118,9 +2115,9 @@ namespace Kratos {
         {
             for (size_t u = 0; u < 3; u++)
             {
-                for (int r = 0; r < N_Dof; r++)
+                for (size_t  r  = 0; r < N_Dof; r++)
                 {
-                    int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                    size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
 
                     if (xyz > 2)
                         _mat_lam_derder_var(t * N_Dof + r, u) += 0;
@@ -2218,9 +2215,9 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++)
         {
-            for (int r = 0;r < N_Dof;r++) //in the case
+            for (size_t  r  = 0;r < N_Dof;r++) //in the case
             {
-                int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
 
                 if (xyz > 2)
                 {
@@ -2249,14 +2246,14 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++)
         {
-            for (int r = 0;r < N_Dof;r++) //in the case
+            for (size_t  r  = 0;r < N_Dof;r++) //in the case
             {
-                int xyzr = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
-                int i = r / Dof_Node;     // index for the shape functions
-                for (int s = 0;s < N_Dof;s++) //in the case
+                size_t xyzr = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                //size_t i = r / Dof_Node;     // index for the shape functions
+                for (size_t  s  = 0;s < N_Dof;s++) //in the case
                 {
-                    int xyzs = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
-                    int j = s / Dof_Node;     // index for the shape functions
+                    size_t xyzs = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                    //size_t j = s / Dof_Node;     // index for the shape functions
 
                     if (xyzr > 2 || xyzs > 2)
                     {
@@ -2274,9 +2271,9 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++) //in the case
         {
-            for (int r = 0;r < N_Dof;r++)
+            for (size_t  r  = 0;r < N_Dof;r++)
             {
-                int xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                size_t xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
                 for (size_t u = 0;u < 3;u++)
                 {
                     if (xyz_r > 2)
@@ -2310,12 +2307,12 @@ namespace Kratos {
         {
             for (size_t u = 0;u < 3;u++) //in the case
             {
-                for (int r = 0;r < N_Dof;r++)
+                for (size_t  r  = 0;r < N_Dof;r++)
                 {
-                    int xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
-                    for (int s = 0;s < N_Dof;s++)
+                    size_t xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                    for (size_t  s  = 0;s < N_Dof;s++)
                     {
-                        int xyz_s = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                        size_t xyz_s = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
                         if (xyz_r < 3 || xyz_s < 3)
                         {
                             for (size_t k = 0;k < 3;k++)
@@ -2334,13 +2331,13 @@ namespace Kratos {
         {
             for (size_t u = 0;u < 3;u++) //in the case
             {
-                for (int s = 0;s < N_Dof;s++)
+                for (size_t  s  = 0;s < N_Dof;s++)
                 {
-                    int xyz_s = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                    size_t xyz_s = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
 
-                    for (int r = 0;r < N_Dof;r++)
+                    for (size_t  r  = 0;r < N_Dof;r++)
                     {
-                        int xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                        size_t xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
                         if (t == u)
                         {
                             if (xyz_r > 2 || xyz_s > 2)
@@ -2367,12 +2364,12 @@ namespace Kratos {
         {
             for (size_t u = 0;u < 3;u++)
             {
-                for (int r = 0;r < N_Dof;r++)
+                for (size_t  r  = 0;r < N_Dof;r++)
                 {
-                    int xyzr = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
-                    for (int s = 0;s < N_Dof;s++)
+                    size_t xyzr = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                    for (size_t  s  = 0;s < N_Dof;s++)
                     {
-                        int xyzs = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                        size_t xyzs = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
                         if (xyzr > 2 || xyzs > 2)
                             _mat_lam_der_var_var(t * N_Dof + r, u * N_Dof + s) += 0;
                         else
@@ -2468,9 +2465,9 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++)
         {
-            for (int r = 0;r < N_Dof;r++) //in the case
+            for (size_t  r  = 0;r < N_Dof;r++) //in the case
             {
-                int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
 
                 if (xyz > 2)
                 {
@@ -2499,14 +2496,14 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++)
         {
-            for (int r = 0;r < N_Dof;r++) //in the case
+            for (size_t  r  = 0;r < N_Dof;r++) //in the case
             {
-                int xyzr = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
-                int i = r / Dof_Node;     // index for the shape functions
-                for (int s = 0;s < N_Dof;s++) //in the case
+                size_t xyzr = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                //size_t i = r / Dof_Node;     // index for the shape functions
+                for (size_t  s  = 0;s < N_Dof;s++) //in the case
                 {
-                    int xyzs = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
-                    int j = s / Dof_Node;     // index for the shape functions
+                    size_t xyzs = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                    //int j = s / Dof_Node;     // index for the shape functions
 
                     if (xyzr > 2 || xyzs > 2)
                     {
@@ -2524,9 +2521,9 @@ namespace Kratos {
 
         for (size_t t = 0;t < 3;t++) //in the case
         {
-            for (int r = 0;r < N_Dof;r++)
+            for (size_t  r  = 0;r < N_Dof;r++)
             {
-                int xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                size_t xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
                 for (size_t u = 0;u < 3;u++)
                 {
                     if (xyz_r > 2)
@@ -2560,12 +2557,12 @@ namespace Kratos {
         {
             for (size_t u = 0;u < 3;u++) //in the case
             {
-                for (int r = 0;r < N_Dof;r++)
+                for (size_t  r  = 0;r < N_Dof;r++)
                 {
-                    int xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
-                    for (int s = 0;s < N_Dof;s++)
+                    size_t xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                    for (size_t  s  = 0;s < N_Dof;s++)
                     {
-                        int xyz_s = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                        size_t xyz_s = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
                         if (xyz_r < 3 || xyz_s < 3)
                         {
                             for (size_t k = 0;k < 3;k++)
@@ -2584,9 +2581,9 @@ namespace Kratos {
         {
             for (size_t u = 0;u < 3;u++)
             {
-                for (int r = 0;r < N_Dof;r++)
+                for (size_t  r  = 0;r < N_Dof;r++)
                 {
-                    int xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                    size_t xyz = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
 
                     if (xyz > 2)
                     {
@@ -2625,12 +2622,12 @@ namespace Kratos {
         {
             for (size_t u = 0;u < 3;u++)
             {
-                for (int r = 0;r < N_Dof;r++)
+                for (size_t  r  = 0;r < N_Dof;r++)
                 {
-                    int xyzr = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
-                    for (int s = 0;s < N_Dof;s++)
+                    size_t xyzr = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+                    for (size_t  s  = 0;s < N_Dof;s++)
                     {
-                        int xyzs = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 ->rot_tan
+                        size_t xyzs = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 ->rot_tan
                         if (xyzr > 2 || xyzs > 2)
                         {
                             //_mat_lam_var_var(t*N_Dof+r,u*N_Dof+s)+=0;
@@ -2684,7 +2681,7 @@ namespace Kratos {
         //KRATOS_WATCH(_Phi);
         //KRATOS_WATCH(_Phi_0_der);
         const auto& r_geometry = GetGeometry();
-        const IndexType nb_nodes = r_geometry.size();
+        //const IndexType nb_nodes = r_geometry.size();
         const float _u_act = r_geometry.IntegrationPoints()[0].Coordinates()[0];
 
         float phi_0;
@@ -2838,10 +2835,8 @@ namespace Kratos {
 
         comp_mat_lambda(mat_lamb, _T0_vec, _T_vec);
         comp_mat_lambda_deriv(mat_lamb_deriv, _T0_vec, _T_vec, T0_deriv, T_deriv);
-        float alpha;
-        alpha = acos(inner_prod(_T0_vec, _T_vec) / norm_2(_T0_vec) / norm_2(_T_vec));
-        float alpha_der;
-        alpha_der = -1.0 / (sqrt(1 - pow(inner_prod(_T0_vec, _T_vec) / norm_2(_T0_vec) / norm_2(_T_vec), 2))) * (inner_prod(_T0_vec, T_deriv) / norm_2(_T0_vec) / norm_2(_T_vec) - inner_prod(_T0_vec, _T_vec) / norm_2(_T0_vec) / pow(norm_2(_T_vec), 3) * inner_prod(_T_vec, T_deriv));
+        //float alpha = acos(inner_prod(_T0_vec, _T_vec) / norm_2(_T0_vec) / norm_2(_T_vec));
+        //float alpha_der = -1.0 / (sqrt(1 - pow(inner_prod(_T0_vec, _T_vec) / norm_2(_T0_vec) / norm_2(_T_vec), 2))) * (inner_prod(_T0_vec, T_deriv) / norm_2(_T0_vec) / norm_2(_T_vec) - inner_prod(_T0_vec, _T_vec) / norm_2(_T0_vec) / pow(norm_2(_T_vec), 3) * inner_prod(_T_vec, T_deriv));
         Matrix3d mat_test;
         comp_mat_rodrigues(mat_rod, _T_vec, _Phi);
         comp_mat_rodrigues_deriv(mat_rod_deriv, _T_vec, T_deriv, _Phi, _Phi_0_der);
@@ -3161,7 +3156,7 @@ namespace Kratos {
         Matrix3d mat_Rod_Lam;
         mat_Rod_Lam.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int u = 0;u < 3;u++)
             {
@@ -3183,7 +3178,7 @@ namespace Kratos {
         Matrix3d mat_lam_der_Rod_Lam;
         mat_lam_der_Rod_Lam.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int u = 0;u < 3;u++)
             {
@@ -3208,7 +3203,7 @@ namespace Kratos {
         Matrix3d mat_rod_lam_Rod_Lam;
         mat_rod_lam_Rod_Lam.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int u = 0;u < 3;u++)
             {
@@ -3324,7 +3319,7 @@ namespace Kratos {
         //KRATOS_WATCH(mat_Rod_der);
         //KRATOS_WATCH(mat_Lam);
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int u = 0;u < 3;u++)
             {
@@ -3352,7 +3347,7 @@ namespace Kratos {
         //KRATOS_WATCH(mat_lam);
         //KRATOS_WATCH(mat_Rod_der_Lam);
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int u = 0;u < 3;u++)
             {
@@ -3379,7 +3374,7 @@ namespace Kratos {
         Matrix3d mat_rod_lam_Rod_Lam;
         mat_rod_lam_Rod_Lam.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int u = 0;u < 3;u++)
             {
@@ -3413,13 +3408,13 @@ namespace Kratos {
         //mat_lam_der_var_Rod_Lam.resize(3*N_Dof,3);
         S_mat_lam_der_var_Rod_Lam.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int u = 0;u < 3;u++)
             {
                 for (int k = 0;k < 3;k++)
                 {
-                    for (int r = 0;r < N_Dof;r++)
+                    for (size_t  r  = 0;r < N_Dof;r++)
                     {
                         S_mat_lam_var_Rod_Lam(t * N_Dof + r, u) += S_mat_lam_var(t * N_Dof + r, k) * mat_Rod_Lam(k, u);
                         S_mat_lam_var_Rod_Lam_der(t * N_Dof + r, u) += S_mat_lam_var(t * N_Dof + r, k) * mat_Rod_Lam_der(k, u);
@@ -3452,13 +3447,13 @@ namespace Kratos {
         //KRATOS_WATCH(mat_lam_Rod_der_Lam);
 
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int u = 0;u < 3;u++)
             {
                 for (int k = 0;k < 3;k++)
                 {
-                    for (int r = 0;r < N_Dof;r++)
+                    for (size_t  r  = 0;r < N_Dof;r++)
                     {
                         S_mat_rod_var_lam_Rod_Lam_der(t * N_Dof + r, u) += S_mat_rod_var(t * N_Dof + r, k) * mat_lam_Rod_Lam_der(k, u);
                         S_mat_rod_var_lam_Rod_der_Lam(t * N_Dof + r, u) += S_mat_rod_var(t * N_Dof + r, k) * mat_lam_Rod_der_Lam(k, u);
@@ -3488,7 +3483,7 @@ namespace Kratos {
         Vector3d vec_v;
         vec_v.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int k = 0;k < 3;k++)
             {
@@ -3504,9 +3499,9 @@ namespace Kratos {
         vec_v_var.resize(3 * N_Dof);
         vec_v_var.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
-            for (int r = 0;r < N_Dof;r++)
+            for (size_t  r  = 0;r < N_Dof;r++)
             {
                 for (int k = 0;k < 3;k++)
                 {
@@ -3521,20 +3516,20 @@ namespace Kratos {
         r1_var.clear();
         for (size_t t = 0;t < 3;t++) //in the case
         {
-            for (int r = 0;r < N_Dof;r++) //in the case
+            for (size_t  r  = 0;r < N_Dof;r++) //in the case
             {
-                int xyz = r % Dof_Node;
-                int i = r / Dof_Node;
+                size_t xyz = r % Dof_Node;
+                size_t i = r / Dof_Node;
                 if (t == xyz)
                     r1_var(t * N_Dof + r) = _deriv[i];
             }
         }
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int k = 0;k < 3;k++)
             {
-                for (int r = 0;r < N_Dof;r++)
+                for (size_t  r  = 0;r < N_Dof;r++)
                 {
                     _cur_var_n(r) += S_mat_rodlamRodLam_der_var(t * N_Dof + r, k) * _N0(k) * _r1[t] + mat_rodlamRodLam_der(t, k) * _N0(k) * r1_var[t * N_Dof + r];
                     _cur_var_v(r) += S_mat_rodlamRodLam_der_var(t * N_Dof + r, k) * _V0(k) * _r1[t] + mat_rodlamRodLam_der(t, k) * _V0(k) * r1_var[t * N_Dof + r];
@@ -3661,7 +3656,7 @@ namespace Kratos {
         Matrix3d mat_RodLam_derder;
         mat_RodLam_derder.clear();
 
-        for (int t = 0; t < 3; t++)
+        for (size_t  t   = 0; t < 3; t++)
         {
             for (int u = 0; u < 3; u++)
             {
@@ -3698,7 +3693,7 @@ namespace Kratos {
         Matrix3d mat_lam_der_RodLam_der;
         mat_lam_der_RodLam_der.clear();
 
-        for (int t = 0; t < 3; t++)
+        for (size_t  t   = 0; t < 3; t++)
         {
             for (int u = 0; u < 3; u++)
             {
@@ -3737,7 +3732,7 @@ namespace Kratos {
         Matrix3d mat_rod_der_lamRodLam_der;
         mat_rod_der_lamRodLam_der.clear();
 
-        for (int t = 0; t < 3; t++)
+        for (size_t  t   = 0; t < 3; t++)
         {
             for (int u = 0; u < 3; u++)
             {
@@ -3784,13 +3779,13 @@ namespace Kratos {
         mat_lam_var_RodLam_derder.resize(3 * N_Dof, 3);
         mat_lam_var_RodLam_derder.clear();
 
-        for (int t = 0; t < 3; t++)
+        for (size_t  t   = 0; t < 3; t++)
         {
             for (int u = 0; u < 3; u++)
             {
                 for (int k = 0; k < 3; k++)
                 {
-                    for (int r = 0; r < N_Dof; r++)
+                    for (size_t  r  = 0; r < N_Dof; r++)
                     {
                         S_mat_lam_var_Rod_Lam(t * N_Dof + r, u) += S_mat_lam_var(t * N_Dof + r, k) * mat_Rod_Lam(k, u);
                         S_mat_lam_var_Rod_Lam_der(t * N_Dof + r, u) += S_mat_lam_var(t * N_Dof + r, k) * mat_Rod_Lam_der(k, u);
@@ -3843,13 +3838,13 @@ namespace Kratos {
         mat_rod_lamRodLam_derder_var.resize(3 * N_Dof, 3);
         mat_rod_lamRodLam_derder_var.clear();
 
-        for (int t = 0; t < 3; t++)
+        for (size_t  t   = 0; t < 3; t++)
         {
             for (int u = 0; u < 3; u++)
             {
                 for (int k = 0; k < 3; k++)
                 {
-                    for (int r = 0; r < N_Dof; r++)
+                    for (size_t  r  = 0; r < N_Dof; r++)
                     {
                         S_mat_rod_var_lam_Rod_Lam_der(t * N_Dof + r, u) += S_mat_rod_var(t * N_Dof + r, k) * mat_lam_Rod_Lam_der(k, u);
                         S_mat_rod_var_lam_Rod_der_Lam(t * N_Dof + r, u) += S_mat_rod_var(t * N_Dof + r, k) * mat_lam_Rod_der_Lam(k, u);
@@ -3892,7 +3887,7 @@ namespace Kratos {
         Vector3d vec_v;
         vec_v.clear();
 
-        for (int t = 0; t < 3; t++)
+        for (size_t  t   = 0; t < 3; t++)
         {
             for (int k = 0; k < 3; k++)
             {
@@ -3908,9 +3903,9 @@ namespace Kratos {
         vec_v_var.resize(3 * N_Dof);
         vec_v_var.clear();
 
-        for (int t = 0; t < 3; t++)
+        for (size_t  t   = 0; t < 3; t++)
         {
-            for (int r = 0; r < N_Dof; r++)
+            for (size_t  r  = 0; r < N_Dof; r++)
             {
                 for (int k = 0; k < 3; k++)
                 {
@@ -3928,10 +3923,10 @@ namespace Kratos {
         r2_var.clear();
         for (size_t t = 0; t < 3; t++) //in the case
         {
-            for (int r = 0; r < N_Dof; r++) //in the case
+            for (size_t  r  = 0; r < N_Dof; r++) //in the case
             {
-                int xyz = r % Dof_Node;
-                int i = r / Dof_Node;
+                size_t xyz = r % Dof_Node;
+                size_t i = r / Dof_Node;
                 if (t == xyz)
                 {
                     r1_var(t * N_Dof + r) = _deriv[i];
@@ -3940,11 +3935,11 @@ namespace Kratos {
             }
         }
 
-        for (int t = 0; t < 3; t++)
+        for (size_t  t   = 0; t < 3; t++)
         {
             for (int k = 0; k < 3; k++)
             {
-                for (int r = 0; r < N_Dof; r++)
+                for (size_t  r  = 0; r < N_Dof; r++)
                 {
                     _cur_var_n(r) += mat_rodlamRodLam_der_var(t * N_Dof + r, k) * _N0(k) * _r1[t] + mat_rodlamRodLam_der(t, k) * _N0(k) * r1_var[t * N_Dof + r];
                     _cur_var_v(r) += mat_rodlamRodLam_der_var(t * N_Dof + r, k) * _V0(k) * _r1[t] + mat_rodlamRodLam_der(t, k) * _V0(k) * r1_var[t * N_Dof + r];
@@ -4032,7 +4027,7 @@ namespace Kratos {
         Matrix3d mat_RodLam_der;
         mat_RodLam_der.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int u = 0;u < 3;u++)
             {
@@ -4057,7 +4052,7 @@ namespace Kratos {
         Matrix3d mat_lamRodLam_der;
         mat_lamRodLam_der.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int u = 0;u < 3;u++)
             {
@@ -4084,7 +4079,7 @@ namespace Kratos {
         Matrix3d mat_rod_lam_Rod_Lam;
         mat_rod_lam_Rod_Lam.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int u = 0;u < 3;u++)
             {
@@ -4109,13 +4104,13 @@ namespace Kratos {
         S_mat_lam_var_Rod_Lam.clear();
         S_mat_lam_der_var_Rod_Lam.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int u = 0;u < 3;u++)
             {
                 for (int k = 0;k < 3;k++)
                 {
-                    for (int r = 0;r < N_Dof;r++)
+                    for (size_t  r  = 0;r < N_Dof;r++)
                     {
                         S_mat_lam_var_Rod_Lam(t * N_Dof + r, u) += S_mat_lam_var(t * N_Dof + r, k) * mat_Rod_Lam(k, u);
                         S_mat_lam_var_Rod_Lam_der(t * N_Dof + r, u) += S_mat_lam_var(t * N_Dof + r, k) * mat_Rod_Lam_der(k, u);
@@ -4143,13 +4138,13 @@ namespace Kratos {
         S_mat_rod_lam_var_Rod_Lam.clear();
         S_mat_rod_var_lam_Rod_Lam.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int u = 0;u < 3;u++)
             {
                 for (int k = 0;k < 3;k++)
                 {
-                    for (int r = 0;r < N_Dof;r++)
+                    for (size_t  r  = 0;r < N_Dof;r++)
                     {
                         S_mat_rod_var_lam_Rod_Lam_der(t * N_Dof + r, u) += S_mat_rod_var(t * N_Dof + r, k) * mat_lam_Rod_Lam_der(k, u);
                         S_mat_rod_var_lam_Rod_der_Lam(t * N_Dof + r, u) += S_mat_rod_var(t * N_Dof + r, k) * mat_lam_Rod_der_Lam(k, u);
@@ -4184,15 +4179,15 @@ namespace Kratos {
         S_mat_lam_var_var_Rod_der_Lam.clear();
         S_mat_lam_var_var_Rod_Lam_der.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int u = 0;u < 3;u++)
             {
                 for (int k = 0;k < 3;k++)
                 {
-                    for (int r = 0;r < N_Dof;r++)
+                    for (size_t  r  = 0;r < N_Dof;r++)
                     {
-                        for (int s = 0;s < N_Dof;s++)
+                        for (size_t  s  = 0;s < N_Dof;s++)
                         {
                             S_mat_lam_var_var_Rod_Lam(t * N_Dof + r, u * N_Dof + s) += S_mat_lam_var_var(t * N_Dof + r, k * N_Dof + s) * mat_Rod_Lam(k, u);
                             S_mat_lam_der_var_var_Rod_Lam(t * N_Dof + r, u * N_Dof + s) += S_mat_lam_der_var_var(t * N_Dof + r, k * N_Dof + s) * mat_Rod_Lam(k, u);
@@ -4252,15 +4247,15 @@ namespace Kratos {
         mat_rod_var_var_lam_Rod_Lam.resize(3 * N_Dof, 3 * N_Dof);
         mat_rod_var_var_lam_Rod_Lam.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int u = 0;u < 3;u++)
             {
                 for (int k = 0;k < 3;k++)
                 {
-                    for (int r = 0;r < N_Dof;r++)
+                    for (size_t  r  = 0;r < N_Dof;r++)
                     {
-                        for (int s = 0;s < N_Dof;s++)
+                        for (size_t  s  = 0;s < N_Dof;s++)
                         {
                             mat_rod_der_lam_var_var_Rod_Lam(t * N_Dof + r, u * N_Dof + s) += mat_rod_der(t, k) * S_mat_lam_var_var_Rod_Lam(k * N_Dof + r, u * N_Dof + s);
                             mat_rod_lam_der_var_var_Rod_Lam(t * N_Dof + r, u * N_Dof + s) += mat_rod(t, k) * S_mat_lam_der_var_var_Rod_Lam(k * N_Dof + r, u * N_Dof + s);
@@ -4292,7 +4287,7 @@ namespace Kratos {
         Vector3d vec_v;
         vec_v.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int k = 0;k < 3;k++)
             {
@@ -4308,9 +4303,9 @@ namespace Kratos {
         vec_v_var.resize(3 * N_Dof);
         vec_v_var.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
-            for (int r = 0;r < N_Dof;r++)
+            for (size_t  r  = 0;r < N_Dof;r++)
             {
                 for (int k = 0;k < 3;k++)
                 {
@@ -4324,13 +4319,13 @@ namespace Kratos {
         mat_rodlamRodLam_var_var.resize(3 * N_Dof, 3 * N_Dof);
         mat_rodlamRodLam_var_var.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
             for (int u = 0;u < 3;u++)
             {
-                for (int r = 0;r < N_Dof;r++)
+                for (size_t  r  = 0;r < N_Dof;r++)
                 {
-                    for (int s = 0;s < N_Dof;s++)
+                    for (size_t  s  = 0;s < N_Dof;s++)
                     {
                         mat_rodlamRodLam_var_var(t * N_Dof + r, u * N_Dof + s) += mat_rod_lam_var_var_Rod_Lam(t * N_Dof + r, u * N_Dof + s) + mat_rod_var_lam_var_Rod_Lam(t * N_Dof + r, u * N_Dof + s) + mat_rod_var_lam_var_Rod_Lam(t * N_Dof + s, u * N_Dof + r) + mat_rod_var_var_lam_Rod_Lam(t * N_Dof + r, u * N_Dof + s);
                         mat_rodlamRodLam_der_var_var(t * N_Dof + r, u * N_Dof + s) += mat_rod_der_lam_var_var_Rod_Lam(t * N_Dof + r, u * N_Dof + s) + mat_rod_lam_der_var_var_Rod_Lam(t * N_Dof + r, u * N_Dof + s) + mat_rod_lam_var_var_Rod_der_Lam(t * N_Dof + r, u * N_Dof + s) + mat_rod_lam_var_var_Rod_Lam_der(t * N_Dof + r, u * N_Dof + s)
@@ -4349,13 +4344,13 @@ namespace Kratos {
         vec_v_var_var.resize(3 * N_Dof, N_Dof);
         vec_v_var_var.clear();
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
-            for (int r = 0;r < N_Dof;r++)
+            for (size_t  r  = 0;r < N_Dof;r++)
             {
-                for (int s = 0;s < N_Dof;s++)
+                for (size_t  s  = 0;s < N_Dof;s++)
                 {
-                    for (int k = 0;k < 3;k++)
+                    for (size_t  k = 0;k < 3;k++)
                     {
                         vec_n_var_var(t * N_Dof + r, s) += mat_rodlamRodLam_var_var(t * N_Dof + r, k * N_Dof + s) * _N0(k);
                         vec_v_var_var(t * N_Dof + r, s) += mat_rodlamRodLam_var_var(t * N_Dof + r, k * N_Dof + s) * _V0(k);
@@ -4369,26 +4364,26 @@ namespace Kratos {
         r1_var.clear();
         for (size_t t = 0;t < 3;t++) //in the case
         {
-            for (int r = 0;r < N_Dof;r++) //in the case
+            for (size_t  r  = 0;r < N_Dof;r++) //in the case
             {
-                int xyz = r % Dof_Node;
-                int i = r / Dof_Node;
+                size_t  xyz = r % Dof_Node;
+                size_t  i = r / Dof_Node;
                 if (t == xyz)
                     r1_var(t * N_Dof + r) = _deriv[i];
             }
         }
 
-        for (int t = 0;t < 3;t++)
+        for (size_t  t   = 0;t < 3;t++)
         {
-            for (int k = 0;k < 3;k++)
+            for (size_t  k = 0;k < 3;k++)
             {
-                for (int r = 0;r < N_Dof;r++)
+                for (size_t  r  = 0;r < N_Dof;r++)
                 {
                     _cur_var_n(r) += S_mat_rodlamRodLam_der_var(t * N_Dof + r, k) * _N0(k) * _r1[t] + mat_rodlamRodLam_der(t, k) * _N0(k) * r1_var[t * N_Dof + r];
                     _cur_var_v(r) += S_mat_rodlamRodLam_der_var(t * N_Dof + r, k) * _V0(k) * _r1[t] + mat_rodlamRodLam_der(t, k) * _V0(k) * r1_var[t * N_Dof + r];
                     _tor_var_n(r) += S_mat_rodlamRodLam_der_var(t * N_Dof + r, k) * _V0(k) * vec_n(t) + mat_rodlamRodLam_der(t, k) * _V0(k) * vec_n_var(t * N_Dof + r);
                     _tor_var_v(r) += S_mat_rodlamRodLam_der_var(t * N_Dof + r, k) * _N0(k) * vec_v(t) + mat_rodlamRodLam_der(t, k) * _N0(k) * vec_v_var(t * N_Dof + r);
-                    for (int s = 0;s < N_Dof;s++)
+                    for (size_t  s  = 0;s < N_Dof;s++)
                     {
                         _cur_var_n_2(r, s) += 0;//mat_rodlamRodLam_der_var_var(t * N_Dof + r, k * N_Dof + s)* _N0(k)* _r1(t) + S_mat_rodlamRodLam_der_var(t * N_Dof + r, k) * _N0(k) * r1_var(t * N_Dof + s) + S_mat_rodlamRodLam_der_var(t * N_Dof + s, k) * _N0(k) * r1_var(t * N_Dof + r);
                         _cur_var_v_2(r, s) += 0;//mat_rodlamRodLam_der_var_var(t * N_Dof + r, k * N_Dof + s)* _V0(k)* _r1(t) + S_mat_rodlamRodLam_der_var(t * N_Dof + r, k) * _V0(k) * r1_var(t * N_Dof + s) + S_mat_rodlamRodLam_der_var(t * N_Dof + s, k) * _V0(k) * r1_var(t * N_Dof + r);
@@ -4414,12 +4409,12 @@ namespace Kratos {
         //const unsigned int N_Dof = 4;//this->GetGeometry().PointsNumber()* (this->GetGeometry().WorkingSpaceDimension() + 1); changed could lead to an error
         Vector epsilon_var; //variations of the axial strain
         epsilon_var.resize(N_Dof);
-        float r1_L2 = norm_2(_r1);
+        //float r1_L2 = norm_2(_r1);
         Vector3d r1 = _r1;
-        for (int r = 0;r < N_Dof;r++)
+        for (size_t  r  = 0;r < N_Dof;r++)
         {
-            int xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-            int i = r / Dof_Node;     // index for the shape functions
+            size_t xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+            size_t i = r / Dof_Node;     // index for the shape functions
             if (xyz_r > 2)
                 epsilon_var[r] = 0;
             else
@@ -4437,18 +4432,18 @@ namespace Kratos {
         epsilon_var_2.resize(N_Dof, N_Dof);
         epsilon_var_2.clear();
 
-        for (int r = 0;r < N_Dof;r++) //in the case
+        for (size_t  r  = 0;r < N_Dof;r++) //in the case
         {
-            int xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
-            int i = r / Dof_Node;     // index for the shape functions
+            size_t xyz_r = r % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
+            size_t i = r / Dof_Node;     // index for the shape functions
             if (xyz_r > 2)
-                for (int s = 0;s < N_Dof;s++)
+                for (size_t  s  = 0;s < N_Dof;s++)
                     epsilon_var_2(r, s) = 0.0;
             else
             {
-                for (int s = 0;s < N_Dof;s++)
+                for (size_t  s  = 0;s < N_Dof;s++)
                 {
-                    int xyz_s = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+                    size_t xyz_s = s % Dof_Node; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
                     int j = s / Dof_Node;     // index for the shape functions
                     if (xyz_s > 2)
                         epsilon_var_2(r, s) = 0;
@@ -4557,14 +4552,14 @@ namespace Kratos {
 
         _dL = A;
         float Apow2 = pow(A, 2);
-        float apow2 = pow(a, 2);
+        //float apow2 = pow(a, 2);
 
         //stresses
-        float E11_m = 0.5 * (apow2 - Apow2);   //Green Lagrange formulation (strain)
-        float E11_cur_n = (b_n - B_n);
-        float E11_cur_v = (b_v - B_v);
-        float E12 = (c_12 - C_12);
-        float E13 = (c_13 - C_13);
+        //float E11_m = 0.5 * (apow2 - Apow2);   //Green Lagrange formulation (strain)
+        //float E11_cur_n = (b_n - B_n);
+        //float E11_cur_v = (b_v - B_v);
+        //float E12 = (c_12 - C_12);
+        //float E13 = (c_13 - C_13);
 
         //float S11_m = prestress * _area + E11_m * emod_A / Apow2;                      //normal force                  //initial displacement missing
         //float S11_n = prestress_bend1 + E11_cur_n * emod_I_v / Apow2;                        //bending moment n
@@ -4624,15 +4619,15 @@ namespace Kratos {
     void IsogeometricBeamElement::mass_mat_el_lin(const ProcessInfo& rCurrentProcessInfo, Matrix& _me)   ///!!!! nodal thickness and relative denstiy is missing
     {
         const auto& r_geometry = GetGeometry();
-        int P_Deg = r_geometry.PolynomialDegree(0); //this will throw an error
-        const int ne = (P_Deg + 1);
+        size_t  P_Deg = r_geometry.PolynomialDegree(0);
+        const size_t  ne = (P_Deg + 1);
         Vector func = row(r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod()), 0);
         const float area = this->GetProperties()[CROSS_AREA];
         const float dens = this->GetProperties()[DENSITY];
 
-        for (int r = 0;r < ne;r++)
+        for (size_t  r  = 0;r < ne;r++)
         {
-            for (int s = 0;s < ne;s++)
+            for (size_t  s  = 0;s < ne;s++)
             {
                 _me(4 * s, 4 * r) = func(s) * func(r);
                 _me(4 * s + 1, 4 * r + 1) = _me(4 * s, 4 * r);
@@ -4729,7 +4724,7 @@ namespace Kratos {
 
         _dL = A;
         float Apow2 = pow(A, 2);
-        float Apow4 = pow(A, 4);
+        //float Apow4 = pow(A, 4);
         float apow2 = pow(a, 2);
 
         //stresses
@@ -4767,28 +4762,28 @@ namespace Kratos {
         S_torsion_v_var_var = S_torsion_v_var_var / A;
 
         //stiffness matrix of the membran part
-        for (int r = 0; r < N_Dof; r++)
-            for (int s = 0; s < N_Dof; s++)
+        for (size_t  r  = 0; r < N_Dof; r++)
+            for (size_t  s  = 0; s < N_Dof; s++)
                 S_kem(r, s) = S11_m * S_eps_var_var(r, s);
 
         //stiffness matrix of the bending part
-        for (int r = 0; r < N_Dof; r++)
-            for (int s = 0; s < N_Dof; s++)
+        for (size_t  r  = 0; r < N_Dof; r++)
+            for (size_t  s  = 0; s < N_Dof; s++)
                 S_keb_n(r, s) = S_curv_n_var_var(r, s) * S11_n;
 
         //stiffness matrix of the bending part
-        for (int r = 0; r < N_Dof; r++)
-            for (int s = 0; s < N_Dof; s++)
+        for (size_t  r  = 0; r < N_Dof; r++)
+            for (size_t  s  = 0; s < N_Dof; s++)
                 S_keb_v(r, s) = S_curv_v_var_var(r, s) * S11_v;
 
         //stiffness matrix of the torsion part
-        for (int r = 0; r < N_Dof; r++)
-            for (int s = 0; s < N_Dof; s++)
+        for (size_t  r  = 0; r < N_Dof; r++)
+            for (size_t  s  = 0; s < N_Dof; s++)
                 S_ket_n(r, s) = S12 * S_torsion_n_var_var(r, s);
 
         //stiffness matrix of the torsion part
-        for (int r = 0; r < N_Dof; r++)
-            for (int s = 0; s < N_Dof; s++)
+        for (size_t  r  = 0; r < N_Dof; r++)
+            for (size_t  s  = 0; s < N_Dof; s++)
                 S_ket_v(r, s) = S13 * S_torsion_v_var_var(r, s);
 
         //compute final element stiffness matrix
@@ -4860,9 +4855,9 @@ namespace Kratos {
         float prestress_bend1 = 0; //NOT YET IMPLEMENTED IN KRATOS
         float prestress_bend2 = 0; //NOT YET IMPLEMENTED IN KRATOS
         float prestress_tor = 0; //NOT YET IMPLEMENTED IN KRATOS
-        bool prestress_bend1_auto = 0; //NOT YET IMPLEMENTED IN KRATOS
-        bool prestress_bend2_auto = 0; //NOT YET IMPLEMENTED IN KRATOS
-        bool prestress_tor_auto = 0; //NOT YET IMPLEMENTED IN KRATOS
+        //bool prestress_bend1_auto = 0; //NOT YET IMPLEMENTED IN KRATOS
+        //bool prestress_bend2_auto = 0; //NOT YET IMPLEMENTED IN KRATOS
+        //bool prestress_tor_auto = 0; //NOT YET IMPLEMENTED IN KRATOS
 
         //compute configurations
         comp_Geometry_reference(dR_vec, ddR_vec, R_1, R_2, A, B);
@@ -4887,7 +4882,7 @@ namespace Kratos {
 
         _dL = A;
         float Apow2 = pow(A, 2);
-        float Apow4 = pow(A, 4);
+        //float Apow4 = pow(A, 4);
         float apow2 = pow(a, 2);
 
         ////modified reference configuration
@@ -4939,28 +4934,28 @@ namespace Kratos {
 
 
         //stiffness matrix of the membran part
-        for (int r = 0;r < N_Dof;r++)
-            for (int s = 0;s < N_Dof;s++)
+        for (size_t  r  = 0;r < N_Dof;r++)
+            for (size_t  s  = 0;s < N_Dof;s++)
                 S_kem(r, s) = emod_A * S_eps_var[r] * S_eps_var[s] + S11_m * S_eps_var_var(r, s);
 
         //stiffness matrix of the bending part
-        for (int r = 0;r < N_Dof;r++)
-            for (int s = 0;s < N_Dof;s++)
+        for (size_t  r  = 0;r < N_Dof;r++)
+            for (size_t  s  = 0;s < N_Dof;s++)
                 S_keb_n(r, s) = emod_I_v * S_curv_n_var[r] * S_curv_n_var[s] + S_curv_n_var_var(r, s) * S11_n;
 
         //stiffness matrix of the bending part
-        for (int r = 0;r < N_Dof;r++)
-            for (int s = 0;s < N_Dof;s++)
+        for (size_t  r  = 0;r < N_Dof;r++)
+            for (size_t  s  = 0;s < N_Dof;s++)
                 S_keb_v(r, s) = emod_I_n * S_curv_v_var[r] * S_curv_v_var[s] + S_curv_v_var_var(r, s) * S11_v;
 
         //stiffness matrix of the torsion part
-        for (int r = 0;r < N_Dof;r++)
-            for (int s = 0;s < N_Dof;s++)
+        for (size_t  r  = 0;r < N_Dof;r++)
+            for (size_t  s  = 0;s < N_Dof;s++)
                 S_ket_n(r, s) = 0.5 * gmod_It * S_torsion_n_var[r] * S_torsion_n_var[s] + S12 * S_torsion_n_var_var(r, s);
 
         //stiffness matrix of the torsion part
-        for (int r = 0;r < N_Dof;r++)
-            for (int s = 0;s < N_Dof;s++)
+        for (size_t  r  = 0;r < N_Dof;r++)
+            for (size_t  s  = 0;s < N_Dof;s++)
                 S_ket_v(r, s) = 0.5 * gmod_It * S_torsion_v_var[r] * S_torsion_v_var[s] + S13 * S_torsion_v_var_var(r, s);
         //compute final element stiffness matrix
         _gke.clear();
@@ -5040,7 +5035,7 @@ namespace Kratos {
         Matrix3d mat_Rod_derder_Lam;
         mat_Rod_derder_Lam.clear();
 
-        for (int t = 0; t < 3; t++)
+        for (size_t  t   = 0; t < 3; t++)
         {
             for (int u = 0; u < 3; u++)
             {
@@ -5077,7 +5072,7 @@ namespace Kratos {
         Matrix3d mat_lam_Rod_Lam_derder;
         mat_lam_Rod_Lam_derder.clear();
 
-        for (int t = 0; t < 3; t++)
+        for (size_t  t   = 0; t < 3; t++)
         {
             for (int u = 0; u < 3; u++)
             {
@@ -5127,7 +5122,7 @@ namespace Kratos {
         mat_rod_lam_Rod_derder_Lam.clear();
         Matrix3d mat_rod_lam_Rod_Lam_derder;
         mat_rod_lam_Rod_Lam_derder.clear();
-        for (int t = 0; t < 3; t++)
+        for (size_t  t   = 0; t < 3; t++)
         {
             for (int u = 0; u < 3; u++)
             {
@@ -5216,8 +5211,8 @@ namespace Kratos {
         const float poisson_ratio = this->GetProperties()[POISSON_RATIO];
         const float gmod = emod / (2.0 * (1.0 + poisson_ratio));
         const float area = this->GetProperties()[CROSS_AREA];
-        const float height = this->GetProperties()[HEIGHT];
-        const float width = this->GetProperties()[WIDTH];
+        //const float height = this->GetProperties()[HEIGHT];
+        //const float width = this->GetProperties()[WIDTH];
         const float m_inert_z = this->GetProperties()[I_Z];
         const float m_inert_y = this->GetProperties()[I_Y];
         const float mt_iniert = this->GetProperties()[I_T];
@@ -5259,9 +5254,9 @@ namespace Kratos {
         float phi_der;
 
         // Material and cross section
-        float emod_A = emod * area;
-        float emod_I_v = emod * m_inert_y;
-        float emod_I_n = emod * m_inert_z;
+        //float emod_A = emod * area;
+        //float emod_I_v = emod * m_inert_y;
+        //float emod_I_n = emod * m_inert_z;
         float gmod_It = gmod * mt_iniert;
 
         //prestresses
@@ -5342,10 +5337,10 @@ namespace Kratos {
         tmp_dof.clear();
 
         Vector3d coords;
-        for (int r = 0;r < N_Dof;r++) //in the case
+        for (size_t  r  = 0;r < N_Dof;r++) //in the case
         {
-            int xyz = r % Dof_Node;   //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 ->rot_tan
-            int i = r / Dof_Node;     // index for the nodes
+            size_t xyz = r % Dof_Node;   //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 ->rot_tan
+            size_t i = r / Dof_Node;     // index for the nodes
             
             coords = r_geometry[i].Coordinates(); //check if this really gives the coodrinates of nodes 1-6 and not the integration point coordinates!!
             displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, rCurrentProcessInfo.GetSolutionStepIndex());
@@ -5365,9 +5360,9 @@ namespace Kratos {
             E11_cur1_v += S_shear_v_var[r] * tmp_dof[xyz];
         }
 
-        float n_tmp = E11_n * area * emod;
-        float mn_tmp = E11_cur_n * m_inert_y * emod;
-        float mv_tmp = E11_cur_v * m_inert_z * emod;
+        //float n_tmp = E11_n * area * emod;
+        //float mn_tmp = E11_cur_n * m_inert_y * emod;
+        //float mv_tmp = E11_cur_v * m_inert_z * emod;
 
         //stresses
         //_m.resize(3);
@@ -5388,8 +5383,8 @@ namespace Kratos {
         const float poisson_ratio = this->GetProperties()[POISSON_RATIO];
         const float gmod = emod / (2.0 * (1.0 + poisson_ratio));
         const float area = this->GetProperties()[CROSS_AREA];
-        const float height = this->GetProperties()[HEIGHT];
-        const float width = this->GetProperties()[WIDTH];
+        //const float height = this->GetProperties()[HEIGHT];
+        //const float width = this->GetProperties()[WIDTH];
         const float m_inert_z = this->GetProperties()[I_Z];
         const float m_inert_y = this->GetProperties()[I_Y];
         const float mt_iniert = this->GetProperties()[I_T];
@@ -5498,8 +5493,8 @@ namespace Kratos {
         float S11_m = prestress * area + E11_m * emod_A / Apow2;                      //normal force
         float S11_n = prestress_bend1 + E11_cur_n * emod_I_v / Apow2;                        //bending moment n
         float S11_v = prestress_bend2 + E11_cur_v * emod_I_n / Apow2;                        //bending moment v
-        float S12 = 0.5 * (prestress_tor + E12 * gmod_It / A);                      //0.5 torsional moment
-        float S13 = 0.5 * (prestress_tor + E13 * gmod_It / A);                      //0.5 torsional moment
+        //float S12 = 0.5 * (prestress_tor + E12 * gmod_It / A);                      //0.5 torsional moment
+        //float S13 = 0.5 * (prestress_tor + E13 * gmod_It / A);                      //0.5 torsional moment
 
         float S1213 = -0.5 * (E12 - E13) * gmod_It / A + prestress_tor;
         shear_force_n *= emod_I_v / Apow2;

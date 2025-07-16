@@ -200,9 +200,9 @@ public:
     void stress_res_lin(const ProcessInfo& rCurrentProcessInfo,  IndexType integration_point_index, Vector3d& _f, Vector3d& _m);
     void stress_res_nln(const ProcessInfo& rCurrentProcessInfo, IndexType integration_point_index, Vector3d& _f, Vector3d& _m);
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable, std::vector<array_1d<double, 3>>& rOutput,const ProcessInfo& rCurrentProcessInfo);
-    void CalculateOnIntegrationPoints(const  Variable<Vector>& rVariable, std::vector <Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
-    void CalculateOnIntegrationPoints(const  Variable<double>& rVariable, std::vector <double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable, std::vector<array_1d<double, 3>>& rOutput,const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const  Variable<Vector>& rVariable, std::vector <Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const  Variable<double>& rVariable, std::vector <double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
     
     //Computes RHS
     void CalculateRightHandSide(
