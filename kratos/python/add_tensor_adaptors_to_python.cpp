@@ -145,14 +145,27 @@ pybind11::array_t<TDataType> MovePybindArray(TensorAdaptor<TDataType>& rTensorAd
 }
 
 template<class TTensorDataType, class TPybindArrayType>
-void AssignData(
+bool AssignDataImpl(
     TensorAdaptor<TTensorDataType>& rTensorAdaptor,
-    const pybind11::array_t<TPybindArrayType, pybind11::array::c_style>& rArray)
+    const pybind11::array& rArray)
 {
-    // copy data from the input to the Adaptor
-    IndexPartition<IndexType>(rTensorAdaptor.ViewData().size()).for_each([&rArray, &rTensorAdaptor](const auto Index) {
-        rTensorAdaptor.ViewData()[Index] = static_cast<TTensorDataType>(rArray.data()[Index]);
-    });
+    if (pybind11::isinstance<pybind11::array_t<TPybindArrayType>>(rArray)) {
+        const auto& casted_array = rArray.cast<pybind11::array_t<TPybindArrayType, pybind11::array::c_style>>();
+        IndexPartition<IndexType>(rTensorAdaptor.ViewData().size()).for_each([&casted_array, &rTensorAdaptor](const auto Index) {
+            rTensorAdaptor.ViewData()[Index] = static_cast<TTensorDataType>(casted_array.data()[Index]);
+        });
+        return true;
+    } else {
+        return false;
+    }
+}
+
+template<class TTensorDataType, class... TPybindArrayType>
+bool AssignData(
+    TensorAdaptor<TTensorDataType>& rTensorAdaptor,
+    const pybind11::array& rArray)
+{
+    return (... || AssignDataImpl<TTensorDataType, TPybindArrayType>(rTensorAdaptor, rArray));
 }
 
 template<class TTensorDataType>
@@ -181,34 +194,21 @@ void SetPybindArray(
             << ", Tensor adaptor = " << rTensorAdaptor << " ].\n";
     }
 
-    pybind11::dtype dtype = rArray.dtype();
-
-    // You can dispatch based on dtype if needed
-    if (dtype.is(pybind11::dtype::of<bool>())) {
-        AssignData(rTensorAdaptor, rArray.cast<pybind11::array_t<bool, pybind11::array::c_style>>());
-    } else if (dtype.is(pybind11::dtype::of<std::uint8_t>())) {
-        AssignData(rTensorAdaptor, rArray.cast<pybind11::array_t<std::uint8_t, pybind11::array::c_style>>());
-    } else if (dtype.is(pybind11::dtype::of<std::uint16_t>())) {
-        AssignData(rTensorAdaptor, rArray.cast<pybind11::array_t<std::uint16_t, pybind11::array::c_style>>());
-    } else if (dtype.is(pybind11::dtype::of<std::uint32_t>())) {
-        AssignData(rTensorAdaptor, rArray.cast<pybind11::array_t<std::uint32_t, pybind11::array::c_style>>());
-    } else if (dtype.is(pybind11::dtype::of<std::uint64_t>())) {
-        AssignData(rTensorAdaptor, rArray.cast<pybind11::array_t<std::uint64_t, pybind11::array::c_style>>());
-    } else if (dtype.is(pybind11::dtype::of<std::int8_t>())) {
-        AssignData(rTensorAdaptor, rArray.cast<pybind11::array_t<std::int8_t, pybind11::array::c_style>>());
-    } else if (dtype.is(pybind11::dtype::of<std::int16_t>())) {
-        AssignData(rTensorAdaptor, rArray.cast<pybind11::array_t<std::int16_t, pybind11::array::c_style>>());
-    } else if (dtype.is(pybind11::dtype::of<std::int32_t>())) {
-        AssignData(rTensorAdaptor, rArray.cast<pybind11::array_t<std::int32_t, pybind11::array::c_style>>());
-    } else if (dtype.is(pybind11::dtype::of<std::int64_t>())) {
-        AssignData(rTensorAdaptor, rArray.cast<pybind11::array_t<std::int64_t, pybind11::array::c_style>>());
-    } else if (dtype.is(pybind11::dtype::of<float>())) {
-        AssignData(rTensorAdaptor, rArray.cast<pybind11::array_t<float, pybind11::array::c_style>>());
-    } else if (dtype.is(pybind11::dtype::of<double>())) {
-        AssignData(rTensorAdaptor, rArray.cast<pybind11::array_t<double, pybind11::array::c_style>>());
-    } else if (dtype.is(pybind11::dtype::of<long double>())) {
-        AssignData(rTensorAdaptor, rArray.cast<pybind11::array_t<long double, pybind11::array::c_style>>());
-    } else {
+    if (!AssignData<
+            TTensorDataType,
+            bool,
+            std::uint8_t,
+            std::uint16_t,
+            std::uint32_t,
+            std::uint64_t,
+            std::int8_t,
+            std::int16_t,
+            std::int32_t,
+            std::int64_t,
+            float,
+            double,
+            long double>(rTensorAdaptor, rArray))
+    {
         KRATOS_ERROR
             << "TensorsAdaptors cannot be assigned an numpy array with \""
             << rArray.dtype() << "\". They can be only set with numpy arrays having following dtypes:"
