@@ -4,6 +4,7 @@ if(NOT DEFINED CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif(NOT DEFINED CMAKE_BUILD_TYPE)
 
+set(USE_PKGCONFIG false)
 if(NOT DEFINED USE_PKGCONFIG)
   set(USE_PKGCONFIG false)
   if(DEFINED ENV{VCPKG_ROOT})
@@ -40,7 +41,7 @@ project (gidpost)
 
 # Find zlib
 if(NOT USE_PKGCONFIG)
-  find_package(ZLIB REQUIRED)
+  # find_package(ZLIB REQUIRED)
   if(ZLIB_FOUND)
     set(FOUND_BY "find_package()")
   endif(ZLIB_FOUND)
