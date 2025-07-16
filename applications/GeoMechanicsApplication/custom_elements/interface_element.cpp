@@ -67,17 +67,18 @@ InterfaceElement::InterfaceElement(IndexType                                    
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy)
     : Element(NewId, rGeometry, rProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
-    if (GetGeometry().LocalSpaceDimension() == 1) {
-        mIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);
-    } else {
-        mIntegrationScheme = std::make_unique<LumpedIntegrationScheme>(GetGeometry().PointsNumber() / 2);
-    }
+    MakeIntegrationSheme();
 }
 
 InterfaceElement::InterfaceElement(IndexType                          NewId,
                                    const GeometryType::Pointer&       rGeometry,
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy)
     : Element(NewId, rGeometry), mpStressStatePolicy(std::move(pStressStatePolicy))
+{
+    MakeIntegrationSheme();
+}
+
+void InterfaceElement::MakeIntegrationSheme()
 {
     if (GetGeometry().LocalSpaceDimension() == 1) {
         mIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);

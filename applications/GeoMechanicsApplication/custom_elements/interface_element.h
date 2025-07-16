@@ -75,6 +75,7 @@ private:
     std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints();
     std::vector<Vector> CalculateRelativeDisplacementsAtIntegrationPoints(const std::vector<Matrix>& rLocalBMatrices) const;
     std::vector<Vector> CalculateTractionsAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements);
+    void MakeIntegrationSheme();
 
     std::unique_ptr<IntegrationScheme>    mIntegrationScheme;
     std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
