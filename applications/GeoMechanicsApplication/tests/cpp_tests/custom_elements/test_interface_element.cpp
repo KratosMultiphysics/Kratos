@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Richard Faasse
+//                   Gennady Markelov
 //
 
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
@@ -33,8 +34,9 @@ using TriangleInterfaceGeometry3D3Plus3Noded = InterfaceGeometry<Triangle3D3<Nod
 using TriangleInterfaceGeometry3D6Plus6Noded = InterfaceGeometry<Triangle3D6<Node>>;
 using Interface2D                            = Line2DInterfaceStressState;
 using Interface3D                            = SurfaceInterfaceStressState;
+using PrescribedDisplacements = std::vector<std::pair<std::size_t, array_1d<double, 3>>>;
 
-PointerVector<Node> CreateNodes()
+PointerVector<Node> CreateNodesFor2Plus2LineInterfaceGeometry()
 {
     PointerVector<Node> result;
     result.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -45,7 +47,7 @@ PointerVector<Node> CreateNodes()
     return result;
 }
 
-PointerVector<Node> Create6NodesForTriangle()
+PointerVector<Node> CreateNodesFor3Plus3SurfaceInterfaceGeometry()
 {
     PointerVector<Node> result;
     result.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -214,12 +216,12 @@ InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacemen
 }
 
 template <typename TElementFactory>
-InterfaceElement CreateAndInitializeElement(TElementFactory&&          rFactory,
-                                            const Properties::Pointer& rProperties,
-                                            const std::vector<std::pair<std::size_t, array_1d<double, 3>>>& rDisplacements = {})
+InterfaceElement CreateAndInitializeElement(TElementFactory&&              rFactory,
+                                            const Properties::Pointer&     rProperties,
+                                            const PrescribedDisplacements& rDisplacements = {})
 {
-    Model      model;
-    auto       element            = rFactory(model, rProperties);
+    Model model;
+    auto  element = rFactory(model, rProperties);
     element.Initialize(ProcessInfo{});
     for (const auto& [idx, disp] : rDisplacements) {
         element.GetGeometry()[idx].FastGetSolutionStepValue(DISPLACEMENT) = disp;
@@ -236,8 +238,9 @@ using namespace Kratos;
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_IsAnElement, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const InterfaceElement element(0, std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodes()),
-                                   std::make_unique<Line2DInterfaceStressState>());
+    const InterfaceElement element(
+        0, std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodesFor2Plus2LineInterfaceGeometry()),
+        std::make_unique<Line2DInterfaceStressState>());
     auto p_casted_element = dynamic_cast<const Element*>(&element);
     KRATOS_CHECK_NOT_EQUAL(p_casted_element, nullptr);
 }
@@ -245,9 +248,11 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_IsAnElement, KratosGeoMechanicsFastSu
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CreatesInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const InterfaceElement element(0, std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodes()),
-                                   std::make_unique<Line2DInterfaceStressState>());
-    const auto p_geometry   = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodes());
+    const InterfaceElement element(
+        0, std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodesFor2Plus2LineInterfaceGeometry()),
+        std::make_unique<Line2DInterfaceStressState>());
+    const auto p_geometry =
+        std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodesFor2Plus2LineInterfaceGeometry());
     const auto p_properties = std::make_shared<Properties>();
 
     // Act
@@ -263,7 +268,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CreatesInstanceWithGeometryInput,
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CreatesInstanceWithNodeInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto nodes        = CreateNodes();
+    const auto nodes        = CreateNodesFor2Plus2LineInterfaceGeometry();
     const auto p_properties = std::make_shared<Properties>();
 
     // The source element needs to have a geometry, otherwise the version of the
@@ -361,7 +366,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
     auto element = CreateAndInitializeElement(
-            CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties);
+        CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties);
 
     // Act
     Matrix actual_left_hand_side;
@@ -392,9 +397,10 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    auto element = CreateAndInitializeElement(
-        CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs, p_properties,
-        {{2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}});
+    const PrescribedDisplacements prescribed_displacements = {
+        {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
+    auto element = CreateAndInitializeElement(CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs,
+                                              p_properties, prescribed_displacements);
 
     // Act
     Vector actual_right_hand_side;
@@ -415,9 +421,11 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    auto element = CreateAndInitializeElement(
-            CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties,
-        {{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}, {3,  array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}});
+    const PrescribedDisplacements prescribed_displacements = {
+        {2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
+        {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+    auto element = CreateAndInitializeElement(CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
+                                              p_properties, prescribed_displacements);
 
     // Act
     Vector actual_right_hand_side;
@@ -440,7 +448,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitializati
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
     auto element = CreateAndInitializeElement(
-            CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs, p_properties);
+        CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs, p_properties);
     // Act
     auto constitutive_laws = std::vector<ConstitutiveLaw::Pointer>{};
     element.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, ProcessInfo{});
@@ -487,9 +495,10 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateLocalSystem_ReturnsExpec
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    auto element = CreateAndInitializeElement(
-        CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs, p_properties,
-        {{2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}});
+    const PrescribedDisplacements prescribed_displacements = {
+        {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
+    auto element = CreateAndInitializeElement(CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs,
+                                              p_properties, prescribed_displacements);
 
     // Act
     Vector actual_right_hand_side;
@@ -515,10 +524,11 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateStrain_ReturnsRelativeDi
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    auto element = CreateAndInitializeElement(
-        CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties,
-        {{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-         {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}});
+    const PrescribedDisplacements prescribed_displacements = {
+        {2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
+        {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+    auto element = CreateAndInitializeElement(CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
+                                              p_properties, prescribed_displacements);
 
     // Act
     std::vector<Vector> relative_displacements_at_integration_points;
@@ -543,10 +553,11 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateCauchyStressVector_Retur
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    auto element = CreateAndInitializeElement(
-        CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties,
-        {{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-         {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}});
+    const PrescribedDisplacements prescribed_displacements = {
+        {2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
+        {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+    auto element = CreateAndInitializeElement(CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
+                                              p_properties, prescribed_displacements);
 
     // Act
     std::vector<Vector> tractions_at_integration_points;
@@ -570,11 +581,11 @@ KRATOS_TEST_CASE_IN_SUITE(3Plus3NodedLineInterfaceElement_CalculateLocalSystem_R
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    auto element = CreateAndInitializeElement(
-        CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF, p_properties,
-        {{3, array_1d<double, 3>{0.2, 0.5, 0.0}},
-         {4, array_1d<double, 3>{0.2, 0.5, 0.0}},
-         {5, array_1d<double, 3>{0.2, 0.5, 0.0}}});
+    const PrescribedDisplacements prescribed_displacements = {{3, array_1d<double, 3>{0.2, 0.5, 0.0}},
+                                                              {4, array_1d<double, 3>{0.2, 0.5, 0.0}},
+                                                              {5, array_1d<double, 3>{0.2, 0.5, 0.0}}};
+    auto element = CreateAndInitializeElement(CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF,
+                                              p_properties, prescribed_displacements);
 
     // Act
     Vector actual_right_hand_side;
@@ -621,10 +632,11 @@ KRATOS_TEST_CASE_IN_SUITE(3Plus3NodedLineInterfaceElement_CalculateLocalSystem_R
 KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const InterfaceElement element(0, std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodes()),
-                                   std::make_unique<Line2DInterfaceStressState>());
-    const auto p_geometry =
-        std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(Create6NodesForTriangle());
+    const InterfaceElement element(
+        0, std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(CreateNodesFor3Plus3SurfaceInterfaceGeometry()),
+        std::make_unique<SurfaceInterfaceStressState>());
+    const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(
+        CreateNodesFor3Plus3SurfaceInterfaceGeometry());
     const auto p_properties = std::make_shared<Properties>();
 
     // Act
@@ -640,7 +652,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithGeometryIn
 KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithNodeInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto nodes        = Create6NodesForTriangle();
+    const auto nodes        = CreateNodesFor3Plus3SurfaceInterfaceGeometry();
     const auto p_properties = std::make_shared<Properties>();
 
     // The source element needs to have a geometry, otherwise the version of the
@@ -722,7 +734,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
         normal_stiffness, shear_stiffness);
 
     auto element = CreateAndInitializeElement(
-                CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs, p_properties);
+        CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs, p_properties);
 
     // Act
     Matrix actual_left_hand_side;
@@ -763,7 +775,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
         normal_stiffness, shear_stiffness);
 
     auto element = CreateAndInitializeElement(
-                CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties);
+        CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties);
 
     // Act
     Matrix actual_left_hand_side;
@@ -804,9 +816,10 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    auto element = CreateAndInitializeElement(
-        CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs, p_properties,
-        {{2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}});
+    const PrescribedDisplacements prescribed_displacements = {
+        {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
+    auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs,
+                                              p_properties, prescribed_displacements);
 
     // Act
     Vector actual_right_hand_side;
@@ -828,10 +841,11 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    auto element = CreateAndInitializeElement(
-        CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties,
-        {{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-         {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}});
+    const PrescribedDisplacements prescribed_displacements = {
+        {2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
+        {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+    auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
+                                              p_properties, prescribed_displacements);
 
     // Act
     Vector actual_right_hand_side;
@@ -855,7 +869,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleIntrfaceElement_GetInitializedConstitutiveLaws
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
     auto element = CreateAndInitializeElement(
-                CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs, p_properties);
+        CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs, p_properties);
 
     // Act
     auto constitutive_laws = std::vector<ConstitutiveLaw::Pointer>{};
@@ -903,9 +917,10 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateLocalSystem_ReturnsE
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    auto element = CreateAndInitializeElement(
-        CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs, p_properties,
-        {{2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}});
+    const PrescribedDisplacements prescribed_displacements = {
+        {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
+    auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs,
+                                              p_properties, prescribed_displacements);
 
     // Act
     Vector actual_right_hand_side;
@@ -954,10 +969,11 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelati
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    auto element = CreateAndInitializeElement(
-        CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties,
-        {{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-         {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}});
+    const PrescribedDisplacements prescribed_displacements = {
+        {2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
+        {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+    auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
+                                              p_properties, prescribed_displacements);
 
     // Act
     std::vector<Vector> relative_displacements_at_integration_points;
@@ -988,10 +1004,11 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_R
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    auto element = CreateAndInitializeElement(
-        CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties,
-        {{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-         {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}});
+    const PrescribedDisplacements prescribed_displacements = {
+        {2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
+        {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+    auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
+                                              p_properties, prescribed_displacements);
 
     // Act
     std::vector<Vector> tractions_at_integration_points;
@@ -1021,11 +1038,11 @@ KRATOS_TEST_CASE_IN_SUITE(6Plus6NodedTriangleInterfaceElement_CalculateLocalSyst
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    auto element = CreateAndInitializeElement(
-        CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplacementDoF, p_properties,
-        {{3, array_1d<double, 3>{0.2, 0.5, 0.0}},
-         {4, array_1d<double, 3>{0.2, 0.5, 0.0}},
-         {5, array_1d<double, 3>{0.2, 0.5, 0.0}}});
+    const PrescribedDisplacements prescribed_displacements = {{3, array_1d<double, 3>{0.2, 0.5, 0.0}},
+                                                              {4, array_1d<double, 3>{0.2, 0.5, 0.0}},
+                                                              {5, array_1d<double, 3>{0.2, 0.5, 0.0}}};
+    auto element = CreateAndInitializeElement(CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplacementDoF,
+                                              p_properties, prescribed_displacements);
 
     // Act
     Vector actual_right_hand_side;

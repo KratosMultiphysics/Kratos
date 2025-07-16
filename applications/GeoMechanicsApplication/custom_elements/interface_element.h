@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Richard Faasse
+//                   Gennady Markelov
 //
 
 #pragma once
@@ -85,8 +86,6 @@ private:
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
 
     friend class Serializer;
-    void save(Serializer& rSerializer) const override;
-    void load(Serializer& rSerializer) override;
 };
 
 } // namespace Kratos
