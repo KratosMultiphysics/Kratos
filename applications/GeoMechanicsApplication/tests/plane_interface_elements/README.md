@@ -1,4 +1,4 @@
-# Line interface element tests with 3 + 3 nodes
+# Plane interface element tests with 3 + 3, 4 + 4, 6 + 6 and 8 + 8 nodes
 
 This folder contains integration tests for the plane interface elements with Neumann and Dirichlet boundary conditions. 
 
