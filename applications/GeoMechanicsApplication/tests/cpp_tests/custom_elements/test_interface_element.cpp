@@ -31,6 +31,8 @@ using LineInterfaceGeometry2D2Plus2Noded     = InterfaceGeometry<Line2D2<Node>>;
 using LineInterfaceGeometry2D3Plus3Noded     = InterfaceGeometry<Line2D3<Node>>;
 using TriangleInterfaceGeometry3D3Plus3Noded = InterfaceGeometry<Triangle3D3<Node>>;
 using TriangleInterfaceGeometry3D6Plus6Noded = InterfaceGeometry<Triangle3D6<Node>>;
+using Interface2D = Line2DInterfaceStressState;
+using Interface3D = SurfaceInterfaceStressState;
 
 PointerVector<Node> CreateNodes()
 {
@@ -76,25 +78,12 @@ ModelPart& CreateModelPartWithDisplacementVariable(Model& rModel)
     return r_result;
 }
 
-InterfaceElement Create2DInterfaceElementWithUDofs(const Properties::Pointer&     rProperties,
+template <typename TInterfaceDimension>
+InterfaceElement CreateInterfaceElementWithUDofs(const Properties::Pointer&     rProperties,
                                                    const Geometry<Node>::Pointer& rGeometry)
 {
     auto result =
-        InterfaceElement{1, rGeometry, rProperties, std::make_unique<Line2DInterfaceStressState>()};
-    for (auto& node : result.GetGeometry()) {
-        node.AddDof(DISPLACEMENT_X);
-        node.AddDof(DISPLACEMENT_Y);
-        node.AddDof(DISPLACEMENT_Z);
-    }
-
-    return result;
-}
-
-InterfaceElement Create3DInterfaceElementWithUDofs(const Properties::Pointer&     rProperties,
-                                                   const Geometry<Node>::Pointer& rGeometry)
-{
-    auto result =
-        InterfaceElement{1, rGeometry, rProperties, std::make_unique<SurfaceInterfaceStressState>()};
+        InterfaceElement{1, rGeometry, rProperties, std::make_unique<TInterfaceDimension>()};
     for (auto& node : result.GetGeometry()) {
         node.AddDof(DISPLACEMENT_X);
         node.AddDof(DISPLACEMENT_Y);
@@ -115,7 +104,7 @@ InterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUD
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
-    return Create2DInterfaceElementWithUDofs(rProperties, p_geometry);
+    return CreateInterfaceElementWithUDofs<Interface2D>(rProperties, p_geometry);
 }
 
 InterfaceElement CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(
@@ -131,7 +120,7 @@ InterfaceElement CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDi
     nodes.push_back(r_model_part.CreateNewNode(4, 1.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(5, 0.5, 0.0, 0.0));
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D3Plus3Noded>(nodes);
-    return Create2DInterfaceElementWithUDofs(rProperties, p_geometry);
+    return CreateInterfaceElementWithUDofs<Interface2D>(rProperties, p_geometry);
 }
 
 InterfaceElement CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(
@@ -145,7 +134,7 @@ InterfaceElement CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDispl
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 0.5 * std::sqrt(3.0), 0.5, 0.0));
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
-    return Create2DInterfaceElementWithUDofs(rProperties, p_geometry);
+    return CreateInterfaceElementWithUDofs<Interface2D>(rProperties, p_geometry);
 }
 
 Matrix CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(double NormalStiffness, double ShearStiffness)
@@ -184,7 +173,7 @@ InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(Mo
     nodes.push_back(r_model_part.CreateNewNode(4, 1.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(5, 1.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
-    return Create3DInterfaceElementWithUDofs(rProperties, p_geometry);
+    return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
 }
 
 InterfaceElement CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplacementDoF(Model& rModel,
@@ -206,7 +195,7 @@ InterfaceElement CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplace
     nodes.push_back(r_model_part.CreateNewNode(10, 1.0, 0.5, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(11, 0.5, 0.5, 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D6Plus6Noded>(nodes);
-    return Create3DInterfaceElementWithUDofs(rProperties, p_geometry);
+    return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
 }
 
 InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(Model& rModel,
@@ -222,7 +211,7 @@ InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacemen
     nodes.push_back(r_model_part.CreateNewNode(4, 0.5 * std::sqrt(3.0), 0.5, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(5, 0.5 * std::sqrt(3.0) - 0.5, 0.5 + 0.5 * std::sqrt(3.0), 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
-    return Create3DInterfaceElementWithUDofs(rProperties, p_geometry);
+    return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
 }
 
 } // namespace
