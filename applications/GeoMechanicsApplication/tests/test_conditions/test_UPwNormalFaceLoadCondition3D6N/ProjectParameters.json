@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "test_UPwNormalFaceLoadCondition3D4N",
+        "problem_name":         "test_UPwNormalFaceLoadCondition3D6N",
         "start_time":           0.0,
         "end_time":             1200.0,
         "echo_level":           1,
@@ -13,7 +13,7 @@
         "domain_size":                        3,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "test_UPwNormalFaceLoadCondition3D4N"
+            "input_filename":   "test_UPwNormalFaceLoadCondition3D6N"
         },
         "material_import_settings":              {
             "materials_filename":       "../Common/MaterialParametersUPw3D.json"
@@ -80,7 +80,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_UPwNormalFaceLoadCondition3D4N",
+                "output_name": "test_UPwNormalFaceLoadCondition3D6N",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
