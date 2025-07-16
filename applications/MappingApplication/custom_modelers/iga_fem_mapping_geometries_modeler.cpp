@@ -229,7 +229,7 @@ namespace Kratos
                             GeometryType::Pointer pBrep_curve=Kratos::make_shared<NurbsCurveGeometry<3, PointerVector<NodeType>>>(brep_curve_points, p, knot_vector);
 
                             // Creating a new condition in the interface 
-                            coupling_conditions.CreateNewCondition("BrepCurve", condition_id, pBrep_curve, rInterfaceModelPart.pGetProperties(0));
+                            coupling_conditions.CreateNewCondition("NurbsCurveCondition", condition_id, pBrep_curve, rInterfaceModelPart.pGetProperties(0));
                             condition_id += 1;
                         }
                     }

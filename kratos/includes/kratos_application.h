@@ -489,8 +489,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshCondition mPrismCondition3D6N;
 
     // IBRA Conditions
-    const MeshCondition mBrepCurveOnSurface;
-    const MeshCondition mBrepCurve;
+    const MeshCondition mBrepCurveOnSurfaceCondition;
+    const MeshCondition mNurbsCurveCondition;
 
 
     // Master-Slave base constraint

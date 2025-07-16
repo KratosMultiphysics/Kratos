@@ -59,6 +59,9 @@ KratosApplication::KratosApplication(const std::string& ApplicationName)
       //prisms
       mPrismCondition2D4N( 0, GeometryType::Pointer(new Quadrilateral2D4<NodeType >(GeometryType::PointsArrayType(4)))),
       mPrismCondition3D6N( 0, GeometryType::Pointer(new Prism3D6<NodeType >(GeometryType::PointsArrayType(6)))),
+      // IBRA
+      mNurbsCurveCondition( 0, GeometryType::Pointer(new NurbsCurveGeometry<3, PointerVector<NodeType>>(GeometryType::PointsArrayType()))),
+      mBrepCurveOnSurfaceCondition( 0, GeometryType::Pointer(new BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<NodeType>>(GeometryType::PointsArrayType()))),
 
       // Master-Slave Constraint
       mMasterSlaveConstraint(),
@@ -199,8 +202,8 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_CONDITION("PrismCondition3D6N", mPrismCondition3D6N);
 
     // IBRA Conditions
-    KRATOS_REGISTER_CONDITION("BrepCurveOnSurface", mBrepCurveOnSurface);
-    KRATOS_REGISTER_CONDITION("BrepCurve", mBrepCurve);
+    KRATOS_REGISTER_CONDITION("BrepCurveOnSurfaceCondition", mBrepCurveOnSurfaceCondition);
+    KRATOS_REGISTER_CONDITION("NurbsCurveCondition", mNurbsCurveCondition);
 
     //Master-slave constraints
     KRATOS_REGISTER_CONSTRAINT("MasterSlaveConstraint",mMasterSlaveConstraint);
