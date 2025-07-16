@@ -261,7 +261,7 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateStressResponse(
         //Compute damage in principal directions
         for (SizeType i = 0; i < Dimension; ++i) {
             if (F[i]<0){
-                damage_vector[i]=mDamageVector[i];
+                damage_vector[i]=0.0;
             }else if (F[i] == 0){
                 const double var1      = pow((k0[i]/kappa[i]),beta1[i]);
                 const double var2      = exp(-beta2[i]*((kappa[i]-k0[i])/(k0[i])));
@@ -269,6 +269,9 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateStressResponse(
             }
             if(damage_vector[i] < 0.0){
                 damage_vector[i] = 0.0;
+            }
+            if(damage_vector[i] < mDamageVector[i]){
+                damage_vector[i] = mDamageVector[i];
             }
             if(damage_vector[i] > 0.999){
                 damage_vector[i] = 0.999;
@@ -288,7 +291,8 @@ void ElasticAnisotropicDamage3DTwoNLEquivalentStrains::CalculateStressResponse(
             }
             noalias(r_stress_vector)  = prod(EffStiffnessMatrix, r_strain_vector);
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                Calculate_tangent_Huu(r_elastic_tensor, rParametersValues);
+                //Calculate_tangent_Huu(r_elastic_tensor, rParametersValues);
+                noalias(r_elastic_tensor) = EffStiffnessMatrix;
                 //Calculate_tangent_HuNL(H_uNL1, H_uNL2, rParametersValues, kappa, beta1, beta2, k0, damage_vector, principal_strains);
                 Calculate_tangent_HuNL(H_uNL1, H_uNL2, rParametersValues, beta1, beta2, k0, damage_vector, principal_strains);
                 Calculate_tangent_HNLu(H_NL1u, H_NL2u, rParametersValues, principal_strains);
