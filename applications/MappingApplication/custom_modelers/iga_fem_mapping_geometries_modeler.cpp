@@ -158,7 +158,7 @@ namespace Kratos
             ? 1 : (root_mp.ConditionsEnd() - 1)->Id() + 1;
 
         for (IndexType i = 0; i < p_brep_curve_on_surface_vector.size(); i++){
-            coupling_conditions.CreateNewCondition("BrepCurveOnSurface", condition_id, p_brep_curve_on_surface_vector[i], root_mp.ConditionsBegin()->pGetProperties(), 0);
+            coupling_conditions.CreateNewCondition("BrepCurveOnSurfaceCondition", condition_id, p_brep_curve_on_surface_vector[i], root_mp.ConditionsBegin()->pGetProperties(), 0);
             condition_id += 1;
         }
     }
