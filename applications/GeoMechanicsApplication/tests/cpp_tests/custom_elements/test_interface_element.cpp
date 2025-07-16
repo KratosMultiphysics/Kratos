@@ -1042,7 +1042,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelati
     expected_relative_displacement <<= 0.03839746, -0.0665063516, 0.5330127;
     std::vector<Vector> expected_relative_displacements;
     expected_relative_displacements.push_back(expected_relative_displacement);
-    expected_relative_displacements.push_back(ZeroVector(3));
+    expected_relative_displacements.push_back(Vector{ZeroVector(3)});
     expected_relative_displacement <<= -0.03839746, 0.0665063516, -0.5330127;
     expected_relative_displacements.push_back(expected_relative_displacement);
 
@@ -1082,7 +1082,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_R
     expected_traction <<= 0.7679492, -0.665063516, 5.330127;
     std::vector<Vector> expected_tractions;
     expected_tractions.push_back(expected_traction);
-    expected_tractions.push_back(ZeroVector(3));
+    expected_tractions.push_back(Vector{ZeroVector(3)});
     expected_traction <<= -0.7679492, 0.665063516, -5.330127;
     expected_tractions.push_back(expected_traction);
     KRATOS_EXPECT_EQ(tractions_at_integration_points.size(), 3);
@@ -1164,7 +1164,6 @@ KRATOS_TEST_CASE_IN_SUITE(6Plus6NodedTriangleInterfaceElement_CalculateLocalSyst
         -0, -0.6009389671, -1.502347418, -0, -0.6009389671, -1.502347418, -0, -0, -0, -0, -0, -0,
         -0, -0, -0, -0, 0.6009389671, 1.502347418, -0, 0.6009389671, 1.502347418, -0, 0.6009389671,
         1.502347418, -0;
-    ;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
