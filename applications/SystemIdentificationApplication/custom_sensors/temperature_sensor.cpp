@@ -34,7 +34,6 @@ TemperatureSensor::TemperatureSensor(
     : BaseType(rName, rLocation, Weight),
       mElementId(rElement.Id())
 {
-    std::cout << "Temperature sensor created with id " << mElementId << std::endl;
     const auto& r_geometry = rElement.GetGeometry();
     const auto& current_sensor_location = this->GetLocation();
 
@@ -213,7 +212,7 @@ void TemperatureSensor::CalculatePartialSensitivity(
             const IndexType block_size = rSensitivityGradient.size() / r_geometry.size();
 
             for (IndexType i = 0; i < r_geometry.size(); ++i) {
-                rSensitivityGradient[i * block_size] = mNs[i];
+                rSensitivityGradient[i * block_size] = -1.0 * mNs[i];
             }
         }
     }
