@@ -12,6 +12,11 @@ Source is http://burtleburtle.net/bob/c/lookupa.c
 #include "lookupa.h"
 #endif
 
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif // _WIN32
+
 /*
 --------------------------------------------------------------------
 mix -- mix 3 32-bit values reversibly.
@@ -79,10 +84,11 @@ acceptable.  Do NOT use for cryptographic purposes.
 --------------------------------------------------------------------
 */
 
-ub4 lookup( k, length, level)
-register ub1 *k;        /* the key */
-register ub4  length;   /* the length of the key */
-register ub4  level;    /* the previous hash, or an arbitrary value */
+ub4 lookup( 
+    register ub1 *k,        /* the key */
+    register ub4  length,   /* the length of the key */
+    register ub4  level    /* the previous hash, or an arbitrary value */
+            )
 {
    register ub4 a,b,c,len;
 
@@ -167,10 +173,10 @@ Use to detect changes between revisions of documents, assuming nobody
 is trying to cause collisions.  Do NOT use for cryptography.
 --------------------------------------------------------------------
 */
-void  checksum( k, len, state)
-register ub1 *k;
-register ub4  len;
-register ub4 *state;
+void  checksum( 
+    register ub1 *k,
+    register ub4  len,
+    register ub4 *state)
 {
    register ub4 a,b,c,d,e,f,g,h,length;
 
@@ -242,3 +248,7 @@ register ub4 *state;
    state[0]=a; state[1]=b; state[2]=c; state[3]=d;
    state[4]=e; state[5]=f; state[6]=g; state[7]=h;
 }
+
+#ifndef _WIN32
+#pragma GCC diagnostic pop
+#endif // _WIN32

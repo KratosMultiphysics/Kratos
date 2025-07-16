@@ -497,11 +497,6 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
                         this->mMaybeHierarchy.value());
         } // if mMaybeHierarchy
 
-        //if constexpr (AssembleLHS && AssembleRHS)
-        //    NormalizeSystem<TSparse>(*pMaybeLhs.value(),
-        //                             *pMaybeRhs.value(),
-        //                             GetDiagonalScaleFactor<TSparse>(*pMaybeLhs.value(),
-        //                                                             DiagonalScaling::AbsMax));
         KRATOS_CATCH("")
     }
 

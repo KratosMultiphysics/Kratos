@@ -11,8 +11,9 @@
 //
 
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
+#include "custom_constitutive/interface_plane_strain.h"
 #include "custom_elements/line_interface_element.h"
-#include "custom_geometries/line_interface_geometry.h"
+#include "custom_geometries/interface_geometry.h"
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
@@ -24,8 +25,8 @@ namespace
 {
 
 using namespace Kratos;
-using LineInterfaceGeometry2D2Plus2Noded = LineInterfaceGeometry<Line2D2<Node>>;
-using LineInterfaceGeometry2D3Plus3Noded = LineInterfaceGeometry<Line2D3<Node>>;
+using LineInterfaceGeometry2D2Plus2Noded = InterfaceGeometry<Line2D2<Node>>;
+using LineInterfaceGeometry2D3Plus3Noded = InterfaceGeometry<Line2D3<Node>>;
 
 PointerVector<Node> CreateNodes()
 {
@@ -43,7 +44,8 @@ std::shared_ptr<Properties> CreateLinearElasticMaterialProperties(double NormalS
     auto result                                  = std::make_shared<Properties>();
     result->GetValue(INTERFACE_NORMAL_STIFFNESS) = NormalStiffness;
     result->GetValue(INTERFACE_SHEAR_STIFFNESS)  = ShearStiffness;
-    result->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
+    result->GetValue(CONSTITUTIVE_LAW) =
+        std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
     return result;
 }
@@ -357,7 +359,8 @@ KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitializati
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
-    p_properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
+    p_properties->GetValue(CONSTITUTIVE_LAW) =
+        std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
     Model model;
     auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
@@ -383,7 +386,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_HasCorrectNumberOfConstitutiveLawsAft
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
-    p_properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>();
+    p_properties->GetValue(CONSTITUTIVE_LAW) =
+        std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
     Model model;
     auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);

@@ -36,33 +36,21 @@ struct LinkConstraint::Impl
                                       const std::array<ValueType,6>& rLastDisplacements,
                                       const unsigned Dimensions)
     {
-        // Make sure we don't try to allocate an underflown unsigned integer.
-        KRATOS_ERROR_IF_NOT(Dimensions);
-
         // Set output sizes.
-        rRelationMatrix.resize(1, 2 * Dimensions);
-        rHessian.resize(2 * Dimensions, 2 * Dimensions);
-        rConstraintGaps.resize(1);
-
-        // Initialize outputs.
-        rConstraintGaps[0] = 0.0;
-        std::fill(rRelationMatrix.data().begin(),
-                  rRelationMatrix.data().end(),
-                  static_cast<ValueType>(0));
-        std::fill(rHessian.data().begin(),
-                  rHessian.data().end(),
-                  static_cast<ValueType>(0));
+        rRelationMatrix = ZeroMatrix(1, 2 * Dimensions);
+        rHessian        = ZeroMatrix(2 * Dimensions, 2 * Dimensions);
+        rConstraintGaps = ZeroVector(1);
 
         // Compute constraint violation.
-        double current_norm = 0.0;
+        double current_norm_square = 0.0;
         for (std::size_t i_component=0ul; i_component<Dimensions; ++i_component) {
             const auto current_diff = rLastPositions[i_component] - rLastPositions[i_component + Dimensions]
                                     + rLastDisplacements[i_component] - rLastDisplacements[i_component + Dimensions];
-            current_norm += current_diff * current_diff;
+            current_norm_square += current_diff * current_diff;
         } // for i_component in range(Dimensions)
 
-        KRATOS_ERROR_IF_NOT(current_norm) << "degenerate link constraint";
-        const auto current_norm_root = std::sqrt(current_norm);
+        KRATOS_ERROR_IF_NOT(current_norm_square) << "degenerate link constraint";
+        const auto current_norm = std::sqrt(current_norm_square);
 
         // Dof order:
         // {u^0_x, ..., u^0_w, u^1_x, ..., u^1_w}
@@ -73,10 +61,10 @@ struct LinkConstraint::Impl
             const auto current_diff = rLastPositions[i_component] - rLastPositions[i_component + Dimensions]
                                     + rLastDisplacements[i_component] - rLastDisplacements[i_component + Dimensions];
 
-            rRelationMatrix(0, i_component) = current_diff / current_norm_root;
+            rRelationMatrix(0, i_component) = current_diff / current_norm;
             rRelationMatrix(0, i_component + Dimensions) = -rRelationMatrix(0, i_component);
 
-            const auto hessian_entry = (current_norm_root - current_diff * current_diff / current_norm_root) / current_norm;
+            const auto hessian_entry = (current_norm - current_diff * current_diff / current_norm) / current_norm;
 
             rHessian(i_component, i_component) = hessian_entry;
             rHessian(i_component, i_component + Dimensions) = -hessian_entry;
@@ -158,7 +146,7 @@ struct LinkConstraint::Impl
 
     /// @details MasterSlaveConstraint::GetSlaveDofsVector and MasterSlaveConstraint::GetMasterDofsVector
     ///          require arrays of mutable Dof pointers, which are only obtainable from mutable nodes,
-    ///          so the nodes pointers stored here cannot be immutable. Risky business.
+    ///          so the nodes' pointers stored here cannot be immutable. Risky business.
     std::array<Node*,2> mNodePair;
 
     std::array<ValueType,6> mLastPositions;

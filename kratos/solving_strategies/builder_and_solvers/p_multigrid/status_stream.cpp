@@ -17,7 +17,6 @@
 #include "spaces/ublas_space.h" // TUblasSparseSpace
 #include "input_output/vtu_output.h" // VtuOutput
 #include "includes/model_part.h" // ModelPart
-#include "linear_solvers/linear_solver.h" // LinearSolver
 
 // System includes
 #include <iostream> // std::cout

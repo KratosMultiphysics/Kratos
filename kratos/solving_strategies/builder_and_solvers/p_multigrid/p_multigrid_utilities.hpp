@@ -438,7 +438,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
         // but have multifreedom constraints to other nodes that are. These connected
         // external DoFs must also be included in the coarse set of DoFs.
         // To find these DoFs, loop through the input DoF set and check whether their
-        // nodes are hanging. If they are, they fall into the above mentioned category.
+        // nodes are hanging. If they are, they fall into the category mentioned above.
         KRATOS_TRY
         block_for_each(rParentIndirectDofSet, [&hanging_nodes, &locks, &rows, &rModelPart](Dof<double>& r_dof){
             const std::size_t node_id = r_dof.Id();
