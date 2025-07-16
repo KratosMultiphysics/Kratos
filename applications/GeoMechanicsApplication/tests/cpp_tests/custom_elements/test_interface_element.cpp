@@ -39,10 +39,10 @@ using PrescribedDisplacements = std::vector<std::pair<std::size_t, array_1d<doub
 PointerVector<Node> CreateNodesFor2Plus2LineInterfaceGeometry()
 {
     PointerVector<Node> result;
-    result.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    result.push_back(Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0));
-    result.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
-    result.push_back(Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0));
+    result.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    result.push_back(make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+    result.push_back(make_intrusive<Node>(3, 0.0, 0.0, 0.0));
+    result.push_back(make_intrusive<Node>(4, 1.0, 0.0, 0.0));
 
     return result;
 }
@@ -50,12 +50,12 @@ PointerVector<Node> CreateNodesFor2Plus2LineInterfaceGeometry()
 PointerVector<Node> CreateNodesFor3Plus3SurfaceInterfaceGeometry()
 {
     PointerVector<Node> result;
-    result.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    result.push_back(Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0));
-    result.push_back(Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0));
-    result.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
-    result.push_back(Kratos::make_intrusive<Node>(5, 1.0, 0.0, 0.0));
-    result.push_back(Kratos::make_intrusive<Node>(6, 1.0, 1.0, 0.0));
+    result.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    result.push_back(make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+    result.push_back(make_intrusive<Node>(3, 1.0, 1.0, 0.0));
+    result.push_back(make_intrusive<Node>(4, 0.0, 0.0, 0.0));
+    result.push_back(make_intrusive<Node>(5, 1.0, 0.0, 0.0));
+    result.push_back(make_intrusive<Node>(6, 1.0, 1.0, 0.0));
 
     return result;
 }
@@ -216,12 +216,12 @@ InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacemen
 }
 
 template <typename TElementFactory>
-InterfaceElement CreateAndInitializeElement(TElementFactory&&              rFactory,
+InterfaceElement CreateAndInitializeElement(TElementFactory                Factory,
                                             const Properties::Pointer&     rProperties,
                                             const PrescribedDisplacements& rDisplacements = {})
 {
     Model model;
-    auto  element = rFactory(model, rProperties);
+    auto  element = Factory(model, rProperties);
     element.Initialize(ProcessInfo{});
     for (const auto& [idx, disp] : rDisplacements) {
         element.GetGeometry()[idx].FastGetSolutionStepValue(DISPLACEMENT) = disp;
@@ -242,7 +242,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_IsAnElement, KratosGeoMechanicsFastSu
         0, std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodesFor2Plus2LineInterfaceGeometry()),
         std::make_unique<Line2DInterfaceStressState>());
     auto p_casted_element = dynamic_cast<const Element*>(&element);
-    KRATOS_CHECK_NOT_EQUAL(p_casted_element, nullptr);
+    EXPECT_NE(p_casted_element, nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CreatesInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -486,8 +486,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_HasCorrectNumberOfConstitutiveLawsAft
     KRATOS_EXPECT_EQ(constitutive_laws.size(), 2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateLocalSystem_ReturnsExpectedLeftAndRightHandSide,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsExpectedLeftAndRightHandSide, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -572,7 +571,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateCauchyStressVector_Retur
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(3Plus3NodedLineInterfaceElement_CalculateLocalSystem_ReturnsExpectedLeftAndRightHandSide,
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_3Plus3NodedElement_ReturnsExpectedLeftAndRightHandSide,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -659,7 +658,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithNodeInput,
     // Create method with a node input will fail.
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
     const InterfaceElement element(0, p_geometry, p_properties,
-                                   std::make_unique<Line2DInterfaceStressState>());
+                                   std::make_unique<SurfaceInterfaceStressState>());
 
     // Act
     const auto p_created_element = element.Create(1, nodes, p_properties);
@@ -908,7 +907,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_HasCorrectNumberOfConstitutiv
     KRATOS_EXPECT_EQ(constitutive_laws.size(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateLocalSystem_ReturnsExpectedLeftAndRightHandSide,
+KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsExpectedLeftAndRightHandSide,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -1029,7 +1028,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_R
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(6Plus6NodedTriangleInterfaceElement_CalculateLocalSystem_ReturnsExpectedLeftAndRightHandSide,
+KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_6Plus6NodedElement_ReturnsExpectedLeftAndRightHandSide,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
