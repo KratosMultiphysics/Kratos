@@ -67,7 +67,7 @@ public:
     int  Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 private:
-    InterfaceElement()                                       = default;
+    InterfaceElement() = default;
 
     Element::DofsVectorType GetDofs() const;
 

@@ -31,8 +31,8 @@ using LineInterfaceGeometry2D2Plus2Noded     = InterfaceGeometry<Line2D2<Node>>;
 using LineInterfaceGeometry2D3Plus3Noded     = InterfaceGeometry<Line2D3<Node>>;
 using TriangleInterfaceGeometry3D3Plus3Noded = InterfaceGeometry<Triangle3D3<Node>>;
 using TriangleInterfaceGeometry3D6Plus6Noded = InterfaceGeometry<Triangle3D6<Node>>;
-using Interface2D = Line2DInterfaceStressState;
-using Interface3D = SurfaceInterfaceStressState;
+using Interface2D                            = Line2DInterfaceStressState;
+using Interface3D                            = SurfaceInterfaceStressState;
 
 PointerVector<Node> CreateNodes()
 {
@@ -64,8 +64,8 @@ std::shared_ptr<Properties> CreateElasticMaterialProperties(double NormalStiffne
     auto result                                  = std::make_shared<Properties>();
     result->GetValue(INTERFACE_NORMAL_STIFFNESS) = NormalStiffness;
     result->GetValue(INTERFACE_SHEAR_STIFFNESS)  = ShearStiffness;
-    result->GetValue(CONSTITUTIVE_LAW) =
-        std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<TConstitutiveLawDimension>());
+    result->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(
+        std::make_unique<TConstitutiveLawDimension>());
 
     return result;
 }
@@ -80,10 +80,9 @@ ModelPart& CreateModelPartWithDisplacementVariable(Model& rModel)
 
 template <typename TInterfaceDimension>
 InterfaceElement CreateInterfaceElementWithUDofs(const Properties::Pointer&     rProperties,
-                                                   const Geometry<Node>::Pointer& rGeometry)
+                                                 const Geometry<Node>::Pointer& rGeometry)
 {
-    auto result =
-        InterfaceElement{1, rGeometry, rProperties, std::make_unique<TInterfaceDimension>()};
+    auto result = InterfaceElement{1, rGeometry, rProperties, std::make_unique<TInterfaceDimension>()};
     for (auto& node : result.GetGeometry()) {
         node.AddDof(DISPLACEMENT_X);
         node.AddDof(DISPLACEMENT_Y);
@@ -214,6 +213,20 @@ InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacemen
     return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
 }
 
+template <typename TElementFactory>
+InterfaceElement CreateAndInitializeElement(TElementFactory&&          rFactory,
+                                            const Properties::Pointer& rProperties,
+                                            const std::vector<std::pair<std::size_t, array_1d<double, 3>>>& rDisplacements = {})
+{
+    Model      model;
+    auto       element            = rFactory(model, rProperties);
+    element.Initialize(ProcessInfo{});
+    for (const auto& [idx, disp] : rDisplacements) {
+        element.GetGeometry()[idx].FastGetSolutionStepValue(DISPLACEMENT) = disp;
+    }
+    return element;
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -323,17 +336,14 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
-
-    Model model;
-    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
-
-    const auto dummy_process_info = ProcessInfo{};
-    element.Initialize(dummy_process_info);
+    const auto     p_properties =
+        CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    auto element = CreateAndInitializeElement(
+        CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs, p_properties);
 
     // Act
     Matrix actual_left_hand_side;
-    element.CalculateLeftHandSide(actual_left_hand_side, dummy_process_info);
+    element.CalculateLeftHandSide(actual_left_hand_side, ProcessInfo{});
 
     // Assert
     const auto expected_left_hand_side =
@@ -347,17 +357,15 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    const auto     p_properties =
+        CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    Model model;
-    auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
-
-    const auto dummy_process_info = ProcessInfo{};
-    element.Initialize(dummy_process_info);
+    auto element = CreateAndInitializeElement(
+            CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties);
 
     // Act
     Matrix actual_left_hand_side;
-    element.CalculateLeftHandSide(actual_left_hand_side, dummy_process_info);
+    element.CalculateLeftHandSide(actual_left_hand_side, ProcessInfo{});
 
     // Assert
     auto expected_left_hand_side = Matrix{8, 8};
@@ -381,20 +389,16 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    const auto     p_properties =
+        CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    Model model;
-    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
-
-    const auto dummy_process_info = ProcessInfo{};
-    element.Initialize(dummy_process_info);
-
-    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
-    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
+    auto element = CreateAndInitializeElement(
+        CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs, p_properties,
+        {{2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}});
 
     // Act
     Vector actual_right_hand_side;
-    element.CalculateRightHandSide(actual_right_hand_side, dummy_process_info);
+    element.CalculateRightHandSide(actual_right_hand_side, ProcessInfo{});
 
     // Assert
     auto expected_right_hand_side = Vector{8};
@@ -408,23 +412,16 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    const auto     p_properties =
+        CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    Model model;
-    auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
-
-    const auto dummy_process_info = ProcessInfo{};
-    element.Initialize(dummy_process_info);
-
-    // Rotated the relative normal displacement of 0.5 and the relative shear displacement of 0.2
-    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) =
-        array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
-    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) =
-        array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
+    auto element = CreateAndInitializeElement(
+            CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties,
+        {{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}, {3,  array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}});
 
     // Act
     Vector actual_right_hand_side;
-    element.CalculateRightHandSide(actual_right_hand_side, dummy_process_info);
+    element.CalculateRightHandSide(actual_right_hand_side, ProcessInfo{});
 
     // Assert
     auto expected_right_hand_side = Vector{8};
@@ -442,15 +439,11 @@ KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitializati
     p_properties->GetValue(CONSTITUTIVE_LAW) =
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
-    Model model;
-    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
-
-    const auto dummy_process_info = ProcessInfo{};
-    element.Initialize(dummy_process_info);
-
+    auto element = CreateAndInitializeElement(
+            CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs, p_properties);
     // Act
     auto constitutive_laws = std::vector<ConstitutiveLaw::Pointer>{};
-    element.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, dummy_process_info);
+    element.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, ProcessInfo{});
 
     // Assert
     KRATOS_EXPECT_EQ(constitutive_laws.size(), 2);
@@ -491,21 +484,17 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateLocalSystem_ReturnsExpec
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    const auto     p_properties =
+        CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    Model model;
-    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
-
-    const auto dummy_process_info = ProcessInfo{};
-    element.Initialize(dummy_process_info);
-
-    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
-    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
+    auto element = CreateAndInitializeElement(
+        CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs, p_properties,
+        {{2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}});
 
     // Act
     Vector actual_right_hand_side;
     Matrix actual_left_hand_side;
-    element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
+    element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, ProcessInfo{});
 
     // Assert
     const auto expected_left_hand_side =
@@ -523,23 +512,17 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateStrain_ReturnsRelativeDi
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    const auto     p_properties =
+        CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    Model model;
-    auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
-
-    const auto dummy_process_info = ProcessInfo{};
-    element.Initialize(dummy_process_info);
-
-    // Rotated the relative normal displacement of 0.5 and the relative shear displacement of 0.2
-    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) =
-        array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
-    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) =
-        array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
+    auto element = CreateAndInitializeElement(
+        CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties,
+        {{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
+         {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}});
 
     // Act
     std::vector<Vector> relative_displacements_at_integration_points;
-    element.CalculateOnIntegrationPoints(STRAIN, relative_displacements_at_integration_points, dummy_process_info);
+    element.CalculateOnIntegrationPoints(STRAIN, relative_displacements_at_integration_points, ProcessInfo{});
 
     // Assert
     Vector expected_relative_displacement{2};
@@ -557,23 +540,17 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateCauchyStressVector_Retur
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    const auto     p_properties =
+        CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    Model model;
-    auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
-
-    const auto dummy_process_info = ProcessInfo{};
-    element.Initialize(dummy_process_info);
-
-    // Rotated the relative normal displacement of 0.5 and the relative shear displacement of 0.2
-    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) =
-        array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
-    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) =
-        array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
+    auto element = CreateAndInitializeElement(
+        CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties,
+        {{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
+         {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}});
 
     // Act
     std::vector<Vector> tractions_at_integration_points;
-    element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, tractions_at_integration_points, dummy_process_info);
+    element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, tractions_at_integration_points, ProcessInfo{});
 
     // Assert
     Vector expected_traction{2};
@@ -590,22 +567,19 @@ KRATOS_TEST_CASE_IN_SUITE(3Plus3NodedLineInterfaceElement_CalculateLocalSystem_R
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    const auto     p_properties =
+        CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    Model model;
-    auto element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(model, p_properties);
-
-    const auto dummy_process_info = ProcessInfo{};
-    element.Initialize(dummy_process_info);
-
-    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
-    element.GetGeometry()[4].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
-    element.GetGeometry()[5].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
+    auto element = CreateAndInitializeElement(
+        CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF, p_properties,
+        {{3, array_1d<double, 3>{0.2, 0.5, 0.0}},
+         {4, array_1d<double, 3>{0.2, 0.5, 0.0}},
+         {5, array_1d<double, 3>{0.2, 0.5, 0.0}}});
 
     // Act
     Vector actual_right_hand_side;
     Matrix actual_left_hand_side;
-    element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
+    element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, ProcessInfo{});
 
     // Assert
     auto expected_left_hand_side    = Matrix{ZeroMatrix{12, 12}};
@@ -744,17 +718,15 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
+    const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
+        normal_stiffness, shear_stiffness);
 
-    Model model;
-    auto element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(model, p_properties);
-
-    const auto dummy_process_info = ProcessInfo{};
-    element.Initialize(dummy_process_info);
+    auto element = CreateAndInitializeElement(
+                CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs, p_properties);
 
     // Act
     Matrix actual_left_hand_side;
-    element.CalculateLeftHandSide(actual_left_hand_side, dummy_process_info);
+    element.CalculateLeftHandSide(actual_left_hand_side, ProcessInfo{});
 
     // Assert
     Matrix expected_left_hand_side(18, 18);
@@ -787,17 +759,15 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
+    const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
+        normal_stiffness, shear_stiffness);
 
-    Model model;
-    auto element = CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
-
-    const auto dummy_process_info = ProcessInfo{};
-    element.Initialize(dummy_process_info);
+    auto element = CreateAndInitializeElement(
+                CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties);
 
     // Act
     Matrix actual_left_hand_side;
-    element.CalculateLeftHandSide(actual_left_hand_side, dummy_process_info);
+    element.CalculateLeftHandSide(actual_left_hand_side, ProcessInfo{});
 
     // Assert
     auto expected_left_hand_side = Matrix{18, 18};
@@ -831,20 +801,16 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
+    const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
+        normal_stiffness, shear_stiffness);
 
-    Model model;
-    auto element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(model, p_properties);
-
-    const auto dummy_process_info = ProcessInfo{};
-    element.Initialize(dummy_process_info);
-
-    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
-    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
+    auto element = CreateAndInitializeElement(
+        CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs, p_properties,
+        {{2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}});
 
     // Act
     Vector actual_right_hand_side;
-    element.CalculateRightHandSide(actual_right_hand_side, dummy_process_info);
+    element.CalculateRightHandSide(actual_right_hand_side, ProcessInfo{});
 
     // Assert
     auto expected_right_hand_side = Vector{18};
@@ -859,23 +825,17 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
+    const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
+        normal_stiffness, shear_stiffness);
 
-    Model model;
-    auto element = CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
-
-    const auto dummy_process_info = ProcessInfo{};
-    element.Initialize(dummy_process_info);
-
-    // Rotated the relative normal displacement of 0.5 and the relative shear displacement of 0.2
-    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) =
-        array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
-    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) =
-        array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
+    auto element = CreateAndInitializeElement(
+        CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties,
+        {{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
+         {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}});
 
     // Act
     Vector actual_right_hand_side;
-    element.CalculateRightHandSide(actual_right_hand_side, dummy_process_info);
+    element.CalculateRightHandSide(actual_right_hand_side, ProcessInfo{});
 
     // Assert
     auto expected_right_hand_side = Vector{18};
@@ -894,15 +854,12 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleIntrfaceElement_GetInitializedConstitutiveLaws
     p_properties->GetValue(CONSTITUTIVE_LAW) =
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
-    Model model;
-    auto element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(model, p_properties);
-
-    const auto dummy_process_info = ProcessInfo{};
-    element.Initialize(dummy_process_info);
+    auto element = CreateAndInitializeElement(
+                CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs, p_properties);
 
     // Act
     auto constitutive_laws = std::vector<ConstitutiveLaw::Pointer>{};
-    element.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, dummy_process_info);
+    element.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, ProcessInfo{});
 
     // Assert
     KRATOS_EXPECT_EQ(constitutive_laws.size(), 3);
@@ -943,21 +900,17 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateLocalSystem_ReturnsE
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
+    const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
+        normal_stiffness, shear_stiffness);
 
-    Model model;
-    auto element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(model, p_properties);
-
-    const auto dummy_process_info = ProcessInfo{};
-    element.Initialize(dummy_process_info);
-
-    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
-    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
+    auto element = CreateAndInitializeElement(
+        CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs, p_properties,
+        {{2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}});
 
     // Act
     Vector actual_right_hand_side;
     Matrix actual_left_hand_side;
-    element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
+    element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, ProcessInfo{});
 
     // Assert
     auto expected_left_hand_side = Matrix(18, 18);
@@ -998,23 +951,17 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelati
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
+    const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
+        normal_stiffness, shear_stiffness);
 
-    Model model;
-    auto element = CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
-
-    const auto dummy_process_info = ProcessInfo{};
-    element.Initialize(dummy_process_info);
-
-    // Rotated the relative normal displacement of 0.5 and the relative shear displacement of 0.2
-    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) =
-        array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
-    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) =
-        array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
+    auto element = CreateAndInitializeElement(
+        CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties,
+        {{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
+         {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}});
 
     // Act
     std::vector<Vector> relative_displacements_at_integration_points;
-    element.CalculateOnIntegrationPoints(STRAIN, relative_displacements_at_integration_points, dummy_process_info);
+    element.CalculateOnIntegrationPoints(STRAIN, relative_displacements_at_integration_points, ProcessInfo{});
 
     // Assert
     Vector expected_relative_displacement{3};
@@ -1038,23 +985,17 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_R
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
+    const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
+        normal_stiffness, shear_stiffness);
 
-    Model model;
-    auto element = CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
-
-    const auto dummy_process_info = ProcessInfo{};
-    element.Initialize(dummy_process_info);
-
-    // Rotated the relative normal displacement of 0.5 and the relative shear displacement of 0.2
-    element.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) =
-        array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
-    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) =
-        array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
+    auto element = CreateAndInitializeElement(
+        CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties,
+        {{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
+         {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}});
 
     // Act
     std::vector<Vector> tractions_at_integration_points;
-    element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, tractions_at_integration_points, dummy_process_info);
+    element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, tractions_at_integration_points, ProcessInfo{});
 
     // Assert
     Vector expected_traction{3};
@@ -1077,22 +1018,19 @@ KRATOS_TEST_CASE_IN_SUITE(6Plus6NodedTriangleInterfaceElement_CalculateLocalSyst
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
+    const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
+        normal_stiffness, shear_stiffness);
 
-    Model model;
-    auto element = CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplacementDoF(model, p_properties);
-
-    const auto dummy_process_info = ProcessInfo{};
-    element.Initialize(dummy_process_info);
-
-    element.GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
-    element.GetGeometry()[4].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
-    element.GetGeometry()[5].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.2, 0.5, 0.0};
+    auto element = CreateAndInitializeElement(
+        CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplacementDoF, p_properties,
+        {{3, array_1d<double, 3>{0.2, 0.5, 0.0}},
+         {4, array_1d<double, 3>{0.2, 0.5, 0.0}},
+         {5, array_1d<double, 3>{0.2, 0.5, 0.0}}});
 
     // Act
     Vector actual_right_hand_side;
     Matrix actual_left_hand_side;
-    element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
+    element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, ProcessInfo{});
 
     // Assert
     auto expected_left_hand_side = Matrix(36, 36);
@@ -1150,7 +1088,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckThrowsWhenElementIsNotInitialize
 {
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    const auto     p_properties =
+        CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(model, p_properties);
@@ -1169,7 +1108,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckDoesNotThrowWhenElementIsNotActi
 {
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    const auto     p_properties =
+        CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(model, p_properties);
