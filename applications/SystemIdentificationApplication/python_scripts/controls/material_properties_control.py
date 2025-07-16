@@ -93,7 +93,7 @@ class MaterialPropertiesControl(Control):
 
         # use the clamper in the unit interval
         self.interval_bounder = ExpressionBoundingManager(control_variable_bounds)
-        self.clamper = KratosSI.ElementSmoothClamper(0, 1)
+        self.clamper = KratosSI.ElementSmoothClamper(0, 2)
 
     def Initialize(self) -> None:
         self.primal_model_part = self.primal_model_part_operation.GetModelPart()
