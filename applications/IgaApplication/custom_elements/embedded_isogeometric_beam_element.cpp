@@ -31,17 +31,16 @@ namespace Kratos {
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_control_points = r_geometry.size();
 
-        if (rResult.size() != 4 * number_of_control_points)
-            rResult.resize(4 * number_of_control_points, false);
+        if (rResult.size() != 3 * number_of_control_points)
+            rResult.resize(3 * number_of_control_points, false);
 
         const IndexType pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
 
         for (IndexType i = 0; i < number_of_control_points; ++i) {
-            const IndexType index = i * 4;
+            const IndexType index = i * 3;
             rResult[index] = r_geometry[i].GetDof(DISPLACEMENT_X, pos).EquationId();
             rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
             rResult[index + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
-            rResult[index + 3] = r_geometry[i].GetDof(ROTATION_X, pos + 3).EquationId();
         }
 
         KRATOS_CATCH("")
@@ -59,13 +58,12 @@ namespace Kratos {
         const SizeType number_of_control_points = r_geometry.size();
 
         rElementalDofList.resize(0);
-        rElementalDofList.reserve(4 * number_of_control_points);
+        rElementalDofList.reserve(3 * number_of_control_points);
 
         for (IndexType i = 0; i < number_of_control_points; ++i) {
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
         }
         KRATOS_CATCH("")
     };
@@ -162,18 +160,17 @@ namespace Kratos {
     {
         const auto& r_geometry = GetGeometry();
         const IndexType nb_nodes = r_geometry.size();
-        if (rValues.size() != nb_nodes * 4) {
-            rValues.resize(nb_nodes * 4, false);
+        if (rValues.size() != nb_nodes * 3) {
+            rValues.resize(nb_nodes * 3, false);
         }
 
         for (IndexType i = 0; i < nb_nodes; ++i) {
-            IndexType index = i * 4;
+            IndexType index = i * 3;
             const auto& disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
             const auto& rot = r_geometry[i].FastGetSolutionStepValue(ROTATION_X, Step);
             rValues[index] = disp[0];
             rValues[index + IndexType(1)] = disp[1];
             rValues[index + IndexType(2)] = disp[2];
-            rValues[index + IndexType(3)] = rot;
         }
     }
 
@@ -181,19 +178,16 @@ namespace Kratos {
     {
         const auto& r_geometry = GetGeometry();
         const IndexType nb_nodes = r_geometry.size();
-        if (rValues.size() != nb_nodes * 4) {
-            rValues.resize(nb_nodes * 4, false);
+        if (rValues.size() != nb_nodes * 3) {
+            rValues.resize(nb_nodes * 3, false);
         }
 
         for (IndexType i = 0; i < nb_nodes; ++i) {
-            IndexType index = i * 4;
+            IndexType index = i * 3;
             const auto& vel =r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
-            const auto& ang_vel = r_geometry[i].FastGetSolutionStepValue(ANGULAR_VELOCITY_X, Step);
-            
             rValues[index] = vel[0];
             rValues[index + IndexType(1)] = vel[1];
             rValues[index + IndexType(2)] = vel[2];
-            rValues[index + IndexType(3)] = ang_vel;
         }
     }
 
@@ -201,19 +195,17 @@ namespace Kratos {
     {
         const auto& r_geometry = GetGeometry();
         const IndexType nb_nodes = r_geometry.size();
-        if (rValues.size() != nb_nodes * 4) {
-            rValues.resize(nb_nodes * 4, false);
+        if (rValues.size() != nb_nodes * 3) {
+            rValues.resize(nb_nodes * 3, false);
         }
 
         for (IndexType i = 0; i < nb_nodes; ++i) {
-            IndexType index = i * 4;
+            IndexType index = i * 3;
             const auto& acc = r_geometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
-            const auto& ang_acc = r_geometry[i].FastGetSolutionStepValue(ANGULAR_ACCELERATION_X, Step); 
 
             rValues[index] = acc[0];
             rValues[index + IndexType(1)] = acc[1];
             rValues[index + IndexType(2)] = acc[2];
-            rValues[index + IndexType(3)] = ang_acc;
         }
     }
 
@@ -383,9 +375,9 @@ namespace Kratos {
         }
         
         // definition of problem size
-        Dof_Node = 4;
-        N_Dof = this->GetGeometry().size() * 4;
-        _n_Dof = this->GetGeometry().size() * 4;
+        Dof_Node = 3;
+        N_Dof = this->GetGeometry().size() * 3;
+        _n_Dof = this->GetGeometry().size() * 3;
         _gke.resize(_n_Dof, _n_Dof);
         _gfie.resize(_n_Dof);
         //resizing
@@ -1195,19 +1187,20 @@ namespace Kratos {
         phi_var.resize(N_Dof);
         phi_var.clear();
 
-        for (int r = 0;r < N_Dof / Dof_Node;r++)
-        {
-            phi_var(r * Dof_Node + 3) = _func(r);
-        }
+        //uncommented this
+        // for (int r = 0;r < N_Dof / Dof_Node;r++)
+        // {
+        //     phi_var(r * Dof_Node + 3) = _func(r);
+        // }
 
         Vector phi_der_var;
         phi_der_var.resize(N_Dof);
         phi_der_var.clear();
 
-        for (int r = 0;r < N_Dof / Dof_Node;r++)
-        {
-            phi_der_var(r * Dof_Node + 3) = _deriv(r);
-        }
+        // for (int r = 0;r < N_Dof / Dof_Node;r++)
+        // {
+        //     phi_der_var(r * Dof_Node + 3) = _deriv(r);
+        // }
 
         for (size_t t = 0;t < 3;t++) //in the case
         {
@@ -1275,11 +1268,12 @@ namespace Kratos {
         phi_der_var.resize(N_Dof);
         phi_der_var.clear();
 
-        for (int r = 0;r < N_Dof / Dof_Node;r++)
-        {
-            phi_var(r * Dof_Node + 3) = _func[r];
-            phi_der_var(r * Dof_Node + 3) = _deriv(r);
-        }
+        //uncommented this
+        // for (int r = 0;r < N_Dof / Dof_Node;r++)
+        // {
+        //     phi_var(r * Dof_Node + 3) = _func[r];
+        //     phi_der_var(r * Dof_Node + 3) = _deriv(r);
+        // }
 
         float cs;
         cs = cos(_phi);

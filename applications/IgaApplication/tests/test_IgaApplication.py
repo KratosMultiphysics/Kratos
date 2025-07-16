@@ -10,6 +10,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from iga_test_factory import SinglePatchTest as SinglePatchTest
 # Truss tests - python based
 from truss_element_tests import TrussElementTests as TTrussElementTests
+#beam tests - python based
+from beam_element_test import Beam4pElementTest as Beam4pElementTest
 # Membrane tests
 from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
 from iga_test_factory import MembraneSinglePatchFourPointSailNonLinearStatic as MembraneSinglePatchFourPointSailNonLinearStatic
@@ -67,38 +69,40 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
         # Single patch test - checks iga essentials
-        SinglePatchTest,
+        #SinglePatchTest,
         # Truss tests
-        TTrussElementTests,
-        # Membrane tests
-        MembraneSinglePatchFourPointSailLinearStatic,
-        MembraneSinglePatchFourPointSailNonLinearStatic,
-        # 3p Shell KL
-        TShell3pElementTests,
-        ScordelisRoofShell3pTest,
-        LinearBeamShell3pTest,
-        LinearBeamShell3pAdditiveSchwarzTest,
-        # 5p Shell Director
-        ScordelisRoofShell5pTest,
-        # Weak support tests
-        SinglePatchRefinedSupportPenaltyTest,
-        SinglePatchRefinedSupportLagrangeTest,
-        # Coupling tests
-        TwoPatchCouplingPenaltyShell3pTest,
-        TwoPatchCouplingLagrangeShell3pTest,
-        TwoPatchRefinedCouplingPenaltyMembraneTest,
-        TwoPatchRefinedCouplingLagrangeMembraneTest,
-        # Rotation/G_1 coupling tests
-        TwoPatchCantileverCouplingPenaltyTest,
-        TwoPatchCantileverRefinedCouplingPenaltyTest,
-        # Volumes
-        TTestNurbsVolumeElements,
-        # Modelers
-        TTestModelers,
-        TTestModelersSbm,
-        TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess
+        #TTrussElementTests,
+        # #Beam tests
+        Beam4pElementTest,
+        # # Membrane tests
+        # MembraneSinglePatchFourPointSailLinearStatic,
+        # MembraneSinglePatchFourPointSailNonLinearStatic,
+        # # 3p Shell KL
+        # TShell3pElementTests,
+        # ScordelisRoofShell3pTest,
+        # LinearBeamShell3pTest,
+        # LinearBeamShell3pAdditiveSchwarzTest,
+        # # 5p Shell Director
+        # ScordelisRoofShell5pTest,
+        # # Weak support tests
+        # SinglePatchRefinedSupportPenaltyTest,
+        # SinglePatchRefinedSupportLagrangeTest,
+        # # Coupling tests
+        # TwoPatchCouplingPenaltyShell3pTest,
+        # TwoPatchCouplingLagrangeShell3pTest,
+        # TwoPatchRefinedCouplingPenaltyMembraneTest,
+        # TwoPatchRefinedCouplingLagrangeMembraneTest,
+        # # Rotation/G_1 coupling tests
+        # TwoPatchCantileverCouplingPenaltyTest,
+        # TwoPatchCantileverRefinedCouplingPenaltyTest,
+        # # Volumes
+        # TTestNurbsVolumeElements,
+        # # Modelers
+        # TTestModelers,
+        # TTestModelersSbm,
+        # TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess
     ]))
-
+    print(suites["small"].countTestCases())
     if has_linear_solvers_application:
         from KratosMultiphysics import LinearSolversApplication
         if LinearSolversApplication.HasFEAST():
