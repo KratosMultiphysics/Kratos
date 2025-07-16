@@ -153,7 +153,7 @@ namespace Kratos
         }
 
         // Create bivariant nurbs surface.
-        auto p_surface_geometry = Kratos::make_shared<NurbsSurfaceGeometryType>(
+        auto p_surface_geometry = Kratos::make_intrusive<NurbsSurfaceGeometryType>(
             points, OrderU, OrderV, knot_vector_u, knot_vector_v);
 
         // Set up knots for knot refinement according to the given number of elements in each direction.
@@ -311,7 +311,7 @@ namespace Kratos
         }
 
         // Create trivariant nurbs cube.
-        auto p_volume_geometry = Kratos::make_shared<NurbsVolumeGeometryType>(
+        auto p_volume_geometry = Kratos::make_intrusive<NurbsVolumeGeometryType>(
             points, OrderU, OrderV, OrderW, knot_vector_u, knot_vector_v, knot_vector_w);
 
         // Set up knots for knot refinement according to the given number of elements in each direction.

@@ -70,7 +70,7 @@ public:
     typedef Geometry<TPointType> BaseType;
 
     /// Pointer definition of Line2D4
-    KRATOS_CLASS_POINTER_DEFINITION(Line2D4);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Line2D4);
 
     /** Integration methods implemented in geometry.
     */

@@ -64,7 +64,7 @@ public:
     using BaseType::GetPoint;
 
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
-    KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
 
     ///@}
     ///@name Life Cycle
@@ -156,7 +156,7 @@ public:
     GeometryPointer pGetGeometryPart(const IndexType Index) override
     {
         const auto& const_this = *this;
-        return std::const_pointer_cast<GeometryType>(
+        return Kratos::const_pointer_cast<GeometryType>(
             const_this.pGetGeometryPart(Index));
     }
 

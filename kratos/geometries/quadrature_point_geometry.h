@@ -45,7 +45,7 @@ class QuadraturePointGeometry
 public:
 
     /// Pointer definition of QuadraturePointGeometry
-    KRATOS_CLASS_POINTER_DEFINITION( QuadraturePointGeometry );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( QuadraturePointGeometry );
 
     typedef Geometry<TPointType> BaseType;
     typedef Geometry<TPointType> GeometryType;

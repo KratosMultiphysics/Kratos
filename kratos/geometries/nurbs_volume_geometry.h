@@ -69,7 +69,7 @@ public:
     using BaseType::GetPoint;
 
     /// Pointer of NurbsVolumeGeometry
-    KRATOS_CLASS_POINTER_DEFINITION(NurbsVolumeGeometry);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(NurbsVolumeGeometry);
 
     ///@}
     ///@name Life Cycle
@@ -193,7 +193,7 @@ public:
     typename BaseType::Pointer Create(
         PointsArrayType const& ThisPoints) const override
     {
-        return Kratos::make_shared<NurbsVolumeGeometry>(ThisPoints);
+        return Kratos::make_intrusive<NurbsVolumeGeometry>(ThisPoints);
     }
 
     ///@}

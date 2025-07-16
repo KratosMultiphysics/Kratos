@@ -70,7 +70,7 @@ namespace Kratos
         typedef Geometry<TPointType> BaseType;
 
         /// Pointer definition of Line2D5
-        KRATOS_CLASS_POINTER_DEFINITION(Line2D5);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Line2D5);
 
         /** Integration methods implemented in geometry.
         */

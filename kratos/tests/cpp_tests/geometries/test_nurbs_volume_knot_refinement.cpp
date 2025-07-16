@@ -79,15 +79,15 @@ NurbsVolumeGeometryPointerType GenerateVolume(IndexType Direction) {
     knot_vector_2[3] = 1.0;
 
     if( Direction == 0){
-        return Kratos::make_shared<NurbsVolumeGeometryType>(
+        return Kratos::make_intrusive<NurbsVolumeGeometryType>(
             points, polynomial_degree_1, polynomial_degree_2, polynomial_degree_2,
             knot_vector_1, knot_vector_2, knot_vector_2);
     } else if( Direction == 1){
-        return Kratos::make_shared<NurbsVolumeGeometryType>(
+        return Kratos::make_intrusive<NurbsVolumeGeometryType>(
             points, polynomial_degree_2, polynomial_degree_1, polynomial_degree_2,
             knot_vector_2, knot_vector_1, knot_vector_2);
     } else {
-        return Kratos::make_shared<NurbsVolumeGeometryType>(
+        return Kratos::make_intrusive<NurbsVolumeGeometryType>(
             points, polynomial_degree_2, polynomial_degree_2, polynomial_degree_1,
             knot_vector_2, knot_vector_2, knot_vector_1);
     }

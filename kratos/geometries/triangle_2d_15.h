@@ -87,7 +87,7 @@ namespace Kratos
         /**
          * Pointer definition of Triangle2D15
          */
-        KRATOS_CLASS_POINTER_DEFINITION(Triangle2D15);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Triangle2D15);
 
         /**
          * Integration methods implemented in geometry.
@@ -776,9 +776,9 @@ namespace Kratos
         GeometriesArrayType GenerateEdges() const override
         {
             GeometriesArrayType edges = GeometriesArrayType();
-            edges.push_back(Kratos::make_shared<EdgeType>(this->pGetPoint(0), this->pGetPoint(1), this->pGetPoint(3), this->pGetPoint(4), this->pGetPoint(5)));
-            edges.push_back(Kratos::make_shared<EdgeType>(this->pGetPoint(1), this->pGetPoint(2), this->pGetPoint(6), this->pGetPoint(7), this->pGetPoint(8)));
-            edges.push_back(Kratos::make_shared<EdgeType>(this->pGetPoint(2), this->pGetPoint(0), this->pGetPoint(9), this->pGetPoint(10), this->pGetPoint(11)));
+            edges.push_back(Kratos::make_intrusive<EdgeType>(this->pGetPoint(0), this->pGetPoint(1), this->pGetPoint(3), this->pGetPoint(4), this->pGetPoint(5)));
+            edges.push_back(Kratos::make_intrusive<EdgeType>(this->pGetPoint(1), this->pGetPoint(2), this->pGetPoint(6), this->pGetPoint(7), this->pGetPoint(8)));
+            edges.push_back(Kratos::make_intrusive<EdgeType>(this->pGetPoint(2), this->pGetPoint(0), this->pGetPoint(9), this->pGetPoint(10), this->pGetPoint(11)));
             return edges;
         }
 

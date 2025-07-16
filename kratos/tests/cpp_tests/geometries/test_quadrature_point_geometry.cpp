@@ -42,7 +42,7 @@ namespace Kratos {
          * @return  Pointer to a triangle2D3
          */
         GeometryPointerType GeneratePointsTriangle2D3() {
-            return Kratos::make_shared<Triangle2D3<NodeType>>(
+            return Kratos::make_intrusive<Triangle2D3<NodeType>>(
                 new NodeType(1, 0.0, 0.0, 0.0),
                 new NodeType(2, 1.0, 0.0, 0.0),
                 new NodeType(3, 0.0, 1.0, 0.0)
@@ -50,7 +50,7 @@ namespace Kratos {
         }
 
         GeometryPointerType GeneratePointsTriangle2D3Update() {
-            return Kratos::make_shared<Triangle2D3<NodeType>>(
+            return Kratos::make_intrusive<Triangle2D3<NodeType>>(
                 new NodeType(4, 1.0, 1.0, 0.0),
                 new NodeType(5, 2.0, 1.0, 0.0),
                 new NodeType(6, 1.0, 2.0, 0.0)
@@ -78,7 +78,7 @@ namespace Kratos {
                 DN_De);
 
             GeometryPointerType p_this_quadrature_point(
-                Kratos::make_shared<QuadraturePointGeometry<Node, 2, 2>>(
+                Kratos::make_intrusive<QuadraturePointGeometry<Node, 2, 2>>(
                     triangle->Points(),
                     data_container,
                     triangle.get()));
@@ -101,7 +101,7 @@ namespace Kratos {
             DenseVector<Matrix> derivatives(1);
             derivatives[0] = DN_De;
 
-            return Kratos::make_shared<QuadraturePointGeometry<Node, 2, 2>>(
+            return Kratos::make_intrusive<QuadraturePointGeometry<Node, 2, 2>>(
                 triangle->Points(),
                 integration_points[0],
                 N_i,

@@ -54,7 +54,7 @@ public:
     static constexpr IndexType VOLUME_INDEX = -1;
 
     /// Counted pointer of SurfaceInNurbsVolumeGeometry
-    KRATOS_CLASS_POINTER_DEFINITION(SurfaceInNurbsVolumeGeometry);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SurfaceInNurbsVolumeGeometry);
 
     ///@}
     ///@name Life Cycle
@@ -144,7 +144,7 @@ public:
     GeometryPointerType pGetGeometryPart(const IndexType Index) override
     {
         const auto& const_this = *this;
-        return std::const_pointer_cast<GeometryType>(
+        return Kratos::const_pointer_cast<GeometryType>(
             const_this.pGetGeometryPart(Index));
     }
 

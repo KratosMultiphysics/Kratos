@@ -41,7 +41,7 @@ class QuadraturePointSurfaceInVolumeGeometry
 public:
 
     /// Pointer definition of QuadraturePointGeometry
-    KRATOS_CLASS_POINTER_DEFINITION(QuadraturePointSurfaceInVolumeGeometry);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(QuadraturePointSurfaceInVolumeGeometry);
 
     typedef QuadraturePointGeometry<TPointType, 3, 3, 2> BaseType;
     typedef Geometry<TPointType> GeometryType;

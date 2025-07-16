@@ -110,7 +110,7 @@ inline void GenerateTestExplicitStrategiesModelPart(ModelPart& rModelPart)
     // Create and add the auxiliary test element
     typename GeometryType::PointsArrayType points_vect;
     points_vect.push_back(p_node);
-    auto p_geom = Kratos::make_shared<Point3D<NodeType>>(p_node);
+    auto p_geom = Kratos::make_intrusive<Point3D<NodeType>>(p_node);
     auto p_elem = Kratos::make_intrusive<AuxiliaryExplicitStrategiesTestElement>(1, p_geom);
     rModelPart.AddElement(p_elem);
 }

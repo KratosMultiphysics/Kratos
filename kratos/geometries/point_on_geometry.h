@@ -126,7 +126,7 @@ public:
     GeometryPointer pGetGeometryPart(IndexType Index) override
     {
         const auto& const_this = *this;
-        return std::const_pointer_cast<GeometryType>(
+        return Kratos::const_pointer_cast<GeometryType>(
             const_this.pGetGeometryPart(Index));
     }
 
@@ -254,7 +254,7 @@ public:
 
         if (rResultGeometries.size() != 1) { rResultGeometries.resize(1); }
         // assignment operator for quadrature point geometry with Dimension being 0.
-        rResultGeometries(0) = Kratos::make_shared<
+        rResultGeometries(0) = Kratos::make_intrusive<
             QuadraturePointGeometry<PointType, TWorkingSpaceDimension, TLocalSpaceDimensionOfBackground, 0>>(
                 std::move(rQuadraturePointGeometries(0)->Points()),
                 rQuadraturePointGeometries(0)->GetGeometryData().GetGeometryShapeFunctionContainer(),

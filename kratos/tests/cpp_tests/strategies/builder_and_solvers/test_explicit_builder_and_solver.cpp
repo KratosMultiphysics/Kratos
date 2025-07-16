@@ -57,8 +57,8 @@ static inline void GenerateTestExplicitBuilderModelPart(
     auto p_node_1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
     auto p_node_2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
     auto p_node_3 = rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-    auto p_geom_1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({p_node_1, p_node_2})});
-    auto p_geom_2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({p_node_2, p_node_3})});
+    auto p_geom_1 = Kratos::make_intrusive<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({p_node_1, p_node_2})});
+    auto p_geom_2 = Kratos::make_intrusive<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({p_node_2, p_node_3})});
     rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>(1, p_geom_1, p_prop));
     rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>(2, p_geom_2, p_prop));
 

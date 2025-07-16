@@ -54,7 +54,7 @@ public:
     /**
      * Pointer definition of HexahedraInterface3D8
      */
-    KRATOS_CLASS_POINTER_DEFINITION( HexahedraInterface3D8 );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( HexahedraInterface3D8 );
 
     /**
      * Integration methods implemented in geometry.

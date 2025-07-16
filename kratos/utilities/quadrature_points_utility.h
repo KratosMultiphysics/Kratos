@@ -107,7 +107,7 @@ namespace Kratos
             double LocalTangentV,
             GeometryType* pGeometryParent)
         {
-            return Kratos::make_shared<
+            return Kratos::make_intrusive<
                 QuadraturePointCurveOnSurfaceGeometry<TPointType>>(
                     rPoints,
                     rShapeFunctionContainer,
@@ -136,7 +136,7 @@ namespace Kratos
             Matrix LocalTangentMatrix,
             GeometryType* pGeometryParent)
         {
-            return Kratos::make_shared<
+            return Kratos::make_intrusive<
                 QuadraturePointSurfaceInVolumeGeometry<TPointType>>(
                     rPoints,
                     rShapeFunctionContainer,
@@ -164,37 +164,37 @@ namespace Kratos
             GeometryType* pGeometryParent)
         {
             if (WorkingSpaceDimension == 1 && LocalSpaceDimension == 1)
-                return Kratos::make_shared<
+                return Kratos::make_intrusive<
                     QuadraturePointGeometry<TPointType, 1>>(
                         rPoints,
                         rShapeFunctionContainer,
                         pGeometryParent);
             else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 1)
-                return Kratos::make_shared<
+                return Kratos::make_intrusive<
                     QuadraturePointGeometry<TPointType, 2, 1>>(
                         rPoints,
                         rShapeFunctionContainer,
                         pGeometryParent);
             else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 1)
-                return Kratos::make_shared<
+                return Kratos::make_intrusive<
                     QuadraturePointGeometry<TPointType, 3, 1>>(
                         rPoints,
                         rShapeFunctionContainer,
                         pGeometryParent);
             else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
-                return Kratos::make_shared<
+                return Kratos::make_intrusive<
                     QuadraturePointGeometry<TPointType, 2>>(
                         rPoints,
                         rShapeFunctionContainer,
                         pGeometryParent);
             else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 2)
-                return Kratos::make_shared<
+                return Kratos::make_intrusive<
                     QuadraturePointGeometry<TPointType, 3, 2>>(
                         rPoints,
                         rShapeFunctionContainer,
                         pGeometryParent);
             else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 3)
-                return Kratos::make_shared<
+                return Kratos::make_intrusive<
                     QuadraturePointGeometry<TPointType, 3>>(
                         rPoints,
                         rShapeFunctionContainer,
@@ -214,32 +214,32 @@ namespace Kratos
             PointsArrayType rPoints)
         {
             if (WorkingSpaceDimension == 1 && LocalSpaceDimension == 1)
-                return Kratos::make_shared<
+                return Kratos::make_intrusive<
                 QuadraturePointGeometry<TPointType, 1>>(
                     rPoints,
                     rShapeFunctionContainer);
             else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 1)
-                return Kratos::make_shared<
+                return Kratos::make_intrusive<
                 QuadraturePointGeometry<TPointType, 2, 1>>(
                     rPoints,
                     rShapeFunctionContainer);
             else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 1)
-                return Kratos::make_shared<
+                return Kratos::make_intrusive<
                 QuadraturePointGeometry<TPointType, 3, 1>>(
                     rPoints,
                     rShapeFunctionContainer);
             else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
-                return Kratos::make_shared<
+                return Kratos::make_intrusive<
                 QuadraturePointGeometry<TPointType, 2>>(
                     rPoints,
                     rShapeFunctionContainer);
             else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 2)
-                return Kratos::make_shared<
+                return Kratos::make_intrusive<
                 QuadraturePointGeometry<TPointType, 3, 2>>(
                     rPoints,
                     rShapeFunctionContainer);
             else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 3)
-                return Kratos::make_shared<
+                return Kratos::make_intrusive<
                 QuadraturePointGeometry<TPointType, 3>>(
                     rPoints,
                     rShapeFunctionContainer);

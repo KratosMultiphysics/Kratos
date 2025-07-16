@@ -33,7 +33,7 @@ namespace Testing {
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
     // Helper Functions
-    Kratos::shared_ptr<NurbsVolumeGeometry<PointerVector<NodeType>>> GenerateCubeNurbsVolume() {
+    Kratos::intrusive_ptr<NurbsVolumeGeometry<PointerVector<NodeType>>> GenerateCubeNurbsVolume() {
 
         // Define control points
         PointerVector<NodeType> points;
@@ -82,10 +82,10 @@ namespace Testing {
         auto volume = NurbsVolumeGeometry<PointerVector<NodeType>>(points, polynomial_degree_u,
             polynomial_degree_v, polynomial_degree_w, knot_vector_u, knot_vector_v, knot_vector_w);
 
-        return Kratos::make_shared<NurbsVolumeGeometry<PointerVector<NodeType>>>(volume);
+        return Kratos::make_intrusive<NurbsVolumeGeometry<PointerVector<NodeType>>>(volume);
     }
 
-    Kratos::shared_ptr<NurbsVolumeGeometry<PointerVector<NodeType>>> GenerateCuboidNurbsVolume() {
+    Kratos::intrusive_ptr<NurbsVolumeGeometry<PointerVector<NodeType>>> GenerateCuboidNurbsVolume() {
 
         // Helper Functions
         PointerVector<NodeType> points;
@@ -132,7 +132,7 @@ namespace Testing {
         auto volume = NurbsVolumeGeometry<PointerVector<NodeType>>(points, polynomial_degree_u,
             polynomial_degree_v, polynomial_degree_w, knot_vector_u, knot_vector_v, knot_vector_w);
 
-        return Kratos::make_shared<NurbsVolumeGeometry<PointerVector<NodeType>>>(volume);
+        return Kratos::make_intrusive<NurbsVolumeGeometry<PointerVector<NodeType>>>(volume);
     }
 
     // Tests
@@ -145,7 +145,7 @@ namespace Testing {
         auto p_node_1 = Kratos::make_intrusive<NodeType>(0, 0.0, 0.0, 0.0); // nodes are in local space.
         auto p_node_2 = Kratos::make_intrusive<NodeType>(1, 0.5, 0.5, 0.0);
         auto p_node_3 = Kratos::make_intrusive<NodeType>(2, 0.0, 0.5, 0.0);
-        auto p_triangle = Kratos::make_shared<Triangle3D3<NodeType>>( p_node_1, p_node_2, p_node_3);
+        auto p_triangle = Kratos::make_intrusive<Triangle3D3<NodeType>>( p_node_1, p_node_2, p_node_3);
 
         // Create surface in nurbs volume
         SurfaceInNurbsVolumeGeometry<3, PointerVector<NodeType>> surface_in_volume(p_nurbs_cube, p_triangle);
@@ -222,7 +222,7 @@ namespace Testing {
         auto p_node_3 = Kratos::make_intrusive<NodeType>(2, 0.5, 0.5, 1.0);
         auto p_node_4 = Kratos::make_intrusive<NodeType>(3, 0.0, 0.0, 1.0);
 
-        auto p_quad = Kratos::make_shared<Quadrilateral3D4<NodeType>>( p_node_1, p_node_2, p_node_3, p_node_4 );
+        auto p_quad = Kratos::make_intrusive<Quadrilateral3D4<NodeType>>( p_node_1, p_node_2, p_node_3, p_node_4 );
 
         SurfaceInNurbsVolumeGeometry<3, PointerVector<NodeType>> surface_in_volume(p_nurbs_cube, p_quad);
 
@@ -329,7 +329,7 @@ namespace Testing {
             double z_coord_local = (points_global_space[i].Coordinates()[2] + 0.0) / 2.0;
             points_local_space.push_back(Kratos::make_intrusive<NodeType>(i, x_coord_local, y_coord_local, z_coord_local));
         }
-        auto p_quad_local_space = Kratos::make_shared<Quadrilateral3D8<NodeType>>(points_local_space);
+        auto p_quad_local_space = Kratos::make_intrusive<Quadrilateral3D8<NodeType>>(points_local_space);
 
         SurfaceInNurbsVolumeGeometry<3, PointerVector<NodeType>> surface_in_volume(p_nurbs_cuboid, p_quad_local_space);
 

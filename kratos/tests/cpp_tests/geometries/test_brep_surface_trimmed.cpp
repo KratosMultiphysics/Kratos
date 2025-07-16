@@ -50,7 +50,7 @@ namespace Testing {
         const int p = 1;
         const int q = 1;
 
-        return Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<NodeType> >>(points, p, q, knot_u, knot_v);
+        return Kratos::make_intrusive<NurbsSurfaceGeometry<3, PointerVector<NodeType> >>(points, p, q, knot_u, knot_v);
     }
 
     typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateNurbsCurve1()
@@ -66,7 +66,7 @@ namespace Testing {
 
         int p = 1;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
+        return Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
     typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateNurbsCurve2()
@@ -82,7 +82,7 @@ namespace Testing {
 
         int p = 1;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
+        return Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
     typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateNurbsCurve3()
@@ -98,7 +98,7 @@ namespace Testing {
 
         int p = 1;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
+        return Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
     typename BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>::Pointer GenerateTrimmedBrepSurface()
@@ -108,11 +108,11 @@ namespace Testing {
         auto p_curve_2 = GenerateNurbsCurve2();
         auto p_curve_3 = GenerateNurbsCurve3();
 
-        auto p_brep_curve_on_surface_1 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_1 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_1);
-        auto p_brep_curve_on_surface_2 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_2 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_2);
-        auto p_brep_curve_on_surface_3 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_3 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_3);
 
         BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>::BrepCurveOnSurfaceLoopType outer_loop(3);
@@ -124,7 +124,7 @@ namespace Testing {
         outer_loops[0] = outer_loop;
         BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>::BrepCurveOnSurfaceLoopArrayType inner_loops(0);
 
-        return Kratos::make_shared<BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        return Kratos::make_intrusive<BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, outer_loops, inner_loops);
     }
 
@@ -155,7 +155,7 @@ namespace Testing {
         const int p = 2;
         const int q = 2;
 
-        return Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<NodeType> >>(points, p, q, knot_u, knot_v);
+        return Kratos::make_intrusive<NurbsSurfaceGeometry<3, PointerVector<NodeType> >>(points, p, q, knot_u, knot_v);
     }
 
     typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateReferenceNurbsCurve1()
@@ -171,7 +171,7 @@ namespace Testing {
 
         int p = 1;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
+        return Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
     typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateReferenceNurbsCurve2()
@@ -187,7 +187,7 @@ namespace Testing {
 
         int p = 1;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
+        return Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
     typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateReferenceNurbsCurve3()
@@ -203,7 +203,7 @@ namespace Testing {
 
         int p = 1;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
+        return Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
     typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateReferenceNurbsCurve4()
@@ -225,7 +225,7 @@ namespace Testing {
 
         int p = 3;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
+        return Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
     typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateReferenceNurbsCurve5()
@@ -241,7 +241,7 @@ namespace Testing {
 
         int p = 1;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
+        return Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
     
     typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateReferenceNurbsCurve6()
@@ -257,7 +257,7 @@ namespace Testing {
 
         int p = 1;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
+        return Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
     typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateReferenceNurbsCurve7()
@@ -273,7 +273,7 @@ namespace Testing {
 
         int p = 1;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
+        return Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
     typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateReferenceNurbsCurve8()
@@ -289,7 +289,7 @@ namespace Testing {
 
         int p = 1;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
+        return Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
     typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateReferenceNurbsCurve9()
@@ -305,7 +305,7 @@ namespace Testing {
 
         int p = 1;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
+        return Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
     
     typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateReferenceNurbsCurve10()
@@ -321,7 +321,7 @@ namespace Testing {
 
         int p = 1;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
+        return Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
     typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateReferenceNurbsCurve11()
@@ -337,7 +337,7 @@ namespace Testing {
 
         int p = 1;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
+        return Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
     typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateReferenceNurbsCurve12()
@@ -353,7 +353,7 @@ namespace Testing {
 
         int p = 1;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
+        return Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
     typename BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>::Pointer GenerateOuterInclinedTrimmedBrepSurface()
@@ -364,13 +364,13 @@ namespace Testing {
         auto p_curve_3 = GenerateReferenceNurbsCurve3();
         auto p_curve_4 = GenerateReferenceNurbsCurve4();
 
-        auto p_brep_curve_on_surface_1 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_1 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_1);
-        auto p_brep_curve_on_surface_2 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_2 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_2);
-        auto p_brep_curve_on_surface_3 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_3 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_3);
-        auto p_brep_curve_on_surface_4 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_4 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_4);
 
         BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>::BrepCurveOnSurfaceLoopType outer_loop(4);
@@ -383,7 +383,7 @@ namespace Testing {
         outer_loops[0] = outer_loop;
         BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>::BrepCurveOnSurfaceLoopArrayType inner_loops(0);
 
-        return Kratos::make_shared<BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        return Kratos::make_intrusive<BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, outer_loops, inner_loops);
     }
 
@@ -437,13 +437,13 @@ namespace Testing {
         auto p_curve_3 = GenerateReferenceNurbsCurve3();
         auto p_curve_4 = GenerateReferenceNurbsCurve4();
 
-        auto p_brep_curve_on_surface_1 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_1 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_1);
-        auto p_brep_curve_on_surface_2 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_2 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_2);
-        auto p_brep_curve_on_surface_3 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_3 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_3);
-        auto p_brep_curve_on_surface_4 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_4 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_4);
 
         BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>::BrepCurveOnSurfaceLoopType outer_loop(4);
@@ -456,7 +456,7 @@ namespace Testing {
         outer_loops[0] = outer_loop;
         BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>::BrepCurveOnSurfaceLoopArrayType inner_loops(0);
 
-        return Kratos::make_shared<BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        return Kratos::make_intrusive<BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, outer_loops, inner_loops);
     }
 
@@ -498,21 +498,21 @@ namespace Testing {
         auto p_curve_11 = GenerateReferenceNurbsCurve11();
         auto p_curve_12 = GenerateReferenceNurbsCurve12();
 
-        auto p_brep_curve_on_surface_5 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_5 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_5);
-        auto p_brep_curve_on_surface_6 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_6 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_6);
-        auto p_brep_curve_on_surface_7 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_7 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_7);
-        auto p_brep_curve_on_surface_8 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_8 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_8);
-        auto p_brep_curve_on_surface_9 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_9 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_9);
-        auto p_brep_curve_on_surface_10 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_10 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_10);
-        auto p_brep_curve_on_surface_11 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_11 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_11);
-        auto p_brep_curve_on_surface_12 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_12 = Kratos::make_intrusive<BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, p_curve_12);
 
         BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>::BrepCurveOnSurfaceLoopType outer_loop(4);
@@ -532,7 +532,7 @@ namespace Testing {
         BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>::BrepCurveOnSurfaceLoopArrayType inner_loops(1);
         inner_loops[0] = inner_loop;
 
-        return Kratos::make_shared<BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
+        return Kratos::make_intrusive<BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(
             p_surface, outer_loops, inner_loops);
     }
 

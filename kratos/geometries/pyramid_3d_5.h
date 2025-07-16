@@ -74,7 +74,7 @@ public:
     typedef Quadrilateral3D4<TPointType> FaceType2;
 
     /// Pointer definition of Pyramid3D5
-    KRATOS_CLASS_POINTER_DEFINITION(Pyramid3D5);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Pyramid3D5);
 
     /** Integration methods implemented in geometry.
      */

@@ -36,7 +36,7 @@ namespace Kratos {
          * @return  Pointer to a triangle2D3
          */
         Triangle2D3<Point>::Pointer GeneratePointTriangle() {
-            return Kratos::make_shared<Triangle2D3<Point>>(
+            return Kratos::make_intrusive<Triangle2D3<Point>>(
                 Kratos::make_unique<Point>(0.0, 0.0, 0.0),
                 Kratos::make_unique<Point>(1.0, 0.0, 0.0),
                 Kratos::make_unique<Point>(0.0, 1.0, 0.0)
@@ -44,7 +44,7 @@ namespace Kratos {
         }
 
         Triangle3D3<Point>::Pointer GeneratePointTriangle3D() {
-            return Kratos::make_shared<Triangle3D3<Point>>(
+            return Kratos::make_intrusive<Triangle3D3<Point>>(
                 Kratos::make_unique<Point>(0.0, 0.0, 0.0),
                 Kratos::make_unique<Point>(1.0, 0.0, 0.0),
                 Kratos::make_unique<Point>(0.0, 1.0, 0.0)
@@ -55,14 +55,14 @@ namespace Kratos {
          * @return  Pointer to a triangle2D3
          */
         Triangle2D3<NodeType>::Pointer GenerateNodeTriangle() {
-            return Kratos::make_shared<Triangle2D3<NodeType>>(
+            return Kratos::make_intrusive<Triangle2D3<NodeType>>(
                 new NodeType(1, 1.0, 1.0, 0.0),
                 new NodeType(2, 3.0, 0.5, 0.0),
                 new NodeType(3, 2.5, 2.0, 0.0)
                 );
         }
         Triangle2D3<NodeType>::Pointer GenerateNodeTriangle2() {
-            return Kratos::make_shared<Triangle2D3<NodeType>>(
+            return Kratos::make_intrusive<Triangle2D3<NodeType>>(
                 new NodeType(4, 1.0, 1.0, 0.0),
                 new NodeType(5, 3.0, 0.5, 0.0),
                 new NodeType(6, 2.5, 2.0, 0.0)
@@ -135,7 +135,7 @@ namespace Kratos {
             auto p_triangle_master = GenerateNodeTriangle();
             auto p_triangle_slave = GenerateNodeTriangle2();
 
-            Geometry<NodeType>::Pointer p_coupling_geometry = Kratos::make_shared<CouplingGeometry<NodeType>>(p_triangle_master, p_triangle_slave);
+            Geometry<NodeType>::Pointer p_coupling_geometry = Kratos::make_intrusive<CouplingGeometry<NodeType>>(p_triangle_master, p_triangle_slave);
 
             // Creating a model and an element
             Model current_model;

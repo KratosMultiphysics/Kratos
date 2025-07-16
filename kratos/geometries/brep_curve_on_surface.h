@@ -49,7 +49,7 @@ public:
     ///@{
 
     /** Pointer definition of BrepCurveOnSurface */
-    KRATOS_CLASS_POINTER_DEFINITION( BrepCurveOnSurface );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BrepCurveOnSurface );
 
     typedef typename TContainerPointType::value_type PointType;
 
@@ -88,7 +88,7 @@ public:
         bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpCurveOnSurface(
-            Kratos::make_shared<NurbsCurveOnSurfaceType>(
+            Kratos::make_intrusive<NurbsCurveOnSurfaceType>(
                 pSurface, pCurve))
         , mCurveNurbsInterval(pCurve->DomainInterval())
         , mSameCurveDirection(SameCurveDirection)
@@ -103,7 +103,7 @@ public:
         bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpCurveOnSurface(
-            Kratos::make_shared<NurbsCurveOnSurfaceType>(
+            Kratos::make_intrusive<NurbsCurveOnSurfaceType>(
                 pSurface, pCurve))
         , mCurveNurbsInterval(CurveNurbsInterval)
         , mSameCurveDirection(SameCurveDirection)
@@ -214,7 +214,7 @@ public:
     GeometryPointer pGetGeometryPart(const IndexType Index) override
     {
         const auto& const_this = *this;
-        return std::const_pointer_cast<GeometryType>(
+        return Kratos::const_pointer_cast<GeometryType>(
             const_this.pGetGeometryPart(Index));
     }
 

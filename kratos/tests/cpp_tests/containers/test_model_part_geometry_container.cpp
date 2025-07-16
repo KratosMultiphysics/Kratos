@@ -34,7 +34,7 @@ namespace
         points.push_back(Node::Pointer(new Node(1, 0, 5, 0)));
         points.push_back(Node::Pointer(new Node(2, 5, 5, 0)));
 
-        return Kratos::make_shared<Line3D2<Node>>(
+        return Kratos::make_intrusive<Line3D2<Node>>(
             points
             );
     }
@@ -171,7 +171,7 @@ void SetUpTestModelPart(Model& rModel)
         auto p_node_1 = r_model_part.pGetNode(1);
         auto p_node_4 = r_model_part.pGetNode(4);
         auto p_node_3 = r_model_part.pGetNode(3);
-        auto p_aux_geom = Kratos::make_shared<Triangle2D3<Node>>(p_node_1, p_node_4, p_node_3);
+        auto p_aux_geom = Kratos::make_intrusive<Triangle2D3<Node>>(p_node_1, p_node_4, p_node_3);
         auto p_geom_3_new_2 = r_model_part.CreateNewGeometry("Triangle2D3", 3, p_aux_geom);
 
         // Check results
@@ -199,7 +199,7 @@ void SetUpTestModelPart(Model& rModel)
         auto p_node_2 = r_model_part.pGetNode(2);
         auto p_node_3 = r_model_part.pGetNode(3);
         auto p_node_4 = r_model_part.pGetNode(4);
-        auto p_aux_geom = Kratos::make_shared<Quadrilateral2D4<Node>>(p_node_1, p_node_2, p_node_4, p_node_3);
+        auto p_aux_geom = Kratos::make_intrusive<Quadrilateral2D4<Node>>(p_node_1, p_node_2, p_node_4, p_node_3);
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_model_part.CreateNewGeometry("Quadrilateral2D4", 3, p_aux_geom), "Attempting to add geometry with Id: 3. A different geometry with the same Id already exists.")
 
         // Check results
@@ -224,7 +224,7 @@ void SetUpTestModelPart(Model& rModel)
         auto p_node_1 = r_model_part.pGetNode(1);
         auto p_node_3 = r_model_part.pGetNode(3);
         auto p_node_4 = r_model_part.pGetNode(4);
-        auto p_aux_geom = Kratos::make_shared<Triangle2D3<Node>>(p_node_1, p_node_3, p_node_4);
+        auto p_aux_geom = Kratos::make_intrusive<Triangle2D3<Node>>(p_node_1, p_node_3, p_node_4);
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_model_part.CreateNewGeometry("Triangle2D3", 3, p_aux_geom), "Attempting to add a new geometry with Id: 3. A same type geometry with same Id but different connectivities already exists")
 
         // Check results
@@ -249,7 +249,7 @@ void SetUpTestModelPart(Model& rModel)
         auto p_node_1 = r_model_part.pGetNode(1);
         auto p_node_3 = r_model_part.pGetNode(3);
         auto p_node_4 = r_model_part.pGetNode(4);
-        auto p_aux_geom = Kratos::make_shared<Triangle2D3<Node>>(p_node_1, p_node_4, p_node_3);
+        auto p_aux_geom = Kratos::make_intrusive<Triangle2D3<Node>>(p_node_1, p_node_4, p_node_3);
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_model_part.CreateNewGeometry("Triangle2D3", "3", p_aux_geom), "Attempting to add a new geometry with Id: 3. A same type geometry with same Id but different connectivities already exists")
 
         // Check results

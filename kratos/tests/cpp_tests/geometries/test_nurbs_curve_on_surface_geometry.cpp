@@ -55,7 +55,7 @@ typedef Node NodeType;
         int p_curve = 2;
 
         // Create the 2D embedded curve
-        auto curve = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points_curve, p_curve, knot_vector_curve);
+        auto curve = Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points_curve, p_curve, knot_vector_curve);
 
         // Assign the points belonging to the surface
         PointerVector<Point> points_surface;
@@ -87,7 +87,7 @@ typedef Node NodeType;
         int q_surface = 2;
 
         // Create a 3D surface
-        auto surface = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<Point>>>(points_surface, p_surface,
+        auto surface = Kratos::make_intrusive<NurbsSurfaceGeometry<3, PointerVector<Point>>>(points_surface, p_surface,
             q_surface, knot_vector_u_surface, knot_vector_v_surface);
 
         // Create and return a curve on surface geometry
@@ -122,7 +122,7 @@ typedef Node NodeType;
         int p_curve = 2;
 
         // Create the 2D embedded curve
-        auto curve = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points_curve, p_curve, knot_vector_curve, weights_curve);
+        auto curve = Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points_curve, p_curve, knot_vector_curve, weights_curve);
 
         // Assign the points belonging to the surface
         PointerVector<Point> points_surface;
@@ -170,7 +170,7 @@ typedef Node NodeType;
         int q_surface = 2;
 
         // Create a 3D surface
-        auto surface = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<Point>>>(points_surface, p_surface,
+        auto surface = Kratos::make_intrusive<NurbsSurfaceGeometry<3, PointerVector<Point>>>(points_surface, p_surface,
             q_surface, knot_vector_u_surface, knot_vector_v_surface, weights_surface);
 
         // Create and return a curve on surface geometry
@@ -190,7 +190,7 @@ typedef Node NodeType;
         int p_curve = 1;
 
         // Create the 2D embedded curve
-        auto curve = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(
+        auto curve = Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(
             points_curve, p_curve, knot_vector_curve);
 
         // Assign the points belonging to the surface
@@ -214,7 +214,7 @@ typedef Node NodeType;
         int q_surface = 1;
 
         // Create a 3D surface
-        auto surface = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<Point>>>(points_surface, p_surface,
+        auto surface = Kratos::make_intrusive<NurbsSurfaceGeometry<3, PointerVector<Point>>>(points_surface, p_surface,
             q_surface, knot_vector_u_surface, knot_vector_v_surface);
 
         // Create and return a curve on surface geometry
@@ -258,7 +258,7 @@ typedef Node NodeType;
         int p_curve = 3;
 
         // Create the 2D embedded curve
-        auto curve = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points_curve, p_curve, knot_vector_curve);
+        auto curve = Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points_curve, p_curve, knot_vector_curve);
 
         // Assign the points belonging to the surface
         PointerVector<Point> points_surface;
@@ -306,7 +306,7 @@ typedef Node NodeType;
         int q_surface = 1;
 
         // Create a 3D surface
-        auto surface = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<Point>>>(points_surface, p_surface,
+        auto surface = Kratos::make_intrusive<NurbsSurfaceGeometry<3, PointerVector<Point>>>(points_surface, p_surface,
             q_surface, knot_vector_u_surface, knot_vector_v_surface);
 
         // Create and return a curve on surface geometry
@@ -346,7 +346,7 @@ typedef Node NodeType;
         points_surface.push_back(Point::Pointer(new Point(2.0, 3.0, 0.0)));
         points_surface.push_back(Point::Pointer(new Point(3.0, 3.0, 0.0)));
 
-        auto p_surface = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<Point>>>(points_surface, p, q, knot_vector_u, knot_vector_v);
+        auto p_surface = Kratos::make_intrusive<NurbsSurfaceGeometry<3, PointerVector<Point>>>(points_surface, p, q, knot_vector_u, knot_vector_v);
 
         Vector knot_vector_curve = ZeroVector(2);
         knot_vector_curve[0] = 0.0;
@@ -356,7 +356,7 @@ typedef Node NodeType;
         segment.push_back(Point::Pointer(new Point(brep_coordinates[0][0], brep_coordinates[0][1])));
         segment.push_back(Point::Pointer(new Point(brep_coordinates[1][0], brep_coordinates[1][1])));
 
-        auto p_curve = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(segment, p, knot_vector_curve);
+        auto p_curve = Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(segment, p, knot_vector_curve);
 
         // Create and return a curve on surface geometry
         return NurbsCurveOnSurfaceGeometry<3, PointerVector<Point>, PointerVector<Point>>(p_surface, p_curve);

@@ -32,7 +32,7 @@ namespace Testing {
     * @return  Pointer to a Line2D2N
     */
     Line2D2<Point>::Pointer GeneratePointsUnitXDirectionLine2D2() {
-        return Kratos::make_shared<Line2D2<Point>>(
+        return Kratos::make_intrusive<Line2D2<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
         Kratos::make_shared<Point>(1.0, 0.0, 0.0)
         );
@@ -42,7 +42,7 @@ namespace Testing {
     * @return  Pointer to a Line2D2N
     */
     Line2D2<Point>::Pointer GeneratePointsUnitYDirectionLine2D2() {
-        return Kratos::make_shared<Line2D2<Point>>(
+        return Kratos::make_intrusive<Line2D2<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
         Kratos::make_shared<Point>(0.0, 1.0, 0.0)
         );
@@ -52,7 +52,7 @@ namespace Testing {
     * @return  Pointer to a Line2D2N
     */
     Line2D2<Point>::Pointer GeneratePointsDiagonalLine2D2() {
-        return Kratos::make_shared<Line2D2<Point>>(
+        return Kratos::make_intrusive<Line2D2<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
         Kratos::make_shared<Point>(1.0, 1.0, 0.0)
         );
@@ -62,7 +62,7 @@ namespace Testing {
     * @return  Pointer to a Line2D2N
     */
     Line2D2<Point>::Pointer GenerateLine2D2WithPoints(Point::Pointer rPointOne, Point::Pointer rPointTwo ) {
-        return Kratos::make_shared<Line2D2<Point>>(rPointOne, rPointTwo);
+        return Kratos::make_intrusive<Line2D2<Point>>(rPointOne, rPointTwo);
     }
 
     /** Checks if the number of edges is correct.
@@ -443,7 +443,7 @@ namespace Testing {
         KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(0, coord), 1.0/6.0, TOLERANCE);
         KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(1, coord), 5.0/6.0, TOLERANCE);
         auto& r_geom = *geom;
-        auto p_geom_nodes = Kratos::make_shared<Line2D2<Node>>(
+        auto p_geom_nodes = Kratos::make_intrusive<Line2D2<Node>>(
         Kratos::make_intrusive<Node>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
         Kratos::make_intrusive<Node>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
         );

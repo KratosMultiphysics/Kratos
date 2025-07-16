@@ -38,7 +38,7 @@ namespace Kratos {
 
             IndexType p = 1;
 
-            return Kratos::make_shared<NurbsCurveGeometry<3, PointerVector<Node>>>(points, p, knot_vector);
+            return Kratos::make_intrusive<NurbsCurveGeometry<3, PointerVector<Node>>>(points, p, knot_vector);
         }
 
         /// Check dimensions and location

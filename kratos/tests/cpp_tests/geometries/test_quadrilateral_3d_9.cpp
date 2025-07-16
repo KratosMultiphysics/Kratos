@@ -140,7 +140,7 @@ KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9ShapeFunctionsLocalGradients, KratosCo
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9Normal, KratosCoreGeometriesFastSuite) {
-    Geometry<Point>::Pointer p_geom = Kratos::make_shared<Quadrilateral3D9<Point>>(
+    Geometry<Point>::Pointer p_geom = Kratos::make_intrusive<Quadrilateral3D9<Point>>(
         Kratos::make_shared<Point>(0.9, 0.25, -0.15),
         Kratos::make_shared<Point>(1.0, 0.25, -0.15),
         Kratos::make_shared<Point>(1.0, 0.25, 0.05),

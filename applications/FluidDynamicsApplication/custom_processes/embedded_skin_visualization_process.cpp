@@ -1028,9 +1028,9 @@ Geometry< Node >::Pointer EmbeddedSkinVisualizationProcess::SetNewConditionGeome
 {
     switch(rOriginGeometryType){
         case GeometryData::KratosGeometryType::Kratos_Line2D2:
-            return Kratos::make_shared<Line2D2< Node > >(rNewNodesArray);
+            return Kratos::make_intrusive<Line2D2< Node > >(rNewNodesArray);
         case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
-            return Kratos::make_shared<Triangle3D3< Node > >(rNewNodesArray);
+            return Kratos::make_intrusive<Triangle3D3< Node > >(rNewNodesArray);
         default:
             KRATOS_ERROR << "Implement the visualization for the intersection geometry type " << static_cast<int>(rOriginGeometryType);
     }

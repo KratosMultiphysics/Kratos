@@ -34,7 +34,7 @@ typename DivideTriangle3D3<TPointType>::IndexedPointGeometryPointerType DivideTr
     const int I1,
     const int I2)
 {
-    return Kratos::make_shared<IndexedPointTriangleType>(
+    return Kratos::make_intrusive<IndexedPointTriangleType>(
         this->mAuxPointsContainer(I0),
         this->mAuxPointsContainer(I1),
         this->mAuxPointsContainer(I2));
@@ -45,7 +45,7 @@ typename DivideTriangle3D3<TPointType>::IndexedPointGeometryPointerType DivideTr
     const int I0,
     const int I1)
 {
-    return Kratos::make_shared<IndexedPointLineType>(
+    return Kratos::make_intrusive<IndexedPointLineType>(
         this->mAuxPointsContainer(I0),
         this->mAuxPointsContainer(I1));
 }

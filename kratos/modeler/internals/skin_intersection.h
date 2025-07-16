@@ -46,7 +46,7 @@ public:
         for (const auto& point: rGeometry) {
             points.push_back(Kratos::make_shared<SplitGeometryPointType>(point.Coordinates(), ++index));
         }
-        return Kratos::make_shared<Triangle3D3<SplitGeometryPointType>>(points);
+        return Kratos::make_intrusive<Triangle3D3<SplitGeometryPointType>>(points);
     }
 
 

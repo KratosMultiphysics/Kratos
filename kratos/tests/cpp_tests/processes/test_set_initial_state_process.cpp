@@ -60,7 +60,7 @@ KRATOS_TEST_CASE_IN_SUITE(ImposingInitialState2D, KratosCoreFastSuite)
     geom[1] = p_node_2;
     geom[2] = p_node_3;
     geom[3] = p_node_4;
-    auto pgeom = Kratos::make_shared<Quadrilateral2D4<Node>>(PointerVector<Node>{geom});
+    auto pgeom = Kratos::make_intrusive<Quadrilateral2D4<Node>>(PointerVector<Node>{geom});
 
     auto p_elem = Kratos::make_intrusive<TestElement>( 0, pgeom, p_prop, TestElement::ResidualType::LINEAR );
     p_elem->Initialize(process_info);
@@ -139,7 +139,7 @@ KRATOS_TEST_CASE_IN_SUITE(ImposingInitialState3D, KratosCoreFastSuite)
     geom[1] = p_node_2;
     geom[2] = p_node_3;
     geom[3] = p_node_4;
-    auto pgeom = Kratos::make_shared<Tetrahedra3D4<Node>>(PointerVector<Node>{geom});
+    auto pgeom = Kratos::make_intrusive<Tetrahedra3D4<Node>>(PointerVector<Node>{geom});
 
     auto p_elem = Kratos::make_intrusive<TestElement>( 0, pgeom, p_prop, TestElement::ResidualType::LINEAR );
     p_elem->Initialize(process_info);

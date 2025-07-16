@@ -31,7 +31,7 @@ namespace Testing {
     * @return  Pointer to a Line2D5N
     */
     Line2D5<Point>::Pointer GeneratePointsUnitXDirectionLine2D5() {
-        return Kratos::make_shared<Line2D5<Point>>(
+        return Kratos::make_intrusive<Line2D5<Point>>(
         Kratos::make_shared<Point>(0.00, 0.0, 0.0),
         Kratos::make_shared<Point>(1.00, 0.0, 0.0),
         Kratos::make_shared<Point>(0.25, 0.0, 0.0),
@@ -44,7 +44,7 @@ namespace Testing {
     * @return  Pointer to a Line2D5N
     */
     Line2D5<Point>::Pointer GeneratePointsUnitYDirectionLine2D5() {
-        return Kratos::make_shared<Line2D5<Point>>(
+        return Kratos::make_intrusive<Line2D5<Point>>(
         Kratos::make_shared<Point>(0.0, 0.00, 0.0),
         Kratos::make_shared<Point>(0.0, 1.00, 0.0),
         Kratos::make_shared<Point>(0.0, 0.25, 0.0),
@@ -57,7 +57,7 @@ namespace Testing {
     * @return  Pointer to a Line2D5N
     */
     Line2D5<Point>::Pointer GeneratePointsDiagonalLine2D5() {
-        return Kratos::make_shared<Line2D5<Point>>(
+        return Kratos::make_intrusive<Line2D5<Point>>(
         Kratos::make_shared<Point>(0.00, 0.00, 0.0),
         Kratos::make_shared<Point>(1.00, 1.00, 0.0),
         Kratos::make_shared<Point>(0.25, 0.25, 0.0),
@@ -70,7 +70,7 @@ namespace Testing {
     * @return  Pointer to a Line2D5N
     */
     Line2D5<Point>::Pointer GeneratePointsParabolaLine2D5() {
-        return Kratos::make_shared<Line2D5<Point>>(
+        return Kratos::make_intrusive<Line2D5<Point>>(
         Kratos::make_shared<Point>(0.00, 0.00 , 0.0),
         Kratos::make_shared<Point>(1.00, 0.00 , 0.0),
         Kratos::make_shared<Point>(0.25, 0.375, 0.0),
@@ -85,7 +85,7 @@ namespace Testing {
     Line2D5<Point>::Pointer GenerateLine2D5WithPoints(Point::Pointer pPoint01, Point::Pointer pPoint02,
                                                       Point::Pointer pPoint03, Point::Pointer pPoint04,
                                                       Point::Pointer pPoint05) {
-        return Kratos::make_shared<Line2D5<Point>>(pPoint01, pPoint02, pPoint03, pPoint04, pPoint05);
+        return Kratos::make_intrusive<Line2D5<Point>>(pPoint01, pPoint02, pPoint03, pPoint04, pPoint05);
     }
 
     /** Checks if the number of edges is correct.
@@ -353,7 +353,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(Line2D5ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsParabolaLine2D5();
         auto& r_geom = *p_geometry;
-        auto p_p_geom_nodes = Kratos::make_shared<Line2D5<Node>>(
+        auto p_p_geom_nodes = Kratos::make_intrusive<Line2D5<Node>>(
         Kratos::make_intrusive<Node>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
         Kratos::make_intrusive<Node>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z()),
         Kratos::make_intrusive<Node>(3, r_geom[2].X(), r_geom[2].Y(), r_geom[2].Z()),
@@ -384,7 +384,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(Line2D5ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsParabolaLine2D5();
         auto& r_geom = *p_geometry;
-        auto p_p_geom_nodes = Kratos::make_shared<Line2D5<Node>>(
+        auto p_p_geom_nodes = Kratos::make_intrusive<Line2D5<Node>>(
         Kratos::make_intrusive<Node>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
         Kratos::make_intrusive<Node>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z()),
         Kratos::make_intrusive<Node>(3, r_geom[2].X(), r_geom[2].Y(), r_geom[2].Z()),

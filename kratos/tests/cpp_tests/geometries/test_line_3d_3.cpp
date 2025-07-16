@@ -31,7 +31,7 @@ namespace {
     * @return  Pointer to a Line3D3N
     */
     Line3D3<Point>::Pointer GeneratePointsUnitXDirectionLine3D3() {
-        return Kratos::make_shared<Line3D3<Point>>(
+        return Kratos::make_intrusive<Line3D3<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
         Kratos::make_shared<Point>(1.0, 0.0, 0.0),
         Kratos::make_shared<Point>(0.5, 0.0, 0.0)
@@ -53,7 +53,7 @@ namespace {
     * @return  Pointer to a Line3D3N
     */
     Line3D3<Point>::Pointer GeneratePointsDiagonalLine3D3() {
-        return Kratos::make_shared<Line3D3<Point>>(
+        return Kratos::make_intrusive<Line3D3<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
         Kratos::make_shared<Point>(1.0, 1.0, 0.0),
         Kratos::make_shared<Point>(0.5, 0.5, 0.0)
@@ -64,7 +64,7 @@ namespace {
     * @return  Pointer to a Line3D3N
     */
     Line3D3<Point>::Pointer GeneratePointsParabolaLine3D3() {
-        return Kratos::make_shared<Line3D3<Point>>(
+        return Kratos::make_intrusive<Line3D3<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
         Kratos::make_shared<Point>(1.0, 0.0, 0.0),
         Kratos::make_shared<Point>(0.5, 0.5, 0.0)
@@ -299,7 +299,7 @@ KRATOS_TEST_CASE_IN_SUITE(Line3D3DeterminantOfJacobianIndex5, KratosCoreGeometri
 KRATOS_TEST_CASE_IN_SUITE(Line3D3ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
     auto p_geometry = GeneratePointsParabolaLine3D3();
     auto& r_geom = *p_geometry;
-    auto p_p_geom_nodes = Kratos::make_shared<Line3D3<Node>>(
+    auto p_p_geom_nodes = Kratos::make_intrusive<Line3D3<Node>>(
     Kratos::make_intrusive<Node>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
     Kratos::make_intrusive<Node>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z()),
     Kratos::make_intrusive<Node>(3, r_geom[2].X(), r_geom[2].Y(), r_geom[2].Z())
@@ -324,7 +324,7 @@ KRATOS_TEST_CASE_IN_SUITE(Line3D3ShapeFunctionsValuesMatrix, KratosCoreGeometrie
 KRATOS_TEST_CASE_IN_SUITE(Line3D3ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
     auto p_geometry = GeneratePointsParabolaLine3D3();
     auto& r_geom = *p_geometry;
-    auto p_p_geom_nodes = Kratos::make_shared<Line3D3<Node>>(
+    auto p_p_geom_nodes = Kratos::make_intrusive<Line3D3<Node>>(
     Kratos::make_intrusive<Node>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
     Kratos::make_intrusive<Node>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z()),
     Kratos::make_intrusive<Node>(3, r_geom[2].X(), r_geom[2].Y(), r_geom[2].Z())

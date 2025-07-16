@@ -52,7 +52,7 @@ public:
     typedef std::vector<GeometryPointer> GeometryPointerVector;
 
     /// Pointer definition of CouplingGeometry
-    KRATOS_CLASS_POINTER_DEFINITION( CouplingGeometry );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( CouplingGeometry );
 
     typedef TPointType PointType;
 
@@ -148,7 +148,7 @@ public:
     typename BaseType::Pointer Create(
         PointsArrayType const& ThisPoints ) const override
     {
-        return Kratos::make_shared<CouplingGeometry>();
+        return Kratos::make_intrusive<CouplingGeometry>();
     }
 
     ///@}
@@ -514,7 +514,7 @@ public:
                 << slave_quadrature_points(i)->Center() << ". Distance: "
                 << norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) << std::endl;
 
-            rResultGeometries(i) = Kratos::make_shared<CouplingGeometry<PointType>>(
+            rResultGeometries(i) = Kratos::make_intrusive<CouplingGeometry<PointType>>(
                 master_quadrature_points(i), slave_quadrature_points(i));
         }
 
@@ -554,7 +554,7 @@ public:
                 << slave_quadrature_points(0)->Center() << ". Distance: "
                 << norm_2(master_quadrature_points(0)->Center() - slave_quadrature_points(0)->Center()) << std::endl;
 
-            rResultGeometries(0) = Kratos::make_shared<CouplingGeometry<PointType>>(
+            rResultGeometries(0) = Kratos::make_intrusive<CouplingGeometry<PointType>>(
                 master_quadrature_points(0), slave_quadrature_points(0));
 
             if (mpGeometries.size() > 2) {

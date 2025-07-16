@@ -41,7 +41,7 @@ public:
     ///@{
 
     /// Pointer definition of BrepCurve
-    KRATOS_CLASS_POINTER_DEFINITION( BrepCurve );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BrepCurve );
 
     typedef typename TContainerPointType::value_type PointType;
 
@@ -148,7 +148,7 @@ public:
     GeometryPointer pGetGeometryPart(const IndexType Index) override
     {
         const auto& const_this = *this;
-        return std::const_pointer_cast<GeometryType>(
+        return Kratos::const_pointer_cast<GeometryType>(
             const_this.pGetGeometryPart(Index));
     }
 

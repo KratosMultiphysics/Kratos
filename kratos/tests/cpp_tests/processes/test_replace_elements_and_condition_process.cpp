@@ -44,13 +44,13 @@ void GenerateMixedModelPart(ModelPart& rModelPart)
     // Now we create the "elements"
     {
         std::vector<Node::Pointer> element_nodes_0 ({p_node_1, p_node_2, p_node_3});
-        Triangle2D3 <Node>::Pointer p_geom_0 = Kratos::make_shared<Triangle2D3 <Node>>( PointerVector<Node>{element_nodes_0} );
+        Triangle2D3 <Node>::Pointer p_geom_0 = Kratos::make_intrusive<Triangle2D3 <Node>>( PointerVector<Node>{element_nodes_0} );
 
         std::vector<Node::Pointer> element_nodes_1 ({p_node_1, p_node_3, p_node_4});
-        Triangle2D3 <Node>::Pointer p_geom_1 = Kratos::make_shared<Triangle2D3 <Node>>( PointerVector<Node>{element_nodes_1} );
+        Triangle2D3 <Node>::Pointer p_geom_1 = Kratos::make_intrusive<Triangle2D3 <Node>>( PointerVector<Node>{element_nodes_1} );
 
         std::vector<Node::Pointer> element_nodes_2 ({p_node_2, p_node_5, p_node_6, p_node_3});
-        Quadrilateral2D4 <Node>::Pointer p_geom_2 = Kratos::make_shared<Quadrilateral2D4 <Node>>( PointerVector<Node>{element_nodes_2} );
+        Quadrilateral2D4 <Node>::Pointer p_geom_2 = Kratos::make_intrusive<Quadrilateral2D4 <Node>>( PointerVector<Node>{element_nodes_2} );
 
         auto p_elem_0 = Kratos::make_intrusive<Element>(1, p_geom_0, p_prop);
         auto p_elem_1 = Kratos::make_intrusive<Element>(2, p_geom_1, p_prop);
@@ -63,22 +63,22 @@ void GenerateMixedModelPart(ModelPart& rModelPart)
     // Now we create the "conditions"
     {
         std::vector<Node::Pointer> conditions_nodes_0 ({p_node_1, p_node_2});
-        Line2D2 <Node>::Pointer p_geom_0 = Kratos::make_shared<Line2D2 <Node>>( PointerVector<Node>{conditions_nodes_0} );
+        Line2D2 <Node>::Pointer p_geom_0 = Kratos::make_intrusive<Line2D2 <Node>>( PointerVector<Node>{conditions_nodes_0} );
 
         std::vector<Node::Pointer> conditions_nodes_1 ({p_node_1, p_node_5});
-        Line2D2 <Node>::Pointer p_geom_1 = Kratos::make_shared<Line2D2 <Node>>( PointerVector<Node>{conditions_nodes_1} );
+        Line2D2 <Node>::Pointer p_geom_1 = Kratos::make_intrusive<Line2D2 <Node>>( PointerVector<Node>{conditions_nodes_1} );
 
         std::vector<Node::Pointer> conditions_nodes_2 ({p_node_5, p_node_6});
-        Line2D2 <Node>::Pointer p_geom_2 = Kratos::make_shared<Line2D2 <Node>>( PointerVector<Node>{conditions_nodes_2} );
+        Line2D2 <Node>::Pointer p_geom_2 = Kratos::make_intrusive<Line2D2 <Node>>( PointerVector<Node>{conditions_nodes_2} );
 
         std::vector<Node::Pointer> conditions_nodes_3 ({p_node_6, p_node_3});
-        Line2D2 <Node>::Pointer p_geom_3 = Kratos::make_shared<Line2D2 <Node>>( PointerVector<Node>{conditions_nodes_3} );
+        Line2D2 <Node>::Pointer p_geom_3 = Kratos::make_intrusive<Line2D2 <Node>>( PointerVector<Node>{conditions_nodes_3} );
 
         std::vector<Node::Pointer> conditions_nodes_4 ({p_node_3, p_node_4});
-        Line2D2 <Node>::Pointer p_geom_4 = Kratos::make_shared<Line2D2 <Node>>( PointerVector<Node>{conditions_nodes_4} );
+        Line2D2 <Node>::Pointer p_geom_4 = Kratos::make_intrusive<Line2D2 <Node>>( PointerVector<Node>{conditions_nodes_4} );
 
         std::vector<Node::Pointer> conditions_nodes_5 ({p_node_4, p_node_1});
-        Line2D2 <Node>::Pointer p_geom_5 = Kratos::make_shared<Line2D2 <Node>>( PointerVector<Node>{conditions_nodes_5} );
+        Line2D2 <Node>::Pointer p_geom_5 = Kratos::make_intrusive<Line2D2 <Node>>( PointerVector<Node>{conditions_nodes_5} );
 
         auto p_cond_0 = Kratos::make_intrusive<Condition>(1, p_geom_0, p_prop);
         auto p_cond_1 = Kratos::make_intrusive<Condition>(2, p_geom_1, p_prop);
@@ -229,16 +229,16 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess4, KratosCoreFastSu
 
     // Now we create the "conditions"
     std::vector<Node::Pointer> element_nodes_0 ({p_node_1, p_node_2, p_node_3});
-    Triangle2D3 <Node>::Pointer p_geom_1 = Kratos::make_shared<Triangle2D3 <Node>>( PointerVector<Node>{element_nodes_0} );
+    Triangle2D3 <Node>::Pointer p_geom_1 = Kratos::make_intrusive<Triangle2D3 <Node>>( PointerVector<Node>{element_nodes_0} );
 
     std::vector<Node::Pointer> element_nodes_1 ({p_node_1, p_node_3, p_node_4});
-    Triangle2D3 <Node>::Pointer p_geom_2 = Kratos::make_shared<Triangle2D3 <Node>>( PointerVector<Node>{element_nodes_1} );
+    Triangle2D3 <Node>::Pointer p_geom_2 = Kratos::make_intrusive<Triangle2D3 <Node>>( PointerVector<Node>{element_nodes_1} );
 
     std::vector<Node::Pointer> element_nodes_2 ({p_node_2, p_node_5, p_node_3});
-    Triangle2D3 <Node>::Pointer p_geom_3 = Kratos::make_shared<Triangle2D3 <Node>>( PointerVector<Node>{element_nodes_2} );
+    Triangle2D3 <Node>::Pointer p_geom_3 = Kratos::make_intrusive<Triangle2D3 <Node>>( PointerVector<Node>{element_nodes_2} );
 
     std::vector<Node::Pointer> element_nodes_3 ({p_node_5, p_node_6, p_node_3});
-    Triangle2D3 <Node>::Pointer p_geom_4 = Kratos::make_shared<Triangle2D3 <Node>>( PointerVector<Node>{element_nodes_3} );
+    Triangle2D3 <Node>::Pointer p_geom_4 = Kratos::make_intrusive<Triangle2D3 <Node>>( PointerVector<Node>{element_nodes_3} );
 
     // Elements are created
     auto p_elem_0 = Kratos::make_intrusive<DistanceCalculationElementSimplex<2>>(1, p_geom_1, p_prop);

@@ -68,7 +68,7 @@ void GenerateStlIntersectionWithCells::Generate(ModelPart& rModelPart, Parameter
                     auto cut_nodes = GenerateCutGeometryNodes(rModelPart, r_geometries);
 
                     for (auto i_node = cut_nodes.ptr_begin(); i_node != cut_nodes.ptr_end(); i_node += 3) {
-                        auto geom = Kratos::make_shared<Triangle3D3<Node>>(*i_node, *(i_node+1), *(i_node+2));
+                        auto geom = Kratos::make_intrusive<Triangle3D3<Node>>(*i_node, *(i_node+1), *(i_node+2));
                         new_elements.push_back(
                             r_prototype_element.Create(element_id++, geom, p_properties));
 

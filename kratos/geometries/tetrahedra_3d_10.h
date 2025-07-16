@@ -86,7 +86,7 @@ public:
     using FaceType = Triangle3D6<TPointType>;
 
     /// Pointer definition of Tetrahedra3D10
-    KRATOS_CLASS_POINTER_DEFINITION( Tetrahedra3D10 );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( Tetrahedra3D10 );
 
     /// Integration methods implemented in geometry.
     using IntegrationMethod = GeometryData::IntegrationMethod;

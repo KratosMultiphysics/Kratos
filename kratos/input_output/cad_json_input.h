@@ -233,7 +233,7 @@ private:
                 ReadBoundaryLoops(rParameters["boundary_loops"], p_surface, rModelPart, EchoLevel);
 
             auto p_brep_surface =
-                Kratos::make_shared<BrepSurfaceType>(
+                Kratos::make_intrusive<BrepSurfaceType>(
                     p_surface,
                     outer_loops,
                     inner_loops,
@@ -256,7 +256,7 @@ private:
                 << " It will be considered as untrimmed." << std::endl;
 
             auto p_brep_surface =
-                Kratos::make_shared<BrepSurfaceType>(
+                Kratos::make_intrusive<BrepSurfaceType>(
                     p_surface);
 
             SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
@@ -316,7 +316,7 @@ private:
         NurbsInterval brep_active_range(active_range_vector[0], active_range_vector[1]);
 
         auto p_brep_curve_on_surface
-            = Kratos::make_shared<BrepCurveOnSurfaceType>(
+            = Kratos::make_intrusive<BrepCurveOnSurfaceType>(
                 pNurbsSurface, p_trimming_curve, brep_active_range, curve_direction);
 
         if (rParameters.Has("trim_index")) {
@@ -448,7 +448,7 @@ private:
         auto p_curve = ReadNurbsCurve<3, TNodeType>(
             rParameters["3d_curve"], rModelPart, EchoLevel);
 
-        auto p_brep_curve = Kratos::make_shared<BrepCurveType>(p_curve);
+        auto p_brep_curve = Kratos::make_intrusive<BrepCurveType>(p_curve);
 
         SetIdOrName<BrepCurveType>(rParameters, p_brep_curve);
 
@@ -497,7 +497,7 @@ private:
         auto p_nurbs_curve_on_surface = p_brep_curve_on_surface->pGetCurveOnSurface();
 
         auto brep_nurbs_interval = p_brep_curve_on_surface->DomainInterval();
-        auto p_bre_edge_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
+        auto p_bre_edge_brep_curve_on_surface = Kratos::make_intrusive<BrepCurveOnSurfaceType>(
             p_nurbs_curve_on_surface, brep_nurbs_interval, relative_direction);
 
         SetIdOrName<BrepCurveOnSurfaceType>(rParameters, p_bre_edge_brep_curve_on_surface);
@@ -526,7 +526,7 @@ private:
                 p_geometry->pGetGeometryPart(rParameters["topology"][i]["trim_index"].GetInt()));
         }
 
-        auto p_coupling_geometry = Kratos::make_shared<CouplingGeometryType>(
+        auto p_coupling_geometry = Kratos::make_intrusive<CouplingGeometryType>(
             geometry_vector);
 
         SetIdOrName<CouplingGeometryType>(rParameters, p_coupling_geometry);
@@ -575,7 +575,7 @@ private:
                     coupling_point_geometries[i] = ReadPointOnGeometry(rParameters[brep_point_i]["topology"][i], rModelPart, p_geometry, EchoLevel);
                 }
 
-                auto p_coupling_geometry = Kratos::make_shared<CouplingGeometryType>(
+                auto p_coupling_geometry = Kratos::make_intrusive<CouplingGeometryType>(
                     coupling_point_geometries);
 
                 SetIdOrName<CouplingGeometryType>(rParameters[brep_point_i], p_coupling_geometry);
@@ -601,9 +601,9 @@ private:
         local_coordinates[2] = coordinates_vector[2];
 
         if (pBackgroundGeometry->LocalSpaceDimension() == 2)
-            return Kratos::make_shared<PointOnGeometryOnSurfaceType>(local_coordinates, pBackgroundGeometry);
+            return Kratos::make_intrusive<PointOnGeometryOnSurfaceType>(local_coordinates, pBackgroundGeometry);
         else if (pBackgroundGeometry->LocalSpaceDimension() == 1)
-            return Kratos::make_shared<PointOnGeometryOnCurveType>(local_coordinates, pBackgroundGeometry);
+            return Kratos::make_intrusive<PointOnGeometryOnCurveType>(local_coordinates, pBackgroundGeometry);
         else {
             KRATOS_ERROR << "Local space dimension of: " << pBackgroundGeometry->LocalSpaceDimension()
                 << " is not supported for point on geometry." << std::endl;
@@ -664,7 +664,7 @@ private:
             Vector control_point_weights = ReadControlPointWeightVector(
                 rParameters["control_points"]);
 
-            return Kratos::make_shared<NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
+            return Kratos::make_intrusive<NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
                 NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
                     control_points,
                     polynomial_degree,
@@ -739,7 +739,7 @@ private:
             Vector control_point_weights = ReadControlPointWeightVector(
                 rParameters["control_points"]);
 
-            return Kratos::make_shared<NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
+            return Kratos::make_intrusive<NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
                 control_points,
                 p,
                 q,

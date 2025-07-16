@@ -24,20 +24,12 @@
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
+struct IntrusivePointerHasher{
+    std::size_t operator()(const Geometry<Node>::Pointer& rPtr) const {
+        std::hash<const Geometry<Node>*> subHasher;
+        return subHasher(rPtr.get());
+    };
+};
 
 /**
  * @class AuxiliarModelPartUtilities
@@ -685,7 +677,7 @@ public:
         ModelPart& rModelPart,
         TClassContainer& rEntities,
         TReferenceClassContainer& rReferenceEntities,
-        std::unordered_map<Geometry<Node>::Pointer,Geometry<Node>::Pointer>& rGeometryPointerDatabase
+        std::unordered_map<Geometry<Node>::Pointer,Geometry<Node>::Pointer, IntrusivePointerHasher>& rGeometryPointerDatabase
         )
     {
         KRATOS_TRY

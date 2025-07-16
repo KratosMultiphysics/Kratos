@@ -85,7 +85,7 @@ void GenerateTetrahedralElementsWithCellColor::CreateTetrahedraInCell(
     for(std::size_t i = 0; i < tets_per_cell; i++) {
         const auto & connectivty = local_connectivities[i];
 
-        auto geom = Kratos::make_shared<Tetrahedra3D4<Node>>(
+        auto geom = Kratos::make_intrusive<Tetrahedra3D4<Node>>(
             rCellNodes(connectivty[0]),
             rCellNodes(connectivty[1]),
             rCellNodes(connectivty[2]),

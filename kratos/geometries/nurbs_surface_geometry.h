@@ -58,7 +58,7 @@ public:
     using BaseType::GetPoint;
 
     /// Counted pointer of NurbsSurfaceGeometry
-    KRATOS_CLASS_POINTER_DEFINITION(NurbsSurfaceGeometry);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(NurbsSurfaceGeometry);
 
     ///@}
     ///@name Life Cycle
@@ -177,7 +177,7 @@ public:
     typename BaseType::Pointer Create(
         PointsArrayType const& ThisPoints) const override
     {
-        return Kratos::make_shared<NurbsSurfaceGeometry>(ThisPoints);
+        return Kratos::make_intrusive<NurbsSurfaceGeometry>(ThisPoints);
     }
 
     ///@}

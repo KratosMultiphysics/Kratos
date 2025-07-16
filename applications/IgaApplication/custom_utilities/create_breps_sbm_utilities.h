@@ -144,7 +144,7 @@ private:
 
         // Set to FALSE the TShiftedBoundary flag
         auto p_brep_surface =
-            Kratos::make_shared<BrepSurface<ContainerNodeType, false, ContainerEmbeddedNodeType>>(
+            Kratos::make_intrusive<BrepSurface<ContainerNodeType, false, ContainerEmbeddedNodeType>>(
                 pSurface, 
                 outer_loops,
                 inner_loops,
@@ -194,13 +194,13 @@ private:
         }
 
         auto p_brep_surface =
-            Kratos::make_shared<BrepSurfaceType>(
+            Kratos::make_intrusive<BrepSurfaceType>(
                 pSurface, 
                 outer_loops,
                 inner_loops);
 
-        auto p_surrogate_outer_loop_geometries = Kratos::make_shared<GeometrySurrogateArrayType>(surrogate_outer_loop_geometries);
-        auto p_surrogate_inner_loop_geometries = Kratos::make_shared<GeometrySurrogateArrayType>(surrogate_inner_loop_geometries);
+        auto p_surrogate_outer_loop_geometries = Kratos::make_intrusive<GeometrySurrogateArrayType>(surrogate_outer_loop_geometries);
+        auto p_surrogate_inner_loop_geometries = Kratos::make_intrusive<GeometrySurrogateArrayType>(surrogate_inner_loop_geometries);
 
         p_brep_surface->SetSurrogateOuterLoopGeometries(p_surrogate_outer_loop_geometries);
         p_brep_surface->SetSurrogateInnerLoopGeometries(p_surrogate_inner_loop_geometries);
@@ -273,7 +273,7 @@ private:
                 NurbsInterval brep_active_range(active_range_knot_vector[0], active_range_knot_vector[1]);
 
                 bool curve_direction = true;
-                auto p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
+                auto p_brep_curve_on_surface = Kratos::make_intrusive<BrepCurveOnSurfaceType>(
                     pSurface, p_trimming_curve, brep_active_range, curve_direction);
 
                 p_brep_curve_on_surface->SetId(id_brep_curve_on_surface);
@@ -330,7 +330,7 @@ private:
                 NurbsInterval brep_active_range(active_range_knot_vector[0], active_range_knot_vector[1]);
 
                 bool curve_direction = true;
-                auto p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
+                auto p_brep_curve_on_surface = Kratos::make_intrusive<BrepCurveOnSurfaceType>(
                     pSurface, p_trimming_curve, brep_active_range, curve_direction);
 
                 p_brep_curve_on_surface->SetId(id_brep_curve_on_surface);
@@ -407,28 +407,28 @@ private:
         segment4.push_back(Point::Pointer(new Point(rCoordsA[0], rCoordsB[1])));
         segment4.push_back(Point::Pointer(new Point(rCoordsA[0], rCoordsA[1])));
 
-        auto p_curve_1 = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(segment1, p, knot_vector);
-        auto p_curve_2 = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(segment2, p, knot_vector);
-        auto p_curve_3 = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(segment3, p, knot_vector);
-        auto p_curve_4 = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(segment4, p, knot_vector);
+        auto p_curve_1 = Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(segment1, p, knot_vector);
+        auto p_curve_2 = Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(segment2, p, knot_vector);
+        auto p_curve_3 = Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(segment3, p, knot_vector);
+        auto p_curve_4 = Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(segment4, p, knot_vector);
         
         auto brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_1);
-        auto p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_1);
+        auto p_brep_curve_on_surface = Kratos::make_intrusive<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_1);
         p_brep_curve_on_surface->SetId(rLastGeometryId);
         rModelPart.AddGeometry(p_brep_curve_on_surface);
         
         brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_2);
-        p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_2);
+        p_brep_curve_on_surface = Kratos::make_intrusive<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_2);
         p_brep_curve_on_surface->SetId(++rLastGeometryId);
         rModelPart.AddGeometry(p_brep_curve_on_surface);
 
         brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_3);
-        p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_3);
+        p_brep_curve_on_surface = Kratos::make_intrusive<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_3);
         p_brep_curve_on_surface->SetId(++rLastGeometryId);
         rModelPart.AddGeometry(p_brep_curve_on_surface);
         
         brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_4);
-        p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_4);
+        p_brep_curve_on_surface = Kratos::make_intrusive<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_4);
         p_brep_curve_on_surface->SetId(++rLastGeometryId);
         rModelPart.AddGeometry(p_brep_curve_on_surface);
 

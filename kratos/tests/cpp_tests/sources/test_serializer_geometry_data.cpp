@@ -37,7 +37,7 @@ namespace Kratos {
             rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
             rModelPart.CreateNewNode(3, 0.5, 0.0, 0.0);
 
-            return Kratos::make_shared<Line2D3<Node>>(
+            return Kratos::make_intrusive<Line2D3<Node>>(
                 rModelPart.pGetNode(1),
                 rModelPart.pGetNode(2),
                 rModelPart.pGetNode(3)
@@ -49,7 +49,7 @@ namespace Kratos {
             rModelPart.CreateNewNode(5, 20, 0.0, 0.0);
             rModelPart.CreateNewNode(6, 20, 0.0, 0.0);
 
-            return Kratos::make_shared<Line2D3<Node>>(
+            return Kratos::make_intrusive<Line2D3<Node>>(
                 rModelPart.pGetNode(4),
                 rModelPart.pGetNode(5),
                 rModelPart.pGetNode(6)
@@ -65,7 +65,7 @@ namespace Kratos {
             rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
             rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
 
-            return Kratos::make_shared<Triangle2D3<NodeType>>(
+            return Kratos::make_intrusive<Triangle2D3<NodeType>>(
                 rModelPart.pGetNode(1),
                 rModelPart.pGetNode(2),
                 rModelPart.pGetNode(3)
@@ -93,7 +93,7 @@ namespace Kratos {
                 DN_De);
 
             Geometry<Node>::Pointer p_this_quadrature_point(
-                Kratos::make_shared<QuadraturePointGeometry<Node, 2, 2>>(
+                Kratos::make_intrusive<QuadraturePointGeometry<Node, 2, 2>>(
                     triangle->Points(),
                     data_container,
                     triangle.get()));
@@ -110,7 +110,7 @@ namespace Kratos {
                 Matrix());
 
             Geometry<Node>::Pointer p_this_quadrature_point(
-                Kratos::make_shared<QuadraturePointGeometry<Node, 2>>(
+                Kratos::make_intrusive<QuadraturePointGeometry<Node, 2>>(
                     GeometryType::PointsArrayType(3),
                     data_container));
 

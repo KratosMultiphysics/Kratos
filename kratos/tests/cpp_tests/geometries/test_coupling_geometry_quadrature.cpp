@@ -40,7 +40,7 @@ namespace Kratos {
             knot_vector_1[0] = 0.0;
             knot_vector_1[1] = 1.0;
 
-            auto p_line_1 = Kratos::make_shared<
+            auto p_line_1 = Kratos::make_intrusive<
                 NurbsCurveGeometry<2, PointerVector<NodeType>>>(
                     points_1, 1, knot_vector_1);
 
@@ -55,12 +55,12 @@ namespace Kratos {
             knot_vector_2[1] = 0.6;
             knot_vector_2[2] = 0.9;
 
-            auto p_line_2 = Kratos::make_shared<
+            auto p_line_2 = Kratos::make_intrusive<
                 NurbsCurveGeometry<2, PointerVector<NodeType>>>(
                     points_2, 1, knot_vector_2);
 
             /// Coupling Geometry
-            return Kratos::make_shared<CouplingGeometry<NodeType>>(
+            return Kratos::make_intrusive<CouplingGeometry<NodeType>>(
                 p_line_1, p_line_2);
         }
 
@@ -78,7 +78,7 @@ namespace Kratos {
             Vector knot_vector_surface_v_1 = ZeroVector(2);
             knot_vector_surface_v_1[0] = 0.0;
             knot_vector_surface_v_1[1] = 1.0;
-            auto p_surface_1 = Kratos::make_shared<
+            auto p_surface_1 = Kratos::make_intrusive<
                 NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(
                     points_surface_1, 1, 1, knot_vector_surface_u_1, knot_vector_surface_v_1);
             /// NurbsCurve 1:
@@ -95,12 +95,12 @@ namespace Kratos {
             weights_curve_1[0] = 1;
             weights_curve_1[1] = 0.70710678;
             weights_curve_1[2] = 1;
-            auto p_curve_1 = Kratos::make_shared<
+            auto p_curve_1 = Kratos::make_intrusive<
                 NurbsCurveGeometry<2, PointerVector<Point>>>(
                     points_curve_1, 2, knot_vector_curve_1, weights_curve_1);
 
             /// NurbsCurveOnSurface 1:
-            auto p_curve_on_surface_1 = Kratos::make_shared<
+            auto p_curve_on_surface_1 = Kratos::make_intrusive<
                 NurbsCurveOnSurfaceGeometry<3, PointerVector<Point>, PointerVector<NodeType>>>(
                     p_surface_1, p_curve_1);
 
@@ -126,7 +126,7 @@ namespace Kratos {
             knot_vector_surface_v_2[3] = 1.33333333;
             knot_vector_surface_v_2[4] = 2.0;
             knot_vector_surface_v_2[5] = 2.0;
-            auto p_surface_2 = Kratos::make_shared<
+            auto p_surface_2 = Kratos::make_intrusive<
                 NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(
                     points_surface_2, 1, 2, knot_vector_surface_u_2, knot_vector_surface_v_2);
             /// NurbsCurve 2:
@@ -142,17 +142,17 @@ namespace Kratos {
             knot_vector_curve_2[3] = 0.0;
             knot_vector_curve_2[4] = 0.0;
             knot_vector_curve_2[5] = 0.0;
-            auto p_curve_2 = Kratos::make_shared<
+            auto p_curve_2 = Kratos::make_intrusive<
                 NurbsCurveGeometry<2, PointerVector<Point>>>(
                     points_curve_2, 3, knot_vector_curve_2);
 
             /// NurbsCurveOnSurface 2:
-            auto p_curve_on_surface_2 = Kratos::make_shared<
+            auto p_curve_on_surface_2 = Kratos::make_intrusive<
                 NurbsCurveOnSurfaceGeometry<3, PointerVector<Point>, PointerVector<NodeType>>>(
                     p_surface_2, p_curve_2);
 
             /// CouplingGeometry
-            return Kratos::make_shared<CouplingGeometry<NodeType>>(
+            return Kratos::make_intrusive<CouplingGeometry<NodeType>>(
                 p_curve_on_surface_1, p_curve_on_surface_2);
         }
 

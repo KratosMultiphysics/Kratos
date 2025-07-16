@@ -50,7 +50,7 @@ namespace Testing {
         int p = 2;
         int q = 1;
 
-        return Kratos::make_shared < NurbsSurfaceGeometry<3, PointerVector<NodeType> >>(points, p, q, knot_u, knot_v);
+        return Kratos::make_intrusive < NurbsSurfaceGeometry<3, PointerVector<NodeType> >>(points, p, q, knot_u, knot_v);
     }
 
     NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateReferenceCurve2dPointer()
@@ -72,7 +72,7 @@ namespace Testing {
 
         int p = 3;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
+        return Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
     ///// Tests
