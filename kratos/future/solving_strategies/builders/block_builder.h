@@ -100,6 +100,43 @@ public:
     ///@name Operations
     ///@{
 
+    void ResizeAndInitializeVectors(
+        const TSparseGraphType& rSparseGraph,
+        const typename DofsArrayType::Pointer pDofSet,
+        const typename DofsArrayType::Pointer pEffectiveDofSet,
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
+    {
+        // Set the system arrays
+        // Note that the graph-based constructor does both resizing and initialization
+        auto p_dx = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
+        rLinearSystemContainer.pDx.swap(p_dx);
+
+        auto p_rhs = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
+        rLinearSystemContainer.pRhs.swap(p_rhs);
+
+        auto p_lhs = Kratos::make_shared<TSparseMatrixType>(rSparseGraph);
+        rLinearSystemContainer.pLhs.swap(p_lhs);
+
+        // Set the effective arrays
+        if (pDofSet == pEffectiveDofSet) {
+            // If there are no constraints the effective arrays are the same as the input ones
+            // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
+            rLinearSystemContainer.pEffectiveLhs = rLinearSystemContainer.pLhs;
+            rLinearSystemContainer.pEffectiveRhs = rLinearSystemContainer.pRhs;
+            rLinearSystemContainer.pEffectiveDx = rLinearSystemContainer.pDx;
+        } else {
+            // Allocate the effective vectors according to the effective DOF set size
+            auto p_eff_lhs = Kratos::make_shared<TSparseMatrixType>();
+            rLinearSystemContainer.pEffectiveLhs.swap(p_eff_lhs);
+
+            auto p_eff_rhs = Kratos::make_shared<TSystemVectorType>(pEffectiveDofSet->size());
+            rLinearSystemContainer.pEffectiveRhs.swap(p_eff_rhs);
+
+            auto p_eff_dx = Kratos::make_shared<TSystemVectorType>(pEffectiveDofSet->size());
+            rLinearSystemContainer.pEffectiveDx.swap(p_eff_dx);
+        }
+    }
+
     void ConstructDirichletConstraintsStructure(
         const DofsArrayType& rDofSet,
         const DofsArrayType& rEffectiveDofSet,
@@ -154,18 +191,20 @@ private:
             p_eff_rhs->SetValue(0.0);
 
             // Initialize the effective solution vector
-            KRATOS_ERROR_IF(p_eff_rhs == nullptr) << "Effective solution increment vector has not been initialized yet." << std::endl;
+            KRATOS_ERROR_IF(p_eff_dx == nullptr) << "Effective solution increment vector has not been initialized yet." << std::endl;
             p_eff_dx->SetValue(0.0);
+
+            // Assign the master-slave relation matrix as the effective one since there are no other constraints
+            rLinearSystemContainer.pEffectiveT = rLinearSystemContainer.pConstraintsT;
 
             // Apply constraints to RHS
             auto p_rhs = rLinearSystemContainer.pRhs;
-            auto p_constraints_T = rLinearSystemContainer.pConstraintsT;
-            p_constraints_T->TransposeSpMV(*p_rhs, *p_eff_rhs);
+            rLinearSystemContainer.pEffectiveT->TransposeSpMV(*p_rhs, *p_eff_rhs);
 
             // Apply constraints to LHS
             auto p_lhs = rLinearSystemContainer.pLhs;
-            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *p_constraints_T);
-            auto p_transT = AmgclCSRConversionUtilities::Transpose(*p_constraints_T);
+            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *rLinearSystemContainer.pEffectiveT);
+            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rLinearSystemContainer.pEffectiveT);
             rLinearSystemContainer.pEffectiveLhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
 
             // // Compute the scale factor value

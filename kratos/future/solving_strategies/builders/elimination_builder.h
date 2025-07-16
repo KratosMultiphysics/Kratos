@@ -26,6 +26,7 @@
 #include "includes/model_part.h"
 #include "utilities/amgcl_csr_conversion_utilities.h"
 #include "utilities/amgcl_csr_spmm_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos::Future
 {
@@ -100,6 +101,41 @@ public:
     ///@name Operations
     ///@{
 
+    void ResizeAndInitializeVectors(
+        const TSparseGraphType& rSparseGraph,
+        const typename DofsArrayType::Pointer pDofSet,
+        const typename DofsArrayType::Pointer pEffectiveDofSet,
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
+    {
+        // Set the system arrays
+        // Note that the graph-based constructor does both resizing and initialization
+        auto p_dx = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
+        rLinearSystemContainer.pDx.swap(p_dx);
+
+        auto p_rhs = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
+        rLinearSystemContainer.pRhs.swap(p_rhs);
+
+        auto p_lhs = Kratos::make_shared<TSparseMatrixType>(rSparseGraph);
+        rLinearSystemContainer.pLhs.swap(p_lhs);
+
+        // Get the number of free DOFs to allocate the effective system arrays
+        const auto dof_begin = pEffectiveDofSet->begin();
+        const std::size_t n_free_dofs = IndexPartition<std::size_t>(pEffectiveDofSet->size()).for_each<SumReduction<std::size_t>>([&](IndexType Index) {
+            auto p_dof = dof_begin + Index;
+            return p_dof->IsFixed() ? 0 : 1;
+        });
+
+        // Allocate the effective arrays according to the number of free effective DOFs
+        auto p_eff_lhs = Kratos::make_shared<TSparseMatrixType>();
+        rLinearSystemContainer.pEffectiveLhs.swap(p_eff_lhs);
+
+        auto p_eff_rhs = Kratos::make_shared<TSystemVectorType>(n_free_dofs);
+        rLinearSystemContainer.pEffectiveRhs.swap(p_eff_rhs);
+
+        auto p_eff_dx = Kratos::make_shared<TSystemVectorType>(n_free_dofs);
+        rLinearSystemContainer.pEffectiveDx.swap(p_eff_dx);
+    }
+
     void ConstructDirichletConstraintsStructure(
         const DofsArrayType& rDofSet,
         const DofsArrayType& rEffectiveDofSet,
@@ -136,7 +172,20 @@ public:
         const DofsArrayType& rEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
-        //
+        // Set the BCs values in the Dirichlet constraints constant vector
+        const auto dof_begin = rEffectiveDofSet.begin();
+        auto& r_dirichlet_q = *rLinearSystemContainer.pDirichletQ;
+        IndexPartition<std::size_t>(rEffectiveDofSet.size()).for_each([&](IndexType Index){
+            auto p_dof = dof_begin + Index;
+            if (p_dof->IsFixed()) {
+                r_dirichlet_q[p_dof->EffectiveEquationId()] = p_dof->GetSolutionStepValue();
+            } else {
+                r_dirichlet_q[p_dof->EffectiveEquationId()] = 0.0;
+            }
+        });
+
+        // Set ones in the entries of the Dirichlet constraints relation matrix
+        rLinearSystemContainer.pDirichletT->SetValue(1.0);
     }
 
     //FIXME: Do the RHS-only version
@@ -144,7 +193,59 @@ public:
         const DofsArrayType& rEffectiveDofArray,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
-        //FIXME: To be implemented --> see the testbench notebook
+        // Get effective arrays
+        auto p_eff_dx = rLinearSystemContainer.pEffectiveDx;
+        auto p_eff_rhs = rLinearSystemContainer.pEffectiveRhs;
+
+        // Initialize the effective RHS
+        KRATOS_ERROR_IF(p_eff_rhs == nullptr) << "Effective RHS vector has not been initialized yet." << std::endl;
+        p_eff_rhs->SetValue(0.0);
+
+        // Initialize the effective solution vector
+        KRATOS_ERROR_IF(p_eff_dx == nullptr) << "Effective solution increment vector has not been initialized yet." << std::endl;
+        p_eff_dx->SetValue(0.0);
+
+        // Check if there are master-slave constraints to do the constraints composition
+        const auto& r_model_part = this->GetModelPart();
+        const std::size_t n_constraints = r_model_part.NumberOfMasterSlaveConstraints();
+        if (n_constraints) { //FIXME: In here we should check the number of active constraints
+            // Compute the total relation matrix
+            auto p_effective_T = rLinearSystemContainer.pEffectiveT;
+            auto& r_dirichlet_T = *rLinearSystemContainer.pDirichletT;
+            auto& r_constraints_T = *rLinearSystemContainer.pConstraintsT;
+            p_effective_T = AmgclCSRSpMMUtilities::SparseMultiply(r_constraints_T, r_dirichlet_T);
+
+            // Compute the total constant vector
+            auto& r_effective_q = *rLinearSystemContainer.pEffectiveQ;
+            auto& r_dirichlet_q = *rLinearSystemContainer.pDirichletQ;
+            auto& r_constraints_q = *rLinearSystemContainer.pConstraintsQ;
+            r_effective_q = r_constraints_q;
+            r_constraints_T.SpMV(r_dirichlet_q, r_effective_q);
+
+            // Apply constraints to RHS
+            auto p_rhs = rLinearSystemContainer.pRhs;
+            p_effective_T->TransposeSpMV(*p_rhs, *p_eff_rhs);
+
+            // Apply constraints to LHS
+            auto p_lhs = rLinearSystemContainer.pLhs;
+            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *p_effective_T);
+            auto p_transT = AmgclCSRConversionUtilities::Transpose(*p_effective_T);
+            rLinearSystemContainer.pEffectiveLhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
+        } else {
+            // Assign the Dirichlet constraints arrays as the effective ones since there are no other constraints
+            rLinearSystemContainer.pEffectiveT = rLinearSystemContainer.pDirichletT;
+            rLinearSystemContainer.pEffectiveQ = rLinearSystemContainer.pDirichletQ;
+
+            // Apply Dirichlet constraints to RHS
+            auto p_rhs = rLinearSystemContainer.pRhs;
+            rLinearSystemContainer.pEffectiveT->TransposeSpMV(*p_rhs, *p_eff_rhs);
+
+            // Apply Dirichlet constraints to LHS
+            auto p_lhs = rLinearSystemContainer.pLhs;
+            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *rLinearSystemContainer.pEffectiveT);
+            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rLinearSystemContainer.pEffectiveT);
+            rLinearSystemContainer.pEffectiveLhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
+        }
     }
 
     ///@}

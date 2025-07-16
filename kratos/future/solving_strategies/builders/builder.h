@@ -236,42 +236,11 @@ public:
     // TODO: To be discussed in the future. It would be great to have one with references. This will require using the move constructors
     virtual void ResizeAndInitializeVectors(
         const TSparseGraphType& rSparseGraph,
-        const DofsArrayType::Pointer pDofSet,
-        const DofsArrayType::Pointer pEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer,
-        const bool ReactionVector = false)
+        const typename DofsArrayType::Pointer pDofSet,
+        const typename DofsArrayType::Pointer pEffectiveDofSet,
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
-        //TODO: I think all these must be done by the system container
-
-        // Set the system arrays
-        // Note that the graph-based constructor does both resizing and initialization
-        auto p_dx = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
-        rLinearSystemContainer.pDx.swap(p_dx);
-
-        auto p_rhs = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
-        rLinearSystemContainer.pRhs.swap(p_rhs);
-
-        auto p_lhs = Kratos::make_shared<TSparseMatrixType>(rSparseGraph);
-        rLinearSystemContainer.pLhs.swap(p_lhs);
-
-        //FIXME: I think we should separate these
-        // Set the effective arrays
-        // In a standard case we only need to allocate the effective solution update to avoid the first Predict() call to crash
-        if (pDofSet == pEffectiveDofSet) {
-            // If there are no constraints, the effective DOF set matches the standard one and the effective arrays are the same as the input ones
-            // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
-            rLinearSystemContainer.pEffectiveDx = rLinearSystemContainer.pDx;
-        } else {
-            // Allocate the effective vectors according to the effective DOF set size
-            auto p_eff_lhs = Kratos::make_shared<TSparseMatrixType>();
-            rLinearSystemContainer.pEffectiveLhs.swap(p_eff_lhs);
-
-            auto p_eff_rhs = Kratos::make_shared<TSystemVectorType>(pEffectiveDofSet->size());
-            rLinearSystemContainer.pEffectiveRhs.swap(p_eff_rhs);
-
-            auto p_eff_dx = Kratos::make_shared<TSystemVectorType>(pEffectiveDofSet->size());
-            rLinearSystemContainer.pEffectiveDx.swap(p_eff_dx);
-        }
+        KRATOS_ERROR << "Calling base class 'ResizeAndInitializeVectors'." << std::endl;
     }
 
     virtual void ConstructMasterSlaveConstraintsStructure(
@@ -401,7 +370,14 @@ public:
             auto p_aux_T = Kratos::make_shared<TSparseMatrixType>(constraints_sparse_graph);
             rLinearSystemContainer.pConstraintsT.swap(p_aux_T);
         } else {
-            rEffectiveDofSet = rDofSet; // If there are no constraints the effective DOF set is the standard one
+            // If there are no constraints the effective DOF set is the standard one
+            rEffectiveDofSet = rDofSet;
+
+            // Set the DOFs' effective equation global ids to match the standard ones
+            IndexPartition<IndexType>(rEffectiveDofSet.size()).for_each([&](IndexType Index) {
+                auto it_dof = rEffectiveDofSet.begin() + Index;
+                it_dof->SetEffectiveEquationId(it_dof->EquationId());
+            });
         }
     }
 

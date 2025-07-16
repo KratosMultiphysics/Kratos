@@ -365,7 +365,7 @@ public:
         KRATOS_TRY
 
         // Call the assembly helper to allocate and initialize the required vectors
-        (this->GetBuilder()).ResizeAndInitializeVectors(rSparseMatrixGraph, pDofSet, pEffectiveDofSet, rLinearSystemContainer, CalculateReactions);
+        (this->GetBuilder()).ResizeAndInitializeVectors(rSparseMatrixGraph, pDofSet, pEffectiveDofSet, rLinearSystemContainer);
 
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished system initialization." << std::endl;
 
@@ -1202,20 +1202,23 @@ public:
     /**
      * @brief Calculates the update vector
      * This method computes the solution update vector from the effective one
-     * @param rConstraintsRelationMatrix The constraints relation matrix (i.e., T)
-     * @param rEffectiveDx The effective solution update vector
-     * @param rDx The solution update vector
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    void CalculateUpdateVector(
-        const TSparseMatrixType& rConstraintsRelationMatrix,
-        const TSystemVectorType& rEffectiveDx,
-        TSystemVectorType& rDx)
+    void CalculateUpdateVector(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
-        if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
-            rDx.SetValue(0.0);
-            rConstraintsRelationMatrix.SpMV(rEffectiveDx, rDx);
+        // Check if the effective relation matrix is set
+        auto p_eff_T = rLinearSystemContainer.pEffectiveT;
+        KRATOS_ERROR_IF(mpModelPart->NumberOfMasterSlaveConstraints() != 0 && p_eff_T == nullptr) <<
+            "There are constraints but effective relation matrix is not set. Solution update vector cannot be computed." << std::endl;
+
+        // Compute the solution vector from the effective one
+        auto& r_dx = *rLinearSystemContainer.pDx;
+        auto& r_eff_dx = *rLinearSystemContainer.pEffectiveDx;
+        if (p_eff_T != nullptr) {
+            r_dx.SetValue(0.0);
+            p_eff_T->SpMV(r_eff_dx, r_dx);
         } else {
-            rDx = rEffectiveDx;
+            r_dx = r_eff_dx;
         }
     }
 

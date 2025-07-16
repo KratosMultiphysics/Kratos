@@ -333,12 +333,14 @@ public:
         auto& r_dx = *(rLinearSystemContainer.pDx);
         auto& r_eff_dx = *(rLinearSystemContainer.pEffectiveDx);
         auto& r_T = *(rLinearSystemContainer.pConstraintsT);
+        auto& r_dir_T = *(rLinearSystemContainer.pDirichletT);
+        auto& r_eff_T = *(rLinearSystemContainer.pEffectiveT);
 
         // First update the constraints loose DOFs with the effective solution vector
         this->UpdateConstraintsLooseDofs(r_eff_dx, rDofSet, rEffectiveDofSet);
 
         // Get the solution update vector from the effective one
-        this->CalculateUpdateVector(r_T, r_eff_dx, r_dx);
+        this->CalculateUpdateVector(rLinearSystemContainer);
 
         // Update DOFs with solution values (note that we solve for the increments)
         block_for_each(rDofSet, [&r_dx](DofType& rDof){
