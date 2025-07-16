@@ -396,6 +396,20 @@ void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType& rLhs,
         << "(" << TSparse::Size(rSolution) << "x1) = "
         << "(" << TSparse::Size(rRhs) << "x1)";
 
+    // Default block size to 1 if it has not been previously set.
+    // The only way this can happen is that the "block_size" setting
+    // was not set during the construction of the solver, nor was
+    // ProvideAdditionalData called.
+    // Honestly, this should result in an error but some parts of the
+    // code do it anyway and I don't have the patience to babysit PRs
+    // fixing each and every one of them.
+    // @matekelemen
+    if (!mBlockSize.has_value()) {
+        KRATOS_WARNING_IF("AMGCLSolver", 0 < mVerbosity)
+            << "System solution requested without choosing a block size or calling AMGCLSolver::ProvideAdditionalData. Defaulting to a block size of 1.";
+        mBlockSize = 1;
+    }
+
     KRATOS_TRY
     using ValueType = typename TSparse::DataType;
 
@@ -540,6 +554,7 @@ bool AMGCLSolver<TSparse,TDense>::PerformSolutionStep(SparseMatrixType& rLhs,
 {
     KRATOS_TRY
 
+    // Nothing to do if the input system is empty.
     if (!TSparse::Size(rSolution)) return true;
 
     const auto [iteration_count, residual_norm] = std::visit(
