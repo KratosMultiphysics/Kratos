@@ -31,7 +31,6 @@ public:
 
     // Following the UPwBaseElement example, we will follow the rule of 5
     // to avoid the noexcept code smell.
-    InterfaceElement()                                       = default;
     ~InterfaceElement() override                             = default;
     InterfaceElement(const InterfaceElement&)                = delete;
     InterfaceElement& operator=(const InterfaceElement&)     = delete;
@@ -68,6 +67,8 @@ public:
     int  Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 private:
+    InterfaceElement()                                       = default;
+
     Element::DofsVectorType GetDofs() const;
 
     std::vector<Matrix> CalculateLocalBMatricesAtIntegrationPoints() const;
@@ -81,6 +82,10 @@ private:
     std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
+
+    friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 };
 
 } // namespace Kratos

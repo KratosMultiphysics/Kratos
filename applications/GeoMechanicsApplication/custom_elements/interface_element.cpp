@@ -293,4 +293,15 @@ std::vector<Vector> InterfaceElement::CalculateTractionsAtIntegrationPoints(cons
     return result;
 }
 
+void InterfaceElement::save(Serializer& rSerializer) const
+{
+    // not fully implemented
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+}
+
+void InterfaceElement::load(Serializer& rSerializer)
+{
+    // not fully implemented
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+}
 } // namespace Kratos
