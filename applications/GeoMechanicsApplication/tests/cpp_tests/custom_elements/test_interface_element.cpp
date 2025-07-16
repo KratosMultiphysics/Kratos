@@ -427,7 +427,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    const PrescribedDisplacements prescribed_displacements = {
+    const auto prescribed_displacements = PrescribedDisplacements{
         {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
     auto element = CreateAndInitializeElement(CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs,
                                               p_properties, prescribed_displacements);
@@ -451,9 +451,9 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    const PrescribedDisplacements prescribed_displacements = {
-        {2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-        {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
+                                {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
     auto element = CreateAndInitializeElement(CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
                                               p_properties, prescribed_displacements);
 
@@ -524,7 +524,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsExpectedLeftAndRightHandSi
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    const PrescribedDisplacements prescribed_displacements = {
+    const auto prescribed_displacements = PrescribedDisplacements{
         {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
     auto element = CreateAndInitializeElement(CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs,
                                               p_properties, prescribed_displacements);
@@ -553,9 +553,9 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateStrain_ReturnsRelativeDi
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    const PrescribedDisplacements prescribed_displacements = {
-        {2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-        {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
+                                {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
     auto element = CreateAndInitializeElement(CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
                                               p_properties, prescribed_displacements);
 
@@ -582,9 +582,9 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateCauchyStressVector_Retur
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    const PrescribedDisplacements prescribed_displacements = {
-        {2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-        {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
+                                {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
     auto element = CreateAndInitializeElement(CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
                                               p_properties, prescribed_displacements);
 
@@ -610,9 +610,10 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_3Plus3NodedElement_ReturnsExpecte
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    const PrescribedDisplacements prescribed_displacements = {{3, array_1d<double, 3>{0.2, 0.5, 0.0}},
-                                                              {4, array_1d<double, 3>{0.2, 0.5, 0.0}},
-                                                              {5, array_1d<double, 3>{0.2, 0.5, 0.0}}};
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{3, array_1d<double, 3>{0.2, 0.5, 0.0}},
+                                {4, array_1d<double, 3>{0.2, 0.5, 0.0}},
+                                {5, array_1d<double, 3>{0.2, 0.5, 0.0}}};
     auto element = CreateAndInitializeElement(CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF,
                                               p_properties, prescribed_displacements);
 
@@ -845,7 +846,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    const PrescribedDisplacements prescribed_displacements = {
+    const auto prescribed_displacements = PrescribedDisplacements{
         {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
     auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs,
                                               p_properties, prescribed_displacements);
@@ -870,9 +871,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    const PrescribedDisplacements prescribed_displacements = {
-        {2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-        {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
+                                {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
     auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
                                               p_properties, prescribed_displacements);
 
@@ -946,7 +947,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsExpectedLeftAndRightHa
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    const PrescribedDisplacements prescribed_displacements = {
+    const auto prescribed_displacements = PrescribedDisplacements{
         {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
     auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs,
                                               p_properties, prescribed_displacements);
@@ -977,9 +978,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelati
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    const PrescribedDisplacements prescribed_displacements = {
-        {2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-        {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
+                                {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
     auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
                                               p_properties, prescribed_displacements);
 
@@ -1012,9 +1013,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_R
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    const PrescribedDisplacements prescribed_displacements = {
-        {2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-        {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
+                                {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
     auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
                                               p_properties, prescribed_displacements);
 
@@ -1046,9 +1047,10 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_6Plus6NodedElement_ReturnsExp
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    const PrescribedDisplacements prescribed_displacements = {{3, array_1d<double, 3>{0.2, 0.5, 0.0}},
-                                                              {4, array_1d<double, 3>{0.2, 0.5, 0.0}},
-                                                              {5, array_1d<double, 3>{0.2, 0.5, 0.0}}};
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{3, array_1d<double, 3>{0.2, 0.5, 0.0}},
+                                {4, array_1d<double, 3>{0.2, 0.5, 0.0}},
+                                {5, array_1d<double, 3>{0.2, 0.5, 0.0}}};
     auto element = CreateAndInitializeElement(CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplacementDoF,
                                               p_properties, prescribed_displacements);
 
