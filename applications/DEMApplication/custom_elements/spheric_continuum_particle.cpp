@@ -668,7 +668,7 @@ namespace Kratos {
 
             
             int contact_mesh_option = r_process_info[CONTACT_MESH_OPTION];
-            if (contact_mesh_option == 1 && (i < (int)mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id && (r_process_info[IS_TIME_TO_PRINT] || r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT])) {
+            if (contact_mesh_option == 1 && this->Id() < neighbour_iterator_id && (r_process_info[IS_TIME_TO_PRINT] || r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT])) {
                 if (i < (int)mContinuumInitialNeighborsSize) {
                     double total_local_elastic_contact_force[3] = {0.0};
                     total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
