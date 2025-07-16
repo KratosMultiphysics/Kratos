@@ -61,7 +61,7 @@ struct LinearSystemContainer
 
     typename TSparseMatrixType::Pointer pEffectiveT = nullptr; // Linear system constraints total relation matrix
 
-    typename TSystemVectorType::Pointer pEffectiveQ = nullptr; // Linear system constraints total constant vector
+    // typename TSystemVectorType::Pointer pEffectiveQ = nullptr; // Linear system constraints total constant vector
 
     typename TSparseMatrixType::Pointer pConstraintsT = nullptr; // Master-slave constraints relation matrix
 
@@ -69,7 +69,7 @@ struct LinearSystemContainer
 
     typename TSparseMatrixType::Pointer pDirichletT = nullptr; // Dirichlet constraints relation matrix
 
-    typename TSystemVectorType::Pointer pDirichletQ = nullptr; // Dirichlet constraints constant vector
+    // typename TSystemVectorType::Pointer pDirichletQ = nullptr; // Dirichlet constraints constant vector
 
     typename TSparseMatrixType::Pointer pMassMatrix = nullptr; // Pointer to the mass matrix
 
@@ -98,9 +98,9 @@ struct LinearSystemContainer
         if (pEffectiveT != nullptr) {
             pEffectiveT->Clear();
         }
-        if (pEffectiveQ != nullptr) {
-            pEffectiveQ->Clear();
-        }
+        // if (pEffectiveQ != nullptr) {
+        //     pEffectiveQ->Clear();
+        // }
         if (pConstraintsT != nullptr) {
             pConstraintsT->Clear();
         }
@@ -110,9 +110,9 @@ struct LinearSystemContainer
         if (pDirichletT != nullptr) {
             pDirichletT->Clear();
         }
-        if (pDirichletQ != nullptr) {
-            pDirichletQ->Clear();
-        }
+        // if (pDirichletQ != nullptr) {
+        //     pDirichletQ->Clear();
+        // }
         if (pMassMatrix != nullptr) {
             pMassMatrix->Clear();
         }

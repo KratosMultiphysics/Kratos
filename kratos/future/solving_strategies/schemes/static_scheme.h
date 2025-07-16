@@ -332,9 +332,6 @@ public:
         // Get linear system arrays
         auto& r_dx = *(rLinearSystemContainer.pDx);
         auto& r_eff_dx = *(rLinearSystemContainer.pEffectiveDx);
-        auto& r_T = *(rLinearSystemContainer.pConstraintsT);
-        auto& r_dir_T = *(rLinearSystemContainer.pDirichletT);
-        auto& r_eff_T = *(rLinearSystemContainer.pEffectiveT);
 
         // First update the constraints loose DOFs with the effective solution vector
         this->UpdateConstraintsLooseDofs(r_eff_dx, rDofSet, rEffectiveDofSet);

@@ -144,7 +144,7 @@ public:
     {
         // In the block build case the Dirichlet constraints are directly applied to the effective system arrays
         rLinearSystemContainer.pDirichletT = nullptr;
-        rLinearSystemContainer.pDirichletQ = nullptr;
+        // rLinearSystemContainer.pDirichletQ = nullptr;
     }
 
     void BuildDirichletConstraints(

@@ -160,8 +160,8 @@ public:
         }
 
         // Allocate the constraints arrays (note that we are using the move assignment operator in here)
-        auto p_aux_q = Kratos::make_shared<TSystemVectorType>(rEffectiveDofSet.size());
-        rLinearSystemContainer.pDirichletQ.swap(p_aux_q);
+        // auto p_aux_q = Kratos::make_shared<TSystemVectorType>(rEffectiveDofSet.size());
+        // rLinearSystemContainer.pDirichletQ.swap(p_aux_q);
 
         auto p_aux_T = Kratos::make_shared<TSparseMatrixType>(constraints_sparse_graph);
         rLinearSystemContainer.pDirichletT.swap(p_aux_T);
@@ -172,17 +172,17 @@ public:
         const DofsArrayType& rEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
-        // Set the BCs values in the Dirichlet constraints constant vector
-        const auto dof_begin = rEffectiveDofSet.begin();
-        auto& r_dirichlet_q = *rLinearSystemContainer.pDirichletQ;
-        IndexPartition<std::size_t>(rEffectiveDofSet.size()).for_each([&](IndexType Index){
-            auto p_dof = dof_begin + Index;
-            if (p_dof->IsFixed()) {
-                r_dirichlet_q[p_dof->EffectiveEquationId()] = p_dof->GetSolutionStepValue();
-            } else {
-                r_dirichlet_q[p_dof->EffectiveEquationId()] = 0.0;
-            }
-        });
+        // // Set the BCs values in the Dirichlet constraints constant vector
+        // const auto dof_begin = rEffectiveDofSet.begin();
+        // auto& r_dirichlet_q = *rLinearSystemContainer.pDirichletQ;
+        // IndexPartition<std::size_t>(rEffectiveDofSet.size()).for_each([&](IndexType Index){
+        //     auto p_dof = dof_begin + Index;
+        //     if (p_dof->IsFixed()) {
+        //         r_dirichlet_q[p_dof->EffectiveEquationId()] = p_dof->GetSolutionStepValue();
+        //     } else {
+        //         r_dirichlet_q[p_dof->EffectiveEquationId()] = 0.0;
+        //     }
+        // });
 
         // Set ones in the entries of the Dirichlet constraints relation matrix
         rLinearSystemContainer.pDirichletT->SetValue(1.0);
@@ -210,31 +210,34 @@ public:
         const std::size_t n_constraints = r_model_part.NumberOfMasterSlaveConstraints();
         if (n_constraints) { //FIXME: In here we should check the number of active constraints
             // Compute the total relation matrix
-            auto p_effective_T = rLinearSystemContainer.pEffectiveT;
             auto& r_dirichlet_T = *rLinearSystemContainer.pDirichletT;
             auto& r_constraints_T = *rLinearSystemContainer.pConstraintsT;
-            p_effective_T = AmgclCSRSpMMUtilities::SparseMultiply(r_constraints_T, r_dirichlet_T);
+            rLinearSystemContainer.pEffectiveT = AmgclCSRSpMMUtilities::SparseMultiply(r_constraints_T, r_dirichlet_T);
 
-            // Compute the total constant vector
-            auto& r_effective_q = *rLinearSystemContainer.pEffectiveQ;
-            auto& r_dirichlet_q = *rLinearSystemContainer.pDirichletQ;
-            auto& r_constraints_q = *rLinearSystemContainer.pConstraintsQ;
-            r_effective_q = r_constraints_q;
-            r_constraints_T.SpMV(r_dirichlet_q, r_effective_q);
+            // // Compute the total constant vector
+            // auto& r_effective_q = *rLinearSystemContainer.pEffectiveQ;
+            // auto& r_dirichlet_q = *rLinearSystemContainer.pDirichletQ;
+            // auto& r_constraints_q = *rLinearSystemContainer.pConstraintsQ;
+            // KRATOS_WATCH(r_constraints_q)
+            // KRATOS_WATCH(r_dirichlet_q)
+            // r_effective_q = r_constraints_q;
+            // KRATOS_WATCH(r_effective_q)
+            // r_constraints_T.SpMV(r_dirichlet_q, r_effective_q);
+            // KRATOS_WATCH(r_effective_q)
 
             // Apply constraints to RHS
             auto p_rhs = rLinearSystemContainer.pRhs;
-            p_effective_T->TransposeSpMV(*p_rhs, *p_eff_rhs);
+            rLinearSystemContainer.pEffectiveT->TransposeSpMV(*p_rhs, *p_eff_rhs);
 
             // Apply constraints to LHS
             auto p_lhs = rLinearSystemContainer.pLhs;
-            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *p_effective_T);
-            auto p_transT = AmgclCSRConversionUtilities::Transpose(*p_effective_T);
+            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *rLinearSystemContainer.pEffectiveT);
+            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rLinearSystemContainer.pEffectiveT);
             rLinearSystemContainer.pEffectiveLhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
         } else {
-            // Assign the Dirichlet constraints arrays as the effective ones since there are no other constraints
+            // Assign the Dirichlet relation matrix as the effective ones since there are no other constraints
             rLinearSystemContainer.pEffectiveT = rLinearSystemContainer.pDirichletT;
-            rLinearSystemContainer.pEffectiveQ = rLinearSystemContainer.pDirichletQ;
+            // rLinearSystemContainer.pEffectiveQ = rLinearSystemContainer.pDirichletQ;
 
             // Apply Dirichlet constraints to RHS
             auto p_rhs = rLinearSystemContainer.pRhs;
