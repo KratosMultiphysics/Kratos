@@ -56,24 +56,14 @@ PointerVector<Node> Create6NodesForTriangle()
     return result;
 }
 
-std::shared_ptr<Properties> CreateLinearElasticMaterialProperties(double NormalStiffness, double ShearStiffness)
+template <typename TConstitutiveLawDimension>
+std::shared_ptr<Properties> CreateElasticMaterialProperties(double NormalStiffness, double ShearStiffness)
 {
     auto result                                  = std::make_shared<Properties>();
     result->GetValue(INTERFACE_NORMAL_STIFFNESS) = NormalStiffness;
     result->GetValue(INTERFACE_SHEAR_STIFFNESS)  = ShearStiffness;
     result->GetValue(CONSTITUTIVE_LAW) =
-        std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
-
-    return result;
-}
-
-std::shared_ptr<Properties> CreatePlanarElasticMaterialProperties(double NormalStiffness, double ShearStiffness)
-{
-    auto result                                  = std::make_shared<Properties>();
-    result->GetValue(INTERFACE_NORMAL_STIFFNESS) = NormalStiffness;
-    result->GetValue(INTERFACE_SHEAR_STIFFNESS)  = ShearStiffness;
-    result->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(
-        std::make_unique<InterfaceThreeDimensionalSurface>());
+        std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<TConstitutiveLawDimension>());
 
     return result;
 }
@@ -344,7 +334,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
@@ -368,7 +358,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
@@ -402,7 +392,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
@@ -429,7 +419,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
@@ -512,7 +502,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateLocalSystem_ReturnsExpec
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
@@ -544,7 +534,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateStrain_ReturnsRelativeDi
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
@@ -578,7 +568,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateCauchyStressVector_Retur
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
@@ -611,7 +601,7 @@ KRATOS_TEST_CASE_IN_SUITE(3Plus3NodedLineInterfaceElement_CalculateLocalSystem_R
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(model, p_properties);
@@ -765,7 +755,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreatePlanarElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(model, p_properties);
@@ -808,7 +798,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreatePlanarElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
@@ -852,7 +842,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreatePlanarElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(model, p_properties);
@@ -880,7 +870,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreatePlanarElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
@@ -964,7 +954,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateLocalSystem_ReturnsE
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreatePlanarElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(model, p_properties);
@@ -1019,7 +1009,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelati
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreatePlanarElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
@@ -1059,7 +1049,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_R
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreatePlanarElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(model, p_properties);
@@ -1098,7 +1088,7 @@ KRATOS_TEST_CASE_IN_SUITE(6Plus6NodedTriangleInterfaceElement_CalculateLocalSyst
     // Arrange
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreatePlanarElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplacementDoF(model, p_properties);
@@ -1171,7 +1161,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckThrowsWhenElementIsNotInitialize
 {
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(model, p_properties);
@@ -1190,7 +1180,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckDoesNotThrowWhenElementIsNotActi
 {
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
-    const auto p_properties = CreateLinearElasticMaterialProperties(normal_stiffness, shear_stiffness);
+    const auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
     Model model;
     auto element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(model, p_properties);
