@@ -5,7 +5,7 @@ By Bob Jenkins, 1996.  hashtab.c.  Public Domain.
 This implements a hash table.
 * Keys are unique.  Adding an item fails if the key is already there.
 * Keys and items are pointed at, not copied.  If you change the value
-  of the key after it is inserted then hfind will not be able to find it.
+  of the key after it is inserted then gid_hfind will not be able to find it.
 * The hash table maintains a position that can be set and queried.
 * The table length doubles dynamically and never shrinks.  The insert
   that causes table doubling may take a long time.
@@ -13,17 +13,17 @@ This implements a hash table.
   Comparisons usually take 7 instructions.
   Computing a hash value takes 35+6n instructions for an n-byte key.
 
-  hcreate  - create a hash table
-  hdestroy - destroy a hash table
+  gid_hcreate  - create a hash table
+  gid_hdestroy - destroy a hash table
    hcount  - The number of items in the hash table
    hkey    - key at the current position
    hkeyl   - key length at the current position
    hstuff  - stuff at the current position
-  hfind    - find an item in the table
-   hadd    - insert an item into the table
-   hdel    - delete an item from the table
-  hstat    - print statistics about the table
-   hfirst  - position at the first item in the table
+  gid_hfind    - find an item in the table
+   gid_hadd    - insert an item into the table
+   gid_hdel    - delete an item from the table
+  gid_hstat    - print statistics about the table
+   gid_hfirst  - position at the first item in the table
    hnext   - move the position to the next item in the table
 --------------------------------------------------------------------
 */
@@ -43,8 +43,7 @@ This implements a hash table.
 
 #ifdef HSANITY
 /* sanity check -- make sure ipos, apos, and count make sense */
-static void  hsanity(t)
-htab *t;
+static void  gid_hsanity( htab *t)
 {
   ub4    i, end, counter;
   hitem *h;
@@ -74,13 +73,13 @@ htab *t;
 #endif
 
 /*
- * hgrow - Double the size of a hash table.
+ * gid_hgrow - Double the size of a hash table.
  * Allocate a new, 2x bigger array,
  * move everything from the old array to the new array,
  * then free the old array.
  */
-static void hgrow( t)
-htab  *t;    /* table */
+static void gid_hgrow( htab  *t)
+    /* table */
 {
   register ub4     newsize = (ub4)1<<(++t->logsize);
   register ub4     newmask = newsize-1;
@@ -108,16 +107,15 @@ htab  *t;    /* table */
   }
 
   /* position the hash table on some existing item */
-  hfirst(t);
+  gid_hfirst(t);
 
   /* free the old array */
   free((char *)oldtab);
 
 }
 
-/* hcreate - create a hash table initially of size power(2,logsize) */
-htab *gid_hcreate(logsize)
-word  logsize;    /* log base 2 of the size of the hash table */
+/* gid_hcreate - create a hash table initially of size power(2,logsize) */
+htab *gid_hcreate( word  logsize)    /* log base 2 of the size of the hash table */
 {
   ub4 i,len;
   htab *t = (htab *)malloc(sizeof(htab));
@@ -135,9 +133,8 @@ word  logsize;    /* log base 2 of the size of the hash table */
   return t;
 }
 
-/* hdestroy - destroy the hash table and free all its memory */
-void htabdestroy( t)
-htab  *t;    /* the table */
+/* gid_hdestroy - destroy the hash table and free all its memory */
+void gid_hdestroy( htab  *t)    /* the table */
 {
   /* hitem *h; */
   refree(t->space);
@@ -150,11 +147,12 @@ htab  *t;    /* the table */
 /* hkeyl() is a macro, see hashtab.h */
 /* hstuff() is a macro, see hashtab.h */
 
-/* hfind - find an item with a given key in a hash table */
-word   hfind( t, key, keyl )
-htab  *t;     /* table */
-ub1   *key;   /* key to find */
-ub4    keyl;  /* key length */
+/* gid_hfind - find an item with a given key in a hash table */
+word   gid_hfind( 
+    htab  *t,     /* table */
+    ub1   *key,   /* key to find */
+    ub4    keyl  /* key length */
+              )
 {
   hitem *h;
   ub4    x = lookup(key,keyl,0);
@@ -174,14 +172,15 @@ ub4    keyl;  /* key length */
 }
 
 /*
- * hadd - add an item to a hash table.
+ * gid_hadd - add an item to a hash table.
  * return FALSE if the key is already there, otherwise TRUE.
  */
-word hadd( t, key, keyl, stuff)
-htab  *t;      /* table */
-ub1   *key;    /* key to add to hash table */
-ub4    keyl;   /* key length */
-void  *stuff;  /* stuff to associate with this key */
+word gid_hadd( 
+    htab  *t,      /* table */
+    ub1   *key,    /* key to add to hash table */
+    ub4    keyl,   /* key length */
+    void  *stuff  /* stuff to associate with this key */
+           )
 {
   register hitem  *h,**hp;
   register ub4     y, x = lookup(key,keyl,0);
@@ -205,7 +204,7 @@ void  *stuff;  /* stuff to associate with this key */
   /* make the hash table bigger if it is getting full */
   if (++t->count > (ub4)1<<(t->logsize))
   {
-    hgrow(t);
+    gid_hgrow(t);
     y = (x&t->mask);
   }
 
@@ -221,15 +220,14 @@ void  *stuff;  /* stuff to associate with this key */
   t->apos = y;
 
 #ifdef HSANITY
-  hsanity(t);
+  gid_hsanity(t);
 #endif  /* HSANITY */
 
   return TRUE;
 }
 
-/* hdel - delete the item at the current position */
-word  hdel(t)
-htab *t;      /* the hash table */
+/* gid_hdel - delete the item at the current position */
+word  gid_hdel( htab *t)      /* the hash table */
 {
   hitem  *h;    /* item being deleted */
   hitem **ip;   /* a counter */
@@ -244,35 +242,33 @@ htab *t;      /* the hash table */
   --(t->count);
 
   /* adjust position to something that exists */
-  if (!(t->ipos = h->next)) hnbucket(t);
+  if (!(t->ipos = h->next)) gid_hnbucket(t);
 
   /* recycle the deleted hitem node */
   redel(t->space, h);
 
 #ifdef HSANITY
-  hsanity(t);
+  gid_hsanity(t);
 #endif  /* HSANITY */
 
   return TRUE;
 }
 
-/* hfirst - position on the first element in the table */
-word hfirst(t)
-htab  *t;    /* the hash table */
+/* gid_hfirst - position on the first element in the table */
+word gid_hfirst( htab  *t)    /* the hash table */
 {
-  t->apos = t->mask;
-  (void)hnbucket(t);
+  t->apos = (ub4)(t->mask);
+  (void)gid_hnbucket(t);
   return (t->ipos != (hitem *)0);
 }
 
 /* hnext() is a macro, see hashtab.h */
 
 /*
- * hnbucket - Move position to the first item in the next bucket.
+ * gid_hnbucket - Move position to the first item in the next bucket.
  * Return TRUE if we did not wrap around to the beginning of the table
  */
-word hnbucket(t)
-htab *t;
+word gid_hnbucket( htab *t)
 {
   ub4  oldapos = t->apos;
   ub4  end = (ub4)1<<(t->logsize);
@@ -303,8 +299,7 @@ htab *t;
   return FALSE;
 }
 
-void hstat(t)
-htab  *t;
+void gid_hstat( htab  *t)
 {
   ub4     i,j;
   double  total = 0.0;
@@ -366,4 +361,44 @@ htab  *t;
   }
 }
 
+#if 0
 
+// this example is for linux/macos
+// as they use different versions of gid_hcreate/gid_hdestroy as the ones above implemented
+// the above ones are similar to hcreate_r / hsearch_r / hdestroy_r
+#include <search.h>
+
+void pp() {
+  static char *data[] = { "alpha",  "bravo", "charlie", "delta",  "echo",     "foxtrot", "golf",   "hotel",  "india",
+                          "juliet", "kilo",  "lima",    "mike",   "november", "oscar",   "papa",   "quebec", "romeo",
+                          "sierra", "tango", "uniform", "victor", "whisky",   "x-ray",   "yankee", "zulu" };
+
+  ENTRY e, *ep;
+  int i;
+
+  gid_hcreate( 30 );
+
+  for ( i = 0; i < 24; i++ ) {
+    e.key = data[ i ];
+    /* data is just an integer, instead of a
+       pointer to something */
+    e.data = ( void * )i;
+    ep = hsearch( e, ENTER );
+    /* there should be no failures */
+    if ( ep == NULL ) {
+      fprintf( stderr, "entry failed\n" );
+      exit( EXIT_FAILURE );
+    }
+  }
+
+  for ( i = 22; i < 26; i++ ) {
+    /* print two entries from the table, and
+       show that two are not in the table */
+    e.key = data[ i ];
+    ep = hsearch( e, FIND );
+    printf( "%9.9s -> %9.9s:%d\n", e.key, ep ? ep->key : "NULL", ep ? ( int )( ep->data ) : 0 );
+  }
+  gid_hdestroy();
+  exit( EXIT_SUCCESS );
+}
+#endif // if 0

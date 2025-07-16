@@ -50,7 +50,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class SmallDisplacementMixedStrainDisplacementElement
+ * @class SmallDisplacementMixedStrainElement
  * @ingroup StructuralMechanicsApplication
  * @brief Small displacement with a mixed strain-displacement discretization
  * @details This implements a small displacements element formulation with an extra strain nodal DOF, in total u (3) + E(6) Dofs in 3D
@@ -60,7 +60,7 @@ namespace Kratos
  * The tangent tensor is used in the balance of linear momentum to get quadratic convergence rates in the Newton Raphson strategy
  * @author Alejandro Cornejo
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementMixedStrainDisplacementElement
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementMixedStrainElement
     : public Element
 {
 
@@ -92,18 +92,18 @@ public:
     using IntegrationPointType = IntegrationPoint<2>;
 
     // Counted pointer of SmallDisplacementMixedVolumetricStrainElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallDisplacementMixedStrainDisplacementElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallDisplacementMixedStrainElement);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    SmallDisplacementMixedStrainDisplacementElement()
+    SmallDisplacementMixedStrainElement()
     {};
 
     // Constructor using an array of nodes
-    SmallDisplacementMixedStrainDisplacementElement(
+    SmallDisplacementMixedStrainElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry
         ) : Element(
@@ -112,7 +112,7 @@ public:
     {};
 
     // Constructor using an array of nodes with properties
-    SmallDisplacementMixedStrainDisplacementElement(
+    SmallDisplacementMixedStrainElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
@@ -123,14 +123,14 @@ public:
     {};
 
     // Copy constructor
-    SmallDisplacementMixedStrainDisplacementElement(SmallDisplacementMixedStrainDisplacementElement const& rOther)
+    SmallDisplacementMixedStrainElement(SmallDisplacementMixedStrainElement const& rOther)
         : BaseType(rOther),
           mThisIntegrationMethod(rOther.mThisIntegrationMethod),
           mConstitutiveLawVector(rOther.mConstitutiveLawVector)
     {};
 
     // Destructor
-    ~SmallDisplacementMixedStrainDisplacementElement() override
+    ~SmallDisplacementMixedStrainElement() override
     {};
 
     ///@}
@@ -738,7 +738,7 @@ private:
 
     void load(Serializer &rSerializer) override;
 
-}; // class SmallDisplacementMixedStrainDisplacementElement.
+}; // class SmallDisplacementMixedStrainElement.
 
 ///@}
 ///@name Type Definitions
