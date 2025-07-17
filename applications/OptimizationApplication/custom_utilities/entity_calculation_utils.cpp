@@ -37,9 +37,9 @@ Geometry<Node>::Pointer EntityCalculationUtils::CreateSolidGeometry(const Geomet
     switch (rSurfaceGeometry.GetGeometryType())
     {
         case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
-            return Kratos::make_shared<Tetrahedra3D4<Node>>(nodes);
+            return Kratos::make_intrusive<Tetrahedra3D4<Node>>(nodes);
         case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4:
-            return Kratos::make_shared<Pyramid3D5<Node>>(nodes);
+            return Kratos::make_intrusive<Pyramid3D5<Node>>(nodes);
         default:
             KRATOS_ERROR << "Unsupported geometry types. "
                             "CalculateSurfaceElementShapeDerivatives only "
