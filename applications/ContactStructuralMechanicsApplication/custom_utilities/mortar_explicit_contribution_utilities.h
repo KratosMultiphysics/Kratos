@@ -133,8 +133,13 @@ public:
     /// Type definition for the derivatives utilities
     using DerivativesUtilitiesType = DerivativesUtilities<TDim, TNumNodes, IsFrictional, TNormalVariation, TNumNodesMaster>;
 
+    ///Type definition for integration methods
+    using IntegrationMethod = GeometryData::IntegrationMethod;
+    
     // The threshold coefficient considered for checking
     static constexpr double CheckThresholdCoefficient = 1.0e-12;
+
+
 
     ///@}
     ///@name Operators
