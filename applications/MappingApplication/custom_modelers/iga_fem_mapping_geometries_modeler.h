@@ -27,9 +27,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
 class KRATOS_API(MAPPING_APPLICATION) IgaFEMMappingGeometriesModeler
     : public Modeler
 {
@@ -40,11 +37,11 @@ public:
     /// Pointer definition of Modeler
     KRATOS_CLASS_POINTER_DEFINITION(IgaFEMMappingGeometriesModeler);
 
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
-    typedef Node NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef typename GeometryType::Pointer GeometryPointerType;
+    using SizeType = std::size_t;
+    using IndexType = std::size_t;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using GeometryPointerType = typename GeometryType::Pointer; 
 
     ///@}
     ///@name Life Cycle

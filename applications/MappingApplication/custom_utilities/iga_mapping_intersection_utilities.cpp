@@ -52,7 +52,7 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometries(
             CoordinatesArrayType local_coords = ZeroVector(3);
             CoordinatesArrayType projected_point = ZeroVector(3);
 
-            bool success = brep_curve_on_surface_geom.ProjectionPointGlobalToLocalSpace(line_center, local_coords, 1e-6);
+            bool success = brep_curve_on_surface_geom.ProjectionPointGlobalToLocalSpace(line_center, local_coords, Tolerance);
             if (!success) continue;
 
             brep_curve_on_surface_geom.GlobalCoordinates(projected_point, local_coords);

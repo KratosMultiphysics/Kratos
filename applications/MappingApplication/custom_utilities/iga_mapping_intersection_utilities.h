@@ -28,15 +28,15 @@ namespace Kratos
 {
 namespace IgaMappingIntersectionUtilities
 {
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
+    using SizeType = std::size_t;
+    using IndexType = std::size_t;
 
-    typedef Node NodeType;
-    typedef Geometry<NodeType> GeometryType;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
 
-    typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
-    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
-    typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    using GeometriesArrayType = typename GeometryType::GeometriesArrayType;
+    using CoordinatesArrayType = typename GeometryType::CoordinatesArrayType;
+    using IntegrationPointsArrayType = typename GeometryType::IntegrationPointsArrayType;
 
     // This function creates coupling geometries between the IGA and FEM interface. This coupling geometry is composed of a brep_curve_on_surface (IGA side) and 
     // a nurbs curve (FEM side)
@@ -45,7 +45,7 @@ namespace IgaMappingIntersectionUtilities
         ModelPart& rModelPartDomainB,
         const bool& rIsOriginIga,
         ModelPart& rModelPartResult, 
-        double Tolerance = 1e-6);
+        double Tolerance = 1.0e-6);
     
     // This function creates quadrature points along the coupling interface (intersection of both domains)
     void KRATOS_API(MAPPING_APPLICATION) CreateIgaFEMQuadraturePointsCouplingInterface(

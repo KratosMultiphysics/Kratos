@@ -43,14 +43,14 @@ class TestIgaFEMCouplingGeometryMapper(KratosUnittest.TestCase):
 			"consistency_scaling" : true,
 			"modeler_name" : "IgaFEMMappingGeometriesModeler",
             "modeler_parameters":{
-						"origin_model_part_name" : "origin",
-						"destination_model_part_name" : "destination",
-						"is_interface_sub_model_parts_specified" : true,
-                        "is_origin_iga" : true,
-                        "is_surface_mapping" : false,
-						"origin_interface_sub_model_part_name" : "origin.neumann_boundary_iga",
-						"destination_interface_sub_model_part_name" : "destination.dirichlet_boundary_fem"
-					}
+				"origin_model_part_name" : "origin",
+				"destination_model_part_name" : "destination",
+				"is_interface_sub_model_parts_specified" : true,
+                "is_origin_iga" : true,
+                "is_surface_mapping" : false,
+				"origin_interface_sub_model_part_name" : "origin.neumann_boundary_iga",
+				"destination_interface_sub_model_part_name" : "destination.dirichlet_boundary_fem"
+			}
         }""")
         SetUpModelPartsIgaFEM(self)
         CreateMapper(self)
@@ -76,14 +76,14 @@ class TestDualMortarIgaFEMCouplingGeometryMapper(KratosUnittest.TestCase):
 			"consistency_scaling" : true,
 			"modeler_name" : "IgaFEMMappingGeometriesModeler",
             "modeler_parameters":{
-						"origin_model_part_name" : "origin",
-						"destination_model_part_name" : "destination",
-						"is_interface_sub_model_parts_specified" : true,
-                        "is_origin_iga" : true,
-                        "is_surface_mapping" : false,
-						"origin_interface_sub_model_part_name" : "origin.neumann_boundary_iga",
-						"destination_interface_sub_model_part_name" : "destination.dirichlet_boundary_fem"
-					}
+				"origin_model_part_name" : "origin",
+				"destination_model_part_name" : "destination",
+				"is_interface_sub_model_parts_specified" : true,
+                "is_origin_iga" : true,
+                "is_surface_mapping" : false,
+				"origin_interface_sub_model_part_name" : "origin.neumann_boundary_iga",
+				"destination_interface_sub_model_part_name" : "destination.dirichlet_boundary_fem"
+			}
         }""")
         SetUpModelPartsIgaFEM(self)
         CreateMapper(self)

@@ -40,12 +40,12 @@ namespace Kratos
         const bool is_origin_iga = mParameters["is_origin_iga"].GetBool();
         const bool is_surface_mapping = mParameters["is_surface_mapping"].GetBool();
 
-        if (is_origin_iga == true && is_surface_mapping == false)
+        if (is_origin_iga && !is_surface_mapping)
         {
             IgaFEMMappingGeometriesModeler::CreateIgaInterfaceBrepCurveOnSurfaceConditions(mpModels[0]->GetModelPart(origin_interface_sub_model_part_name));
             IgaFEMMappingGeometriesModeler::CreateFEMInterfaceNurbsCurveConditions(mpModels.back()->GetModelPart(destination_interface_sub_model_part_name));
         }
-        else if (is_origin_iga == false && is_surface_mapping == false)
+        else if (!is_origin_iga && !is_surface_mapping)
         {
             IgaFEMMappingGeometriesModeler::CreateIgaInterfaceBrepCurveOnSurfaceConditions(mpModels.back()->GetModelPart(destination_interface_sub_model_part_name));
             IgaFEMMappingGeometriesModeler::CreateFEMInterfaceNurbsCurveConditions(mpModels[0]->GetModelPart(origin_interface_sub_model_part_name));
@@ -77,7 +77,7 @@ namespace Kratos
             << " but there are currently not conditions in the coupling interface origin sub model part. Please specify some."
             << std::endl;
 
-        if (is_surface_mapping == false)
+        if (!is_surface_mapping)
         {
             IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometries(
                 coupling_interface_origin,
@@ -86,9 +86,7 @@ namespace Kratos
                 coupling_model_part, 1e-6);
             IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsCouplingInterface(
                 coupling_model_part, 1e-6);
-        }
-        else
-        {
+        } else {
             KRATOS_ERROR << "Creation of coupling quadrature points not yet supported for IGA-FEM surface mapping" << std::endl;
         }
     }
@@ -178,14 +176,14 @@ namespace Kratos
         IndexType condition_id = (root_mp.NumberOfConditions() == 0)
             ? 1 : (root_mp.ConditionsEnd() - 1)->Id() + 1;
 
-        for (size_t node_index = 0; node_index < rInterfaceModelPart.NumberOfNodes() - 1; ++node_index)
+        for (std::size_t node_index = 0; node_index < rInterfaceModelPart.NumberOfNodes() - 1; ++node_index)
         {
             interface_node_id = (rInterfaceModelPart.NodesBegin() + node_index)->Id();
             std::vector< GeometryPointerType> p_geom_vec;
-            for (auto& ele_it: root_mp.Elements())
+            for (auto& r_elem: root_mp.Elements())
             {
-                auto p_geom = ele_it.pGetGeometry();
-                for (size_t i = 0; i < p_geom->size(); i++)
+                auto p_geom = r_elem.pGetGeometry();
+                for (std::size_t i = 0; i < p_geom->size(); i++)
                 {
                     if ((*p_geom)[i].Id() == interface_node_id)
                     {
@@ -197,16 +195,16 @@ namespace Kratos
             if (p_geom_vec.size() == 0) KRATOS_ERROR << "Interface node not found in modelpart geom\n";
 
             // Loop over all geometries that have nodes on the interface
-            for (size_t interface_geom_index = 0; interface_geom_index < p_geom_vec.size(); interface_geom_index++)
+            for (std::size_t interface_geom_index = 0; interface_geom_index < p_geom_vec.size(); interface_geom_index++)
             {
                 GeometryType& r_interface_geom = *(p_geom_vec[interface_geom_index]);
 
                 // Loop over remaining interface nodes, see if any of them are nodes in the interface geom
-                for (size_t geom_node_index = 0; geom_node_index < r_interface_geom.size(); geom_node_index++)
+                for (std::size_t geom_node_index = 0; geom_node_index < r_interface_geom.size(); geom_node_index++)
                 {
                     trial_geom_node_id = r_interface_geom[geom_node_index].Id();
 
-                    for (size_t trial_index = node_index + 1; trial_index < rInterfaceModelPart.NumberOfNodes(); ++trial_index)
+                    for (std::size_t trial_index = node_index + 1; trial_index < rInterfaceModelPart.NumberOfNodes(); ++trial_index)
                     {
                         trial_interface_node_id = (rInterfaceModelPart.NodesBegin() + trial_index)->Id();
                         if (trial_geom_node_id == trial_interface_node_id)
