@@ -137,9 +137,6 @@ public:
     {
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
-        mPreviousOutOfBalanceVector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-        mCurrentOutOfBalanceVector  = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-
         if (mPreviousExternalForceVector.empty()) {
             // copy external force vector if this is a restart
             if (rModelPart.GetProcessInfo()[STEP] > 1) {
@@ -182,7 +179,7 @@ public:
         if (!rModelPart.MasterSlaveConstraints().empty()) {
             const auto timer_constraints = BuiltinTimer();
             Timer::Start("ApplyConstraints");
-            BaseType::ApplyConstraints(pScheme, rModelPart, rA, rb);
+            BaseType::ApplyConstraints(pScheme, rModelPart, rA, mCurrentExternalForceVector);
             BaseType::ApplyConstraints(pScheme, rModelPart, mMassMatrix, dummy_b);
             BaseType::ApplyConstraints(pScheme, rModelPart, mDampingMatrix, dummy_b);
             Timer::Stop("ApplyConstraints");
@@ -204,6 +201,23 @@ public:
             this->CalculateInitialSecondDerivative(rModelPart, rA, pScheme);
             mCopyExternalForceVector = true;
         }
+
+
+        auto& r_dof_set = BaseType::GetDofSet();
+
+		mSolutionStep = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+		mFirstDerivativeVector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+		mSecondDerivativeVector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+
+		for (auto& r_dof : r_dof_set) {
+            mSolutionStep[r_dof.EquationId()] = r_dof.GetSolutionStepValue(0);
+		}
+        //block_for_each(r_dof_set, [](Dof<double>& r_dof) {
+        //    mSecondDerivativeVector[r_dof.EquationId()] = r_dof.GetSolutionStepValue(0);
+        //    });
+
+        Geo::SparseSystemUtilities::GetUFirstAndSecondDerivativeVector(
+            mFirstDerivativeVector, mSecondDerivativeVector, r_dof_set, rModelPart, 0);
 
         // only add dynamics to lhs after calculating initial second derivative
         // this->AddDynamicsToLhs(rA, rModelPart);
@@ -303,8 +317,6 @@ public:
             this->InternalSystemSolveWithPhysics(rA, rDx, rb, rModelPart);
         }
 
-        TSparseSpace::Copy(mCurrentOutOfBalanceVector, mPreviousOutOfBalanceVector);
-
         Timer::Stop("Solve");
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverNohBathe", BaseType::GetEchoLevel() >= 1)
             << "System solve time: " << timer.ElapsedSeconds() << std::endl;
@@ -326,72 +338,80 @@ public:
      */
     void InternalSystemSolveWithPhysics(TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rb, ModelPart& rModelPart)
     {
-        double norm_b = 0.00;
-        if (TSparseSpace::Size(mCurrentExternalForceVector) != 0) norm_b = TSparseSpace::TwoNorm(mCurrentExternalForceVector);
+
+        auto& r_dof_set = BaseType::GetDofSet();
+
+        // first sub step
+        //TSystemVectorType u_t_p =
+        //    solution_step_values + ma0 * first_derivative_vector + ma1 * second_derivative_vector;
+        TSystemVectorType u_t_p = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+        noalias(u_t_p) = mSolutionStep;
+        TSparseSpace::UnaliasedAdd(u_t_p, ma0, mFirstDerivativeVector);
+        TSparseSpace::UnaliasedAdd(u_t_p, ma1, mSecondDerivativeVector);
+
+        //TSystemVectorType force_term = (1 - mp) * mPreviousExternalForceVector + mp * mCurrentExternalForceVector;
+        TSystemVectorType force_term = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+        TSparseSpace::Assign(force_term, (1 - mp), mPreviousExternalForceVector);
+        TSparseSpace::UnaliasedAdd(force_term, mp, mCurrentExternalForceVector);
+
+        TSystemVectorType stiffness_term = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+        TSparseSpace::Mult(rA, u_t_p, stiffness_term);
+
+        TSystemVectorType damping_term = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+        TSparseSpace::Mult(mDampingMatrix, mFirstDerivativeVector + ma0 * mSecondDerivativeVector, damping_term);
+
+        //force_term += -stiffness_term - damping_term;
+		TSparseSpace::UnaliasedAdd(force_term, -1.0, stiffness_term);
+		TSparseSpace::UnaliasedAdd(force_term, -1.0, damping_term);
+
+        TSystemVectorType a_t_p = element_prod(mInvLumpedMassMatrix, force_term);
+
+        //TSystemVectorType v_t_p = first_derivative_vector + ma2 * (second_derivative_vector + a_t_p);
+        TSystemVectorType v_t_p = mFirstDerivativeVector;
+        TSparseSpace::UnaliasedAdd(v_t_p, ma2, mSecondDerivativeVector);
+        TSparseSpace::UnaliasedAdd(v_t_p, ma2, a_t_p);
+
+        // Second substep
+        TSparseSpace::UnaliasedAdd(u_t_p, ma3, v_t_p);
+        TSparseSpace::UnaliasedAdd(u_t_p, ma4, a_t_p);
+
+        TSparseSpace::Mult(rA, u_t_p, stiffness_term);
+        TSparseSpace::Mult(mDampingMatrix, v_t_p + ma3 * a_t_p, damping_term);
+
+        //force_term = mCurrentExternalForceVector - stiffness_term - damping_term;
+        noalias(force_term) = mCurrentExternalForceVector;
+        TSparseSpace::UnaliasedAdd(force_term, -1, stiffness_term);
+		TSparseSpace::UnaliasedAdd(force_term, -1, damping_term);
+
+        TSystemVectorType a_next = element_prod(mInvLumpedMassMatrix, force_term);
+
+        //TSystemVectorType v = v_t_p +ma5 * second_derivative_vector + ma6 * a_t_p + ma7 * a_next;
+        TSparseSpace::UnaliasedAdd(v_t_p, ma5, mSecondDerivativeVector);
+        TSparseSpace::UnaliasedAdd(v_t_p, ma6, a_t_p);
+        TSparseSpace::UnaliasedAdd(v_t_p, ma7, a_next);
 
 
-        if (norm_b != 0.00) {
-
-            this->ApplyDirichletConditionsRhs(mCurrentExternalForceVector);
-			this->ApplyDirichletConditionsRhs(mPreviousExternalForceVector);
-
-            TSystemVectorType solution_step_values = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-            TSystemVectorType first_derivative_vector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-            TSystemVectorType second_derivative_vector =
-                TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-
-            auto& r_dof_set = BaseType::GetDofSet();
-
-            block_for_each(r_dof_set, [&solution_step_values](Dof<double>& r_dof) {
-                solution_step_values[r_dof.EquationId()] = r_dof.GetSolutionStepValue(0);
+        // update the solution step values
+        block_for_each(r_dof_set, [&u_t_p](auto& dof) {
+            if (dof.IsFree()) {
+                dof.GetSolutionStepValue() = TSparseSpace::GetValue(u_t_p, dof.EquationId());
+            }
             });
 
-            Geo::SparseSystemUtilities::GetUFirstAndSecondDerivativeVector(
-                first_derivative_vector, second_derivative_vector, r_dof_set, rModelPart, 0);
+        // update the first and second derivative vector
+        Geo::SparseSystemUtilities::SetUFirstAndSecondDerivativeVector(v_t_p, a_next, rModelPart);
 
-            // first sub step
-            TSystemVectorType u_t_p =
-                solution_step_values + ma0 * first_derivative_vector + ma1 * second_derivative_vector;
-            TSystemVectorType force_term = (1 - mp) * mPreviousExternalForceVector + mp * mCurrentExternalForceVector;
-
-            TSystemVectorType stiffness_term = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-            TSparseSpace::Mult(rA, u_t_p, stiffness_term);
-            TSystemVectorType damping_term = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-            TSparseSpace::Mult(mDampingMatrix, first_derivative_vector + ma0 * second_derivative_vector, damping_term);
-
-            force_term = force_term - stiffness_term - damping_term;
-
-            TSystemVectorType a_t_p = element_prod(mInvLumpedMassMatrix,force_term);
-            TSystemVectorType v_t_p = first_derivative_vector + ma2 * (second_derivative_vector + a_t_p);
-
-            // Second substep
-            TSystemVectorType u = u_t_p + ma3 * v_t_p + ma4 * a_t_p;
-            TSparseSpace::Mult(rA, u, stiffness_term);
-            TSparseSpace::Mult(mDampingMatrix, v_t_p + ma3 * a_t_p, damping_term);
-
-            force_term               = mCurrentExternalForceVector - stiffness_term - damping_term;
-            TSystemVectorType a_next = element_prod(mInvLumpedMassMatrix,force_term);
-
-            TSystemVectorType v = v_t_p + ma5 * second_derivative_vector + ma6 * a_t_p + ma7 * a_next;
-            TSystemVectorType a = a_next;
-
-            block_for_each(r_dof_set, [&u](auto& dof) {
-                if (dof.IsFree()) {
-                    dof.GetSolutionStepValue() = TSparseSpace::GetValue(u, dof.EquationId());
-                }
-            });
-
-            std::cout << "norm_u: " << TSparseSpace::TwoNorm(u) << std::endl;
-
-
-            Geo::SparseSystemUtilities::SetUFirstAndSecondDerivativeVector(v, a, rModelPart);
-
-        } else {
-            KRATOS_WARNING_IF("ResidualBasedBlockBuilderAndSolverNohBathe", BaseType::mOptions.IsNot(SILENT_WARNINGS))
-                << "ATTENTION! setting the RHS to zero!" << std::endl;
+        double norm_u = TSparseSpace::TwoNorm(u_t_p);
+        if (norm_u > 1e3) {
+            KRATOS_ERROR << "ResidualBasedBlockBuilderAndSolverNohBathe:  norm_u is too high : " << norm_u << ".This might be due to a bad choice of the time step or a bad initial guess." << std::endl;
         }
+        std::cout << "norm_u: " << norm_u << std::endl;
 
-        // Prints information about the current time
+        TSparseSpace::Copy(a_next, mSecondDerivativeVector);
+        TSparseSpace::Copy(v_t_p, mFirstDerivativeVector);
+        TSparseSpace::Copy(u_t_p, mSolutionStep);
+
+    // Prints information about the current time
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverNohBathe", BaseType::GetEchoLevel() > 1)
             << *(BaseType::mpLinearSystemSolver) << std::endl;
     }
@@ -410,7 +430,7 @@ public:
         this->BuildRHSNoDirichlet(pScheme, rModelPart, rb);
 
         // add dirichlet conditions to RHS
-        this->ApplyDirichletConditionsRhs(rb);
+        this->ApplyDirichletConditionsRhs(mCurrentExternalForceVector);
 
         Timer::Stop("BuildRHS");
 
@@ -500,8 +520,12 @@ private:
     TSystemVectorType mCurrentExternalForceVector;
     TSystemVectorType mConstantElementForceVector;
 
-    TSystemVectorType mPreviousOutOfBalanceVector;
-    TSystemVectorType mCurrentOutOfBalanceVector;
+    //TSystemVectorType mPreviousOutOfBalanceVector;
+    //TSystemVectorType mCurrentOutOfBalanceVector;
+
+	TSystemVectorType mSecondDerivativeVector;
+	TSystemVectorType mFirstDerivativeVector;
+	TSystemVectorType mSolutionStep;
 
     double mBeta;
     double mGamma;
@@ -660,36 +684,12 @@ private:
         };
 
         // lump mass matrix
-
         TSystemVectorType lumped_mass_vector(BaseType::mEquationSystemSize, 0.0);
 
         this->LumpMassMatrix(mMassMatrix, lumped_mass_vector);
-
-		mInvLumpedMassMatrix.resize(BaseType::mEquationSystemSize, false);
-		// Invert the lumped mass matrix
-        for (std::size_t i = 0; i < lumped_mass_vector.size(); ++i) {
-            if (abs(lumped_mass_vector(i)) < 1e-10)
-            {
-                mInvLumpedMassMatrix(i) = 1.0;
-            }
-            else {
-                mInvLumpedMassMatrix(i) = 1.0 / lumped_mass_vector(i);
-            }
-            
-        }
-        
-		std::cout << "inv Lumped mass vector: " << mInvLumpedMassMatrix << std::endl;
-
- /*       mInvLumpedMassMatrix = 1.0 / lumped_mass_vector;*/
+        // Invert the lumped mass matrix
+		this->InvertLumpedMatrix(lumped_mass_vector, mInvLumpedMassMatrix);
     }
-
-    //void AddDynamicsToLhs(TSystemMatrixType& rA, const ModelPart& rModelPart)
-    //{
-    //    const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
-
-    //    rA += 1.0 / (mBeta * delta_time * delta_time) * mMassMatrix;
-    //    rA += mGamma / (mBeta * delta_time) * mDampingMatrix;
-    //}
 
     void CalculateInitialSecondDerivative(ModelPart&                    rModelPart,
                                           TSystemMatrixType&            rStiffnessMatrix,
@@ -730,7 +730,7 @@ private:
 
         // add dirichlet conditions to initial_force_vector
         this->ApplyDirichletConditionsRhs(initial_force_vector);
-        this->ApplyDirichletConditionsRhs(mInvLumpedMassMatrix);
+        this->ApplyDirichletConditionsToLumpedLhs(mInvLumpedMassMatrix);
 
         if (!rModelPart.MasterSlaveConstraints().empty()) {
             TSystemVectorType second_derivative_vector_modified(initial_force_vector.size());
@@ -738,18 +738,11 @@ private:
             // Initialize the vector
             TSparseSpace::SetToZero(second_derivative_vector_modified);
 
-
-
-
             second_derivative_vector_modified = element_prod(mInvLumpedMassMatrix,initial_force_vector);
-
-            // BaseType::mpLinearSystemSolver->Solve(mMassMatrix, second_derivative_vector_modified,
-            //                                       initial_force_vector);
 
             // recover solution of the original problem
             TSparseSpace::Mult(BaseType::mT, second_derivative_vector_modified, second_derivative_vector);
         } else {
-            /* BaseType::mpLinearSystemSolver->Solve(mMassMatrix, second_derivative_vector, initial_force_vector);*/
             second_derivative_vector = element_prod(mInvLumpedMassMatrix,initial_force_vector);
         }
 
@@ -766,45 +759,7 @@ private:
         TSparseSpace::SetToZero(rMatrix);
     }
 
-    //void CalculateAndAddDynamicContributionToRhs(TSystemVectorType& rSolutionVector,
-    //                                             TSystemMatrixType& rGlobalMatrix,
-    //                                             TSystemVectorType& rb)
-    //{
-    //    TSystemVectorType contribution = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-    //    TSparseSpace::Mult(rGlobalMatrix, rSolutionVector, contribution);
-
-    //    TSparseSpace::UnaliasedAdd(rb, 1.0, contribution);
-    //}
-
-    /**
-     * @brief Function to add the mass and damping contribution to the rhs.
-     * @details Damping contribution is the dot product of the global damping matrix and the first
-     * derivative vector, Mass contribution is the dot product of the global mass matrix and the
-     * second derivative vector
-     * @param rModelPart The model part of the problem to solve
-     * @param rb The RHS vector
-     */
-    //void AddMassAndDampingToRhs(ModelPart& rModelPart, TSystemVectorType& rb)
-    //{
-    //    // Get first and second derivative vector
-    //    TSystemVectorType first_derivative_vector;
-    //    TSystemVectorType second_derivative_vector;
-
-    //    Geo::SparseSystemUtilities::GetUFirstAndSecondDerivativeVector(
-    //        first_derivative_vector, second_derivative_vector, BaseType::mDofSet, rModelPart, 0);
-
-    //    const double      delta_time    = rModelPart.GetProcessInfo()[DELTA_TIME];
-    //    TSystemVectorType m_part_vector = first_derivative_vector * (1.0 / (mBeta * delta_time)) +
-    //                                      second_derivative_vector * (1.0 / (2.0 * mBeta));
-
-    //    TSystemVectorType c_part_vector =
-    //        first_derivative_vector * (mGamma / mBeta) +
-    //        second_derivative_vector * (delta_time * (mGamma / (2 * mBeta) - 1));
-
-    //    // calculate and add mass and damping contribution to rhs
-    //    this->CalculateAndAddDynamicContributionToRhs(m_part_vector, mMassMatrix, rb);
-    //    this->CalculateAndAddDynamicContributionToRhs(c_part_vector, mDampingMatrix, rb);
-    //}
+   
 
     void ApplyDirichletConditionsRhs(TSystemVectorType& rb)
     {
@@ -818,22 +773,22 @@ private:
         });
     }
 
+    void ApplyDirichletConditionsToLumpedLhs(TSystemVectorType& rLumpedLhs)
+    {
+        // add dirichlet conditions to RHS
+        // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        block_for_each(BaseType::mDofSet, [&rLumpedLhs](const Dof<double>& r_dof) {
+            if (r_dof.IsFixed()) {
+                const std::size_t i = r_dof.EquationId();
+                rLumpedLhs[i] = 1.0;
+            }
+            });
+    }
+
+
     // Row lumping function
     void LumpMassMatrix(const TSystemMatrixType& M, TSystemVectorType& LumpedM)
     {
-        std::cout << "Lumping mass matrix" << std::endl;
-        //const std::size_t size = M.size1();
-        //LumpedM.resize(size, false);
-        //noalias(LumpedM) = ZeroVector(size);
-
-        //for (std::size_t i = 0; i < size; ++i) {
-        //    double row_sum = 0.0;
-        //    for (std::size_t j = 0; j < M.size2(); ++j) {
-        //        row_sum += M(i, j);
-        //    }
-        //    LumpedM(i) = row_sum;
-        //}
-
 		
         const std::size_t size = M.size1();
         LumpedM.resize(size, false);
@@ -847,9 +802,18 @@ private:
             }
         }
 
-        std::cout << "done lumping matrix: " << std::endl;
-
     }
+
+	void InvertLumpedMatrix(
+		const TSystemVectorType& LumpedM, TSystemVectorType& InvertedLumpedM)
+	{
+		const std::size_t size = LumpedM.size();
+		InvertedLumpedM.resize(size, false);
+		for (std::size_t i = 0; i < size; ++i) {
+			const double val = LumpedM[i];
+			InvertedLumpedM[i] = (std::abs(val) < 1e-10) ? 1.0 : 1.0 / val;
+		}
+	}
 
 }; /* Class ResidualBasedBlockBuilderAndSolverNohBathe */
 

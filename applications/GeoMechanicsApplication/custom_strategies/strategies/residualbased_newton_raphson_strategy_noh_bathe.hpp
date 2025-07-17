@@ -166,9 +166,6 @@ public:
         KRATOS_TRY
         BaseType::InitializeSolutionStep();
 
-        // it is required to initialize the mDxTot vector here, as SolveSolutionStep can be called
-        // multiple times, in a single time step (from an overlaying strategy)
-        mDxTot = TSystemVectorType(BaseType::GetBuilderAndSolver()->GetDofSet().size(), 0.0);
         KRATOS_CATCH("")
     }
 
@@ -182,59 +179,50 @@ public:
         typename TSchemeType::Pointer p_scheme     = BaseType::GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
         auto&               r_dof_set = p_builder_and_solver->GetDofSet();
-        std::vector<Vector> non_converged_solutions;
-
-        if (BaseType::mStoreNonconvergedSolutionsFlag) {
-            Vector initial;
-            BaseType::GetCurrentSolution(r_dof_set, initial);
-            non_converged_solutions.push_back(initial);
-        }
 
         TSystemMatrixType& rA  = *BaseType::mpA;
         TSystemVectorType& rDx = *BaseType::mpDx;
         TSystemVectorType& rb  = *BaseType::mpb;
 
         // initializing the parameters of the Newton-Raphson cycle
-        unsigned int iteration_number                      = 1;
-        r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+        //unsigned int iteration_number                      = 1;
+        //r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
         p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
 
-        BaseType::mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
-        bool is_converged =
-            BaseType::mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+        //BaseType::mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
         TSparseSpace::SetToZero(rDx);
         TSparseSpace::SetToZero(rb);
 
         p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
         // Debugging info
-        BaseType::EchoInfo(iteration_number);
+        //BaseType::EchoInfo(iteration_number);
 
         // Updating the results stored in the database
         //this->UpdateSolutionStepValue(rDx, mDxTot);
 
         p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
 
-        BaseType::mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
+        //BaseType::mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
-        if (BaseType::mStoreNonconvergedSolutionsFlag) {
-            Vector first;
-            BaseType::GetCurrentSolution(r_dof_set, first);
-            non_converged_solutions.push_back(first);
-        }
+        //if (BaseType::mStoreNonconvergedSolutionsFlag) {
+        //    Vector first;
+        //    BaseType::GetCurrentSolution(r_dof_set, first);
+        //    non_converged_solutions.push_back(first);
+        //}
 
-        if (is_converged) {
-            if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
-                TSparseSpace::SetToZero(rb);
+        //if (is_converged) {
+        //    if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
+        //        TSparseSpace::SetToZero(rb);
 
-                p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
-            }
+        //        p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+        //    }
 
-            is_converged =
-                BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
-        }
-        is_converged = true;
+        //    is_converged =
+        //        BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+        //}
+        //is_converged = true;
         //// Iteration Cycle... performed only for non linear RHS
         //if (!is_converged) {
         //    is_converged = this->PerformIterationCycle(rA, rDx, rb, mDxTot, non_converged_solutions, iteration_number);
@@ -246,19 +234,19 @@ public:
         //}
 
         // plots a warning if the maximum number of iterations is exceeded
-        if (iteration_number >= BaseType::mMaxIterationNumber) {
-            this->MaxIterationsExceeded();
-        } else {
-            KRATOS_INFO_IF("GeoMechanicNewtonRaphsonStrategyNohBathe", this->GetEchoLevel() > 0)
-                << "Convergence achieved after " << iteration_number << " / "
-                << BaseType::mMaxIterationNumber << " iterations" << std::endl;
-        }
+        //if (iteration_number >= BaseType::mMaxIterationNumber) {
+        //    this->MaxIterationsExceeded();
+        //} else {
+        //    KRATOS_INFO_IF("GeoMechanicNewtonRaphsonStrategyNohBathe", this->GetEchoLevel() > 0)
+        //        << "Convergence achieved after " << iteration_number << " / "
+        //        << BaseType::mMaxIterationNumber << " iterations" << std::endl;
+        //}
 
         // calculate reactions if required
-        if (BaseType::mCalculateReactionsFlag)
-            p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, mDxTot, rb);
+        //if (BaseType::mCalculateReactionsFlag)
+        //    p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, mDxTot, rb);
 
-        if (BaseType::mStoreNonconvergedSolutionsFlag) {
+       /* if (BaseType::mStoreNonconvergedSolutionsFlag) {
             BaseType::mNonconvergedSolutionsMatrix =
                 Matrix(r_dof_set.size(), non_converged_solutions.size());
             for (std::size_t i = 0; i < non_converged_solutions.size(); ++i) {
@@ -267,7 +255,7 @@ public:
                         non_converged_solutions[i](r_dof.EquationId());
                 });
             }
-        }
+        }*/
 
         return is_converged;
     }
@@ -352,95 +340,95 @@ private:
             << std::endl;
     }
 
-    bool PerformIterationCycle(TSystemMatrixType&   rA,
-                               TSystemVectorType&   rDx,
-                               TSystemVectorType&   rb,
-                               TSystemVectorType&   rDxTot,
-                               std::vector<Vector>& rNonconvergedSolutions,
-                               unsigned int&        rIterationNumber)
-    {
-        ModelPart&                    r_model_part = BaseType::GetModelPart();
-        typename TSchemeType::Pointer p_scheme     = BaseType::GetScheme();
-        typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
-        auto&       r_dof_set              = p_builder_and_solver->GetDofSet();
-        const auto& r_current_process_info = r_model_part.GetProcessInfo();
+    //bool PerformIterationCycle(TSystemMatrixType&   rA,
+    //                           TSystemVectorType&   rDx,
+    //                           TSystemVectorType&   rb,
+    //                           TSystemVectorType&   rDxTot,
+    //                           std::vector<Vector>& rNonconvergedSolutions,
+    //                           unsigned int&        rIterationNumber)
+    //{
+    //    ModelPart&                    r_model_part = BaseType::GetModelPart();
+    //    typename TSchemeType::Pointer p_scheme     = BaseType::GetScheme();
+    //    typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
+    //    auto&       r_dof_set              = p_builder_and_solver->GetDofSet();
+    //    const auto& r_current_process_info = r_model_part.GetProcessInfo();
 
-        bool is_converged = false;
-        rIterationNumber++;
-        for (; rIterationNumber < BaseType::mMaxIterationNumber; rIterationNumber++) {
-            // setting the number of iteration
-            r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = rIterationNumber;
+    //    bool is_converged = false;
+    //    rIterationNumber++;
+    //    for (; rIterationNumber < BaseType::mMaxIterationNumber; rIterationNumber++) {
+    //        // setting the number of iteration
+    //        r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = rIterationNumber;
 
-            p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
-            BaseType::mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
+    //        p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
+    //        BaseType::mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
-            is_converged = BaseType::mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+    //        is_converged = BaseType::mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
-            // call the linear system solver to find the correction mDx for the
-            // it is not called if there is no system to solve
-            if (SparseSpaceType::Size(rDx) != 0) {
-                TSparseSpace::SetToZero(rDx);
-                TSparseSpace::SetToZero(rb);
+    //        // call the linear system solver to find the correction mDx for the
+    //        // it is not called if there is no system to solve
+    //        if (SparseSpaceType::Size(rDx) != 0) {
+    //            TSparseSpace::SetToZero(rDx);
+    //            TSparseSpace::SetToZero(rb);
 
-                p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
+    //            p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
 
-            } else {
-                KRATOS_WARNING("NO DOFS") << "ATTENTION: no free DOFs!! " << std::endl;
-            }
+    //        } else {
+    //            KRATOS_WARNING("NO DOFS") << "ATTENTION: no free DOFs!! " << std::endl;
+    //        }
 
-            // Debugging info
-            BaseType::EchoInfo(rIterationNumber);
+    //        // Debugging info
+    //        BaseType::EchoInfo(rIterationNumber);
 
-            // Updating the results stored in the database
-            this->UpdateSolutionStepValue(rDx, rDxTot);
+    //        // Updating the results stored in the database
+    //        this->UpdateSolutionStepValue(rDx, rDxTot);
 
-            // only finalize condition non linear iteration
-            block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
-                if (r_condition.IsActive()) {
-                    r_condition.FinalizeNonLinearIteration(r_current_process_info);
-                }
-            });
+    //        // only finalize condition non linear iteration
+    //        block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
+    //            if (r_condition.IsActive()) {
+    //                r_condition.FinalizeNonLinearIteration(r_current_process_info);
+    //            }
+    //        });
 
-            BaseType::mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
+    //        BaseType::mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
-            if (BaseType::mStoreNonconvergedSolutionsFlag) {
-                Vector ith;
-                BaseType::GetCurrentSolution(r_dof_set, ith);
-                rNonconvergedSolutions.push_back(ith);
-            }
+    //        if (BaseType::mStoreNonconvergedSolutionsFlag) {
+    //            Vector ith;
+    //            BaseType::GetCurrentSolution(r_dof_set, ith);
+    //            rNonconvergedSolutions.push_back(ith);
+    //        }
 
-            if (is_converged) {
-                if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
-                    TSparseSpace::SetToZero(rb);
+    //        if (is_converged) {
+    //            if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
+    //                TSparseSpace::SetToZero(rb);
 
-                    p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
-                }
+    //                p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+    //            }
 
-                is_converged =
-                    BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
-            }
-            if (is_converged) {
-                return true;
-            }
-        }
+    //            is_converged =
+    //                BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
+    //        }
+    //        if (is_converged) {
+    //            return true;
+    //        }
+    //    }
 
-        return false;
-    }
+    //    return false;
+    //}
 
-    void UpdateSolutionStepValue(TSystemVectorType& rDx, TSystemVectorType& rDx_tot)
-    {
-        // performs: rDx_tot += rDx;
-        TSparseSpace::UnaliasedAdd(rDx_tot, 1.0, rDx);
+    //void UpdateSolutionStepValue(TSystemVectorType& rDx, TSystemVectorType& rDx_tot)
+    //{
+    //    // performs: rDx_tot += rDx;
+    //    TSparseSpace::UnaliasedAdd(rDx_tot, 1.0, rDx);
 
-        typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
-        DofsArrayType& r_dof_set = p_builder_and_solver->GetDofSet();
+    //    typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
+    //    DofsArrayType& r_dof_set = p_builder_and_solver->GetDofSet();
 
-        block_for_each(r_dof_set, [&rDx](auto& dof) {
-            if (dof.IsFree()) {
-                dof.GetSolutionStepValue() += TSparseSpace::GetValue(rDx, dof.EquationId());
-            }
-        });
-    }
+    //    block_for_each(r_dof_set, [&rDx](auto& dof) {
+    //        if (dof.IsFree()) {
+    //            dof.GetSolutionStepValue() += TSparseSpace::GetValue(rDx, dof.EquationId());
+    //        }
+    //    });
+    //}
 
     /// <summary>
     /// Initializes the system matrices and the initial state
