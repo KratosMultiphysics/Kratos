@@ -126,8 +126,7 @@ void InterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, co
         CalculateIntegrationCoefficients());
 }
 
-void InterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
-                                                  const ProcessInfo&   rProcessInfo)
+void InterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector, const ProcessInfo& rProcessInfo)
 {
     // Currently, the right-hand side only includes the internal force vector. In the future, it
     // will also include water pressure contributions and coupling terms.
@@ -279,7 +278,7 @@ std::vector<Vector> InterfaceElement::CalculateRelativeDisplacementsAtIntegratio
 }
 
 std::vector<Vector> InterfaceElement::CalculateTractionsAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements,
-                                                                                const ProcessInfo& rProcessInfo)
+                                                                            const ProcessInfo& rProcessInfo)
 {
     // We have to make a copy of each relative displacement vector, since setting it at the
     // constitutive law parameters requires a reference to a _mutable_ object!
