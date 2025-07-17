@@ -131,7 +131,7 @@
 #include "custom_constitutive/small_strain_umat_2D_interface_law.hpp"
 #include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
 #include "custom_constitutive/small_strain_umat_3D_interface_law.hpp"
-#include "custom_constitutive/small_strain_umat_3D_law.hpp"
+#include "custom_constitutive/small_strain_umat_law.hpp"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_constitutive/truss_backbone_constitutive_law.h"
 #include "custom_elements/interface_stress_state.h"
@@ -993,10 +993,20 @@ private:
     const SmallStrainUDSM2DInterfaceLaw mSmallStrainUDSM2DInterfaceLaw{};
     const SmallStrainUDSM3DInterfaceLaw mSmallStrainUDSM3DInterfaceLaw{};
 
-    const SmallStrainUMAT3DLaw            mSmallStrainUMAT3DLaw{};
-    const SmallStrainUMAT2DPlaneStrainLaw mSmallStrainUMAT2DPlaneStrainLaw{};
-    const SmallStrainUMAT2DInterfaceLaw   mSmallStrainUMAT2DInterfaceLaw{};
-    const SmallStrainUMAT3DInterfaceLaw   mSmallStrainUMAT3DInterfaceLaw{};
+    // Currently, these UMAT constititutive laws are based on the 3D version of the SmallStrainUMAT
+    // law. This seems counter-intuitive, for 2D laws, but currently this is needed because our
+    // UMATs are not implemented for 2D plane strain and interface conditions (but expect
+    // matrix/vector sizes to be consistent with a 3D model). Be careful with changing this, as it
+    // may lead to UMATs writing to out-of-bounds memory locations.
+    const SmallStrainUMATLaw<VOIGT_SIZE_3D> mSmallStrainUMAT3DLaw{std::make_unique<ThreeDimensional>()};
+    const SmallStrainUMAT2DPlaneStrainLaw mSmallStrainUMAT2DPlaneStrainLaw{std::make_unique<ThreeDimensional>()};
+    const SmallStrainUMAT2DInterfaceLaw mSmallStrainUMAT2DInterfaceLaw{std::make_unique<ThreeDimensional>()};
+    const SmallStrainUMAT3DInterfaceLaw mSmallStrainUMAT3DInterfaceLaw{std::make_unique<ThreeDimensional>()};
+
+    // This UMAT law actually uses the correct template parameter and ConstitutiveDimension
+    // (InterfacePlaneStrain), since it assumes the UMAT is implemented using the correct vector sizes.
+    const SmallStrainUMATLaw<VOIGT_SIZE_2D_INTERFACE> mSmallStrainUMAT2DLineInterfaceLaw{
+        std::make_unique<InterfacePlaneStrain>()};
 
     const LinearElastic2DInterfaceLaw mLinearElastic2DInterfaceLaw;
     const LinearElastic3DInterfaceLaw mLinearElastic3DInterfaceLaw;

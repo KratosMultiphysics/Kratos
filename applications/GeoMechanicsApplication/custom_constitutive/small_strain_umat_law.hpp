@@ -15,6 +15,7 @@
 // System includes
 #include "includes/define.h"
 #include <iostream>
+#include <memory>
 #include <string>
 
 // Project includes
@@ -38,6 +39,8 @@ namespace Kratos
    KSLAY,   double* KSPT,    int* KSTEP, int* KINC);
 
 */
+
+class ConstitutiveLawDimension;
 
 using pF_UMATMod = void (*)(double*       STRESS,
                             double*       STATEV,
@@ -103,7 +106,8 @@ using pF_UMATMod = void (*)(double*       STRESS,
 /** Detail class definition.
  */
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUMAT3DLaw : public ConstitutiveLaw
+template <SizeType TVoigtSize>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUMATLaw : public ConstitutiveLaw
 {
 public:
     // The process info type definition
@@ -115,25 +119,20 @@ public:
     /// The size type definition
     using SizeType = std::size_t;
 
-    /// Static definition of the dimension
-    static constexpr SizeType Dimension = N_DIM_3D;
-
-    /// Static definition of the VoigtSize
-    static constexpr SizeType VoigtSize = VOIGT_SIZE_3D;
-
-    /// Pointer definition of SmallStrainUMAT3DLaw
-    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUMAT3DLaw);
+    /// Pointer definition of SmallStrainUMATLaw
+    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUMATLaw);
 
     //@}
     //@name Life Cycle
     //@{
 
-    SmallStrainUMAT3DLaw()           = default;
-    ~SmallStrainUMAT3DLaw() override = default;
-    SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLaw& rOther);
-    SmallStrainUMAT3DLaw& operator=(const SmallStrainUMAT3DLaw& rOther);
-    SmallStrainUMAT3DLaw(SmallStrainUMAT3DLaw&&)            = delete;
-    SmallStrainUMAT3DLaw& operator=(SmallStrainUMAT3DLaw&&) = delete;
+    explicit SmallStrainUMATLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
+
+    ~SmallStrainUMATLaw() override;
+    SmallStrainUMATLaw(const SmallStrainUMATLaw& rOther);
+    SmallStrainUMATLaw& operator=(const SmallStrainUMATLaw& rOther);
+    SmallStrainUMATLaw(SmallStrainUMATLaw&&) noexcept            = delete;
+    SmallStrainUMATLaw& operator=(SmallStrainUMATLaw&&) noexcept = delete;
 
     /**
      * @brief Clone method
@@ -149,12 +148,18 @@ public:
     /**
      * @brief Dimension of the law:
      */
-    SizeType WorkingSpaceDimension() override { return Dimension; }
+    SizeType WorkingSpaceDimension() override;
 
     /**
      * @brief Voigt tensor size:
      */
-    [[nodiscard]] SizeType GetStrainSize() const override { return VoigtSize; }
+    [[nodiscard]] SizeType GetStrainSize() const override
+    {
+        // In other constitutive laws, we use mpConstitutiveDimension->GetStrainSize() here, but
+        // due to the C/Fortran interface, we need the VoigtSize to be known compile time.
+        // Therefore, we return the template argument TVoigtSize here.
+        return TVoigtSize;
+    }
 
     /**
      * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
@@ -304,16 +309,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    [[nodiscard]] std::string Info() const override { return "SmallStrainUMAT3DLaw"; }
+    [[nodiscard]] std::string Info() const override { return "SmallStrainUMATLaw"; }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        rOStream << "SmallStrainUMAT3DLaw Data";
-    }
+    void PrintData(std::ostream& rOStream) const override { rOStream << "SmallStrainUMATLaw Data"; }
 
     ///@}
     ///@name Friends
@@ -324,13 +326,13 @@ public:
 protected:
     ///@name Protected member Variables
     ///@{
-    array_1d<double, VOIGT_SIZE_3D> mStressVector;
-    array_1d<double, VOIGT_SIZE_3D> mStressVectorFinalized;
+    array_1d<double, TVoigtSize> mStressVector;
+    array_1d<double, TVoigtSize> mStressVectorFinalized;
 
-    array_1d<double, VOIGT_SIZE_3D> mDeltaStrainVector;
-    array_1d<double, VOIGT_SIZE_3D> mStrainVectorFinalized;
+    array_1d<double, TVoigtSize> mDeltaStrainVector;
+    array_1d<double, TVoigtSize> mStrainVectorFinalized;
 
-    double mMatrixD[VOIGT_SIZE_3D][VOIGT_SIZE_3D];
+    double mMatrixD[TVoigtSize][TVoigtSize];
 
     ///@}
     ///@name Protected Operators
@@ -343,6 +345,9 @@ protected:
     ///@}
     ///@name Protected  Access
     ///@{
+
+    SmallStrainUMATLaw();
+
     virtual void UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues);
     virtual void UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters& rValues);
     virtual void SetExternalStressVector(Vector& rStressVector);
@@ -352,8 +357,6 @@ protected:
 
     void CalculateConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix);
     void CalculateStress(ConstitutiveLaw::Parameters& rValues, Vector& rStressVector);
-
-    int GetStateVariableIndex(const Variable<double>& rThisVariable);
 
     ///@}
     ///@name Protected Inquiry
@@ -379,8 +382,9 @@ private:
 
     std::vector<int> mProjectDirectory;
 
-    Vector mStateVariables;
-    Vector mStateVariablesFinalized;
+    Vector                                    mStateVariables;
+    Vector                                    mStateVariablesFinalized;
+    std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
 
     ///@}
     ///@name Private Operators
@@ -410,23 +414,8 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.save("InitializedModel", mIsModelInitialized);
-        rSerializer.save("StressVectorFinalized", mStressVectorFinalized);
-        rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
-        rSerializer.save("StateVariablesFinalized", mStateVariablesFinalized);
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.load("InitializedModel", mIsModelInitialized);
-        rSerializer.load("StressVectorFinalized", mStressVectorFinalized);
-        rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
-        rSerializer.load("StateVariablesFinalized", mStateVariablesFinalized);
-    }
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Inquiry
@@ -438,7 +427,7 @@ private:
 
     ///@}
 
-}; // Class SmallStrainUMAT3DLaw
+}; // Class SmallStrainUMATLaw
 
 ///@}
 
