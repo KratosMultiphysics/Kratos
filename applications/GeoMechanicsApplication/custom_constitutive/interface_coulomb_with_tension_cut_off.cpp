@@ -160,9 +160,11 @@ Vector InterfaceCoulombWithTensionCutOff::CalculateTrialTractionVector(const Vec
                                                                        double NormalStiffness,
                                                                        double ShearStiffness) const
 {
-    return mTractionVectorFinalized + prod(ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
-                                               NormalStiffness, ShearStiffness, GetStrainSize()),
-                                           rRelativeDisplacementVector - mRelativeDisplacementVectorFinalized);
+    constexpr auto number_of_normal_components = std::size_t{1};
+    return mTractionVectorFinalized +
+           prod(ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
+                    NormalStiffness, ShearStiffness, GetStrainSize(), number_of_normal_components),
+                rRelativeDisplacementVector - mRelativeDisplacementVectorFinalized);
 }
 
 void InterfaceCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(Parameters& rConstitutiveLawParameters)
@@ -176,9 +178,11 @@ Matrix& InterfaceCoulombWithTensionCutOff::CalculateValue(Parameters& rConstitut
                                                           Matrix&                 rValue)
 {
     if (rVariable == CONSTITUTIVE_MATRIX) {
-        const auto& r_properties = rConstitutiveLawParameters.GetMaterialProperties();
-        rValue                   = ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
-            r_properties[INTERFACE_NORMAL_STIFFNESS], r_properties[INTERFACE_SHEAR_STIFFNESS], GetStrainSize());
+        const auto&    r_properties = rConstitutiveLawParameters.GetMaterialProperties();
+        constexpr auto number_of_normal_components = std::size_t{1};
+        rValue = ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
+            r_properties[INTERFACE_NORMAL_STIFFNESS], r_properties[INTERFACE_SHEAR_STIFFNESS],
+            GetStrainSize(), number_of_normal_components);
     } else {
         KRATOS_ERROR << "Can't calculate value of " << rVariable.Name() << ": unsupported variable\n";
     }
