@@ -229,7 +229,7 @@ InterfaceElement CreateAndInitializeElement(TElementFactory                Facto
     return element;
 }
 
-Matrix CreateExpectedLeftHandSideForTriangleElement()
+Matrix ExpectedLeftHandSideForTriangleElement()
 {
     // The function provides values taken from the element
     auto expected_left_hand_side = Matrix(18, 18);
@@ -769,7 +769,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     element.CalculateLeftHandSide(actual_left_hand_side, ProcessInfo{});
 
     // Assert
-    const auto expected_left_hand_side = CreateExpectedLeftHandSideForTriangleElement();
+    const auto expected_left_hand_side = ExpectedLeftHandSideForTriangleElement();
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
@@ -936,7 +936,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsExpectedLeftAndRightHa
     element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, ProcessInfo{});
 
     // Assert
-    const auto expected_left_hand_side = CreateExpectedLeftHandSideForTriangleElement();
+    const auto expected_left_hand_side = ExpectedLeftHandSideForTriangleElement();
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
     auto expected_right_hand_side = Vector{18};
