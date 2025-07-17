@@ -24,6 +24,7 @@
 #include "custom_processes/apply_normal_load_table_process.h"
 #include "custom_processes/apply_scalar_constraint_table_process.h"
 #include "custom_processes/apply_vector_constraint_table_process.h"
+#include "custom_processes/fix_water_pressures_above_phreatic_line.h"
 #include "custom_processes/set_parameter_field_process.hpp"
 
 #include "adaptive_time_incrementor.h"
@@ -158,7 +159,8 @@ void KratosGeoSettlement::InitializeProcessFactory()
     mProcessFactory->AddCreator("ApplyK0ProcedureProcess", MakeCreatorFor<ApplyK0ProcedureProcess>());
     mProcessFactory->AddCreator("GeoExtrapolateIntegrationPointValuesToNodesProcess",
                                 MakeCreatorFor<GeoExtrapolateIntegrationPointValuesToNodesProcess>());
-
+    mProcessFactory->AddCreator("FixWaterPressuresAbovePhreaticLineProcess",
+                                MakeCreatorFor<FixWaterPressuresAbovePhreaticLineProcess>());
     mProcessFactory->SetCallBackWhenProcessIsUnknown([](const std::string& rProcessName) {
         KRATOS_ERROR << "Unexpected process (" << rProcessName << "), calculation is aborted";
     });
