@@ -22,6 +22,36 @@
 #include <climits> // CHAR_BIT
 
 
+
+// Define the hash table type used for computing CSR patterns.
+// The fallback option is std::unordered_*, but a more performant
+// alternative is boost::unordered_flat_* that requires boost 1.81
+// or newer.
+#if BOOST_VERSION < 108100
+    #include <unordered_set>
+    #include <unordered_map>
+
+    namespace Kratos {
+        template <class TKey, class TValue, class ...TArgs>
+        using CSRHashMap = std::unordered_map<TKey,TValue,TArgs...>;
+
+        template <class TValue, class ...TArgs>
+        using CSRHashSet = std::unordered_set<TValue,TArgs...>;
+    } // namespace Kratos
+#else
+    #include <boost/unordered/unordered_flat_map.hpp>
+    #include <boost/unordered/unordered_flat_set.hpp>
+
+    namespace Kratos {
+        template <class TKey, class TValue, class ...TArgs>
+        using CSRHashMap = boost::unordered_flat_map<TKey,TValue,TArgs...>;
+
+        template <class TValue, class ...TArgs>
+        using CSRHashSet = boost::unordered_flat_set<TValue,TArgs...>;
+    } // namespace Kratos
+#endif
+
+
 namespace Kratos {
 
 

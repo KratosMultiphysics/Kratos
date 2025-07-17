@@ -12,10 +12,8 @@
 
 #pragma once
 
-// External includes
-#include <boost/unordered/unordered_flat_map.hpp> // boost::unordered_flat_map
-
 // Project includes
+#include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // CSRHashMap, CSRHashSet
 #include "geometries/geometry_data.h" // GeometryData
 #include "geometries/geometry.h" // Geometry
 #include "spaces/ublas_space.h" // TUblasSparseSpace
@@ -331,7 +329,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
     // fine row indices are stored, from which coarse row indices can later
     // be computed.
     std::vector<std::pair<
-        boost::unordered_flat_map<
+        CSRHashMap<
             GlobalIndex,    // <== column index
             TValue          // <== value
         >,
@@ -500,7 +498,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
     // This means that fine Dofs can be reused for the coarse system.
     KRATOS_TRY
     // Collect solution step variables and store them in a hash map.
-    boost::unordered_flat_map<typename Variable<double>::KeyType,const Variable<double>*> solution_step_variable_map;
+    CSRHashMap<typename Variable<double>::KeyType,const Variable<double>*> solution_step_variable_map;
 
     for (const auto& r_variable_data : rModelPart.GetNodalSolutionStepVariablesList()) {
         const std::string& r_name = r_variable_data.Name();

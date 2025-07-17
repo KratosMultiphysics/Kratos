@@ -10,9 +10,6 @@
 //  Main authors:    Máté Kelemen
 //
 
-// External includes
-#include <boost/unordered/unordered_flat_map.hpp> // boost::unordered_flat_map
-
 // Project includes
 #include "solving_strategies/builder_and_solvers/p_multigrid/master_slave_constraint_assembler.hpp" // MasterSlaveConstraintAssembler
 #include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // GetDiagonalScaleFactor
@@ -36,11 +33,11 @@ struct MasterSlaveConstraintAssembler<TSparse,TDense>::Impl
     std::unique_ptr<Scaling> mpDiagonalScaling;
 
     /// @brief A map associating slave IDs with constraint indices and the number of constraint objects referencing it.
-    boost::unordered_flat_map<std::size_t,         //< identifier of the constraint equation (slave ID for MasterSlaveConstraint, CONSTRAINT_LABEL for MultifreedomConstraint)
-                              std::pair<
-                                   std::size_t,    //< row index of the constraint equation in the relation matrix
-                                   std::size_t     //< number of constraint objects defining the equation
-                       >
+    CSRHashMap<std::size_t,         //< identifier of the constraint equation (slave ID for MasterSlaveConstraint, CONSTRAINT_LABEL for MultifreedomConstraint)
+               std::pair<
+                    std::size_t,    //< row index of the constraint equation in the relation matrix
+                    std::size_t     //< number of constraint objects defining the equation
+              >
     > mConstraintIdMap;
 
     /// @brief Index map from the dependent space to the independent space.

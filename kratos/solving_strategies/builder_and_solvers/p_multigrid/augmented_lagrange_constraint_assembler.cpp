@@ -10,9 +10,6 @@
 //  Main authors:    Máté Kelemen
 //
 
-// External includes
-#include <boost/unordered/unordered_flat_map.hpp> // boost::unordered_flat_map
-
 // Project includes
 #include "solving_strategies/builder_and_solvers/p_multigrid/augmented_lagrange_constraint_assembler.hpp" // AugmentedLagrangeConstraintAssembler
 #include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // MapRowContribution, BalancedProduct
@@ -137,11 +134,11 @@ struct AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Impl
     using Interface = AugmentedLagrangeConstraintAssembler<TSparse,TDense>;
 
     /// @brief A map associating slave IDs with constraint indices and the number of constraint objects referencing it.
-    boost::unordered_flat_map<std::size_t,         //< identifier of the constraint equation (slave ID for MasterSlaveConstraint, CONSTRAINT_LABEL for MultifreedomConstraint)
-                              std::pair<
-                                   std::size_t,    //< row index of the constraint equation in the relation matrix
-                                   std::size_t     //< number of constraint objects defining the equation
-                       >
+    CSRHashMap<std::size_t,         //< identifier of the constraint equation (slave ID for MasterSlaveConstraint, CONSTRAINT_LABEL for MultifreedomConstraint)
+               std::pair<
+                    std::size_t,    //< row index of the constraint equation in the relation matrix
+                    std::size_t     //< number of constraint objects defining the equation
+               >
     > mConstraintIdMap;
 
     std::optional<typename TSparse::MatrixType> mMaybeTransposeRelationMatrix;
@@ -170,7 +167,7 @@ template <class TSparse, class TDense>
 AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AugmentedLagrangeConstraintAssembler(Parameters Settings,
                                                                                            std::string&& rInstanceName)
     : Base(ConstraintImposition::AugmentedLagrange, std::move(rInstanceName)),
-      mpImpl(new Impl{/*mConstraintIdToIndexMap: */boost::unordered_flat_map<std::size_t,std::pair<std::size_t,std::size_t>>(),
+      mpImpl(new Impl{/*mConstraintIdToIndexMap: */ CSRHashMap<std::size_t,std::pair<std::size_t,std::size_t>>(),
                       /*mMaybeTransposeRelationMatrix: */std::optional<typename TSparse::MatrixType>(),
                       /*mpScaling*/ nullptr,
                       /*mVerbosity: */1})

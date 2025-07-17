@@ -12,10 +12,6 @@
 
 #pragma once
 
-// External includes
-#include <boost/unordered/unordered_flat_map.hpp> // boost::unordered_flat_map
-#include <boost/unordered/unordered_flat_set.hpp> // boost::unordered_flat_set
-
 // Project includes
 #include "solving_strategies/builder_and_solvers/p_multigrid/constraint_assembler.hpp" // ConstraintAssembler
 #include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // MakeSparseTopology
@@ -57,7 +53,7 @@ inline void ProcessMasterSlaveConstraint(std::vector<std::size_t>& rConstraintIn
                                          const MasterSlaveConstraint& rConstraint,
                                          const std::vector<std::size_t>& rSlaveDofIds,
                                          const std::vector<std::size_t>& rMasterDofIds,
-                                         const boost::unordered_flat_map<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
+                                         const CSRHashMap<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
 {
     // Constraint identifiers are the slave DoFs' IDs.
     rConstraintIndices.resize(rSlaveDofIds.size());
@@ -107,7 +103,7 @@ inline void ProcessMultifreedomConstraint(std::vector<std::size_t>& rConstraintI
                                           std::vector<std::size_t>& rDofIds,
                                           const MasterSlaveConstraint& rConstraint,
                                           const std::vector<std::size_t>& rMasterDofIds,
-                                          const boost::unordered_flat_map<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
+                                          const CSRHashMap<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
 {
     const auto& r_constraint_labels = rConstraint.GetData().GetValue(CONSTRAINT_LABELS);
     rConstraintIndices.resize(r_constraint_labels.size());
@@ -129,7 +125,7 @@ void MakeRelationTopology(std::size_t SystemSize,
                           const ProcessInfo& rProcessInfo,
                           typename TSparse::MatrixType& rRelationMatrix,
                           typename TSparse::VectorType& rConstraintGaps,
-                          boost::unordered_flat_map<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
+                          CSRHashMap<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
 {
     KRATOS_TRY
 
@@ -163,7 +159,7 @@ void MakeRelationTopology(std::size_t SystemSize,
     }
 
     {
-        std::vector<boost::unordered_flat_set<IndexType>> indices(rConstraintIdMap.size());
+        std::vector<CSRHashSet<IndexType>> indices(rConstraintIdMap.size());
         std::vector<LockObject> mutexes(rConstraintIdMap.size());
 
         struct TLS {
@@ -218,7 +214,7 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
                             typename TSparse::MatrixType& rRelationMatrix,
                             typename TSparse::MatrixType& rHessian,
                             typename TSparse::VectorType& rConstraintGaps,
-                            boost::unordered_flat_map<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
+                            CSRHashMap<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
 {
     KRATOS_TRY
 
