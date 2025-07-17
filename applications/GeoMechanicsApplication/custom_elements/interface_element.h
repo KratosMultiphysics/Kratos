@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Richard Faasse
+//                   Gennady Markelov
 //
 
 #pragma once
@@ -21,28 +22,30 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) LineInterfaceElement : public Element
+class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceElement : public Element
 {
 public:
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LineInterfaceElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(InterfaceElement);
 
     using Element::GeometryType;
     using Element::PropertiesType;
 
     // Following the UPwBaseElement example, we will follow the rule of 5
     // to avoid the noexcept code smell.
-    LineInterfaceElement()                                           = default;
-    ~LineInterfaceElement() override                                 = default;
-    LineInterfaceElement(const LineInterfaceElement&)                = delete;
-    LineInterfaceElement& operator=(const LineInterfaceElement&)     = delete;
-    LineInterfaceElement(LineInterfaceElement&&) noexcept            = default;
-    LineInterfaceElement& operator=(LineInterfaceElement&&) noexcept = default;
+    ~InterfaceElement() override                             = default;
+    InterfaceElement(const InterfaceElement&)                = delete;
+    InterfaceElement& operator=(const InterfaceElement&)     = delete;
+    InterfaceElement(InterfaceElement&&) noexcept            = default;
+    InterfaceElement& operator=(InterfaceElement&&) noexcept = default;
 
-    LineInterfaceElement(IndexType                      NewId,
-                         const GeometryType::Pointer&   rGeometry,
-                         const PropertiesType::Pointer& rProperties);
+    InterfaceElement(IndexType                          NewId,
+                     const GeometryType::Pointer&       rGeometry,
+                     const PropertiesType::Pointer&     rProperties,
+                     std::unique_ptr<StressStatePolicy> pStressStatePolicy);
 
-    LineInterfaceElement(IndexType NewId, const GeometryType::Pointer& rGeometry);
+    InterfaceElement(IndexType                          NewId,
+                     const GeometryType::Pointer&       rGeometry,
+                     std::unique_ptr<StressStatePolicy> pStressStatePolicy);
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
@@ -65,6 +68,8 @@ public:
     int  Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 private:
+    InterfaceElement() = default;
+
     Element::DofsVectorType GetDofs() const;
 
     std::vector<Matrix> CalculateLocalBMatricesAtIntegrationPoints() const;
@@ -72,11 +77,15 @@ private:
     std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints();
     std::vector<Vector> CalculateRelativeDisplacementsAtIntegrationPoints(const std::vector<Matrix>& rLocalBMatrices) const;
     std::vector<Vector> CalculateTractionsAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements);
+    void MakeIntegrationSchemeAndAssignFunction();
+    std::function<Matrix(const Geometry<Node>&, const array_1d<double, 3>&)> mfpCalculateRotationMatrix;
 
     std::unique_ptr<IntegrationScheme>    mIntegrationScheme;
-    std::unique_ptr<StressStatePolicy>    mStressStatePolicy;
+    std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
+
+    friend class Serializer;
 };
 
 } // namespace Kratos
