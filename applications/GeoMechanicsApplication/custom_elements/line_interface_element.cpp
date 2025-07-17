@@ -38,19 +38,24 @@ Vector CalculateDeterminantsOfJacobiansAtIntegrationPoints(const Geo::Integratio
 }
 
 std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(
-    const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws, const Properties& rProperties)
+    const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws, const Properties& rProperties, const ProcessInfo& rProcessInfo, const std::vector<Vector>& rRelativeDisplacements)
 {
-    auto get_constitutive_matrix = [&rProperties](const auto& p_constitutive_law) {
-        auto result         = Matrix{};
-        auto law_parameters = ConstitutiveLaw::Parameters{};
-        law_parameters.SetMaterialProperties(rProperties);
-        p_constitutive_law->CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, result);
-        return result;
-    };
-    auto result = std::vector<Matrix>{};
+    std::vector<Matrix> result;
     result.reserve(rConstitutiveLaws.size());
-    std::transform(rConstitutiveLaws.begin(), rConstitutiveLaws.end(), std::back_inserter(result),
-                   get_constitutive_matrix);
+
+    for (std::size_t i = 0; i < rConstitutiveLaws.size(); ++i) {
+        auto& p_constitutive_law = rConstitutiveLaws[i];
+        auto relative_disp = rRelativeDisplacements[i];
+
+        Matrix constitutive_matrix; // optionally resize here
+        ConstitutiveLaw::Parameters law_parameters;
+        law_parameters.SetStrainVector(relative_disp);
+        law_parameters.SetProcessInfo(rProcessInfo);
+        law_parameters.SetMaterialProperties(rProperties);
+        p_constitutive_law->CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, constitutive_matrix);
+
+        result.push_back(std::move(constitutive_matrix));
+    }
 
     return result;
 }
@@ -95,22 +100,25 @@ void LineInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const
     rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
-void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo&)
+void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
     // will also include water pressure contributions and coupling terms.
+    const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
+    const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
+
     rLeftHandSideMatrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
-        CalculateLocalBMatricesAtIntegrationPoints(),
-        CalculateConstitutiveMatricesAtIntegrationPoints(), CalculateIntegrationCoefficients());
+        local_b_matrices,
+        CalculateConstitutiveMatricesAtIntegrationPoints(rCurrentProcessInfo, relative_displacements), CalculateIntegrationCoefficients());
 }
 
-void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector, const ProcessInfo&)
+void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector, const ProcessInfo& rProcessInfo)
 {
     // Currently, the right-hand side only includes the internal force vector. In the future, it
     // will also include water pressure contributions and coupling terms.
     const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
     const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
-    const auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements);
+    const auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements, rProcessInfo);
     const auto integration_coefficients = CalculateIntegrationCoefficients();
     rRightHandSideVector = -GeoEquationOfMotionUtilities::CalculateInternalForceVector(
         local_b_matrices, tractions, integration_coefficients);
@@ -134,7 +142,7 @@ void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& 
     } else if (rVariable == CAUCHY_STRESS_VECTOR) {
         const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
         const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
-        rOutput = CalculateTractionsAtIntegrationPoints(relative_displacements);
+        rOutput = CalculateTractionsAtIntegrationPoints(relative_displacements, rCurrentProcessInfo);
     } else {
         Element::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
@@ -229,9 +237,9 @@ std::vector<double> LineInterfaceElement::CalculateIntegrationCoefficients() con
                                                     determinants_of_jacobian, this);
 }
 
-std::vector<Matrix> LineInterfaceElement::CalculateConstitutiveMatricesAtIntegrationPoints()
+std::vector<Matrix> LineInterfaceElement::CalculateConstitutiveMatricesAtIntegrationPoints(const ProcessInfo& rProcessInfo, const std::vector<Vector>& rRelativeDisplacements)
 {
-    return ::CalculateConstitutiveMatricesAtIntegrationPoints(mConstitutiveLaws, GetProperties());
+    return ::CalculateConstitutiveMatricesAtIntegrationPoints(mConstitutiveLaws, GetProperties(), rProcessInfo, rRelativeDisplacements);
 }
 
 std::vector<Vector> LineInterfaceElement::CalculateRelativeDisplacementsAtIntegrationPoints(
@@ -255,13 +263,14 @@ std::vector<Vector> LineInterfaceElement::CalculateRelativeDisplacementsAtIntegr
     return result;
 }
 
-std::vector<Vector> LineInterfaceElement::CalculateTractionsAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements)
+std::vector<Vector> LineInterfaceElement::CalculateTractionsAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements, const ProcessInfo& rProcessInfo)
 {
     // We have to make a copy of each relative displacement vector, since setting it at the
     // constitutive law parameters requires a reference to a _mutable_ object!
-    auto calculate_traction = [&properties = GetProperties()](auto RelativeDisplacement, auto& p_law) {
+    auto calculate_traction = [&properties = GetProperties(), &rProcessInfo](auto RelativeDisplacement, auto& p_law) {
         auto law_parameters = ConstitutiveLaw::Parameters{};
         law_parameters.SetStrainVector(RelativeDisplacement);
+		law_parameters.SetProcessInfo(rProcessInfo);
         auto result = Vector{};
         law_parameters.SetStressVector(result);
         law_parameters.SetMaterialProperties(properties);
