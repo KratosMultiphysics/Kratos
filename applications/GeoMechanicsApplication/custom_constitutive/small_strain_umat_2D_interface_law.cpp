@@ -11,9 +11,15 @@
 //
 
 #include "custom_constitutive/small_strain_umat_2D_interface_law.hpp"
+#include "constitutive_law_dimension.h"
 
 namespace Kratos
 {
+
+SmallStrainUMAT2DInterfaceLaw::SmallStrainUMAT2DInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
+    : SmallStrainUMATLaw<VOIGT_SIZE_3D>(std::move(pConstitutiveDimension))
+{
+}
 
 ConstitutiveLaw::Pointer SmallStrainUMAT2DInterfaceLaw::Clone() const
 {
@@ -85,6 +91,16 @@ indexStress3D SmallStrainUMAT2DInterfaceLaw::getIndex3D(indexStress2DInterface i
         KRATOS_ERROR << "invalid index: " << index2D << std::endl;
     }
 }
+
+void SmallStrainUMAT2DInterfaceLaw::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainUMATLaw)
+}
+
+void SmallStrainUMAT2DInterfaceLaw::load(Serializer& rSerializer){
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUMATLaw)}
+
+SmallStrainUMAT2DInterfaceLaw::SmallStrainUMAT2DInterfaceLaw() = default;
 
 Vector& SmallStrainUMAT2DInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {

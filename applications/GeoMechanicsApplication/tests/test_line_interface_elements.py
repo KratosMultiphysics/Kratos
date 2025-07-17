@@ -32,7 +32,7 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
         This test is equivalent to 'test_3_plus_3_line_interface_element_with_neumann_conditions',
         except that it uses a linear elastic interface UMAT for the constitutive law.
         """
-        file_path = test_helper.get_file_path(os.path.join('line_interface_elements', f'Neumann_single_stage_umat'))
+        file_path = test_helper.get_file_path(os.path.join('line_interface_elements', 'Neumann_single_stage_umat'))
         simulation = test_helper.run_kratos(file_path)
         self.assert_outputs_for_3_plus_3_line_interface_element(simulation)
 

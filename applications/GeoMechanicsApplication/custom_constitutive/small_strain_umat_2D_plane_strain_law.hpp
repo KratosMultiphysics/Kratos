@@ -42,12 +42,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-// Currently, these UMAT constititutive laws are based on the 3D version of the SmallStrainUMAT law (using VOIGT_SIZE_3D).
-// This seems counter-intuitive, for 2D laws, but currently this is needed because our UMATs
-// are not implemented for 2D plane strain and interface conditions (but expect matrix/vector sizes
-// to be consistent with a 3D model). Be careful with changing this, as it may lead to UMATs writing
-// to out-of-bounds memory locations. Locally, the static definition of VoigtSize is used to ensure copying/using
-// only the necessary data
+// Currently, these UMAT constititutive laws are based on the 3D version of the SmallStrainUMAT law
+// (using VOIGT_SIZE_3D). This seems counter-intuitive, for 2D laws, but currently this is needed
+// because our UMATs are not implemented for 2D plane strain and interface conditions (but expect
+// matrix/vector sizes to be consistent with a 3D model). Be careful with changing this, as it may
+// lead to UMATs writing to out-of-bounds memory locations. Locally, the static definition of
+// VoigtSize is used to ensure copying/using only the necessary data
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUMAT2DPlaneStrainLaw
     : public SmallStrainUMATLaw<VOIGT_SIZE_3D>
 {
@@ -67,12 +67,7 @@ public:
     /// Pointer definition of SmallStrainUMAT2DPlaneStrainLaw
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUMAT2DPlaneStrainLaw);
 
-    SmallStrainUMAT2DPlaneStrainLaw() = default;
-
-    explicit SmallStrainUMAT2DPlaneStrainLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
-        : SmallStrainUMATLaw<VOIGT_SIZE_3D>(std::move(pConstitutiveDimension))
-    {
-    }
+    explicit SmallStrainUMAT2DPlaneStrainLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
     //@}
     //@name Life Cycle
@@ -197,15 +192,11 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    }
+    void load(Serializer& rSerializer) override;
+
+    SmallStrainUMAT2DPlaneStrainLaw() = default;
 
     ///@}
     ///@name Private Inquiry
@@ -230,6 +221,6 @@ private:
 
 ///@}
 
-///@} addtogroup block
+///@} addtogroup blocksmal
 
 } // namespace Kratos

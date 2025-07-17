@@ -996,11 +996,11 @@ private:
     const SmallStrainUDSM2DInterfaceLaw mSmallStrainUDSM2DInterfaceLaw{};
     const SmallStrainUDSM3DInterfaceLaw mSmallStrainUDSM3DInterfaceLaw{};
 
-    // Currently, these UMAT constititutive laws are based on the 3D version of the SmallStrainUMAT law.
-    // This seems counter-intuitive, for 2D laws, but currently this is needed because our UMATs
-    // are not implemented for 2D plane strain and interface conditions (but expect matrix/vector sizes
-    // to be consistent with a 3D model). Be careful with changing this, as it may lead to UMATs writing
-    // to out-of-bounds memory locations.
+    // Currently, these UMAT constititutive laws are based on the 3D version of the SmallStrainUMAT
+    // law. This seems counter-intuitive, for 2D laws, but currently this is needed because our
+    // UMATs are not implemented for 2D plane strain and interface conditions (but expect
+    // matrix/vector sizes to be consistent with a 3D model). Be careful with changing this, as it
+    // may lead to UMATs writing to out-of-bounds memory locations.
     const SmallStrainUMATLaw<VOIGT_SIZE_3D> mSmallStrainUMAT3DLaw{std::make_unique<ThreeDimensional>()};
     const SmallStrainUMAT2DPlaneStrainLaw mSmallStrainUMAT2DPlaneStrainLaw{std::make_unique<ThreeDimensional>()};
     const SmallStrainUMAT2DInterfaceLaw mSmallStrainUMAT2DInterfaceLaw{std::make_unique<ThreeDimensional>()};

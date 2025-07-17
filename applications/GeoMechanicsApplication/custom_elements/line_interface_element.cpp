@@ -39,8 +39,8 @@ Vector CalculateDeterminantsOfJacobiansAtIntegrationPoints(const Geo::Integratio
 
 std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws,
                                                                      const Properties& rProperties,
-                                                                     const ProcessInfo& rProcessInfo,
-                                                                     const std::vector<Vector>& rRelativeDisplacements)
+                                                                     const std::vector<Vector>& rRelativeDisplacements,
+                                                                     const ProcessInfo& rProcessInfo)
 {
     auto get_constitutive_matrix = [&rProperties, &rProcessInfo](const auto& p_constitutive_law,
                                                                  auto rRelativeDisplacement) {
@@ -105,10 +105,10 @@ void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix
     // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
     // will also include water pressure contributions and coupling terms.
     const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
-    rLeftHandSideMatrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
+    rLeftHandSideMatrix         = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
         local_b_matrices,
         CalculateConstitutiveMatricesAtIntegrationPoints(
-            rProcessInfo, CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices)),
+            CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices), rProcessInfo),
         CalculateIntegrationCoefficients());
 }
 
@@ -239,10 +239,10 @@ std::vector<double> LineInterfaceElement::CalculateIntegrationCoefficients() con
 }
 
 std::vector<Matrix> LineInterfaceElement::CalculateConstitutiveMatricesAtIntegrationPoints(
-    const ProcessInfo& rProcessInfo, const std::vector<Vector>& rRelativeDisplacements)
+    const std::vector<Vector>& rRelativeDisplacements, const ProcessInfo& rProcessInfo)
 {
     return ::CalculateConstitutiveMatricesAtIntegrationPoints(mConstitutiveLaws, GetProperties(),
-                                                              rProcessInfo, rRelativeDisplacements);
+                                                              rRelativeDisplacements, rProcessInfo);
 }
 
 std::vector<Vector> LineInterfaceElement::CalculateRelativeDisplacementsAtIntegrationPoints(

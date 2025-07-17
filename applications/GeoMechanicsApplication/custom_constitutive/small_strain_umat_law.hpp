@@ -23,7 +23,6 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "constitutive_law_dimension.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -107,7 +106,7 @@ using pF_UMATMod = void (*)(double*       STRESS,
 /** Detail class definition.
  */
 
-template <unsigned int TVoigtSize>
+template <SizeType TVoigtSize>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUMATLaw : public ConstitutiveLaw
 {
 public:
@@ -120,9 +119,6 @@ public:
     /// The size type definition
     using SizeType = std::size_t;
 
-    /// Static definition of the dimension
-    static constexpr SizeType Dimension = N_DIM_3D;
-
     /// Pointer definition of SmallStrainUMATLaw
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUMATLaw);
 
@@ -130,14 +126,13 @@ public:
     //@name Life Cycle
     //@{
 
-    SmallStrainUMATLaw() = default;
     explicit SmallStrainUMATLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
     ~SmallStrainUMATLaw() override;
     SmallStrainUMATLaw(const SmallStrainUMATLaw& rOther);
     SmallStrainUMATLaw& operator=(const SmallStrainUMATLaw& rOther);
-    SmallStrainUMATLaw(SmallStrainUMATLaw&&)            = delete;
-    SmallStrainUMATLaw& operator=(SmallStrainUMATLaw&&) = delete;
+    SmallStrainUMATLaw(SmallStrainUMATLaw&&) noexcept            = delete;
+    SmallStrainUMATLaw& operator=(SmallStrainUMATLaw&&) noexcept = delete;
 
     /**
      * @brief Clone method
@@ -153,7 +148,7 @@ public:
     /**
      * @brief Dimension of the law:
      */
-    SizeType WorkingSpaceDimension() override { return mpConstitutiveDimension->GetDimension(); }
+    SizeType WorkingSpaceDimension() override;
 
     /**
      * @brief Voigt tensor size:
@@ -161,8 +156,8 @@ public:
     [[nodiscard]] SizeType GetStrainSize() const override
     {
         // In other constitutive laws, we use mpConstitutiveDimension->GetStrainSize() here, but
-        // due to the C/Fortran interface, we need the VoigtSize to be known compile time. Therefore,
-        // we return the template argument TVoigtSize here.
+        // due to the C/Fortran interface, we need the VoigtSize to be known compile time.
+        // Therefore, we return the template argument TVoigtSize here.
         return TVoigtSize;
     }
 
@@ -350,6 +345,9 @@ protected:
     ///@}
     ///@name Protected  Access
     ///@{
+
+    SmallStrainUMATLaw();
+
     virtual void UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues);
     virtual void UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters& rValues);
     virtual void SetExternalStressVector(Vector& rStressVector);
@@ -416,25 +414,8 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.save("InitializedModel", mIsModelInitialized);
-        rSerializer.save("StressVectorFinalized", mStressVectorFinalized);
-        rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
-        rSerializer.save("StateVariablesFinalized", mStateVariablesFinalized);
-        rSerializer.save("ConstitutitiveLawDimension", mpConstitutiveDimension);
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.load("InitializedModel", mIsModelInitialized);
-        rSerializer.load("StressVectorFinalized", mStressVectorFinalized);
-        rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
-        rSerializer.load("StateVariablesFinalized", mStateVariablesFinalized);
-        rSerializer.load("ConstitutitiveLawDimension", mpConstitutiveDimension);
-    }
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Inquiry

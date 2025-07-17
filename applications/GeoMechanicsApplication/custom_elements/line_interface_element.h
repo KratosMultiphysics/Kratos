@@ -69,8 +69,8 @@ private:
 
     std::vector<Matrix> CalculateLocalBMatricesAtIntegrationPoints() const;
     std::vector<double> CalculateIntegrationCoefficients() const;
-    std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(const ProcessInfo& rProcessInfo,
-                                                                         const std::vector<Vector>& rRelativeDisplacements);
+    std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements,
+                                                                         const ProcessInfo& rProcessInfo);
     std::vector<Vector> CalculateRelativeDisplacementsAtIntegrationPoints(const std::vector<Matrix>& rLocalBMatrices) const;
     std::vector<Vector> CalculateTractionsAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements,
                                                               const ProcessInfo& rProcessInfo);
