@@ -8,8 +8,9 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Richard Faasse
+//                   Gennady Markelov
 //
-#include "line_interface_element.h"
+#include "interface_element.h"
 
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
@@ -17,6 +18,7 @@
 #include "custom_utilities/geometry_utilities.h"
 #include "interface_stress_state.h"
 #include "lobatto_integration_scheme.h"
+#include "lumped_integration_scheme.h"
 
 namespace
 {
@@ -65,42 +67,54 @@ std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(const std::
 namespace Kratos
 {
 
-LineInterfaceElement::LineInterfaceElement(IndexType NewId,
-                                           const Geometry<GeometricalObject::NodeType>::Pointer& rGeometry,
-                                           const Properties::Pointer& rProperties)
-    : Element(NewId, rGeometry, rProperties),
-      mIntegrationScheme(std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2)),
-      mStressStatePolicy(std::make_unique<Line2DInterfaceStressState>())
+InterfaceElement::InterfaceElement(IndexType                                             NewId,
+                                   const Geometry<GeometricalObject::NodeType>::Pointer& rGeometry,
+                                   const Properties::Pointer&         rProperties,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+    : Element(NewId, rGeometry, rProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
+    MakeIntegrationSchemeAndAssignFunction();
 }
 
-LineInterfaceElement::LineInterfaceElement(IndexType NewId, const GeometryType::Pointer& rGeometry)
-    : Element(NewId, rGeometry),
-      mIntegrationScheme(std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2)),
-      mStressStatePolicy(std::make_unique<Line2DInterfaceStressState>())
+InterfaceElement::InterfaceElement(IndexType                          NewId,
+                                   const GeometryType::Pointer&       rGeometry,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+    : Element(NewId, rGeometry), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
+    MakeIntegrationSchemeAndAssignFunction();
 }
 
-Element::Pointer LineInterfaceElement::Create(IndexType               NewId,
-                                              const NodesArrayType&   rNodes,
-                                              PropertiesType::Pointer pProperties) const
+void InterfaceElement::MakeIntegrationSchemeAndAssignFunction()
+{
+    if (GetGeometry().LocalSpaceDimension() == 1) {
+        mIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);
+        mfpCalculateRotationMatrix = GeometryUtilities::Calculate2DRotationMatrixForLineGeometry;
+    } else {
+        mIntegrationScheme = std::make_unique<LumpedIntegrationScheme>(GetGeometry().PointsNumber() / 2);
+        mfpCalculateRotationMatrix = GeometryUtilities::Calculate3DRotationMatrixForPlaneGeometry;
+    }
+}
+
+Element::Pointer InterfaceElement::Create(IndexType               NewId,
+                                          const NodesArrayType&   rNodes,
+                                          PropertiesType::Pointer pProperties) const
 {
     return Create(NewId, this->GetGeometry().Create(rNodes), pProperties);
 }
 
-Element::Pointer LineInterfaceElement::Create(IndexType               NewId,
-                                              GeometryType::Pointer   pGeometry,
-                                              PropertiesType::Pointer pProperties) const
+Element::Pointer InterfaceElement::Create(IndexType               NewId,
+                                          GeometryType::Pointer   pGeometry,
+                                          PropertiesType::Pointer pProperties) const
 {
-    return make_intrusive<LineInterfaceElement>(NewId, pGeometry, pProperties);
+    return make_intrusive<InterfaceElement>(NewId, pGeometry, pProperties, mpStressStatePolicy->Clone());
 }
 
-void LineInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
+void InterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
     rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
-void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo)
+void InterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo)
 {
     // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
     // will also include water pressure contributions and coupling terms.
@@ -112,7 +126,7 @@ void LineInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix
         CalculateIntegrationCoefficients());
 }
 
-void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
+void InterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
                                                   const ProcessInfo&   rProcessInfo)
 {
     // Currently, the right-hand side only includes the internal force vector. In the future, it
@@ -125,17 +139,17 @@ void LineInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHan
         local_b_matrices, tractions, integration_coefficients);
 }
 
-void LineInterfaceElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                                                VectorType&        rRightHandSideVector,
-                                                const ProcessInfo& rCurrentProcessInfo)
+void InterfaceElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                                            VectorType&        rRightHandSideVector,
+                                            const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
     CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 }
 
-void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                                        std::vector<Vector>&    rOutput,
-                                                        const ProcessInfo&      rCurrentProcessInfo)
+void InterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                                    std::vector<Vector>&    rOutput,
+                                                    const ProcessInfo&      rCurrentProcessInfo)
 {
     if (rVariable == STRAIN) {
         const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
@@ -149,9 +163,9 @@ void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& 
     }
 }
 
-void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                                        std::vector<ConstitutiveLaw::Pointer>& rOutput,
-                                                        const ProcessInfo&)
+void InterfaceElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                                                    std::vector<ConstitutiveLaw::Pointer>& rOutput,
+                                                    const ProcessInfo&)
 {
     KRATOS_ERROR_IF_NOT(rVariable == CONSTITUTIVE_LAW)
         << "Cannot calculate on integration points: got unexpected variable " << rVariable.Name() << "\n";
@@ -159,12 +173,12 @@ void LineInterfaceElement::CalculateOnIntegrationPoints(const Variable<Constitut
     rOutput = mConstitutiveLaws;
 }
 
-void LineInterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
+void InterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
     rElementalDofList = GetDofs();
 }
 
-void LineInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void InterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     Element::Initialize(rCurrentProcessInfo);
 
@@ -179,7 +193,7 @@ void LineInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     }
 }
 
-int LineInterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+int InterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     int error = Element::Check(rCurrentProcessInfo);
     if (error != 0) return error;
@@ -198,14 +212,14 @@ int LineInterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     return 0;
 }
 
-Element::DofsVectorType LineInterfaceElement::GetDofs() const
+Element::DofsVectorType InterfaceElement::GetDofs() const
 {
     const auto no_Pw_geometry_yet = Geometry<Node>{};
     return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetGeometry(), no_Pw_geometry_yet,
                                                       GetGeometry().WorkingSpaceDimension());
 }
 
-std::vector<Matrix> LineInterfaceElement::CalculateLocalBMatricesAtIntegrationPoints() const
+std::vector<Matrix> InterfaceElement::CalculateLocalBMatricesAtIntegrationPoints() const
 {
     const auto& r_integration_points = mIntegrationScheme->GetIntegrationPoints();
     const auto  shape_function_values_at_integration_points =
@@ -213,15 +227,14 @@ std::vector<Matrix> LineInterfaceElement::CalculateLocalBMatricesAtIntegrationPo
 
     auto result = std::vector<Matrix>{};
     result.reserve(shape_function_values_at_integration_points.size());
-    auto calculate_local_b_matrix = [&r_geometry = GetGeometry(), p_policy = mStressStatePolicy.get()](
-                                        const auto& rShapeFunctionValuesAtIntegrationPoint,
-                                        const auto& rIntegrationPoint) {
+    auto calculate_local_b_matrix = [&r_geometry = GetGeometry(), this](const auto& rShapeFunctionValuesAtIntegrationPoint,
+                                                                        const auto& rIntegrationPoint) {
         // For interface elements, the shape function gradients are not used, since these are
         // non-continuum elements. Therefore, we pass an empty matrix.
+        const auto rotation_matrix = mfpCalculateRotationMatrix(r_geometry, rIntegrationPoint);
         const auto dummy_gradients = Matrix{};
-        return Matrix{prod(
-            GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(r_geometry, rIntegrationPoint),
-            p_policy->CalculateBMatrix(dummy_gradients, rShapeFunctionValuesAtIntegrationPoint, r_geometry))};
+        return Matrix{prod(rotation_matrix, mpStressStatePolicy->CalculateBMatrix(dummy_gradients, rShapeFunctionValuesAtIntegrationPoint,
+                                                                                  r_geometry))};
     };
     std::transform(shape_function_values_at_integration_points.begin(),
                    shape_function_values_at_integration_points.end(), r_integration_points.begin(),
@@ -230,7 +243,7 @@ std::vector<Matrix> LineInterfaceElement::CalculateLocalBMatricesAtIntegrationPo
     return result;
 }
 
-std::vector<double> LineInterfaceElement::CalculateIntegrationCoefficients() const
+std::vector<double> InterfaceElement::CalculateIntegrationCoefficients() const
 {
     const auto determinants_of_jacobian = CalculateDeterminantsOfJacobiansAtIntegrationPoints(
         mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
@@ -238,15 +251,14 @@ std::vector<double> LineInterfaceElement::CalculateIntegrationCoefficients() con
                                                     determinants_of_jacobian, this);
 }
 
-std::vector<Matrix> LineInterfaceElement::CalculateConstitutiveMatricesAtIntegrationPoints(
+std::vector<Matrix> InterfaceElement::CalculateConstitutiveMatricesAtIntegrationPoints(
     const std::vector<Vector>& rRelativeDisplacements, const ProcessInfo& rProcessInfo)
 {
     return ::CalculateConstitutiveMatricesAtIntegrationPoints(mConstitutiveLaws, GetProperties(),
                                                               rRelativeDisplacements, rProcessInfo);
 }
 
-std::vector<Vector> LineInterfaceElement::CalculateRelativeDisplacementsAtIntegrationPoints(
-    const std::vector<Matrix>& rLocalBMatrices) const
+std::vector<Vector> InterfaceElement::CalculateRelativeDisplacementsAtIntegrationPoints(const std::vector<Matrix>& rLocalBMatrices) const
 {
     const Geometry<Node> no_Pw_geometry;
     const auto           dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(
@@ -266,7 +278,7 @@ std::vector<Vector> LineInterfaceElement::CalculateRelativeDisplacementsAtIntegr
     return result;
 }
 
-std::vector<Vector> LineInterfaceElement::CalculateTractionsAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements,
+std::vector<Vector> InterfaceElement::CalculateTractionsAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements,
                                                                                 const ProcessInfo& rProcessInfo)
 {
     // We have to make a copy of each relative displacement vector, since setting it at the
@@ -292,4 +304,9 @@ std::vector<Vector> LineInterfaceElement::CalculateTractionsAtIntegrationPoints(
     return result;
 }
 
+// Instances of this class can not be copied but can be moved. Check that at compile time.
+static_assert(!std::is_copy_constructible_v<InterfaceElement>);
+static_assert(!std::is_copy_assignable_v<InterfaceElement>);
+static_assert(std::is_move_constructible_v<InterfaceElement>);
+static_assert(std::is_move_assignable_v<InterfaceElement>);
 } // namespace Kratos

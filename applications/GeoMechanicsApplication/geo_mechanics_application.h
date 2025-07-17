@@ -91,7 +91,7 @@
 #include "custom_elements/calculation_contribution.h"
 #include "custom_elements/drained_U_Pw_small_strain_element.hpp"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
-#include "custom_elements/line_interface_element.h"
+#include "custom_elements/interface_element.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_elements/steady_state_Pw_element.hpp"
 #include "custom_elements/steady_state_Pw_interface_element.hpp"
@@ -134,6 +134,7 @@
 #include "custom_constitutive/small_strain_umat_law.hpp"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_constitutive/truss_backbone_constitutive_law.h"
+#include "custom_elements/interface_stress_state.h"
 
 namespace Kratos
 {
@@ -401,12 +402,6 @@ private:
     const SteadyStatePwPipingElement<2, 4> mSteadyStatePwPipingElement2D4N{
         0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
         std::make_unique<PlaneStrainStressState>()};
-    const SteadyStatePwPipingElement<3, 6> mSteadyStatePwPipingElement3D6N{
-        0, Kratos::make_shared<PrismInterface3D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<ThreeDimensionalStressState>()};
-    const SteadyStatePwPipingElement<3, 8> mSteadyStatePwPipingElement3D8N{
-        0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
     const GeoSteadyStatePwPipingElement<2, 2> mGeoSteadyStatePwPipingElement2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
     const GeoSteadyStatePwPipingElement<3, 2> mGeoSteadyStatePwPipingElement3D2N{
@@ -599,10 +594,12 @@ private:
         0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<ThreeDimensionalStressState>()};
 
-    const LineInterfaceElement mULineInterfacePlaneStrainElement2Plus2N{
-        0, Kratos::make_shared<InterfaceGeometry<Line2D2<NodeType>>>(Element::GeometryType::PointsArrayType(4))};
-    const LineInterfaceElement mULineInterfacePlaneStrainElement3Plus3N{
-        0, Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6))};
+    const InterfaceElement mULineInterfacePlaneStrainElement2Plus2N{
+        0, Kratos::make_shared<InterfaceGeometry<Line2D2<NodeType>>>(Element::GeometryType::PointsArrayType(4)),
+        std::make_unique<Line2DInterfaceStressState>()};
+    const InterfaceElement mULineInterfacePlaneStrainElement3Plus3N{
+        0, Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
+        std::make_unique<Line2DInterfaceStressState>()};
 
     // Updated-Lagrangian elements:
     const UPwUpdatedLagrangianElement<2, 3> mUPwUpdatedLagrangianElement2D3N{
