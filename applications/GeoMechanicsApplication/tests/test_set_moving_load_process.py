@@ -7,7 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
 
-class TestGeoSetMovingLoadProcess(KratosUnittest.TestCase):
+class KratosGeoMechanicsSetMovingLoadProcessTests(KratosUnittest.TestCase):
 
     @staticmethod
     def setup_strategy(mp):
@@ -48,16 +48,23 @@ class TestGeoSetMovingLoadProcess(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, mp)
 
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, mp)
+
         return strategy
 
     def test_SetMovingLoadWithMotionTypeTotal(self):
         """
-        tests set moving load with 'motion_type' = total
+        tests set moving load with 'motion_type' = total. Which means that the TOTAL_DISPLACEMENT and TOTAL_ROTATION
+        at the position of the load is calculated. If 'motion_type' is set to 'base', the DISPLACEMENT and ROTATION
+        at the position of the load is calculated.
         """
 
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         mp.AddNodalSolutionStepVariable(KratosGeo.TOTAL_DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosGeo.TOTAL_ROTATION)
 
@@ -66,10 +73,16 @@ class TestGeoSetMovingLoadProcess(KratosUnittest.TestCase):
         mp.CreateNewNode(1, 0.0, 0.0, 0.0)
         mp.CreateNewNode(2, second_coord[0], second_coord[1], 0.0)
 
-        strategy = self.setup_strategy(mp)
-
         # create condition
         cond = mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1, 2], mp.GetProperties()[1])
+        nodes = cond.GetNodes()
+        nodes[0].SetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT_Y, 1.0)
+        nodes[1].SetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT_Y, 2.0)
+
+        nodes[0].SetSolutionStepValue(KratosGeo.TOTAL_ROTATION_Z, 0.0)
+        nodes[1].SetSolutionStepValue(KratosGeo.TOTAL_ROTATION_Z, 1.0)
+
+        strategy = self.setup_strategy(mp)
 
         parameters = KratosMultiphysics.Parameters("""
                 {
@@ -79,7 +92,7 @@ class TestGeoSetMovingLoadProcess(KratosUnittest.TestCase):
                     "load"            : [0.0, -2.0, 0.0],
                     "direction"       : [1,1,1],
                     "velocity"        : 1,
-                    "origin"          : [0,0,0],
+                    "origin"          : [0.5,0,0],
                     "motion_type"     : "total"
                 }
                 """
@@ -92,13 +105,18 @@ class TestGeoSetMovingLoadProcess(KratosUnittest.TestCase):
         # initialise and set load
         process.ExecuteInitialize()
 
-
         # set load on node
         process.ExecuteInitializeSolutionStep()
         strategy.InitializeSolutionStep()
 
-        # Work in progress
+        # this calculates the total displacement and rotation at the position of the load
         strategy.SolveSolutionStep()
+
+        calculated_tot_displacement = cond.GetValue(KratosGeo.TOTAL_DISPLACEMENT)
+        calculated_tot_rotation = cond.GetValue(KratosGeo.TOTAL_ROTATION)
+
+        self.assertVectorAlmostEqual(calculated_tot_displacement, [0.0, 1.375, 0.0], 6)
+        self.assertVectorAlmostEqual(calculated_tot_rotation, [0.0, 0.0, 1.25], 6)
 
 
 if __name__ == '__main__':
