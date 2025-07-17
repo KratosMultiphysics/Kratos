@@ -27,6 +27,7 @@
 #include "input_output/logger.h"
 #include "utilities/quaternion.h"
 #include "constraints/linear_master_slave_constraint.h"
+#include "solving_strategies/builder_and_solvers/p_multigrid/linear_multifreedom_constraint.hpp" // LinearMultifreedomConstraint
 
 // Geometries definition
 #include "geometries/register_kratos_components_for_geometry.h"
@@ -489,6 +490,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     // Master-Slave base constraint
     const MasterSlaveConstraint mMasterSlaveConstraint;
     const LinearMasterSlaveConstraint mLinearMasterSlaveConstraint;
+    const LinearMultifreedomConstraint mLinearMultifreedomConstraint;
 
     // Periodic Condition
     const PeriodicCondition mPeriodicCondition;
