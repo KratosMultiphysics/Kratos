@@ -96,7 +96,7 @@ GeometryType::Pointer GenerateBSplineCurveOnBSplineSurface2d()
     int p_curve = 1;
 
     // Create the 2D embedded curve
-    auto curve = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<NodeType>>>(control_points_curve, p_curve, knot_vector_curve);
+    auto curve = Kratos::make_intrusive<NurbsCurveGeometry<2, PointerVector<NodeType>>>(control_points_curve, p_curve, knot_vector_curve);
 
     // Assign the points belonging to the surface
     PointerVector<NodeType> control_points_surface;
@@ -138,11 +138,11 @@ GeometryType::Pointer GenerateBSplineCurveOnBSplineSurface2d()
     int q_surface = 2;
 
     // Create a 2D surface
-    auto surface = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(control_points_surface, p_surface,
+    auto surface = Kratos::make_intrusive<NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(control_points_surface, p_surface,
             q_surface, knot_vector_u_surface, knot_vector_v_surface);
 
     // Create and return a curve on surface geometry
-    GeometryType::Pointer nurbs_curve_on_surface = Kratos::make_shared<NurbsCurveOnSurfaceGeometry<3, PointerVector<NodeType>, PointerVector<NodeType>>>(surface, curve);
+    GeometryType::Pointer nurbs_curve_on_surface = Kratos::make_intrusive<NurbsCurveOnSurfaceGeometry<3, PointerVector<NodeType>, PointerVector<NodeType>>>(surface, curve);
     return nurbs_curve_on_surface;
 }
 
@@ -189,10 +189,10 @@ GeometryType::Pointer GenerateBrepSplineSurface2d()
     int q_surface = 2;
 
     // Create a 2D surface
-    NurbsSurfaceGeometry<3, PointerVector<NodeType>>::Pointer nurbs_surface = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(control_points_surface, p_surface,
+    NurbsSurfaceGeometry<3, PointerVector<NodeType>>::Pointer nurbs_surface = Kratos::make_intrusive<NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(control_points_surface, p_surface,
             q_surface, knot_vector_u_surface, knot_vector_v_surface);
 
-    auto brep_surface = Kratos::make_shared<BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(nurbs_surface);
+    auto brep_surface = Kratos::make_intrusive<BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(nurbs_surface);
 
     return brep_surface;
 }
@@ -224,7 +224,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Line_Inside, KratosMappingApplicationS
 {
     auto node_1(Kratos::make_intrusive<NodeType>(1, 0.0, 0.0, 0.0));
     auto node_2(Kratos::make_intrusive<NodeType>(2, 1.0, 0.0, 0.0));
-    const GeometryType::Pointer p_geom(Kratos::make_shared<Line2D2<NodeType>>(node_1, node_2));
+    const GeometryType::Pointer p_geom(Kratos::make_intrusive<Line2D2<NodeType>>(node_1, node_2));
 
     double proj_dist = 0.2;
     const Point point_to_project(0.25, proj_dist, 0.0);
@@ -244,7 +244,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Line_Outside, KratosMappingApplication
 {
     auto node_1(Kratos::make_intrusive<NodeType>(1, 0.0, 0.0, 0.0));
     auto node_2(Kratos::make_intrusive<NodeType>(2, 1.0, 0.0, 0.0));
-    const GeometryType::Pointer p_geom(Kratos::make_shared<Line2D2<NodeType>>(node_1, node_2));
+    const GeometryType::Pointer p_geom(Kratos::make_intrusive<Line2D2<NodeType>>(node_1, node_2));
 
     double proj_dist = 0.2;
     const Point point_to_project(-0.1, proj_dist, 0.0);
@@ -264,7 +264,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Line_Closest_Point, KratosMappingAppli
 {
     auto node_1(Kratos::make_intrusive<NodeType>(1, 0.0, 0.0, 0.0));
     auto node_2(Kratos::make_intrusive<NodeType>(2, 1.0, 0.0, 0.0));
-    const GeometryType::Pointer p_geom(Kratos::make_shared<Line2D2<NodeType>>(node_1, node_2));
+    const GeometryType::Pointer p_geom(Kratos::make_intrusive<Line2D2<NodeType>>(node_1, node_2));
 
     const Point point_to_project(-0.35, 0.2, 0.0);
     const double local_coord_tol = 0.0;
@@ -285,7 +285,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Line_Unspecified, KratosMappingApplica
 {
     auto node_1(Kratos::make_intrusive<NodeType>(1, 0.0, 0.0, 0.0));
     auto node_2(Kratos::make_intrusive<NodeType>(2, 1.0, 0.0, 0.0));
-    const GeometryType::Pointer p_geom(Kratos::make_shared<Line2D2<NodeType>>(node_1, node_2));
+    const GeometryType::Pointer p_geom(Kratos::make_intrusive<Line2D2<NodeType>>(node_1, node_2));
 
     double proj_dist = 0.2;
     const Point point_to_project(-0.25, proj_dist, 0.0);
@@ -306,7 +306,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Triangle_Inside, KratosMappingApplicat
     auto node_2(Kratos::make_intrusive<NodeType>(2, 1.0, 0.0, 0.0));
     auto node_3(Kratos::make_intrusive<NodeType>(3, 1.0, 1.0, 0.0));
 
-    const GeometryType::Pointer p_geom(Kratos::make_shared<Triangle3D3<NodeType>>(node_1, node_2, node_3));
+    const GeometryType::Pointer p_geom(Kratos::make_intrusive<Triangle3D3<NodeType>>(node_1, node_2, node_3));
 
     double proj_dist = 0.35;
     const Point point_to_project(0.5, 0.3, proj_dist);
@@ -328,7 +328,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Triangle_Outside, KratosMappingApplica
     auto node_2(Kratos::make_intrusive<NodeType>(2, 1.0, 0.0, 0.0));
     auto node_3(Kratos::make_intrusive<NodeType>(3, 1.0, 1.0, 0.0));
 
-    const GeometryType::Pointer p_geom(Kratos::make_shared<Triangle3D3<NodeType>>(node_1, node_2, node_3));
+    const GeometryType::Pointer p_geom(Kratos::make_intrusive<Triangle3D3<NodeType>>(node_1, node_2, node_3));
 
     double proj_dist = 0.35;
     const Point point_to_project(1.1, 0.1, proj_dist);
@@ -350,7 +350,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Triangle_Line, KratosMappingApplicatio
     auto node_2(Kratos::make_intrusive<NodeType>(2, 1.0, 0.0, 0.0));
     auto node_3(Kratos::make_intrusive<NodeType>(3, 1.0, 1.0, 0.0));
 
-    const GeometryType::Pointer p_geom(Kratos::make_shared<Triangle3D3<NodeType>>(node_1, node_2, node_3));
+    const GeometryType::Pointer p_geom(Kratos::make_intrusive<Triangle3D3<NodeType>>(node_1, node_2, node_3));
 
     const Point point_to_project(1.1, 0.1, 0.35);
     const double local_coord_tol = 0.0;
@@ -373,7 +373,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Triangle_Closest_Point, KratosMappingA
     auto node_2(Kratos::make_intrusive<NodeType>(2, 1.0, 0.0, 0.0));
     auto node_3(Kratos::make_intrusive<NodeType>(3, 1.0, 1.0, 0.0));
 
-    const GeometryType::Pointer p_geom(Kratos::make_shared<Triangle3D3<NodeType>>(node_1, node_2, node_3));
+    const GeometryType::Pointer p_geom(Kratos::make_intrusive<Triangle3D3<NodeType>>(node_1, node_2, node_3));
 
     const Point point_to_project(1.1, -1.2, 0.0);
     const double local_coord_tol = 0.0;
@@ -396,7 +396,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Triangle_Unspecified, KratosMappingApp
     auto node_2(Kratos::make_intrusive<NodeType>(2, 1.0, 0.0, 0.0));
     auto node_3(Kratos::make_intrusive<NodeType>(3, 1.0, 1.0, 0.0));
 
-    const GeometryType::Pointer p_geom(Kratos::make_shared<Triangle3D3<NodeType>>(node_1, node_2, node_3));
+    const GeometryType::Pointer p_geom(Kratos::make_intrusive<Triangle3D3<NodeType>>(node_1, node_2, node_3));
 
     const Point point_to_project(1.1, -0.1, 0.0);
     const double local_coord_tol = 0.0;
@@ -418,7 +418,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Quadrilateral_Inside, KratosMappingApp
     auto node_3(Kratos::make_intrusive<NodeType>(3, 1.0, 1.0, 0.0));
     auto node_4(Kratos::make_intrusive<NodeType>(4, 0.0, 1.0, 0.0));
 
-    const GeometryType::Pointer p_geom(Kratos::make_shared<Quadrilateral3D4<NodeType>>(node_1, node_2, node_3, node_4));
+    const GeometryType::Pointer p_geom(Kratos::make_intrusive<Quadrilateral3D4<NodeType>>(node_1, node_2, node_3, node_4));
 
     double proj_dist = 0.35;
     const Point point_to_project(0.5, 0.3, proj_dist);
@@ -441,7 +441,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Quadrilateral_Outside, KratosMappingAp
     auto node_3(Kratos::make_intrusive<NodeType>(3, 1.0, 1.0, 0.0));
     auto node_4(Kratos::make_intrusive<NodeType>(4, 0.0, 1.0, 0.0));
 
-    const GeometryType::Pointer p_geom(Kratos::make_shared<Quadrilateral3D4<NodeType>>(node_1, node_2, node_3, node_4));
+    const GeometryType::Pointer p_geom(Kratos::make_intrusive<Quadrilateral3D4<NodeType>>(node_1, node_2, node_3, node_4));
 
     double proj_dist = 0.35;
     const Point point_to_project(-0.1, -0.1, proj_dist);
@@ -464,7 +464,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Tetrahedra_Inside, KratosMappingApplic
     auto node_3(Kratos::make_intrusive<NodeType>(3, 1.0, 1.0, 0.0));
     auto node_4(Kratos::make_intrusive<NodeType>(4, 0.5, 1.0, 1.0));
 
-    const GeometryType::Pointer p_geom(Kratos::make_shared<Tetrahedra3D4<NodeType>>(node_1, node_2, node_3, node_4));
+    const GeometryType::Pointer p_geom(Kratos::make_intrusive<Tetrahedra3D4<NodeType>>(node_1, node_2, node_3, node_4));
 
     const Point point_to_project(0.5, 0.3, 0.2);
     const double local_coord_tol = 0.2;
@@ -491,7 +491,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Hexahedra_Inside, KratosMappingApplica
     auto node_7(Kratos::make_intrusive<NodeType>(7, 1.0, 1.0, 1.0));
     auto node_8(Kratos::make_intrusive<NodeType>(8, 0.0, 1.0, 1.0));
 
-    const GeometryType::Pointer p_geom(Kratos::make_shared<Hexahedra3D8<NodeType>>(node_1, node_2, node_3, node_4, node_5, node_6, node_7, node_8));
+    const GeometryType::Pointer p_geom(Kratos::make_intrusive<Hexahedra3D8<NodeType>>(node_1, node_2, node_3, node_4, node_5, node_6, node_7, node_8));
 
     const Point point_to_project(0.5, 0.3, 0.2);
     const double local_coord_tol = 0.2;
@@ -518,7 +518,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProjectionUtils_Hexahedra_Outside, KratosMappingApplic
     auto node_7(Kratos::make_intrusive<NodeType>(7, 1.0, 1.0, 1.0));
     auto node_8(Kratos::make_intrusive<NodeType>(8, 0.0, 1.0, 1.0));
 
-    const GeometryType::Pointer p_geom(Kratos::make_shared<Hexahedra3D8<NodeType>>(node_1, node_2, node_3, node_4, node_5, node_6, node_7, node_8));
+    const GeometryType::Pointer p_geom(Kratos::make_intrusive<Hexahedra3D8<NodeType>>(node_1, node_2, node_3, node_4, node_5, node_6, node_7, node_8));
 
     const Point point_to_project(0.5, 0.5, -0.1);
     const double local_coord_tol = 0.2;

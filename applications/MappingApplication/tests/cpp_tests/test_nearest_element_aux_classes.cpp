@@ -135,9 +135,9 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_ValidProjectionExists, Kra
     auto node_4(Kratos::make_intrusive<NodeType>(4, 0.0, -1.0, 0.0));
     auto node_5(Kratos::make_intrusive<NodeType>(5, 2.0, -1.0, 0.0));
 
-    const Geometry<NodeType>::Pointer tria_1(Kratos::make_shared<Triangle3D3<NodeType>>(node_1, node_2, node_3));
-    const Geometry<NodeType>::Pointer tria_2(Kratos::make_shared<Triangle3D3<NodeType>>(node_4, node_2, node_1));
-    const Geometry<NodeType>::Pointer tria_3(Kratos::make_shared<Triangle3D3<NodeType>>(node_4, node_5, node_2));
+    const Geometry<NodeType>::Pointer tria_1(Kratos::make_intrusive<Triangle3D3<NodeType>>(node_1, node_2, node_3));
+    const Geometry<NodeType>::Pointer tria_2(Kratos::make_intrusive<Triangle3D3<NodeType>>(node_4, node_2, node_1));
+    const Geometry<NodeType>::Pointer tria_3(Kratos::make_intrusive<Triangle3D3<NodeType>>(node_4, node_5, node_2));
 
     InterfaceObject::Pointer interface_geom_obj_1(Kratos::make_shared<InterfaceGeometryObject>(tria_1.get()));
     InterfaceObject::Pointer interface_geom_obj_2(Kratos::make_shared<InterfaceGeometryObject>(tria_2.get()));
@@ -191,7 +191,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_WithoutApproximation, Krat
     auto node_2(Kratos::make_intrusive<NodeType>(2, 1.0, 0.0, 0.0));
     auto node_3(Kratos::make_intrusive<NodeType>(3, 0.0, -1.0, 0.0));
 
-    const Geometry<NodeType>::Pointer tria(Kratos::make_shared<Triangle3D3<NodeType>>(node_3, node_2, node_1));
+    const Geometry<NodeType>::Pointer tria(Kratos::make_intrusive<Triangle3D3<NodeType>>(node_3, node_2, node_1));
 
     InterfaceObject::Pointer interface_geom_obj(Kratos::make_shared<InterfaceGeometryObject>(tria.get()));
 
@@ -352,7 +352,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Serialization, KratosMappi
     auto node_2(Kratos::make_intrusive<NodeType>(2, 1.0, 0.0, 0.0));
     auto node_4(Kratos::make_intrusive<NodeType>(4, 0.0, -1.0, 0.0));
 
-    const Geometry<NodeType>::Pointer tria_2(Kratos::make_shared<Triangle3D3<NodeType>>(node_4, node_2, node_1));
+    const Geometry<NodeType>::Pointer tria_2(Kratos::make_intrusive<Triangle3D3<NodeType>>(node_4, node_2, node_1));
 
     InterfaceObject::Pointer interface_geom_obj_2(Kratos::make_shared<InterfaceGeometryObject>(tria_2.get()));
 
@@ -440,7 +440,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystem_Line, Kra
     node_1->SetValue(INTERFACE_EQUATION_ID, 35);
     node_2->SetValue(INTERFACE_EQUATION_ID, 18);
 
-    const Geometry<NodeType>::Pointer p_geom(Kratos::make_shared<Line2D2<NodeType>>(node_1, node_2));
+    const Geometry<NodeType>::Pointer p_geom(Kratos::make_intrusive<Line2D2<NodeType>>(node_1, node_2));
 
     MatrixResultsType exp_loc_matrix {{0.5, 0.5}};
     EqIDVectorResultsType exp_origin_ids {35, 18};
@@ -458,7 +458,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystem_Triangle,
     node_2->SetValue(INTERFACE_EQUATION_ID, 18);
     node_3->SetValue(INTERFACE_EQUATION_ID, 108);
 
-    const Geometry<NodeType>::Pointer p_geom(Kratos::make_shared<Triangle3D3<NodeType>>(node_1, node_2, node_3));
+    const Geometry<NodeType>::Pointer p_geom(Kratos::make_intrusive<Triangle3D3<NodeType>>(node_1, node_2, node_3));
 
     MatrixResultsType exp_loc_matrix {{0.5, 0.2, 0.3}};
     EqIDVectorResultsType exp_origin_ids {35, 18, 108};
@@ -478,7 +478,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystem_Quad, Kra
     node_3->SetValue(INTERFACE_EQUATION_ID, 108);
     node_4->SetValue(INTERFACE_EQUATION_ID, 95);
 
-    const Geometry<NodeType>::Pointer p_geom(Kratos::make_shared<Quadrilateral3D4<NodeType>>(node_1, node_2, node_3, node_4));
+    const Geometry<NodeType>::Pointer p_geom(Kratos::make_intrusive<Quadrilateral3D4<NodeType>>(node_1, node_2, node_3, node_4));
 
     MatrixResultsType exp_loc_matrix {{0.35, 0.35, 0.15, 0.15}};
     EqIDVectorResultsType exp_origin_ids {35, 18, 108, 95};
@@ -498,7 +498,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystem_Tetra, Kr
     node_3->SetValue(INTERFACE_EQUATION_ID, 108);
     node_4->SetValue(INTERFACE_EQUATION_ID, 95);
 
-    const Geometry<NodeType>::Pointer p_geom(Kratos::make_shared<Tetrahedra3D4<NodeType>>(node_1, node_2, node_3, node_4));
+    const Geometry<NodeType>::Pointer p_geom(Kratos::make_intrusive<Tetrahedra3D4<NodeType>>(node_1, node_2, node_3, node_4));
 
     MatrixResultsType exp_loc_matrix {{0.28, 0.28, 0.24, 0.2}};
     EqIDVectorResultsType exp_origin_ids {35, 18, 108, 95};
@@ -526,7 +526,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystem_Hexa, Kra
     node_7->SetValue(INTERFACE_EQUATION_ID, 19);
     node_8->SetValue(INTERFACE_EQUATION_ID, 22);
 
-    const Geometry<NodeType>::Pointer p_geom(Kratos::make_shared<Hexahedra3D8<NodeType>>(node_1, node_2, node_3, node_4, node_5, node_6, node_7, node_8));
+    const Geometry<NodeType>::Pointer p_geom(Kratos::make_intrusive<Hexahedra3D8<NodeType>>(node_1, node_2, node_3, node_4, node_5, node_6, node_7, node_8));
 
     MatrixResultsType exp_loc_matrix {{0.28, 0.28, 0.12, 0.12, 0.07, 0.07, 0.03, 0.03}};
     EqIDVectorResultsType exp_origin_ids {35, 18, 108, 95, 12, 14, 19, 22};
@@ -542,7 +542,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystemWithApprox
     node_1->SetValue(INTERFACE_EQUATION_ID, 35);
     node_2->SetValue(INTERFACE_EQUATION_ID, 18);
 
-    const Geometry<NodeType>::Pointer p_geom(Kratos::make_shared<Line2D2<NodeType>>(node_1, node_2));
+    const Geometry<NodeType>::Pointer p_geom(Kratos::make_intrusive<Line2D2<NodeType>>(node_1, node_2));
 
     MatrixResultsType exp_loc_matrix {{1.0}};
     EqIDVectorResultsType exp_origin_ids {18};

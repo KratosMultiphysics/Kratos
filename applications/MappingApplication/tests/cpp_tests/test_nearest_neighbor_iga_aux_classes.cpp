@@ -35,7 +35,7 @@ namespace Kratos::Testing {
         const NodeType::Pointer& p_node_2,
         const NodeType::Pointer& p_node_3)
     {
-        return Kratos::make_shared<Triangle2D3<NodeType>>(p_node_1, p_node_2, p_node_3);
+        return Kratos::make_intrusive<Triangle2D3<NodeType>>(p_node_1, p_node_2, p_node_3);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(MapperInterfaceInfoIGA_BasicTests, KratosMappingApplicationSerialTestSuite)
