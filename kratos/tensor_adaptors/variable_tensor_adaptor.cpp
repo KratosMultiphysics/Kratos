@@ -69,18 +69,10 @@ void VariableTensorAdaptor::CollectData()
 {
     std::visit(
         [this](auto pContainer, auto pVariable) {
-            TensorAdaptorUtils::CheckAndSetValues(
-                this->Shape(), *pContainer, *pVariable,
-                [pVariable](const auto& rEntity) {
-                    return rEntity.Has(*pVariable);
-                },
-                [pVariable](const auto& rValue, auto& rEntity) {
-                    rEntity.SetValue(*pVariable, rValue);
-                });
-
             TensorAdaptorUtils::CollectVariableData(
                 this->Shape(), *pContainer, *pVariable, this->ViewData(),
                 [pVariable](auto& rValue, const auto& rEntity) {
+                    KRATOS_ERROR_IF_NOT(rEntity.Has(*pVariable)) << "The " << pVariable->Name() << " not found in the data value container of " << rEntity;
                     rValue = rEntity.GetValue(*pVariable);
                 });
         },
@@ -91,19 +83,13 @@ void VariableTensorAdaptor::StoreData()
 {
     std::visit(
         [this](auto pContainer, auto pVariable) {
-
-            TensorAdaptorUtils::CheckAndSetValues(
-                this->Shape(), *pContainer, *pVariable,
-                [pVariable](const auto& rEntity) {
-                    return rEntity.Has(*pVariable);
-                },
-                [pVariable](const auto& rValue, auto& rEntity) {
-                    rEntity.SetValue(*pVariable, rValue);
-                });
-
+            const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
             TensorAdaptorUtils::StoreVariableData(
                 this->Shape(), *pContainer, *pVariable, this->ViewData(),
-                [pVariable](auto& rEntity) -> auto& {
+                [pVariable, &zero](auto& rEntity) -> auto& {
+                    if (!rEntity.Has(*pVariable)) {
+                        rEntity.SetValue(*pVariable, zero);
+                    }
                     return rEntity.GetValue(*pVariable);
                 });
         },

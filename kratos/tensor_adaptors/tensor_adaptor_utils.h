@@ -122,6 +122,28 @@ public:
         return TensorAdaptorUtils::GetTensorShape<TDataType>(rContainer, pDataShapeBegin, pDataShapeEnd);
     }
 
+    template<class TDataType>
+    [[nodiscard]] static TDataType GetZeroValue(
+        const Variable<TDataType>& rVariable,
+        const DenseVector<unsigned int>& rDataShape)
+    {
+        using data_type_traits = DataTypeTraits<TDataType>;
+
+        using primitive_type = typename data_type_traits::PrimitiveType;
+
+        // first create a zero value.
+        TDataType zero{};
+
+        // reshape it to correct size. This will not do anything if it is a static type
+        // but in the case of dynamic type, this will reshape it to given size.
+        data_type_traits::Reshape(zero, rDataShape.data().begin(), rDataShape.data().begin() + rDataShape.size());
+
+        // now assign zeros to all the values.
+        std::vector<primitive_type> zeros(data_type_traits::Size(zero), primitive_type{});
+        data_type_traits::CopyFromContiguousData(zero, zeros.data());
+        return zero;
+    }
+
     template <class TContainerType, class TDataType, class TSpanType, class TGetterType>
     static void CollectVariableData(
         const DenseVector<unsigned int>& rTensorShape,
@@ -137,36 +159,6 @@ public:
             rTensorShape.data().begin() + rTensorShape.size(), rGetter);
 
         KRATOS_CATCH("");
-    }
-
-    template <class TContainerType, class TDataType, class TCheckerType, class TSetterType>
-    static void CheckAndSetValues(
-        const DenseVector<unsigned int>& rTensorShape,
-        TContainerType& rContainer,
-        const Variable<TDataType>& rVariable,
-        const TCheckerType& rChecker,
-        const TSetterType& rSetter)
-    {
-        using data_type_traits = DataTypeTraits<TDataType>;
-
-        using primitive_type = typename data_type_traits::PrimitiveType;
-
-        // first create a zero value.
-        TDataType zero{};
-
-        // reshape it to correct size. This will not do anything if it is a static type
-        // but in the case of dynamic type, this will reshape it to given size.
-        data_type_traits::Reshape(zero, rTensorShape.data().begin() + 1, rTensorShape.data().begin() + rTensorShape.size());
-
-        // now assign zeros to all the values.
-        std::vector<primitive_type> zeros(data_type_traits::Size(zero), primitive_type{});
-        data_type_traits::CopyFromContiguousData(zero, zeros.data());
-
-        block_for_each(rContainer, [&zero, &rChecker, &rSetter](auto& rEntity) {
-            if (!rChecker(rEntity)) {
-                rSetter(zero, rEntity);
-            }
-        });
     }
 
     template <class TContainerType, class TDataType, class TSpanType, class TReferenceGetter>

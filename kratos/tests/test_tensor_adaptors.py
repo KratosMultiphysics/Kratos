@@ -61,11 +61,10 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
 
         def value_setter(container, setter_method):
             for entity in container:
-                if entity.Id % 3 != 0:
-                    setter_method(entity, Kratos.PRESSURE, entity.Id + 1)
-                    setter_method(entity, Kratos.VELOCITY, Kratos.Vector([entity.Id * 2 + 1, entity.Id * 3 + 1, entity.Id * 4 + 1]))
-                    setter_method(entity, Kratos.EXTERNAL_FORCES_VECTOR, Kratos.Vector([entity.Id * 2 + 1, entity.Id * 3 + 1, entity.Id * 4 + 1, entity.Id * 2 + 1, entity.Id * 3 + 1]))
-                    setter_method(entity, Kratos.NORMAL_SHAPE_DERIVATIVE, Kratos.Matrix([[entity.Id * 2 + 1, entity.Id * 3 + 1, entity.Id, 2 * entity.Id], [entity.Id * 4 + 1, entity.Id * 2 + 1, entity.Id, 3 * entity.Id], [entity.Id * 3 + 1, entity.Id * 4 + 1, entity.Id, 4 * entity.Id]]))
+                setter_method(entity, Kratos.PRESSURE, entity.Id + 1)
+                setter_method(entity, Kratos.VELOCITY, Kratos.Vector([entity.Id * 2 + 1, entity.Id * 3 + 1, entity.Id * 4 + 1]))
+                setter_method(entity, Kratos.EXTERNAL_FORCES_VECTOR, Kratos.Vector([entity.Id * 2 + 1, entity.Id * 3 + 1, entity.Id * 4 + 1, entity.Id * 2 + 1, entity.Id * 3 + 1]))
+                setter_method(entity, Kratos.NORMAL_SHAPE_DERIVATIVE, Kratos.Matrix([[entity.Id * 2 + 1, entity.Id * 3 + 1, entity.Id, 2 * entity.Id], [entity.Id * 4 + 1, entity.Id * 2 + 1, entity.Id, 3 * entity.Id], [entity.Id * 3 + 1, entity.Id * 4 + 1, entity.Id, 4 * entity.Id]]))
 
         def flag_setter(container):
             for entity in container:
@@ -154,8 +153,9 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         t_adaptor_2 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.RECOVERED_STRESS)
         t_adaptor_2.data = t_adaptor_1.data
 
-        t_adaptor_1.CollectData()
-        t_adaptor_2.data = t_adaptor_1.data
+        with self.assertRaises(RuntimeError):
+            t_adaptor_1.CollectData()
+
         t_adaptor_2.StoreData()
 
         with self.assertRaises(RuntimeError):
@@ -168,18 +168,6 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
 
         with self.assertRaises(RuntimeError):
             t_adaptor_3.StoreData()
-
-        t_adaptor_4 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.NORMAL_SHAPE_DERIVATIVE)
-
-        # there are some nodes which does not have the NORMAL_SHAPE_DERIVATIVE
-        # so following should raise an error
-        with self.assertRaises(RuntimeError):
-            t_adaptor_4.CollectData()
-
-        # there are some nodes which does not have the NORMAL_SHAPE_DERIVATIVE
-        # so following should raise an error
-        with self.assertRaises(RuntimeError):
-            t_adaptor_4.StoreData()
 
         with self.assertRaises(RuntimeError):
             t_adaptor_5 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.NORMAL_SHAPE_DERIVATIVE, step_index=6)
