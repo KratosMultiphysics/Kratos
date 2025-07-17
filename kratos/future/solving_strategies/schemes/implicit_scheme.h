@@ -262,6 +262,21 @@ public:
     }
 
     /**
+     * @brief Performing the prediction of the solution.
+     * @warning Must be defined in derived classes
+     * @param A LHS matrix
+     * @param Dx Incremental update of primary variables
+     * @param b RHS Vector
+     */
+    virtual void Predict(
+        DofsArrayType::Pointer pDofSet,
+        DofsArrayType::Pointer pEffectiveDofSet,
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
+    {
+        KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Predict\' method. Call derived class one." << std::endl;
+    }
+
+    /**
      * @brief Function called once at the end of a solution step, after convergence is reached if an iterative process is needed
      * @param rModelPart The model part of the problem to solve
      * @param A LHS matrix
@@ -355,19 +370,18 @@ public:
     }
 
     //TODO: Think on the overloads for the mass and damping matrices
-    virtual void ResizeAndInitializeVectors(
+    virtual void AllocateLinearSystemArrays(
         const TSparseGraphType& rSparseMatrixGraph,
         const DofsArrayType::Pointer pDofSet,
         const DofsArrayType::Pointer pEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer,
-        const bool CalculateReactions = false)
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         KRATOS_TRY
 
         // Call the assembly helper to allocate and initialize the required vectors
-        (this->GetBuilder()).ResizeAndInitializeVectors(rSparseMatrixGraph, pDofSet, pEffectiveDofSet, rLinearSystemContainer);
+        (this->GetBuilder()).AllocateLinearSystemArrays(rSparseMatrixGraph, pDofSet, pEffectiveDofSet, rLinearSystemContainer);
 
-        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished system initialization." << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished linear system arrays allocation." << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -1136,21 +1150,6 @@ public:
         // r_assembly_helper.SetElementAssemblyFunction(elem_func);
         // r_assembly_helper.SetConditionAssemblyFunction(cond_func);
         // r_assembly_helper.CalculateReactionsRightHandSide(rDofSet, rRHS, aux_tls);
-    }
-
-    /**
-     * @brief Performing the prediction of the solution.
-     * @warning Must be defined in derived classes
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
-     */
-    virtual void Predict(
-        DofsArrayType::Pointer pDofSet,
-        DofsArrayType::Pointer pEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
-    {
-        KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Predict\' method. Call derived class one." << std::endl;
     }
 
     /**

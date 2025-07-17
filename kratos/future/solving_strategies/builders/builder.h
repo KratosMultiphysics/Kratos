@@ -144,15 +144,6 @@ public:
         Elimination
     };
 
-    /// Scaling type definition
-    enum class ScalingType
-    {
-        NoScaling,
-        NormDiagonal,
-        MaxDiagonal,
-        PrescribedDiagonal
-    };
-
     /// Pointer definition of Builder
     KRATOS_CLASS_POINTER_DEFINITION(Builder);
 
@@ -186,7 +177,6 @@ public:
     {
         Parameters default_parameters( R"({
             "name" : "builder",
-            "scaling_type" : "max_diagonal",
             "echo_level" : 0
         })");
         Settings.ValidateAndAssignDefaults(default_parameters);
@@ -203,22 +193,6 @@ public:
             << "\t- 'elimination_builder'" << std::endl;
         }
 
-        // Set scaling type
-        const std::string scaling_type = Settings["scaling_type"].GetString();
-        if (mBuildType == BuildType::Block) {
-            if (scaling_type == "no_scaling") {
-                mScalingType = ScalingType::NoScaling;
-            } else if (scaling_type == "norm_diagonal") {
-                mScalingType = ScalingType::NormDiagonal;
-            } else if (scaling_type == "max_diagonal") {
-                mScalingType = ScalingType::MaxDiagonal;
-            } else if (scaling_type == "prescribed_diagonal") {
-                mScalingType = ScalingType::PrescribedDiagonal;
-            }
-        } else {
-            mScalingType = ScalingType::NoScaling; // Note that scaling makes no sense in the elimination build
-        }
-
         // Set verbosity level
         mEchoLevel = Settings["echo_level"].GetInt();
     }
@@ -229,18 +203,21 @@ public:
     ///@name Operations
     ///@{
 
-    //TODO: In the future, add the one with
-    // - LHS alone
-    // - MassMatrix
-    // - DampingMatrix
-    // TODO: To be discussed in the future. It would be great to have one with references. This will require using the move constructors
-    virtual void ResizeAndInitializeVectors(
+    /**
+     * @brief Allocates the memory for the linear system arrays
+     * This method allocates the memory for the linear system arrays
+     * @param rSparseGraph The sparse matrix graph
+     * @param pDofSet The array of DOFs from elements and conditions
+     * @param pEffectiveDofSet The array of DOFs to be solved after the application of constraints
+     * @param pLinearSystemContainer Auxiliary container with the linear system arrays
+     */
+    virtual void AllocateLinearSystemArrays(
         const TSparseGraphType& rSparseGraph,
         const typename DofsArrayType::Pointer pDofSet,
         const typename DofsArrayType::Pointer pEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
-        KRATOS_ERROR << "Calling base class 'ResizeAndInitializeVectors'." << std::endl;
+        KRATOS_ERROR << "Calling base class 'AllocateLinearSystemArrays'." << std::endl;
     }
 
     virtual void ConstructMasterSlaveConstraintsStructure(
@@ -441,65 +418,20 @@ public:
         KRATOS_ERROR << "Calling base class 'ApplyLinearSystemConstraints'." << std::endl;
     }
 
-    virtual void ApplyMasterSlaveConstraints(
-        typename TSparseMatrixType::Pointer& rpLhs,
-        typename TSparseMatrixType::Pointer& rpEffectiveLhs,
-        typename TSystemVectorType::Pointer& rpRhs,
-        TSystemVectorType& rEffectiveRhs,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rEffectiveDx,
-        const TSparseMatrixType& rConstraintsRelationMatrix,
-        const TSystemVectorType& rConstraintsConstantVector)
-    {
-        //TODO: Do it as the other assembly functions
-        if (mBuildType == BuildType::Block) {
-            ApplyMasterSlaveConstraintsImplementation<BuildType::Block>(rpLhs, rpEffectiveLhs, rpRhs, rEffectiveRhs, rDx, rEffectiveDx, rConstraintsRelationMatrix, rConstraintsConstantVector);
-        } else if (mBuildType == BuildType::Elimination) {
-            ApplyMasterSlaveConstraintsImplementation<BuildType::Elimination>(rpLhs, rpEffectiveLhs, rpRhs, rEffectiveRhs, rDx, rEffectiveDx, rConstraintsRelationMatrix, rConstraintsConstantVector);
-        } else {
-            KRATOS_ERROR << "Build type not supported." << std::endl;
-        }
-    }
-
-    virtual void ApplyMasterSlaveConstraints(
-        typename TSystemVectorType::Pointer& rpRhs,
-        TSystemVectorType& rEffectiveRhs,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rEffectiveDx,
-        const TSparseMatrixType& rConstraintsRelationMatrix,
-        const TSystemVectorType& rConstraintsConstantVector)
-    {
-        //TODO: Do it as the other assembly functions
-        if (mBuildType == BuildType::Block) {
-            ApplyMasterSlaveConstraintsImplementation<BuildType::Block>(rpRhs, rEffectiveRhs, rDx, rEffectiveDx, rConstraintsRelationMatrix, rConstraintsConstantVector);
-        } else if (mBuildType == BuildType::Elimination) {
-            ApplyMasterSlaveConstraintsImplementation<BuildType::Elimination>(rpRhs, rEffectiveRhs, rDx, rEffectiveDx, rConstraintsRelationMatrix, rConstraintsConstantVector);
-        } else {
-            KRATOS_ERROR << "Build type not supported." << std::endl;
-        }
-    }
-
-    virtual double GetDiagonalScalingFactor(const TSparseMatrixType& rLHS) const
-    {
-        if (mScalingType == ScalingType::NoScaling) {
-            return 1.0;
-        } else if (mScalingType == ScalingType::NormDiagonal) {
-            return rLHS.NormDiagonal();
-            // return rLHS.NormDiagonal() / rLHS.size1(); //TODO: Decide which one
-        } else if (mScalingType == ScalingType::MaxDiagonal) {
-            return rLHS.MaxDiagonal();
-            // return rLHS.MaxDiagonal() / rLHS.size1(); // TODO: Decide which one
-        } else if (mScalingType == ScalingType::PrescribedDiagonal) {
-            const auto& r_process_info = mpModelPart->GetProcessInfo();
-            KRATOS_ERROR_IF_NOT(r_process_info.Has(BUILD_SCALE_FACTOR)) << "Scale factor not defined in ProcessInfo container. Please set 'BUILD_SCALE_FACTOR' variable." << std::endl;
-            return r_process_info.GetValue(BUILD_SCALE_FACTOR);
-        } else {
-            KRATOS_ERROR << "Wrong scaling type." << std::endl;
-        }
-    }
-
+    /**
+     * @brief Set the solution values vector
+     * This method calculates the complete solution vector (x) from the effective DOF set
+     * For doing so the effective DOF values are retrieved to then apply the constraints
+     * by doing x = T * y + q, being T and q the constraints relation matrix and constant
+     * vector respectively and y the auxliary vector containing the effective DOFs values
+     * Note that the vector y already includes the Dirichlet constraints as values are
+     * retrieved from the DOF (i.e., nodal) database.
+     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
+     * @param rConstraintsRelationMatrix The constraints relation matrix
+     * @param rConstraintsConstantVector The constraints constant vector
+     * @param rSolutionVector The solution vector
+     */
     void CalculateSolutionVector(
-        const DofsArrayType& rDofSet,
         const DofsArrayType& rEffectiveDofSet,
         const TSparseMatrixType& rConstraintsRelationMatrix,
         const TSystemVectorType& rConstraintsConstantVector,
@@ -511,12 +443,10 @@ public:
         IndexPartition<IndexType>(rEffectiveDofSet.size()).for_each([&](IndexType Index) {
             // Get effective DOF
             auto p_dof = *(rEffectiveDofSet.ptr_begin() + Index);
-            auto p_dof_find = rEffectiveDofSet.find(*p_dof);
-            KRATOS_ERROR_IF(p_dof_find == rEffectiveDofSet.end()) << "DOF cannot be found in effective DOF set." << std::endl;
 
             // Get value from DOF and set it in the auxiliary solution values vector
-            // Note that the corresponding row is retrieved from the effective DOF ids map
-            y[p_dof_find->EffectiveEquationId()] = p_dof->GetSolutionStepValue();
+            // Note that the corresponding row is retrieved from the effective DOF id
+            y[p_dof->EffectiveEquationId()] = p_dof->GetSolutionStepValue();
         });
 
         // Check solution vector size
@@ -563,10 +493,6 @@ private:
     const ModelPart* mpModelPart = nullptr;
 
     BuildType mBuildType;
-
-    ScalingType mScalingType;
-
-    double mScalingValue;
 
     std::size_t mEchoLevel;
 

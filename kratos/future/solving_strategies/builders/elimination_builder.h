@@ -40,9 +40,15 @@ namespace Kratos::Future
 /**
  * @class EliminationBuilder
  * @ingroup KratosCore
- * @brief Utility class for handling the build
- * @details This class collects the methods required to
- * handle the building of the sparse sytem matrices
+ * @brief Utility class for handling the elimination build
+ * @details This helper class extends the base Builder class to consider an elimination type build
+ * The elimination type build removes the Dirichlet DOFs from the the linear system of equations to
+ * be solved. This is achieved "a la master-slave" by creating an extra constraints relation matrix.
+ * This Dirichlet constraints relation matrix is applied to the linear system of equations, resulting
+ * in the effective removal of the fixed DOFs. Note that the constraints constant vector associated
+ * to the Dirichlet constraints is never build as we always solve for the solution increment and the
+ * Dirichlet values are inherently taken into account in the residual database as we store them in
+ * the nodal database.
  * @author Ruben Zorrilla
  */
 template<class TThreadLocalStorage, class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
@@ -52,27 +58,17 @@ public:
     ///@name Type Definitions
     ///@{
 
-
     /// Pointer definition of EliminationBuilder
     KRATOS_CLASS_POINTER_DEFINITION(EliminationBuilder);
 
     /// Base builder type definition
     using BaseType = Builder<TThreadLocalStorage, TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
 
-    /// Data type definition from sparse matrix
-    using DataType = typename TSparseMatrixType::DataType;
-
     /// Index type definition from sparse matrix
     using IndexType = typename TSparseMatrixType::IndexType;
 
-    /// DOF type definition
-    using DofType = typename BaseType::DofType;
-
     /// DOF array type definition
     using DofsArrayType = typename BaseType::DofsArrayType;
-
-    /// DOF pointer vector type definition
-    using DofPointerVectorType = typename BaseType::DofPointerVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -89,7 +85,6 @@ public:
     {
         Parameters default_parameters( R"({
             "name" : "elimination_builder",
-            "scaling_type" : "max_diagonal",
             "echo_level" : 0
         })");
         Settings.ValidateAndAssignDefaults(default_parameters);
@@ -101,7 +96,7 @@ public:
     ///@name Operations
     ///@{
 
-    void ResizeAndInitializeVectors(
+    void AllocateLinearSystemArrays(
         const TSparseGraphType& rSparseGraph,
         const typename DofsArrayType::Pointer pDofSet,
         const typename DofsArrayType::Pointer pEffectiveDofSet,
@@ -159,10 +154,9 @@ public:
             }
         }
 
-        // Allocate the constraints arrays (note that we are using the move assignment operator in here)
-        // auto p_aux_q = Kratos::make_shared<TSystemVectorType>(rEffectiveDofSet.size());
-        // rLinearSystemContainer.pDirichletQ.swap(p_aux_q);
-
+        // Allocate the Dirichlet constraints relation matrix
+        // Note that there is no need to allocate the Dirichlet constraints relation vector as this is never used
+        // as we always solve for the solution increment (the Dirichlet values are already in the effective DOF set data)
         auto p_aux_T = Kratos::make_shared<TSparseMatrixType>(constraints_sparse_graph);
         rLinearSystemContainer.pDirichletT.swap(p_aux_T);
     }
@@ -172,18 +166,6 @@ public:
         const DofsArrayType& rEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
-        // // Set the BCs values in the Dirichlet constraints constant vector
-        // const auto dof_begin = rEffectiveDofSet.begin();
-        // auto& r_dirichlet_q = *rLinearSystemContainer.pDirichletQ;
-        // IndexPartition<std::size_t>(rEffectiveDofSet.size()).for_each([&](IndexType Index){
-        //     auto p_dof = dof_begin + Index;
-        //     if (p_dof->IsFixed()) {
-        //         r_dirichlet_q[p_dof->EffectiveEquationId()] = p_dof->GetSolutionStepValue();
-        //     } else {
-        //         r_dirichlet_q[p_dof->EffectiveEquationId()] = 0.0;
-        //     }
-        // });
-
         // Set ones in the entries of the Dirichlet constraints relation matrix
         rLinearSystemContainer.pDirichletT->SetValue(1.0);
     }
@@ -209,21 +191,10 @@ public:
         const auto& r_model_part = this->GetModelPart();
         const std::size_t n_constraints = r_model_part.NumberOfMasterSlaveConstraints();
         if (n_constraints) { //FIXME: In here we should check the number of active constraints
-            // Compute the total relation matrix
+            // Compute the total relation matrix including master-slave and Dirichlet constraints
             auto& r_dirichlet_T = *rLinearSystemContainer.pDirichletT;
             auto& r_constraints_T = *rLinearSystemContainer.pConstraintsT;
             rLinearSystemContainer.pEffectiveT = AmgclCSRSpMMUtilities::SparseMultiply(r_constraints_T, r_dirichlet_T);
-
-            // // Compute the total constant vector
-            // auto& r_effective_q = *rLinearSystemContainer.pEffectiveQ;
-            // auto& r_dirichlet_q = *rLinearSystemContainer.pDirichletQ;
-            // auto& r_constraints_q = *rLinearSystemContainer.pConstraintsQ;
-            // KRATOS_WATCH(r_constraints_q)
-            // KRATOS_WATCH(r_dirichlet_q)
-            // r_effective_q = r_constraints_q;
-            // KRATOS_WATCH(r_effective_q)
-            // r_constraints_T.SpMV(r_dirichlet_q, r_effective_q);
-            // KRATOS_WATCH(r_effective_q)
 
             // Apply constraints to RHS
             auto p_rhs = rLinearSystemContainer.pRhs;
@@ -237,7 +208,6 @@ public:
         } else {
             // Assign the Dirichlet relation matrix as the effective ones since there are no other constraints
             rLinearSystemContainer.pEffectiveT = rLinearSystemContainer.pDirichletT;
-            // rLinearSystemContainer.pEffectiveQ = rLinearSystemContainer.pDirichletQ;
 
             // Apply Dirichlet constraints to RHS
             auto p_rhs = rLinearSystemContainer.pRhs;

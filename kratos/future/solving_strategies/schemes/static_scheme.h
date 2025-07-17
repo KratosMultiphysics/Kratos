@@ -243,7 +243,7 @@ public:
 
                 // Allocating the system vectors to their correct sizes
                 BuiltinTimer system_matrix_resize_time;
-                this->ResizeAndInitializeVectors(sparse_matrix_graph, pDofSet, pEffectiveDofSet, rLinearSystemContainer);
+                this->AllocateLinearSystemArrays(sparse_matrix_graph, pDofSet, pEffectiveDofSet, rLinearSystemContainer);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
             } else {
                 // Set up the equation ids (note that this needs to be always done as the fixity may have changed and this can affect some build types)
@@ -281,8 +281,6 @@ public:
         KRATOS_ERROR_IF_NOT(this->GetSchemeIsInitialized()) << "Initialize needs to be performed. Call Initialize() once before the solution loop." << std::endl;
         KRATOS_ERROR_IF_NOT(this->GetSchemeSolutionStepIsInitialized()) << "InitializeSolutionStep needs to be performed. Call InitializeSolutionStep() before Predict()." << std::endl;
 
-        // TODO: Check if we require something else here for the elimination
-
         // Applying constraints if needed
         const auto& r_model_part = this->GetModelPart();
         const auto& r_comm = r_model_part.GetCommunicator().GetDataCommunicator();
@@ -292,14 +290,15 @@ public:
 
         if (n_constraints_glob != 0) {
             // Assemble constraints constant vector and apply it to the DOF set
-            // Note that the constant vector is applied only once in here as we then solve for the solution increment
+            // Note that the constraints constant vector is applied only once in here as we then solve for the solution increment
             auto p_constraints_T = rLinearSystemContainer.pConstraintsT;
             auto p_constraints_Q = rLinearSystemContainer.pConstraintsQ;
             this->BuildMasterSlaveConstraints(*pDofSet, *pEffectiveDofSet, rLinearSystemContainer);
 
-            // Fill the current values vector
-            TSystemVectorType x(pEffectiveDofSet->size());
-            (this->GetBuilder()).CalculateSolutionVector(*pDofSet, *pEffectiveDofSet, *p_constraints_T, *p_constraints_Q, x);
+            // Fill the current values vector considering the master-slave constraints
+            // Note that this already accounts for the Dirichlet BCs affecting the effective DOF set
+            TSystemVectorType x(pDofSet->size());
+            (this->GetBuilder()).CalculateSolutionVector(*pEffectiveDofSet, *p_constraints_T, *p_constraints_Q, x);
 
             // Update DOFs with solution values
             block_for_each(*pDofSet, [&x](DofType& rDof){
