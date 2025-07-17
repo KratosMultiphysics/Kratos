@@ -48,7 +48,7 @@ public:
                                         ModelPart::ConditionsContainerType::Pointer,
                                         ModelPart::ElementsContainerType::Pointer,
                                         ModelPart::PropertiesContainerType::Pointer,
-                                        // ModelPart::MasterSlaveConstraintContainerType::Pointer,
+                                        ModelPart::MasterSlaveConstraintContainerType::Pointer,
                                         ModelPart::GeometryContainerType::Pointer
                                     >;
 
