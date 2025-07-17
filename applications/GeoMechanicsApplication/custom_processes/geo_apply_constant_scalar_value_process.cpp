@@ -28,8 +28,6 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
 {
     KRATOS_TRY
 
-    // Some values need to be mandatorily prescribed since no meaningful default value exist.
-    // So that an error is thrown if they don't exist
     KRATOS_ERROR_IF_NOT(ThisParameters.Has("value"))
         << "Missing 'value' parameter in ThisParameters" << std::endl;
     KRATOS_ERROR_IF_NOT(ThisParameters.Has("variable_name"))
@@ -48,12 +46,12 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
 
     mVariableName = ThisParameters["variable_name"].GetString();
     mIsFixed      = ThisParameters["is_fixed"].GetBool();
-    if (KratosComponents<Variable<double>>::Has(mVariableName)) { // case of double variable
+    if (KratosComponents<Variable<double>>::Has(mVariableName)) {
         mDoubleValue = ThisParameters["value"].GetDouble();
         KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents<Variable<double>>::Get(mVariableName)))
             << "Trying to fix a variable that is not in the rModelPart - variable name is "
             << mVariableName << std::endl;
-    } else if (KratosComponents<Variable<int>>::Has(mVariableName)) { // Case of int variable
+    } else if (KratosComponents<Variable<int>>::Has(mVariableName)) {
         mIntValue = ThisParameters["value"].GetInt();
         KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents<Variable<int>>::Get(mVariableName)))
             << "Trying to fix a variable that is not in the rModelPart - variable name is "
@@ -62,7 +60,7 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
             << "Sorry it is not possible to fix variables of type Variable<int>. Only double "
                "variables or vector components can be fixed"
             << std::endl;
-    } else if (KratosComponents<Variable<bool>>::Has(mVariableName)) { // Case of bool variable
+    } else if (KratosComponents<Variable<bool>>::Has(mVariableName)) {
         mBoolValue = ThisParameters["value"].GetBool();
         KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents<Variable<bool>>::Get(mVariableName)))
             << "Trying to fix a variable that is not in the rModelPart - variable name is "

@@ -80,4 +80,25 @@ KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_FinalizeDoesNothing
     }))
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_ThrowsWhenNodalVariableNotInModelPart,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model                        current_model;
+    const Geo::ConstVariableRefs nodal_variables = {};
+    ModelPart&                   r_model_part =
+        ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(current_model, nodal_variables);
+
+    Parameters parameters(R"(
+      {
+          "model_part_name" : "Main",
+          "variable_name"   : "DISPLACEMENT_X",
+          "is_fixed"        : true,
+          "value"           : 1.0
+      }  )");
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeoApplyConstantScalarValueProcess process(r_model_part, parameters),
+        "Trying to fix a variable that is not in the rModelPart - variable name is DISPLACEMENT_X")
+}
+
 } // namespace Kratos::Testing

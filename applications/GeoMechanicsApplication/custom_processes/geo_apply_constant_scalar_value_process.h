@@ -24,7 +24,7 @@ namespace Kratos
 /**
  * @class GeoApplyConstantScalarValueProcess
  * @brief A class to apply a constant scalar value to nodes in a model part for a given variable.
- * @details This process applies a single scalar value to all nodes in a model part for a specified
+ * @details This process applies a single scalar value to nodes in a model part for a specified
  * variable. When the variable is fixed, it will remain constant throughout the stage. If the
  * variable is not fixed, this process will set the specified value as an initial condition.
  * @author Riccardo Rossi
