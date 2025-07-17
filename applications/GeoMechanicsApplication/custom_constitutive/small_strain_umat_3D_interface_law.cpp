@@ -104,11 +104,11 @@ SmallStrainUMAT3DInterfaceLaw::SmallStrainUMAT3DInterfaceLaw() = default;
 
 void SmallStrainUMAT3DInterfaceLaw::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainUMATLaw<VOIGT_SIZE_3D>)
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainUMATLaw)
 }
 
 void SmallStrainUMAT3DInterfaceLaw::load(Serializer& rSerializer){
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUMATLaw<VOIGT_SIZE_3D>)}
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUMATLaw)}
 
 Vector& SmallStrainUMAT3DInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
