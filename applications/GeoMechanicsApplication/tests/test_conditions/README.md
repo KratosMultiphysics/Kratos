@@ -30,10 +30,10 @@ The following conditions are tested.
 - UPwNormalFluxCondition2D3N
 - UPwNormalFluxCondition2D4N
 - UPwNormalFluxCondition2D5N
-- UPwNormalFluxCondition3D3N
-- UPwNormalFluxCondition3D4N
-- UPwNormalFluxCondition3D6N
-- UPwNormalFluxCondition3D8N
+- UPwNormalFaceLoadCondition3D3N
+- UPwNormalFaceLoadCondition3D4N
+- UPwNormalFaceLoadCondition3D6N
+- UPwNormalFaceLoadCondition3D8N
 
 ## Setup
 
