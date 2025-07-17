@@ -1,6 +1,4 @@
 import KratosMultiphysics as KM
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
-import KratosMultiphysics.IgaApplication as Iga
 import KratosMultiphysics.MappingApplication # registering the mappers
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import ParallelEnvironment, IsDistributedRun
@@ -18,9 +16,11 @@ from pathlib import Path
 def GetFilePath(file_name):
     return Path(__file__).resolve().parent / "mdpa_files" / file_name
 
+@KratosUnittest.skipIfApplicationsNotAvailable("IgaApplication")
 class BasicTestsLineMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
+        import KratosMultiphysics.IgaApplication as Iga
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_neighbor_iga",
             "interface_submodel_part_origin": "neumann_boundary_iga",
@@ -107,83 +107,65 @@ class BasicTestsLineMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
         KM.ModelPartIO(cls.input_file_destination).ReadModelPart(cls.model_part_destination)
 
     # No inverse mapping for this mapper is defined as the origin must always be IGA
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_InverseMap_constant_scalar(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_InverseMap_constant_vector(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_Map_non_constant_scalar(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_InverseMap_non_constant_scalar(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_Map_non_constant_vector(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_InverseMap_non_constant_vector(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_SWAP_SIGN_InverseMap_scalar(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_SWAP_SIGN_InverseMap_vector(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_ADD_VALUES_InverseMap_scalar(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_ADD_VALUES_InverseMap_vector(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_Map_USE_TRANSPOSE_constant_scalar(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_Map_USE_TRANSPOSE_constant_vector(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_InverseMap_constant_scalar_TO_NON_HISTORICAL(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_InverseMap_constant_scalar_FROM_NON_HISTORICAL(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_InverseMap_constant_scalar_both_non_historical(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_Map_USE_TRANSPOSE_constant_scalar_TO_NON_HISTORICAL(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
 
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_Map_USE_TRANSPOSE_constant_scalar_FROM_NON_HISTORICAL(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_Map_USE_TRANSPOSE_constant_scalar_both_non_historical(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
 
-
-    
+@KratosUnittest.skipIfApplicationsNotAvailable("IgaApplication")
 class BasicTestsSurfaceMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
+        import KratosMultiphysics.IgaApplication as Iga
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_neighbor_iga",
             "interface_submodel_part_origin": "neumann_boundary_iga",
@@ -270,77 +252,59 @@ class BasicTestsSurfaceMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
         KM.ModelPartIO(cls.input_file_destination).ReadModelPart(cls.model_part_destination)
 
     # No inverse mapping for this mapper is defined as the origin must always be IGA
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_InverseMap_constant_scalar(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_InverseMap_constant_vector(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_Map_non_constant_scalar(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_InverseMap_non_constant_scalar(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_Map_non_constant_vector(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_InverseMap_non_constant_vector(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_SWAP_SIGN_InverseMap_scalar(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_SWAP_SIGN_InverseMap_vector(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_ADD_VALUES_InverseMap_scalar(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_ADD_VALUES_InverseMap_vector(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_Map_USE_TRANSPOSE_constant_scalar(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_Map_USE_TRANSPOSE_constant_vector(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_InverseMap_constant_scalar_TO_NON_HISTORICAL(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_InverseMap_constant_scalar_FROM_NON_HISTORICAL(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_InverseMap_constant_scalar_both_non_historical(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_Map_USE_TRANSPOSE_constant_scalar_TO_NON_HISTORICAL(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
 
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_Map_USE_TRANSPOSE_constant_scalar_FROM_NON_HISTORICAL(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
     
-    @KratosUnittest.skipIf(True, "Not implemented for this mapper")
     def test_Map_USE_TRANSPOSE_constant_scalar_both_non_historical(self):
-        pass
+        self.skipTest("Not implemented for this mapper")
 
 def SetHistoricalNonUniformSolutionScalar(conditions, variable):
     for condition in conditions:

@@ -117,6 +117,8 @@
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
+#include "custom_constitutive/interface_plane_strain.h"
+#include "custom_constitutive/interface_three_dimensional_surface.h"
 #include "custom_constitutive/linear_elastic_2D_beam_law.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
@@ -399,12 +401,6 @@ private:
     const SteadyStatePwPipingElement<2, 4> mSteadyStatePwPipingElement2D4N{
         0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
         std::make_unique<PlaneStrainStressState>()};
-    const SteadyStatePwPipingElement<3, 6> mSteadyStatePwPipingElement3D6N{
-        0, Kratos::make_shared<PrismInterface3D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<ThreeDimensionalStressState>()};
-    const SteadyStatePwPipingElement<3, 8> mSteadyStatePwPipingElement3D8N{
-        0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
     const GeoSteadyStatePwPipingElement<2, 2> mGeoSteadyStatePwPipingElement2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
     const GeoSteadyStatePwPipingElement<3, 2> mGeoSteadyStatePwPipingElement3D2N{
@@ -1005,7 +1001,10 @@ private:
     const LinearElastic2DBeamLaw       mLinearElastic2DBeamLaw;
     const TrussBackboneConstitutiveLaw mTrussBackboneConstitutiveLaw;
 
-    const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw;
+    const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw{
+        std::make_unique<InterfacePlaneStrain>()};
+    const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterface3DSurfaceLaw{
+        std::make_unique<InterfaceThreeDimensionalSurface>()};
 
     const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff2D{std::make_unique<PlaneStrain>()};
     const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff3D{std::make_unique<ThreeDimensional>()};
