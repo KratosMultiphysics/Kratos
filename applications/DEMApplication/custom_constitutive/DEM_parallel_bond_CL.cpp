@@ -639,12 +639,14 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
         const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
         double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);
         double residual_tangential_friction_force_magnitude = mBondedLocalElasticContactForce2 * equiv_friction;
-        if (ShearRelVel > 1e-12) {
-            BondedLocalElasticContactForce[0] = -residual_tangential_friction_force_magnitude * (LocalRelVel[0] / ShearRelVel);
-            BondedLocalElasticContactForce[1] = -residual_tangential_friction_force_magnitude * (LocalRelVel[1] / ShearRelVel);
-        } else {
-            BondedLocalElasticContactForce[0] = 0.0;
-            BondedLocalElasticContactForce[1] = 0.0;
+        BondedLocalElasticContactForce[0] = OldBondedLocalElasticContactForce[0] - kt_el * LocalDeltDisp[0]; // 0: first tangential
+        BondedLocalElasticContactForce[1] = OldBondedLocalElasticContactForce[1] - kt_el * LocalDeltDisp[1]; // 1: second tangential
+        double tangential_force_module = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0]
+                                                + BondedLocalElasticContactForce[1] * BondedLocalElasticContactForce[1]);
+        if (tangential_force_module > residual_tangential_friction_force_magnitude) {
+            double fraction = residual_tangential_friction_force_magnitude / tangential_force_module;
+            BondedLocalElasticContactForce[0] *= fraction;
+            BondedLocalElasticContactForce[1] *= fraction;
         }
     }
 
