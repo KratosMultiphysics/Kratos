@@ -51,14 +51,16 @@ Matrix CompressibilityCalculator::CalculateCompressibilityMatrix() const
 {
     const auto& r_N_container            = mInputProvider.GetNContainer();
     const auto& integration_coefficients = mInputProvider.GetIntegrationCoefficients();
-    const auto  pressure_vector          = mInputProvider.GetNodalValues(WATER_PRESSURE);
+    const auto& pressure_vector          = mInputProvider.GetNodalValues(WATER_PRESSURE);
     const auto  fluid_pressures =
         GeoTransportEquationUtilities::CalculateFluidPressures(r_N_container, pressure_vector);
-    auto result = Matrix{ZeroMatrix{r_N_container.size2(), r_N_container.size2()}};
+    Matrix result(r_N_container.size2(), r_N_container.size2(), 0.0);
+    Vector N(r_N_container.size2());
+
     for (unsigned int integration_point_index = 0;
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {
-        const auto N = Vector{row(r_N_container, integration_point_index)};
-        result += GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+        noalias(N) = row(r_N_container, integration_point_index);
+        noalias(result) += GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
             N,
             CalculateBiotModulusInverse(mInputProvider.GetRetentionLaws()[integration_point_index],
                                         fluid_pressures[integration_point_index]),
