@@ -97,15 +97,27 @@ public:
         });
     }
 
+    SparseContiguousRowGraph(SparseContiguousRowGraph<TIndexType>&& rOther)
+    {
+        mpComm = rOther.mpComm;
+        mGraph = std::move(rOther.mGraph);
+        mLocks = std::move(rOther.mLocks);
+    }
+
     /// Destructor.
     ~SparseContiguousRowGraph(){}
 
-    /// Assignment operator. TODO: decide if we do want to allow it
+    /// Assignment operator
     SparseContiguousRowGraph& operator=(SparseContiguousRowGraph const& rOther)=delete;
-    // {
-    //     this->AddEntries(rOther.GetGraph());
-    //     return *this;
-    // }
+
+    /// Move assignment operator
+    SparseContiguousRowGraph& operator=(SparseContiguousRowGraph<TIndexType>&& rOther)
+    {
+        mpComm = rOther.mpComm;
+        mGraph = std::move(rOther.mGraph);
+        mLocks = std::move(rOther.mLocks);
+        return *this;
+    }
 
     /// Copy constructor.
     SparseContiguousRowGraph(const SparseContiguousRowGraph& rOther)
