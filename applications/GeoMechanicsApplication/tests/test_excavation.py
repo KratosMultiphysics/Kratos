@@ -163,11 +163,5 @@ class KratosGeoMechanicsExcavationTests(KratosUnittest.TestCase):
         # for i in range(len(top_nodes)):
         #     self.assertAlmostEqual(top_y_displacement[i], displacements[top_nodes[i]-1][1])
 
-    def testNightlyFirstExample(self):
-        self.assertEqual(True, True)
-
-    def testNightlySecondExample(self):
-        self.assertEqual(True, True)
-
 if __name__ == '__main__':
     KratosUnittest.main()
