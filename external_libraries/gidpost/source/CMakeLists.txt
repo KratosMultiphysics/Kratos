@@ -3,7 +3,7 @@
 message( STATUS "* Configuring gidpost library" )
 
 set (gidpost_source 
-  gidpost.c gidpost_cluster.c gidpostFILES.c gidpostInt.c  gidpostfor.c gidpostforAPI.c
+  gidpost.c gidpost_cluster.c gidpostFILES.c gidpostInt.c
   gidpostHash.c hashtab.c recycle.c lookupa.c)
 
 file(GLOB SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/source/*.c")
