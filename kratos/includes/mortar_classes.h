@@ -407,6 +407,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
+        // Print the base class data
         rOStream << "NSlave:" << NSlave << "\n";
         rOStream << "NMaster: " <<NMaster << "\n";
         rOStream << "PhiLagrangeMultipliers: "<< PhiLagrangeMultipliers << "\n";
@@ -534,7 +535,10 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        BaseClassType::PrintInfo(rOStream);
+        // Print the base class data
+        BaseClassType::PrintData(rOStream);
+
+        // Print the additional variables
         rOStream << "DNDeMaster: " << DNDeMaster << "\n";
         rOStream << "DNDeSlave: " << DNDeSlave << "\n";
         rOStream << "jSlave: " << jSlave << "\n";
@@ -800,6 +804,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
+        // Print the base class data
         rOStream << "PenaltyParameter: " << PenaltyParameter << "\n";
         rOStream << "ScaleFactor: " << ScaleFactor << "\n";
         rOStream << "NormalSlave: " << NormalSlave << "\n";
@@ -993,7 +998,10 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
+        // Print the base class data
         BaseClassType::PrintData(rOStream);
+
+        // Print the additional variables
         rOStream << "TangentFactor: " << TangentFactor << "\n";
         rOStream << "u1old: " << u1old << "\n";
         rOStream << "u2old: " << u2old << std::endl;
@@ -1156,6 +1164,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
+        // Print the base class data
         rOStream << "DOperator: " << DOperator << "\n";
         rOStream << "MOperator: " << MOperator << std::endl;
     }
@@ -1371,8 +1380,10 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
+        // Print the base class data
         BaseClassType::PrintData(rOStream);
 
+        // Print the additional variables
         for (IndexType i = 0; i < TNumNodes * TDim; ++i) {
             rOStream << "DeltaDOperator_" << i << ": " << DeltaDOperator[i] << std::endl;
             rOStream << "DeltaMOperator_" << i << ": " << DeltaMOperator[i] << std::endl;
@@ -1562,6 +1573,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const 
     {
+        // Print the base class data
         rOStream << "Me: " << Me << std::endl;
         rOStream << "De: " << De << std::endl;
     }
@@ -1772,7 +1784,8 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        BaseClassType::PrintInfo(rOStream);
+        // Print the base class data
+        BaseClassType::PrintData(rOStream);
 
         // Derivatives matrices
         for (IndexType i = 0; i < DoFSizeDerivativesDependence; ++i) {
@@ -1897,7 +1910,10 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
+        // Print the base class data
         Point::PrintData(rOStream);
+
+        // Print the belonging type
         rOStream << "BelongType:" << static_cast<int>(mBelongs) << std::endl;
     }
 
