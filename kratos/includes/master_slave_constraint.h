@@ -555,7 +555,7 @@ public:
      * @param rThisVariable The variable to get
      */
     template<class TVariableType>
-    typename TVariableType::Type& GetValue(const TVariableType& rThisVariable) const
+    typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable) const
     {
         return mData.GetValue(rThisVariable);
     }

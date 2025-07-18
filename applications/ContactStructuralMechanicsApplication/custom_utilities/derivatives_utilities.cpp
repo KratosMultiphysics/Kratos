@@ -430,7 +430,7 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
 
     const double aux_nodes_coeff = static_cast<double>(TNumNodes);
 
-    const PointType slave_center = rSlaveGeometry.Center();
+    const Point slave_center = rSlaveGeometry.Center();
 
 //     #ifdef KRATOS_DEBUG
 //         for (unsigned i_triangle = 0; i_triangle < 3; ++i_triangle)
@@ -553,8 +553,8 @@ inline void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation,
     const GeometryType& rMasterGeometry,
     const array_1d<double, 3>& rSlaveNormal,
     const DecompositionType& rDecompGeom,
-    const PointType& rLocalPointDecomp,
-    const PointType& rLocalPointParent,
+    const Point& rLocalPointDecomp,
+    const Point& rLocalPointParent,
     const NormalDerivativesComputation ConsiderNormalVariation
     )
 {
@@ -623,8 +623,8 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
     const array_1d<double, 3>& rSlaveNormal,
     const array_1d<double, 3>& rMasterNormal,
     const DecompositionType& rDecompGeom,
-    const PointType& rLocalPointDecomp,
-    const PointType& rLocalPointParent,
+    const Point& rLocalPointDecomp,
+    const Point& rLocalPointParent,
     const NormalDerivativesComputation ConsiderNormalVariation,
     const bool DualLM
     )
@@ -650,7 +650,7 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
     rDecompGeom.ShapeFunctionsValues( N_decomp, rLocalPointDecomp.Coordinates() );
 
     if constexpr (TDim == 2) {
-        array_1d<PointType, TNumNodes> projected_in_slave, projected_in_master;
+        array_1d<Point, TNumNodes> projected_in_slave, projected_in_master;
 
         for (IndexType i_mortar_node = 0; i_mortar_node < TNumNodes; ++i_mortar_node) {
             // Projecting points in opposite geometry, defining mortar nodes
@@ -659,7 +659,7 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
         }
 
         // Auxiliary point for local coordinates
-        PointType aux_point_slave, aux_point_master;
+        Point aux_point_slave, aux_point_master;
 
         // Delta local coordinates
         array_1d<double, TNumNodes> DeltaXi_slave, DeltaXi_master;
@@ -934,12 +934,12 @@ bool DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
     rVariables.Initialize();
 
     for (IndexType i_geom = 0; i_geom < rConditionsPointsSlave.size(); ++i_geom) {
-        PointerVector< PointType > points_array(TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+        PointerVector< Point > points_array(TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
         array_1d<BelongType, TDim> belong_array;
         for (IndexType i_node = 0; i_node < TDim; ++i_node) {
-            PointType global_point;
+            Point global_point;
             rSlaveGeometry.GlobalCoordinates(global_point, rConditionsPointsSlave[i_geom][i_node]);
-            points_array(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
+            points_array(i_node) = Kratos::make_shared<Point>(Point(global_point));
             belong_array[i_node] = rConditionsPointsSlave[i_geom][i_node].GetBelong();
         }
 
@@ -957,14 +957,14 @@ bool DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
 
             // Integrating the mortar operators
             array_1d<double,3> gp_normal;
-            PointType local_point_parent, gp_global, projected_gp_global;
+            Point local_point_parent, gp_global, projected_gp_global;
             GeometryType::CoordinatesArrayType slave_gp_global, projected_gp_local;
             for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
                 // We reset the derivatives
                 rDerivativeData.ResetDerivatives();
 
                 // We compute the local coordinates
-                const PointType local_point_decomp = PointType{integration_points_slave[point_number].Coordinates()};
+                const Point local_point_decomp = Point{integration_points_slave[point_number].Coordinates()};
 
                 // Calculate the kinematic variables
                 // We compute the current configuration
@@ -983,7 +983,7 @@ bool DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
                 noalias(gp_normal) = MortarUtilities::GaussPointUnitNormal(rVariables.NSlave, rSlaveGeometry);
 
                 rSlaveGeometry.GlobalCoordinates( slave_gp_global, local_point_parent );
-                GeometricalProjectionUtilities::FastProjectDirection( rMasterGeometry, PointType{slave_gp_global}, projected_gp_global, rSlaveNormal, -gp_normal ); // The opposite direction
+                GeometricalProjectionUtilities::FastProjectDirection( rMasterGeometry, Point{slave_gp_global}, projected_gp_global, rSlaveNormal, -gp_normal ); // The opposite direction
 
                 rMasterGeometry.PointLocalCoordinates( projected_gp_local, projected_gp_global.Coordinates( ) ) ;
 
