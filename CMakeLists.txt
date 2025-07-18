@@ -659,6 +659,11 @@ if(${EXCLUDE_KRATOS_CORE} MATCHES OFF)
   set(ENABLE_PARALLEL_EXAMPLE OFF)
   set(ENABLE_HDF5 OFF)
   set(ZLIB_FOUND TRUE)
+
+  # (for gidpost )Disable examples and fortran examples.
+  set(ENABLE_EXAMPLES OFF)
+  set(ENABLE_FORTRAN_EXAMPLES OFF)
+
   add_subdirectory(external_libraries/gidpost)
   add_subdirectory(kratos)
 endif()
