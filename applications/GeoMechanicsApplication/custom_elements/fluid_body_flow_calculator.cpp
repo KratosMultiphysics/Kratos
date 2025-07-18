@@ -27,23 +27,23 @@ std::optional<Matrix> FluidBodyFlowCalculator::LHSContribution() { return std::n
 
 Vector FluidBodyFlowCalculator::RHSContribution()
 {
-    const auto shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
+    const auto& shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
 
-    const auto integration_coefficients = mInputProvider.GetIntegrationCoefficients();
+    const auto& integration_coefficients = mInputProvider.GetIntegrationCoefficients();
 
     const auto& r_properties        = mInputProvider.GetElementProperties();
     const auto  constitutive_matrix = GeoElementUtilities::FillPermeabilityMatrix(
         r_properties, mInputProvider.GetLocalSpaceDimension());
 
     RetentionLaw::Parameters retention_law_parameters(r_properties);
-    const auto               projected_gravity_on_integration_points =
+    const auto&               projected_gravity_on_integration_points =
         mInputProvider.GetProjectedGravityAtIntegrationPoints();
-    const auto pressure_vector = mInputProvider.GetNodalValues(WATER_PRESSURE);
-    const auto nc_container    = mInputProvider.GetNContainer();
+    const auto& pressure_vector = mInputProvider.GetNodalValues(WATER_PRESSURE);
+    const auto& nc_container    = mInputProvider.GetNContainer();
     const auto fluid_pressures =
         GeoTransportEquationUtilities::CalculateFluidPressures(nc_container, pressure_vector);
     const auto fluid_body_vector_length = shape_function_gradients[0].size1();
-    auto       result                   = Vector{ZeroVector(fluid_body_vector_length)};
+    Vector result(fluid_body_vector_length, 0.0);
     const auto bishop_coefficients      = CalculateBishopCoefficients(fluid_pressures);
 
     for (unsigned int integration_point_index = 0;
