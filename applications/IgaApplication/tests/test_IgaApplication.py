@@ -11,7 +11,7 @@ from iga_test_factory import SinglePatchTest as SinglePatchTest
 # Truss tests - python based
 from truss_element_tests import TrussElementTests as TTrussElementTests
 #beam tests - python based
-from beam_element_test import Beam4pElementTest as Beam4pElementTest
+from beam_element_test import TestBeam4pElement as TestBeam4pElement
 # Membrane tests
 from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
 from iga_test_factory import MembraneSinglePatchFourPointSailNonLinearStatic as MembraneSinglePatchFourPointSailNonLinearStatic
@@ -73,7 +73,9 @@ def AssembleTestSuites():
         # Truss tests
         #TTrussElementTests,
         # #Beam tests
-        Beam4pElementTest,
+        TestBeam4pElement,
+        # Process tests
+        #TTestComputeBeamVectorsProcess,
         # # Membrane tests
         # MembraneSinglePatchFourPointSailLinearStatic,
         # MembraneSinglePatchFourPointSailNonLinearStatic,

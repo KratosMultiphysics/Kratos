@@ -121,8 +121,8 @@ namespace Kratos {
         _gke.clear();
         _gfie.clear();
         
-        stiff_mat_el_nln(rCurrentProcessInfo, point_number, _gke, _gfie, _dL);
-        
+        //stiff_mat_el_nln(rCurrentProcessInfo, point_number, _gke, _gfie, _dL);
+        stiff_mat_el_lin(rCurrentProcessInfo, point_number, _gke, _gfie, _dL);
         
         float mult = (integration_weight * _dL);
  
@@ -5368,9 +5368,9 @@ namespace Kratos {
         
         
         _f[0] = ((area + m_inert_y * pow(B_n / Apow2, 2) - m_inert_z * pow(B_v / Apow2, 2)) * E11_n + E11_cur_n * m_inert_y * B_n / Apow2 + E11_cur_v * m_inert_z * B_v / Apow2) * emod + prestress * area;
-        _m[1] = (E11_cur_n * m_inert_y/*+m_inert_y*B_n/Apow2*E11_n*/) * emod + prestress_bend1;
-        _m[2] = (E11_cur_v * m_inert_z/*+m_inert_z*B_v/Apow2*E11_n*/) * emod + prestress_bend2;
-        _m[0] = E12E13 * (gmod_It/*+mn_tmp*(m_inert_z+m_inert_y)/area-mv_tmp*(m_inert_z+m_inert_y)/area*/)/*+emod/2.0*1.26394444444445e-09*E12E13pow3*/+prestress_tor;
+        _m[1] = (E11_cur_n * m_inert_y) * emod + prestress_bend1;
+        _m[2] = (E11_cur_v * m_inert_z) * emod + prestress_bend2;
+        _m[0] = E12E13 * (gmod_It)+prestress_tor;
         _f[1] = emod * m_inert_y * E11_cur1_n / A;
         _f[2] = emod * m_inert_z * E11_cur1_v / A;
     }
@@ -5512,8 +5512,8 @@ namespace Kratos {
         _f[0] += E11_cur_n * m_inert_y * b_n / Apow4 * emod;
         _f[0] += E11_cur_v * m_inert_z * b_v / Apow4 * emod;
         _f[0] *= a / A;
-        _m[1] = ((E11_cur_n * m_inert_y/*+m_inert_y*B_n/Apow2*E11_m*/) * emod / Apow2 + prestress_bend1) * a / A;
-        _m[2] = ((E11_cur_v * m_inert_z/*+m_inert_z*B_v/Apow2*E11_m*/) * emod / Apow2 + prestress_bend2) * a / A;
+        _m[1] = ((E11_cur_n * m_inert_y) * emod / Apow2 + prestress_bend1) * a / A;
+        _m[2] = ((E11_cur_v * m_inert_z) * emod / Apow2 + prestress_bend2) * a / A;
         
         _m[0] = S1213 * a / A;
         _f[1] = shear_force_n / Apow2 * a;    
