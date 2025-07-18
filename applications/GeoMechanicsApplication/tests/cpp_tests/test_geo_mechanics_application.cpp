@@ -83,7 +83,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElementsAreAvailableAfterGeoAppRegistration, 
                                                 "Geo_USurfaceInterfaceElement8Plus8N"s};
 
     for (const auto& r_name : element_type_names) {
-        EXPECT_FALSE(KratosComponents<Element>::Has(r_name)) << "Element '" << r_name << "' has been registered unexpectedly";
+        EXPECT_FALSE(KratosComponents<Element>::Has(r_name))
+            << "Element '" << r_name << "' has been registered unexpectedly";
     }
 
     geo_app.Register();
