@@ -189,19 +189,23 @@ class LevelSetControlHJ(Control):
             centroid = element.GetGeometry().Center()
             x, y = centroid[0], centroid[1]
 
-            dx = max(abs(x - center[0]) - half_width, 0.0)
-            dy = max(abs(y - center[1]) - half_height, 0.0)
-            distance = np.sqrt(dx**2 + dy**2)
+            # dx = max(abs(x - center[0]) - half_width, 0.0)
+            # dy = max(abs(y - center[1]) - half_height, 0.0)
+            # distance = np.sqrt(dx**2 + dy**2)
 
-            # Negative if inside rectangle
-            if abs(x - center[0]) < half_width and abs(y - center[1]) < half_height:
-                distance *= -1
+            # # Negative if inside rectangle
+            # if abs(x - center[0]) < half_width and abs(y - center[1]) < half_height:
+            #     distance *= -1
+
+            dx = abs(x - center[0]) * (1 / center[0])
+            dy = abs(y - center[1]) * (1 / center[1])
+            distance = np.mean([dx, dy])
 
             distances.append(distance)
 
         numpy_array = np.array(distances, dtype=np.float64)
-        ##matrix = np.reshape(numpy_array, (80,20))
-        ##np.savetxt("output_phi.txt", matrix)
+        matrix = np.reshape(numpy_array, (80,20))
+        np.savetxt("output_phi.txt", matrix)
         # Write it into element expression
         signed_distance_function = Kratos.Expression.ElementExpression(self.model_part)
         Kratos.Expression.CArrayExpressionIO.Read(signed_distance_function, numpy_array)
@@ -300,8 +304,11 @@ class LevelSetControlHJ(Control):
         #update += phi_grad_norm2 * self.design_velocity * dt
         print(f"NORMAALNE: {Kratos.Expression.Utils.NormL2(update)}")
         if Kratos.Expression.Utils.NormL2(update) > 1e-15:
-            self.control_phi = control_field
-            self._UpdateAndOutputFields(update)
+
+            new = self.control_phi + update * self._ComputePhiGradientNorm2(update)
+            new_update = new - self.control_phi
+            self.control_phi = new
+            self._UpdateAndOutputFields(new_update)
             return True
 
         return False
