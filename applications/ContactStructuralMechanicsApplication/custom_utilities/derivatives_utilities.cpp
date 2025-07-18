@@ -432,10 +432,10 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
 
     const PointType slave_center = rSlaveGeometry.Center();
 
-//     #ifdef KRATOS_DEBUG
-//         for (unsigned i_triangle = 0; i_triangle < 3; ++i_triangle)
-//             KRATOS_WATCH(static_cast<IndexType>(TheseBelongs[i_triangle]));
-//     #endif
+    // #ifdef KRATOS_DEBUG
+    //     for (unsigned i_triangle = 0; i_triangle < 3; ++i_triangle)
+    //         KRATOS_WATCH(static_cast<IndexType>(TheseBelongs[i_triangle]));
+    // #endif
 
     double distance;
     array_1d<double, 3> xs1, xe1, xs2, xe2;
@@ -471,6 +471,9 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
             MathUtils<double>::CrossProduct(aux_denom, diff3, diff2);
             const double num   = inner_prod(aux_num,   rNormal);
             const double denom = inner_prod(aux_denom, rNormal);
+            if (std::abs(denom) < ZeroTolerance) {
+                continue; // We skip this triangle if the denominator is zero
+            }
 
             for (IndexType i_belong = 0; i_belong < 4; ++i_belong) {
                 // The index of the node
