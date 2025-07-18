@@ -450,12 +450,12 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
         mBondedLocalElasticContactForce2 = kn_el * bonded_indentation;
     } else { //else the bond is broken
         //if the bond is broken, we still calculate the normal compressive force but not the normal tensile force //TODO:If the bond disappears, this will not work
-        /*if (bonded_indentation > 0.0){
+        if (bonded_indentation > 0.0){
             mBondedLocalElasticContactForce2 = kn_el * bonded_indentation;
         } else {
             mBondedLocalElasticContactForce2 = 0.0;
-        }*/
-        mBondedLocalElasticContactForce2 = 0.0;
+        }
+        //mBondedLocalElasticContactForce2 = 0.0;
     }
 
     if (indentation_particle > 0.0) {
@@ -630,9 +630,22 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
         BondedLocalElasticContactForce[0] = OldBondedLocalElasticContactForce[0] - kt_el * LocalDeltDisp[0]; // 0: first tangential
         BondedLocalElasticContactForce[1] = OldBondedLocalElasticContactForce[1] - kt_el * LocalDeltDisp[1]; // 1: second tangential
     } else {
-        //TODO: maybe a friction force due to the broekn bond should be added here
-        BondedLocalElasticContactForce[0] = 0.0; // 0: first tangential
-        BondedLocalElasticContactForce[1] = 0.0; // 1: second tangential
+        //a friction force due to the broken bond should be added here
+        //BondedLocalElasticContactForce[0] = 0.0; // 0: first tangential
+        //BondedLocalElasticContactForce[1] = 0.0; // 1: second tangential
+        const double& equiv_tg_of_static_fri_ang = (*mpProperties)[STATIC_FRICTION];
+        const double& equiv_tg_of_dynamic_fri_ang = (*mpProperties)[DYNAMIC_FRICTION];
+        const double& equiv_friction_decay_coefficient = (*mpProperties)[FRICTION_DECAY];
+        const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
+        double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);
+        double residual_tangential_friction_force_magnitude = mBondedLocalElasticContactForce2 * equiv_friction;
+        if (ShearRelVel > 1e-12) {
+            BondedLocalElasticContactForce[0] = -residual_tangential_friction_force_magnitude * (LocalRelVel[0] / ShearRelVel);
+            BondedLocalElasticContactForce[1] = -residual_tangential_friction_force_magnitude * (LocalRelVel[1] / ShearRelVel);
+        } else {
+            BondedLocalElasticContactForce[0] = 0.0;
+            BondedLocalElasticContactForce[1] = 0.0;
+        }
     }
 
     //current_tangential_force_module = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0]
