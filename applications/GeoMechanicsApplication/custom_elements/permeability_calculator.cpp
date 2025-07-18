@@ -48,27 +48,36 @@ Matrix PermeabilityCalculator::CalculatePermeabilityMatrix() const
 {
     RetentionLaw::Parameters retention_parameters(mInputProvider.GetElementProperties());
     const auto&              r_properties             = mInputProvider.GetElementProperties();
-    auto                     integration_coefficients = mInputProvider.GetIntegrationCoefficients();
-    const auto               shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
-    const auto               local_dimension          = shape_function_gradients[0].size2();
+    const auto&              integration_coefficients = mInputProvider.GetIntegrationCoefficients();
+    const auto&              shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
+    const std::size_t        local_dimension          = shape_function_gradients[0].size2();
     const Matrix             constitutive_matrix =
         GeoElementUtilities::FillPermeabilityMatrix(r_properties, local_dimension);
 
-    const auto   number_of_nodes           = shape_function_gradients[0].size1();
-    auto         result                    = Matrix{ZeroMatrix{number_of_nodes, number_of_nodes}};
+    const std::size_t number_of_nodes = shape_function_gradients[0].size1();
+    Matrix            result(number_of_nodes, number_of_nodes, 0.0);
+
     const double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
-    const auto   pressure_vector           = mInputProvider.GetNodalValues(WATER_PRESSURE);
-    const auto   nc_container              = mInputProvider.GetNContainer();
+    const auto&  pressure_vector           = mInputProvider.GetNodalValues(WATER_PRESSURE);
+    const auto&  nc_container              = mInputProvider.GetNContainer();
     const auto   fluid_pressures =
         GeoTransportEquationUtilities::CalculateFluidPressures(nc_container, pressure_vector);
-    for (unsigned int integration_point_index = 0;
+
+    // Precompute scaling factors outside the loop if possible
+
+    for (std::size_t integration_point_index = 0;
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {
         retention_parameters.SetFluidPressure(fluid_pressures[integration_point_index]);
         const double relative_permeability =
             mInputProvider.GetRetentionLaws()[integration_point_index]->CalculateRelativePermeability(retention_parameters);
-        result += GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
+
+        // Use noalias to avoid temporaries in uBLAS
+        Matrix permeability_matrix(number_of_nodes, number_of_nodes, 0.0);
+        noalias(permeability_matrix) = GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
             shape_function_gradients[integration_point_index], dynamic_viscosity_inverse, constitutive_matrix,
             relative_permeability, integration_coefficients[integration_point_index]);
+
+        noalias(result) += permeability_matrix;
     }
     return result;
 }
