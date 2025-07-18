@@ -74,10 +74,10 @@ public:
     /**
      * @brief Default constructor
      */
-    IntersectionUtilities(){}
+    IntersectionUtilities() = default;
 
     /// Destructor
-    virtual ~IntersectionUtilities(){}
+    virtual ~IntersectionUtilities() = default;
 
     ///@}
     ///@name Operations
@@ -208,7 +208,7 @@ public:
         TCoordinatesType& rIntersectionPoint2,
         int& rSolution,//IntersectionUtilitiesTetrahedraLineIntersectionStatus& rSolution,
         const double Epsilon = 1e-12
-        ) 
+        )
     {
         // Lambda function to check the inside of a line corrected
         auto is_inside_projected = [&Epsilon] (auto& rGeometry, const TCoordinatesType& rPoint) -> bool {
@@ -366,7 +366,7 @@ public:
         TCoordinatesType& rIntersectionPoint1,
         TCoordinatesType& rIntersectionPoint2,
         const double Epsilon = 1e-12
-        ) 
+        )
     {
         int solution = 0;// IntersectionUtilitiesTetrahedraLineIntersectionStatus solution = IntersectionUtilitiesTetrahedraLineIntersectionStatus::NO_INTERSECTION;
         for (auto& r_face : rTetrahedraGeometry.GenerateFaces()) {
@@ -413,7 +413,7 @@ public:
                         noalias(rIntersectionPoint2) = rLinePoint1;
                         solution = 4;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION_ONE_INSIDE;
                     }
-                } 
+                }
                 if (solution == 2) {// if (solution == IntersectionUtilitiesTetrahedraLineIntersectionStatus::ONE_POINT_INTERSECTION) {
                     if (rTetrahedraGeometry.IsInside(rLinePoint2, local_coordinates)) {
                         if (norm_2(rIntersectionPoint1 - rLinePoint2) > Epsilon) {  // Must be different from the first one
@@ -460,7 +460,7 @@ public:
     static PointerVector<Point> ComputeShortestLineBetweenTwoLines(
         const TGeometryType& rSegment1,
         const TGeometryType& rSegment2
-        )  
+        )
     {
         // Zero tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
@@ -577,7 +577,8 @@ public:
         const array_1d<double,3>& rLinePoint0,
         const array_1d<double,3>& rLinePoint1,
         array_1d<double,3>& rIntersectionPoint,
-        const double epsilon = 1e-12)
+        const double epsilon = 1e-12
+        )
     {
         return ComputeLineLineIntersection(
             rLineGeometry[0], rLineGeometry[1], rLinePoint0, rLinePoint1, rIntersectionPoint, epsilon);
@@ -644,15 +645,109 @@ public:
         const array_1d<double,3>& rLinePoint0,
         const array_1d<double,3>& rLinePoint1);
 
+    /**
+     * @brief Computes the intersection line between two planes.
+     * @details Given two planes defined by a point and a normal for each, this function computes
+     *          the intersection line between them. The direction (tangent) of the intersection line is
+     *          computed as the cross product of the two normals. If this cross product is nearly zero,
+     *          the planes are parallel (or coincident) and no unique intersection line exists.
+     *
+     *          If the planes intersect in a unique line, a point on the line is determined using the formula:
+     *          @f[
+     *            \mathbf{x}_0 = \frac{ \left[ (d_1 \mathbf{n}_2 - d_2 \mathbf{n}_1) \times (\mathbf{n}_1 \times \mathbf{n}_2) \right] }{ \| \mathbf{n}_1 \times \mathbf{n}_2 \|^2 }
+     *          @f]
+     *          where @f$ d_1 = \mathbf{n}_1 \cdot \mathbf{p}_1 @f$ and @f$ d_2 = \mathbf{n}_2 \cdot \mathbf{p}_2 @f$.
+     *          Note that the normals need not be unit length.
+     * @param rPlanePoint1 One point on the first plane.
+     * @param rNormal1 The normal vector of the first plane.
+     * @param rPlanePoint2 One point on the second plane.
+     * @param rNormal2 The normal vector of the second plane.
+     * @param rPoint [out] A point on the intersection line (if one exists).
+     * @param rTangent [out] The direction (tangent) vector of the intersection line.
+     * @param Tolerance The tolerance to check the parallel
+     * @return 0 if the planes are parallel (or nearly parallel), 1 if the planes intersect in a unique line.
+     */
+    static int ComputeTwoPlaneIntersection(
+        const array_1d<double, 3>& rPlanePoint1,
+        const array_1d<double, 3>& rNormal1,
+        const array_1d<double, 3>& rPlanePoint2,
+        const array_1d<double, 3>& rNormal2,
+        array_1d<double, 3>& rPoint,
+        array_1d<double, 3>& rTangent,
+        const double Tolerance = 1.0e-12
+        );
+
+    /**
+     * @brief Computes the intersection point between three planes.
+     * @details This function determines the intersection among three planes.
+     *          It first computes the intersection line of the first two planes using ComputeTwoPlaneIntersection.
+     *          Then, it intersects that line with the third plane. Depending on the configuration of the planes,
+     *          the function returns:
+     *          - 0 if all three planes are parallel (or nearly parallel),
+     *          - 1 if the intersection of the first two planes yields a line that is parallel to the third plane
+     *                (i.e. the three planes share a common line)
+     *          - 2 if two parallel lines are formed by the intersection of the first two planes and the third plane is parallel to them
+     *          - 3 if the three planes intersect in a unique point.
+     * @param rPlanePoint1 One point on the first plane.
+     * @param rNormal1 The normal vector of the first plane.
+     * @param rPlanePoint2 One point on the second plane.
+     * @param rNormal2 The normal vector of the second plane.
+     * @param rPlanePoint3 One point on the third plane.
+     * @param rNormal3 The normal vector of the third plane.
+     * @param rPoint1 [out] The intersection point if a unique intersection exists.
+     * @param rVector1 [out] The direction vector of the intersection line if the planes intersect in a line.
+     * @param rPoint2 [out] A point on the intersection line if the planes intersect in a line.
+     * @param rVector2 [out] The direction vector of the intersection line if the planes intersect in a line.
+     * @param Tolerance The tolerance used for checking parallelism (default is 1.0e-12).
+     * @return 0 if all planes are parallel, 1 if the intersection is a line (degenerate case), 2 if the intersection is two lines (degenerate case), 3 if the planes intersect in a unique point.
+     */
+    static int ComputeThreePlaneIntersection(
+        const array_1d<double, 3>& rPlanePoint1,
+        const array_1d<double, 3>& rNormal1,
+        const array_1d<double, 3>& rPlanePoint2,
+        const array_1d<double, 3>& rNormal2,
+        const array_1d<double, 3>& rPlanePoint3,
+        const array_1d<double, 3>& rNormal3,
+        array_1d<double, 3>& rPoint1,
+        array_1d<double, 3>& rVector1,
+        array_1d<double, 3>& rPoint2,
+        array_1d<double, 3>& rVector2,
+        const double Tolerance = 1.0e-12
+        );
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
     ///@}
 private:
+    ///@name Private static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
     ///@name Private Operations
     ///@{
 
     /**
      * @brief This inline function computes the 2D cross product between two arrays
-     * @param a First vector
-     * @param b Second vector
+     * @param rA First vector
+     * @param rB Second vector
      * @return The 2D cross product value
      */
     static inline double CrossProd2D(
