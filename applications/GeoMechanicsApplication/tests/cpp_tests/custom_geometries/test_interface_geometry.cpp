@@ -527,6 +527,19 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeLineInterfaceGeometryHasTwoEdgesWithOppo
     AssertNodeIdsOfGeometry(edges[1], {5, 4, 6});
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeLineInterfaceGeometryReturnsTwoLinesForBoundariesEntities,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateThreePlusThreeNoded2DLineInterfaceGeometry();
+
+    const auto edges = geometry.GenerateBoundariesEntities();
+
+    KRATOS_EXPECT_EQ(edges.size(), 2);
+    KRATOS_EXPECT_TRUE(std::all_of(edges.begin(), edges.end(), [](const auto& r_edge) {
+        return r_edge.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear;
+    }))
+}
+
 KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreePlanarInterfaceGeometryThrowsWhenCallingGenerateEdges,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -562,6 +575,19 @@ KRATOS_TEST_CASE_IN_SUITE(SixPlusSixPlanarInterfaceGeometryHasTwoPlanesWithOppos
     AssertNodeIdsOfGeometry(faces[1], {7, 9, 8, 12, 11, 10});
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SixPlusSixPlanarInterfaceGeometryReturnsTwoTrianglesForBoundariesEntities,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateSixPlusSixNoded3DPlanarInterfaceGeometry();
+
+    const auto faces = geometry.GenerateBoundariesEntities();
+
+    KRATOS_EXPECT_EQ(faces.size(), 2);
+    KRATOS_EXPECT_TRUE(std::all_of(faces.begin(), faces.end(), [](const auto& r_face) {
+        return r_face.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Triangle;
+    }))
+}
+
 KRATOS_TEST_CASE_IN_SUITE(FourPlusFourPlanarInterfaceGeometryHasTwoPlanesWithOppositeOrientations,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -584,6 +610,19 @@ KRATOS_TEST_CASE_IN_SUITE(EightPlusEightPlanarInterfaceGeometryHasTwoPlanesWithO
     KRATOS_EXPECT_EQ(faces.size(), 2);
     AssertNodeIdsOfGeometry(faces[0], {1, 2, 3, 4, 5, 6, 7, 8});
     AssertNodeIdsOfGeometry(faces[1], {9, 12, 11, 10, 16, 15, 14, 13});
+}
+
+KRATOS_TEST_CASE_IN_SUITE(EightPlusEightPlanarInterfaceGeometryReturnsTwoQuadrilateralsForBoundariesEntities,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateEightPlusEightNoded3DPlanarInterfaceGeometry();
+
+    const auto faces = geometry.GenerateBoundariesEntities();
+
+    KRATOS_EXPECT_EQ(faces.size(), 2);
+    KRATOS_EXPECT_TRUE(std::all_of(faces.begin(), faces.end(), [](const auto& r_face) {
+        return r_face.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral;
+    }))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TwoPlusTwoLineInterfaceGeometryThrowsWhenCallingGenerateFaces,

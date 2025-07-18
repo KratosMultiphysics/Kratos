@@ -228,6 +228,19 @@ public:
         return GenerateTwoSides();
     }
 
+    GeometriesArrayType GenerateBoundariesEntities() const override
+    {
+        switch (mMidGeometry->GetGeometryFamily()) {
+        case GeometryData::KratosGeometryFamily::Kratos_Linear:
+            return this->GenerateEdges();
+        case GeometryData::KratosGeometryFamily::Kratos_Triangle:
+        case GeometryData::KratosGeometryFamily::Kratos_Quadrilateral:
+            return this->GenerateFaces();
+        default:
+            KRATOS_ERROR << "Unsupported geometry type for generating boundaries entities\n";
+        }
+    }
+
     void CreateIntegrationPoints(IntegrationPointsArrayType& rIntegrationPoints,
                                  IntegrationInfo&            rIntegrationInfo) const override
     {
