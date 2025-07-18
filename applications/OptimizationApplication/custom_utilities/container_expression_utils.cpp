@@ -598,7 +598,54 @@ ContainerExpression<TContainerType> ContainerExpressionUtils::ExtractData(
     KRATOS_CATCH("");
 }
 
+template<class TContainerType>
+void ContainerExpressionUtils::GetGradientExpression(
+    ContainerExpression<TContainerType>& rOutput,
+    const ContainerExpression<ModelPart::NodesContainerType>& rInputExpression,
+    const IndexType DomainSize)
+{
+    KRATOS_TRY
+
+    // writing everything to nodes
+    VariableExpressionIO::Write(rInputExpression, &TEMPORARY_SCALAR_VARIABLE_1, false);
+
+    auto& entity_container = rOutput.GetContainer();
+
+    auto p_flat_data_expression = LiteralFlatExpression<double>::Create(entity_container.size(), {DomainSize});
+    rOutput.SetExpression(p_flat_data_expression);
+
+    IndexPartition<IndexType>(entity_container.size()).for_each([&entity_container, p_flat_data_expression, DomainSize](const auto Index) {
+        auto& r_entity = *(entity_container.begin() + Index);
+        auto& r_geometry = r_entity.GetGeometry();
+
+        Vector DetJ;
+        DenseVector<Matrix> list_dn_dx;
+        r_geometry.ShapeFunctionsIntegrationPointsGradients(list_dn_dx, DetJ, GeometryData::IntegrationMethod::GI_GAUSS_1);
+
+
+        Vector gradient(DomainSize, 0.0);
+        Vector nodal_values(r_geometry.size());
+        // fill the nodal values by reading node.GetValue(TEMPORARY_SCALAR_VARIABLE_1)
+
+        for (IndexType i_gauss = 0; i_gauss < list_dn_dx.size(); ++i_gauss) {
+            const Matrix& dn_dx = list_dn_dx[i_gauss];
+            noalias(gradient) += prod(dn_dx, nodal_values);
+
+        }
+
+        // write the gradients back to the expression
+        for (IndexType i_dim = 0; i_dim < DomainSize; ++i_dim) {
+            p_flat_data_expression->SetData(Index, i_dim, gradient[i_dim]);
+        }
+    });
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
+template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::GetGradientExpression(ContainerExpression<ModelPart::ElementsContainerType>&, const ContainerExpression<ModelPart::NodesContainerType>&, const IndexType);
+template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::GetGradientExpression(ContainerExpression<ModelPart::ConditionsContainerType>&, const ContainerExpression<ModelPart::NodesContainerType>&, const IndexType);
+
 #define KRATOS_INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                                                           \
     template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::EntityMaxNormL2(const ContainerExpression<ContainerType>&);                                                                                                                        \
     template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ProductWithEntityMatrix(ContainerExpression<ContainerType>&, const typename UblasSpace<double, CompressedMatrix, Vector>::MatrixType&, const ContainerExpression<ContainerType>&);   \

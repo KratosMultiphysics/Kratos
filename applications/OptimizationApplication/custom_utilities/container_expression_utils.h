@@ -235,6 +235,12 @@ public:
         ContainerExpression<TContainerType>& rInputExpression,
         ModelPart& rExtractionModelPart);
 
+    template<class TContainerType>
+    static void GetGradientExpression(
+        ContainerExpression<TContainerType>& rOutput,
+        const ContainerExpression<ModelPart::NodesContainerType>& rInputExpression,
+        const IndexType DomainSize);
+
     ///@}
     ///@name Static operations derived from Kratos::ExpressionUtils
     ///@{
