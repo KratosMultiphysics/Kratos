@@ -32,10 +32,11 @@
 #include "custom_conditions/load_condition.h"
 #include "custom_conditions/load_moment_director_5p_condition.h"
 #include "custom_conditions/coupling_penalty_condition.h"
-#include "custom_conditions/coupling_solidshell_penalty_condition.h" // Minas
+#include "custom_conditions/coupling_solidshell3p_penalty_condition.h" 
+#include "custom_conditions/coupling_solidshell5pH_penalty_condition.h" 
 #include "custom_conditions/coupling_lagrange_condition.h"
 #include "custom_conditions/coupling_nitsche_condition.h"
-#include "custom_conditions/coupling_solidshell_nitsche_condition.h" // Minas
+#include "custom_conditions/coupling_solidshell3p_nitsche_condition.h" 
 #include "custom_conditions/support_penalty_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
 #include "custom_conditions/support_nitsche_condition.h"
@@ -146,10 +147,11 @@ private:
     const LoadCondition mLoadCondition;
     const LoadMomentDirector5pCondition mLoadMomentDirector5pCondition;
     const CouplingPenaltyCondition mCouplingPenaltyCondition;
-    const CouplingSolidShellPenaltyCondition mCouplingSolidShellPenaltyCondition;
+    const CouplingSolidShell3pPenaltyCondition mCouplingSolidShell3pPenaltyCondition;
+    const CouplingSolidShell5pHPenaltyCondition mCouplingSolidShell5pHPenaltyCondition;
     const CouplingLagrangeCondition mCouplingLagrangeCondition;
     const CouplingNitscheCondition mCouplingNitscheCondition;
-    const CouplingSolidShellNitscheCondition mCouplingSolidShellNitscheCondition; //Minas
+    const CouplingSolidShell3pNitscheCondition mCouplingSolidShell3pNitscheCondition; 
     const SupportPenaltyCondition mSupportPenaltyCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;
     const SupportNitscheCondition mSupportNitscheCondition;

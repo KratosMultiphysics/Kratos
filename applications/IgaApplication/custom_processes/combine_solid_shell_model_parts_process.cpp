@@ -19,6 +19,8 @@
 // Project includes
 #include "combine_solid_shell_model_parts_process.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
+#include "custom_elements/shell_5p_hierarchic_element.h"
+#include "custom_elements/shell_3p_element.h"
 
 
 namespace Kratos
@@ -89,7 +91,7 @@ namespace Kratos
 				slave_quadrature_points_geometry, // GeometriesArrayType
 				NumberOfShapeFunctionDerivatives, // IndexType
 				integration_points_slave_local_coords_vector,
-				rIntegrationInfo); //IntegrationInfo is not used, yet has to be passed to function
+				rIntegrationInfo); 
 
 			// 5. Create CouplingGeometries
 			PointerVector<CouplingGeometry<Node>> Coupled_Quadrature_Point_Geometries(num_integration_points);
@@ -120,8 +122,33 @@ namespace Kratos
 			std::string CouplingInterface_PartName = "CouplingInterface_" + std::to_string(it+1);
 			ModelPart& interface_model_part = _Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart(CouplingInterface_PartName);
 
-			std::string name = _Parameters["coupling_method"].GetString();
-			const Condition& rReferenceCondition = KratosComponents<Condition>::Get(name);
+			std::string coupling_name = _Parameters["coupling_method"].GetString();
+			std::string condition_name ;
+			const std::type_info& ElementType = typeid(*(IgaModelPart.ElementsBegin()));
+			if (ElementType == typeid(Kratos::Shell3pElement) ) {
+				if (coupling_name == "PenaltyCondition") {
+					condition_name = "CouplingSolidShell3pPenaltyCondition";
+				}
+				else if (coupling_name == "NitscheCondition") {
+					condition_name = "CouplingSolidShell3pNitscheCondition";
+				}
+				else {
+					std::cout << "For Shell3pElement only Penalty/Nitsche's method are implemented for solid-shell coupling" << std::endl;
+				}
+			}
+			else if (ElementType == typeid(Kratos::Shell5pHierarchicElement)) {
+				if (coupling_name == "PenaltyCondition") {
+					condition_name = "CouplingSolidShell5pHPenaltyCondition";
+				}
+				else {
+					std::cout << "For Shell5pHierarchicElement only Penalty method is implemented for solid-shell coupling" << std::endl;
+				}
+			}
+			else {
+				std::cout << "For solid-shell coupling in IGA only Shell3pElement & Shell5pHierarchicElement elements are supported";
+				KRATOS_ERROR;
+			}
+			const Condition& rReferenceCondition = KratosComponents<Condition>::Get(condition_name);
 
 			ModelPart::ConditionsContainerType new_condition_list;
 			IndexType condition_id = interface_model_part.GetParentModelPart().NumberOfConditions() + 1;
@@ -145,9 +172,9 @@ namespace Kratos
 
 			// 11. Assign the p_properties to the model part's conditions.
 
-			// 11.1) Assign shell thickness as a property for penalty condition (as in nitsche_stabilization_model_part_process.cpp)
+			// 11.1) Assign shell thickness as a property for penalty condition
 			double& ShellThickness = IgaModelPart.ElementsBegin()->GetProperties().GetValue(THICKNESS);
-			if (name == "CouplingSolidShellPenaltyCondition") {
+			if (coupling_name == "PenaltyCondition" ) {
 				interface_model_part.PropertiesBegin()->SetValue(THICKNESS, ShellThickness);
 			}
 
@@ -162,9 +189,9 @@ namespace Kratos
 				{ rCondition.SetProperties(p_prop); }
 			);
 
-			// 11.2) Assign properties from master and slave geometries to coupling condition (as in nitsche_stabilization_model_part_process.cpp)
+			// 11.2) Assign properties from master and slave geometries to coupling condition 
 			SizeType prop_id = (interface_model_part.ConditionsBegin()->pGetProperties())->Id();
-			if (name == "CouplingSolidShellNitscheCondition") {
+			if (coupling_name == "NitscheCondition") {
 				Properties::Pointer master_properties = _Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("NurbsMesh").ElementsBegin()->pGetProperties();
 				Properties::Pointer slave_properties = _Model.GetModelPart("CoupledSolidShellModelPart").GetSubModelPart("IgaModelPart").ElementsBegin()->pGetProperties();
 				interface_model_part.pGetProperties(prop_id)->AddSubProperties(master_properties);
@@ -189,8 +216,6 @@ namespace Kratos
 			filename = "data/IP_Shell_" + std::to_string(it+1) + ".vtk";
 			selectpart = 1;
 			writeVTKFile(filename, Coupled_Quadrature_Point_Geometries, selectpart);
-
-			//14. Check constitutive variables
 		}
 	}
 
@@ -225,13 +250,14 @@ namespace Kratos
 		ReorderPropertyIds(CoupleIdCounter, SolidModelPart);
 		ReorderPropertyIds(CoupleIdCounter, ShellModelPart);
 
-		RecursiveAddEntities(CoupledModelPart.CreateSubModelPart("NurbsMesh"), SolidModelPart);
+		ModelPart& SolidModelPart_c = CoupledModelPart.CreateSubModelPart("NurbsMesh");
+		ModelPart& IgaModelPart_c = CoupledModelPart.CreateSubModelPart("IgaModelPart");
+
 		auto& NodalSolutionStepVariablesList = SolidModelPart.GetNodalSolutionStepVariablesList();
 		for (auto& r_var : NodalSolutionStepVariablesList) {
 			CoupledModelPart.GetSubModelPart("NurbsMesh").AddNodalSolutionStepVariable(r_var);
 		}
-
-		RecursiveAddEntities(CoupledModelPart.CreateSubModelPart("IgaModelPart"), ShellModelPart);
+		
 		NodalSolutionStepVariablesList = ShellModelPart.GetNodalSolutionStepVariablesList();
 		for (auto& r_var : NodalSolutionStepVariablesList) {
 			CoupledModelPart.GetSubModelPart("IgaModelPart").AddNodalSolutionStepVariable(r_var);
@@ -239,6 +265,8 @@ namespace Kratos
 
 		CoupledModelPart.SetNodalSolutionStepVariablesList();
 
+		RecursiveAddEntities(SolidModelPart_c, SolidModelPart);
+		RecursiveAddEntities(IgaModelPart_c, ShellModelPart);
 	}
 
 	void CombineSolidShellModelPartsProcess::RecursiveAddEntities(ModelPart& rTwinModelPart, ModelPart& rOriginModelPart)
@@ -446,7 +474,14 @@ namespace Kratos
 		double increment_tt = (tt_higher_bound - tt_lower_bound) / 2;
 		double tt = 0, a = 0;
 		
-		bool ProjectionConverged = (dist < 1E-13);
+		bool ProjectionConverged = (dist < 1E-6);
+		if (ProjectionConverged == false) {
+			std::cout << "---------------------" << std::endl;
+			std::cout << "Initial KratosProjection FAILED" << std::endl;
+			std::cout << " Initial Point :";
+			std::cout << integration_points_global_coords_vector[1] << " , " << integration_points_global_coords_vector[2] << std::endl;
+		}
+
 		while (a <= 7 && ProjectionConverged == false) {
 			a += 1;
 			tt = tt_min_distance - increment_tt;
@@ -463,7 +498,7 @@ namespace Kratos
 				dZZ = abs(4.5 / AO_d * integration_points_global_coords_vector[2] - rProjectedPointGlobalCoordinates[2]);
 				dist = sqrt(dYY * dYY + dZZ * dZZ);
 
-				if (dist < 1E-13)	ProjectionConverged = true;
+				if (dist < 1E-6)	ProjectionConverged = true;
 				if (dist < min_dist) {
 					min_dist = dist;
 					tt_min_distance = tt;
@@ -471,49 +506,16 @@ namespace Kratos
 			}
 		}
 
-
-
-		//while ( (dYY > 1E-14 || dZZ > 1E-14) && (tt <= 28.274333882308138)) {
-		//	
-		//	new_integration_points_global_coords_vector[0] = AO_d * integration_points_global_coords_vector[0];
-		//	new_integration_points_global_coords_vector[1] = 4.5 / AO_d * integration_points_global_coords_vector[1];
-		//	new_integration_points_global_coords_vector[2] = 4.5 / AO_d * integration_points_global_coords_vector[2];
-
-		//	tt += 0.1;
-		//	local_slave_coords[0] = tt;
-		//	ShellCurveOnCouplingInterface.ProjectionPointGlobalToLocalSpace(new_integration_points_global_coords_vector, local_slave_coords);
-		//	ShellCurveOnCouplingInterface.GlobalCoordinates(rProjectedPointGlobalCoordinates, local_slave_coords);
-
-		//	dYY = abs(4.5 / AO_d * integration_points_global_coords_vector[1] - rProjectedPointGlobalCoordinates[1]);
-		//	dZZ = abs(4.5 / AO_d * integration_points_global_coords_vector[2] - rProjectedPointGlobalCoordinates[2]);
-		//}
-
-		if (ProjectionConverged == false) {
+		if (tt != 0) {
 			local_slave_coords[0] = tt_min_distance;
 			ShellCurveOnCouplingInterface.ProjectionPointGlobalToLocalSpace(new_integration_points_global_coords_vector, local_slave_coords);
 			ShellCurveOnCouplingInterface.GlobalCoordinates(rProjectedPointGlobalCoordinates, local_slave_coords);
-			std::cout << "---------------------" << std::endl;
-			std::cout << "Cylinder270_projection FAILED" << std::endl;
-			std::cout << " Initial Point :";
-			std::cout << integration_points_global_coords_vector[1] << " , " << integration_points_global_coords_vector[2] << std::endl;
 			std::cout << " Projected Final point :";
 			std::cout << rProjectedPointGlobalCoordinates[1] << " , " << rProjectedPointGlobalCoordinates[2] << std::endl;
 			std::cout << " Projected point should be ";
 			std::cout << new_integration_points_global_coords_vector[1] << " , " << new_integration_points_global_coords_vector[2] << std::endl;
 			std::cout << "---------------------" << std::endl;
 		}
-		else if (ProjectionConverged == true && tt != 0) {
-			//std::cout << "---------------------" << std::endl;
-			//std::cout << "Cylinder270_projection SUCCEEDED" << std::endl;
-			//std::cout << " Initial Point :";
-			//std::cout << integration_points_global_coords_vector[1] << " , " << integration_points_global_coords_vector[2] << std::endl;
-			//std::cout << " Projected Final point :";
-			//std::cout << rProjectedPointGlobalCoordinates[1] << " , " << rProjectedPointGlobalCoordinates[2] << std::endl;
-			//std::cout << " Projected point should be ";
-			//std::cout << new_integration_points_global_coords_vector[1] << " , " << new_integration_points_global_coords_vector[2] << std::endl;
-			//std::cout << "---------------------" << std::endl;
-		}
-
 
 	}
 

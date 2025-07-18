@@ -7,9 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Tobias Tescheamacher
-//                   Michael Breitenberger
-//                   Riccardo Rossi
+//  Main authors:    Minas Apostolakis
 //
 
 // System includes
@@ -17,10 +15,10 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/coupling_solidshell_penalty_condition.h"
+#include "custom_conditions/coupling_solidshell5pH_penalty_condition.h"
 namespace Kratos
 {
-    void CouplingSolidShellPenaltyCondition::CalculateAll(
+    void CouplingSolidShell5pHPenaltyCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
@@ -36,8 +34,8 @@ namespace Kratos
         // Size definitions
         const SizeType number_of_nodes_master = r_geometry_master.size();
         const SizeType number_of_nodes_slave = r_geometry_slave.size();
+        const SizeType mat_size = number_of_nodes_master * 3 + number_of_nodes_slave * 5;
 
-        const SizeType mat_size = 3 * (number_of_nodes_master + number_of_nodes_slave);
 
         // Memory allocation
         if (CalculateStiffnessMatrixFlag) {
@@ -85,7 +83,7 @@ namespace Kratos
         {
             Matrix N_master = r_geometry_master.ShapeFunctionsValues();
             Matrix N_slave = r_geometry_slave.ShapeFunctionsValues();
-                       
+
             //FOR DISPLACEMENTS
             Matrix H = ZeroMatrix(3, mat_size);
             for (IndexType i = 0; i < number_of_nodes_master; ++i)
@@ -119,10 +117,10 @@ namespace Kratos
 
                 // Comppute Theta3
                 array_1d<double, 3> distance;
-                distance[0] =  MasterIPGlobalCoordinates[0] - SlaveIPGlobalCoordinates[0] - _g3[point_number][0] * _theta3[point_number];
-                distance[1] =  MasterIPGlobalCoordinates[1] - SlaveIPGlobalCoordinates[1] - _g3[point_number][1] * _theta3[point_number];
-                distance[2] =  MasterIPGlobalCoordinates[2] - SlaveIPGlobalCoordinates[2] - _g3[point_number][2] * _theta3[point_number];
-                _theta3[point_number] = inner_prod(distance, _g3[point_number]) ;
+                distance[0] = MasterIPGlobalCoordinates[0] - SlaveIPGlobalCoordinates[0] - _g3[point_number][0] * _theta3[point_number];
+                distance[1] = MasterIPGlobalCoordinates[1] - SlaveIPGlobalCoordinates[1] - _g3[point_number][1] * _theta3[point_number];
+                distance[2] = MasterIPGlobalCoordinates[2] - SlaveIPGlobalCoordinates[2] - _g3[point_number][2] * _theta3[point_number];
+                _theta3[point_number] = inner_prod(distance, _g3[point_number]);
 
                 // Check that SlavePoint + theta3 * A3 = MasterPoint 
                 array_1d<double, 3> check_distance;
@@ -138,7 +136,7 @@ namespace Kratos
                 if (norm_2(check_distance) > 1E-6) {
                     array_1d<double, 3> g3 = _g3[point_number];
                     double theta3 = _theta3[point_number];
-                    std::cout << "Theta3 caclulation is wrong " << norm_2(distance) <<  std::endl;
+                    std::cout << "Theta3 caclulation is wrong " << norm_2(distance) << std::endl;
                     KRATOS_ERROR;
                 }
             }
@@ -152,9 +150,19 @@ namespace Kratos
                 _g2[point_number],
                 r_geometry_slave.ShapeFunctionsLocalGradients()[point_number]);
 
+            Matrix HSDVFirstVariationMatrix = zero_matrix(3, 2 * number_of_nodes_slave);
+            HSDVFirstVariation(
+                point_number,
+                HSDVFirstVariationMatrix,
+                2 * number_of_nodes_slave,
+                _theta3[point_number],
+                _g1[point_number],
+                _g2[point_number],
+                N_slave);
+
             for (IndexType i = 0; i < number_of_nodes_slave; ++i)
             {
-                IndexType index = 3 * (i + number_of_nodes_master);
+                IndexType index = 5 * (i + number_of_nodes_master);
                 if (Is(IgaFlags::FIX_DISPLACEMENT_X)) {
                     H(0, index + 0) = -N_slave(point_number, i) - OutOfPlaneDeformationFirstVariationMatrix(0, 3 * i + 0);
                     H(0, index + 1) = -OutOfPlaneDeformationFirstVariationMatrix(0, 3 * i + 1);
@@ -162,20 +170,28 @@ namespace Kratos
 
                 }
                 if (Is(IgaFlags::FIX_DISPLACEMENT_Y)) {
-                    H(1, index + 0) = -OutOfPlaneDeformationFirstVariationMatrix(1, 3 *  i + 0);
+                    H(1, index + 0) = -OutOfPlaneDeformationFirstVariationMatrix(1, 3 * i + 0);
                     H(1, index + 1) = -N_slave(point_number, i) - OutOfPlaneDeformationFirstVariationMatrix(1, 3 * i + 1);
-                    H(1, index + 2) = -OutOfPlaneDeformationFirstVariationMatrix(1, 3 *  i + 2);
+                    H(1, index + 2) = -OutOfPlaneDeformationFirstVariationMatrix(1, 3 * i + 2);
                 }
                 if (Is(IgaFlags::FIX_DISPLACEMENT_Z)) {
                     H(2, index + 0) = -OutOfPlaneDeformationFirstVariationMatrix(2, 3 * i + 0);
                     H(2, index + 1) = -OutOfPlaneDeformationFirstVariationMatrix(2, 3 * i + 1);
                     H(2, index + 2) = -N_slave(point_number, i) - OutOfPlaneDeformationFirstVariationMatrix(2, 3 * i + 2);
                 }
+
+                H(0, index + 3) = -HSDVFirstVariationMatrix(0, 2 * i);
+                H(1, index + 3) = -HSDVFirstVariationMatrix(1, 2 * i);
+                H(2, index + 3) = -HSDVFirstVariationMatrix(2, 2 * i);
+
+                H(0, index + 4) = -HSDVFirstVariationMatrix(0, 2 * i + 1);
+                H(1, index + 4) = -HSDVFirstVariationMatrix(1, 2 * i + 1);
+                H(2, index + 4) = -HSDVFirstVariationMatrix(2, 2 * i + 1);
             }
 
             // Differential area
             const double penalty_integration = penalty * (integration_points[point_number].Weight()) * determinant_jacobian_vector[point_number];
-            double check_weight = integration_points[point_number].Weight(); 
+            double check_weight = integration_points[point_number].Weight();
             double check_det = determinant_jacobian_vector[point_number];
 
             // Assembly
@@ -189,17 +205,19 @@ namespace Kratos
                 {
                     const array_1d<double, 3> disp = r_geometry_master[i].FastGetSolutionStepValue(DISPLACEMENT);
                     IndexType index = 3 * i;
-                    u[index]     = disp[0];
+                    u[index] = disp[0];
                     u[index + 1] = disp[1];
                     u[index + 2] = disp[2];
                 }
                 for (IndexType i = 0; i < number_of_nodes_slave; ++i)
                 {
                     const array_1d<double, 3> disp = r_geometry_slave[i].FastGetSolutionStepValue(DISPLACEMENT);
-                    IndexType index = 3 * (i + number_of_nodes_master);
-                    u[index]     = disp[0];
+                    IndexType index = 5 * i + 3 * number_of_nodes_master;
+                    u[index] = disp[0];
                     u[index + 1] = disp[1];
                     u[index + 2] = disp[2];
+                    u[index + 3] = r_geometry_slave[i].FastGetSolutionStepValue(ROTATION_X);
+                    u[index + 4] = r_geometry_slave[i].FastGetSolutionStepValue(ROTATION_Y);
                 }
 
                 noalias(rRightHandSideVector) -= prod(prod(trans(H), H), u) * penalty_integration;
@@ -209,7 +227,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void CouplingSolidShellPenaltyCondition::DeterminantOfJacobianInitial(
+    void CouplingSolidShell5pHPenaltyCondition::DeterminantOfJacobianInitial(
         const GeometryType& rGeometry,
         Vector& rDeterminantOfJacobian)
     {
@@ -248,7 +266,7 @@ namespace Kratos
         }
     }
 
-    void CouplingSolidShellPenaltyCondition::OutOfPlaneDeformationFirstVariation(
+    void CouplingSolidShell5pHPenaltyCondition::OutOfPlaneDeformationFirstVariation(
         Matrix& OutOfPlaneDeformationWholeMatrix,
         const size_t& mat_size,
         const double theta3,
@@ -264,44 +282,69 @@ namespace Kratos
             array_1d<double, 3> N_theta1_r(3, 0), N_theta2_r(3, 0), N_basis_function(3, 0);
             N_theta1_r[dirr] = ShapeFunctionsGradientsValues(kr, 0);
             N_theta2_r[dirr] = ShapeFunctionsGradientsValues(kr, 1);
-            array_1d<double, 3> Phi_r_cross_Α3 = Calculate_Phi_r_cross_A3(N_theta1_r, N_theta2_r,A1,A2);
+            array_1d<double, 3> Phi_r_cross_Α3 = Calculate_Phi_r_cross_A3(N_theta1_r, N_theta2_r, A1, A2);
 
             OutOfPlaneDeformationWholeMatrix(0, r) = theta3 * Phi_r_cross_Α3[0];
             OutOfPlaneDeformationWholeMatrix(1, r) = theta3 * Phi_r_cross_Α3[1];
             OutOfPlaneDeformationWholeMatrix(2, r) = theta3 * Phi_r_cross_Α3[2];
-           
+
         }
 
     }
 
-    array_1d<double, 3> CouplingSolidShellPenaltyCondition::Calculate_Phi_r_cross_A3(
-        const array_1d<double, 3>& N_theta1_r, 
+    array_1d<double, 3> CouplingSolidShell5pHPenaltyCondition::Calculate_Phi_r_cross_A3(
+        const array_1d<double, 3>& N_theta1_r,
         const array_1d<double, 3>& N_theta2_r,
-        const array_1d<double, 3>& A1, 
+        const array_1d<double, 3>& A1,
         const array_1d<double, 3>& A2) {
         // A1_cross_A2, A1_cross_A2 norm
         array_1d<double, 3> A1_cross_A2, A3, Phi, Phi_r_cross_A3;
         MathUtils<double>::CrossProduct(A1_cross_A2, A1, A2);
         double norm_A1_cross_A2 = norm_2(A1_cross_A2);
         A3 = A1_cross_A2 / norm_A1_cross_A2;
-        
+
         double phi1 = (1 / norm_A1_cross_A2) * inner_prod(N_theta2_r, A3);
-        double phi2 = - (1 / norm_A1_cross_A2) * inner_prod(N_theta1_r, A3);
+        double phi2 = -(1 / norm_A1_cross_A2) * inner_prod(N_theta1_r, A3);
         Phi = phi1 * A1 + phi2 * A2;
 
         MathUtils<double>::CrossProduct(Phi_r_cross_A3, Phi, A3);
         return Phi_r_cross_A3;
     }
 
+    void CouplingSolidShell5pHPenaltyCondition::HSDVFirstVariation(
+        const IndexType IntegrationPointIndex,
+        Matrix& HSDVFirstVariationMatrix,
+        const size_t& mat_size,
+        const double theta,
+        const array_1d<double, 3>& A1,
+        const array_1d<double, 3>& A2,
+        const Matrix& N_slave) {
+        for (size_t r = 0; r < mat_size; r++) { // row
+            double w1_r, w2_r;
+            size_t dirr = r % 2;
+            size_t kr = r / 2;
+            if (dirr == 0) {
+                HSDVFirstVariationMatrix(0, kr) = N_slave(IntegrationPointIndex, kr) * A1(0);
+                HSDVFirstVariationMatrix(1, kr) = N_slave(IntegrationPointIndex, kr) * A1(1);
+                HSDVFirstVariationMatrix(2, kr) = N_slave(IntegrationPointIndex, kr) * A1(2);
+            }
+            else if (dirr == 1) {
+                HSDVFirstVariationMatrix(0, kr) = N_slave(IntegrationPointIndex, kr) * A2(0);
+                HSDVFirstVariationMatrix(1, kr) = N_slave(IntegrationPointIndex, kr) * A2(1);
+                HSDVFirstVariationMatrix(2, kr) = N_slave(IntegrationPointIndex, kr) * A2(2);
+            }
+        }
+    }
 
-    int CouplingSolidShellPenaltyCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+
+    int CouplingSolidShell5pHPenaltyCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
             << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyCondition" << std::endl;
         return 0;
     }
 
-    void CouplingSolidShellPenaltyCondition::EquationIdVector(
+    void CouplingSolidShell5pHPenaltyCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo) const
     {
@@ -313,29 +356,31 @@ namespace Kratos
         const SizeType number_of_nodes_master = r_geometry_master.size();
         const SizeType number_of_nodes_slave = r_geometry_slave.size();
 
-        if (rResult.size() != 3 * (number_of_nodes_master + number_of_nodes_slave))
-            rResult.resize(3 * (number_of_nodes_master + number_of_nodes_slave), false);
+        if (rResult.size() != (3 * number_of_nodes_master + 5 * number_of_nodes_slave))
+            rResult.resize(3 * number_of_nodes_master + 5 * number_of_nodes_slave, false);
 
         for (IndexType i = 0; i < number_of_nodes_master; ++i) {
             const IndexType index = i * 3;
             const auto& r_node = r_geometry_master[i];
-            rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
+            rResult[index] = r_node.GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = r_node.GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index + 2] = r_node.GetDof(DISPLACEMENT_Z).EquationId();
         }
 
         for (IndexType i = 0; i < number_of_nodes_slave; ++i) {
-            const IndexType index = 3 * (i + number_of_nodes_master);
+            const IndexType index = 5 * i + 3 * number_of_nodes_master;
             const auto& r_node = r_geometry_slave[i];
-            rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
+            rResult[index] = r_node.GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = r_node.GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index + 2] = r_node.GetDof(DISPLACEMENT_Z).EquationId();
+            rResult[index + 3] = r_node.GetDof(ROTATION_X).EquationId();
+            rResult[index + 4] = r_node.GetDof(ROTATION_Y).EquationId();
         }
 
         KRATOS_CATCH("")
     }
 
-    void CouplingSolidShellPenaltyCondition::GetDofList(
+    void CouplingSolidShell5pHPenaltyCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo) const
     {
@@ -348,7 +393,7 @@ namespace Kratos
         const SizeType number_of_nodes_slave = r_geometry_slave.size();
 
         rElementalDofList.resize(0);
-        rElementalDofList.reserve(3 * (number_of_nodes_master + number_of_nodes_slave));
+        rElementalDofList.reserve(3 * number_of_nodes_master + 5 * number_of_nodes_slave);
 
         for (IndexType i = 0; i < number_of_nodes_master; ++i) {
             const auto& r_node = r_geometry_master.GetPoint(i);
@@ -362,6 +407,8 @@ namespace Kratos
             rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_Y));
             rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_Z));
+            rElementalDofList.push_back(r_node.pGetDof(ROTATION_X));
+            rElementalDofList.push_back(r_node.pGetDof(ROTATION_Y));
         }
 
         KRATOS_CATCH("")
