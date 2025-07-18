@@ -95,8 +95,9 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("LoadCondition", mLoadCondition)
     KRATOS_REGISTER_CONDITION("LoadMomentDirector5pCondition", mLoadMomentDirector5pCondition)
     KRATOS_REGISTER_CONDITION("CouplingPenaltyCondition", mCouplingPenaltyCondition)
-    KRATOS_REGISTER_CONDITION("CouplingSolidShellPenaltyCondition", mCouplingSolidShellPenaltyCondition) // Minas
-    KRATOS_REGISTER_CONDITION("CouplingSolidShellNitscheCondition", mCouplingSolidShellNitscheCondition) // Minas
+    KRATOS_REGISTER_CONDITION("CouplingSolidShell3pPenaltyCondition", mCouplingSolidShell3pPenaltyCondition) 
+    KRATOS_REGISTER_CONDITION("CouplingSolidShell5pHPenaltyCondition", mCouplingSolidShell5pHPenaltyCondition)
+    KRATOS_REGISTER_CONDITION("CouplingSolidShell3pNitscheCondition", mCouplingSolidShell3pNitscheCondition) 
     KRATOS_REGISTER_CONDITION("CouplingLagrangeCondition", mCouplingLagrangeCondition)
     KRATOS_REGISTER_CONDITION("CouplingNitscheCondition", mCouplingNitscheCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyCondition", mSupportPenaltyCondition)

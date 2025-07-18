@@ -7,11 +7,11 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ricky Aristio
+//  Main authors:    Minas Apostolakis
 //                   
 
-#if !defined(KRATOS_COUPLING_SOLIDSHELL_NITSCHE_CONDITION_H_INCLUDED )
-#define  KRATOS_COUPLING_SOLIDSHELL_NITSCHE_CONDITION_H_INCLUDED
+#if !defined(KRATOS_COUPLING_SOLIDSHELL3P_NITSCHE_CONDITION_H_INCLUDED )
+#define  KRATOS_COUPLING_SOLIDSHELL3P_NITSCHE_CONDITION_H_INCLUDED
 
 // System includes
 #include "includes/define.h"
@@ -35,7 +35,7 @@ namespace Kratos
 *
 
 */
-class CouplingSolidShellNitscheCondition
+class CouplingSolidShell3pNitscheCondition
     : public Condition
 {
 protected:
@@ -161,8 +161,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of CouplingSolidShellNitscheCondition
-    KRATOS_CLASS_POINTER_DEFINITION(CouplingSolidShellNitscheCondition);
+    /// Counted pointer of CouplingSolidShell3pNitscheCondition
+    KRATOS_CLASS_POINTER_DEFINITION(CouplingSolidShell3pNitscheCondition);
 
     /// Size types
     typedef std::size_t SizeType;
@@ -173,14 +173,14 @@ public:
     ///@{
 
     /// Constructor with Id and geometry
-    CouplingSolidShellNitscheCondition(
+    CouplingSolidShell3pNitscheCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {};
 
     /// Constructor with Id, geometry and property
-    CouplingSolidShellNitscheCondition(
+    CouplingSolidShell3pNitscheCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -188,12 +188,12 @@ public:
     {};
 
     /// Default constructor
-    CouplingSolidShellNitscheCondition()
+    CouplingSolidShell3pNitscheCondition()
         : Condition()
     {};
 
     /// Destructor.
-    virtual ~CouplingSolidShellNitscheCondition() = default;
+    virtual ~CouplingSolidShell3pNitscheCondition() = default;
 
     ///@}
     ///@name Life Cycle
@@ -206,7 +206,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<CouplingSolidShellNitscheCondition>(
+        return Kratos::make_intrusive<CouplingSolidShell3pNitscheCondition>(
             NewId, pGeom, pProperties);
     };
 
@@ -217,7 +217,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive< CouplingSolidShellNitscheCondition >(
+        return Kratos::make_intrusive< CouplingSolidShell3pNitscheCondition >(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -343,14 +343,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "\"CouplingSolidShellNitscheCondition\" #" << Id();
+        buffer << "\"CouplingSolidShell3pNitscheCondition\" #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "\"CouplingSolidShellNitscheCondition\" #" << Id();
+        rOStream << "\"CouplingSolidShell3pNitscheCondition\" #" << Id();
     }
 
     /// Print object's data.
@@ -561,7 +561,7 @@ private:
 
     ///@}
 
-}; // Class CouplingSolidShellNitscheCondition
+}; // Class CouplingSolidShell3pNitscheCondition
 
 }  // namespace Kratos.
 

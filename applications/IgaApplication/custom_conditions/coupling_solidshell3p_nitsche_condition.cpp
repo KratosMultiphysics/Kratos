@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ricky Aristio
+//  Main authors:    Minas Apostolakis
 //                   
 
 // System includes
@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/coupling_solidshell_nitsche_condition.h"
+#include "custom_conditions/coupling_solidshell3p_nitsche_condition.h"
 
 namespace Kratos
 {
@@ -23,7 +23,7 @@ namespace Kratos
     ///@{
     /// 
     
-    void CouplingSolidShellNitscheCondition::CalculateAll(
+    void CouplingSolidShell3pNitscheCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
@@ -412,7 +412,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void CouplingSolidShellNitscheCondition::CalculateKinematicsShell(
+    void CouplingSolidShell3pNitscheCondition::CalculateKinematicsShell(
         IndexType IntegrationPointIndex,
         KinematicVariablesShell& rKinematicVariables,
         const Matrix& rShapeFunctionGradientValues,
@@ -502,7 +502,7 @@ namespace Kratos
         //}
     }
 
-    void CouplingSolidShellNitscheCondition::CalculateKinematicsSolid( 
+    void CouplingSolidShell3pNitscheCondition::CalculateKinematicsSolid( 
         IndexType IntegrationPointIndex,
         KinematicVariablesSolid& rKinematicVariables,
         const Matrix& rShapeFunctionGradientValues,
@@ -617,7 +617,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void CouplingSolidShellNitscheCondition::CalculateTransposeInverseMatrix3x3(Matrix& TransposedInverted, const Matrix Input) {
+    void CouplingSolidShell3pNitscheCondition::CalculateTransposeInverseMatrix3x3(Matrix& TransposedInverted, const Matrix Input) {
         KRATOS_TRY; 
 
         double determinant = +  Input(0, 0) * (Input(1, 1) * Input(2, 2) - Input(2, 1) * Input(1, 2))
@@ -649,7 +649,7 @@ namespace Kratos
     *
     *  The transformation from ε_12_cu to 2*ε_12_ca is included in T.
     */
-    void CouplingSolidShellNitscheCondition::CalculateTransformationShell(
+    void CouplingSolidShell3pNitscheCondition::CalculateTransformationShell(
         const KinematicVariablesShell& rKinematicVariables,
         Matrix& rT, Matrix& rT_hat, array_1d<array_1d<double, 3>,2>& rReferenceContraVariantBase
     )
@@ -720,7 +720,7 @@ namespace Kratos
         rT_hat(2, 2) = (G(0, 0) * G(1, 1) + G(1, 0) * G(0, 1));
     }
 
-    void CouplingSolidShellNitscheCondition::CalculateConstitutiveVariablesShell(
+    void CouplingSolidShell3pNitscheCondition::CalculateConstitutiveVariablesShell(
         IndexType IntegrationPointIndex,
         const double& theta3,
         KinematicVariablesShell& rActualKinematic,
@@ -759,7 +759,7 @@ namespace Kratos
             trans(rThisConstitutiveVariablesShell.ConstitutiveMatrix), rThisConstitutiveVariablesShell.StrainVector);
     }
 
-    void CouplingSolidShellNitscheCondition::CalculateConstitutiveVariablesSolid(
+    void CouplingSolidShell3pNitscheCondition::CalculateConstitutiveVariablesSolid(
         IndexType IntegrationPointIndex,
         KinematicVariablesSolid& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesSolid,
@@ -810,7 +810,7 @@ namespace Kratos
         //}
     }
 
-    void CouplingSolidShellNitscheCondition::CalculateHessian(
+    void CouplingSolidShell3pNitscheCondition::CalculateHessian(
         Matrix& Hessian,
         const Matrix& rDDN_DDe) const
     {
@@ -839,7 +839,7 @@ namespace Kratos
 
 
 
-    void CouplingSolidShellNitscheCondition::DeterminantOfJacobianInitial(
+    void CouplingSolidShell3pNitscheCondition::DeterminantOfJacobianInitial(
         const GeometryType& rGeometry,
         Vector& rDeterminantOfJacobian)
     {
@@ -878,7 +878,7 @@ namespace Kratos
         }
     }
 
-     void CouplingSolidShellNitscheCondition::CalculateTractionShell(
+     void CouplingSolidShell3pNitscheCondition::CalculateTractionShell(
         IndexType IntegrationPointIndex,
         array_1d<double, 3>& rTraction,
         const KinematicVariablesShell& rActualKinematic,
@@ -909,7 +909,7 @@ namespace Kratos
                      + rActualKinematic.a2[2]*(Palphabeta(1,0)*n_contravariant_vector[0]+Palphabeta(1,1)*n_contravariant_vector[1]);
     }
 
-    void CouplingSolidShellNitscheCondition::CalculateTractionSolid(
+    void CouplingSolidShell3pNitscheCondition::CalculateTractionSolid(
         IndexType IntegrationPointIndex,
         array_1d<double, 3>& rTraction,
         const KinematicVariablesSolid& rActualKinematic,
@@ -937,7 +937,7 @@ namespace Kratos
         rTraction = t1_covariant * rActualKinematic.a1 + t2_covariant * rActualKinematic.a2 + t3_covariant * rActualKinematic.a3;
     }
 
-    void CouplingSolidShellNitscheCondition::CalculateFirstVariationStressCovariantShell(
+    void CouplingSolidShell3pNitscheCondition::CalculateFirstVariationStressCovariantShell(
         IndexType IntegrationPointIndex,
         const double& theta3,
         Matrix& rFirstVariationStressCovariant,
@@ -1039,7 +1039,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void CouplingSolidShellNitscheCondition::CalculateFirstVariationStressCovariantSolid(
+    void CouplingSolidShell3pNitscheCondition::CalculateFirstVariationStressCovariantSolid(
         IndexType IntegrationPointIndex,
         Matrix& rFirstVariationStressCovariant,
         const KinematicVariablesSolid& rActualKinematic,
@@ -1075,7 +1075,7 @@ namespace Kratos
         rFirstVariationStressCovariant = prod(rThisConstitutiveVariablesSolid.ConstitutiveMatrix, dE);
     }
     
-    void CouplingSolidShellNitscheCondition::CalculateFirstVariationTractionShell(
+    void CouplingSolidShell3pNitscheCondition::CalculateFirstVariationTractionShell(
         IndexType IntegrationPointIndex,
         Matrix& rFirstVariationTraction,
         Matrix& rFirstVariationStressCovariant,
@@ -1132,7 +1132,7 @@ namespace Kratos
                                    r_DN_Deta*(n_contravariant_vector[1]*stress_vector_covariant[1] + n_contravariant_vector[0]*stress_vector_covariant[2]);
     }
 
-    void CouplingSolidShellNitscheCondition::CalculateFirstVariationTractionSolid(
+    void CouplingSolidShell3pNitscheCondition::CalculateFirstVariationTractionSolid(
         IndexType IntegrationPointIndex,
         Matrix& rFirstVariationTraction,
         Matrix& rFirstVariationStressCovariant,
@@ -1204,7 +1204,7 @@ namespace Kratos
         rFirstVariationTraction += r_DN_theta1 * traction_covariant_1 + r_DN_theta2 * traction_covariant_2 + r_DN_theta3 * traction_covariant_3;
      }
 
-    void CouplingSolidShellNitscheCondition::CalculateSecondVariationTractionSolid(
+    void CouplingSolidShell3pNitscheCondition::CalculateSecondVariationTractionSolid(
         IndexType IntegrationPointIndex,
         Matrix& rProductSecondVariationTraction_Displacement,
         const Matrix& rFirstVariationStressCovariant,
@@ -1349,7 +1349,7 @@ namespace Kratos
         }
     }
 
-    void CouplingSolidShellNitscheCondition::CalculateSecondVariationTractionShell(
+    void CouplingSolidShell3pNitscheCondition::CalculateSecondVariationTractionShell(
         IndexType IntegrationPointIndex,
         Matrix& rProductSecondVariationTraction_Displacement,
         const double& rtheta3,
@@ -1523,7 +1523,7 @@ namespace Kratos
 
     }
 
-    double CouplingSolidShellNitscheCondition::ComputeTheta3Shell(
+    double CouplingSolidShell3pNitscheCondition::ComputeTheta3Shell(
         IndexType IntegrationPointIndex,
         const KinematicVariablesShell& rCurrentConfiguraitonKinematicVariablesShell) {
         
@@ -1561,7 +1561,7 @@ namespace Kratos
 
     }
 
-    void CouplingSolidShellNitscheCondition::GetValuesVector(
+    void CouplingSolidShell3pNitscheCondition::GetValuesVector(
         Vector& rValues,
         int Step) const
     {
@@ -1596,7 +1596,7 @@ namespace Kratos
         }
     }
 
-    void CouplingSolidShellNitscheCondition::OutOfPlaneDeformationFirstVariation(
+    void CouplingSolidShell3pNitscheCondition::OutOfPlaneDeformationFirstVariation(
         Matrix& OutOfPlaneDeformationWholeMatrix,
         const size_t& mat_size,
         const double theta3,
@@ -1622,7 +1622,7 @@ namespace Kratos
         }
     }
 
-    array_1d<double, 3> CouplingSolidShellNitscheCondition::Calculate_Phi_r_cross_A3(
+    array_1d<double, 3> CouplingSolidShell3pNitscheCondition::Calculate_Phi_r_cross_A3(
         const array_1d<double, 3>& N_theta1_r,
         const array_1d<double, 3>& N_theta2_r,
         const array_1d<double, 3>& A1,
@@ -1641,7 +1641,7 @@ namespace Kratos
         return Phi_r_cross_A3;
     }
 
-    void CouplingSolidShellNitscheCondition::EquationIdVector(
+    void CouplingSolidShell3pNitscheCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo) const
     {
@@ -1675,7 +1675,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void CouplingSolidShellNitscheCondition::GetDofList(
+    void CouplingSolidShell3pNitscheCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo) const
     {

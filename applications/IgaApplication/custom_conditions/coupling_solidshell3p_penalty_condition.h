@@ -12,8 +12,8 @@
 //                   
 //
 
-#if !defined(KRATOS_COUPLING_SOLIDSHELL_PENALTY_CONDITION_H_INCLUDED )
-#define  KRATOS_COUPLING_SOLIDSHELL_PENALTY_CONDITION_H_INCLUDED
+#if !defined(KRATOS_COUPLING_SOLIDSHELL3P_PENALTY_CONDITION_H_INCLUDED )
+#define  KRATOS_COUPLING_SOLIDSHELL3P_PENALTY_CONDITION_H_INCLUDED
 
 // System includes
 #include "includes/define.h"
@@ -24,7 +24,6 @@
 // Project includes
 #include "iga_application_variables.h"
 #include "custom_utilities/iga_flags.h"
-
 #include "geometries/coupling_geometry.h"
 
 
@@ -43,15 +42,15 @@ namespace Kratos
 *   The continuities can be enabled or disabled with the
 *   FIX_DISPLACEMENT_{dir} flags.
 */
-class CouplingSolidShellPenaltyCondition
+class CouplingSolidShell3pPenaltyCondition
     : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of CouplingSolidShellPenaltyCondition
-    KRATOS_CLASS_POINTER_DEFINITION(CouplingSolidShellPenaltyCondition);
+    /// Counted pointer of CouplingSolidShell3pPenaltyCondition
+    KRATOS_CLASS_POINTER_DEFINITION(CouplingSolidShell3pPenaltyCondition);
 
     /// Size types
     typedef std::size_t SizeType;
@@ -62,7 +61,7 @@ public:
     ///@{
 
     /// Constructor with Id and geometry : exaclty as CouplingPenaltyCondition
-    CouplingSolidShellPenaltyCondition(
+    CouplingSolidShell3pPenaltyCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry) :
         Condition(NewId, pGeometry)
@@ -70,7 +69,7 @@ public:
     };
     
     /// Constructor with Id, geometry and property : exaclty as CouplingPenaltyCondition
-    CouplingSolidShellPenaltyCondition(
+    CouplingSolidShell3pPenaltyCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties) :
@@ -80,13 +79,13 @@ public:
     };
 
     /// Default constructor
-    CouplingSolidShellPenaltyCondition()
+    CouplingSolidShell3pPenaltyCondition()
         : Condition()
     {
     };
 
     /// Destructor.
-    virtual ~CouplingSolidShellPenaltyCondition() = default;
+    virtual ~CouplingSolidShell3pPenaltyCondition() = default;
 
     ///@}
     ///@name Life Cycle
@@ -99,7 +98,7 @@ public:
        PropertiesType::Pointer pProperties
    ) const override
    {
-       return Kratos::make_intrusive<CouplingSolidShellPenaltyCondition>(
+       return Kratos::make_intrusive<CouplingSolidShell3pPenaltyCondition>(
            NewId, pGeom, pProperties);
    };
    
@@ -110,7 +109,7 @@ public:
        PropertiesType::Pointer pProperties
    ) const override
    {
-       return Kratos::make_intrusive< CouplingSolidShellPenaltyCondition >(
+       return Kratos::make_intrusive< CouplingSolidShell3pPenaltyCondition >(
            NewId, GetGeometry().Create(ThisNodes), pProperties);
    };
 
@@ -230,14 +229,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "\"CouplingSolidShellPenaltyCondition\" #" << Id();
+        buffer << "\"CouplingSolidShell3pPenaltyCondition\" #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "\"CouplingSolidShellPenaltyCondition\" #" << Id();
+        rOStream << "\"CouplingSolidShell3pPenaltyCondition\" #" << Id();
     }
 
     /// Print object's data.
@@ -270,7 +269,7 @@ private:
 
     ///@}
 
-}; // Class CouplingPenaltyCondition
+}; // Class CouplingSolidShell3pPenaltyCondition
 
 }  // namespace Kratos.
 
