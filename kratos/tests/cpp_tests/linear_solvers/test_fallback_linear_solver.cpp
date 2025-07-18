@@ -87,7 +87,7 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorSolvers, KratosCoreFast
     // Create the solvers
     auto p_solver1 = Kratos::make_shared<DummyLinearSolverType>();
     Parameters amgcl_parameters = Parameters(R"({
-        "solver_type": "amgcl"
+        "solver_type": "bicgstab"
     })");
     auto p_solver2 = LinearSolverFactoryType().Create(amgcl_parameters);
 
@@ -132,7 +132,7 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorParameters, KratosCoreF
         "solver_type": "fallback_linear_solver",
         "solvers"    : [
             {
-                "solver_type": "amgcl"
+                "solver_type": "bicgstab"
             },
             {
                 "solver_type": "skyline_lu_factorization"
