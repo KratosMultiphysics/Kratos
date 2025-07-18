@@ -160,9 +160,6 @@ class DamageDetectionResponse(ResponseFunction):
                     container_expression.SetExpression((container_expression.GetExpression() - sensitivities[sensitivity_variable].GetExpression() * test_case_weight))
                     container_expression.SetExpression(Kratos.Expression.Utils.Collapse(container_expression).GetExpression())
 
-    def __GetSensor(self, sensor_name: str) -> KratosSI.Sensors.Sensor:
-        return self.sensor_name_dict[sensor_name]
-
     def __GetHeaderIndices(self, csv_stream: csv.reader) -> 'tuple[int, int]':
         headers = [s.strip() for s in next(csv_stream)]
         name_index = headers.index("name")
@@ -174,10 +171,14 @@ class DamageDetectionResponse(ResponseFunction):
             csv_measurement_stream = csv.reader(csv_measurement_file, delimiter=",")
             measured_name_index, measured_value_index = self.__GetHeaderIndices(csv_measurement_stream)
 
+            current_measurement_data: 'dict[str, float]' = {}
             for measured_row in csv_measurement_stream:
                 measured_sensor_name = measured_row[measured_name_index].strip()
                 measured_value = float(measured_row[measured_value_index])
-                self.__GetSensor(measured_sensor_name).GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, measured_value)
+                current_measurement_data[measured_sensor_name] = measured_value
+
+            for sensor_name, sensor in self.sensor_name_dict.items():
+                sensor.GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, current_measurement_data[sensor_name])
 
     def _GetResponsePrefix(self) -> str:
         return "DamageDetectionResponse"

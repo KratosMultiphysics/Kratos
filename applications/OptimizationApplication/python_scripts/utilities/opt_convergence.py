@@ -1,10 +1,9 @@
-import abc
+import abc, numpy
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import DictLogger
-from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 
 def CreateConvergenceCriteria(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
@@ -19,6 +18,8 @@ def CreateConvergenceCriteria(parameters: Kratos.Parameters, optimization_proble
         return TargetValueCriterion(parameters, optimization_problem)
     elif type == "magnitude_reduction":
         return MagnitudeReductionCriterion(parameters, optimization_problem)
+    elif type == "plateau":
+        return PlateauConvergenceCriteria(parameters, optimization_problem)
     else:
         raise RuntimeError(f"CreateConvergenceCriteria: unsupported convergence type {type}.")
 
@@ -333,5 +334,88 @@ class MagnitudeReductionCriterion(ConvergenceCriterion):
                 'current_value': self.value,
                 'target_value': self.__target_value,
                 "iter": f"{self.__optimization_problem.GetStep()} of {self.__max_iter}",
+                'status': str("converged" if self.conv else "not converged")}
+        return info
+
+class PlateauConvergenceCriteria(ConvergenceCriterion):
+    @classmethod
+    def GetDefaultParameters(cls):
+        return Kratos.Parameters("""{
+            "type"             : "plateau",
+            "max_iter"         : 500,
+            "min_iter"         : 100,
+            "min_delta"        : 1e-8,
+            "patience"         : 50,
+            "is_delta_relative": true
+        }""")
+
+    def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
+        super().__init__(parameters["max_iter"].GetInt(), optimization_problem)
+
+        self.optimization_problem = optimization_problem
+        self.min_delta = parameters["min_delta"].GetDouble()
+        self.min_iter = parameters["min_iter"].GetInt()
+
+        self.history = Kratos.Vector(parameters["patience"].GetInt(), 0.0)
+        if self.history.Size() == 0:
+            raise RuntimeError(f"The patience should be a positive integer [ patience = {self.history.Size()} ].")
+
+        self.cyclic_index = 0
+        self.last_step = -1
+        self.scaling_factor = None
+        if not parameters["is_delta_relative"].GetBool():
+            self.scaling_factor = 1.0
+
+        self.values = []
+
+    @time_decorator()
+    def IsConverged(self):
+        algorithm_buffered_data = ComponentDataView("algorithm", self.optimization_problem).GetBufferedData()
+        if not algorithm_buffered_data.HasValue("std_obj_value"):
+            raise RuntimeError(f"Algorithm data does not contain computed \"std_obj_value\".\nData:\n{algorithm_buffered_data}" )
+        self.value = algorithm_buffered_data["std_obj_value"]
+
+        current_step = self.optimization_problem.GetStep()
+        if current_step > self.last_step:
+            self.cyclic_index = (self.cyclic_index + 1) % self.history.Size()
+            self.last_step = current_step
+
+            if self.scaling_factor is None:
+                self.scaling_factor = self.value
+
+        self.history[self.cyclic_index] = self.value
+
+        # self.values.append(self.value)
+        # if self.optimization_problem.GetStep() > self.min_iter:
+        #     n = len(self.values)
+        #     fft_vals = numpy.fft.fft(y)
+        #     fft_freqs = numpy.fft.fftfreq(n, d=1)  # d=1 since STEP increments by 1
+        #     pos_mask = fft_freqs >= 0
+        #     fft_freqs = fft_freqs[pos_mask]
+        #     fft_magnitude = np.abs(fft_vals[pos_mask])
+        # else:
+        #     return False
+
+        # now calculate the max and min in the history
+        self.max_value = max(self.history)
+        self.min_value = min(self.history)
+        self.patience_max_delta = (self.max_value - self.min_value) / self.scaling_factor
+        self.conv = self.patience_max_delta < self.min_delta
+
+        DictLogger("Convergence info",self.GetInfo())
+
+        return self.min_iter < self.optimization_problem.GetStep() and self.conv
+
+    def GetInfo(self) -> dict:
+        info = {'type': 'plateau',
+                'current_value': self.value,
+                'patience min_value': self.min_value,
+                'patience max_value': self.max_value,
+                'patience max_delta': self.patience_max_delta,
+                'patience target max_delta': self.min_delta,
+                'scaling factor'    : self.scaling_factor,
+                'minimum number of iters': self.min_iter,
+                "iter": f"{self.optimization_problem.GetStep()} of {self.GetMaxIterations()}",
                 'status': str("converged" if self.conv else "not converged")}
         return info
