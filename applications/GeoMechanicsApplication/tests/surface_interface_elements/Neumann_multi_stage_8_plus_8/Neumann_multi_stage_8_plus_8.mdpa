@@ -52,7 +52,7 @@ Begin Elements Geo_USurfaceInterfaceElement8Plus8N
 End Elements
 
 Begin Conditions UPwNormalFaceLoadCondition3D8N
-  1  2   11  16  18  13  14  17  15  12
+  1  2   11  13  18  16  12  15  17  14
 End Conditions
 
 Begin SubModelPart Interfaces

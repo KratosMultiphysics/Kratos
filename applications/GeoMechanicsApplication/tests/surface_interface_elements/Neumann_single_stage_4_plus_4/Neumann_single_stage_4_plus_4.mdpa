@@ -39,9 +39,9 @@ Begin Elements Geo_USurfaceInterfaceElement4Plus4N
 End Elements
 
 Begin Conditions UPwNormalFaceLoadCondition3D4N
-  1  2   11  13  14  12
-  2  2   31  33  34  32
-  3  2   51  53  54  52
+  1  2   11  12  14  13
+  2  2   31  32  34  33
+  3  2   51  52  54  53
 End Conditions
 
 Begin SubModelPart Interfaces

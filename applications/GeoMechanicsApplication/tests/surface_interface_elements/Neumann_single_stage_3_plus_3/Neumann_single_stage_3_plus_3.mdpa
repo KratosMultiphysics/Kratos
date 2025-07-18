@@ -42,12 +42,12 @@ Begin Elements Geo_USurfaceInterfaceElement3Plus3N
 End Elements
 
 Begin Conditions UPwNormalFaceLoadCondition3D3N
-  1  2   11  13  12
-  2  2   13  14  12
-  3  2   31  33  32
-  4  2   33  34  32
-  5  2   51  53  52
-  6  2   53  54  52
+  1  2   11  12  13
+  2  2   13  12  14
+  3  2   31  32  33
+  4  2   33  32  34
+  5  2   51  52  53
+  6  2   53  52  54
 End Conditions
 
 Begin SubModelPart Interfaces
