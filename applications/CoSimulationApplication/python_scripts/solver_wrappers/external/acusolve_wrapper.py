@@ -7,6 +7,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 
 # Other imports
 from KratosMultiphysics.CoSimulationApplication.utilities import model_part_utilities
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 import time
 import sys
@@ -26,7 +27,7 @@ class acuSolveWrapper(CoSimulationSolverWrapper):
     def __init__(self, settings, model, solver_name):
         
         self.name = solver_name
-        print("{} :: Initiliazing AcuSolve Wrapper...".format(self.name))
+        self.PrintLog("Initiliazing AcuSolve Wrapper...")
         super().__init__(settings, model, solver_name)
         # Set default settings and validate JSON settings
         solver_wrapper_settings_defaults = KM.Parameters("""{
@@ -57,7 +58,7 @@ class acuSolveWrapper(CoSimulationSolverWrapper):
         # --------------------------------------------------------------------------------
         model_part_utilities.CreateMainModelPartsFromCouplingDataSettings(self.settings["data"], self.model, self.name)
         model_part_utilities.AllocateHistoricalVariablesFromCouplingDataSettings(self.settings["data"], self.model, self.name)        
-        print ("Run AcuSolve")
+
         # ---------------------
         # Get arguments from JSON file
         application         = self.settings["solver_wrapper_settings"]["application"].GetString()
@@ -86,6 +87,7 @@ class acuSolveWrapper(CoSimulationSolverWrapper):
         #    if ( world_rank == 0 ) :
 
         # Start AcuSolve process
+        self.PrintLog("Starting AcuSolve process...")
         if platform == "linux" or platform == "linux2":
             if (gpu!="FALSE"):
                 cmd = "acuRun -inp "+inputFile+" -pb "+problem+" -dir \""+working_directory+"\" -np "+str(np)+" -nt "+str(nt)+" -gpu "+gpu+" -verbose "+str(echo_level)+" &"         
@@ -95,7 +97,7 @@ class acuSolveWrapper(CoSimulationSolverWrapper):
                 cmd = "acuRun -inp "+inputFile+" -pb "+problem+" -dir \""+working_directory+"\" -np "+str(np)+" -nt "+str(nt)+" -frst "+" -verbose "+str(echo_level)+" &"         
             else:
                 cmd = "acuRun -inp "+inputFile+" -pb "+problem+" -dir \""+working_directory+"\" -np "+str(np)+" -nt "+str(nt)+" -verbose "+str(echo_level)+" &"       
-            print (cmd)
+            self.PrintLog(f"AcuSolve command : {cmd}")
             os.system(cmd)
         elif platform == "win32":
             if (gpu!="FALSE"):
@@ -106,7 +108,7 @@ class acuSolveWrapper(CoSimulationSolverWrapper):
                 cmd = "acuRun.bat -inp "+inputFile+" -pb "+problem+" -dir \""+working_directory+"\" -pdir \""+problem_directory+"\" -np "+str(np)+" -nt "+str(nt)+" -frst "+" -verbose "+str(echo_level)+" -lbuff"        
             else:
                 cmd = "acuRun.bat -inp "+inputFile+" -pb "+problem+" -dir \""+working_directory+"\" -pdir \""+problem_directory+"\" -np "+str(np)+" -nt "+str(nt)+" -verbose "+str(echo_level)+" -lbuff"  
-            print ("Kratos running command : "+cmd)
+            self.PrintLog(f"AcuSolve command : {cmd}")
             subprocess.Popen(cmd)
 
     def Initialize(self):
@@ -116,8 +118,8 @@ class acuSolveWrapper(CoSimulationSolverWrapper):
         #   2. Import all meshes from Acusolve
         #   3. Import initiale values of temperature from Acusolve
         #   4. Export initiale values of heat sources to Acusolve
-        print("{} :: Initialize".format(self.name))
-        
+        self.PrintLog("Initialize")
+
         # Connect Kratos to Acusolve with CosimIO
         super().Initialize()
 
@@ -128,7 +130,7 @@ class acuSolveWrapper(CoSimulationSolverWrapper):
 
         # In debub mode, start the VTK output process
         if self.debug_mode:
-            print("{} :: Starting VTK ouput process".format(self.name))
+            self.PrintLog("Starting VTK ouput process")
             vtk_output_configuration = KM.Parameters("""{
                     "model_part_name"        : \""""+model_part_name+"""\",
                     "output_sub_model_parts" : false,
@@ -162,7 +164,7 @@ class acuSolveWrapper(CoSimulationSolverWrapper):
         # The AdvanceInTime process does not affect directly Acusolve
         # but the information to advance in time (or not) must be
         # store to be used when SolveSolutionStep is called
-        print("{} :: AdvanceInTime".format(self.name))
+        self.PrintLog("AdvanceInTime")
         # Because the coupled_solver instance calls AdvanceInTime first before solving the first step
         # this first call must be skipped for Acusolve which has already the proper
         # step loaded
@@ -179,25 +181,25 @@ class acuSolveWrapper(CoSimulationSolverWrapper):
         #   4. Wait for and Import the heat sources from Kratos
         # The process starts when the AdvanceInTime or RepeatTimeStep signal is sent to Acusolve
         start_time = time.time()
-        print("{} :: SolveSolutionStep starts...".format(self.name))
+        self.PrintLog("SolveSolutionStep starts...")
 
         # In debug mode
         if self.debug_mode :
-            print("{} :: Exporting current I/O data to VTK output".format(self.name))
+            self.PrintLog("Exporting current I/O data to VTK output")
             self.vtk_output.PrintOutput()
             self.vtk_output.ExecuteFinalizeSolutionStep()
 
         # Start the solving process in Acusolve
         if self.advance_in_time : 
-            print("{} :: Activate next step".format(self.name))
+            self.PrintLog("Activate next step")
             self.__SendControlSignal("AdvanceInTime")
             self.advance_in_time = False
-        else:    
-            print("{} :: Repeat step".format(self.name))
+        else:
+            self.PrintLog("Repeat step")
             self.__SendControlSignal("RepeatTimeStep")
 
         # Wait for and import the temperature values from Acusolve
-        print("{} :: Import temperature from Acusolve".format(self.name))
+        self.PrintLog("Import temperature from Acusolve")
         for data_name in self.settings["solver_wrapper_settings"]["import_data"].GetStringArray():
             data_config = { 
                 "type" : "coupling_interface_data",
@@ -206,7 +208,7 @@ class acuSolveWrapper(CoSimulationSolverWrapper):
             self.ImportData(data_config)
 
         # Export heat sources to Acusolve (who is waiting for them)
-        print("{} :: Export heat sources to Acusolve".format(self.name))
+        self.PrintLog("Export heat sources to Acusolve")
         for data_name in self.settings["solver_wrapper_settings"]["export_data"].GetStringArray():
             data_config = { 
                 "type" : "coupling_interface_data",
@@ -214,19 +216,18 @@ class acuSolveWrapper(CoSimulationSolverWrapper):
             }
             self.ExportData(data_config)
 
-        print("{} :: SolveSolutionStep executed. :: {} s.".format(self.name, time.time() - start_time))
+        self.PrintLog(f"SolveSolutionStep executed. :: {time.time() - start_time} s.")
 
         return
 
     def Finalize(self):
         # Inform Acusolve that the overall process is finished.
         # The order will activated finalizing process in Acusolve.
-        print("{} :: Finalize".format(self.name))
-        print("control signal : exit")
+        self.PrintLog("Finalize")
         self.__SendControlSignal("exit")
         # If the VTK output process is running, finalize it
         if self.debug_mode:
-            print("{} :: Finalizing VTK output process".format(self.name))
+            self.PrintLog("Finalizing VTK output process")
             self.vtk_output.ExecuteFinalize()
         super().Finalize()
 
@@ -239,7 +240,7 @@ class acuSolveWrapper(CoSimulationSolverWrapper):
         #   - RepeatTimeStep
         #   - AdvanceInTime
         #   - exit
-        print("{} :: Sending signal : {}".format(self.name,signal))
+        self.PrintLog(f"Sending signal : {signal}")
         if signal not in ["RepeatTimeStep","AdvanceInTime","exit"]:
             raise Exception("Signal {} is not authorized".format(signal))
         data_config = {
@@ -250,4 +251,5 @@ class acuSolveWrapper(CoSimulationSolverWrapper):
         # The signal is sent to Acusolve through the CosimIO export function
         self.ExportData(data_config)
 
-
+    def PrintLog(self,text):
+        return cs_tools.cs_print_info(f"{self.name} :",text)
