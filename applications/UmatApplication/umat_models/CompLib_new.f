@@ -12,7 +12,7 @@
       IMPLICIT NONE
 !
 !--------------------------------------------------------------- 
-!     Declarating UMAT vaiables and constants 
+!     Declaring UMAT variables and constants 
       CHARACTER*80 CMNAME
       INTEGER NTENS,NSTATEV,NPROPS,LAYER,NOEL,NPT,KSPT,KSTEP,KINC,
      1 NDI,NSHR
@@ -283,7 +283,7 @@ C ---------------------------------------------------------------
       double precision stress(3,3), statev(nstatev),props(nprops),
      & param(2), ff  
 C --------------------------------------------------------------- 
-C     Declarating other vaiables and constants    
+C     Declaring other variables and constants    
       double precision p,q,uu,TrialTh,TrialGth,Mf,m,cc,alpha,beta,
      & pc,pt
 C ---------------------------------------------------------------        
@@ -303,7 +303,7 @@ C ---------------------------------------------------------------
       TrialTh  = cos3theta1(STRESS)  
       TrialGth = 2.0*cc/((1.0+cc)-(1.0-cc)*TrialTh)
 
-!     auxilliary variable for the yield surface
+!     auxiliary variable for the yield surface
       uu = exp(-((p-pt)/(pc-pt)-alpha)**2/beta)
       ff= q**2.0d0+Mf**2*TrialGth**2*uu*(p-pt)*(p-pc)
       ff=ff/PROPS(12)
@@ -331,7 +331,7 @@ C ---------------------------------------------------------------
       double precision stress(3,3), xx(13),props(nprops),
      & param(2), ff,derve(6),dervp(6),dervs(6),ders(3,3) 
 C --------------------------------------------------------------- 
-C     Declarating other variables and constants    
+C     Declaring other variables and constants    
       double precision p,q,J2s,J3s,uu,TrialTh,TrialGth,STRAINDEV(3,3),
      & Mf,cc,alpha,beta,pc,pt,derinv(6),ELMOD(3,3,3,3),Idev(3,3,3,3),
      & STRESSDEV(3,3),temp2(3,3),Iunit(3,3,3,3),tempder(3,3)
@@ -388,7 +388,7 @@ C ---------------------------------------------------------------
 !     Lode angle 
       TrialTh  = cos3theta1(STRESS)  
       TrialGth = 2.0*cc/((1.0+cc)-(1.0-cc)*TrialTh)
-!     auxilliary variable for the yield surface
+!     auxiliary variable for the yield surface
       uu = exp(-((p-pt)/(pc-pt)-alpha)**2/beta)
       ff= q**2.0d0+Mf**2*TrialGth**2*uu*(p-pt)*(p-pc)
 !     evaluating the derivatives with respect to the invariants

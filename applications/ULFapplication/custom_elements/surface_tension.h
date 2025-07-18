@@ -81,7 +81,7 @@ namespace Kratos
 /**
  * This class is based on the VMS element in the fluid dynamics,
  * It is extended to solve for the droplet dynamics, and surface tensions.
- * for more information about the the governer equations and thier discretization, please find it in the below references:
+ * for more information about the governer equations and thier discretization, please find it in the below references:
  * Alex Jarauta, Pavel Ryzhakov, Marc Secanell, Prashant R Waghmare, and Jordi Pons-Prats. Numerical study of droplet dynamics in a polymer electrolyte fuel cell gas channel using an embedded eulerian-lagrangian approach. Journal of Power Sources, 323:201–212, 2016.
  */
 
@@ -137,7 +137,7 @@ public:
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
      * @param NewId Index number of the new element (optional)
      */
@@ -163,7 +163,7 @@ public:
         Element(NewId, pGeometry)
     {}
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
@@ -237,7 +237,7 @@ public:
         this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
     }
 
-    /// Returns a zero matrix of appropiate size (provided for compatibility with scheme)
+    /// Returns a zero matrix of appropriate size (provided for compatibility with scheme)
     /**
      * @param rLeftHandSideMatrix Local matrix, will be filled with zeros
      * @param rCurrentProcessInfo Process info instance
@@ -629,7 +629,7 @@ public:
                 /* Projections of the elemental residual are computed with
                  * Newton-Raphson iterations of type M(lumped) dx = ElemRes - M(consistent) * x
                  */
-                const double Weight = ConsistentMassCoef(Area); // Consistent mass matrix is Weigth * ( Ones(TNumNodes,TNumNodes) + Identity(TNumNodes,TNumNodes) )
+                const double Weight = ConsistentMassCoef(Area); // Consistent mass matrix is Weight * ( Ones(TNumNodes,TNumNodes) + Identity(TNumNodes,TNumNodes) )
                 // Carefully write results to nodal variables, to avoid parallelism problems
                 for (unsigned int i = 0; i < TNumNodes; ++i)
                 {
@@ -647,13 +647,13 @@ public:
                     this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += Area * N[i];
 
                     // Substract M(consistent)*x(i-1) from RHS
-                    for(unsigned int j = 0; j < TNumNodes; ++j) // RHS -= Weigth * Ones(TNumNodes,TNumNodes) * x(i-1)
+                    for(unsigned int j = 0; j < TNumNodes; ++j) // RHS -= Weight * Ones(TNumNodes,TNumNodes) * x(i-1)
                     {
                         for(unsigned int d = 0; d < TDim; ++d)
                             rMomRHS[d] -= Weight * this->GetGeometry()[j].FastGetSolutionStepValue(ADVPROJ)[d];
                         rMassRHS -= Weight * this->GetGeometry()[j].FastGetSolutionStepValue(DIVPROJ);
                     }
-                    for(unsigned int d = 0; d < TDim; ++d) // RHS -= Weigth * Identity(TNumNodes,TNumNodes) * x(i-1)
+                    for(unsigned int d = 0; d < TDim; ++d) // RHS -= Weight * Identity(TNumNodes,TNumNodes) * x(i-1)
                         rMomRHS[d] -= Weight * this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ)[d];
                     rMassRHS -= Weight * this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ);
 
@@ -1174,13 +1174,13 @@ protected:
     /// Add mass-like stabilization terms to LHS.
     /**
      * This function is only used in ASGS. For OSS, we avoid computing these
-     * terms, as they shoud cancel out with the dynamic part of the projection
+     * terms, as they should cancel out with the dynamic part of the projection
      * (which is not computed either)
      * @param rLHSMatrix Left hand side of the velocity-pressure system
      * @param Density Density on integration point
      * @param rAdvVel Advective velocity on integration point
      * @param TauOne Stabilization parameter for momentum equation
-     * @param rShapeFunc Shape funcitions evaluated on integration point
+     * @param rShapeFunc Shape functions evaluated on integration point
      * @param rShapeDeriv Shape function derivatives evaluated on integration point
      * @param Weight Area (or volume) times integration point weight
      */
@@ -2620,7 +2620,7 @@ protected:
     /**
      * @brief EquivalentStrainRate Calculate the second invariant of the strain rate tensor GammaDot = (2SijSij)^0.5.
      *
-     * @note Our implementation of non-Newtonian consitutive models such as Bingham relies on this funcition being
+     * @note Our implementation of non-Newtonian consitutive models such as Bingham relies on this function being
      * defined on all fluid elements.
      *
      * @param rDN_DX Shape function derivatives at the integration point.
@@ -2665,7 +2665,7 @@ protected:
             rAdvVel += rShapeFunc[iNode] * (rGeom[iNode].FastGetSolutionStepValue(VELOCITY, Step) - rGeom[iNode].FastGetSolutionStepValue(MESH_VELOCITY, Step));
     }
 
-    /// Write the convective operator evaluated at this point (for each nodal funciton) to an array
+    /// Write the convective operator evaluated at this point (for each nodal function) to an array
     /**
      * Evaluate the convective operator for each node's shape function at an arbitrary point
      * @param rResult: Output vector
@@ -2900,7 +2900,7 @@ protected:
     /**
      * Unused, left to support derived classes. @see SurfaceTension::AddBTransCB
      * @param rB Strain rate matrix
-     * @param rShapeDeriv Nodal shape funcion derivatives
+     * @param rShapeDeriv Nodal shape function derivatives
      */
     void CalculateB( BoundedMatrix<double, (TDim * TNumNodes) / 2, TDim * TNumNodes >& rB,
                      const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv);
