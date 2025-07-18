@@ -1,3 +1,4 @@
+import abc
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
@@ -21,7 +22,33 @@ def CreateConvergenceCriteria(parameters: Kratos.Parameters, optimization_proble
     else:
         raise RuntimeError(f"CreateConvergenceCriteria: unsupported convergence type {type}.")
 
-class MaxIterConvCriterion:
+class ConvergenceCriterion(abc.ABC):
+    """Base class for the convergence criteria.
+
+    This is the base class convergence criteria which is used to determine
+    whether the objective has converged or not.
+
+    This convergence criteria always require max number of iterations to
+    be specified to break the optimization no matter the convergence is reached
+    or not.
+
+    """
+    def __init__(self, max_iterations: int, optimization_problem: OptimizationProblem) -> None:
+        self.__max_iterations = max_iterations
+        self.__optimization_problem = optimization_problem
+
+    @abc.abstractmethod
+    def IsConverged(self) -> bool:
+        """Returns whether the objective is converged or not."""
+        pass
+
+    def GetMaxIterations(self) -> int:
+        return self.__max_iterations
+
+    def IsMaxIterationsReached(self) -> bool:
+        return self.__optimization_problem.GetStep() >= self.GetMaxIterations()
+
+class MaxIterConvCriterion(ConvergenceCriterion):
     """
     A convergence criterion class that checks if the maximum number of iterations has been reached.
 
@@ -29,16 +56,13 @@ class MaxIterConvCriterion:
     -------
     GetDefaultParameters():
         Returns the default parameters for the convergence criterion.
-    
+
     __init__(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         Initializes the convergence criterion with the given parameters and optimization problem.
-    
-    IsMaxIterationsReached():
-        Checks if the maximum number of iterations has been reached.
-    
+
     IsConverged(search_direction=None) -> bool:
         Checks if the optimization problem has converged based on the maximum number of iterations.
-    
+
     GetInfo() -> dict:
         Returns a dictionary with information about the current state of convergence.
     """
@@ -53,12 +77,10 @@ class MaxIterConvCriterion:
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.__max_iter = parameters["max_iter"].GetInt()
         self.__optimization_problem = optimization_problem
-
-    def IsMaxIterationsReached(self):
-        return self.__optimization_problem.GetStep() >= self.__max_iter
+        super().__init__(self.__max_iter, self.__optimization_problem)
 
     @time_decorator()
-    def IsConverged(self, search_direction=None) -> bool:
+    def IsConverged(self) -> bool:
         iter = self.__optimization_problem.GetStep()
         self.conv = iter >= self.__max_iter
         DictLogger("Convergence info",self.GetInfo())
@@ -72,7 +94,7 @@ class MaxIterConvCriterion:
         }
         return info
 
-class L2ConvCriterion:
+class L2ConvCriterion(ConvergenceCriterion):
     """
     A class to check the convergence of an optimization problem using the L2 norm criterion.
 
@@ -80,16 +102,13 @@ class L2ConvCriterion:
     -------
     GetDefaultParameters():
         Returns the default parameters for the L2ConvCriterion.
-    
+
     __init__(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         Initializes the L2ConvCriterion with given parameters and optimization problem.
-    
-    IsMaxIterationsReached() -> bool:
-        Checks if the maximum number of iterations has been reached.
-    
+
     IsConverged() -> bool:
         Checks if the optimization problem has converged based on the L2 norm of the search direction.
-    
+
     GetInfo() -> dict:
         Returns a dictionary with information about the current state of convergence.
     """
@@ -106,9 +125,7 @@ class L2ConvCriterion:
         self.__max_iter = parameters["max_iter"].GetInt()
         self.__optimization_problem = optimization_problem
         self.__tolerance = parameters["tolerance"].GetDouble()
-
-    def IsMaxIterationsReached(self):
-        return self.__optimization_problem.GetStep() >= self.__max_iter
+        super().__init__(self.__max_iter, self.__optimization_problem)
 
     @time_decorator()
     def IsConverged(self) -> bool:
@@ -135,25 +152,22 @@ class L2ConvCriterion:
                 'status': str("converged" if self.conv else "not converged")}
         return info
 
-class AverageAbsoluteImprovement:
+class AverageAbsoluteImprovement(ConvergenceCriterion):
     """
-    A class to monitor the convergence of an optimization problem based on the average absolute improvement 
+    A class to monitor the convergence of an optimization problem based on the average absolute improvement
     of a tracked value over a specified number of iterations.
 
     Methods
     -------
     GetDefaultParameters():
         Returns the default parameters for the convergence criteria.
-    
+
     __init__(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         Initializes the convergence criteria with the given parameters and optimization problem.
-    
-    IsMaxIterationsReached() -> bool:
-        Checks if the maximum number of iterations has been reached.
-    
+
     IsConverged() -> bool:
         Checks if the optimization problem has converged based on the average absolute improvement.
-    
+
     GetInfo() -> dict:
         Returns a dictionary with information about the current state of the convergence criteria.
     """
@@ -174,6 +188,7 @@ class AverageAbsoluteImprovement:
         self.__tolerance = parameters["tolerance"].GetDouble()
         self.__abs_value_change = []
         self.value = None
+        super().__init__(self.__max_iter, self.__optimization_problem)
 
     def IsMaxIterationsReached(self):
         return self.__optimization_problem.GetStep() >= self.__max_iter
@@ -199,7 +214,7 @@ class AverageAbsoluteImprovement:
             self.value = 0.0
             for i in range(self.__tracked_iter - 1):
                 self.value += self.__abs_value_change[-1 - i]
-            self.value = abs(self.value) / (self.__tracked_iter - 1) 
+            self.value = abs(self.value) / (self.__tracked_iter - 1)
             if not self.conv:
                 self.conv = self.value <= self.__tolerance
 
@@ -215,8 +230,8 @@ class AverageAbsoluteImprovement:
                 "iter": f"{self.__optimization_problem.GetStep()} of {self.__max_iter}",
                 'status': str("converged" if self.conv else "not converged")}
         return info
-    
-class TargetValueCriterion:
+
+class TargetValueCriterion(ConvergenceCriterion):
     """
     A class to check the convergence of an optimization problem based on a target value criterion.
 
@@ -224,16 +239,13 @@ class TargetValueCriterion:
     -------
     GetDefaultParameters():
         Returns the default parameters for the criterion.
-    
+
     __init__(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         Initializes the criterion with given parameters and optimization problem.
-    
-    IsMaxIterationsReached() -> bool:
-        Checks if the maximum number of iterations has been reached.
-    
+
     IsConverged() -> bool:
         Checks if the optimization problem has converged based on the target value.
-    
+
     GetInfo() -> dict:
         Returns a dictionary with information about the current state of convergence.
     """
@@ -250,6 +262,7 @@ class TargetValueCriterion:
         self.__max_iter = parameters["max_iter"].GetInt()
         self.__optimization_problem = optimization_problem
         self.__target_value = parameters["target_value"].GetDouble()
+        super().__init__(self.__max_iter, self.__optimization_problem)
 
     def IsMaxIterationsReached(self):
         return self.__optimization_problem.GetStep() >= self.__max_iter
@@ -277,8 +290,8 @@ class TargetValueCriterion:
                 "iter": f"{self.__optimization_problem.GetStep()} of {self.__max_iter}",
                 'status': str("converged" if self.conv else "not converged")}
         return info
-    
-class MagnitudeReductionCriterion:
+
+class MagnitudeReductionCriterion(ConvergenceCriterion):
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
@@ -294,12 +307,10 @@ class MagnitudeReductionCriterion:
         self.__optimization_problem = optimization_problem
         self.__target_scaling_factor = parameters["target_scaling_factor"].GetDouble()
         self.__machine_precision = parameters["machine_precision"].GetDouble()
-
-    def IsMaxIterationsReached(self):
-        return self.__optimization_problem.GetStep() >= self.__max_iter
+        super().__init__(self.__max_iter, self.__optimization_problem)
 
     @time_decorator()
-    def IsConverged(self) -> bool:
+    def IsConverged(self, ) -> bool:
         iter = self.__optimization_problem.GetStep()
         self.conv = iter >= self.__max_iter
 
