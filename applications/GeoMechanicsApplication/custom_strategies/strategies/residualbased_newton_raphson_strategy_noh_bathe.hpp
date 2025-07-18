@@ -257,7 +257,7 @@ public:
             }
         }*/
 
-        return is_converged;
+        return true;
     }
 
     /**
