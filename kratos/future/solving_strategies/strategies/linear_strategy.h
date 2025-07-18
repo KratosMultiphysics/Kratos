@@ -186,8 +186,6 @@ public:
 
             // Build the local system and apply the Dirichlet conditions
             p_scheme->Build(*p_lhs, *p_rhs);
-            // p_scheme->ApplyMasterSlaveConstraints(p_lhs, p_eff_lhs, p_rhs, p_eff_rhs, p_dx, p_eff_dx, r_T, r_b);
-            // p_scheme->ApplyDirichletConditions(r_eff_dof_set, r_eff_dof_map, *p_eff_lhs, *p_eff_rhs);
             p_scheme->BuildLinearSystemConstraints(r_dof_set, r_eff_dof_set, r_linear_system_container);
             p_scheme->ApplyLinearSystemConstraints(r_eff_dof_set, r_linear_system_container);
             this->SetStiffnessMatrixIsBuilt(true);

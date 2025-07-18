@@ -97,20 +97,25 @@ public:
     ///@{
 
     void AllocateLinearSystemArrays(
-        const TSparseGraphType& rSparseGraph,
         const typename DofsArrayType::Pointer pDofSet,
         const typename DofsArrayType::Pointer pEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
     {
+        // // Set up the system sparse matrix graph (note that the sparse graph will be destroyed when leaving this scope)
+        BuiltinTimer sparse_matrix_graph_time;
+        TSparseGraphType sparse_matrix_graph(pDofSet->size());
+        this->SetUpSparseMatrixGraph(sparse_matrix_graph);
+        KRATOS_INFO_IF("BlockBuilder", this->GetEchoLevel() > 0) << "Set up sparse matrix graph time: " << sparse_matrix_graph_time << std::endl;
+
         // Set the system arrays
         // Note that the graph-based constructor does both resizing and initialization
-        auto p_dx = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
+        auto p_dx = Kratos::make_shared<TSystemVectorType>(sparse_matrix_graph);
         rLinearSystemContainer.pDx.swap(p_dx);
 
-        auto p_rhs = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
+        auto p_rhs = Kratos::make_shared<TSystemVectorType>(sparse_matrix_graph);
         rLinearSystemContainer.pRhs.swap(p_rhs);
 
-        auto p_lhs = Kratos::make_shared<TSparseMatrixType>(rSparseGraph);
+        auto p_lhs = Kratos::make_shared<TSparseMatrixType>(sparse_matrix_graph);
         rLinearSystemContainer.pLhs.swap(p_lhs);
 
         // Get the number of free DOFs to allocate the effective system arrays
@@ -131,14 +136,33 @@ public:
         rLinearSystemContainer.pEffectiveDx.swap(p_eff_dx);
     }
 
-    void ConstructDirichletConstraintsStructure(
+    void AllocateLinearSystemConstraints(
         const DofsArrayType& rDofSet,
         const DofsArrayType& rEffectiveDofSet,
+        const DofArrayUtilities::SlaveToMasterDofsMap& rSlaveToMasterDofsMap,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
-        // Set up Dirichlet matrix sparse graph (note that the row size is the effective DOF set size from the block build)
+        // Check if there are master-slave constraints
+        if (!rSlaveToMasterDofsMap.empty()) {
+            // Fill the master-slave constraints graph
+            TSparseGraphType constraints_sparse_graph;
+            this->SetUpMasterSlaveConstraintsGraph(rDofSet, rEffectiveDofSet, rSlaveToMasterDofsMap, constraints_sparse_graph);
+
+            // Allocate the constraints arrays (note that we are using the move assignment operator in here)
+            auto p_aux_q = Kratos::make_shared<TSystemVectorType>(rDofSet.size());
+            rLinearSystemContainer.pConstraintsQ.swap(p_aux_q);
+
+            auto p_aux_T = Kratos::make_shared<TSparseMatrixType>(constraints_sparse_graph);
+            rLinearSystemContainer.pConstraintsT.swap(p_aux_T);
+
+            // // Free the constraints sparse matrix graph memory to avoid having two graphs at the same time
+            // delete constraints_sparse_graph;
+        }
+
+        // Set up Dirichlet matrix sparse graph
+        // Note that the row size is the effective DOF set size as the master-slave constraints act over the already effective DOF set
         KRATOS_ERROR_IF(rEffectiveDofSet.empty()) << "Effective DOF set is empty." << std::endl;
-        TSparseGraphType constraints_sparse_graph(rEffectiveDofSet.size());
+        TSparseGraphType dirichlet_sparse_graph(rEffectiveDofSet.size());
 
         // Loop the effective DOFs to add the free ones to the graph
         // Note that this graph results in a diagonal matrix with zeros in the fixed DOFs
@@ -149,7 +173,7 @@ public:
 
             // Check if current DOF is free and add it to the sparse graph
             if (p_dof->IsFree()) {
-                constraints_sparse_graph.AddEntry(p_dof->EffectiveEquationId(), aux_count);
+                dirichlet_sparse_graph.AddEntry(p_dof->EffectiveEquationId(), aux_count);
                 aux_count++;
             }
         }
@@ -157,7 +181,7 @@ public:
         // Allocate the Dirichlet constraints relation matrix
         // Note that there is no need to allocate the Dirichlet constraints relation vector as this is never used
         // as we always solve for the solution increment (the Dirichlet values are already in the effective DOF set data)
-        auto p_aux_T = Kratos::make_shared<TSparseMatrixType>(constraints_sparse_graph);
+        auto p_aux_T = Kratos::make_shared<TSparseMatrixType>(dirichlet_sparse_graph);
         rLinearSystemContainer.pDirichletT.swap(p_aux_T);
     }
 
@@ -239,7 +263,6 @@ private:
 
 
 ///@}
-
 ///@} addtogroup block
 
 }  // namespace Kratos.

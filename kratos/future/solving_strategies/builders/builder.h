@@ -26,6 +26,7 @@
 #include "utilities/amgcl_csr_conversion_utilities.h"
 #include "utilities/amgcl_csr_spmm_utilities.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/dof_utilities/dof_array_utilities.h"
 #include "utilities/timer.h"
 
 namespace Kratos::Future
@@ -61,15 +62,11 @@ struct LinearSystemContainer
 
     typename TSparseMatrixType::Pointer pEffectiveT = nullptr; // Linear system constraints total relation matrix
 
-    // typename TSystemVectorType::Pointer pEffectiveQ = nullptr; // Linear system constraints total constant vector
-
     typename TSparseMatrixType::Pointer pConstraintsT = nullptr; // Master-slave constraints relation matrix
 
     typename TSystemVectorType::Pointer pConstraintsQ = nullptr; // Master-slave constraints constant vector
 
     typename TSparseMatrixType::Pointer pDirichletT = nullptr; // Dirichlet constraints relation matrix
-
-    // typename TSystemVectorType::Pointer pDirichletQ = nullptr; // Dirichlet constraints constant vector
 
     typename TSparseMatrixType::Pointer pMassMatrix = nullptr; // Pointer to the mass matrix
 
@@ -98,9 +95,6 @@ struct LinearSystemContainer
         if (pEffectiveT != nullptr) {
             pEffectiveT->Clear();
         }
-        // if (pEffectiveQ != nullptr) {
-        //     pEffectiveQ->Clear();
-        // }
         if (pConstraintsT != nullptr) {
             pConstraintsT->Clear();
         }
@@ -110,9 +104,6 @@ struct LinearSystemContainer
         if (pDirichletT != nullptr) {
             pDirichletT->Clear();
         }
-        // if (pDirichletQ != nullptr) {
-        //     pDirichletQ->Clear();
-        // }
         if (pMassMatrix != nullptr) {
             pMassMatrix->Clear();
         }
@@ -125,9 +116,9 @@ struct LinearSystemContainer
 /**
  * @class Builder
  * @ingroup KratosCore
- * @brief Utility class for handling the build
- * @details This class collects the methods required to
- * handle the building of the sparse sytem matrices
+ * @brief Base builder class
+ * @details This class collects the methods required to handle the building of the sparse sytem matrices
+ * This class is thought to never be used, but to serve as basis for all the derived build types (e.g., block and elimination)
  * @author Ruben Zorrilla
  */
 template<class TThreadLocalStorage, class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
@@ -136,13 +127,6 @@ class Builder
 public:
     ///@name Type Definitions
     ///@{
-
-    /// Build type definition
-    enum class BuildType
-    {
-        Block,
-        Elimination
-    };
 
     /// Pointer definition of Builder
     KRATOS_CLASS_POINTER_DEFINITION(Builder);
@@ -181,18 +165,6 @@ public:
         })");
         Settings.ValidateAndAssignDefaults(default_parameters);
 
-        // Set build type
-        const std::string build_type = Settings["name"].GetString();
-        if (build_type == "block_builder") {
-            mBuildType = BuildType::Block;
-        } else if (build_type == "elimination_builder") {
-            mBuildType = BuildType::Elimination;
-        } else {
-            KRATOS_ERROR << "Provided 'build_type' is '" << build_type << "'. Available options are:\n"
-            << "\t- 'block_builder'\n"
-            << "\t- 'elimination_builder'" << std::endl;
-        }
-
         // Set verbosity level
         mEchoLevel = Settings["echo_level"].GetInt();
     }
@@ -206,175 +178,62 @@ public:
     /**
      * @brief Allocates the memory for the linear system arrays
      * This method allocates the memory for the linear system arrays
-     * @param rSparseGraph The sparse matrix graph
+     * Note that the sizes of the resultant arrays depend on the build type
      * @param pDofSet The array of DOFs from elements and conditions
      * @param pEffectiveDofSet The array of DOFs to be solved after the application of constraints
      * @param pLinearSystemContainer Auxiliary container with the linear system arrays
      */
     virtual void AllocateLinearSystemArrays(
-        const TSparseGraphType& rSparseGraph,
         const typename DofsArrayType::Pointer pDofSet,
         const typename DofsArrayType::Pointer pEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
+        {
+            KRATOS_ERROR << "Calling base class 'AllocateLinearSystemArrays'." << std::endl;
+        }
+
+    /**
+     * @brief Allocates the linear system constraints arrays
+     * This method allocates the linear system constraints arrays
+     * Note that the sizes of the resultant arrays depend on the build type
+     * @param rDofSet The array of DOFs from elements and conditions
+     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
+     * @param rSlaveToMasterDofsMap The map containing the corresponding master(s) for each slave DOF
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     */
+    virtual void AllocateLinearSystemConstraints(
+        const DofsArrayType& rDofSet,
+        const DofsArrayType& rEffectiveDofSet,
+        const DofArrayUtilities::SlaveToMasterDofsMap& rSlaveToMasterDofsMap,
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
         KRATOS_ERROR << "Calling base class 'AllocateLinearSystemArrays'." << std::endl;
     }
 
-    virtual void ConstructMasterSlaveConstraintsStructure(
-        const ModelPart& rModelPart,
-        const DofsArrayType& rDofSet,
-        DofsArrayType& rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
-    {
-        // Clear the provided effective DOFs map
-        KRATOS_WARNING_IF("Builder", !rEffectiveDofSet.empty()) << "Provided effective DOFs set is not empty. About to clear it." << std::endl;
-        rEffectiveDofSet.clear();
-
-        //FIXME: Do the IsActiveConstraints in here and set a flag that stays "forever"
-
-        // Check if there are constraints to build the effective DOFs map and the corresponding arrays
-        const std::size_t n_constraints = rModelPart.NumberOfMasterSlaveConstraints();
-        if (n_constraints) {
-
-            // Auxiliary set to store the unordered effective DOFs (masters from constraints and standard ones)
-            std::unordered_set<typename DofType::Pointer> effective_dofs_set;
-
-            // Get the master / slave DOFs from the constraints
-            std::unordered_map<typename DofType::Pointer, DofPointerVectorType> constraints_slave_dofs;
-            const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
-            for (IndexType i_const = 0; i_const < n_constraints; ++i_const) {
-                // Get current constraint master and slave DOFs
-                auto it_const = it_const_begin + i_const;
-                const auto& r_slave_dofs = it_const->GetSlaveDofsVector();
-                const auto& r_master_dofs = it_const->GetMasterDofsVector();
-
-                // Add the slave DOFs to the slave map
-                for (auto& rp_slave : r_slave_dofs) {
-                    constraints_slave_dofs.insert(std::make_pair(rp_slave, r_master_dofs));
-                }
-
-                // Add the master DOFs to the effective DOFs set
-                // Note that we initialize the system ids to zero as these will be overwritten later
-                for (auto& rp_master : r_master_dofs) {
-                    effective_dofs_set.insert(rp_master);
-                }
-            }
-
-            // Loop the elements and conditions DOFs container to get the DOFs that are not slave
-            for (IndexType i_dof = 0; i_dof < rDofSet.size(); ++i_dof) {
-                // Get current DOF
-                auto p_dof = *(rDofSet.ptr_begin() + i_dof);
-
-                // Check if current DOF is slave by checking the slaves DOFs map
-                // If not present in the slaves DOFs map it should be considered in the resolution of the system
-                // Note that this includes masters DOFs or and standard DOFs (those not involved in any constraint)
-                if (constraints_slave_dofs.find(p_dof) == constraints_slave_dofs.end()) {
-                    // Add current DOF to the effective DOFs set (note that the std::unordered_set guarantees uniqueness)
-                    effective_dofs_set.insert(p_dof);
-                }
-            }
-
-            // Sort the effective DOFs before setting the equation ids
-            // Note that we dereference the DOF pointers in order to use the greater operator from dof.h
-            std::vector<typename DofType::Pointer> ordered_eff_dofs_vector(effective_dofs_set.begin(), effective_dofs_set.end());
-            std::sort(
-                ordered_eff_dofs_vector.begin(),
-                ordered_eff_dofs_vector.end(),
-                [](const typename DofType::Pointer& pA, const typename DofType::Pointer& pB){return *pA > *pB;});
-
-            // Fill the effective DOFs PVS with the sorted effective DOFs container
-            rEffectiveDofSet = DofsArrayType(ordered_eff_dofs_vector);
-
-            // Set the effective DOFs equation ids based on the sorted list
-            IndexType aux_dof_id = 0;
-            for (IndexType i_dof = 0; i_dof < rEffectiveDofSet.size(); ++i_dof) {
-                auto p_dof = *(rEffectiveDofSet.ptr_begin() + i_dof);
-                p_dof->SetEffectiveEquationId(aux_dof_id);
-                ++aux_dof_id;
-            }
-
-            // Clear the equation ids vectors
-            // mSlaveIds.clear();
-            // mMasterIds.clear();
-
-            // Set up constraints matrix sparse graph (note that mEquationSystemSize is the DOF set size in the block build)
-            KRATOS_ERROR_IF(this->GetEquationSystemSize() == 0) << "Equation system size is not set yet. Please call 'SetUpSystemIds' before this method." << std::endl;
-            TSparseGraphType constraints_sparse_graph(this->GetEquationSystemSize());
-
-            // Loop the elements and conditions DOFs container to add the slave entries to the graph
-            for (IndexType i_dof = 0; i_dof < rDofSet.size(); ++i_dof) {
-                // Get current DOF
-                auto p_dof = *(rDofSet.ptr_begin() + i_dof);
-                const IndexType i_dof_eq_id = p_dof->EquationId();
-
-                // Check if current DOF is slave by checking the slaves DOFs map
-                // If not present in the slaves DOFs map it should be considered an effective DOF
-                // Note that here effective means a masters DOF or a DOF that does not involve any constraint
-                auto i_dof_slave_find = constraints_slave_dofs.find(p_dof);
-                if (i_dof_slave_find != constraints_slave_dofs.end()) { // Slave DOF
-                    // // Add current slave DOF to slave equation ids list
-                    // mSlaveIds.push_back(i_dof_eq_id);
-
-                    // Add current slave DOF connectivities to the constraints sparse graph
-                    // The slave rows eq ids come from the system ones while the column master ones are the above defined
-                    for (auto& rp_master : i_dof_slave_find->second) {
-                        auto eff_dof_find = rEffectiveDofSet.find(*rp_master);
-                        KRATOS_ERROR_IF(eff_dof_find == rEffectiveDofSet.end()) << "Effective DOF cannot be find." << std::endl;
-                        constraints_sparse_graph.AddEntry(i_dof_eq_id, eff_dof_find->EffectiveEquationId());
-                    }
-                } else { // Effective DOF
-                    auto eff_dof_find = rEffectiveDofSet.find(*p_dof);
-                    KRATOS_ERROR_IF(eff_dof_find == rEffectiveDofSet.end()) << "Effective DOF cannot be find." << std::endl;
-                    // mMasterIds.push_back(eff_dof_find->second);
-                    constraints_sparse_graph.AddEntry(i_dof_eq_id, eff_dof_find->EffectiveEquationId());
-                }
-            }
-
-            // // Loop the effective DOFs container to add the remaining diagonal entries to the graph
-            // for (IndexType i_dof = 0; i_dof < rEffectiveDofSet.size(); ++i_dof) {
-            //     // Get current effective DOF
-            //     auto p_dof = *(rEffectiveDofSet.ptr_begin() + i_dof);
-            //     auto eff_dof_find = rEffectiveDofIdMap.find(p_dof);
-            //     KRATOS_ERROR_IF(eff_dof_find == rEffectiveDofIdMap.end()) << "Effective DOF cannot be find." << std::endl;
-            //     std::cout << "Effective DOF: " << eff_dof_find->second << " - " << eff_dof_find->second << std::endl;
-            //     constraints_sparse_graph.AddEntry(eff_dof_find->second, eff_dof_find->second);
-            // }
-
-            // Allocate the constraints arrays (note that we are using the move assignment operator in here)
-            auto p_aux_q = Kratos::make_shared<TSystemVectorType>(this->GetEquationSystemSize());
-            rLinearSystemContainer.pConstraintsQ.swap(p_aux_q);
-
-            auto p_aux_T = Kratos::make_shared<TSparseMatrixType>(constraints_sparse_graph);
-            rLinearSystemContainer.pConstraintsT.swap(p_aux_T);
-        } else {
-            // If there are no constraints the effective DOF set is the standard one
-            rEffectiveDofSet = rDofSet;
-
-            // Set the DOFs' effective equation global ids to match the standard ones
-            IndexPartition<IndexType>(rEffectiveDofSet.size()).for_each([&](IndexType Index) {
-                auto it_dof = rEffectiveDofSet.begin() + Index;
-                it_dof->SetEffectiveEquationId(it_dof->EquationId());
-            });
-        }
-    }
-
-    virtual void ConstructDirichletConstraintsStructure(
+    /**
+     * @brief Builds the Dirichlet constraints
+     * This method does the building of the Dirichlet constraints according to the build type
+     * @param rDofSet The array of DOFs from elements and conditions
+     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     */
+    virtual void BuildDirichletConstraints(
         const DofsArrayType& rDofSet,
         const DofsArrayType& rEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
-        KRATOS_ERROR << "Calling base class 'ConstructDirichletConstraintsStructure'." << std::endl;
+        KRATOS_ERROR << "Calling base class 'BuildDirichletConstraints'." << std::endl;
     }
 
+    /**
+     * @brief Set the Up Sparse Matrix Graph
+     * This method builds the sparse matrix graph from the connectivities of the
+     * elements and conditions in the model part the builder refers to
+     * @param rSparseGraph The sparse matrix graph to be filled
+     */
     virtual void SetUpSparseMatrixGraph(TSparseGraphType& rSparseGraph)
     {
-        KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Current equation system size is 0. Sparse graph cannot be set (call \'SetUpSystemIds\' first)." << std::endl;
-
-        //TODO: This is always thrown as the mEquationSystemSize is already in the graph. I'd use the move (not implemented constructor)
-        if (!rSparseGraph.IsEmpty()) {
-            KRATOS_WARNING("Builder") << "Provided sparse graph is not empty and will be cleared." << std::endl;
-            rSparseGraph.Clear();
-        }
+        // Clear the provided sparse matrix graph
+        rSparseGraph.Clear();
 
         // Add the elements and conditions DOF equation connectivities
         // Note that we add all the DOFs regarless their fixity status
@@ -389,28 +248,64 @@ public:
         }
     }
 
-    virtual std::size_t SetUpSystemIds(const typename DofsArrayType::Pointer pDofSet)
-    {
-        // Set up the DOFs equation global ids
-        IndexPartition<IndexType>(pDofSet->size()).for_each([&](IndexType Index) {
-            auto it_dof = pDofSet->begin() + Index;
-            it_dof->SetEquationId(Index);
-        });
-
-        // Save the size of the system based on the number of DOFs
-        mEquationSystemSize = pDofSet->size();
-
-        return mEquationSystemSize;
-    }
-
-    virtual void BuildDirichletConstraints(
+    /**
+     * @brief Set the Up Master Slave Constraints Graph object
+     * This method builds the sparse graph representing the master-slave constraints DOFs
+     * based on the provided slave to master(s) map
+     * @param rDofSet The array of DOFs from elements and conditions
+     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
+     * @param rSlaveToMasterDofsMap The map containing the corresponding master(s) for each slave DOF
+     * @param rConstraintsSparseGraph The master-slave constraints graph to be built
+     */
+    virtual void SetUpMasterSlaveConstraintsGraph(
         const DofsArrayType& rDofSet,
         const DofsArrayType& rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
+        const DofArrayUtilities::SlaveToMasterDofsMap& rSlaveToMasterDofsMap,
+        TSparseGraphType& rConstraintsSparseGraph)
     {
-        KRATOS_ERROR << "Calling base class 'ApplyLinearSystemConstraints'." << std::endl;
+        // Check if there are constraints to build the constraints sparse graph
+        if (!rSlaveToMasterDofsMap.empty()) {
+            // Initialize the constraints matrix sparse graph
+            // Note that the number of rows is the size of the standard DOFs arrays (the effective one will be the columns)
+            rConstraintsSparseGraph = std::move(TSparseGraphType(rDofSet.size()));
+
+            // Loop the elements and conditions DOFs container to add the slave entries to the graph
+            for (IndexType i_dof = 0; i_dof < rDofSet.size(); ++i_dof) {
+                // Get current DOF
+                auto p_dof = *(rDofSet.ptr_begin() + i_dof);
+                const IndexType i_dof_eq_id = p_dof->EquationId();
+
+                // Check if current DOF is slave by checking the slaves DOFs map
+                // If not present in the slaves DOFs map it should be considered an effective DOF
+                // Note that here effective means a masters DOF or a DOF that does not involve any constraint
+                auto i_dof_slave_find = rSlaveToMasterDofsMap.find(p_dof);
+                if (i_dof_slave_find != rSlaveToMasterDofsMap.end()) { // Slave DOF
+                    // Add current slave DOF connectivities to the constraints sparse graph
+                    // The slave rows eq ids come from the system ones while the column master ones are the above defined
+                    for (auto& rp_master : i_dof_slave_find->second) {
+                        auto eff_dof_find = rEffectiveDofSet.find(*rp_master);
+                        KRATOS_ERROR_IF(eff_dof_find == rEffectiveDofSet.end()) << "Effective DOF cannot be find." << std::endl;
+                        rConstraintsSparseGraph.AddEntry(i_dof_eq_id, eff_dof_find->EffectiveEquationId());
+                    }
+                } else { // Effective DOF
+                    auto eff_dof_find = rEffectiveDofSet.find(*p_dof);
+                    KRATOS_ERROR_IF(eff_dof_find == rEffectiveDofSet.end()) << "Effective DOF cannot be find." << std::endl;
+                    // mMasterIds.push_back(eff_dof_find->second);
+                    rConstraintsSparseGraph.AddEntry(i_dof_eq_id, eff_dof_find->EffectiveEquationId());
+                }
+            }
+        }
     }
 
+    /**
+     * @brief Applies the constraints to the linear system of equations
+     * This method applies the linear system constraints to the linear system of equations
+     * Note that linear system constraints includes both the master-slave and the Dirichlet
+     * constraints. The way the constraints are applied will be reimplemented and applied
+     * in the derived classes depending on the build type.
+     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     */
     virtual void ApplyLinearSystemConstraints(
         const DofsArrayType& rEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
@@ -465,24 +360,36 @@ public:
         rConstraintsRelationMatrix.SpMV(1.0, y, 1.0, rSolutionVector); // Note that this performs the operation x = A*y + x
     }
 
+    /**
+     * @brief Clear class content
+     * This method wipes the content of current builder class
+     */
     virtual void Clear()
     {
-        // Clear the system info
-        mEquationSystemSize = 0;
     }
 
     ///@}
     ///@name Input and output
     ///@{
 
-    std::size_t GetEquationSystemSize() const
-    {
-        return mEquationSystemSize;
-    }
-
+    /**
+     * @brief Get the Model Part object
+     * Returns a reference to the model part the builder is referring to
+     * @return const ModelPart& Reference to the builder model part
+     */
     const ModelPart& GetModelPart() const
     {
         return *mpModelPart;
+    }
+
+    /**
+     * @brief Get the Echo Level object
+     * Returns the echo level member variable
+     * @return const std::size_t Level of information that is output
+     */
+    const std::size_t GetEchoLevel() const
+    {
+        return mEchoLevel;
     }
 
     ///@}
@@ -490,119 +397,14 @@ private:
     ///@name Member Variables
     ///@{
 
-    const ModelPart* mpModelPart = nullptr;
+    const ModelPart* mpModelPart = nullptr; /// Pointer to the model part the builder will refer to
 
-    BuildType mBuildType;
-
-    std::size_t mEchoLevel;
-
-    std::size_t mEquationSystemSize = 0; /// Number of degrees of freedom of the problem to be solved
+    std::size_t mEchoLevel; /// Level of information that is output
 
     ///@}
     ///@name Private Operations
     ///@{
 
-    template <BuildType TBuildType>
-    void ApplyMasterSlaveConstraintsImplementation(
-        typename TSparseMatrixType::Pointer& rpLhs,
-        typename TSparseMatrixType::Pointer& rpEffectiveLhs,
-        typename TSystemVectorType::Pointer& rpRhs,
-        TSystemVectorType& rEffectiveRhs,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rEffectiveDx,
-        const TSparseMatrixType& rConstraintsRelationMatrix,
-        const TSystemVectorType& rConstraintsConstantVector)
-    {
-        if constexpr (TBuildType == BuildType::Block) {
-            // Get the effective size as the number of master DOFs
-            // Note that this matches the number of columns in the constraints relation matrix
-            const std::size_t n_master = rConstraintsRelationMatrix.size2();
-
-            // Initialize the effective RHS
-            if (rEffectiveRhs.size() != n_master) {
-                rEffectiveRhs = std::move(TSystemVectorType(n_master));
-            }
-            rEffectiveRhs.SetValue(0.0);
-
-            // Initialize the effective solution vector
-            if (rEffectiveDx.size() != n_master) {
-                rEffectiveDx = std::move(TSystemVectorType(n_master));
-            }
-            rEffectiveDx.SetValue(0.0);
-
-            // Apply constraints to RHS
-            rConstraintsRelationMatrix.TransposeSpMV(*rpRhs, rEffectiveRhs);
-
-            // Apply constraints to LHS
-            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*rpLhs, rConstraintsRelationMatrix);
-            auto p_transT = AmgclCSRConversionUtilities::Transpose(rConstraintsRelationMatrix);
-            rpEffectiveLhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
-
-            // // Compute the scale factor value
-            // //TODO: think on how to make this user-definable
-            // const double scale_factor = rpEffectiveLhs->NormDiagonal();
-
-            // // Apply diagonal values on slave DOFs
-            // IndexPartition<IndexType>(mSlaveIds.size()).for_each([&](IndexType Index){
-            //     const IndexType slave_eq_id = mSlaveIds[Index];
-            //     if (mInactiveSlaveDofs.find(slave_eq_id) == mInactiveSlaveDofs.end()) {
-            //         (*rpEffectiveLhs)(slave_eq_id, slave_eq_id) = scale_factor;
-            //         (*rpEffectiveRhs)[slave_eq_id] = 0.0;
-            //     }
-            // });
-        } else if (TBuildType == BuildType::Elimination) {
-
-        } else {
-            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
-        }
-    }
-
-    template <BuildType TBuildType>
-    void ApplyMasterSlaveConstraintsImplementation(
-        typename TSystemVectorType::Pointer& rpRhs,
-        TSystemVectorType& rEffectiveRhs,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rEffectiveDx,
-        const TSparseMatrixType& rConstraintsRelationMatrix,
-        const TSystemVectorType& rConstraintsConstantVector)
-    {
-        if constexpr (TBuildType == BuildType::Block) {
-            // Get the effective size as the number of master DOFs
-            // Note that this matches the number of columns in the constraints relation matrix
-            const std::size_t n_master = rConstraintsRelationMatrix.size2();
-
-            // Initialize the effective RHS
-            if (rEffectiveRhs.size() != n_master) {
-                rEffectiveRhs = std::move(TSystemVectorType(n_master));
-            }
-            rEffectiveRhs.SetValue(0.0);
-
-            // Initialize the effective solution vector
-            if (rEffectiveDx.size() != n_master) {
-                rEffectiveDx = std::move(TSystemVectorType(n_master));
-            }
-            rEffectiveDx.SetValue(0.0);
-
-            // Apply constraints to RHS
-            rConstraintsRelationMatrix.TransposeSpMV(*rpRhs, rEffectiveRhs);
-
-            // // Compute the scale factor value
-            // //TODO: think on how to make this user-definable
-            // const double scale_factor = rpEffectiveLhs->NormDiagonal();
-
-            // // Apply diagonal values on slave DOFs
-            // IndexPartition<IndexType>(mSlaveIds.size()).for_each([&](IndexType Index){
-            //     const IndexType slave_eq_id = mSlaveIds[Index];
-            //     if (mInactiveSlaveDofs.find(slave_eq_id) == mInactiveSlaveDofs.end()) {
-            //         rEffectiveRhs[slave_eq_id] = 0.0;
-            //     }
-            // });
-        } else if (TBuildType == BuildType::Elimination) {
-
-        } else {
-            static_assert(TBuildType == BuildType::Block || TBuildType == BuildType::Elimination, "Unsupported build type.");
-        }
-    }
 
     ///@}
 }; // Class Builder
@@ -613,7 +415,6 @@ private:
 
 
 ///@}
-
 ///@} addtogroup block
 
 }  // namespace Kratos.

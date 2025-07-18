@@ -85,14 +85,14 @@ struct StaticThreadLocalStorage
 /**
  * @class StaticScheme
  * @ingroup KratosCore
- * @brief This class provides the implementation of the basic tasks that are needed by the solution strategy.
- * @details It is intended to be the place for tailoring the solution strategies to problem specific tasks.
+ * @brief This class provides the implementation of the static scheme
  * @author Ruben Zorrilla
  */
 template<class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
 class StaticScheme : public ImplicitScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>
 {
 public:
+
     // FIXME: Does not work... ask @Charlie
     // /// Add scheme to Kratos registry
     // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", StaticScheme, StaticScheme, TSparseMatrixType, TSystemVectorType)
@@ -122,32 +122,16 @@ public:
     /// DoF array type definition
     using DofsArrayType = ModelPart::DofsArrayType;
 
-    // /// TLS type definition
-    // struct ThreadLocalStorage //FIXME: This will be ImplicitThreadLocalStorage when we create the implicit scheme --> Also we need to move them out of here.
-    // {
-    //     // Local LHS contribution
-    //     DenseMatrix<DataType> LocalLhs;
-
-    //     // Local RHS constribution
-    //     DenseVector<DataType> LocalRhs;
-
-    //     // Vector containing the localization in the system of the different terms
-    //     Element::EquationIdVectorType LocalEqIds;
-    // };
-
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /**
-     * @brief Default Constructor
-     * @details Initializes the flags
-     */
+    /// @brief Default constructor
     explicit StaticScheme() = default;
 
-    /**
-     * @brief Constructor with Parameters
-     */
+    /// @brief Constructor with parameters
+    /// @param rModelPart Reference to the model part
+    /// @param ThisParameters Parameters object encapsulating the settings
     explicit StaticScheme(
         ModelPart& rModelPart,
         Parameters ThisParameters)
@@ -158,15 +142,14 @@ public:
         this->AssignSettings(ThisParameters);
     }
 
-    /** Copy Constructor.
-     */
+    /// @brief Copy constructor
+    /// @param rOther Other StaticScheme
     explicit StaticScheme(StaticScheme& rOther)
     {
         //TODO: Check this... particularly the mpBuilder pointer
     }
 
-    /** Destructor.
-     */
+    /// @brief Destructor
     virtual ~StaticScheme() = default;
 
     ///@}
@@ -189,21 +172,6 @@ public:
         return Kratos::make_shared<StaticScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>>(*this) ;
     }
 
-    /**
-     * @brief Function called once at the beginning of each solution step
-     * The basic operations to be carried out in here are the following:
-     * 1) Set up the DOF array from the element and conditions DOFs (SetUpDofArray)
-     * 2) Set up the system ids (i.e., the DOFs equation id) for the element and condition DOF array
-     * 3) Construct the master slave constraints structure (this includes the effective DOF array, the effective DOF id map and the relation and constant arrays)
-     * 4) Allocate the memory for the system arrays (note that this implies building the sparse matrix graph)
-     * 5) Call the InitializeSolutionStep of all entities
-     * Further operations might be required depending on the time integration scheme
-     * Note that steps from 1 to 4 can be done once if the DOF set does not change (i.e., the mesh and the constraints active/inactive status do not change in time)
-     * @param rDofSet The array of DOFs from elements and conditions
-     * @param rEffectiveDofSet The array of DOFs to be solved after the application of constraints
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
-     * @param ReformDofSet Flag to indicate if the DOFs have changed and need to be updated
-     */
     void InitializeSolutionStep(
         DofsArrayType::Pointer pDofSet,
         DofsArrayType::Pointer pEffectiveDofSet,
@@ -216,41 +184,28 @@ public:
         if (!this->GetSchemeSolutionStepIsInitialized()) {
             // Set up the system
             if (!(this->GetDofSetIsInitialized()) || ReformDofSets) {
-                // Setting up the DOFs list to be solved
+                // Setting up the DOFs list
                 BuiltinTimer setup_dofs_time;
-                this->SetUpDofArray(*pDofSet);
+                DofArrayUtilities::SlaveToMasterDofsMap slaves_to_master_dofs_map;
+                auto [eq_system_size, eff_eq_system_size] = this->SetUpDofArrays(pDofSet, pEffectiveDofSet, slaves_to_master_dofs_map);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
 
                 // Set up the equation ids
-                BuiltinTimer setup_system_time;
-                const std::size_t eq_system_size = this->SetUpSystemIds(pDofSet);
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_time << std::endl;
+                BuiltinTimer setup_system_ids_time;
+                this->SetUpSystemIds(pDofSet, pEffectiveDofSet);
+                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_ids_time << std::endl;
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
+                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Effective equation system size: " << eff_eq_system_size << std::endl;
 
-                // Set up the system constraints
-                BuiltinTimer constraints_construction_time;
-                this->ConstructSystemConstraintsStructure(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Constraints construction time: " << constraints_construction_time << std::endl;
-
-                //TODO: Then we have a method to initialize all the standard arrays from the graph. In here we can make also initializations of the mass and damping matrix with the same graph
-                //TODO: Then we initialize the effective ones by passing the effective DOF set and effective DOFIdMap.
-
-                // Set up the sparse matrix graph (note that the sparse graph will be destroyed when leaving this scope)
-                BuiltinTimer sparse_matrix_graph_time;
-                TSparseGraphType sparse_matrix_graph(eq_system_size);
-                this->SetUpSparseMatrixGraph(sparse_matrix_graph);
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up sparse matrix graph time: " << sparse_matrix_graph_time << std::endl;
+                // Allocating the system constraints arrays
+                BuiltinTimer constraints_allocation_time;
+                this->AllocateLinearSystemConstraints(pDofSet, pEffectiveDofSet, slaves_to_master_dofs_map, rLinearSystemContainer);
+                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Linear system constraints allocation time: " << constraints_allocation_time << std::endl;
 
                 // Allocating the system vectors to their correct sizes
-                BuiltinTimer system_matrix_resize_time;
-                this->AllocateLinearSystemArrays(sparse_matrix_graph, pDofSet, pEffectiveDofSet, rLinearSystemContainer);
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "System matrix resize time: " << system_matrix_resize_time << std::endl;
-            } else {
-                // Set up the equation ids (note that this needs to be always done as the fixity may have changed and this can affect some build types)
-                BuiltinTimer setup_system_time;
-                const std::size_t eq_system_size = this->SetUpSystemIds(pDofSet);
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_time << std::endl;
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
+                BuiltinTimer linear_system_allocation_time;
+                this->AllocateLinearSystemArrays(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
+                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Linear system allocation time: " << linear_system_allocation_time << std::endl;
             }
 
             // Initializes solution step for all of the elements, conditions and constraints
@@ -263,13 +218,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    /**
-     * @brief Performing the prediction of the solution.
-     * @warning Must be defined in derived classes
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
-     */
     void Predict(
         DofsArrayType::Pointer pDofSet,
         DofsArrayType::Pointer pEffectiveDofSet,
@@ -314,13 +262,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    /**
-     * @brief Performing the update of the solution.
-     * @warning Must be defined in derived classes
-     * @param rModelPart The model part of the problem to solve
-     * @param rDofSet Set of all primary variables
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
-     */
     void Update(
         DofsArrayType &rDofSet,
         DofsArrayType &rEffectiveDofSet,
@@ -443,10 +384,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /**
-     * @brief This method assigns settings to member variables
-     * @param ThisParameters Parameters that are assigned to the member variables
-     */
     void AssignSettings(const Parameters ThisParameters) override
     {
         // Assign base scheme settings

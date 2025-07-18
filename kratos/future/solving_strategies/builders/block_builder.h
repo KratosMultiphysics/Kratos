@@ -39,9 +39,12 @@ namespace Kratos::Future
 /**
  * @class BlockBuilder
  * @ingroup KratosCore
- * @brief Utility class for handling the build
- * @details This class collects the methods required to
- * handle the building of the sparse sytem matrices
+ * @brief Utility class for handling the block build
+ * @details This helper class extends the base Builder class to consider an block type build
+ * The block type build keeps the Dirichlet DOFs in the the linear system of equations to be solved.
+ * Hence, the Dirichlet BCs imposition is achieved by removing setting the corresponding residual
+ * rows to zero and setting a diagonal contribution in the corresponding row of the Left Hand Side
+ * matrix. The value of the diagonal term is computed according to the scaling type.
  * @author Ruben Zorrilla
  */
 template<class TThreadLocalStorage, class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
@@ -123,20 +126,25 @@ public:
     ///@{
 
     void AllocateLinearSystemArrays(
-        const TSparseGraphType& rSparseGraph,
         const typename DofsArrayType::Pointer pDofSet,
         const typename DofsArrayType::Pointer pEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
     {
+        // Set up the system sparse matrix graph (note that the sparse graph will be destroyed when leaving this scope)
+        BuiltinTimer sparse_matrix_graph_time;
+        TSparseGraphType sparse_matrix_graph(pDofSet->size());
+        this->SetUpSparseMatrixGraph(sparse_matrix_graph);
+        KRATOS_INFO_IF("BlockBuilder", this->GetEchoLevel() > 0) << "Set up sparse matrix graph time: " << sparse_matrix_graph_time << std::endl;
+
         // Set the system arrays
         // Note that the graph-based constructor does both resizing and initialization
-        auto p_dx = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
+        auto p_dx = Kratos::make_shared<TSystemVectorType>(sparse_matrix_graph);
         rLinearSystemContainer.pDx.swap(p_dx);
 
-        auto p_rhs = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
+        auto p_rhs = Kratos::make_shared<TSystemVectorType>(sparse_matrix_graph);
         rLinearSystemContainer.pRhs.swap(p_rhs);
 
-        auto p_lhs = Kratos::make_shared<TSparseMatrixType>(rSparseGraph);
+        auto p_lhs = Kratos::make_shared<TSparseMatrixType>(sparse_matrix_graph);
         rLinearSystemContainer.pLhs.swap(p_lhs);
 
         // Set the effective arrays
@@ -159,14 +167,25 @@ public:
         }
     }
 
-    void ConstructDirichletConstraintsStructure(
+    void AllocateLinearSystemConstraints(
         const DofsArrayType& rDofSet,
         const DofsArrayType& rEffectiveDofSet,
+        const DofArrayUtilities::SlaveToMasterDofsMap& rSlaveToMasterDofsMap,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
-        // In the block build case the Dirichlet constraints are directly applied to the effective system arrays
-        rLinearSystemContainer.pDirichletT = nullptr;
-        // rLinearSystemContainer.pDirichletQ = nullptr;
+        // Check if there are master-slave constraints
+        if (!rSlaveToMasterDofsMap.empty()) {
+            // Fill the master-slave constraints graph
+            TSparseGraphType constraints_sparse_graph;
+            this->SetUpMasterSlaveConstraintsGraph(rDofSet, rEffectiveDofSet, rSlaveToMasterDofsMap, constraints_sparse_graph);
+
+            // Allocate the constraints arrays (note that we are using the move assignment operator in here)
+            auto p_aux_q = Kratos::make_shared<TSystemVectorType>(rDofSet.size());
+            rLinearSystemContainer.pConstraintsQ.swap(p_aux_q);
+
+            auto p_aux_T = Kratos::make_shared<TSparseMatrixType>(constraints_sparse_graph);
+            rLinearSystemContainer.pConstraintsT.swap(p_aux_T);
+        }
     }
 
     void BuildDirichletConstraints(
@@ -195,14 +214,17 @@ private:
     ///@name Member Variables
     ///@{
 
-    ScalingType mScalingType;
-
-    double mScalingValue;
+    ScalingType mScalingType; // Diagonal scaling type
 
     ///@}
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Applies the master-slave constraints
+     * This method applies the master-slave constraints following a block-type build
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     */
     void ApplyBlockBuildMasterSlaveConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         const auto& r_model_part = this->GetModelPart();
@@ -254,6 +276,13 @@ private:
         }
     }
 
+    /**
+     * @brief Applies the Dirichlet conditions to the system
+     * This method applies the Dirichlet conditions following a block-type build
+     * @param rDofArray DOFs array from which the fixity is checked
+     * @param rLHS Left Hand Side matrix
+     * @param rRHS Right Hand Side vector
+     */
     void ApplyBlockBuildDirichletConditions(
         const DofsArrayType& rDofArray,
         TSparseMatrixType& rLHS,
@@ -286,6 +315,12 @@ private:
         rLHS.ApplyHomogeneousDirichlet(free_dofs_vector, diagonal_value, rRHS);
     }
 
+    /**
+     * @brief Applies the Dirichlet conditions to the system
+     * This method applies the Dirichlet conditions following a block-type build
+     * @param rDofArray DOFs array from which the fixity is checked
+     * @param rRHS Right Hand Side vector
+     */
     void ApplyBlockBuildDirichletConditions(
         const DofsArrayType& rDofArray,
         TSystemVectorType& rRHS) const
@@ -301,6 +336,12 @@ private:
         });
     }
 
+    /**
+     * @brief Get the Diagonal Scaling Factor
+     * This method calculates the diagonal scaling value to be used in the Dirichlet BCs imposition from the provided LHS
+     * @param rLHS Left Hand Side matrix
+     * @return double Diagonal scaling factor
+     */
     virtual double GetDiagonalScalingFactor(const TSparseMatrixType& rLHS) const
     {
         if (mScalingType == ScalingType::NoScaling) {
@@ -329,7 +370,6 @@ private:
 
 
 ///@}
-
 ///@} addtogroup block
 
 }  // namespace Kratos.

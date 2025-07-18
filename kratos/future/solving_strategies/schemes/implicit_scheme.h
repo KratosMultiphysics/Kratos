@@ -90,8 +90,7 @@ struct ImplicitThreadLocalStorage
 /**
  * @class ImplicitScheme
  * @ingroup KratosCore
- * @brief This class provides the implementation of the basic tasks that are needed by the solution strategy.
- * @details It is intended to be the place for tailoring the solution strategies to problem specific tasks.
+ * @brief This class provides the implementation of the basic tasks that are needed by all implicit schemes
  * @author Ruben Zorrilla
  */
 //TODO: Think about the template parameters
@@ -142,15 +141,12 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /**
-     * @brief Default Constructor
-     * @details Initializes the flags
-     */
+    /// @brief Default constructor
     explicit ImplicitScheme() = default;
 
-    /**
-     * @brief Constructor with Parameters
-     */
+    /// @brief Constructor with parameters
+    /// @param rModelPart Reference to the model part
+    /// @param ThisParameters Parameters object encapsulating the settings
     explicit ImplicitScheme(
         ModelPart& rModelPart,
         Parameters ThisParameters)
@@ -175,8 +171,8 @@ public:
         }
     }
 
-    /** Copy Constructor.
-     */
+    /// @brief Copy constructor
+    /// @param rOther Other ImplicitScheme
     explicit ImplicitScheme(ImplicitScheme& rOther)
       : mSchemeIsInitialized(rOther.mSchemeIsInitialized)
       , mSchemeSolutionStepIsInitialized(rOther.mSchemeSolutionStepIsInitialized)
@@ -184,8 +180,7 @@ public:
         //TODO: Check this... particularly the mpBuilder pointer
     }
 
-    /** Destructor.
-     */
+    /// @brief Destructor
     virtual ~ImplicitScheme() = default;
 
     ///@}
@@ -198,6 +193,7 @@ public:
 
     /**
      * @brief Create method
+     * @param rModelPart Reference to the model part
      * @param ThisParameters The configuration parameters
      */
     virtual typename ImplicitScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>::Pointer Create(
@@ -238,17 +234,17 @@ public:
 
     /**
      * @brief Function called once at the beginning of each solution step
+     * @warning Must be defined in derived classes
      * The basic operations to be carried out in here are the following:
-     * 1) Set up the DOF array from the element and conditions DOFs (SetUpDofArray)
-     * 2) Set up the system ids (i.e., the DOFs equation id) for the element and condition DOF array
-     * 3) Construct the master slave constraints structure (this includes the effective DOF array, the effective DOF id map and the relation and constant arrays)
+     * 1) Set up the DOF arrays from the element and conditions DOFs and the corresponding effective ones accounting for the constraints
+     * 2) Set up the system ids (i.e., the DOFs equation ids), including the effective DOF ids, which may not match the "standard" ones
+     * 3) Allocate the memory for the linear system constraints arrays (note that the operations done in here may depend on the build type)
      * 4) Allocate the memory for the system arrays (note that this implies building the sparse matrix graph)
      * 5) Call the InitializeSolutionStep of all entities
      * Further operations might be required depending on the time integration scheme
      * Note that steps from 1 to 4 can be done once if the DOF set does not change (i.e., the mesh and the constraints active/inactive status do not change in time)
      * @param rDofSet The array of DOFs from elements and conditions
      * @param rEffectiveDofSet The array of DOFs to be solved after the application of constraints
-     * @param rEffectiveDofIdMap A map relating each effective DOF to its effective id
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      * @param ReformDofSet Flag to indicate if the DOFs have changed and need to be updated
      */
@@ -330,76 +326,104 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void SetUpDofArray(DofsArrayType& rDofSet)
+    /**
+     * @brief Set the Up Dof Arrays
+     * This method sets the standard and effective DOF sets
+     * @param pDofSet Pointer to the standard DOF set
+     * @param pEffectiveDofSet Pointer to the effective DOF set
+     * @param rSlaveToMasterDofsMap The map containing the corresponding master(s) for each slave DOF
+     * @return std::pair<std::size_t, std::size_t> Sizes of the standard and effective DOF sets
+     */
+    virtual std::pair<std::size_t, std::size_t> SetUpDofArrays(
+        typename DofsArrayType::Pointer pDofSet,
+        typename DofsArrayType::Pointer pEffectiveDofSet,
+        DofArrayUtilities::SlaveToMasterDofsMap& rSlaveToMasterDofsMap)
     {
         // Call the external utility to set up the DOFs array
-        DofArrayUtilities::SetUpDofArray(*mpModelPart, rDofSet, mEchoLevel);
+        DofArrayUtilities::SetUpDofArray(*mpModelPart, *pDofSet, mEchoLevel);
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished DOFs array set up." << std::endl;
+
+        // Call the external utility to set up the DOFs array
+        DofArrayUtilities::SetUpEffectiveDofArray(*mpModelPart, *pDofSet, *pEffectiveDofSet, rSlaveToMasterDofsMap, mEchoLevel);
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished effective DOFs array set up." << std::endl;
 
         // Set the corresponding flag
         mDofSetIsInitialized = true;
 
-        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished DOFs array set up." << std::endl;
+        // Return the sizes of the two DOF sets
+        return std::make_pair(pDofSet->size(), pEffectiveDofSet->size());
     }
 
-    SizeType SetUpSystemIds(typename DofsArrayType::Pointer pDofSet)
+    /**
+     * @brief Set the Up System Ids
+     * This method sets the standard and effective DOF ids
+     * @param pDofSet Pointer to the standard DOF set
+     * @param pEffectiveDofSet Pointer to the effective DOF set
+     */
+    virtual void SetUpSystemIds(
+        typename DofsArrayType::Pointer pDofSet,
+        typename DofsArrayType::Pointer pEffectiveDofSet)
     {
         KRATOS_TRY
 
+        // Check if the provided DOF arrays have been already set
         KRATOS_ERROR_IF(pDofSet->empty()) << "DOFs set is empty. Call the 'SetUpDofArray' first." << std::endl;
+        KRATOS_ERROR_IF(pEffectiveDofSet->empty()) << "Effective DOFs set is empty. Call the 'SetUpDofArray' first." << std::endl;
 
-        const SizeType equation_system_size = mpBuilder->SetUpSystemIds(pDofSet);
+        // Call the external utility to set up the DOF ids
+        DofArrayUtilities::SetUpDofIds(*pDofSet);
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished setting the DOF ids." << std::endl;
 
-        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished system set up." << std::endl;
-
-        return equation_system_size;
-
-        KRATOS_CATCH("")
-    }
-
-    virtual void SetUpSparseMatrixGraph(TSparseGraphType& rSparseMatrixGraph)
-    {
-        KRATOS_TRY
-
-        BuiltinTimer set_up_sparse_graph_time;
-
-        (this->GetBuilder()).SetUpSparseMatrixGraph(rSparseMatrixGraph);
-
-        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 0) << "Finished sparse matrix graph set up." << std::endl;
+        // Call the external utility to set up the effective DOF ids
+        DofArrayUtilities::SetUpEffectiveDofIds(*pDofSet, *pEffectiveDofSet);
+        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished setting the effective DOF ids." << std::endl;
 
         KRATOS_CATCH("")
     }
 
-    //TODO: Think on the overloads for the mass and damping matrices
+    //TODO: Think on how to do the overloads for the mass and damping matrices
+    /**
+     * @brief Allocate the system arrays
+     * This method calls the builder to allocate the linear system arrays
+     * @param rDofSet The array of DOFs from elements and conditions
+     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     */
     virtual void AllocateLinearSystemArrays(
-        const TSparseGraphType& rSparseMatrixGraph,
         const DofsArrayType::Pointer pDofSet,
         const DofsArrayType::Pointer pEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         KRATOS_TRY
 
-        // Call the assembly helper to allocate and initialize the required vectors
-        (this->GetBuilder()).AllocateLinearSystemArrays(rSparseMatrixGraph, pDofSet, pEffectiveDofSet, rLinearSystemContainer);
-
-        KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished linear system arrays allocation." << std::endl;
+        // Call the builder to allocate and initialize the required arrays
+        BuiltinTimer lin_system_allocation_time;
+        (this->GetBuilder()).AllocateLinearSystemArrays(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 2) << "Linear system arrays allocation time: " << lin_system_allocation_time << std::endl;
 
         KRATOS_CATCH("")
     }
 
-    virtual void ConstructSystemConstraintsStructure(
+    /**
+     * @brief Allocate the linear system constraints arrays
+     * This method calls the builder to allocate the linear system constraints arrays
+     * @param rDofSet The array of DOFs from elements and conditions
+     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
+     * @param rSlaveToMasterDofsMap The map containing the corresponding master(s) for each slave DOF
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     */
+    virtual void AllocateLinearSystemConstraints(
         const DofsArrayType::Pointer pDofSet,
-        DofsArrayType::Pointer pEffectiveDofSet,
+        const DofsArrayType::Pointer pEffectiveDofSet,
+        const DofArrayUtilities::SlaveToMasterDofsMap& rSlaveToMasterDofsMap,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         KRATOS_TRY
 
         // Call the builder to set the master-slave constraints structure
-        (this->GetBuilder()).ConstructMasterSlaveConstraintsStructure(*mpModelPart, *pDofSet, *pEffectiveDofSet, rLinearSystemContainer);
-
-        // Call the builder to set the Dirichlet constraints structure
-        (this->GetBuilder()).ConstructDirichletConstraintsStructure(*pDofSet, *pEffectiveDofSet, rLinearSystemContainer);
-
-        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() >= 2) << "Finished constraints initialization." << std::endl;
+        BuiltinTimer system_constraints_allocation_time;
+        (this->GetBuilder()).AllocateLinearSystemConstraints(*pDofSet, *pEffectiveDofSet, rSlaveToMasterDofsMap, rLinearSystemContainer);
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() >= 2) << "System constraints allocation time: " << system_constraints_allocation_time << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -1062,14 +1086,14 @@ public:
         }
     }
 
-    virtual void BuildDirichletConstraints(
-        const DofsArrayType& rDofSet,
-        const DofsArrayType& rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
-    {
-        GetBuilder().BuildDirichletConstraints(rDofSet, rEffectiveDofSet, rLinearSystemContainer);
-    }
-
+    /**
+     * @brief Builds the linear system constraints
+     * This method builds the linear system constraints, that is, the master-slave and eventual Dirichlet constraints
+     * The master-slave constraints are build according to the scheme implementation while the Dirichlet ones depend on the build type
+     * @param rDofSet The array of DOFs from elements and conditions
+     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     */
     virtual void BuildLinearSystemConstraints(
         const DofsArrayType &rDofSet,
         const DofsArrayType &rEffectiveDofSet,
@@ -1081,11 +1105,17 @@ public:
         BuildMasterSlaveConstraints(rDofSet, rEffectiveDofSet, rLinearSystemContainer);
 
         // Build the Dirichlet constraints relation matrix and constant vector
-        BuildDirichletConstraints(rDofSet, rEffectiveDofSet, rLinearSystemContainer);
+        GetBuilder().BuildDirichletConstraints(rDofSet, rEffectiveDofSet, rLinearSystemContainer);
 
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Build linear system constraints time: " << build_linear_system_constraints_time << std::endl;
     }
 
+    /**
+     * @brief Applies the linear system constraints
+     * This method applies the linear system constraints, that is the master-slave and the Dirichlet constraints
+     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     */
     virtual void ApplyLinearSystemConstraints(
         const DofsArrayType &rEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
@@ -1153,7 +1183,7 @@ public:
     }
 
     /**
-     * @brief Performing the update of the solution.
+     * @brief Performs the update of the solution
      * @warning Must be defined in derived classes
      * @param rDofSet Set of all primary variables
      * @param A LHS matrix
@@ -1168,6 +1198,13 @@ public:
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Update\' method. Call derived class one." << std::endl;
     }
 
+    /**
+     * @brief Performs the update of the loose DOFs
+     * This function performs the update of the loose DOFs (i.e., those that are associated to no elements/conditions)
+     * @param rEffectiveDx Effective solution update vector
+     * @param rDofSet The array of DOFs from elements and conditions
+     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
+     */
     void UpdateConstraintsLooseDofs(
         const TSystemVectorType& rEffectiveDx,
         DofsArrayType& rDofSet,
@@ -1222,11 +1259,9 @@ public:
     }
 
     /**
-     * @brief Functions to be called to prepare the data needed for the output of results.
+     * @brief Auxiliary function to output auxiliary linear system data
      * @warning Must be defined in derived classes
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
     virtual void CalculateOutputData(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
@@ -1238,8 +1273,7 @@ public:
     }
 
     /**
-     * @brief Liberate internal storage.
-     * @warning Must be implemented in the derived classes
+     * @brief Liberate internal storage
      */
     virtual void Clear()
     {
@@ -1348,12 +1382,22 @@ public:
         mSchemeSolutionStepIsInitialized = SchemeSolutionStepIsInitialized;
     }
 
+    /**
+     * @brief Get the Model Part object
+     * Returns a reference to the model part the scheme is referring to
+     * @return ModelPart& Reference to the scheme model part
+     */
     ModelPart& GetModelPart()
     {
         return *mpModelPart;
     }
 
-    ModelPart& GetModelPart() const
+    /**
+     * @brief Get the Model Part object
+     * Returns a reference to the model part the scheme is referring to
+     * @return const ModelPart& Reference to the scheme model part
+     */
+    const ModelPart& GetModelPart() const
     {
         return *mpModelPart;
     }
@@ -1647,12 +1691,20 @@ protected:
     ///@name Protected  Access
     ///@{
 
+    /**
+     * @brief Get the Builder object
+     * @return BuilderType& Reference to the builder class
+     */
     BuilderType& GetBuilder()
     {
         return *mpBuilder;
     }
 
-    BuilderType& GetBuilder() const
+    /**
+     * @brief Get the Builder object
+     * @return const BuilderType& Reference to the builder class
+     */
+    const BuilderType& GetBuilder() const
     {
         return *mpBuilder;
     }
@@ -1685,9 +1737,9 @@ private:
 
     bool mSchemeSolutionStepIsInitialized = false; /// Flag to be used in controlling if the Scheme solution step has been initialized or not
 
-    ModelPart* mpModelPart = nullptr;
+    ModelPart* mpModelPart = nullptr; /// Pointer to the ModelPart the scheme refers to
 
-    typename BuilderType::UniquePointer mpBuilder = nullptr;
+    typename BuilderType::UniquePointer mpBuilder = nullptr; /// Pointer to the corresponding builder
 
     ///@}
     ///@name Private Operators
