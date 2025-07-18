@@ -62,6 +62,9 @@ public:
     /// Auxilary DOF set type definition
     using AuxiliaryDofsSetType = std::unordered_set<Node::DofType::Pointer, DofPointerHasher>;
 
+    /// Auxiliary slave to master(s) map for slave DOFs
+    using SlaveToMasterDofsMap = std::unordered_map<typename Node::DofType::Pointer, DofsVectorType>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -151,6 +154,116 @@ public:
         KRATOS_INFO_IF("DofArrayUtilities", EchoLevel > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished setting up the DOFs" << std::endl;
 
         KRATOS_CATCH("");
+    }
+
+    static void SetUpEffectiveDofArray(
+        const ModelPart& rModelPart,
+        const DofsArrayType& rDofArray,
+        DofsArrayType& rEffectiveDofArray,
+        SlaveToMasterDofsMap& rSlaveToMasterDofsMap,
+        const unsigned int EchoLevel = 0)
+    {
+        KRATOS_TRY;
+
+        // Clear the provided containers
+        KRATOS_WARNING_IF("Builder", !rEffectiveDofArray.empty()) << "Provided effective DOFs set is not empty. About to clear it." << std::endl;
+        rEffectiveDofArray.clear();
+        KRATOS_WARNING_IF("Builder", !rSlaveToMasterDofsMap.empty()) << "Provided slave to master DOFs map is not empty. About to clear it." << std::endl;
+        rSlaveToMasterDofsMap.clear();
+
+        //FIXME: In here we should check if there are ACTIVE constraints among all processes
+        // Check if there are constraints to build the effective DOFs map and the corresponding arrays
+        const std::size_t n_constraints = rModelPart.NumberOfMasterSlaveConstraints();
+        if (n_constraints) {
+            // Auxiliary set to store the unordered effective DOFs (masters from constraints and standard ones)
+            std::unordered_set<typename Node::DofType::Pointer> effective_dofs_set;
+
+            // Get the master / slave DOFs from the constraints
+            KRATOS_INFO_IF("DofArrayUtilities", EchoLevel > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Getting master and slave DOFs from constraints." << std::endl;
+            const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
+            for (IndexType i_const = 0; i_const < n_constraints; ++i_const) {
+                // Get current constraint master and slave DOFs
+                auto it_const = it_const_begin + i_const;
+                const auto& r_slave_dofs = it_const->GetSlaveDofsVector();
+                const auto& r_master_dofs = it_const->GetMasterDofsVector();
+
+                // Add the slave DOFs to the slave map
+                for (auto& rp_slave : r_slave_dofs) {
+                    rSlaveToMasterDofsMap.insert(std::make_pair(rp_slave, r_master_dofs));
+                }
+
+                // Add the master DOFs to the effective DOFs set
+                // Note that we initialize the system ids to zero as these will be overwritten later
+                for (auto& rp_master : r_master_dofs) {
+                    effective_dofs_set.insert(rp_master);
+                }
+            }
+
+            // Loop the elements and conditions DOFs container to get the DOFs that are not slave
+            KRATOS_INFO_IF("DofArrayUtilities", EchoLevel > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Getting non-slave DOFs from elements and conditions." << std::endl;
+            for (IndexType i_dof = 0; i_dof < rDofArray.size(); ++i_dof) {
+                // Get current DOF
+                auto p_dof = *(rDofArray.ptr_begin() + i_dof);
+
+                // Check if current DOF is slave by checking the slaves DOFs map
+                // If not present in the slaves DOFs map it should be considered in the resolution of the system
+                // Note that this includes masters DOFs or and standard DOFs (those not involved in any constraint)
+                if (rSlaveToMasterDofsMap.find(p_dof) == rSlaveToMasterDofsMap.end()) {
+                    // Add current DOF to the effective DOFs set (note that the std::unordered_set guarantees uniqueness)
+                    effective_dofs_set.insert(p_dof);
+                }
+            }
+
+            // Sort the effective DOFs before setting the equation ids
+            // Note that we dereference the DOF pointers in order to use the greater operator from dof.h
+            KRATOS_INFO_IF("DofArrayUtilities", EchoLevel > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Sorting the effective DOFs auxiliary container." << std::endl;
+            std::vector<typename Node::DofType::Pointer> ordered_eff_dofs_vector(effective_dofs_set.begin(), effective_dofs_set.end());
+            std::sort(
+                ordered_eff_dofs_vector.begin(),
+                ordered_eff_dofs_vector.end(),
+                [](const typename Node::DofType::Pointer& pA, const typename Node::DofType::Pointer& pB){return *pA > *pB;});
+
+            // Fill the effective DOFs PVS with the sorted effective DOFs container
+            KRATOS_INFO_IF("DofArrayUtilities", EchoLevel > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Creating the effective DOFs array from the auxiliary sorted container." << std::endl;
+            rEffectiveDofArray = DofsArrayType(ordered_eff_dofs_vector);
+        } else {
+            // If there are no constraints the effective DOF set is the standard one
+            KRATOS_INFO_IF("DofArrayUtilities", EchoLevel > 2) << "There are no constraints. The effective DOF array matches the standard one." << std::endl;
+            rEffectiveDofArray = rDofArray;
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    static void SetUpDofIds(const DofsArrayType& rDofArray)
+    {
+        // Set up the DOFs equation global ids
+        IndexPartition<IndexType>(rDofArray.size()).for_each([&](IndexType Index) {
+            auto it_dof = rDofArray.begin() + Index;
+            it_dof->SetEquationId(Index);
+        });
+    }
+
+    static void SetUpEffectiveDofIds(
+        const DofsArrayType& rDofArray,
+        DofsArrayType& rEffectiveDofArray)
+    {
+        // Check if the effective and "standard" containers are the same
+        // We do it with the addresses to avoid checking the content (i.e., each DOF one-by-one)
+        if (&rEffectiveDofArray == &rDofArray) {
+            // Set the DOFs' effective equation global ids to match the standard ones
+            IndexPartition<IndexType>(rEffectiveDofArray.size()).for_each([&](IndexType Index) {
+                auto it_dof = rEffectiveDofArray.begin() + Index;
+                it_dof->SetEffectiveEquationId(it_dof->EquationId());
+            });
+        } else {
+            // Set the effective DOFs equation ids
+            // Note that in here we assume the effective DOFs to be already sorted
+            IndexPartition<IndexType>(rEffectiveDofArray.size()).for_each([&](IndexType Index) {
+                auto it_dof = rEffectiveDofArray.begin() + Index;
+                it_dof->SetEffectiveEquationId(Index);
+            });
+        }
     }
 
     ///@}
