@@ -50,7 +50,7 @@ UpdatedLagrangianElement::UpdatedLagrangianElement( UpdatedLagrangianElement con
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 UpdatedLagrangianElement&  UpdatedLagrangianElement::operator=(UpdatedLagrangianElement const& rOther)
@@ -278,7 +278,7 @@ void UpdatedLagrangianElement::CalculateKinematics(ElementDataType& rVariables,
 {
     KRATOS_TRY
 
-    //Get the parent coodinates derivative [dN/d£]
+    //Get the parent coordinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
 
     //Get the shape functions for the order of the integration method [N]
@@ -336,7 +336,7 @@ void UpdatedLagrangianElement::CalculateKinetics(ElementDataType& rVariables, co
 
     const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
-    //Get the parent coodinates derivative [dN/d£]
+    //Get the parent coordinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
 
     //Get the shape functions for the order of the integration method [N]

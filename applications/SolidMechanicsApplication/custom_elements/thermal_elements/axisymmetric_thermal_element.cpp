@@ -55,7 +55,7 @@ AxisymmetricThermalElement::AxisymmetricThermalElement( AxisymmetricThermalEleme
 
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 AxisymmetricThermalElement&  AxisymmetricThermalElement::operator=(AxisymmetricThermalElement const& rOther)

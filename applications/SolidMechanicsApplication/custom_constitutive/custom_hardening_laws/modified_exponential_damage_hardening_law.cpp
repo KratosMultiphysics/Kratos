@@ -29,7 +29,7 @@ ModifiedExponentialDamageHardeningLaw::ModifiedExponentialDamageHardeningLaw()
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 ModifiedExponentialDamageHardeningLaw& ModifiedExponentialDamageHardeningLaw::operator=(ModifiedExponentialDamageHardeningLaw const& rOther)

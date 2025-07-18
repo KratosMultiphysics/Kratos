@@ -254,7 +254,7 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
   typename SchemeType::Pointer mpScheme; /// The pointer to the time scheme employed
   typename BuilderAndSolverType::Pointer mpBuilderAndSolver; /// The pointer to the builder and solver employed
 
-  SystemVectorPointerType mpDx; /// The incremement in the solution
+  SystemVectorPointerType mpDx; /// The increment in the solution
   SystemVectorPointerType mpb; /// The RHS vector of the system of equations
   SystemMatrixPointerType mpA; /// The LHS matrix of the system of equations (dummy)
 
@@ -299,7 +299,7 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
   /**
    * @brief Here the database is updated
    * @param A The LHS matrix of the system of equations
-   * @param Dx The incremement in the solution
+   * @param Dx The increment in the solution
    * @param b The RHS vector of the system of equations
    * @param MoveMesh The flag that allows to move the mesh
    */

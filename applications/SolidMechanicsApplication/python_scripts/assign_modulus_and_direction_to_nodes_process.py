@@ -2,8 +2,8 @@
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-## This proces sets the value of a vector variable by a direction and a modulus.
-## In this case, the fixicity is given set by deffault to true.
+## This process sets the value of a vector variable by a direction and a modulus.
+## In this case, the fixicity is given set by default to true.
 import math
 import sys
 

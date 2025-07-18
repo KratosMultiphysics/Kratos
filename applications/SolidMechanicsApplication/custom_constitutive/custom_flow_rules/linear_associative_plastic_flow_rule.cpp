@@ -37,7 +37,7 @@ LinearAssociativePlasticFlowRule::LinearAssociativePlasticFlowRule(YieldCriterio
 
 }
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 LinearAssociativePlasticFlowRule& LinearAssociativePlasticFlowRule::operator=(LinearAssociativePlasticFlowRule const& rOther)
