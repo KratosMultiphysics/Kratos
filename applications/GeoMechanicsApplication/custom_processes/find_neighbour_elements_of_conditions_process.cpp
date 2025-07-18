@@ -45,6 +45,8 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
             hashmap::value_type(IdsSorted, std::vector<Condition::Pointer>({*itCond.base()})));
     }
 
+    if (FacesMap.empty()) return;
+
     // Now loop over all elements and check if one of the faces is in the "FacesMap"
     for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
         const auto& rGeometryElement    = itElem->GetGeometry();
