@@ -29,6 +29,10 @@ namespace Kratos {
  *
  * @tparam TDataType        Arithmetic data type
  */
+
+template<class T, class... TList>
+struct IsInList: public std::disjunction<std::is_same<T, TList>...> {};
+
 template<class TDataType> class DataTypeTraits
 {
 public:
@@ -1477,7 +1481,7 @@ public:
             KRATOS_ERROR
                 << "The given number of components are larger than the data size of DenseMatrix [ number of components in the dimensions = ("
                 << *pShapeBegin << ", " << *(pShapeBegin + 1) << "), number of components available in the data = ("
-                << rContainer.size1() << ", " << rContainer.size2() << " ].\n";
+                << rContainer.size1() << ", " << rContainer.size2() << ") ].\n";
         }
     }
 
