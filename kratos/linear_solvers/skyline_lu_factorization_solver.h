@@ -440,10 +440,9 @@ public:
         // x = invperm[y];
         int i, j, indexL, indexU;
         double sum, *y;
-        if (this->size != vector_size)
-        {
-            throw std::runtime_error("matrix and vector have different sizes at LUSkylineFactorization::backForwardSolve");
-        }
+        KRATOS_ERROR_IF_NOT(this->size == vector_size)
+            << "Inconsistent input vector size. Expecting input vectors of size " << this->size << " "
+            << "but got " << vector_size << ".";
 
         y= new double[size];
         for (i=0; i<size; i++)
@@ -564,6 +563,7 @@ public:
         VectorType x(size1);
         VectorType b(size1);
 
+        this->InitializeSolutionStep(rA, x, b);
         for(int i = 0 ; i < size2 ; i++) {
             TDenseSpaceType::GetColumn(i,rX, x);
             TDenseSpaceType::GetColumn(i,rB, b);
@@ -571,6 +571,7 @@ public:
             TDenseSpaceType::SetColumn(i,rX, x);
             TDenseSpaceType::SetColumn(i,rB, b);
         }
+        this->FinalizeSolutionStep(rA, x, b);
 
         return status;
         KRATOS_CATCH("")
