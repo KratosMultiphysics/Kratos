@@ -52,7 +52,8 @@ public:
     ///@{
 
     /// Constructor
-    ComputeBeamVectorsProcess(Model& rModel, Parameters ThisParameters);
+    ComputeBeamVectorsProcess(ModelPart& rModelPart, 
+                              const NurbsCurveGeometry<3, PointerVector<Node>>& rParentCurve);
 
     /// Destructor.
     ~ComputeBeamVectorsProcess() = default;
@@ -96,10 +97,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    /// Model part and different settings
-    Model& mrModel;             /// The main model part
-    Parameters mThisParameters; /// The parameters (can be used for general pourposes)
+    /// Model part and parent curve
     ModelPart& mrThisModelPart; /// The model part to compute
+    const NurbsCurveGeometry<3, PointerVector<Node>>& mrParentCurve; /// Parent curve for computing derivatives
     ///@}
 }; // Class ComputeBeamVectorsProcess
 }  // namespace Kratos.

@@ -18,59 +18,30 @@
 #include "utilities/math_utils.h"
 #include "includes/define.h"
 #include "iga_application_variables.h"
-
+#include "custom_elements/isogeometric_beam_element.h" 
 namespace Kratos
 {
 
+
 ComputeBeamVectorsProcess::ComputeBeamVectorsProcess(
-    Model& rModel,
-    Parameters ThisParameters)
+    ModelPart& rModelPart,
+    const NurbsCurveGeometry<3, PointerVector<Node>>& rParentCurve)
     : Process()
-    , mrModel(rModel)
-    , mThisParameters(ThisParameters)
-    , mrThisModelPart(rModel.GetModelPart(ThisParameters["model_part_name"].GetString()))
+    , mrThisModelPart(rModelPart)
+    , mrParentCurve(rParentCurve)
 {
 }
 
 void ComputeBeamVectorsProcess::ExecuteInitialize()
 {
-    for (auto& r_element : mrThisModelPart.Elements()) {
-        auto& r_geometry = r_element.GetGeometry();
-        
-        // Check if this is a NURBS curve geometry (beam element)
-        if (r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Nurbs_Curve) {
-            
-            // Get the NURBS curve geometry - handle both direct curves and quadrature point geometries
-            const NurbsCurveGeometry<3, PointerVector<Node>>* p_curve = nullptr;
-            
-            // Try to get parent geometry first (for quadrature point geometries)
-            try {
-                auto& parent_geometry = r_geometry.GetGeometryParent(0);
-                p_curve = dynamic_cast<const NurbsCurveGeometry<3, PointerVector<Node>>*>(&parent_geometry);
-            } catch (...) {
-                // Direct NURBS curve geometry
-                p_curve = dynamic_cast<const NurbsCurveGeometry<3, PointerVector<Node>>*>(&r_geometry);
-            }
-            
-            if (p_curve != nullptr) {
-                // Compute T0 and N0 vectors
-                array_1d<double, 3> t0_vector, n0_vector;
-                this->ComputeT0AndN0(*p_curve, t0_vector, n0_vector);
-                
-                // Convert to Kratos Vector format and set as properties
-                Vector t0_kratos(3), n0_kratos(3);
-                for (int i = 0; i < 3; ++i) {
-                    t0_kratos[i] = t0_vector[i];
-                    n0_kratos[i] = n0_vector[i];
-                }
-                
-                // Set the computed vectors as element properties
-                auto& r_properties = r_element.GetProperties();
-                r_element.SetValue(T_0, t0_kratos);
-                r_element.SetValue(N_0, n0_kratos);
-            }
-        }
-    }
+    // Use the provided parent curve
+    array_1d<double, 3> t0, n0;
+    ComputeT0AndN0(mrParentCurve, t0, n0);
+
+    // Set T_0 and N_0 on the properties (elements access via GetProperties()[T_0/N_0])
+    auto& properties = mrThisModelPart.GetProperties(0);
+    properties.SetValue(T_0, t0);
+    properties.SetValue(N_0, n0);
 }
 
 void ComputeBeamVectorsProcess::ComputeT0AndN0(
@@ -78,34 +49,20 @@ void ComputeBeamVectorsProcess::ComputeT0AndN0(
     array_1d<double, 3>& rT0,
     array_1d<double, 3>& rN0)
 {
-    // Set up local coordinates [0, 0, 0] (parameter space)
-    array_1d<double, 3> local_coordinates;
-    local_coordinates[0] = 0.0;
-    local_coordinates[1] = 0.0;
-    local_coordinates[2] = 0.0;
-    
-    // Prepare container for derivatives
+    // Evaluate at the start of the beam (parameter = 0)
+    array_1d<double, 3> local_coordinates = ZeroVector(3);
     std::vector<array_1d<double, 3>> global_space_derivatives;
-    
-    // Compute global space derivatives up to order 1
     rCurve.GlobalSpaceDerivatives(global_space_derivatives, local_coordinates, 1);
-    
-    // Extract the first derivative (tangent vector) - it's at index 1
-    array_1d<double, 3> t0_unnormalized = global_space_derivatives[1];
-    
-    // Normalize T0
-    double t0_norm = norm_2(t0_unnormalized);
-    rT0 = t0_unnormalized / t0_norm;
-    
-    // Compute N0 = cross([0, -1, 0], t0)
-    array_1d<double, 3> y_axis_negative;
-    y_axis_negative[0] = 0.0;
+
+    // Tangent vector (normalized)
+    rT0 = global_space_derivatives[1];
+    rT0 /= norm_2(rT0);
+
+    // Normal vector (cross product of -Y axis and tangent)
+    array_1d<double, 3> y_axis_negative = ZeroVector(3);
     y_axis_negative[1] = -1.0;
-    y_axis_negative[2] = 0.0;
-    
+
     MathUtils<double>::CrossProduct(rN0, y_axis_negative, rT0);
 }
-
-
 
 } // namespace Kratos

@@ -39,10 +39,6 @@ void AddCustomProcessesToPython(
         .def(py::init<Model&, Parameters >())
         ;
 
-    py::class_<ComputeBeamVectorsProcess, ComputeBeamVectorsProcess::Pointer, Process>(m, "ComputeBeamVectorsProcess")
-        .def(py::init<Model&, Parameters >())
-        ;
-
     py::class_<NitscheStabilizationModelPartProcess, NitscheStabilizationModelPartProcess::Pointer, Process>(m, "NitscheStabilizationModelPartProcess")
         .def(py::init<ModelPart& >())
         ;
@@ -54,6 +50,10 @@ void AddCustomProcessesToPython(
 
     py::class_<AssignIntegrationPointsToBackgroundElementsProcess, AssignIntegrationPointsToBackgroundElementsProcess::Pointer, Process>(m, "AssignIntegrationPointsToBackgroundElementsProcess")
         .def(py::init<Model&, Parameters >())
+        ;
+
+    py::class_<ComputeBeamVectorsProcess, ComputeBeamVectorsProcess::Pointer, Process>(m, "ComputeBeamVectorsProcess")
+        .def(py::init<ModelPart&, const NurbsCurveGeometry<3, PointerVector<Node>>&>())
         ;
 }
 

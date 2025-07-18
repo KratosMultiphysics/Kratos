@@ -6,16 +6,6 @@ import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import numpy as np
 
-import KratosMultiphysics.IgaApplication.compute_beam_vectors_process
-
-def compute_t0_and_n0(curve):
-    t0 = np.array(curve.GlobalSpaceDerivatives(
-        [KM.Array3([0, 0, 0])], KM.Array3([0.0, 0.0, 0.0]), 1)[1])
-    t0 /= np.linalg.norm(t0)
-    n0 = np.cross(np.array([0, -1, 0], dtype=float), t0)
-    return n0, t0
-
-
 
 class TestBeam4pElement(KratosUnittest.TestCase):
 
@@ -80,11 +70,6 @@ class TestBeam4pElement(KratosUnittest.TestCase):
 
         curve = KM.NurbsCurveGeometry3D(nodes, 4, knots)
 
-        #compute n0 and t0
-        n0, t0 = compute_t0_and_n0(curve)
-        beam_properties.SetValue(IGA.T_0, t0)
-        beam_properties.SetValue(IGA.N_0, n0)
-        
         # create quadrature_point_geometries
         quadrature_point_geometries = KM.GeometriesVector()
         curve.CreateQuadraturePointGeometries(quadrature_point_geometries, 10)
@@ -93,12 +78,9 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         for i in range(0, len(quadrature_point_geometries)):
             model_part.CreateNewElement('IsogeometricBeamElement', element_id, quadrature_point_geometries[i], beam_properties)
             element_id += 1
-        # Compute T0 and N0 vectors automatically
-        # parameters = KM.Parameters("""{
-        #     "model_part_name": "Model"
-        # }""")
-        # process = IGA.ComputeBeamVectorsProcess(model, parameters)
-        # process.ExecuteInitialize()
+
+        #Compute T0 and N0 vectors automatically using parent curve
+        IGA.ComputeBeamVectorsProcess(model_part, curve).ExecuteInitialize()
 
         # add dofs
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
@@ -174,7 +156,7 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.DISPLACEMENT))[2], 0.0               )
 
     def testClampedFYWithoutParameterDistortion(self):
-        last_node_force = KM.Array3([0,  1, 0])
+        last_node_force = KM.Array3([0,  -1, 0])
         last_node_moment = KM.Array3([0,  0, 0])
         nodes , _ = TestBeam4pElement.solve(last_node_force, last_node_moment)
 
@@ -187,7 +169,7 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         self.assertAlmostEqual(nodes[1].Z, 0.0               )
 
         self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.DISPLACEMENT))[0], 0.0               )
-        self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.DISPLACEMENT))[1], TestBeam4pElement.analytical_solution_bending(nodes[4].X, 1, 70000,2.5**3*5/12,4))
+        self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.DISPLACEMENT))[1], TestBeam4pElement.analytical_solution_bending(nodes[4].X, -1, 70000,5**3*2.5/12,4))
         self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.DISPLACEMENT))[2], 0.0)
 
     def testClampedFZWithoutParameterDistortion(self):
@@ -205,7 +187,7 @@ class TestBeam4pElement(KratosUnittest.TestCase):
 
         self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.DISPLACEMENT))[0], 0.0               )
         self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.DISPLACEMENT))[1], 0.0               )
-        self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.DISPLACEMENT))[2], TestBeam4pElement.analytical_solution_bending(nodes[4].X,-1, 70000,5**3*2.5/12,4))
+        self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.DISPLACEMENT))[2], TestBeam4pElement.analytical_solution_bending(nodes[4].X,-1, 70000,2.5**3*5/12,4))
 
 
     def testClampedMXWithoutParameterDistortion(self):
