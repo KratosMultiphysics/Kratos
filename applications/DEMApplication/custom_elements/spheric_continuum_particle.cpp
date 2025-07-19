@@ -625,20 +625,17 @@ namespace Kratos {
                     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                         if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
                             mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                            //TODO: seperate the unbonded forces for calculating the rolling friction moment
                             mRollingFrictionModel->ComputeRollingFriction(this, 
                                                                         data_buffer.mpOtherParticle, 
                                                                         r_process_info, 
-                                                                        LocalContactForce, 
+                                                                        LocalUnbondedContactForce, 
                                                                         indentation_particle, 
                                                                         mContactMoment, 
                                                                         data_buffer.mLocalCoordSystem[2],
                                                                         mNeighbourRollingFrictionMoments[i]);
                         }
                         else {
-                            //if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
-                            mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForce);
-                            //}
+                            mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalUnbondedContactForce);
                         }
                     }
 
@@ -659,9 +656,7 @@ namespace Kratos {
                                                                         mNeighbourRollingFrictionMoments[i]);
                         }
                         else {
-                            //if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
                             mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForce);
-                            //}
                         }
                     }
                 }
