@@ -1730,35 +1730,47 @@ public:
     ///@}
     ///@name Access
     ///@{
+    
 
+    /**
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
+     */
     ProcessInfo& GetProcessInfo()
     {
-        return *mpProcessInfo;
+        return *(this->GetRootModelPart().mpProcessInfo);
     }
 
+    /**
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
+     */
     ProcessInfo const& GetProcessInfo() const
     {
-        return *mpProcessInfo;
+        return *(this->GetRootModelPart().mpProcessInfo);
     }
 
+    /**
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
+     */
     ProcessInfo::Pointer pGetProcessInfo()
     {
-        return mpProcessInfo;
+        return this->GetRootModelPart().mpProcessInfo;
     }
 
+    /**
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
+     */
     const ProcessInfo::Pointer pGetProcessInfo() const
     {
-        return mpProcessInfo;
+        return this->GetRootModelPart().mpProcessInfo;
     }
 
+    /**
+     * @brief Set the @ref ProcessInfo associated with the current @ref ModelPart tree.
+     * @param pNewProcessInfo pointer to the new @ref ProcessInfo object.
+     */
     void SetProcessInfo(ProcessInfo::Pointer pNewProcessInfo)
     {
-        mpProcessInfo = pNewProcessInfo;
-    }
-
-    void SetProcessInfo(ProcessInfo& NewProcessInfo)
-    {
-        *mpProcessInfo = NewProcessInfo;
+        this->GetRootModelPart().mpProcessInfo = pNewProcessInfo;
     }
 
     SizeType NumberOfMeshes()
