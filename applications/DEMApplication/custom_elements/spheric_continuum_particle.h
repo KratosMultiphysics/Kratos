@@ -119,6 +119,7 @@ namespace Kratos
                                                     double GlobalElasticExtraContactForce[3],
                                                     double TotalGlobalElasticContactForce[3],
                                                     double ViscoDampingLocalContactForce[3],
+                                                    double LocalUnbondedContactForce[3],
                                                     const double cohesive_force,
                                                     array_1d<double, 3>& other_ball_to_ball_forces,
                                                     array_1d<double, 3>& r_elastic_force,

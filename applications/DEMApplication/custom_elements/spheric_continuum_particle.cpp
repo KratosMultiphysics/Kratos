@@ -517,6 +517,7 @@ namespace Kratos {
             double LocalRelVel[3] = {0.0};
             double LocalContactForce[3] = {0.0};
             double GlobalContactForce[3] = {0.0};
+            double LocalUnbondedContactForce[3] = {0.0};
 
             GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, RelVel, LocalRelVel);
             
@@ -548,7 +549,8 @@ namespace Kratos {
                                                                 equiv_visco_damp_coeff_normal,
                                                                 equiv_visco_damp_coeff_tangential,
                                                                 LocalRelVel,
-                                                                ViscoDampingLocalContactForce);
+                                                                ViscoDampingLocalContactForce,
+                                                                LocalUnbondedContactForce);
 
             } else if (indentation_particle > 0.0) {
                 const double previous_indentation = indentation_particle + LocalDeltDisp[2];
@@ -591,7 +593,8 @@ namespace Kratos {
                                             GlobalElasticContactForce, 
                                             GlobalElasticExtraContactForce, 
                                             TotalGlobalElasticContactForce, 
-                                            ViscoDampingLocalContactForce, 
+                                            ViscoDampingLocalContactForce,
+                                            LocalUnbondedContactForce,
                                             0.0, 
                                             other_ball_to_ball_forces, 
                                             rElasticForce, 
@@ -723,6 +726,7 @@ namespace Kratos {
                                                                 double GlobalElasticExtraContactForce[3],
                                                                 double TotalGlobalElasticContactForce[3],
                                                                 double ViscoDampingLocalContactForce[3],
+                                                                double LocalUnbondedContactForce[3],
                                                                 const double cohesive_force,
                                                                 array_1d<double, 3>& other_ball_to_ball_forces,
                                                                 array_1d<double, 3>& r_elastic_force,
@@ -733,9 +737,11 @@ namespace Kratos {
 
         for (unsigned int index = 0; index < 3; index++) {
             LocalContactForce[index] = LocalElasticContactForce[index] + ViscoDampingLocalContactForce[index] + other_ball_to_ball_forces[index];
+            LocalUnbondedContactForce[index] += other_ball_to_ball_forces[index];
         }
         LocalContactForce[2] -= cohesive_force;
-    
+        LocalUnbondedContactForce[2] -= cohesive_force;
+
         DEM_ADD_SECOND_TO_FIRST(LocalElasticContactForce, other_ball_to_ball_forces);
 
         GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
