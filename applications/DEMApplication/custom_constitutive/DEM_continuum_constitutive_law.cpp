@@ -97,4 +97,8 @@ namespace Kratos {
         return 0.0;
     }
 
+    void DEMContinuumConstitutiveLaw::GetLocalUnbondedContactForce(double LocalUnbondedContactForce[3], double LocalElasticContactForce[3]) {
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::GetLocalUnbondedContactForce) shouldn't be accessed, use derived class instead"<<std::endl;
+    }
+
 } //kratos

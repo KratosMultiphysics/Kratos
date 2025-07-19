@@ -232,6 +232,8 @@ namespace Kratos {
 
         virtual double GetTangentialStiffness();
 
+        virtual void GetLocalUnbondedContactForce(double LocalUnbondedContactForce[3], double LocalElasticContactForce[3]);
+
     protected:
         Properties::Pointer mpProperties;
 

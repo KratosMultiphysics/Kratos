@@ -1076,5 +1076,16 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
 
     KRATOS_CATCH("")    
 }//CheckFailure
+
+void DEM_parallel_bond::GetLocalUnbondedContactForce(double LocalUnbondedContactForce[3], double LocalElasticContactForce[3])
+{
+    KRATOS_TRY
+
+    LocalUnbondedContactForce[0] = mUnBondedScalingFactor[0] * LocalElasticContactForce[0] + mUnbondedViscoDampingLocalContactForce[0];
+    LocalUnbondedContactForce[1] = mUnBondedScalingFactor[1] * LocalElasticContactForce[1] + mUnbondedViscoDampingLocalContactForce[1];
+    LocalUnbondedContactForce[2] = mUnbondedLocalElasticContactForce2 + mUnbondedViscoDampingLocalContactForce[2];
+
+    KRATOS_CATCH("")
+}
     
 } //namespace Kratos

@@ -517,7 +517,7 @@ namespace Kratos {
             double LocalRelVel[3] = {0.0};
             double LocalContactForce[3] = {0.0};
             double GlobalContactForce[3] = {0.0};
-            double LocalUnbondedContactForce[3] = {0.0};
+            double LocalUnbondedContactForce[3] = {0.0};// TODO: only works for parallel_bond_CL at the moment
 
             GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, RelVel, LocalRelVel);
             
@@ -550,6 +550,10 @@ namespace Kratos {
                                                                 equiv_visco_damp_coeff_tangential,
                                                                 LocalRelVel,
                                                                 ViscoDampingLocalContactForce);
+                
+                if (mContinuumConstitutiveLawArray[i]->GetTypeOfLaw() == "parallel_bond_CL") {
+                    mContinuumConstitutiveLawArray[i]->GetLocalUnbondedContactForce(LocalUnbondedContactForce, LocalElasticContactForce);
+                }
 
             } else if (indentation_particle > 0.0) {
                 const double previous_indentation = indentation_particle + LocalDeltDisp[2];

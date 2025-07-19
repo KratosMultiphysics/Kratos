@@ -189,6 +189,8 @@ namespace Kratos{
 
         double GetTangentialStiffness() override;
 
+        void GetLocalUnbondedContactForce(double LocalUnbondedContactForce[3], double LocalElasticContactForce[3]) override;
+
         double rand_normal(const double mean, const double stddev);
 
         double mUnbondedLocalElasticContactForce2 = 0.0;
