@@ -630,34 +630,10 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
         BondedLocalElasticContactForce[0] = OldBondedLocalElasticContactForce[0] - kt_el * LocalDeltDisp[0]; // 0: first tangential
         BondedLocalElasticContactForce[1] = OldBondedLocalElasticContactForce[1] - kt_el * LocalDeltDisp[1]; // 1: second tangential
     } else {
-        //a friction force due to the broken bond should be added here
-        //BondedLocalElasticContactForce[0] = 0.0; // 0: first tangential
-        //BondedLocalElasticContactForce[1] = 0.0; // 1: second tangential
-        const double& equiv_tg_of_static_fri_ang = (*mpProperties)[STATIC_FRICTION];
-        const double& equiv_tg_of_dynamic_fri_ang = (*mpProperties)[DYNAMIC_FRICTION];
-        const double& equiv_friction_decay_coefficient = (*mpProperties)[FRICTION_DECAY];
-        const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
-        double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);
-        double residual_tangential_friction_force_magnitude = mBondedLocalElasticContactForce2 * equiv_friction;
-        BondedLocalElasticContactForce[0] = OldBondedLocalElasticContactForce[0] - kt_el * LocalDeltDisp[0]; // 0: first tangential
-        BondedLocalElasticContactForce[1] = OldBondedLocalElasticContactForce[1] - kt_el * LocalDeltDisp[1]; // 1: second tangential
-        double tangential_force_module = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0]
-                                                + BondedLocalElasticContactForce[1] * BondedLocalElasticContactForce[1]);
-        if (tangential_force_module > residual_tangential_friction_force_magnitude) {
-            double fraction = residual_tangential_friction_force_magnitude / tangential_force_module;
-            BondedLocalElasticContactForce[0] *= fraction;
-            BondedLocalElasticContactForce[1] *= fraction;
-        }
+        //TODO:a friction force due to the broken bond should be added here
+        BondedLocalElasticContactForce[0] = 0.0; // 0: first tangential
+        BondedLocalElasticContactForce[1] = 0.0; // 1: second tangential
     }
-
-    //current_tangential_force_module = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0]
-    //                                             + BondedLocalElasticContactForce[1] * BondedLocalElasticContactForce[1]);
-
-
-    //if (calculation_area){
-    //    contact_tau = current_tangential_force_module / calculation_area;
-    //    contact_sigma = mBondedLocalContactForce / calculation_area;
-    //}
 
     //unbonded force
     double OldUnbondedLocalElasticContactForce[2] = {0.0};
