@@ -624,6 +624,17 @@ namespace Kratos {
                                                                         GlobalContactForce,
                                                                         data_buffer.mLocalCoordSystem[2],
                                                                         i);
+                                                            
+                    double LocalContactForceUsedForRolling[3] = {0.0}; //TODO: this can be improved
+                    if (mContinuumConstitutiveLawArray[i]->GetTypeOfLaw() == "parallel_bond_CL") {
+                        LocalContactForceUsedForRolling[0] = LocalUnbondedContactForce[0];
+                        LocalContactForceUsedForRolling[1] = LocalUnbondedContactForce[1];
+                        LocalContactForceUsedForRolling[2] = LocalUnbondedContactForce[2];
+                    } else {
+                        LocalContactForceUsedForRolling[0] = LocalContactForce[0];
+                        LocalContactForceUsedForRolling[1] = LocalContactForce[1];
+                        LocalContactForceUsedForRolling[2] = LocalContactForce[2];
+                    }
 
                     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                         if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
@@ -631,14 +642,14 @@ namespace Kratos {
                             mRollingFrictionModel->ComputeRollingFriction(this, 
                                                                         data_buffer.mpOtherParticle, 
                                                                         r_process_info, 
-                                                                        LocalUnbondedContactForce, 
+                                                                        LocalContactForceUsedForRolling, 
                                                                         indentation_particle, 
                                                                         mContactMoment, 
                                                                         data_buffer.mLocalCoordSystem[2],
                                                                         mNeighbourRollingFrictionMoments[i]);
                         }
                         else {
-                            mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalUnbondedContactForce);
+                            mRollingFrictionModel->ComputeRollingResistance(this, data_buffer.mpOtherParticle, LocalContactForceUsedForRolling);
                         }
                     }
 

@@ -81,10 +81,6 @@ namespace Kratos{
                             double ElasticLocalRotationalMoment[3],
                             double ViscoLocalRotationalMoment[3]) override;
 
-        void GetLocalUnbondedContactForce(double LocalUnbondedContactForce[3], double LocalElasticContactForce[3]) override {
-            KRATOS_ERROR << "This function (DEM_parallel_bond_bilinear_damage::GetLocalUnbondedContactForce) is not implemented yet." <<std::endl;
-        };
-
         double mDamageNormal = 0.0;
         double mDamageTangential = 0.0;
         double mDamageMoment = 0.0;

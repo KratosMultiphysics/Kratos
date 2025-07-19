@@ -373,9 +373,8 @@ void DEM_parallel_bond_bilinear_damage::CalculateTangentialForces(double OldLoca
         UnbondedLocalElasticContactForce[0] = 0.0;
         UnbondedLocalElasticContactForce[1] = 0.0;
     } else {
-        // Here, unBondedScalingFactor[] = 1 - mBondedScalingFactor[]
-        OldUnbondedLocalElasticContactForce[0] = (1 - mBondedScalingFactor[0]) * OldLocalElasticContactForce[0];
-        OldUnbondedLocalElasticContactForce[1] = (1 - mBondedScalingFactor[1]) * OldLocalElasticContactForce[1];
+        OldUnbondedLocalElasticContactForce[0] = mUnBondedScalingFactor[0] * OldLocalElasticContactForce[0];
+        OldUnbondedLocalElasticContactForce[1] = mUnBondedScalingFactor[1] * OldLocalElasticContactForce[1];
 
         UnbondedLocalElasticContactForce[0] = OldUnbondedLocalElasticContactForce[0] - mKt * LocalDeltDisp[0];
         UnbondedLocalElasticContactForce[1] = OldUnbondedLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
@@ -456,17 +455,20 @@ void DEM_parallel_bond_bilinear_damage::CalculateTangentialForces(double OldLoca
     LocalElasticContactForce[0] = BondedLocalElasticContactForce[0] + UnbondedLocalElasticContactForce[0];
     LocalElasticContactForce[1] = BondedLocalElasticContactForce[1] + UnbondedLocalElasticContactForce[1];
 
-    // Here, we only calculate the BondedScalingFactor and [unBondedScalingFactor = 1 - BondedScalingFactor].
     if (LocalElasticContactForce[0]) {
         mBondedScalingFactor[0] = BondedLocalElasticContactForce[0] / LocalElasticContactForce[0]; 
+        mUnBondedScalingFactor[0] = UnbondedLocalElasticContactForce[0] / LocalElasticContactForce[0];
     } else {
-        mBondedScalingFactor[0] = 0.0;
+        mBondedScalingFactor[0] = 0.0; //TODO: check if this is correct
+        mUnBondedScalingFactor[0] = 0.0;
     }
 
     if (LocalElasticContactForce[1]) { 
         mBondedScalingFactor[1] = BondedLocalElasticContactForce[1] / LocalElasticContactForce[1];
+        mUnBondedScalingFactor[1] = UnbondedLocalElasticContactForce[1] / LocalElasticContactForce[1];
     } else {
         mBondedScalingFactor[1] = 0.0;
+        mUnBondedScalingFactor[1] = 0.0;
     }
 
     //for debug

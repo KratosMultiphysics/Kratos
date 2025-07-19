@@ -732,7 +732,6 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
     LocalElasticContactForce[0] = BondedLocalElasticContactForce[0] + UnbondedLocalElasticContactForce[0];
     LocalElasticContactForce[1] = BondedLocalElasticContactForce[1] + UnbondedLocalElasticContactForce[1];
 
-    // Here, we only calculate the BondedScalingFactor and [unBondedScalingFactor = 1 - BondedScalingFactor].
     if (LocalElasticContactForce[0]) {
         mBondedScalingFactor[0] = BondedLocalElasticContactForce[0] / LocalElasticContactForce[0]; 
         mUnBondedScalingFactor[0] = UnbondedLocalElasticContactForce[0] / LocalElasticContactForce[0];
