@@ -109,7 +109,22 @@ namespace Kratos
                                                        double RelVel[3], //IN GLOBAL AXES
                                                        double& indentation);
 
-
+        virtual void AddUpForcesAndProjectContinuum(double OldCoordSystem[3][3],
+                                                    double LocalCoordSystem[3][3],
+                                                    double LocalContactForce[3],
+                                                    double LocalElasticContactForce[3],
+                                                    double LocalElasticExtraContactForce[3],
+                                                    double GlobalContactForce[3],
+                                                    double GlobalElasticContactForce[3],
+                                                    double GlobalElasticExtraContactForce[3],
+                                                    double TotalGlobalElasticContactForce[3],
+                                                    double ViscoDampingLocalContactForce[3],
+                                                    const double cohesive_force,
+                                                    array_1d<double, 3>& other_ball_to_ball_forces,
+                                                    array_1d<double, 3>& r_elastic_force,
+                                                    array_1d<double, 3>& r_contact_force,
+                                                    const unsigned int i_neighbour_count,
+                                                    const ProcessInfo& r_process_info);
 
         virtual void ContactAreaWeighting(const ProcessInfo& r_process_info);
         virtual void CalculateInitialBondContactArea(const double distance,

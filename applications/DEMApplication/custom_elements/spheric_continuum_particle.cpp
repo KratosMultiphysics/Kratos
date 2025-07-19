@@ -582,8 +582,22 @@ namespace Kratos {
             }
 
             //*******************Add up forces and moments**************
-            AddUpForcesAndProject(data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce,
-                                  GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce, ViscoDampingLocalContactForce, 0.0, other_ball_to_ball_forces, rElasticForce, rContactForce, i, r_process_info); //TODO: replace the 0.0 with an actual cohesive force for discontinuum neighbours
+            AddUpForcesAndProjectContinuum(data_buffer.mOldLocalCoordSystem, 
+                                            data_buffer.mLocalCoordSystem, 
+                                            LocalContactForce, 
+                                            LocalElasticContactForce, 
+                                            LocalElasticExtraContactForce, 
+                                            GlobalContactForce,
+                                            GlobalElasticContactForce, 
+                                            GlobalElasticExtraContactForce, 
+                                            TotalGlobalElasticContactForce, 
+                                            ViscoDampingLocalContactForce, 
+                                            0.0, 
+                                            other_ball_to_ball_forces, 
+                                            rElasticForce, 
+                                            rContactForce, 
+                                            i, 
+                                            r_process_info); //TODO: replace the 0.0 with an actual cohesive force for discontinuum neighbours
 
 
             //******************Moments calculation start****************
@@ -698,6 +712,51 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     } //  ComputeBallToBallContactForceAndMoment
+
+    void SphericContinuumParticle::AddUpForcesAndProjectContinuum(double OldCoordSystem[3][3],
+                                                                double LocalCoordSystem[3][3],
+                                                                double LocalContactForce[3],
+                                                                double LocalElasticContactForce[3],
+                                                                double LocalElasticExtraContactForce[3],
+                                                                double GlobalContactForce[3],
+                                                                double GlobalElasticContactForce[3],
+                                                                double GlobalElasticExtraContactForce[3],
+                                                                double TotalGlobalElasticContactForce[3],
+                                                                double ViscoDampingLocalContactForce[3],
+                                                                const double cohesive_force,
+                                                                array_1d<double, 3>& other_ball_to_ball_forces,
+                                                                array_1d<double, 3>& r_elastic_force,
+                                                                array_1d<double, 3>& r_contact_force,
+                                                                const unsigned int i_neighbour_count,
+                                                                const ProcessInfo& r_process_info)
+    {
+
+        for (unsigned int index = 0; index < 3; index++) {
+            LocalContactForce[index] = LocalElasticContactForce[index] + ViscoDampingLocalContactForce[index] + other_ball_to_ball_forces[index];
+        }
+        LocalContactForce[2] -= cohesive_force;
+    
+        DEM_ADD_SECOND_TO_FIRST(LocalElasticContactForce, other_ball_to_ball_forces);
+
+        GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
+        GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
+        GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticExtraContactForce, GlobalElasticExtraContactForce);
+
+        // Saving contact forces (We need to, since tangential elastic force is history-dependent)
+        DEM_COPY_SECOND_TO_FIRST_3(mNeighbourElasticContactForces[i_neighbour_count], GlobalElasticContactForce)
+        DEM_COPY_SECOND_TO_FIRST_3(mNeighbourElasticExtraContactForces[i_neighbour_count], GlobalElasticExtraContactForce)
+
+        TotalGlobalElasticContactForce[0] = GlobalElasticContactForce[0] + GlobalElasticExtraContactForce[0];
+        TotalGlobalElasticContactForce[1] = GlobalElasticContactForce[1] + GlobalElasticExtraContactForce[1];
+        TotalGlobalElasticContactForce[2] = GlobalElasticContactForce[2] + GlobalElasticExtraContactForce[2];
+        DEM_ADD_SECOND_TO_FIRST(r_elastic_force, TotalGlobalElasticContactForce)
+
+        double TotalGlobalContactForce[3];
+        TotalGlobalContactForce[0] = GlobalContactForce[0] + GlobalElasticExtraContactForce[0];
+        TotalGlobalContactForce[1] = GlobalContactForce[1] + GlobalElasticExtraContactForce[1];
+        TotalGlobalContactForce[2] = GlobalContactForce[2] + GlobalElasticExtraContactForce[2];
+        DEM_ADD_SECOND_TO_FIRST(r_contact_force, TotalGlobalContactForce )
+    }
 
     void SphericContinuumParticle::ComputeForceWithNeighbourFinalOperations(){}
 
