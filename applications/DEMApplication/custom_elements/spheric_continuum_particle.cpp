@@ -549,8 +549,7 @@ namespace Kratos {
                                                                 equiv_visco_damp_coeff_normal,
                                                                 equiv_visco_damp_coeff_tangential,
                                                                 LocalRelVel,
-                                                                ViscoDampingLocalContactForce,
-                                                                LocalUnbondedContactForce);
+                                                                ViscoDampingLocalContactForce);
 
             } else if (indentation_particle > 0.0) {
                 const double previous_indentation = indentation_particle + LocalDeltDisp[2];
