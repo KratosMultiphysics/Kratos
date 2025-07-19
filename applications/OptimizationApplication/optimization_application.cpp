@@ -37,6 +37,7 @@ namespace Kratos
         mHelmholtzBulkShape3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
         mHelmholtzBulkTopology3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
         mAdjointSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4))),Element::Pointer() ),
+        mAdjointSmallDisplacementElement3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node>(Element::GeometryType::PointsArrayType(10))),Element::Pointer() ),
         // Helmholtz elements
         mHelmholtzSurfaceElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
         mHelmholtzSurfaceElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
@@ -236,6 +237,7 @@ namespace Kratos
 
         // Adjoint elements
         KRATOS_REGISTER_ELEMENT("AdjointSmallDisplacementElement3D4N", mAdjointSmallDisplacementElement3D4N);
+        KRATOS_REGISTER_ELEMENT("AdjointSmallDisplacementElement3D10N", mAdjointSmallDisplacementElement3D10N);
 
         // Adjoint RHS
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_RHS);

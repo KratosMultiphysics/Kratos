@@ -70,7 +70,7 @@
                 "Parameters": {
                     "model_part_name": "Structure.LineLoad2D_right",
                     "variable_name": "SURFACE_LOAD",
-                    "modulus": 0.1,
+                    "modulus": 0.01,
                     "direction": [
                         1.0,
                         0.0,
