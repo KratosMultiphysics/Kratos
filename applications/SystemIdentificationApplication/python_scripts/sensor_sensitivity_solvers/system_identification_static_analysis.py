@@ -16,7 +16,7 @@ class SystemIdentificationStaticAnalysis(ResponseSensitivityAnalysis):
     def _GetSimulationName(self) -> str:
         return "::[SystemIdentificationAnalysis]:: "
 
-    def CalculateGradient(self, response_function: Kratos.AdjointResponseFunction) -> 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]':
+    def CalculateGradient(self, response_function: Kratos.AdjointResponseFunction) -> None:
         self._GetSolver().SetResponseFunction(response_function)
         self.InitializeSolutionStep()
         response_function.InitializeSolutionStep()
@@ -24,9 +24,6 @@ class SystemIdentificationStaticAnalysis(ResponseSensitivityAnalysis):
         response_function.FinalizeSolutionStep()
         self.FinalizeSolutionStep()
         self.OutputSolutionStep()
-
-        gradients = self._GetSolver().GetSensitivities()
-        return gradients
 
     def PrintAnalysisStageProgressInformation(self):
         process_info = self._GetSolver().GetComputingModelPart().ProcessInfo
