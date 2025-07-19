@@ -6,7 +6,7 @@ from KratosMultiphysics.json_utilities import read_external_json, write_external
 from KratosMultiphysics.json_output_process import JsonOutputProcess
 
 def Factory(settings, Model):
-    if not isinstance(model, KratosMultiphysics.Model):
+    if not isinstance(Model, KratosMultiphysics.Model):
         raise Exception("expected input shall be a Model object")
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
