@@ -96,7 +96,7 @@ namespace Kratos{
         
         array_1d<double, 3> elementRelAngularVelocity;
         noalias(elementRelAngularVelocity) = p_element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) - p_neighbor->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-        if (elementRelAngularVelocity[0] || elementRelAngularVelocity[1] || elementRelAngularVelocity[2]){
+        if ((elementRelAngularVelocity[0] || elementRelAngularVelocity[1] || elementRelAngularVelocity[2]) && indentation > 0.0) {
 
             InitializeContact(p_element, p_neighbor, indentation);
             
@@ -140,11 +140,11 @@ namespace Kratos{
             // Check if the rolling friction moment exceeds the maximum value
             double m_rolling_friction_moment_modlule = GeometryFunctions::module(m_rolling_friction_moment);
 
-            if (m_rolling_friction_moment_modlule > max_rolling_friction_moment) {
+            if (m_rolling_friction_moment_modlule > max_rolling_friction_moment && m_rolling_friction_moment_modlule > 0.0) {
                 // Normalize the rolling friction moment to the maximum value
-                m_rolling_friction_moment[0] *= max_rolling_friction_moment / m_rolling_friction_moment_modlule;
-                m_rolling_friction_moment[1] *= max_rolling_friction_moment / m_rolling_friction_moment_modlule;
-                m_rolling_friction_moment[2] *= max_rolling_friction_moment / m_rolling_friction_moment_modlule;
+                m_rolling_friction_moment[0] *= (max_rolling_friction_moment / m_rolling_friction_moment_modlule);
+                m_rolling_friction_moment[1] *= (max_rolling_friction_moment / m_rolling_friction_moment_modlule);
+                m_rolling_friction_moment[2] *= (max_rolling_friction_moment / m_rolling_friction_moment_modlule);
             }
 
             // Discount rolling friction moment from contact moment
@@ -177,7 +177,7 @@ namespace Kratos{
     {
         array_1d<double, 3> element1AngularVelocity;
         noalias(element1AngularVelocity) = p_element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-        if (element1AngularVelocity[0] || element1AngularVelocity[1] || element1AngularVelocity[2]){
+        if ((element1AngularVelocity[0] || element1AngularVelocity[1] || element1AngularVelocity[2]) && indentation > 0.0) {
 
             InitializeContactWall(p_element, wall, indentation);
             
@@ -221,11 +221,11 @@ namespace Kratos{
             // Check if the rolling friction moment exceeds the maximum value
             double m_rolling_friction_moment_modlule = GeometryFunctions::module(m_rolling_friction_moment);
 
-            if (m_rolling_friction_moment_modlule > max_rolling_friction_moment) {
+            if (m_rolling_friction_moment_modlule > max_rolling_friction_moment && m_rolling_friction_moment_modlule > 0.0) {
                 // Normalize the rolling friction moment to the maximum value
-                m_rolling_friction_moment[0] *= max_rolling_friction_moment / m_rolling_friction_moment_modlule;
-                m_rolling_friction_moment[1] *= max_rolling_friction_moment / m_rolling_friction_moment_modlule;
-                m_rolling_friction_moment[2] *= max_rolling_friction_moment / m_rolling_friction_moment_modlule;
+                m_rolling_friction_moment[0] *= (max_rolling_friction_moment / m_rolling_friction_moment_modlule);
+                m_rolling_friction_moment[1] *= (max_rolling_friction_moment / m_rolling_friction_moment_modlule);
+                m_rolling_friction_moment[2] *= (max_rolling_friction_moment / m_rolling_friction_moment_modlule);
             }
 
             // Discount rolling friction moment from contact moment

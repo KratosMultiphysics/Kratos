@@ -67,6 +67,7 @@ void ContactInfoSphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<
                                                          std::vector<array_1d<double, 3> >& temp_neighbour_elastic_contact_forces)
 {
     std::vector<array_1d<double, 3> > temp_neighbour_elastic_extra_contact_forces;
+    std::vector<array_1d<double, 3> > temp_neighbour_rolling_friction_moments;
     std::vector<double> temp_neighbour_contact_radius;
     std::vector<double> temp_neighbour_indentation;
     std::vector<double> temp_neighbour_tg_of_stat_fri_ang;
@@ -78,6 +79,7 @@ void ContactInfoSphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<
     temp_neighbours_ids.resize(new_size, false);
     temp_neighbour_elastic_contact_forces.resize(new_size);
     temp_neighbour_elastic_extra_contact_forces.resize(new_size);
+    temp_neighbour_rolling_friction_moments.resize(new_size);
     temp_neighbour_contact_radius.resize(new_size);
     temp_neighbour_indentation.resize(new_size);
     temp_neighbour_tg_of_stat_fri_ang.resize(new_size);
@@ -90,6 +92,7 @@ void ContactInfoSphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<
     for (unsigned int i = 0; i < new_size; i++) {
         noalias(temp_neighbour_elastic_contact_forces[i]) = vector_of_zeros;
         noalias(temp_neighbour_elastic_extra_contact_forces[i]) = vector_of_zeros;
+        noalias(temp_neighbour_rolling_friction_moments[i]) = vector_of_zeros;
         temp_neighbour_contact_radius[i] = 0.0;
         temp_neighbour_indentation[i] = 0.0;
         temp_neighbour_tg_of_stat_fri_ang[i] = 1.0e20;
@@ -108,6 +111,7 @@ void ContactInfoSphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<
             if (int(temp_neighbours_ids[i]) == vector_of_ids_of_neighbours[j] && vector_of_ids_of_neighbours[j] != -1) {
                 noalias(temp_neighbour_elastic_contact_forces[i]) = mNeighbourElasticContactForces[j];
                 noalias(temp_neighbour_elastic_extra_contact_forces[i]) = mNeighbourElasticExtraContactForces[j]; //TODO: remove this from discontinuum!!
+                noalias(temp_neighbour_rolling_friction_moments[i]) = mNeighbourRollingFrictionMoments[j];
                 temp_neighbour_contact_radius[i] = mNeighbourContactRadius[j];
                 temp_neighbour_indentation[i] = mNeighbourIndentation[j];
                 temp_neighbour_tg_of_stat_fri_ang[i] = mNeighbourTgOfStatFriAng[j];
@@ -122,6 +126,7 @@ void ContactInfoSphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<
     vector_of_ids_of_neighbours.swap(temp_neighbours_ids);
     mNeighbourElasticContactForces.swap(temp_neighbour_elastic_contact_forces);
     mNeighbourElasticExtraContactForces.swap(temp_neighbour_elastic_extra_contact_forces);
+    mNeighbourRollingFrictionMoments.swap(temp_neighbour_rolling_friction_moments);
     mNeighbourContactRadius.swap(temp_neighbour_contact_radius);
     mNeighbourIndentation.swap(temp_neighbour_indentation);
     mNeighbourTgOfStatFriAng.swap(temp_neighbour_tg_of_stat_fri_ang);
@@ -138,6 +143,7 @@ void ContactInfoSphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
     std::vector<int> temp_neighbours_ids(new_size); //these two temporal vectors are very small, saving them as a member of the particle loses time (usually they consist on 1 member).
     std::vector<array_1d<double, 3> > temp_neighbours_elastic_contact_forces(new_size);
     std::vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);
+    std::vector<array_1d<double, 3> > temp_neighbours_rolling_friction_moments(new_size);
     std::vector<double> temp_contact_radius(new_size);
     std::vector<double> temp_indentation(new_size);
     std::vector<double> temp_tg_of_stat_fri_ang(new_size);
@@ -149,6 +155,7 @@ void ContactInfoSphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
 
         noalias(temp_neighbours_elastic_contact_forces[i]) = vector_of_zeros;
         noalias(temp_neighbours_contact_forces[i]) = vector_of_zeros;
+        noalias(temp_neighbours_rolling_friction_moments[i]) = vector_of_zeros;
         temp_contact_radius[i] = 0.0;
         temp_indentation[i] = 0.0;
         temp_tg_of_stat_fri_ang[i] = 1.0e20;
@@ -167,6 +174,7 @@ void ContactInfoSphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
             if (static_cast<int>(temp_neighbours_ids[i]) == mFemOldNeighbourIds[j] && mFemOldNeighbourIds[j] != -1) {
                 noalias(temp_neighbours_elastic_contact_forces[i]) = mNeighbourRigidFacesElasticContactForce[j];
                 noalias(temp_neighbours_contact_forces[i]) = mNeighbourRigidFacesTotalContactForce[j];
+                noalias(temp_neighbours_rolling_friction_moments[i]) = mNeighbourRigidFacesRollingFrictionMoments[j];
                 temp_contact_radius[i] = mNeighbourRigidContactRadius[j];
                 temp_indentation[i] = mNeighbourRigidIndentation[j];
                 temp_tg_of_stat_fri_ang[i] = mNeighbourRigidTgOfStatFriAng[j];
@@ -181,6 +189,7 @@ void ContactInfoSphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
     mFemOldNeighbourIds.swap(temp_neighbours_ids);
     mNeighbourRigidFacesElasticContactForce.swap(temp_neighbours_elastic_contact_forces);
     mNeighbourRigidFacesTotalContactForce.swap(temp_neighbours_contact_forces);
+    mNeighbourRigidFacesRollingFrictionMoments.swap(temp_neighbours_rolling_friction_moments);
     mNeighbourRigidContactRadius.swap(temp_contact_radius);
     mNeighbourRigidIndentation.swap(temp_indentation);
     mNeighbourRigidTgOfStatFriAng.swap(temp_tg_of_stat_fri_ang);
