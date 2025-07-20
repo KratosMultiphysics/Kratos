@@ -374,7 +374,15 @@ public:
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
      */
-    void ConstitutiveLaw::GetLawFeatures(Features& rFeatures) {}
+    void GetLawFeatures(Features& rFeatures) override
+    {
+        KRATOS_TRY
+
+        // Get the isotropic CL features
+        mpIsotropicCL->GetLawFeatures(rFeatures);
+
+        KRATOS_CATCH("")
+    }
 
     ///@}
     ///@name Access
