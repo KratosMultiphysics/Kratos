@@ -370,6 +370,12 @@ public:
         const GeometryType &rElementGeometry,
         const ProcessInfo &rCurrentProcessInfo) const override;
 
+    /**
+     * This function is designed to be called once to check compatibility with element
+     * @param rFeatures
+     */
+    void ConstitutiveLaw::GetLawFeatures(Features& rFeatures) {}
+
     ///@}
     ///@name Access
     ///@{
