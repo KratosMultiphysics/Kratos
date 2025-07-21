@@ -106,13 +106,7 @@ public:
     SparseContiguousRowGraph& operator=(SparseContiguousRowGraph const& rOther)=delete;
 
     /// Move assignment operator
-    SparseContiguousRowGraph& operator=(SparseContiguousRowGraph<TIndexType>&& rOther)
-    {
-        mpComm = rOther.mpComm;
-        mGraph = std::move(rOther.mGraph);
-        mLocks = std::move(rOther.mLocks);
-        return *this;
-    }
+    SparseContiguousRowGraph& operator=(SparseContiguousRowGraph&&) noexcept = default
 
     /// Copy constructor.
     SparseContiguousRowGraph(const SparseContiguousRowGraph& rOther)
