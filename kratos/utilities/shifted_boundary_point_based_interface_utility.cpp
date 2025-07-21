@@ -17,6 +17,7 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "containers/pointer_vector.h"
+#include "includes/cfd_variables.h"
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/kratos_flags.h"
@@ -38,6 +39,7 @@
 #include "utilities/geometry_utilities.h"
 #include "geometries/plane_3d.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
+#include <boost/numeric/ublas/vector_expression.hpp>
 
 
 namespace Kratos
@@ -462,31 +464,50 @@ namespace Kratos
         // Find the surrogate boundary elements and mark them as SBM_INTERFACE (gamma_tilde)
         // Note that we rely on the fact that the neighbors are sorted according to the faces
         // TODO faster to store SBM_BOUNDARY element pointers somewhere?
+        double area_sur_bd = 0.0;
         LockObject mutex;
-        block_for_each(mpModelPart->Elements(), [&mutex](ElementType& rElement){
+        block_for_each(mpModelPart->Elements(), [&mutex,&area_sur_bd](ElementType& rElement){
             if (rElement.Is(SBM_BOUNDARY)) {
                 //TODO for laplacian testing
                 rElement.Set(BOUNDARY, true);
                 const std::size_t n_faces = rElement.GetGeometry().FacesNumber();
+                const auto &r_faces = rElement.GetGeometry().GenerateBoundariesEntities();
                 auto& r_neigh_elems = rElement.GetValue(NEIGHBOUR_ELEMENTS);
                 for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
-                    // The neighbour corresponding to the current face is not also SBM_BOUNDARY, it means that the current face is surrogate boundary (SBM_INTERFACE)
+                    // If the neighbour corresponding to the current face is not also a SBM_BOUNDARY element, it means that the current face is part of the surrogate boundary (SBM_INTERFACE)
                     // Flag the current neighbour owning the surrogate face as SBM_INTERFACE
                     // The nodes will be flagged if required (MLS basis) when creating the cloud
                     auto p_neigh_elem = r_neigh_elems(i_face).get();
                     if (p_neigh_elem != nullptr) {
                         if (!p_neigh_elem->Is(SBM_BOUNDARY)) {
                             {
-                                std::scoped_lock<LockObject> lock(mutex);
-                                p_neigh_elem->Set(SBM_INTERFACE, true);
-                                //TODO for laplacian testing
-                                p_neigh_elem->Set(INTERFACE, true);
+                                // Calculate area of the face which is part of the surrogate boundary
+                                const auto& r_sur_bd_geom = r_faces[i_face];
+                                const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
+                                const std::vector<IntegrationPoint<3>> & r_integration_points = r_sur_bd_geom.IntegrationPoints(integration_method);
+                                Vector sur_bd_detJ;
+                                r_sur_bd_geom.DeterminantOfJacobian(sur_bd_detJ, integration_method);
+                                double face_weight = 0.0;
+                                for (std::size_t i_int_pt = 0; i_int_pt < r_integration_points.size(); ++i_int_pt) {
+                                    // Calculate integration point weight by multiplying its detJ with its gauss weight
+                                    face_weight += sur_bd_detJ[i_int_pt] * r_integration_points[i_int_pt].Weight();
+                                }
+
+                                {
+                                    std::scoped_lock<LockObject> lock(mutex);
+                                    p_neigh_elem->Set(SBM_INTERFACE, true);
+                                    //TODO for laplacian testing
+                                    p_neigh_elem->Set(INTERFACE, true);
+
+                                    area_sur_bd += face_weight;
+                                }
                             }
                         }
                     }
                 }
             }
         });
+        mAreaSurrogateBoundary = area_sur_bd;
         KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "Interface flags were set."  << std::endl;
     }
 
@@ -566,6 +587,9 @@ namespace Kratos
         std::size_t n_skin_pt_conditions_added_pos = 0;
         std::size_t n_skin_pt_conditions_added_neg = 0;
 
+        // Calculate area which is represented by added skin point conditions
+        double area_skin_pts = 0.0;
+
         for (const auto& [p_element, skin_points_data_vector]: mSkinPointsMap) {
             const auto& r_geom = p_element->GetGeometry();
             const std::size_t n_nodes = r_geom.PointsNumber();
@@ -599,13 +623,21 @@ namespace Kratos
                 // Add skin pt. condition for positive side of boundary - using support cloud data for negative nodes
                 // NOTE that the boundary normal is negative in order to point outward (from positive to negative side),
                 // because positive side is where dot product of vector to node with average normal is positive
-                n_skin_pt_conditions_added_pos += AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, -skin_pt_area_normal,
+                const bool pos_side_added = AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, -skin_pt_area_normal,
                 mExtensionOperatorMap, cloud_nodes_vector_pos, skin_pt_N, skin_pt_DN_DX, max_cond_id, /*ConsiderPositiveSide=*/true);
+                if (pos_side_added) {
+                    n_skin_pt_conditions_added_pos++;
+                    area_skin_pts += norm_2(skin_pt_area_normal);
+                }
 
                 // Add skin pt. condition for negative side of boundary - using support cloud data for positive nodes
                 // NOTE that boundary normal is pointing outward (from negative to positive side)
-                n_skin_pt_conditions_added_neg += AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, skin_pt_area_normal,
+                const bool neg_side_added = AddIntegrationPointCondition(*p_element, sides_vector, h, skin_pt_position, skin_pt_area_normal,
                 mExtensionOperatorMap, cloud_nodes_vector_neg, skin_pt_N, skin_pt_DN_DX, max_cond_id, /*ConsiderPositiveSide=*/false);
+                if (neg_side_added) {
+                    n_skin_pt_conditions_added_neg++;
+                    area_skin_pts += norm_2(skin_pt_area_normal);
+                }
             }
         }
         if (n_skin_pt_conditions_added_pos != n_skin_points) {
@@ -616,6 +648,9 @@ namespace Kratos
             KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Integration point conditions were NOT successfully added for the negative side of "
                 << n_skin_points-n_skin_pt_conditions_added_neg << " skin points." << std::endl;
         }
+
+        mpModelPart->GetProcessInfo()[SHIFTED_AREA_FACTOR] = mAreaSurrogateBoundary / area_skin_pts;
+        KRATOS_WATCH(mpModelPart->GetProcessInfo()[SHIFTED_AREA_FACTOR]);
         KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "'" << mSkinModelPartName << "' skin point conditions were added." << std::endl;
     }
 
@@ -2149,6 +2184,7 @@ namespace Kratos
         p_cond->SetValue(INTEGRATION_WEIGHT, skin_pt_weight);
         p_cond->SetValue(SHAPE_FUNCTIONS_VECTOR, N_container);
         p_cond->SetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX, DN_DX_container);
+        //p_cond->SetValue(SHIFTED_AREA_FACTOR, 1.0);
 
         return true;
     }

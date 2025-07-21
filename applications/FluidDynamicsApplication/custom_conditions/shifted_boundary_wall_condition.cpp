@@ -31,6 +31,7 @@
 #include "shifted_boundary_wall_condition.h"
 #include <boost/numeric/ublas/vector.hpp>
 #include <cstddef>
+#include <ostream>
 #include <string>
 
 
@@ -208,6 +209,8 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     const double slip_length = rCurrentProcessInfo.GetValue(SLIP_LENGTH);
     const double penalty = 1.0 / rCurrentProcessInfo.GetValue(PENALTY_COEFFICIENT);
     const double delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
+    const double area_correction_factor = rCurrentProcessInfo.GetValue(SHIFTED_AREA_FACTOR);
+    KRATOS_WARNING_IF("ShiftedBoundaryWallCondition", area_correction_factor < 1.0) << "The ratio of the surrogate boundary area to the true area is below 1.0 (ratio = " << area_correction_factor << ")." << std::endl;
 
     // Obtain the previous iteration velocity and pressure solution (and subtract the embedded nodal velocity EMBEDDED_VELOCITY for FM-ALE) for all cloud nodes
     Vector unknown_values(local_size);
@@ -319,7 +322,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
 
     /////////////////////////////////////////////////////////////////////////////////
     // Compute the Nitsche slip tangential penalty coefficients
-    std::pair<const double, const double> pen_coeffs_tang = this->ComputeSlipTangentialPenaltyCoefficients(r_N, slip_length, delta_time, penalty, parent_size, effective_viscosity);
+    std::pair<const double, const double> pen_coeffs_tang = this->ComputeSlipTangentialPenaltyCoefficients(r_N, slip_length, delta_time, penalty, parent_size, effective_viscosity, area_correction_factor);
 
     // Set the tangential projection matrix (I - n x n)
     BoundedMatrix<double, TDim, TDim> tang_proj_matrix;
@@ -424,7 +427,8 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
     const double DeltaTime,
     const double Penalty,
     const double ParentSize,
-    const double EffectiveViscosity) const
+    const double EffectiveViscosity,
+    const double AreaCorrectionFactor) const
 {
     // Get the velocity and density for the integration point
     const auto& r_geometry = this->GetGeometry();
@@ -435,14 +439,14 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
         int_pt_rho += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(DENSITY);
         int_pt_v += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
     }
-    const double int_pt_v_norm = norm_2(int_pt_v);
+    //const double int_pt_v_norm = norm_2(int_pt_v);
 
-    const double stab_constant_u = EffectiveViscosity + int_pt_rho*int_pt_v_norm*ParentSize / 6.0 + int_pt_rho*ParentSize*ParentSize/DeltaTime / 12.0;
+    //const double stab_constant_u = EffectiveViscosity + int_pt_rho*int_pt_v_norm*ParentSize / 6.0 + int_pt_rho*ParentSize*ParentSize/DeltaTime / 12.0;
     //const double stab_constant_tau = int_pt_rho*int_pt_v_norm*ParentSize;  // /EffectiveViscosity / 100000;
 
     const double penalty_coeff = 1.0 / (SlipLength + Penalty*ParentSize);
-    const double coeff_1 = penalty_coeff * SlipLength;                              // pure slip: * ParentSize/Penalty || * SlipLength / Penalty * stab_constant_tau    // Winter et al. (2018): * SlipLength;
-    const double coeff_2 = penalty_coeff * (EffectiveViscosity + stab_constant_u);  // pure slip: 0.0                                                                   // Winter et al. (2018): * EffectiveViscosity;
+    const double coeff_1 = penalty_coeff * SlipLength * AreaCorrectionFactor;           // pure slip: * ParentSize/Penalty || * SlipLength / Penalty * stab_constant_tau    // Winter et al. (2018): * SlipLength;
+    const double coeff_2 = penalty_coeff * EffectiveViscosity;  // + stab_constant_u);  // pure slip: 0.0                                                                   // Winter et al. (2018): * EffectiveViscosity;
 
     std::pair<const double, const double> coefficients(coeff_1, coeff_2);
     return coefficients;
@@ -455,9 +459,9 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
     const double ParentSize,
     const double EffectiveViscosity) const
 {
-    const double stab_coeff = 1.0 / (SlipLength + 1.0);                                                 // Winter et al. (2018): Penalty * ParentSize / (SlipLength + Penalty*ParentSize);
-    const double coeff_1 = stab_coeff * SlipLength * ParentSize / Penalty;          // pure slip: 1.0   // Winter et al. (2018): * SlipLength
-    const double coeff_2 = stab_coeff * EffectiveViscosity;                         // pure slip: 0.0
+    const double stab_coeff = Penalty * ParentSize / (SlipLength + Penalty*ParentSize);                          // Winter et al. (2018): Penalty * ParentSize / (SlipLength + Penalty*ParentSize);
+    const double coeff_1 = stab_coeff * SlipLength;                                          // pure slip: 1.0   // Winter et al. (2018): * SlipLength
+    const double coeff_2 = stab_coeff * EffectiveViscosity;                                  // pure slip: 0.0
 
     // std::string grad_coeff = "Stabilization coefficient: " + std::to_string(coeff_1);
     // KRATOS_WATCH(grad_coeff);

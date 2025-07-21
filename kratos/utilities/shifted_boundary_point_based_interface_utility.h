@@ -285,6 +285,8 @@ protected:
     bool mAddedLeftEdge = false;
     bool mAddedRightEdge = false;
 
+    double mAreaSurrogateBoundary = 0.0;
+
     /// @brief Protected empty constructor for derived classes
     ShiftedBoundaryPointBasedInterfaceUtility() {}
 

@@ -339,7 +339,8 @@ protected:
         const double DeltaTime,
         const double Penalty,
         const double ParentSize,
-        const double EffectiveViscosity) const;
+        const double EffectiveViscosity,
+        const double AreaCorrectionFactor) const;
 
     /**
      * This function computes the Nitsche coefficients for the Nitsche tangential imposition
