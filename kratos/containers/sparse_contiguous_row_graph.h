@@ -97,12 +97,7 @@ public:
         });
     }
 
-    SparseContiguousRowGraph(SparseContiguousRowGraph<TIndexType>&& rOther)
-    {
-        mpComm = rOther.mpComm;
-        mGraph = std::move(rOther.mGraph);
-        mLocks = std::move(rOther.mLocks);
-    }
+    SparseContiguousRowGraph(SparseContiguousRowGraph&&) noexcept = default;
 
     /// Destructor.
     ~SparseContiguousRowGraph(){}
