@@ -703,6 +703,36 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(const Vari
 }
 
 template <ShellKinematics TKinematics>
+void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    SizeType size = GetGeometry().size();
+    if (rValues.size() != size) {
+        rValues.resize(size);
+    }
+
+    // Compute the local coordinate system.
+    ShellQ4_LocalCoordinateSystem localCoordinateSystem(this->mpCoordinateTransformation->CreateLocalCoordinateSystem());
+
+    Vector local_axis;
+    if (rVariable == LOCAL_AXIS_1) {
+        local_axis = localCoordinateSystem.Vx();
+    } else if (rVariable == LOCAL_AXIS_2) {
+        local_axis = localCoordinateSystem.Vy();
+    } else if (rVariable == LOCAL_AXIS_3) {
+        local_axis = localCoordinateSystem.Vz();
+    }
+
+    // Gauss Loop
+    for (unsigned int i = 0; i < size; i++) {
+        rValues[i] = local_axis;
+    }
+}
+
+template <ShellKinematics TKinematics>
 int ShellThickElement3D4N<TKinematics>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
