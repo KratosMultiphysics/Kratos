@@ -56,16 +56,16 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
 
         utils.AssignPointLoads(self.model_part,cof,tangential_stiffness,coord_tol) # assigning point loads to the top nodes
         # utils.SetNodalCouplingWeightsOnFEMLinearly(self.model_part,self.y_fem_boundary,self.y_dem_boundary,self.tolerance,self.weight_fem_boundary,self.weight_dem_boundary)
-    #     utils.SetNodalCouplingWeightsFromLayers( self.model_part,
-    #  {
-    #     "DISPLACEMENT_layer1": 0.0,
-    #     "DISPLACEMENT_layer2": 0.5,
-    #     "DISPLACEMENT_layer3": 1.0,
-    # })
+        utils.SetNodalCouplingWeightsFromLayers( self.model_part,
+     {
+        "DISPLACEMENT_layer1": 0.0,
+        "DISPLACEMENT_layer2": 0.5,
+        "DISPLACEMENT_layer3": 1.0,
+    })
  
-        # utils.CalculateDisplacementDifference(self.model_part,self.dt) # calculating displacement difference
-        # utils.CalculateNodalCouplingForces(self.model_part,self.penalty_max) # calculating nodal coupling forces including point load
-        # utils.CalculateNodalDEMCouplingForces(self.model_part)
+        utils.CalculateDisplacementDifference(self.model_part,self.dt) # calculating displacement difference
+        utils.CalculateNodalCouplingForces(self.model_part,self.penalty_max) # calculating nodal coupling forces including point load
+        utils.CalculateNodalDEMCouplingForces(self.model_part)
 
 
         # for node in self.model_part.Nodes:  
