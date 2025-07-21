@@ -128,11 +128,11 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
             }
         }
 
-        const double previous_reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(previous_max_stress, previous_min_stress);
-        const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress); // Does not depend on the reference damage
+        const double previous_reversion_factor = HighCycleFatigueLawIntegrator<VoigtSize>::CalculateReversionFactor(previous_max_stress, previous_min_stress);
+        const double reversion_factor = HighCycleFatigueLawIntegrator<VoigtSize>::CalculateReversionFactor(max_stress, min_stress); // Does not depend on the reference damage
         double alphat;
-        const double ultimate_stress = HighCycleFatigueLawIntegrator<6>::UltimateStressDamage(r_mat_props);
-        HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
+        const double ultimate_stress = HighCycleFatigueLawIntegrator<VoigtSize>::UltimateStressDamage(r_mat_props);
+        HighCycleFatigueLawIntegrator<VoigtSize>::CalculateFatigueParameters(
             (1.0 - reference_damage) * max_stress,
             reversion_factor,
             r_mat_props,
@@ -142,7 +142,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
             cycles_to_failure,
             ultimate_stress,
             c_factor);
-        cycles_to_failure = HighCycleFatigueLawIntegrator<6>::NumberOfCyclesToFailure(
+        cycles_to_failure = HighCycleFatigueLawIntegrator<VoigtSize>::NumberOfCyclesToFailure(
             cycles_to_failure,
             (1.0 - reference_damage) * max_stress, //Damaged maximum stress considering the reference state
             r_mat_props,
@@ -171,7 +171,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         previous_min_stress = min_stress;
         mCyclesToFailure = cycles_to_failure;
 
-        HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(r_mat_props,
+        HighCycleFatigueLawIntegrator<VoigtSize>::CalculateFatigueReductionFactorAndWohlerStress(r_mat_props,
                                                                                         (1.0 - reference_damage) * max_stress,
                                                                                         local_number_of_cycles,
                                                                                         global_number_of_cycles,
@@ -186,10 +186,10 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     }
     if (advance_in_time_process_applied && current_load_type) {
 
-        const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
+        const double reversion_factor = HighCycleFatigueLawIntegrator<VoigtSize>::CalculateReversionFactor(max_stress, min_stress);
         double alphat;
-        const double ultimate_stress = HighCycleFatigueLawIntegrator<6>::UltimateStressDamage(r_mat_props);
-        HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
+        const double ultimate_stress = HighCycleFatigueLawIntegrator<VoigtSize>::UltimateStressDamage(r_mat_props);
+        HighCycleFatigueLawIntegrator<VoigtSize>::CalculateFatigueParameters(
             (1.0 - reference_damage) * max_stress,
             reversion_factor,
             r_mat_props,
@@ -199,7 +199,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
             cycles_to_failure,
             ultimate_stress,
             c_factor);
-        HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(r_mat_props,
+        HighCycleFatigueLawIntegrator<VoigtSize>::CalculateFatigueReductionFactorAndWohlerStress(r_mat_props,
                                                                                         (1.0 - reference_damage) * max_stress,
                                                                                         local_number_of_cycles,
                                                                                         global_number_of_cycles,
@@ -382,7 +382,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         double uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
 
-        double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(predictive_stress_vector);
+        double sign_factor = HighCycleFatigueLawIntegrator<VoigtSize>::CalculateTensionCompressionFactor(predictive_stress_vector);
         uniaxial_stress *= sign_factor;
         double max_stress = mMaxStress;
         double min_stress = mMinStress;
@@ -390,7 +390,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         bool min_indicator = mMinDetected;
         double fatigue_reduction_factor = mFatigueReductionFactor;
 
-        HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(
+        HighCycleFatigueLawIntegrator<VoigtSize>::CalculateMaximumAndMinimumStresses(
             uniaxial_stress,
             max_stress,
             min_stress,
@@ -660,5 +660,13 @@ template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawInte
 template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<RankinePlasticPotential<6>>>>;
 template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>>;
 template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+
+template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>>;
+template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>>;
+template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<TrescaPlasticPotential<3>>>>;
+template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<3>>>>;
+template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<RankinePlasticPotential<3>>>>;
+template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<3>>>>;
+template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<3>>>>;
 
 } // namespace Kratos

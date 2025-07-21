@@ -61,6 +61,7 @@ public:
     /// The machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
     static constexpr double stress_tolerance = 1.0e-3;
+    static constexpr SizeType Dimension = (TVoigtSize == 6) ? 3 : 2;
 
     /// Counted pointer of HighCycleFatigueLawIntegrator
     KRATOS_CLASS_POINTER_DEFINITION(HighCycleFatigueLawIntegrator);
@@ -134,8 +135,8 @@ public:
      */
     static double CalculateTensionCompressionFactor(const Vector& rStressVector)
     {
-        array_1d<double,3> principal_stresses;
-        AdvancedConstitutiveLawUtilities<6>::CalculatePrincipalStresses(principal_stresses, rStressVector);
+        array_1d<double,Dimension> principal_stresses;
+        AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStresses(principal_stresses, rStressVector);
 
 
         double abs_component = 0.0, average_component = 0.0, sum_abs = 0.0, sum_average = 0.0;
