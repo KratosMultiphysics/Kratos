@@ -50,8 +50,8 @@ endif(POLICY CMP0167)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 10)
-set (KratosMultiphysics_MINOR_VERSION 2)
-set (KratosMultiphysics_PATCH_VERSION 1)
+set (KratosMultiphysics_MINOR_VERSION 3)
+set (KratosMultiphysics_PATCH_VERSION 0)
 
 find_package(TBB REQUIRED)
 message("-- *******************************************************}")
@@ -662,6 +662,11 @@ if(${EXCLUDE_KRATOS_CORE} MATCHES OFF)
   set(ENABLE_PARALLEL_EXAMPLE OFF)
   set(ENABLE_HDF5 OFF)
   set(ZLIB_FOUND TRUE)
+
+  # (for gidpost )Disable examples and fortran examples.
+  set(ENABLE_EXAMPLES OFF)
+  set(ENABLE_FORTRAN_EXAMPLES OFF)
+
   add_subdirectory(external_libraries/gidpost)
   add_subdirectory(kratos)
 endif()
