@@ -171,7 +171,7 @@ Begin SubModelPart AllFixed
   End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart TopDirichletCondition
+Begin SubModelPart SideZXDirichletCondition
   Begin SubModelPartNodes
      11
      12
@@ -187,7 +187,7 @@ Begin SubModelPart TopDirichletCondition
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart SideXDirichletCondition
+Begin SubModelPart SideYZDirichletCondition
   Begin SubModelPartNodes
      31
      32
@@ -203,7 +203,7 @@ Begin SubModelPart SideXDirichletCondition
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart SideYDirichletCondition
+Begin SubModelPart SideXYDirichletCondition
   Begin SubModelPartNodes
      51
      52

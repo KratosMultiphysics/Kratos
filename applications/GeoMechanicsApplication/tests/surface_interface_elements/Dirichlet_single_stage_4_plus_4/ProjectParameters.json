@@ -63,7 +63,7 @@
             "solver_type":     "LinearSolversApplication.sparse_lu"
         },
         "problem_domain_sub_model_part_list": ["Interfaces"],
-        "processes_sub_model_part_list":      ["AllFixed","AllNodes", "TopDirichletCondition"],
+        "processes_sub_model_part_list":      ["AllFixed","AllNodes", "SideZXDirichletCondition"],
         "body_domain_sub_model_part_list":    ["Interfaces"]
     },
     "output_processes": {
@@ -115,11 +115,11 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.TopDirichletCondition",
+            "model_part_name": "PorousDomain.SideZXDirichletCondition",
             "variable_name":   "DISPLACEMENT",
             "active":          [true,true,true],
             "is_fixed":        [true,true,true],
-            "value":           [-4.4466666666666666e-5,-1.11e-5,0.0],
+            "value":           [-4.4466666666666666e-5,-1.11e-5,-4.4466666666666666e-5],
             "table":           [0,0,0]
         }
     },{
@@ -127,11 +127,11 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.SideXDirichletCondition",
+            "model_part_name": "PorousDomain.SideYZDirichletCondition",
             "variable_name":   "DISPLACEMENT",
             "active":          [true,true,true],
             "is_fixed":        [true,true,true],
-            "value":           [1.11e-5,-4.4466666666666666e-5,0.0],
+            "value":           [-1.11e-5,-4.4466666666666666e-5,-4.4466666666666666e-5],
             "table":           [0,0,0]
         }
     },{
@@ -139,11 +139,11 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.SideYDirichletCondition",
+            "model_part_name": "PorousDomain.SideXYDirichletCondition",
             "variable_name":   "DISPLACEMENT",
             "active":          [true,true,true],
             "is_fixed":        [true,true,true],
-            "value":           [1.11e-5,0.0,-4.4466666666666666e-5],
+            "value":           [-4.4466666666666666e-5,-4.4466666666666666e-5,-1.11e-5],
             "table":           [0,0,0]
         }
     },{
