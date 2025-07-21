@@ -231,9 +231,26 @@ std::vector<Matrix> InterfaceElement::CalculateLocalBMatricesAtIntegrationPoints
         // For interface elements, the shape function gradients are not used, since these are
         // non-continuum elements. Therefore, we pass an empty matrix.
         const auto rotation_matrix = mfpCalculateRotationMatrix(r_geometry, rIntegrationPoint);
+        KRATOS_INFO("rotation matrix") << rotation_matrix << std::endl;
         const auto dummy_gradients = Matrix{};
-        return Matrix{prod(rotation_matrix, mpStressStatePolicy->CalculateBMatrix(dummy_gradients, rShapeFunctionValuesAtIntegrationPoint,
-                                                                                  r_geometry))};
+        auto       b_matrix              = mpStressStatePolicy->CalculateBMatrix(
+            dummy_gradients, rShapeFunctionValuesAtIntegrationPoint, r_geometry);
+
+        Matrix old_rotated_b_matrix = prod(rotation_matrix, b_matrix);
+
+        size_t dim = GetGeometry().WorkingSpaceDimension();
+        for (int i = 0; i + dim <= b_matrix.size2(); i+=dim) {
+            auto& submatrix = subrange(b_matrix, 0, b_matrix.size1(), i, i + dim);
+            KRATOS_INFO("submatrix before") << submatrix << std::endl;
+            submatrix = trans(prod(rotation_matrix, trans(submatrix)));
+            KRATOS_INFO("submatrix after") << submatrix << std::endl;
+        }
+
+
+        KRATOS_INFO("new_rotated_b_matrix") << b_matrix << std::endl;
+        KRATOS_INFO("old_rotated_b_matrix") << old_rotated_b_matrix << std::endl;
+
+        return Matrix{b_matrix};
     };
     std::transform(shape_function_values_at_integration_points.begin(),
                    shape_function_values_at_integration_points.end(), r_integration_points.begin(),
@@ -274,6 +291,7 @@ std::vector<Vector> InterfaceElement::CalculateRelativeDisplacementsAtIntegratio
     std::transform(rLocalBMatrices.begin(), rLocalBMatrices.end(), std::back_inserter(result),
                    calculate_relative_displacement_vector);
 
+    KRATOS_INFO("relative_displacements_at_integration_points") << result << std::endl;
     return result;
 }
 

@@ -169,10 +169,43 @@ InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(Mo
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(2, 1.0, 1.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 1.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(4, 1.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(5, 1.0, 1.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 1.0, 0.0));
+    const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
+    return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
+}
+
+InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceYZPlaneElementWithUDofs(Model& rModel,
+                                                                              const Properties::Pointer& rProperties)
+{
+    auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
+
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 1.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 1.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(4, 0.0, 0.0, 1.0));
+    nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 1.0, 0.0));
+    const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
+    return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
+}
+
+
+InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWithUDofs(Model& rModel,
+                                                                              const Properties::Pointer& rProperties)
+{
+    auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
+
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, -1.0));
+    nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(4, 1.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 0.0, -1.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
     return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
 }
@@ -413,7 +446,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
          0.0,         0.0,        -6.25,        2.16506351,  0.0,         0.0,         6.25,       -2.16506351,
          0.0,         0.0,         2.16506351, -8.75,        0.0,         0.0,        -2.16506351,  8.75;
     // clang-format on
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalForceVector,
@@ -946,6 +979,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsExpectedLeftAndRightHa
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
+
+
 KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelativeDisplacement,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -972,6 +1007,109 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelati
     expected_relative_displacements.push_back(expected_relative_displacement);
     expected_relative_displacements.emplace_back(ZeroVector(3));
     expected_relative_displacement <<= -0.03839746, 0.0665063516, -0.5330127;
+    expected_relative_displacements.push_back(expected_relative_displacement);
+
+    KRATOS_EXPECT_EQ(relative_displacements_at_integration_points.size(), 3);
+    for (std::size_t i = 0; i < relative_displacements_at_integration_points.size(); i++) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(relative_displacements_at_integration_points[i],
+                                           expected_relative_displacements[i], Defaults::relative_tolerance)
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementHorizontal_CalculateStrain_ReturnsRelativeDisplacement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
+        normal_stiffness, shear_stiffness);
+
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{0, array_1d<double, 3>{0.0,0.0, 1.0}},
+                                {1, array_1d<double, 3>{0.0,0.0, 1.0}},
+                                {2, array_1d<double, 3>{0.0,0.0, 1.0}}};
+    auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs,
+                                              p_properties, prescribed_displacements);
+
+    // Act
+    std::vector<Vector> relative_displacements_at_integration_points;
+    element.CalculateOnIntegrationPoints(STRAIN, relative_displacements_at_integration_points, ProcessInfo{});
+
+    // Assert
+    Vector expected_relative_displacement{3};
+    expected_relative_displacement <<= -1, 0.0, 0.0;
+    std::vector<Vector> expected_relative_displacements;
+    expected_relative_displacements.push_back(expected_relative_displacement);
+    expected_relative_displacements.push_back(expected_relative_displacement);
+    expected_relative_displacements.push_back(expected_relative_displacement);
+
+    KRATOS_EXPECT_EQ(relative_displacements_at_integration_points.size(), 3);
+    for (std::size_t i = 0; i < relative_displacements_at_integration_points.size(); i++) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(relative_displacements_at_integration_points[i],
+                                           expected_relative_displacements[i], Defaults::relative_tolerance)
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInYZPlane_CalculateStrain_ReturnsRelativeDisplacement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
+        normal_stiffness, shear_stiffness);
+
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{0, array_1d<double, 3>{1, 0.0, 0.0}},{1, array_1d<double, 3>{1, 0.0, 0.0}},
+                                {2, array_1d<double, 3>{1, 0.0, 0.0}}};
+    auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceYZPlaneElementWithUDofs,
+                                              p_properties, prescribed_displacements);
+
+    // Act
+    std::vector<Vector> relative_displacements_at_integration_points;
+    element.CalculateOnIntegrationPoints(STRAIN, relative_displacements_at_integration_points, ProcessInfo{});
+
+    // Assert
+    Vector expected_relative_displacement{3};
+    expected_relative_displacement <<= 1.0, 0.0, 0.0;
+    std::vector<Vector> expected_relative_displacements;
+    expected_relative_displacements.push_back(expected_relative_displacement);
+    expected_relative_displacements.push_back(expected_relative_displacement);
+    expected_relative_displacements.push_back(expected_relative_displacement);
+
+    KRATOS_EXPECT_EQ(relative_displacements_at_integration_points.size(), 3);
+    for (std::size_t i = 0; i < relative_displacements_at_integration_points.size(); i++) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(relative_displacements_at_integration_points[i],
+                                           expected_relative_displacements[i], Defaults::relative_tolerance)
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInXZPlane_CalculateStrain_ReturnsRelativeDisplacement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
+        normal_stiffness, shear_stiffness);
+
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{0, array_1d<double, 3>{0, 1, 0.0}},{1, array_1d<double, 3>{0, 1, 0.0}},
+                                {2, array_1d<double, 3>{0, 1, 0.0}}};
+    auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWithUDofs,
+                                              p_properties, prescribed_displacements);
+
+    // Act
+    std::vector<Vector> relative_displacements_at_integration_points;
+    element.CalculateOnIntegrationPoints(STRAIN, relative_displacements_at_integration_points, ProcessInfo{});
+
+    // Assert
+    Vector expected_relative_displacement{3};
+    expected_relative_displacement <<= -1.0, 0.0, 0.0;
+    std::vector<Vector> expected_relative_displacements;
+    expected_relative_displacements.push_back(expected_relative_displacement);
+    expected_relative_displacements.push_back(expected_relative_displacement);
     expected_relative_displacements.push_back(expected_relative_displacement);
 
     KRATOS_EXPECT_EQ(relative_displacements_at_integration_points.size(), 3);
