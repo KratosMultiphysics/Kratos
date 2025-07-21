@@ -97,11 +97,7 @@ public:
         mpComm = &rComm;
     }
 
-    SparseGraph(SparseGraph<TIndexType>&& rOther)
-    {
-        mpComm = rOther.mpComm;
-        mGraph = std::move(rOther.mGraph);
-    }
+    SparseGraph(SparseGraph&&) noexcept = default;
 
     /// Destructor.
     ~SparseGraph(){}
