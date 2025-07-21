@@ -1,4 +1,4 @@
-/* gidpost 2.1 */
+/* gidpost 2.11 */
 /* this should only be included in gidpostfor.c */
 
 GIDPOST_API
@@ -12,6 +12,9 @@ FCALLSCFUN2(INT,GiD_OpenPostMeshFile,GID_OPENPOSTMESHFILE,gid_openpostmeshfile,S
 
 GIDPOST_API
 FCALLSCFUN2(INT,GiD_fOpenPostMeshFile,GID_FOPENPOSTMESHFILE,gid_fopenpostmeshfile,STRING,INT);
+
+GIDPOST_API
+FCALLSCFUN2(INT,GiD_fOpenPostMeshFile_utf8,GID_FOPENPOSTMESHFILE_UTF8,gid_fopenpostmeshfile_utf8,STRING,INT);
 
 GIDPOST_API
 FCALLSCFUN0(INT,GiD_ClosePostMeshFile,GID_CLOSEPOSTMESHFILE,gid_closepostmeshfile);
@@ -128,22 +131,12 @@ GIDPOST_API
 FCALLSCFUN8(INT,GiD_fWriteCircleMat,GID_FWRITECIRCLEMAT,gid_fwritecirclemat,INT,INT,INT,DOUBLE,DOUBLE,DOUBLE,DOUBLE,INT);
 
 GIDPOST_API
-FCALLSCFUN3(INT,GiD_WriteCluster,GID_WRITECLUSTER,gid_writecluster,INT,INT);
-
-GIDPOST_API
-FCALLSCFUN4(INT,GiD_fWriteCluster,GID_FWRITECLUSTER,gid_fwritecluster,INT,INT,INT);
-
-GIDPOST_API
-FCALLSCFUN4(INT,GiD_WriteClusterMat,GID_WRITECLUSTERMAT,gid_writeclustermat,INT,INT,INT);
-
-GIDPOST_API
-FCALLSCFUN5(INT,GiD_fWriteClusterMat,GID_FWRITECLUSTERMAT,gid_fwriteclustermat,INT,INT,INT,INT);
-
-GIDPOST_API
 FCALLSCFUN2(INT,GiD_OpenPostResultFile,GID_OPENPOSTRESULTFILE,gid_openpostresultfile,STRING,INT);
 
 GIDPOST_API
 FCALLSCFUN2(INT,GiD_fOpenPostResultFile,GID_FOPENPOSTRESULTFILE,gid_fopenpostresultfile,STRING,INT);
+GIDPOST_API
+FCALLSCFUN2(INT,GiD_fOpenPostResultFile_utf8,GID_FOPENPOSTRESULTFILE_UTF8,gid_fopenpostresultfile_utf8,STRING,INT);
 
 GIDPOST_API
 FCALLSCFUN0(INT,GiD_ClosePostResultFile,GID_CLOSEPOSTRESULTFILE,gid_closepostresultfile);
@@ -742,3 +735,55 @@ FCALLSCFUN7(INT, GiD_WriteComplexVector,GID_WRITECOMPLEXVECTOR,gid_writecomplexv
 GIDPOST_API
 FCALLSCFUN8(INT, GiD_fWriteComplexVector,GID_FWRITECOMPLEXVECTOR,gid_fwritecomplexvector,
             INT,INT,DOUBLE,DOUBLE,DOUBLE,DOUBLE,DOUBLE,DOUBLE);
+
+
+// GiD_fWriteCoordinatesBlock includes BeginCoordinates() and EndCoordinates()
+// GIDPOST_API int GiD_fWriteCoordinatesBlock( GiD_FILE fd, int num_points, GP_CONST double *xyz_array );
+GIDPOST_API
+FCALLSCFUN3(INT,GiD_fWriteCoordinatesBlock,GID_FWRITECOORDINATESBLOCK,gid_fwritecoordinatesblock,
+            INT,INT,DOUBLEV);
+// GIDPOST_API int GiD_fWriteCoordinatesIdBlock( GiD_FILE fd, int num_points, GP_CONST int *list_ids, GP_CONST double *xyz_array );
+GIDPOST_API
+FCALLSCFUN4(INT,GiD_fWriteCoordinatesIdBlock,GID_FWRITECOORDINATESIDBLOCK,gid_fwritecoordinatesidblock,
+            INT,INT,INTV,DOUBLEV);
+
+
+// // GiD_fWriteElementsBlock includes BeginElements() and EndElements()
+// GIDPOST_API int GiD_fWriteElementsBlock( GiD_FILE fd, int num_elements, GP_CONST int *connectivities );
+GIDPOST_API
+FCALLSCFUN3(INT,GiD_fWriteElementsBlock,GID_FWRITEELEMENTSBLOCK,gid_fwriteelementsblock, INT, INT, INTV);
+// GIDPOST_API int GiD_fWriteElementsIdBlock( GiD_FILE fd, int num_elements, GP_CONST int *list_ids, GP_CONST int *connectivities );
+GIDPOST_API
+FCALLSCFUN4(INT,GiD_fWriteElementsIdBlock,GID_FWRITEELEMENTSIDBLOCK,gid_fwriteelementsidblock, INT, INT, INTV, INTV);
+// GIDPOST_API int GiD_fWriteElementsMatBlock( GiD_FILE fd, int num_elements, GP_CONST int *connectivities, GP_CONST int *lst_material_id );
+GIDPOST_API
+FCALLSCFUN4(INT,GiD_fWriteElementsMatBlock,GID_FWRITEELEMENTSMATBLOCK,gid_fwriteelementsmatblock, INT, INT, INTV, INTV);
+// GIDPOST_API int GiD_fWriteElementsIdMatBlock( GiD_FILE fd, int num_elements, GP_CONST int *list_ids, GP_CONST int *connectivities,
+//                                              GP_CONST int *lst_material_id );
+GIDPOST_API
+FCALLSCFUN5(INT,GiD_fWriteElementsIdMatBlock,GID_FWRITEELEMENTSIDMATBLOCK,gid_fwriteelementsidmatblock, INT, INT, INTV, INTV, INTV);
+
+
+// // GiD_fWriteResultBlock includes BeginResult()/BeginValues() and EndValues()/EndResult()
+// GIDPOST_API
+// int GiD_fWriteResultBlock( GiD_FILE fd, GP_CONST char *result_name, GP_CONST char *analysis_name, double step_value,
+//                            GiD_ResultType result_type, GiD_ResultLocation result_location,
+//                            GP_CONST char *gauss_point_name, GP_CONST char *range_table_name, int num_component_names,
+//                            GP_CONST char *list_component_names[], 
+// 			   GP_CONST char *unit_name,
+// 			   int num_result_values, GP_CONST int *list_result_ids,
+// 			   // list_component_values === 
+// 			   //   num_component_values == 1 --> scalar_array
+// 			   //   num_component_values == 2 --> VxVyVz_array
+// 			   //   num_component_values == 6 --> SxxSyySxySzzSxzSyz_array
+// 			   //   ...
+//                            int num_component_values, GP_CONST double *list_component_values );
+//                            
+GIDPOST_API
+FCALLSCFUN15(INT,GiD_fWriteResultBlock,GID_FWRITERESULTBLOCK,gid_fwriteresultblock, 
+                INT, STRING, STRING, DOUBLE,
+                INT, INT, STRING, STRING,
+                INT, STRING, // should be STRINGV instead of STRING, but it seems to be unknown/undefined
+                STRING,
+                INT, INTV, INT, DOUBLEV);
+
