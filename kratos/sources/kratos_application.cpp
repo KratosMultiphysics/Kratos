@@ -63,6 +63,7 @@ KratosApplication::KratosApplication(const std::string& ApplicationName)
       // Master-Slave Constraint
       mMasterSlaveConstraint(),
       mLinearMasterSlaveConstraint(),
+      mLinearMultifreedomConstraint(),
 
       // Periodic conditions
       mPeriodicCondition( 0, GeometryType::Pointer(new Line2D2<NodeType >(GeometryType::PointsArrayType(2)))),
@@ -170,11 +171,12 @@ void KratosApplication::RegisterKratosCore() {
     Serializer::Register("DofDouble", Dof<double>());
 
     Serializer::Register("MasterSlaveConstraint", MasterSlaveConstraint());
+    Serializer::Register("MultifreedomConstraint", MultifreedomConstraint());
 
     //Register specific conditions ( must be completed : conditions defined in kratos_application.h)
     //generic condition
     KRATOS_REGISTER_CONDITION("GenericCondition", mGenericCondition);
-    
+
     // Point conditions
     KRATOS_REGISTER_CONDITION("PointCondition2D1N", mPointCondition2D1N);
     KRATOS_REGISTER_CONDITION("PointCondition3D1N", mPointCondition3D1N);
@@ -199,6 +201,7 @@ void KratosApplication::RegisterKratosCore() {
     //Master-slave constraints
     KRATOS_REGISTER_CONSTRAINT("MasterSlaveConstraint",mMasterSlaveConstraint);
     KRATOS_REGISTER_CONSTRAINT("LinearMasterSlaveConstraint",mLinearMasterSlaveConstraint);
+    KRATOS_REGISTER_CONSTRAINT("LinearMultifreedomConstraint", mLinearMultifreedomConstraint);
 
     KRATOS_REGISTER_CONDITION("PeriodicCondition", mPeriodicCondition)
     KRATOS_REGISTER_CONDITION("PeriodicConditionEdge", mPeriodicConditionEdge)
