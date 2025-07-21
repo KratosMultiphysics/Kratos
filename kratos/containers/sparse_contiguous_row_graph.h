@@ -106,7 +106,7 @@ public:
     SparseContiguousRowGraph& operator=(SparseContiguousRowGraph const& rOther)=delete;
 
     /// Move assignment operator
-    SparseContiguousRowGraph& operator=(SparseContiguousRowGraph&&) noexcept = default
+    SparseContiguousRowGraph& operator=(SparseContiguousRowGraph&&) noexcept = default;
 
     /// Copy constructor.
     SparseContiguousRowGraph(const SparseContiguousRowGraph& rOther)
