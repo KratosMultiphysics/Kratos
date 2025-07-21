@@ -66,6 +66,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
         self.ChangeMaterialProperties()  # this is normally empty
 
+        self._GetSolver().Predict()
         self._GetSolver().InitializeSolutionStep()
 
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
