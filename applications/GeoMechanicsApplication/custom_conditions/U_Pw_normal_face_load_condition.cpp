@@ -131,5 +131,7 @@ template class UPwNormalFaceLoadCondition<2, 4>;
 template class UPwNormalFaceLoadCondition<2, 5>;
 template class UPwNormalFaceLoadCondition<3, 3>;
 template class UPwNormalFaceLoadCondition<3, 4>;
+template class UPwNormalFaceLoadCondition<3, 6>;
+template class UPwNormalFaceLoadCondition<3, 8>;
 
 } // Namespace Kratos.
