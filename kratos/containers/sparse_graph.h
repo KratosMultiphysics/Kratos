@@ -97,11 +97,7 @@ public:
         mpComm = &rComm;
     }
 
-    SparseGraph(SparseGraph<TIndexType>&& rOther)
-    {
-        mpComm = rOther.mpComm;
-        mGraph = std::move(rOther.mGraph);
-    }
+    SparseGraph(SparseGraph&&) noexcept = default;
 
     /// Destructor.
     ~SparseGraph(){}
@@ -110,12 +106,7 @@ public:
     SparseGraph& operator=(SparseGraph const& rOther)=delete;
 
     /// Move assignment operator
-    SparseGraph& operator=(SparseGraph<TIndexType>&& rOther)
-    {
-        mpComm = rOther.mpComm;
-        mGraph = std::move(rOther.mGraph);
-        return *this;
-    }
+    SparseGraph& operator=(SparseGraph&&) noexcept = default;
 
     /// Copy constructor.
     SparseGraph(const SparseGraph& rOther)
