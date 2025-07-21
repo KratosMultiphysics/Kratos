@@ -1004,7 +1004,7 @@ namespace Kratos
         T_car_to_cov = trans(m_T_vector[IntegrationPointIndex]);
         for (IndexType i = 0; i < 3; i++)
         {
-            T_car_to_cov(2, i) = T_car_to_cov(i, 2) / 2;
+            T_car_to_cov(2, i) = T_car_to_cov(2, i) / 2.0;
         }
 
         // Compute Transformation matrix T from covariant basis to local cartesian coordinate system            
