@@ -1216,9 +1216,6 @@ bool VtkOutput::SkippableEntity(const TEntityType& rEntity) const
             case GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface:
                 KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Brep_Curve_On_Surface" << std::endl;
                 return true;
-            case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry:
-                KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Quadrature_Point_Geometry" << std::endl;
-                return true;
             case GeometryData::KratosGeometryType::Kratos_Coupling_Geometry:
                 KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Coupling_Geometry" << std::endl;
                 return true;
