@@ -59,8 +59,6 @@ public:
     ///@name Public operations
     ///@{
 
-    BaseType::Pointer Clone() const override;
-
     /**
      * @brief Fill the internal data from Kratos data structures
      */

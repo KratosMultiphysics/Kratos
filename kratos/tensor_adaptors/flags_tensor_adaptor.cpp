@@ -40,17 +40,6 @@ FlagsTensorAdaptor::FlagsTensorAdaptor(
     this->SetShape(DenseVector<unsigned int>(1, pContainer->size()));
 }
 
-FlagsTensorAdaptor::BaseType::Pointer FlagsTensorAdaptor::Clone() const
-{
-    return std::visit([this](auto pContainer){
-        auto p_tensor_adaptor = Kratos::make_intrusive<FlagsTensorAdaptor>(pContainer, this->mFlags);
-        IndexPartition<IndexType>(p_tensor_adaptor->Size()).for_each([p_tensor_adaptor, this](const auto Index) {
-            p_tensor_adaptor->ViewData()[Index] = this->ViewData()[Index];
-        });
-        return p_tensor_adaptor;
-    }, mpContainer);
-}
-
 void FlagsTensorAdaptor::CollectData()
 {
     std::visit(

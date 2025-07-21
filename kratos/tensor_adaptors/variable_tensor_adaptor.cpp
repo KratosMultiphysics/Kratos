@@ -53,18 +53,6 @@ VariableTensorAdaptor::VariableTensorAdaptor(
         mpContainer, mpVariable);
 }
 
-VariableTensorAdaptor::BaseType::Pointer VariableTensorAdaptor::Clone() const
-{
-    return std::visit([this](auto pContainer) {
-        const auto& r_data_shape = this->DataShape();
-        auto p_tensor_adaptor = Kratos::make_intrusive<VariableTensorAdaptor>(pContainer, this->mpVariable, std::vector<unsigned int>(r_data_shape.begin(), r_data_shape.end()));
-        IndexPartition<IndexType>(p_tensor_adaptor->Size()).for_each([p_tensor_adaptor, this](const auto Index) {
-            p_tensor_adaptor->ViewData()[Index] = this->ViewData()[Index];
-        });
-        return p_tensor_adaptor;
-    }, mpContainer);
-}
-
 void VariableTensorAdaptor::CollectData()
 {
     std::visit(

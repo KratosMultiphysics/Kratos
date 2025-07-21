@@ -83,17 +83,6 @@ GaussPointVariableTensorAdaptor::GaussPointVariableTensorAdaptor(
         mpVariable);
 }
 
-GaussPointVariableTensorAdaptor::BaseType::Pointer GaussPointVariableTensorAdaptor::Clone() const
-{
-    return std::visit([this](auto pContainer, auto pVariable) {
-        auto p_tensor_adaptor = Kratos::make_intrusive<GaussPointVariableTensorAdaptor>(pContainer, this->mpVariable, this->mpProcessInfo);
-        IndexPartition<IndexType>(p_tensor_adaptor->Size()).for_each([p_tensor_adaptor, this](const auto Index) {
-            p_tensor_adaptor->ViewData()[Index] = this->ViewData()[Index];
-        });
-        return p_tensor_adaptor;
-    }, mpContainer, mpVariable);
-}
-
 void GaussPointVariableTensorAdaptor::CollectData()
 {
     std::visit(

@@ -75,8 +75,6 @@ public:
     ///@name Public operations
     ///@{
 
-    virtual TensorAdaptor::Pointer Clone() const = 0;
-
     /**
      * @brief Fill the internal data from Kratos data structures.
      * @details This method should not change anything in the underlying Kratos data structures. It should
