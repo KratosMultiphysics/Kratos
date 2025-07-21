@@ -35,12 +35,12 @@ namespace Kratos
         const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
         //CHECKLEO - temporary predefined actuation variables
-        mACTUATION_ALPHA = 0.1;
-        mACTUATION_BETA = 0.2;
-        mACTUATION_GAMMA = 0.3;
-        mACTUATION_KAPPA_1 = 0.4;
-        mACTUATION_KAPPA_2 = 0.5;
-        mACTUATION_KAPPA_12 = 0.6;
+        mACTUATION_ALPHA = 1;
+        mACTUATION_BETA = 0.0;
+        mACTUATION_GAMMA = 0.0;
+        mACTUATION_KAPPA_1 = 0.0;
+        mACTUATION_KAPPA_2 = 0.0;
+        mACTUATION_KAPPA_12 = 0.0;
 
         // Prepare memory
         if (m_A_ab_covariant_vector.size() != r_number_of_integration_points)
@@ -680,6 +680,7 @@ namespace Kratos
         rTCovToCar(2, 2) = G_00 * G_11;
     }
 
+    //CHECKLEO Constitutive Variables with actuation
     void ActiveShell3pElement::CalculateConstitutiveVariables(
         const IndexType IntegrationPointIndex,
         KinematicVariables& rActualKinematic,
@@ -693,10 +694,30 @@ namespace Kratos
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-        array_1d<double, 3> strain_vector = 0.5 * (rActualKinematic.a_ab_covariant - m_A_ab_covariant_vector[IntegrationPointIndex]);
+        //Strain - Membrane Part
+
+        array_1d<double, 3> total_strain_vector = 0.5 * (rActualKinematic.a_ab_covariant - m_A_ab_covariant_vector[IntegrationPointIndex]);
+
+        array_1d<double, 3> actuated_strain_vector;   
+        // strain part -> Vektor (E11,E22;E12)
+        actuated_strain_vector[0] = (mACTUATION_ALPHA + 0.5 * std::pow(mACTUATION_ALPHA, 2)) * m_A_ab_covariant_vector[IntegrationPointIndex][0];
+        actuated_strain_vector[1] = 0.5 * (mACTUATION_ALPHA + mACTUATION_BETA + mACTUATION_ALPHA*mACTUATION_BETA) * m_A_ab_covariant_vector[IntegrationPointIndex][1];
+        actuated_strain_vector[2] = (mACTUATION_BETA + 0.5 * std::pow(mACTUATION_BETA, 2)) * m_A_ab_covariant_vector[IntegrationPointIndex][2];
+        //shear part
+        actuated_strain_vector[2] = 0.5 * (m_A_ab_covariant_vector[IntegrationPointIndex][2] * cos(mACTUATION_GAMMA) + m_dA_vector[IntegrationPointIndex] * sin(mACTUATION_GAMMA) - m_A_ab_covariant_vector[IntegrationPointIndex][2] ) * 2;
+
+        array_1d<double, 3> strain_vector = total_strain_vector - actuated_strain_vector;
         noalias(rThisConstitutiveVariablesMembrane.StrainVector) = prod(m_T_vector[IntegrationPointIndex], strain_vector);
 
-        array_1d<double, 3> curvature_vector = rActualKinematic.b_ab_covariant - m_B_ab_covariant_vector[IntegrationPointIndex];
+        // Strain - Curvature Part
+        array_1d<double, 3> total_curvature_vector = rActualKinematic.b_ab_covariant - m_B_ab_covariant_vector[IntegrationPointIndex];
+
+        array_1d<double, 3> actuated_curvature_vector;
+        actuated_curvature_vector[0] = mACTUATION_KAPPA_1;     //CHECK: This might not be coorect as it is not multiplied with the zeta -> preintegration 
+        actuated_curvature_vector[1] = mACTUATION_KAPPA_2;
+        actuated_curvature_vector[2] = mACTUATION_KAPPA_12;
+
+        array_1d<double, 3> curvature_vector = total_curvature_vector - actuated_curvature_vector;
         noalias(rThisConstitutiveVariablesCurvature.StrainVector) = prod(m_T_vector[IntegrationPointIndex], curvature_vector);
 
         // Constitive Matrices DMembrane and DCurvature
@@ -709,7 +730,7 @@ namespace Kratos
         double thickness = this->GetProperties().GetValue(THICKNESS);
         noalias(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix) = rThisConstitutiveVariablesMembrane.ConstitutiveMatrix * (pow(thickness, 2) / 12);
 
-        //Local Cartesian Forces and Moments
+        //Local Cartesian Forces and Moments   //CHECKLEO S= C*(E-E_act)
         noalias(rThisConstitutiveVariablesMembrane.StressVector) = prod(
             trans(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix), rThisConstitutiveVariablesMembrane.StrainVector);
         noalias(rThisConstitutiveVariablesCurvature.StressVector) = prod(
