@@ -58,6 +58,7 @@
 #include "custom_constitutive/small_strains/damage/generic_small_strain_d_plus_d_minus_damage.h"
 #include "custom_constitutive/small_strains/plasticity/generic_small_strain_kinematic_plasticity.h"
 #include "custom_constitutive/small_strains/fatigue/generic_small_strain_high_cycle_fatigue_law.h"
+#include "custom_constitutive/small_strains/fatigue/generic_small_strain_high_cycle_fatigue_plane_stress_law.h"
 #include "custom_constitutive/small_strains/plasticity/plasticity_isotropic_kinematic_j2.h"
 #include "custom_constitutive/small_strains/damage/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 #include "custom_constitutive/small_strains/damage/d_plus_d_minus_damage_masonry_3d.h"
@@ -708,6 +709,34 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     py::class_<  GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<RankinePlasticPotential<3>>>>,
     typename GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<RankinePlasticPotential<3>>>>::Pointer,
     ConstitutiveLaw > (m,"SmallStrainHighCycleFatiguePlaneStrainLawRankine").def(py::init<>());
+
+    py::class_<  GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainHighCycleFatiguePlaneStressLawVonMises").def(py::init<>());
+
+    py::class_<  GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>>,
+    typename GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainHighCycleFatiguePlaneStressLawModifiedMohrCoulomb").def(py::init<>());
+
+    py::class_<  GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<TrescaPlasticPotential<3>>>>,
+    typename GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<TrescaPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainHighCycleFatiguePlaneStressLawTresca").def(py::init<>());
+
+    py::class_<  GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<3>>>>,
+    typename GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainHighCycleFatiguePlaneStressLawDruckerPrager").def(py::init<>());
+
+    py::class_<  GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainHighCycleFatiguePlaneStressLawSimoJu").def(py::init<>());
+
+    py::class_<  GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<3>>>>,
+    typename GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainHighCycleFatiguePlaneStressLawMohrCoulomb").def(py::init<>());
+
+    py::class_<  GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<RankinePlasticPotential<3>>>>,
+    typename GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<RankinePlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw > (m,"SmallStrainHighCycleFatiguePlaneStressLawRankine").def(py::init<>());
 
     // kinematic plasticity
     py::class_< GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<MohrCoulombPlasticPotential<6>>>>,

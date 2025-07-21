@@ -71,6 +71,9 @@
 #include "custom_constitutive/small_strains/linear/multi_linear_elastic_1d_law.h"
 #include "custom_constitutive/small_strains/linear/multi_linear_isotropic_plane_stress_2d.h"
 #include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage_plane_stress.h"
+#include "custom_constitutive/small_strains/fatigue/generic_small_strain_high_cycle_fatigue_law.h"
+#include "custom_constitutive/small_strains/fatigue/generic_small_strain_high_cycle_fatigue_plane_stress_law.h"
+
 
 // Integrators
 #include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_damage.h"
@@ -78,7 +81,6 @@
 #include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_kinematic_plasticity.h"
 #include "custom_constitutive/auxiliary_files/cl_integrators/d+d-cl_integrators/generic_compression_cl_integrator.h"
 #include "custom_constitutive/auxiliary_files/cl_integrators/d+d-cl_integrators/generic_tension_cl_integrator.h"
-#include "custom_constitutive/small_strains/fatigue/generic_small_strain_high_cycle_fatigue_law.h"
 
 // Yield surfaces
 #include "custom_constitutive/auxiliary_files/yield_surfaces/generic_yield_surface.h"
@@ -511,6 +513,15 @@ private:
     const GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<RankinePlasticPotential<3>>>> mSmallStrainHighCycleFatiguePlaneStrainLawRankine;
     const GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainHighCycleFatiguePlaneStrainLawSimoJu;
     const GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<3>>>> mSmallStrainHighCycleFatiguePlaneStrainLawMohrCoulomb;
+
+    /* Small stress 2D */
+    const GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainHighCycleFatiguePlaneStressLawVonMises;
+    const GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>> mSmallStrainHighCycleFatiguePlaneStressLawModifiedMohrCoulomb;
+    const GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<TrescaPlasticPotential<3>>>> mSmallStrainHighCycleFatiguePlaneStressLawTresca;
+    const GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<3>>>> mSmallStrainHighCycleFatiguePlaneStressLawDruckerPrager;
+    const GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<RankinePlasticPotential<3>>>> mSmallStrainHighCycleFatiguePlaneStressLawRankine;
+    const GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainHighCycleFatiguePlaneStressLawSimoJu;
+    const GenericSmallStrainHighCycleFatiguePlaneStressLaw <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<3>>>> mSmallStrainHighCycleFatiguePlaneStressLawMohrCoulomb;
 
 
     // d+d- laws (3D)

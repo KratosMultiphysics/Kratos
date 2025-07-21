@@ -275,6 +275,13 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatiguePlaneStrainLawSimoJu", mSmallStrainHighCycleFatiguePlaneStrainLawSimoJu);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatiguePlaneStrainLawMohrCoulomb", mSmallStrainHighCycleFatiguePlaneStrainLawMohrCoulomb);
 
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatiguePlaneStressLawVonMises", mSmallStrainHighCycleFatiguePlaneStrainLawVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatiguePlaneStressLawModifiedMohrCoulomb", mSmallStrainHighCycleFatiguePlaneStressLawModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatiguePlaneStressLawTresca", mSmallStrainHighCycleFatiguePlaneStressLawTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatiguePlaneStressLawDruckerPrager", mSmallStrainHighCycleFatiguePlaneStressLawDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatiguePlaneStressLawRankine", mSmallStrainHighCycleFatiguePlaneStressLawRankine);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatiguePlaneStressLawSimoJu", mSmallStrainHighCycleFatiguePlaneStressLawSimoJu);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatiguePlaneStressLawMohrCoulomb", mSmallStrainHighCycleFatiguePlaneStressLawMohrCoulomb);
 
     // d+d- laws (3D)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainDplusDminusDamageModifiedMohrCoulombModifiedMohrCoulomb3D", mSmallStrainDplusDminusDamageModifiedMohrCoulombModifiedMohrCoulomb3D);
