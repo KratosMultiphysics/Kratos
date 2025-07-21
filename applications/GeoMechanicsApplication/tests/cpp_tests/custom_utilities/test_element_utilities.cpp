@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_geometries/line_interface_geometry.h"
+#include "custom_geometries/interface_geometry.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "geometries/line_2d_2.h"
 #include "includes/node.h"
@@ -31,7 +31,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_ReturnsCorrectListOfShapeFunctionsVal
     nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(3, -1.0, 0.2, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(4, 7.0, 0.2, 0.0));
-    const auto geometry = LineInterfaceGeometry<Line2D2<Node>>{1, nodes};
+    const auto geometry = InterfaceGeometry<Line2D2<Node>>{1, nodes};
 
     const Geo::IntegrationPointVectorType integration_points{{-1.0, 0.0, 0.0, 1.0}, {1.0, 0.0, 0.0, 1.0}};
     const auto shape_function_values =

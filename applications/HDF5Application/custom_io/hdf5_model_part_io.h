@@ -64,8 +64,6 @@ public:
 
     void ReadProperties(PropertiesContainerType& rThisProperties) override;
 
-    void WriteProperties(Properties const& rThisProperties) override;
-
     void WriteProperties(PropertiesContainerType const& rThisProperties) override;
 
     void ReadElements(NodesContainerType& rNodes,

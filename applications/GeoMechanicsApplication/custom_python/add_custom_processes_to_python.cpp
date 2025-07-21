@@ -35,6 +35,7 @@
 #include "custom_processes/apply_excavation_process.h"
 #include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
 #include "custom_processes/apply_hydrostatic_pressure_table_process.hpp"
+#include "custom_processes/apply_initial_uniform_stress_field.h"
 #include "custom_processes/apply_k0_procedure_process.h"
 #include "custom_processes/apply_normal_load_table_process.h"
 #include "custom_processes/apply_phreatic_line_pressure_table_process.hpp"
@@ -43,7 +44,8 @@
 #include "custom_processes/apply_scalar_constraint_table_process.h"
 #include "custom_processes/apply_vector_constraint_table_process.h"
 #include "custom_processes/apply_write_result_scalar_process.hpp"
-#include "custom_processes/calculate_incremental_displacement_process.h"
+#include "custom_processes/calculate_incremental_motion_process.h"
+#include "custom_processes/calculate_total_motion_process.h"
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
 #include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
@@ -174,12 +176,20 @@ void AddCustomProcessesToPython(pybind11::module& m)
         m, "ApplyCPhiReductionProcess")
         .def(py::init<ModelPart&, const Parameters>());
 
-    py::class_<CalculateIncrementalDisplacementProcess, CalculateIncrementalDisplacementProcess::Pointer, Process>(
-        m, "CalculateIncrementalDisplacementProcess")
+    py::class_<CalculateIncrementalMotionProcess, CalculateIncrementalMotionProcess::Pointer, Process>(
+        m, "CalculateIncrementalMotionProcess")
+        .def(py::init<ModelPart&, const Parameters&>());
+
+    py::class_<CalculateTotalMotionProcess, CalculateTotalMotionProcess::Pointer, Process>(
+        m, "CalculateTotalMotionProcess")
         .def(py::init<ModelPart&, const Parameters&>());
 
     py::class_<ApplyFinalStressesOfPreviousStageToInitialState, ApplyFinalStressesOfPreviousStageToInitialState::Pointer, Process>(
         m, "ApplyFinalStressesOfPreviousStageToInitialState")
+        .def(py::init<ModelPart&, const Parameters&>());
+
+    py::class_<ApplyInitialUniformStressField, ApplyInitialUniformStressField::Pointer, Process>(
+        m, "ApplyInitialUniformStressField")
         .def(py::init<ModelPart&, const Parameters&>());
 }
 
