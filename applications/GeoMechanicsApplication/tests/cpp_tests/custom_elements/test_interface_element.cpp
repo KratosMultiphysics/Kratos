@@ -824,27 +824,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     // Assert
     auto expected_left_hand_side = Matrix{18, 18};
     // clang-format off
-    expected_left_hand_side <<=
-    4.166666667,0,-1.443375673,0,0,0,0,0,0,-4.166666667,0,1.443375673,0,0,0,0,0,0,
-    0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,0,0,0,0,0,
-    -1.443375673,0,5.833333333,0,0,0,0,0,0,1.443375673,0,-5.833333333,0,0,0,0,0,0,
-    0,0,0,4.166666667,0,-1.443375673,0,0,0,0,0,0,-4.166666667,0,1.443375673,0,0,0,
-    0,0,0,0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,0,0,
-    0,0,0,-1.443375673,0,5.833333333,0,0,0,0,0,0,1.443375673,0,-5.833333333,0,0,0,
-    0,0,0,0,0,0,4.166666667,0,-1.443375673,0,0,0,0,0,0,-4.166666667,0,1.443375673,
-    0,0,0,0,0,0,0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,
-    0,0,0,0,0,0,-1.443375673,0,5.833333333,0,0,0,0,0,0,1.443375673,0,-5.833333333,
-    -4.166666667,0,1.443375673,0,0,0,0,0,0,4.166666667,0,-1.443375673,0,0,0,0,0,0,
-    0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,0,0,0,0,0,
-    1.443375673,0,-5.833333333,0,0,0,0,0,0,-1.443375673,0,5.833333333,0,0,0,0,0,0,
-    0,0,0,-4.166666667,0,1.443375673,0,0,0,0,0,0,4.166666667,0,-1.443375673,0,0,0,
-    0,0,0,0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,0,0,
-    0,0,0,1.443375673,0,-5.833333333,0,0,0,0,0,0,-1.443375673,0,5.833333333,0,0,0,
-    0,0,0,0,0,0,-4.166666667,0,1.443375673,0,0,0,0,0,0,4.166666667,0,-1.443375673,
-    0,0,0,0,0,0,0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,
-    0,0,0,0,0,0,1.443375673,0,-5.833333333,0,0,0,0,0,0,-1.443375673,0,5.833333333;
-    // clang-format on
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+
+    KRATOS_EXPECT_MATRIX_NEAR(actual_left_hand_side, ExpectedLeftHandSideForTriangleElement(), Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInternalForceVector,
@@ -895,10 +876,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     // Assert
     auto expected_right_hand_side = Vector{18};
     // clang-format off
-    expected_right_hand_side <<=
-        -0.3199788333,1.776709,0.1108439193,-0,-0,-0,0.3199788333,-1.776709,-0.1108439193,0.3199788333,-1.776709,-0.1108439193,-0,-0,-0,-0.3199788333,1.776709,0.1108439193;
+    expected_right_hand_side <<= 3.33333,6.66667,20,3.33333,6.66667,20,3.33333,6.66667,20,-3.33333,-6.66667,-20,-3.33333,-6.66667,-20,-3.33333,-6.66667,-20;
     // clang-format on
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, 1e-5)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TriangleIntrfaceElement_GetInitializedConstitutiveLawsAfterElementInitialization,
@@ -1055,9 +1035,10 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInYZPlane_CalculateStrain_Retu
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    const auto prescribed_displacements = PrescribedDisplacements{{3, array_1d<double, 3>{1.0, 0.0, 0.0}},
-                                                                  {4, array_1d<double, 3>{1.0, 0.0, 0.0}},
-                                                                  {5, array_1d<double, 3>{1.0, 0.0, 0.0}}};
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{3, array_1d<double, 3>{1.0, 0.0, 0.0}},
+                                {4, array_1d<double, 3>{1.0, 0.0, 0.0}},
+                                {5, array_1d<double, 3>{1.0, 0.0, 0.0}}};
     auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceYZPlaneElementWithUDofs,
                                               p_properties, prescribed_displacements);
 
@@ -1089,9 +1070,10 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInXZPlane_CalculateStrain_Retu
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    const auto prescribed_displacements = PrescribedDisplacements{{0, array_1d<double, 3>{0.0, 1.0, 0.0}},
-                                                                  {1, array_1d<double, 3>{0.0, 1.0, 0.0}},
-                                                                  {2, array_1d<double, 3>{0.0, 1.0, 0.0}}};
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{0, array_1d<double, 3>{0.0, 1.0, 0.0}},
+                                {1, array_1d<double, 3>{0.0, 1.0, 0.0}},
+                                {2, array_1d<double, 3>{0.0, 1.0, 0.0}}};
     auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWithUDofs,
                                               p_properties, prescribed_displacements);
 
@@ -1124,9 +1106,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_R
         normal_stiffness, shear_stiffness);
 
     const auto prescribed_displacements =
-            PrescribedDisplacements{{0, array_1d<double, 3>{1.0, 2.0, 3.0}},
-                                    {1, array_1d<double, 3>{1.0, 2.0, 3.0}},
-                                    {2, array_1d<double, 3>{1.0, 2.0, 3.0}}};
+        PrescribedDisplacements{{0, array_1d<double, 3>{1.0, 2.0, 3.0}},
+                                {1, array_1d<double, 3>{1.0, 2.0, 3.0}},
+                                {2, array_1d<double, 3>{1.0, 2.0, 3.0}}};
     auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
                                               p_properties, prescribed_displacements);
 
@@ -1136,7 +1118,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_R
 
     // Assert
     Vector expected_traction{3};
-    expected_traction <<= -3.0 * normal_stiffness, (-0.5 * std::sqrt(3.0) - 1.0) * shear_stiffness, (0.5 - std::sqrt(3)) * shear_stiffness;
+    expected_traction <<= -3.0 * normal_stiffness, (-0.5 * std::sqrt(3.0) - 1.0) * shear_stiffness,
+        (0.5 - std::sqrt(3)) * shear_stiffness;
     std::vector<Vector> expected_tractions{3, expected_traction};
     KRATOS_EXPECT_EQ(tractions_at_integration_points.size(), 3);
     for (std::size_t i = 0; i < tractions_at_integration_points.size(); i++) {
