@@ -21,12 +21,12 @@
 // Application includes
 
 // Include base h
-#include "smooth_clamper.h"
+#include "unsmooth_clamper.h"
 
 namespace Kratos {
 
 template<class TContainerType>
-SmoothClamper<TContainerType>::SmoothClamper(
+UnSmoothClamper<TContainerType>::UnSmoothClamper(
     const double Min,
     const double Max)
     : mMin(Min),
@@ -41,21 +41,21 @@ SmoothClamper<TContainerType>::SmoothClamper(
 }
 
 template<class TContainerType>
-double SmoothClamper<TContainerType>::ProjectForward(const double X) const
+double UnSmoothClamper<TContainerType>::ProjectForward(const double X) const
 {
     const double x_tilde = std::clamp((X - mMin) / mDelta, 0.0, 1.0);
     return mMin + x_tilde * x_tilde * (3.0 - 2.0 * x_tilde) * mDelta;
 }
 
 template<class TContainerType>
-double SmoothClamper<TContainerType>::CalculateForwardProjectionGradient(const double X) const
+double UnSmoothClamper<TContainerType>::CalculateForwardProjectionGradient(const double X) const
 {
     const double x_tilde = std::clamp((X - mMin) / mDelta, 0.0, 1.0);
     return 6 * x_tilde - 6 * x_tilde * x_tilde;
 }
 
 template<class TContainerType>
-double SmoothClamper<TContainerType>::ProjectBackward(const double Y) const
+double UnSmoothClamper<TContainerType>::ProjectBackward(const double Y) const
 {
     double x_tilde;
     if (Y < mMin) {
@@ -70,7 +70,7 @@ double SmoothClamper<TContainerType>::ProjectBackward(const double Y) const
 }
 
 template<class TContainerType>
-ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ProjectForward(const ContainerExpression<TContainerType>& rInput) const
+ContainerExpression<TContainerType> UnSmoothClamper<TContainerType>::ProjectForward(const ContainerExpression<TContainerType>& rInput) const
 {
     KRATOS_TRY
 
@@ -80,8 +80,8 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ProjectForwar
     const auto number_of_entities = r_input_exp.NumberOfEntities();
     const auto stride = r_input_exp.GetItemComponentCount();
 
-    // KRATOS_ERROR_IF_NOT(stride == 1)
-    //     << "SmoothClamper only supports scalar expressions. [ Expression stride = " << stride << " ].\n";
+    KRATOS_ERROR_IF_NOT(stride == 1)
+        << "UnSmoothClamper only supports scalar expressions. [ Expression stride = " << stride << " ].\n";
 
     auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, {});
 
@@ -98,7 +98,7 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ProjectForwar
 }
 
 template<class TContainerType>
-ContainerExpression<TContainerType> SmoothClamper<TContainerType>::CalculateForwardProjectionGradient(const ContainerExpression<TContainerType>& rInput) const
+ContainerExpression<TContainerType> UnSmoothClamper<TContainerType>::CalculateForwardProjectionGradient(const ContainerExpression<TContainerType>& rInput) const
 {
     KRATOS_TRY
 
@@ -110,8 +110,8 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::CalculateForw
     const auto number_of_entities = r_input_exp.NumberOfEntities();
     const auto stride = r_input_exp.GetItemComponentCount();
 
-    // KRATOS_ERROR_IF_NOT(stride == 1)
-    //     << "SmoothClamper only supports scalar expressions. [ Expression stride = " << stride << " ].\n";
+    KRATOS_ERROR_IF_NOT(stride == 1)
+        << "UnSmoothClamper only supports scalar expressions. [ Expression stride = " << stride << " ].\n";
 
     auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, {});
 
@@ -128,7 +128,7 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::CalculateForw
 }
 
 template<class TContainerType>
-ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ProjectBackward(const ContainerExpression<TContainerType>& rInput) const
+ContainerExpression<TContainerType> UnSmoothClamper<TContainerType>::ProjectBackward(const ContainerExpression<TContainerType>& rInput) const
 {
     KRATOS_TRY
 
@@ -137,7 +137,7 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ProjectBackwa
     const auto stride = r_input_exp.GetItemComponentCount();
 
     KRATOS_ERROR_IF_NOT(stride == 1)
-        << "SmoothClamper only supports scalar expressions. [ Expression stride = " << stride << " ].\n";
+        << "UnSmoothClamper only supports scalar expressions. [ Expression stride = " << stride << " ].\n";
 
     auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, {});
 
@@ -155,8 +155,8 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ProjectBackwa
 
 
 // template instantiations
-template class SmoothClamper<ModelPart::NodesContainerType>;
-template class SmoothClamper<ModelPart::ConditionsContainerType>;
-template class SmoothClamper<ModelPart::ElementsContainerType>;
+template class UnSmoothClamper<ModelPart::NodesContainerType>;
+template class UnSmoothClamper<ModelPart::ConditionsContainerType>;
+template class UnSmoothClamper<ModelPart::ElementsContainerType>;
 
 } /* namespace Kratos.*/

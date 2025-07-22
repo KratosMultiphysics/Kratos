@@ -16,8 +16,10 @@ def CreateLineSearch(parameters: Kratos.Parameters, optimization_problem: Optimi
         return BBStep(parameters, optimization_problem)
     elif type == "QNBB_step":
         return QNBBStep(parameters, optimization_problem)
+    elif type == "QNBB_step_local_norm":
+        return QNBBStep_local_norm(parameters, optimization_problem)
     else:
-        raise RuntimeError(f"CreateConvergenceCriteria: unsupported convergence type {type}.")
+        raise RuntimeError(f"CreateLineSearch: unsupported convergence type {type}.")
 
 class ConstStep():
     @classmethod
@@ -170,3 +172,71 @@ class QNBBStep(BBStep):
                 'init_step': self._init_step}
 
         return info
+    
+class QNBBStep_local_norm(QNBBStep):
+    @time_decorator()
+    def ComputeStep(self) -> KratosOA.CollectiveExpression:
+        algorithm_buffered_data = ComponentDataView("algorithm", self._optimization_problem).GetBufferedData()
+
+        self.step: KratosOA.CollectiveExpression = algorithm_buffered_data.GetValue("search_direction", 0).Clone()
+        self.step *= 0.0
+
+        if not algorithm_buffered_data.HasValue("step_size"):
+            algorithm_buffered_data["step_size"] = self.step
+
+        step_array = []
+
+        number_of_control_fields = len(self.step.GetContainerExpressions())
+
+        for control_index in range(number_of_control_fields):
+            control_field = self.step.GetContainerExpressions()[control_index]
+            step_numpy = control_field.Evaluate()
+            local_current_search_direction = algorithm_buffered_data.GetValue("search_direction", 0).GetContainerExpressions()[control_index]
+            # local_norm = Kratos.Expression.Utils.NormL2(local_current_search_direction)
+            if self._gradient_scaling == "inf_norm":
+                local_norm = Kratos.Expression.Utils.NormInf(local_current_search_direction)
+            elif self._gradient_scaling == "l2_norm":
+                local_norm = Kratos.Expression.Utils.NormL2(local_current_search_direction)
+            elif self._gradient_scaling == "none":
+                local_norm = 1.0
+            else:
+                raise RuntimeError("\"gradient_scaling\" has unknown type.")
+            # local_norm = Kratos.Expression.Utils.NormInf(local_current_search_direction)
+            if math.isclose(local_norm, 0.0, abs_tol=1e-16):
+                local_norm = 1.0
+            print(f"Control field {control_index} local norm: {local_norm}")
+
+            if self._optimization_problem.GetStep() == 0:
+                step_numpy[:] = self._init_step / local_norm
+            else:
+                local_previous_search_direction = algorithm_buffered_data.GetValue("search_direction", 1).GetContainerExpressions()[control_index]
+                y = local_previous_search_direction - local_current_search_direction
+                y = y.Evaluate()
+                d = algorithm_buffered_data.GetValue("control_field_update", 1).GetContainerExpressions()[control_index]
+                d = d.Evaluate()
+                for i in range(len(y)):
+                    dy = numpy.dot(d[i], y[i])
+                    dd = numpy.dot(d[i], d[i])
+                    
+                    if math.isclose(dy, 0.0, abs_tol=1e-16):
+                        step_numpy[i] = self._max_step / local_norm
+                    else:
+                        step_numpy[i] = abs( dd / dy )
+
+                    if isinstance(d[i], (float, int, numpy.float64)) and step_numpy[i] > self._max_step / local_norm:
+                        step_numpy[i] = self._max_step / local_norm
+                    elif isinstance(d[i], (numpy.ndarray)) and step_numpy[i][0] > self._max_step / local_norm:
+                            step_numpy[i] = self._max_step / local_norm
+                    
+
+            step_array.append(step_numpy.reshape(-1))
+
+        self.step_numpy = numpy.concatenate(step_array)
+        
+                
+        DictLogger("Line Search info",self.GetInfo())
+
+        shape = [c.GetItemShape() for c in self.step.GetContainerExpressions()]
+        KratosOA.CollectiveExpressionIO.Read(self.step, self.step_numpy, shape)
+        return self.step
+    

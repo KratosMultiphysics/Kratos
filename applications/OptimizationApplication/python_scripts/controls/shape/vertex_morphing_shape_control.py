@@ -13,6 +13,9 @@ from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities impor
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
 import math
 
+import KratosMultiphysics.SystemIdentificationApplication as KratosSI
+from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionBoundingManager
+
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
         raise RuntimeError(f"VertexMorphingShapeControl instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
@@ -37,6 +40,7 @@ class VertexMorphingShapeControl(Control):
 
         default_settings = Kratos.Parameters("""{
             "controlled_model_part_names": [],
+            "control_variable_bounds": [0.0, 1.0],
             "filter_settings"            : {},
             "mesh_motion_solver_type"    : "none",
             "skin_model_part_names"      : [],
@@ -73,6 +77,11 @@ class VertexMorphingShapeControl(Control):
             from KratosMultiphysics.MeshMovingApplication.mesh_moving_analysis import MeshMovingAnalysis
             self.__mesh_moving_analysis = MeshMovingAnalysis(self.model, self.parameters["mesh_motion_solver_settings"])
 
+        control_variable_bounds = parameters["control_variable_bounds"].GetVector()
+        # use the clamper in the unit interval
+        self.interval_bounder = ExpressionBoundingManager(control_variable_bounds)
+        self.clamper = KratosSI.NodeSmoothClamper(0, 2)
+
     @time_decorator(methodName="GetName")
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
@@ -80,8 +89,6 @@ class VertexMorphingShapeControl(Control):
         # initialize filters
         self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
         self.filter.Initialize()
-
-        self.control_field = self.filter.UnfilterField(self.GetPhysicalField())
 
         # initialize_mesh_motion if defined.
         if not self.__mesh_moving_analysis is None:
@@ -99,6 +106,17 @@ class VertexMorphingShapeControl(Control):
             # root model parts, and all the sub model parts are suing the root model parts. Hence
             # mesh moving will affect all the shared sub-model parts
             recursively_increase_usage(self.__mesh_moving_analysis._GetSolver().GetComputingModelPart())
+
+        physical_field = self.GetPhysicalField()    
+        # get the phi field which is in [0, 1] range
+        self.physical_phi_field = self.clamper.ProjectBackward(self.interval_bounder.GetBoundedExpression(physical_field))
+
+        # compute the control phi field
+        self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
+
+        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field) * self.interval_bounder.GetBoundGap()
+
+        self.absolute_shape_update = self.GetPhysicalField()
 
         # now update
         self._UpdateAndOutputFields(self.GetEmptyField())
@@ -121,7 +139,7 @@ class VertexMorphingShapeControl(Control):
         return field
 
     def GetControlField(self) -> ContainerExpressionTypes:
-        return self.control_field
+        return self.control_phi_field
 
     def GetPhysicalField(self) -> ContainerExpressionTypes:
         physical_shape_field = Kratos.Expression.NodalExpression(self.__GetPhysicalModelPart())
@@ -148,11 +166,11 @@ class VertexMorphingShapeControl(Control):
     def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
         if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
-        diff_norm = Kratos.Expression.Utils.NormL2(self.control_field - new_control_field)
+        diff_norm = Kratos.Expression.Utils.NormL2(self.control_phi_field - new_control_field)
         if not math.isclose(diff_norm, 0.0, abs_tol=1e-16):
             # update the control SHAPE field
-            control_update = new_control_field - self.control_field
-            self.control_field = new_control_field
+            control_update = new_control_field - self.control_phi_field
+            self.control_phi_field = new_control_field
             # now update the physical field
             self._UpdateAndOutputFields(control_update)
 
@@ -163,18 +181,31 @@ class VertexMorphingShapeControl(Control):
     def _UpdateAndOutputFields(self, control_update: ContainerExpressionTypes) -> None:
         # compute the shape update
         if self.mesh_motion_solver_type == "filter_based":
-            shape_update = self.filter.ForwardFilterField(control_update)
+            filtered_phi_field_update = self.filter.ForwardFilterField(control_update)
         else:
-            shape_update = self.filter.ForwardFilterField(KratosOA.ExpressionUtils.ExtractData(control_update, self.model_part))
+            filtered_phi_field_update = self.filter.ForwardFilterField(KratosOA.ExpressionUtils.ExtractData(control_update, self.model_part))
+
+        self.physical_phi_field = Kratos.Expression.Utils.Collapse(self.physical_phi_field + filtered_phi_field_update)
+
+        # project forward the filtered thickness field to get clamped physical field
+        physical_field = self.interval_bounder.GetUnboundedExpression(self.clamper.ProjectForward(self.physical_phi_field))
 
         # now update the shape
-        self._UpdateMesh(shape_update)
+        self._UpdateMesh(physical_field)
+
+        self.absolute_shape_update += physical_field
+        self.absolute_shape_update = KratosOA.ExpressionUtils.Collapse(self.absolute_shape_update)
+
+        # compute and store projection derivatives for consistent filtering of the sensitivities
+        # this is dphi/dphysical -> physical_phi_derivative_field
+        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field) * self.interval_bounder.GetBoundGap()
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
-        un_buffered_data.SetValue("shape_update", shape_update.Clone(),overwrite=True)
+        un_buffered_data.SetValue("shape_update", physical_field.Clone(),overwrite=True)
+        un_buffered_data.SetValue("absolute_shape_update", self.absolute_shape_update.Clone(),overwrite=True)
         if self.output_all_fields:
-            un_buffered_data.SetValue("shape_control", self.control_field.Clone(),overwrite=True)
+            un_buffered_data.SetValue("shape_control", self.control_phi_field.Clone(),overwrite=True)
             un_buffered_data.SetValue("shape_control_update", control_update.Clone(),overwrite=True)
 
     def _UpdateMesh(self, shape_update: ContainerExpressionTypes) -> None:

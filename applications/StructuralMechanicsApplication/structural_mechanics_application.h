@@ -454,6 +454,7 @@ private:
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D4N;
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D6N;
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D8N;
+    const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D10N;
     const AdjointFiniteDifferenceSpringDamperElement<SpringDamperElement<3>>  mAdjointFiniteDifferenceSpringDamperElement3D2N;
 
     /* CONDITIONS*/
@@ -504,8 +505,10 @@ private:
     const AdjointSemiAnalyticPointLoadCondition<PointLoadCondition> mAdjointSemiAnalyticPointLoadCondition3D1N;
     const AdjointSemiAnalyticBaseCondition<SurfaceLoadCondition3D> mAdjointSemiAnalyticSurfaceLoadCondition3D3N;
     const AdjointSemiAnalyticBaseCondition<SurfaceLoadCondition3D> mAdjointSemiAnalyticSurfaceLoadCondition3D4N;
+    const AdjointSemiAnalyticBaseCondition<SurfaceLoadCondition3D> mAdjointSemiAnalyticSurfaceLoadCondition3D6N;
     const AdjointSemiAnalyticBaseCondition<SmallDisplacementSurfaceLoadCondition3D> mAdjointSemiAnalyticSmallDisplacementSurfaceLoadCondition3D3N;
     const AdjointSemiAnalyticBaseCondition<SmallDisplacementSurfaceLoadCondition3D> mAdjointSemiAnalyticSmallDisplacementSurfaceLoadCondition3D4N;
+    const AdjointSemiAnalyticBaseCondition<SmallDisplacementSurfaceLoadCondition3D> mAdjointSemiAnalyticSmallDisplacementSurfaceLoadCondition3D6N;
     const AdjointSemiAnalyticBaseCondition<LineLoadCondition<3>> mAdjointSemiAnalyticLineLoadCondition3D2N;
     const AdjointSemiAnalyticBaseCondition<SmallDisplacementLineLoadCondition<3>> mAdjointSemiAnalyticSmallDisplacementLineLoadCondition3D2N;
 

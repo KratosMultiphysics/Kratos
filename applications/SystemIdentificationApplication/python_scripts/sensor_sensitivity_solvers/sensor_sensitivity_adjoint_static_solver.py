@@ -4,6 +4,7 @@ from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_adjo
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionUnionType
 from KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers.response_sensitivity_interface import ResponseSensitivityInterface
+from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionDataLocation
 
 class SensorSensitivityAdjointStaticSolver(StructuralMechanicsAdjointStaticSolver, ResponseSensitivityInterface):
     def __init__(self, model: Kratos.Model, custom_settings: Kratos.Parameters):
@@ -70,3 +71,11 @@ class SensorSensitivityAdjointStaticSolver(StructuralMechanicsAdjointStaticSolve
 
     def _CreateScheme(self):
         return Kratos.ResidualBasedAdjointStaticScheme(None)
+    
+    def GetSensitivtyVariables(self) -> 'dict[ExpressionDataLocation, list[typing.Union[Kratos.DoubleVariable, Kratos.Array1DVariable3]]]':
+        sensitivity_settings = self.settings["sensitivity_settings"]
+        return {
+            ExpressionDataLocation.NodeHistorical: [Kratos.KratosGlobals.GetVariable(f"{var_name}_SENSITIVITY") for var_name in sensitivity_settings["nodal_solution_step_sensitivity_variables"].GetStringArray()],
+            ExpressionDataLocation.Condition: [Kratos.KratosGlobals.GetVariable(f"{var_name}_SENSITIVITY") for var_name in sensitivity_settings["condition_data_value_sensitivity_variables"].GetStringArray()],
+            ExpressionDataLocation.Element: [Kratos.KratosGlobals.GetVariable(f"{var_name}_SENSITIVITY") for var_name in sensitivity_settings["element_data_value_sensitivity_variables"].GetStringArray()]
+        }

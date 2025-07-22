@@ -23,6 +23,7 @@
 #include "custom_utilities/control_utils.h"
 #include "custom_utilities/mask_utils.h"
 #include "custom_utilities/smooth_clamper.h"
+#include "custom_utilities/unsmooth_clamper.h"
 #include "custom_utilities/sensor_utils.h"
 #include "custom_utilities/distance_matrix.h"
 
@@ -44,6 +45,22 @@ void AddSmoothClamper(
         .def("ProjectForward", py::overload_cast<const ContainerExpression<TContainerType>&>(&smooth_clamper_type::ProjectForward, py::const_), py::arg("x_expression"))
         .def("CalculateForwardProjectionGradient", py::overload_cast<const ContainerExpression<TContainerType>&>(&smooth_clamper_type::CalculateForwardProjectionGradient, py::const_), py::arg("x_expression"))
         .def("ProjectBackward", py::overload_cast<const ContainerExpression<TContainerType>&>(&smooth_clamper_type::ProjectBackward, py::const_), py::arg("y_expression"))
+        ;
+}
+
+template<class TContainerType>
+void AddUnSmoothClamper(
+    pybind11::module& m,
+    const std::string& rName)
+{
+    namespace py = pybind11;
+
+    using unsmooth_clamper_type = UnSmoothClamper<TContainerType>;
+    py::class_<unsmooth_clamper_type, typename unsmooth_clamper_type::Pointer>(m, (rName + "UnSmoothClamper").c_str())
+        .def(py::init<const double, const double>(), py::arg("min"), py::arg("max"))
+        .def("ProjectForward", py::overload_cast<const ContainerExpression<TContainerType>&>(&unsmooth_clamper_type::ProjectForward, py::const_), py::arg("x_expression"))
+        .def("CalculateForwardProjectionGradient", py::overload_cast<const ContainerExpression<TContainerType>&>(&unsmooth_clamper_type::CalculateForwardProjectionGradient, py::const_), py::arg("x_expression"))
+        .def("ProjectBackward", py::overload_cast<const ContainerExpression<TContainerType>&>(&unsmooth_clamper_type::ProjectBackward, py::const_), py::arg("y_expression"))
         ;
 }
 
@@ -90,6 +107,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     AddSmoothClamper<ModelPart::NodesContainerType>(m, "Node");
     AddSmoothClamper<ModelPart::ConditionsContainerType>(m, "Condition");
     AddSmoothClamper<ModelPart::ElementsContainerType>(m, "Element");
+
+    AddUnSmoothClamper<ModelPart::NodesContainerType>(m, "Node");
+    AddUnSmoothClamper<ModelPart::ConditionsContainerType>(m, "Condition");
+    AddUnSmoothClamper<ModelPart::ElementsContainerType>(m, "Element");
 
     auto mask_utils = m.def_submodule("MaskUtils");
     AddMaskUtilsToPython<ModelPart::NodesContainerType>(mask_utils);
