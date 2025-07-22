@@ -651,8 +651,6 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
     #             self.previous_dt *=alpha
     #             self.dt = self.previous_dt
     #     return self.dt
-<<<<<<< Updated upstream
-=======
 
     def _CreateEdgeBasedLevelSetConvectionProcess(self):
         # Construct the edge based level set convection process
@@ -678,4 +676,3 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
     def __PerformEdgeBasedLevelSetConvection(self):
         self._GetEdgeBasedLevelSetConvectionProcess().Execute()
->>>>>>> Stashed changes
