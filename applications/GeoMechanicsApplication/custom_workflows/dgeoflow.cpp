@@ -25,11 +25,8 @@
 class GeoFlowApplyConstantScalarValueProcess : public Kratos::GeoApplyConstantScalarValueProcess
 {
 public:
-    GeoFlowApplyConstantScalarValueProcess(Kratos::ModelPart&              rModelPart,
-                                           const Kratos::Variable<double>& rVariable,
-                                           double                          DoubleValue,
-                                           bool                            IsFixed)
-        : Kratos::GeoApplyConstantScalarValueProcess(rModelPart, rVariable, DoubleValue, IsFixed)
+    GeoFlowApplyConstantScalarValueProcess(Kratos::ModelPart& rModelPart, const Kratos::Parameters& rSettings)
+        : Kratos::GeoApplyConstantScalarValueProcess(rModelPart, rSettings)
     {
     }
 
@@ -160,8 +157,7 @@ void KratosExecute::ParseProcesses(ModelPart& rModelPart, Parameters projFile)
 
         if (pressure_type == "Uniform") {
             auto value = process["Parameters"]["value"].GetDouble();
-            mProcesses.push_back(make_shared<GeoFlowApplyConstantScalarValueProcess>(
-                part, WATER_PRESSURE, value, true));
+            mProcesses.push_back(make_shared<GeoFlowApplyConstantScalarValueProcess>(part, process["Parameters"]));
         } else if (pressure_type == "Hydrostatic") {
             auto cProcesses = process.Clone();
             cProcesses["Parameters"].RemoveValue("fluid_pressure_type");
@@ -178,12 +174,26 @@ void KratosExecute::ParseProcesses(ModelPart& rModelPart, Parameters projFile)
     std::size_t found   = name.find_last_of('.');
     std::string subname = name.substr(found + 1);
     ModelPart&  part    = rModelPart.GetSubModelPart(subname);
-    mProcesses.push_back(make_shared<GeoApplyConstantScalarValueProcess>(part, VOLUME_ACCELERATION_X, 0.0, true));
+    mProcesses.push_back(make_shared<GeoApplyConstantScalarValueProcess>(part, Parameters{R"(
+        {
+            "variable_name"           : "VOLUME_ACCELERATION_X",
+            "value"          : 0.0,
+            "is_fixed"       : true
+        })"}));
 
-    mProcesses.push_back(
-        make_shared<GeoApplyConstantScalarValueProcess>(part, VOLUME_ACCELERATION_Y, -9.81, true));
+    mProcesses.push_back(make_shared<GeoApplyConstantScalarValueProcess>(part, Parameters{R"(
+        {
+            "variable_name"           : "VOLUME_ACCELERATION_Y",
+            "value"          : -9.81,
+            "is_fixed"       : true
+        })"}));
 
-    mProcesses.push_back(make_shared<GeoApplyConstantScalarValueProcess>(part, VOLUME_ACCELERATION_Z, 0.0, true));
+    mProcesses.push_back(make_shared<GeoApplyConstantScalarValueProcess>(part, Parameters  {R"(
+        {
+            "variable_name"           : "VOLUME_ACCELERATION_Z",
+            "value"          : 0.0,
+            "is_fixed"       : true
+        })" }));
 }
 
 int KratosExecute::MainExecution(ModelPart& rModelPart,

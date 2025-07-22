@@ -36,14 +36,6 @@ public:
 
     GeoApplyConstantScalarValueProcess(Model& rModel, Parameters ThisParameters);
     GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, Parameters ThisParameters);
-    GeoApplyConstantScalarValueProcess(ModelPart&              rModelPart,
-                                       const Variable<double>& rVariable,
-                                       double                  DoubleValue,
-                                       bool                    IsFixed);
-    GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, const Variable<int>& rVariable, int IntValue, bool IsFixed);
-
-    GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, const Variable<bool>& rVariable, bool BoolValue, bool IsFixed);
-
     ~GeoApplyConstantScalarValueProcess() override = default;
 
     void ExecuteInitialize() override;
