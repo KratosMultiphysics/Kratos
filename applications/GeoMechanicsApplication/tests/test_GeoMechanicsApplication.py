@@ -65,6 +65,8 @@ from one_dimensional_consolidation import KratosGeoMechanics1DConsolidation, Kra
 from test_apply_initial_uniform_stress_field import KratosGeoMechanicsApplyInitialUniformStressFieldTests
 from test_dirichlet_release import KratosGeoMechanicsDirichletReleaseTests
 from test_nodal_hydraulic_head import KratosGeoMechanicsHydraulicHeads
+from test_set_moving_load_process import KratosGeoMechanicsSetMovingLoadProcessTests
+from moving_column_with_fixed_pressure_above_phreatic_line import KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -116,6 +118,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsDirichletReleaseTests,
                         KratosGeoMechanicsDeactivationWithStructuralTest,
                         KratosGeoMechanicsHydraulicHeads,
+                        KratosGeoMechanicsSetMovingLoadProcessTests,
     ]
 
     night_test_cases = [
@@ -134,6 +137,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsPartialSaturation,
                         KratosGeoMechanics1DConsolidation,
                         KratosGeoMechanics1DConsolidationCppRoute,
+                        KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine,
                         ]
     night_test_cases.extend(small_test_cases)
 
