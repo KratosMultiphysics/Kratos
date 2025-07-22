@@ -446,7 +446,7 @@ private:
     EquationIdType mEquationId : 48;
 
     /** Equation identificator of the degree of freedom */
-    EquationIdType mEffectiveEquationId : 48;
+    EquationIdType mEffectiveEquationId;
 
     /** A pointer to nodal data stored in node which is corresponded to this dof */
     NodalData* mpNodalData;
