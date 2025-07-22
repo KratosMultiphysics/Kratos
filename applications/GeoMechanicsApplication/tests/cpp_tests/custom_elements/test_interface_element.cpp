@@ -178,34 +178,33 @@ InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(Mo
 }
 
 InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceYZPlaneElementWithUDofs(Model& rModel,
-                                                                              const Properties::Pointer& rProperties)
+                                                                                     const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 1.0));
+    nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, -1.0));
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 1.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(4, 0.0, 0.0, 1.0));
+    nodes.push_back(r_model_part.CreateNewNode(4, 0.0, 0.0, -1.0));
     nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
     return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
 }
 
-
 InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWithUDofs(Model& rModel,
-                                                                              const Properties::Pointer& rProperties)
+                                                                                     const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, -1.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, 1.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(4, 1.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 0.0, -1.0));
+    nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 0.0, 1.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
     return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
 }
@@ -240,10 +239,10 @@ InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacemen
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(1, 0.5 * std::sqrt(3.0), 0.5, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(2, 0.5 * std::sqrt(3.0) - 0.5, 0.5 + 0.5 * std::sqrt(3.0), 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, -0.5, 0.5 * std::sqrt(3.0), 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(4, 0.5 * std::sqrt(3.0), 0.5, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(5, 0.5 * std::sqrt(3.0) - 0.5, 0.5 + 0.5 * std::sqrt(3.0), 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(5, -0.5, 0.5 * std::sqrt(3.0), 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
     return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
 }
@@ -883,8 +882,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
         normal_stiffness, shear_stiffness);
 
     const auto prescribed_displacements =
-        PrescribedDisplacements{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-                                {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+        PrescribedDisplacements{{3, array_1d<double, 3>{1.0, 2.0, 3.0}},
+                                {4, array_1d<double, 3>{1.0, 2.0, 3.0}},
+                                {5, array_1d<double, 3>{1.0, 2.0, 3.0}}};
     auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
                                               p_properties, prescribed_displacements);
 
@@ -979,8 +979,6 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsExpectedLeftAndRightHa
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
-
-
 KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelativeDisplacement,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -991,8 +989,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelati
         normal_stiffness, shear_stiffness);
 
     const auto prescribed_displacements =
-        PrescribedDisplacements{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-                                {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+        PrescribedDisplacements{{0, array_1d<double, 3>{1.0, 2.0, 3.0}},
+                                {1, array_1d<double, 3>{1.0, 2.0, 3.0}},
+                                {2, array_1d<double, 3>{1.0, 2.0, 3.0}}};
     auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
                                               p_properties, prescribed_displacements);
 
@@ -1002,12 +1001,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelati
 
     // Assert
     Vector expected_relative_displacement{3};
-    expected_relative_displacement <<= 0.03839746, -0.0665063516, 0.5330127;
-    std::vector<Vector> expected_relative_displacements;
-    expected_relative_displacements.push_back(expected_relative_displacement);
-    expected_relative_displacements.emplace_back(ZeroVector(3));
-    expected_relative_displacement <<= -0.03839746, 0.0665063516, -0.5330127;
-    expected_relative_displacements.push_back(expected_relative_displacement);
+    expected_relative_displacement <<= -3.0, -0.5 * std::sqrt(3.0) - 1.0, 0.5 - std::sqrt(3);
+    std::vector expected_relative_displacements{3, expected_relative_displacement};
 
     KRATOS_EXPECT_EQ(relative_displacements_at_integration_points.size(), 3);
     for (std::size_t i = 0; i < relative_displacements_at_integration_points.size(); i++) {
@@ -1026,9 +1021,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementHorizontal_CalculateStrain_Ret
         normal_stiffness, shear_stiffness);
 
     const auto prescribed_displacements =
-        PrescribedDisplacements{{0, array_1d<double, 3>{0.0,0.0, 1.0}},
-                                {1, array_1d<double, 3>{0.0,0.0, 1.0}},
-                                {2, array_1d<double, 3>{0.0,0.0, 1.0}}};
+        PrescribedDisplacements{{0, array_1d<double, 3>{0.0, 0.0, 1.0}},
+                                {1, array_1d<double, 3>{0.0, 0.0, 1.0}},
+                                {2, array_1d<double, 3>{0.0, 0.0, 1.0}}};
     auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs,
                                               p_properties, prescribed_displacements);
 
@@ -1060,9 +1055,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInYZPlane_CalculateStrain_Retu
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    const auto prescribed_displacements =
-        PrescribedDisplacements{{0, array_1d<double, 3>{1, 0.0, 0.0}},{1, array_1d<double, 3>{1, 0.0, 0.0}},
-                                {2, array_1d<double, 3>{1, 0.0, 0.0}}};
+    const auto prescribed_displacements = PrescribedDisplacements{{3, array_1d<double, 3>{1.0, 0.0, 0.0}},
+                                                                  {4, array_1d<double, 3>{1.0, 0.0, 0.0}},
+                                                                  {5, array_1d<double, 3>{1.0, 0.0, 0.0}}};
     auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceYZPlaneElementWithUDofs,
                                               p_properties, prescribed_displacements);
 
@@ -1094,9 +1089,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInXZPlane_CalculateStrain_Retu
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    const auto prescribed_displacements =
-        PrescribedDisplacements{{0, array_1d<double, 3>{0, 1, 0.0}},{1, array_1d<double, 3>{0, 1, 0.0}},
-                                {2, array_1d<double, 3>{0, 1, 0.0}}};
+    const auto prescribed_displacements = PrescribedDisplacements{{0, array_1d<double, 3>{0.0, 1.0, 0.0}},
+                                                                  {1, array_1d<double, 3>{0.0, 1.0, 0.0}},
+                                                                  {2, array_1d<double, 3>{0.0, 1.0, 0.0}}};
     auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWithUDofs,
                                               p_properties, prescribed_displacements);
 
@@ -1106,7 +1101,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInXZPlane_CalculateStrain_Retu
 
     // Assert
     Vector expected_relative_displacement{3};
-    expected_relative_displacement <<= -1.0, 0.0, 0.0;
+    expected_relative_displacement <<= 1.0, 0.0, 0.0;
     std::vector<Vector> expected_relative_displacements;
     expected_relative_displacements.push_back(expected_relative_displacement);
     expected_relative_displacements.push_back(expected_relative_displacement);
@@ -1129,8 +1124,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_R
         normal_stiffness, shear_stiffness);
 
     const auto prescribed_displacements =
-        PrescribedDisplacements{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-                                {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+            PrescribedDisplacements{{0, array_1d<double, 3>{1.0, 2.0, 3.0}},
+                                    {1, array_1d<double, 3>{1.0, 2.0, 3.0}},
+                                    {2, array_1d<double, 3>{1.0, 2.0, 3.0}}};
     auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
                                               p_properties, prescribed_displacements);
 
@@ -1140,12 +1136,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_R
 
     // Assert
     Vector expected_traction{3};
-    expected_traction <<= 0.7679492, -0.665063516, 5.330127;
-    std::vector<Vector> expected_tractions;
-    expected_tractions.push_back(expected_traction);
-    expected_tractions.emplace_back(ZeroVector(3));
-    expected_traction <<= -0.7679492, 0.665063516, -5.330127;
-    expected_tractions.push_back(expected_traction);
+    expected_traction <<= -3.0 * normal_stiffness, (-0.5 * std::sqrt(3.0) - 1.0) * shear_stiffness, (0.5 - std::sqrt(3)) * shear_stiffness;
+    std::vector<Vector> expected_tractions{3, expected_traction};
     KRATOS_EXPECT_EQ(tractions_at_integration_points.size(), 3);
     for (std::size_t i = 0; i < tractions_at_integration_points.size(); i++) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(tractions_at_integration_points[i],

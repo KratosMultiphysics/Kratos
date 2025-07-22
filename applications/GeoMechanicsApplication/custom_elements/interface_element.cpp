@@ -233,19 +233,18 @@ std::vector<Matrix> InterfaceElement::CalculateLocalBMatricesAtIntegrationPoints
         const auto rotation_matrix = mfpCalculateRotationMatrix(r_geometry, rIntegrationPoint);
         KRATOS_INFO("rotation matrix") << rotation_matrix << std::endl;
         const auto dummy_gradients = Matrix{};
-        auto       b_matrix              = mpStressStatePolicy->CalculateBMatrix(
+        auto       b_matrix        = mpStressStatePolicy->CalculateBMatrix(
             dummy_gradients, rShapeFunctionValuesAtIntegrationPoint, r_geometry);
 
         Matrix old_rotated_b_matrix = prod(rotation_matrix, b_matrix);
 
         size_t dim = GetGeometry().WorkingSpaceDimension();
-        for (int i = 0; i + dim <= b_matrix.size2(); i+=dim) {
+        for (int i = 0; i + dim <= b_matrix.size2(); i += dim) {
             auto& submatrix = subrange(b_matrix, 0, b_matrix.size1(), i, i + dim);
             KRATOS_INFO("submatrix before") << submatrix << std::endl;
             submatrix = trans(prod(rotation_matrix, trans(submatrix)));
             KRATOS_INFO("submatrix after") << submatrix << std::endl;
         }
-
 
         KRATOS_INFO("new_rotated_b_matrix") << b_matrix << std::endl;
         KRATOS_INFO("old_rotated_b_matrix") << old_rotated_b_matrix << std::endl;
