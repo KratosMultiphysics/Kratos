@@ -331,8 +331,8 @@ public:
         });
 
         // Assemble all conditions
-        IndexPartition<int>(n_conds).for_each([&](int i_cond_idx) {
-            auto it_cond = r_conditions_array.begin() + i_cond_idx;
+        IndexPartition<int>(n_conds).for_each([&](int i_cond) {
+            auto it_cond = r_conditions_array.begin() + i_cond;
             // If the condition is active
             if (it_cond->IsActive()) {
                 // Calculate condition explicit residual contribution
