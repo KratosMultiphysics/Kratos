@@ -10,7 +10,7 @@ This test consists of 553 6-noded elements (using the UPwSmallStrainElement2D6N 
 ![MeshStructure](mesh.svg)
 
 The following constraints are applied. 
-- The bottom nodes are fixed completely and 
+- The bottom nodes are fixed completely. 
 - The nodes on left and right vertical boundaries are allowed to move in the vertical direction only. 
 
 The gravitation acts down in the vertical direction. 
