@@ -45,14 +45,12 @@ void NormalCalculationUtils::CalculateNormalsInContainer(
         auto it_entity = it_entity_begin + i;
         const auto& r_geometry = it_entity->GetGeometry();
 
-        // Avoid not "flat" conditions
-        if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
-            continue;
+        // Check is "flat" conditions
+        if (r_geometry.WorkingSpaceDimension() == r_geometry.LocalSpaceDimension() + 1) {
+            // Set entity normal
+            r_geometry.PointLocalCoordinates(rTLS.aux_coords, r_geometry.Center());
+            it_entity->SetValue(rNormalVariable, r_geometry.UnitNormal(rTLS.aux_coords));
         }
-
-        // Set entity normal
-        r_geometry.PointLocalCoordinates(rTLS.aux_coords, r_geometry.Center());
-        it_entity->SetValue(rNormalVariable, r_geometry.UnitNormal(rTLS.aux_coords));
     });
 
     KRATOS_CATCH("Error in CalculateNormalsInContainer");
@@ -614,18 +612,16 @@ void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm(
         auto it_entity = it_entity_begin + i;
         auto& r_geometry = it_entity->GetGeometry();
 
-        // Avoid not "flat" elements
-        if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
-            continue;
-        }
-
-        // Iterate over nodes
-        const double coefficient = 1.0 / static_cast<double>(r_geometry.PointsNumber());
-        for (auto& r_node : r_geometry) {
-            r_geometry.PointLocalCoordinates(rTLS.aux_coords, r_node.Coordinates());
-            r_node.SetLock();
-            noalias(GetNormalValue<TIsHistorical>(r_node, rNormalVariable)) += (*p_retrieve_normal)(r_geometry, rTLS.aux_coords, coefficient);
-            r_node.UnSetLock();
+        // Check is "flat" conditions
+        if (r_geometry.WorkingSpaceDimension() == r_geometry.LocalSpaceDimension() + 1) {
+            // Iterate over nodes
+            const double coefficient = 1.0 / static_cast<double>(r_geometry.PointsNumber());
+            for (auto& r_node : r_geometry) {
+                r_geometry.PointLocalCoordinates(rTLS.aux_coords, r_node.Coordinates());
+                r_node.SetLock();
+                noalias(GetNormalValue<TIsHistorical>(r_node, rNormalVariable)) += (*p_retrieve_normal)(r_geometry, rTLS.aux_coords, coefficient);
+                r_node.UnSetLock();
+            }
         }
     });
 
