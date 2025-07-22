@@ -124,6 +124,25 @@ public:
     ///@name Input and output
     ///@{
 
+    static Parameters GetSpecifications(const Parameters rParameters)
+    {
+        const Parameters specifications = Parameters(R"({
+            "required_solution_step_data_variables" : [],
+            "required_dofs" : [],
+            "nodal_flags_used" : [],
+            "elemental_flags_used" : [],
+            "condition_flags_used" : [],
+            "documentation" : "This process assigns a scalar value to an entity (nodes, elements, conditions and constraints)."
+        })");
+
+        if constexpr (std::is_same<TEntity, Node>::value && THistorical == AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable) {
+            const std::vector<std::string> req_var_vect{rParameters["variable_name"].GetString()};
+            specifications["required_solution_step_data_variables"].SetStringArray(req_var_vect);
+        }
+
+        return specifications;
+    }
+
     /// Turn back information as a string.
     std::string Info() const override
     {

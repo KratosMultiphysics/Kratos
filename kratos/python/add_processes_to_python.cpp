@@ -507,7 +507,7 @@ void  AddProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, ModelPart&, Parameters>())
     ;
 
-    py::class_<ApplyRayCastingInterfaceRecognitionProcess<2>, 
+    py::class_<ApplyRayCastingInterfaceRecognitionProcess<2>,
       ApplyRayCastingInterfaceRecognitionProcess<2>::Pointer, Process>
       (m,"ApplyRayCastingInterfaceRecognitionProcess2D")
         .def(py::init<Model&, Parameters>())
@@ -542,6 +542,7 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable>, AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"AssignScalarVariableHistoricalToNodesProcess")
     .def(py::init<Model&, Parameters >())
     .def(py::init<ModelPart&, Parameters >())
+    .def_static("GetSpecifications", &AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable>::GetSpecifications)
     ;
 
     py::class_<AssignScalarVariableToEntitiesProcess<Condition>, AssignScalarVariableToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarVariableToConditionsProcess")

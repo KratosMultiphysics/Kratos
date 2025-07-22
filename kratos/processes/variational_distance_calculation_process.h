@@ -457,6 +457,20 @@ public:
     ///@name Input and output
     ///@{
 
+    static Parameters GetSpecifications(const Parameters rParameters)
+    {
+        const Parameters specifications = Parameters(R"({
+            "required_solution_step_data_variables" : ["DISTANCE"],
+            "required_dofs" : [],
+            "nodal_flags_used" : [],
+            "elemental_flags_used" : [],
+            "condition_flags_used" : [],
+            "documentation" : "This is process extends the distance field by solving the Eikonal equation. Note that an auxiliary model part is created to solve the redistance problem."
+        })");
+
+        return specifications;
+    }
+
     /// Turn back information as a string.
     std::string Info() const override
     {

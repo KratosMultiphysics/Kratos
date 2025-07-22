@@ -141,3 +141,22 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
                 self.variable_utils.ApplyFixity(self.variable, fixity_status, self.model_part.Nodes)
 
         self.step_is_active = False
+
+    @staticmethod
+    def GetSpecifications(settings):
+        # Set base empty specifications for processes
+        specifications = KratosMultiphysics.Parameters("""{
+            "required_solution_step_data_variables" : [],
+            "required_dofs" : [],
+            "nodal_flags_used" : [],
+            "elemental_flags_used" : [],
+            "condition_flags_used" : [],
+            "documentation" : "This process sets a given scalar value for a certain variable in all the nodes of a submodelpart."
+        }""")
+
+        # Customize specifications according to input settings
+        specifications["required_solution_step_data_variables"].SetStringArray([settings["variable_name"].GetString()])
+        if settings["constrained"].GetBool():
+            specifications["required_dofs"].SetStringArray([settings["variable_name"].GetString()])
+
+        return specifications
