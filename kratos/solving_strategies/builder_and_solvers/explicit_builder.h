@@ -314,13 +314,13 @@ public:
         // Gets the array of elements, conditions and constraints from the modeler
         const auto &r_elements_array = rModelPart.Elements();
         const auto &r_conditions_array = rModelPart.Conditions();
-        const int n_elems = static_cast<int>(r_elements_array.size());
-        const int n_conds = static_cast<int>(r_conditions_array.size());
+        const std::size_t n_elems = r_elements_array.size();
+        const std::size_t n_conds = r_conditions_array.size();
 
         const auto& r_process_info = rModelPart.GetProcessInfo();
 
         // Assemble all elements
-        IndexPartition<int>(n_elems).for_each([&](int i_elem) {
+        IndexPartition<std::size_t>(n_elems).for_each([&](std::size_t i_elem) {
             auto it_elem = r_elements_array.begin() + i_elem;
             // If the element is active
             if (it_elem->IsActive()) {
@@ -331,7 +331,7 @@ public:
         });
 
         // Assemble all conditions
-        IndexPartition<int>(n_conds).for_each([&](int i_cond) {
+        IndexPartition<std::size_t>(n_conds).for_each([&](std::size_t i_cond) {
             auto it_cond = r_conditions_array.begin() + i_cond;
             // If the condition is active
             if (it_cond->IsActive()) {
@@ -668,8 +668,8 @@ protected:
         KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Trying to set the equation ids. in an empty DOF set (equation system size is 0)." << std::endl;
 
         // Loop the DOF set to assign the equation ids
-        IndexPartition<int>(mEquationSystemSize).for_each(
-            [&](int i_dof){
+        IndexPartition<unsigned int>(mEquationSystemSize).for_each(
+            [&](unsigned int i_dof){
                 auto it_dof = mDofSet.begin() + i_dof;
                 it_dof->SetEquationId(i_dof);
             }
@@ -698,20 +698,25 @@ protected:
         // Loop the elements to get the lumped mass vector
         const auto &r_elements_array = rModelPart.Elements();
         const auto &r_process_info = rModelPart.GetProcessInfo();
-        const int n_elems = static_cast<int>(r_elements_array.size());
+        const std::size_t n_elems = r_elements_array.size();
 
-        IndexPartition<int>(n_elems).for_each([&](int i_elem){
+        // Auxiliary definitions
+        struct TLS {
             LocalSystemVectorType elem_mass_vector;
             std::vector<std::size_t> elem_equation_id;
+        };
+
+        // Iterate over elements
+        IndexPartition<std::size_t>(n_elems).for_each(TLS(), [&](std::size_t i_elem, TLS& rTLS){
             const auto it_elem = r_elements_array.begin() + i_elem;
 
             // Calculate the elemental lumped mass vector
-            it_elem->CalculateLumpedMassVector(elem_mass_vector, r_process_info);
-            it_elem->EquationIdVector(elem_equation_id, r_process_info);
+            it_elem->CalculateLumpedMassVector(rTLS.elem_mass_vector, r_process_info);
+            it_elem->EquationIdVector(rTLS.elem_equation_id, r_process_info);
 
             // Update value of lumped mass vector
-            for (IndexType i = 0; i < elem_equation_id.size(); ++i) {
-                AtomicAdd((*mpLumpedMassVector)[elem_equation_id[i]], elem_mass_vector(i));
+            for (IndexType i = 0; i < rTLS.elem_equation_id.size(); ++i) {
+                AtomicAdd((*mpLumpedMassVector)[rTLS.elem_equation_id[i]], rTLS.elem_mass_vector(i));
             }
         });
 
