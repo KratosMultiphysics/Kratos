@@ -320,8 +320,8 @@ public:
         const auto& r_process_info = rModelPart.GetProcessInfo();
 
         // Assemble all elements
-        IndexPartition<int>(n_elems).for_each([&](int i_elem_idx) {
-            auto it_elem = r_elements_array.begin() + i_elem_idx;
+        IndexPartition<int>(n_elems).for_each([&](int i_elem) {
+            auto it_elem = r_elements_array.begin() + i_elem;
             // If the element is active
             if (it_elem->IsActive()) {
                 // Calculate elemental explicit residual contribution
