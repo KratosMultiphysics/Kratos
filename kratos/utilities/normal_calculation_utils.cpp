@@ -45,7 +45,7 @@ void NormalCalculationUtils::CalculateNormalsInContainer(
         auto it_entity = it_entity_begin + i;
         const auto& r_geometry = it_entity->GetGeometry();
 
-        // Check is "flat" conditions
+        // Check is "flat" geometry
         if (r_geometry.WorkingSpaceDimension() == r_geometry.LocalSpaceDimension() + 1) {
             // Set entity normal
             r_geometry.PointLocalCoordinates(rTLS.aux_coords, r_geometry.Center());
@@ -612,7 +612,7 @@ void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm(
         auto it_entity = it_entity_begin + i;
         auto& r_geometry = it_entity->GetGeometry();
 
-        // Check is "flat" conditions
+        // Check is "flat" geometry
         if (r_geometry.WorkingSpaceDimension() == r_geometry.LocalSpaceDimension() + 1) {
             // Iterate over nodes
             const double coefficient = 1.0 / static_cast<double>(r_geometry.PointsNumber());
