@@ -11,9 +11,7 @@
 //                   Carlos Roig
 //
 
-
-#if !defined(KRATOS_LOGGER_H_INCLUDED )
-#define  KRATOS_LOGGER_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -23,8 +21,6 @@
 #include "input_output/logger_message.h"
 #include "input_output/logger_output.h"
 #include "includes/exception.h"
-
-
 
 namespace Kratos
 {
@@ -321,7 +317,4 @@ namespace Kratos
     ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LOGGER_H_INCLUDED  defined
-
 
