@@ -700,10 +700,10 @@ protected:
         const auto &r_process_info = rModelPart.GetProcessInfo();
         const int n_elems = static_cast<int>(r_elements_array.size());
 
-        IndexPartition<int>(n_elems).for_each([&](int i_elem_idx){
+        IndexPartition<int>(n_elems).for_each([&](int i_elem){
             LocalSystemVectorType elem_mass_vector;
             std::vector<std::size_t> elem_equation_id;
-            const auto it_elem = r_elements_array.begin() + i_elem_idx;
+            const auto it_elem = r_elements_array.begin() + i_elem;
 
             // Calculate the elemental lumped mass vector
             it_elem->CalculateLumpedMassVector(elem_mass_vector, r_process_info);
