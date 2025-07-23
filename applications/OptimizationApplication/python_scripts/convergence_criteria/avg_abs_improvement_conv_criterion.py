@@ -46,8 +46,8 @@ class AvgAbsImprovementConvCriterion(ConvergenceCriterion):
         if self.__tolerance < 0.0:
             raise RuntimeError(f"Tolerance should be non-negative [ tolerance = {self.__tolerance} ].")
 
-        if self.__tracked_iter <= 1:
-            raise RuntimeError(f"The tracked_iter value must be greater than 1 [ tracked_iter = {self.__tracked_iter} ].")
+        if self.__tracked_iter <= 2:
+            raise RuntimeError(f"The tracked_iter value must be greater than 2 [ tracked_iter = {self.__tracked_iter} ].")
 
         self.__abs_value_change = numpy.zeros(self.__tracked_iter - 1)
 
