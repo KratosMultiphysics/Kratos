@@ -92,8 +92,8 @@ class PatienceConvCriterion(ConvergenceCriterion):
         else:
             self.__conv = False
 
-        self.__component_data_view.GetBufferedData().SetValue(f"{self.__value_name.split(":")[0]}_best_value", self.__best_value)
-        self.__component_data_view.GetBufferedData().SetValue(f"{self.__value_name.split(":")[0]}_patience_step", self.__patience_step)
+        self.__component_data_view.GetBufferedData().SetValue(f"{self.__value_name.split(":")[0]}_{self.__patience_itr}_best_value", self.__best_value)
+        self.__component_data_view.GetBufferedData().SetValue(f"{self.__value_name.split(":")[0]}_{self.__patience_itr}_patience_step", self.__patience_step)
 
         return self.__conv
 
