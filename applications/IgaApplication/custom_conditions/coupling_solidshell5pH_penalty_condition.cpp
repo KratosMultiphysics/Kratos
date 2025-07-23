@@ -162,7 +162,7 @@ namespace Kratos
 
             for (IndexType i = 0; i < number_of_nodes_slave; ++i)
             {
-                IndexType index = 5 * (i + number_of_nodes_master);
+                IndexType index = 5 * i + 3 * number_of_nodes_master;
                 if (Is(IgaFlags::FIX_DISPLACEMENT_X)) {
                     H(0, index + 0) = -N_slave(point_number, i) - OutOfPlaneDeformationFirstVariationMatrix(0, 3 * i + 0);
                     H(0, index + 1) = -OutOfPlaneDeformationFirstVariationMatrix(0, 3 * i + 1);
@@ -324,14 +324,14 @@ namespace Kratos
             size_t dirr = r % 2;
             size_t kr = r / 2;
             if (dirr == 0) {
-                HSDVFirstVariationMatrix(0, kr) = N_slave(IntegrationPointIndex, kr) * A1(0);
-                HSDVFirstVariationMatrix(1, kr) = N_slave(IntegrationPointIndex, kr) * A1(1);
-                HSDVFirstVariationMatrix(2, kr) = N_slave(IntegrationPointIndex, kr) * A1(2);
+                HSDVFirstVariationMatrix(0, r) = theta * N_slave(IntegrationPointIndex, kr) * A1(0);
+                HSDVFirstVariationMatrix(1, r) = theta * N_slave(IntegrationPointIndex, kr) * A1(1);
+                HSDVFirstVariationMatrix(2, r) = theta * N_slave(IntegrationPointIndex, kr) * A1(2);
             }
             else if (dirr == 1) {
-                HSDVFirstVariationMatrix(0, kr) = N_slave(IntegrationPointIndex, kr) * A2(0);
-                HSDVFirstVariationMatrix(1, kr) = N_slave(IntegrationPointIndex, kr) * A2(1);
-                HSDVFirstVariationMatrix(2, kr) = N_slave(IntegrationPointIndex, kr) * A2(2);
+                HSDVFirstVariationMatrix(0, r) = theta * N_slave(IntegrationPointIndex, kr) * A2(0);
+                HSDVFirstVariationMatrix(1, r) = theta * N_slave(IntegrationPointIndex, kr) * A2(1);
+                HSDVFirstVariationMatrix(2, r) = theta * N_slave(IntegrationPointIndex, kr) * A2(2);
             }
         }
     }
