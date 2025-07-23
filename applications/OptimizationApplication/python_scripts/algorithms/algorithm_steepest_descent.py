@@ -165,7 +165,7 @@ class AlgorithmSteepestDescent(Algorithm):
             "module"  : "KratosMultiphysics.OptimizationApplication.convergence_criteria",
             "settings": {}
         }""")
-        settings.ValidateAndAssignDefaults(default_settings)
+        settings.AddMissingParameters(default_settings)
 
         max_iter_params = Kratos.Parameters("""{
             "max_iter": """ + str(settings["max_iter"].GetInt()) + """
