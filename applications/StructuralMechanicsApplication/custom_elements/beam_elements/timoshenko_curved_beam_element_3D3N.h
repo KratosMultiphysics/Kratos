@@ -475,7 +475,49 @@ private:
     ///@name Private Operations
     ///@{
 
-    Vector CalculateStrainVector(double Xi);
+    Vector CalculateStrainVector(const BoundedMatrix<double, 6, 18> &rB,
+                                 const GlobalSizeVector &rNodalValues) const;
+
+    /**
+     * @brief Reorder the stress vector from the CL to the Romero et al. notation
+     * CL order: [axial, kappa_x, kappa_y, kappa_z, shear_xy, shear_xz ]
+     * Romero et al. order: [axial, shear_xy, shear_xz, kappa_x, kappa_y, kappa_z]
+     * @param ThisConstitutiveLawVector Constitutive laws used
+     */
+    Vector ConvertGeneralizedVectorComponents(const Vector &rCLStressVector) const
+    {
+        // Convert the stress vector from the CL to the Romero et al.
+        Vector stress_vector(StrainSize);
+
+        stress_vector[0] = rCLStressVector[0];
+        stress_vector[1] = rCLStressVector[4];
+        stress_vector[2] = rCLStressVector[5];
+        stress_vector[3] = rCLStressVector[1];
+        stress_vector[4] = rCLStressVector[2];
+        stress_vector[5] = rCLStressVector[3];
+        return stress_vector;
+    }
+
+    /**
+     * @brief Reorder the constitutive matrix from the CL to the Romero et al. notation
+     * CL order: [axial, kappa_x, kappa_y, kappa_z, shear_xy, shear_xz ]
+     * Romero et al. order: [axial, shear_xy, shear_xz, kappa_x, kappa_y, kappa_z]
+     * @param ThisConstitutiveLawVector Constitutive laws used
+     */
+    Matrix ConvertConstitutiveMatrixComponents(const Matrix &rCLConstitutiveMatrix) const
+    {
+        // Convert the constitutive matrix from the CL to the Romero et al.
+        Matrix constitutive_matrix(StrainSize, StrainSize);
+        constitutive_matrix.clear();
+        constitutive_matrix(0, 0) = rCLConstitutiveMatrix(0, 0);
+        constitutive_matrix(1, 1) = rCLConstitutiveMatrix(4, 4);
+        constitutive_matrix(2, 2) = rCLConstitutiveMatrix(5, 5);
+        constitutive_matrix(3, 3) = rCLConstitutiveMatrix(1, 1);
+        constitutive_matrix(4, 4) = rCLConstitutiveMatrix(2, 2);
+        constitutive_matrix(5, 5) = rCLConstitutiveMatrix(3, 3);
+        return constitutive_matrix;
+    }
+
     ///@}
     ///@name Private  Access
     ///@{

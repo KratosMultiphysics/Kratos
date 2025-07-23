@@ -378,13 +378,13 @@ BoundedMatrix<double, 6, 18> LinearTimoshenkoCurvedBeamElement3D3N::CalculateB(
     for (IndexType i_node = 0; i_node < NumberOfNodes; ++i_node) { // loop over node blocks
         const IndexType local_col_0 = i_node * DoFperNode;
 
-        // We fill the derivative terms
-        B(0, local_col_0)     = rdN[i_node];
-        B(1, local_col_0 + 3) = rdN[i_node];
-        B(2, local_col_0 + 4) = rdN[i_node];
-        B(3, local_col_0 + 5) = rdN[i_node];
-        B(4, local_col_0 + 1) = rdN[i_node];
-        B(5, local_col_0 + 2) = rdN[i_node];
+        // We fill the derivative terms (Romero's notation)
+        B(0, local_col_0)     = rdN[i_node]; // axial
+        B(1, local_col_0 + 1) = rdN[i_node]; // shear xy
+        B(2, local_col_0 + 2) = rdN[i_node]; // shear xz
+        B(3, local_col_0 + 3) = rdN[i_node]; // kappa x
+        B(4, local_col_0 + 4) = rdN[i_node]; // kappa y
+        B(5, local_col_0 + 5) = rdN[i_node]; // kappa z
 
         // We fill the remaining terms
         // axial
@@ -392,12 +392,12 @@ BoundedMatrix<double, 6, 18> LinearTimoshenkoCurvedBeamElement3D3N::CalculateB(
         B(0, local_col_0 + 5) =  rt[1] * rN[i_node];  
 
         // shear xy
-        B(4, local_col_0 + 3) =  rt[2] * rN[i_node];
-        B(4, local_col_0 + 5) = -rt[0] * rN[i_node];
+        B(1, local_col_0 + 3) =  rt[2] * rN[i_node];
+        B(1, local_col_0 + 5) = -rt[0] * rN[i_node];
 
         // shear xz
-        B(5, local_col_0 + 3) = -rt[1] * rN[i_node];
-        B(5, local_col_0 + 4) =  rt[0] * rN[i_node];
+        B(2, local_col_0 + 3) = -rt[1] * rN[i_node];
+        B(2, local_col_0 + 4) =  rt[0] * rN[i_node];
     }
     return B;
 }
@@ -481,14 +481,14 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateLocalSystem(
         noalias(B) = CalculateB(shape_functions, d_shape_functions, t);
         B = prod(element_frenet_serret, B);
 
-        noalias(strain_vector) = prod(B, nodal_values);
+        noalias(strain_vector) = CalculateStrainVector(B, nodal_values);
 
         mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
-        const Vector &r_generalized_stresses = cl_values.GetStressVector();
-        const MatrixType& r_constitutive_matrix = cl_values.GetConstitutiveMatrix();
+        const Vector &r_generalized_stresses = ConvertGeneralizedVectorComponents(cl_values.GetStressVector());
+        const MatrixType& r_constitutive_matrix = ConvertConstitutiveMatrixComponents(cl_values.GetConstitutiveMatrix());
 
         noalias(rRHS) -= jacobian_weight * prod(trans(B), r_generalized_stresses);
-        noalias(rLHS) += jacobian_weight * (prod(trans(B), Matrix(prod(r_constitutive_matrix, B))));
+        noalias(rLHS) += jacobian_weight * prod(trans(B), Matrix(prod(r_constitutive_matrix, B)));
 
         // TODO: body forcs
         // auto body_forces = GetBodyForce(*this, r_integration_points, IP);
@@ -560,12 +560,10 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateLeftHandSide(
         noalias(B) = CalculateB(shape_functions, d_shape_functions, t);
         B = prod(element_frenet_serret, B);
 
-        noalias(strain_vector) = prod(B, nodal_values);
+        noalias(strain_vector) = CalculateStrainVector(B, nodal_values);
 
         mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
-        const Vector &r_generalized_stresses = cl_values.GetStressVector();
-
-        const MatrixType& r_constitutive_matrix = cl_values.GetConstitutiveMatrix();
+        const MatrixType& r_constitutive_matrix = ConvertConstitutiveMatrixComponents(cl_values.GetConstitutiveMatrix());
 
         noalias(rLHS) += jacobian_weight * (prod(trans(B), Matrix(prod(r_constitutive_matrix, B))));
 
@@ -634,10 +632,10 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateRightHandSide(
         noalias(B) = CalculateB(shape_functions, d_shape_functions, t);
         B = prod(element_frenet_serret, B);
 
-        noalias(strain_vector) = prod(B, nodal_values);
+        noalias(strain_vector) = CalculateStrainVector(B, nodal_values);
 
         mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
-        const Vector &r_generalized_stresses = cl_values.GetStressVector();
+        const Vector &r_generalized_stresses = ConvertGeneralizedVectorComponents(cl_values.GetStressVector());
 
 
         noalias(rRHS) -= jacobian_weight * prod(trans(B), r_generalized_stresses);
@@ -735,33 +733,24 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector LinearTimoshenkoCurvedBeamElement3D3N::CalculateStrainVector(double Xi)
+Vector LinearTimoshenkoCurvedBeamElement3D3N::CalculateStrainVector(
+    const BoundedMatrix<double, 6, 18>& rB,
+    const GlobalSizeVector& rNodalValues
+    ) const
 {
-    // GlobalSizeVector nodal_values, dNu, dN_theta, n_shape, nu, n_theta, dN_shape;
+    const Vector aux_strain = prod(rB, rNodalValues);
 
-    // GetNodalValuesVector(nodal_values);
-    // GetShapeFunctionsValuesGlobalVectors(GetShapeFunctionsValues(Xi), n_shape, nu, n_theta);
-    // GetShapeFunctionsValuesGlobalVectors(GetFirstDerivativesShapeFunctionsValues(Xi, GetJacobian(Xi)), dN_shape, dNu, dN_theta);
+    Vector strain_vector(StrainSize);
 
-    // array_3 t, n;
-    // GetTangentandTransverseUnitVectors(Xi, t, n);
-    // BoundedMatrix<double, 2, 9> aux_B_s;
-    // for (IndexType i = 0; i < SystemSize; ++i) {
-    //     aux_B_s(0, i) = dNu[i] + t[1] * n_theta[i];
-    //     aux_B_s(1, i) = dN_shape[i] - t[0] * n_theta[i];
-    // }
+    // We reorder from Romero et al. to the one in CL
+    strain_vector[0] = aux_strain[0];
+    strain_vector[1] = aux_strain[3];
+    strain_vector[2] = aux_strain[4];
+    strain_vector[3] = aux_strain[5];
+    strain_vector[4] = aux_strain[1];
+    strain_vector[5] = aux_strain[2];
 
-    // BoundedMatrix<double, 2, 2> frenet_serret = GetFrenetSerretMatrix(Xi, t, n);
-    // BoundedVector<double, 2> gamma = prod(prod(frenet_serret, aux_B_s), nodal_values);
-
-    // Vector strain_vector(3);
-    // strain_vector.clear();
-    // strain_vector[0] = gamma[0]; // axial strain
-    // strain_vector[2] = gamma[1]; // shear strain
-    // strain_vector[1] = inner_prod(dN_theta, nodal_values); // curvature
-
-    // return strain_vector;
-    return Vector();
+    return strain_vector;
 }
 
 /***********************************************************************************/
