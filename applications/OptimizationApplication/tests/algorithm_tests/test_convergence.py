@@ -10,6 +10,7 @@ import KratosMultiphysics.OptimizationApplication.convergence_criteria.avg_abs_i
 import KratosMultiphysics.OptimizationApplication.convergence_criteria.target_value_conv_criterion as target_value_conv_criterion
 import KratosMultiphysics.OptimizationApplication.convergence_criteria.magnitude_reduction_conv_criterion as magnitude_reduction_conv_criterion
 import KratosMultiphysics.OptimizationApplication.convergence_criteria.constraint_conv_criterion as constraint_conv_criterion
+import KratosMultiphysics.OptimizationApplication.convergence_criteria.patience_conv_criterion as patience_conv_criterion
 
 class TestConvergence(kratos_unittest.TestCase):
     @classmethod
@@ -287,6 +288,40 @@ class TestConvergence(kratos_unittest.TestCase):
         algorithm_data.GetBufferedData()["search_direction"] = search_direction / 1e+6
         algorithm_data.GetBufferedData()["std_obj_value"] = 1e-9
         self.assertTrue(convergence_criterion.IsConverged())
+
+    def test_PatienceConvCriterion(self):
+        algorithm_data = ComponentDataView("algorithm", self.optimization_problem)
+        param = Kratos.Parameters("""{
+            "minimum_itr" : 3,
+            "patience_itr": 2
+        }""")
+        convergence_criterion = patience_conv_criterion.PatienceConvCriterion(param, self.optimization_problem)
+        convergence_criterion.Initialize()
+
+        algorithm_data.GetBufferedData()["std_obj_value"] = 1e-4
+        self.assertFalse(convergence_criterion.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 1e-4 / 5
+        self.assertFalse(convergence_criterion.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 1e-4 / 10
+        self.assertFalse(convergence_criterion.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 1e-4 / 15
+        self.assertFalse(convergence_criterion.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 1e-4 / 15
+        self.assertFalse(convergence_criterion.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 1e-4 / 150
+        self.assertFalse(convergence_criterion.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 1e-4 / 10
+        self.assertFalse(convergence_criterion.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 1e-4 / 10
+        self.assertTrue(convergence_criterion.IsConverged())
+
 
 if __name__ == "__main__":
     kratos_unittest.main()
