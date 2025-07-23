@@ -1013,8 +1013,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsExpectedLeftAndRightHa
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
     auto expected_right_hand_side = Vector{18};
-    expected_right_hand_side <<= 0.333333, 0.833333, 0, 0, 0, 0, -0.333333, -0.833333, 0,
-        -0.333333, -0.833333, 0, 0, 0, 0, 0.333333, 0.833333, 0;
+    expected_right_hand_side <<= 0.333333, 0.833333, 0, 0, 0, 0, -0.333333, -0.833333, 0, -0.333333,
+        -0.833333, 0, 0, 0, 0, 0.333333, 0.833333, 0;
     KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, expected_right_hand_side, 1e-5)
 }
 
@@ -1253,9 +1253,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_6Plus6NodedElement_ReturnsExp
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
     auto expected_right_hand_side = Vector(36);
-    expected_right_hand_side <<= 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.300469, -0.751174, 0,
-        -0.300469, -0.751174, 0, -0.300469, -0.751174, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0.300469, 0.751174, 0, 0.300469, 0.751174, 0, 0.300469, 0.751174, 0;
+    expected_right_hand_side <<= 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.300469, -0.751174, 0, -0.300469,
+        -0.751174, 0, -0.300469, -0.751174, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.300469, 0.751174, 0,
+        0.300469, 0.751174, 0, 0.300469, 0.751174, 0;
     KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, expected_right_hand_side, 1e-5)
 }
 

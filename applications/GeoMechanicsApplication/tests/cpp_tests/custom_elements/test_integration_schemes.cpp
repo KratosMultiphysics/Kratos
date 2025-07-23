@@ -188,13 +188,15 @@ KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLumpedScheme
     constexpr auto area_quadrilateral = 4.0;
     for (auto number : SupportedNumbersOfPointsForQuadrilateralLumpedIntegration()) {
         const auto p_scheme = MakeLumpedIntegrationScheme(number);
-        KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(p_scheme->GetIntegrationPoints()), area_quadrilateral, Defaults::relative_tolerance)
+        KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(p_scheme->GetIntegrationPoints()),
+                                    area_quadrilateral, Defaults::relative_tolerance)
     }
 
     constexpr auto area_triangle = 0.5;
     for (auto number : SupportedNumbersOfPointsForTriangleLumpedIntegration()) {
         const auto p_scheme = MakeLumpedIntegrationScheme(number);
-        KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(p_scheme->GetIntegrationPoints()), area_triangle, Defaults::relative_tolerance)
+        KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(p_scheme->GetIntegrationPoints()), area_triangle,
+                                    Defaults::relative_tolerance)
     }
 }
 
