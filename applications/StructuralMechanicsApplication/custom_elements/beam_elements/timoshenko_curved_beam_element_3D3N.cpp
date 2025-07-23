@@ -103,22 +103,24 @@ void LinearTimoshenkoCurvedBeamElement3D3N::EquationIdVector(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    const auto& r_geometry = this->GetGeometry();
+    const auto& r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
-    const SizeType dofs_per_node = DoFperNode; // u, v, theta
 
     IndexType local_index = 0;
 
-    if (rResult.size() != dofs_per_node * number_of_nodes)
-        rResult.resize(dofs_per_node * number_of_nodes, false);
+    if (rResult.size() != SystemSize)
+        rResult.resize(SystemSize, false);
 
-    const IndexType xpos    = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
-    const IndexType rot_pos = this->GetGeometry()[0].GetDofPosition(ROTATION_Z);
+    const IndexType xpos    = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType rot_pos = r_geometry[0].GetDofPosition(ROTATION_X);
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
-        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos    ).EquationId();
-        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Y, xpos + 1).EquationId();
-        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z    , rot_pos ).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos       ).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Y, xpos + 1   ).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Z, xpos + 2   ).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_X    , rot_pos    ).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Y    , rot_pos + 1).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z    , rot_pos + 2).EquationId();
     }
 }
 
@@ -135,14 +137,18 @@ void LinearTimoshenkoCurvedBeamElement3D3N::GetDofList(
     const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType dofs_per_node = DoFperNode; // u, v, theta
-    rElementalDofList.resize(dofs_per_node * number_of_nodes);
+    rElementalDofList.resize(SystemSize);
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         const SizeType index = i * dofs_per_node;
         rElementalDofList[index]     = r_geom[i].pGetDof(DISPLACEMENT_X);
         rElementalDofList[index + 1] = r_geom[i].pGetDof(DISPLACEMENT_Y);
-        rElementalDofList[index + 2] = r_geom[i].pGetDof(ROTATION_Z    );
+        rElementalDofList[index + 2] = r_geom[i].pGetDof(DISPLACEMENT_Z);
+        rElementalDofList[index + 3] = r_geom[i].pGetDof(ROTATION_X    );
+        rElementalDofList[index + 4] = r_geom[i].pGetDof(ROTATION_Y    );
+        rElementalDofList[index + 5] = r_geom[i].pGetDof(ROTATION_Z    );
     }
+
     KRATOS_CATCH("")
 }
 
@@ -216,7 +222,8 @@ LinearTimoshenkoCurvedBeamElement3D3N::array_3 LinearTimoshenkoCurvedBeamElement
 void LinearTimoshenkoCurvedBeamElement3D3N::GetTangentandTransverseUnitVectors(
     const double xi,
     array_3& rt,
-    array_3& rn
+    array_3& rn,
+    array_3& rb
     ) const
 {
     const auto& r_geom = GetGeometry();
@@ -226,17 +233,21 @@ void LinearTimoshenkoCurvedBeamElement3D3N::GetTangentandTransverseUnitVectors(
 
     double dx_dxi = 0.0;
     double dy_dxi = 0.0;
+    double dz_dxi = 0.0;
 
     double d2x_dxi2 = 0.0;
     double d2y_dxi2 = 0.0;
+    double d2z_dxi2 = 0.0;
 
     for (IndexType i = 0; i < NumberOfNodes; ++i) {
         const auto &r_coords_node = r_geom[i].GetInitialPosition();
         dx_dxi += r_coords_node[0] * dN_dxi[i];
         dy_dxi += r_coords_node[1] * dN_dxi[i];
+        dz_dxi += r_coords_node[2] * dN_dxi[i];
 
         d2x_dxi2 += r_coords_node[0] * d2N_dxi2[i];
         d2y_dxi2 += r_coords_node[1] * d2N_dxi2[i];
+        d2z_dxi2 += r_coords_node[2] * d2N_dxi2[i];
     }
 
     array_3 x_prime, x_2prime, b, aux;
@@ -244,24 +255,43 @@ void LinearTimoshenkoCurvedBeamElement3D3N::GetTangentandTransverseUnitVectors(
     x_2prime.clear();
     rt.clear();
     rn.clear();
-    b.clear();
+    rb.clear();
 
     x_prime[0] = dx_dxi;
     x_prime[1] = dy_dxi;
+    x_prime[2] = dz_dxi;
 
     x_2prime[0] = d2x_dxi2;
     x_2prime[1] = d2y_dxi2;
+    x_2prime[2] = d2z_dxi2;
 
     noalias(rt) = x_prime / norm_2(x_prime);
 
     noalias(aux) = MathUtils<double>::CrossProduct(x_prime, x_2prime);
-    const double norm = norm_2(MathUtils<double>::CrossProduct(x_prime, x_2prime));
-    if (norm != 0.0) // if the beam is not curved
-        noalias(b) = aux / norm;
-    else
-        b[2] = 1.0;
+    const double norm = norm_2(aux);
 
-    noalias(rn) = MathUtils<double>::CrossProduct(rt, b);
+    // Compute the binormal vector
+    if (norm > Tolerance) { // if the beam is curved
+        noalias(rb) = aux / norm;
+    } else {
+
+        rb[2] = 1.0;
+        // Ortogonalize b
+        rb -= MathUtils<double>::DotProduct(rb, rt) * rt;
+        double norm_b = norm_2(rb);
+
+        if (norm_b > Tolerance) { // if the beam is not straight
+            rb /= norm_b;
+        } else {
+            rb[0] = 0.0;
+            rb[1] = 1.0;
+            rb[2] = 0.0;
+            rb -= MathUtils<double>::DotProduct(rb, rt) * rt;
+            rb /= norm_2(rb);
+        }
+    }
+
+    noalias(rn) = MathUtils<double>::CrossProduct(rt, rb);
 }
 
 /***********************************************************************************/

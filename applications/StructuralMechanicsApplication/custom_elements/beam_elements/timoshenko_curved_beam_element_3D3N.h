@@ -71,6 +71,7 @@ public:
     static constexpr SizeType DoFperNode    = 6;
     static constexpr SizeType Dimension     = 3;
     static constexpr SizeType StrainSize    = 6;
+    static constexpr double Tolerance       = 1.0e-12;
 
     using GlobalSizeVector = BoundedVector<double, SystemSize>;
     using array_3 = array_1d<double, 3>;
