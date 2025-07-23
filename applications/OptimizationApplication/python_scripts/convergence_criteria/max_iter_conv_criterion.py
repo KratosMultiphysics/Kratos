@@ -10,6 +10,9 @@ def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem
     return MaxIterConvCriterion(parameters["settings"], optimization_problem)
 
 class MaxIterConvCriterion(ConvergenceCriterion):
+    """
+    MaxIterConvCriterion is a convergence criterion for optimization problems based on the maximum number of iterations.
+    """
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{

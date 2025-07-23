@@ -13,6 +13,11 @@ def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem
     return ConstraintConvCriterion(parameters["settings"], optimization_problem)
 
 class ConstraintConvCriterion(ConvergenceCriterion):
+    """
+    ConstraintConvCriterion is a convergence criterion for optimization problems, specifically designed to check the convergence of constraints.
+
+    This class checks whether a specified value associated with a component in the optimization problem has reached a given tolerance.
+    """
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{

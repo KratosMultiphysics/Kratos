@@ -14,6 +14,18 @@ def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem
     return PatienceConvCriterion(parameters["settings"], optimization_problem)
 
 class PatienceConvCriterion(ConvergenceCriterion):
+    """
+    Convergence criterion based on the 'patience' concept, commonly used in optimization and machine learning.
+
+    This criterion monitors the improvement of a specified value (e.g., objective function) over iterations.
+    Convergence is declared if no significant improvement (greater than a specified tolerance) is observed
+    for a consecutive number of iterations (patience_itr), after a minimum number of iterations (minimum_itr)
+    have been performed.
+
+    Raises:
+        RuntimeError: If tolerance is negative, minimum_itr is not positive, patience_itr is not greater than minimum_itr,
+                      or the monitored value is not a float or int.
+    """
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{

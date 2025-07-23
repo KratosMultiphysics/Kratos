@@ -14,6 +14,13 @@ def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem
     return L2ConvCriterion(parameters["settings"], optimization_problem)
 
 class L2ConvCriterion(ConvergenceCriterion):
+    """
+    L2ConvCriterion is a convergence criterion based on the L2 norm of a specified field in an optimization problem.
+
+    This class checks whether the L2 norm of a given field (e.g., search direction) falls below a specified tolerance,
+    indicating convergence. The field can be either historical or non-historical, and the criterion is configurable
+    via parameters.
+    """
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{

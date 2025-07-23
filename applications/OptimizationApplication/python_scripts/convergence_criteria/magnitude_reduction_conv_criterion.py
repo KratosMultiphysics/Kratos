@@ -13,6 +13,15 @@ def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem
     return MagnitudeReductionConvCriterion(parameters["settings"], optimization_problem)
 
 class MagnitudeReductionConvCriterion(ConvergenceCriterion):
+    """
+    Convergence criterion based on the reduction of a magnitude (e.g., objective value) during optimization.
+
+    This criterion checks whether the current value of a specified component has been reduced below a target value,
+    which is computed as a scaling factor of the initial value or a specified machine precision, whichever is greater.
+
+    Raises:
+        RuntimeError: If the target scaling factor is not greater than zero or machine precision is negative.
+    """
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{

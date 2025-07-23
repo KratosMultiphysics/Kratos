@@ -14,6 +14,11 @@ def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem
     return AvgAbsImprovementConvCriterion(parameters["settings"], optimization_problem)
 
 class AvgAbsImprovementConvCriterion(ConvergenceCriterion):
+    """
+    AvgAbsImprovementConvCriterion is a convergence criterion for optimization algorithms that checks
+    whether the average absolute improvement of a tracked value over a specified number of iterations
+    falls below a given tolerance.
+    """
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{

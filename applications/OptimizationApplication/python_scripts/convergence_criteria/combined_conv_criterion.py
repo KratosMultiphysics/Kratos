@@ -10,6 +10,18 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
     return CombinedConvCriterion(model, parameters["settings"], optimization_problem)
 
 class CombinedConvCriterion(ConvergenceCriterion):
+    """
+    CombinedConvCriterion is a convergence criterion that combines multiple sub-criteria using a logical operator ("and" or "or").
+    It evaluates convergence by applying the specified operator to the results of its sub-criteria.
+
+    Args:
+        model (Kratos.Model): The Kratos model instance.
+        parameters (Kratos.Parameters): Parameters specifying the operator and the list of sub-criteria.
+        optimization_problem (OptimizationProblem): The optimization problem instance.
+
+    Raises:
+        RuntimeError: If an unsupported operator is specified or if the list of sub-criteria is empty.
+    """
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{

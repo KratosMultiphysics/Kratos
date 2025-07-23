@@ -13,6 +13,10 @@ def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem
     return TargetValueConvCriterion(parameters["settings"], optimization_problem)
 
 class TargetValueConvCriterion(ConvergenceCriterion):
+    """
+    TargetValueConvCriterion is a convergence criterion for optimization problems that checks
+    whether a specified value associated with a component has reached a target threshold.
+    """
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
