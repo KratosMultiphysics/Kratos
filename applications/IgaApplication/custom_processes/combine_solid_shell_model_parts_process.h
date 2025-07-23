@@ -141,7 +141,7 @@ private:
     Parameters _Parameters;
 
     void Cylinder270_projection(const Geometry<Node>& ShellCurveOnCouplingInterface,
-        CoordinatesArrayType& integration_points_global_coords_vector, 
+        const CoordinatesArrayType& integration_points_global_coords_vector, 
         CoordinatesArrayType& local_slave_coords,
         const std::vector<double>& rSpans); 
 

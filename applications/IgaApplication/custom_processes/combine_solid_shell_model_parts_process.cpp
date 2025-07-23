@@ -442,7 +442,7 @@ namespace Kratos
 	}
 	
 	void CombineSolidShellModelPartsProcess::Cylinder270_projection(const Geometry<Node>& ShellCurveOnCouplingInterface,
-		CoordinatesArrayType& integration_points_global_coords_vector,
+		const CoordinatesArrayType& integration_points_global_coords_vector,
 		CoordinatesArrayType& local_slave_coords,
 		const std::vector<double>& rSpans)
 	{
@@ -479,7 +479,7 @@ namespace Kratos
 			std::cout << "---------------------" << std::endl;
 			std::cout << "Initial KratosProjection FAILED" << std::endl;
 			std::cout << " Initial Point :";
-			std::cout << integration_points_global_coords_vector[1] << " , " << integration_points_global_coords_vector[2] << std::endl;
+			std::cout << integration_points_global_coords_vector[0] << " , " << integration_points_global_coords_vector[1] << " , " << integration_points_global_coords_vector[2] << std::endl;
 		}
 
 		while (a <= 7 && ProjectionConverged == false) {
@@ -511,9 +511,9 @@ namespace Kratos
 			ShellCurveOnCouplingInterface.ProjectionPointGlobalToLocalSpace(new_integration_points_global_coords_vector, local_slave_coords);
 			ShellCurveOnCouplingInterface.GlobalCoordinates(rProjectedPointGlobalCoordinates, local_slave_coords);
 			std::cout << " Projected Final point :";
-			std::cout << rProjectedPointGlobalCoordinates[1] << " , " << rProjectedPointGlobalCoordinates[2] << std::endl;
+			std::cout << rProjectedPointGlobalCoordinates[0] << " , " << rProjectedPointGlobalCoordinates[1] << " , " << rProjectedPointGlobalCoordinates[2] << std::endl;
 			std::cout << " Projected point should be ";
-			std::cout << new_integration_points_global_coords_vector[1] << " , " << new_integration_points_global_coords_vector[2] << std::endl;
+			std::cout << new_integration_points_global_coords_vector[0] << " , " << new_integration_points_global_coords_vector[1] << " , " << new_integration_points_global_coords_vector[2] << std::endl;
 			std::cout << "---------------------" << std::endl;
 		}
 
