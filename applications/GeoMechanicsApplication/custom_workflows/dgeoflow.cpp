@@ -188,12 +188,12 @@ void KratosExecute::ParseProcesses(ModelPart& rModelPart, Parameters projFile)
             "is_fixed"       : true
         })"}));
 
-    mProcesses.push_back(make_shared<GeoApplyConstantScalarValueProcess>(part, Parameters  {R"(
+    mProcesses.push_back(make_shared<GeoApplyConstantScalarValueProcess>(part, Parameters{R"(
         {
             "variable_name"           : "VOLUME_ACCELERATION_Z",
             "value"          : 0.0,
             "is_fixed"       : true
-        })" }));
+        })"}));
 }
 
 int KratosExecute::MainExecution(ModelPart& rModelPart,

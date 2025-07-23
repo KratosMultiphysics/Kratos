@@ -34,7 +34,6 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoApplyConstantScalarValueProcess :
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GeoApplyConstantScalarValueProcess);
 
-    GeoApplyConstantScalarValueProcess(Model& rModel, Parameters ThisParameters);
     GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, Parameters ThisParameters);
     ~GeoApplyConstantScalarValueProcess() override = default;
 

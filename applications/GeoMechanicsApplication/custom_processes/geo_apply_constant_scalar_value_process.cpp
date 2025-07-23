@@ -11,37 +11,21 @@
 //
 
 #include "geo_apply_constant_scalar_value_process.h"
-#include "containers/model.h"
 #include "utilities/variable_utils.h"
 
 namespace Kratos
 {
 
-GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(Model& rModel, Parameters ThisParameters)
-    : GeoApplyConstantScalarValueProcess(
-          rModel.GetModelPart(ThisParameters["model_part_name"].GetString()), ThisParameters)
-{
-}
-
 GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, Parameters ThisParameters)
-    : Process(Flags()), mrModelPart(rModelPart)
+    : mrModelPart(rModelPart)
 {
     KRATOS_ERROR_IF_NOT(ThisParameters.Has("value"))
         << "Missing 'value' parameter in ThisParameters" << std::endl;
     KRATOS_ERROR_IF_NOT(ThisParameters.Has("variable_name"))
         << "Missing 'variable_name' parameter in ThisParameters" << std::endl;
 
-    auto default_parameters = Parameters(R"(
-    {
-        "model_part_name" : "PLEASE_CHOOSE_MODEL_PART_NAME",
-        "variable_name"   : "PLEASE_PRESCRIBE_VARIABLE_NAME",
-        "is_fixed"        : false,
-        "value"           : 1.0
-    }  )");
-    ThisParameters.ValidateAndAssignDefaults(default_parameters);
-
     mVariableName = ThisParameters["variable_name"].GetString();
-    mIsFixed      = ThisParameters["is_fixed"].GetBool();
+    mIsFixed      = ThisParameters.Has("is_fixed") ? ThisParameters["is_fixed"].GetBool() : false;
     if (KratosComponents<Variable<double>>::Has(mVariableName)) {
         mDoubleValue = ThisParameters["value"].GetDouble();
         KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents<Variable<double>>::Get(mVariableName)))
