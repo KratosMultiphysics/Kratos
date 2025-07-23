@@ -69,8 +69,7 @@ class CombinedConvCriterion(ConvergenceCriterion):
             info.extend(conv.GetInfo())
 
         if len(self.__list_of_convergence_criteria) > 1:
-            info.append(("-- overall_convergence --", str("converged" if self.__conv else "not converged")))
-            info.append((")", ""))
+            info.append((")  -->", str("converged" if self.__conv else "not converged")))
 
         return info
 
