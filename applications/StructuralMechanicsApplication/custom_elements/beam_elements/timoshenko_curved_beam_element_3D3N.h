@@ -475,8 +475,11 @@ private:
     ///@name Private Operations
     ///@{
 
-    Vector CalculateStrainVector(const BoundedMatrix<double, 6, 18> &rB,
-                                 const GlobalSizeVector &rNodalValues) const;
+
+    /**
+     * @brief This method computes the generalized strain vector and reorders it
+     */
+    Vector CalculateStrainVector(const BoundedMatrix<double, 6, 18> &rB, const GlobalSizeVector &rNodalValues) const;
 
     /**
      * @brief Reorder the stress vector from the CL to the Romero et al. notation
@@ -498,6 +501,19 @@ private:
         return stress_vector;
     }
 
+    Vector GetPermutationVector() const
+    {
+        // This is the permutation vector to reorder the stress vector from the CL to the Romero et al. notation
+        Vector permutation_vector(StrainSize);
+        permutation_vector[0] = 0; // axial
+        permutation_vector[1] = 4; // shear_xy
+        permutation_vector[2] = 5; // shear_xz
+        permutation_vector[3] = 1; // kappa_x
+        permutation_vector[4] = 2; // kappa_y
+        permutation_vector[5] = 3; // kappa_z
+        return permutation_vector;
+    }
+
     /**
      * @brief Reorder the constitutive matrix from the CL to the Romero et al. notation
      * CL order: [axial, kappa_x, kappa_y, kappa_z, shear_xy, shear_xz ]
@@ -506,17 +522,18 @@ private:
      */
     Matrix ConvertConstitutiveMatrixComponents(const Matrix &rCLConstitutiveMatrix) const
     {
+        const auto& r_permutation_vector = GetPermutationVector();
         // Convert the constitutive matrix from the CL to the Romero et al.
         Matrix constitutive_matrix(StrainSize, StrainSize);
-        constitutive_matrix.clear();
-        constitutive_matrix(0, 0) = rCLConstitutiveMatrix(0, 0);
-        constitutive_matrix(1, 1) = rCLConstitutiveMatrix(4, 4);
-        constitutive_matrix(2, 2) = rCLConstitutiveMatrix(5, 5);
-        constitutive_matrix(3, 3) = rCLConstitutiveMatrix(1, 1);
-        constitutive_matrix(4, 4) = rCLConstitutiveMatrix(2, 2);
-        constitutive_matrix(5, 5) = rCLConstitutiveMatrix(3, 3);
+        for (IndexType i = 0; i < StrainSize; ++i) {
+            for (IndexType j = 0; j < StrainSize; ++j) {
+                constitutive_matrix(i, j) = rCLConstitutiveMatrix(r_permutation_vector[i], r_permutation_vector[j]);
+            }
+        }
         return constitutive_matrix;
     }
+
+
 
     ///@}
     ///@name Private  Access
