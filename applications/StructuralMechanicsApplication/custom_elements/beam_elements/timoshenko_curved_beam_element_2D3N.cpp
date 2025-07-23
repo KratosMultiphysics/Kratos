@@ -416,7 +416,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
     // Initialize required matrices/vectors...
     GlobalSizeVector nodal_values, B_b, dNu, dN_theta, N_shape, Nu, N_theta, dN_shape;
     BoundedMatrix<double, 2, 2> C_gamma, frenet_serret;
-    BoundedVector<double, 2> N_forces, Gamma; // axial ans shear forces, strains
+    BoundedVector<double, 2> N_forces, Gamma; // axial and shear forces, strains
     BoundedMatrix<double, 2, 9> B_s, aux_B_s;
     C_gamma.clear();
 
