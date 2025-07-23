@@ -45,6 +45,7 @@ void LinearTimoshenkoCurvedBeamElement3D3N::Initialize(const ProcessInfo& rCurre
             mConstitutiveLawVector.resize(r_integration_points.size());
         InitializeMaterial();
     }
+
     KRATOS_CATCH("")
 }
 
@@ -160,9 +161,10 @@ LinearTimoshenkoCurvedBeamElement3D3N::array_3 LinearTimoshenkoCurvedBeamElement
     ) const
 {
     array_3 N;
-    N[0] = 0.5 * xi * (xi - 1.0);
-    N[1] = 0.5 * xi * (xi + 1.0);
-    N[2] = 1.0 - std::pow(xi, 2);
+    const double half_xi = 0.5 * xi;
+    N[0] = half_xi * (xi - 1.0);
+    N[1] = half_xi * (xi + 1.0);
+    N[2] = 1.0 - xi * xi;
     return N;
 }
 
@@ -279,7 +281,7 @@ void LinearTimoshenkoCurvedBeamElement3D3N::GetTangentandTransverseUnitVectors(
         rb -= MathUtils<double>::Dot(rb, rt) * rt;
         double norm_b = norm_2(rb);
 
-        if (norm_b > Tolerance) { // if the beam is not straight
+        if (norm_b > Tolerance) {
             rb /= norm_b;
         } else {
             rb[0] = 0.0;
@@ -303,10 +305,15 @@ BoundedMatrix<double, 3, 3> LinearTimoshenkoCurvedBeamElement3D3N::GetFrenetSerr
     const array_3& rb
     ) const
 {
-    BoundedMatrix<double, 3, 3> T;
+    BoundedMatrix<double, Dimension, Dimension> T;
     T.clear();
 
-// TODO
+    for (IndexType i = 0; i < Dimension; ++i) {
+        T(0, i) = rt[i];
+        T(1, i) = rn[i];
+        T(2, i) = rb[i];
+    }
+
     return T;
 }
 
@@ -317,20 +324,20 @@ double LinearTimoshenkoCurvedBeamElement3D3N::GetJacobian(
     const double xi
     ) const
 {
-    // const auto& r_geom = GetGeometry();
-    // const array_3 dN_dxi = GetLocalFirstDerivativesShapeFunctionsValues(xi);
+    const auto& r_geom = GetGeometry();
+    const array_3 dN_dxi = GetLocalFirstDerivativesShapeFunctionsValues(xi);
 
-    // double dx_dxi = 0.0;
-    // double dy_dxi = 0.0;
+    double dx_dxi = 0.0;
+    double dy_dxi = 0.0;
+    double dz_dxi = 0.0;
 
-    // for (IndexType i = 0; i < NumberOfNodes; ++i) {
-    //     const auto &r_coords_node = r_geom[i].GetInitialPosition();
-    //     dx_dxi += r_coords_node[0] * dN_dxi[i];
-    //     dy_dxi += r_coords_node[1] * dN_dxi[i];
-    // }
-    // return std::sqrt(std::pow(dx_dxi, 2) + std::pow(dy_dxi, 2));
-
-    return 0.0;
+    for (IndexType i = 0; i < NumberOfNodes; ++i) {
+        const auto &r_coords_node = r_geom[i].GetInitialPosition();
+        dx_dxi += r_coords_node[0] * dN_dxi[i];
+        dy_dxi += r_coords_node[1] * dN_dxi[i];
+        dz_dxi += r_coords_node[2] * dN_dxi[i];
+    }
+    return std::sqrt(std::pow(dx_dxi, 2) + std::pow(dy_dxi, 2) + std::pow(dz_dxi, 2));
 }
 
 /***********************************************************************************/
@@ -342,21 +349,18 @@ void LinearTimoshenkoCurvedBeamElement3D3N::GetNodalValuesVector(
 {
     const auto &r_geom = GetGeometry();
 
-    // const auto& r_displ_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
-    // const auto& r_displ_1 = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
-    // const auto& r_displ_2 = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT);
+    for (IndexType i_node = 0; i < NumberOfNodes; ++i) {
+        const auto& r_node = r_geom[i_node];
+        const auto& r_displ    = r_node.FastGetSolutionStepValue(DISPLACEMENT);
+        const auto& r_rotation = r_node.FastGetSolutionStepValue(ROTATION);
 
-    // rNodalValues[0] = r_displ_0[0];
-    // rNodalValues[1] = r_displ_0[1];
-    // rNodalValues[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
-
-    // rNodalValues[3] = r_displ_1[0];
-    // rNodalValues[4] = r_displ_1[1];
-    // rNodalValues[5] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
-
-    // rNodalValues[6] = r_displ_2[0];
-    // rNodalValues[7] = r_displ_2[1];
-    // rNodalValues[8] = r_geom[2].FastGetSolutionStepValue(ROTATION_Z);
+        rNodalValues[DoFperNode * i_node]     = r_displ[0];
+        rNodalValues[DoFperNode * i_node + 1] = r_displ[1];
+        rNodalValues[DoFperNode * i_node + 2] = r_displ[2];
+        rNodalValues[DoFperNode * i_node + 3] = r_rotation[0];
+        rNodalValues[DoFperNode * i_node + 4] = r_rotation[1];
+        rNodalValues[DoFperNode * i_node + 5] = r_rotation[2];
+    }
 }
 
 /***********************************************************************************/
