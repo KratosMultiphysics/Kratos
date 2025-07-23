@@ -391,7 +391,7 @@ BoundedMatrix<double, 6, 18> LinearTimoshenkoCurvedBeamElement3D3N::CalculateB(
         B(0, local_col_0 + 4) = -rt[2] * rN[i_node];  
         B(0, local_col_0 + 5) =  rt[1] * rN[i_node];  
 
-        // shear_xy
+        // shear xy
         B(4, local_col_0 + 3) =  rt[2] * rN[i_node];
         B(4, local_col_0 + 5) = -rt[0] * rN[i_node];
 
