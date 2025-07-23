@@ -841,6 +841,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     auto expected_left_hand_side = Matrix{18, 18};
     // clang-format off
 
+    // Since the rotation is round the z-axis (the normal of the triangle) and the two shear
+    // stiffnesses are equal, the left-hand side matrix is equal to the left-hand side of a
+    // non-rotated surface interface element.
     KRATOS_EXPECT_MATRIX_NEAR(actual_left_hand_side, ExpectedLeftHandSideForTriangleElement(), Defaults::relative_tolerance)
 }
 
