@@ -349,7 +349,7 @@ void LinearTimoshenkoCurvedBeamElement3D3N::GetNodalValuesVector(
 {
     const auto &r_geom = GetGeometry();
 
-    for (IndexType i_node = 0; i < NumberOfNodes; ++i) {
+    for (IndexType i_node = 0; i_node < NumberOfNodes; ++i_node) {
         const auto& r_node = r_geom[i_node];
         const auto& r_displ    = r_node.FastGetSolutionStepValue(DISPLACEMENT);
         const auto& r_rotation = r_node.FastGetSolutionStepValue(ROTATION);
@@ -361,6 +361,33 @@ void LinearTimoshenkoCurvedBeamElement3D3N::GetNodalValuesVector(
         rNodalValues[DoFperNode * i_node + 4] = r_rotation[1];
         rNodalValues[DoFperNode * i_node + 5] = r_rotation[2];
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+BoundedMatrix<double, 6, 18> LinearTimoshenkoCurvedBeamElement3D3N::CalculateB(
+    const array3 & rN,
+    const array3 & rdN,
+    const array3 & rt
+) const
+{
+    BoundedMatrix<double, 6, 18> B;
+    B.clear();
+
+    for (IndexType i_node = 0; i_node < NumberOfNodes; ++i_node) { // loop over node blocks
+        const IndexType local_col_0 = i_node * DoFperNode;
+
+        // We fill the diagonal
+        for (IndexType i = 0; i < DoFperNode; ++i) {
+            B(i, local_col_0 + i) = rdN[i_node];
+        }
+
+        // We fill the remaining terms
+        // B
+
+    }
+    return B;
 }
 
 /***********************************************************************************/

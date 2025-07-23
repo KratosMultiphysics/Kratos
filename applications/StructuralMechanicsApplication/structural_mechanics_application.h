@@ -92,6 +92,7 @@
 #include "custom_elements/beam_elements/timoshenko_beam_element_3D2N.h"
 #include "custom_elements/beam_elements/timoshenko_beam_element_2D3N.h"
 #include "custom_elements/beam_elements/timoshenko_curved_beam_element_2D3N.h"
+#include "custom_elements/beam_elements/timoshenko_curved_beam_element_3D3N.h"
 
 /* Conditions */
 #include "custom_conditions/base_load_condition.h"
