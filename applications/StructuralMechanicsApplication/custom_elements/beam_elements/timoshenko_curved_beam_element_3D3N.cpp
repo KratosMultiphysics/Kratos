@@ -460,6 +460,7 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateLocalSystem(
     BoundedMatrix<double, 3, 3> frenet_serret;
     BoundedMatrix<double, 6, 6> element_frenet_serret;
     BoundedMatrix<double, 6, 18> B;
+    GlobalSizeVector Nu, Nv, Nw;
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
@@ -490,10 +491,11 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateLocalSystem(
         noalias(rRHS) -= jacobian_weight * prod(trans(B), r_generalized_stresses);
         noalias(rLHS) += jacobian_weight * prod(trans(B), Matrix(prod(r_constitutive_matrix, B)));
 
-        // TODO: body forcs
-        // auto body_forces = GetBodyForce(*this, r_integration_points, IP);
-        // noalias(rRHS) += Nu      * body_forces[0] * jacobian_weight * area;
-        // noalias(rRHS) += N_shape * body_forces[1] * jacobian_weight * area;
+        auto body_forces = GetBodyForce(*this, r_integration_points, IP);
+        CalculateDisplacementInterpolationVectors(Nu, Nv, Nw, shape_functions);
+        noalias(rRHS) += Nu * body_forces[0] * jacobian_weight * area;
+        noalias(rRHS) += Nv * body_forces[1] * jacobian_weight * area;
+        noalias(rRHS) += Nw * body_forces[2] * jacobian_weight * area;
 
     } // IP loop
     KRATOS_CATCH("");
@@ -607,7 +609,7 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateRightHandSide(
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
 
     // Initialize required matrices/vectors...
-    GlobalSizeVector nodal_values;
+    GlobalSizeVector nodal_values, Nu, Nv, Nw;
     BoundedMatrix<double, 3, 3> frenet_serret;
     BoundedMatrix<double, 6, 6> element_frenet_serret;
     BoundedMatrix<double, 6, 18> B;
@@ -637,13 +639,13 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateRightHandSide(
         mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
         const Vector &r_generalized_stresses = ConvertGeneralizedVectorComponents(cl_values.GetStressVector());
 
-
         noalias(rRHS) -= jacobian_weight * prod(trans(B), r_generalized_stresses);
 
-        // TODO: body forcs
-        // auto body_forces = GetBodyForce(*this, r_integration_points, IP);
-        // noalias(rRHS) += Nu      * body_forces[0] * jacobian_weight * area;
-        // noalias(rRHS) += N_shape * body_forces[1] * jacobian_weight * area;
+        auto body_forces = GetBodyForce(*this, r_integration_points, IP);
+        CalculateDisplacementInterpolationVectors(Nu, Nv, Nw, shape_functions);
+        noalias(rRHS) += Nu * body_forces[0] * jacobian_weight * area;
+        noalias(rRHS) += Nv * body_forces[1] * jacobian_weight * area;
+        noalias(rRHS) += Nw * body_forces[2] * jacobian_weight * area;
 
     } // IP loop
     KRATOS_CATCH("");

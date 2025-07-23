@@ -475,6 +475,33 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method builds the displacement interpolation vectors
+     */
+    void CalculateDisplacementInterpolationVectors(
+        GlobalSizeVector &rNu,
+        GlobalSizeVector &rNv,
+        GlobalSizeVector &rNw,
+        const array_3 &rN
+    )
+    {
+        rNu.clear();
+        rNv.clear();
+        rNw.clear();
+
+        rNu[0]  = rN[0];
+        rNu[6]  = rN[1];
+        rNu[12] = rN[2];
+
+        rNv[1]  = rN[0];
+        rNv[7]  = rN[1];
+        rNv[13] = rN[2];
+
+        rNw[2]  = rN[0];
+        rNw[8]  = rN[1];
+        rNw[14] = rN[2];
+    }
+
 
     /**
      * @brief This method computes the generalized strain vector and reorders it
