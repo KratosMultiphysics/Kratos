@@ -378,10 +378,13 @@ BoundedMatrix<double, 6, 18> LinearTimoshenkoCurvedBeamElement3D3N::CalculateB(
     for (IndexType i_node = 0; i_node < NumberOfNodes; ++i_node) { // loop over node blocks
         const IndexType local_col_0 = i_node * DoFperNode;
 
-        // We fill the diagonal
-        for (IndexType i = 0; i < DoFperNode; ++i) {
-            B(i, local_col_0 + i) = rdN[i_node];
-        }
+        // We fill the derivative terms
+        B(0, local_col_0)     = rdN[i_node];
+        B(1, local_col_0 + 3) = rdN[i_node];
+        B(2, local_col_0 + 4) = rdN[i_node];
+        B(3, local_col_0 + 5) = rdN[i_node];
+        B(4, local_col_0 + 1) = rdN[i_node];
+        B(5, local_col_0 + 2) = rdN[i_node];
 
         // We fill the remaining terms
         // axial
@@ -482,7 +485,6 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateLocalSystem(
 
         mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
         const Vector &r_generalized_stresses = cl_values.GetStressVector();
-
         const MatrixType& r_constitutive_matrix = cl_values.GetConstitutiveMatrix();
 
         noalias(rRHS) -= jacobian_weight * prod(trans(B), r_generalized_stresses);
