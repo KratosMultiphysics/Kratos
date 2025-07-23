@@ -112,8 +112,8 @@ void LinearTimoshenkoCurvedBeamElement2D3N::EquationIdVector(
     if (rResult.size() != dofs_per_node * number_of_nodes)
         rResult.resize(dofs_per_node * number_of_nodes, false);
 
-    const IndexType xpos    = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
-    const IndexType rot_pos = this->GetGeometry()[0].GetDofPosition(ROTATION_Z);
+    const IndexType xpos    = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType rot_pos = r_geometry[0].GetDofPosition(ROTATION_Z);
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos    ).EquationId();
@@ -255,11 +255,12 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetTangentandTransverseUnitVectors(
     noalias(rt) = x_prime / norm_2(x_prime);
 
     noalias(aux) = MathUtils<double>::CrossProduct(x_prime, x_2prime);
-    const double norm = norm_2(MathUtils<double>::CrossProduct(x_prime, x_2prime));
-    if (norm != 0.0) // if the beam is not curved
+    const double norm = norm_2(aux);
+    if (norm > Tolerance) { // if the beam is curved
         noalias(b) = aux / norm;
-    else
+    } else {
         b[2] = 1.0;
+    }
 
     noalias(rn) = MathUtils<double>::CrossProduct(rt, b);
 }
