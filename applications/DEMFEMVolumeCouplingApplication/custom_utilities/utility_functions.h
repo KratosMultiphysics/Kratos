@@ -57,60 +57,73 @@ virtual ~DEMFEMVolumeCouplingUtilities(){}
 //***************************************************************************************************************
 
 
-void AssignPointLoads(ModelPart& rFEMModelPart,
-                      const double cof,
-                      const double tangential_stiffness,
-                      const double coord_tol = 1e-8)          // geometric tolerance
+void AssignPointLoads(
+        ModelPart&       rFEMModelPart,
+        const double     cof,
+        const double     tangential_stiffness,
+        const double     coord_tol = 1e-8)            // geometric tolerance
 {
-    constexpr double disp_tol = 1e-12;                         // zero-displacement guard
+    constexpr double disp_tol = 1e-12;                // zero-displacement guard
 
-    for (auto& rNode : rFEMModelPart.Nodes())                  // loop over every node
+    for (auto& rNode : rFEMModelPart.Nodes())         // loop over every node
     {
-        // -----------------------------------------------------------------
+        //----------------------------------------------------------------------
         // 1.  Keep only the nodes that sit on the requested boundaries
-        //     (bottom y = 0, or side walls x = 0 / x = 1 m)
-        // -----------------------------------------------------------------
-        const double x = rNode.X();                            // or rNode.Coordinates()[0]
-        const double y = rNode.Y();                            // or rNode.Coordinates()[1]
+        //     (bottom  y = 0, or side walls x = 0 / x = 1 m)
+        //----------------------------------------------------------------------
+        const double x = rNode.X();
+        const double y = rNode.Y();
 
-        const bool on_bottom = std::abs(y)           < coord_tol;          // y = 0
-        const bool on_left   = std::abs(x)           < coord_tol;          // x = 0
-        const bool on_right  = std::abs(x - 1.0)     < coord_tol;          // x = 1 m
+        const bool on_bottom = std::abs(y)        < coord_tol;   // y-normal
+        const bool on_left   = std::abs(x)        < coord_tol;   // x-normal
+        const bool on_right  = std::abs(x - 1.0)  < coord_tol;   // x-normal
 
         if (!(on_bottom || on_left || on_right))
-            continue;                                          // skip interior / top nodes
+            continue;                                           // skip interior / top nodes
 
-        // -----------------------------------------------------------------
+        //----------------------------------------------------------------------
         // 2.  Fetch kinematic variables
-        // -----------------------------------------------------------------
+        //----------------------------------------------------------------------
         auto&       u = rNode.FastGetSolutionStepValue(DISPLACEMENT); // array_1d<3>
         const auto& R = rNode.FastGetSolutionStepValue(REACTION);     // array_1d<3>
 
         const double u_norm = norm_2(u);
-        if (u_norm < disp_tol) {                              // no displacement → no load
+        if (u_norm < disp_tol) {                             // no displacement → no load
             rNode.FastGetSolutionStepValue(POINT_LOAD).clear();
             continue;
         }
 
-        // -----------------------------------------------------------------
-        // 3.  Direction opposite to displacement  (-û)
-        // -----------------------------------------------------------------
+        //----------------------------------------------------------------------
+        // 3.  Direction opposite to displacement  (-û)
+        //----------------------------------------------------------------------
         const array_1d<double,3> dir_neg = -u / u_norm;
 
-        // -----------------------------------------------------------------
-        // 4.  Coulomb-capped magnitude  (min(Kₜ|u|, μ|R|))
-        // -----------------------------------------------------------------
-        const double f_trial   = u_norm * tangential_stiffness; // Kt |u|
-        const double f_coulomb = cof * norm_2(R);               // μ |R|
+        //----------------------------------------------------------------------
+        // 4.  Coulomb-capped magnitude  (min(Kₜ|u|, μ|Rₙ|))
+        //     |Rₙ| uses ONLY the reaction component along the wall’s normal:
+        //       • side walls (normal ±x): |Rₙ| = |Rₓ|
+        //       • bottom    (normal −y) : |Rₙ| = |Rᵧ|
+        //----------------------------------------------------------------------
+        const double f_trial   = tangential_stiffness * u_norm;        // Kₜ |u|
+        double       normal_reaction = 0.0;
+
+        if (on_left || on_right)                 // x-normal walls
+            normal_reaction = std::abs(R[0]);    // |Rₓ|
+        else if (on_bottom)                      // y-normal wall
+            normal_reaction = std::abs(R[1]);    // |Rᵧ|
+
+        // If a corner node lies on both boundaries, you may prefer:
+        // normal_reaction = std::max(std::abs(R[0]), std::abs(R[1]));
+
+        const double f_coulomb = cof * normal_reaction;
         const double magnitude = std::min(f_trial, f_coulomb);
 
-        // -----------------------------------------------------------------
+        //----------------------------------------------------------------------
         // 5.  Assign point load
-        // -----------------------------------------------------------------
+        //----------------------------------------------------------------------
         rNode.FastGetSolutionStepValue(POINT_LOAD) = dir_neg * magnitude;
     }
 }
-
 
 
 // void SetNodalCouplingWeightsOnFEMLinearly(ModelPart& rFEMModelPart,double& y_fem_boundary,double& y_dem_boundary, double& tolerance,double& weight_fem_boundary,double& weight_dem_boundary) 
@@ -282,9 +295,21 @@ void CalculateNodalCouplingForces(ModelPart& rFEMModelPart, double& penalty_max)
         {
             for (unsigned int i = 0; i < elem_it->GetGeometry().IntegrationPointsNumber(); i++)
             {
+                // double J = elem_it->GetGeometry().DeterminantOfJacobian(i);
+                // // Adjust this weight if needed. Assuming V[i] / J is omitted here
+                // double w = 1.0;
+                // const Kratos::Matrix shape_functions = elem_it->GetGeometry().ShapeFunctionsValues();
                 double J = elem_it->GetGeometry().DeterminantOfJacobian(i);
-                // Adjust this weight if needed. Assuming V[i] / J is omitted here
-                double w = 1.0;
+              
+                const auto& rGeom = elem_it->GetGeometry();
+
+                //  ask the geometry what rule it uses
+                const auto integration_method = rGeom.GetDefaultIntegrationMethod();
+                const auto& rGaussPts        = rGeom.IntegrationPoints(integration_method);
+
+                double w = rGaussPts[i].Weight(); 
+                std::cout<<"Integration weight at gauss points = "<< w <<std::endl;  
+                // double w = 1.0;   // Adjust this weight if needed. Assuming V[i] / J is omitted here
                 const Kratos::Matrix shape_functions = elem_it->GetGeometry().ShapeFunctionsValues();
                 
                 for (unsigned int n = 0; n < elem_it->GetGeometry().size(); n++)
