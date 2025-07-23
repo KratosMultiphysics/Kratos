@@ -367,9 +367,9 @@ void LinearTimoshenkoCurvedBeamElement3D3N::GetNodalValuesVector(
 /***********************************************************************************/
 
 BoundedMatrix<double, 6, 18> LinearTimoshenkoCurvedBeamElement3D3N::CalculateB(
-    const array3 & rN,
-    const array3 & rdN,
-    const array3 & rt
+    const array_3 & rN,
+    const array_3 & rdN,
+    const array_3 & rt
 ) const
 {
     BoundedMatrix<double, 6, 18> B;
@@ -384,8 +384,17 @@ BoundedMatrix<double, 6, 18> LinearTimoshenkoCurvedBeamElement3D3N::CalculateB(
         }
 
         // We fill the remaining terms
-        // B
+        // axial
+        B(0, local_col_0 + 4) = -rt[2] * rN[i_node];  
+        B(0, local_col_0 + 5) =  rt[1] * rN[i_node];  
 
+        // shear_xy
+        B(4, local_col_0 + 3) =  rt[2] * rN[i_node];
+        B(4, local_col_0 + 5) = -rt[0] * rN[i_node];
+
+        // shear xz
+        B(5, local_col_0 + 3) = -rt[1] * rN[i_node];
+        B(5, local_col_0 + 4) =  rt[0] * rN[i_node];
     }
     return B;
 }

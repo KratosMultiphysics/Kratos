@@ -279,9 +279,9 @@ public:
      * @brief This function builds the B matrix that relates the strain and the nodal displacements
     */
     BoundedMatrix<double, 6, 18> CalculateB(
-        const array3 &rN,
-        const array3 &rdN,
-        const array3 &rt) const;
+        const array_3 &rN,
+        const array_3 &rdN,
+        const array_3 &rt) const;
 
     /**
      * @brief This function retrieves the body forces in local axes
