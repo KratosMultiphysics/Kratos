@@ -505,7 +505,70 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateLeftHandSide(
     const ProcessInfo& rProcessInfo
     )
 {
+    KRATOS_TRY;
+    const auto &r_props    = GetProperties();
+    const auto &r_geometry = GetGeometry();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
+    if (rLHS.size1() != SystemSize || rLHS.size2() != SystemSize) {
+        rLHS.resize(SystemSize, SystemSize, false);
+    }
+    noalias(rLHS) = ZeroMatrix(SystemSize, SystemSize);
+
+    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    const double area = GetCrossArea();
+
+    // Let's initialize the constitutive law values
+    VectorType strain_vector(strain_size), stress_vector(strain_size);
+    MatrixType constitutive_matrix(strain_size, strain_size);
+    strain_vector.clear();
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+    cl_values.SetConstitutiveMatrix(constitutive_matrix);
+
+    // Initialize required matrices/vectors...
+    GlobalSizeVector nodal_values;
+    BoundedMatrix<double, 3, 3> frenet_serret;
+    BoundedMatrix<double, 6, 6> element_frenet_serret;
+    BoundedMatrix<double, 6, 18> B;
+
+    // Loop over the integration points
+    for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
+
+        const double xi     = r_integration_points[IP].X();
+        const double weight = r_integration_points[IP].Weight();
+        const double J      = GetJacobian(xi);
+        const double jacobian_weight = weight * J;
+
+        GetNodalValuesVector(nodal_values);
+
+        const array_3 shape_functions   = GetShapeFunctionsValues(xi);
+        const array_3 d_shape_functions = GetFirstDerivativesShapeFunctionsValues(xi, J);
+
+        array_3 t, n, b;
+        GetTangentandTransverseUnitVectors(xi, t, n, b);
+        noalias(frenet_serret) = GetFrenetSerretMatrix(xi, t, n, b);
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(frenet_serret, element_frenet_serret);
+        noalias(B) = CalculateB(shape_functions, d_shape_functions, t);
+        B = prod(element_frenet_serret, B);
+
+        noalias(strain_vector) = prod(B, nodal_values);
+
+        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+        const Vector &r_generalized_stresses = cl_values.GetStressVector();
+
+        const MatrixType& r_constitutive_matrix = cl_values.GetConstitutiveMatrix();
+
+        noalias(rLHS) += jacobian_weight * (prod(trans(B), Matrix(prod(r_constitutive_matrix, B))));
+
+    } // IP loop
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -516,7 +579,74 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateRightHandSide(
     const ProcessInfo& rProcessInfo
     )
 {
+    KRATOS_TRY;
+    const auto &r_props    = GetProperties();
+    const auto &r_geometry = GetGeometry();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
+    if (rRHS.size() != SystemSize) {
+        rRHS.resize(SystemSize, false);
+    }
+    noalias(rRHS) = ZeroVector(SystemSize);
+
+    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+    const double area = GetCrossArea();
+
+    // Let's initialize the constitutive law values
+    VectorType strain_vector(strain_size), stress_vector(strain_size);
+    MatrixType constitutive_matrix(strain_size, strain_size);
+    strain_vector.clear();
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+    cl_values.SetConstitutiveMatrix(constitutive_matrix);
+
+    // Initialize required matrices/vectors...
+    GlobalSizeVector nodal_values;
+    BoundedMatrix<double, 3, 3> frenet_serret;
+    BoundedMatrix<double, 6, 6> element_frenet_serret;
+    BoundedMatrix<double, 6, 18> B;
+
+    // Loop over the integration points
+    for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
+
+        const double xi     = r_integration_points[IP].X();
+        const double weight = r_integration_points[IP].Weight();
+        const double J      = GetJacobian(xi);
+        const double jacobian_weight = weight * J;
+
+        GetNodalValuesVector(nodal_values);
+
+        const array_3 shape_functions   = GetShapeFunctionsValues(xi);
+        const array_3 d_shape_functions = GetFirstDerivativesShapeFunctionsValues(xi, J);
+
+        array_3 t, n, b;
+        GetTangentandTransverseUnitVectors(xi, t, n, b);
+        noalias(frenet_serret) = GetFrenetSerretMatrix(xi, t, n, b);
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(frenet_serret, element_frenet_serret);
+        noalias(B) = CalculateB(shape_functions, d_shape_functions, t);
+        B = prod(element_frenet_serret, B);
+
+        noalias(strain_vector) = prod(B, nodal_values);
+
+        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+        const Vector &r_generalized_stresses = cl_values.GetStressVector();
+
+
+        noalias(rRHS) -= jacobian_weight * prod(trans(B), r_generalized_stresses);
+
+        // TODO: body forcs
+        // auto body_forces = GetBodyForce(*this, r_integration_points, IP);
+        // noalias(rRHS) += Nu      * body_forces[0] * jacobian_weight * area;
+        // noalias(rRHS) += N_shape * body_forces[1] * jacobian_weight * area;
+
+    } // IP loop
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
