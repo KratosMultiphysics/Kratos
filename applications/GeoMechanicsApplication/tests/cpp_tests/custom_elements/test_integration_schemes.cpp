@@ -45,14 +45,6 @@ std::vector<std::size_t> SupportedNumbersOfPointsForQuadrilateralLumpedIntegrati
     return {4, 8};
 }
 
-std::vector<std::size_t> SupportedNumbersOfPointsForLumpedIntegration()
-{
-    auto       result       = SupportedNumbersOfPointsForTriangleLumpedIntegration();
-    const auto sup_quad_num = SupportedNumbersOfPointsForQuadrilateralLumpedIntegration();
-    std::copy(sup_quad_num.begin(), sup_quad_num.end(), std::back_inserter(result));
-    return result;
-}
-
 double SumOfWeights(const Geo::IntegrationPointVectorType& rIntegrationPoints)
 {
     auto weights = std::vector<double>{};
