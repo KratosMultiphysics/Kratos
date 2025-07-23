@@ -1,7 +1,7 @@
 import abc
 import typing
 
-class ConvergenceCriteria(abc.ABC):
+class ConvergenceCriterion(abc.ABC):
     """Initializes the convergence criteria
     """
     @abc.abstractmethod

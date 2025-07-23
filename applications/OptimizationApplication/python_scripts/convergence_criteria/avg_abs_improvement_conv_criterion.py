@@ -5,15 +5,15 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetComponentHavingDataByFullName
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetComponentValueByFullName
-from KratosMultiphysics.OptimizationApplication.convergence_criterions.convergence_criteria import ConvergenceCriteria
+from KratosMultiphysics.OptimizationApplication.convergence_criteria.convergence_criterion import ConvergenceCriterion
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 
-def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ConvergenceCriteria:
+def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ConvergenceCriterion:
     if not parameters.Has("settings"):
-        raise RuntimeError(f"AvgAbsImprovementConvCriteria instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return AvgAbsImprovementConvCriteria(parameters["settings"], optimization_problem)
+        raise RuntimeError(f"AvgAbsImprovementConvCriterion instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+    return AvgAbsImprovementConvCriterion(parameters["settings"], optimization_problem)
 
-class AvgAbsImprovementConvCriteria(ConvergenceCriteria):
+class AvgAbsImprovementConvCriterion(ConvergenceCriterion):
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
@@ -55,8 +55,8 @@ class AvgAbsImprovementConvCriteria(ConvergenceCriteria):
         step = self.__optimization_problem.GetStep()
         value = GetComponentValueByFullName(self.__component_data_view, self.__value_name)
 
-        if not isinstance(value, float):
-            raise RuntimeError(f"The value represented by {self.__value_name} is not a floating value.")
+        if not isinstance(value, float) and not isinstance(value, int):
+            raise RuntimeError(f"The value represented by {self.__value_name} is not a floating or int value.")
 
         if step == 0:
             self.__init_value = value
@@ -82,7 +82,7 @@ class AvgAbsImprovementConvCriteria(ConvergenceCriteria):
 
     def GetInfo(self) -> 'list[tuple[str, typing.Union[int, float, str]]]':
         info = [
-                    ('type'          , 'avg_abs_improvement_conv_criteria'),
+                    ('type'          , 'avg_abs_improvement_conv_criterion'),
                     ('avg_value'     , self.__value),
                     ('tracked_iter'  , self.__tracked_iter),
                     ('tolerance'     , self.__tolerance),

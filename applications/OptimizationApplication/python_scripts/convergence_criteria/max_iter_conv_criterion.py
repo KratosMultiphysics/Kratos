@@ -1,15 +1,15 @@
 import typing
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.OptimizationApplication.convergence_criterions.convergence_criteria import ConvergenceCriteria
+from KratosMultiphysics.OptimizationApplication.convergence_criteria.convergence_criterion import ConvergenceCriterion
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 
-def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ConvergenceCriteria:
+def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ConvergenceCriterion:
     if not parameters.Has("settings"):
-        raise RuntimeError(f"MaxIterConvCriteria instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return MaxIterConvCriteria(parameters["settings"], optimization_problem)
+        raise RuntimeError(f"MaxIterConvCriterion instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+    return MaxIterConvCriterion(parameters["settings"], optimization_problem)
 
-class MaxIterConvCriteria(ConvergenceCriteria):
+class MaxIterConvCriterion(ConvergenceCriterion):
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
@@ -38,7 +38,7 @@ class MaxIterConvCriteria(ConvergenceCriteria):
 
     def GetInfo(self) -> 'list[tuple[str, typing.Union[int, float, str]]]':
         info = [
-                    ("type"  , "max_iter_conv_criteria"),
+                    ("type"  , "max_iter_conv_criterion"),
                     ("iter"  , f"{self.__optimization_problem.GetStep()} of {self.__max_iter}"),
                     ("status", str("converged" if self.__conv else "not converged"))
                ]

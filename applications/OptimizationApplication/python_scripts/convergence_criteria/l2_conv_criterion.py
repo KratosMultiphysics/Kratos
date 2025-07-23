@@ -5,20 +5,20 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetComponentHavingDataByFullName
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetComponentValueByFullName
-from KratosMultiphysics.OptimizationApplication.convergence_criterions.convergence_criteria import ConvergenceCriteria
+from KratosMultiphysics.OptimizationApplication.convergence_criteria.convergence_criterion import ConvergenceCriterion
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 
-def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ConvergenceCriteria:
+def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ConvergenceCriterion:
     if not parameters.Has("settings"):
-        raise RuntimeError(f"L2ConvCriteria instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return L2ConvCriteria(parameters["settings"], optimization_problem)
+        raise RuntimeError(f"L2ConvCriterion instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+    return L2ConvCriterion(parameters["settings"], optimization_problem)
 
-class L2ConvCriteria(ConvergenceCriteria):
+class L2ConvCriterion(ConvergenceCriterion):
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
             "component_name": "algorithm",
-            "field_name"    : "search_direction",
+            "field_name"    : "search_direction:historical",
             "tolerance"     : 1e-9
         }""")
 
@@ -60,7 +60,7 @@ class L2ConvCriteria(ConvergenceCriteria):
 
     def GetInfo(self) -> 'list[tuple[str, typing.Union[int, float, str]]]':
         info = [
-                    ('type'          , 'l2_conv_criteria'),
+                    ('type'          , 'l2_conv_criterion'),
                     ('l2_norm'       , self.__norm),
                     ('tolerance'     , self.__tolerance),
                     ('component_name', self.__component_name),

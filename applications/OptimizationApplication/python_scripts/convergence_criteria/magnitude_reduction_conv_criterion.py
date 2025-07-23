@@ -4,15 +4,15 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetComponentHavingDataByFullName
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetComponentValueByFullName
-from KratosMultiphysics.OptimizationApplication.convergence_criterions.convergence_criteria import ConvergenceCriteria
+from KratosMultiphysics.OptimizationApplication.convergence_criteria.convergence_criterion import ConvergenceCriterion
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 
-def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ConvergenceCriteria:
+def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ConvergenceCriterion:
     if not parameters.Has("settings"):
-        raise RuntimeError(f"MagnitudeReductionConvCriteria instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return MagnitudeReductionConvCriteria(parameters["settings"], optimization_problem)
+        raise RuntimeError(f"MagnitudeReductionConvCriterion instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+    return MagnitudeReductionConvCriterion(parameters["settings"], optimization_problem)
 
-class MagnitudeReductionConvCriteria(ConvergenceCriteria):
+class MagnitudeReductionConvCriterion(ConvergenceCriterion):
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
@@ -66,7 +66,7 @@ class MagnitudeReductionConvCriteria(ConvergenceCriteria):
 
     def GetInfo(self) -> 'list[tuple[str, typing.Union[int, float, str]]]':
         info = [
-                    ('type'          , 'magnitude_reduction_conv_criteria'),
+                    ('type'          , 'magnitude_reduction_conv_criterion'),
                     ('value'         , self.__current_value),
                     ('target_value'  , self.__target_value),
                     ('component_name', self.__component_name),
