@@ -247,7 +247,7 @@ InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacemen
     return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
 }
 
-InterfaceElement CreateTriangleInterfaceElementRotatedBy30AlongYAxisDegreesWithDisplacementDoF(
+InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWithDisplacementDoF(
     Model& rModel, const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
@@ -841,7 +841,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     auto expected_left_hand_side = Matrix{18, 18};
     // clang-format off
 
-    // Since the rotation is round the z-axis (the normal of the triangle) and the two shear
+    // Since the rotation is about the z-axis (the normal of the triangle) and the two shear
     // stiffnesses are equal, the left-hand side matrix is equal to the left-hand side of a
     // non-rotated surface interface element.
     KRATOS_EXPECT_MATRIX_NEAR(actual_left_hand_side, ExpectedLeftHandSideForTriangleElement(), Defaults::relative_tolerance)
@@ -857,7 +857,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
         normal_stiffness, shear_stiffness);
 
     auto element = CreateAndInitializeElement(
-        CreateTriangleInterfaceElementRotatedBy30AlongYAxisDegreesWithDisplacementDoF, p_properties);
+        CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWithDisplacementDoF, p_properties);
 
     // Act
     Matrix actual_left_hand_side;
@@ -1072,7 +1072,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementHorizontal_CalculateStrain_Ret
 
     // Assert
     Vector expected_relative_displacement{3};
-    expected_relative_displacement <<= -1, 0.0, 0.0;
+    expected_relative_displacement <<= -1.0, 0.0, 0.0;
     std::vector<Vector> expected_relative_displacements;
     expected_relative_displacements.push_back(expected_relative_displacement);
     expected_relative_displacements.push_back(expected_relative_displacement);
