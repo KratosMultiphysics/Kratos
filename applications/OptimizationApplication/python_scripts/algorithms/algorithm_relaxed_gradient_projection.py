@@ -12,6 +12,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAlgorithmTimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.list_collective_expression_utilities import CollectiveListCollectiveProduct
 from KratosMultiphysics.OptimizationApplication.utilities.list_collective_expression_utilities import CollectiveListVectorProduct
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import ListLogger
 import math
 
 
@@ -247,6 +248,8 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
                 self.Output()
 
                 self.UpdateControl()
+
+                ListLogger("Convergence info", self._convergence_criteria.GetInfo())
 
                 self._optimization_problem.AdvanceStep()
 

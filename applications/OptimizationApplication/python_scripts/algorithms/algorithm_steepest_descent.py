@@ -12,6 +12,7 @@ from KratosMultiphysics.OptimizationApplication.convergence_criteria.convergence
 from KratosMultiphysics.OptimizationApplication.convergence_criteria.combined_conv_criterion import CombinedConvCriterion
 from KratosMultiphysics.OptimizationApplication.convergence_criteria.max_iter_conv_criterion import MaxIterConvCriterion
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import OptimizationComponentFactory
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import ListLogger
 
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
@@ -59,7 +60,7 @@ class AlgorithmSteepestDescent(Algorithm):
 
         ComponentDataView("algorithm", self._optimization_problem).SetDataBuffer(self.GetMinimumBufferSize())
 
-        self.__convergence_criteria = self.__CreateConvergenceCriteria(settings["conv_settings"])
+        self._convergence_criteria = self.__CreateConvergenceCriteria(settings["conv_settings"])
         self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
 
         self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
@@ -82,12 +83,12 @@ class AlgorithmSteepestDescent(Algorithm):
         self.__objective.Initialize()
         self.__control_field = self.master_control.GetControlField()
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
-        self.__convergence_criteria.Initialize()
+        self._convergence_criteria.Initialize()
 
     def Finalize(self):
         self.master_control.Finalize()
         self.__objective.Finalize()
-        self.__convergence_criteria.Finalize()
+        self._convergence_criteria.Finalize()
 
     @time_decorator()
     def ComputeSearchDirection(self, obj_grad) -> KratosOA.CollectiveExpression:
@@ -142,11 +143,13 @@ class AlgorithmSteepestDescent(Algorithm):
 
                 self._FinalizeIteration()
 
-                self.converged = self.__convergence_criteria.IsConverged()
+                self.converged = self._convergence_criteria.IsConverged()
 
                 self.Output()
 
                 self.UpdateControl()
+
+                ListLogger("Convergence info", self._convergence_criteria.GetInfo())
 
                 self._optimization_problem.AdvanceStep()
 
