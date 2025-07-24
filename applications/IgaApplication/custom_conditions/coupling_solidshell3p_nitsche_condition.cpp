@@ -523,6 +523,7 @@ namespace Kratos
         // It should be imported it from Queso (weak_bcs.py). 
         // The idea is to create for each triangle a Kratos geometry of type Triangle3D3 and set
         // it as parent geometry. A binding from Cpp to Python must be created for SetParentGeometry.
+        // ATTENTION: Triangle3D3 are probably not normalized. So better to divide by the norm2 to normalize it
         // For now set the normal vector as (1,0,0)
         rKinematicVariables.n[0] = 1;
         rKinematicVariables.n[1] = 0;
