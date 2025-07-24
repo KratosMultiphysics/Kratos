@@ -10,8 +10,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_FROM_JSON_CHECK_RESULT_PROCESS_H_INCLUDED )
-#define  KRATOS_FROM_JSON_CHECK_RESULT_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -72,17 +71,17 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( ELEMENTS_DATABASE_INITIALIZED );  /// This flag is used in order to check that elements database are initialized
 
     /// Containers definition
-    typedef ModelPart::NodesContainerType              NodesArrayType;
-    typedef ModelPart::ElementsContainerType        ElementsArrayType;
+    using NodesArrayType = ModelPart::NodesContainerType;
+    using ElementsArrayType = ModelPart::ElementsContainerType;
 
-    /// The node type definiton
-    typedef Node NodeType;
+    /// The node type definition
+    using NodeType = Node;
 
     /// The definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    /// The definition of the size type
+    using SizeType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -354,8 +353,15 @@ protected:
     FromJSONCheckResultProcess(ModelPart& rModelPart, Parameters Settings, Parameters DefaultSettings);
 
     ///@}
-
 private:
+    ///@name Static Member Variables
+    ///@{
+
+    /// Registry current operation
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics", Process, FromJSONCheckResultProcess)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", Process, FromJSONCheckResultProcess)
+
+    ///@}
     ///@name Member Variables
     ///@{
 
@@ -432,7 +438,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_FROM_JSON_CHECK_RESULT_PROCESS_H_INCLUDED  defined
