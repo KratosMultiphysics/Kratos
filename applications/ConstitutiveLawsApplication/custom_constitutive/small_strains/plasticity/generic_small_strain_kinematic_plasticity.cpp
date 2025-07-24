@@ -89,6 +89,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
 
     // We get the constitutive tensor
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+    CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
     // We check the current step and NL iteration
     const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
@@ -102,12 +103,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
         if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
             r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             Vector& r_stress_vector = rValues.GetStressVector();
-            if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                CalculateElasticMatrix(r_constitutive_matrix, rValues);
-                noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
-            } else {
-                BaseType::CalculatePK2Stress(r_strain_vector, r_stress_vector, rValues);
-            }
+            noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
         }
     } else { // We check for plasticity
         // Integrate Stress plasticity
@@ -119,17 +115,8 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
             this->CalculateValue(rValues, STRAIN, r_strain_vector);
         }
 
-        // Elastic Matrix
-        if ( r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-            Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-            CalculateElasticMatrix(r_constitutive_matrix, rValues);
-        }
-
         // We compute the stress
         if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-            // Elastic Matrix
-            Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-            CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
             // We get some variables
             double threshold = this->GetThreshold();
