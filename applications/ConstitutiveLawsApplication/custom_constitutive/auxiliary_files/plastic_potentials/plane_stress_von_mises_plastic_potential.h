@@ -17,6 +17,7 @@
 
 // Project includes
 #include "generic_plastic_potential.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 
 namespace Kratos
 {

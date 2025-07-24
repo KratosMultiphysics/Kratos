@@ -15,8 +15,9 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "generic_yield_surface.h"
+#include "von_mises_yield_surface.h"
 #include "constitutive_laws_application_variables.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -45,12 +46,13 @@ namespace Kratos
  * @class PlaneStressPlaneStressVonMisesYieldSurface
  * @ingroup StructuralMechanicsApplication
  * @brief This class defines a yield surface according to Von-Mises theory in plane stress conditions
+ * Theory behind this implementation can be found in Souza et al. "Computational methods for plasticity: Theory and applications" (2008), pg 373.
+ * DOI:10.1002/9780470694626
  * @details The von Mises yield criterion (also known as the maximum distortion energy criterion) suggests that yielding of a ductile material begins when the second deviatoric stress invariant J2 reaches a critical value. It is part of plasticity theory that applies best to ductile materials, such as some metals. Prior to yield, material response can be assumed to be of a nonlinear elastic, viscoelastic, or linear elastic behavior.
  * The yield surface requires the definition of the following properties:
  * - FRACTURE_ENERGY: A fracture energy-based function is used to describe strength degradation in post-peak regime
  * - YOUNG_MODULUS: It defines the relationship between stress (force per unit area) and strain (proportional deformation) in a material in the linear elasticity regime of a uniaxial deformation.
  * - YIELD_STRESS: Yield stress is the amount of stress that an object needs to experience for it to be permanently deformed. Does not require to be defined simmetrically, one YIELD_STRESS_COMPRESSION and other YIELD_STRESS_TENSION can be defined for not symmetric cases
- * @see https://en.wikipedia.org/wiki/Von_Mises_yield_criterion
  * @tparam TPlasticPotentialType The plastic potential considered
  * @author Alejandro Cornejo
  */
@@ -109,20 +111,6 @@ public:
     ///@name Operations
     ///@{
 
-    Matrix CalculatePOperator()
-    {
-        Matrix P(3, 3);
-        P.clear();
-
-        P(0, 0) = 2.0;
-        P(0, 1) = -1.0;
-        P(1, 0) = -1.0;
-        P(1, 1) = 2.0;
-        P(2, 2) = 6.0;
-
-        return P / 3.0;
-    }
-
     /**
      * @brief This method the uniaxial equivalent stress
      * @param rStressVector The stress vector
@@ -136,7 +124,7 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        const Matrix& r_P = CalculatePOperator();
+        const Matrix& r_P = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePOperator();
         const Vector aux = prod(P, rStressVector)
         rEquivalentStress = std::sqrt(1.5 * inner_prod(aux, rStressVector));
     }
@@ -151,9 +139,7 @@ public:
         double& rThreshold
         )
     {
-        const Properties& r_material_properties = rValues.GetMaterialProperties();
-        const double yield_tension = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
-		rThreshold = std::abs(yield_tension);
+        VonMisesYieldSurface<PlasticPotentialType>::GetInitialUniaxialThreshold(rValues, rThreshold);
     }
 
     /**
@@ -168,20 +154,7 @@ public:
         const double CharacteristicLength
         )
     {
-        const Properties& r_material_properties = rValues.GetMaterialProperties();
-
-        const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
-        const double young_modulus = r_material_properties[YOUNG_MODULUS];
-        const double yield_compression = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
-
-        if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
-            rAParameter = 1.00 / (fracture_energy * young_modulus / (CharacteristicLength * std::pow(yield_compression, 2)) - 0.5);
-            KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
-        } else if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Linear)) { // linear
-            rAParameter = -std::pow(yield_compression, 2) / (2.0 * young_modulus * fracture_energy / CharacteristicLength);
-        } else {
-            rAParameter = 0.0;
-        }
+        VonMisesYieldSurface<PlasticPotentialType>::CalculateDamageParameter(rValues, rAParameter, CharacteristicLength);
     }
 
     /**
@@ -200,12 +173,12 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
+        PlasticPotentialType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
     }
 
     /**
      * @brief This  script  calculates  the derivatives  of the Yield Surf
-    according   to Souza Neto et al. (2008)
+    according to Souza Neto et al. (2008)
      * @param rPredictiveStressVector The predictive stress vector
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
@@ -220,7 +193,7 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        const Matrix& r_P = CalculatePOperator();
+        const Matrix& r_P = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePOperator();
         const Vector aux = prod(P, rStressVector)
         const double denominator = std::sqrt(inner_prod(aux, rStressVector));
         noalias(rFFlux) = std::sqrt(1.5) * prod(P, rPredictiveStressVector) / denominator;
@@ -232,24 +205,7 @@ public:
      */
     static int Check(const Properties& rMaterialProperties)
     {
-        if (!rMaterialProperties.Has(YIELD_STRESS)) {
-            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
-            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
-
-            const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-            const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
-
-            KRATOS_ERROR_IF(yield_compression < tolerance) << "Yield stress in compression almost zero or negative, include YIELD_STRESS_COMPRESSION in definition";
-            KRATOS_ERROR_IF(yield_tension < tolerance) << "Yield stress in tension almost zero or negative, include YIELD_STRESS_TENSION in definition";
-        } else {
-            const double yield_stress = rMaterialProperties[YIELD_STRESS];
-
-            KRATOS_ERROR_IF(yield_stress < tolerance) << "Yield stress almost zero or negative, include YIELD_STRESS in definition";
-        }
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined value" << std::endl;
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not a defined value" << std::endl;
-
-        return TPlasticPotentialType::Check(rMaterialProperties);
+        return VonMisesYieldSurface<PlasticPotentialType>::Check(rMaterialProperties);
     }
 
     /**
@@ -257,7 +213,7 @@ public:
      */
     static bool IsWorkingWithTensionThreshold()
     {
-        return true;
+        return VonMisesYieldSurface<PlasticPotentialType>::IsWorkingWithTensionThreshold();
     }
 
     /**
@@ -265,7 +221,7 @@ public:
      */
     static double GetScaleFactorTension(const Properties& rMaterialProperties)
     {
-        return 1.0;
+        return VonMisesYieldSurface<PlasticPotentialType>::GetScaleFactorTension();
     }
 
     ///@}
