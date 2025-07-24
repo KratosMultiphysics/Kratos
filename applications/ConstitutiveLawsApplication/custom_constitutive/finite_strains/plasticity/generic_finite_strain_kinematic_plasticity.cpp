@@ -26,6 +26,7 @@
 // Yield surfaces
 #include "custom_constitutive/auxiliary_files/yield_surfaces/generic_yield_surface.h"
 #include "custom_constitutive/auxiliary_files/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/plane_stress_von_mises_yield_surface.h"
 #include "custom_constitutive/auxiliary_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
 #include "custom_constitutive/auxiliary_files/yield_surfaces/mohr_coulomb_yield_surface.h"
 #include "custom_constitutive/auxiliary_files/yield_surfaces/rankine_yield_surface.h"
@@ -36,6 +37,7 @@
 // Plastic potentials
 #include "custom_constitutive/auxiliary_files/plastic_potentials/generic_plastic_potential.h"
 #include "custom_constitutive/auxiliary_files/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/plane_stress_von_mises_plastic_potential.h"
 #include "custom_constitutive/auxiliary_files/plastic_potentials/tresca_plastic_potential.h"
 #include "custom_constitutive/auxiliary_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
 #include "custom_constitutive/auxiliary_files/plastic_potentials/mohr_coulomb_plastic_potential.h"
@@ -53,7 +55,7 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
 
     Vector& r_stress_vector                = rValues.GetStressVector();
     const Matrix& r_deformation_gradient_f = rValues.GetDeformationGradientF();
-    const double determinant_f           = rValues.GetDeterminantF();
+    const double determinant_f             = rValues.GetDeterminantF();
 
     this->TransformStresses(r_stress_vector, r_deformation_gradient_f, determinant_f,
         ConstitutiveLaw::StressMeasure_PK2, ConstitutiveLaw::StressMeasure_PK1);
@@ -72,7 +74,7 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
 
     Vector& r_stress_vector                = rValues.GetStressVector();
     const Matrix& r_deformation_gradient_f = rValues.GetDeformationGradientF();
-    const double determinant_f           = rValues.GetDeterminantF();
+    const double determinant_f             = rValues.GetDeterminantF();
 
     this->TransformStresses(r_stress_vector, r_deformation_gradient_f, determinant_f,
         ConstitutiveLaw::StressMeasure_Kirchhoff, ConstitutiveLaw::StressMeasure_PK2);
@@ -91,7 +93,7 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
     // We get the strain vector
-    Vector& r_strain_vector         = rValues.GetStrainVector();
+    Vector& r_strain_vector = rValues.GetStrainVector();
 
     // We get the Deformation gradient F
     const Matrix& rF = rValues.GetDeformationGradientF();
@@ -190,7 +192,7 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
 
     Vector& r_stress_vector       = rValues.GetStressVector();
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-    const double determinant_f  = rValues.GetDeterminantF();
+    const double determinant_f    = rValues.GetDeterminantF();
 
     // Set to Cauchy Stress:
     r_stress_vector       /= determinant_f;
@@ -234,7 +236,7 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
     // We get the strain vector
-    Vector& r_strain_vector         = rValues.GetStrainVector();
+    Vector& r_strain_vector = rValues.GetStrainVector();
 
     // We get the Deformation gradient F
     const Matrix& rF = rValues.GetDeformationGradientF();
@@ -447,13 +449,13 @@ Vector& GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
         Flags& r_flags = rParameterValues.GetOptions();
 
         // Previous flags saved
-        const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
-        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
 
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // We compute the stress
         if (rThisVariable == STRESSES) {
@@ -468,9 +470,9 @@ Vector& GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
         rValue = rParameterValues.GetStressVector();
 
         // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     }
 
     return( rValue );
@@ -519,6 +521,7 @@ int GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
 /***********************************************************************************/
 /***********************************************************************************/
 
+template class GenericFiniteStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>>;
 template class GenericFiniteStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
 template class GenericFiniteStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
 template class GenericFiniteStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>>;
