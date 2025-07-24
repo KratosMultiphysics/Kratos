@@ -16,7 +16,7 @@
 // System includes
 
 // Project includes
-#include "generic_plastic_potential.h"
+#include "von_mises_plastic_potential.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
 
 namespace Kratos
@@ -70,11 +70,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Initialization constructor.
-    PlaneStressVonMisesPlasticPotential()
-    {
-    }
-
     /// Copy constructor
     PlaneStressVonMisesPlasticPotential(PlaneStressVonMisesPlasticPotential const &rOther)
     {
@@ -86,9 +81,6 @@ public:
         return *this;
     }
 
-    /// Destructor
-    virtual ~PlaneStressVonMisesPlasticPotential(){};
-
     ///@}
     ///@name Operators
     ///@{
@@ -96,20 +88,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    Matrix CalculatePOperator()
-    {
-        Matrix P(3, 3);
-        P.clear();
-
-        P(0, 0) = 2.0;
-        P(0, 1) = -1.0;
-        P(1, 0) = -1.0;
-        P(1, 1) = 2.0;
-        P(2, 2) = 6.0;
-
-        return P / 3.0;
-    }
 
     /**
     * @brief This  script  calculates  the derivatives  of the plastic potential
@@ -128,7 +106,7 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        const Matrix& r_P = CalculatePOperator();
+        const Matrix& r_P = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePOperator();
         const Vector aux = prod(P, rStressVector)
         const double denominator = std::sqrt(inner_prod(aux, rStressVector));
         noalias(rGFlux) = std::sqrt(1.5) * prod(P, rPredictiveStressVector) / denominator;
