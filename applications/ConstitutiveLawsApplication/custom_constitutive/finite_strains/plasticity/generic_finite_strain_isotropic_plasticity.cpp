@@ -99,7 +99,7 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
     const Matrix& rF = rValues.GetDeformationGradientF();
     const Matrix& r_B = prod(rF, trans(rF));
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-    CalculateElasticMatrix( r_constitutive_matrix, rValues);
+    CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
     AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(r_B, r_strain_vector);
 
@@ -332,11 +332,11 @@ double& GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
         Flags& r_flags = rParameterValues.GetOptions();
 
         // Previous flags saved
-        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+        const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // Calculate the stress vector
         CalculateMaterialResponseCauchy(rParameterValues);
@@ -348,8 +348,8 @@ double& GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
             r_strain_vector, rValue, rParameterValues);
 
         // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     } else {
         return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
     }
@@ -381,9 +381,9 @@ Vector& GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
         const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
         const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
 
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
 
         // We compute the strain
         if (rThisVariable == STRAIN) {
@@ -415,9 +415,10 @@ Vector& GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
         rValue = rParameterValues.GetStrainVector();
 
         // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+
     } else if (rThisVariable == STRESSES ||
         rThisVariable == CAUCHY_STRESS_VECTOR ||
         rThisVariable == KIRCHHOFF_STRESS_VECTOR ||
@@ -427,13 +428,13 @@ Vector& GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
         Flags& r_flags = rParameterValues.GetOptions();
 
         // Previous flags saved
-        const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
-        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+        const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // We compute the stress
         if (rThisVariable == STRESSES) {
