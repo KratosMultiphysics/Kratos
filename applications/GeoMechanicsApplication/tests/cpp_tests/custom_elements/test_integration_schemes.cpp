@@ -244,8 +244,9 @@ KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromTriangle6LumpedSchemes, KratosGeoMec
                    [](const auto& rWeight) {
         return rWeight * 0.5; // Adjust weights for the area of the triangle
     });
-    const auto actual_weights = ComputeWeightsForLumpedIntegration(6);
-    KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, 1e-4)
+    const auto     actual_weights = ComputeWeightsForLumpedIntegration(6);
+    constexpr auto tolerance      = 1e-5;
+    KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromTriangle3LumpedSchemes, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -255,8 +256,9 @@ KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromTriangle3LumpedSchemes, KratosGeoMec
                    [](const auto& rWeight) {
         return rWeight * 0.5; // Adjust weights for the area of the triangle
     });
-    const auto actual_weights = ComputeWeightsForLumpedIntegration(3);
-    KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, 1e-4)
+    const auto     actual_weights = ComputeWeightsForLumpedIntegration(3);
+    constexpr auto tolerance      = 1e-5;
+    KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromQuadrilateral4LumpedSchemes, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -266,8 +268,9 @@ KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromQuadrilateral4LumpedSchemes, KratosG
                    [](const auto& rWeight) {
         return rWeight * 4.0; // Adjust weights for the area of the quadrilateral
     });
-    const auto actual_weights = ComputeWeightsForLumpedIntegration(4);
-    KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, 1e-4)
+    const auto     actual_weights = ComputeWeightsForLumpedIntegration(4);
+    constexpr auto tolerance      = 1e-5;
+    KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromQuadrilateral8LumpedSchemes, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -279,8 +282,9 @@ KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromQuadrilateral8LumpedSchemes, KratosG
                    [](const auto& rWeight) {
         return rWeight * 4.0; // Adjust weights for the area of the quadrilateral
     });
-    const auto actual_weights = ComputeWeightsForLumpedIntegration(8);
-    KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, 1e-4)
+    const auto     actual_weights = ComputeWeightsForLumpedIntegration(8);
+    constexpr auto tolerance      = 1e-5;
+    KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, tolerance)
 }
 
 } // namespace Kratos::Testing
