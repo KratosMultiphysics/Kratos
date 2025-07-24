@@ -35,17 +35,13 @@ KRATOS_TEST_CASE_IN_SUITE(LineLoad2DDiffOrderCondition_CanBeSavedAndLoaded, Krat
         std::make_pair("Line2D3"s, Line2D3<Node>{PointerVector<Node>(3)}),
         std::make_pair("Line2D2"s, Line2D2<Node>{PointerVector<Node>(2)}));
 
-    auto p_condition      = ElementSetupUtilities::Create2D3NLineCondition();
-    auto p_variables_list = make_intrusive<VariablesList>();
-    p_variables_list->Add(DISPLACEMENT);
-    p_variables_list->Add(WATER_PRESSURE);
-    for (auto& rNode : p_condition->GetGeometry()) {
-        rNode.SetSolutionStepVariablesList(p_variables_list);
-        rNode.AddDof(DISPLACEMENT_X);
-        rNode.AddDof(DISPLACEMENT_Y);
-        rNode.AddDof(DISPLACEMENT_Z);
-        rNode.AddDof(WATER_PRESSURE);
-    }
+    const auto solution_step_variables =
+        Geo::ConstVariableDataRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT)};
+    const auto degrees_of_freedom =
+        Geo::ConstVariableRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT_X),
+                               std::cref(DISPLACEMENT_Y), std::cref(DISPLACEMENT_Z)};
+    auto p_condition =
+        ElementSetupUtilities::Create2D3NLineCondition(solution_step_variables, degrees_of_freedom);
 
     const auto dummy_process_info = ProcessInfo{};
     p_condition->Initialize(dummy_process_info);
