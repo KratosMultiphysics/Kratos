@@ -52,7 +52,7 @@ KRATOS_TEST_CASE_IN_SUITE(LoggerMessageStream, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(message.GetCategory(), LoggerMessage::Category::CRITICAL);
     KRATOS_EXPECT_NE(message.GetLocation().GetFileName().find("test_logger.cpp"), std::string::npos);
     KRATOS_EXPECT_EQ(message.GetLocation().GetFunctionName(), KRATOS_CURRENT_FUNCTION);
-    KRATOS_EXPECT_EQ(message.GetLocation().GetLineNumber(), 50);
+    KRATOS_EXPECT_EQ(message.GetLocation().GetLineNumber(), 48);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LoggerOutput, KratosCoreFastSuite)
