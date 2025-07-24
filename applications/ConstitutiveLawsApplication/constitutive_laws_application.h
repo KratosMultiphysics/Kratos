@@ -420,6 +420,7 @@ private:
 
 
     /* Finite strain Isotropic plasticity*/
+    const GenericFiniteStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>> mFiniteStrainIsotropicPlasticityPlaneStressVonMisesVonMises;
     const GenericFiniteStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mFiniteStrainIsotropicPlasticity3DVonMisesVonMises;
     const GenericFiniteStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mFiniteStrainIsotropicPlasticity3DVonMisesModifiedMohrCoulomb;
     const GenericFiniteStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>> mFiniteStrainIsotropicPlasticity3DVonMisesDruckerPrager;
@@ -445,6 +446,7 @@ private:
     const GenericFiniteStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>> mFiniteStrainIsotropicPlasticity3DDruckerPragerMohrCoulomb;
 
     /* Finite strain Kinematic plasticity*/
+    const GenericFiniteStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>> mFiniteStrainKinematicPlasticityPlaneStressVonMisesVonMises;
     const GenericFiniteStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mFiniteStrainKinematicPlasticity3DVonMisesVonMises;
     const GenericFiniteStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mFiniteStrainKinematicPlasticity3DVonMisesModifiedMohrCoulomb;
     const GenericFiniteStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>> mFiniteStrainKinematicPlasticity3DVonMisesDruckerPrager;

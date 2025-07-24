@@ -731,6 +731,11 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     /* Finite strain */
     // Isotropic
+    py::class_< GenericFiniteStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>>,
+    typename GenericFiniteStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"FiniteStrainIsotropicPlasticityPlaneStressVonMisesVonMises").def(py::init<>());
+
     py::class_< GenericFiniteStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>,
     typename GenericFiniteStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
     ConstitutiveLaw >
@@ -813,6 +818,11 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     /* Finite strain */
     // Kinematic
+    py::class_< GenericFiniteStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>>,
+    typename GenericFiniteStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"FiniteStrainKinematicPlasticityPlaneStressVonMisesVonMises").def(py::init<>());
+
     py::class_< GenericFiniteStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>,
     typename GenericFiniteStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
     ConstitutiveLaw >
