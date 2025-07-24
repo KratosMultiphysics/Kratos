@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Minas Apostolakis
+//  Main author:    Minas Apostolakis (minas.apostolakis@gmail.com)
 //                   
 
 // System includes
@@ -37,13 +37,13 @@ namespace Kratos
         const auto& r_geometry_master = GetGeometry().GetGeometryPart(0);
         const auto& r_geometry_slave = GetGeometry().GetGeometryPart(1);
 
-        // Size definitions
+        // size definitions
         const SizeType number_of_nodes_master = r_geometry_master.size();
         const SizeType number_of_nodes_slave = r_geometry_slave.size();
 
         const SizeType mat_size = 3 * (number_of_nodes_master + number_of_nodes_slave);
 
-        // Memory allocation
+        // memory allocation
         if (CalculateStiffnessMatrixFlag) {
             if (rLeftHandSideMatrix.size1() != mat_size) {
                 rLeftHandSideMatrix.resize(mat_size, mat_size, false);
@@ -57,12 +57,11 @@ namespace Kratos
             rRightHandSideVector = ZeroVector(mat_size);
         }
 
-        // Integration
+        // integration points
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry_master.IntegrationPoints();
 
-        // initial determinant of jacobian 
+        // initial determinant of jacobian. 
         Vector determinant_jacobian_vector_initial(integration_points.size());
-        //DeterminantOfJacobianInitial(r_geometry_master, determinant_jacobian_vector_initial); 
         r_geometry_master.DeterminantOfJacobian(determinant_jacobian_vector_initial);
 
         const IntegrationMethod integration_method_master = r_geometry_master.GetDefaultIntegrationMethod();
@@ -73,23 +72,17 @@ namespace Kratos
         const SizeType r_number_of_integration_points_master = r_geometry_master.IntegrationPointsNumber();
         const SizeType r_number_of_integration_points_slave = r_geometry_slave.IntegrationPointsNumber();
 
-        // Prepare memory
+        // prepare memory
         if (m_A_ab_covariant_vector_master.size() != r_number_of_integration_points_master)
             m_A_ab_covariant_vector_master.resize(r_number_of_integration_points_master);
         if (m_A_ab_covariant_vector_slave.size() != r_number_of_integration_points_slave)
             m_A_ab_covariant_vector_slave.resize(r_number_of_integration_points_slave);
         if (m_B_ab_covariant_vector_slave.size() != r_number_of_integration_points_slave)
             m_B_ab_covariant_vector_slave.resize(r_number_of_integration_points_slave);
-        //if (m_dA_vector_master.size() != r_number_of_integration_points_master)
-        //    m_dA_vector_master.resize(r_number_of_integration_points_master);
         if (m_dA_vector_slave.size() != r_number_of_integration_points_slave)
             m_dA_vector_slave.resize(r_number_of_integration_points_slave);
-        //if (m_T_vector_master.size() != r_number_of_integration_points_master) // Transformations for master are not needed
-        //    m_T_vector_master.resize(r_number_of_integration_points_master);
         if (m_T_vector_slave.size() != r_number_of_integration_points_slave)
             m_T_vector_slave.resize(r_number_of_integration_points_slave);
-        //if (m_T_hat_vector_master.size() != r_number_of_integration_points_master) // Transformations for master are not needed
-        //    m_T_hat_vector_master.resize(r_number_of_integration_points_master);
         if (m_T_hat_vector_slave.size() != r_number_of_integration_points_slave)
             m_T_hat_vector_slave.resize(r_number_of_integration_points_slave);
         if (m_reference_contravariant_base_master.size() != r_number_of_integration_points_master)
@@ -114,7 +107,7 @@ namespace Kratos
             const Matrix& shape_functions_gradients_i_master = r_shape_functions_gradients_master[point_number];
             const Matrix& shape_functions_gradients_i_slave = r_shape_functions_gradients_slave[point_number];
 
-            //Compute Kinematics Reference
+            // compute kinematics for reference configuration
             if (CalculateStiffnessMatrixFlag) {
                 KinematicVariablesSolid kinematic_variables_reference_master(
                     r_geometry_master.WorkingSpaceDimension());
@@ -133,9 +126,7 @@ namespace Kratos
                 m_A_ab_covariant_vector_master[point_number] = kinematic_variables_reference_master.a_ab_covariant;
                 m_A_ab_covariant_vector_slave[point_number] = kinematic_variables_reference_slave.a_ab_covariant;
                 m_B_ab_covariant_vector_slave[point_number] = kinematic_variables_reference_slave.b_ab_covariant;
-                //m_dA_vector_master[point_number] = kinematic_variables_reference_master.dA; // m_dA_vector_master not used for solid
                 m_dA_vector_slave[point_number] = kinematic_variables_reference_slave.dA;
-
                 m_n_contravariant_vector_master[point_number] = kinematic_variables_reference_master.n_contravariant;
                 m_n_contravariant_vector_slave[point_number] = kinematic_variables_reference_slave.n_contravariant;
 
@@ -149,7 +140,7 @@ namespace Kratos
                 _theta3[point_number] = ComputeTheta3Shell(point_number, kinematic_variables_reference_slave);
             }
 
-            // Compute Kinematics Current
+            // compute kinematics for current configuration
             KinematicVariablesSolid kinematic_variables_master(
                 r_geometry_master.WorkingSpaceDimension());
             KinematicVariablesShell kinematic_variables_slave(
@@ -162,7 +153,7 @@ namespace Kratos
                 kinematic_variables_slave, shape_functions_gradients_i_slave, ConfigurationType::Current);
 
 
-            // Create constitutive law parameters:
+            // create constitutive law parameters:
             ConstitutiveLaw::Parameters constitutive_law_parameters_slave(
                 r_geometry_slave, GetProperties().GetSubProperties().back(), rCurrentProcessInfo);
             ConstitutiveLaw::Parameters constitutive_law_parameters_master(
@@ -189,24 +180,18 @@ namespace Kratos
             // calculate traction vectors
             array_1d<double, 3> traction_vector_master;
             array_1d<double, 3> traction_vector_slave;
-
-            // CalculateTractionSolid
             CalculateTractionSolid(point_number, traction_vector_master, kinematic_variables_master, constitutive_variables_solid_master);
             CalculateTractionShell(point_number, traction_vector_slave, kinematic_variables_slave, constitutive_variables_slave);
 
-            // calculate the first variations of the 2nd Piola-Kichhoff stresses at the covariant bases
+            // calculate first variations of the 2nd Piola-Kichhoff stresses wrt the covariant bases
             Matrix first_variations_stress_covariant_master = ZeroMatrix(6, 3 * number_of_nodes_master);
             Matrix first_variations_stress_covariant_slave = ZeroMatrix(3, 3 * number_of_nodes_slave);
-
-            // CalculateFirstVariationStressCovariantSolid
             CalculateFirstVariationStressCovariantSolid(point_number, first_variations_stress_covariant_master, kinematic_variables_master, constitutive_variables_solid_master); 
             CalculateFirstVariationStressCovariantShell(point_number, _theta3[point_number], first_variations_stress_covariant_slave, kinematic_variables_slave, constitutive_variables_slave);
 
             // calculate first variation of traction vectors
             Matrix first_variations_traction_master = ZeroMatrix(3, 3 * number_of_nodes_master);
             Matrix first_variations_traction_slave = ZeroMatrix(3, 3 * number_of_nodes_slave);
-
-            // CalculateFirstVariationTraction
             CalculateFirstVariationTractionSolid(point_number, first_variations_traction_master, first_variations_stress_covariant_master, kinematic_variables_master, constitutive_variables_solid_master);
             CalculateFirstVariationTractionShell(point_number, first_variations_traction_slave, first_variations_stress_covariant_slave, kinematic_variables_slave, constitutive_variables_slave);
 
@@ -222,7 +207,7 @@ namespace Kratos
                 first_variations_traction(2, i + 3 * number_of_nodes_master) = - first_variations_traction_slave(2, i);
             }
 
-            ////Compute the NURBS basis functions
+            // compute NURBS basis functions and derivatives
             Matrix N_master = r_geometry_master.ShapeFunctionsValues();
             Matrix N_slave = r_geometry_slave.ShapeFunctionsValues();
 
@@ -230,7 +215,6 @@ namespace Kratos
             Matrix r_N_slave = ZeroMatrix(3, 3 * number_of_nodes_slave);
             Matrix dN_theta1 = ZeroMatrix(3, 3 * number_of_nodes_slave);
             Matrix dN_theta2 = ZeroMatrix(3, 3 * number_of_nodes_slave);
-
 
             for (IndexType r = 0; r < number_of_nodes_master; r++)
             {
@@ -252,10 +236,9 @@ namespace Kratos
                 dN_theta2(0, 3 * r)     = shape_functions_gradients_i_slave(r, 1);
                 dN_theta2(1, 3 * r + 1) = shape_functions_gradients_i_slave(r, 1);
                 dN_theta2(2, 3 * r + 2) = shape_functions_gradients_i_slave(r, 1);
-
             }
 
-            //Get the displacement vectors of the previous iteration step
+            //get the displacement vectors of the previous iteration step
             Vector current_displacement_total = ZeroVector(mat_size);
             Vector current_displacement_master = ZeroVector(3 * number_of_nodes_master);
             Vector current_displacement_slave = ZeroVector(3 * number_of_nodes_slave);
@@ -273,22 +256,19 @@ namespace Kratos
             array_1d<double, 3> displacement_vector_slave;
 
             displacement_vector_master = prod(r_N_master, current_displacement_master);
-
-            // For shell displacements, out of plane deformation must be taken into account            
+            // for shell displacement vector, out of plane deformation must be taken into account            
             array_1d<double, 3> A1_cross_A2;
             MathUtils<double>::CrossProduct(A1_cross_A2, _A1[point_number], _A2[point_number]);
             double norm_A1_cross_A2 = norm_2(A1_cross_A2);
-
             array_1d<double, 3> v_1 = prod(dN_theta1, current_displacement_slave);
             array_1d<double, 3> v_2 = prod(dN_theta2, current_displacement_slave);
             double phi1 = (1 / norm_A1_cross_A2) * inner_prod(v_2, _A3[point_number]);
             double phi2 = - (1 / norm_A1_cross_A2) * inner_prod(v_1, _A3[point_number]);
-
             array_1d<double, 3> Phi  = phi1 * _A1[point_number] + phi2 * _A2[point_number];
             array_1d<double, 3> Phi_cross_A3;
             MathUtils<double>::CrossProduct(Phi_cross_A3, Phi, _A3[point_number]);
-
-            displacement_vector_slave = prod(r_N_slave, current_displacement_slave) + _theta3[point_number] * Phi_cross_A3;
+            displacement_vector_slave = prod(r_N_slave, current_displacement_slave) //midplane displacements
+                                        + _theta3[point_number] * Phi_cross_A3;//out-of-plane displacements
 
             // calculate second variation of traction vectors
             Matrix product_second_variations_traction_displacement_master = ZeroMatrix(3 * number_of_nodes_master, 3 * number_of_nodes_master);
@@ -314,6 +294,8 @@ namespace Kratos
                 constitutive_variables_slave);
 
             //Penalty part & RHS
+
+            // solid displacements first variation
             Matrix H = ZeroMatrix(3, mat_size);
             for (IndexType i = 0; i < number_of_nodes_master; i++)
             {
@@ -323,6 +305,7 @@ namespace Kratos
                 H(2, index + 2) = N_master(point_number, i);
             }
 
+            // shell displacement first variation (out-of-plane variations are taken into account)
             Matrix OutOfPlaneDeformationFirstVariationMatrix = zero_matrix(3, 3 * number_of_nodes_slave);
             OutOfPlaneDeformationFirstVariation(
                 OutOfPlaneDeformationFirstVariationMatrix,
@@ -421,7 +404,6 @@ namespace Kratos
     {
         const auto& r_geometry = GetGeometry().GetGeometryPart(1);
 
-        // pass/call this ShapeFunctionsLocalGradients[pnt]
         const SizeType dimension = r_geometry.WorkingSpaceDimension();
         const SizeType number_of_nodes = r_geometry.size();
         Vector g1 = ZeroVector(dimension);
@@ -475,10 +457,8 @@ namespace Kratos
         rKinematicVariables.n_contravariant[1] = rKinematicVariables.a2[0]*rKinematicVariables.n[0] + rKinematicVariables.a2[1]*rKinematicVariables.n[1] + rKinematicVariables.a2[2]*rKinematicVariables.n[2];
         
         // Kindl From eq 3.28 calculates dda_dαdβ
-
         // Hesian contatins [a11 | a22 | a12], a11 = da1/dtheta1, a22 = da2/dtheta2, a12 = da1 / dtheta2
         // For a21 : a21 = a12 because a21 = da2/dtheta1 = dd x / (dtheta1 dtheta2) = dtheta1
-        
         CalculateHessian(rKinematicVariables.Hessian, r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex));
         Matrix& H = rKinematicVariables.Hessian;
                
@@ -486,20 +466,6 @@ namespace Kratos
         rKinematicVariables.b_ab_covariant[0] = H(0, 0) * rKinematicVariables.a3[0] + H(1, 0) * rKinematicVariables.a3[1] + H(2, 0) * rKinematicVariables.a3[2];
         rKinematicVariables.b_ab_covariant[1] = H(0, 1) * rKinematicVariables.a3[0] + H(1, 1) * rKinematicVariables.a3[1] + H(2, 1) * rKinematicVariables.a3[2];
         rKinematicVariables.b_ab_covariant[2] = H(0, 2) * rKinematicVariables.a3[0] + H(1, 2) * rKinematicVariables.a3[1] + H(2, 2) * rKinematicVariables.a3[2];
-
-        //// Check Numbers
-        //if (Id() == 550) {
-        //    if (rConfiguration == ConfigurationType::Reference) {
-        //        std::cout << "CalculateKinematicsShell :: Shell :: Reference Congiguration" << std::endl;
-        //        std::cout << "Contravatiants: n1  = ( " << rKinematicVariables.n_contravariant[0] << " | n2:  " << rKinematicVariables.n_contravariant[1] << std::endl;
-        //    }
-        //    else if (rConfiguration == ConfigurationType::Current)
-        //    {
-        //        std::cout << "CalculateKinematicsShell :: Shell :: Current Congiguration" << std::endl;
-        //    }
-        //    std::cout << "A1 = ( " << g1[0] << " | " << g1[1] << " | " << g1[2] << " )" << std::endl;
-        //    std::cout << "A2 = ( " << g2[0] << " | " << g2[1] << " | " << g2[2] << " )" << std::endl;
-        //}
     }
 
     void CouplingSolidShell3pNitscheCondition::CalculateKinematicsSolid( 
@@ -509,12 +475,9 @@ namespace Kratos
         const ConfigurationType& rConfiguration
     )
     {
-        KRATOS_TRY; 
-
         IndexType GeometryPart =  0 ;
         const auto& r_geometry = GetGeometry().GetGeometryPart(GeometryPart);
 
-        // pass/call this ShapeFunctionsLocalGradients[pnt]
         const SizeType dimension = r_geometry.WorkingSpaceDimension();
         const SizeType number_of_nodes = r_geometry.size();
         Vector g1 = ZeroVector(dimension);
@@ -548,19 +511,19 @@ namespace Kratos
         rKinematicVariables.a2 = g2;
         rKinematicVariables.a3 = g3;
 
-        //GetCovariantMetric
-   
+        //GetCovariantMetric   
         rKinematicVariables.a_ab_covariant[0] = inner_prod(rKinematicVariables.a1, rKinematicVariables.a1); // g11
         rKinematicVariables.a_ab_covariant[1] = inner_prod(rKinematicVariables.a2, rKinematicVariables.a2); // g22
         rKinematicVariables.a_ab_covariant[2] = inner_prod(rKinematicVariables.a3, rKinematicVariables.a3); // g33
-
         rKinematicVariables.a_ab_covariant[3] = inner_prod(rKinematicVariables.a2, rKinematicVariables.a3); // g23
         rKinematicVariables.a_ab_covariant[4] = inner_prod(rKinematicVariables.a1, rKinematicVariables.a3); // g13
         rKinematicVariables.a_ab_covariant[5] = inner_prod(rKinematicVariables.a1, rKinematicVariables.a2); // g12
 
-        // TODO Compute the normal to the boundary vector
-        // It should be imported it from Queso directly
-        // For this example the n = (1,0,0) is done manually
+        // TODO: Compute the normal to the boundary vector.
+        // It should be imported it from Queso (weak_bcs.py). 
+        // The idea is to create for each triangle a Kratos geometry of type Triangle3D3 and set
+        // it as parent geometry. A binding from Cpp to Python must be created for SetParentGeometry.
+        // For now set the normal vector as (1,0,0)
         rKinematicVariables.n[0] = 1;
         rKinematicVariables.n[1] = 0;
         rKinematicVariables.n[2] = 0;
@@ -577,9 +540,15 @@ namespace Kratos
        
         CalculateTransposeInverseMatrix3x3(transpose_inv_beta, beta);
         array_1d<double, 3> n_covariant;
-        n_covariant[0] = transpose_inv_beta(0, 0) * rKinematicVariables.n[0] + transpose_inv_beta(0, 1) * rKinematicVariables.n[1] + transpose_inv_beta(0, 2) * rKinematicVariables.n[2];
-        n_covariant[1] = transpose_inv_beta(1, 0) * rKinematicVariables.n[0] + transpose_inv_beta(1, 1) * rKinematicVariables.n[1] + transpose_inv_beta(1, 2) * rKinematicVariables.n[2];
-        n_covariant[2] = transpose_inv_beta(2, 0) * rKinematicVariables.n[0] + transpose_inv_beta(2, 1) * rKinematicVariables.n[1] + transpose_inv_beta(2, 2) * rKinematicVariables.n[2];
+        n_covariant[0] =  transpose_inv_beta(0, 0) * rKinematicVariables.n[0] 
+                        + transpose_inv_beta(0, 1) * rKinematicVariables.n[1] 
+                        + transpose_inv_beta(0, 2) * rKinematicVariables.n[2];
+        n_covariant[1] =  transpose_inv_beta(1, 0) * rKinematicVariables.n[0] 
+                        + transpose_inv_beta(1, 1) * rKinematicVariables.n[1] 
+                        + transpose_inv_beta(1, 2) * rKinematicVariables.n[2];
+        n_covariant[2] =  transpose_inv_beta(2, 0) * rKinematicVariables.n[0] 
+                        + transpose_inv_beta(2, 1) * rKinematicVariables.n[1] 
+                        + transpose_inv_beta(2, 2) * rKinematicVariables.n[2];
         
         // store to beta the [gij]
         beta(0, 0) = inner_prod(g1, g1);
@@ -595,30 +564,18 @@ namespace Kratos
         beta(1, 2) = inner_prod(g2, g3);
         beta(2, 1) = beta(1, 2);
 
-        rKinematicVariables.n_contravariant[0] = beta(0, 0) * n_covariant[0] + beta(0, 1) * n_covariant[1] + beta(0, 2) * n_covariant[2];
-        rKinematicVariables.n_contravariant[1] = beta(1, 0) * n_covariant[0] + beta(1, 1) * n_covariant[1] + beta(1, 2) * n_covariant[2];
-        rKinematicVariables.n_contravariant[2] = beta(2, 0) * n_covariant[0] + beta(2, 1) * n_covariant[1] + beta(2, 2) * n_covariant[2];
-
-        //// Check 
-        //if (Id() == 550) {
-        //    if (rConfiguration == ConfigurationType::Reference) {
-        //        std::cout << "CalculateKinematicsSolid :: Solid :: Reference Congiguration" << std::endl;
-        //        std::cout << "Contravatiants: n1:   " << rKinematicVariables.n_contravariant[0] << " | n2:  " << rKinematicVariables.n_contravariant[1] << " | n3:  " << rKinematicVariables.n_contravariant[2] << std::endl;
-        //    }
-        //    else if (rConfiguration == ConfigurationType::Current)
-        //    {
-        //        std::cout << "CalculateKinematicsSolid :: Current Congiguration" << std::endl;
-        //    }
-        //    std::cout << "G1 = ( " << g1[0] << " | " << g1[1] << " | " << g1[2] << " )" << std::endl;
-        //    std::cout << "G2 = ( " << g2[0] << " | " << g2[1] << " | " << g2[2] << " )" << std::endl;
-        //    std::cout << "G3 = ( " << g3[0] << " | " << g3[1] << " | " << g3[2] << " )" << std::endl;
-        //}
-
-        KRATOS_CATCH("")
+        rKinematicVariables.n_contravariant[0] =  beta(0, 0) * n_covariant[0] 
+                                                + beta(0, 1) * n_covariant[1] 
+                                                + beta(0, 2) * n_covariant[2];
+        rKinematicVariables.n_contravariant[1] =  beta(1, 0) * n_covariant[0] 
+                                                + beta(1, 1) * n_covariant[1] 
+                                                + beta(1, 2) * n_covariant[2];
+        rKinematicVariables.n_contravariant[2] =  beta(2, 0) * n_covariant[0] 
+                                                + beta(2, 1) * n_covariant[1]     
+                                                + beta(2, 2) * n_covariant[2];
     }
 
     void CouplingSolidShell3pNitscheCondition::CalculateTransposeInverseMatrix3x3(Matrix& TransposedInverted, const Matrix Input) {
-        KRATOS_TRY; 
 
         double determinant = +  Input(0, 0) * (Input(1, 1) * Input(2, 2) - Input(2, 1) * Input(1, 2))
                              -  Input(0, 1) * (Input(1, 0) * Input(2, 2) - Input(1, 2) * Input(2, 0))
@@ -637,8 +594,6 @@ namespace Kratos
         TransposedInverted(0, 2) =  (Input(1, 0) * Input(2, 1) - Input(2, 0) * Input(1, 1) )* invdet;
         TransposedInverted(1, 2) = -(Input(0, 0) * Input(2, 1) - Input(2, 0) * Input(0, 1) )* invdet;
         TransposedInverted(2, 2) =  (Input(0, 0) * Input(1, 1) - Input(1, 0) * Input(0, 1) )* invdet;
-
-        KRATOS_CATCH("")
     }
 
     /* Computes the transformation matrix T from the contravariant curvilinear basis to
@@ -744,7 +699,7 @@ namespace Kratos
 
         noalias(rThisConstitutiveVariablesShell.StrainVector) = prod(m_T_vector_slave[IntegrationPointIndex], E_ab);
 
-        // Constitive Matrices DShell
+        // Constitive Matrice Shell
         rValues.SetStrainVector(rThisConstitutiveVariablesShell.StrainVector); //this is the input parameter
         rValues.SetStressVector(rThisConstitutiveVariablesShell.StressVector);    //this is an ouput parameter
         rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesShell.ConstitutiveMatrix); //this is an ouput parameter
@@ -767,9 +722,8 @@ namespace Kratos
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     )
     {
-
         rThisConstitutiveVariablesSolid.StrainVector = 0.5 * (rActualKinematic.a_ab_covariant - m_A_ab_covariant_vector_master[IntegrationPointIndex]);
-        // When using Voigt Notation for solids the strains should be ε = [ε_11, ε_22, ε_33, 2*ε_12, 2*ε13, 2*ε23] 
+        // Solid Voigt notathion ε = [ε_11, ε_22, ε_33, 2*ε_23, 2*ε23, 2*ε12] 
         rThisConstitutiveVariablesSolid.StrainVector[3] *= 2 ;
         rThisConstitutiveVariablesSolid.StrainVector[4] *= 2 ;
         rThisConstitutiveVariablesSolid.StrainVector[5] *= 2 ;
@@ -789,25 +743,6 @@ namespace Kratos
 
         noalias(rThisConstitutiveVariablesSolid.StressVector) = prod(
             trans(rThisConstitutiveVariablesSolid.ConstitutiveMatrix), rThisConstitutiveVariablesSolid.StrainVector);
-
-        //if (Id() == 550) {
-        //    auto & C = rThisConstitutiveVariablesSolid.ConstitutiveMatrix;
-        //    std::cout << "Solid :: ConstitutiveMatrix size :" << C.size1() << " | " << C.size2() << std::endl;
-        //    for (int ii = 0; ii < C.size1(); ii++) {
-        //        for (int jj = 0; jj < C.size2(); jj++) {
-        //            std::cout << C(ii, jj) << " | ";
-        //            
-        //        }
-        //         std::cout << std::endl;
-        //        
-        //    }
-        //     auto & E = rThisConstitutiveVariablesSolid.StrainVector;
-        //    std::cout << "Solid :: Strains size :" << E.size() << std::endl;
-        //    for (int ii = 0; ii < E.size(); ii++) {
-        //        std::cout << E(ii) << " | ";
-        //    }
-        //    std::cout << std::endl;
-        //}
     }
 
     void CouplingSolidShell3pNitscheCondition::CalculateHessian(
@@ -836,8 +771,6 @@ namespace Kratos
             Hessian(2, 2) += rDDN_DDe(k, 1) * coords[2];
         }
     }
-
-
 
     void CouplingSolidShell3pNitscheCondition::DeterminantOfJacobianInitial(
         const GeometryType& rGeometry,
@@ -884,21 +817,21 @@ namespace Kratos
         const KinematicVariablesShell& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane)
     {
-        // Transform the 2nd Piola-kirchhoff stresses in the covariant systems
+        // transform the 2nd Piola-kirchhoff stresses in the covariant systems
         array_1d<double, 3> stress_vector_covariant;
         array_1d<double, 2> n_contravariant_vector;
         
         stress_vector_covariant = prod(m_T_hat_vector_slave[IntegrationPointIndex], rThisConstitutiveVariablesMembrane.StressVector);
         n_contravariant_vector = m_n_contravariant_vector_slave[IntegrationPointIndex];
         
-        // Compute the stress components
+        // compute the stress components
         Matrix Palphabeta = ZeroMatrix(2, 2);
         Palphabeta(0,0) = stress_vector_covariant[0];
         Palphabeta(1,1) = stress_vector_covariant[1];
         Palphabeta(0,1) = stress_vector_covariant[2];
         Palphabeta(1,0) = Palphabeta(0,1);
         
-        // Compute the traction vectors
+        // compute the traction vectors
         rTraction[0] = rActualKinematic.a1[0]*(Palphabeta(0,0)*n_contravariant_vector[0]+Palphabeta(0,1)*n_contravariant_vector[1]) 
                      + rActualKinematic.a2[0]*(Palphabeta(1,0)*n_contravariant_vector[0]+Palphabeta(1,1)*n_contravariant_vector[1]);
 
@@ -921,20 +854,24 @@ namespace Kratos
         double n2 = n_contravariant_vector[1];
         double n3 = n_contravariant_vector[2];
 
-        // StressVector : [11,22,33,12,13,22]
+        // stressVector : [11,22,33,23,13,12]
         // n_contravariant_vector : [1,2,3]
-        // traction = t^i * g_i
-        // t^i = stress^ij n_j 
-     
+   
         // t^1 = stress^11 * n_1 + stress^12 * n_2 + stress^13 * n_3
-        double t1_covariant = rThisConstitutiveVariablesSolid.StressVector[0] * n1 + rThisConstitutiveVariablesSolid.StressVector[5] * n2  + rThisConstitutiveVariablesSolid.StressVector[4] * n3;
+        double t1_covariant = rThisConstitutiveVariablesSolid.StressVector[0] * n1 
+                            + rThisConstitutiveVariablesSolid.StressVector[5] * n2  
+                            + rThisConstitutiveVariablesSolid.StressVector[4] * n3;
+        // same for t^2, t^3
+        double t2_covariant = rThisConstitutiveVariablesSolid.StressVector[5] * n1 
+                            + rThisConstitutiveVariablesSolid.StressVector[1] * n2  
+                            + rThisConstitutiveVariablesSolid.StressVector[3] * n3;
+        double t3_covariant = rThisConstitutiveVariablesSolid.StressVector[4] * n1 
+                            + rThisConstitutiveVariablesSolid.StressVector[3] * n2 
+                            + rThisConstitutiveVariablesSolid.StressVector[2] * n3;
 
-        double t2_covariant = rThisConstitutiveVariablesSolid.StressVector[5] * n1 + rThisConstitutiveVariablesSolid.StressVector[1] * n2  + rThisConstitutiveVariablesSolid.StressVector[3] * n3;
-
-        double t3_covariant = rThisConstitutiveVariablesSolid.StressVector[4] * n1 + rThisConstitutiveVariablesSolid.StressVector[3] * n2 + rThisConstitutiveVariablesSolid.StressVector[2] * n3;
-
-        // Compute the traction vectors
-        rTraction = t1_covariant * rActualKinematic.a1 + t2_covariant * rActualKinematic.a2 + t3_covariant * rActualKinematic.a3;
+        // compute the traction vectors
+        rTraction = t1_covariant * rActualKinematic.a1 
+                + t2_covariant * rActualKinematic.a2 + t3_covariant * rActualKinematic.a3;
     }
 
     void CouplingSolidShell3pNitscheCondition::CalculateFirstVariationStressCovariantShell(
@@ -953,7 +890,7 @@ namespace Kratos
         
         const Matrix& r_DN_De = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
 
-        //Compute the first variation of the Green-Lagrange strains
+        //compute the first variation of the Green-Lagrange strains
         Matrix dE_cartesian = ZeroMatrix(3, mat_size);
 
         Matrix& T_patch = m_T_vector_slave[IntegrationPointIndex];
@@ -966,7 +903,7 @@ namespace Kratos
 
             const Matrix& rDDN_DDe = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod());
 
-            // Calculate second derivates of the base vectors wrt d2_theta1, d2_theta2^2, d2_theta1,
+            // Calculate second derivates of the base vectors wrt dd2_ddtheta1, dd2_ddtheta2, dd_dtheta1dtheta2
             array_1d<double, 3> a1_1 = column(rActualKinematic.Hessian, 0);
             array_1d<double, 3> a2_2 = column(rActualKinematic.Hessian, 1);
             array_1d<double, 3> a1_2 = column(rActualKinematic.Hessian, 2);
@@ -1008,15 +945,6 @@ namespace Kratos
             double e22_r = inner_prod(a2_r, rActualKinematic.a2);
             double e12_r = 0.5 * ( inner_prod(a1_r, rActualKinematic.a2) + inner_prod(rActualKinematic.a1, a2_r));
             
-            dE_curvilinear[0] = r_DN_De(kr, 0)*rActualKinematic.a1(dirr);
-            dE_curvilinear[1] = r_DN_De(kr, 1)*rActualKinematic.a2(dirr);
-            dE_curvilinear[2] = 0.5*(r_DN_De(kr, 0)*rActualKinematic.a2(dirr) + rActualKinematic.a1(dirr)*r_DN_De(kr, 1));
-           
-            // check if new way of caclulateing the strains is same as the existed one
-            if (abs(dE_curvilinear[0] - e11_r) > 1E-8 || abs(dE_curvilinear[1] - e22_r) > 1E-8 || abs(dE_curvilinear[2] - e12_r) > 1E-8 ) {
-                std::cout << "dE_curvilinear is not ccalculated correctly" << std::endl;
-            }
-           
             // Kindl 3.36 for first variation
             dE_curvilinear[0] = e11_r + theta3 * k11_r;
             dE_curvilinear[1] = e22_r + theta3 * k22_r;
@@ -1029,11 +957,11 @@ namespace Kratos
 
         }
 
-        //Compute the first variations of the 2nd Piola-Kichhoff stresses in the local Cartesian bases
+        //compute the first variations of the 2nd Piola-Kichhoff stresses in the local Cartesian bases
         Matrix first_variations_stress_cartesian = ZeroMatrix(3, mat_size);
         first_variations_stress_cartesian = prod(rThisConstitutiveVariablesSolid.ConstitutiveMatrix,dE_cartesian);
 
-        //Transform the first variations of the 2nd Piola-Kichhoff stresses at the covariant bases
+        //transform the first variations of the 2nd Piola-Kichhoff stresses at the covariant bases
         rFirstVariationStressCovariant = prod(m_T_hat_vector_slave[IntegrationPointIndex], first_variations_stress_cartesian);
 
         KRATOS_CATCH("")
@@ -1052,7 +980,7 @@ namespace Kratos
 
         const Matrix& r_DN_De = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
 
-        //Compute the first variation of the Green-Lagrange strains
+        //compute the first variation of the Green-Lagrange strains
         Matrix dE = ZeroMatrix(6, mat_size);
 
         for (IndexType r = 0; r < mat_size; r++)
@@ -1146,9 +1074,9 @@ namespace Kratos
 
         const Matrix& r_DN_De = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
 
-        //Compute the first variation of contravariant coeeficient * base vectors:
+        //compute the first variation of contravariant coeeficient * base vectors:
 
-        // normal vector * covariant base vector
+        //normal vector * covariant base vector
         Matrix n_a = ZeroMatrix(3, 6);
 
         //get the normal vector
@@ -1252,7 +1180,7 @@ namespace Kratos
 
         for (size_t dk = 0; dk < mat_size; ++dk) {
 
-            // define variations of base vectors wrt dk
+            // define variations of base vectors wrt dof dk
             array_1d<double, 3> r_DN_theta1_dk;
             r_DN_theta1_dk(0) = r_DN_theta1(0, dk);
             r_DN_theta1_dk(1) = r_DN_theta1(1, dk);
@@ -1270,7 +1198,7 @@ namespace Kratos
 
             for (size_t dr = 0; dr < mat_size; ++dr) {
 
-                // define variations of base vectors wrt dr
+                // define variations of base vectors wrt dof dr
                 array_1d<double, 3> r_DN_theta1_dr;
                 r_DN_theta1_dr(0) = r_DN_theta1(0, dr);
                 r_DN_theta1_dr(1) = r_DN_theta1(1, dr);
