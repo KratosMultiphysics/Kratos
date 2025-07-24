@@ -7,10 +7,10 @@ import KratosMultiphysics.StatisticsApplication.spatial_utilities as SpatialUtil
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
     if not parameters.Has("settings"):
-        raise RuntimeError(f"StatisticsComputationProcess instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return StatisticsComputationProcess(model, parameters["settings"], optimization_problem)
+        raise RuntimeError(f"SpatialStatisticsComputationProcess instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+    return SpatialStatisticsComputationProcess(model, parameters["settings"], optimization_problem)
 
-class StatisticsComputationProcess(Kratos.OutputProcess):
+class SpatialStatisticsComputationProcess(Kratos.OutputProcess):
     """
     A process for computing statistical operations on variables within a Kratos model part
     and storing the results in an optimization problem's component data.
