@@ -599,9 +599,7 @@ Matrix& GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Calculat
     Matrix& rValue
     )
 {
-
     return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
-
 }
 
 /***********************************************************************************/
