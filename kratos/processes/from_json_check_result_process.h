@@ -371,17 +371,17 @@ private:
     ///@{
 
     /* Model part and different settings */
-    ModelPart* mpModelPart;         /// The main model part pointer
-    Parameters mThisParameters;     /// The parameters (can be used for general pourposes)
+    ModelPart* mpModelPart = nullptr; /// The main model part pointer
+    Parameters mThisParameters;       /// The parameters (can be used for general pourposes)
 
     /* Additional values */
-    double mFrequency;              /// The check frequency
-    double mRelativeTolerance;      /// The relative tolerance
-    double mAbsoluteTolerance;      /// The absolute tolerance
-    SizeType mRelevantDigits;       /// This is the number of relevant digits
+    double mFrequency;                /// The check frequency
+    double mRelativeTolerance;        /// The relative tolerance
+    double mAbsoluteTolerance;        /// The absolute tolerance
+    SizeType mRelevantDigits;         /// This is the number of relevant digits
 
     /* Counters */
-    double mTimeCounter = 0.0;      /// A time counter
+    double mTimeCounter = 0.0;        /// A time counter
 
     /* The entities of the containers */
     NodesArrayType mNodesArray;       /// The nodes of study
