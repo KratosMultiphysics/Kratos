@@ -847,7 +847,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     KRATOS_EXPECT_MATRIX_NEAR(actual_left_hand_side, ExpectedLeftHandSideForTriangleElement(), Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_RotatedAlongYAxis,
+KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_RotatedAboutYAxis,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -1041,12 +1041,11 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelati
     // Assert
     Vector expected_relative_displacement{3};
     expected_relative_displacement <<= -3.0, -0.5 * std::sqrt(3.0) - 1.0, 0.5 - std::sqrt(3);
-    std::vector expected_relative_displacements{3, expected_relative_displacement};
 
     KRATOS_EXPECT_EQ(relative_displacements_at_integration_points.size(), 3);
-    for (std::size_t i = 0; i < relative_displacements_at_integration_points.size(); i++) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(relative_displacements_at_integration_points[i],
-                                           expected_relative_displacements[i], Defaults::relative_tolerance)
+    for (const auto& r_relative_displacement : relative_displacements_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_relative_displacement, expected_relative_displacement,
+                                           Defaults::relative_tolerance)
     }
 }
 
@@ -1073,15 +1072,11 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementHorizontal_CalculateStrain_Ret
     // Assert
     Vector expected_relative_displacement{3};
     expected_relative_displacement <<= -1.0, 0.0, 0.0;
-    std::vector<Vector> expected_relative_displacements;
-    expected_relative_displacements.push_back(expected_relative_displacement);
-    expected_relative_displacements.push_back(expected_relative_displacement);
-    expected_relative_displacements.push_back(expected_relative_displacement);
 
     KRATOS_EXPECT_EQ(relative_displacements_at_integration_points.size(), 3);
-    for (std::size_t i = 0; i < relative_displacements_at_integration_points.size(); i++) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(relative_displacements_at_integration_points[i],
-                                           expected_relative_displacements[i], Defaults::relative_tolerance)
+    for (const auto& r_relative_displacement : relative_displacements_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_relative_displacement, expected_relative_displacement,
+                                           Defaults::relative_tolerance)
     }
 }
 
@@ -1108,15 +1103,11 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInYZPlane_CalculateStrain_Retu
     // Assert
     Vector expected_relative_displacement{3};
     expected_relative_displacement <<= 1.0, 0.0, 0.0;
-    std::vector<Vector> expected_relative_displacements;
-    expected_relative_displacements.push_back(expected_relative_displacement);
-    expected_relative_displacements.push_back(expected_relative_displacement);
-    expected_relative_displacements.push_back(expected_relative_displacement);
 
     KRATOS_EXPECT_EQ(relative_displacements_at_integration_points.size(), 3);
-    for (std::size_t i = 0; i < relative_displacements_at_integration_points.size(); i++) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(relative_displacements_at_integration_points[i],
-                                           expected_relative_displacements[i], Defaults::relative_tolerance)
+    for (const auto& r_relative_displacement : relative_displacements_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_relative_displacement, expected_relative_displacement,
+                                           Defaults::relative_tolerance)
     }
 }
 
@@ -1129,10 +1120,13 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInXZPlane_CalculateStrain_Retu
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
+    // The prescribed displacements are in the direction of the normal of the interface
+    // which is the -y direction. This results in a positive normal relative displacement,
+    // since the second side of the interface is moved.
     const auto prescribed_displacements =
-        PrescribedDisplacements{{0, array_1d<double, 3>{0.0, 1.0, 0.0}},
-                                {1, array_1d<double, 3>{0.0, 1.0, 0.0}},
-                                {2, array_1d<double, 3>{0.0, 1.0, 0.0}}};
+        PrescribedDisplacements{{3, array_1d<double, 3>{0.0, -1.0, 0.0}},
+                                {4, array_1d<double, 3>{0.0, -1.0, 0.0}},
+                                {5, array_1d<double, 3>{0.0, -1.0, 0.0}}};
     auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWithUDofs,
                                               p_properties, prescribed_displacements);
 
@@ -1143,15 +1137,11 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInXZPlane_CalculateStrain_Retu
     // Assert
     Vector expected_relative_displacement{3};
     expected_relative_displacement <<= 1.0, 0.0, 0.0;
-    std::vector<Vector> expected_relative_displacements;
-    expected_relative_displacements.push_back(expected_relative_displacement);
-    expected_relative_displacements.push_back(expected_relative_displacement);
-    expected_relative_displacements.push_back(expected_relative_displacement);
 
     KRATOS_EXPECT_EQ(relative_displacements_at_integration_points.size(), 3);
-    for (std::size_t i = 0; i < relative_displacements_at_integration_points.size(); i++) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(relative_displacements_at_integration_points[i],
-                                           expected_relative_displacements[i], Defaults::relative_tolerance)
+    for (const auto& r_relative_displacement : relative_displacements_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_relative_displacement, expected_relative_displacement,
+                                           Defaults::relative_tolerance)
     }
 }
 
@@ -1179,11 +1169,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_R
     Vector expected_traction{3};
     expected_traction <<= -3.0 * normal_stiffness, (-0.5 * std::sqrt(3.0) - 1.0) * shear_stiffness,
         (0.5 - std::sqrt(3)) * shear_stiffness;
-    std::vector<Vector> expected_tractions{3, expected_traction};
     KRATOS_EXPECT_EQ(tractions_at_integration_points.size(), 3);
-    for (std::size_t i = 0; i < tractions_at_integration_points.size(); i++) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(tractions_at_integration_points[i],
-                                           expected_tractions[i], Defaults::relative_tolerance)
+    for (const auto& r_traction : tractions_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_traction, expected_traction, Defaults::relative_tolerance)
     }
 }
 
