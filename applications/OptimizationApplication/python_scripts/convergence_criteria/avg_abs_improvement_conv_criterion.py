@@ -65,7 +65,7 @@ class AvgAbsImprovementConvCriterion(ConvergenceCriterion):
 
         if step == 0:
             self.__init_value = value
-            self.__value = "n/a"
+            self.__value = 0.0
             self.__conv = False
         elif step > 0:
             prev_value = GetComponentValueByFullName(self.__component_data_view, self.__value_name, 1)
