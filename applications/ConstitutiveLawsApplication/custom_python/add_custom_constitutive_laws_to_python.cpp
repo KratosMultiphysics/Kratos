@@ -53,6 +53,7 @@
 #include "custom_constitutive/small_strains/viscoplasticity/generic_small_strain_viscoplasticity_3d.h"
 #include "custom_constitutive/small_strains/plasticity/generic_small_strain_isotropic_plasticity.h"
 #include "custom_constitutive/small_strains/plasticity/generic_small_strain_isotropic_plasticity_plane_stress.h"
+#include "custom_constitutive/small_strains/plasticity/generic_small_strain_kinematic_plasticity_plane_stress.h"
 #include "custom_constitutive/finite_strains/plasticity/generic_finite_strain_isotropic_plasticity.h"
 #include "custom_constitutive/finite_strains/plasticity/generic_finite_strain_kinematic_plasticity.h"
 #include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage.h"
@@ -498,8 +499,8 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     // Kinematic Plasticity
     /* Small strain */
 
-	py::class_< GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>>,
-    typename GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>>::Pointer,
+	py::class_< GenericSmallStrainKinematicPlasticityPlaneStress <GenericConstitutiveLawIntegratorKinematicPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainKinematicPlasticityPlaneStress <GenericConstitutiveLawIntegratorKinematicPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>>::Pointer,
     ConstitutiveLaw >
     (m,"SmallStrainKinematicPlasticityPlaneStressVonMisesVonMises").def(py::init<>());
 
