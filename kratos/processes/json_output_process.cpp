@@ -198,8 +198,9 @@ void JsonOutputProcess::ParseVariables(
 
 void JsonOutputProcess::InitializeJson()
 {
-    Parameters json_file;
-    json_file.AddEmptyArray("TIME");
+    // Initialize the json file and add the time array
+    mJsonFile = Parameters(R"({})");
+    mJsonFile.AddEmptyArray("TIME");
 
     // Nodal values
     if (mOutputVariables.size() + mOutputVectorVariables.size() + mOutputVectorComponentVariables.size() > 0) {
@@ -208,7 +209,7 @@ void JsonOutputProcess::InitializeJson()
             if (CheckFlag(r_node)) {
                 const std::string node_identifier = "NODE_" + GetNodeIdentifier(r_node);
                 if (!mResultantSolution) {
-                    auto json_node = json_file.AddEmptyValue(node_identifier);
+                    auto json_node = mJsonFile.AddEmptyValue(node_identifier);
                     for (auto& r_variable : mOutputVariables) {
                         json_node.AddEmptyArray(r_variable.Name());
                     }
@@ -222,7 +223,7 @@ void JsonOutputProcess::InitializeJson()
                     }
                 } else {
                     if (count == 0) {
-                        auto json_node = json_file.AddEmptyValue("RESULTANT");
+                        auto json_node = mJsonFile.AddEmptyValue("RESULTANT");
                         for (auto& r_variable : mOutputVariables) {
                             json_node.AddEmptyArray(r_variable.Name());
                         }
@@ -248,8 +249,8 @@ void JsonOutputProcess::InitializeJson()
             if (CheckFlag(r_elem.pGetGeometry())) {
                 if (!mResultantSolution) {
                     const std::string element_identifier = "ELEMENT_" + std::to_string(r_elem.Id());
-                    json_file.AddEmptyValue(element_identifier);
-                    auto json_element = json_file[element_identifier];
+                    mJsonFile.AddEmptyValue(element_identifier);
+                    auto json_element = mJsonFile[element_identifier];
                     for (auto& r_variable : mGaussPointsOutputVariables) {
                         std::vector<double> values;
                         r_elem.CalculateOnIntegrationPoints(r_variable, values, mpSubModelPart->GetProcessInfo());
@@ -288,8 +289,8 @@ void JsonOutputProcess::InitializeJson()
                     }
                 } else {
                     if (count == 0) {
-                        json_file.AddEmptyValue("RESULTANT");
-                        auto json_element = json_file["RESULTANT"];
+                        mJsonFile.AddEmptyValue("RESULTANT");
+                        auto json_element = mJsonFile["RESULTANT"];
                         for (auto& r_variable : mGaussPointsOutputVariables) {
                             std::vector<double> values;
                             r_elem.CalculateOnIntegrationPoints(r_variable, values, mpSubModelPart->GetProcessInfo());
@@ -335,7 +336,7 @@ void JsonOutputProcess::InitializeJson()
 
     // Write the file
     std::ofstream output_file(mOutputFileName);
-    output_file << json_file.PrettyPrintJsonString();
+    output_file << mJsonFile.PrettyPrintJsonString();
 }
 
 /***********************************************************************************/
@@ -343,9 +344,9 @@ void JsonOutputProcess::InitializeJson()
 
 void JsonOutputProcess::WriteJson()
 {
-    Parameters json_file;
+    // We write the time
     const double time = mpSubModelPart->GetProcessInfo().GetValue(TIME);
-    json_file["TIME"].Append(time);
+    mJsonFile["TIME"].Append(time);
 
     // Nodal values
     if (mOutputVariables.size() + mOutputVectorVariables.size() + mOutputVectorComponentVariables.size() > 0) {
@@ -354,7 +355,7 @@ void JsonOutputProcess::WriteJson()
             if (CheckFlag(r_node)) {
                 if (!mResultantSolution) {
                     const std::string node_identifier = "NODE_" + GetNodeIdentifier(r_node);
-                    auto json_node = json_file[node_identifier];
+                    auto json_node = mJsonFile[node_identifier];
                     for (auto& r_variable : mOutputVariables) {
                         const double value = mHistoricalValue ? r_node.GetSolutionStepValue(r_variable, 0) : r_node.GetValue(r_variable);
                         json_node[r_variable.Name()].Append(value);
@@ -370,7 +371,7 @@ void JsonOutputProcess::WriteJson()
                         json_node[r_variable.Name()].Append(KratosVectorToPythonList(value));
                     }
                 } else {
-                    auto json_node = json_file["RESULTANT"];
+                    auto json_node = mJsonFile["RESULTANT"];
                     for (auto& r_variable : mOutputVariables) {
                         const double value = mHistoricalValue ? r_node.GetSolutionStepValue(r_variable, 0) : r_node.GetValue(r_variable);
                         if (count == 0) {
@@ -419,7 +420,7 @@ void JsonOutputProcess::WriteJson()
             if (CheckFlag(r_elem.pGetGeometry())) {
                 if (!mResultantSolution) {
                     const std::string element_identifier = "ELEMENT_" + std::to_string(r_elem.Id());
-                    auto json_element = json_file[element_identifier];
+                    auto json_element = mJsonFile[element_identifier];
                     for (auto& r_variable : mGaussPointsOutputVariables) {
                         std::vector<double> values;
                         r_elem.CalculateOnIntegrationPoints(r_variable, values, mpSubModelPart->GetProcessInfo());
@@ -452,7 +453,7 @@ void JsonOutputProcess::WriteJson()
                         }
                     }
                 } else {
-                    auto json_element = json_file["RESULTANT"];
+                    auto json_element = mJsonFile["RESULTANT"];
                     for (auto& r_variable : mGaussPointsOutputVariables) {
                         std::vector<double> values;
                         r_elem.CalculateOnIntegrationPoints(r_variable, values, mpSubModelPart->GetProcessInfo());
@@ -513,7 +514,7 @@ void JsonOutputProcess::WriteJson()
 
     // Write the file
     std::ofstream output_file(mOutputFileName);
-    output_file << json_file.PrettyPrintJsonString();
+    output_file << mJsonFile.PrettyPrintJsonString();
 }
 
 }  // namespace Kratos.

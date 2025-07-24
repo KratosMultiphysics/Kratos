@@ -169,6 +169,7 @@ private:
     ModelPart* mpSubModelPart = nullptr;                                          /// The submodelpart to be considered
     Parameters mSettings;                                                         /// The settings of the process
     std::string mOutputFileName;                                                  /// The name of the output file
+    Parameters mJsonFile;                                                         /// The json object to be written in the file
     std::vector<Variable<double>> mOutputVariables;                               /// The name of the variables to be output
     std::vector<Variable<array_1d<double, 3>>> mOutputVectorVariables;            /// The name of the vector variables to be output
     std::vector<Variable<Vector>> mOutputVectorComponentVariables;                /// The name of the vector component variables to be output
