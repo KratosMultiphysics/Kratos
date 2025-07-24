@@ -24,6 +24,12 @@ if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif(POLICY CMP0074)
 
+# Semicolon in the name of the targets (because TBB::mallocproxy etc...)
+if(POLICY CMP0028)
+  cmake_policy(SET CMP0028 NEW)
+endif(POLICY CMP0028)
+
+# This policy provides compatibility with projects that have not been updated to avoid using <PACKAGENAME>_ROOT variables for other purposes. 
 if(POLICY CMP0144)
   cmake_policy(SET CMP0144 NEW)
 endif(POLICY CMP0144)

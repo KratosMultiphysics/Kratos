@@ -1,5 +1,6 @@
 param([string]$branch="master",
-      [string]$cotire="OFF")
+      [string]$cotire="OFF",
+      [string]$build="c:\kratos\Kratos\scripts\wheels\windows\build.ps1")
 
 echo starting build for branch $branch
 
@@ -18,5 +19,5 @@ mkdir c:\scripts
 cd c:\kratos
 git clone --depth 1 --single-branch --branch $branch https://github.com/KratosMultiphysics/Kratos.git kratos
 
-cp c:\kratos\Kratos\scripts\wheels\windows\build.ps1 c:\scripts\build.ps1
+cp $build c:\scripts\build.ps1
 & "c:\scripts\build.ps1" -cotire $cotire
