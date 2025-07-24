@@ -272,7 +272,7 @@ KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_CanBeSavedAndLoadedThrough
 {
     // Arrange
     const auto scoped_registration =
-        ScopedSerializerRegistration{"SurfaceInterfaceStressState"s, SurfaceInterfaceStressState{}};
+        ScopedSerializerRegistration{std::make_pair("SurfaceInterfaceStressState"s, SurfaceInterfaceStressState{})};
     const auto p_policy =
         std::unique_ptr<StressStatePolicy>{std::make_unique<SurfaceInterfaceStressState>()};
     auto serializer = StreamSerializer{};
