@@ -26,19 +26,19 @@ namespace Kratos {
 ///@{
 
 template<class TContainerType>
-class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) UnSmoothClamper
+class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) LinearClamper
 {
 public:
     ///@name Type definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(UnSmoothClamper);
+    KRATOS_CLASS_POINTER_DEFINITION(LinearClamper);
 
     ///@}
     ///@name Life cycle
     ///@{
 
-    UnSmoothClamper(
+    LinearClamper(
         const double Min,
         const double Max);
 

@@ -92,8 +92,8 @@ class MaterialPropertiesControl(Control):
         control_variable_bounds = parameters["control_variable_bounds"].GetVector()
 
         # use the clamper in the unit interval
-        self.interval_bounder = ExpressionBoundingManager(control_variable_bounds)
-        self.clamper = KratosSI.ElementSmoothClamper(0, 2)
+        # self.interval_bounder = ExpressionBoundingManager(control_variable_bounds)
+        self.clamper = KratosSI.ElementLinearClamper(control_variable_bounds[0], control_variable_bounds[1])
 
     def Initialize(self) -> None:
         self.primal_model_part = self.primal_model_part_operation.GetModelPart()
@@ -118,12 +118,16 @@ class MaterialPropertiesControl(Control):
         physical_field = self.GetPhysicalField()
 
         # get the phi field which is in [0, 1] range
-        self.physical_phi_field = self.clamper.ProjectBackward(self.interval_bounder.GetBoundedExpression(physical_field))
+        # self.physical_phi_field = self.clamper.ProjectBackward(self.interval_bounder.GetBoundedExpression(physical_field))
+        self.physical_phi_field = self.clamper.ProjectBackward(physical_field)
 
+        # print(self.physical_phi_field.Evaluate())
         # compute the control phi field
         self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
 
-        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field) * self.interval_bounder.GetBoundGap()
+        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(physical_field)
+
+        # self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field) * self.interval_bounder.GetBoundGap()
 
         self._UpdateAndOutputFields(self.GetEmptyField())
 
@@ -150,7 +154,7 @@ class MaterialPropertiesControl(Control):
         return physical_thickness_field
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
-        with TimeLogger("ShellThicknessControl::MapGradient", None, "Finished",False):
+        with TimeLogger("MaterialPropertiesControl::MapGradient", None, "Finished",False):
             keys = physical_gradient_variable_container_expression_map.keys()
             if len(keys) != 1:
                 raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
@@ -163,7 +167,10 @@ class MaterialPropertiesControl(Control):
 
             # dj/dE -> physical_gradient
             # dj/dphi = dj/dphysical * dphysical/dphi
-            return self.filter.BackwardFilterIntegratedField(physical_gradient * self.physical_phi_derivative_field)
+            temp = physical_gradient * self.physical_phi_derivative_field
+            # print(temp.Evaluate(), physical_gradient.Evaluate(), self.physical_phi_derivative_field.Evaluate())
+            # print(self.filter.BackwardFilterIntegratedField(temp).Evaluate())
+            return self.filter.BackwardFilterIntegratedField(temp)
 
     def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
         if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
@@ -176,9 +183,7 @@ class MaterialPropertiesControl(Control):
                 self.control_phi_field = new_control_field
                 # now update the physical field
                 self._UpdateAndOutputFields(update)
-
                 self.filter.Update()
-
                 return True
         return False
 
@@ -188,8 +193,8 @@ class MaterialPropertiesControl(Control):
         self.physical_phi_field = Kratos.Expression.Utils.Collapse(self.physical_phi_field + filtered_phi_field_update)
 
         # project forward the filtered thickness field to get clamped physical field
-        physical_field = self.interval_bounder.GetUnboundedExpression(self.clamper.ProjectForward(self.physical_phi_field))
-
+        # physical_field = self.interval_bounder.GetUnboundedExpression(self.clamper.ProjectForward(self.physical_phi_field))
+        physical_field = self.clamper.ProjectForward(self.physical_phi_field)
         # now update physical field
         KratosOA.PropertiesVariableExpressionIO.Write(physical_field, self.controlled_physical_variable)
         if self.consider_recursive_property_update:
@@ -197,7 +202,7 @@ class MaterialPropertiesControl(Control):
 
         # compute and store projection derivatives for consistent filtering of the sensitivities
         # this is dphi/dphysical -> physical_phi_derivative_field
-        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field) * self.interval_bounder.GetBoundGap()
+        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(physical_field)
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
