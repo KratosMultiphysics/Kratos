@@ -117,7 +117,7 @@ public:
         )
     {
         const Matrix& r_P = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePOperator();
-        const Vector aux = prod(P, rStressVector)
+        const Vector aux = prod(r_P, rStressVector);
         rEquivalentStress = std::sqrt(1.5 * inner_prod(aux, rStressVector));
     }
 
@@ -178,7 +178,7 @@ public:
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
-        const BoundedVector& rPredictiveStressVector,
+        const BoundedVector& rStressVector,
         const BoundedVector& rDeviator,
         const double J2,
         BoundedVector& rFFlux,
@@ -186,9 +186,9 @@ public:
         )
     {
         const Matrix& r_P = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePOperator();
-        const Vector aux = prod(P, rStressVector)
+        const Vector aux = prod(r_P, rStressVector);
         const double denominator = std::sqrt(inner_prod(aux, rStressVector));
-        noalias(rFFlux) = std::sqrt(1.5) * prod(P, rPredictiveStressVector) / denominator;
+        noalias(rFFlux) = std::sqrt(1.5) * prod(r_P, rStressVector) / denominator;
     }
 
     /**

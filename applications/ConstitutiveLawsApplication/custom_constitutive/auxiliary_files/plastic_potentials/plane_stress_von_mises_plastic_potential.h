@@ -99,7 +99,7 @@ public:
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& rStressVector,
         const array_1d<double, VoigtSize>& rDeviator,
         const double J2,
         array_1d<double, VoigtSize>& rGFlux,
@@ -107,9 +107,9 @@ public:
         )
     {
         const Matrix& r_P = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePOperator();
-        const Vector aux = prod(P, rStressVector)
+        const Vector aux = prod(r_P, rStressVector);
         const double denominator = std::sqrt(inner_prod(aux, rStressVector));
-        noalias(rGFlux) = std::sqrt(1.5) * prod(P, rPredictiveStressVector) / denominator;
+        noalias(rGFlux) = std::sqrt(1.5) * prod(r_P, rStressVector) / denominator;
     }
 
     /**
