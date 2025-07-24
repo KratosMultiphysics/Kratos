@@ -41,6 +41,8 @@ public:
 
     void SetEndTime(double EndTime) override { mpModelPart->GetProcessInfo()[TIME] = EndTime; }
 
+    void SetNumberOfCycles(std::size_t NumberOfCycles) override {}
+
     [[nodiscard]] double GetTimeIncrement() const override
     {
         return mpModelPart->GetProcessInfo()[DELTA_TIME];
@@ -164,7 +166,7 @@ public:
 
     [[nodiscard]] bool WantRetryStep(std::size_t CycleNumber, const TimeStepEndState& rPreviousState) const override
     {
-        return CycleNumber < mNumCyclesPerStep;
+        return CycleNumber <= mNumCyclesPerStep;
     }
 
     [[nodiscard]] double GetIncrement() const override { return 0.5; }

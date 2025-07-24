@@ -15,6 +15,7 @@
 #include "time_step_end_state.hpp"
 
 #include "includes/exception.h"
+#include "input_output/logger.h"
 
 namespace Kratos
 {
@@ -66,11 +67,16 @@ bool AdaptiveTimeIncrementor::WantNextStep(const TimeStepEndState& rPreviousStat
 
 bool AdaptiveTimeIncrementor::WantRetryStep(std::size_t CycleNumber, const TimeStepEndState& rPreviousState) const
 {
-    if (CycleNumber == 0) return true; // always carry out a first attempt
+    KRATOS_INFO("WantRetryStep") << "Cycle number = " << CycleNumber
+                                        << ", previous state time = " << rPreviousState.time
+                                        << ", end time = " << mEndTime
+                                        << ", delta time = " << mDeltaTime
+                                        << ", converged = " << rPreviousState.Converged() << ", max cycles = " << mMaxNumOfCycles << std::endl;
+    if (CycleNumber == 1) return true; // always carry out a first attempt
 
     if (rPreviousState.Converged()) return false; // the time step is done
 
-    return CycleNumber < mMaxNumOfCycles; // stopping criterion
+    return CycleNumber <= mMaxNumOfCycles; // stopping criterion
 }
 
 double AdaptiveTimeIncrementor::GetIncrement() const { return mDeltaTime; }

@@ -46,6 +46,7 @@ public:
     MOCK_METHOD(void, SetEndTime, (double EndTime), (override));
     MOCK_METHOD(double, GetTimeIncrement, (), (const, override));
     MOCK_METHOD(void, SetTimeIncrement, (double TimeIncrement), (override));
+    MOCK_METHOD(void, SetNumberOfCycles, (std::size_t NumberOfCycles), (override));
     MOCK_METHOD(std::size_t, GetStepNumber, (), (const, override));
     MOCK_METHOD(void, IncrementStepNumber, (), (override));
     MOCK_METHOD(void, CloneTimeStep, (), (override));

@@ -71,6 +71,11 @@ public:
         mrModelPart.GetProcessInfo()[DELTA_TIME] = TimeIncrement;
     }
 
+    void SetNumberOfCycles(std::size_t NumberOfCycles) override
+    {
+        mrModelPart.GetProcessInfo()[NUMBER_OF_CYCLES] = NumberOfCycles;
+    }
+
     size_t GetStepNumber() const override
     {
         return static_cast<std::size_t>(mrModelPart.GetProcessInfo()[STEP]);
@@ -86,6 +91,8 @@ public:
 
     void RestorePositionsAndDOFVectorToStartOfStep() override
     {
+        KRATOS_INFO("Restoring positions and DOF vector to start of step")
+            << "Step number: " << GetStepNumber() << std::endl;
         VariableUtils().UpdateCurrentPosition(mrModelPart.Nodes(), DISPLACEMENT, 1);
 
         const auto index_of_old_value = Node::IndexType{1};

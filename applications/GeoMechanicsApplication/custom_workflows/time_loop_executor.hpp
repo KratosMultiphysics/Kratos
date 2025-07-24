@@ -80,27 +80,37 @@ public:
     }
 
 private:
-    TimeStepEndState RunCycle(double PreviousTime)
+    TimeStepEndState RunCycle(double PreviousTime, int cycle_number)
     {
         // Setting the time and time increment may be needed for the processes
         const auto time_increment = mTimeIncrementor->GetIncrement();
         mStrategyWrapper->SetTimeIncrement(time_increment);
         const auto end_time = PreviousTime + time_increment;
         mStrategyWrapper->SetEndTime(end_time);
+        mStrategyWrapper->SetNumberOfCycles(cycle_number);
 
         auto end_state = mTimeStepExecutor->Run(end_time);
         mTimeIncrementor->PostTimeStepExecution(end_state);
         UpdateProgress(end_time);
+        KRATOS_INFO("RunCycle") << "End state converged = " << end_state.Converged()
+                                << ", time = " << end_state.time
+                                << ", number of iterations = " << end_state.num_of_iterations
+                                << ", number of cycles = " << end_state.num_of_cycles
+                                << std::endl;
         return end_state;
     }
 
     TimeStepEndState RunCycleLoop(const TimeStepEndState& previous_state)
     {
-        auto cycle_number = 0;
+        KRATOS_INFO("RunCycleLoop") << "Starting Cycle loop: previous state time = " << previous_state.time << std::endl;
+        auto cycle_number = 1;
         auto end_state    = previous_state;
         while (mTimeIncrementor->WantRetryStep(cycle_number, end_state) && !IsCancelled()) {
-            if (cycle_number > 0) mStrategyWrapper->RestorePositionsAndDOFVectorToStartOfStep();
-            end_state = RunCycle(previous_state.time);
+            KRATOS_INFO("RunCycleLoop") << "Cycle number = " << cycle_number
+                                       << ", previous state time = " << previous_state.time
+                                       << ", end state time = " << end_state.time << std::endl;
+            if (cycle_number > 1) mStrategyWrapper->RestorePositionsAndDOFVectorToStartOfStep();
+            end_state = RunCycle(previous_state.time, cycle_number);
             ++cycle_number;
         }
 
