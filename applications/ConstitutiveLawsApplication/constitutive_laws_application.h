@@ -51,6 +51,7 @@
 #include "custom_constitutive/small_strains/plasticity/small_strain_isotropic_plasticity_factory.h"
 #include "custom_constitutive/small_strains/plasticity/small_strain_kinematic_plasticity_factory.h"
 #include "custom_constitutive/small_strains/plasticity/generic_small_strain_isotropic_plasticity.h"
+#include "custom_constitutive/small_strains/plasticity/generic_small_strain_isotropic_plasticity_plane_stress.h"
 #include "custom_constitutive/small_strains/plasticity/generic_small_strain_kinematic_plasticity.h"
 #include "custom_constitutive/finite_strains/plasticity/finite_strain_isotropic_plasticity_factory.h"
 #include "custom_constitutive/finite_strains/plasticity/finite_strain_kinematic_plasticity_factory.h"
@@ -316,7 +317,7 @@ private:
 
     /// Plasticity
     /* Small strain */
-    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStressVonMisesVonMises;
+    const GenericSmallStrainIsotropicPlasticityPlaneStress <GenericConstitutiveLawIntegratorPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStressVonMisesVonMises;
     const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainVonMisesVonMises;
     const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainVonMisesModifiedMohrCoulomb;
     const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainVonMisesDruckerPrager;
