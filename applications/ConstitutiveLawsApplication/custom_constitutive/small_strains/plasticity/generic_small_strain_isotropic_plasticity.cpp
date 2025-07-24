@@ -81,6 +81,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
 
     // We get the constitutive tensor
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+    CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
     // We check the current step and NL iteration
     const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
@@ -95,7 +96,6 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
         if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
             r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             Vector& r_stress_vector = rValues.GetStressVector();
-            CalculateElasticMatrix(r_constitutive_matrix, rValues);
             noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
             this->template AddInitialStressVectorContribution<Vector>(r_stress_vector);
         }
@@ -138,9 +138,6 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
             f_flux.clear();
             g_flux.clear();
             plastic_strain_increment.clear();
-
-            // Elastic Matrix
-            CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
             // Compute the plastic parameters
             const double F = TConstLawIntegratorType::CalculatePlasticParameters(
@@ -308,6 +305,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
 
     // We get the constitutive tensor
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+    CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
     // Integrate Stress plasticity
     const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
@@ -317,10 +315,6 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
     }
 
     this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
-
-    // We compute the stress
-    // Elastic Matrix
-    CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
     // We get some variables
     double threshold = this->GetThreshold();
