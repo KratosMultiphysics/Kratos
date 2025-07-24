@@ -71,7 +71,7 @@ void SetSolutionStepValuesForGeneralCheck(const Element::Pointer& rElement)
     rElement->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.015, 0.0};
 }
 
-auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(Model& rModel, const Properties::Pointer& rProperties)
+auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& rProperties)
 {
     PointerVector<Node> nodes;
     nodes.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -130,8 +130,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateShearCapacity,
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    Model model;
-    auto  p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(model, CreateProperties());
+    auto  p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreateProperties());
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 
@@ -153,8 +152,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS_WithSaveAn
         std::make_pair("PlaneStrainStressState"s, PlaneStrainStressState{}));
 
     // Arrange
-    Model model;
-    auto  p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(model, CreateProperties());
+    auto  p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreateProperties());
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 
