@@ -89,6 +89,11 @@ public:
 
     /**
      * @brief Default constructor.
+     */
+    FromJSONCheckResultProcess() = default;
+
+    /**
+     * @brief Default constructor.
      * @param rModel The model where the where the simulation is performed
      * @param ThisParameters The parameters of configuration
      */
@@ -366,7 +371,7 @@ private:
     ///@{
 
     /* Model part and different settings */
-    ModelPart& mrModelPart;         /// The main model part
+    ModelPart* mpModelPart;         /// The main model part pointer
     Parameters mThisParameters;     /// The parameters (can be used for general pourposes)
 
     /* Additional values */
