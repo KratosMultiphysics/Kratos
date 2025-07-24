@@ -95,14 +95,9 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
         if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
             r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             Vector& r_stress_vector = rValues.GetStressVector();
-            if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                CalculateElasticMatrix(r_constitutive_matrix, rValues);
-                noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
-                this->template AddInitialStressVectorContribution<Vector>(r_stress_vector);
-            } else {
-                BaseType::CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
-                this->template AddInitialStressVectorContribution<Vector>(r_stress_vector);
-            }
+            CalculateElasticMatrix(r_constitutive_matrix, rValues);
+            noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
+            this->template AddInitialStressVectorContribution<Vector>(r_stress_vector);
         }
     } else { // We check for plasticity
         // Integrate Stress plasticity
@@ -130,7 +125,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
             } else {
                 // S0 = Elastic stress with strain (E-Ep) + S0
                 Vector aux_stress = ZeroVector(VoigtSize);
-                BaseType::CalculatePK2Stress(r_strain_vector - plastic_strain, aux_stress, rValues);
+                noalias(aux_stress) = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
                 this->template AddInitialStressVectorContribution<Vector>(aux_stress);
                 noalias(predictive_stress_vector) = aux_stress;
             }
@@ -318,7 +313,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
     const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
+        BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
     }
 
     this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
