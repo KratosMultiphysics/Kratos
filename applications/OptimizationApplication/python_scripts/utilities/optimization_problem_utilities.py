@@ -83,6 +83,18 @@ def GetComponentValueByFullName(component_data_view: ComponentDataView, value_na
 
     return data.GetValue(value_info[0], step_index)
 
+def SetComponentValueByFullName(component_data_view: ComponentDataView, value_name: str, value: Any, step_index = 0, overwrite = False) -> None:
+    value_info = value_name.split(":")
+    if len(value_info) != 2 or value_info[1] not in ["historical", "non_historical"]:
+        raise RuntimeError(f"The value_name should contain the name of the value and either it is located at buffered data or un buffered data. Ex: \"objective_Value:historical\" for buffered container or \"reference_value:non_historical\" for unbuffered container [ value_name = \"{value_name}\" ].")
+
+    if value_info[1] == "historical":
+        data = component_data_view.GetBufferedData()
+    elif value_info[1] == "non_historical":
+        data = component_data_view.GetUnBufferedData()
+
+    data.SetValue(value_info[0], value, step_index, overwrite)
+
 def OutputGradientFields(response: ResponseRoutine, optimization_problem: OptimizationProblem, is_gradients_computed: bool) -> None:
     unbuffered_data = ComponentDataView(response.GetReponse(), optimization_problem).GetUnBufferedData()
     if is_gradients_computed:
