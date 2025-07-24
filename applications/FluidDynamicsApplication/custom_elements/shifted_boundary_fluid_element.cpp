@@ -244,18 +244,43 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                     normal_sur_bd(d) = - DN_DX_opposite_node(d) * h_sur_bd;
                 }
 
-                // Compute the required projections using the boundary's normal, the elements constitutive matrix (C) and the strain matrix (B)
-                BoundedMatrix<double, Dim, StrainSize> voigt_normal_projection_matrix = ZeroMatrix(Dim, StrainSize);
-                FluidElementUtilities<NumNodes>::VoigtTransformForProduct(normal_sur_bd, voigt_normal_projection_matrix);
+                // Get the normal of the true boundary (Gamma) //TODO
+                BoundedVector<double,3> normal_Gamma = ZeroVector(3);
+                BoundedVector<double,3> center_Gamma = ZeroVector(3);
+                // center_Gamma(0) = 2.75;
+                // center_Gamma(2) = 1.0;
+                double dot_product_Gamma_bd1 = r_sur_bd_geom[sur_bd_local_ids[1]][0] * 2.75 + r_sur_bd_geom[sur_bd_local_ids[1]][2];
+                if (dot_product_Gamma_bd1 > 1.0) {
+                    normal_Gamma(0) = -0.044400614;
+                    normal_Gamma(2) = -0.999013806;
+                } else {
+                    normal_Gamma(0) =  0.044400614;
+                    normal_Gamma(2) =  0.999013806;
+                }
 
-                // Compute auxilary matrices for the shear stress
-                const BoundedMatrix<double, Dim, StrainSize> aux_matrix_AC = prod(voigt_normal_projection_matrix, data.C);
-                const BoundedMatrix<double, Dim, LocalSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
-
+                // Compute the normal projection matrix for the local surrogate boundary
                 BoundedMatrix<double, Dim, Dim> normal_proj_matrix = ZeroMatrix(Dim, Dim);
                 for (std::size_t d = 0; d < Dim; ++d) {
                    normal_proj_matrix(d, d) = normal_sur_bd(d);
                 }
+
+                // Get the normal projection matrix for the local surrogate boundary in Voigt notation (A_matrix)
+                BoundedMatrix<double, Dim, StrainSize> voigt_normal_projection_matrix = ZeroMatrix(Dim, StrainSize);
+                FluidElementUtilities<NumNodes>::VoigtTransformForProduct(normal_sur_bd, voigt_normal_projection_matrix);
+
+                // Get the normal projection matrix for the true boundary in Voigt notation (A_matrix_Gamma)
+                BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix_Gamma;
+                FluidElementUtilities<3>::VoigtTransformForProduct(normal_Gamma, voigt_normal_proj_matrix_Gamma);
+
+                // Get the tangential projection matrix (I - n x n) for the true boundary
+                BoundedMatrix<double, Dim, Dim> tang_proj_matrix_Gamma;
+                FluidElementUtilities<3>::SetTangentialProjectionMatrix(normal_Gamma, tang_proj_matrix_Gamma);
+
+                // Compute auxilary matrices for the shear stress using the boundary's normal, the elements constitutive matrix (C) and the strain matrix (B)
+                const BoundedMatrix<double, StrainSize, LocalSize> aux_matrix_CB = prod(data.C, B_matrix);
+                //const BoundedMatrix<double, Dim, StrainSize> aux_matrix_AC = prod(voigt_normal_projection_matrix, data.C);
+                const BoundedMatrix<double, Dim, LocalSize> aux_matrix_ACB = prod(voigt_normal_projection_matrix, aux_matrix_CB);  //prod(aux_matrix_AC, B_matrix);
+                const BoundedMatrix<double, Dim, LocalSize> aux_matrix_ACB_Gamma = prod(voigt_normal_proj_matrix_Gamma, aux_matrix_CB);
 
                 // Loop over the integration points of the surrogate boundary face for the numerical integration of the surrogate boundary flux
                 for (std::size_t i_int_pt = 0; i_int_pt < r_integration_points.size(); ++i_int_pt) {
@@ -286,6 +311,11 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                     // Alternative normal projection
                     const BoundedMatrix<double, LocalSize, Dim> N_normal_proj_matrix = prod(N_aux_u_trans, normal_proj_matrix);
                     aux_LHS += int_pt_weight * prod(N_normal_proj_matrix, N_aux_p);
+
+                    // Nitsche slip tangential penalty - Contribution coming from the traction vector tangential component (no contribution for no slip)
+                    const Matrix aux_matrix_N_trans_tang_Gamma = prod(N_aux_u_trans, tang_proj_matrix_Gamma);
+                    const double pen_coeff_tang_shear = 1.0;
+                    aux_LHS += pen_coeff_tang_shear  * int_pt_weight * prod(aux_matrix_N_trans_tang_Gamma, aux_matrix_ACB_Gamma);
                 }
             }
 

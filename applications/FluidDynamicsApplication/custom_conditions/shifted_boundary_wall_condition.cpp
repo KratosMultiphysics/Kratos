@@ -441,8 +441,8 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
     // const double stab_constant_tau = int_pt_rho*int_pt_v_norm*ParentSize;  // /EffectiveViscosity / 100000;
 
     const double penalty_coeff = 1.0 / (SlipLength + Penalty*ParentSize);
-    const double coeff_1 = penalty_coeff * SlipLength;                                  // pure slip: * ParentSize/Penalty || * SlipLength / Penalty * stab_constant_tau    // Winter et al. (2018): * SlipLength;
-    const double coeff_2 = penalty_coeff * EffectiveViscosity;  // + stab_constant_u);  // pure slip: 0.0                                                                   // Winter et al. (2018): * EffectiveViscosity;
+    const double coeff_1 = 0.0;  //penalty_coeff * SlipLength;                                  // pure slip: * ParentSize/Penalty || * SlipLength / Penalty * stab_constant_tau    // Winter et al. (2018): * SlipLength;
+    const double coeff_2 = 0.0;  //penalty_coeff * EffectiveViscosity;  // + stab_constant_u);  // pure slip: 0.0                                                                   // Winter et al. (2018): * EffectiveViscosity;
 
     std::pair<const double, const double> coefficients(coeff_1, coeff_2);
     return coefficients;
@@ -456,8 +456,8 @@ std::pair<const double, const double> ShiftedBoundaryWallCondition<TDim>::Comput
     const double EffectiveViscosity) const
 {
     const double stab_coeff = Penalty * ParentSize / (SlipLength + Penalty*ParentSize);                 // Winter et al. (2018): Penalty * ParentSize / (SlipLength + Penalty*ParentSize);
-    const double coeff_1 = stab_coeff * SlipLength;                                 // pure slip: 1.0   // Winter et al. (2018): * SlipLength
-    const double coeff_2 = stab_coeff * EffectiveViscosity;                         // pure slip: 0.0
+    const double coeff_1 = 0.0;  //stab_coeff * SlipLength;                                 // pure slip: 1.0   // Winter et al. (2018): * SlipLength
+    const double coeff_2 = 0.0;  //stab_coeff * EffectiveViscosity;                         // pure slip: 0.0
 
     // std::string grad_coeff = "Stabilization coefficient: " + std::to_string(coeff_1);
     // KRATOS_WATCH(grad_coeff);
