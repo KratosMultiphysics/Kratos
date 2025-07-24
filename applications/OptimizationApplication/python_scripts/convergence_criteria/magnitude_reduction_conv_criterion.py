@@ -63,7 +63,7 @@ class MagnitudeReductionConvCriterion(ConvergenceCriterion):
 
         if iter == 0:
             self.__target_value = max(self.__current_value * self.__target_scaling_factor, self.__machine_precision)
-            self.__component_data_view.GetUnBufferedData().SetValue(f"{self.__value_name.split(":")[0]}_conv_target", self.__target_value)
+            self.__component_data_view.GetUnBufferedData().SetValue(f"{self.__value_name.split(':')[0]}_conv_target", self.__target_value)
             self.__conv = False
         else:
             self.__conv = self.__current_value <= self.__target_value

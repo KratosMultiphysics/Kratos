@@ -78,7 +78,7 @@ class AvgAbsImprovementConvCriterion(ConvergenceCriterion):
                 self.__value = numpy.abs(numpy.sum(self.__abs_value_change)) / step
                 self.__conv = False
 
-        self.__component_data_view.GetBufferedData().SetValue(f"{self.__value_name.split(":")[0]}_avg_abs_{self.__tracked_iter}_itr", self.__value)
+        self.__component_data_view.GetBufferedData().SetValue(f"{self.__value_name.split(':')[0]}_avg_abs_{self.__tracked_iter}_itr", self.__value)
 
         return self.__conv
 

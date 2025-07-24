@@ -59,7 +59,7 @@ class L2ConvCriterion(ConvergenceCriterion):
 
         self.__norm = numpy.linalg.norm(field.Evaluate().flatten())
         self.__conv = self.__norm <= self.__tolerance
-        self.__component_data_view.GetBufferedData().SetValue(self.__field_name.split(":")[0] + "_l2_norm", self.__norm)
+        self.__component_data_view.GetBufferedData().SetValue(self.__field_name.split(':')[0] + "_l2_norm", self.__norm)
         return self.__conv
 
     def Finalize(self):
