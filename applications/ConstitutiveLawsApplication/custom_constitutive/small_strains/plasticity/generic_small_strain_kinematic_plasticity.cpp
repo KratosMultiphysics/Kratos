@@ -103,7 +103,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
             r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             Vector& r_stress_vector = rValues.GetStressVector();
             if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
+                CalculateElasticMatrix(r_constitutive_matrix, rValues);
                 noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
             } else {
                 BaseType::CalculatePK2Stress(r_strain_vector, r_stress_vector, rValues);
@@ -122,14 +122,14 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
         // Elastic Matrix
         if ( r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-            this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+            CalculateElasticMatrix(r_constitutive_matrix, rValues);
         }
 
         // We compute the stress
         if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
             // Elastic Matrix
             Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-            this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
+            CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
             // We get some variables
             double threshold = this->GetThreshold();
@@ -218,7 +218,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateTa
         // Calculates the Tangent Constitutive Tensor by perturbation (second order)
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 4);
     } else if (tangent_operator_estimation == TangentOperatorEstimation::InitialStiffness) {
-        BaseType::CalculateElasticMatrix(rValues.GetConstitutiveMatrix(), rValues);
+        CalculateElasticMatrix(rValues.GetConstitutiveMatrix(), rValues);
     } else if (tangent_operator_estimation == TangentOperatorEstimation::OrthogonalSecant) {
         TangentOperatorCalculatorUtility::CalculateOrthogonalSecantTensor(rValues);
     }
@@ -294,7 +294,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMat
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-    this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+    CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if ( r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
@@ -508,7 +508,7 @@ double& GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::Calculat
     double& rValue
     )
 {
-     if (rThisVariable == UNIAXIAL_STRESS) {
+    if (rThisVariable == UNIAXIAL_STRESS) {
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
 
