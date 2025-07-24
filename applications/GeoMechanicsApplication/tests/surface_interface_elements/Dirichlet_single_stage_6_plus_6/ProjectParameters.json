@@ -63,7 +63,7 @@
             "solver_type":     "LinearSolversApplication.sparse_lu"
         },
         "problem_domain_sub_model_part_list": ["Interfaces"],
-        "processes_sub_model_part_list":      ["AllFixed","AllNodes", "SideZXDirichletCondition"],
+        "processes_sub_model_part_list":      ["AllFixed","AllNodes", "SideXY", "SideYZ", "SideZX"],
         "body_domain_sub_model_part_list":    ["Interfaces"]
     },
     "output_processes": {
@@ -115,7 +115,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.SideZXDirichletCondition",
+            "model_part_name": "PorousDomain.SideZX",
             "variable_name":   "DISPLACEMENT",
             "active":          [true,true,true],
             "is_fixed":        [true,true,true],
@@ -127,7 +127,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.SideYZDirichletCondition",
+            "model_part_name": "PorousDomain.SideYZ",
             "variable_name":   "DISPLACEMENT",
             "active":          [true,true,true],
             "is_fixed":        [true,true,true],
@@ -139,7 +139,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.SideXYDirichletCondition",
+            "model_part_name": "PorousDomain.SideXY",
             "variable_name":   "DISPLACEMENT",
             "active":          [true,true,true],
             "is_fixed":        [true,true,true],

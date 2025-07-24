@@ -62,7 +62,7 @@
             "solver_type":     "LinearSolversApplication.sparse_lu"
         },
         "problem_domain_sub_model_part_list": ["Interfaces"],
-        "processes_sub_model_part_list":      ["FixedNodes","AllNodes","DisplacedNodes"],
+        "processes_sub_model_part_list":      ["FixedNodes","AllNodes","SideZX"],
         "body_domain_sub_model_part_list":    ["Interfaces"]
     },
     "output_processes": {
@@ -114,7 +114,7 @@
             "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
             "process_name":  "ApplyVectorConstraintTableProcess",
             "Parameters":    {
-                "model_part_name": "PorousDomain.DisplacedNodes",
+                "model_part_name": "PorousDomain.SideZX",
                 "variable_name":   "DISPLACEMENT",
                 "active":          [true,true,true],
                 "is_fixed":        [true,true,true],

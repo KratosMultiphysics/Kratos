@@ -1,9 +1,6 @@
-
 Begin Properties 1
 End Properties
 
-Begin Properties 2
-End Properties
 
 Begin Nodes
   1  2.0000000000 0.0000000000 0.0000000000
@@ -62,6 +59,7 @@ Begin Nodes
  59  7.0000000000 4.0000000000 0.0000000000
 End Nodes
 
+
 Begin Elements Geo_USurfaceInterfaceElement6Plus6N
   1  1   1   7   3   4   5   2  11  17  13  14  15  12
   2  1   3   7   9   5   8   6  13  17  19  15  18  16
@@ -71,14 +69,16 @@ Begin Elements Geo_USurfaceInterfaceElement6Plus6N
   6  1  47  43  49  45  46  48  57  53  59  55  56  58
 End Elements
 
-Begin Conditions UPwNormalFaceLoadCondition3D6N
-  1  2  11  13  17  12  15  14
-  2  2  13  19  17  16  18  15
-  3  2  31  37  33  34  35  32
-  4  2  33  37  39  35  38  36
-  5  2  51  57  53  54  55  52
-  6  2  57  59  53  58  56  55
+
+Begin Conditions UPwFaceLoadCondition3D6N
+  1  1  11  13  17  12  15  14
+  2  1  13  19  17  16  18  15
+  3  1  31  37  33  34  35  32
+  4  1  33  37  39  35  38  36
+  5  1  51  57  53  54  55  52
+  6  1  57  59  53  58  56  55
 End Conditions
+
 
 Begin SubModelPart Interfaces
   Begin SubModelPartNodes
@@ -147,6 +147,7 @@ Begin SubModelPart Interfaces
   End SubModelPartElements
 End SubModelPart
 
+
 Begin SubModelPart AllFixed
   Begin SubModelPartNodes
       1
@@ -179,26 +180,9 @@ Begin SubModelPart AllFixed
   End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart InterfaceLoads
+
+Begin SubModelPart SideXY
   Begin SubModelPartNodes
-     11
-     12
-     13
-     14
-     15
-     16
-     17
-     18
-     19
-     31
-     32
-     33
-     34
-     35
-     36
-     37
-     38
-     39
      51
      52
      53
@@ -210,14 +194,49 @@ Begin SubModelPart InterfaceLoads
      59
   End SubModelPartNodes
   Begin SubModelPartConditions
-     1
-     2
-     3
-     4
-     5
-     6
+      5
+      6
   End SubModelPartConditions
 End SubModelPart
+
+
+Begin SubModelPart SideYZ
+  Begin SubModelPartNodes
+     31
+     32
+     33
+     34
+     35
+     36
+     37
+     38
+     39
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+      3
+      4
+  End SubModelPartConditions
+End SubModelPart
+
+
+Begin SubModelPart SideZX
+  Begin SubModelPartNodes
+     11
+     12
+     13
+     14
+     15
+     16
+     17
+     18
+     19
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+      1
+      2
+  End SubModelPartConditions
+End SubModelPart
+
 
 Begin SubModelPart AllNodes
   Begin SubModelPartNodes

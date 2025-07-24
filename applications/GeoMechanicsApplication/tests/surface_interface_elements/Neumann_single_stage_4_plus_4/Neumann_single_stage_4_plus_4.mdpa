@@ -1,9 +1,6 @@
-
 Begin Properties 1
 End Properties
 
-Begin Properties 2
-End Properties
 
 Begin Nodes
   1  2.0000000000 0.0000000000 0.0000000000
@@ -32,17 +29,20 @@ Begin Nodes
  54  7.0000000000 4.0000000000 0.0000000000
 End Nodes
 
+
 Begin Elements Geo_USurfaceInterfaceElement4Plus4N
   1  1    1   3   4   2  11  13  14  12
-  2  1   21  23  24  22  31  33  34  32
-  3  1   41  43  44  42  51  53  54  52
+  2  1   21  22  24  23  31  32  34  33
+  3  1   41  42  44  43  51  52  54  53
 End Elements
 
-Begin Conditions UPwNormalFaceLoadCondition3D4N
-  1  2   11  12  14  13
-  2  2   31  32  34  33
-  3  2   51  52  54  53
+
+Begin Conditions UPwFaceLoadCondition3D4N
+  1  1   11  12  14  13
+  2  1   31  33  34  32
+  3  1   51  53  54  52
 End Conditions
+
 
 Begin SubModelPart Interfaces
   Begin SubModelPartNodes
@@ -78,6 +78,7 @@ Begin SubModelPart Interfaces
   End SubModelPartElements
 End SubModelPart
 
+
 Begin SubModelPart AllFixed
   Begin SubModelPartNodes
       1
@@ -95,27 +96,45 @@ Begin SubModelPart AllFixed
   End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart InterfaceLoads
+
+Begin SubModelPart SideXY
   Begin SubModelPartNodes
-     11
-     12
-     13
-     14
-     31
-     32
-     33
-     34
      51
      52
      53
      54
   End SubModelPartNodes
   Begin SubModelPartConditions
-     1
-     2
      3
   End SubModelPartConditions
 End SubModelPart
+
+
+Begin SubModelPart SideYZ
+  Begin SubModelPartNodes
+     31
+     32
+     33
+     34
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+     2
+  End SubModelPartConditions
+End SubModelPart
+
+
+Begin SubModelPart SideZX
+  Begin SubModelPartNodes
+     11
+     12
+     13
+     14
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+     1
+  End SubModelPartConditions
+End SubModelPart
+
 
 Begin SubModelPart AllNodes
   Begin SubModelPartNodes

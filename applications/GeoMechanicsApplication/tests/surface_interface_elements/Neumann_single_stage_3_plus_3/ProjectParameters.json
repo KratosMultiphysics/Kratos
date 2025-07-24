@@ -63,7 +63,7 @@
             "solver_type":     "LinearSolversApplication.sparse_lu"
         },
         "problem_domain_sub_model_part_list": ["Interfaces"],
-        "processes_sub_model_part_list":      ["AllFixed","AllNodes","InterfaceLoads"],
+        "processes_sub_model_part_list":      ["AllFixed","AllNodes","SideXY", "SideYZ", "SideZX"],
         "body_domain_sub_model_part_list":    ["Interfaces"]
     },
     "output_processes": {
@@ -124,39 +124,39 @@
         }
     }],
     "loads_process_list": [{
-        "python_module": "apply_normal_load_table_process",
+        "python_module": "apply_vector_constraint_table_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyNormalLoadTableProcess",
+        "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.InterfaceLoads",
-            "variable_name":   "NORMAL_CONTACT_STRESS",
-            "active":          [true,false,false],
-            "value":           [-333.0,0.0,0.0],
-            "table":           [0,0],
+            "model_part_name": "PorousDomain.SideXY",
+            "variable_name":   "SURFACE_LOAD",
+            "active":          [true,true,true],
+            "value":           [-667.0,-667.0,-333.0],
+            "table":           [0,0,0],
             "fluid_pressure_type": "Uniform"
         }
     },{
-        "python_module": "apply_normal_load_table_process",
+        "python_module": "apply_vector_constraint_table_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyNormalLoadTableProcess",
+        "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.InterfaceLoads",
-            "variable_name":   "TANGENTIAL_CONTACT_STRESS",
-            "active":          [false,true,false],
-            "value":           [0.0,-667.0,0.0],
-            "table":           [0,0],
+            "model_part_name": "PorousDomain.SideYZ",
+            "variable_name":   "SURFACE_LOAD",
+            "active":          [true,true,true],
+            "value":           [-333.0,-667.0,-667.0],
+            "table":           [0,0,0],
             "fluid_pressure_type": "Uniform"
         }
     },{
-        "python_module": "apply_normal_load_table_process",
+        "python_module": "apply_vector_constraint_table_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyNormalLoadTableProcess",
+        "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.InterfaceLoads",
-            "variable_name":   "TANGENTIAL_CONTACT_STRESS",
-            "active":          [false,false,true],
-            "value":           [0.0,0.0,-667.0],
-            "table":           [0,0],
+            "model_part_name": "PorousDomain.SideZX",
+            "variable_name":   "SURFACE_LOAD",
+            "active":          [true,true,true],
+            "value":           [-667.0,-333.0,-667.0],
+            "table":           [0,0,0],
             "fluid_pressure_type": "Uniform"
         }
     }]

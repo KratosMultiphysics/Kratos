@@ -14,7 +14,7 @@ Begin Table 2 TIME DISPLACEMENT_Y
   4.0  -4.44e-5
 End Table
 
-Begin Table 1 TIME DISPLACEMENT_Z
+Begin Table 3 TIME DISPLACEMENT_Z
   0.0  0.0
   1.0  -4.4466666666666666e-5
   2.0  -8.8933333333333332e-5
@@ -25,6 +25,7 @@ End Table
 
 Begin Properties 1
 End Properties
+
 
 Begin Nodes
   1  2.0000000000 0.0000000000 0.0000000000
@@ -47,10 +48,12 @@ Begin Nodes
  19  7.0000000000 0.0000000000 4.0000000000
 End Nodes
 
+
 Begin Elements Geo_USurfaceInterfaceElement6Plus6N
   1  1   1  7  3  4  5  2  11  17  13  14  15  12
   2  1   7  9  3  8  6  5  17  19  13  18  16  15
 End Elements
+
 
 Begin SubModelPart Interfaces
   Begin SubModelPartNodes
@@ -79,6 +82,7 @@ Begin SubModelPart Interfaces
   End SubModelPartElements
 End SubModelPart
 
+
 Begin SubModelPart FixedNodes
   Begin SubModelPartNodes
       1
@@ -93,7 +97,8 @@ Begin SubModelPart FixedNodes
   End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart DisplacedNodes
+
+Begin SubModelPart SideZX
   Begin SubModelPartNodes
      11
      12
@@ -106,11 +111,12 @@ Begin SubModelPart DisplacedNodes
      19
   End SubModelPartNodes
   Begin SubModelPartTables
-    1
-    2
-    3
+      1
+      2
+      3
   End SubModelPartTables  
 End SubModelPart
+
 
 Begin SubModelPart AllNodes
   Begin SubModelPartNodes
