@@ -77,10 +77,11 @@ class PatienceConvCriterion(ConvergenceCriterion):
             raise RuntimeError(f"The value represented by {self.__value_name} is not a floating or int value.")
 
         if self.__best_value is None:
+            self.__init_value = value
             self.__best_value = value
 
         if step >= self.__minimum_itr:
-            if self.__best_value > value + self.__tolerance:
+            if self.__best_value > value + self.__tolerance * self.__init_value:
                 self.__best_value = value
                 self.__patience_step = 0
             else:
