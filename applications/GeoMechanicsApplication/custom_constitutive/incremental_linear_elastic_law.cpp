@@ -132,9 +132,7 @@ void GeoIncrementalLinearElasticLaw::CalculateElasticMatrix(Matrix& C, Constitut
 {
     KRATOS_TRY
 
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    C = mpConstitutiveDimension->CalculateElasticMatrix(r_material_properties[YOUNG_MODULUS],
-                                                        r_material_properties[POISSON_RATIO]);
+    C = mpConstitutiveDimension->CalculateElasticMatrix(rValues.GetMaterialProperties());
 
     if (this->GetConsiderDiagonalEntriesOnlyAndNoShear()) {
         SetEntriesAboveDiagonalToZero(C);

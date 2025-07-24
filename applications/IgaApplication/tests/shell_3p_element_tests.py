@@ -15,7 +15,7 @@ import os
 def GetFilePath(fileName):
     return os.path.dirname(__file__) + "/" + fileName
 
-
+@KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class Shell3pElementTests(KratosUnittest.TestCase):
 
     def solve_cantilever(create_geometry):

@@ -357,10 +357,11 @@ void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints(const Variable
     KRATOS_TRY
 
     if (rVariable == CAUCHY_STRESS_VECTOR) {
-        KRATOS_ERROR_IF(rValues.size() != mStressVector.size())
+        KRATOS_ERROR_IF(rValues.size() != GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod))
             << "Unexpected number of values for "
                "SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints"
             << std::endl;
+        mStressVector.resize(rValues.size());
         std::copy(rValues.begin(), rValues.end(), mStressVector.begin());
     } else {
         KRATOS_ERROR_IF(rValues.size() < mConstitutiveLawVector.size())
@@ -399,7 +400,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
     KRATOS_TRY
 
     const auto& r_geom       = GetGeometry();
-    const auto&         r_properties = this->GetProperties();
+    const auto& r_properties = this->GetProperties();
     const auto number_of_integration_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
     rOutput.resize(number_of_integration_points);
@@ -509,9 +510,11 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             << r_geom.WorkingSpaceDimension() << " in element: " << this->Id() << std::endl;
         size_t variable_index = 0;
         if (rVariable == CONFINED_STIFFNESS) {
-            variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XX) : static_cast<size_t>(INDEX_3D_XX);
+            variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XX)
+                                                                 : static_cast<size_t>(INDEX_3D_XX);
         } else {
-            variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XY) : static_cast<size_t>(INDEX_3D_XZ);
+            variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XY)
+                                                                 : static_cast<size_t>(INDEX_3D_XZ);
         }
 
         ElementVariables Variables;
@@ -622,11 +625,11 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
     KRATOS_TRY
 
     const GeometryType& r_geom = GetGeometry();
-
-    rOutput.resize(r_geom.IntegrationPointsNumber(this->GetIntegrationMethod()));
+    const auto number_of_integration_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+    rOutput.resize(number_of_integration_points);
 
     if (rVariable == CAUCHY_STRESS_VECTOR) {
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
+        for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
             if (rOutput[GPoint].size() != mStressVector[GPoint].size())
                 rOutput[GPoint].resize(mStressVector[GPoint].size(), false);
 

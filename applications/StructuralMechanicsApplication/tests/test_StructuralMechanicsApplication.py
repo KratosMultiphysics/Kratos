@@ -15,6 +15,8 @@ has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("
 ##### SELF-CONTAINED TESTS #####
 # CL tests
 from test_constitutive_law import TestConstitutiveLaw as TTestConstitutiveLaw
+# Constraint tests
+from test_link_constraint import TestLinkConstraint
 # Processes test
 from test_mass_calculation import TestMassCalculation as TTestMassCalculation
 from test_compute_center_of_gravity import TestComputeCenterOfGravity as TTestComputeCenterOfGravity
@@ -252,8 +254,8 @@ from structural_response_function_test_factory import TestEigenfrequencyResponse
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
-    Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
+    Populates the test suites to run. At least, it should populate the suites:
+    "small", "nightly" and "all"
 
     Return
     ------
@@ -275,6 +277,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestConstitutiveLaw]))
     nightSuite.addTest(TInitialStateElasticityTest('test_execution'))
     nightSuite.addTest(TInitialStrainShellQ4ThickTest('test_execution'))
+    # Constraint tests
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCase(TestLinkConstraint))
     # Mass calculation tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeCenterOfGravity]))
@@ -470,7 +474,7 @@ def AssembleTestSuites():
     nightSuite.addTests(smallSuite)
 
     ### Adding Validation Tests
-    # For very long tests that should not be in nighly and you can use to validate
+    # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTests(nightSuite) # Validation contains all the tests
     # SPRISM tests

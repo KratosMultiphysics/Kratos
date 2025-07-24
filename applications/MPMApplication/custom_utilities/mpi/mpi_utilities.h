@@ -51,7 +51,7 @@ public:
 
     /**
      * @brief Interface to exchange elements.
-     * @details Interface to exchange elements betweem mpi-processes and remove/add elements from/to respective ModelPart.
+     * @details Interface to exchange elements between mpi-processes and remove/add elements from/to respective ModelPart.
      * @param rSendElements list of objects to be send.      SendObjects[i] -> Objects to   process i
      **/
     static void TransferElements(ModelPart& rModelPart,
@@ -59,7 +59,7 @@ public:
 
     /**
      * @brief Interface to exchange conditions.
-     * @details Interface to exchange conditions betweem mpi-processes and remove/add conditions from/to respective ModelPart.
+     * @details Interface to exchange conditions between mpi-processes and remove/add conditions from/to respective ModelPart.
      * @param rSendCondition list of conditions to be send.      SendObjects[i] -> Objects to   process i
      **/
     static void TransferConditions(ModelPart& rModelPart,
