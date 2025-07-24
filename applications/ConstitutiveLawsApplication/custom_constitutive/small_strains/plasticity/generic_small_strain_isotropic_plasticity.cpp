@@ -96,7 +96,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
             r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             Vector& r_stress_vector = rValues.GetStressVector();
             if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
+                CalculateElasticMatrix(r_constitutive_matrix, rValues);
                 noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
                 this->template AddInitialStressVectorContribution<Vector>(r_stress_vector);
             } else {
@@ -145,7 +145,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
             plastic_strain_increment.clear();
 
             // Elastic Matrix
-            this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
+            CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
             // Compute the plastic parameters
             const double F = TConstLawIntegratorType::CalculatePlasticParameters(
@@ -205,7 +205,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateTa
         // Calculates the Tangent Constitutive Tensor by perturbation (second order)
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 4);
     } else if (tangent_operator_estimation == TangentOperatorEstimation::InitialStiffness) {
-        BaseType::CalculateElasticMatrix(rValues.GetConstitutiveMatrix(), rValues);
+        CalculateElasticMatrix(rValues.GetConstitutiveMatrix(), rValues);
     } else if (tangent_operator_estimation == TangentOperatorEstimation::OrthogonalSecant) {
         TangentOperatorCalculatorUtility::CalculateOrthogonalSecantTensor(rValues);
     }
@@ -325,7 +325,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
 
     // We compute the stress
     // Elastic Matrix
-    this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
+    CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
     // We get some variables
     double threshold = this->GetThreshold();
