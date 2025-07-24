@@ -84,11 +84,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Initialization constructor.
-    PlaneStressVonMisesYieldSurface()
-    {
-    }
-
     /// Copy constructor
     PlaneStressVonMisesYieldSurface(PlaneStressVonMisesYieldSurface const &rOther)
     {
@@ -99,9 +94,6 @@ public:
     {
         return *this;
     }
-
-    /// Destructor
-    virtual ~PlaneStressVonMisesYieldSurface(){};
 
     ///@}
     ///@name Operators
