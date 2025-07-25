@@ -8,7 +8,7 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo & Lucia Barbu
+//  Main authors:    Alejandro Cornejo
 //
 
 #pragma once
@@ -16,7 +16,8 @@
 // System includes
 
 // Project includes
-#include "generic_plastic_potential.h"
+#include "von_mises_plastic_potential.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -42,15 +43,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class VonMisesPlasticPotential
+ * @class PlaneStressVonMisesPlasticPotential
  * @ingroup StructuralMechanicsApplication
  * @brief This class defines a plastic potential following the theory of Von Mises
  * @details If the plastic potential is of vonMises (cylinder) type, on can see that the plastic strain increment tensor is in principle the scaled deviatoric stress tensor, hence principal directions coincide. When the yield and plastic potential surfaces are plotted in principal stress space the resulting surface will be a circular cylinder for Von-Mises. This means that both yield and strength are dependent on intermediate principal stress, sigma_2
  * @tparam TVoigtSize The number of components on the Voigt notation
- * @author Alejandro Cornejo & Lucia Barbu
+ * @author Alejandro Cornejo
  */
-template <SizeType TVoigtSize = 6>
-class VonMisesPlasticPotential
+template <SizeType TVoigtSize = 3>
+class PlaneStressVonMisesPlasticPotential
 {
 public:
     ///@name Type Definitions
@@ -62,20 +63,20 @@ public:
     /// The define the Voigt size
     static constexpr SizeType VoigtSize = TVoigtSize;
 
-    /// Counted pointer of VonMisesPlasticPotential
-    KRATOS_CLASS_POINTER_DEFINITION(VonMisesPlasticPotential);
+    /// Counted pointer of PlaneStressVonMisesPlasticPotential
+    KRATOS_CLASS_POINTER_DEFINITION(PlaneStressVonMisesPlasticPotential);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Copy constructor
-    VonMisesPlasticPotential(VonMisesPlasticPotential const &rOther)
+    PlaneStressVonMisesPlasticPotential(PlaneStressVonMisesPlasticPotential const &rOther)
     {
     }
 
     /// Assignment operator
-    VonMisesPlasticPotential &operator=(VonMisesPlasticPotential const &rOther)
+    PlaneStressVonMisesPlasticPotential &operator=(PlaneStressVonMisesPlasticPotential const &rOther)
     {
         return *this;
     }
@@ -90,9 +91,7 @@ public:
 
     /**
     * @brief This  script  calculates  the derivatives  of the plastic potential
-    according   to   NAYAK-ZIENKIEWICZ   paper International
-    journal for numerical methods in engineering vol 113-135 1972.
-    As:            DF/DS = c1*V1 + c2*V2 + c3*V3
+    according   to   Souza et al.
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
@@ -100,18 +99,17 @@ public:
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& rStressVector,
         const array_1d<double, VoigtSize>& rDeviator,
         const double J2,
         array_1d<double, VoigtSize>& rGFlux,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-        const double c2 = std::sqrt(3.0);
-
-        noalias(rGFlux) = c2 * second_vector;
+        const auto& r_P = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePOperator();
+        const Vector aux = prod(r_P, rStressVector);
+        const double denominator = std::sqrt(inner_prod(aux, rStressVector));
+        noalias(rGFlux) = std::sqrt(1.5) * prod(r_P, rStressVector) / denominator;
     }
 
     /**
