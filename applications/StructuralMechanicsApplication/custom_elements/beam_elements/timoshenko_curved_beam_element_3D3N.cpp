@@ -693,6 +693,7 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateOnIntegrationPoints(
         BoundedMatrix<double, 6, 18> B;
         BoundedMatrix<double, 3, 3> frenet_serret;
         BoundedMatrix<double, 6, 6> element_frenet_serret;
+        array_3 t, n, b, shape_functions, d_shape_functions;
 
         // Loop over the integration points (IP)
         const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
@@ -703,10 +704,9 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateOnIntegrationPoints(
 
             GetNodalValuesVector(nodal_values);
 
-            const array_3 shape_functions   = GetShapeFunctionsValues(xi);
-            const array_3 d_shape_functions = GetFirstDerivativesShapeFunctionsValues(xi, J);
+            noalias(shape_functions)   = GetShapeFunctionsValues(xi);
+            noalias(d_shape_functions) = GetFirstDerivativesShapeFunctionsValues(xi, J);
 
-            array_3 t, n, b;
             GetTangentandTransverseUnitVectors(xi, t, n, b);
             noalias(frenet_serret) = GetFrenetSerretMatrix(xi, t, n, b);
             StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(frenet_serret, element_frenet_serret);
@@ -747,6 +747,7 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateOnIntegrationPoints(
         BoundedMatrix<double, 6, 18> B;
         BoundedMatrix<double, 3, 3> frenet_serret;
         BoundedMatrix<double, 6, 6> element_frenet_serret;
+        array_3 t, n, b, shape_functions, d_shape_functions;
 
         // Loop over the integration points (IP)
         const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
@@ -757,10 +758,9 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateOnIntegrationPoints(
 
             GetNodalValuesVector(nodal_values);
 
-            const array_3 shape_functions   = GetShapeFunctionsValues(xi);
-            const array_3 d_shape_functions = GetFirstDerivativesShapeFunctionsValues(xi, J);
+            noalias(shape_functions)   = GetShapeFunctionsValues(xi);
+            noalias(d_shape_functions) = GetFirstDerivativesShapeFunctionsValues(xi, J);
 
-            array_3 t, n, b;
             GetTangentandTransverseUnitVectors(xi, t, n, b);
             noalias(frenet_serret) = GetFrenetSerretMatrix(xi, t, n, b);
             StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(frenet_serret, element_frenet_serret);
