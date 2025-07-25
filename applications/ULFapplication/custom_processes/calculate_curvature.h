@@ -69,7 +69,7 @@ namespace Kratos
 /** Detail class definition.
 	calculate curvature for 2D and 3D.
 	
-	curvature for 2D is calcualted based on equation (14) in the follwoing reference:
+	curvature for 2D is calculated based on equation (14) in the follwoing reference:
 	Jarauta A, Ryzhakov P, Secanell M, Waghmare PR, Pons-Prats J. Numerical study of droplet dynamics in a polymer electrolyte fuel cell gas channel using an embedded Eulerian-Lagrangian approach. Journal of Power Sources. 2016 Aug 15;323:201-12.
 	
 	curvature for 3D is based on Mayer approach in the follwoing reference:
