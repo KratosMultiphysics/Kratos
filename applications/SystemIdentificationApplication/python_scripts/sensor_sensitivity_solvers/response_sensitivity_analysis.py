@@ -8,20 +8,27 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 
 class ResponseSensitivityAnalysis(AnalysisStage, abc.ABC):
     @abc.abstractmethod
-    def CalculateGradient(self, response_function: Kratos.AdjointResponseFunction) -> 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]':
-        """Returns the gradient computed by using the provided adjoint response function.
+    def CalculateGradient(self, response_function: Kratos.AdjointResponseFunction) -> None:
+        """Calculate the gradient using the provided adjoint response function.
 
-        This method returns all the sensitivities computed from the given adjoint response function. The return
-        will be a dictionary having a pair with the variable as the key and a ContainerExpression as the value.
-        ContainerExpression will carry the sensitivity values.
+        This method calculate all the sensitivities using the given adjoint response function.
 
         Args:
             response_function (Kratos.AdjointResponseFunction): Adjoint response function to be used for sensitivity computation
-
-        Returns:
-            dict[str, ContainerExpressionTypes]: Sensitivities dictionary with variable and sensitivities as the pair.
         """
         pass
+
+    def GetGradient(self, sensitivity_variable: SupportedSensitivityFieldVariableTypes, gradient_expression: ContainerExpressionTypes) -> None:
+        """Returns the gradients in the domain represented by gradient_expression container expression.
+
+        Args:
+            sensitivity_variable (SupportedSensitivityFieldVariableTypes): Sensitivity variable
+            gradient_expression (ContainerExpressionTypes): Container expression to hold the gradients.
+        """
+        if isinstance(gradient_expression, Kratos.Expression.NodalExpression):
+            Kratos.Expression.VariableExpressionIO.Read(gradient_expression, sensitivity_variable, True)
+        else:
+            Kratos.Expression.VariableExpressionIO.Read(gradient_expression, sensitivity_variable)
 
     def GetProcessesOrder(self) -> 'list[str]':
         """The order of execution of the process categories.

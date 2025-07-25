@@ -163,6 +163,10 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultilinePressureProcess_AppliesC
     })");
     StructuredMeshGeneratorProcess(domain_geometry, r_model_part, mesher_parameters).Execute();
 
+    for (auto& node : r_model_part.Nodes()) {
+        node.pAddDof(WATER_PRESSURE);
+    }
+
     auto test_parameters = Parameters{R"(
             {
                 "model_part_name": "foo",

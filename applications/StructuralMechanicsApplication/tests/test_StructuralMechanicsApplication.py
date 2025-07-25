@@ -15,6 +15,8 @@ has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("
 ##### SELF-CONTAINED TESTS #####
 # CL tests
 from test_constitutive_law import TestConstitutiveLaw as TTestConstitutiveLaw
+# Constraint tests
+from test_link_constraint import TestLinkConstraint
 # Processes test
 from test_mass_calculation import TestMassCalculation as TTestMassCalculation
 from test_compute_center_of_gravity import TestComputeCenterOfGravity as TTestComputeCenterOfGravity
@@ -275,6 +277,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestConstitutiveLaw]))
     nightSuite.addTest(TInitialStateElasticityTest('test_execution'))
     nightSuite.addTest(TInitialStrainShellQ4ThickTest('test_execution'))
+    # Constraint tests
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCase(TestLinkConstraint))
     # Mass calculation tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeCenterOfGravity]))
@@ -353,7 +357,7 @@ def AssembleTestSuites():
 
     ### Adding Nightly Tests
     # Patch test Small Displacements
-    # smallSuite.addTest(TMixedUEElementTest('test_execution')) //FIXME: Activate once we finish the quadratures
+    smallSuite.addTest(TMixedUEElementTest('test_execution'))
     smallSuite.addTest(TLinearTruss2D2NTest('test_execution'))
     smallSuite.addTest(TLinearTruss2D3NTest('test_execution'))
     smallSuite.addTest(TLinearTruss3DTest('test_execution'))
