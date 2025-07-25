@@ -6,9 +6,9 @@ import test_helper
 
 class KratosGeoMechanicsSurfaceInterfaceElementTests(KratosUnittest.TestCase):
     """
-    This class contains one test case for a 3+3 line interface element which is loaded
+    This class contains one test case for a 3+3, 4+4, 6+6 and 8+8 surface interface elements which are loaded
     in compression as well as in shear. This is done both by applying a load (Neumann)
-    and prescribing a displacement (Dirichlet) on one side of the interface.
+    and prescribing a displacement (Dirichlet) on one side of each interface.
     """
     def setUp(self):
         self.model = Kratos.Model()
@@ -56,44 +56,28 @@ class KratosGeoMechanicsSurfaceInterfaceElementTests(KratosUnittest.TestCase):
         self.assert_outputs_for_surface_interface_element(simulation, 8, 4, 3)
 
     def test_neumann_multi_stage_3_plus_3(self):
-        simulations = self.run_simulation_multistages('neumann_multi_stage_3_plus_3')
-        #self.assert_outputs_for_surface_interface_element_multistages(simulations[0], 4, 3, 1334.0, 666.0)
-        self.assert_outputs_for_surface_interface_element_multistages(simulations[1], 4, 3, -3000.0, -1332.0)
+        self.run_simulation_multistages('neumann_multi_stage_3_plus_3', 4, 3, [-1334.0, -3000.0], [-666.0, -1332.0])
 
     def test_neumann_multi_stage_4_plus_4(self):
-        simulations = self.run_simulation_multistages('neumann_multi_stage_4_plus_4')
-    #    self.assert_outputs_for_surface_interface_element_multistages(simulations[0], 4, 4, -1334.0, -666.0)
-        self.assert_outputs_for_surface_interface_element_multistages(simulations[1], 4, 4, -3000.0, -1332.0)
+        self.run_simulation_multistages('neumann_multi_stage_4_plus_4', 4, 4, [-1334.0, -3000.0], [-666.0, -1332.0])
 
-    def test_neumann_multi_stage_6_plus_6(self):
-        simulations = self.run_simulation_multistages('neumann_multi_stage_6_plus_6')
-    #    self.assert_outputs_for_surface_interface_element_multistages(simulations[0], 9, 3, -1334.0, -666.0)
-    #    self.assert_outputs_for_surface_interface_element_multistages(simulations[1], 9, 3, -3000.0, -1332.0)
+    #def test_neumann_multi_stage_6_plus_6(self):
+    #    self.run_simulation_multistages('neumann_multi_stage_6_plus_6', 9, 3, [-1334.0, -3000.0], [-666.0, -1332.0])
+ 
+    #def test_neumann_multi_stage_8_plus_8(self):
+    #    self.run_simulation_multistages('neumann_multi_stage_8_plus_8', 8, 4, [-1334.0, -3000.0], [-666.0, -1332.0])
 
-    def test_neumann_multi_stage_8_plus_8(self):
-        simulations = self.run_simulation_multistages('neumann_multi_stage_8_plus_8')
-    #    self.assert_outputs_for_surface_interface_element_multistages(simulations[0], 8, 4, 1334.0, 666.0)
-    #    self.assert_outputs_for_surface_interface_element_multistages(simulations[1], 8, 4, -3000.0, -1332.0)
-    
     def test_dirichlet_multi_stage_3_plus_3(self):
-        simulations = self.run_simulation_multistages('dirichlet_multi_stage_3_plus_3')
-    #    self.assert_outputs_for_surface_interface_element_multistages(simulations[0], 4, 3, -1334.0, -666.0)
-        self.assert_outputs_for_surface_interface_element_multistages(simulations[1], 4, 3, -3000.0, -1332.0)
-    
+        self.run_simulation_multistages('dirichlet_multi_stage_3_plus_3', 4, 3, [-1334.0, -3000.0], [-666.0, -1332.0])
+
     def test_dirichlet_multi_stage_4_plus_4(self):
-        simulations = self.run_simulation_multistages('dirichlet_multi_stage_4_plus_4')
-    #    self.assert_outputs_for_surface_interface_element_multistages(simulations[0], 4, 4, -1334.0, -666.0)
-        self.assert_outputs_for_surface_interface_element_multistages(simulations[1], 4, 4, -3000.0, -1332.0)
+        self.run_simulation_multistages('dirichlet_multi_stage_4_plus_4', 4, 4, [-1334.0, -3000.0], [-666.0, -1332.0])
 
     def test_dirichlet_multi_stage_6_plus_6(self):
-        simulations = self.run_simulation_multistages('dirichlet_multi_stage_6_plus_6')
-    #    self.assert_outputs_for_surface_interface_element_multistages(simulations[0], 9, 3, -1334.0, -666.0)
-        self.assert_outputs_for_surface_interface_element_multistages(simulations[1], 9, 3, -3000.0, -1332.0)
+        self.run_simulation_multistages('dirichlet_multi_stage_6_plus_6', 9, 3, [-1334.0, -3000.0], [-666.0, -1332.0])
 
     def test_dirichlet_multi_stage_8_plus_8(self):
-        simulations = self.run_simulation_multistages('dirichlet_multi_stage_8_plus_8')
-    #    self.assert_outputs_for_surface_interface_element_multistages(simulations[0], 8, 4, -1334.0, -666.0)
-        self.assert_outputs_for_surface_interface_element_multistages(simulations[1], 8, 4, -3000.0, -1332.0)
+        self.run_simulation_multistages('dirichlet_multi_stage_8_plus_8', 8, 4, [-1334.0, -3000.0], [-666.0, -1332.0])
 
 
     @staticmethod
@@ -101,18 +85,20 @@ class KratosGeoMechanicsSurfaceInterfaceElementTests(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(os.path.join('surface_interface_elements', test_name))
         return test_helper.run_kratos(file_path)
         
-    def run_simulation_multistages(self, test_name):
+    def run_simulation_multistages(self, test_name, number_of_nodes, number_of_integration_points, shear_tractions, normal_tractions):
         file_path = test_helper.get_file_path(os.path.join('surface_interface_elements', test_name))
         initial_cwd = os.getcwd()
         os.chdir(file_path)
-        simulations = []
         project_parameters_file_names = ['ProjectParameters_stage1.json', 'ProjectParameters_stage2.json']
+        index = 0
         for file_name in project_parameters_file_names:
             simulation = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, file_name))
             simulation.Run()
-            simulations.append(simulation)
+            shear_traction = shear_tractions[index]
+            normal_traction = normal_tractions[index]
+            self.assert_outputs_for_surface_interface_element_multistages(simulation, number_of_nodes, number_of_integration_points, shear_traction, normal_traction)
+            index += 1
         os.chdir(initial_cwd)
-        return simulations
 
 
     def assert_outputs_for_surface_interface_element(self, simulation, number_of_nodes, number_of_integration_points, number_of_elements):
