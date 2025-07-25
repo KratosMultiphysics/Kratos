@@ -51,12 +51,6 @@ private:
     int    mIntValue    = 0;
     bool   mBoolValue   = false;
     bool   mIsFixed     = false;
-
-    template <class TVarType>
-    void InternalApplyValue(const TVarType& rVariable, bool ToBeFixed, typename TVarType::Type Value);
-
-    template <class TVarType>
-    void InternalApplyValueWithoutFixing(const TVarType& rVariable, typename TVarType::Type Value);
 };
 
 inline std::ostream& operator<<(std::ostream& rOStream, const GeoApplyConstantScalarValueProcess& rThis)
