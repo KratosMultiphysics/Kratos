@@ -174,23 +174,24 @@ void KratosExecute::ParseProcesses(ModelPart& rModelPart, Parameters projFile)
     std::size_t found   = name.find_last_of('.');
     std::string subname = name.substr(found + 1);
     ModelPart&  part    = rModelPart.GetSubModelPart(subname);
+
     mProcesses.push_back(make_shared<GeoApplyConstantScalarValueProcess>(part, Parameters{R"(
         {
-            "variable_name"           : "VOLUME_ACCELERATION_X",
+            "variable_name"  : "VOLUME_ACCELERATION_X",
             "value"          : 0.0,
             "is_fixed"       : true
         })"}));
 
     mProcesses.push_back(make_shared<GeoApplyConstantScalarValueProcess>(part, Parameters{R"(
         {
-            "variable_name"           : "VOLUME_ACCELERATION_Y",
+            "variable_name"  : "VOLUME_ACCELERATION_Y",
             "value"          : -9.81,
             "is_fixed"       : true
         })"}));
 
     mProcesses.push_back(make_shared<GeoApplyConstantScalarValueProcess>(part, Parameters{R"(
         {
-            "variable_name"           : "VOLUME_ACCELERATION_Z",
+            "variable_name"  : "VOLUME_ACCELERATION_Z",
             "value"          : 0.0,
             "is_fixed"       : true
         })"}));
