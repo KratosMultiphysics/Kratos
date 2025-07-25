@@ -231,14 +231,14 @@ void GeneralUPwDiffOrderCondition::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
 
-    rSerializer.save("mpPressureGeometry", mpPressureGeometry);
+    rSerializer.save("PressureGeometry", mpPressureGeometry);
 }
 
 void GeneralUPwDiffOrderCondition::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
 
-    rSerializer.load("mpPressureGeometry", mpPressureGeometry);
+    rSerializer.load("PressureGeometry", mpPressureGeometry);
 }
 
 } // Namespace Kratos.

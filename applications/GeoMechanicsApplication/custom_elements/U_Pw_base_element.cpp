@@ -15,6 +15,7 @@
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
 
 namespace Kratos
@@ -449,7 +450,8 @@ void UPwBaseElement::save(Serializer& rSerializer) const
     rSerializer.save("RetentionLawVector", mRetentionLawVector);
     rSerializer.save("StateVariablesFinalized", mStateVariablesFinalized);
     rSerializer.save("StressVector", mStressVector);
-    rSerializer.save("mThisIntegrationMethod", static_cast<int>(mThisIntegrationMethod));
+    rSerializer.save("ThisIntegrationMethod", static_cast<int>(mThisIntegrationMethod));
+    rSerializer.save("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
 }
 
 void UPwBaseElement::load(Serializer& rSerializer)
@@ -460,9 +462,10 @@ void UPwBaseElement::load(Serializer& rSerializer)
     rSerializer.load("RetentionLawVector", mRetentionLawVector);
     rSerializer.load("StateVariablesFinalized", mStateVariablesFinalized);
     rSerializer.load("StressVector", mStressVector);
-    int IntMethod;
-    rSerializer.load("mThisIntegrationMethod", IntMethod);
-    mThisIntegrationMethod = IntegrationMethod(IntMethod);
+    int integration_method;
+    rSerializer.load("ThisIntegrationMethod", integration_method);
+    mThisIntegrationMethod = static_cast<IntegrationMethod>(integration_method);
+    rSerializer.load("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
 }
 
 StressStatePolicy& UPwBaseElement::GetStressStatePolicy() const { return *mpStressStatePolicy; }

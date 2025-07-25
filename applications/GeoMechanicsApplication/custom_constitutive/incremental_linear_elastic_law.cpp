@@ -209,7 +209,7 @@ void GeoIncrementalLinearElasticLaw::save(Serializer& rSerializer) const
     rSerializer.save("StressVectorFinalized", mStressVectorFinalized);
     rSerializer.save("DeltaStrainVector", mDeltaStrainVector);
     rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
-    rSerializer.save("mIsModelInitialized", mIsModelInitialized);
+    rSerializer.save("IsModelInitialized", mIsModelInitialized);
     rSerializer.save("ConstitutiveDimension", mpConstitutiveDimension);
 }
 
@@ -220,7 +220,7 @@ void GeoIncrementalLinearElasticLaw::load(Serializer& rSerializer)
     rSerializer.load("StressVectorFinalized", mStressVectorFinalized);
     rSerializer.load("DeltaStrainVector", mDeltaStrainVector);
     rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
-    rSerializer.load("mIsModelInitialized", mIsModelInitialized);
+    rSerializer.load("IsModelInitialized", mIsModelInitialized);
     rSerializer.load("ConstitutiveDimension", mpConstitutiveDimension);
 }
 
