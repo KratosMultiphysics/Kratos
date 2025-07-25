@@ -126,7 +126,7 @@ public:
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * Called at the end of eahc solution step
+     * Called at the end of each solution step
      */
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 

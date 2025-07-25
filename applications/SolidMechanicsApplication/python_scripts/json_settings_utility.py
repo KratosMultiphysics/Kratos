@@ -77,7 +77,7 @@ class JsonSettingsUtility(object):
         #print("result",destination_settings.PrettyPrintJsonString())
 
     @staticmethod
-    # checks and transfers mathing values (except array and subparameters)
+    # checks and transfers matching values (except array and subparameters)
     def CheckAndTransferMatchingValueType(origin_value, destination_value):
         if destination_value.IsDouble() and origin_value.IsDouble():
             destination_value.SetDouble(origin_value.GetDouble())

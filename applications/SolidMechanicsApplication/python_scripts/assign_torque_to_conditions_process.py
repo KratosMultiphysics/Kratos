@@ -2,7 +2,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-## This proces sets the value of a scalar variable to conditions
+## This process sets the value of a scalar variable to conditions
 from KratosMultiphysics.SolidMechanicsApplication.assign_modulus_and_direction_to_conditions_process import AssignModulusAndDirectionToConditionsProcess
 
 def Factory(custom_settings, Model):
