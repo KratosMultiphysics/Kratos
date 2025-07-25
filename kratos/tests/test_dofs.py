@@ -77,11 +77,17 @@ class TestDofs(KratosUnittest.TestCase):
         dy.EquationId = 6
         dz.EquationId = 7
 
+        # Assign effective equation Id
+        dx.EffectiveEquationId = 1
+        dy.EffectiveEquationId = 2
+        dz.EffectiveEquationId = 3
+
         # Checks
         self.assertEqual(p.GetVariable(), KratosMultiphysics.PRESSURE)
         self.assertEqual(dx.GetVariable(), KratosMultiphysics.DISPLACEMENT_X)
         self.assertEqual(dx.GetReaction(), KratosMultiphysics.REACTION_X)
         self.assertEqual(dx.EquationId, 5)
+        self.assertEqual(dx.EffectiveEquationId, 1)
 
         self.assertLess(p,p2)
         self.assertGreater(dy,dx)
