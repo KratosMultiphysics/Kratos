@@ -527,8 +527,6 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateLeftHandSide(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    const double area = GetCrossArea();
-
     // Let's initialize the constitutive law values
     VectorType strain_vector(strain_size), stress_vector(strain_size);
     MatrixType constitutive_matrix(strain_size, strain_size);
