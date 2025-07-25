@@ -159,7 +159,7 @@ def _CreateListOfProcesses(model, parameters, main_model_part):
                             # Get already stored prototype
                             if KM.Registry.HasItem(f"{registry_entry}.Prototype"):
                                 prototype = KM.Registry[f"{registry_entry}.Prototype"]
-                                instance = prototype.Create(model, item["Parameters"])
+                                instance = prototype.Create(model, process["Parameters"])
                             # Get prototype from stored Python module
                             elif KM.Registry.HasItem(f"{registry_entry}.ModuleName"):
                                 class_name = registry_entry.split(".")[-1]
@@ -167,7 +167,7 @@ def _CreateListOfProcesses(model, parameters, main_model_part):
                                 module = import_module(module_name)
                                 if hasattr(module, class_name):
                                     prototype = getattr(module, class_name)
-                                    instance = prototype(model, item["Parameters"])
+                                    instance = prototype(model, process["Parameters"])
                                 else:
                                     #TODO: In here we're assuming that the registry last key is the class name
                                     #TODO: We should enforce this. Now an error happens but as we populate we should throw a warning and search for a ClassName item
