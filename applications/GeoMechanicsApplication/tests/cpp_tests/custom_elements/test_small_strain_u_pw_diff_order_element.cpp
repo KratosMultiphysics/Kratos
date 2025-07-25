@@ -82,12 +82,14 @@ auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& 
     nodes.push_back(make_intrusive<Node>(6, 0.5, 0.05, 0.0));
 
     auto result = Kratos::Testing::ElementSetupUtilities::Create2D6NDiffOrderElement(nodes, rProperties);
-    Kratos::Testing::ElementSetupUtilities::AddVariablesToEntity(
-        result,
-        {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(DISPLACEMENT), std::cref(VELOCITY),
-         std::cref(ACCELERATION), std::cref(VOLUME_ACCELERATION), std::cref(HYDRAULIC_DISCHARGE)},
-        {std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y),
-         std::cref(DISPLACEMENT_Z)});
+    const auto solution_step_variables = Geo::ConstVariableDataRefs{
+        std::cref(WATER_PRESSURE),     std::cref(DT_WATER_PRESSURE), std::cref(DISPLACEMENT),
+        std::cref(VELOCITY),           std::cref(ACCELERATION),      std::cref(VOLUME_ACCELERATION),
+        std::cref(HYDRAULIC_DISCHARGE)};
+    const auto degrees_of_freedom =
+        Geo::ConstVariableRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT_X),
+                               std::cref(DISPLACEMENT_Y), std::cref(DISPLACEMENT_Z)};
+    Kratos::Testing::ElementSetupUtilities::AddVariablesToEntity(result, solution_step_variables, degrees_of_freedom);
 
     for (auto& r_node : nodes) {
         r_node.SetBufferSize(2);
@@ -130,7 +132,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateShearCapacity,
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto  p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreateProperties());
+    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreateProperties());
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 
@@ -152,7 +154,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS_WithSaveAn
         std::make_pair("PlaneStrainStressState"s, PlaneStrainStressState{}));
 
     // Arrange
-    auto  p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreateProperties());
+    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreateProperties());
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 
