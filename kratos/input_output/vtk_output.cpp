@@ -357,19 +357,21 @@ void VtkOutput::WriteConditionsAndElementsToFile(const ModelPart& rModelPart, st
 
     if (entity_type == EntityType::ELEMENT) {
         // write cells header
-        rFileStream << "\nCELLS " << r_local_mesh.NumberOfElements() << " "
+        const std::size_t num_elements = DetermineVtkContainerSize(r_local_mesh.Elements());
+        rFileStream << "\nCELLS " << num_elements << " "
             << DetermineVtkCellListSize(r_local_mesh.Elements()) << "\n";
         WriteConnectivity(r_local_mesh.Elements(), rFileStream);
         // write cell types header
-        rFileStream << "\nCELL_TYPES " << r_local_mesh.NumberOfElements() << "\n";
+        rFileStream << "\nCELL_TYPES " << num_elements << "\n";
         WriteCellType(r_local_mesh.Elements(), rFileStream);
     } else if (entity_type == EntityType::CONDITION) {
         // write cells header
-        rFileStream << "\nCELLS " << r_local_mesh.NumberOfConditions() << " "
+        const std::size_t num_conditions = DetermineVtkContainerSize(r_local_mesh.Conditions());
+        rFileStream << "\nCELLS " << num_conditions << " "
             << DetermineVtkCellListSize(r_local_mesh.Conditions()) << "\n";
         WriteConnectivity(r_local_mesh.Conditions(), rFileStream);
         // write cell types header
-        rFileStream << "\nCELL_TYPES " << r_local_mesh.NumberOfConditions() << "\n";
+        rFileStream << "\nCELL_TYPES " << num_conditions << "\n";
         WriteCellType(r_local_mesh.Conditions(), rFileStream);
     }
 }
@@ -378,10 +380,29 @@ void VtkOutput::WriteConditionsAndElementsToFile(const ModelPart& rModelPart, st
 /***********************************************************************************/
 
 template<typename TContainerType>
+std::size_t VtkOutput::DetermineVtkContainerSize(const TContainerType& rContainer) const
+{
+    return block_for_each<SumReduction<std::size_t>>(rContainer,[this](const typename TContainerType::data_type& rEntity) {
+        if (SkippableEntity(rEntity)) {
+            return 0;
+        } else {
+            return 1;
+        }
+    });
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<typename TContainerType>
 std::size_t VtkOutput::DetermineVtkCellListSize(const TContainerType& rContainer) const
 {
-    return block_for_each<SumReduction<std::size_t>>(rContainer,[](const typename TContainerType::data_type& rEntity){
-        return rEntity.GetGeometry().PointsNumber() + 1;
+    return block_for_each<SumReduction<std::size_t>>(rContainer,[this](const typename TContainerType::data_type& rEntity) -> std::size_t {
+        if (SkippableEntity(rEntity)) {
+            return 0;
+        } else {
+            return rEntity.GetGeometry().PointsNumber() + 1;
+        }
     });
 }
 
@@ -397,6 +418,7 @@ void VtkOutput::WriteConnectivity(const TContainerType& rContainer, std::ofstrea
 
     const auto& r_id_map = mKratosIdToVtkId; // const reference to not accidentially modify the map
     for (const auto& r_entity : rContainer) {
+        if (SkippableEntity(r_entity)) continue;
         auto p_geom = r_entity.pGetGeometry();
         const unsigned int number_of_nodes = p_geom->PointsNumber();
         p_geom = ReorderConnectivity(p_geom);
@@ -422,15 +444,16 @@ void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& r
 {
     // Write entity types
     for (const auto& r_entity : rContainer) {
+        if (SkippableEntity(r_entity)) continue;
         int cell_type = -1;
-        const auto& r_kratos_cell = r_entity.GetGeometry().GetGeometryType();
+        const auto& r_geometry = r_entity.GetGeometry();
+        const auto& r_kratos_cell = r_geometry.GetGeometryType();
         if (VtkDefinitions::KratosVtkGeometryTypes.count(r_kratos_cell) > 0) {
             cell_type = VtkDefinitions::KratosVtkGeometryTypes.at(r_kratos_cell);
         } else {
-            const auto& r_kratos_cell = r_entity.GetGeometry().GetGeometryType();
             KRATOS_ERROR << "Modelpart contains elements or conditions with "
-             << "geometries for which no VTK-output is implemented!" << std::endl
-             << "Cell type: " << static_cast<int>(r_kratos_cell) << std::endl;
+            << "geometries for which no VTK-output is implemented!" << std::endl
+            << "Cell type: " << static_cast<int>(r_kratos_cell) << std::endl;
         }
 
         WriteScalarDataToFile( (int)cell_type, rFileStream);
@@ -561,7 +584,7 @@ void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofst
 
     if (GetEntityType(rModelPart) == EntityType::ELEMENT) {
         // write cells header
-        rFileStream << "CELL_DATA " << r_local_mesh.NumberOfElements() << "\n";
+        rFileStream << "CELL_DATA " << DetermineVtkContainerSize(r_local_mesh.Elements()) << "\n";
         const bool write_ids = mOutputSettings["write_ids"].GetBool();
         rFileStream << "FIELD FieldData " << counter_element_data_value_variables + element_flags.size() + (write_ids ? 2 : 0) + counter_gauss_point_variables_in_elements << "\n";
         for (IndexType entry = 0; entry < element_data_value_variables.size(); ++entry) {
@@ -622,7 +645,7 @@ void VtkOutput::WriteConditionResultsToFile(const ModelPart& rModelPart, std::of
 
     if (GetEntityType(rModelPart) == EntityType::CONDITION) {
         // Write cells header
-        rFileStream << "CELL_DATA " << r_local_mesh.NumberOfConditions() << "\n";
+        rFileStream << "CELL_DATA " << DetermineVtkContainerSize(r_local_mesh.Conditions()) << "\n";
         const bool write_ids = mOutputSettings["write_ids"].GetBool();
         rFileStream << "FIELD FieldData " << counter_condition_results + condition_flags.size() + (write_ids ? 2 : 0) + counter_gauss_point_variables_in_elements << "\n";
         for (IndexType entry = 0; entry < condition_results.size(); ++entry) {
@@ -817,7 +840,7 @@ void VtkOutput::WriteScalarSolutionStepVariable(
     std::ofstream& rFileStream) const
 {
     rFileStream << rVariable.Name() << " 1 "
-                << rContainer.size() << "  float\n";
+                << DetermineVtkContainerSize(rContainer) << "  float\n";
 
     for (const auto& r_entity : rContainer) {
         const auto& r_result = r_entity.FastGetSolutionStepValue(rVariable);
@@ -835,14 +858,15 @@ void VtkOutput::WriteVectorSolutionStepVariable(
     const TVarType& rVariable,
     std::ofstream& rFileStream) const
 {
-    if (rContainer.size() == 0) {
+    const std::size_t container_size = DetermineVtkContainerSize(rContainer);
+    if (container_size == 0) {
         return;
     }
 
     const int res_size = static_cast<int>((rContainer.begin()->FastGetSolutionStepValue(rVariable)).size());
 
     rFileStream << rVariable.Name() << " " << res_size
-                << " " << rContainer.size() << "  float\n";
+                << " " << container_size << "  float\n";
 
     for (const auto& r_entity : rContainer) {
         const auto& r_result = r_entity.FastGetSolutionStepValue(rVariable);
@@ -862,9 +886,10 @@ void VtkOutput::WriteFlagContainerVariable(
     std::ofstream& rFileStream) const
 {
     rFileStream << rFlagName << " 1 "
-                << rContainer.size() << "  float\n";
+                << DetermineVtkContainerSize(rContainer) << "  float\n";
 
     for (const auto& r_entity : rContainer) {
+        if (SkippableEntity(r_entity)) continue;
         const float result = r_entity.IsDefined(Flag) ? float(r_entity.Is(Flag)) : -1.0;
         WriteScalarDataToFile(result, rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
@@ -881,9 +906,10 @@ void VtkOutput::WriteScalarContainerVariable(
     std::ofstream& rFileStream) const
 {
     rFileStream << rVariable.Name() << " 1 "
-                << rContainer.size() << "  float\n";
+                << DetermineVtkContainerSize(rContainer) << "  float\n";
 
     for (const auto& r_entity : rContainer) {
+        if (SkippableEntity(r_entity)) continue;
         const double result = r_entity.GetValue(rVariable);
         WriteScalarDataToFile((float)result, rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
@@ -912,10 +938,11 @@ void VtkOutput::WriteIntegrationScalarContainerVariable(
 
         // Write first line
         rFileStream << rVariable.Name() << " 1 "
-                    << rContainer.size() << "  float\n";
+                    << DetermineVtkContainerSize(rContainer) << "  float\n";
 
         double aux_value;
         for (auto& r_entity : rContainer) { // TODO: CalculateOnIntegrationPoints should be const methods
+            if (SkippableEntity(r_entity)) continue;
             aux_value = 0.0;
             std::vector<TVarType> aux_result(integration_points_number);
             r_entity.CalculateOnIntegrationPoints(rVariable, aux_result, r_process_info);
@@ -938,15 +965,17 @@ void VtkOutput::WriteVectorContainerVariable(
     const TVarType& rVariable,
     std::ofstream& rFileStream) const
 {
-    if (rContainer.size() == 0) {
+    const std::size_t container_size = DetermineVtkContainerSize(rContainer);
+    if (container_size == 0) {
         return;
     }
 
     const int res_size = static_cast<int>((rContainer.begin()->GetValue(rVariable)).size());
 
-    rFileStream << rVariable.Name() << " " << res_size << " " << rContainer.size() << "  float\n";
+    rFileStream << rVariable.Name() << " " << res_size << " " << container_size << "  float\n";
 
     for (const auto& r_entity : rContainer) {
+        if (SkippableEntity(r_entity)) continue;
         const auto& r_result = r_entity.GetValue(rVariable);
         WriteVectorDataToFile(r_result, rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
@@ -962,7 +991,8 @@ void VtkOutput::WriteIntegrationVectorContainerVariable(
     const Variable<TVarType>& rVariable,
     std::ofstream& rFileStream) const
 {
-    if (rContainer.size() == 0) {
+    const std::size_t container_size = DetermineVtkContainerSize(rContainer);
+    if (container_size == 0) {
         return;
     }
 
@@ -977,7 +1007,7 @@ void VtkOutput::WriteIntegrationVectorContainerVariable(
     }
     const int res_size = tmp_result[0].size();
 
-    rFileStream << rVariable.Name() << " " << res_size << " " << rContainer.size() << "  float\n";
+    rFileStream << rVariable.Name() << " " << res_size << " " << container_size << "  float\n";
 
     // Auxiliar values
     auto& r_this_geometry_begin = (rContainer.begin())->GetGeometry();
@@ -987,6 +1017,7 @@ void VtkOutput::WriteIntegrationVectorContainerVariable(
 
     TVarType aux_value;
     for (auto& r_entity : rContainer) { // TODO: CalculateOnIntegrationPoints should be const methods
+        if (SkippableEntity(r_entity)) continue;
         aux_value = ZeroVector(res_size);
         std::vector<TVarType> aux_result(integration_points_number);
         r_entity.CalculateOnIntegrationPoints(rVariable, aux_result, r_process_info);
@@ -1074,9 +1105,10 @@ void VtkOutput::WritePropertiesIdsToFile(
     std::ofstream& rFileStream) const
 {
     rFileStream << "PROPERTIES_ID" << " 1 "
-                << rContainer.size() << "  int\n";
+                << DetermineVtkContainerSize(rContainer) << "  int\n";
 
     for (const auto& r_entity : rContainer) {
+        if (SkippableEntity(r_entity)) continue;
         WriteScalarDataToFile((int)r_entity.GetProperties().Id(), rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
     }
@@ -1092,9 +1124,10 @@ void VtkOutput::WriteIdsToFile(
     std::ofstream& rFileStream) const
 {
     rFileStream << DataName << " 1 "
-                << rContainer.size() << "  int\n";
+                << DetermineVtkContainerSize(rContainer) << "  int\n";
 
     for (const auto& r_entity : rContainer) {
+        if (SkippableEntity(r_entity)) continue;
         WriteScalarDataToFile((int)r_entity.Id(), rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
     }
@@ -1146,6 +1179,59 @@ void VtkOutput::WriteModelPartWithoutNodesToFile(ModelPart& rModelPart, const st
 
     // Deletin auxiliar modek part
     r_model.DeleteModelPart("AUXILIAR_" + r_name_model_part);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<typename TEntityType>
+bool VtkOutput::SkippableEntity(const TEntityType& rEntity) const
+{
+    constexpr bool is_element = std::is_same_v<TEntityType, Element>;
+    constexpr bool is_condition = std::is_same_v<TEntityType, Condition>;
+    if constexpr (is_element || is_condition) {
+        const auto& r_geometry = rEntity.GetGeometry();
+        switch (r_geometry.GetGeometryType()) {
+            case GeometryData::KratosGeometryType::Kratos_Nurbs_Curve:
+                KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Nurbs_Curve" << std::endl;
+                return true;
+            case GeometryData::KratosGeometryType::Kratos_Nurbs_Surface:
+                KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Nurbs_Surface" << std::endl;
+                return true;
+            case GeometryData::KratosGeometryType::Kratos_Nurbs_Volume:
+                KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Nurbs_Volume" << std::endl;
+                return true;
+            case GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface:
+                KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Nurbs_Curve_On_Surface" << std::endl;
+                return true;
+            case GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume:
+                KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Surface_In_Nurbs_Volume" << std::endl;
+                return true;
+            case GeometryData::KratosGeometryType::Kratos_Brep_Curve:
+                KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Brep_Curve" << std::endl;
+                return true;
+            case GeometryData::KratosGeometryType::Kratos_Brep_Surface:
+                KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Brep_Surface" << std::endl;
+                return true;
+            case GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface:
+                KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Brep_Curve_On_Surface" << std::endl;
+                return true;
+            case GeometryData::KratosGeometryType::Kratos_Coupling_Geometry:
+                KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Coupling_Geometry" << std::endl;
+                return true;
+            case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry:
+                KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Quadrature_Point_Curve_On_Surface_Geometry" << std::endl;
+                return true;
+            case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry:
+                KRATOS_WARNING("VtkOutput") << "Skipping geometry type: Kratos_Quadrature_Point_Surface_In_Volume_Geometry" << std::endl;
+                return true;
+            default:
+                // For any other geometry type, do nothing and continue execution
+                break; 
+        }
+    }
+
+    return false;
 }
 
 } // namespace Kratos
