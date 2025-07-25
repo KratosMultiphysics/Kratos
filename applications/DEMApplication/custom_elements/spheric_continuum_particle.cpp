@@ -249,36 +249,12 @@ namespace Kratos {
 
         bond_contact_area = Globals::Pi * Rbond * Rbond;
 
-        /*
-        if (r_process_info[DO_ADJUST_BOND_CONTACT_AREA]) {
-            const double bond_contact_area_scale_factor = r_process_info[BOND_CONTACT_AREA_SCALE_FACTOR];
-            const double bond_contact_mean_area_old = r_process_info[BOND_CONTACT_MEAN_AREA_OLD];
-            const double bond_contact_mean_area_new = r_process_info[BOND_CONTACT_MEAN_AREA_NEW];
-            bond_contact_area = bond_contact_area_scale_factor * (bond_contact_area - bond_contact_mean_area_old) + bond_contact_mean_area_new;
-            
-            if (bond_contact_area < 0.0) {
-                bond_contact_area *= -1.0;
-            }
-
-            const double bond_contact_area_small_percentage = r_process_info[BOND_CONTACT_AREA_SMALL_PERCENTAGE];
-            const double bond_contact_area_small_minimum = r_process_info[BOND_CONTACT_AREA_SMALL_MINIMUM];
-            const double bond_contact_area_small_maximum = r_process_info[BOND_CONTACT_AREA_SMALL_MAXIMUM];
-
-            if ((static_cast<double>(rand()) / RAND_MAX) < bond_contact_area_small_percentage) {
-                bond_contact_area = static_cast<double>(rand()) / RAND_MAX * (bond_contact_area_small_maximum - bond_contact_area_small_minimum) + bond_contact_area_small_minimum;
-            }
-        }*/
-
-        //TODO: temporary code 
         bool adjust_bond_contact_area = r_process_info[ADJUST_BOND_CONTACT_AREA_OPTION];
         if (adjust_bond_contact_area) {
             
             const double bond_contact_area_lognormal_median = r_process_info[BOND_CONTACT_AREA_LOGNORMAL_MEDIAN];
             const double bond_contact_area_lognormal_std_dev = r_process_info[BOND_CONTACT_AREA_LOGNORMAL_STD_DEV];
             const double bond_contact_area_upper_bound = r_process_info[BOND_CONTACT_AREA_UPPER_BOUND]; // This is the upper bound for the bond contact area
-            const double bond_contact_area_small_percentage = r_process_info[BOND_CONTACT_AREA_SMALL_PERCENTAGE];
-            const double bond_contact_area_small_minimum = r_process_info[BOND_CONTACT_AREA_SMALL_MINIMUM];
-            const double bond_contact_area_small_maximum = r_process_info[BOND_CONTACT_AREA_SMALL_MAXIMUM];
 
             std::random_device rd;
             std::mt19937 gen(rd());
@@ -288,10 +264,6 @@ namespace Kratos {
                 bond_contact_area = lognorm(gen);
             } while (bond_contact_area > bond_contact_area_upper_bound);
 
-            double my_random_value = static_cast<double>(rand()) / RAND_MAX;
-            if (my_random_value < bond_contact_area_small_percentage) {
-                bond_contact_area = my_random_value * (bond_contact_area_small_maximum - bond_contact_area_small_minimum) + bond_contact_area_small_minimum;
-            } 
         }
     }
 

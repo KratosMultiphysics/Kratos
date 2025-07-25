@@ -227,9 +227,6 @@ class ExplicitStrategy():
             self.bond_contact_area_lognormal_median = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaLognormalMedian"].GetDouble()
             self.bond_contact_area_lognormal_std_dev = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaLognormalStdDev"].GetDouble()
             self.bond_contact_area_upper_bound = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaUpperBound"].GetDouble()
-            self.bond_contact_area_small_percentage = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaSmallPercentage"].GetDouble()
-            self.bond_contact_area_small_minimum = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaSmallMinimum"].GetDouble()
-            self.bond_contact_area_small_maximum = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaSmallMaximum"].GetDouble()
             if not "BondGeneratePercentage" in DEM_parameters["AdjustBondContactAreaSettings"].keys():
                 self.bond_generate_percentage = 1.0
             else:
@@ -359,9 +356,6 @@ class ExplicitStrategy():
             self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_LOGNORMAL_MEDIAN, self.bond_contact_area_lognormal_median)
             self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_LOGNORMAL_STD_DEV, self.bond_contact_area_lognormal_std_dev)
             self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_UPPER_BOUND, self.bond_contact_area_upper_bound)
-            self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_SMALL_PERCENTAGE, self.bond_contact_area_small_percentage)
-            self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_SMALL_MINIMUM, self.bond_contact_area_small_minimum)
-            self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_SMALL_MAXIMUM, self.bond_contact_area_small_maximum)
             self.spheres_model_part.ProcessInfo.SetValue(BOND_GENERATE_PERCENTAGE, self.bond_generate_percentage)
 
         # SEARCH-RELATED

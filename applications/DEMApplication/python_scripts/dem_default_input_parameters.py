@@ -44,9 +44,6 @@ def GetDefaultInputParameters():
                 "BondContactAreaLognormalMedian"   : 0.0,
                 "BondContactAreaLognormalStdDev"   : 1.0,
                 "BondContactAreaUpperBound"        : 0.0,
-                "BondContactAreaSmallPercentage"   : 0.1,
-                "BondContactAreaSmallMinimum"      : 0.0,
-                "BondContactAreaSmallMaximum"      : 1.0,
                 "BondGeneratePercentage"           : 1.0
             },
             "PotentialEnergyReferencePointX"   : 0.0,
