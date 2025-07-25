@@ -81,7 +81,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
 
     // We get the constitutive tensor
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-    CalculateElasticMatrix(r_constitutive_matrix, rValues);
+    this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
     // We check the current step and NL iteration
     const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
@@ -197,7 +197,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateTa
         // Calculates the Tangent Constitutive Tensor by perturbation (second order)
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 4);
     } else if (tangent_operator_estimation == TangentOperatorEstimation::InitialStiffness) {
-        CalculateElasticMatrix(rValues.GetConstitutiveMatrix(), rValues);
+        this->CalculateElasticMatrix(rValues.GetConstitutiveMatrix(), rValues);
     } else if (tangent_operator_estimation == TangentOperatorEstimation::OrthogonalSecant) {
         TangentOperatorCalculatorUtility::CalculateOrthogonalSecantTensor(rValues);
     }
@@ -305,7 +305,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
 
     // We get the constitutive tensor
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-    CalculateElasticMatrix(r_constitutive_matrix, rValues);
+    this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
     // Integrate Stress plasticity
     const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());

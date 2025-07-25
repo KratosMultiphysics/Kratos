@@ -89,7 +89,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
 
     // We get the constitutive tensor
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-    CalculateElasticMatrix(r_constitutive_matrix, rValues);
+    this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
     // We check the current step and NL iteration
     const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
@@ -205,7 +205,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateTa
         // Calculates the Tangent Constitutive Tensor by perturbation (second order)
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 4);
     } else if (tangent_operator_estimation == TangentOperatorEstimation::InitialStiffness) {
-        CalculateElasticMatrix(rValues.GetConstitutiveMatrix(), rValues);
+        this->CalculateElasticMatrix(rValues.GetConstitutiveMatrix(), rValues);
     } else if (tangent_operator_estimation == TangentOperatorEstimation::OrthogonalSecant) {
         TangentOperatorCalculatorUtility::CalculateOrthogonalSecantTensor(rValues);
     }
@@ -281,7 +281,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMat
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-    CalculateElasticMatrix(r_constitutive_matrix, rValues);
+    this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if ( r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {

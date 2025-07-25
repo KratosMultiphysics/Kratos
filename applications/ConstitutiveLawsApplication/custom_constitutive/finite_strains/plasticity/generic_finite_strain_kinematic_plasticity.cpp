@@ -99,6 +99,7 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
     const Matrix& rF = rValues.GetDeformationGradientF();
     const Matrix& r_B = prod(rF, trans(rF));
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+    this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
     AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(r_B, r_strain_vector);
 
@@ -111,14 +112,8 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
         if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
             r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             Vector& r_stress_vector = rValues.GetStressVector();
-            if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
-                noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
-                this->template AddInitialStressVectorContribution<Vector>(r_stress_vector);
-            } else {
-                noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
-                this->template AddInitialStressVectorContribution<Vector>(r_stress_vector);
-            }
+            noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
+            this->template AddInitialStressVectorContribution<Vector>(r_stress_vector);
         }
     } else { // We check for plasticity
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
@@ -136,7 +131,7 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
             Vector back_stress_vector  = this->GetBackStressVector();
             const Vector previous_stress_vector = this->GetPreviousStressVector();
 
-            BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
+            this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
             BoundedArrayType predictive_stress_vector, kin_hard_stress_vector;
             noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
 
@@ -232,9 +227,6 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
         ConstitutiveLaw::Parameters& rValues
         )
 {
-    // Auxiliary values
-    const Flags& r_constitutive_law_options = rValues.GetOptions();
-
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
 
@@ -255,7 +247,7 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
     Vector& r_back_stress_vector  = this->GetBackStressVector();
     const Vector previous_stress_vector = this->GetPreviousStressVector();
 
-    BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
+    this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
     BoundedArrayType predictive_stress_vector, kin_hard_stress_vector;
     noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - r_plastic_strain);
 
@@ -330,6 +322,8 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
         const Vector num = prod(rValues.GetConstitutiveMatrix(), rPlasticStrain);
         const double denom = inner_prod(rValues.GetStrainVector(), num);
         noalias(rValues.GetConstitutiveMatrix()) -= outer_prod(num, num) / denom;
+    }  else if (tangent_operator_estimation == TangentOperatorEstimation::InitialStiffness) {
+        this->CalculateElasticMatrix(rValues.GetConstitutiveMatrix(), rValues);
     }
 }
 
@@ -394,13 +388,13 @@ Vector& GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
         Flags& r_flags = rParameterValues.GetOptions();
 
         // Previous flags saved
-        const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
-        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+        const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
 
         // We compute the strain
         if (rThisVariable == STRAIN) {
@@ -432,9 +426,9 @@ Vector& GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
         rValue = rParameterValues.GetStrainVector();
 
         // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     } else if (rThisVariable == STRESSES ||
         rThisVariable == CAUCHY_STRESS_VECTOR ||
         rThisVariable == KIRCHHOFF_STRESS_VECTOR ||
