@@ -85,6 +85,8 @@ void SbmSolidCondition::InitializeMemberVariables()
         // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
         mPenalty = mBasisFunctionsOrder * mBasisFunctionsOrder * penalty / h;
     }
+
+    mBasisFunctionsOrder*=2;
     // Compute the normals
     mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
     mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
@@ -149,6 +151,8 @@ void SbmSolidCondition::InitializeSbmMemberVariables()
         closestNodeId = 0;
     }
     mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
+
+    this->SetValue(PROJECTION_NODE_COORDINATES, mpProjectionNode->Coordinates());
 
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();

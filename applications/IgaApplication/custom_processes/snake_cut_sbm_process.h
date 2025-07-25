@@ -52,6 +52,7 @@ public:
     typedef BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveType;
     
     using NurbsCurveGeometryType = NurbsCurveGeometry<2, PointerVector<Node>>;
+    typedef NurbsSurfaceGeometry<3, PointerVector<NodeType>> NurbsSurfaceType;
 
     ///@name Type Definitions
     ///@{
@@ -108,6 +109,45 @@ public:
 
         return default_parameters;
     }
+
+
+struct BinSearchParameters
+{
+    DynamicBins&                                   TestBins;        //  reference!
+    SizeType                                       NumberOfResults;
+    ModelPart::NodesContainerType::ContainerType   Results;
+    std::vector<double>                            ListOfDistances;
+    double                                         SearchRadius;
+
+    BinSearchParameters(
+        DynamicBins&                               bins,            // take by ref
+        SizeType                                   n_results,
+        ModelPart::NodesContainerType::ContainerType results,
+        std::vector<double>                        distances,
+        double                                     radius)
+        : TestBins(bins)
+        , NumberOfResults(n_results)
+        , Results(std::move(results))
+        , ListOfDistances(std::move(distances))
+        , SearchRadius(radius)
+    {}
+};
+
+
+struct IntegrationParameters
+{
+    SizeType  NumberOfShapeFunctionsDerivatives;
+    IntegrationInfo CurveIntegrationInfo;
+    const Vector&           KnotSpanSizes;          // <- now const
+    IntegrationParameters(
+        SizeType                    n_derivatives,
+        const IntegrationInfo&      info,
+        const Vector&               knot_spans)     // <- const here too
+        : NumberOfShapeFunctionsDerivatives(n_derivatives)
+        , CurveIntegrationInfo(info)
+        , KnotSpanSizes(knot_spans)
+    {}
+};
     
 private:
 
@@ -118,8 +158,6 @@ private:
 
     void CreateSbmExtendedGeometries();
 
-    void FindClosestTruePointToSurrogateVertex();
-
     /**
      * @brief 
      * 
@@ -128,9 +166,21 @@ private:
      * @param rSurrogateSubModelPart 
      */
     template <bool TIsInnerLoop>
-    void FindClosestTruePointToSurrogateVertex(
+    void CreateSbmExtendedGeometries(
         const ModelPart& rSkinSubModelPart,
         const ModelPart& rSurrogateSubModelPart);
+
+
+    void CreateCutAndSkinQuadraturePoints(
+        IntegrationParameters& rIntegrationParameters,
+        BinSearchParameters& rBinSearchParameters,
+        NurbsSurfaceType::Pointer& pNurbsSurface,
+        const CoordinatesArrayType& rSurrogateVertex1, 
+        const CoordinatesArrayType& rSurrogateVertex2, 
+        const GeometryType::Pointer& rSurrogateBrepMiddleGeometry,
+        const std::string& rSkinConditionName,
+        ModelPart& r_cut_sbm_sub_model_part,
+        const ModelPart& rSkinSubModelPart);
 
     void FindClosestTruePointToSurrogateVertexByNurbs();
 
@@ -147,7 +197,7 @@ private:
         typename GeometriesArrayType::ptr_iterator rGeometriesBegin,
         typename GeometriesArrayType::ptr_iterator rGeometriesEnd,
         ModelPart& rModelPart,
-        std::string& rConditionName,
+        const std::string& rConditionName,
         SizeType& rIdCounter,
         PropertiesPointerType pProperties,
         const Vector KnotSpanSizes,
@@ -158,7 +208,7 @@ private:
         typename GeometriesArrayType::ptr_iterator rGeometriesBegin,
         typename GeometriesArrayType::ptr_iterator rGeometriesEnd,
         ModelPart& rDestinationModelPart,
-        std::string& rElementName,
+        const std::string& rElementName,
         SizeType& rIdCounter,
         PropertiesPointerType pProperties,
         const std::vector<Geometry<Node>::Pointer> &pSurrogateReferenceGeometries) const;

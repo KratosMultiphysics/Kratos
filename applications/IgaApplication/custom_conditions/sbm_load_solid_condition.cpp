@@ -69,6 +69,8 @@ void SbmLoadSolidCondition::InitializeMemberVariables()
         mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
     }
 
+    mBasisFunctionsOrder *= 2;
+
     // Compute the normals
     mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
     mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
@@ -171,6 +173,8 @@ void SbmLoadSolidCondition::InitializeSbmMemberVariables()
             mTrueNormal = - mTrueNormal / MathUtils<double>::Norm(mTrueNormal) ;
         }
     }
+
+    this->SetValue(PROJECTION_NODE_COORDINATES, mpProjectionNode->Coordinates());
 
     // dot product n dot n_tilde
     mTrueDotSurrogateNormal = inner_prod(mNormalParameterSpace, mTrueNormal);
