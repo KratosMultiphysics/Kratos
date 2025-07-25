@@ -35,7 +35,6 @@ public:
     static Element::Pointer Create2D3NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
     static Element::Pointer Create2D3NElement();
-    static Element::Pointer Create2D3NElement(const Geo::ConstVariableRefs& rVariableRefs);
 
     static Element::Pointer Create2D6NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
@@ -44,7 +43,6 @@ public:
     static Element::Pointer Create2D6NDiffOrderElement(const PointerVector<Node>& rNodes,
                                                        const Properties::Pointer& rProperties);
     static Element::Pointer Create2D6NDiffOrderElement();
-    static Element::Pointer Create2D6NDiffOrderElement(const Geo::ConstVariableRefs& rVariableRefs);
 
     static Element::Pointer Create2D10NElement(const PointerVector<Node>& rNodes,
                                                const Properties::Pointer& rProperties);
