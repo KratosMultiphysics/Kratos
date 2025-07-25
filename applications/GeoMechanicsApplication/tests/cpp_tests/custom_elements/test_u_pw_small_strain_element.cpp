@@ -133,6 +133,24 @@ auto CreateUPwSmallStrainElementWithUPwDofs(Model& rModel, const Properties::Poi
     return CreateUPwSmallStrainElementWithUPwDofs<2, 3>(rProperties, p_geometry);
 }
 
+Matrix ExpectedLeftHandSize()
+{
+    Matrix result(9, 9);
+    // clang-format off
+    result <<= 5000000,       0, -5000000,        0,        0,         0,          0,          0,          0,
+               0,       2500000,  2500000, -2500000, -2500000,         0,          0,          0,          0,
+              -5000000, 2500000,  7500000, -2500000, -2500000,         0,          0,          0,          0,
+               0,      -2500000, -2500000,  7500000,  2500000, -5000000,           0,          0,          0,
+               0,      -2500000, -2500000,  2500000,  2500000,         0,          0,          0,          0,
+               0,             0,        0, -5000000,        0,  5000000,           0,          0,          0,
+               0,             0,        0,        0,        0,         0, -0.0004542,  0.0004542,          0,
+               0,             0,        0,        0,        0,         0,  0.0004542, -0.0009084,  0.0004542,
+               0,             0,        0,        0,        0,         0,          0,  0.0004542, -0.0004542;
+    // clang-format on
+
+    return result;
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -245,20 +263,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateLeftHandSid
     element->CalculateLeftHandSide(actual_left_hand_side, process_info);
 
     // Assert
-    Matrix expected_left_hand_side(9, 9);
-    // clang-format off
-    expected_left_hand_side <<= 5000000,       0, -5000000,        0,        0,         0,          0,          0,          0,
-                                0,       2500000,  2500000, -2500000, -2500000,         0,          0,          0,          0,
-                               -5000000, 2500000,  7500000, -2500000, -2500000,         0,          0,          0,          0,
-                                0,      -2500000, -2500000,  7500000,  2500000, -5000000,           0,          0,          0,
-                                0,      -2500000, -2500000,  2500000,  2500000,         0,          0,          0,          0,
-                                0,             0,        0, -5000000,        0,  5000000,           0,          0,          0,
-                                0,             0,        0,        0,        0,         0, -0.0004542,  0.0004542,          0,
-                                0,             0,        0,        0,        0,         0,  0.0004542, -0.0009084,  0.0004542,
-                                0,             0,        0,        0,        0,         0,          0,  0.0004542, -0.0004542;
-    // clang-format on
-
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance);
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, ExpectedLeftHandSize(), Defaults::relative_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesCorrectLHSAfterSaveAndLoad, KratosGeoMechanicsFastSuite)
@@ -287,20 +292,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesCorrectLHSAfterSaveAnd
     p_loaded_element->CalculateLeftHandSide(actual_left_hand_side, process_info);
 
     // Assert
-    Matrix expected_left_hand_side(9, 9);
-    // clang-format off
-    expected_left_hand_side <<= 5000000,       0, -5000000,        0,        0,         0,          0,          0,          0,
-                                0,       2500000,  2500000, -2500000, -2500000,         0,          0,          0,          0,
-                               -5000000, 2500000,  7500000, -2500000, -2500000,         0,          0,          0,          0,
-                                0,      -2500000, -2500000,  7500000,  2500000, -5000000,           0,          0,          0,
-                                0,      -2500000, -2500000,  2500000,  2500000,         0,          0,          0,          0,
-                                0,             0,        0, -5000000,        0,  5000000,           0,          0,          0,
-                                0,             0,        0,        0,        0,         0, -0.0004542,  0.0004542,          0,
-                                0,             0,        0,        0,        0,         0,  0.0004542, -0.0009084,  0.0004542,
-                                0,             0,        0,        0,        0,         0,          0,  0.0004542, -0.0004542;
-    // clang-format on
 
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance);
+
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, ExpectedLeftHandSize(), Defaults::relative_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesCorrectRHSAfterSaveAndLoad, KratosGeoMechanicsFastSuite)
@@ -424,8 +418,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndC
     const auto process_info = ProcessInfo{};
     element->Initialize(process_info);
 
-    // Act and Assert
+    // Act
     element->InitializeNonLinearIteration(process_info);
+
+    // Assert
     CheckValuesCalculatedOnIntegrationPoints(element, process_info);
 }
 
@@ -444,7 +440,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndC
     const auto process_info = ProcessInfo{};
     element->Initialize(process_info);
 
-    // Act and Assert
+    // Act
     element->InitializeNonLinearIteration(process_info);
 
     auto serializer = StreamSerializer{};
@@ -453,6 +449,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndC
     element = make_intrusive<UPwSmallStrainElement<2, 3>>();
     serializer.load("test_tag", element);
 
+    // Assert
     CheckValuesCalculatedOnIntegrationPoints(element, process_info);
 }
 

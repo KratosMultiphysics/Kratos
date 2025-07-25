@@ -81,7 +81,7 @@ auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& 
     nodes.push_back(make_intrusive<Node>(5, 0.5, -0.5, 0.0));
     nodes.push_back(make_intrusive<Node>(6, 0.5, 0.05, 0.0));
 
-    auto result = Kratos::Testing::ElementSetupUtilities::Create2D6NDiffOrderElement(nodes, rProperties);
+    auto result = Testing::ElementSetupUtilities::Create2D6NDiffOrderElement(nodes, rProperties);
     const auto solution_step_variables = Geo::ConstVariableDataRefs{
         std::cref(WATER_PRESSURE),     std::cref(DT_WATER_PRESSURE), std::cref(DISPLACEMENT),
         std::cref(VELOCITY),           std::cref(ACCELERATION),      std::cref(VOLUME_ACCELERATION),
@@ -89,7 +89,7 @@ auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& 
     const auto degrees_of_freedom =
         Geo::ConstVariableRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT_X),
                                std::cref(DISPLACEMENT_Y), std::cref(DISPLACEMENT_Z)};
-    Kratos::Testing::ElementSetupUtilities::AddVariablesToEntity(result, solution_step_variables, degrees_of_freedom);
+    Testing::ElementSetupUtilities::AddVariablesToEntity(result, solution_step_variables, degrees_of_freedom);
 
     for (auto& r_node : nodes) {
         r_node.SetBufferSize(2);
@@ -166,7 +166,6 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS_WithSaveAn
     // Act
     auto p_loaded_element = make_intrusive<SmallStrainUPwDiffOrderElement>();
     serializer.load("test_tag", p_loaded_element);
-    // Act
     auto actual_lhs_values = Matrix{};
     p_loaded_element->CalculateLeftHandSide(actual_lhs_values, dummy_process_info);
 
