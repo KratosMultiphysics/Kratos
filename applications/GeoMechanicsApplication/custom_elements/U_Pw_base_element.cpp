@@ -450,6 +450,7 @@ void UPwBaseElement::save(Serializer& rSerializer) const
     rSerializer.save("StateVariablesFinalized", mStateVariablesFinalized);
     rSerializer.save("StressVector", mStressVector);
     rSerializer.save("ThisIntegrationMethod", static_cast<int>(mThisIntegrationMethod));
+    rSerializer.save("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
 }
 
 void UPwBaseElement::load(Serializer& rSerializer)
@@ -463,6 +464,7 @@ void UPwBaseElement::load(Serializer& rSerializer)
     int integration_method;
     rSerializer.load("ThisIntegrationMethod", integration_method);
     mThisIntegrationMethod = static_cast<IntegrationMethod>(integration_method);
+    rSerializer.load("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
 }
 
 StressStatePolicy& UPwBaseElement::GetStressStatePolicy() const { return *mpStressStatePolicy; }
