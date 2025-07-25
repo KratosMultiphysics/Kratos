@@ -220,9 +220,6 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
         ConstitutiveLaw::Parameters& rValues
         )
 {
-    // Auxiliary values
-    const Flags& r_constitutive_law_options = rValues.GetOptions();
-
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
 
