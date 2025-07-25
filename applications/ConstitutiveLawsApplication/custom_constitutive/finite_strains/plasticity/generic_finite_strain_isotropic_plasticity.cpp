@@ -99,7 +99,7 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
     const Matrix& rF = rValues.GetDeformationGradientF();
     const Matrix& r_B = prod(rF, trans(rF));
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-    CalculateElasticMatrix(r_constitutive_matrix, rValues);
+    this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
     AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(r_B, r_strain_vector);
 
@@ -109,8 +109,8 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
 
     if (first_computation) { // First computation always pure elastic for elemements not providing the strain
         this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
-        if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
-            r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS) ||
+            r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             Vector& r_stress_vector = rValues.GetStressVector();
             noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
             this->template AddInitialStressVectorContribution<Vector>(r_stress_vector);
@@ -241,7 +241,7 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
     double& r_plastic_dissipation = this->GetPlasticDissipation();
     Vector& r_plastic_strain = this->GetPlasticStrain();
 
-    CalculateElasticMatrix(r_constitutive_matrix, rValues);
+    this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
     BoundedArrayType predictive_stress_vector;
     noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - r_plastic_strain);
 
@@ -312,8 +312,8 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
         const double denom = inner_prod(rValues.GetStrainVector(), num);
         noalias(rValues.GetConstitutiveMatrix()) -= outer_prod(num, num) / denom;
     } else if (tangent_operator_estimation == TangentOperatorEstimation::InitialStiffness) {
-        CalculateElasticMatrix(rValues.GetConstitutiveMatrix(), rValues);
-    }
+        this->CalculateElasticMatrix(rValues.GetConstitutiveMatrix(), rValues);
+    } 
 }
 
 /***********************************************************************************/
