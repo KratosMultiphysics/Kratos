@@ -86,13 +86,13 @@ namespace Kratos
 
     void BeamThickElement2D::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
-        ConstitutiveLaw::Parameters constitutive_law_parameters(
-            GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        // ConstitutiveLaw::Parameters constitutive_law_parameters(
+        //     GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
-            mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(
-                constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
-        }
+        // for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
+        //     mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(
+        //         constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
+        // }
     }
 
     ///@}
@@ -263,7 +263,7 @@ namespace Kratos
 
         rThisConstitutiveVariablesMembrane.ConstitutiveValue = E * cross_area / pow(rActualKinematic.dL, 4);
         rThisConstitutiveVariablesCurvature.ConstitutiveValue = E * cross_area * pow(thickness, 2)/ (12.0 * pow(rActualKinematic.dL, 4));
-        rThisConstitutiveVariablesShear.ConstitutiveValue = (E / (2 * (1 + nu)))* (5 / 6) * cross_area / (pow(rActualKinematic.dL, 4));
+        rThisConstitutiveVariablesShear.ConstitutiveValue = (E / (2.0 * (1 + nu)))* (5.0 / 6.0) * cross_area / (pow(rActualKinematic.dL, 2));
 
         // //Local Cartesian Forces and Moments
         rThisConstitutiveVariablesMembrane.StressValue = rThisConstitutiveVariablesMembrane.ConstitutiveValue * rThisConstitutiveVariablesMembrane.StrainValue;
@@ -322,41 +322,17 @@ namespace Kratos
         double d2 = (1/(rActualKinematic.dL * rActualKinematic.dL)) * rActualKinematic.a1[1] * rActualKinematic.a1[1] - 1.0;
         double d3 = 1.0 - (1/(rActualKinematic.dL * rActualKinematic.dL)) * rActualKinematic.a1[0] * rActualKinematic.a1[0];
 
-        double alpha1 = (H[0] * d1 + H[1] * d3)/rActualKinematic.dL; //A_2_1[0]
-        double alpha2 = (H[0] * d2 - H[1] * d1)/rActualKinematic.dL; //A_2_1[1]
-
-        double e1 = 3.0 * H[0] * rActualKinematic.a1[0];
-        double e2 = H[0] * rActualKinematic.a1[1] + 2.0 * H[1] * rActualKinematic.a1[0];
-        double e3 = H[1] * rActualKinematic.a1[0] + 2.0 * H[0] * rActualKinematic.a1[1];
-        double e4 = 3.0 * H[1] * rActualKinematic.a1[1];
-
-        double f1 = rActualKinematic.a1[0] * rActualKinematic.a1[0];
-        double f2 = rActualKinematic.a1[0] * rActualKinematic.a1[1];
-        double f3 = rActualKinematic.a1[1] * rActualKinematic.a1[1];
-
-        double g1 = -3.0 * f1 * (H[0] * rActualKinematic.a1[0] + H[1] * rActualKinematic.a1[1]);
-        double g2 = -3.0 * f2 * (H[0] * rActualKinematic.a1[0] + H[1] * rActualKinematic.a1[1]);
-        double g3 = -3.0 * f3 * (H[0] * rActualKinematic.a1[0] + H[1] * rActualKinematic.a1[1]);
+        double alpha1 = (H[0] * d1 + H[1] * d2)/rActualKinematic.dL; 
+        double alpha2 = (H[0] * d3 - H[1] * d1)/rActualKinematic.dL;
 
         for (IndexType i = 0; i < number_of_control_points; i++)
         {
             IndexType index = 3 * i;
-            
-            //first part + second part subpart 2 + second part subpart 4 (a,b1,b2,c)
-            rB[index] = (alpha1 - rActualKinematic.beta * alpha2 - rActualKinematic.beta_deriv * rActualKinematic.a2[1]) * r_DN_De(i, 0)
-                      + ((alpha2 * rActualKinematic.beta_deriv) * rActualKinematic.a1[0] * r_DN_De(i, 0)) 
-                      + (r_DDN_DDe(i, 0) * (rActualKinematic.a1[0] * rActualKinematic.beta + rActualKinematic.a1[1]) / rActualKinematic.dL)
-                      + (r_DN_De(i, 0) * (rActualKinematic.a1[0] * (e3 + e1 * rActualKinematic.beta) + rActualKinematic.a1[1] * (-e1 + e3 * rActualKinematic.beta)) / pow(rActualKinematic.dL, 3))
-                      + (r_DN_De(i, 0) * (rActualKinematic.a1[0] * (f2 + f1 * rActualKinematic.beta) + rActualKinematic.a1[1] * (-f1 + f2 * rActualKinematic.beta)) / pow(rActualKinematic.dL, 3))
-                      + (r_DN_De(i, 0) * (rActualKinematic.a1[0] * (g2 + g1 * rActualKinematic.beta) + rActualKinematic.a1[1] * (-g1 + g2 * rActualKinematic.beta)) / pow(rActualKinematic.dL, 3)); 
-            rB[index + 1] = (alpha2 + rActualKinematic.beta * alpha1 + rActualKinematic.beta_deriv * rActualKinematic.a2[0]) * r_DN_De(i, 0)
-                          + ((alpha1 * rActualKinematic.beta_deriv) * rActualKinematic.a1[1] * r_DN_De(i, 0))
-                          + (r_DDN_DDe(i, 0) * (rActualKinematic.a1[1] * rActualKinematic.beta - rActualKinematic.a1[0]) / rActualKinematic.dL)
-                          + (r_DN_De(i, 0) * (rActualKinematic.a1[0] * (e4 - e2 * rActualKinematic.beta) + rActualKinematic.a1[1] * (e2 + e4 * rActualKinematic.beta)) / pow(rActualKinematic.dL, 3))
-                          + (r_DN_De(i, 0) * (rActualKinematic.a1[0] * (f3 - f2 * rActualKinematic.beta) + rActualKinematic.a1[1] * (f2 + f3 * rActualKinematic.beta)) / pow(rActualKinematic.dL, 3))
-                          + (r_DN_De(i, 0) * (rActualKinematic.a1[0] * (g3 - g2 * rActualKinematic.beta) + rActualKinematic.a1[1] * (g2 + g3 * rActualKinematic.beta)) / pow(rActualKinematic.dL, 3));
-            rB[index + 2] = r_DN_De(i, 0) * rActualKinematic.a1[0] * rActualKinematic.a1[1] * 2.0 / rActualKinematic.dL 
-                          + r_N(IntegrationPointIndex, i) * (-rActualKinematic.a1[0] * alpha2 + rActualKinematic.a1[1] * alpha1); //second part subpart 1 + second part subpart 3
+
+            rB[index] = r_DN_De(i, 0) * (alpha1 - rActualKinematic.beta * alpha2 - rActualKinematic.beta_deriv * rActualKinematic.a2[1]); 
+            rB[index + 1] = r_DN_De(i, 0) * (alpha2 + rActualKinematic.beta * alpha1 + rActualKinematic.beta_deriv * rActualKinematic.a2[0]);  
+            rB[index + 2] = -r_DN_De(i, 0) * (rActualKinematic.a1[0]*rActualKinematic.a1[0] + rActualKinematic.a1[1]*rActualKinematic.a1[1]) / rActualKinematic.dL;
+                          + r_N(IntegrationPointIndex, i) * (-alpha2 + alpha1);
         }
 
         KRATOS_CATCH("")
@@ -377,25 +353,13 @@ namespace Kratos
             rB.resize(mat_size);
         noalias(rB) = ZeroVector(mat_size);
 
-        array_1d<double, 3> H = ZeroVector(3);
-        CalculateHessian(H, GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod()));
-
-        // compute coeficients needed 
-        double d1 = (1/(rActualKinematic.dL * rActualKinematic.dL)) * rActualKinematic.a1[0] * rActualKinematic.a1[1];
-        double d2 = (1/(rActualKinematic.dL * rActualKinematic.dL)) * rActualKinematic.a1[1] * rActualKinematic.a1[1] - 1.0;
-        double d3 = 1.0 - (1/(rActualKinematic.dL * rActualKinematic.dL)) * rActualKinematic.a1[0] * rActualKinematic.a1[0];
-
-        double alpha1 = (H[0] * d1 + H[1] * d3)/rActualKinematic.dL;
-        double alpha2 = (H[0] * d2 - H[1] * d1)/rActualKinematic.dL;
-
         for (IndexType i = 0; i < number_of_control_points; i++)
         {
             IndexType index = 3 * i;
             
-            rB[index] = (r_DN_De(i, 0) * rActualKinematic.a2[0]) + ((-alpha1 + alpha2 * rActualKinematic.beta) * rActualKinematic.a1[0] * r_DN_De(i, 0));
-                        // first part + second part sub part 2
-            rB[index + 1] = (r_DN_De(i, 0) * rActualKinematic.a2[1]) + ((-alpha1 - alpha2 * rActualKinematic.beta) * rActualKinematic.a1[1] * r_DN_De(i, 0));
-            rB[index + 2] = r_N(IntegrationPointIndex, i) * rActualKinematic.a1[0] * rActualKinematic.a1[1] * 2.0 / rActualKinematic.dL; //second part sub part 1
+            rB[index] = (r_DN_De(i, 0) * rActualKinematic.a2[0]);
+            rB[index + 1] = (r_DN_De(i, 0) * rActualKinematic.a2[1]);
+            rB[index + 2] = -r_N(IntegrationPointIndex, i) * (rActualKinematic.a1[0]*rActualKinematic.a1[0] + rActualKinematic.a1[1]*rActualKinematic.a1[1]) / rActualKinematic.dL;
         }
     }
 
