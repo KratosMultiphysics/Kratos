@@ -288,7 +288,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Serialization, Krato
     const auto calculated_traction_vector = parameters.GetStressVector();
 
     const auto scoped_registration_law = ScopedSerializerRegistration{
-        "InterfaceCoulombWithTensionCutOff"s, InterfaceCoulombWithTensionCutOff{}};
+        std::make_pair("InterfaceCoulombWithTensionCutOff"s, InterfaceCoulombWithTensionCutOff{})};
     auto serializer = StreamSerializer{};
 
     // Act

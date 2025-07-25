@@ -27,7 +27,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawDimensionPlaneStrain_CanBeSavedAndLoade
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto scoped_registration = ScopedSerializerRegistration{"PlaneStrain"s, PlaneStrain{}};
+    const auto scoped_registration =
+        ScopedSerializerRegistration{std::make_pair("PlaneStrain"s, PlaneStrain{})};
     const auto p_dimension = std::unique_ptr<ConstitutiveLawDimension>{std::make_unique<PlaneStrain>()};
     auto serializer = StreamSerializer{};
 
@@ -45,7 +46,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawDimensionThreeDimensional_CanBeSavedAnd
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto scoped_registration = ScopedSerializerRegistration{"ThreeDimensional"s, ThreeDimensional{}};
+    const auto scoped_registration =
+        ScopedSerializerRegistration{std::make_pair("ThreeDimensional"s, ThreeDimensional{})};
     const auto p_dimension =
         std::unique_ptr<ConstitutiveLawDimension>{std::make_unique<ThreeDimensional>()};
     auto serializer = StreamSerializer{};
