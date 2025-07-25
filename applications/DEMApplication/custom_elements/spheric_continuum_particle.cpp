@@ -261,7 +261,7 @@ namespace Kratos {
 
             std::lognormal_distribution<> lognorm(bond_contact_area_lognormal_median, bond_contact_area_lognormal_std_dev);
             do {
-                bond_contact_area = lognorm(gen);
+                bond_contact_area = lognorm(gen) * 1e-12; // Convert to m^2
             } while (bond_contact_area > bond_contact_area_upper_bound);
 
         }
