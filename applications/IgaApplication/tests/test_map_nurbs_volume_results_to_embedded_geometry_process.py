@@ -126,7 +126,6 @@ class TestMapNurbsVolumeResultsToEmbeddedGeometryProcess(KratosUnittest.TestCase
         self._CheckNodalResults(current_model)
 
         # #Create Reference solution
-        # from KratosMultiphysics.json_output_process import JsonOutputProcess
         # out_parameters = KratosMultiphysics.Parameters("""
         # {
         #     "output_variables"     : ["DISPLACEMENT", "TEMPERATURE"],
@@ -136,7 +135,7 @@ class TestMapNurbsVolumeResultsToEmbeddedGeometryProcess(KratosUnittest.TestCase
         # }
         # """)
 
-        # out = JsonOutputProcess(current_model, out_parameters)
+        # out = KratosMultiphysics.JsonOutputProcess(current_model, out_parameters)
         # out.ExecuteInitialize()
         # out.ExecuteBeforeSolutionLoop()
         # out.ExecuteFinalizeSolutionStep()
