@@ -280,12 +280,10 @@ namespace Kratos {
             const double bond_contact_area_small_minimum = r_process_info[BOND_CONTACT_AREA_SMALL_MINIMUM];
             const double bond_contact_area_small_maximum = r_process_info[BOND_CONTACT_AREA_SMALL_MAXIMUM];
 
-            double mu = std::log(bond_contact_area_lognormal_median);
-
             std::random_device rd;
             std::mt19937 gen(rd());
 
-            std::lognormal_distribution<> lognorm(mu, bond_contact_area_lognormal_std_dev);
+            std::lognormal_distribution<> lognorm(bond_contact_area_lognormal_median, bond_contact_area_lognormal_std_dev);
             do {
                 bond_contact_area = lognorm(gen);
             } while (bond_contact_area > bond_contact_area_upper_bound);
