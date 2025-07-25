@@ -9,7 +9,7 @@
           "Variables": {
               "IGNORE_UNDRAINED"         :  true,
               "K0_MAIN_DIRECTION"        :  1,
-              "YOUNG_MODULUS"            :  14.0E6,
+              "YOUNG_MODULUS"            :  30.0E6,
               "POISSON_RATIO"            :  0.3,
               "DENSITY_SOLID"            :  2038.73598,
               "DENSITY_WATER"            :  0.0,
@@ -22,7 +22,7 @@
               "DYNAMIC_VISCOSITY"        :  8.90e-7,
               "INDEX_OF_UMAT_PHI_PARAMETER": 4,
      	      "INDEX_OF_UMAT_C_PARAMETER":   3,
-              "UMAT_PARAMETERS"          :  [ 14.0E6,
+              "UMAT_PARAMETERS"          :  [ 30.0E6,
                                               0.3,
                                               10000.0,
                                               35.0,
