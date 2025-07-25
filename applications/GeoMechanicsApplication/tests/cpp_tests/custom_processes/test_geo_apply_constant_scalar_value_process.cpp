@@ -80,6 +80,26 @@ KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_FinalizeDoesNothing
     }))
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_Throws_WhenTryingToFixIntVariable,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model      current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main", 2);
+    r_model_part.AddNodalSolutionStepVariable(TIME_STEPS);
+
+    Parameters parameters(R"(
+      {
+          "model_part_name" : "Main",
+          "variable_name"   : "TIME_STEPS",
+          "is_fixed"        : true,
+          "value"           : 1
+      }  )");
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeoApplyConstantScalarValueProcess process(r_model_part, parameters),
+        "It is not possible to fix the variable 'TIME_STEPS' which is not of type Variable<double>")
+}
+
 KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_ThrowsWhenNodalVariableNotInModelPart,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -99,6 +119,44 @@ KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_ThrowsWhenNodalVari
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         GeoApplyConstantScalarValueProcess process(r_model_part, parameters),
         "Trying to fix a variable that is not in the rModelPart - variable name is DISPLACEMENT_X")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_ThrowsWhenVariableNameIsMissing,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model                        current_model;
+    const Geo::ConstVariableRefs nodal_variables = {};
+    ModelPart&                   r_model_part =
+        ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(current_model, nodal_variables);
+
+    Parameters parameters_without_variable_name(R"(
+      {
+          "model_part_name" : "Main",
+          "is_fixed"        : true,
+          "value"           : 1.0
+      }  )");
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeoApplyConstantScalarValueProcess process(r_model_part, parameters_without_variable_name), "Missing 'variable_name' parameter in the parameters of 'GeoApplyConstantScalarValueProcess'");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_ThrowsWhenValueIsMissing, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model                        current_model;
+    const Geo::ConstVariableRefs nodal_variables = {};
+    ModelPart&                   r_model_part =
+        ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(current_model, nodal_variables);
+
+    Parameters parameters_without_value(R"(
+      {
+          "model_part_name" : "Main",
+          "variable_name"   : "DISPLACEMENT_X",
+          "is_fixed"        : true
+      }  )");
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeoApplyConstantScalarValueProcess process(r_model_part, parameters_without_value),
+        "Missing 'value' parameter in the parameters of 'GeoApplyConstantScalarValueProcess'");
 }
 
 } // namespace Kratos::Testing

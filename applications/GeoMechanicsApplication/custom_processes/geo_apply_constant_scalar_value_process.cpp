@@ -20,17 +20,18 @@ GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart
     : mrModelPart(rModelPart)
 {
     KRATOS_ERROR_IF_NOT(ThisParameters.Has("value"))
-        << "Missing 'value' parameter in ThisParameters" << std::endl;
+        << "Missing 'value' parameter in the parameters of '"
+        << GeoApplyConstantScalarValueProcess::Info() << "'" << std::endl;
     KRATOS_ERROR_IF_NOT(ThisParameters.Has("variable_name"))
-        << "Missing 'variable_name' parameter in ThisParameters" << std::endl;
+        << "Missing 'variable_name' parameter in the parameters of '"
+        << GeoApplyConstantScalarValueProcess::Info() << "'" << std::endl;
 
     mVariableName = ThisParameters["variable_name"].GetString();
     mIsFixed      = ThisParameters.Has("is_fixed") ? ThisParameters["is_fixed"].GetBool() : false;
 
-    KRATOS_ERROR_IF(!KratosComponents<Variable<double>>::Has(mVariableName) && mIsFixed)
-        << "It is not possible to fix a variable which is not of type Variable<double> with the "
-           "name '"
-        << mVariableName << "'.\n";
+    KRATOS_ERROR_IF(mIsFixed && !KratosComponents<Variable<double>>::Has(mVariableName))
+        << "It is not possible to fix the variable '" << mVariableName
+        << "' which is not of type Variable<double>.\n";
 
     KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents<VariableData>::Get(mVariableName)))
         << "Trying to fix a variable that is not in the rModelPart - variable name is "
