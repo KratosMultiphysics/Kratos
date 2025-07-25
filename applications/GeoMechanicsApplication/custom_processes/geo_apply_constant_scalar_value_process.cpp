@@ -11,12 +11,18 @@
 //
 
 #include "geo_apply_constant_scalar_value_process.h"
+#include "containers/variable.h"
+#include "containers/variable_data.h"
+#include "includes/kratos_components.h"
+#include "includes/kratos_parameters.h"
+#include "includes/model_part.h"
 #include "utilities/variable_utils.h"
 
 namespace Kratos
 {
 
-GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, Parameters ThisParameters)
+GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart& rModelPart,
+                                                                       const Parameters& ThisParameters)
     : mrModelPart(rModelPart)
 {
     KRATOS_ERROR_IF_NOT(ThisParameters.Has("value"))

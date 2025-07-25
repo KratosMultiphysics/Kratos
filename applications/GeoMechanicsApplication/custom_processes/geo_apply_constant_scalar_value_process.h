@@ -12,11 +12,13 @@
 
 #pragma once
 
-#include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
 namespace Kratos
 {
+
+class ModelPart;
+class Parameters;
 
 ///@name Kratos Classes
 ///@{
@@ -34,7 +36,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoApplyConstantScalarValueProcess :
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GeoApplyConstantScalarValueProcess);
 
-    GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, Parameters ThisParameters);
+    GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, const Parameters& ThisParameters);
     ~GeoApplyConstantScalarValueProcess() override = default;
 
     void ExecuteInitialize() override;
