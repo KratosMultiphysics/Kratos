@@ -21,7 +21,6 @@
 #include "includes/constitutive_law.h"
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/serializer.h"
 #include "utilities/math_utils.h"
 
 // Application includes

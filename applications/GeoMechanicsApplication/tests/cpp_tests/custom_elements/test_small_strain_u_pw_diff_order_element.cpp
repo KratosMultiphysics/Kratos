@@ -130,7 +130,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateShearCapacity,
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto  p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreateProperties());
+    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreateProperties());
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 
@@ -152,7 +152,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS_WithSaveAn
         std::make_pair("PlaneStrainStressState"s, PlaneStrainStressState{}));
 
     // Arrange
-    auto  p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreateProperties());
+    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreateProperties());
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 
