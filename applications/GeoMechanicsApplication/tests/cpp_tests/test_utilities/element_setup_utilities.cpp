@@ -207,12 +207,4 @@ Condition::Pointer ElementSetupUtilities::Create2D3NLineCondition()
                                    std::make_shared<Properties>(0));
 }
 
-Condition::Pointer ElementSetupUtilities::Create2D3NLineCondition(const Geo::ConstVariableDataRefs& rSolutionStepVariables,
-                                                                  const Geo::ConstVariableRefs& rDegreesOfFreedom)
-{
-    auto result = Create2D3NLineCondition();
-    AddVariablesToEntity(result, rSolutionStepVariables, rDegreesOfFreedom);
-    return result;
-}
-
 } // namespace Kratos::Testing

@@ -61,8 +61,6 @@ public:
     static Condition::Pointer Create2D3NLineCondition(const PointerVector<Node>& rNodes,
                                                       const Properties::Pointer& rProperties);
     static Condition::Pointer Create2D3NLineCondition();
-    static Condition::Pointer Create2D3NLineCondition(const Geo::ConstVariableDataRefs& rSolutionStepVariables,
-                                                      const Geo::ConstVariableRefs& rDegreesOfFreedom = {});
 
     template <class EntityPointerType>
     static void AddVariablesToEntity(EntityPointerType& result,
