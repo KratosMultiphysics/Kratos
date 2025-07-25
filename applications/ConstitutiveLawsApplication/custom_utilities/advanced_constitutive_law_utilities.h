@@ -546,7 +546,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      * @brief This method computes the P matrix defined in Souza et al. 
      * "computational Methods for plasticity: Theory and applications" (2008), pg 373
      */
-    static Matrix CalculatePOperator();
+    static BoundedMatrix<double, 3, 3> CalculatePOperator();
 
 }; // class AdvancedConstitutiveLawUtilities
 } // namespace Kratos
