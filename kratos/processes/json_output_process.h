@@ -103,6 +103,20 @@ public:
     ///@{
 
     /**
+     * @brief This method creates an pointer of the process
+     * @details We consider as input a Model and a set of Parameters for the sake of generality
+     * @param rModel The model to be consider
+     * @param ThisParameters The configuration parameters
+     */
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters
+        ) override
+    {
+        return Kratos::make_shared<JsonOutputProcess>(rModel, ThisParameters);
+    }
+
+    /**
      * @brief This method is executed at the beginning to initialize the process
      */
     void ExecuteInitialize() override;
