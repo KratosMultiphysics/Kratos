@@ -369,14 +369,20 @@ void MPMUpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, con
 
     // Compute cartesian derivatives [dN/dx_n+1]
     const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
-    rVariables.DN_DX = prod(r_DN_De, Invj); //overwrites DX now is the current position dx
+    
+    //DX refers to the current undeformed background grid element. This derivative is needed for the incremental deformation gradient
+    rVariables.DN_DX = prod(r_DN_De, InvJ); 
 
     const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
         ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
         : false;
 
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
+    
+    // calculate incremental deformation gradient
     this->CalculateDeformationGradient(rVariables.DN_DX, rVariables.F, rVariables.CurrentDisp, is_axisymmetric);
+
+    rVariables.DN_DX = prod(r_DN_De, Invj); //overwrites DX now is the current position with displacements
 
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
@@ -738,14 +744,14 @@ void MPMUpdatedLagrangian::CalculateDeformationGradient(const Matrix& rDN_DX, Ma
     Deformation Gradient F [(dx_n+1 - dx_n)/dx_n] is to be updated in constitutive law parameter as total deformation gradient.
     The increment of total deformation gradient can be evaluated in 2 ways, which are:
     1. By: noalias( rVariables.F ) = prod( jacobian, InvJ);
-    2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee
+    2. By means of the gradient of nodal displacement: 
 
     (NOTICE: Here, we are using method no. 2)*/
 
-    // METHOD 1: Update Deformation gradient: F [dx_n+1/dx_n] = [dx_n+1/d£] [d£/dx_n]
+    // METHOD 1: Update incremental deformation gradient: F [dx_n+1/dx_n] = [dx_n+1/d£] [d£/dx_n]
     // noalias( rVariables.F ) = prod( jacobian, InvJ);
 
-    // METHOD 2: Update Deformation gradient: F_ij = δ_ij + u_i,j
+    // METHOD 2: Update  incremental deformation gradient: F_ij = δ_ij + u_i,j
 
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         Matrix I = IdentityMatrix(dimension);
