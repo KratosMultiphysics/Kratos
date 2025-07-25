@@ -67,7 +67,7 @@ public:
     template <class EntityPointerType>
     static void AddVariablesToEntity(EntityPointerType& result,
                                      const Kratos::Geo::ConstVariableDataRefs& rSolutionStepVariables,
-                                     const Kratos::Geo::ConstVariableRefs& rDegreesOfFreedom={})
+                                     const Kratos::Geo::ConstVariableRefs& rDegreesOfFreedom = {})
     {
         auto p_variable_list = make_intrusive<VariablesList>();
         for (const auto& r_variable_ref : rSolutionStepVariables) {
