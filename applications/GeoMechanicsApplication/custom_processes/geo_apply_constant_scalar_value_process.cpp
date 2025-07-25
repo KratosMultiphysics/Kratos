@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Richard Faasse
 //
 
 #include "geo_apply_constant_scalar_value_process.h"
