@@ -30,21 +30,6 @@ namespace
 using namespace Kratos;
 using namespace std::string_literals;
 
-ModelPart& CreateModelPartWithUPwSolutionStepVariables(Model& rModel)
-{
-    auto& r_result = rModel.CreateModelPart("Main");
-    r_result.SetBufferSize(2);
-    r_result.AddNodalSolutionStepVariable(DISPLACEMENT);
-    r_result.AddNodalSolutionStepVariable(VELOCITY);
-    r_result.AddNodalSolutionStepVariable(ACCELERATION);
-    r_result.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    r_result.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
-    r_result.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
-    r_result.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-
-    return r_result;
-}
-
 std::shared_ptr<Properties> CreateProperties()
 {
     const auto p_properties = std::make_shared<Properties>();
@@ -86,36 +71,28 @@ void SetSolutionStepValuesForGeneralCheck(const Element::Pointer& rElement)
     rElement->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.015, 0.0};
 }
 
-Element::Pointer CreateSmallStrainUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& rProperties,
-                                                                 const Geometry<Node>::Pointer& rGeometry)
+auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& rProperties)
 {
-    auto p_result = make_intrusive<SmallStrainUPwDiffOrderElement>(
-        1, rGeometry, rProperties, std::make_unique<PlaneStrainStressState>());
-    for (auto& r_node : p_result->GetGeometry()) {
-        r_node.AddDof(DISPLACEMENT_X);
-        r_node.AddDof(DISPLACEMENT_Y);
-        r_node.AddDof(VELOCITY_X);
-        r_node.AddDof(VELOCITY_Y);
-        r_node.AddDof(WATER_PRESSURE);
-        r_node.AddDof(DT_WATER_PRESSURE);
-    }
-
-    return p_result;
-}
-
-auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(Model& rModel, const Properties::Pointer& rProperties)
-{
-    auto& r_model_part = CreateModelPartWithUPwSolutionStepVariables(rModel);
-
     PointerVector<Node> nodes;
-    nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(2, 0.0, -1.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(4, 0.0, -0.5, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(5, 0.5, -0.5, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(6, 0.5, 0.05, 0.0));
-    const auto p_geometry = std::make_shared<Triangle2D6<Node>>(nodes);
-    return CreateSmallStrainUPwDiffOrderElementWithUPwDofs(rProperties, p_geometry);
+    nodes.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(2, 0.0, -1.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(3, 1.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(4, 0.0, -0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(5, 0.5, -0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(6, 0.5, 0.05, 0.0));
+
+    auto result = Kratos::Testing::ElementSetupUtilities::Create2D6NDiffOrderElement(nodes, rProperties);
+    Kratos::Testing::ElementSetupUtilities::AddVariablesToEntity(
+        result,
+        {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(DISPLACEMENT), std::cref(VELOCITY),
+         std::cref(ACCELERATION), std::cref(VOLUME_ACCELERATION), std::cref(HYDRAULIC_DISCHARGE)},
+        {std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y),
+         std::cref(DISPLACEMENT_Z)});
+
+    for (auto& r_node : nodes) {
+        r_node.SetBufferSize(2);
+    }
+    return result;
 }
 
 } // namespace
@@ -153,8 +130,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateShearCapacity,
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    Model model;
-    auto  p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(model, CreateProperties());
+    auto  p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreateProperties());
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 
@@ -176,8 +152,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS_WithSaveAn
         std::make_pair("PlaneStrainStressState"s, PlaneStrainStressState{}));
 
     // Arrange
-    Model model;
-    auto  p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(model, CreateProperties());
+    auto  p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreateProperties());
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 

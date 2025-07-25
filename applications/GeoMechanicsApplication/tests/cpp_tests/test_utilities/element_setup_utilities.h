@@ -63,6 +63,24 @@ public:
     static Condition::Pointer Create2D3NLineCondition();
     static Condition::Pointer Create2D3NLineCondition(const Geo::ConstVariableDataRefs& rSolutionStepVariables,
                                                       const Geo::ConstVariableRefs& rDegreesOfFreedom = {});
+
+    template <class EntityPointerType>
+    static void AddVariablesToEntity(EntityPointerType& result,
+                                     const Kratos::Geo::ConstVariableDataRefs& rSolutionStepVariables,
+                                     const Kratos::Geo::ConstVariableRefs& rDegreesOfFreedom={})
+    {
+        auto p_variable_list = make_intrusive<VariablesList>();
+        for (const auto& r_variable_ref : rSolutionStepVariables) {
+            p_variable_list->Add(r_variable_ref);
+        }
+
+        for (auto& r_node : result->GetGeometry()) {
+            r_node.SetSolutionStepVariablesList(p_variable_list);
+            for (const auto& r_degree_of_freedom : rDegreesOfFreedom) {
+                r_node.AddDof(r_degree_of_freedom.get());
+            }
+        }
+    }
 };
 
 } // namespace Kratos::Testing
