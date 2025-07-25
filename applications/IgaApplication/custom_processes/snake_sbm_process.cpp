@@ -764,13 +764,18 @@ void SnakeSbmProcess::MarkKnotSpansAvailable(
                 // Create 49 "fake" gauss_points to check if the majority are inside or outside
                 const int num_fake_gauss_points = 7;
                 int number_of_inside_gaussian_points = 0;
-                for (IndexType i_GPx = 0; i_GPx < num_fake_gauss_points+1; i_GPx++){
-                    double x_coord = j*rKnotStepUV[0] + rKnotStepUV[0]/(num_fake_gauss_points)*(i_GPx) + rStartingPosition[0];
+                const double tollerance = rKnotStepUV[0]/1e8; // Tolerance to avoid numerical issues
+                for (IndexType i_GPx = 0; i_GPx < num_fake_gauss_points; i_GPx++){
+                    double x_coord = (j*rKnotStepUV[0]+tollerance) +
+                                     (rKnotStepUV[0]-2*tollerance)/(num_fake_gauss_points-1)*(i_GPx) 
+                                     + rStartingPosition[0];
 
                     // NOTE:: The v-knot spans are upside down in the matrix!!
-                    for (IndexType i_GPy = 0; i_GPy < num_fake_gauss_points+1; i_GPy++) 
+                    for (IndexType i_GPy = 0; i_GPy < num_fake_gauss_points; i_GPy++) 
                     {
-                        double y_coord = i*rKnotStepUV[1] + rKnotStepUV[1]/(num_fake_gauss_points)*(i_GPy) + rStartingPosition[1];
+                        double y_coord = (i*rKnotStepUV[1]+tollerance) + 
+                                         (rKnotStepUV[1]-2*tollerance)/(num_fake_gauss_points-1)*(i_GPy) 
+                                        + rStartingPosition[1];
                         Point gauss_point = Point(x_coord, y_coord, 0);  // GAUSSIAN POINT
                         if (IsPointInsideSkinBoundary(gauss_point, rPointsBin, rSkinModelPart)) {
                             // Sum over the number of num_fake_gauss_points per knot span
@@ -781,7 +786,7 @@ void SnakeSbmProcess::MarkKnotSpansAvailable(
                 }
             
                 // Mark the knot span as available or not depending on the number of Gauss Points Inside/Outside
-                if (number_of_inside_gaussian_points < Lambda*(num_fake_gauss_points+1)*(num_fake_gauss_points+1)) {
+                if (number_of_inside_gaussian_points < Lambda*num_fake_gauss_points*num_fake_gauss_points) {
                     rKnotSpansAvailable[IdMatrix][i][j] = -1; // Cut knot spans that have been checked
                 }
                 else{

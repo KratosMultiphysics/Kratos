@@ -213,14 +213,14 @@ class TestModelersSbm(KratosUnittest.TestCase):
         # # Check if all needed node are within the model parts
         self.assertEqual(support_model_part_inner.NumberOfNodes(), 990)
         self.assertEqual(support_model_part_inner.NumberOfConditions(), 110)
-        self.assertEqual(support_model_part_outer.NumberOfNodes(), 2160)
-        self.assertEqual(support_model_part_outer.NumberOfConditions(), 240)
-        self.assertEqual(computational_model_part.NumberOfNodes(), 7290)
+        self.assertEqual(support_model_part_outer.NumberOfNodes(), 2250)
+        self.assertEqual(support_model_part_outer.NumberOfConditions(), 250)
+        self.assertEqual(computational_model_part.NumberOfNodes(), 7371)
         self.assertEqual(computational_model_part.NumberOfConditions(), 0)
-        self.assertEqual(computational_model_part.NumberOfElements(), 810)
+        self.assertEqual(computational_model_part.NumberOfElements(), 819)
         self.assertEqual(support_model_part_inner.GetConditions()[323].Info(), "\"SbmLaplacianConditionDirichlet\" #323")
         self.assertEqual(support_model_part_inner.GetConditions()[411].Info(), "\"SbmLaplacianConditionDirichlet\" #411")
-        self.assertEqual(support_model_part_outer.GetConditions()[71].Info(), "\"SbmLaplacianConditionNeumann\" #71")
+        self.assertEqual(support_model_part_outer.GetConditions()[73].Info(), "\"SbmLaplacianConditionNeumann\" #73")
         self.assertEqual(support_model_part_outer.GetConditions()[301].Info(), "\"SbmLaplacianConditionNeumann\" #301")
         self.assertEqual(computational_model_part.GetElements()[13].Info(), "LaplacianIgaElement #13")
         self.assertEqual(computational_model_part.GetElements()[40].Info(), "LaplacianIgaElement #40")
@@ -632,7 +632,7 @@ class TestModelersSbm(KratosUnittest.TestCase):
 
         expected_nodes_outer = [
             [ 0.4  ,  0.6  ,  0.0 ],
-            [ 3.400000000000001  ,  0.6  ,  0.0 ],
+            [ 3.600000000000001  ,  0.6  ,  0.0 ],
             [ 0.4  ,  1.2  ,  0.0 ],
             [ 3.400000000000001  ,  1.2  ,  0.0 ],
             [ 0.6000000000000001  ,  1.7999999999999998  ,  0.0 ],
@@ -703,7 +703,7 @@ class TestModelersSbm(KratosUnittest.TestCase):
             i += 1
 
         # test the creation of the breps
-        self.assertEqual(current_model["IgaModelPart"].NumberOfGeometries(), 71)
+        self.assertEqual(current_model["IgaModelPart"].NumberOfGeometries(), 73)
         self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().X, 2.0)
         self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().Y, 3.0)
         self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().Z, 0.0)
@@ -794,7 +794,7 @@ class TestModelersSbm(KratosUnittest.TestCase):
         # # Check if all needed node are within the model parts
         self.assertEqual(support_model_part.NumberOfNodes(), 0)
         self.assertEqual(support_model_part.NumberOfConditions(), 48)
-        self.assertEqual(computational_model_part.NumberOfNodes(), 192)
+        self.assertEqual(computational_model_part.NumberOfNodes(), 256)
         self.assertEqual(computational_model_part.NumberOfConditions(), 0)
 
         self.assertEqual(support_model_part.GetConditions()[55].Info(), "\"SbmLaplacianConditionDirichlet\" #55")
