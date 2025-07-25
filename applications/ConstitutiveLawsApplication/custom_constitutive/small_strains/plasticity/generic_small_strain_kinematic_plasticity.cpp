@@ -100,8 +100,8 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
         if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ) ) {
             BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
         }
-        if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
-            r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS) ||
+            r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             Vector& r_stress_vector = rValues.GetStressVector();
             noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
         }
@@ -111,7 +111,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
         const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
         //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-        if ( r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
             this->CalculateValue(rValues, STRAIN, r_strain_vector);
         }
 
