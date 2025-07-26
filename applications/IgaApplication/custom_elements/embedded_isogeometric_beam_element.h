@@ -145,41 +145,41 @@ public:
     //new:
     void set_Memory();
 
-    void comp_mat_lambda(Matrix3d& _mat_lambda, Vector3d _vec1, Vector3d _vec2);
-    void comp_mat_lambda_deriv(Matrix3d& _mat_lambda_der, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_deriv, Vector3d _vec2_deriv);
-    void comp_mat_lambda_deriv2(Matrix3d& _mat_lambda_derder, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_deriv, Vector3d _vec2_deriv, Vector3d _vec1_deriv2, Vector3d _vec2_deriv2);
-    void comp_mat_lambda_var(Matrix& _mat_lam_var, Vector3d _vec1, Vector3d _vec2, Vector _vec2_var);
-    void comp_mat_lambda_var_var(Matrix& _mat_lam_var_var, Vector3d _vec1, Vector3d _vec2, Vector _vec2_var, Matrix _vec2_var_var);
-    void comp_mat_lambda_deriv_var(Matrix& _mat_lam_der_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector _vec2_var, Vector3d _vec2_der, Vector _vec2_der_var);
-    void comp_mat_lambda_deriv2_var(Matrix& _mat_lam_derder_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector3d _vec1_derder, Vector _vec2_var, Vector3d _vec2_der, Vector3d _vec2_derder, Vector _vec2_der_var, Vector _vec2_derder_var);
-    void comp_mat_lambda_deriv_var_var(Matrix& _mat_lam_der_var_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector _vec2_var, Vector3d _vec2_der, Vector _vec2_der_var, Matrix _vec2_var_var, Matrix _vec2_der_var_var);
-    void comp_mat_lambda_all(Matrix& _mat_lambda_var, Matrix& _mat_lam_der_var, Matrix& _mat_lam_var_var, Matrix& _mat_lam_der_var_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector _vec2_var, Vector3d _vec2_der, Vector _vec2_der_var, Matrix _vec2_var_var, Matrix _vec2_der_var_var);
+    void CompMatLambda(Matrix3d& _mat_lambda, Vector3d _vec1, Vector3d _vec2);
+    void CompMatLambdaDeriv(Matrix3d& _mat_lambda_der, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_deriv, Vector3d _vec2_deriv);
+    void CompMatLambdaDeriv2(Matrix3d& _mat_lambda_derder, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_deriv, Vector3d _vec2_deriv, Vector3d _vec1_deriv2, Vector3d _vec2_deriv2);
+    void CompMatLambdaVar(Matrix& _mat_lam_var, Vector3d _vec1, Vector3d _vec2, Vector _vec2_var);
+    void CompMatLambdaVarVar(Matrix& _mat_lam_var_var, Vector3d _vec1, Vector3d _vec2, Vector _vec2_var, Matrix _vec2_var_var);
+    void CompMatLambdaDerivVar(Matrix& _mat_lam_der_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector _vec2_var, Vector3d _vec2_der, Vector _vec2_der_var);
+    void CompMatLambdaDeriv2Var(Matrix& _mat_lam_derder_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector3d _vec1_derder, Vector _vec2_var, Vector3d _vec2_der, Vector3d _vec2_derder, Vector _vec2_der_var, Vector _vec2_derder_var);
+    void CompMatLambdaDerivVarVar(Matrix& _mat_lam_der_var_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector _vec2_var, Vector3d _vec2_der, Vector _vec2_der_var, Matrix _vec2_var_var, Matrix _vec2_der_var_var);
+    void CompMatLambdaAll(Matrix& _mat_lambda_var, Matrix& _mat_lam_der_var, Matrix& _mat_lam_var_var, Matrix& _mat_lam_der_var_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector _vec2_var, Vector3d _vec2_der, Vector _vec2_der_var, Matrix _vec2_var_var, Matrix _vec2_der_var_var);
     
     
-    void comp_T_var(Vector& _t_var, Vector& _deriv, Vector3d& _r1);
-    void comp_T_deriv_var(Vector& _t_deriv_var, Vector& _deriv, Vector& _deriv2, Vector3d& _r1, Vector3d& _r2);
-    void comp_T_var_var(Matrix& _t_var_var, Vector& _deriv, Vector3d& _r1);
-    void comp_T_deriv_var_var(Matrix& _t_deriv_var_var, Vector& _deriv, Vector& _deriv2, Vector3d& _r1, Vector3d& _r2);
-    void comp_T_deriv2_var(Vector& _t_deriv2_var, Vector& _deriv, Vector& _deriv2, Vector& _deriv3, Vector3d& _r1, Vector3d& _r2, Vector3d& _r3);
+    void CompTVar(Vector& _t_var, Vector& _deriv, Vector3d& _r1);
+    void CompTDerivVar(Vector& _t_deriv_var, Vector& _deriv, Vector& _deriv2, Vector3d& _r1, Vector3d& _r2);
+    void CompTVarVar(Matrix& _t_var_var, Vector& _deriv, Vector3d& _r1);
+    void CompTDerivVarVar(Matrix& _t_deriv_var_var, Vector& _deriv, Vector& _deriv2, Vector3d& _r1, Vector3d& _r2);
+    void CompTDeriv2Var(Vector& _t_deriv2_var, Vector& _deriv, Vector& _deriv2, Vector& _deriv3, Vector3d& _r1, Vector3d& _r2, Vector3d& _r3);
 
     void comp_Geometry_initial(Vector& _deriv, Vector& _deriv2, Vector3d& _r1, Vector3d& _r2, float& _a, float& _b);
     void comp_Geometry_initial(Vector& _deriv, Vector& _deriv2, Vector& _deriv3, Vector3d& _r1, Vector3d& _r2, Vector3d& _r3, float& _a, float& _b);
     void comp_Geometry_reference(Vector _deriv, Vector _deriv2, Vector3d& _R1, Vector3d& _R2, float& _A_ref, float& _B_ref);
     void comp_Geometry_reference(Vector _deriv, Vector _deriv2, Vector _deriv3, Vector3d& _R1, Vector3d& _R2, Vector3d& _R3, float& _A_ref, float& _B_ref);
-    void comp_Geometry_reference_cross_section( Vector3d _R1, Vector3d _R2, Vector3d _T0_vec, Vector3d& _n_act, Vector3d& _v_act, Vector3d& _n0, Vector3d& _v0, float& _B_n, float& _B_v, float& _C_12, float& _C_13, float& _Phi, float& _Phi_0_der);
+    void CompGeometryReferenceCrossSection( Vector3d _R1, Vector3d _R2, Vector3d _T0_vec, Vector3d& _n_act, Vector3d& _v_act, Vector3d& _n0, Vector3d& _v0, float& _B_n, float& _B_v, float& _C_12, float& _C_13, float& _Phi, float& _Phi_0_der);
     void comp_Geometry_actual(const ProcessInfo& rCurrentProcessInfo,Vector& _deriv, Vector& _deriv2, Vector3d& _r1, Vector3d& _r2, float& _a, float& _b);
     void comp_Geometry_actual(const ProcessInfo& rCurrentProcessInfo,Vector& _deriv, Vector& _deriv2, Vector& _deriv3, Vector3d& _r1, Vector3d& _r2, Vector3d& _r3, float& _a, float& _b);
-    void comp_Geometry_actual_cross_section(Vector3d _r1, Vector3d _R1, Vector3d _r2, Vector3d _R2, Vector3d& _n_act, Vector3d& _v_act, Vector3d& _N0, Vector3d& _V0, float& _b_n, float& _b_v, float& _c_12, float& _c_13, float _phi, float _phi_der, float _Phi, float _Phi_der);
+    void CompGeometryActualCrossSection(Vector3d _r1, Vector3d _R1, Vector3d _r2, Vector3d _R2, Vector3d& _n_act, Vector3d& _v_act, Vector3d& _N0, Vector3d& _V0, float& _b_n, float& _b_v, float& _c_12, float& _c_13, float _phi, float _phi_der, float _Phi, float _Phi_der);
 
     //void get_Dof_Types_Per_Node(std::vector<dof_type>& _act_dofs);
-    Vector comp_phi_dof(Vector& _func);
-    void comp_Phi_ref_prop(float& _Phi, float& _Phi_0_der);
-    Vector comp_epsilon_dof(Vector3d& _r1, Vector& _shape_func_deriv);
-    Matrix comp_epsilon_dof_2(Vector3d& _r1, Vector& _shape_func_deriv);
+    Vector CompPhiDof(Vector& _func);
+    void CompPhiRefProp(float& _Phi, float& _Phi_0_der);
+    Vector CompEpsilonDof(Vector3d& _r1, Vector& _shape_func_deriv);
+    Matrix CompEpsilonDof2(Vector3d& _r1, Vector& _shape_func_deriv);
 
-    void comp_mat_rodrigues(Matrix3d& _mat_rod, Vector3d _vec, float _phi);
-    void comp_mat_rodrigues_deriv(Matrix3d& _mat_rod_der, Vector3d _vec, Vector3d _vec_deriv, float _phi, float _phi_deriv);
-    void comp_mat_rodrigues_var(Matrix& _mat_rod_var, Vector3d _vec, Vector _vec_var, Vector _func, float _phi);
+    void CompMatRodrigues(Matrix3d& _mat_rod, Vector3d _vec, float _phi);
+    void CompMatRodriguesDeriv(Matrix3d& _mat_rod_der, Vector3d _vec, Vector3d _vec_deriv, float _phi, float _phi_deriv);
+    void CompMatRodriguesVar(Matrix& _mat_rod_var, Vector3d _vec, Vector _vec_var, Vector _func, float _phi);
     void comp_mat_rodrigues_var_var(Matrix& _mat_rod_var_var, Vector3d _vec, Vector _vec_var, Matrix _vec_var_var, Vector _func, float _phi);
     void comp_mat_rodrigues_deriv_var(Matrix& _mat_rod_der_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Vector _func, Vector _deriv, float _phi, float _phi_der);
     void comp_mat_rodrigues_deriv_var_var(Matrix& _mat_rod_der_var_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Matrix& _vec_var_var, Matrix& _vec_der_var_var, Vector _func, Vector _deriv, float _phi, float _phi_der);
@@ -353,7 +353,7 @@ public:
     ///@}
 private:
 
-    float Tol = 1.0e-8;
+    float mTolerance = 1.0e-8;
 
     Matrix3d cross_prod_vec_mat(const Vector3d& vec, const Matrix3d& mat)
     {
@@ -405,7 +405,7 @@ private:
     SizeType _n_Dof;
     SizeType N_Dof;
     //list of matrices and vectors which size depends on the number of dofs
-    SizeType Dof_Node;
+    SizeType mDofsPerNode;
     Matrix _gke;
     Vector _gfie;
     Matrix S_gke;           //Stiff matrix for Gausspoints
@@ -440,39 +440,39 @@ private:
     Vector S_dR;            //1st derivatives
     Vector S_ddR;           //2nd derivatives
     //first variation of mapping matrices
-    Matrix S_mat_rod_var;
-    Matrix S_mat_lam_var;
-    Matrix S_mat_lam_var_Rod_Lam;
-    Matrix S_mat_rod_lam_var_Rod_Lam;
-    Matrix S_mat_rod_var_lam_Rod_Lam;
-    Matrix S_mat_rodlamRodLam_var;
-    Matrix S_mat_rod_der_var;
-    Matrix S_mat_lam_der_var;
-    Matrix S_mat_lam_der_var_Rod_Lam;
-    Matrix S_mat_lam_var_Rod_der_Lam;
-    Matrix S_mat_lam_var_Rod_Lam_der;
-    Matrix S_mat_rod_der_lam_var_Rod_Lam;
-    Matrix S_mat_rod_lam_der_var_Rod_Lam;
-    Matrix S_mat_rod_lam_var_Rod_der_Lam;
-    Matrix S_mat_rod_lam_var_Rod_Lam_der;
-    Matrix S_mat_rod_der_var_lam_Rod_Lam;
-    Matrix S_mat_rod_var_lam_der_Rod_Lam;
-    Matrix S_mat_rod_var_lam_Rod_der_Lam;
-    Matrix S_mat_rod_var_lam_Rod_Lam_der;
-    Matrix S_mat_rodlamRodLam_der_var;
+    Matrix mSMatRodVar;
+    Matrix mSMatLamVar;
+    Matrix mSMatLamVarRodLam;
+    Matrix mSMatRodLamVarRodLam;
+    Matrix mSMatRodVarLamRodLam;
+    Matrix mSMatRodLamRodLamVar;
+    Matrix mSMatRodDerVar;
+    Matrix mSMatLamDerVar;
+    Matrix mSMatLamDerVarRodLam;
+    Matrix mSMatLamVarRodDerLam;
+    Matrix mSMatLamVarRodLamDer;
+    Matrix mSMatRodDerLamVarRodLam;
+    Matrix mSMatRodLamDerVarRodLam;
+    Matrix mSMatRodLamVarRodDerLam;
+    Matrix mSMatRodLamVarRodLamDer;
+    Matrix mSMatRodDerVarLamRodLam;
+    Matrix mSMatRodVarLamDerRodLam;
+    Matrix mSMatRodVarLamRodDerLam;
+    Matrix mSMatRodVarLamRodLamDer;
+    Matrix mSMatRodLamRodLamDerVar;
     //second variation of mapping matrices
-    Matrix S_mat_rod_var_var;
-    Matrix S_mat_lam_var_var;
-    Matrix S_mat_lam_var_var_Rod_Lam;
+    Matrix mSMatRodVarVar;
+    Matrix mSMatLamVarVar;
+    Matrix mSMatLamVarVarRodLam;
     Matrix S_mat_rod_lam_var_var_Rod_Lam;
     Matrix S_mat_rod_var_lam_var_Rod_Lam;
     Matrix S_mat_rod_var_var_lam_Rod_Lam;
     Matrix S_mat_rodlamRodLam_var_var;
-    Matrix S_mat_rod_der_var_var;
-    Matrix S_mat_lam_der_var_var;
-    Matrix S_mat_lam_der_var_var_Rod_Lam;
-    Matrix S_mat_lam_var_var_Rod_der_Lam;
-    Matrix S_mat_lam_var_var_Rod_Lam_der;
+    Matrix mSMatRodDerVarVar;
+    Matrix mSMatLamDerVarVar;
+    Matrix mSMatLamDerVarVarRodLam;
+    Matrix mSMatLamVarVarRodDerLam;
+    Matrix mSMatLamVarVarRodLamDer;
     Vector S_U_Vec;          //Knot vector in u-direction
     Vector S_weights;      //weights of the Control points
 
