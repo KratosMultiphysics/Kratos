@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Alejandro Cornejo
+//  Main authors:    Alejandro Cornejo
 //
 //
 
@@ -43,9 +43,9 @@ namespace Kratos
 ///@{
 
 /**
- * @class LinearTimoshenkoCurvedBeamElement2D3N
+ * @class LinearTimoshenkoCurvedBeamElement3D3N
  * @ingroup StructuralMechanicsApplication
- * @brief This is the Timoshenko curved beam element of 3 nodes. Reference:
+ * @brief This is the 3D Timoshenko curved beam element of 3 nodes. Reference:
  * Connecting beams and continua: variational basis and mathematical analysis, Romero and Schenk, Meccanica, 2023
  * DOI: https://doi.org/10.1007/s11012-023-01702-0
  * 
@@ -54,7 +54,7 @@ namespace Kratos
  * Quadratic interpolation of the curved geometry, displacements and rotation. Reduced integration to avoid shear locking
  * @author Alejandro Cornejo
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTimoshenkoCurvedBeamElement2D3N
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTimoshenkoCurvedBeamElement3D3N
     : public Element
 {
 
@@ -66,32 +66,34 @@ public:
     /// The base element type
     using BaseType = Element;
 
-    static constexpr SizeType SystemSize    = 9;
+    static constexpr SizeType SystemSize    = 18;
     static constexpr SizeType NumberOfNodes = 3;
-    static constexpr SizeType DoFperNode    = 3;
+    static constexpr SizeType DoFperNode    = 6;
+    static constexpr SizeType Dimension     = 3;
+    static constexpr SizeType StrainSize    = 6;
     static constexpr double Tolerance       = 1.0e-12;
 
     using GlobalSizeVector = BoundedVector<double, SystemSize>;
     using array_3 = array_1d<double, 3>;
 
     // Counted pointer of BaseSolidElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LinearTimoshenkoCurvedBeamElement2D3N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LinearTimoshenkoCurvedBeamElement3D3N);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    LinearTimoshenkoCurvedBeamElement2D3N() = default;
+    LinearTimoshenkoCurvedBeamElement3D3N() = default;
 
     // Constructor using an array of nodes
-    LinearTimoshenkoCurvedBeamElement2D3N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
+    LinearTimoshenkoCurvedBeamElement3D3N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
     {
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
     }
 
     // Constructor using an array of nodes with properties
-    LinearTimoshenkoCurvedBeamElement2D3N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    LinearTimoshenkoCurvedBeamElement3D3N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId,pGeometry,pProperties)
     {
         // This is needed to prevent uninitialised integration method in inactive elements
@@ -99,7 +101,7 @@ public:
     }
 
     // Copy constructor
-    LinearTimoshenkoCurvedBeamElement2D3N(LinearTimoshenkoCurvedBeamElement2D3N const& rOther)
+    LinearTimoshenkoCurvedBeamElement3D3N(LinearTimoshenkoCurvedBeamElement3D3N const& rOther)
         : BaseType(rOther),
         mThisIntegrationMethod(rOther.mThisIntegrationMethod),
         mConstitutiveLawVector(rOther.mConstitutiveLawVector)
@@ -109,13 +111,13 @@ public:
     // Create method
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<LinearTimoshenkoCurvedBeamElement2D3N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<LinearTimoshenkoCurvedBeamElement3D3N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     // Create method
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<LinearTimoshenkoCurvedBeamElement2D3N>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<LinearTimoshenkoCurvedBeamElement3D3N>(NewId, pGeom, pProperties);
     }
 
     ///@}
@@ -127,8 +129,8 @@ public:
     ///@{
 
     /**
-     * @brief Returns a 9 component vector including the values of the DoFs
-     * in GLOBAL beam axes
+     * @brief Returns a 18 component vector including the values of the DoFs
+     * in GLOBAL axes
      */
     void GetNodalValuesVector(GlobalSizeVector &rNodalValues) const;
 
@@ -208,7 +210,7 @@ public:
     /**
      * @brief Returns a 3 component vector with the values of the shape
      * functions at each node
-     * xi: isoparametric coordinate
+     * xi: natural coordinate
      */
     array_3 GetShapeFunctionsValues(const double xi) const;
 
@@ -223,7 +225,7 @@ public:
     /**
      * @brief Returns a 3 component vector with the values of the shape
      * functions second derivatives in the real space at each node
-     * xi: isoparametric coordinate
+     * xi: natural coordinate
      * J: Jacobian
      */
     array_3 GetSecondDerivativesShapeFunctionsValues(const double xi, const double J) const;
@@ -231,33 +233,20 @@ public:
     /**
      * @brief Returns a 3 component vector with the values of the shape
      * functions derivatives in the natural space at each node
-     * xi: isoparametric coordinate
+     * xi: natural coordinate
      */
     array_3 GetLocalFirstDerivativesShapeFunctionsValues(const double xi) const;
 
     /**
      * @brief Returns a 3 component vector with the values of the shape
      * functions second derivatives in the natural space at each node
-     * xi: isoparametric coordinate
+     * xi: natural coordinate
      */
     array_3 GetLocalSecondDerivativesShapeFunctionsValues(const double xi) const;
 
     /**
-     * @brief This method fills the global vectors of shape functions
-     * in shuch a way that:
-     * u = Nu * U
-     * v = N * U
-     * theta = Ntheta * U
-     */
-    void GetShapeFunctionsValuesGlobalVectors(
-        const array_3 &rShapeFunctions,
-        GlobalSizeVector &rNshape,
-        GlobalSizeVector &rNu,
-        GlobalSizeVector &rNtheta) const;
-
-    /**
-     * @brief Returns the Jacobian of the isoparametric transformation of arc length s
-     *     J = sqrt((dx)^2 + (dy)^2)
+     * @brief Returns the Jacobian of the isoparametric transformation of arc length "s"
+     *     J = sqrt((dx)^2 + (dy)^2 + (dz)^2)
      */
     double GetJacobian(const double xi) const;
 
@@ -274,15 +263,25 @@ public:
     void GetTangentandTransverseUnitVectors(
         const double xi,
         array_3 &rt,
-        array_3 &rn) const;
+        array_3 &rn,
+        array_3 & rb) const;
 
     /**
      * @brief This function builds the Frenet Serret matrix that rotates from global to local axes
     */
-    BoundedMatrix<double, 2, 2> GetFrenetSerretMatrix(
+    BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix(
         const double xi,
         const array_3 &rt,
-        const array_3 &rn) const;
+        const array_3 &rn,
+        const array_3 &rb) const;
+
+    /**
+     * @brief This function builds the B matrix that relates the strain and the nodal displacements
+    */
+    BoundedMatrix<double, 6, 18> CalculateB(
+        const array_3 &rN,
+        const array_3 &rdN,
+        const array_3 &rt) const;
 
     /**
      * @brief This function retrieves the body forces in local axes
@@ -341,18 +340,6 @@ public:
         ) override;
 
     /**
-     * @brief Calculate a double Variable on the Element Constitutive Law
-     * @param rVariable The variable we want to get
-     * @param rOutput The values obtained in the integration points
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void CalculateOnIntegrationPoints(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
      * @brief Get on rVariable Constitutive Law from the element
      * @param rVariable The variable we want to get
      * @param rValues The results in the integration points
@@ -390,7 +377,7 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Timoshenko 3N curved Beam Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "Timoshenko 3D 3N curved Beam Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
     }
 
     /// Print object's data.
@@ -476,7 +463,93 @@ private:
     ///@name Private Operations
     ///@{
 
-    Vector CalculateStrainVector(double Xi);
+    /**
+     * @brief This method builds the displacement interpolation vectors
+     */
+    void CalculateDisplacementInterpolationVectors(
+        GlobalSizeVector &rNu,
+        GlobalSizeVector &rNv,
+        GlobalSizeVector &rNw,
+        const array_3 &rN
+    )
+    {
+        rNu.clear();
+        rNv.clear();
+        rNw.clear();
+
+        rNu[0]  = rN[0];
+        rNu[6]  = rN[1];
+        rNu[12] = rN[2];
+
+        rNv[1]  = rN[0];
+        rNv[7]  = rN[1];
+        rNv[13] = rN[2];
+
+        rNw[2]  = rN[0];
+        rNw[8]  = rN[1];
+        rNw[14] = rN[2];
+    }
+
+
+    /**
+     * @brief This method computes the generalized strain vector and reorders it
+     */
+    Vector CalculateStrainVector(const BoundedMatrix<double, 6, 18> &rB, const GlobalSizeVector &rNodalValues) const;
+
+    /**
+     * @brief Reorder the stress vector from the CL to the Romero et al. notation
+     * CL order: [axial, kappa_x, kappa_y, kappa_z, shear_xy, shear_xz ]
+     * Romero et al. order: [axial, shear_xy, shear_xz, kappa_x, kappa_y, kappa_z]
+     * @param ThisConstitutiveLawVector Constitutive laws used
+     */
+    Vector ConvertGeneralizedVectorComponents(const Vector &rCLStressVector) const
+    {
+        // Convert the stress vector from the CL to the Romero et al.
+        Vector stress_vector(StrainSize);
+
+        stress_vector[0] = rCLStressVector[0];
+        stress_vector[1] = rCLStressVector[4];
+        stress_vector[2] = rCLStressVector[5];
+        stress_vector[3] = rCLStressVector[1];
+        stress_vector[4] = rCLStressVector[2];
+        stress_vector[5] = rCLStressVector[3];
+        return stress_vector;
+    }
+
+    Vector GetPermutationVector() const
+    {
+        // This is the permutation vector to reorder the stress vector from the CL to the Romero et al. notation
+        Vector permutation_vector(StrainSize);
+        permutation_vector[0] = 0; // axial
+        permutation_vector[1] = 4; // shear_xy
+        permutation_vector[2] = 5; // shear_xz
+        permutation_vector[3] = 1; // kappa_x
+        permutation_vector[4] = 2; // kappa_y
+        permutation_vector[5] = 3; // kappa_z
+        return permutation_vector;
+    }
+
+    /**
+     * @brief Reorder the constitutive matrix from the CL to the Romero et al. notation
+     * CL order: [axial, kappa_x, kappa_y, kappa_z, shear_xy, shear_xz ]
+     * Romero et al. order: [axial, shear_xy, shear_xz, kappa_x, kappa_y, kappa_z]
+     * @param ThisConstitutiveLawVector Constitutive laws used
+     */
+    Matrix ConvertConstitutiveMatrixComponents(const Matrix &rCLConstitutiveMatrix) const
+    {
+        const auto& r_permutation_vector = GetPermutationVector();
+        // Convert the constitutive matrix from the CL to the Romero et al.
+        Matrix constitutive_matrix(StrainSize, StrainSize);
+        for (IndexType i = 0; i < StrainSize; ++i) {
+            for (IndexType j = 0; j < StrainSize; ++j) {
+                constitutive_matrix(i, j) = rCLConstitutiveMatrix(r_permutation_vector[i], r_permutation_vector[j]);
+            }
+        }
+        return constitutive_matrix;
+    }
+
+
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -495,7 +568,7 @@ private:
 
     void load(Serializer &rSerializer) override;
 
-}; // class LinearTimoshenkoCurvedBeamElement2D3N.
+}; // class LinearTimoshenkoCurvedBeamElement3D3N.
 
 ///@}
 ///@name Type Definitions
