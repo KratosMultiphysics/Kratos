@@ -12,6 +12,7 @@ from iga_test_factory import SinglePatchTest as SinglePatchTest
 from truss_element_tests import TrussElementTests as TTrussElementTests
 #beam tests - python based
 from beam_element_test import TestBeam4pElement as TestBeam4pElement
+#from embedded_beam_test import TestEmbeddedBeamElement as TestEmbeddedBeamElement
 # Membrane tests
 from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
 from iga_test_factory import MembraneSinglePatchFourPointSailNonLinearStatic as MembraneSinglePatchFourPointSailNonLinearStatic
@@ -68,14 +69,13 @@ def AssembleTestSuites():
 
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
-        # Single patch test - checks iga essentials
-        #SinglePatchTest,
-        # Truss tests
-        #TTrussElementTests,
+        # #Single patch test - checks iga essentials
+        # SinglePatchTest,
+        # #Truss tests
+        # TTrussElementTests,
         # #Beam tests
         TestBeam4pElement,
-        # Process tests
-        #TTestComputeBeamVectorsProcess,
+        # #TestEmbeddedBeamElement,
         # # Membrane tests
         # MembraneSinglePatchFourPointSailLinearStatic,
         # MembraneSinglePatchFourPointSailNonLinearStatic,

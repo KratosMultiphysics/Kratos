@@ -37,8 +37,8 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         beam_properties.SetValue(IGA.HEIGHT, h)
         beam_properties.SetValue(IGA.WIDTH, w)
         beam_properties.SetValue(IGA.I_T,  w*h**3/3)
-        beam_properties.SetValue(IGA.I_N, w * h**3 / 12) # I_y = I_3
-        beam_properties.SetValue(IGA.I_V, h * w**3 / 12) #I_Z -> i_2
+        beam_properties.SetValue(IGA.I_N, w * h**3 / 12)
+        beam_properties.SetValue(IGA.I_V, h * w**3 / 12)
         beam_properties.SetValue(KM.YOUNG_MODULUS   , 70000)
         beam_properties.SetValue(KM.POISSON_RATIO   , 0)
         beam_properties.SetValue(KM.DENSITY         , 7856)

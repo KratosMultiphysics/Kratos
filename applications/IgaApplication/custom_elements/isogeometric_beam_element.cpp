@@ -341,9 +341,6 @@ namespace Kratos {
         KRATOS_TRY
             const double numerical_limit = std::numeric_limits<double>::epsilon();
 
-        KRATOS_ERROR_IF((GetGeometry().WorkingSpaceDimension() != 3) || (GetGeometry().size() != 2))
-            << "The beam element works only in 3D and with 2 noded elements" << std::endl;
-
         for (IndexType i = 0; i < GetGeometry().size(); ++i) {
             if (GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false) {
                 KRATOS_ERROR << "missing variable DISPLACEMENT on node "
