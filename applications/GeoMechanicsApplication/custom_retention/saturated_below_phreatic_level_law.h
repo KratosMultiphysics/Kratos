@@ -52,6 +52,8 @@ public:
      * @return 0 if OK, 1 otherwise
      */
     int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override;
+
+    [[nodiscard]] std::string Info() const override;
 }; // Class SaturatedBelowPhreaticLevelLaw
 
 } // namespace Kratos.

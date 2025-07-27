@@ -35,7 +35,7 @@ TYPED_TEST(TestRetentionLawSerialization, AnyRetentionLawCanBeSavedAndLoaded)
 {
     // Arrange
     const auto scoped_registration =
-        ScopedSerializerRegistration{std::make_pair("RetentionLawUnderTest"s, TypeParam{})};
+        ScopedSerializerRegistration{std::make_pair(TypeParam{}.Info(), TypeParam{})};
 
     const auto p_retention_law = std::unique_ptr<RetentionLaw>{std::make_unique<TypeParam>()};
     auto       serializer      = StreamSerializer{};
