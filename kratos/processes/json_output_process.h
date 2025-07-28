@@ -197,6 +197,11 @@ private:
     bool mUseNodeCoordinates;                                                            /// If we use the coordinates instead of the ID
     const Flags* mpFlag = nullptr;                                                       /// The flag to be checked
 
+    // std::unordered_map<std::size_t, double> mResultantNodesValues;                       /// The auxiliary resultant nodal values
+    // std::unordered_map<std::size_t, double> mResultantGPNodesValues;                     /// The auxiliary resultant GP values
+
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -228,9 +233,9 @@ private:
      */
     void ParseVariables(
         const Parameters rOutputVariables,
-        std::vector<Variable<double>>& rDoubleVariables,
-        std::vector<Variable<array_1d<double, 3>>>& rArray1dVariables,
-        std::vector<Variable<Vector>>& rVectorVariables
+        std::vector<const Variable<double>*>& rDoubleVariables,
+        std::vector<const Variable<array_1d<double, 3>>*>& rArray1dVariables,
+        std::vector<const Variable<Vector>*>& rVectorVariables
         );
 
     /**

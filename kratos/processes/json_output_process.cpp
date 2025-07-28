@@ -179,13 +179,13 @@ void JsonOutputProcess::ParseVariables(
     for (unsigned int i = 0; i < rOutputVariables.size(); ++i) {
         const std::string& r_variable_name = rOutputVariables[i].GetString();
         if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
-            const auto* p_variable = KratosComponents<Variable<double>>::Get(r_variable_name);
+            const auto* p_variable = &KratosComponents<Variable<double>>::Get(r_variable_name);
             rDoubleVariables.push_back(p_variable);
         } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_name)) {
-            const auto* p_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
+            const auto* p_variable = &KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
             rArray1dVariables.push_back(p_variable);
         } else if (KratosComponents<Variable<Vector>>::Has(r_variable_name)) {
-            const auto* p_variable = KratosComponents<Variable<Vector>>::Get(r_variable_name);
+            const auto* p_variable = &KratosComponents<Variable<Vector>>::Get(r_variable_name);
             rVectorVariables.push_back(p_variable);
         } else {
             KRATOS_WARNING("JsonOutputProcess") << "Variable " << r_variable_name << " is not a double, array_1d or vector variable, skipping it" << std::endl;
