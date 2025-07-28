@@ -294,6 +294,7 @@ private:
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mQSVMSDEMCoupled2D3N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,6> > mQSVMSDEMCoupled2D6N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mQSVMSDEMCoupled3D4N;
+    const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,10> > mQSVMSDEMCoupled3D10N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mQSVMSDEMCoupled2D4N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,9> > mQSVMSDEMCoupled2D9N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mQSVMSDEMCoupled3D8N;
@@ -301,6 +302,7 @@ private:
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mAlternativeQSVMSDEMCoupled2D3N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,6> > mAlternativeQSVMSDEMCoupled2D6N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mAlternativeQSVMSDEMCoupled3D4N;
+    const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,10> > mAlternativeQSVMSDEMCoupled3D10N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mAlternativeQSVMSDEMCoupled2D4N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,9> > mAlternativeQSVMSDEMCoupled2D9N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mAlternativeQSVMSDEMCoupled3D8N;
@@ -314,6 +316,7 @@ private:
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mDVMSDEMCoupled2D3N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,6> > mDVMSDEMCoupled2D6N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mDVMSDEMCoupled3D4N;
+    const DVMSDEMCoupled< QSVMSDEMCoupledData<3,10> > mDVMSDEMCoupled3D10N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mDVMSDEMCoupled2D4N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,9> > mDVMSDEMCoupled2D9N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mDVMSDEMCoupled3D8N;
@@ -321,6 +324,7 @@ private:
     const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mAlternativeDVMSDEMCoupled2D3N;
     const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<2,6> > mAlternativeDVMSDEMCoupled2D6N;
     const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mAlternativeDVMSDEMCoupled3D4N;
+    const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<3,10> > mAlternativeDVMSDEMCoupled3D10N;
     const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mAlternativeDVMSDEMCoupled2D4N;
     const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<2,9> > mAlternativeDVMSDEMCoupled2D9N;
     const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mAlternativeDVMSDEMCoupled3D8N;

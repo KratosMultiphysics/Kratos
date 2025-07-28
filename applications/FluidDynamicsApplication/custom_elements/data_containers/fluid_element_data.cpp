@@ -208,6 +208,7 @@ template class FluidElementData<2,4,true>;
 // Tetrahedra
 template class FluidElementData<3,4,false>;
 template class FluidElementData<3,4,true>;
+template class FluidElementData<3,10,false>;
 
 // Prism
 template class FluidElementData<3,6,false>;

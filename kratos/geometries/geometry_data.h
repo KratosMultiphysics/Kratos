@@ -63,7 +63,7 @@ public:
 
     /** Integration methods implemented in geometry. Each geometry
     supposed to have different integration method for
-    integrating. These enums are used to refere to each
+    integrating. These enums are used to refer to each
     different integration methods:
 
     - GI_GAUSS_1 gaussian integration with order 1.
@@ -245,7 +245,7 @@ public:
     /** Complete argument constructor. This constructor gives a
     complete set of arguments to pass all the initial value of
     all the member variables of geometry class. Also it has
-    default value for integration variables to make it usefull
+    default value for integration variables to make it useful
     in the case of constructing new geometry without mapping and
     integrating properties.
 
@@ -418,8 +418,8 @@ public:
     ///@{
 
     /** This method confirm you if this geometry has a specific
-    integration method or not. This method will be usefull to
-    control the geometry before intagrating using a specific
+    integration method or not. This method will be useful to
+    control the geometry before integrating using a specific
     method. In GeometryData class this method controls if the
     integration points vector respecting to this method is empty
     or not.
@@ -721,7 +721,7 @@ public:
     /*
     * @brief access to the shape function derivatives.
     * @param DerivativeOrderIndex defines the wanted order of the derivative
-    * @param IntegrationPointIndex the corresponding contorl point of this geometry
+    * @param IntegrationPointIndex the corresponding control point of this geometry
     * @return the shape function or derivative value related to the input parameters
     *         the matrix is structured: (derivative dN_de / dN_du , the corresponding node)
     */

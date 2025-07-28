@@ -31,7 +31,8 @@ namespace Kratos
       ~GraphUtilities();
 
       // Public methods
-      void ExecuteInitialize(bool ParticleTempMin,
+      void ExecuteInitialize(bool ParticleTempAll,
+                             bool ParticleTempMin,
                              bool ParticleTempMax,
                              bool ParticleTempAvg,
                              bool ParticleTempAvgVol,
@@ -48,6 +49,7 @@ namespace Kratos
     protected:
 
       // Protected attributes
+      bool mGraph_ParticleTempAll;
       bool mGraph_ParticleTempMin;
       bool mGraph_ParticleTempMax;
       bool mGraph_ParticleTempAvg;
@@ -60,6 +62,7 @@ namespace Kratos
       bool mGraph_HeatGenValues;
       bool mGraph_HeatGenContributions;
 
+      std::ofstream mFile_ParticleTempAll;        // Temperature of all particles
       std::ofstream mFile_ParticleTempMin;        // Minimum particle temperature
       std::ofstream mFile_ParticleTempMax;        // Maximum particle temperature
       std::ofstream mFile_ParticleTempAvg;        // Average particle temperature

@@ -25,11 +25,12 @@ class ConstitutiveLawDimension
 public:
     virtual ~ConstitutiveLawDimension() = default;
 
-    virtual Matrix FillConstitutiveMatrix(double c1, double c2, double c3) const = 0;
-    virtual std::unique_ptr<ConstitutiveLawDimension> Clone() const              = 0;
-    virtual std::size_t                               GetStrainSize() const      = 0;
-    virtual std::size_t                               GetDimension() const       = 0;
-    virtual Flags                                     GetSpatialType() const     = 0;
+    [[nodiscard]] virtual Matrix CalculateElasticMatrix(double YoungsModulus, double PoissonsRatio) const = 0;
+    [[nodiscard]] virtual std::unique_ptr<ConstitutiveLawDimension> Clone() const         = 0;
+    [[nodiscard]] virtual std::size_t                               GetStrainSize() const = 0;
+    [[nodiscard]] virtual std::size_t                               GetDimension() const  = 0;
+    [[nodiscard]] virtual std::size_t GetNumberOfNormalComponents() const                 = 0;
+    [[nodiscard]] virtual Flags       GetSpatialType() const                              = 0;
 };
 
 } // namespace Kratos

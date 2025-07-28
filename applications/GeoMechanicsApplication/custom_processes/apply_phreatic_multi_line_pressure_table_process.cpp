@@ -55,8 +55,9 @@ void ApplyPhreaticMultiLinePressureTableProcess::ExecuteInitializeSolutionStep()
 
     const double        Time = mrModelPart.GetProcessInfo()[TIME] / mTimeUnitConverter;
     std::vector<double> deltaH;
+    deltaH.reserve(mpTable.size());
     std::transform(mpTable.begin(), mpTable.end(), std::back_inserter(deltaH),
-                   [Time](auto element) { return element ? element->GetValue(Time) : 0.0; });
+                   [Time](const auto& element) { return element ? element->GetValue(Time) : 0.0; });
 
     block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node& rNode) {
         const double pressure = CalculatePressure(rNode, deltaH);

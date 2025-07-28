@@ -14,9 +14,10 @@
 
 // Project includes
 #include "custom_conditions/line_normal_load_2D_diff_order_condition.hpp"
-#include <custom_utilities/variables_utilities.hpp>
-
+#include "custom_utilities/variables_utilities.hpp"
 #include "includes/variables.h"
+
+#include <numeric>
 
 namespace Kratos
 {
@@ -67,7 +68,8 @@ void LineNormalLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVaria
     tangential_vector[1]     = column(rVariables.JContainer[PointNumber], 0)[1];
     Vector tangential_stresses(r_geometry.PointsNumber());
     VariablesUtilities::GetNodalValues(r_geometry, TANGENTIAL_CONTACT_STRESS, tangential_stresses.begin());
-    auto tangential_stress = MathUtils<>::Dot(rVariables.Nu, tangential_stresses);
+    const auto tangential_stress = std::inner_product(rVariables.Nu.cbegin(), rVariables.Nu.cend(),
+                                                      tangential_stresses.cbegin(), 0.0);
 
     Vector out_of_plane_vector = ZeroVector(3);
     out_of_plane_vector[2]     = 1.0;
@@ -75,7 +77,8 @@ void LineNormalLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVaria
     MathUtils<double>::CrossProduct(normal_vector, out_of_plane_vector, tangential_vector);
     Vector normal_stresses(r_geometry.PointsNumber());
     VariablesUtilities::GetNodalValues(r_geometry, NORMAL_CONTACT_STRESS, normal_stresses.begin());
-    auto normal_stress = MathUtils<>::Dot(rVariables.Nu, normal_stresses);
+    const auto normal_stress =
+        std::inner_product(rVariables.Nu.cbegin(), rVariables.Nu.cend(), normal_stresses.cbegin(), 0.0);
 
     auto traction_vector = tangential_stress * tangential_vector + normal_stress * normal_vector;
 

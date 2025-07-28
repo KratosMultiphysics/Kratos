@@ -65,29 +65,4 @@ Matrix PermeabilityCalculator::CalculatePermeabilityMatrix() const
     return result;
 }
 
-const Properties& PermeabilityCalculator::InputProvider::GetElementProperties() const
-{
-    return mGetElementProperties();
-}
-
-const std::vector<RetentionLaw::Pointer>& PermeabilityCalculator::InputProvider::GetRetentionLaws() const
-{
-    return mGetRetentionLaws();
-}
-
-Vector PermeabilityCalculator::InputProvider::GetIntegrationCoefficients() const
-{
-    return mGetIntegrationCoefficients();
-}
-
-Vector PermeabilityCalculator::InputProvider::GetNodalValues(const Variable<double>& rVariable) const
-{
-    return mGetNodalValues(rVariable);
-}
-
-Geometry<Node>::ShapeFunctionsGradientsType PermeabilityCalculator::InputProvider::GetShapeFunctionGradients() const
-{
-    return mGetShapeFunctionGradients();
-}
-
 } // namespace Kratos

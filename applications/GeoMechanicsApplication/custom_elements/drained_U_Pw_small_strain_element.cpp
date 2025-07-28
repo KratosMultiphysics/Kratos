@@ -80,7 +80,7 @@ int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCur
     }
 
     // Check constitutive law
-    if (mConstitutiveLawVector.size() > 0) {
+    if (!mConstitutiveLawVector.empty()) {
         return mConstitutiveLawVector[0]->Check(Prop, Geom, rCurrentProcessInfo);
     }
 

@@ -209,7 +209,7 @@ public:
     ShapeFunctionsThirdDerivativesType;
 
     /**
-     * Type of the normal vector used for normal to edges in geomety.
+     * Type of the normal vector used for normal to edges in geometry.
      */
     typedef typename BaseType::NormalType NormalType;
 
@@ -279,7 +279,7 @@ public:
      * Copy constructor from a geometry with other point type.
      * Construct this geometry as a copy of given geometry which
      * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
+     * TOtherPointType* must be implicitly convertible to this
      * geometry PointType.
      *
      * @note This copy constructor does not copy the points and new
@@ -491,7 +491,7 @@ public:
     }
 
     /**
-     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension.
+     * @brief This method calculates and returns area or surface area of this geometry depending on its dimension.
      * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
      * @return double value contains area or surface area
@@ -525,7 +525,7 @@ public:
     // }
 
     /**
-     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension.
+     * @brief This method calculates and returns length, area or volume of this geometry depending on its dimension.
      * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
      * @see Length()
@@ -748,7 +748,7 @@ public:
      */
     double InradiusToLongestEdgeQuality() const override
     {
-        constexpr double normFactor = 1.0; // TODO: This normalization coeficient is not correct.
+        constexpr double normFactor = 1.0; // TODO: This normalization coefficient is not correct.
 
         const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
         const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
@@ -1176,7 +1176,7 @@ public:
      */
     /**
      * Jacobian in specific integration point of given integration
-     * method. This method calculate jacobian matrix in given
+     * method. This method calculates jacobian matrix in given
      * integration point of given integration method.
      *
      * @param IntegrationPointIndex index of integration point which jacobians has to
@@ -1210,7 +1210,7 @@ public:
      * TODO: implemented but not yet tested
      */
     /**
-       * Jacobian in given point. This method calculate jacobian
+       * Jacobian in given point. This method calculates jacobian
        * matrix in given point.
        *
        * @param rPoint point which jacobians has to
@@ -1264,7 +1264,7 @@ public:
 
     /**
      * Determinant of jacobian in specific integration point of
-     * given integration method. This method calculate determinant
+     * given integration method. This method calculates determinant
      * of jacobian in given integration point of given integration
      * method.
      *
@@ -1289,7 +1289,7 @@ public:
 
     /**
      * Determinant of jacobian in given point.
-     * This method calculate determinant of jacobian
+     * This method calculates determinant of jacobian
      * matrix in given point.
      * @param rPoint point which determinant of jacobians has to
      * be calculated in it.
@@ -1312,7 +1312,7 @@ public:
     /**
      * @brief This method gives you number of all edges of this geometry.
      * @details For example, for a hexahedron, this would be 12
-     * @return SizeType containes number of this geometry edges.
+     * @return SizeType contains number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
      * @see GenerateEdges()
@@ -1329,7 +1329,7 @@ public:
      * @brief This method gives you all edges of this geometry.
      * @details This method will gives you all the edges with one dimension less than this geometry.
      * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
-     * @return GeometriesArrayType containes this geometry edges.
+     * @return GeometriesArrayType contains this geometry edges.
      * @see EdgesNumber()
      * @see Edge()
      */
@@ -1361,7 +1361,7 @@ public:
     /**
      * @brief Returns all faces of the current geometry.
      * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
-     * @return GeometriesArrayType containes this geometry faces.
+     * @return GeometriesArrayType contains this geometry faces.
      * @see EdgesNumber
      * @see GenerateEdges
      * @see FacesNumber
@@ -1482,6 +1482,12 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// @copydoc Geometry::Name
+    std::string Name() const override
+    {
+        return "Triangle3D3N";
+    }
 
     /**
      * Turn back information as a string.

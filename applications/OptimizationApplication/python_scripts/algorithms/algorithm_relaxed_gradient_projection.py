@@ -294,9 +294,11 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
 
                 self.UpdateControl()
 
-                self.converged = self.__convergence_criteria.IsConverged()
+                converged = self.__convergence_criteria.IsConverged()
 
-                self.converged &= all([c.IsSatisfied() for c in self.__constraints_list])
+                converged &= all([c.IsSatisfied() for c in self.__constraints_list]) 
+
+                self.converged |=  self.__convergence_criteria.IsMaxIterationsReached()
 
                 self._optimization_problem.AdvanceStep()
 

@@ -16,6 +16,8 @@
 #include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.hpp"
 #include "custom_utilities/variables_utilities.hpp"
 
+#include <numeric>
+
 namespace Kratos
 {
 
@@ -61,7 +63,8 @@ void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateConditionVector(Condit
     VariablesUtilities::GetNodalValues(*mpPressureGeometry, NORMAL_FLUID_FLUX,
                                        nodal_normal_fluid_flux_vector.begin());
     rVariables.ConditionVector =
-        ScalarVector{1, MathUtils<>::Dot(rVariables.Np, nodal_normal_fluid_flux_vector)};
+        ScalarVector{1, std::inner_product(rVariables.Np.cbegin(), rVariables.Np.cend(),
+                                           nodal_normal_fluid_flux_vector.cbegin(), 0.0)};
     KRATOS_CATCH("")
 }
 

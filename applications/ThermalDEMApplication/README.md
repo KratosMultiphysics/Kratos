@@ -95,7 +95,7 @@ Add **thermal settings** with desired options:
 		"nusselt_correlation"            : "sphere_hanz_marshall" or "sphere_whitaker" or "sphere_gunn" or "sphere_li_mason",
 		"radiation_model"                : "continuum_zhou" or "continuum_krause",
 		"heat_generation_model"          : ["sliding_friction","rolling_friction","contact_damping"],
-		"adjusted_contact_model"         : "zhou" or "lu" or "morris",
+		"adjusted_contact_model"         : "zhou" or "lu" or "morris_area" or "morris_area_time" or "rangel_area" or "rangel_area_time",
 		"voronoi_method"                 : "tesselation" or "porosity",
 		"porosity_method"                : "global" or "average_convex_hull" or "average_alpha_shape",
 		"min_conduction_distance"        : 0.0000000275,
@@ -126,6 +126,7 @@ Add **post options** with desired options:
 
 	"PostTemperature"                      : true or false,
 	"PostHeatFlux"                         : true or false,
+	"PostGraphParticleTempAll"             : true or false,
 	"PostGraphParticleTempMin"             : true or false,
 	"PostGraphParticleTempMax"             : true or false,
 	"PostGraphParticleTempAvg"             : true or false,
@@ -383,6 +384,10 @@ Add **SubModelPartData** to sub model parts with desired options:
 
 - *"PostHeatFlux"*:\
   Boolean for showing elements heat flux in post processing.\
+  Default: false
+
+- *"PostGraphParticleTempAll"*:\
+  Boolean for writing a graph with the temperature of all particles.\
   Default: false
 
 - *"PostGraphParticleTempMin"*:\

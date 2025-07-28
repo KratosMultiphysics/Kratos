@@ -121,6 +121,31 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerConstContainer, KratosCoreFastSuite)
     KRATOS_EXPECT_DOUBLE_EQ(final_sum_short, expected_value);
 }
 
+// Pass a container whose iterator is a raw pointer.
+KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerContiguousContainer, KratosCoreFastSuite)
+{
+    struct TestView
+    {
+        using iterator = int*;
+        using size_type = std::size_t;
+        iterator begin() const noexcept {return mBegin;}
+        iterator end() const noexcept {return mEnd;}
+        size_type size() const noexcept {return std::distance(mBegin, mEnd);}
+        iterator mBegin;
+        iterator mEnd;
+    }; // struct TestView
+
+    std::vector<int> array(1e3);
+    std::iota(array.begin(), array.end(), 0);
+
+    TestView view {array.data(), array.data() + array.size()};
+    block_for_each(view, [](int& r_entry){r_entry += r_entry;});
+
+    for (int i_entry=0; i_entry<static_cast<int>(array.size()); ++i_entry) {
+        KRATOS_EXPECT_EQ(array[i_entry], i_entry + i_entry);
+    }
+}
+
 // Basic Type
 KRATOS_TEST_CASE_IN_SUITE(IndexPartitioner, KratosCoreFastSuite)
 {

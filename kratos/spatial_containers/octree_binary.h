@@ -21,16 +21,14 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "geometries/geometry.h"
 #include "includes/node.h"
-
 #include "octree_binary_cell.h"
 
 #define KRATOS_WATCH_3(name) std::cout << #name << " : " << name[0] << ", " << name[1] << ", " << name[2] << std::endl;
 
 namespace Kratos {
-    ///@addtogroup ApplicationNameApplication
+    ///@addtogroup KratosCore
     ///@{
 
     ///@name Kratos Globals
@@ -52,9 +50,15 @@ namespace Kratos {
     ///@name Kratos Classes
     ///@{
 
-    /// Short class definition.
-
-    /** Detail class definition.
+    /**
+     * @class OctreeBinary
+     * @ingroup KratosCore
+     * @brief This class implements a octree binary structure that can be used for different pourposes
+     * @details The class internally works using OctreeBinaryCell recursively
+     * @see OctreeBinaryCell
+     * @author Abel Coll
+     * @author Pooyan Dadvand
+     * @tparam TCellType The type of cell considered in the octree structure
      */
     template <class TCellType>
     class OctreeBinary {
@@ -65,17 +69,15 @@ namespace Kratos {
         /// Pointer definition of Octree
         KRATOS_CLASS_POINTER_DEFINITION(OctreeBinary);
 
-        typedef TCellType cell_type;
+        using cell_type = TCellType;
 
-        typedef typename cell_type::key_type key_type;
+        using key_type = typename cell_type::key_type;
 
-        typedef typename cell_type::configuration_type configuration_type;
+        using configuration_type = typename cell_type::configuration_type;
 
-        typedef double coordinate_type;
+        using coordinate_type = double;
 
-        typedef Node NodeType;
-
-        typedef Geometry<NodeType> GeometryType;
+        using GeometryType = Geometry<Node>;
 
         static constexpr std::size_t CHILDREN_NUMBER = cell_type::CHILDREN_NUMBER;
         static constexpr std::size_t DIMENSION = cell_type::DIMENSION;
@@ -247,7 +249,7 @@ namespace Kratos {
           //when the function will be at upper level (in mesher instead of octree) this vector (leaves) should be passed and copied instead of recomputed
           GetAllLeavesVector(leaves);
 
-          for (char i_level = MIN_LEVEL; i_level < ROOT_LEVEL - 1; i_level++) {
+          for (char i_level = static_cast<char>(MIN_LEVEL); i_level < static_cast<char>(ROOT_LEVEL) - 1; i_level++) {
             for (std::size_t i_cell = 0; i_cell < leaves.size(); i_cell++) {
               cell_type* current_leaf = leaves[i_cell];
               if (current_leaf->GetLevel() == i_level) {
@@ -289,7 +291,7 @@ namespace Kratos {
 
             GetAllLeavesVector(leaves);
 
-            for (char i_level = MIN_LEVEL; i_level < ROOT_LEVEL - 1; i_level++) {
+            for (char i_level = static_cast<char>(MIN_LEVEL); i_level < static_cast<char>(ROOT_LEVEL) - 1; i_level++) {
                 for (int i_direction = 0; i_direction < 18; i_direction++) {
                     for (std::size_t i_cell = 0; i_cell < leaves.size(); i_cell++) {
                         cell_type* current_leaf = leaves[i_cell];
@@ -323,9 +325,7 @@ namespace Kratos {
                 }
                 leaves.swap(next_leaves);
                 next_leaves.clear();
-                KRATOS_WATCH(leaves.size())
             }
-            KRATOS_WATCH(number_of_leaves_);
         }
 
         void GetLeavesInBoundingBoxNormalized(const double* coord1, const double* coord2,
@@ -797,13 +797,6 @@ namespace Kratos {
 
               }
             }
-
-
-//            std::cout << "min_coord : [" << min_coord[0] << "," << min_coord[1] << "," << min_coord[2] << std::endl;
-//            std::cout << "max_coord : [" << max_coord[0] << "," << max_coord[1] << "," << max_coord[2] << std::endl;
-
-
-
         }
 
     /**
@@ -901,12 +894,10 @@ namespace Kratos {
         }
     }
 
-
     inline bool  IsIntersected(typename cell_type::pointer_type rObject, double Tolerance, const double* rLowPoint, const double* rHighPoint)
     {
         Point low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
         Point high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
-
 
         return HasIntersection(rObject->GetGeometry(), low_point, high_point);
     }
@@ -930,7 +921,6 @@ namespace Kratos {
 
         }
 
-
         ///@}
         ///@name Access
         ///@{
@@ -939,11 +929,9 @@ namespace Kratos {
             return root_;
         }
 
-
         ///@}
         ///@name Inquiry
         ///@{
-
 
         ///@}
         ///@name Input and output
@@ -1043,37 +1031,30 @@ namespace Kratos {
         }
 
         /// Turn back information as a string.
-
         virtual std::string Info() const {
             return "Octree";
         }
 
         /// Print information about this object.
-
         virtual void PrintInfo(std::ostream & rOStream) const {
             rOStream << Info();
         }
 
         /// Print object's data.
-
         virtual void PrintData(std::ostream & rOStream) const {
             rOStream << "Number of cells  : " << number_of_cells_ << std::endl;
             rOStream << "Number of leaves : " << number_of_leaves_ << std::endl;
             //rOStream << *root_;
         }
 
-
         ///@}
         ///@name Friends
         ///@{
 
-
         ///@}
-
     private:
         ///@name Static Member Variables
         ///@{
-
 
         ///@}
         ///@name Member Variables
@@ -1088,26 +1069,21 @@ namespace Kratos {
         coordinate_type mOffset[3];
         coordinate_type mScaleFactor[3];
 
-
         ///@}
         ///@name Private Operators
         ///@{
-
 
         ///@}
         ///@name Private Operations
         ///@{
 
-
         ///@}
         ///@name Private  Access
         ///@{
 
-
         ///@}
         ///@name Private Inquiry
         ///@{
-
 
         ///@}
         ///@name Un accessible methods
@@ -1125,7 +1101,6 @@ namespace Kratos {
 
         //}
 
-
         ///@}
 
     }; // Class Octree
@@ -1135,11 +1110,9 @@ namespace Kratos {
     ///@name Type Definitions
     ///@{
 
-
     ///@}
     ///@name Input and output
     ///@{
-
 
     /// input stream function
     //    inline std::istream & operator >>(std::istream& rIStream,

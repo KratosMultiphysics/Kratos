@@ -154,7 +154,6 @@ protected:
 
     std::vector<Vector> mStressVector;
     std::vector<Vector> mStateVariablesFinalized;
-    bool                mIsInitialised = false;
 
     virtual void CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo);
 

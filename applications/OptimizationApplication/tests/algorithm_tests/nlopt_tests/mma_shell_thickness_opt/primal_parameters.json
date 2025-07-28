@@ -2,7 +2,9 @@
     "problem_data": {
         "problem_name": "shell",
         "parallel_type": "OpenMP",
-        "echo_level": 0
+        "echo_level": 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
     },
     "solver_settings": {
         "solver_type": "static",

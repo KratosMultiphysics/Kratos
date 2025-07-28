@@ -249,7 +249,12 @@ namespace Kratos {
     }
 
     // Set new average porosity
-    r_process_info[AVERAGE_POROSITY] = 1.0 - particle_area / total_area;
+    double average_porosity = 1.0 - particle_area / total_area;
+    if (average_porosity < 0.0) {
+      KRATOS_WARNING("Average Porosity Calculation") << "Porosity is negative. Assuming 0.0..." << std::endl;
+      average_porosity = 0.0;
+    }
+    r_process_info[AVERAGE_POROSITY] = average_porosity;
   }
 
   //------------------------------------------------------------------------------------------------------------

@@ -18,6 +18,8 @@
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
 
+#include <numeric>
+
 namespace Kratos
 {
 
@@ -73,11 +75,10 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAll(Matrix& rLeftHandS
     // Loop over integration points
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
          integration_point++) {
-        // Compute normal flux
-        auto normal_flux = MathUtils<>::Dot(row(n_container, integration_point), normal_flux_vector);
-
-        // Obtain Np
         noalias(Variables.Np) = row(n_container, integration_point);
+
+        const auto normal_flux =
+            std::inner_product(Variables.Np.begin(), Variables.Np.end(), normal_flux_vector.begin(), 0.0);
 
         // Compute weighting coefficient for integration
         Variables.IntegrationCoefficient = ConditionUtilities::CalculateIntegrationCoefficient(
@@ -128,11 +129,10 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHand
 
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
          integration_point++) {
-        // Compute normal flux
-        auto normal_flux = MathUtils<>::Dot(row(n_container, integration_point), normal_flux_vector);
-
-        // Obtain Np
         noalias(Variables.Np) = row(n_container, integration_point);
+
+        const auto normal_flux =
+            std::inner_product(Variables.Np.begin(), Variables.Np.end(), normal_flux_vector.begin(), 0.0);
 
         // Compute weighting coefficient for integration
         Variables.IntegrationCoefficient = ConditionUtilities::CalculateIntegrationCoefficient(

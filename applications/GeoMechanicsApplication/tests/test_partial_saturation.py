@@ -22,6 +22,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
 
         # set stage parameters
         parameters_stages = []
+        initial_directory = os.getcwd()
         os.chdir(file_path)
         for parameter_file_name in parameter_file_names:
             with open(parameter_file_name, 'r') as parameter_file:
@@ -38,6 +39,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
             stage_water_pressure.append(test_helper.get_water_pressure(stage))
             coords.append(test_helper.get_nodal_coordinates(stage))
 
+        os.chdir(initial_directory)
         # get y coords of all the nodes
         y_coords = [coord[1] for coord in coords[0]]
 

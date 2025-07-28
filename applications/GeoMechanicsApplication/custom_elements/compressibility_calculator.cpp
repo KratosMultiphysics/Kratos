@@ -80,34 +80,4 @@ double CompressibilityCalculator::CalculateBiotModulusInverse(const RetentionLaw
     return result;
 }
 
-const Properties& CompressibilityCalculator::InputProvider::GetElementProperties() const
-{
-    return mGetElementProperties();
-}
-
-const std::vector<RetentionLaw::Pointer>& CompressibilityCalculator::InputProvider::GetRetentionLaws() const
-{
-    return mGetRetentionLaws();
-}
-
-const Matrix& CompressibilityCalculator::InputProvider::GetNContainer() const
-{
-    return mGetNContainer();
-}
-
-Vector CompressibilityCalculator::InputProvider::GetIntegrationCoefficients() const
-{
-    return mGetIntegrationCoefficients();
-}
-
-double CompressibilityCalculator::InputProvider::GetMatrixScalarFactor() const
-{
-    return mGetMatrixScalarFactor();
-}
-
-Vector CompressibilityCalculator::InputProvider::GetNodalValues(const Variable<double>& rVariable) const
-{
-    return mGetNodalValues(rVariable);
-}
-
 } // namespace Kratos

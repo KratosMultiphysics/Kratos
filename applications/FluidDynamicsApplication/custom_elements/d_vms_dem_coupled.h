@@ -177,21 +177,6 @@ public:
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
-    void CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3>>& rVariable,
-        std::vector<array_1d<double, 3>>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(
-        Variable<Matrix> const& rVariable,
-        std::vector<Matrix>& rValues,
-        ProcessInfo const& rCurrentProcessInfo) override;
-
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
@@ -229,12 +214,18 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    int mInterpolationOrder = 1;
-    DenseVector <BoundedMatrix<double,Dim,Dim>> mViscousResistanceTensor;
-    // Velocity subscale history, stored at integration points
-    DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
-    DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
+    DenseVector< array_1d<double,3> > mPredictedSubscaleVelocity;
+    DenseVector< array_1d<double,3> > mOldSubscaleVelocity;
     DenseVector< array_1d<double,Dim> > mPreviousVelocity;
+    DenseVector <BoundedMatrix<double,3,3>> mViscousResistanceTensor;
+    int mInterpolationOrder = 1;
+    std::vector<double> mPorosity;
+    std::vector<double> mPorosityOld;
+    std::vector<double> mPorosityRate;
+    std::vector<Vector> mPorosityGradient;
+    std::vector<Vector> mBodyForce;
+
+    std::vector<Vector> mWeightsVector;
 
     ///@}
     ///@name Protected Operators
@@ -298,6 +289,21 @@ protected:
     void CalculateMassMatrix(MatrixType& rMassMatrix,
                             const ProcessInfo& rCurrentProcessInfo) override;
 
+    void Calculate(
+        const Variable<Matrix>& rVariable,
+        Matrix& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void Calculate(
+        const Variable<array_1d<double,3>>& rVariable,
+        array_1d<double,3>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,
                                             VectorType& rRightHandSideVector,
                                             const ProcessInfo& rCurrentProcessInfo) override;
@@ -311,9 +317,6 @@ protected:
     void UpdateSubscaleVelocity(
         const TElementData& rData);
 
-    void CalculateResistanceTensor(
-        const TElementData& rData);
-
     void AddMassLHS(
         TElementData& rData,
         MatrixType& rMassMatrix) override;
@@ -322,6 +325,45 @@ protected:
         const TElementData& rData,
         double& rMassRHS) const override;
 
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        Variable<Matrix> const& rVariable,
+        std::vector<Matrix>& rOutput,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        Variable<Vector> const& rVariable,
+        std::vector<Vector>& rOutput,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(
+        Variable<Vector> const& rVariable,
+        std::vector<Vector> const& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(
+        Variable<array_1d<double,3>> const& rVariable,
+        std::vector<array_1d<double,3>> const& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(
+        Variable<Matrix> const& rVariable,
+        std::vector<Matrix> const& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        const std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
     ///@}
     ///@name Protected  Access
     ///@{

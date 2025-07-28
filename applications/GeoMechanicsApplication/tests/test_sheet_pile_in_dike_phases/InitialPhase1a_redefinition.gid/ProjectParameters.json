@@ -152,7 +152,6 @@
         "process_name":  "ApplyExcavationProcess",
         "Parameters":    {
             "model_part_name":      "PorousDomain.soil_excavation",
-            "variable_name":        "EXCAVATION",
             "deactivate_soil_part":             false
         }
     },{
@@ -161,7 +160,6 @@
         "process_name":  "ApplyExcavationProcess",
         "Parameters":    {
             "model_part_name":      "PorousDomain.deactivate_anchor",
-            "variable_name":        "EXCAVATION",
             "deactivate_soil_part":             true
         }
     },{
@@ -170,7 +168,6 @@
         "process_name":  "ApplyExcavationProcess",
         "Parameters":    {
             "model_part_name":      "PorousDomain.deactivate_beam",
-            "variable_name":        "EXCAVATION",
             "deactivate_soil_part":             true
         }
     },{
@@ -179,7 +176,6 @@
         "process_name":  "ApplyExcavationProcess",
         "Parameters":    {
             "model_part_name":      "PorousDomain.deactivate_strut",
-            "variable_name":        "EXCAVATION",
             "deactivate_soil_part":             true
         }
     }],

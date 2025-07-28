@@ -199,6 +199,7 @@ class ExplicitStrategy(BaseStrategy):
         self.fluid_velocity[2]          = self.fluid_props["fluid_velocity_Z"].GetDouble()
         
         # Post options
+        self.PostGraphParticleTempAll             = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAll")
         self.PostGraphParticleTempMin             = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMin")
         self.PostGraphParticleTempMax             = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMax")
         self.PostGraphParticleTempAvg             = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAvg")
@@ -361,7 +362,8 @@ class ExplicitStrategy(BaseStrategy):
     
     #----------------------------------------------------------------------------------------------
     def SetGraphFlags(self):
-        if (self.PostGraphParticleTempMin       or
+        if (self.PostGraphParticleTempAll       or
+            self.PostGraphParticleTempMin       or
             self.PostGraphParticleTempMax       or
             self.PostGraphParticleTempAvg       or 
             self.PostGraphParticleTempAvgVol    or
@@ -617,7 +619,8 @@ class ExplicitStrategy(BaseStrategy):
             self.tesselation_utils.ExecuteInitialize(self.spheres_model_part, self.compute_voronoi, self.compute_porosity)
 
         if (self.write_graph):
-            self.graph_utils.ExecuteInitialize(self.PostGraphParticleTempMin,
+            self.graph_utils.ExecuteInitialize(self.PostGraphParticleTempAll,
+                                               self.PostGraphParticleTempMin,
                                                self.PostGraphParticleTempMax,
                                                self.PostGraphParticleTempAvg,
                                                self.PostGraphParticleTempAvgVol,

@@ -142,8 +142,8 @@ void SensorView<TContainerType>::PrintData(std::ostream& rOStream) const
 }
 
 // template insantiations
-template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) class SensorView<ModelPart::NodesContainerType>;
-template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) class SensorView<ModelPart::ConditionsContainerType>;
-template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) class SensorView<ModelPart::ElementsContainerType>;
+template class SensorView<ModelPart::NodesContainerType>;
+template class SensorView<ModelPart::ConditionsContainerType>;
+template class SensorView<ModelPart::ElementsContainerType>;
 
 } /* namespace Kratos.*/
