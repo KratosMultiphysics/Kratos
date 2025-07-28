@@ -48,9 +48,11 @@ TimeStepEndState TimeStepExecutor::Run(double Time)
     result.convergence_state = mStrategyWrapper->SolveSolutionStep();
     result.num_of_iterations = mStrategyWrapper->GetNumberOfIterations();
 
-    for (const auto& process_observable : mProcessObservables) {
-        auto process = process_observable.lock();
-        if (process) process->ExecuteFinalizeSolutionStep();
+    if (result.convergence_state == TimeStepEndState::ConvergenceState::converged) {
+        for (const auto& process_observable : mProcessObservables) {
+            auto process = process_observable.lock();
+            if (process) process->ExecuteFinalizeSolutionStep();
+        }
     }
 
     return result;
