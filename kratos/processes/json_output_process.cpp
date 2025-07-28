@@ -171,24 +171,24 @@ std::string JsonOutputProcess::GetNodeIdentifier(const Node& rNode)
 
 void JsonOutputProcess::ParseVariables(
     const Parameters rOutputVariables,
-    std::vector<Variable<double>>& rDoubleVariables,
-    std::vector<Variable<array_1d<double, 3>>>& rArray1dVariables,
-    std::vector<Variable<Vector>>& rVectorVariables
+    std::vector<const Variable<double>*>& rDoubleVariables,
+    std::vector<const Variable<array_1d<double, 3>>*>& rArray1dVariables,
+    std::vector<const Variable<Vector>*>& rVectorVariables
     )
 {
     for (unsigned int i = 0; i < rOutputVariables.size(); ++i) {
-        const std::string& variable_name = rOutputVariables[i].GetString();
-        if (KratosComponents<Variable<double>>::Has(variable_name)) {
-            const auto& r_variable = KratosComponents<Variable<double>>::Get(variable_name);
-            rDoubleVariables.push_back(r_variable);
-        } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name)) {
-            const auto& r_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
-            rArray1dVariables.push_back(r_variable);
-        } else if (KratosComponents<Variable<Vector>>::Has(variable_name)) {
-            const auto& r_variable = KratosComponents<Variable<Vector>>::Get(variable_name);
-            rVectorVariables.push_back(r_variable);
+        const std::string& r_variable_name = rOutputVariables[i].GetString();
+        if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
+            const auto* p_variable = KratosComponents<Variable<double>>::Get(r_variable_name);
+            rDoubleVariables.push_back(p_variable);
+        } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_name)) {
+            const auto* p_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
+            rArray1dVariables.push_back(p_variable);
+        } else if (KratosComponents<Variable<Vector>>::Has(r_variable_name)) {
+            const auto* p_variable = KratosComponents<Variable<Vector>>::Get(r_variable_name);
+            rVectorVariables.push_back(p_variable);
         } else {
-            KRATOS_WARNING("JsonOutputProcess") << "Variable " << variable_name << " is not a double, array_1d or vector variable, skipping it" << std::endl;
+            KRATOS_WARNING("JsonOutputProcess") << "Variable " << r_variable_name << " is not a double, array_1d or vector variable, skipping it" << std::endl;
         }
     }
 }
@@ -210,30 +210,30 @@ void JsonOutputProcess::InitializeJson()
                 const std::string node_identifier = "NODE_" + GetNodeIdentifier(r_node);
                 if (!mResultantSolution) {
                     auto json_node = mJsonFile.AddEmptyValue(node_identifier);
-                    for (auto& r_variable : mOutputVariables) {
-                        json_node.AddEmptyArray(r_variable.Name());
+                    for (const auto* p_variable : mOutputVariables) {
+                        json_node.AddEmptyArray(p_variable->Name());
                     }
-                    for (auto& r_variable : mOutputVectorVariables) {
-                        json_node.AddEmptyArray(r_variable.Name() + "_X");
-                        json_node.AddEmptyArray(r_variable.Name() + "_Y");
-                        json_node.AddEmptyArray(r_variable.Name() + "_Z");
+                    for (const auto* p_variable : mOutputVectorVariables) {
+                        json_node.AddEmptyArray(p_variable->Name() + "_X");
+                        json_node.AddEmptyArray(p_variable->Name() + "_Y");
+                        json_node.AddEmptyArray(p_variable->Name() + "_Z");
                     }
-                    for (auto& r_variable : mOutputVectorComponentVariables) {
-                        json_node.AddEmptyArray(r_variable.Name());
+                    for (const auto* p_variable : mOutputVectorComponentVariables) {
+                        json_node.AddEmptyArray(p_variable->Name());
                     }
                 } else {
                     if (count == 0) {
                         auto json_node = mJsonFile.AddEmptyValue("RESULTANT");
-                        for (auto& r_variable : mOutputVariables) {
-                            json_node.AddEmptyArray(r_variable.Name());
+                        for (const auto* p_variable : mOutputVariables) {
+                            json_node.AddEmptyArray(p_variable->Name());
                         }
-                        for (auto& r_variable : mOutputVectorVariables) {
-                            json_node.AddEmptyArray(r_variable.Name() + "_X");
-                            json_node.AddEmptyArray(r_variable.Name() + "_Y");
-                            json_node.AddEmptyArray(r_variable.Name() + "_Z");
+                        for (const auto* p_variable : mOutputVectorVariables) {
+                            json_node.AddEmptyArray(p_variable->Name() + "_X");
+                            json_node.AddEmptyArray(p_variable->Name() + "_Y");
+                            json_node.AddEmptyArray(p_variable->Name() + "_Z");
                         }
-                        for (auto& r_variable : mOutputVectorComponentVariables) {
-                            json_node.AddEmptyArray(r_variable.Name());
+                        for (const auto* p_variable : mOutputVectorComponentVariables) {
+                            json_node.AddEmptyArray(p_variable->Name());
                         }
                     }
                 }
@@ -251,20 +251,20 @@ void JsonOutputProcess::InitializeJson()
                     const std::string element_identifier = "ELEMENT_" + std::to_string(r_elem.Id());
                     mJsonFile.AddEmptyValue(element_identifier);
                     auto json_element = mJsonFile[element_identifier];
-                    for (auto& r_variable : mGaussPointsOutputVariables) {
+                    for (const auto* p_variable : mGaussPointsOutputVariables) {
                         std::vector<double> values;
-                        r_elem.CalculateOnIntegrationPoints(r_variable, values, mpSubModelPart->GetProcessInfo());
-                        const std::string& r_variable_name = r_variable.Name();
+                        r_elem.CalculateOnIntegrationPoints(*p_variable, values, mpSubModelPart->GetProcessInfo());
+                        const std::string& r_variable_name = p_variable->Name();
                         json_element.AddEmptyValue(r_variable_name);
                         auto json_variable = json_element[r_variable_name];
                         for (unsigned int i = 0; i < values.size(); ++i) {
                             json_variable.AddEmptyArray(std::to_string(i));
                         }
                     }
-                    for (auto& r_variable : mGaussPointsOutputVectorVariables) {
+                    for (const auto* p_variable : mGaussPointsOutputVectorVariables) {
                         std::vector<array_1d<double, 3>> values;
-                        r_elem.CalculateOnIntegrationPoints(r_variable, values, mpSubModelPart->GetProcessInfo());
-                        const std::string& r_variable_name = r_variable.Name();
+                        r_elem.CalculateOnIntegrationPoints(*p_variable, values, mpSubModelPart->GetProcessInfo());
+                        const std::string& r_variable_name = p_variable->Name();
                         json_element.AddEmptyValue(r_variable_name + "_X");
                         json_element.AddEmptyValue(r_variable_name + "_Y");
                         json_element.AddEmptyValue(r_variable_name + "_Z");
@@ -277,10 +277,10 @@ void JsonOutputProcess::InitializeJson()
                             json_variable_z.AddEmptyArray(std::to_string(i));
                         }
                     }
-                    for (auto& r_variable : mGaussPointsOutputVectorComponentVariables) {
+                    for (const auto* p_variable : mGaussPointsOutputVectorComponentVariables) {
                         std::vector<Vector> values;
-                        r_elem.CalculateOnIntegrationPoints(r_variable, values, mpSubModelPart->GetProcessInfo());
-                        const std::string& r_variable_name = r_variable.Name();
+                        r_elem.CalculateOnIntegrationPoints(*p_variable, values, mpSubModelPart->GetProcessInfo());
+                        const std::string& r_variable_name = p_variable->Name();
                         json_element.AddEmptyValue(r_variable_name);
                         auto json_variable = json_element[r_variable_name];
                         for (unsigned int i = 0; i < values.size(); ++i) {
@@ -291,20 +291,20 @@ void JsonOutputProcess::InitializeJson()
                     if (count == 0) {
                         mJsonFile.AddEmptyValue("RESULTANT");
                         auto json_element = mJsonFile["RESULTANT"];
-                        for (auto& r_variable : mGaussPointsOutputVariables) {
+                        for (const auto* p_variable : mGaussPointsOutputVariables) {
                             std::vector<double> values;
-                            r_elem.CalculateOnIntegrationPoints(r_variable, values, mpSubModelPart->GetProcessInfo());
-                            const std::string& r_variable_name = r_variable.Name();
+                            r_elem.CalculateOnIntegrationPoints(*p_variable, values, mpSubModelPart->GetProcessInfo());
+                            const std::string& r_variable_name = p_variable->Name();
                             json_element.AddEmptyValue(r_variable_name);
                             auto json_variable = json_element[r_variable_name];
                             for (unsigned int i = 0; i < values.size(); ++i) {
                                 json_variable.AddEmptyArray(std::to_string(i));
                             }
                         }
-                        for (auto& r_variable : mGaussPointsOutputVectorVariables) {
+                        for (const auto* p_variable : mGaussPointsOutputVectorVariables) {
                             std::vector<array_1d<double, 3>> values;
-                            r_elem.CalculateOnIntegrationPoints(r_variable, values, mpSubModelPart->GetProcessInfo());
-                            const std::string& r_variable_name = r_variable.Name();
+                            r_elem.CalculateOnIntegrationPoints(*p_variable, values, mpSubModelPart->GetProcessInfo());
+                            const std::string& r_variable_name = p_variable->Name();
                             json_element.AddEmptyValue(r_variable_name + "_X");
                             json_element.AddEmptyValue(r_variable_name + "_Y");
                             json_element.AddEmptyValue(r_variable_name + "_Z");
@@ -317,10 +317,10 @@ void JsonOutputProcess::InitializeJson()
                                 json_variable_z.AddEmptyArray(std::to_string(i));
                             }
                         }
-                        for (auto& r_variable : mGaussPointsOutputVectorComponentVariables) {
+                        for (const auto* p_variable : mGaussPointsOutputVectorComponentVariables) {
                             std::vector<Vector> values;
-                            r_elem.CalculateOnIntegrationPoints(r_variable, values, mpSubModelPart->GetProcessInfo());
-                            const std::string& r_variable_name = r_variable.Name();
+                            r_elem.CalculateOnIntegrationPoints(*p_variable, values, mpSubModelPart->GetProcessInfo());
+                            const std::string& r_variable_name = p_variable->Name();
                             json_element.AddEmptyValue(r_variable_name);
                             auto json_variable = json_element[r_variable_name];
                             for (unsigned int i = 0; i < values.size(); ++i) {
@@ -356,55 +356,55 @@ void JsonOutputProcess::WriteJson()
                 if (!mResultantSolution) {
                     const std::string node_identifier = "NODE_" + GetNodeIdentifier(r_node);
                     auto json_node = mJsonFile[node_identifier];
-                    for (auto& r_variable : mOutputVariables) {
-                        const double value = mHistoricalValue ? r_node.GetSolutionStepValue(r_variable, 0) : r_node.GetValue(r_variable);
-                        json_node[r_variable.Name()].Append(value);
+                    for (const auto* p_variable : mOutputVariables) {
+                        const double value = mHistoricalValue ? r_node.GetSolutionStepValue(*p_variable, 0) : r_node.GetValue(*p_variable);
+                        json_node[p_variable->Name()].Append(value);
                     }
-                    for (auto& r_variable : mOutputVectorVariables) {
-                        const array_1d<double, 3>& value = mHistoricalValue ? r_node.GetSolutionStepValue(r_variable, 0) : r_node.GetValue(r_variable);
-                        json_node[r_variable.Name() + "_X"].Append(value[0]);
-                        json_node[r_variable.Name() + "_Y"].Append(value[1]);
-                        json_node[r_variable.Name() + "_Z"].Append(value[2]);
+                    for (const auto* p_variable : mOutputVectorVariables) {
+                        const array_1d<double, 3>& value = mHistoricalValue ? r_node.GetSolutionStepValue(*p_variable, 0) : r_node.GetValue(*p_variable);
+                        json_node[p_variable->Name() + "_X"].Append(value[0]);
+                        json_node[p_variable->Name() + "_Y"].Append(value[1]);
+                        json_node[p_variable->Name() + "_Z"].Append(value[2]);
                     }
-                    for (auto& r_variable : mOutputVectorComponentVariables) {
-                        const Vector& value = mHistoricalValue ? r_node.GetSolutionStepValue(r_variable, 0) : r_node.GetValue(r_variable);
-                        json_node[r_variable.Name()].Append(KratosVectorToPythonList(value));
+                    for (const auto* p_variable : mOutputVectorComponentVariables) {
+                        const Vector& value = mHistoricalValue ? r_node.GetSolutionStepValue(*p_variable, 0) : r_node.GetValue(*p_variable);
+                        json_node[p_variable->Name()].Append(KratosVectorToPythonList(value));
                     }
                 } else {
                     auto json_node = mJsonFile["RESULTANT"];
-                    for (auto& r_variable : mOutputVariables) {
-                        const double value = mHistoricalValue ? r_node.GetSolutionStepValue(r_variable, 0) : r_node.GetValue(r_variable);
+                    for (const auto* p_variable : mOutputVariables) {
+                        const double value = mHistoricalValue ? r_node.GetSolutionStepValue(*p_variable, 0) : r_node.GetValue(*p_variable);
                         if (count == 0) {
-                            json_node[r_variable.Name()].Append(value);
+                            json_node[p_variable->Name()].Append(value);
                         } else {
-                            const int last_index = json_node[r_variable.Name()].size() - 1;
-                            const double last_value = json_node[r_variable.Name()][last_index].GetDouble();
-                            json_node[r_variable.Name()][last_index].SetDouble(last_value + value);
+                            const int last_index = json_node[p_variable->Name()].size() - 1;
+                            const double last_value = json_node[p_variable->Name()][last_index].GetDouble();
+                            json_node[p_variable->Name()][last_index].SetDouble(last_value + value);
                         }
                     }
-                    for (auto& r_variable : mOutputVectorVariables) {
-                        const array_1d<double, 3>& value = mHistoricalValue ? r_node.GetSolutionStepValue(r_variable, 0) : r_node.GetValue(r_variable);
+                    for (const auto* p_variable : mOutputVectorVariables) {
+                        const array_1d<double, 3>& value = mHistoricalValue ? r_node.GetSolutionStepValue(*p_variable, 0) : r_node.GetValue(*p_variable);
                         if (count == 0) {
-                            json_node[r_variable.Name() + "_X"].Append(value[0]);
-                            json_node[r_variable.Name() + "_Y"].Append(value[1]);
-                            json_node[r_variable.Name() + "_Z"].Append(value[2]);
+                            json_node[p_variable->Name() + "_X"].Append(value[0]);
+                            json_node[p_variable->Name() + "_Y"].Append(value[1]);
+                            json_node[p_variable->Name() + "_Z"].Append(value[2]);
                         } else {
-                            const int last_index = json_node[r_variable.Name() + "_X"].size() - 1;
-                            const double last_x = json_node[r_variable.Name() + "_X"][last_index].GetDouble();
-                            const double last_y = json_node[r_variable.Name() + "_Y"][last_index].GetDouble();
-                            const double last_z = json_node[r_variable.Name() + "_Z"][last_index].GetDouble();
-                            json_node[r_variable.Name() + "_X"][last_index].SetDouble(last_x + value[0]);
-                            json_node[r_variable.Name() + "_Y"][last_index].SetDouble(last_y + value[1]);
-                            json_node[r_variable.Name() + "_Z"][last_index].SetDouble(last_z + value[2]);
+                            const int last_index = json_node[p_variable->Name() + "_X"].size() - 1;
+                            const double last_x = json_node[p_variable->Name() + "_X"][last_index].GetDouble();
+                            const double last_y = json_node[p_variable->Name() + "_Y"][last_index].GetDouble();
+                            const double last_z = json_node[p_variable->Name() + "_Z"][last_index].GetDouble();
+                            json_node[p_variable->Name() + "_X"][last_index].SetDouble(last_x + value[0]);
+                            json_node[p_variable->Name() + "_Y"][last_index].SetDouble(last_y + value[1]);
+                            json_node[p_variable->Name() + "_Z"][last_index].SetDouble(last_z + value[2]);
                         }
                     }
-                    for (auto& r_variable : mOutputVectorComponentVariables) {
-                        const Vector& value = mHistoricalValue ? r_node.GetSolutionStepValue(r_variable, 0) : r_node.GetValue(r_variable);
+                    for (const auto* p_variable : mOutputVectorComponentVariables) {
+                        const Vector& value = mHistoricalValue ? r_node.GetSolutionStepValue(*p_variable, 0) : r_node.GetValue(*p_variable);
                         if (count == 0) {
-                            json_node[r_variable.Name()].Append(KratosVectorToPythonList(value));
+                            json_node[p_variable->Name()].Append(KratosVectorToPythonList(value));
                         } else {
-                            const int last_index = json_node[r_variable.Name()].size() - 1;
-                            json_node[r_variable.Name()][last_index].SetString(KratosVectorToPythonList(value));
+                            const int last_index = json_node[p_variable->Name()].size() - 1;
+                            json_node[p_variable->Name()][last_index].SetString(KratosVectorToPythonList(value));
                         }
                     }
                 }
@@ -421,19 +421,19 @@ void JsonOutputProcess::WriteJson()
                 if (!mResultantSolution) {
                     const std::string element_identifier = "ELEMENT_" + std::to_string(r_elem.Id());
                     auto json_element = mJsonFile[element_identifier];
-                    for (auto& r_variable : mGaussPointsOutputVariables) {
+                    for (const auto* p_variable : mGaussPointsOutputVariables) {
                         std::vector<double> values;
-                        r_elem.CalculateOnIntegrationPoints(r_variable, values, mpSubModelPart->GetProcessInfo());
-                        const std::string& r_variable_name = r_variable.Name();
+                        r_elem.CalculateOnIntegrationPoints(*p_variable, values, mpSubModelPart->GetProcessInfo());
+                        const std::string& r_variable_name = p_variable->Name();
                         auto json_variable = json_element[r_variable_name];
                         for (unsigned int i = 0; i < values.size(); ++i) {
                             json_variable[std::to_string(i)].Append(values[i]);
                         }
                     }
-                    for (auto& r_variable : mGaussPointsOutputVectorVariables) {
+                    for (const auto* p_variable : mGaussPointsOutputVectorVariables) {
                         std::vector<array_1d<double, 3>> values;
-                        r_elem.CalculateOnIntegrationPoints(r_variable, values, mpSubModelPart->GetProcessInfo());
-                        const std::string& r_variable_name = r_variable.Name();
+                        r_elem.CalculateOnIntegrationPoints(*p_variable, values, mpSubModelPart->GetProcessInfo());
+                        const std::string& r_variable_name = p_variable->Name();
                         auto json_variable_x = json_element[r_variable_name + "_X"];
                         auto json_variable_y = json_element[r_variable_name + "_Y"];
                         auto json_variable_z = json_element[r_variable_name + "_Z"];
@@ -443,10 +443,10 @@ void JsonOutputProcess::WriteJson()
                             json_variable_z[std::to_string(i)].Append(values[i][2]);
                         }
                     }
-                    for (auto& r_variable : mGaussPointsOutputVectorComponentVariables) {
+                    for (const auto* p_variable : mGaussPointsOutputVectorComponentVariables) {
                         std::vector<Vector> values;
-                        r_elem.CalculateOnIntegrationPoints(r_variable, values, mpSubModelPart->GetProcessInfo());
-                        const std::string& r_variable_name = r_variable.Name();
+                        r_elem.CalculateOnIntegrationPoints(*p_variable, values, mpSubModelPart->GetProcessInfo());
+                        const std::string& r_variable_name = p_variable->Name();
                         auto json_variable = json_element[r_variable_name];
                         for (unsigned int i = 0; i < values.size(); ++i) {
                             json_variable[std::to_string(i)].Append(KratosVectorToPythonList(values[i]));
@@ -454,10 +454,10 @@ void JsonOutputProcess::WriteJson()
                     }
                 } else {
                     auto json_element = mJsonFile["RESULTANT"];
-                    for (auto& r_variable : mGaussPointsOutputVariables) {
+                    for (const auto* p_variable : mGaussPointsOutputVariables) {
                         std::vector<double> values;
-                        r_elem.CalculateOnIntegrationPoints(r_variable, values, mpSubModelPart->GetProcessInfo());
-                        const std::string& r_variable_name = r_variable.Name();
+                        r_elem.CalculateOnIntegrationPoints(*p_variable, values, mpSubModelPart->GetProcessInfo());
+                        const std::string& r_variable_name = p_variable->Name();
                         auto json_variable = json_element[r_variable_name];
                         for (unsigned int i = 0; i < values.size(); ++i) {
                             if (count == 0) {
@@ -469,10 +469,10 @@ void JsonOutputProcess::WriteJson()
                             }
                         }
                     }
-                    for (auto& r_variable : mGaussPointsOutputVectorVariables) {
+                    for (const auto* p_variable : mGaussPointsOutputVectorVariables) {
                         std::vector<array_1d<double, 3>> values;
-                        r_elem.CalculateOnIntegrationPoints(r_variable, values, mpSubModelPart->GetProcessInfo());
-                        const std::string& r_variable_name = r_variable.Name();
+                        r_elem.CalculateOnIntegrationPoints(*p_variable, values, mpSubModelPart->GetProcessInfo());
+                        const std::string& r_variable_name = p_variable->Name();
                         auto json_variable_x = json_element[r_variable_name + "_X"];
                         auto json_variable_y = json_element[r_variable_name + "_Y"];
                         auto json_variable_z = json_element[r_variable_name + "_Z"];
@@ -492,10 +492,10 @@ void JsonOutputProcess::WriteJson()
                             }
                         }
                     }
-                    for (auto& r_variable : mGaussPointsOutputVectorComponentVariables) {
+                    for (const auto* p_variable : mGaussPointsOutputVectorComponentVariables) {
                         std::vector<Vector> values;
-                        r_elem.CalculateOnIntegrationPoints(r_variable, values, mpSubModelPart->GetProcessInfo());
-                        const std::string& r_variable_name = r_variable.Name();
+                        r_elem.CalculateOnIntegrationPoints(*p_variable, values, mpSubModelPart->GetProcessInfo());
+                        const std::string& r_variable_name = p_variable->Name();
                         auto json_variable = json_element[r_variable_name];
                         for (unsigned int i = 0; i < values.size(); ++i) {
                             if (count == 0) {

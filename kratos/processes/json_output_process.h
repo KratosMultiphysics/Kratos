@@ -180,22 +180,22 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart* mpSubModelPart = nullptr;                                          /// The submodelpart to be considered
-    Parameters mSettings;                                                         /// The settings of the process
-    std::string mOutputFileName;                                                  /// The name of the output file
-    Parameters mJsonFile;                                                         /// The json object to be written in the file
-    std::vector<Variable<double>> mOutputVariables;                               /// The name of the variables to be output
-    std::vector<Variable<array_1d<double, 3>>> mOutputVectorVariables;            /// The name of the vector variables to be output
-    std::vector<Variable<Vector>> mOutputVectorComponentVariables;                /// The name of the vector component variables to be output
-    std::vector<Variable<double>> mGaussPointsOutputVariables;                    /// The name of the variables to be output
-    std::vector<Variable<array_1d<double, 3>>> mGaussPointsOutputVectorVariables; /// The name of the vector variables to be output
-    std::vector<Variable<Vector>> mGaussPointsOutputVectorComponentVariables;     /// The name of the vector component variables to be output
-    double mFrequency = 0.0;                                                      /// The frequency of output
-    double mTimeCounter = 0.0;                                                    /// The time counter
-    bool mResultantSolution;                                                      /// If we compute the resultant of the solution
-    bool mHistoricalValue;                                                        /// If we consider the historical value
-    bool mUseNodeCoordinates;                                                     /// If we use the coordinates instead of the ID
-    const Flags* mpFlag = nullptr;                                                /// The flag to be checked
+    ModelPart* mpSubModelPart = nullptr;                                                 /// The submodelpart to be considered
+    Parameters mSettings;                                                                /// The settings of the process
+    std::string mOutputFileName;                                                         /// The name of the output file
+    Parameters mJsonFile;                                                                /// The json object to be written in the file
+    std::vector<const Variable<double>*> mOutputVariables;                               /// The name of the variables to be output
+    std::vector<const Variable<array_1d<double, 3>>*> mOutputVectorVariables;            /// The name of the vector variables to be output
+    std::vector<const Variable<Vector>*> mOutputVectorComponentVariables;                /// The name of the vector component variables to be output
+    std::vector<const Variable<double>*> mGaussPointsOutputVariables;                    /// The name of the variables to be output
+    std::vector<const Variable<array_1d<double, 3>>*> mGaussPointsOutputVectorVariables; /// The name of the vector variables to be output
+    std::vector<const Variable<Vector>*> mGaussPointsOutputVectorComponentVariables;     /// The name of the vector component variables to be output
+    double mFrequency = 0.0;                                                             /// The frequency of output
+    double mTimeCounter = 0.0;                                                           /// The time counter
+    bool mResultantSolution;                                                             /// If we compute the resultant of the solution
+    bool mHistoricalValue;                                                               /// If we consider the historical value
+    bool mUseNodeCoordinates;                                                            /// If we use the coordinates instead of the ID
+    const Flags* mpFlag = nullptr;                                                       /// The flag to be checked
 
     ///@}
     ///@name Private Operators
