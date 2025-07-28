@@ -15,16 +15,17 @@ namespace Kratos {
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_control_points = r_geometry.size();
 
-        if (rResult.size() != 3 * number_of_control_points)
-            rResult.resize(3 * number_of_control_points, false);
+        if (rResult.size() != 4 * number_of_control_points)
+            rResult.resize(4 * number_of_control_points, false);
 
         const IndexType pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
 
         for (IndexType i = 0; i < number_of_control_points; ++i) {
-            const IndexType index = i * 3;
+            const IndexType index = i * 4;
             rResult[index] = r_geometry[i].GetDof(DISPLACEMENT_X, pos).EquationId();
             rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
             rResult[index + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
+            rResult[index + 3] = r_geometry[i].GetDof(ROTATION_X, pos + 3).EquationId();
         }
 
         KRATOS_CATCH("")
@@ -40,12 +41,13 @@ namespace Kratos {
         const SizeType number_of_control_points = r_geometry.size();
 
         rElementalDofList.resize(0);
-        rElementalDofList.reserve(3 * number_of_control_points);
+        rElementalDofList.reserve(4 * number_of_control_points);
 
         for (IndexType i = 0; i < number_of_control_points; ++i) {
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
         }
         KRATOS_CATCH("")
     };
@@ -345,12 +347,12 @@ namespace Kratos {
     {
         const auto& r_geometry = GetGeometry();
         const IndexType nb_nodes = r_geometry.size();
-        if (rValues.size() != nb_nodes * 3) {
-            rValues.resize(nb_nodes * 3, false);
+        if (rValues.size() != nb_nodes * 4) {
+            rValues.resize(nb_nodes * 4, false);
         }
 
         for (IndexType i = 0; i < nb_nodes; ++i) {
-            IndexType index = i * 3;
+            IndexType index = i * 4;
             const auto& disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
             const auto& rot = r_geometry[i].FastGetSolutionStepValue(ROTATION_X, Step);
             rValues[index] = disp[0];
@@ -364,7 +366,7 @@ namespace Kratos {
     
     int EmbeddedIsogeometricBeamElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
-        //KRATOS_WATCH("EmbeddedIsogeometricBeamElement::Check");
+        KRATOS_WATCH("EmbeddedIsogeometricBeamElement::Check");
         KRATOS_TRY
             const double numerical_limit = std::numeric_limits<double>::epsilon();
 
@@ -942,12 +944,8 @@ namespace Kratos {
         _mat_identity.clear();  
         for (int i = 0; i < 3; i++) { _mat_identity(i, i) = 1.; }
 
-        // Pre-compute trigonometric values
-        const float cos_phi = cos(_phi);
-        const float sin_phi = sin(_phi);
-        
-        for (int i = 0; i < 3; i++) { _mat_rod(i, i) = cos_phi; }
-        _mat_rod += cross_prod_vec_mat(_vec, mIdentityMatrix3d) * sin_phi;
+        for (int i = 0; i < 3; i++) { _mat_rod(i, i) = cos(_phi); }
+        _mat_rod += cross_prod_vec_mat(_vec, _mat_identity) * sin(_phi);
     }
 
     void EmbeddedIsogeometricBeamElement::CompMatRodriguesDeriv(Matrix3d& _mat_rod_der, Vector3d _vec, Vector3d _vec_deriv, double _phi, double _phi_deriv)
@@ -959,9 +957,9 @@ namespace Kratos {
         _mat_identity.clear();  
         for (int i = 0; i < 3; i++) { _mat_identity(i, i) = 1; }
 
-        for (int i = 0; i < 3; i++) { _mat_rod_der(i, i) = -_phi_deriv * sin_phi; }
-        _mat_rod_der += cross_prod_vec_mat(_vec, mIdentityMatrix3d) * cos_phi * _phi_deriv;
-        _mat_rod_der += cross_prod_vec_mat(_vec_deriv, mIdentityMatrix3d) * sin_phi;
+        for (int i = 0; i < 3; i++) { _mat_rod_der(i, i) = -_phi_deriv * sin(_phi); }
+        _mat_rod_der += cross_prod_vec_mat(_vec, _mat_identity) * cos(_phi) * _phi_deriv;
+        _mat_rod_der += cross_prod_vec_mat(_vec_deriv, _mat_identity) * sin(_phi);
     }
 
     void EmbeddedIsogeometricBeamElement::CompMatRodriguesVar(Matrix& _mat_rod_var, Vector3d _vec, Vector _vec_var, Vector _func, double _phi)
@@ -2738,23 +2736,23 @@ namespace Kratos {
         double u_1;
         int n_size;
 
-        // //Matrix cross_section_orientation = this->GetProperties()[CENTER_LINE_ROTATION];
-        // n_size = cross_section_orientation.size1();
+        Matrix cross_section_orientation = this->GetProperties()[CENTER_LINE_ROTATION];
+        n_size = cross_section_orientation.size1();
 
         u_0 = cross_section_orientation(0, 0);
         u_1 = cross_section_orientation(n_size - 1, 0);
         phi_0 = cross_section_orientation(0, 1);
         phi_1 = cross_section_orientation(n_size - 1, 1);
 
-        // for (int i = 1; i < n_size; i++)
-        // {
-        //     if (cross_section_orientation(i, 0) > _u_act)
-        //     {
-        //         u_0 = cross_section_orientation(i - 1, 0);
-        //         phi_0 = cross_section_orientation(i - 1, 1);
-        //         break;
-        //     }
-        // }
+        for (int i = 1; i < n_size; i++)
+        {
+            if (cross_section_orientation(i, 0) > _u_act)
+            {
+                u_0 = cross_section_orientation(i - 1, 0);
+                phi_0 = cross_section_orientation(i - 1, 1);
+                break;
+            }
+        }
 
         for (int i = 1; i < n_size; i++)
         {
@@ -2768,17 +2766,15 @@ namespace Kratos {
         double pi;
         pi = 4 * atan(1.0);
 
-        // diff_phi = (phi_1 - phi_0);
-        // if (fabs(phi_1 - phi_0) > pi)
-        // {
-        //     diff_phi = diff_phi - (diff_phi) / fabs(diff_phi) * 2 * pi;
-        // }
+        diff_phi = (phi_1 - phi_0);
+        if (fabs(phi_1 - phi_0) > pi)
+        {
+            diff_phi = diff_phi - (diff_phi) / fabs(diff_phi) * 2 * pi;
+        }
 
-        // _Phi += phi_0 + (_u_act - u_0) / (u_1 - u_0) * diff_phi;
+        _Phi += phi_0 + (_u_act - u_0) / (u_1 - u_0) * diff_phi;
 
-        // _Phi_0_der += diff_phi / (u_1 - u_0);
-        _Phi = 0;
-        _Phi_0_der = 0;
+        _Phi_0_der += diff_phi / (u_1 - u_0);
     }
 
     void EmbeddedIsogeometricBeamElement::CompGeometryReferenceCrossSection( Vector3d _R1, Vector3d _R2, Vector3d _T0_vec, Vector3d& _n_act, Vector3d& _v_act, Vector3d& _n0, Vector3d& _v0, double& _B_n, double& _B_v, double& _C_12, double& _C_13, double& _Phi, double& _Phi_0_der)

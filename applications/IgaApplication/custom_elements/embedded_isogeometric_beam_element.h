@@ -206,7 +206,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType nb_nodes = GetGeometry().size();
-        const SizeType nb_dofs = nb_nodes * 3;
+        const SizeType nb_dofs = nb_nodes * 4;
 
         if (rRightHandSideVector.size() != nb_dofs)
             rRightHandSideVector.resize(nb_dofs);
@@ -224,7 +224,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType nb_nodes = GetGeometry().size();
-        const SizeType nb_dofs = nb_nodes * 3;
+        const SizeType nb_dofs = nb_nodes * 4;
 
         VectorType right_hand_side_vector;
          
@@ -243,7 +243,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType nb_nodes = GetGeometry().size();
-        const SizeType nb_dofs = nb_nodes * 3;
+        const SizeType nb_dofs = nb_nodes * 4;
 
         if (rRightHandSideVector.size() != nb_dofs)
             rRightHandSideVector.resize(nb_dofs);
