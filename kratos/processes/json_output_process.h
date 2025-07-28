@@ -248,24 +248,6 @@ private:
      */
     void WriteJson();
 
-    /**
-     * @brief This method transforms a Kratos vector to a python list
-     * @param rValue The Kratos vector to be transformed
-     */
-    template<class TClass>
-    std::string KratosVectorToPythonList(const TClass& rValue)
-    {
-        std::stringstream buffer;
-        buffer << "[";
-        if (rValue.size() > 0) {
-            for (unsigned int i = 0; i < rValue.size() - 1; ++i)
-                buffer << rValue[i] << ", ";
-            buffer << rValue[rValue.size() - 1];
-        }
-        buffer << "]";
-        return buffer.str();
-    }
-
     ///@}
     ///@name Private  Access
     ///@{

@@ -237,7 +237,7 @@ void JsonOutputProcess::InitializeJson()
                         }
                     }
                 }
-                count++;
+                ++count;
             }
         }
     }
@@ -329,7 +329,7 @@ void JsonOutputProcess::InitializeJson()
                         }
                     }
                 }
-                count++;
+                ++count;
             }
         }
     }
@@ -361,54 +361,54 @@ void JsonOutputProcess::WriteJson()
                         json_node[p_variable->Name()].Append(value);
                     }
                     for (const auto* p_variable : mOutputVectorVariables) {
-                        const array_1d<double, 3>& value = mHistoricalValue ? r_node.GetSolutionStepValue(*p_variable, 0) : r_node.GetValue(*p_variable);
-                        json_node[p_variable->Name() + "_X"].Append(value[0]);
-                        json_node[p_variable->Name() + "_Y"].Append(value[1]);
-                        json_node[p_variable->Name() + "_Z"].Append(value[2]);
+                        const array_1d<double, 3>& r_value = mHistoricalValue ? r_node.GetSolutionStepValue(*p_variable, 0) : r_node.GetValue(*p_variable);
+                        json_node[p_variable->Name() + "_X"].Append(r_value[0]);
+                        json_node[p_variable->Name() + "_Y"].Append(r_value[1]);
+                        json_node[p_variable->Name() + "_Z"].Append(r_value[2]);
                     }
                     for (const auto* p_variable : mOutputVectorComponentVariables) {
-                        const Vector& value = mHistoricalValue ? r_node.GetSolutionStepValue(*p_variable, 0) : r_node.GetValue(*p_variable);
-                        json_node[p_variable->Name()].Append(KratosVectorToPythonList(value));
+                        const Vector& r_value = mHistoricalValue ? r_node.GetSolutionStepValue(*p_variable, 0) : r_node.GetValue(*p_variable);
+                        json_node[p_variable->Name()].Append(r_value);
                     }
                 } else {
                     auto json_node = mJsonFile["RESULTANT"];
                     for (const auto* p_variable : mOutputVariables) {
-                        const double value = mHistoricalValue ? r_node.GetSolutionStepValue(*p_variable, 0) : r_node.GetValue(*p_variable);
+                        const double r_value = mHistoricalValue ? r_node.GetSolutionStepValue(*p_variable, 0) : r_node.GetValue(*p_variable);
                         if (count == 0) {
-                            json_node[p_variable->Name()].Append(value);
+                            json_node[p_variable->Name()].Append(r_value);
                         } else {
                             const int last_index = json_node[p_variable->Name()].size() - 1;
                             const double last_value = json_node[p_variable->Name()][last_index].GetDouble();
-                            json_node[p_variable->Name()][last_index].SetDouble(last_value + value);
+                            json_node[p_variable->Name()][last_index].SetDouble(last_value + r_value);
                         }
                     }
                     for (const auto* p_variable : mOutputVectorVariables) {
-                        const array_1d<double, 3>& value = mHistoricalValue ? r_node.GetSolutionStepValue(*p_variable, 0) : r_node.GetValue(*p_variable);
+                        const array_1d<double, 3>& r_value = mHistoricalValue ? r_node.GetSolutionStepValue(*p_variable, 0) : r_node.GetValue(*p_variable);
                         if (count == 0) {
-                            json_node[p_variable->Name() + "_X"].Append(value[0]);
-                            json_node[p_variable->Name() + "_Y"].Append(value[1]);
-                            json_node[p_variable->Name() + "_Z"].Append(value[2]);
+                            json_node[p_variable->Name() + "_X"].Append(r_value[0]);
+                            json_node[p_variable->Name() + "_Y"].Append(r_value[1]);
+                            json_node[p_variable->Name() + "_Z"].Append(r_value[2]);
                         } else {
                             const int last_index = json_node[p_variable->Name() + "_X"].size() - 1;
                             const double last_x = json_node[p_variable->Name() + "_X"][last_index].GetDouble();
                             const double last_y = json_node[p_variable->Name() + "_Y"][last_index].GetDouble();
                             const double last_z = json_node[p_variable->Name() + "_Z"][last_index].GetDouble();
-                            json_node[p_variable->Name() + "_X"][last_index].SetDouble(last_x + value[0]);
-                            json_node[p_variable->Name() + "_Y"][last_index].SetDouble(last_y + value[1]);
-                            json_node[p_variable->Name() + "_Z"][last_index].SetDouble(last_z + value[2]);
+                            json_node[p_variable->Name() + "_X"][last_index].SetDouble(last_x + r_value[0]);
+                            json_node[p_variable->Name() + "_Y"][last_index].SetDouble(last_y + r_value[1]);
+                            json_node[p_variable->Name() + "_Z"][last_index].SetDouble(last_z + r_value[2]);
                         }
                     }
                     for (const auto* p_variable : mOutputVectorComponentVariables) {
-                        const Vector& value = mHistoricalValue ? r_node.GetSolutionStepValue(*p_variable, 0) : r_node.GetValue(*p_variable);
+                        const Vector& r_value = mHistoricalValue ? r_node.GetSolutionStepValue(*p_variable, 0) : r_node.GetValue(*p_variable);
                         if (count == 0) {
-                            json_node[p_variable->Name()].Append(KratosVectorToPythonList(value));
+                            json_node[p_variable->Name()].Append(r_value);
                         } else {
                             const int last_index = json_node[p_variable->Name()].size() - 1;
-                            json_node[p_variable->Name()][last_index].SetString(KratosVectorToPythonList(value));
+                            json_node[p_variable->Name()][last_index].SetVector(r_value);
                         }
                     }
                 }
-                count++;
+                ++count;
             }
         }
     }
@@ -449,7 +449,7 @@ void JsonOutputProcess::WriteJson()
                         const std::string& r_variable_name = p_variable->Name();
                         auto json_variable = json_element[r_variable_name];
                         for (unsigned int i = 0; i < values.size(); ++i) {
-                            json_variable[std::to_string(i)].Append(KratosVectorToPythonList(values[i]));
+                            json_variable[std::to_string(i)].Append(values[i]);
                         }
                     }
                 } else {
@@ -499,15 +499,15 @@ void JsonOutputProcess::WriteJson()
                         auto json_variable = json_element[r_variable_name];
                         for (unsigned int i = 0; i < values.size(); ++i) {
                             if (count == 0) {
-                                json_variable[std::to_string(i)].Append(KratosVectorToPythonList(values[i]));
+                                json_variable[std::to_string(i)].Append(values[i]);
                             } else {
                                 const int last_index = json_variable[std::to_string(i)].size() - 1;
-                                json_variable[std::to_string(i)][last_index].SetString(KratosVectorToPythonList(values[i]));
+                                json_variable[std::to_string(i)][last_index].SetVector(values[i]);
                             }
                         }
                     }
                 }
-                count++;
+                ++count;
             }
         }
     }
