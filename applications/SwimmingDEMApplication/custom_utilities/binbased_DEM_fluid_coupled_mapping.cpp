@@ -1400,10 +1400,10 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
     unsigned int NumNodes = geom.size();
     Vector N_fast = ZeroVector(NumNodes);
 
-    N_fast[NumNodes-1] = 1.0;
+    // N_fast[NumNodes-1] = 1.0;
     for (unsigned int i = 0; i < (NumNodes-1); ++i){
         N_fast[i] = N[i];
-        N_fast[NumNodes-1] -= N_fast[i];
+        // N_fast[NumNodes-1] -= N_fast[i];
     }
 
 
