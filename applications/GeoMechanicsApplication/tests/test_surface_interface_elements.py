@@ -24,60 +24,60 @@ class KratosGeoMechanicsSurfaceInterfaceElementTests(KratosUnittest.TestCase):
             self.assertVectorAlmostEqual(actual_vector, expected_vector)
 
     def test_neumann_single_stage_3_plus_3(self):
-        simulation = self.run_simulation('neumann_single_stage_3_plus_3')
+        simulation = self.run_simulation('Neumann_single_stage_3_plus_3')
         self.assert_outputs_for_surface_interface_element(simulation, 4, 3, 6)
 
     def test_neumann_single_stage_4_plus_4(self):
-        simulation = self.run_simulation('neumann_single_stage_4_plus_4')
+        simulation = self.run_simulation('Neumann_single_stage_4_plus_4')
         self.assert_outputs_for_surface_interface_element(simulation, 4, 4, 3)
 
     #def test_neumann_single_stage_6_plus_6(self):
-    #    simulation = self.run_simulation('neumann_single_stage_6_plus_6')
+    #    simulation = self.run_simulation('Neumann_single_stage_6_plus_6')
     #    self.assert_outputs_for_surface_interface_element(simulation, 9, 3, 6)
 
     #def test_neumann_single_stage_8_plus_8(self):
-    #    simulation = self.run_simulation('neumann_single_stage_8_plus_8')
+    #    simulation = self.run_simulation('Neumann_single_stage_8_plus_8')
     #    self.assert_outputs_for_surface_interface_element(simulation, 8, 4, 3)
 
     def test_dirichlet_single_stage_3_plus_3(self):
-        simulation = self.run_simulation('dirichlet_single_stage_3_plus_3')
+        simulation = self.run_simulation('Dirichlet_single_stage_3_plus_3')
         self.assert_outputs_for_surface_interface_element(simulation, 4, 3, 6)
 
     def test_dirichlet_single_stage_4_plus_4(self):
-        simulation = self.run_simulation('dirichlet_single_stage_4_plus_4')
+        simulation = self.run_simulation('Dirichlet_single_stage_4_plus_4')
         self.assert_outputs_for_surface_interface_element(simulation, 4, 4, 3)
     
     def test_dirichlet_single_stage_6_plus_6(self):
-        simulation = self.run_simulation('dirichlet_single_stage_6_plus_6')
+        simulation = self.run_simulation('Dirichlet_single_stage_6_plus_6')
         self.assert_outputs_for_surface_interface_element(simulation, 9, 3, 6)
     
     def test_dirichlet_single_stage_8_plus_8(self):
-        simulation = self.run_simulation('dirichlet_single_stage_8_plus_8')
+        simulation = self.run_simulation('Dirichlet_single_stage_8_plus_8')
         self.assert_outputs_for_surface_interface_element(simulation, 8, 4, 3)
 
     def test_neumann_multi_stage_3_plus_3(self):
-        self.run_simulation_multistages('neumann_multi_stage_3_plus_3', 4, 3, [-1334.0, -3000.0], [-666.0, -1332.0])
+        self.run_simulation_multistages('Neumann_multi_stage_3_plus_3', 4, 3, [-1334.0, -3000.0], [-666.0, -1332.0])
 
     def test_neumann_multi_stage_4_plus_4(self):
-        self.run_simulation_multistages('neumann_multi_stage_4_plus_4', 4, 4, [-1334.0, -3000.0], [-666.0, -1332.0])
+        self.run_simulation_multistages('Neumann_multi_stage_4_plus_4', 4, 4, [-1334.0, -3000.0], [-666.0, -1332.0])
 
     #def test_neumann_multi_stage_6_plus_6(self):
-    #    self.run_simulation_multistages('neumann_multi_stage_6_plus_6', 9, 3, [-1334.0, -3000.0], [-666.0, -1332.0])
+    #    self.run_simulation_multistages('Neumann_multi_stage_6_plus_6', 9, 3, [-1334.0, -3000.0], [-666.0, -1332.0])
  
     #def test_neumann_multi_stage_8_plus_8(self):
-    #    self.run_simulation_multistages('neumann_multi_stage_8_plus_8', 8, 4, [-1334.0, -3000.0], [-666.0, -1332.0])
+    #    self.run_simulation_multistages('Neumann_multi_stage_8_plus_8', 8, 4, [-1334.0, -3000.0], [-666.0, -1332.0])
 
     def test_dirichlet_multi_stage_3_plus_3(self):
-        self.run_simulation_multistages('dirichlet_multi_stage_3_plus_3', 4, 3, [-1334.0, -3000.0], [-666.0, -1332.0])
+        self.run_simulation_multistages('Dirichlet_multi_stage_3_plus_3', 4, 3, [-1334.0, -3000.0], [-666.0, -1332.0])
 
     def test_dirichlet_multi_stage_4_plus_4(self):
-        self.run_simulation_multistages('dirichlet_multi_stage_4_plus_4', 4, 4, [-1334.0, -3000.0], [-666.0, -1332.0])
+        self.run_simulation_multistages('Dirichlet_multi_stage_4_plus_4', 4, 4, [-1334.0, -3000.0], [-666.0, -1332.0])
 
     def test_dirichlet_multi_stage_6_plus_6(self):
-        self.run_simulation_multistages('dirichlet_multi_stage_6_plus_6', 9, 3, [-1334.0, -3000.0], [-666.0, -1332.0])
+        self.run_simulation_multistages('Dirichlet_multi_stage_6_plus_6', 9, 3, [-1334.0, -3000.0], [-666.0, -1332.0])
 
     def test_dirichlet_multi_stage_8_plus_8(self):
-        self.run_simulation_multistages('dirichlet_multi_stage_8_plus_8', 8, 4, [-1334.0, -3000.0], [-666.0, -1332.0])
+        self.run_simulation_multistages('Dirichlet_multi_stage_8_plus_8', 8, 4, [-1334.0, -3000.0], [-666.0, -1332.0])
 
 
     @staticmethod
