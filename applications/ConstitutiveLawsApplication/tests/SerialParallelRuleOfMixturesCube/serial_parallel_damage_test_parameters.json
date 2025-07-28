@@ -72,10 +72,7 @@
     },
     "_json_output_process" : [
     {
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
+        "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
         "Parameters"            : {
             "gauss_points_output_variables" : ["DAMAGE"],
             "output_file_name"              : "SerialParallelRuleOfMixturesCube/serial_parallel_damage_test_results.json",
@@ -86,10 +83,7 @@
     ]
 	//"_json_output_process" : [
 	//{
-	//	"python_module"   : "json_output_process",
-	//	"kratos_module" : "KratosMultiphysics",
-	//	"help"                  : "",
-	//	"process_name"          : "JsonOutputProcess",
+	//	"name" : "Processes.KratosMultiphysics.JsonOutputProcess",
 	//	"Parameters"            : {
 	//		"gauss_points_output_variables" : ["DAMAGE"],
 	//		"output_file_name"              : "SerialParallelRuleOfMixturesCube/serial_parallel_damage_test_results.json",

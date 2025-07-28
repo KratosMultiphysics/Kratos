@@ -78,10 +78,7 @@
     },
     "_json_output_process" : [
     {
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
+        "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
         "Parameters"            : {
             "output_variables" : ["DISPLACEMENT_Y"],
             "output_file_name" : "pendulus_test/pendulus_test_results.json",
