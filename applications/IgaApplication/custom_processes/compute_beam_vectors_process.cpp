@@ -28,41 +28,52 @@ ComputeBeamVectorsProcess::ComputeBeamVectorsProcess(
     const NurbsCurveGeometry<3, PointerVector<Node>>& rParentCurve)
     : Process()
     , mrThisModelPart(rModelPart)
-    , mrParentCurve(rParentCurve)
+    , mpParentCurve(&rParentCurve)
+{
+}
+
+ComputeBeamVectorsProcess::ComputeBeamVectorsProcess(
+    ModelPart& rModelPart,
+    const NurbsCurveOnSurfaceGeometry<3, PointerVector<Node>, PointerVector<Node>>& rParentCurve)
+    : Process()
+    , mrThisModelPart(rModelPart)
+    , mpParentCurve(&rParentCurve)
 {
 }
 
 void ComputeBeamVectorsProcess::ExecuteInitialize()
 {
-    // Use the provided parent curve
-    array_1d<double, 3> t0, n0;
-    ComputeT0AndN0(mrParentCurve, t0, n0);
-
-    // Set T_0 and N_0 on the properties (elements access via GetProperties()[T_0/N_0])
-    auto& properties = mrThisModelPart.GetProperties(0);
-    properties.SetValue(T_0, t0);
-    properties.SetValue(N_0, n0);
-}
-
-void ComputeBeamVectorsProcess::ComputeT0AndN0(
-    const NurbsCurveGeometry<3, PointerVector<Node>>& rCurve,
-    array_1d<double, 3>& rT0,
-    array_1d<double, 3>& rN0)
-{
+    array_1d<double, 3> T;
+    array_1d<double, 3> V = ZeroVector(3);
+    array_1d<double, 3> N = ZeroVector(3);
+    array_1d<double, 3> up = ZeroVector(3);
+    
     // Evaluate at the start of the beam (parameter = 0)
     array_1d<double, 3> local_coordinates = ZeroVector(3);
     std::vector<array_1d<double, 3>> global_space_derivatives;
-    rCurve.GlobalSpaceDerivatives(global_space_derivatives, local_coordinates, 1);
+    mpParentCurve->GlobalSpaceDerivatives(global_space_derivatives, local_coordinates, 1);
 
     // Tangent vector (normalized)
-    rT0 = global_space_derivatives[1];
-    rT0 /= norm_2(rT0);
+    T = global_space_derivatives[1];
+    T /= norm_2(T);
 
-    // Normal vector (cross product of -Y axis and tangent)
-    array_1d<double, 3> y_axis_negative = ZeroVector(3);
-    y_axis_negative[1] = -1.0;
+    up[2] = 1.0; // Z-up
+    if (std::abs(inner_prod(T, up)) > 0.99) {
+        up[2] = 0.0;
+        up[1] = 1.0; // switch to Y-up
+    }
 
-    MathUtils<double>::CrossProduct(rN0, y_axis_negative, rT0);
+    MathUtils<double>::CrossProduct(V, T, up);
+    V /= norm_2(V); // normalize binormal
+    MathUtils<double>::CrossProduct(N, V, T);
+    N /= norm_2(N); 
+
+    // Set T_0 and N_0 on the properties (elements access via GetProperties()[T_0/N_0])
+    auto& properties = mrThisModelPart.GetProperties(0);
+    properties.SetValue(T_0, T);
+    properties.SetValue(N_0, N);
+
 }
+
 
 } // namespace Kratos

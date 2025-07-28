@@ -59,6 +59,9 @@
 #include "custom_modelers/nurbs_geometry_modeler_sbm.h"
 #include "custom_modelers/import_nurbs_sbm_modeler.h"
 
+//constitutive
+#include "custom_constitutive/bernoulli_beam_elastic_constitutive_law.h"
+
 namespace Kratos {
 
 ///@name Kratos Classes
@@ -172,6 +175,9 @@ private:
     const NurbsGeometryModeler mNurbsGeometryModeler;
     const NurbsGeometryModelerSbm mNurbsGeometryModelerSbm;
     const ImportNurbsSbmModeler mImportNurbsSbmModeler;
+
+    // Constitutive Laws
+    const BernoulliBeamElasticConstitutiveLaw mBernoulliBeamElasticConstitutiveLaw;
 
     ///@}
     ///@name Private methods

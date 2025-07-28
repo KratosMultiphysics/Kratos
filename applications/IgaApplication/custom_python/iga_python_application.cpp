@@ -23,6 +23,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_solvers_to_python.h"
+#include "custom_python/add_custom_constitutive_laws_to_python.h"
 
 namespace Kratos {
 namespace Python {
@@ -64,8 +65,8 @@ PYBIND11_MODULE(KratosIgaApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CENTER_LINE_ROTATION)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, T_0)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, N_0)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, I_Y)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, I_Z)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, I_V)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, I_N)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, I_T)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HEIGHT)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, WIDTH)
@@ -74,6 +75,7 @@ PYBIND11_MODULE(KratosIgaApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOCAL_CS_V)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOCAL_CS_v)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VON_MISES_STRESS)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ROTATIONAL_DOF_ACTIVE)
 
     // 5p Director Shell Variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DIRECTOR_COMPUTED)
@@ -117,6 +119,7 @@ PYBIND11_MODULE(KratosIgaApplication, m)
     AddCustomProcessesToPython(m);
     AddCustomStrategiesToPython(m);
     AddCustomSolversToPython(m);
+    AddCustomConstitutiveLawsToPython(m);
 }
 
 } // namespace Python

@@ -5,8 +5,8 @@
 //      /___/\____/_/  |_| Application
 
 
-//#if !defined(KRATOS_ISOGEOMETRIC_BEAM_ELEMENT_H_INCLUDED)
-//#define KRATOS_ISOGEOMETRIC_BEAM_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_ISOGEOMETRIC_BEAM_ELEMENT_H_INCLUDED)
+#define KRATOS_ISOGEOMETRIC_BEAM_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -33,17 +33,80 @@ class KRATOS_API(IGA_APPLICATION) IsogeometricBeamElement final
 
 {
 protected:
-    using Matrix3d = BoundedMatrix<double, 3, 3>;
-    using Matrix2d = BoundedMatrix<double, 2, 2>;
-    using Matrix32d = BoundedMatrix<double, 3, 2>;
-    using Matrix23d = BoundedMatrix<double, 2, 3>;
-    using Vector3d = BoundedVector<double, 3>;
-    
-    
+    using Vector3d = Kratos::array_1d<double, 3>;
+    using Matrix3d = Kratos::BoundedMatrix<double, 3, 3>;
+    using Matrix2d = Kratos::BoundedMatrix<double, 2, 2>;
+    using Matrix32d = Kratos::BoundedMatrix<double, 3, 2>;
+    using Matrix23d = Kratos::BoundedMatrix<double, 2, 3>;
+
     template <typename... Args>
     auto cross_prod(Args&&... args) {
         return MathUtils<double>::CrossProduct(std::forward<Args>(args)...);
     }
+
+    struct KinematicVariables
+    {
+        // Reference configuration
+        array_1d<double, 3> R1;     // Reference tangent vector
+        array_1d<double, 3> R2;     // Reference curvature vector  
+        array_1d<double, 3> R3;     // Reference third derivative
+        double A;                    // Reference length measure
+        double B;                    // Reference curvature measure
+        
+        // Current configuration
+        array_1d<double, 3> r1;     // Current tangent vector
+        array_1d<double, 3> r2;     // Current curvature vector
+        array_1d<double, 3> r3;     // Current third derivative
+        double a;                    // Current length measure
+        double b;                    // Current curvature measure
+        
+        // Cross-section directors
+        array_1d<double, 3> N0, V0;  // Reference directors
+        array_1d<double, 3> n, v;    // Current directors
+        
+        // Curvature components
+        double B_n, B_v;             // Reference curvatures
+        double b_n, b_v;             // Current curvatures
+        double C_12, C_13;           // Reference twist
+        double c_12, c_13;           // Current twist
+        
+        // Rotations
+        double Phi, Phi_der, Phi_der2;    // Reference rotation
+        double phi, phi_der, phi_der2;    // Current rotation
+        
+        KinematicVariables(SizeType Dimension = 3)
+        {
+            R1 = ZeroVector(Dimension);
+            R2 = ZeroVector(Dimension);
+            R3 = ZeroVector(Dimension);
+            r1 = ZeroVector(Dimension);
+            r2 = ZeroVector(Dimension);
+            r3 = ZeroVector(Dimension);
+            N0 = ZeroVector(Dimension);
+            V0 = ZeroVector(Dimension);
+            n = ZeroVector(Dimension);
+            v = ZeroVector(Dimension);
+            A = B = a = b = 0.0;
+            B_n = B_v = b_n = b_v = 0.0;
+            C_12 = C_13 = c_12 = c_13 = 0.0;
+            Phi = Phi_der = Phi_der2 = 0.0;
+            phi = phi_der = phi_der2 = 0.0;
+        }
+    };
+
+    struct ConstitutiveVariables
+    {
+        Vector StrainVector;
+        Vector StressVector;
+        Matrix ConstitutiveMatrix;
+        
+        ConstitutiveVariables(SizeType StrainSize = 3)
+        {
+            StrainVector = ZeroVector(StrainSize);
+            StressVector = ZeroVector(StrainSize);
+            ConstitutiveMatrix = ZeroMatrix(StrainSize, StrainSize);
+        }
+    };
 
 public:
     ///@name Type Definitions
@@ -89,7 +152,7 @@ public:
     ~IsogeometricBeamElement() override = default;
 
     ///@}
-    ///@name Life Cycle
+    ///@name Element Creation
     ///@{
 
     /// Create with Id, pointer to geometry and pointer to property
@@ -132,78 +195,12 @@ public:
     ) const override;
 
     ///@}
-    ///@name Analysis stages
+    ///@name Element Calculations
     ///@{
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
     void InitializeMaterial();
-    //new:
-    void set_Memory();
 
-    void comp_mat_lambda(Matrix3d& _mat_lambda, Vector3d _vec1, Vector3d _vec2);
-    void comp_mat_lambda_deriv(Matrix3d& _mat_lambda_der, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_deriv, Vector3d _vec2_deriv);
-    void comp_mat_lambda_deriv2(Matrix3d& _mat_lambda_derder, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_deriv, Vector3d _vec2_deriv, Vector3d _vec1_deriv2, Vector3d _vec2_deriv2);
-    void comp_mat_lambda_var(Matrix& _mat_lam_var, Vector3d _vec1, Vector3d _vec2, Vector _vec2_var);
-    void comp_mat_lambda_var_var(Matrix& _mat_lam_var_var, Vector3d _vec1, Vector3d _vec2, Vector _vec2_var, Matrix _vec2_var_var);
-    void comp_mat_lambda_deriv_var(Matrix& _mat_lam_der_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector _vec2_var, Vector3d _vec2_der, Vector _vec2_der_var);
-    void comp_mat_lambda_deriv2_var(Matrix& _mat_lam_derder_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector3d _vec1_derder, Vector _vec2_var, Vector3d _vec2_der, Vector3d _vec2_derder, Vector _vec2_der_var, Vector _vec2_derder_var);
-    void comp_mat_lambda_deriv_var_var(Matrix& _mat_lam_der_var_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector _vec2_var, Vector3d _vec2_der, Vector _vec2_der_var, Matrix _vec2_var_var, Matrix _vec2_der_var_var);
-    void comp_mat_lambda_all(Matrix& _mat_lambda_var, Matrix& _mat_lam_der_var, Matrix& _mat_lam_var_var, Matrix& _mat_lam_der_var_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector _vec2_var, Vector3d _vec2_der, Vector _vec2_der_var, Matrix _vec2_var_var, Matrix _vec2_der_var_var);
-    
-    
-    void comp_T_var(Vector& _t_var, Vector& _deriv, Vector3d& _r1);
-    void comp_T_deriv_var(Vector& _t_deriv_var, Vector& _deriv, Vector& _deriv2, Vector3d& _r1, Vector3d& _r2);
-    void comp_T_var_var(Matrix& _t_var_var, Vector& _deriv, Vector3d& _r1);
-    void comp_T_deriv_var_var(Matrix& _t_deriv_var_var, Vector& _deriv, Vector& _deriv2, Vector3d& _r1, Vector3d& _r2);
-    void comp_T_deriv2_var(Vector& _t_deriv2_var, Vector& _deriv, Vector& _deriv2, Vector& _deriv3, Vector3d& _r1, Vector3d& _r2, Vector3d& _r3);
-
-    void comp_Geometry_initial(Vector& _deriv, Vector& _deriv2, Vector3d& _r1, Vector3d& _r2, float& _a, float& _b);
-    void comp_Geometry_initial(Vector& _deriv, Vector& _deriv2, Vector& _deriv3, Vector3d& _r1, Vector3d& _r2, Vector3d& _r3, float& _a, float& _b);
-    void comp_Geometry_reference(Vector _deriv, Vector _deriv2, Vector3d& _R1, Vector3d& _R2, float& _A_ref, float& _B_ref);
-    void comp_Geometry_reference(Vector _deriv, Vector _deriv2, Vector _deriv3, Vector3d& _R1, Vector3d& _R2, Vector3d& _R3, float& _A_ref, float& _B_ref);
-    void comp_Geometry_reference_cross_section( Vector3d _R1, Vector3d _R2, Vector3d _T0_vec, Vector3d& _n_act, Vector3d& _v_act, Vector3d& _n0, Vector3d& _v0, float& _B_n, float& _B_v, float& _C_12, float& _C_13, float& _Phi, float& _Phi_0_der);
-    void comp_Geometry_actual(const ProcessInfo& rCurrentProcessInfo,Vector& _deriv, Vector& _deriv2, Vector3d& _r1, Vector3d& _r2, float& _a, float& _b);
-    void comp_Geometry_actual(const ProcessInfo& rCurrentProcessInfo,Vector& _deriv, Vector& _deriv2, Vector& _deriv3, Vector3d& _r1, Vector3d& _r2, Vector3d& _r3, float& _a, float& _b);
-    void comp_Geometry_actual_cross_section(Vector3d _r1, Vector3d _R1, Vector3d _r2, Vector3d _R2, Vector3d& _n_act, Vector3d& _v_act, Vector3d& _N0, Vector3d& _V0, float& _b_n, float& _b_v, float& _c_12, float& _c_13, float _phi, float _phi_der, float _Phi, float _Phi_der);
-
-    //void get_Dof_Types_Per_Node(std::vector<dof_type>& _act_dofs);
-    Vector comp_phi_dof(Vector& _func);
-    void comp_Phi_ref_prop(float& _Phi, float& _Phi_0_der);
-    Vector comp_epsilon_dof(Vector3d& _r1, Vector& _shape_func_deriv);
-    Matrix comp_epsilon_dof_2(Vector3d& _r1, Vector& _shape_func_deriv);
-
-    void comp_mat_rodrigues(Matrix3d& _mat_rod, Vector3d _vec, float _phi);
-    void comp_mat_rodrigues_deriv(Matrix3d& _mat_rod_der, Vector3d _vec, Vector3d _vec_deriv, float _phi, float _phi_deriv);
-    void comp_mat_rodrigues_var(Matrix& _mat_rod_var, Vector3d _vec, Vector _vec_var, Vector _func, float _phi);
-    void comp_mat_rodrigues_var_var(Matrix& _mat_rod_var_var, Vector3d _vec, Vector _vec_var, Matrix _vec_var_var, Vector _func, float _phi);
-    void comp_mat_rodrigues_deriv_var(Matrix& _mat_rod_der_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Vector _func, Vector _deriv, float _phi, float _phi_der);
-    void comp_mat_rodrigues_deriv_var_var(Matrix& _mat_rod_der_var_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Matrix& _vec_var_var, Matrix& _vec_der_var_var, Vector _func, Vector _deriv, float _phi, float _phi_der);
-    void comp_mat_rodrigues_deriv2(Matrix3d& _mat_rod_derder, Vector3d _vec, Vector3d _vec_deriv, Vector3d _vec_deriv2, float _phi, float _phi_deriv, float _phi_deriv2);
-    void comp_mat_rodrigues_deriv2_var(Matrix& _mat_rod_derder_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Vector3d _vec_derder, Vector _vec_derder_var, Vector _func, Vector _deriv, Vector _deriv2, float _phi, float _phi_der, float _phi_der2);
-    void comp_mat_rodrigues_all(Matrix& _mat_rod_var, Matrix& _mat_rod_der_var, Matrix& _mat_rod_var_var, Matrix& _mat_rod_der_var_var, Vector3d _vec, Vector3d _vec_var, Vector3d _vec_der, Vector _vec_der_var, Matrix& _vec_var_var, Matrix& _vec_der_var_var, Vector _func, Vector _deriv, float _phi, float _phi_der);
-
-    void comp_dof_lin(Vector& _cur_var_n, Vector& _cur_var_v, Vector& _tor_var_n, Vector& _tor_var_v, Vector& _shear_var_n, Vector& _shear_var_v, Vector3d& _r1, Vector3d& _R1, Vector3d& _r2, Vector3d& _R2, Vector3d& _r3, Vector3d& _R3, Vector3d& _N0, Vector3d& _V0, Vector& _func, Vector& _deriv, Vector& _deriv2, Vector& _deriv3, float _phi, float _phi_der, float _phi_der2, float _Phi, float _Phi_der, float _Phi_der2);
-    void comp_dof_lin(Vector& _cur_var_n, Vector& _cur_var_v, Vector& _tor_var_n, Vector& _tor_var_v, Vector3d& _r1, Vector3d& _R1, Vector3d& _r2, Vector3d& _R2, Vector3d& _N0, Vector3d& _V0, Vector& _func, Vector& _deriv, Vector& _deriv2, float _phi, float _phi_der, float _Phi, float _Phi_der);
-    void comp_dof_nln(Vector& _cur_var_n, Vector& _cur_var_v, Vector& _tor_var_n, Vector& _tor_var_v, Matrix& _cur_var_n_2, Matrix& _cur_var_v_2, Matrix& _tor_var_n_2, Matrix& _tor_var_v_2,  Vector3d& _r1, Vector3d& _R1, Vector3d& _r2, Vector3d& _R2, Vector3d& _N0, Vector3d& _V0, Vector& _func, Vector& _deriv, Vector& _deriv2, float _phi, float _phi_der, float _Phi, float _Phi_der);
-
-    void parametric_mapping(Vector& _knot_vector, double  u, double& u_mid);
-
-    void stiff_mat_el_lin(const ProcessInfo& rCurrentProcessInfo, IndexType integration_point_index, Matrix& _gke, Vector& _gfie, float& _dL);
-    void stiff_mat_el_nln(const ProcessInfo& rCurrentProcessInfo, IndexType integration_point_index, Matrix& _gke, Vector& _gfie, float& _dL);
-    void mass_mat_el_lin(const ProcessInfo& rCurrentProcessInfo, Matrix& _me);
-    void stiff_mat_el_geo(const ProcessInfo& rCurrentProcessInfo, IndexType integration_point_index, Matrix& _gke,  float& _dL);
-    
-    void calc_Geo_Lin_Stiff(const ProcessInfo& rCurrentProcessInfo, Matrix& _stiffness_mtx, Vector& _f_Int);
-    
-    void comp_transverse_shear_force_nln(Vector3d _r1, Vector3d _R1, Vector3d _r2, Vector3d _R2, Vector3d _r3, Vector3d _R3,  Vector3d& _N0, Vector3d& _V0, float _phi, float _phi_der, float _phi_der2, float _Phi, float _Phi_der, float _Phi_der2, float& _shear_force_n, float& _shear_force_v);
-
-    void stress_res_lin(const ProcessInfo& rCurrentProcessInfo,  IndexType integration_point_index, Vector3d& _f, Vector3d& _m);
-    void stress_res_nln(const ProcessInfo& rCurrentProcessInfo, IndexType integration_point_index, Vector3d& _f, Vector3d& _m);
-
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable, std::vector<array_1d<double, 3>>& rOutput,const ProcessInfo& rCurrentProcessInfo) override;
-    void CalculateOnIntegrationPoints(const  Variable<Vector>& rVariable, std::vector <Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-    void CalculateOnIntegrationPoints(const  Variable<double>& rVariable, std::vector <double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-    
     //Computes RHS
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
@@ -265,57 +262,43 @@ public:
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
-        const bool ComputeLeftHandSide,
-        const bool ComputeRightHandSide);
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag);
 
-    /// Updates the constitutive law
-    //void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateKinematics(
+        const IndexType IntegrationPointIndex,
+        KinematicVariables& rKinematicVariables);
 
-    ///@}
-    ///@name Load functions
-    ///@{
+    void CalculateConstitutiveVariables(
+        const IndexType IntegrationPointIndex,
+        KinematicVariables& rKinematics,
+        ConstitutiveVariables& rConstitutiveVars,
+        ConstitutiveLaw::Parameters& rValues,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure);
 
-    //void CalculateBodyForces(Vector& rBodyForces);
+    void ComputeBMatrices(
+        IndexType point_number,
+        KinematicVariables& rKinematicVariables,
+        Matrix& rBAxial,
+        Matrix& rBBending1,
+        Matrix& rBBending2,
+        Matrix& rBTorsion1,
+        Matrix& rBTorsion2);
 
-    //bool HasSelfWeight() const;
-
-    ///@}
-    ///@name Explicit dynamic functions
-    ///@{
-
-    //void AddExplicitContribution(const VectorType& rRHSVector,const Variable<VectorType>& rRHSVariable,const Variable<double >& rDestinationVariable,const ProcessInfo& rCurrentProcessInfo) override;
-
-    //void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,const Variable<array_1d<double, 3>>& rDestinationVariable,const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///@}
-    ///@name Dynamic functions
-    ///@{
-
-    //void CalculateDampingMatrix(MatrixType& rDampingMatrix,const ProcessInfo& rCurrentProcessInfo) override;
-
-    /// Calculates the mass matrix with use of the lumped mass vector
-    //void CalculateMassMatrix(MatrixType& rMassMatrix,const ProcessInfo& rCurrentProcessInfo) override;
-
-    /// Calculates lumped mass vector
-    //void CalculateLumpedMassVector( VectorType& rLumpedMassVector,const ProcessInfo& rCurrentProcessInfo) const override;
+    void ComputeGMatrices(
+        IndexType point_number,
+        KinematicVariables& rKinematicVariables,
+        Matrix& rGAxial,
+        Matrix& rGBending1,
+        Matrix& rGBending2,
+        Matrix& rGTorsion1,
+        Matrix& rGTorsion2);
 
     /// Get Displacemnts
-    void GetValuesVector(Vector& rValues,int Step = 0) const override;
-
-    /// Get Velocities
-    void GetFirstDerivativesVector(Vector& rValues,int Step = 0) const override;
-
-    /// Get Accelerations
-    void GetSecondDerivativesVector(Vector& rValues,int Step = 0) const override;
+    void GetValuesVector(Vector& rValues, int Step) const override;
 
     ///@}
-    ///@name Output functions
-    ///@{
-
-//void CalculateOnIntegrationPoints(const Variable<double>& rVariable,std::vector<double>& rOutput,const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///@}
-    ///@name Info
+    ///@name Input and Output
     ///@{
 
     /// Check provided parameters
@@ -348,7 +331,39 @@ public:
     ///@}
 private:
 
-    float Tol = 1.0e-8;
+    double mTolerance = 1.0e-8;
+
+    void CompMatLambda(Matrix3d& _mat_lambda, Vector3d _vec1, Vector3d _vec2);
+    void CompMatLambdaDeriv(Matrix3d& _mat_lambda_der, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_deriv, Vector3d _vec2_deriv);
+    void CompMatLambdaDeriv2(Matrix3d& _mat_lambda_derder, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_deriv, Vector3d _vec2_deriv, Vector3d _vec1_deriv2, Vector3d _vec2_deriv2);
+    void CompMatLambdaVar(Matrix& _mat_lam_var, Vector3d _vec1, Vector3d _vec2, Vector _vec2_var);
+    void CompMatLambdaVarVar(Matrix& _mat_lam_var_var, Vector3d _vec1, Vector3d _vec2, Vector _vec2_var, Matrix _vec2_var_var);
+    void CompMatLambdaDerivVar(Matrix& _mat_lam_der_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector _vec2_var, Vector3d _vec2_der, Vector _vec2_der_var);
+    void CompMatLambdaDeriv2Var(Matrix& _mat_lam_derder_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector3d _vec1_derder, Vector _vec2_var, Vector3d _vec2_der, Vector3d _vec2_derder, Vector _vec2_der_var, Vector _vec2_derder_var);
+    void CompMatLambdaDerivVarVar(Matrix& _mat_lam_der_var_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector _vec2_var, Vector3d _vec2_der, Vector _vec2_der_var, Matrix _vec2_var_var, Matrix _vec2_der_var_var);
+    void CompMatLambdaAll(Matrix& _mat_lambda_var, Matrix& _mat_lam_der_var, Matrix& _mat_lam_var_var, Matrix& _mat_lam_der_var_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector _vec2_var, Vector3d _vec2_der, Vector _vec2_der_var, Matrix _vec2_var_var, Matrix _vec2_der_var_var);
+    
+    void CompTVar(Vector& _t_var, Vector& _deriv, Vector3d& _r1);
+    void CompTDerivVar(Vector& _t_deriv_var, Vector& _deriv, Vector& _deriv2, Vector3d& _r1, Vector3d& _r2);
+    void CompTVarVar(Matrix& _t_var_var, Vector& _deriv, Vector3d& _r1);
+    void CompTDerivVarVar(Matrix& _t_deriv_var_var, Vector& _deriv, Vector& _deriv2, Vector3d& _r1, Vector3d& _r2);
+    void CompTDeriv2Var(Vector& _t_deriv2_var, Vector& _deriv, Vector& _deriv2, Vector& _deriv3, Vector3d& _r1, Vector3d& _r2, Vector3d& _r3);
+    void CompGeometryReferenceCrossSection( Vector3d _R1, Vector3d _R2, Vector3d _T0_vec, Vector3d& _n_act, Vector3d& _v_act, Vector3d& _n0, Vector3d& _v0, double& _B_n, double& _B_v, double& _C_12, double& _C_13, double& _Phi, double& _Phi_0_der);
+    void CompGeometryActualCrossSection(Vector3d _r1, Vector3d _R1, Vector3d _r2, Vector3d _R2, Vector3d& _n_act, Vector3d& _v_act, Vector3d& _N0, Vector3d& _V0, double& _b_n, double& _b_v, double& _c_12, double& _c_13, double _phi, double _phi_der, double _Phi, double _Phi_der);
+    Vector CompPhiDof(Vector& _func);
+    void CompPhiRefProp(double& _Phi, double& _Phi_0_der);
+    Vector CompEpsilonDof(Vector3d& _r1, Vector& _shape_func_deriv);
+    Matrix CompEpsilonDof2(Vector3d& _r1, Vector& _shape_func_deriv);
+
+    void CompMatRodrigues(Matrix3d& _mat_rod, Vector3d _vec, double _phi);
+    void CompMatRodriguesDeriv(Matrix3d& _mat_rod_der, Vector3d _vec, Vector3d _vec_deriv, double _phi, double _phi_deriv);
+    void CompMatRodriguesVar(Matrix& _mat_rod_var, Vector3d _vec, Vector _vec_var, Vector _func, double _phi);
+    void comp_mat_rodrigues_var_var(Matrix& _mat_rod_var_var, Vector3d _vec, Vector _vec_var, Matrix _vec_var_var, Vector _func, double _phi);
+    void comp_mat_rodrigues_deriv_var(Matrix& _mat_rod_der_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Vector _func, Vector _deriv, double _phi, double _phi_der);
+    void comp_mat_rodrigues_deriv_var_var(Matrix& _mat_rod_der_var_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Matrix& _vec_var_var, Matrix& _vec_der_var_var, Vector _func, Vector _deriv, double _phi, double _phi_der);
+    void comp_mat_rodrigues_deriv2(Matrix3d& _mat_rod_derder, Vector3d _vec, Vector3d _vec_deriv, Vector3d _vec_deriv2, double _phi, double _phi_deriv, double _phi_deriv2);
+    void comp_mat_rodrigues_deriv2_var(Matrix& _mat_rod_derder_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Vector3d _vec_derder, Vector _vec_derder_var, Vector _func, Vector _deriv, Vector _deriv2, double _phi, double _phi_der, double _phi_der2);
+    void comp_mat_rodrigues_all(Matrix& _mat_rod_var, Matrix& _mat_rod_der_var, Matrix& _mat_rod_var_var, Matrix& _mat_rod_der_var_var, Vector3d _vec, Vector3d _vec_var, Vector3d _vec_der, Vector _vec_der_var, Matrix& _vec_var_var, Matrix& _vec_der_var_var, Vector _func, Vector _deriv, double _phi, double _phi_der);
 
     Matrix3d cross_prod_vec_mat(const Vector3d& vec, const Matrix3d& mat)
     {
@@ -391,162 +406,44 @@ private:
         return mat_vec;
     }
 
-    NurbsCurveGeometry<3, PointerVector<NodeType>>::Pointer pCurve;
-
-    /// The vector containing the constitutive laws for all integration points.
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-    SizeType _n_Dof;
-    SizeType N_Dof;
-    //list of matrices and vectors which size depends on the number of dofs
-    SizeType Dof_Node;
-    Matrix _gke;
-    Vector _gfie;
-    Matrix S_gke;           //Stiff matrix for Gausspoints
-    Vector S_fie;           //internal force  (Gauss point)
-    Vector S_dL;           //differential length
-    Vector S_eps_var;
-    Vector S_curv_n_var;
-    Vector S_curv_v_var;
-    Vector S_torsion_var;
-    Vector S_torsion_n_var;
-    Vector S_torsion_v_var;
-    Vector S_shear_n_var;
-    Vector S_shear_v_var;
-    Matrix S_eps_var_var;
-    Matrix S_curv_n_var_var;
-    Matrix S_curv_v_var_var;
-    Matrix S_torsion_var_var;
-    Matrix S_torsion_n_var_var;
-    Matrix S_torsion_v_var_var;
-    Matrix S_kem;           //membrane stiffness
-    Matrix S_keb_n;           //bending stiffness
-    Matrix S_keb_v;           //bending stiffness
-    Matrix S_ket_n;           //torsional stiffness
-    Matrix S_ket_v;           //torsional stiffness
-    Matrix S_me;            //mass matrix
-    Vector S_fiem;          //internal force (membrane)
-    Vector S_fieb_n;          //internal force (bending)
-    Vector S_fieb_v;          //internal force (bending)
-    Vector S_fiet_n;          //internal force (torsion)
-    Vector S_fiet_v;          //internal force (torsion)
-    Vector S_R;             //NURBS function
-    Vector S_dR;            //1st derivatives
-    Vector S_ddR;           //2nd derivatives
-    //first variation of mapping matrices
-    Matrix S_mat_rod_var;
-    Matrix S_mat_lam_var;
-    Matrix S_mat_lam_var_Rod_Lam;
-    Matrix S_mat_rod_lam_var_Rod_Lam;
-    Matrix S_mat_rod_var_lam_Rod_Lam;
-    Matrix S_mat_rodlamRodLam_var;
-    Matrix S_mat_rod_der_var;
-    Matrix S_mat_lam_der_var;
-    Matrix S_mat_lam_der_var_Rod_Lam;
-    Matrix S_mat_lam_var_Rod_der_Lam;
-    Matrix S_mat_lam_var_Rod_Lam_der;
-    Matrix S_mat_rod_der_lam_var_Rod_Lam;
-    Matrix S_mat_rod_lam_der_var_Rod_Lam;
-    Matrix S_mat_rod_lam_var_Rod_der_Lam;
-    Matrix S_mat_rod_lam_var_Rod_Lam_der;
-    Matrix S_mat_rod_der_var_lam_Rod_Lam;
-    Matrix S_mat_rod_var_lam_der_Rod_Lam;
-    Matrix S_mat_rod_var_lam_Rod_der_Lam;
-    Matrix S_mat_rod_var_lam_Rod_Lam_der;
-    Matrix S_mat_rodlamRodLam_der_var;
-    //second variation of mapping matrices
-    Matrix S_mat_rod_var_var;
-    Matrix S_mat_lam_var_var;
-    Matrix S_mat_lam_var_var_Rod_Lam;
-    Matrix S_mat_rod_lam_var_var_Rod_Lam;
-    Matrix S_mat_rod_var_lam_var_Rod_Lam;
-    Matrix S_mat_rod_var_var_lam_Rod_Lam;
-    Matrix S_mat_rodlamRodLam_var_var;
-    Matrix S_mat_rod_der_var_var;
-    Matrix S_mat_lam_der_var_var;
-    Matrix S_mat_lam_der_var_var_Rod_Lam;
-    Matrix S_mat_lam_var_var_Rod_der_Lam;
-    Matrix S_mat_lam_var_var_Rod_Lam_der;
-    Vector S_U_Vec;          //Knot vector in u-direction
-    Vector S_weights;      //weights of the Control points
+    SizeType mNumberOfDofs;
+    SizeType mDofsPerNode;
+    Matrix mSMatRodVar;
+    Matrix mSMatLamVar;
+    Matrix mSMatLamVarRodLam;
+    Matrix mSMatRodLamVarRodLam;
+    Matrix mSMatRodVarLamRodLam;
+    Matrix mSMatRodLamRodLamVar;
+    Matrix mSMatRodDerVar;
+    Matrix mSMatLamDerVar;
+    Matrix mSMatLamDerVarRodLam;
+    Matrix mSMatLamVarRodDerLam;
+    Matrix mSMatLamVarRodLamDer;
+    Matrix mSMatRodDerLamVarRodLam;
+    Matrix mSMatRodLamDerVarRodLam;
+    Matrix mSMatRodLamVarRodDerLam;
+    Matrix mSMatRodLamVarRodLamDer;
+    Matrix mSMatRodDerVarLamRodLam;
+    Matrix mSMatRodVarLamDerRodLam;
+    Matrix mSMatRodVarLamRodDerLam;
+    Matrix mSMatRodVarLamRodLamDer;
+    Matrix mSMatRodLamRodLamDerVar;
+    Matrix mSMatRodVarVar;
+    Matrix mSMatLamVarVar;
+    Matrix mSMatLamVarVarRodLam;
+    Matrix mSMatRodDerVarVar;
+    Matrix mSMatLamDerVarVar;
+    Matrix mSMatLamDerVarVarRodLam;
+    Matrix mSMatLamVarVarRodDerLam;
+    Matrix mSMatLamVarVarRodLamDer;
 
     Vector3d N;
     Vector3d n;
     Vector3d V;
     Vector3d v;
-
-    ///@name Private member
-    ///@{
-
-
-    std::vector<array_1d<double, 3>> mReferenceBaseVector;
-
-    ///@}
-    ///@name Private operations
-    ///@{
-
-    /// Initializes constitutive law vector and materials.
-    //void InitializeMaterial();
-
-    /// Computes the base vector at a integration point position.
-    //array_1d<double, 3> CalculateActualBaseVector(IndexType IntegrationPointIndex) const;
-
-    /// Computes Green Lagrange Strain for all integration points
-    //void CalculateGreenLagrangeStrain(std::vector<double>& rGreenLagrangeVector) const;
-
-    //void CalculateTangentModulus(std::vector<double>& rTangentModulusVector, const ProcessInfo& rCurrentProcessInfo);
-
-
-    /// Computes prestress
-    //double CalculatePrestressPK2(double reference_a, double actual_a) const;
-
-    /// Computes PK2 stress
-    //void CalculateStressPK2(std::vector<double>& rStressVector,const ProcessInfo& rCurrentProcessInfo) const;
-
-    /// Computes cauchy stress
-    //void CalculateStressCauchy(std::vector<double>& rStressVector,const ProcessInfo& rCurrentProcessInfo) const;
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    friend class Serializer;
-
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IsogeometricBeamElement);
-        rSerializer.save("ReferenceBaseVector", mReferenceBaseVector);
-        rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
-    }
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IsogeometricBeamElement);
-        rSerializer.load("ReferenceBaseVector", mReferenceBaseVector);
-        rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
-    }
-
-    void ExportMatrixToCSV(const MatrixType& matrix, const std::string& matrix_filename) {
-        std::ofstream mat_file(matrix_filename);
-        for (std::size_t i = 0; i < matrix.size1(); ++i) {
-            for (std::size_t j = 0; j < matrix.size2(); ++j) {
-                mat_file << matrix(i, j);
-                if (j + 1 < matrix.size2()) mat_file << ",";
-            }
-            mat_file << "\n";
-        }
-        mat_file.close();
-    }
-
-    void ExportVectorToCSV(const VectorType& vector, const std::string& vector_filename) {
-        std::ofstream vec_file(vector_filename);
-        for (std::size_t i = 0; i < vector.size(); ++i) {
-            vec_file << vector(i) << "\n";
-        }
-        vec_file.close();
-    }
-
-    ///@}
 };
 
 } // namespace Kratos
 
-//#endif // !defined(KRATOS_ISOGEOMETRIC_BEAM_ELEMENT_H_INCLUDED)
+#endif // !defined(KRATOS_ISOGEOMETRIC_BEAM_ELEMENT_H_INCLUDED)
