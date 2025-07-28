@@ -493,7 +493,7 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateLocalSystem(
 
         auto body_forces = GetBodyForce(*this, r_integration_points, IP);
         CalculateDisplacementInterpolationVectors(Nu, Nv, Nw, shape_functions);
-        const double area_weight = area * weight;
+        const double area_weight = area * weight * J;
         noalias(rRHS) += Nu * body_forces[0] * area_weight;
         noalias(rRHS) += Nv * body_forces[1] * area_weight;
         noalias(rRHS) += Nw * body_forces[2] * area_weight;
@@ -642,7 +642,7 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateRightHandSide(
 
         auto body_forces = GetBodyForce(*this, r_integration_points, IP);
         CalculateDisplacementInterpolationVectors(Nu, Nv, Nw, shape_functions);
-        const double area_weight = area * weight;
+        const double area_weight = area * weight * J;
         noalias(rRHS) += Nu * body_forces[0] * area_weight;
         noalias(rRHS) += Nv * body_forces[1] * area_weight;
         noalias(rRHS) += Nw * body_forces[2] * area_weight;
