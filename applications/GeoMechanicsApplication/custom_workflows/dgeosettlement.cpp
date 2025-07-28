@@ -13,13 +13,13 @@
 #include "input_output/logger.h"
 #include "time_loop_executor_interface.h"
 
+#include "custom_processes/apply_c_phi_reduction_process.h"
 #include "custom_processes/apply_excavation_process.h"
 #include "custom_processes/apply_k0_procedure_process.h"
 #include "custom_processes/apply_normal_load_table_process.h"
 #include "custom_processes/apply_scalar_constraint_table_process.h"
 #include "custom_processes/apply_vector_constraint_table_process.h"
 #include "custom_processes/set_parameter_field_process.hpp"
-#include "custom_processes/apply_c_phi_reduction_process.h"
 
 #include "adaptive_time_incrementor.h"
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
@@ -153,8 +153,7 @@ void KratosGeoSettlement::InitializeProcessFactory()
     mProcessFactory->AddCreator("ApplyK0ProcedureProcess", MakeCreatorFor<ApplyK0ProcedureProcess>());
     mProcessFactory->AddCreator("GeoExtrapolateIntegrationPointValuesToNodesProcess",
                                 MakeCreatorFor<GeoExtrapolateIntegrationPointValuesToNodesProcess>());
-    mProcessFactory->AddCreator("ApplyCPhiReductionProcess",
-                                MakeCreatorFor<ApplyCPhiReductionProcess>());
+    mProcessFactory->AddCreator("ApplyCPhiReductionProcess", MakeCreatorFor<ApplyCPhiReductionProcess>());
 
     mProcessFactory->SetCallBackWhenProcessIsUnknown([](const std::string& rProcessName) {
         KRATOS_ERROR << "Unexpected process (" << rProcessName << "), calculation is aborted";

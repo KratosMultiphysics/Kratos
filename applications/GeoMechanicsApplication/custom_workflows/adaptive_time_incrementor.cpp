@@ -68,10 +68,10 @@ bool AdaptiveTimeIncrementor::WantNextStep(const TimeStepEndState& rPreviousStat
 bool AdaptiveTimeIncrementor::WantRetryStep(std::size_t CycleNumber, const TimeStepEndState& rPreviousState) const
 {
     KRATOS_INFO("WantRetryStep") << "Cycle number = " << CycleNumber
-                                        << ", previous state time = " << rPreviousState.time
-                                        << ", end time = " << mEndTime
-                                        << ", delta time = " << mDeltaTime
-                                        << ", converged = " << rPreviousState.Converged() << ", max cycles = " << mMaxNumOfCycles << std::endl;
+                                 << ", previous state time = " << rPreviousState.time
+                                 << ", end time = " << mEndTime << ", delta time = " << mDeltaTime
+                                 << ", converged = " << rPreviousState.Converged()
+                                 << ", max cycles = " << mMaxNumOfCycles << std::endl;
     if (CycleNumber == 1) return true; // always carry out a first attempt
 
     if (rPreviousState.Converged()) return false; // the time step is done
