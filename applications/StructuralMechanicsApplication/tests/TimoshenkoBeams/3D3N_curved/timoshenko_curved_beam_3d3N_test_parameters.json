@@ -83,7 +83,7 @@
                     "gauss_points_check_variables" : [],
                     "input_file_name"              : "TimoshenkoBeams/3D3N_curved/timoshenko_curved_beam_3d3N_test_results.json",
                     "model_part_name"              : "Structure.Parts_Beam_beam",
-					"relative_tolerance"           : 1e-8,
+					"tolerance"                    : 1e-8,
                     "time_frequency"               : 1.0e-5
                 }
         }]
