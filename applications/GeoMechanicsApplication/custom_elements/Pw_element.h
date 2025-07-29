@@ -345,6 +345,7 @@ private:
     std::vector<RetentionLaw::Pointer>   mRetentionLawVector;
     Vector                               mIntegrationCoefficients;
     Matrix                               mNContainer;
+    Vector                               mDetJCcontainer;
 
     void CheckProperties() const
     {
@@ -528,10 +529,9 @@ private:
 
     Vector SaveIntegrationCoefficients()
     {
-        Vector det_J_container;
-        GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
+        GetGeometry().DeterminantOfJacobian(mDetJCcontainer, this->GetIntegrationMethod());
         return mIntegrationCoefficientsCalculator.Run<Vector>(
-            GetGeometry().IntegrationPoints(GetIntegrationMethod()), det_J_container, this);
+            GetGeometry().IntegrationPoints(GetIntegrationMethod()), mDetJCcontainer, this);
     }
 
     auto MakeProjectedGravityForIntegrationPointsGetter()
@@ -555,16 +555,14 @@ private:
     auto MakeShapeFunctionLocalGradientsGetter()
     {
         return [this]() {
-            Vector det_J_container;
-            GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
             GeometryType::ShapeFunctionsGradientsType dN_dX_container;
             if (GetGeometry().LocalSpaceDimension() == 1) {
                 dN_dX_container = GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
                 std::transform(dN_dX_container.begin(), dN_dX_container.end(),
-                               det_J_container.begin(), dN_dX_container.begin(), std::divides<>());
+                               mDetJCcontainer.begin(), dN_dX_container.begin(), std::divides<>());
             } else {
                 GetGeometry().ShapeFunctionsIntegrationPointsGradients(
-                    dN_dX_container, det_J_container, this->GetIntegrationMethod());
+                    dN_dX_container, mDetJCcontainer, this->GetIntegrationMethod());
             }
 
             return dN_dX_container;
