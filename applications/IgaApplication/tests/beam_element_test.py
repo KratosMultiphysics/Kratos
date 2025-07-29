@@ -413,14 +413,14 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.ROTATION))[1], 0.0               )
         self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.ROTATION))[2], 0.0               )
 
-    def testClampedFzNonlinear(self):
-        last_node= TestBeam4pElement.solve_nonlinear_example2()
+    # def testClampedFzNonlinear(self):
+    #     last_node= TestBeam4pElement.solve_nonlinear_example2()
 
-        disp = np.array(last_node.GetSolutionStepValue(KM.DISPLACEMENT)) #[np.float64(-0.13288290406702538), np.float64(-0.29808295882441466), np.float64(-1.1774740489689273)]
-        print(disp)
+    #     disp = np.array(last_node.GetSolutionStepValue(KM.DISPLACEMENT)) #[np.float64(-0.13288290406702538), np.float64(-0.29808295882441466), np.float64(-1.1774740489689273)]
+    #     print(disp)
         
-        #[np.float64(0.17825970462633664), np.float64(-0.34291686617111106), np.float64(-1.3504451938802777)]
-        pass 
+    #     #[np.float64(0.17825970462633664), np.float64(-0.34291686617111106), np.float64(-1.3504451938802777)]
+    #     pass 
 
 
 

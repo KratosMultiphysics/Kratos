@@ -347,10 +347,10 @@ private:
     void CompTVarVar(Matrix& _t_var_var, Vector& _deriv, Vector3d& _r1);
     void CompTDerivVarVar(Matrix& _t_deriv_var_var, Vector& _deriv, Vector& _deriv2, Vector3d& _r1, Vector3d& _r2);
     void CompTDeriv2Var(Vector& _t_deriv2_var, Vector& _deriv, Vector& _deriv2, Vector& _deriv3, Vector3d& _r1, Vector3d& _r2, Vector3d& _r3);
-    void CompGeometryReferenceCrossSection( Vector3d _R1, Vector3d _R2, Vector3d _T0_vec, Vector3d& _n_act, Vector3d& _v_act, Vector3d& _n0, Vector3d& _v0, double& _B_n, double& _B_v, double& _C_12, double& _C_13, double& _Phi, double& _Phi_0_der);
-    void CompGeometryActualCrossSection(Vector3d _r1, Vector3d _R1, Vector3d _r2, Vector3d _R2, Vector3d& _n_act, Vector3d& _v_act, Vector3d& _N0, Vector3d& _V0, double& _b_n, double& _b_v, double& _c_12, double& _c_13, double _phi, double _phi_der, double _Phi, double _Phi_der);
-    Vector CompPhiDof(Vector& _func);
-    void CompPhiRefProp(double& _Phi, double& _Phi_0_der);
+    void CompGeometryReferenceCrossSection(KinematicVariables &kinematic_variables);
+    void CompGeometryActualCrossSection(KinematicVariables &kinematic_variables);
+    double GetDeltaPhi(KinematicVariables &kinematic_variables, Vector3d &n);
+    void CompPhiRefProp(KinematicVariables &kinematic_variables, double& _Phi, double& _Phi_0_der);
     Vector CompEpsilonDof(Vector3d& _r1, Vector& _shape_func_deriv);
     Matrix CompEpsilonDof2(Vector3d& _r1, Vector& _shape_func_deriv);
 
