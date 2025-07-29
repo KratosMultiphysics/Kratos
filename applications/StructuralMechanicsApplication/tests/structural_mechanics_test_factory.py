@@ -100,6 +100,9 @@ class TimoshenkoBeam2D3NTest(StructuralMechanicsTestFactory):
 class TimoshenkoCurvedBeam2D3NTest(StructuralMechanicsTestFactory):
     file_name = "TimoshenkoBeams/2D3N_curved/timoshenko_curved_beam_2d3N_test"
 
+class TimoshenkoCurvedBeam3D3NTest(StructuralMechanicsTestFactory):
+    file_name = "TimoshenkoBeams/3D3N_curved/timoshenko_curved_beam_3d3N_test"
+
 class AutomatedInitialVariableProcessTest(StructuralMechanicsTestFactory):
     file_name = "automated_initial_variable_process_test/automated_initial_variable_process_test"
 
