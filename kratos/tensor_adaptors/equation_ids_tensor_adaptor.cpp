@@ -65,21 +65,34 @@ template<class TContainerPointerType>
 EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(
     TContainerPointerType pContainer,
     ProcessInfo::Pointer pProcessInfo)
-    : mpContainer(pContainer),
-      mpProcessInfo(pProcessInfo)
+    : mpProcessInfo(pProcessInfo)
 {
     const auto& r_getter = [pProcessInfo](auto& rEquationIde, const auto& rEntity){
         rEntity.EquationIdVector(rEquationIde, *pProcessInfo);
     };
 
-    this->SetShape(TensorAdaptorUtils::GetTensorShape<std::vector<IndexType>>(*pContainer, r_getter));
+    this->mpStorage = Kratos::make_intrusive<TensorData<int>>(
+        pContainer, TensorAdaptorUtils::GetTensorShape<std::vector<IndexType>>(
+                        *pContainer, r_getter));
 }
 
 void EquationIdsTensorAdaptor::CollectData()
 {
+    KRATOS_TRY
+
     std::visit([this](auto pContainer) {
-        EquationIdsTensorAdaptorHelpers::CollectData(this->ViewData(), this->Shape()[1], *pContainer, *(this->mpProcessInfo));
-    }, mpContainer);
+        using container_type = BareType<decltype(*pContainer)>;
+
+        if constexpr(IsInList<container_type, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>) {
+            KRATOS_ERROR_IF_NOT(this->Shape()[0] == pContainer->size())
+                << "First dimension mismatch [ Container size = " << pContainer->size()
+                << ", shape = " << this->Shape() << " ].\n";
+
+            EquationIdsTensorAdaptorHelpers::CollectData(this->ViewData(), this->Shape()[1], *pContainer, *(this->mpProcessInfo));
+        }
+    }, this->mpStorage->GetContainer());
+
+    KRATOS_CATCH("");
 }
 
 void EquationIdsTensorAdaptor::StoreData()
@@ -87,18 +100,12 @@ void EquationIdsTensorAdaptor::StoreData()
     KRATOS_ERROR << "Equation ids storing is not allowed.";
 }
 
-EquationIdsTensorAdaptor::ContainerPointerType EquationIdsTensorAdaptor::GetContainer() const
-{
-    return std::visit([](auto pContainer) -> BaseType::ContainerPointerType {
-        return pContainer;
-    }, mpContainer);
-}
-
 std::string EquationIdsTensorAdaptor::Info() const
 {
-    return std::visit([this](auto pContainer) {
-        return TensorAdaptorUtils::Info("EquationIdsTensorAdaptor ", this->Shape(), *pContainer);
-    }, mpContainer);
+    std::stringstream info;
+    info << "EquationIdsTensorAdaptor:";
+    info << " " << *(this->mpStorage);
+    return info.str();
 }
 
 // template instantiations
