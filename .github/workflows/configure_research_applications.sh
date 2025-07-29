@@ -54,6 +54,8 @@ echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 ${KRATOS_CMAKE_OPTIONS_FLAGS}                                       \
 -DUSE_MPI=ON                                                        \
+-DBOOST_ROOT="/workspace/boost/boost_1_87_0"                        \
+-DBoost_NO_SYSTEM_PATHS=ON                                          \
 -DEXCLUDE_KRATOS_CORE=ON                                            \
 -DEXCLUDE_AUTOMATIC_DEPENDENCIES=ON                                 \
 -DREMOVE_INSTALL_DIRECTORIES=OFF                                    \

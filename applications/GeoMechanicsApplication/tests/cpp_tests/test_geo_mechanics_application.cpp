@@ -63,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(IncrementalLinearElasticConstitutiveLawIsAvailableAfte
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KratosGeoMechanicsApplication geo_app;
-    const auto constitutive_law_name = "Geo_IncrementalLinearElasticInterfaceLaw"s;
+    const auto constitutive_law_name = "GeoIncrementalLinearElasticInterfaceLaw"s;
 
     KRATOS_EXPECT_FALSE(KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name))
 

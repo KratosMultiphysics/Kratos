@@ -827,7 +827,7 @@ void IgaModelerSbm::CreateConditions(
 
     // count how many conditions for each layer
     std::vector<std::string> bc_on_skin_projection_type;
-    std::vector<int> count_bc_on_skin_projection_type;
+    std::vector<SizeType> count_bc_on_skin_projection_type;
     for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
         std::string condition_layer_name = rSkinModelPart.GetCondition(rListIdClosestCondition[count_list_closest_condition]).GetValue(LAYER_NAME);
 
@@ -848,7 +848,7 @@ void IgaModelerSbm::CreateConditions(
     std::string max_layer_condition_name;
     std::string max_condition_name;
     std::string layer_name;
-    int max_count = 0; 
+    SizeType max_count = 0;
     for (size_t i = 0; i < count_bc_on_skin_projection_type.size(); ++i) {
         if (count_bc_on_skin_projection_type[i] > max_count) {
             max_count = count_bc_on_skin_projection_type[i];
@@ -858,7 +858,7 @@ void IgaModelerSbm::CreateConditions(
     // create a pool of conditions of the right type
     std::vector<int> list_id_closest_condition_of_correct_bc;
     for (IndexType i = 0; i < rListIdClosestCondition.size(); i++) {
-        int condId = rListIdClosestCondition[i];
+        IndexType condId = rListIdClosestCondition[i];
         std::string condition_layer_name = rSkinModelPart.GetCondition(rListIdClosestCondition[i]).GetValue(LAYER_NAME);
         if (condition_layer_name == max_layer_condition_name) 
         {
@@ -930,10 +930,10 @@ void IgaModelerSbm::CreateConditions(
             new_condition_list.push_back(
                 rReferenceCondition.Create(rIdCounter, (*it), pProperties));
 
-            int condId = rListIdClosestCondition[count_list_closest_condition];
+            IndexType condId = rListIdClosestCondition[count_list_closest_condition];
 
             Condition::Pointer cond1 = &rSkinModelPart.GetCondition(condId);
-            int condId2;  
+            IndexType condId2;  
             if (condId == rSkinModelPart.ConditionsBegin()->Id()) {
                 condId2 = (rSkinModelPart.ConditionsEnd()-1)->Id();
             }
