@@ -54,10 +54,12 @@ bool IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau, double Tens
            rCornerPoint[1] - rTrialSigmaTau[1] - rCornerPoint[0] + rTrialSigmaTau[0] > 0.0;
 }
 
-bool IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau, double DilatancyAngleInRadians, const Vector& rCornerPoint)
+bool IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau,
+                                const Vector& rDerivativeOfFlowFunction,
+                                const Vector& rCornerPoint)
 {
-    return rTrialSigmaTau[0] - rCornerPoint[0] -
-               (rTrialSigmaTau[1] - rCornerPoint[1]) * std::sin(DilatancyAngleInRadians) >=
+    return (rTrialSigmaTau[0] - rCornerPoint[0]) * rDerivativeOfFlowFunction[1] -
+               (rTrialSigmaTau[1] - rCornerPoint[1]) * rDerivativeOfFlowFunction[0] >=
            0.0;
 }
 
@@ -112,7 +114,9 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleSigmaTau(const Vector& rTrialSigm
     return coulomb_yield_function_value < coulomb_tolerance && tension_yield_function_value < tension_tolerance;
 }
 
-Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperties, const Vector& rTrialSigmaTau) const
+Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperties,
+                                                     const Vector&     rTrialSigmaTau,
+                                                     CoulombYieldSurface::CoulombAveragingType AveragingType) const
 {
     const auto apex = CalculateApex(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties),
                                     ConstitutiveLawUtilities::GetCohesion(rProperties));
@@ -131,13 +135,14 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperti
     }
 
     if (IsStressAtCornerReturnZone(
-            rTrialSigmaTau, MathUtils<>::DegreesToRadians(rProperties[GEO_DILATANCY_ANGLE]), corner_point)) {
+            rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
+            corner_point)) {
         return corner_point;
     }
 
     // Regular failure region
     return ReturnStressAtRegularFailureZone(
-        rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau),
+        rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
         ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties),
         ConstitutiveLawUtilities::GetCohesion(rProperties));
 }

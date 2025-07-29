@@ -65,7 +65,8 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 # -DKRATOS_ENABLE_LTO=ON                                                 \
 
-cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
+cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"    \
+-DCMAKE_POLICY_VERSION_MINIMUM=3.5                                     \
 -DCMAKE_INSTALL_PREFIX=$2                                              \
 -DUSE_TRIANGLE_NONFREE_TPL=ON                                          \
 -DUSE_MPI=ON                                                           \
@@ -74,7 +75,7 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DCMAKE_CXX_COMPILER=g++                                               \
 -DCMAKE_CXX_FLAGS="-msse3 -std=c++11 "                                 \
 -DCMAKE_C_FLAGS="-msse3"                                               \
--DBOOST_ROOT="/workspace/boost/boost_1_74_0"                           \
+-DBOOST_ROOT="/workspace/boost/boost_1_87_0"                           \
 -DINCLUDE_MMG=ON                                                       \
 -DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
 -DKRATOS_BUILD_TESTING=OFF                                             \

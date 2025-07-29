@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY)
-#define KRATOS_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY
+#pragma once
 
 // System includes
 #include <iostream>
@@ -1498,5 +1497,3 @@ class ResidualBasedNewtonRaphsonStrategy
 ///@}
 
 } /* namespace Kratos. */
-
-#endif /* KRATOS_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY  defined */

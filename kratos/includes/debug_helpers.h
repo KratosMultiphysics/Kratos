@@ -10,8 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_DEBUG_HELPERS_H_INCLUDED)
-#define KRATOS_DEBUG_HELPERS_H_INCLUDED
+#pragma once
 
 /* System includes */
 #include <sstream>
@@ -53,5 +52,3 @@
 
 // Cout a message with appended line and function information.
 #define KRATOS_WATCH_LINE(...) std::cout << __VA_ARGS__ << KRATOS_CODE_LOCATION << std::endl
-
-#endif /* KRATOS_DEBUG_HELPERS_H_INCLUDED  defined */

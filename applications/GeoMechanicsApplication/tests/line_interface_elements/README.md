@@ -11,6 +11,8 @@ Two test cases (`Dirichlet_single_stage` and `Neumann_single_stage`) are perform
 
 There are two more test cases (`Dirichlet_multi_stage` and `Neumann_multi_stage`), which involve two stages each. Per stage, two time steps are carried out.
 
+For both the Neumann single stage and multi-stage test cases, there is a flavor added with linear elastic model implemented using a UMAT instead of the standard linear elastic material model. This is done to test the UMAT implementation for the line interface elements.
+
 The traction applied in the Neumann test case results in the same displacement field as the Dirichlet test case for the interfaces, which are described using a linear elastic material model.
 
 ## Assertions
