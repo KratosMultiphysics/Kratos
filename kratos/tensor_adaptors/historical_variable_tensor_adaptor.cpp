@@ -133,29 +133,37 @@ void HistoricalVariableTensorAdaptor::StoreData()
 
             const auto& r_tensor_shape = this->Shape();
 
-            [[maybe_unused]] const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
-            [[maybe_unused]] const auto& zero_shape = DataTypeTraits<data_type>::Shape(zero);
+            if constexpr(DataTypeTraits<data_type>::IsDynamic) {
+                const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
+                const auto& zero_shape = DataTypeTraits<data_type>::Shape(zero);
 
-            ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
-                *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
-                r_tensor_shape.data().begin() + r_tensor_shape.size(), [&zero, &zero_shape, this, pVariable](Node& rNode) -> auto& {
-                    HistoricalVariableTensorAdaptorHelperUtils::Check(rNode, *pVariable, this->mStepIndex);
-                    auto& r_value = rNode.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
+                ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
+                    *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
+                    r_tensor_shape.data().begin() + r_tensor_shape.size(), [&zero, &zero_shape, this, pVariable](Node& rNode) -> auto& {
+                        HistoricalVariableTensorAdaptorHelperUtils::Check(rNode, *pVariable, this->mStepIndex);
+                        auto& r_value = rNode.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
 
-                    // here we reshape the r_value to the given dimensions and sizes.
-                    // The following method will not do anything if the type is static,
-                    // but in the case where Variable<Vector> and Variable<Matrix>
-                    // it will do the proper resizing.
-                    // This adds no cost to the static data types.
-                    if constexpr(DataTypeTraits<data_type>::IsDynamic) {
+                        // here we reshape the r_value to the given dimensions and sizes.
+                        // The following method will not do anything if the type is static,
+                        // but in the case where Variable<Vector> and Variable<Matrix>
+                        // it will do the proper resizing.
+                        // This adds no cost to the static data types.
                         if (zero_shape != DataTypeTraits<data_type>::Shape(r_value)) {
                             // if the shape is not equal, then assign the correct shape.
                             r_value = zero;
                         }
-                    }
 
-                    return r_value;
-                });
+                        return r_value;
+                    });
+            } else {
+                ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
+                    *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
+                    r_tensor_shape.data().begin() + r_tensor_shape.size(), [this, pVariable](Node& rNode) -> auto& {
+                        HistoricalVariableTensorAdaptorHelperUtils::Check(rNode, *pVariable, this->mStepIndex);
+                        auto& r_value = rNode.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
+                        return r_value;
+                    });
+            }
         }
     }, mpStorage->GetContainer(), mpVariable);
 }
