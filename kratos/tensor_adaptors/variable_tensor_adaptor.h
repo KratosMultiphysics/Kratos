@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
 #include "tensor_adaptor.h"
 #include "tensor_adaptor_utils.h"
 
@@ -37,6 +36,8 @@ public:
 
     using BaseType = TensorAdaptor<double>;
 
+    using ContainerPointerType = TensorData<double>::ContainerPointerType;
+
     using VariablePointerType = TensorAdaptorUtils::VariablePointerType;
 
     ///@}
@@ -52,6 +53,9 @@ public:
         VariablePointerType pVariable,
         const std::vector<unsigned int>& rDataShape);
 
+    VariableTensorAdaptor(
+        TensorData<double>::Pointer pTensorData,
+        VariablePointerType pVariable);
 
     // Destructor
     ~VariableTensorAdaptor() override = default;
@@ -71,8 +75,6 @@ public:
      */
     void StoreData() override;
 
-    ContainerPointerType GetContainer() const override;
-
     ///@}
     ///@name Input and output
     ///@{
@@ -84,8 +86,6 @@ public:
 private:
     ///@name Private member variables
     ///@{
-
-    ContainerPointerType mpContainer;
 
     VariablePointerType mpVariable;
 
