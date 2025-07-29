@@ -281,7 +281,7 @@ hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingTe
     if (itFace != FacesMap.end()) return itFace;
 
     if (FaceIds.size() == 3) {
-        for (int i = 0; i < FaceIds.size() - 1; ++i) {
+        for (std::size_t i = 0; i < FaceIds.size() - 1; ++i) {
             std::rotate(FaceIds.begin(), FaceIds.begin() + 1, FaceIds.end());
 
             itFace = FacesMap.find(FaceIds);
