@@ -187,13 +187,7 @@ public:
 
         const auto stride = value_type_traits::Size(pShapeBegin + 1, pShapeEnd);
 
-        TDataType dummy_value{};
-        if constexpr(DataTypeTraits<TDataType>::Dimension > 0) {
-            // skip for all the primitive types which does not need reshaping.
-            value_type_traits::Reshape(dummy_value, &*(pShapeBegin + 1), &*(pShapeBegin) + std::distance(pShapeBegin, pShapeEnd));
-        }
-
-        IndexPartition<unsigned int>(rContainer.size()).for_each(dummy_value, [&rContainer, &rReferenceGetter, rDataSpan, pShapeBegin, pShapeEnd, stride](const auto Index, auto& rTLS) {
+        IndexPartition<unsigned int>(rContainer.size()).for_each([&rContainer, &rReferenceGetter, rDataSpan, pShapeBegin, pShapeEnd, stride](const auto Index) {
             auto p_subrange_begin = rDataSpan.data() + Index * stride;
             value_type_traits::CopyFromContiguousData(rReferenceGetter(*(rContainer.begin() + Index)), p_subrange_begin, pShapeBegin + 1, pShapeEnd);
         });
