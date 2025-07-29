@@ -344,6 +344,7 @@ private:
     IntegrationCoefficientsCalculator    mIntegrationCoefficientsCalculator;
     std::vector<RetentionLaw::Pointer>   mRetentionLawVector;
     Vector                               mIntegrationCoefficients;
+    Matrix                               mNContainer;
 
     void CheckProperties() const
     {
@@ -447,25 +448,25 @@ private:
         }
     }
 
-    void CalculateDataForCalculator(const CalculationContribution& rContribution,
-                                                             const ProcessInfo& rCurrentProcessInfo)
+    void CalculateDataForCalculator(const CalculationContribution& rContribution, const ProcessInfo& rCurrentProcessInfo)
     {
         switch (rContribution) {
         case CalculationContribution::Permeability:
-        mIntegrationCoefficients = SaveIntegrationCoefficients();
-//            MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter(),
-  //          MakeNContainerGetter()
-        break;
-        case CalculationContribution::Compressibility:
-            if (!mIntegrationCoefficients.size()) mIntegrationCoefficients = SaveIntegrationCoefficients();
+            mIntegrationCoefficients = SaveIntegrationCoefficients();
+            mNContainer              = SaveNContainer();
+            //            MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter(),
             break;
-    //        if (GetProperties()[RETENTION_LAW] == "PressureFilterLaw") {
-      //          return std::make_unique<FilterCompressibilityCalculator>(
-        //            CreateFilterCompressibilityInputProvider(rCurrentProcessInfo));
-          //  }
-           // return std::make_unique<CompressibilityCalculator>(CreateCompressibilityInputProvider(rCurrentProcessInfo));
+        case CalculationContribution::Compressibility:
+            if (!mIntegrationCoefficients.size())
+                mIntegrationCoefficients = SaveIntegrationCoefficients();
+            break;
+            //        if (GetProperties()[RETENTION_LAW] == "PressureFilterLaw") {
+            //          return std::make_unique<FilterCompressibilityCalculator>(
+            //            CreateFilterCompressibilityInputProvider(rCurrentProcessInfo));
+            //  }
+            // return std::make_unique<CompressibilityCalculator>(CreateCompressibilityInputProvider(rCurrentProcessInfo));
         case CalculationContribution::FluidBodyFlow:
-           // return std::make_unique<FluidBodyFlowCalculator>(CreateFluidBodyFlowInputProvider());
+            // return std::make_unique<FluidBodyFlowCalculator>(CreateFluidBodyFlowInputProvider());
             break;
         default:
             KRATOS_ERROR << "Unknown contribution" << static_cast<int>(rContribution) << std::endl;
@@ -475,15 +476,14 @@ private:
     CompressibilityCalculator::InputProvider CreateCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
     {
         return CompressibilityCalculator::InputProvider(
-            MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeNContainerGetter(),
-            GetIntegrationCoefficients(), MakeMatrixScalarFactorGetter(rCurrentProcessInfo),
-            MakeNodalVariableGetter());
+            MakePropertiesGetter(), MakeRetentionLawsGetter(), GetNContainer(), GetIntegrationCoefficients(),
+            MakeMatrixScalarFactorGetter(rCurrentProcessInfo), MakeNodalVariableGetter());
     }
 
     FilterCompressibilityCalculator::InputProvider CreateFilterCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
     {
         return FilterCompressibilityCalculator::InputProvider(
-            MakePropertiesGetter(), MakeNContainerGetter(), GetIntegrationCoefficients(),
+            MakePropertiesGetter(), GetNContainer(), GetIntegrationCoefficients(),
             MakeProjectedGravityForIntegrationPointsGetter(),
             MakeMatrixScalarFactorGetter(rCurrentProcessInfo), MakeNodalVariableGetter());
     }
@@ -492,14 +492,14 @@ private:
     {
         return PermeabilityCalculator::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), GetIntegrationCoefficients(),
-            MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter(), MakeNContainerGetter());
+            MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter(), GetNContainer());
     }
 
     FluidBodyFlowCalculator::InputProvider CreateFluidBodyFlowInputProvider()
     {
         return FluidBodyFlowCalculator::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), GetIntegrationCoefficients(),
-            MakeProjectedGravityForIntegrationPointsGetter(), MakeNContainerGetter(),
+            MakeProjectedGravityForIntegrationPointsGetter(), GetNContainer(),
             MakeShapeFunctionLocalGradientsGetter(), MakeLocalSpaceDimensionGetter(),
             MakeNodalVariableGetter());
     }
@@ -514,12 +514,12 @@ private:
         return [this]() -> const std::vector<RetentionLaw::Pointer>& { return mRetentionLawVector; };
     }
 
-    auto MakeNContainerGetter()
+    auto GetNContainer()
     {
-        return [this]() -> const Matrix& {
-            return GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
-        };
+        return [this]() -> const Matrix& { return mNContainer; };
     }
+
+    Matrix SaveNContainer() { return GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()); }
 
     auto GetIntegrationCoefficients()
     {
@@ -528,19 +528,16 @@ private:
 
     Vector SaveIntegrationCoefficients()
     {
-            Vector det_J_container;
-            GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
-            return mIntegrationCoefficientsCalculator.Run<Vector>(
-                GetGeometry().IntegrationPoints(GetIntegrationMethod()), det_J_container, this);
-        //    std::cout << "aaa " << aaa << std::endl;
-        //    return aaa;
+        Vector det_J_container;
+        GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
+        return mIntegrationCoefficientsCalculator.Run<Vector>(
+            GetGeometry().IntegrationPoints(GetIntegrationMethod()), det_J_container, this);
     }
 
     auto MakeProjectedGravityForIntegrationPointsGetter()
     {
         return [this]() -> std::vector<Vector> {
-            return CalculateProjectedGravityAtIntegrationPoints(
-                GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()));
+            return CalculateProjectedGravityAtIntegrationPoints(mNContainer);
         };
     }
 
