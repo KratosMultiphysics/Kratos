@@ -314,10 +314,16 @@ public:
     }
 
     /**
-     * @brief Retrieves the stored value of a given variable.
-     * @tparam TVariableType The type of the variable.
-     * @param rThisVariable The variable whose value is to be retrieved.
-     * @return Reference to the stored value.
+     * @brief Get the the data value if existing or create the value for a given @p rThisVariable.
+     * @details This method returns a reference to a value represented by @p rThisVariable from the
+     *          database. If the @p rThisVariable is not found, then a new value is created using
+     *          @p rThisVariable::Zero() method and then reference to new value is returned.
+     *
+     * @warning Use it with care when calling this within a parallelized loop. If the parallelization
+     *          is not done on the database, then this method is safe to use.
+     *
+     * @param rThisVariable     Variable representing the value.
+     * @return TDataType&       Reference to the value.
      */
     template<class TVariableType>
     typename TVariableType::Type& GetOrCreateValue(const TVariableType& rThisVariable)
@@ -329,12 +335,17 @@ public:
      * @brief Get the the data value if existing or create the value for a given @p rThisVariable.
      * @details This method returns a reference to a value represented by @p rThisVariable from the
      *          database. If the @p rThisVariable is not found, then a new value is created using
-     *          @p rThisVariable::Zero() method and then reference to new value is returned.
+     *          @p rInitValue and then reference to new value is returned.
+     *
+     *          In the case if @p rThisVariable is a component, then first a new value representing
+     *          the source variable is created with @p Zero() method, and then @p rInitValue
+     *          is used to initialize the component referred by @p rThisVariable.
      *
      * @warning Use it with care when calling this within a parallelized loop. If the parallelization
      *          is not done on the database, then this method is safe to use.
      *
      * @param rThisVariable     Variable representing the value.
+     * @param rInitValue        Initialization value in case the @p rThisVariable is not found in the database.
      * @return TDataType&       Reference to the value.
      */
     template<class TVariableType>
