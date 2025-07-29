@@ -32,13 +32,15 @@ public:
                       std::function<const Matrix&()>                             GetNContainer,
                       std::function<Vector()>                        GetIntegrationCoefficients,
                       std::function<double()>                        GetMatrixScalarFactor,
-                      std::function<Vector(const Variable<double>&)> GetNodalValuesOf)
+                      std::function<Vector(const Variable<double>&)> GetNodalValuesOf,
+                      std::function<std::vector<double>()>           GetFluidPressures)
             : GetElementProperties(std::move(GetElementProperties)),
               GetRetentionLaws(std::move(GetRetentionLaws)),
               GetNContainer(std::move(GetNContainer)),
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
               GetMatrixScalarFactor(std::move(GetMatrixScalarFactor)),
-              GetNodalValues(std::move(GetNodalValuesOf))
+              GetNodalValues(std::move(GetNodalValuesOf)),
+              GetFluidPressures(std::move(GetFluidPressures))
         {
         }
 
@@ -48,6 +50,7 @@ public:
         std::function<Vector()>                                    GetIntegrationCoefficients;
         std::function<double()>                                    GetMatrixScalarFactor;
         std::function<Vector(const Variable<double>&)>             GetNodalValues;
+        std::function<std::vector<double>()>                       GetFluidPressures;
     };
 
     explicit CompressibilityCalculator(InputProvider rInputProvider);

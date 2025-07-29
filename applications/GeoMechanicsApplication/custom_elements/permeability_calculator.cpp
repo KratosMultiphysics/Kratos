@@ -58,10 +58,7 @@ Matrix PermeabilityCalculator::CalculatePermeabilityMatrix() const
     Matrix            result(number_of_nodes, number_of_nodes, 0.0);
 
     const double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
-    const auto&  pressure_vector           = mInputProvider.GetNodalValues(WATER_PRESSURE);
-    const auto&  nc_container              = mInputProvider.GetNContainer();
-    const auto   fluid_pressures =
-        GeoTransportEquationUtilities::CalculateFluidPressures(nc_container, pressure_vector);
+    const auto&  fluid_pressures           = mInputProvider.GetFluidPressures();
 
     // Precompute scaling factors outside the loop if possible
 

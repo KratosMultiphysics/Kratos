@@ -51,9 +51,7 @@ Matrix CompressibilityCalculator::CalculateCompressibilityMatrix() const
 {
     const auto& r_N_container            = mInputProvider.GetNContainer();
     const auto& integration_coefficients = mInputProvider.GetIntegrationCoefficients();
-    const auto& pressure_vector          = mInputProvider.GetNodalValues(WATER_PRESSURE);
-    const auto  fluid_pressures =
-        GeoTransportEquationUtilities::CalculateFluidPressures(r_N_container, pressure_vector);
+    const auto& fluid_pressures          = mInputProvider.GetFluidPressures();
     Matrix result(r_N_container.size2(), r_N_container.size2(), 0.0);
     Vector N(r_N_container.size2());
 

@@ -34,7 +34,8 @@ public:
                       std::function<const Matrix&()>       GetNContainer,
                       std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients,
                       std::function<std::size_t()>                   GetLocalSpaceDimension,
-                      std::function<Vector(const Variable<double>&)> GetNodalValuesOf)
+                      std::function<Vector(const Variable<double>&)> GetNodalValuesOf,
+                      std::function<std::vector<double>()>           GetFluidPressures)
 
             : GetElementProperties(std::move(GetElementProperties)),
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
@@ -43,7 +44,8 @@ public:
               GetNContainer(std::move(GetNContainer)),
               GetShapeFunctionGradients(std::move(GetShapeFunctionGradients)),
               GetLocalSpaceDimension(std::move(GetLocalSpaceDimension)),
-              GetNodalValues(std::move(GetNodalValuesOf))
+              GetNodalValues(std::move(GetNodalValuesOf)),
+              GetFluidPressures(std::move(GetFluidPressures))
         {
         }
 
@@ -55,6 +57,7 @@ public:
         std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients;
         std::function<std::size_t()>                                 GetLocalSpaceDimension;
         std::function<Vector(const Variable<double>&)>               GetNodalValues;
+        std::function<std::vector<double>()>                         GetFluidPressures;
     };
 
     explicit FluidBodyFlowCalculator(InputProvider AnInputProvider);

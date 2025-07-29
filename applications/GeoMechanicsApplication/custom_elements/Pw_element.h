@@ -346,6 +346,7 @@ private:
     Vector                               mIntegrationCoefficients;
     Matrix                               mNContainer;
     Vector                               mDetJCcontainer;
+    std::vector<double>                  mFluidPressures;
 
     void CheckProperties() const
     {
@@ -455,11 +456,15 @@ private:
         case CalculationContribution::Permeability:
             mIntegrationCoefficients = SaveIntegrationCoefficients();
             mNContainer              = SaveNContainer();
+            mFluidPressures          = SaveFluidPressure();
             //            MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter(),
             break;
         case CalculationContribution::Compressibility:
-            if (!mIntegrationCoefficients.size())
+            if (!mIntegrationCoefficients.size()) {
                 mIntegrationCoefficients = SaveIntegrationCoefficients();
+                mNContainer              = SaveNContainer();
+                mFluidPressures          = SaveFluidPressure();
+            }
             break;
             //        if (GetProperties()[RETENTION_LAW] == "PressureFilterLaw") {
             //          return std::make_unique<FilterCompressibilityCalculator>(
@@ -470,7 +475,7 @@ private:
             // return std::make_unique<FluidBodyFlowCalculator>(CreateFluidBodyFlowInputProvider());
             break;
         default:
-            KRATOS_ERROR << "Unknown contribution" << static_cast<int>(rContribution) << std::endl;
+            KRATOS_ERROR << "Unknown contribution" << std::endl;
         }
     }
 
@@ -478,7 +483,7 @@ private:
     {
         return CompressibilityCalculator::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), GetNContainer(), GetIntegrationCoefficients(),
-            MakeMatrixScalarFactorGetter(rCurrentProcessInfo), MakeNodalVariableGetter());
+            MakeMatrixScalarFactorGetter(rCurrentProcessInfo), MakeNodalVariableGetter(), GetFluidPressures());
     }
 
     FilterCompressibilityCalculator::InputProvider CreateFilterCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
@@ -493,7 +498,8 @@ private:
     {
         return PermeabilityCalculator::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), GetIntegrationCoefficients(),
-            MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter(), GetNContainer());
+            MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter(), GetNContainer(),
+            GetFluidPressures());
     }
 
     FluidBodyFlowCalculator::InputProvider CreateFluidBodyFlowInputProvider()
@@ -502,7 +508,7 @@ private:
             MakePropertiesGetter(), MakeRetentionLawsGetter(), GetIntegrationCoefficients(),
             MakeProjectedGravityForIntegrationPointsGetter(), GetNContainer(),
             MakeShapeFunctionLocalGradientsGetter(), MakeLocalSpaceDimensionGetter(),
-            MakeNodalVariableGetter());
+            MakeNodalVariableGetter(), GetFluidPressures());
     }
 
     auto MakePropertiesGetter()
@@ -532,6 +538,18 @@ private:
         GetGeometry().DeterminantOfJacobian(mDetJCcontainer, this->GetIntegrationMethod());
         return mIntegrationCoefficientsCalculator.Run<Vector>(
             GetGeometry().IntegrationPoints(GetIntegrationMethod()), mDetJCcontainer, this);
+    }
+
+    auto GetFluidPressures()
+    {
+        return [this]() -> const std::vector<double>& { return mFluidPressures; };
+    }
+
+    std::vector<double> SaveFluidPressure()
+    {
+        array_1d<double, TNumNodes> pressure_vector;
+        VariablesUtilities::GetNodalValues(this->GetGeometry(), WATER_PRESSURE, pressure_vector.begin());
+        return GeoTransportEquationUtilities::CalculateFluidPressures(mNContainer, pressure_vector);
     }
 
     auto MakeProjectedGravityForIntegrationPointsGetter()
