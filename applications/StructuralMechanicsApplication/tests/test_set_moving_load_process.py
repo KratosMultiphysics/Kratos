@@ -985,8 +985,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, -2.0, 0.0, 0.0])
 
         # move load to next element, also increase time step
         mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.75)
@@ -1078,8 +1078,8 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
-        self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
+        self.checkRHS(all_rhs[1], [0.0, -2.0, 0.0, 0.0])
 
         # move load to element connection element
         process.ExecuteFinalizeSolutionStep()

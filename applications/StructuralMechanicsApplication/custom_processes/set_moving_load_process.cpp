@@ -40,7 +40,8 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
             "direction"       : [1,1,1],
             "velocity"        : 1,
             "origin"          : [0.0, 0.0, 0.0],
-            "offset"          : 0.0
+            "offset"          : 0.0,
+            "motion_type"     : "base" 
         }  )"
     );
     
@@ -72,6 +73,9 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
     }
 
     KRATOS_ERROR_IF(!is_all_string && !is_all_number) << "'load' has to be a vector of numbers, or an array with strings" << std::endl;
+
+    std::string motion_type = mParameters["motion_type"].GetString();
+    KRATOS_ERROR_IF(motion_type != "base" && motion_type != "total") << "'motion_type' has to be either 'base' or 'total'!" << std::endl;
 
 }
 
@@ -122,7 +126,7 @@ Condition& SetMovingLoadProcess::GetFirstConditionFromCoord(const double FirstCo
 
 Condition& SetMovingLoadProcess::GetFirstCondition(const Point FirstPoint, const Point SecondPoint, const array_1d<int,3> Direction, std::vector<Condition>& rEndConditions)
 {
-    constexpr double tolerance = std::numeric_limits<double>::epsilon();
+    constexpr double tolerance = std::numeric_limits<double>::epsilon() * 1000.0;
 
     // sort on x-coord, if x coords are equal, sort on y coord, if y coord is equal sort on z-coord
     if (std::abs(FirstPoint[0] - SecondPoint[0]) > tolerance){
@@ -138,7 +142,7 @@ Condition& SetMovingLoadProcess::GetFirstCondition(const Point FirstPoint, const
 
 bool SetMovingLoadProcess::IsConditionReversed(const Condition& rCondition, const array_1d<int, 3> Direction)
 {
-    constexpr double tolerance = std::numeric_limits<double>::epsilon();
+    constexpr double tolerance = std::numeric_limits<double>::epsilon() * 1000.0;
 
     auto& r_points = rCondition.GetGeometry().Points();
     if (std::abs(r_points[0].X0() - r_points[1].X0()) > tolerance){
@@ -333,6 +337,10 @@ void SetMovingLoadProcess::ExecuteInitialize()
         this->SortConditionIds(r_first_cond);
 
         InitializeDistanceLoadInSortedVector();
+
+        for (auto& r_cond : mrModelPart.Conditions()) {
+            r_cond.SetValue(MOTION_TYPE, mParameters["motion_type"].GetString());
+        }
     }
     KRATOS_CATCH("")
 }
@@ -360,6 +368,7 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
     // bool to check if load is already added, such that a load is not added twice if the load is exactly at a shared node.
     bool is_moving_load_added = false;
 
+	constexpr double tolerance = std::numeric_limits<double>::epsilon() * 1000.0;
     // loop over sorted conditions vector
     for (IndexType i = 0; i < mSortedConditionsIds.size(); ++i) {
         auto& r_cond = mrModelPart.GetCondition(mSortedConditionsIds[i]);
@@ -367,8 +376,8 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
         const double element_length = r_geom.Length();
 
         // if moving load is located at current condition element, apply moving load, else apply a zero load
-        if (distance_cond + element_length >= mCurrentDistance - std::numeric_limits<double>::epsilon() && 
-            distance_cond <= mCurrentDistance + std::numeric_limits<double>::epsilon() && 
+        if (distance_cond + element_length >= mCurrentDistance - tolerance &&
+            distance_cond <= mCurrentDistance + tolerance &&
             !is_moving_load_added){
 
             double local_distance;

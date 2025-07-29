@@ -19,6 +19,7 @@
 
 // Project includes
 #include "geometries/line_2d_2.h"
+#include "integration/line_gauss_lobatto_integration_points.h"
 #include "integration/quadrilateral_gauss_lobatto_integration_points.h"
 
 
@@ -1293,57 +1294,46 @@ private:
         return d_shape_f_values;
     }
 
-    /**
-     * TODO: testing
-     */
+    // Note that the interface geometries "hack" the standard geometry integration mechanism
+    // First integration method, referred as GI_GAUSS_1, is the Lobatto quadrature of the lower order geometry
+    // Second intregration method, referred as GI_LOBATTO_1, is the Lobatto quadrature of the current (degenerated) geometry
     static const IntegrationPointsContainerType AllIntegrationPoints()
     {
         IntegrationPointsContainerType integration_points =
         {
             {
-                Quadrature < QuadrilateralGaussLobattoIntegrationPoints0,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < QuadrilateralGaussLobattoIntegrationPoints1,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                IntegrationPointsArrayType(),
-                IntegrationPointsArrayType()
+                Quadrature < LineGaussLobattoIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralGaussLobattoIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
         return integration_points;
     }
 
-    /**
-     * TODO: testing
-     */
+    // Note that the interface geometries "hack" the standard geometry integration mechanism
+    // First integration method, referred as GI_GAUSS_1, is the Lobatto quadrature of the lower order geometry
+    // Second intregration method, referred as GI_LOBATTO_1, is the Lobatto quadrature of the current (degenerated) geometry
     static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues()
     {
         ShapeFunctionsValuesContainerType shape_functions_values =
         {
             {
-                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
-                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
-                Matrix(),
-                Matrix()
+                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_1 ), // FIXME: this is the lower order geometry (i.e., line) Lobatto quadrature and shouldn't be GI_GAUSS_1
+                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_values;
     }
 
-    /**
-     * TODO: testing
-     */
-    static const ShapeFunctionsLocalGradientsContainerType
-    AllShapeFunctionsLocalGradients()
+    // Note that the interface geometries "hack" the standard geometry integration mechanism
+    // First integration method, referred as GI_GAUSS_1, is the Lobatto quadrature of the lower order geometry
+    // Second intregration method, referred as GI_LOBATTO_1, is the Lobatto quadrature of the current (degenerated) geometry
+    static const ShapeFunctionsLocalGradientsContainerType AllShapeFunctionsLocalGradients()
     {
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_1 ),
-                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
-                ShapeFunctionsGradientsType(),
-                ShapeFunctionsGradientsType(),
+                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_1), // FIXME: this is the lower order geometry (i.e., line) Lobatto quadrature and shouldn't be GI_GAUSS_1
+                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_local_gradients;

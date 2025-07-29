@@ -46,7 +46,7 @@
                         const H5E_error_t* p_error_descriptor,                                              \
                         void* p_stream) -> herr_t {                                                         \
             std::stringstream& r_stream = *static_cast<std::stringstream*>(p_stream);                       \
-            if (not depth) r_stream << p_error_descriptor->desc << "\n";                                    \
+            if (!depth) r_stream << p_error_descriptor->desc << "\n";                                       \
             r_stream << "in file " << p_error_descriptor->file_name                                         \
                     << ":" << p_error_descriptor->line                                                      \
                     << " in function " << p_error_descriptor->func_name << "\n";                            \
@@ -1180,6 +1180,7 @@ KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(array_1d<double, 4>);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(array_1d<double, 6>);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(array_1d<double, 9>);
 
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(std::string);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<bool>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<char>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<int>);
@@ -1189,6 +1190,7 @@ KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<array_1d<double, 4>>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<array_1d<double, 6>>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<array_1d<double, 9>>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Matrix<int>);
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Matrix<char>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Matrix<double>);
 
 #undef KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION

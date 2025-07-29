@@ -6,21 +6,13 @@ import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import test_helper
 from KratosMultiphysics.project import Project
 import importlib
+import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 
 class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
     """
     This class contains benchmark tests to test line loads (in 3D). 
     No analytical solution is defined. This is to check if find neighbour elements work when line elements are applied in 3D.
     """
-
-    def setUp(self):
-        # Code here will be placed BEFORE every test in this TestCase.
-        pass
-
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
-
     def total_reaction_y_from_file(self, output_file_path, time, node_ids):
         output_reader = test_helper.GiDOutputFileReader()
         output_data = output_reader.read_output_from(output_file_path)
@@ -113,7 +105,7 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
         comparison_data = [("test_stage1.post.res", 50.0),
                            ("test_stage2.post.res", 100.0)]
         number_of_stages = len(comparison_data)
-        test_helper.run_stages(file_path, number_of_stages)
+        run_multiple_stages.run_stages(file_path, number_of_stages)
 
         time = 1.0
         bottom_node_ids = [1, 2, 6, 11, 17, 25, 34, 46, 59, 75, 90]

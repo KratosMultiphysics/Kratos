@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -18,9 +18,9 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/exception.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 
 namespace Kratos
@@ -171,7 +171,7 @@ void ModelPart::Clear()
     mMeshes.emplace_back(Kratos::make_shared<MeshType>());
 
     // Clear geometries
-    mGeometries.Clear();
+    mGeometries.clear();
 
     mTables.clear();
 
@@ -210,14 +210,11 @@ ModelPart::IndexType ModelPart::CloneSolutionStep()
         << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
-    const int nnodes = static_cast<int>(Nodes().size());
-    auto nodes_begin = NodesBegin();
-    #pragma omp parallel for firstprivate(nodes_begin,nnodes)
-    for(int i = 0; i<nnodes; ++i)
-    {
-        auto node_iterator = nodes_begin + i;
+    auto& r_nodes = Nodes();
+    IndexPartition<size_t>(r_nodes.size()).for_each([&](size_t i){
+        auto node_iterator = r_nodes.begin() + i;
         node_iterator->CloneSolutionStepData();
-    }
+    });
 
     mpProcessInfo->CloneSolutionStepInfo();
 
@@ -1891,12 +1888,29 @@ void ModelPart::AddGeometry(
     typename GeometryType::Pointer pNewGeometry)
 {
     if (IsSubModelPart()) {
-        if (!mpParentModelPart->HasGeometry(pNewGeometry->Id())) {
-            mpParentModelPart->AddGeometry(pNewGeometry);
+        mpParentModelPart->AddGeometry(pNewGeometry);
+        mGeometries.insert(pNewGeometry);
+    }
+    else /// Check if geometry id already used, is done within the geometry container.
+    {
+        auto existing_geometry_it = mGeometries.find(pNewGeometry->Id());
+        if( existing_geometry_it == mGeometries.end()) //geometry did not exist
+        {
+            mGeometries.insert(pNewGeometry);
+        }
+        else 
+        { // Check if the connectivities coincide
+            // First check for the geometry type
+            KRATOS_ERROR_IF_NOT(GeometryType::HasSameGeometryType(*existing_geometry_it, *pNewGeometry)) << "Attempting to add geometry with Id: " << pNewGeometry->Id() << ". A different geometry with the same Id already exists." << std::endl;
+            // Check that the connectivities are the same
+            // note that we deliberately check the node ids and not the pointer adresses as there might be very rare situations
+
+            // (e.g., creating nodes bypassing the model part interface) with same connectivities but different pointer addresses
+            for (IndexType i_node = 0; i_node < existing_geometry_it->PointsNumber(); ++i_node) {
+                KRATOS_ERROR_IF((*existing_geometry_it)[i_node].Id() != (*pNewGeometry)[i_node].Id()) << "Attempting to add a new geometry with Id: " << pNewGeometry->Id() << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
+            }
         }
     }
-    /// Check if geometry id already used, is done within the geometry container.
-    mGeometries.AddGeometry(pNewGeometry);
 }
 
 /** Inserts a list of geometries to a submodelpart provided their Id. Does nothing if applied to the top model part
@@ -1910,7 +1924,7 @@ void ModelPart::AddGeometries(std::vector<IndexType> const& GeometriesIds)
 void ModelPart::RemoveGeometry(
     const IndexType GeometryId)
 {
-    mGeometries.RemoveGeometry(GeometryId);
+    mGeometries.erase(GeometryId);
 
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin();
         i_sub_model_part != SubModelPartsEnd();
@@ -1922,7 +1936,8 @@ void ModelPart::RemoveGeometry(
 void ModelPart::RemoveGeometry(
     std::string GeometryName)
 {
-    mGeometries.RemoveGeometry(GeometryName);
+    auto index = GeometryType::GenerateId(GeometryName);
+    mGeometries.erase(index);
 
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin();
         i_sub_model_part != SubModelPartsEnd();
@@ -2141,14 +2156,11 @@ void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
 
     mBufferSize = NewBufferSize;
 
-    auto nodes_begin = NodesBegin();
-    const int nnodes = static_cast<int>(Nodes().size());
-    #pragma omp parallel for firstprivate(nodes_begin,nnodes)
-    for(int i = 0; i<nnodes; ++i)
-    {
-        auto node_iterator = nodes_begin + i;
+    auto& r_nodes = Nodes();
+    IndexPartition<size_t>(r_nodes.size()).for_each([&](size_t i){
+        auto node_iterator = r_nodes.begin() + i;
         node_iterator->SetBufferSize(mBufferSize);
-    }
+    });
 
 }
 
@@ -2220,7 +2232,7 @@ void ModelPart::PrintData(std::ostream& rOStream) const
         mpProcessInfo->PrintData(rOStream);
     }
     rOStream << std::endl;
-    rOStream << "    Number of Geometries  : " << mGeometries.NumberOfGeometries() << std::endl;
+    rOStream << "    Number of Geometries  : " << mGeometries.size() << std::endl;
     for (IndexType i = 0; i < mMeshes.size(); i++) {
         rOStream << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, "    ");
@@ -2264,7 +2276,7 @@ void ModelPart::PrintData(std::ostream& rOStream, std::string const& PrefixStrin
         mpProcessInfo->PrintData(rOStream);
     }
     rOStream << std::endl;
-    rOStream << PrefixString << "    Number of Geometries  : " << mGeometries.NumberOfGeometries() << std::endl;
+    rOStream << PrefixString << "    Number of Geometries  : " << mGeometries.size() << std::endl;
 
     for (IndexType i = 0; i < mMeshes.size(); i++) {
         rOStream << PrefixString << "    Mesh " << i << " :" << std::endl;
