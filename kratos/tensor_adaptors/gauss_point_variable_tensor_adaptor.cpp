@@ -25,75 +25,51 @@
 
 namespace Kratos {
 
-namespace GaussPointVariableTensorAdaptorHelperUtilities
-{
-
-template<class TContainerType, class TDataType>
-DenseVector<unsigned int> GetTensorShape(
-    const TContainerType& rContainer,
-    const Variable<TDataType>& rVariable,
-    const ProcessInfo& rProcessInfo)
-{
-    using entity_type = typename TContainerType::value_type;
-
-    return TensorAdaptorUtils::GetTensorShape<std::vector<TDataType>>(
-        rContainer, [&rProcessInfo, &rVariable](auto& rValues, const auto& rEntity) {
-            const_cast<entity_type&>(rEntity).CalculateOnIntegrationPoints(
-                rVariable, rValues, rProcessInfo);
-        });
-}
-
-template<class TContainerType, class TDataType, class TSpanType, class TIntegerType>
-void CollectData(
-    const TContainerType& rContainer,
-    const Variable<TDataType>& rVariable,
-    const ProcessInfo& rProcessInfo,
-    const TSpanType& rDataSpan,
-    TIntegerType const * pShapeBegin,
-    TIntegerType const * pShapeEnd)
-{
-    using entity_type = typename TContainerType::value_type;
-
-    if constexpr(IsInList<TContainerType, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>::value) {
-        ContainerIOUtils::CopyToContiguousArray<std::vector<TDataType>>(
-            rContainer, rDataSpan, pShapeBegin, pShapeEnd,
-            [&rVariable, &rProcessInfo](auto& rValues, const auto& rEntity) {
-                const_cast<entity_type&>(rEntity).CalculateOnIntegrationPoints(
-                    rVariable, rValues, rProcessInfo);
-            });
-    }
-}
-
-} // namespace GaussPointVariableTensorAdaptorHelperUtilities
-
 template<class TContainerPointerType>
 GaussPointVariableTensorAdaptor::GaussPointVariableTensorAdaptor(
     TContainerPointerType pContainer,
     VariablePointerType pVariable,
     ProcessInfo::Pointer pProcessInfo)
-    : mpContainer(pContainer),
-      mpVariable(pVariable),
+    : mpVariable(pVariable),
       mpProcessInfo(pProcessInfo)
 {
-    std::visit(
-        [this, pContainer](auto pVariable) {
-            this->SetShape(GaussPointVariableTensorAdaptorHelperUtilities::GetTensorShape(
-                *pContainer, *pVariable, *this->mpProcessInfo));
-        },
-        mpVariable);
+    using container_type = BareType<decltype(*pContainer)>;
+    using entity_type = typename container_type::value_type;
+
+    std::visit([this, pContainer](auto pVariable) {
+        using variable_type = BareType<decltype(*pVariable)>;
+        using data_type = typename variable_type::Type;
+
+        this->mpStorage = Kratos::make_intrusive<TensorData<double>>(
+            pContainer,
+            TensorAdaptorUtils::GetTensorShape<std::vector<data_type>>(
+                *pContainer, [pVariable, this](auto& rValues, const auto& rEntity) {
+                    const_cast<entity_type&>(rEntity).CalculateOnIntegrationPoints(*pVariable, rValues, *(this->mpProcessInfo));
+                }));
+    }, mpVariable);
 }
 
 void GaussPointVariableTensorAdaptor::CollectData()
 {
-    std::visit(
-        [this](auto pContainer, auto pVariable) {
+    std::visit([this](auto pContainer, auto pVariable) {
+        using container_type = BareType<decltype(*pContainer)>;
+
+        if constexpr(IsInList<container_type, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>) {
+            using entity_type = typename container_type::value_type;
+            using variable_type = BareType<decltype(*pVariable)>;
+            using data_type = typename variable_type::Type;
+
             const auto& tensor_shape = this->Shape();
-            GaussPointVariableTensorAdaptorHelperUtilities::CollectData(
-                *pContainer, *pVariable, *this->mpProcessInfo, this->ViewData(),
-                tensor_shape.data().begin(),
-                tensor_shape.data().begin() + tensor_shape.size());
-        },
-        mpContainer, mpVariable);
+
+            ContainerIOUtils::CopyToContiguousArray<std::vector<data_type>>(
+                *pContainer, this->ViewData(), tensor_shape.data().begin(),
+                tensor_shape.data().begin() + tensor_shape.size(),
+                [pVariable, this](auto& rValues, const auto& rEntity) {
+                    const_cast<entity_type&>(rEntity).CalculateOnIntegrationPoints(
+                        *pVariable, rValues, *(this->mpProcessInfo));
+                });
+        }
+    }, this->mpStorage->GetContainer(), mpVariable);
 }
 
 void GaussPointVariableTensorAdaptor::StoreData()
@@ -101,18 +77,15 @@ void GaussPointVariableTensorAdaptor::StoreData()
     KRATOS_ERROR << "Storing gauss point data is not supported.";
 }
 
-GaussPointVariableTensorAdaptor::ContainerPointerType GaussPointVariableTensorAdaptor::GetContainer() const
-{
-    return std::visit([](auto pContainer) -> BaseType::ContainerPointerType {
-        return pContainer;
-    }, mpContainer);
-}
-
 std::string GaussPointVariableTensorAdaptor::Info() const
 {
-    return std::visit([this](auto pContainer, auto pVariable) {
-        return TensorAdaptorUtils::Info("GaussPointVariableTensorAdaptor variable = " + pVariable->Name(), this->Shape(), *pContainer);
-    }, mpContainer, mpVariable);
+    std::stringstream info;
+    info << "GaussPointVariableTensorAdaptor:";
+    std::visit([&info](auto pVariable) {
+        info << " Variable = " << pVariable->Name();
+    }, this->mpVariable);
+    info << ", " << *(this->mpStorage);
+    return info.str();
 }
 
 // template instantiations

@@ -39,11 +39,6 @@ public:
 
     using VariablePointerType = TensorAdaptorUtils::VariablePointerType;
 
-    using TensorAdaptorContainerPointerType = std::variant<
-                                                ModelPart::ConditionsContainerType::Pointer,
-                                                ModelPart::ElementsContainerType::Pointer
-                                            >;
-
     ///@}
     ///@name Life cycle
     ///@{
@@ -72,8 +67,6 @@ public:
      */
     void StoreData() override;
 
-    ContainerPointerType GetContainer() const override;
-
     ///@}
     ///@name Input and output
     ///@{
@@ -85,8 +78,6 @@ public:
 private:
     ///@name Private member variables
     ///@{
-
-    TensorAdaptorContainerPointerType mpContainer;
 
     VariablePointerType mpVariable;
 
