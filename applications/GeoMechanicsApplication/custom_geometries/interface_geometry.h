@@ -213,7 +213,7 @@ public:
     GeometriesArrayType GenerateEdges() const override
     {
         KRATOS_ERROR_IF_NOT(mMidGeometry->GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear)
-            << "Edges can only be generated for line geometries. This is a planar interface "
+            << "Edges can only be generated for line geometries. This is a surface interface "
                "geometry, which does not support edges.\n";
 
         return GenerateTwoSides();
@@ -222,7 +222,7 @@ public:
     GeometriesArrayType GenerateFaces() const override
     {
         KRATOS_ERROR_IF(mMidGeometry->GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear)
-            << "Faces can only be generated for planar geometries. This is a line "
+            << "Faces can only be generated for surface geometries. This is a line "
                "interface geometry, which does not support faces.\n";
 
         return GenerateTwoSides();
@@ -309,7 +309,7 @@ private:
         auto end_of_corner_points = nodes_of_second_side.ptr_begin() + GetNumberOfCornerPoints();
 
         // For line geometries we want to reverse all 'corner points' of the second side, while
-        // for planes we don't change the starting node, but only reverse the order of the rest
+        // for surfaces we don't change the starting node, but only reverse the order of the rest
         // of the corner points.
         auto begin_of_corner_points_to_reverse =
             mMidGeometry->GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear
