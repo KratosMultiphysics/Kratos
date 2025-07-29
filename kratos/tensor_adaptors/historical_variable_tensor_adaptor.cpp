@@ -160,8 +160,7 @@ void HistoricalVariableTensorAdaptor::StoreData()
                     *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
                     r_tensor_shape.data().begin() + r_tensor_shape.size(), [this, pVariable](Node& rNode) -> auto& {
                         HistoricalVariableTensorAdaptorHelperUtils::Check(rNode, *pVariable, this->mStepIndex);
-                        auto& r_value = rNode.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
-                        return r_value;
+                        return rNode.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
                     });
             }
         }
