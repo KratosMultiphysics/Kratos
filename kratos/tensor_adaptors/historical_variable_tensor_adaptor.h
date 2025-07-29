@@ -19,7 +19,6 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
 #include "tensor_adaptor.h"
 #include "tensor_adaptor_utils.h"
 
@@ -55,6 +54,11 @@ public:
         const std::vector<unsigned int>& rDataShape,
         const int StepIndex = 0);
 
+    HistoricalVariableTensorAdaptor(
+        TensorData<double>::Pointer pTensorData,
+        VariablePointerType pVariable,
+        const int StepIndex = 0);
+
 
     // Destructor
     ~HistoricalVariableTensorAdaptor() override = default;
@@ -74,8 +78,6 @@ public:
      */
     void StoreData() override;
 
-    ContainerPointerType GetContainer() const override;
-
     ///@}
     ///@name Input and output
     ///@{
@@ -87,8 +89,6 @@ public:
 private:
     ///@name Private member variables
     ///@{
-
-    ModelPart::NodesContainerType::Pointer mpContainer;
 
     VariablePointerType mpVariable;
 
