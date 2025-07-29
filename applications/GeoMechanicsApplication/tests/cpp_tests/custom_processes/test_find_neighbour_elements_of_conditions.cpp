@@ -17,16 +17,25 @@
 
 namespace Kratos::Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(FindNeighbourElementsOfConditions, KratosGeoMechanicsFastSuiteWithoutKernel)
+
+class ParametrizedFindNeighbourElementsOfConditions : public ::testing::TestWithParam<std::vector<std::size_t>>
+{
+};
+
+TEST_P(ParametrizedFindNeighbourElementsOfConditions, NumberOfIntegrationPointsMatchesTheNumberOfPointsGivenAtConstructionTime)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
+
     PointerVector<Node> nodes;
-    nodes.push_back(r_model_part.pGetNode(1));
-    nodes.push_back(r_model_part.pGetNode(3));
-    nodes.push_back(r_model_part.pGetNode(2));
+    const auto          order = GetParam();
+    nodes.push_back(r_model_part.pGetNode(order[0]));
+    nodes.push_back(r_model_part.pGetNode(order[1]));
+    nodes.push_back(r_model_part.pGetNode(order[2]));
+
     auto p_condition = ElementSetupUtilities::Create3D3NCondition(nodes);
     r_model_part.AddCondition(p_condition);
+
     FindNeighbourElementsOfConditionsProcess process(r_model_part);
 
     EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
@@ -34,37 +43,10 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighbourElementsOfConditions, KratosGeoMechanicsF
     EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FindNeighbourElementsOfConditionsSecondConfiguration, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    Model model;
-    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
-    PointerVector<Node> nodes;
-    nodes.push_back(r_model_part.pGetNode(2));
-    nodes.push_back(r_model_part.pGetNode(1));
-    nodes.push_back(r_model_part.pGetNode(3));
-    auto p_condition = ElementSetupUtilities::Create3D3NCondition(nodes);
-    r_model_part.AddCondition(p_condition);
-    FindNeighbourElementsOfConditionsProcess process(r_model_part);
+INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
+                         ParametrizedFindNeighbourElementsOfConditions,
+                         ::testing::Values(std::vector<std::size_t>{1, 3, 2},
+                                           std::vector<std::size_t>{2, 1, 3},
+                                           std::vector<std::size_t>{3, 2, 1}));
 
-    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
-    process.Execute();
-    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(FindNeighbourElementsOfConditionsThirdConfiguration, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    Model model;
-    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
-    PointerVector<Node> nodes;
-    nodes.push_back(r_model_part.pGetNode(3));
-    nodes.push_back(r_model_part.pGetNode(2));
-    nodes.push_back(r_model_part.pGetNode(1));
-    auto p_condition = ElementSetupUtilities::Create3D3NCondition(nodes);
-    r_model_part.AddCondition(p_condition);
-    FindNeighbourElementsOfConditionsProcess process(r_model_part);
-
-    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
-    process.Execute();
-    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
-}
 } // namespace Kratos::Testing
