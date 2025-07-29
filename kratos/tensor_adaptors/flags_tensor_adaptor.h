@@ -37,12 +37,6 @@ public:
 
     using BaseType = TensorAdaptor<bool>;
 
-    using TensorAdaptorContainerPointerType = std::variant<
-                                                    ModelPart::NodesContainerType::Pointer,
-                                                    ModelPart::ConditionsContainerType::Pointer,
-                                                    ModelPart::ElementsContainerType::Pointer
-                                                >;
-
     ///@}
     ///@name Life cycle
     ///@{
@@ -50,6 +44,10 @@ public:
     template<class TContainerPointerType>
     FlagsTensorAdaptor(
         TContainerPointerType pContainer,
+        const Flags& rFlags);
+
+    FlagsTensorAdaptor(
+        TensorData<bool>::Pointer pTensorData,
         const Flags& rFlags);
 
     // Destructor
@@ -70,8 +68,6 @@ public:
      */
     void StoreData() override;
 
-    ContainerPointerType GetContainer() const override;
-
     ///@}
     ///@name Input and output
     ///@{
@@ -83,8 +79,6 @@ public:
 private:
     ///@name Private member variables
     ///@{
-
-    TensorAdaptorContainerPointerType mpContainer;
 
     Flags mFlags;
 

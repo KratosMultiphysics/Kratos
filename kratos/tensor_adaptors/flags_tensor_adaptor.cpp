@@ -34,30 +34,57 @@ template<class TContainerPointerType>
 FlagsTensorAdaptor::FlagsTensorAdaptor(
     TContainerPointerType pContainer,
     const Flags& rFlags)
-    : mpContainer(pContainer),
-      mFlags(rFlags)
+    : mFlags(rFlags)
 {
-    this->SetShape(DenseVector<unsigned int>(1, pContainer->size()));
+    this->mpStorage = Kratos::make_intrusive<TensorData<bool>>(pContainer, DenseVector<unsigned int>(1, pContainer->size()));
+}
+
+FlagsTensorAdaptor::FlagsTensorAdaptor(
+    TensorData<bool>::Pointer pTensorData,
+    const Flags& rFlags)
+    : mFlags(rFlags)
+{
+    KRATOS_TRY
+
+    this->mpStorage = pTensorData;
+
+    const auto& r_tensor_shape = this->mpStorage->Shape();
+
+    KRATOS_ERROR_IF_NOT(r_tensor_shape.size() == 1 && r_tensor_shape[0] == 1)
+        << "The data storage within the tensor data is not compatible with the flags "
+        << "[ tensor data = " << *(this->mpStorage) << " ].\n";
+
+    KRATOS_CATCH("");
 }
 
 void FlagsTensorAdaptor::CollectData()
 {
-    std::visit(
-        [this](auto pContainer) {
+    std::visit([this](auto pContainer) {
+        using container_type = BareType<decltype(*pContainer)>;
+
+        if constexpr(IsInList<container_type, ModelPart::NodesContainerType, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>) {
             const auto& r_tensor_shape = this->Shape();
+
+            KRATOS_ERROR_IF_NOT(this->Size() == pContainer->size())
+                << "Size mismatch [ Container size = " << pContainer->size()
+                << ", data span size = " << this->Size() << " ].\n";
+
             ContainerIOUtils::CopyToContiguousArray<bool>(
                 *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
                 r_tensor_shape.data().begin() + r_tensor_shape.size(),
                 [this](bool& rValue, const auto& rEntity) {
                     rValue = rEntity.Is(this->mFlags);
                 });
-        }, mpContainer);
+        }
+    }, this->mpStorage->GetContainer());
 }
 
 void FlagsTensorAdaptor::StoreData()
 {
-    std::visit(
-        [this](auto pContainer) {
+    std::visit([this](auto pContainer) {
+        using container_type = BareType<decltype(*pContainer)>;
+
+        if constexpr(IsInList<container_type, ModelPart::NodesContainerType, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>) {
             KRATOS_ERROR_IF_NOT(this->Size() == pContainer->size())
                 << "Size mismatch [ Container size = " << pContainer->size()
                 << ", data span size = " << this->Size() << " ].\n";
@@ -65,21 +92,16 @@ void FlagsTensorAdaptor::StoreData()
             IndexPartition<IndexType>(pContainer->size()).for_each([this, pContainer](const auto Index) {
                 (pContainer->begin() + Index)->Set(this->mFlags, *(this->ViewData().data() + Index));
             });
-        }, mpContainer);
-}
-
-FlagsTensorAdaptor::ContainerPointerType FlagsTensorAdaptor::GetContainer() const
-{
-    return std::visit([](auto pContainer) -> BaseType::ContainerPointerType {
-        return pContainer;
-    }, mpContainer);
+        }
+    }, this->mpStorage->GetContainer());
 }
 
 std::string FlagsTensorAdaptor::Info() const
 {
-    return std::visit([this](auto pContainer) {
-        return TensorAdaptorUtils::Info("FlagsTensorAdaptor ", this->Shape(), *pContainer);
-    }, mpContainer);
+    std::stringstream info;
+    info << "FlagsTensorAdaptor:";
+    info << " " << *(this->mpStorage);
+    return info.str();
 }
 
 // template instantiations
