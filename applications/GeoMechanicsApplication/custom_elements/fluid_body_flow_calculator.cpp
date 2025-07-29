@@ -36,15 +36,15 @@ Vector FluidBodyFlowCalculator::RHSContribution()
         r_properties, mInputProvider.GetLocalSpaceDimension());
 
     RetentionLaw::Parameters retention_law_parameters(r_properties);
-    const auto&               projected_gravity_on_integration_points =
+    const auto&              projected_gravity_on_integration_points =
         mInputProvider.GetProjectedGravityAtIntegrationPoints();
     const auto& pressure_vector = mInputProvider.GetNodalValues(WATER_PRESSURE);
     const auto& nc_container    = mInputProvider.GetNContainer();
-    const auto fluid_pressures =
+    const auto  fluid_pressures =
         GeoTransportEquationUtilities::CalculateFluidPressures(nc_container, pressure_vector);
     const auto fluid_body_vector_length = shape_function_gradients[0].size1();
-    Vector result(fluid_body_vector_length, 0.0);
-    const auto bishop_coefficients      = CalculateBishopCoefficients(fluid_pressures);
+    Vector     result(fluid_body_vector_length, 0.0);
+    const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
 
     for (unsigned int integration_point_index = 0;
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {
