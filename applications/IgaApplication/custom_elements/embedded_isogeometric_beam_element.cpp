@@ -299,6 +299,12 @@ namespace Kratos {
             Matrix B_axial, B_bending1, B_bending2, B_torsion1, B_torsion2;
 
             ComputeBMatrices(point_number, kinematic_variables, B_axial, B_bending1, B_bending2, B_torsion1, B_torsion2);
+            
+            KRATOS_WATCH(B_axial);
+            KRATOS_WATCH(B_bending1);
+            KRATOS_WATCH(B_bending2);
+            KRATOS_WATCH(B_torsion1);
+            KRATOS_WATCH(B_torsion2);
 
             Matrix G_axial, G_bending1, G_bending2, G_torsion1, G_torsion2;
             ComputeGMatrices(point_number, kinematic_variables, G_axial, G_bending1, G_bending2, G_torsion1, G_torsion2);
@@ -397,8 +403,8 @@ namespace Kratos {
             
         }
 
-        KRATOS_ERROR_IF(!GetProperties().Has(CENTER_LINE_ROTATION))
-            << "\"CENTER_LINE_ROTATION\" not provided for element #" << Id() << std::endl;
+        KRATOS_ERROR_IF(!GetProperties().Has(LOCAL_AXIS_ORIENTATION))
+            << "\"LOCAL_AXIS_ORIENTATION\" not provided for element #" << Id() << std::endl;
 
         KRATOS_ERROR_IF(!GetProperties().Has(CROSS_AREA) ||
             GetProperties()[CROSS_AREA] <= numerical_limit)
@@ -2724,57 +2730,8 @@ namespace Kratos {
 
     void EmbeddedIsogeometricBeamElement::CompPhiRefProp(double& _Phi, double& _Phi_0_der)
     {
-
-
-        const auto& r_geometry = GetGeometry();
-        const double _u_act = r_geometry.IntegrationPoints()[0].Coordinates()[0];
-
-        double phi_0;
-        double phi_1;
-        double diff_phi;
-        double u_0;
-        double u_1;
-        int n_size;
-
-        Matrix cross_section_orientation = this->GetProperties()[CENTER_LINE_ROTATION];
-        n_size = cross_section_orientation.size1();
-
-        u_0 = cross_section_orientation(0, 0);
-        u_1 = cross_section_orientation(n_size - 1, 0);
-        phi_0 = cross_section_orientation(0, 1);
-        phi_1 = cross_section_orientation(n_size - 1, 1);
-
-        for (int i = 1; i < n_size; i++)
-        {
-            if (cross_section_orientation(i, 0) > _u_act)
-            {
-                u_0 = cross_section_orientation(i - 1, 0);
-                phi_0 = cross_section_orientation(i - 1, 1);
-                break;
-            }
-        }
-
-        for (int i = 1; i < n_size; i++)
-        {
-            if (cross_section_orientation(n_size - i - 1, 0) <= _u_act)
-            {
-                u_1 = cross_section_orientation(n_size - i, 0);
-                phi_1 = cross_section_orientation(n_size - i, 1);
-                break;
-            }
-        }
-        double pi;
-        pi = 4 * atan(1.0);
-
-        diff_phi = (phi_1 - phi_0);
-        if (fabs(phi_1 - phi_0) > pi)
-        {
-            diff_phi = diff_phi - (diff_phi) / fabs(diff_phi) * 2 * pi;
-        }
-
-        _Phi += phi_0 + (_u_act - u_0) / (u_1 - u_0) * diff_phi;
-
-        _Phi_0_der += diff_phi / (u_1 - u_0);
+        _Phi = 0;
+        _Phi_0_der = 0;
     }
 
     void EmbeddedIsogeometricBeamElement::CompGeometryReferenceCrossSection( Vector3d _R1, Vector3d _R2, Vector3d _T0_vec, Vector3d& _n_act, Vector3d& _v_act, Vector3d& _n0, Vector3d& _v0, double& _B_n, double& _B_v, double& _C_12, double& _C_13, double& _Phi, double& _Phi_0_der)

@@ -42,7 +42,7 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         beam_properties.SetValue(KM.YOUNG_MODULUS   , 70000)
         beam_properties.SetValue(KM.POISSON_RATIO   , 0)
         beam_properties.SetValue(KM.DENSITY         , 7856)
-        beam_properties.SetValue(IGA.CENTER_LINE_ROTATION, np.array([[0, 0], [0.25 , 0], [0.5 , 0],[0.75 , 0], [1, 0]]))
+        beam_properties.SetValue(IGA.LOCAL_AXIS_ORIENTATION, np.array([[0, 0, 0, 1], [0.25, 0, 0, 1], [0.5, 0, 0, 1], [0.75, 0, 0, 1], [1, 0, 0, 1]]))
         beam_properties.SetValue(KM.CONSTITUTIVE_LAW,IGA.BernoulliBeamElasticConstitutiveLaw())
         controllpoints = [[0.0, 0.0, 0.0],[1.0, 0.0, 0.0],[2.0, 0.0, 0.0],[3.0, 0.0, 0.0],[4.0, 0.0, 0.0]]
         knotvector = [0,0,0,0,1,1,1,1]
@@ -156,7 +156,7 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         beam_properties.SetValue(KM.YOUNG_MODULUS   , 1e+10)
         beam_properties.SetValue(KM.POISSON_RATIO   , 0)
         beam_properties.SetValue(KM.DENSITY         , 1)
-        beam_properties.SetValue(IGA.CENTER_LINE_ROTATION, np.array([[0, 0], [0.25 , 0], [0.5 , 0],[0.75 , 0], [1, 0]]))
+        beam_properties.SetValue(IGA.LOCAL_AXIS_ORIENTATION, np.array([[0, 0, 0, 1], [0.25, 0, 0, 1], [0.5, 0, 0, 1], [0.75, 0, 0, 1], [1, 0, 0, 1]]))
         beam_properties.SetValue(KM.CONSTITUTIVE_LAW,IGA.BernoulliBeamElasticConstitutiveLaw())
 
         nodes = KM.NodesVector()
@@ -266,7 +266,7 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         beam_properties.SetValue(KM.YOUNG_MODULUS   , 1e+10)
         beam_properties.SetValue(KM.POISSON_RATIO   , 0)
         beam_properties.SetValue(KM.DENSITY         , 0)
-        beam_properties.SetValue(IGA.CENTER_LINE_ROTATION, np.array([[0, 0], [0.25 , 0], [0.5 , 0],[0.75 , 0], [1, 0]]))
+        beam_properties.SetValue(IGA.LOCAL_AXIS_ORIENTATION, np.array([[0, 0, 0, 1], [0.25, 0, 0, 1], [0.5, 0, 0, 1], [0.75, 0, 0, 1], [1, 0, 0, 1]]))
         beam_properties.SetValue(KM.CONSTITUTIVE_LAW,IGA.BernoulliBeamElasticConstitutiveLaw())
 
         nodes = KM.NodesVector()
@@ -291,8 +291,8 @@ class TestBeam4pElement(KratosUnittest.TestCase):
 
         #Compute T0 and N0 vectors automatically using parent curve
         IGA.ComputeBeamVectorsProcess(model_part, curve).ExecuteInitialize()
-        beam_properties.SetValue(IGA.T_0,  KM.Array3([-1,  0, 0])) #[-0.95281728851577396, 0.020230986128019116, 0.30286947998393016]
-        beam_properties.SetValue(IGA.N_0, KM.Array3([0,  0, -1])) #[-0.30286947998393016, -0, -0.95281728851577396]
+        #beam_properties.SetValue(IGA.T_0,  KM.Array3([-1,  0, 0])) #[-0.95281728851577396, 0.020230986128019116, 0.30286947998393016]
+        #beam_properties.SetValue(IGA.N_0, KM.Array3([0,  0, -1])) #[-0.30286947998393016, -0, -0.95281728851577396]
 
         
         # add dofs
@@ -330,7 +330,7 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         conv_criteria = KM.ResidualCriteria(relative_tolerance, absolute_tolerance)
         conv_criteria.SetEchoLevel(0)
 
-        maximum_iterations = 20
+        maximum_iterations = 3
         compute_reactions = False
         reform_dofs_at_each_iteration = False
         move_mesh_flag = True
@@ -413,12 +413,14 @@ class TestBeam4pElement(KratosUnittest.TestCase):
         self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.ROTATION))[1], 0.0               )
         self.assertAlmostEqual(np.array(nodes[4].GetSolutionStepValue(KM.ROTATION))[2], 0.0               )
 
-    # def testClampedFzNonlinear(self):
-    #     last_node= TestBeam4pElement.solve_nonlinear_example2()
+    def testClampedFzNonlinear(self):
+        last_node= TestBeam4pElement.solve_nonlinear_example2()
 
-    #     disp = np.array(last_node.GetSolutionStepValue(KM.DISPLACEMENT)) #[np.float64(-0.13288290406702538), np.float64(-0.29808295882441466), np.float64(-1.1774740489689273)]
-    #     print(disp)
-    #     pass 
+        disp = np.array(last_node.GetSolutionStepValue(KM.DISPLACEMENT)) #[np.float64(-0.13288290406702538), np.float64(-0.29808295882441466), np.float64(-1.1774740489689273)]
+        print(disp)
+        
+        #[np.float64(0.17825970462633664), np.float64(-0.34291686617111106), np.float64(-1.3504451938802777)]
+        pass 
 
 
 

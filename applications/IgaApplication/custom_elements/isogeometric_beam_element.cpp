@@ -176,6 +176,7 @@ namespace Kratos {
         double B_n, B_v, C_12, C_13;
 
         CompGeometryReferenceCrossSection(
+            rKinematicVariables,
             rKinematicVariables.R1,      // Reference tangent vector (input)
             rKinematicVariables.R2,      // Reference curvature vector (input)
             t0_0,                       // T0 vector (input)
@@ -239,8 +240,6 @@ namespace Kratos {
         const auto& r_geometry = GetGeometry();
         const auto& r_integration_points = r_geometry.IntegrationPoints();
         
-        //set_Memory(); //to be removed!!
-        
         Vector stress_axial = ZeroVector(5);
         Vector stress_bending1 = ZeroVector(5);
         Vector stress_bending2 = ZeroVector(5);
@@ -249,13 +248,15 @@ namespace Kratos {
 
          for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) 
          {
+
+
             // Compute Kinematics and Metric
             KinematicVariables kinematic_variables(
                 GetGeometry().WorkingSpaceDimension());
             CalculateKinematics(
                 point_number,
                 kinematic_variables);
-
+                
              // Create constitutive law parameters:
             ConstitutiveLaw::Parameters constitutive_law_parameters(
                 GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -412,8 +413,8 @@ namespace Kratos {
                 << Id() << std::endl;
         }
 
-        KRATOS_ERROR_IF(!GetProperties().Has(CENTER_LINE_ROTATION))
-            << "\"CENTER_LINE_ROTATION\" not provided for element #" << Id() << std::endl;
+        KRATOS_ERROR_IF(!GetProperties().Has(LOCAL_AXIS_ORIENTATION))
+            << "\"LOCAL_AXIS_ORIENTATION\" not provided for element #" << Id() << std::endl;
 
         if (GetProperties().Has(T_0)) {
             const Vector3d& t0_vector = GetProperties()[T_0];
@@ -2689,15 +2690,10 @@ namespace Kratos {
 
     }
 
-    void IsogeometricBeamElement::CompPhiRefProp(double& _Phi, double& _Phi_0_der)
+    void IsogeometricBeamElement::CompPhiRefProp(KinematicVariables &kinematic_variables, double& _Phi, double& _Phi_0_der)
     {
 
-        
-        
-        
-        
         const auto& r_geometry = GetGeometry();
-        
         const double _u_act = r_geometry.IntegrationPoints()[0].Coordinates()[0];
 
         double phi_0;
@@ -2707,32 +2703,52 @@ namespace Kratos {
         double u_1;
         int n_size;
 
-        Matrix cross_section_orientation = this->GetProperties()[CENTER_LINE_ROTATION];
-        n_size = cross_section_orientation.size1();
+        Matrix local_axis_orientation = this->GetProperties()[LOCAL_AXIS_ORIENTATION];
+        n_size = local_axis_orientation.size1();
 
+        u_0 = local_axis_orientation(0, 0);
+        u_1 = local_axis_orientation(n_size - 1, 0);
         
-
-        u_0 = cross_section_orientation(0, 0);
-        u_1 = cross_section_orientation(n_size - 1, 0);
-        phi_0 = cross_section_orientation(0, 1);
-        phi_1 = cross_section_orientation(n_size - 1, 1);
+        // Extract normal vector components for start and end
+        Vector3d normal_0;
+        normal_0[0] = local_axis_orientation(0, 1);
+        normal_0[1] = local_axis_orientation(0, 2);
+        normal_0[2] = local_axis_orientation(0, 3);
+        
+        Vector3d normal_1;
+        normal_1[0] = local_axis_orientation(n_size - 1, 1);
+        normal_1[1] = local_axis_orientation(n_size - 1, 2);
+        normal_1[2] = local_axis_orientation(n_size - 1, 3);
+        
+        // Convert normal vectors to rotation angles (phi) for backward compatibility
+        Vector3d _n;
+        phi_0 = GetDeltaPhi(kinematic_variables, normal_0);
+        phi_1 = GetDeltaPhi(kinematic_variables, normal_1);
 
         for (int i = 1; i < n_size; i++)
         {
-            if (cross_section_orientation(i, 0) > _u_act)
+            if (local_axis_orientation(i, 0) > _u_act)
             {
-                u_0 = cross_section_orientation(i - 1, 0);
-                phi_0 = cross_section_orientation(i - 1, 1);
+                u_0 = local_axis_orientation(i - 1, 0);
+                Vector3d normal_temp(3);
+                normal_temp[0] = local_axis_orientation(i - 1, 1);
+                normal_temp[1] = local_axis_orientation(i - 1, 2);
+                normal_temp[2] = local_axis_orientation(i - 1, 3);
+                phi_0 = GetDeltaPhi(kinematic_variables, normal_temp);
                 break;
             }
         }
 
         for (int i = 1; i < n_size; i++)
         {
-            if (cross_section_orientation(n_size - i - 1, 0) <= _u_act)
+            if (local_axis_orientation(n_size - i - 1, 0) <= _u_act)
             {
-                u_1 = cross_section_orientation(n_size - i, 0);
-                phi_1 = cross_section_orientation(n_size - i, 1);
+                u_1 = local_axis_orientation(n_size - i, 0);
+                Vector3d normal_temp(3);
+                normal_temp[0] = local_axis_orientation(n_size - i, 1);
+                normal_temp[1] = local_axis_orientation(n_size - i, 2);
+                normal_temp[2] = local_axis_orientation(n_size - i, 3);
+                phi_1 = GetDeltaPhi(kinematic_variables, normal_temp);;
                 break;
             }
         }
@@ -2746,14 +2762,70 @@ namespace Kratos {
         }
 
         _Phi += phi_0 + (_u_act - u_0) / (u_1 - u_0) * diff_phi;
-
         _Phi_0_der += diff_phi / (u_1 - u_0);
     }
 
-    void IsogeometricBeamElement::CompGeometryReferenceCrossSection( Vector3d _R1, Vector3d _R2, Vector3d _T0_vec, Vector3d& _n_act, Vector3d& _v_act, Vector3d& _n0, Vector3d& _v0, double& _B_n, double& _B_v, double& _C_12, double& _C_13, double& _Phi, double& _Phi_0_der)
+    //Todo: Check function GetGeltaPhi
+    double IsogeometricBeamElement::GetDeltaPhi(KinematicVariables &kinematic_variables, Vector3d &n)
+    {
+        Vector3d _t0_0 = this->GetProperties()[T_0];
+        Vector3d _t0 = kinematic_variables.R1; //or .r1?
+
+        double phi = 0.0;
+        // Normalize tangent vectors
+        Vector3d t0 = _t0 / norm_2(_t0);
+        Vector3d t0_0 = _t0_0 / norm_2(_t0_0);
+
+        double t_perp_n = inner_prod(t0, n);
+        double n_L = norm_2(n);
+
+        if (std::abs(t_perp_n / (n_L * norm_2(t0))) > 0.999999 && std::abs(t_perp_n / (n_L * norm_2(t0))) < 1.000001)
+        {
+            KRATOS_WARNING("Principal axis n is aligned with beam axis at u");
+            exit(-1);
+        }
+
+        if (std::abs(t_perp_n) > 1e-6)
+        {
+            KRATOS_WARNING("Principal axis n is not perpendicular to the beam axis at u");
+        }
+
+        // Project n onto plane normal to t0
+        n = n - t_perp_n * t0;
+        n = n / norm_2(n);
+        Vector3d n0 = n; // reference principal axis
+
+        // Compute transformation matrix
+        Matrix3d mat_lambda;
+        CompMatLambda(mat_lambda, t0_0, t0);
+
+        // Rotate reference axis
+        Vector3d n_b;
+        n_b = prod(mat_lambda, n0);
+        // Compute rotation angle φ between n_b and n
+        Vector3d n_ref = cross_prod(_t0, n_b);
+        double innerprod = inner_prod(n_b, n);
+        double innerprod_ref = inner_prod(n, n_ref);
+
+        double cos_theta = innerprod / (norm_2(n_b) * norm_2(n));
+        if (std::abs(1.0 - std::abs(cos_theta)) < 1e-9)
+            cos_theta = MathUtils<double>::Sign(cos_theta);
+
+        phi = std::acos(cos_theta);
+
+        const double pi = 4.0 * std::atan(1.0);
+        if (innerprod_ref < -1e-12)
+            phi = 2.0 * pi - phi;
+
+        return phi;
+    }
+        
+
+
+    void IsogeometricBeamElement::CompGeometryReferenceCrossSection(KinematicVariables &kinematic_variables, Vector3d _R1, Vector3d _R2, Vector3d _T0_vec, Vector3d& _n_act, Vector3d& _v_act, Vector3d& _n0, Vector3d& _v0, double& _B_n, double& _B_v, double& _C_12, double& _C_13, double& _Phi, double& _Phi_0_der)
     {
 
-        CompPhiRefProp(_Phi, _Phi_0_der);
+        CompPhiRefProp(kinematic_variables, _Phi, _Phi_0_der);
 
         Matrix3d mat_lamb;
         Matrix3d mat_lamb_deriv;
