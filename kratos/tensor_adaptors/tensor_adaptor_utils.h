@@ -144,52 +144,6 @@ public:
         return zero;
     }
 
-    template <class TContainerType, class TDataType, class TSpanType, class TGetterType>
-    static void CollectVariableData(
-        const DenseVector<unsigned int>& rTensorShape,
-        const TContainerType& rContainer,
-        const Variable<TDataType>& rVariable,
-        const TSpanType& Span,
-        const TGetterType& rGetter)
-    {
-        KRATOS_TRY
-
-        ContainerIOUtils::CopyToContiguousArray<TDataType>(
-            rContainer, Span, rTensorShape.data().begin(),
-            rTensorShape.data().begin() + rTensorShape.size(), rGetter);
-
-        KRATOS_CATCH("");
-    }
-
-    template <class TContainerType, class TDataType, class TSpanType, class TReferenceGetter>
-    static void StoreVariableData(
-        const DenseVector<unsigned int>& rTensorShape,
-        TContainerType& rContainer,
-        const Variable<TDataType>& rVariable,
-        const TSpanType& Span,
-        const TReferenceGetter& rReferenceGetter)
-    {
-        KRATOS_TRY
-
-        ContainerIOUtils::CopyFromContiguousDataArray<TDataType>(
-            rContainer, Span, rTensorShape.data().begin(),
-            rTensorShape.data().begin() + rTensorShape.size(), rReferenceGetter);
-
-        KRATOS_CATCH("");
-    }
-
-    template<class TContainerType>
-    static std::string Info(
-        const std::string& rPrefix,
-        const DenseVector<unsigned int>& rTensorShape,
-        const TContainerType& rContainer)
-    {
-        std::stringstream info;
-        info << rPrefix << "number of " << ModelPart::Container<TContainerType>::GetEntityName()
-             << "(s) = " << rContainer.size() << ", shape = " << rTensorShape << ".\n";
-        return info.str();
-    }
-
     ///@}
 };
 
