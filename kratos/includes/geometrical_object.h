@@ -257,6 +257,66 @@ public:
         return GetData().GetValue(rThisVariable);
     }
 
+    /**
+     * @brief Get a pointer to the value specified by the variable
+     * @details This method returns a pointer to the value represented by @p rThisVariable.
+     *          If the variable is not found in the database, a @p nullptr is returned.
+     *
+     * @tparam TDataType    Data type of the variable.
+     * @param rThisVariable Variable.
+     * @return TDataType*   Pointer to the data represented by @p rThisVariable.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type* pGetValue(const TVariableType& rThisVariable)
+    {
+        return GetData().pGetValue(rThisVariable);
+    }
+
+    /**
+     * @brief Get a pointer to the value specified by the variable
+     * @details This method returns a const pointer to the value represented by @p rThisVariable.
+     *          If the variable is not found in the database, a @p nullptr is returned.
+     *
+     * @tparam TDataType           Data type of the variable.
+     * @param rThisVariable        Variable.
+     * @return TDataType const *   const Pointer to the data represented by @p rThisVariable.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type const * pGetValue(const TVariableType& rThisVariable) const
+    {
+        return GetData().pGetValue(rThisVariable);
+    }
+
+    /**
+     * @brief Retrieves the stored value of a given variable.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable whose value is to be retrieved.
+     * @return Reference to the stored value.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type&  GetOrCreateValue(const TVariableType& rThisVariable)
+    {
+        return GetData().GetOrCreateValue(rThisVariable);
+    }
+
+    /**
+     * @brief Get the the data value if existing or create the value for a given @p rThisVariable.
+     * @details This method returns a reference to a value represented by @p rThisVariable from the
+     *          database. If the @p rThisVariable is not found, then a new value is created using
+     *          @p rThisVariable::Zero() method and then reference to new value is returned.
+     *
+     * @warning Use it with care when calling this within a parallelized loop. If the parallelization
+     *          is not done on the database, then this method is safe to use.
+     *
+     * @param rThisVariable     Variable representing the value.
+     * @return TDataType&       Reference to the value.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type& GetOrCreateValue(const TVariableType& rThisVariable, const typename TVariableType::Type& rInitValue)
+    {
+        return GetData().GetOrCreateValue(rThisVariable, rInitValue);
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
