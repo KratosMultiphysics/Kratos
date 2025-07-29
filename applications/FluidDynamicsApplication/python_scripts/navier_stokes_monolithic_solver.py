@@ -354,7 +354,7 @@ class NavierStokesMonolithicSolver(FluidSolver):
         scheme_type = self.settings["time_scheme"].GetString()
         if scheme_type == "bossak":
             self.min_buffer_size = 2
-        elif scheme_type == "bdf2":
+        elif scheme_type == "bdf2" or scheme_type == "bdf2_higher_order_vms":
             self.min_buffer_size = 3
         elif scheme_type == "steady":
             self.min_buffer_size = 1
@@ -376,36 +376,36 @@ class NavierStokesMonolithicSolver(FluidSolver):
         set_viscosity = KratosMultiphysics.VISCOSITY in self.historical_nodal_variables_list
         set_sound_velocity = KratosMultiphysics.SOUND_VELOCITY in self.non_historical_nodal_variables_list
 
-        # Get density and dynamic viscostity from the properties of the first element
-        for el in self.main_model_part.Elements:
-            # Get DENSITY from properties
-            if set_density:
-                rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
-                if rho <= 0.0:
-                    raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho,el.Properties.Id))
-            # Get DYNAMIC_VISCOSITY from properties and calculate the kinematic one (VISCOSITY)
-            if set_viscosity:
-                dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-                if dyn_viscosity <= 0.0:
-                    raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
-                kin_viscosity = dyn_viscosity / rho
-            # Get SOUND_VELOCITY
-            if set_sound_velocity:
-                if el.Properties.Has(KratosMultiphysics.SOUND_VELOCITY):
-                    sound_velocity = el.Properties.GetValue(KratosMultiphysics.SOUND_VELOCITY)
-                else:
-                    sound_velocity = 1.0e+12 # Default sound velocity value
-                    KratosMultiphysics.Logger.PrintWarning('No \'SOUND_VELOCITY\' value found in Properties {0}. Setting default value {1}'.format(el.Properties.Id, sound_velocity))
-                if sound_velocity <= 0.0:
-                    raise Exception("SOUND_VELOCITY set to {0} in Properties {1}, positive number expected.".format(sound_velocity, el.Properties.Id))
-            break
-        else:
-            raise Exception("No fluid elements found in the main model part.")
+        # # Get density and dynamic viscostity from the properties of the first element
+        # for el in self.main_model_part.Elements:
+        #     # Get DENSITY from properties
+        #     if set_density:
+        #         rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
+        #         if rho <= 0.0:
+        #             raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho,el.Properties.Id))
+        #     # Get DYNAMIC_VISCOSITY from properties and calculate the kinematic one (VISCOSITY)
+        #     if set_viscosity:
+        #         dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
+        #         if dyn_viscosity <= 0.0:
+        #             raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
+        #         kin_viscosity = dyn_viscosity / rho
+        #     # Get SOUND_VELOCITY
+        #     if set_sound_velocity:
+        #         if el.Properties.Has(KratosMultiphysics.SOUND_VELOCITY):
+        #             sound_velocity = el.Properties.GetValue(KratosMultiphysics.SOUND_VELOCITY)
+        #         else:
+        #             sound_velocity = 1.0e+12 # Default sound velocity value
+        #             KratosMultiphysics.Logger.PrintWarning('No \'SOUND_VELOCITY\' value found in Properties {0}. Setting default value {1}'.format(el.Properties.Id, sound_velocity))
+        #         if sound_velocity <= 0.0:
+        #             raise Exception("SOUND_VELOCITY set to {0} in Properties {1}, positive number expected.".format(sound_velocity, el.Properties.Id))
+        #     break
+        # else:
+        #     raise Exception("No fluid elements found in the main model part.")
 
-        # Transfer the obtained properties to the nodes
-        if set_density:
-            KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        if set_viscosity:
-            KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
-        if set_sound_velocity:
-            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.SOUND_VELOCITY, sound_velocity, self.main_model_part.Nodes)
+        # # Transfer the obtained properties to the nodes
+        # if set_density:
+        #     KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
+        # if set_viscosity:
+        #     KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
+        # if set_sound_velocity:
+        #     KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.SOUND_VELOCITY, sound_velocity, self.main_model_part.Nodes)

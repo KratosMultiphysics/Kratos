@@ -176,7 +176,8 @@ private:
         ModelPart& rDestinationModelPart,
         std::string& rElementName,
         SizeType& rIdCounter,
-        PropertiesPointerType pProperties) const;
+        PropertiesPointerType pProperties,
+        const Vector KnotSpanSizes) const;
 
     /// Creates conditions from geometries
     void CreateConditions(
@@ -185,7 +186,8 @@ private:
         ModelPart& rDestinationModelPart,
         std::string& rConditionName,
         SizeType& rIdCounter,
-        PropertiesPointerType pProperties) const;
+        PropertiesPointerType pProperties,
+        const Vector KnotSpanSizes) const;
 
     /// Creates conditions from geometries
     void CreateConditions(
@@ -198,7 +200,9 @@ private:
         SizeType& rIdCounter,
         PropertiesPointerType pProperties,
         bool IsInner,
-        Vector KnotSpanSizes) const;
+        const Vector KnotSpanSizes) const;
+
+    void PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_part) const;
 
     ///@}
     ///@name Utility

@@ -291,6 +291,8 @@ void AssignIgaExternalConditionsProcess::SetExternalConditionToElementsAndCondit
                     i_cond->SetValue(VELOCITY_Y, value);
                 } else if (component_rVariableName == "VELOCITY_Z") {
                     i_cond->SetValue(VELOCITY_Z, value);
+                } else if (component_rVariableName == "PRESSURE") {
+                    i_cond->SetValue(PRESSURE, value);
                 } else if (component_rVariableName == "DISPLACEMENT_X") {
                     i_cond->SetValue(DISPLACEMENT_X, value);
                 } else if (component_rVariableName == "DISPLACEMENT_Y") {
@@ -304,7 +306,7 @@ void AssignIgaExternalConditionsProcess::SetExternalConditionToElementsAndCondit
                 } else if (component_rVariableName == "FORCE_Z") {
                     i_cond->SetValue(FORCE_Z, value);
                 } else {
-                    KRATOS_ERROR << "No name found" ;
+                    KRATOS_ERROR << "No name found :: Variable name = " << component_rVariableName;
                 }
             } 
         } else {KRATOS_ERROR << "AssignIgaExternalConditionsProcess : No Condition or Elements defined" ;}
