@@ -31,7 +31,18 @@ namespace Kratos {
  */
 
 template<class T, class... TList>
-struct IsInList: public std::disjunction<std::is_same<T, TList>...> {};
+struct IsInListImpl: public std::disjunction<std::is_same<T, TList>...> {};
+
+template<class T, class... TList>
+constexpr bool IsInList = IsInListImpl<T, TList...>::value;
+
+template <class T>
+struct BareTypeImpl {
+    using type = std::remove_cv_t<std::remove_pointer_t<std::remove_cv_t<std::remove_reference_t<T>>>>;
+};
+
+template <typename T>
+using BareType = typename BareTypeImpl<T>::type;
 
 template<class TDataType> class DataTypeTraits
 {
