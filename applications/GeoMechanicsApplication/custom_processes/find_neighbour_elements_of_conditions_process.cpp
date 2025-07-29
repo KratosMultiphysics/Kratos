@@ -281,19 +281,12 @@ hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingTe
     if (itFace != FacesMap.end()) return itFace;
 
     if (FaceIds.size() == 3) {
-        // first try
-        std::swap(FaceIds[0], FaceIds[1]);
-        std::swap(FaceIds[1], FaceIds[2]);
+        for (int i = 0; i < FaceIds.size() - 1; ++i) {
+            std::rotate(FaceIds.begin(), FaceIds.begin() + 1, FaceIds.end());
 
-        itFace = FacesMap.find(FaceIds);
-        if (itFace != FacesMap.end()) return itFace;
-
-        // Second try
-        std::swap(FaceIds[0], FaceIds[1]);
-        std::swap(FaceIds[1], FaceIds[2]);
-
-        itFace = FacesMap.find(FaceIds);
-        if (itFace != FacesMap.end()) return itFace;
+            itFace = FacesMap.find(FaceIds);
+            if (itFace != FacesMap.end()) return itFace;
+        }
     }
 
     return FacesMap.end();
