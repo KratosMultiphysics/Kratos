@@ -25,23 +25,21 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "intrusive_ptr/intrusive_ptr.hpp"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
 
-/**
- * @brief Base class or all the tensor adaptor types.
- */
 template<class TDataType>
-class TensorAdaptor {
+class TensorData
+{
 public:
-
     ///@name Type definitions
     ///@{
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TensorAdaptor);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TensorData);
 
     using ContainerPointerType = std::variant<
                                         ModelPart::NodesContainerType::Pointer,
@@ -56,15 +54,37 @@ public:
     ///@name Life cycle
     ///@{
 
-    TensorAdaptor() = default;
+    TensorData(
+        ContainerPointerType pContainer,
+        const DenseVector<unsigned int>& rShape)
+        : mpContainer(pContainer),
+          mShape(rShape)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(mShape.empty())
+            << "The tensor data shape cannot be empty. It atleast needs one dimension representing the number of items in the container [ tensor data = "
+            << *this << " ].\n";
+
+        std::visit([this](auto pContainer){
+            KRATOS_ERROR_IF_NOT(mShape[0] == pContainer->size())
+                << "The value of the first dimension should be equal to the number of items in the pContainer [ container size = "
+                << pContainer->size() << ", tensor data = " << *this << " ].\n";
+        }, mpContainer);
+
+        // allocate new memory
+        mpData = new TDataType[this->Size()];
+
+        KRATOS_CATCH("");
+    }
 
     /**
-     * @brief Destroy the Tensor Adaptor
-     * @details This method destroys the TensorAdaptor and
-     *          the internal data as well if it is still owned by the TensorAdaptor.
+     * @brief Destroy the Tensor Adaptor storage
+     * @details This method destroys the TensorAdaptorStorage and
+     *          the internal data as well if it is still owned by the TensorAdaptorStorage.
      *
      */
-    virtual ~TensorAdaptor()
+    ~TensorData()
     {
         if (mpData) {
             delete[] mpData;
@@ -75,22 +95,18 @@ public:
     ///@name Public operations
     ///@{
 
-    /**
-     * @brief Fill the internal data from Kratos data structures.
-     * @details This method should not change anything in the underlying Kratos data structures. It should
-     *          only gather data from Kratos data structures to the TensorAdaptor.
-     */
-    virtual void CollectData() = 0;
+    TensorData::Pointer Clone() const
+    {
+        auto p_tensor_data = Kratos::make_intrusive<TensorData<TDataType>>(this->GetContainer(), this->Shape());
+        const auto&  cloned_span = p_tensor_data->ViewData();
+        const auto& origin_span = this->ViewData();
 
-    /**
-     * @brief Store internal data to the given Kratos data structure.
-     */
-    virtual void StoreData() = 0;
+        IndexPartition<IndexType>(cloned_span.size()).for_each([&cloned_span, &origin_span](const auto Index) {
+            cloned_span[Index] = origin_span[Index];
+        });
 
-    /**
-     * @brief Get the data container which is associated with the TensorAdaptor.
-     */
-    virtual ContainerPointerType GetContainer() const = 0;
+        return p_tensor_data;
+    }
 
     /**
      * @brief Moves the internal data.
@@ -128,6 +144,160 @@ public:
         return Kratos::span<TDataType>(mpData, mpData + this->Size());
     }
 
+    DenseVector<unsigned int> Shape() const
+    {
+        return mShape;
+    };
+
+    DenseVector<unsigned int> DataShape() const
+    {
+        const auto& shape = this->Shape();
+        DenseVector<unsigned int> data_shape(shape.size() - 1);
+        std::copy(shape.begin() + 1, shape.end(), data_shape.begin());
+        return data_shape;
+    }
+
+
+    /**
+     * @brief Total size of the tensor adaptor.
+     */
+    unsigned int Size() const
+    {
+        return std::accumulate(mShape.data().begin(), mShape.data().end(), 1, std::multiplies<unsigned int>{});
+    }
+
+    ContainerPointerType GetContainer() const
+    {
+        return mpContainer;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream info;
+        std::visit([&info, this](auto pContainer) {
+            using container_type = std::remove_cv_t<std::decay_t<decltype(*pContainer)>>;
+            info << "TensorData with " << pContainer->size() << " " << ModelPart::Container<container_type>::GetEntityName() << "(s) with shape = " << this->Shape();
+        }, mpContainer);
+        return info.str();
+    }
+
+    ///@}
+
+
+private:
+    ///@name private member variables
+    ///@{
+
+    const ContainerPointerType mpContainer;
+
+    const DenseVector<unsigned int> mShape;
+
+    TDataType * mpData = nullptr; // nullptr is used to indicate there is no owning data.
+
+    ///@}
+    ///@name Private operations
+    ///@{
+
+    //*********************************************
+    // this block is needed for refcounting in the @ref intrusive ptr
+    mutable std::atomic<int> mReferenceCounter{0};
+
+    friend void intrusive_ptr_add_ref(const TensorData* x)
+    {
+        x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    friend void intrusive_ptr_release(const TensorData* x)
+    {
+        if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
+            std::atomic_thread_fence(std::memory_order_acquire);
+            delete x;
+        }
+    }
+
+    //*********************************************
+
+    ///@}
+};
+
+template<class TDataType>
+class TensorAdaptor {
+public:
+
+    ///@name Type definitions
+    ///@{
+
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TensorAdaptor);
+
+    ///@}
+    ///@name Life cycle
+    ///@{
+
+    TensorAdaptor() = default;
+
+    virtual ~TensorAdaptor() = default;
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    /**
+     * @brief Fill the internal data from Kratos data structures.
+     * @details This method should not change anything in the underlying Kratos data structures. It should
+     *          only gather data from Kratos data structures to the TensorAdaptor.
+     */
+    virtual void CollectData() = 0;
+
+    /**
+     * @brief Store internal data to the given Kratos data structure.
+     */
+    virtual void StoreData() = 0;
+
+    /**
+     * @brief Get the data container which is associated with the TensorAdaptor.
+     */
+    typename TensorData<TDataType>::ContainerPointerType GetContainer() const
+    {
+        return mpStorage->GetContainer();
+    }
+
+    typename TensorData<TDataType>::Pointer GetTensorData()
+    {
+        return mpStorage;
+    }
+
+    /**
+     * @brief Moves the internal data.
+     * @warning The TensorAdaptor should not be used after the move is called.
+     *          The management of the data should be carried out by the owner of the
+     *          returned Kratos::span. Otherwise, there will be memory leaks.
+     * @throws If the internal data is already moved.
+     * @return Kratos::span<TDataType>  Returns a span containing the internal data.
+     */
+    Kratos::span<TDataType> MoveData()
+    {
+        return mpStorage->MoveData();
+    }
+
+    /**
+     * @brief Return a view of the internal data structure.
+     * @throws If the internal data is already moved.
+     */
+    Kratos::span<const TDataType>  ViewData() const
+    {
+        const auto& storage = *mpStorage;
+        return storage.ViewData();
+    }
+
+    /**
+     * @brief Return a view of the internal data structure.
+     * @throws If the internal data is already moved.
+     */
+    Kratos::span<TDataType> ViewData()
+    {
+        return mpStorage->ViewData();
+    }
+
     /**
      * @brief Get the Shape of the tensor adaptor.
      * @details The first dimension of the tensor adaptor shape will represent the number of entities in the
@@ -137,8 +307,8 @@ public:
      */
     DenseVector<unsigned int> Shape() const
     {
-        return mShape;
-    };
+        return mpStorage->Shape();
+    }
 
     /**
      * @brief Get the shape of the data which the tensor carries for each of the entities.
@@ -150,9 +320,7 @@ public:
      */
     DenseVector<unsigned int> DataShape() const
     {
-        DenseVector<unsigned int> data_shape(mShape.size() - 1);
-        std::copy(mShape.begin() + 1, mShape.end(), data_shape.begin());
-        return data_shape;
+        return mpStorage->DataShape();
     }
 
     /**
@@ -160,7 +328,7 @@ public:
      */
     unsigned int Size() const
     {
-        return std::accumulate(mShape.data().begin(), mShape.data().end(), 1, std::multiplies<unsigned int>{});
+        return mpStorage->Size();
     }
 
     ///@}
@@ -175,48 +343,14 @@ public:
     ///@}
 
 protected:
-    ///@name Protected operations
+    ///@name Protected member variables
     ///@{
 
-    void SetShape(const DenseVector<unsigned int>& rNewShape)
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR_IF(rNewShape.empty())
-            << "The tensors cannot have an empty shape. It should have atleast "
-            << "first dimension which represents number of items in the container [ "
-            << *this << " ].\n";
-
-        // checks whether the mShape is empty, that means
-        // the SetShape method is not yet called. This is because, once this method is called
-        // the mShape size cannot be zero. It will at least have size 1 representing the size of the container.
-        KRATOS_ERROR_IF_NOT(this->Shape().empty())
-            << "The tensor is already initialized with a shape [ new shape = " << rNewShape
-            << ", current shape = " << this->Shape() << ", " << *this << " ].\n";
-
-        // set the shape
-        mShape = rNewShape;
-
-        // get the new size
-        const auto new_size = this->Size();
-
-        // allocate new memory
-        mpData = new TDataType[new_size];
-
-        KRATOS_CATCH("");
-    }
+    typename TensorData<TDataType>::Pointer mpStorage;
 
     ///@}
 
 private:
-    ///@name Private member variables
-    ///@{
-
-    TDataType * mpData = nullptr; // nullptr is used to indicate there is no owning data.
-
-    DenseVector<unsigned int> mShape;
-
-    ///@}
     ///@name Private operations
     ///@{
 
@@ -244,6 +378,14 @@ private:
 
 /// @}
 /// output stream functions
+template<class TDataType>
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const TensorData<TDataType>& rThis)
+{
+    return rOStream << rThis.Info();
+}
+
 template<class TDataType>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
