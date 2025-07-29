@@ -167,9 +167,9 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerpGetValue, KratosCoreFastSuite) {
     KRATOS_EXPECT_EQ(*container_target.pGetValue(VISCOSITY), viscosity_2);
     KRATOS_EXPECT_EQ(container_target.pGetValue(PRESSURE), nullptr);
     KRATOS_EXPECT_VECTOR_EQ(*(container_target.pGetValue(VELOCITY), velocity));
-    KRATOS_EXPECT_VECTOR_EQ(*(container_target.pGetValue(VELOCITY_Y)), velocity[1]);
-    KRATOS_EXPECT_VECTOR_EQ(container_target.pGetValue(ACCELERATION), nullptr);
-    KRATOS_EXPECT_VECTOR_EQ(container_target.pGetValue(ACCELERATION_X), nullptr);
+    KRATOS_EXPECT_EQ(*(container_target.pGetValue(VELOCITY_Y)), velocity[1]);
+    KRATOS_EXPECT_EQ(container_target.pGetValue(ACCELERATION), nullptr);
+    KRATOS_EXPECT_EQ(container_target.pGetValue(ACCELERATION_X), nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataValueContainerGetOrCreateValue, KratosCoreFastSuite) {
@@ -190,18 +190,18 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerGetOrCreateValue, KratosCoreFastSuit
     KRATOS_EXPECT_EQ(container_target.GetOrCreateValue(VISCOSITY), viscosity_2);
     KRATOS_EXPECT_EQ(container_target.GetOrCreateValue(PRESSURE), nullptr);
     KRATOS_EXPECT_VECTOR_EQ(container_target.GetOrCreateValue(VELOCITY), velocity);
-    KRATOS_EXPECT_VECTOR_EQ(container_target.GetOrCreateValue(VELOCITY_Y), velocity[1]);
+    KRATOS_EXPECT_EQ(container_target.GetOrCreateValue(VELOCITY_Y), velocity[1]);
 
 
-    KRATOS_EXPECT_VECTOR_EQ(container_target.GetOrCreateValue(DISTANCE), 0.0);
+    KRATOS_EXPECT_EQ(container_target.GetOrCreateValue(DISTANCE), 0.0);
     KRATOS_EXPECT_VECTOR_EQ(container_target.GetOrCreateValue(MOMENTUM, array_1d<double, 3>{0.9, 1.1, 1.2}), array_1d<double, 3>{0.9, 1.1, 1.2});
 
     KRATOS_EXPECT_VECTOR_EQ(container_target.GetOrCreateValue(ACCELERATION), array_1d<double, 3>{});
-    KRATOS_EXPECT_VECTOR_EQ(container_target.GetOrCreateValue(ACCELERATION_X), 0.0);
+    KRATOS_EXPECT_EQ(container_target.GetOrCreateValue(ACCELERATION_X), 0.0);
 
-    KRATOS_EXPECT_VECTOR_EQ(container_target.GetOrCreateValue(DISPLACEMENT_Z, 0.7), 0.7);
-    KRATOS_EXPECT_VECTOR_EQ(container_target.GetOrCreateValue(DISPLACEMENT_X, 0.7), 0.0);
-    KRATOS_EXPECT_VECTOR_EQ(container_target.GetOrCreateValue(DISPLACEMENT_Y, 0.7), 0.0);
+    KRATOS_EXPECT_EQ(container_target.GetOrCreateValue(DISPLACEMENT_Z, 0.7), 0.7);
+    KRATOS_EXPECT_EQ(container_target.GetOrCreateValue(DISPLACEMENT_X, 0.7), 0.0);
+    KRATOS_EXPECT_EQ(container_target.GetOrCreateValue(DISPLACEMENT_Y, 0.7), 0.0);
 }
 }
 } // namespace Kratos.
