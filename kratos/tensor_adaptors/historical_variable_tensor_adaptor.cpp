@@ -25,21 +25,29 @@ namespace HistoricalVariableTensorAdaptorHelperUtils {
 
 template<class TDataType>
 void Check(
-    const Node& rNode,
+    const ModelPart::NodesContainerType& rContainer,
     const Variable<TDataType>& rVariable,
     const IndexType StepIndex)
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(rVariable))
-        << "The " << rVariable.Name() << " is not in the solution step variables list of "
-        << rNode << ".\n";
+    // get the unique set of solution step variables lists
+    std::set<VariablesList const *> solution_step_variables_lists;
+    for (const auto& r_node : rContainer) {
+        solution_step_variables_lists.insert(&*r_node.pGetVariablesList());
 
-    KRATOS_ERROR_IF_NOT(rNode.GetBufferSize() > StepIndex)
-        << "The step index is larger than the nodal buffer size [ variable = "
-        << rVariable.Name() << ", node buffer size = "
-        << rNode.GetBufferSize() << ", step index = " << StepIndex
-        << ", node = " << rNode << " ].\n";
+        KRATOS_ERROR_IF_NOT(r_node.GetBufferSize() > StepIndex)
+            << "The step index is larger than the nodal buffer size [ variable = "
+            << rVariable.Name() << ", node buffer size = "
+            << r_node.GetBufferSize() << ", step index = " << StepIndex
+            << ", node = " << r_node << " ].\n";
+    }
+
+    // now check whether the variable exists
+    for (const auto& p_variables_list : solution_step_variables_lists) {
+        KRATOS_ERROR_IF_NOT(p_variables_list->Has(rVariable))
+            << "The " << rVariable.Name() << " is not in the solution step variables.\n";
+    }
 
     KRATOS_CATCH("");
 }
@@ -54,14 +62,14 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
       mStepIndex(StepIndex)
 {
     std::visit([this, pContainer, StepIndex](auto pVariable) {
-            this->mpStorage = Kratos::make_intrusive<TensorData<double>>(
-                pContainer,
-                TensorAdaptorUtils::GetTensorShape(
-                    *pContainer, *pVariable, [pVariable, StepIndex](auto& rValue, const Node& rNode) {
-                        HistoricalVariableTensorAdaptorHelperUtils::Check(rNode, *pVariable, StepIndex);
-                        rValue = rNode.FastGetSolutionStepValue(*pVariable, StepIndex);
-                    }));
-        }, mpVariable);
+        HistoricalVariableTensorAdaptorHelperUtils::Check(*pContainer, *pVariable, StepIndex);
+        this->mpStorage = Kratos::make_intrusive<TensorData<double>>(
+            pContainer,
+            TensorAdaptorUtils::GetTensorShape(
+                *pContainer, *pVariable, [pVariable, StepIndex](auto& rValue, const Node& rNode) {
+                    rValue = rNode.FastGetSolutionStepValue(*pVariable, StepIndex);
+                }));
+    }, mpVariable);
 }
 
 HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
@@ -103,19 +111,31 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
 
 void HistoricalVariableTensorAdaptor::CollectData()
 {
+
     std::visit([this](auto pContainer, auto pVariable) {
         using container_type = BareType<decltype(*pContainer)>;
 
         if constexpr(IsInList<container_type, ModelPart::NodesContainerType>) {
+            // first check if the variable is there, and step index is valid
+            // This check is done every time CollectData or StoreData is called
+            // because, the PointerVectorSet which the TensorData holds
+            // may have nodes from different model parts, or they may come from
+            // a temporary PointerVectorSet which did not change in size, but
+            // changed the underlying nodes or variables list.
+            HistoricalVariableTensorAdaptorHelperUtils::Check(*pContainer, *pVariable, this->mStepIndex);
+
             using variable_type = BareType<decltype(*pVariable)>;
             using data_type = typename variable_type::Type;
 
             const auto& r_tensor_shape = this->Shape();
 
+            KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
+                << "Underlying container of the tensor data has changed size [ tensor data = "
+                << *this->GetTensorData() << ", container size = " << pContainer->size() << " ].\n";
+
             ContainerIOUtils::CopyToContiguousArray<data_type>(
                 *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
                 r_tensor_shape.data().begin() + r_tensor_shape.size(), [pVariable, this](auto& rValue, const Node& rNode) {
-                        HistoricalVariableTensorAdaptorHelperUtils::Check(rNode, *pVariable, this->mStepIndex);
                         rValue = rNode.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
                 });
         }
@@ -128,10 +148,22 @@ void HistoricalVariableTensorAdaptor::StoreData()
         using container_type = BareType<decltype(*pContainer)>;
 
         if constexpr(IsInList<container_type, ModelPart::NodesContainerType>) {
+            // first check if the variable is there, and step index is valid
+            // This check is done every time CollectData or StoreData is called
+            // because, the PointerVectorSet which the TensorData holds
+            // may have nodes from different model parts, or they may come from
+            // a temporary PointerVectorSet which did not change in size, but
+            // changed the underlying nodes or variables list.
+            HistoricalVariableTensorAdaptorHelperUtils::Check(*pContainer, *pVariable, this->mStepIndex);
+
             using variable_type = BareType<decltype(*pVariable)>;
             using data_type = typename variable_type::Type;
 
             const auto& r_tensor_shape = this->Shape();
+
+            KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
+                << "Underlying container of the tensor data has changed size [ tensor data = "
+                << *this->GetTensorData() << ", container size = " << pContainer->size() << " ].\n";
 
             if constexpr(DataTypeTraits<data_type>::IsDynamic) {
                 const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
@@ -140,7 +172,6 @@ void HistoricalVariableTensorAdaptor::StoreData()
                 ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
                     *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
                     r_tensor_shape.data().begin() + r_tensor_shape.size(), [&zero, &zero_shape, this, pVariable](Node& rNode) -> auto& {
-                        HistoricalVariableTensorAdaptorHelperUtils::Check(rNode, *pVariable, this->mStepIndex);
                         auto& r_value = rNode.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
 
                         // here we reshape the r_value to the given dimensions and sizes.
@@ -159,7 +190,6 @@ void HistoricalVariableTensorAdaptor::StoreData()
                 ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
                     *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
                     r_tensor_shape.data().begin() + r_tensor_shape.size(), [this, pVariable](Node& rNode) -> auto& {
-                        HistoricalVariableTensorAdaptorHelperUtils::Check(rNode, *pVariable, this->mStepIndex);
                         return rNode.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
                     });
             }
