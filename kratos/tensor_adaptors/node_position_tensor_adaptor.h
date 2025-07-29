@@ -50,6 +50,9 @@ public:
         Globals::Configuration Configuration,
         const std::vector<unsigned int>& rDataShape);
 
+    NodePositionTensorAdaptor(
+        TensorData<double>::Pointer pTensorData,
+        Globals::Configuration Configuration);
 
     // Destructor
     ~NodePositionTensorAdaptor() override = default;
@@ -69,8 +72,6 @@ public:
      */
     void StoreData() override;
 
-    ContainerPointerType GetContainer() const override;
-
     ///@}
     ///@name Input and output
     ///@{
@@ -82,8 +83,6 @@ public:
 private:
     ///@name Private member variables
     ///@{
-
-    ModelPart::NodesContainerType::Pointer mpContainer;
 
     Globals::Configuration mConfiguration;
 
