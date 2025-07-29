@@ -308,7 +308,7 @@ void CalculateNodalCouplingForces(ModelPart& rFEMModelPart, double& penalty_max)
                 const auto& rGaussPts        = rGeom.IntegrationPoints(integration_method);
 
                 double w = rGaussPts[i].Weight(); 
-                std::cout<<"Integration weight at gauss points = "<< w <<std::endl;  
+                // std::cout<<"Integration weight at gauss points = "<< w <<std::endl;  
                 // double w = 1.0;   // Adjust this weight if needed. Assuming V[i] / J is omitted here
                 const Kratos::Matrix shape_functions = elem_it->GetGeometry().ShapeFunctionsValues();
                 

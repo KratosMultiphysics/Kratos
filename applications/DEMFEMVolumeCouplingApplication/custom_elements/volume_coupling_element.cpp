@@ -147,7 +147,7 @@ void VolumeCouplingElement::CalculateOnIntegrationPoints(
 
     
             
-            rOutput[point_number] *= (1-coupling_weight_on_this_integration_point);
+            rOutput[point_number] *= (1-coupling_weight_on_this_integration_point);    // this is just output stress getting weighted by the coupling weight, doesn't affect the simulation.
 
             std::cout<<"integration point weight "<<(1-coupling_weight_on_this_integration_point)<<std::endl;
             // print the location of the integration point
