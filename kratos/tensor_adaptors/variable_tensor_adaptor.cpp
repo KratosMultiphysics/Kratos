@@ -126,9 +126,9 @@ void VariableTensorAdaptor::StoreData()
                     // only dynamic data_type types require the zero
                     // to initialize the uninitialized variables, because
                     // they need to be correctly sized.
-                    return *rEntity.pGetOrCreateValue(*pVariable, zero);
+                    return rEntity.GetOrCreateValue(*pVariable, zero);
                 } else {
-                    return *rEntity.pGetOrCreateValue(*pVariable);
+                    return rEntity.GetOrCreateValue(*pVariable);
                 }
             });
     }, this->mpStorage->GetContainer(), mpVariable);
