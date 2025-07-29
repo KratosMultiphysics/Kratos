@@ -109,28 +109,33 @@ void VariableTensorAdaptor::StoreData()
             << "Underlying container of the tensor data has changed size [ tensor data = "
             << *this->GetTensorData() << ", container size = " << pContainer->size() << " ].\n";
 
-        // this zero value may be different from the Variable::Zero()
-        // in the case where the variable type is Variable<Vector> or Variable<Matrix>.
-        // Because, in these dynamic data type variables, Variable::Zero will create
-        // a zero sized vector or matrix, which is useless in the StoreData method.
-        // The following method creates correctly sized zero Vector or Matrix
-        // accordingly to be assigned to the entities, if they don't have the specified
-        // variable in their DataValueContainer.
-        [[maybe_unused]] const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
+        if constexpr(DataTypeTraits<data_type>::IsDynamic) {
+            // this zero value may be different from the Variable::Zero()
+            // in the case where the variable type is Variable<Vector> or Variable<Matrix>.
+            // Because, in these dynamic data type variables, Variable::Zero will create
+            // a zero sized vector or matrix, which is useless in the StoreData method.
+            // The following method creates correctly sized zero Vector or Matrix
+            // accordingly to be assigned to the entities, if they don't have the specified
+            // variable in their DataValueContainer.
+            const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
 
-        ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
-            *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
-            r_tensor_shape.data().begin() + r_tensor_shape.size(),
-            [pVariable, &zero](auto& rEntity) -> auto& {
-                if constexpr(DataTypeTraits<data_type>::IsDynamic) {
+            ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
+                *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
+                r_tensor_shape.data().begin() + r_tensor_shape.size(),
+                [pVariable, &zero](auto& rEntity) -> auto& {
                     // only dynamic data_type types require the zero
                     // to initialize the uninitialized variables, because
                     // they need to be correctly sized.
                     return rEntity.GetOrCreateValue(*pVariable, zero);
-                } else {
+                });
+        } else {
+            ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
+                *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
+                r_tensor_shape.data().begin() + r_tensor_shape.size(),
+                [pVariable](auto& rEntity) -> auto& {
                     return rEntity.GetOrCreateValue(*pVariable);
-                }
-            });
+                });
+        }
     }, this->mpStorage->GetContainer(), mpVariable);
 }
 
