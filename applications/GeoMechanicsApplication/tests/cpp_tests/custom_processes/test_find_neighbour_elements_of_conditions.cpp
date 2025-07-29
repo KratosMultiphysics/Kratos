@@ -22,7 +22,7 @@ class ParametrizedFindNeighbourElementsOfConditions : public ::testing::TestWith
 {
 };
 
-TEST_P(ParametrizedFindNeighbourElementsOfConditions, NumberOfIntegrationPointsMatchesTheNumberOfPointsGivenAtConstructionTime)
+TEST_P(ParametrizedFindNeighbourElementsOfConditions, NeighboringElementsAreFoundForDifferentNodeOrderings)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);

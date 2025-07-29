@@ -277,14 +277,11 @@ hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingTe
 {
     KRATOS_TRY
 
-    hashmap::iterator itFace = FacesMap.find(FaceIds);
-    if (itFace != FacesMap.end()) return itFace;
-
     if (FaceIds.size() == 3) {
         for (std::size_t i = 0; i < FaceIds.size() - 1; ++i) {
             std::rotate(FaceIds.begin(), FaceIds.begin() + 1, FaceIds.end());
 
-            itFace = FacesMap.find(FaceIds);
+            hashmap::iterator itFace = FacesMap.find(FaceIds);
             if (itFace != FacesMap.end()) return itFace;
         }
     }
