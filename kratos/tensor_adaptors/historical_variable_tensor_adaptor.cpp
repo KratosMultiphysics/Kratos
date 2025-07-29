@@ -133,8 +133,8 @@ void HistoricalVariableTensorAdaptor::StoreData()
 
             const auto& r_tensor_shape = this->Shape();
 
-            const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
-            const auto& zero_shape = DataTypeTraits<data_type>::Shape(zero);
+            [[maybe_unused]] const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
+            [[maybe_unused]] const auto& zero_shape = DataTypeTraits<data_type>::Shape(zero);
 
             ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
                 *pContainer, this->ViewData(), r_tensor_shape.data().begin(),

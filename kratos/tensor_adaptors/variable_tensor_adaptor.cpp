@@ -116,7 +116,7 @@ void VariableTensorAdaptor::StoreData()
         // The following method creates correctly sized zero Vector or Matrix
         // accordingly to be assigned to the entities, if they don't have the specified
         // variable in their DataValueContainer.
-        const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
+        [[maybe_unused]] const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
 
         ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
             *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
