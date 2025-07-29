@@ -108,7 +108,7 @@ KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromUMatParameters, KratosGeo
                                       "Material 0 does not have UMAT_PARAMETERS");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenIndexInUMatParametersIsOutOfBounds, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(RaiseADebugErrorWhenIndexInUMatParametersIsOutOfBounds, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
 #ifndef KRATOS_DEBUG
     GTEST_SKIP() << "This test requires a debug build";

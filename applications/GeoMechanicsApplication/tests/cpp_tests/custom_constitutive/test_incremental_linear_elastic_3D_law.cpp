@@ -185,7 +185,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawThrows_WhenElementProvidedStrainIsSetToFalse,
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawRaisesADebugError_WhenElementProvidedStrainIsSetToFalse,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
 #ifndef KRATOS_DEBUG

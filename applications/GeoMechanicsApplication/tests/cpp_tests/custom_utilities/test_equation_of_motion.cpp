@@ -199,7 +199,7 @@ KRATOS_TEST_CASE_IN_SUITE(TheInternalForceVectorIsTheIntegralOfBTransposedTimesS
                                        expected_internal_force_vector, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenTheInputVectorsHaveDifferentSizes,
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhenTheInputVectorsHaveDifferentSizes,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
 #ifndef KRATOS_DEBUG
@@ -217,7 +217,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenTheInputVect
         "Cannot calculate the internal force vector: input vectors have different sizes")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenAllInputVectorsAreEmpty,
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhenAllInputVectorsAreEmpty,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
 #ifndef KRATOS_DEBUG
@@ -233,7 +233,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenAllInputVect
         "Cannot calculate the internal force vector: input vectors are empty")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenBMatricesHaveDifferentSizes,
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhenBMatricesHaveDifferentSizes,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
 #ifndef KRATOS_DEBUG
@@ -250,7 +250,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenBMatricesHav
         "Cannot calculate the internal force vector: B-matrices have different sizes")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenStressVectorsHaveDifferentSizes,
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhenStressVectorsHaveDifferentSizes,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
 #ifndef KRATOS_DEBUG
@@ -267,7 +267,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenStressVector
         "Cannot calculate the internal force vector: stress vectors have different sizes")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenTheMatrixVectorProductCantBeComputed,
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhenTheMatrixVectorProductCantBeComputed,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
 #ifndef KRATOS_DEBUG
