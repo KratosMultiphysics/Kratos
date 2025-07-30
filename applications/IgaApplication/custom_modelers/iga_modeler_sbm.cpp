@@ -38,6 +38,14 @@ void IgaModelerSbm::SetupModelPart()
         analysis_model_part,
         iga_physics_parameters);
 
+    
+    if (mParameters.Has("integrate_on_true_boundary")) {
+        if (mParameters["integrate_on_true_boundary"].GetBool()) {
+            // method for computing the integral of the solution along the true boundary
+            PrepareIntegrationOnTrueBoundary(analysis_model_part);
+        } 
+    }
+
 }
 
 ///@}
@@ -388,7 +396,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
     const int domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
     double search_radius;
     if (domain_size == 2) {
-        search_radius = std::sqrt(2.0) * knot_span_reference_size;
+        search_radius = std::sqrt(2.0) * knot_span_reference_size*2;
     } else {
         KRATOS_ERROR << "This method is only implemented for 2D (DOMAIN_SIZE == 2). "
                     << "Current DOMAIN_SIZE: " << domain_size << std::endl;
@@ -968,5 +976,93 @@ void IgaModelerSbm::CreateConditions(
     r_layer_model_part.AddConditions(new_condition_list.begin(), new_condition_list.end());
 }
 
+void IgaModelerSbm::PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_part) const 
+{
+    // create the test bins containing all the boundary integration point (ALL!)
+    PointVector points;
+    std::string skin_model_part_name;
+    if (!mParameters.Has("skin_model_part_name")) skin_model_part_name = "skin_model_part";
+    else {
+        skin_model_part_name = mParameters["skin_model_part_name"].GetString();
+    }
+    ModelPart& skin_model_part_in  = mpModel->GetModelPart(skin_model_part_name + ".inner");
+    ModelPart& skin_model_part_out = mpModel->GetModelPart(skin_model_part_name + ".outer");
+
+    if (!(skin_model_part_in.Nodes().size() > 0 || skin_model_part_out.Nodes().size() > 0) ) {
+        KRATOS_ERROR << "Trying to integrate on true boundary when no skin boundary is defined" << std::endl;
+    }
+
+    for (auto i_cond : analysis_model_part.GetSubModelPart("SBM_Support_outer").Conditions()) { //FIXME:
+        points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
+    }
+
+    int order = 5;
+    if (mParameters.Has("precision_order_on_integration")) {
+        order = mParameters["precision_order_on_integration"].GetInt();
+    } 
+    int num_points = order+1;
+
+    DynamicBins testBins(points.begin(), points.end());
+
+    Vector knot_span_sizes = analysis_model_part.GetValue(KNOT_SPAN_SIZES);
+
+    const double meshSize= std::max(knot_span_sizes[0], knot_span_sizes[1]);
+    const double radius = sqrt(2)*(meshSize);
+
+    const int numberOfResults = 1e6; 
+    ModelPart::NodesContainerType::ContainerType Results(numberOfResults);
+    std::vector<double> list_of_distances(numberOfResults);
+
+    if (skin_model_part_out.Nodes().size() > 0) {
+
+        const std::vector<std::array<double, 2>>& integration_point_list_u = IntegrationPointUtilities::s_gauss_legendre[num_points - 1];
+
+        for (auto &i_cond : skin_model_part_out.Conditions()) {
+                // First and second point of the condition
+                const CoordinateVector U_0 = i_cond.GetGeometry()[0]; 
+                const CoordinateVector U_1 = i_cond.GetGeometry()[1];
+                
+                CoordinateVector distance_u = U_1 - U_0;
+                const double length_u = norm_2(distance_u);
+                // Compue the integration points on this true segment
+                for (SizeType u = 0; u < num_points; ++u)
+                {
+                    const CoordinateVector curr_integration_point = U_0 + distance_u * integration_point_list_u[u][0];
+                    
+                    const double curr_integration_weight = integration_point_list_u[u][1] * length_u;
+
+                    PointerType pointToSearch = PointerType(new PointType(10000, curr_integration_point));
+
+                    int obtainedResults = testBins.SearchInRadius(*pointToSearch, radius, Results.begin(), list_of_distances.begin(), numberOfResults);
+                
+                
+                    double minimum_distance=1e10;
+                    int nearestNodeId;
+                    for (int i_distance = 0; i_distance < obtainedResults; i_distance++) {
+                        double new_distance = list_of_distances[i_distance];   
+                        if (new_distance < minimum_distance) { 
+                            minimum_distance = new_distance;
+                            nearestNodeId = i_distance;
+                            }
+                    }
+                    if (obtainedResults == 0) {
+                            KRATOS_WATCH("0 POINTS FOUND: EXIT")
+                            KRATOS_WATCH(pointToSearch)
+                            exit(0);}
+
+                    
+                    IndexType idCond = Results[nearestNodeId]->Id();
+                    
+                    std::vector<Vector> integration_point_list = analysis_model_part.GetCondition(idCond).GetValue(INTEGRATION_POINTS);
+                    integration_point_list.push_back(curr_integration_point) ;
+                    analysis_model_part.GetCondition(idCond).SetValue(INTEGRATION_POINTS, integration_point_list);
+
+                    std::vector<double> integration_weight_list = analysis_model_part.GetCondition(idCond).GetValue(INTEGRATION_WEIGHTS);
+                    integration_weight_list.push_back(curr_integration_weight) ;
+                    analysis_model_part.GetCondition(idCond).SetValue(INTEGRATION_WEIGHTS, integration_weight_list);
+                }
+        }
+    }
+}
 ///@}
 }

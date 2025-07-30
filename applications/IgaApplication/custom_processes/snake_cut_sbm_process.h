@@ -127,8 +127,8 @@ struct BinSearchParameters
         double                                     radius)
         : TestBins(bins)
         , NumberOfResults(n_results)
-        , Results(std::move(results))
-        , ListOfDistances(std::move(distances))
+        , Results(results)
+        , ListOfDistances(distances)
         , SearchRadius(radius)
     {}
 };

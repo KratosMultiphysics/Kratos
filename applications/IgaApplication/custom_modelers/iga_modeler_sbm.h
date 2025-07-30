@@ -237,6 +237,13 @@ private:
     ///@}
     ///@name Utility
     ///@{
+    
+    /**
+     * @brief Create variables for the integration on true boundary
+     * 
+     * @param analysis_model_part 
+     */
+    void PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_part) const;
 
 
     ///@}

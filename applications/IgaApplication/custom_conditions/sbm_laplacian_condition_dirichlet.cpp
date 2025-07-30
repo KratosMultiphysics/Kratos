@@ -80,6 +80,8 @@ void SbmLaplacianConditionDirichlet::InitializeMemberVariables()
     // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
     mPenalty = mBasisFunctionsOrder * mBasisFunctionsOrder * penalty / h;
 
+    mBasisFunctionsOrder*=2;
+
     // https://doi.org/10.1016/j.cma.2023.116301 (A penalty-free Shifted Boundary Method of arbitrary order)
     mNitschePenalty = 1.0;   // = 1.0 -> Penalty approach
                                     // = -1.0 -> Free-penalty approach
@@ -115,7 +117,10 @@ void SbmLaplacianConditionDirichlet::InitializeSbmMemberVariables()
     mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
 
     mDistanceVector.resize(3);
+    // mDistanceVector = ZeroVector(3);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
+
+    this->SetValue(PROJECTION_NODE_COORDINATES, mpProjectionNode->Coordinates());
 }
 
 void SbmLaplacianConditionDirichlet::CalculateLeftHandSide(
@@ -254,6 +259,10 @@ void SbmLaplacianConditionDirichlet::CalculateRightHandSide(
 
     // Assembly
     const double u_D_scalar = mpProjectionNode->GetValue(r_unknown_var);
+    // double xx = r_geometry.Center().X();
+    // double yy = r_geometry.Center().Y();
+    // // double u_D_scalar = sin(xx)*sinh(yy);
+    // double u_D_scalar = xx*yy*cosh(xx) * sin(yy);
 
     noalias(rRightHandSideVector) += H_sum_vec * u_D_scalar * penalty_integration * std::abs(det_J0);
     // Dirichlet BCs
@@ -282,7 +291,7 @@ void SbmLaplacianConditionDirichlet::ComputeTaylorExpansionContribution(Vector& 
     {
         H_sum_vec = ZeroVector(number_of_control_points);
     }
-
+    
     // Compute all the derivatives of the basis functions involved
     std::vector<Matrix> shape_function_derivatives(mBasisFunctionsOrder);
     for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {

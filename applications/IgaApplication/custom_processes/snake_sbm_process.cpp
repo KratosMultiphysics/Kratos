@@ -226,7 +226,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     else if (rSkinModelPartInitial.Geometries().size()>0) // if the skin model part is defined by nurbs geometries
     {
         //TODO: decrease the number when the closest point projection for the NURBS is optimized in the IgaSbmModeler
-        const int n_initial_points_for_side = 50000; 
+        const int n_initial_points_for_side = 1000; 
         int first_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;
         const SizeType n_boundary_curves = rSkinModelPartInitial.NumberOfGeometries();
         bool new_inner_loop = true;
@@ -771,7 +771,7 @@ void SnakeSbmProcess::MarkKnotSpansAvailable(
                                      + rStartingPosition[0];
 
                     // NOTE:: The v-knot spans are upside down in the matrix!!
-                    for (IndexType i_GPy = 0; i_GPy < num_fake_gauss_points+1; i_GPy++) 
+                    for (IndexType i_GPy = 0; i_GPy < num_fake_gauss_points; i_GPy++) 
                     {
                         double y_coord = (i*rKnotStepUV[1]+tollerance) + 
                                          (rKnotStepUV[1]-2*tollerance)/(num_fake_gauss_points-1)*(i_GPy) 
@@ -786,7 +786,7 @@ void SnakeSbmProcess::MarkKnotSpansAvailable(
                 }
             
                 // Mark the knot span as available or not depending on the number of Gauss Points Inside/Outside
-                if (number_of_inside_gaussian_points < Lambda*(num_fake_gauss_points+1)*(num_fake_gauss_points+1)) {
+                if (number_of_inside_gaussian_points < Lambda*num_fake_gauss_points*num_fake_gauss_points) {
                     rKnotSpansAvailable[IdMatrix][i][j] = -1; // Cut knot spans that have been checked
                 }
                 else{
@@ -1171,7 +1171,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
                 IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*(rNumberKnotSpans[0]+1);
                 IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1);
                     
-                auto pcond = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop );
+                auto pcond = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop );
                 // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
                 pcond->Set(BOUNDARY, false);
                 id_surrogate_condition++;

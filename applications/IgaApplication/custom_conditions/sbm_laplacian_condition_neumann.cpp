@@ -89,10 +89,27 @@ void SbmLaplacianConditionNeumann::CalculateLocalSystem(
     noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n_tilde)                           * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
     
     Vector t_N(number_of_control_points);
+    // for (IndexType i = 0; i < number_of_control_points; ++i)
+    // {
+    //     t_N[i] = mpProjectionNode->GetValue(HEAT_FLUX);
+    // }
+    // double xx = r_geometry.Center().X();
+    // double yy = r_geometry.Center().Y();
+
+    const double xx = mpProjectionNode->X();
+    const double yy = mpProjectionNode->Y();
+    // double du_dx = yy * sin(yy) * (cosh(xx) + xx * sinh(xx));
+    // double du_dy = xx * cosh(xx) * (sin(yy) + yy * cos(yy));
+    double du_dx = std::exp(xx+yy);
+    double du_dy = std::exp(xx+yy);
+    const double heat_flux = du_dx * mTrueNormal[0] + du_dy * mTrueNormal[1];
+
     for (IndexType i = 0; i < number_of_control_points; ++i)
     {
-        t_N[i] = mpProjectionNode->GetValue(HEAT_FLUX);
+        // t_N[i] = mpProjectionNode->GetValue(HEAT_FLUX);
+        t_N[i] = heat_flux; 
     }
+
     // Neumann Contributions
     noalias(rRightHandSideVector) += prod(prod(trans(H), H), t_N) * mTrueDotSurrogateNormal * r_integration_points[0].Weight(); // * std::abs(determinant_jacobian_vector[point_number]);
 
@@ -124,6 +141,8 @@ void SbmLaplacianConditionNeumann::InitializeMemberVariables()
         mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
     }
 
+    // mBasisFunctionsOrder*=2;
+
     // Compute the normals
     mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
     mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
@@ -152,6 +171,7 @@ void SbmLaplacianConditionNeumann::InitializeSbmMemberVariables()
     mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
 
     mDistanceVector.resize(3);
+    // mDistanceVector = ZeroVector(3);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
 
     // loopIdentifier is inner or outer
@@ -187,6 +207,8 @@ void SbmLaplacianConditionNeumann::InitializeSbmMemberVariables()
             mTrueNormal = - mTrueNormal / MathUtils<double>::Norm(mTrueNormal) ;
         }
     }
+
+    // mTrueNormal = mNormalParameterSpace;
 
     // dot product n dot n_tilde
     mTrueDotSurrogateNormal = inner_prod(mNormalParameterSpace, mTrueNormal);
@@ -259,10 +281,24 @@ void SbmLaplacianConditionNeumann::CalculateRightHandSide(
     
     // Assembly
     Vector t_N(number_of_control_points);
+
+    // double xx = r_geometry.Center().X();
+    // double yy = r_geometry.Center().Y();
+
+    const double xx = mpProjectionNode->X();
+    const double yy = mpProjectionNode->Y();
+    // double du_dx = yy * sin(yy) * (cosh(xx) + xx * sinh(xx));
+    // double du_dy = xx * cosh(xx) * (sin(yy) + yy * cos(yy));
+    double du_dx = std::exp(xx+yy);
+    double du_dy = std::exp(xx+yy);
+    const double heat_flux = du_dx * mTrueNormal[0] + du_dy * mTrueNormal[1];
+
     for (IndexType i = 0; i < number_of_control_points; ++i)
     {
-        t_N[i] = mpProjectionNode->GetValue(HEAT_FLUX);
+        // t_N[i] = mpProjectionNode->GetValue(HEAT_FLUX);
+        t_N[i] = heat_flux; 
     }
+    
     // Neumann Contributions
     noalias(rRightHandSideVector) += prod(prod(trans(H), H), t_N) * mTrueDotSurrogateNormal * r_integration_points[0].Weight(); // * std::abs(determinant_jacobian_vector[point_number]);
 }

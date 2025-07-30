@@ -136,6 +136,8 @@ void LaplacianIGAElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
         const double int_to_reference_weight = r_integration_points[i_point].Weight(); // * std::abs(DetJ0);
 
         noalias(rLeftHandSideMatrix) += int_to_reference_weight * conductivity * prod(DN_DX, trans(DN_DX));
+
+        SetValue(INTEGRATION_WEIGHT, int_to_reference_weight);
     }
 
     KRATOS_CATCH("")

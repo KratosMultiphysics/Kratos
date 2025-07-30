@@ -69,7 +69,7 @@ void SbmLoadSolidCondition::InitializeMemberVariables()
         mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
     }
 
-    mBasisFunctionsOrder *= 2;
+    // mBasisFunctionsOrder *= 2;
 
     // Compute the normals
     mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
@@ -276,7 +276,7 @@ void SbmLoadSolidCondition::CalculateLeftHandSide(
 
     // compute Taylor expansion contribution: H_sum_vec
     Matrix grad_H_sum_transposed = ZeroMatrix(3, number_of_control_points);
-    ComputeGradientTaylorExpansionContribution(grad_H_sum_transposed);
+    ComputeGradientTaylorExpansionContribution(mDistanceVector, grad_H_sum_transposed);
 
     Matrix grad_H_sum = trans(grad_H_sum_transposed);
 
@@ -367,7 +367,7 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
 
     // compute Taylor expansion contribution: H_sum_vec
     Matrix grad_H_sum_transposed = ZeroMatrix(3, number_of_control_points);
-    ComputeGradientTaylorExpansionContribution(grad_H_sum_transposed);
+    ComputeGradientTaylorExpansionContribution(mDistanceVector, grad_H_sum_transposed);
 
     Matrix grad_H_sum = trans(grad_H_sum_transposed);
 
@@ -407,20 +407,18 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
     double nu = this->GetProperties().GetValue(POISSON_RATIO);
     double E = this->GetProperties().GetValue(YOUNG_MODULUS);
     Vector g_N = ZeroVector(3);
+    // const double x = mpProjectionNode->X();
+    // const double y = mpProjectionNode->Y();
 
-    const double x = mpProjectionNode->X();
-    const double y = mpProjectionNode->Y();
-
-    // // cosinusoidal
-    g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[0]; 
-    g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[1]; 
+    // // // cosinusoidal
+    // g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[0]; 
+    // g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[1]; 
 
 
-    // g_N = mpProjectionNode->GetValue(FORCE);
+    g_N = mpProjectionNode->GetValue(FORCE);
     Vector normal_stress_old = ZeroVector(3);
     normal_stress_old[0] = (r_stress_vector[0] * mNormalPhysicalSpace[0] + r_stress_vector[2] * mNormalPhysicalSpace[1]);
     normal_stress_old[1] = (r_stress_vector[2] * mNormalPhysicalSpace[0] + r_stress_vector[1] * mNormalPhysicalSpace[1]);
-
     Vector normal_stress_true_old = ZeroVector(3);
     normal_stress_true_old[0] = (r_stress_vector_on_true[0] * mTrueNormal[0] + r_stress_vector_on_true[2] * mTrueNormal[1]);
     normal_stress_true_old[1] = (r_stress_vector_on_true[2] * mTrueNormal[0] + r_stress_vector_on_true[1] * mTrueNormal[1]);
@@ -438,7 +436,6 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
 
             // Residual terms
             // FLUX STANDARD TERM
-            
             rRightHandSideVector(iglob) += r_N(0,i) * normal_stress_old[idim] * int_to_reference_weight;
         
             // // SBM TERM
@@ -578,8 +575,8 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());
         double detJ0;
         // MODIFIED
-        Vector old_displacement(mat_size);
-        GetSolutionCoefficientVector(old_displacement);
+        Vector displacement_coefficient_vector(mat_size);
+        GetSolutionCoefficientVector(displacement_coefficient_vector);
         
         Matrix Jacobian = ZeroMatrix(2,2);
         Jacobian(0,0) = J0[0](0,0);
@@ -599,11 +596,11 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         CalculateB(B, DN_DX);
 
         // GET STRESS VECTOR
-        ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters values_surrogate(r_geometry, GetProperties(), rCurrentProcessInfo);
 
         const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
         // Set constitutive law flags:
-        Flags& ConstitutiveLawOptions=Values.GetOptions();
+        Flags& ConstitutiveLawOptions=values_surrogate.GetOptions();
 
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
@@ -612,14 +609,15 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
 
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
-        Vector old_strain = prod(B,old_displacement);
+        Vector old_strain = prod(B,displacement_coefficient_vector);
     
-        Values.SetStrainVector(old_strain);
-        Values.SetStressVector(this_constitutive_variables.StressVector);
-        Values.SetConstitutiveMatrix(this_constitutive_variables.D);
-        mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+        values_surrogate.SetStrainVector(old_strain);
+        values_surrogate.SetStressVector(this_constitutive_variables.StressVector);
+        values_surrogate.SetConstitutiveMatrix(this_constitutive_variables.D);
+        mpConstitutiveLaw->CalculateMaterialResponse(values_surrogate, ConstitutiveLaw::StressMeasure_Cauchy);
 
-        const Vector sigma = Values.GetStressVector();
+        const Vector sigma = values_surrogate.GetStressVector();
+        const Matrix& r_D = values_surrogate.GetConstitutiveMatrix();
         Vector sigma_n(2);
 
         sigma_n[0] = sigma[0]*mNormalPhysicalSpace[0] + sigma[2]*mNormalPhysicalSpace[1];
@@ -631,6 +629,55 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         SetValue(CAUCHY_STRESS_YY, sigma[1]);
         SetValue(CAUCHY_STRESS_XY, sigma[2]);
         // //---------------------
+        // // Set the stress vector on the true boundary
+        // //---------------------
+        std::vector<double> integration_weight_list = GetValue(INTEGRATION_WEIGHTS);
+        std::vector<Vector> integration_point_list = GetValue(INTEGRATION_POINTS);
+        const SizeType number_of_integration_points_on_true = integration_weight_list.size();
+        Matrix values_on_true_boundary(number_of_integration_points_on_true, 7);
+        for (IndexType i = 0; i < number_of_integration_points_on_true; ++i) {
+            // Get the integration point
+            const Vector& r_integration_point = integration_point_list[i];
+            const double weight = integration_weight_list[i];
+
+            Vector distance_vector = ZeroVector(3);
+            distance_vector = r_integration_point - r_geometry.Center().Coordinates();
+            // compute Taylor expansion contribution: H_sum_vec
+            Matrix grad_H_sum_transposed = ZeroMatrix(3, number_of_control_points);
+            ComputeGradientTaylorExpansionContribution(distance_vector, grad_H_sum_transposed);
+
+            Matrix grad_H_sum = trans(grad_H_sum_transposed);
+
+            Matrix B_sum = ZeroMatrix(mDim,mat_size);
+            CalculateB(B_sum, grad_H_sum);
+
+            // obtain the stress vector on the true boundary 
+            ConstitutiveLaw::Parameters values_true(r_geometry, GetProperties(), rCurrentProcessInfo);
+
+            Vector old_strain_on_true = prod(B_sum,displacement_coefficient_vector);
+
+            const SizeType strain_size_true = mpConstitutiveLaw->GetStrainSize();
+            ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
+            ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
+
+            const Vector& r_stress_vector_on_true = values_true.GetStressVector();
+
+            Vector normal_stress_true = ZeroVector(3); //FIXME:  correct the normal and use the ones at the new projection points
+            normal_stress_true[0] = (r_stress_vector_on_true[0] * mTrueNormal[0] + r_stress_vector_on_true[2] * mTrueNormal[1]);
+            normal_stress_true[1] = (r_stress_vector_on_true[2] * mTrueNormal[0] + r_stress_vector_on_true[1] * mTrueNormal[1]);
+
+            const double normal_stress = (normal_stress_true[0] * mTrueNormal[0] + normal_stress_true[1] * mTrueNormal[1]);
+            const double shear_stress = (-normal_stress_true[0] * mTrueNormal[1] + normal_stress_true[1] * mTrueNormal[0]);
+            
+            values_on_true_boundary(i, 0) = weight;
+            values_on_true_boundary(i, 1) = r_integration_point[0];
+            values_on_true_boundary(i, 2) = r_integration_point[1];
+            values_on_true_boundary(i, 3) = r_integration_point[2];
+            values_on_true_boundary(i, 4) = normal_stress;    
+            values_on_true_boundary(i, 5) = shear_stress;
+        }
+        this->SetValue(RESULTS_ON_TRUE_BOUNDARY, values_on_true_boundary);
+
     }
 
 void SbmLoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
@@ -643,7 +690,7 @@ void SbmLoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentPr
 
 }
 
-void SbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum)
+void SbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(const Vector& rDistanceVector, Matrix& grad_H_sum)
 {
     const auto& r_geometry = this->GetGeometry();
     const SizeType number_of_control_points = r_geometry.PointsNumber();
@@ -676,13 +723,13 @@ void SbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(Matrix& g
                     IndexType n_k = n - 1 - k;
                     double derivative = shapeFunctionDerivatives(i,k); 
                     // Compute the Taylor term for this derivative
-                    H_taylor_term_X += ComputeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
+                    H_taylor_term_X += ComputeTaylorTerm(derivative, rDistanceVector[0], n_k, rDistanceVector[1], k);
                 }
                 for (IndexType k = 0; k <= n-1; k++) {
                     IndexType n_k = n - 1 - k;
                     double derivative = shapeFunctionDerivatives(i,k+1); 
                     // Compute the Taylor term for this derivative
-                    H_taylor_term_Y += ComputeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
+                    H_taylor_term_Y += ComputeTaylorTerm(derivative, rDistanceVector[0], n_k, rDistanceVector[1], k);
                 }
             }
         } else {
@@ -701,13 +748,13 @@ void SbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(Matrix& g
                         double derivative = shapeFunctionDerivatives(i,countDerivativeId); 
                         
                         if (k_x >= 1) {
-                            H_taylor_term_X += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x-1, mDistanceVector[1], k_y, mDistanceVector[2], k_z);
+                            H_taylor_term_X += ComputeTaylorTerm3D(derivative, rDistanceVector[0], k_x-1, rDistanceVector[1], k_y, rDistanceVector[2], k_z);
                         }
                         if (k_y >= 1) {
-                            H_taylor_term_Y += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x, mDistanceVector[1], k_y-1, mDistanceVector[2], k_z);
+                            H_taylor_term_Y += ComputeTaylorTerm3D(derivative, rDistanceVector[0], k_x, rDistanceVector[1], k_y-1, rDistanceVector[2], k_z);
                         }
                         if (k_z >= 1) {
-                            H_taylor_term_Z += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x, mDistanceVector[1], k_y, mDistanceVector[2], k_z-1);
+                            H_taylor_term_Z += ComputeTaylorTerm3D(derivative, rDistanceVector[0], k_x, rDistanceVector[1], k_y, rDistanceVector[2], k_z-1);
                         }     
                         countDerivativeId++;
                     }
