@@ -24,7 +24,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_FreesDoFAfterFinali
 {
     Model      current_model;
     const auto nodal_variables = Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X)};
-    ModelPart& r_model_part =
+    auto&      r_model_part =
         ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(current_model, nodal_variables);
 
     Parameters parameters(R"(
@@ -51,8 +51,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_FreesDoFAfterFinali
 KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_FinalizeDoesNothing_ForIntVariable,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model      current_model;
-    ModelPart& r_model_part = current_model.CreateModelPart("Main", 2);
+    Model current_model;
+    auto& r_model_part = current_model.CreateModelPart("Main", 2);
     r_model_part.AddNodalSolutionStepVariable(TIME_STEPS);
 
     r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -83,8 +83,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_FinalizeDoesNothing
 KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_Throws_WhenTryingToFixIntVariable,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model      current_model;
-    ModelPart& r_model_part = current_model.CreateModelPart("Main", 2);
+    Model current_model;
+    auto& r_model_part = current_model.CreateModelPart("Main");
     r_model_part.AddNodalSolutionStepVariable(TIME_STEPS);
 
     Parameters parameters(R"(
@@ -103,10 +103,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_Throws_WhenTryingTo
 KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_ThrowsWhenNodalVariableNotInModelPart,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model                        current_model;
-    const Geo::ConstVariableRefs nodal_variables = {};
-    ModelPart&                   r_model_part =
-        ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(current_model, nodal_variables);
+    Model current_model;
+    auto& r_model_part = current_model.CreateModelPart("Main");
 
     Parameters parameters(R"(
       {
@@ -116,18 +114,17 @@ KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_ThrowsWhenNodalVari
           "value"           : 1.0
       }  )");
 
+    const std::string expected_error_message = "Trying to fix a variable that is not in ModelPart "
+                                               "'Main' - variable name is DISPLACEMENT_X";
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        GeoApplyConstantScalarValueProcess process(r_model_part, parameters),
-        "Trying to fix a variable that is not in the rModelPart - variable name is DISPLACEMENT_X")
+        GeoApplyConstantScalarValueProcess process(r_model_part, parameters), expected_error_message)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_ThrowsWhenVariableNameIsMissing,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model                        current_model;
-    const Geo::ConstVariableRefs nodal_variables = {};
-    ModelPart&                   r_model_part =
-        ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(current_model, nodal_variables);
+    Model current_model;
+    auto& r_model_part = current_model.CreateModelPart("Main");
 
     Parameters parameters_without_variable_name(R"(
       {
@@ -136,16 +133,17 @@ KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_ThrowsWhenVariableN
           "value"           : 1.0
       }  )");
 
+    const std::string expected_error_message = "Missing 'variable_name' parameter in the "
+                                               "parameters of 'GeoApplyConstantScalarValueProcess'";
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        GeoApplyConstantScalarValueProcess process(r_model_part, parameters_without_variable_name), "Missing 'variable_name' parameter in the parameters of 'GeoApplyConstantScalarValueProcess'");
+        GeoApplyConstantScalarValueProcess process(r_model_part, parameters_without_variable_name),
+        expected_error_message);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_ThrowsWhenValueIsMissing, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model                        current_model;
-    const Geo::ConstVariableRefs nodal_variables = {};
-    ModelPart&                   r_model_part =
-        ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(current_model, nodal_variables);
+    Model current_model;
+    auto& r_model_part = current_model.CreateModelPart("Main");
 
     Parameters parameters_without_value(R"(
       {

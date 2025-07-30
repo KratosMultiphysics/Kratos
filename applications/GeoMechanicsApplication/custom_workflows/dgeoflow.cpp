@@ -156,15 +156,13 @@ void KratosExecute::ParseProcesses(ModelPart& rModelPart, Parameters projFile)
         ModelPart& part = rModelPart.GetSubModelPart(subname);
 
         if (pressure_type == "Uniform") {
-            auto parameters = process["Parameters"];
-            Parameters{R"(
+            auto parameters = Parameters{R"(
             {
                 "variable_name"  : "WATER_PRESSURE",
                 "is_fixed"       : true
             })"};
             parameters.AddDouble("value", process["Parameters"]["value"].GetDouble());
-            mProcesses.push_back(make_shared<GeoFlowApplyConstantScalarValueProcess>(
-                part, parameters));
+            mProcesses.push_back(make_shared<GeoFlowApplyConstantScalarValueProcess>(part, parameters));
         } else if (pressure_type == "Hydrostatic") {
             auto cProcesses = process.Clone();
             cProcesses["Parameters"].RemoveValue("fluid_pressure_type");

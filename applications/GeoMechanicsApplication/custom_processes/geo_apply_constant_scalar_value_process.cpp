@@ -23,33 +23,33 @@ namespace Kratos
 {
 
 GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart& rModelPart,
-                                                                       const Parameters& ThisParameters)
+                                                                       const Parameters& rParameters)
     : mrModelPart(rModelPart)
 {
-    KRATOS_ERROR_IF_NOT(ThisParameters.Has("value"))
+    KRATOS_ERROR_IF_NOT(rParameters.Has("value"))
         << "Missing 'value' parameter in the parameters of '"
         << GeoApplyConstantScalarValueProcess::Info() << "'" << std::endl;
-    KRATOS_ERROR_IF_NOT(ThisParameters.Has("variable_name"))
+    KRATOS_ERROR_IF_NOT(rParameters.Has("variable_name"))
         << "Missing 'variable_name' parameter in the parameters of '"
         << GeoApplyConstantScalarValueProcess::Info() << "'" << std::endl;
 
-    mVariableName = ThisParameters["variable_name"].GetString();
-    mIsFixed      = ThisParameters.Has("is_fixed") ? ThisParameters["is_fixed"].GetBool() : false;
+    mVariableName = rParameters["variable_name"].GetString();
+    if (rParameters.Has("is_fixed")) mIsFixed = rParameters["is_fixed"].GetBool();
 
     KRATOS_ERROR_IF(mIsFixed && !KratosComponents<Variable<double>>::Has(mVariableName))
         << "It is not possible to fix the variable '" << mVariableName
         << "' which is not of type Variable<double>.\n";
 
     KRATOS_ERROR_IF_NOT(rModelPart.GetNodalSolutionStepVariablesList().Has(KratosComponents<VariableData>::Get(mVariableName)))
-        << "Trying to fix a variable that is not in the rModelPart - variable name is "
-        << mVariableName << std::endl;
+        << "Trying to fix a variable that is not in ModelPart '" << rModelPart.Name()
+        << "' - variable name is " << mVariableName << std::endl;
 
     if (KratosComponents<Variable<double>>::Has(mVariableName)) {
-        mDoubleValue = ThisParameters["value"].GetDouble();
+        mDoubleValue = rParameters["value"].GetDouble();
     } else if (KratosComponents<Variable<int>>::Has(mVariableName)) {
-        mIntValue = ThisParameters["value"].GetInt();
+        mIntValue = rParameters["value"].GetInt();
     } else if (KratosComponents<Variable<bool>>::Has(mVariableName)) {
-        mBoolValue = ThisParameters["value"].GetBool();
+        mBoolValue = rParameters["value"].GetBool();
     }
 }
 
