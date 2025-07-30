@@ -169,7 +169,9 @@ class TwoFluidHydraulicSolverTest(UnitTest.TestCase):
         dim = self.parameters["solver_settings"]["domain_size"].GetInt()
         name= self.parameters["problem_data"]["problem_name"].GetString()
         json_check_settings = KratosMultiphysics.Parameters("""{
-            "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
+            "python_module" : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "FromJsonCheckResultProcess",
             "Parameters"    : {
                 "check_variables"      : ["DISTANCE"],
                 "input_file_name"      : "TO_BE_DEFINED",
