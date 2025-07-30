@@ -119,6 +119,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsDirichletReleaseTests,
                         KratosGeoMechanicsDeactivationWithStructuralTest,
                         KratosGeoMechanicsHydraulicHeads,
+                        KratosGeoMechanicsSetMovingLoadProcessTests,
                         KratosGeoMechanicsSurfaceInterfaceElementTests,
     ]
 
