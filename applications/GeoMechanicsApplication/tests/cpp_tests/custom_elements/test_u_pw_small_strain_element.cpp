@@ -15,6 +15,7 @@
 #include "custom_constitutive/plane_strain.h"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/plane_strain_stress_state.h"
+#include "custom_utilities/registration_utilities.h"
 #include "includes/variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/stub_constitutive_law.h"
@@ -23,7 +24,6 @@
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
-#include <custom_utilities/registration_utilities.h>
 #include <string>
 
 namespace
@@ -218,7 +218,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CheckDoesNotThrowOnCorrectInput,
     auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForGeneralCheck(p_element);
 
-    // Act, no exceptions on correct input
+    // Act and Assert
     KRATOS_EXPECT_EQ(p_element->Check(ProcessInfo{}), 0);
 }
 
@@ -277,8 +277,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesCorrectLHSAfterSaveAnd
     auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForGeneralCheck(p_element);
     const auto process_info = ProcessInfo{};
-
-    // Act
     p_element->Initialize(process_info);
 
     auto serializer = StreamSerializer{};
@@ -292,7 +290,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesCorrectLHSAfterSaveAnd
     p_loaded_element->CalculateLeftHandSide(actual_left_hand_side, process_info);
 
     // Assert
-
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, ExpectedLeftHandSize(), Defaults::relative_tolerance);
 }
 
@@ -308,11 +305,11 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesCorrectRHSAfterSaveAnd
     SetSolutionStepValuesForFluidFluxCheck(p_element);
     const auto process_info = ProcessInfo{};
 
-    // Act
     p_element->Initialize(process_info);
     auto serializer = StreamSerializer{};
     serializer.save("test_tag", p_element);
 
+    // Act
     auto p_loaded_element = make_intrusive<UPwSmallStrainElement<2, 3>>();
     serializer.load("test_tag", p_loaded_element);
 
@@ -340,12 +337,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeSolutionStep, KratosGe
     auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForGeneralCheck(p_element);
     const auto process_info = ProcessInfo{};
-
-    // Act, no exceptions on correct input
     p_element->Initialize(process_info);
-    EXPECT_NO_THROW(p_element->InitializeSolutionStep(process_info));
 
-    // Assert
+    // Act and Assert
+    EXPECT_NO_THROW(p_element->InitializeSolutionStep(process_info));
     for (const auto& r_node : p_element->GetGeometry()) {
         KRATOS_EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 0.0);
     }

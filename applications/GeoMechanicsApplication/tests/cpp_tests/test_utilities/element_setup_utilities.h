@@ -12,11 +12,11 @@
 
 #pragma once
 
+#include "geo_aliases.h"
 #include "geometries/point.h"
 #include "includes/condition.h"
 #include "includes/element.h"
 
-#include <geo_aliases.h>
 #include <vector>
 
 namespace Kratos::Testing
@@ -61,7 +61,7 @@ public:
     static Condition::Pointer Create2D3NLineCondition();
 
     template <class EntityPointerType>
-    static void AddVariablesToEntity(EntityPointerType& result,
+    static void AddVariablesToEntity(EntityPointerType& rpEntity,
                                      const Kratos::Geo::ConstVariableDataRefs& rSolutionStepVariables,
                                      const Kratos::Geo::ConstVariableRefs& rDegreesOfFreedom = {})
     {
@@ -70,7 +70,7 @@ public:
             p_variable_list->Add(r_variable_ref);
         }
 
-        for (auto& r_node : result->GetGeometry()) {
+        for (auto& r_node : rpEntity->GetGeometry()) {
             r_node.SetSolutionStepVariablesList(p_variable_list);
             for (const auto& r_degree_of_freedom : rDegreesOfFreedom) {
                 r_node.AddDof(r_degree_of_freedom.get());

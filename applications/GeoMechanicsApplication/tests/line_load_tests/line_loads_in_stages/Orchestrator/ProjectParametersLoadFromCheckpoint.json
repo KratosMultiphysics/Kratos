@@ -1,12 +1,11 @@
-    {
+{
 "orchestrator" : {
     "name" : "Orchestrators.KratosMultiphysics.SequentialOrchestrator",
     "settings" : {
         "echo_level" : 0,
         "execution_list" : ["stage_2"],
         "load_from_checkpoint" : "checkpoints/stage_1",
-        "stage_checkpoints" : true,
-        "output_validated_settings" : "test_sequential_orchestrator"
+        "stage_checkpoints" : false
     }
 },
 "stages" : {
