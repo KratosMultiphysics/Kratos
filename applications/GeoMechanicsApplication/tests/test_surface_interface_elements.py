@@ -103,19 +103,22 @@ class KratosGeoMechanicsSurfaceInterfaceElementTests(KratosUnittest.TestCase):
 
     def assert_outputs_for_surface_interface_element(self, simulation, number_of_nodes, number_of_integration_points, number_of_elements):
         displacements = test_helper.get_displacement(simulation)
+        tractions = test_helper.get_on_integration_points(simulation, Kratos.CAUCHY_STRESS_VECTOR)
+        relative_displacements = test_helper.get_on_integration_points(simulation, Kratos.STRAIN)
 
-        # Check the element at XY
         shear_traction = -667.0
         expected_shear_displacement = shear_traction / self.shear_stiffness
         normal_traction = -333.0
         expected_normal_displacement = normal_traction / self.normal_stiffness
-        
+
+        # Check the element at XY
+        # 5*number_of_nodes and 6*number_of_nodes refer to start and end of nodes for a specific element (here in XY plane)
+        # Arranged in mdpa file with such specific indices
         for index in range(5*number_of_nodes, 6*number_of_nodes):
             self.assertAlmostEqual(displacements[index][0], expected_shear_displacement)
             self.assertAlmostEqual(displacements[index][1], expected_shear_displacement)
             self.assertAlmostEqual(displacements[index][2], expected_normal_displacement)
 
-        tractions = test_helper.get_on_integration_points(simulation, Kratos.CAUCHY_STRESS_VECTOR)
         node_index = number_of_elements * 2 // 3
         tractions_horizontal_element = tractions[node_index]
         for index in range(number_of_integration_points):
@@ -123,7 +126,6 @@ class KratosGeoMechanicsSurfaceInterfaceElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(tractions_horizontal_element[index][1], shear_traction)
             self.assertAlmostEqual(tractions_horizontal_element[index][2], shear_traction)
             
-        relative_displacements = test_helper.get_on_integration_points(simulation, Kratos.STRAIN)
         relative_displacements_horizontal_element = relative_displacements[node_index]
         for index in range(number_of_integration_points):
             self.assertAlmostEqual(relative_displacements_horizontal_element[index][0], expected_normal_displacement)
@@ -131,17 +133,11 @@ class KratosGeoMechanicsSurfaceInterfaceElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(relative_displacements_horizontal_element[index][2], expected_shear_displacement)
   
         # Check the element at YZ
-        shear_traction = -667.0
-        expected_shear_displacement = shear_traction / self.shear_stiffness
-        normal_traction = -333.0
-        expected_normal_displacement = normal_traction / self.normal_stiffness
-
         for index in range(3*number_of_nodes, 4*number_of_nodes):
             self.assertAlmostEqual(displacements[index][0], expected_normal_displacement)
             self.assertAlmostEqual(displacements[index][1], expected_shear_displacement)
             self.assertAlmostEqual(displacements[index][2], expected_shear_displacement)
         
-        tractions = test_helper.get_on_integration_points(simulation, Kratos.CAUCHY_STRESS_VECTOR)
         node_index = number_of_elements // 3
         tractions_horizontal_element = tractions[node_index]
         for index in range(number_of_integration_points):
@@ -149,7 +145,6 @@ class KratosGeoMechanicsSurfaceInterfaceElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(tractions_horizontal_element[index][1], shear_traction)
             self.assertAlmostEqual(tractions_horizontal_element[index][2], shear_traction)
 
-        relative_displacements = test_helper.get_on_integration_points(simulation, Kratos.STRAIN)
         relative_displacements_horizontal_element = relative_displacements[node_index]
         for index in range(number_of_integration_points):
             self.assertAlmostEqual(relative_displacements_horizontal_element[index][0], expected_normal_displacement)
@@ -157,17 +152,11 @@ class KratosGeoMechanicsSurfaceInterfaceElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(relative_displacements_horizontal_element[index][2], expected_shear_displacement)
 
         # Check the element at ZX
-        shear_traction = -667.0
-        expected_shear_displacement = shear_traction / self.shear_stiffness
-        normal_traction = -333.0
-        expected_normal_displacement = normal_traction / self.normal_stiffness
-
         for index in range(number_of_nodes, 2*number_of_nodes):
             self.assertAlmostEqual(displacements[index][0], expected_shear_displacement)
             self.assertAlmostEqual(displacements[index][1], expected_normal_displacement)
             self.assertAlmostEqual(displacements[index][2], expected_shear_displacement)
 
-        tractions = test_helper.get_on_integration_points(simulation, Kratos.CAUCHY_STRESS_VECTOR)
         node_index = 0
         tractions_horizontal_element = tractions[node_index]
         for index in range(number_of_integration_points):
@@ -175,7 +164,6 @@ class KratosGeoMechanicsSurfaceInterfaceElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(tractions_horizontal_element[index][1], shear_traction)
             self.assertAlmostEqual(tractions_horizontal_element[index][2], shear_traction)
 
-        relative_displacements = test_helper.get_on_integration_points(simulation, Kratos.STRAIN)
         relative_displacements_horizontal_element = relative_displacements[node_index]
         for index in range(number_of_integration_points):
             self.assertAlmostEqual(relative_displacements_horizontal_element[index][0], expected_normal_displacement)
