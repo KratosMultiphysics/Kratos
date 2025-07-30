@@ -235,7 +235,7 @@ public:
 
         mIntegrationCoefficients.resize(0);
         for (const auto& rContribution : mContributions) {
-            CalculateDataForCalculator(rContribution, rCurrentProcessInfo);
+            CalculateDataForCalculator(rContribution);
         }
 
         rRightHandSideVector = ZeroVector{TNumNodes};
@@ -256,7 +256,7 @@ public:
         rRightHandSideVector = ZeroVector{TNumNodes};
         mIntegrationCoefficients.resize(0);
         for (const auto& rContribution : mContributions) {
-            CalculateDataForCalculator(rContribution, rCurrentProcessInfo);
+            CalculateDataForCalculator(rContribution);
         }
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
@@ -269,7 +269,7 @@ public:
         rLeftHandSideMatrix = ZeroMatrix{TNumNodes, TNumNodes};
         mIntegrationCoefficients.resize(0);
         for (const auto& rContribution : mContributions) {
-            CalculateDataForCalculator(rContribution, rCurrentProcessInfo);
+            CalculateDataForCalculator(rContribution);
         }
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
@@ -450,14 +450,13 @@ private:
         }
     }
 
-    void CalculateDataForCalculator(const CalculationContribution& rContribution, const ProcessInfo& rCurrentProcessInfo)
+    void CalculateDataForCalculator(const CalculationContribution& rContribution)
     {
         switch (rContribution) {
         case CalculationContribution::Permeability:
             mIntegrationCoefficients = SaveIntegrationCoefficients();
             mNContainer              = SaveNContainer();
             mFluidPressures          = SaveFluidPressure();
-            //            MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter(),
             break;
         case CalculationContribution::Compressibility:
             if (!mIntegrationCoefficients.size()) {
@@ -466,13 +465,7 @@ private:
                 mFluidPressures          = SaveFluidPressure();
             }
             break;
-            //        if (GetProperties()[RETENTION_LAW] == "PressureFilterLaw") {
-            //          return std::make_unique<FilterCompressibilityCalculator>(
-            //            CreateFilterCompressibilityInputProvider(rCurrentProcessInfo));
-            //  }
-            // return std::make_unique<CompressibilityCalculator>(CreateCompressibilityInputProvider(rCurrentProcessInfo));
         case CalculationContribution::FluidBodyFlow:
-            // return std::make_unique<FluidBodyFlowCalculator>(CreateFluidBodyFlowInputProvider());
             break;
         default:
             KRATOS_ERROR << "Unknown contribution" << std::endl;
