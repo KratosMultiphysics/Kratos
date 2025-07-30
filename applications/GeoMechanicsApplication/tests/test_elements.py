@@ -3,6 +3,7 @@ import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
+import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 
 class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
     """
@@ -142,7 +143,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
     def test_triangle_6n_stepping_mechanism(self):
         test_name = 'test_triangle_6n_stepping_mechanism'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
-        simulation = test_helper.run_stages(file_path, 2)
+        run_multiple_stages.run_stages(file_path, 2)
 
     # def test_quad_4n_step_mechanism_column(self):
     #     test_name = 'test_quad_4n_step_mechanism_column'
