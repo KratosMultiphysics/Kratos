@@ -188,71 +188,16 @@ namespace Kratos {
         rKinematicVariables.B = sqrt(inner_prod(rKinematicVariables.R2, rKinematicVariables.R2) - pow(R1_R2/rKinematicVariables.A, 2));
         rKinematicVariables.b = sqrt(inner_prod(rKinematicVariables.r2, rKinematicVariables.r2) - pow(r1_r2/rKinematicVariables.a, 2));
         
-        // Calculate cross-section properties
-        // Get reference tangent vector from element properties
-        Vector3d t0_0 = this->GetProperties()[T_0];
-
-        // Temporary variables for outputs (will be written to struct later)
-        Vector3d n_act, v_act, N0, V0;
-        double b_n, b_v, c_12, c_13;
-        double B_n, B_v, C_12, C_13;
-
-        CompGeometryReferenceCrossSection(
-            rKinematicVariables.R1,      // Reference tangent vector (input)
-            rKinematicVariables.R2,      // Reference curvature vector (input)
-            t0_0,                       // T0 vector (input)
-            n_act,                      // Current n director (output)
-            v_act,                      // Current v director (output)
-            N0,                         // Reference N0 director (output)
-            V0,                         // Reference V0 director (output)
-            B_n,                        // Reference curvature B_n (output)
-            B_v,                        // Reference curvature B_v (output)
-            C_12,                       // Reference twist C_12 (output)
-            C_13,                       // Reference twist C_13 (output)
-            rKinematicVariables.Phi,     // Reference rotation angle (output)
-            rKinematicVariables.Phi_der // Reference rotation derivative (output)
-        );
+        // Compute reference cross-section geometry
+        CompGeometryReferenceCrossSection(rKinematicVariables);
 
         if (!mRotationXActive){
             rKinematicVariables.phi = rKinematicVariables.Phi;
             rKinematicVariables.phi_der = rKinematicVariables.Phi_der;
         }
 
-        CompGeometryActualCrossSection(
-            rKinematicVariables.r1,      // Current tangent vector (input)
-            rKinematicVariables.R1,      // Reference tangent vector (input)
-            rKinematicVariables.r2,      // Current curvature vector (input)
-            rKinematicVariables.R2,      // Reference curvature vector (input)
-            n_act,                       // Current n director (updated)
-            v_act,                       // Current v director (updated)
-            N0,                          // Reference N0 director (input)
-            V0,                          // Reference V0 director (input)
-            b_n,                         // Current curvature b_n (output)
-            b_v,                         // Current curvature b_v (output)
-            c_12,                        // Current twist c_12 (output)
-            c_13,                        // Current twist c_13 (output)
-            rKinematicVariables.phi,      // Current rotation angle (input)
-            rKinematicVariables.phi_der,  // Current rotation derivative (input)
-            rKinematicVariables.Phi,      // Reference rotation angle (input)
-            rKinematicVariables.Phi_der   // Reference rotation derivative (input)
-        );
-
-        // (3) Write all results to the KinematicVariables struct
-        rKinematicVariables.n = n_act;    // Current n director
-        rKinematicVariables.v = v_act;    // Current v director
-        rKinematicVariables.N0 = N0;      // Reference N0 director
-        rKinematicVariables.V0 = V0;      // Reference V0 director
-
-        // Curvatures and twists
-        rKinematicVariables.B_n = B_n;    // Reference curvature B_n
-        rKinematicVariables.b_n = b_n;    // Current curvature b_n
-        rKinematicVariables.B_v = B_v;    // Reference curvature B_v
-        rKinematicVariables.b_v = b_v;    // Current curvature b_v
-        rKinematicVariables.C_12 = C_12;  // Reference twist C_12
-        rKinematicVariables.c_12 = c_12;  // Current twist c_12
-        rKinematicVariables.C_13 = C_13;  // Reference twist C_13
-        rKinematicVariables.c_13 = c_13;  // Current twist c_13
-
+        // Compute actual cross-section geometry
+        CompGeometryActualCrossSection(rKinematicVariables);
     }
     
 
@@ -299,6 +244,12 @@ namespace Kratos {
             Matrix B_axial, B_bending1, B_bending2, B_torsion1, B_torsion2;
 
             ComputeBMatrices(point_number, kinematic_variables, B_axial, B_bending1, B_bending2, B_torsion1, B_torsion2);
+            
+            KRATOS_WATCH(B_axial);
+            KRATOS_WATCH(B_bending1);
+            KRATOS_WATCH(B_bending2);
+            KRATOS_WATCH(B_torsion1);
+            KRATOS_WATCH(B_torsion2);
 
             Matrix G_axial, G_bending1, G_bending2, G_torsion1, G_torsion2;
             ComputeGMatrices(point_number, kinematic_variables, G_axial, G_bending1, G_bending2, G_torsion1, G_torsion2);
@@ -397,8 +348,8 @@ namespace Kratos {
             
         }
 
-        KRATOS_ERROR_IF(!GetProperties().Has(CENTER_LINE_ROTATION))
-            << "\"CENTER_LINE_ROTATION\" not provided for element #" << Id() << std::endl;
+        KRATOS_ERROR_IF(!GetProperties().Has(LOCAL_AXIS_ORIENTATION))
+            << "\"LOCAL_AXIS_ORIENTATION\" not provided for element #" << Id() << std::endl;
 
         KRATOS_ERROR_IF(!GetProperties().Has(CROSS_AREA) ||
             GetProperties()[CROSS_AREA] <= numerical_limit)
@@ -2722,9 +2673,8 @@ namespace Kratos {
 
     }
 
-    void EmbeddedIsogeometricBeamElement::CompPhiRefProp(double& _Phi, double& _Phi_0_der)
+ void EmbeddedIsogeometricBeamElement::CompPhiRefProp(KinematicVariables &kinematic_variables, double& _Phi, double& _Phi_0_der)
     {
-
 
         const auto& r_geometry = GetGeometry();
         const double _u_act = r_geometry.IntegrationPoints()[0].Coordinates()[0];
@@ -2736,30 +2686,52 @@ namespace Kratos {
         double u_1;
         int n_size;
 
-        Matrix cross_section_orientation = this->GetProperties()[CENTER_LINE_ROTATION];
-        n_size = cross_section_orientation.size1();
+        Matrix local_axis_orientation = this->GetProperties()[LOCAL_AXIS_ORIENTATION];
+        n_size = local_axis_orientation.size1();
 
-        u_0 = cross_section_orientation(0, 0);
-        u_1 = cross_section_orientation(n_size - 1, 0);
-        phi_0 = cross_section_orientation(0, 1);
-        phi_1 = cross_section_orientation(n_size - 1, 1);
+        u_0 = local_axis_orientation(0, 0);
+        u_1 = local_axis_orientation(n_size - 1, 0);
+        
+        // Extract normal vector components for start and end
+        Vector3d normal_0;
+        normal_0[0] = local_axis_orientation(0, 1);
+        normal_0[1] = local_axis_orientation(0, 2);
+        normal_0[2] = local_axis_orientation(0, 3);
+        
+        Vector3d normal_1;
+        normal_1[0] = local_axis_orientation(n_size - 1, 1);
+        normal_1[1] = local_axis_orientation(n_size - 1, 2);
+        normal_1[2] = local_axis_orientation(n_size - 1, 3);
+        
+        // Convert normal vectors to rotation angles (phi) for backward compatibility
+        Vector3d _n;
+        phi_0 = GetDeltaPhi(kinematic_variables, normal_0);
+        phi_1 = GetDeltaPhi(kinematic_variables, normal_1);
 
         for (int i = 1; i < n_size; i++)
         {
-            if (cross_section_orientation(i, 0) > _u_act)
+            if (local_axis_orientation(i, 0) > _u_act)
             {
-                u_0 = cross_section_orientation(i - 1, 0);
-                phi_0 = cross_section_orientation(i - 1, 1);
+                u_0 = local_axis_orientation(i - 1, 0);
+                Vector3d normal_temp(3);
+                normal_temp[0] = local_axis_orientation(i - 1, 1);
+                normal_temp[1] = local_axis_orientation(i - 1, 2);
+                normal_temp[2] = local_axis_orientation(i - 1, 3);
+                phi_0 = GetDeltaPhi(kinematic_variables, normal_temp);
                 break;
             }
         }
 
         for (int i = 1; i < n_size; i++)
         {
-            if (cross_section_orientation(n_size - i - 1, 0) <= _u_act)
+            if (local_axis_orientation(n_size - i - 1, 0) <= _u_act)
             {
-                u_1 = cross_section_orientation(n_size - i, 0);
-                phi_1 = cross_section_orientation(n_size - i, 1);
+                u_1 = local_axis_orientation(n_size - i, 0);
+                Vector3d normal_temp(3);
+                normal_temp[0] = local_axis_orientation(n_size - i, 1);
+                normal_temp[1] = local_axis_orientation(n_size - i, 2);
+                normal_temp[2] = local_axis_orientation(n_size - i, 3);
+                phi_1 = GetDeltaPhi(kinematic_variables, normal_temp);;
                 break;
             }
         }
@@ -2773,14 +2745,60 @@ namespace Kratos {
         }
 
         _Phi += phi_0 + (_u_act - u_0) / (u_1 - u_0) * diff_phi;
-
         _Phi_0_der += diff_phi / (u_1 - u_0);
     }
 
-    void EmbeddedIsogeometricBeamElement::CompGeometryReferenceCrossSection( Vector3d _R1, Vector3d _R2, Vector3d _T0_vec, Vector3d& _n_act, Vector3d& _v_act, Vector3d& _n0, Vector3d& _v0, double& _B_n, double& _B_v, double& _C_12, double& _C_13, double& _Phi, double& _Phi_0_der)
+    double EmbeddedIsogeometricBeamElement::GetDeltaPhi(KinematicVariables &kinematic_variables, Vector3d &n)
     {
+        Vector3d _t0_0 = this->GetProperties()[T_0];
+        Vector3d _t0 = kinematic_variables.R1;
 
-        CompPhiRefProp(_Phi, _Phi_0_der);
+        double phi = 0.0;
+        // Normalize tangent vectors
+        Vector3d t0 = _t0 / norm_2(_t0);
+        Vector3d t0_0 = _t0_0 / norm_2(_t0_0);
+
+        double t_perp_n = inner_prod(t0, n);
+       
+        // Project n onto plane normal to t0
+        n = n - t_perp_n * t0;
+        n = n / norm_2(n);
+        Vector3d n0 = n; // reference principal axis
+
+        // Compute transformation matrix
+        Matrix3d mat_lambda;
+        CompMatLambda(mat_lambda, t0_0, t0);
+
+        // Rotate reference axis
+        Vector3d n_b;
+        n_b = prod(mat_lambda, n0);
+        // Compute rotation angle φ between n_b and n
+        Vector3d n_ref = cross_prod(_t0, n_b);
+        double innerprod = inner_prod(n_b, n);
+        double innerprod_ref = inner_prod(n, n_ref);
+
+        double cos_theta = innerprod / (norm_2(n_b) * norm_2(n));
+        if (std::abs(1.0 - std::abs(cos_theta)) < 1e-9)
+            cos_theta = MathUtils<double>::Sign(cos_theta);
+
+        phi = std::acos(cos_theta);
+
+        const double pi = 4.0 * std::atan(1.0);
+        if (innerprod_ref < -1e-12)
+            phi = 2.0 * pi - phi;
+
+        return phi;
+    }
+
+
+   void EmbeddedIsogeometricBeamElement::CompGeometryReferenceCrossSection(KinematicVariables &kinematic_variables)
+    {
+        // Get inputs from kinematic_variables and properties
+        Vector3d _R1 = kinematic_variables.R1;
+        Vector3d _R2 = kinematic_variables.R2;
+        Vector3d _T0_vec = this->GetProperties()[T_0];
+
+        CompPhiRefProp(kinematic_variables, kinematic_variables.Phi, kinematic_variables.Phi_der);
 
         Matrix3d mat_lamb;
         Matrix3d mat_lamb_deriv;
@@ -2804,22 +2822,22 @@ namespace Kratos {
         
         
         Matrix3d mat_test;
-        CompMatRodrigues(mat_rod, _T_vec, _Phi);
-        CompMatRodriguesDeriv(mat_rod_deriv, _T_vec, T_deriv, _Phi, _Phi_0_der);
-        _n_act.clear();
-        _n0 = this->GetProperties()[N_0];
+        CompMatRodrigues(mat_rod, _T_vec, kinematic_variables.Phi);
+        CompMatRodriguesDeriv(mat_rod_deriv, _T_vec, T_deriv, kinematic_variables.Phi, kinematic_variables.Phi_der);
+        kinematic_variables.n.clear();
+        kinematic_variables.N0 = this->GetProperties()[N_0];
 
         double T0_L = norm_2(_T0_vec);
         Vector3d T0 = _T0_vec / T0_L;
 
         
-        _n0 = _n0 - inner_prod(T0, _n0) * T0;
+        kinematic_variables.N0 = kinematic_variables.N0 - inner_prod(T0, kinematic_variables.N0) * T0;
 
-        _v0 = cross_prod(T0, _n0);
+        kinematic_variables.V0 = cross_prod(T0, kinematic_variables.N0);
 
-        _n0 = _n0 / norm_2(_n0);
+        kinematic_variables.N0 = kinematic_variables.N0 / norm_2(kinematic_variables.N0);
 
-        _v0 = _v0 / norm_2(_v0);
+        kinematic_variables.V0 = kinematic_variables.V0 / norm_2(kinematic_variables.V0);
 
         Vector3d n_tmp;
         n_tmp.clear();
@@ -2827,7 +2845,7 @@ namespace Kratos {
         {
             for (int j = 0; j < 3; j++)
             {
-                n_tmp[i] += mat_lamb(i, j) * _n0[j];
+                n_tmp[i] += mat_lamb(i, j) * kinematic_variables.N0[j];
             }
         }
 
@@ -2835,12 +2853,12 @@ namespace Kratos {
         {
             for (int j = 0; j < 3; j++)
             {
-                _n_act(i) += mat_rod(i, j) * n_tmp[j];
+                kinematic_variables.n(i) += mat_rod(i, j) * n_tmp[j];
             }
         }
-        _n_act = _n_act / norm_2(_n_act);
+        kinematic_variables.n = kinematic_variables.n / norm_2(kinematic_variables.n);
 
-        _v_act = cross_prod(_T_vec, _n_act);
+        kinematic_variables.v = cross_prod(_T_vec, kinematic_variables.n);
 
         for (int i = 0; i < 3;i++)
         {
@@ -2863,31 +2881,36 @@ namespace Kratos {
         {
             for (int j = 0; j < 3; j++)
             {
-                A21[i] += mat_Ax1(i, j) * _n0[j];
+                A21[i] += mat_Ax1(i, j) * kinematic_variables.N0[j];
             }
         }
         for (int i = 0; i < 3; i++)
         {
             for (int j = 0; j < 3; j++)
             {
-                A31[i] += mat_Ax1(i, j) * _v0[j];
+                A31[i] += mat_Ax1(i, j) * kinematic_variables.V0[j];
             }
         }
 
-        _B_n = inner_prod(A21, _R1);
-        _B_v = inner_prod(A31, _R1);
-        _C_12 = inner_prod(A31, _n_act);
-        _C_13 = inner_prod(A21, _v_act);
+        kinematic_variables.B_n = inner_prod(A21, _R1);
+        kinematic_variables.B_v = inner_prod(A31, _R1);
+        kinematic_variables.C_12 = inner_prod(A31, kinematic_variables.n);
+        kinematic_variables.C_13 = inner_prod(A21, kinematic_variables.v);
 
     }
 
-    void EmbeddedIsogeometricBeamElement::CompGeometryActualCrossSection(Vector3d _r1, Vector3d _R1, Vector3d _r2, Vector3d _R2, Vector3d& _n_act, Vector3d& _v_act, Vector3d& _N0, Vector3d& _V0, double& _b_n, double& _b_v, double& _c_12, double& _c_13, double _phi, double _phi_der, double _Phi, double _Phi_der)
+    void EmbeddedIsogeometricBeamElement::CompGeometryActualCrossSection(KinematicVariables &kinematic_variables)
     {
-
+        // Get inputs from kinematic_variables and properties
+        Vector3d _r1 = kinematic_variables.r1;
+        Vector3d _R1 = kinematic_variables.R1;
+        Vector3d _r2 = kinematic_variables.r2;
+        Vector3d _R2 = kinematic_variables.R2;
+        
         Vector3d t0_0 = this->GetProperties()[T_0];
 
-        _n_act.clear();
-        _v_act.clear();
+        kinematic_variables.n.clear();
+        kinematic_variables.v.clear();
 
         Matrix3d mat_lam;
         Matrix3d mat_lam_der;
@@ -2920,10 +2943,10 @@ namespace Kratos {
         CompMatLambda(mat_Lam, t0_0, _T_vec);
         CompMatLambdaDeriv(mat_Lam_der, t0_0, _T_vec, T0_deriv, T_deriv);
 
-        CompMatRodrigues(mat_rod, _t, _phi);
-        CompMatRodriguesDeriv(mat_rod_der, _t, t_deriv, _phi, _phi_der);
-        CompMatRodrigues(mat_Rod, _T_vec, _Phi);
-        CompMatRodriguesDeriv(mat_Rod_der, _T_vec, T_deriv, _Phi, _Phi_der);
+        CompMatRodrigues(mat_rod, _t, kinematic_variables.phi);
+        CompMatRodriguesDeriv(mat_rod_der, _t, t_deriv, kinematic_variables.phi, kinematic_variables.phi_der);
+        CompMatRodrigues(mat_Rod, _T_vec, kinematic_variables.Phi);
+        CompMatRodriguesDeriv(mat_Rod_der, _T_vec, T_deriv, kinematic_variables.Phi, kinematic_variables.Phi_der);
 
         Matrix3d mat_Rod_Lam_der;
         mat_Rod_Lam_der.clear();
@@ -3007,20 +3030,19 @@ namespace Kratos {
         {
             for (int j = 0; j < 3; j++)
             {
-                A21[i] += mat_rodlamRodLam_der(i, j) * _N0[j];
-                A31[i] += mat_rodlamRodLam_der(i, j) * _V0[j];
-                _n_act[i] += mat_rod_lam_Rod_Lam(i, j) * _N0[j];
-                _v_act[i] += mat_rod_lam_Rod_Lam(i, j) * _V0[j];
+                A21[i] += mat_rodlamRodLam_der(i, j) * kinematic_variables.N0[j];
+                A31[i] += mat_rodlamRodLam_der(i, j) * kinematic_variables.V0[j];
+                kinematic_variables.n[i] += mat_rod_lam_Rod_Lam(i, j) * kinematic_variables.N0[j];
+                kinematic_variables.v[i] += mat_rod_lam_Rod_Lam(i, j) * kinematic_variables.V0[j];
             }
         }
 
-        _b_n = inner_prod(A21, _r1);
-        _b_v = inner_prod(A31, _r1);
-        _c_12 = inner_prod(A31, _n_act);
-        _c_13 = inner_prod(A21, _v_act);
+        kinematic_variables.b_n = inner_prod(A21, _r1);
+        kinematic_variables.b_v = inner_prod(A31, _r1);
+        kinematic_variables.c_12 = inner_prod(A31, kinematic_variables.n);
+        kinematic_variables.c_13 = inner_prod(A21, kinematic_variables.v);
 
     }
-
 
     void EmbeddedIsogeometricBeamElement::ComputeBMatrices(
         IndexType point_number,
