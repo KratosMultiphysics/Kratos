@@ -1,9 +1,9 @@
-# Plane interface element tests with 3 + 3, 4 + 4, 6 + 6 and 8 + 8 nodes
+# Surface interface element tests with 3 + 3, 4 + 4, 6 + 6 and 8 + 8 nodes
 
-This folder contains integration tests for the plane interface elements with Neumann and Dirichlet boundary conditions. 
+This folder contains integration tests for the surface interface elements with Neumann and Dirichlet boundary conditions. 
 
 ## Setup
-For these specific test cases, two non-connected planar interface elements with different orientations are used. These interfaces are embedded in triangular and quadrilateral meshes with node configurations of 3 + 3, 4 + 4, 6 + 6, and 8 + 8 nodes, as illustrated in the schematic below. Note that the node pairs are co-located—i.e., they occupy the same spatial positions. The single-stage tests utilize all three elements, whereas the multi-stage tests are limited to the horizontally aligned element only.
+For these specific test cases, two non-connected surface interface elements with different orientations are used. These interfaces are embedded in triangular and quadrilateral meshes with node configurations of 3 + 3, 4 + 4, 6 + 6, and 8 + 8 nodes, as illustrated in the schematic below. Note that the node pairs are co-located—i.e., they occupy the same spatial positions. The single-stage tests utilize all three elements, whereas the multi-stage tests are limited to the horizontally aligned element only.
 
 ![Schematic](Schematic.svg)
 

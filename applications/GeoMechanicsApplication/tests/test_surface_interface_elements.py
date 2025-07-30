@@ -94,24 +94,15 @@ class KratosGeoMechanicsSurfaceInterfaceElementTests(KratosUnittest.TestCase):
         initial_cwd = os.getcwd()
         os.chdir(file_path)
         project_parameters_file_names = ['ProjectParameters_stage1.json', 'ProjectParameters_stage2.json']
-        index = 0
-        for file_name in project_parameters_file_names:
+        for file_name, normal_traction, shear_traction in zip(project_parameters_file_names, normal_tractions, shear_tractions):
             simulation = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, file_name))
             simulation.Run()
-            shear_traction = shear_tractions[index]
-            normal_traction = normal_tractions[index]
             self.assert_outputs_for_surface_interface_element_multistages(simulation, number_of_nodes, number_of_integration_points, shear_traction, normal_traction)
-            index += 1
         os.chdir(initial_cwd)
 
 
     def assert_outputs_for_surface_interface_element(self, simulation, number_of_nodes, number_of_integration_points, number_of_elements):
         displacements = test_helper.get_displacement(simulation)
-
-        shear_traction = -667.0
-        expected_shear_displacement = shear_traction / self.shear_stiffness
-        normal_traction = -333.0
-        expected_normal_displacement = normal_traction / self.normal_stiffness
 
         # Check the element at XY
         shear_traction = -667.0
@@ -200,7 +191,6 @@ class KratosGeoMechanicsSurfaceInterfaceElementTests(KratosUnittest.TestCase):
 
         # Check the element at ZX
         for index in range(number_of_nodes, 2*number_of_nodes):
-            print(index)
             self.assertAlmostEqual(displacements[index][0], expected_shear_displacement)
             self.assertAlmostEqual(displacements[index][1], expected_normal_displacement)
             self.assertAlmostEqual(displacements[index][2], expected_shear_displacement)
