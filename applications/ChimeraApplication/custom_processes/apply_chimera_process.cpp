@@ -370,13 +370,18 @@ template <int TDim>
 void ApplyChimera<TDim>::ReserveMemoryForConstraintContainers(
     ModelPart& rModelPart, MasterSlaveContainerVectorType& rContainerVector)
 {
+    #ifdef _OPENMP
+    const int num_threads = omp_get_num_threads();
+    #else
+    const int num_threads = 1; // Single-threaded execution
+    #endif
 #pragma omp parallel
     {
         const IndexType num_constraints_per_thread =
-            (rModelPart.NumberOfNodes() * 4) / omp_get_num_threads();
+            (rModelPart.NumberOfNodes() * 4) / num_threads;
 #pragma omp single
         {
-            rContainerVector.resize(omp_get_num_threads());
+            rContainerVector.resize(num_threads);
             for (auto& container : rContainerVector)
                 container.reserve(num_constraints_per_thread);
         }
