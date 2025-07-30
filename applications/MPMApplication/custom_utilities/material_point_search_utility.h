@@ -460,7 +460,11 @@ namespace Kratos::MPMSearchElementUtility
     {
         ResetElementsAndNodes(rBackgroundGridModelPart);
 
-        const int num_threads = omp_get_max_threads();
+        #ifdef _OPENMP
+            const int num_threads = omp_get_max_threads();
+        #else
+            const int num_threads = 1;
+        #endif
         std::vector<typename Element::Pointer> missing_elements;
         std::vector<typename Condition::Pointer> missing_conditions;
         std::vector<std::vector<IndexType>> thread_active_node_ids(num_threads);
