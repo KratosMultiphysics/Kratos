@@ -150,7 +150,7 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
         test_name = 'line_loads_in_stages'
         parent_name = 'line_load_tests'
         file_path = test_helper.get_file_path(os.path.join(parent_name, test_name, "Orchestrator"))
-        comparison_data = [("test_stage_2_loaded_from_checkpoint.post.res", 100.0)] # only stage 2 is checked
+        comparison_data = [("test_stage_2_calculated_from_checkpoint.post.res", 100.0)] # only stage 2 is checked
 
         project_parameters_filename = test_helper.get_file_path(os.path.join(file_path, "ProjectParametersSaveCheckpoints.json"))
         self.run_orchestrator_based_workflow(file_path, project_parameters_filename)
