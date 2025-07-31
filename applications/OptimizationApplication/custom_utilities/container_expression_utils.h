@@ -245,6 +245,10 @@ public:
         ContainerExpression<ModelPart::NodesContainerType>& rOutput,
         const ContainerExpression<ModelPart::ElementsContainerType>& rInputExpression);
 
+    static ContainerExpression<ModelPart::NodesContainerType>::Pointer HamilotinanUpdate(
+        const ContainerExpression<ModelPart::NodesContainerType>& rPhi,
+        const ContainerExpression<ModelPart::ElementsContainerType>& rVelocity);
+
     ///@}
     ///@name Static operations derived from Kratos::ExpressionUtils
     ///@{
