@@ -25,6 +25,7 @@
 #include "geometries/geometry.h"
 #include "includes/model_part.h"
 #include "pqmpm_partition_utilities.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos::MPMSearchElementUtility
 {
@@ -187,11 +188,8 @@ namespace Kratos::MPMSearchElementUtility
                 rBackgroundGridModelPart, Tolerance, xg[0], local_coordinates,
                 rMPMModelPart.GetProcessInfo(), is_found);
 
-            #ifdef _OPENMP
-                const int thread_id = omp_get_thread_num();
-            #else
-                const int thread_id = 0;
-            #endif
+            const int thread_id = OpenMPUtils::ThisThread();
+            
             if (is_found) {
                 const bool is_pqmpm = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM))
                     ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM) : false;
@@ -241,12 +239,8 @@ namespace Kratos::MPMSearchElementUtility
                     rBackgroundGridModelPart, Tolerance, xg[0], local_coordinates,
                     rMPMModelPart.GetProcessInfo(), is_found);
 
+                const int thread_id = OpenMPUtils::ThisThread();
                 
-                #ifdef _OPENMP
-                    const int thread_id = omp_get_thread_num();
-                #else
-                    const int thread_id = 0;
-                #endif
                 if (is_found) {
                     CreateQuadraturePointsUtility<Node>::UpdateFromLocalCoordinates(
                         condition_itr->pGetGeometry(), local_coordinates,
@@ -356,11 +350,7 @@ namespace Kratos::MPMSearchElementUtility
                     }
                     auto& r_geometry = element_itr->GetGeometry();
                                         
-                    #ifdef _OPENMP
-                        const int thread_id = omp_get_thread_num();
-                    #else
-                        const int thread_id = 0;
-                    #endif
+                    const int thread_id = OpenMPUtils::ThisThread();
 
                     for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j) {
                         rThreadActiveNodeIds[thread_id].push_back(r_geometry[j].Id());
@@ -400,11 +390,7 @@ namespace Kratos::MPMSearchElementUtility
 
                         auto& r_geometry = condition_itr->GetGeometry();
                         
-                        #ifdef _OPENMP
-                            const int thread_id = omp_get_thread_num();
-                        #else
-                            const int thread_id = 0;
-                        #endif
+                        const int thread_id = OpenMPUtils::ThisThread();
 
                         for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j) {
                             rThreadActiveNodeIds[thread_id].push_back(r_geometry[j].Id());
@@ -460,11 +446,8 @@ namespace Kratos::MPMSearchElementUtility
     {
         ResetElementsAndNodes(rBackgroundGridModelPart);
 
-        #ifdef _OPENMP
-            const int num_threads = omp_get_max_threads();
-        #else
-            const int num_threads = 1;
-        #endif
+        const int num_threads = OpenMPUtils::GetNumThreads();
+        
         std::vector<typename Element::Pointer> missing_elements;
         std::vector<typename Condition::Pointer> missing_conditions;
         std::vector<std::vector<IndexType>> thread_active_node_ids(num_threads);
