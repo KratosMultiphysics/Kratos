@@ -99,6 +99,10 @@ namespace Kratos
     // Mesh variables
     KRATOS_DEFINE_APPLICATION_VARIABLE( MPM_APPLICATION, std::vector<typename Geometry<Node>::Pointer>, GEOMETRY_NEIGHBOURS)
 
+    // Numerical Stiffness variables
+    KRATOS_DEFINE_APPLICATION_VARIABLE( MPM_APPLICATION, double, TOTAL_MP_VOLUME ) // Total volume of the material points in the background grid element
+    KRATOS_DEFINE_APPLICATION_VARIABLE( MPM_APPLICATION, double, VOLUME_RATIO_THRESHOLD )
+
     /* NODAL VARIABLES */
     // Conditions
     // Particle Conditions

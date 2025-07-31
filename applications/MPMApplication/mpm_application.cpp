@@ -197,6 +197,10 @@ namespace Kratos
         // Mesh variables
         KRATOS_REGISTER_VARIABLE( GEOMETRY_NEIGHBOURS )
 
+        // Numerical Stiffness variables
+        KRATOS_REGISTER_VARIABLE( TOTAL_MP_VOLUME ) // Total volume of the material points in the background grid element
+        KRATOS_REGISTER_VARIABLE( VOLUME_RATIO_THRESHOLD )
+
         // Registering condition variables
         // Essential Boundary Conditions
         KRATOS_REGISTER_VARIABLE( MPC_BOUNDARY_CONDITION_TYPE )
