@@ -343,6 +343,12 @@ private:
     double                                 mDeltaTime = 1.0;
     std::vector<FirstOrderScalarVariable>  mFirstOrderScalarVariables;
     std::vector<SecondOrderVectorVariable> mSecondOrderVectorVariables;
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const { rSerializer.save("DeltaTime", mDeltaTime); }
+
+    void load(Serializer& rSerializer) { rSerializer.load("DeltaTime", mDeltaTime); }
 };
 
 } // namespace Kratos
