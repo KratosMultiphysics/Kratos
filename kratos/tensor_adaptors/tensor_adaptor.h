@@ -31,7 +31,7 @@ namespace Kratos {
 ///@{
 
 template<class TDataType>
-class TensorAdaptor {
+class KRATOS_API(KRATOS_CORE) TensorAdaptor {
 protected:
     ///@name Class definitions
     ///@{

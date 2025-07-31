@@ -233,8 +233,8 @@ std::string TensorAdaptor<TDataType>::Info() const
 }
 
 // template instantiations
-template class KRATOS_API(KRATOS_CORE) TensorAdaptor<bool>;
-template class KRATOS_API(KRATOS_CORE) TensorAdaptor<int>;
-template class KRATOS_API(KRATOS_CORE) TensorAdaptor<double>;
+template class TensorAdaptor<bool>;
+template class TensorAdaptor<int>;
+template class TensorAdaptor<double>;
 
 } // namespace Kratos
