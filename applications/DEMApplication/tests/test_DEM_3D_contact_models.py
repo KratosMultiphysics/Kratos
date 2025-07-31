@@ -29,9 +29,9 @@ class ContactModels3DTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
         tol = 1e-8
         f = self.spheres_model_part.GetNode(node).GetSolutionStepValue(DEMApplication.CONTACT_FORCES)
         t = self.spheres_model_part.GetNode(node).GetSolutionStepValue(DEMApplication.PARTICLE_MOMENT)
-        print(self.DEM_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString())
-        print("Force:  [{:.15f}, {:.15f}, {:.15f}]".format(f[0],f[1],f[2]))
-        print("Moment: [{:.15f}, {:.15f}, {:.15f}]".format(t[0],t[1],t[2]))
+        #print(self.DEM_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString())
+        #print("Force:  [{:.15f}, {:.15f}, {:.15f}]".format(f[0],f[1],f[2]))
+        #print("Moment: [{:.15f}, {:.15f}, {:.15f}]".format(t[0],t[1],t[2]))
         
         self.assertAlmostEqual(f[0], ref["force"][0], delta=tol)
         self.assertAlmostEqual(f[1], ref["force"][1], delta=tol)

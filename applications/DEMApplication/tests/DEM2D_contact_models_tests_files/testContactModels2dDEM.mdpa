@@ -268,7 +268,5 @@ Begin SubModelPart DEMParts_Particles // Group Particles // Subtree DEMParts
         48
         49
         50
-   End SubModelPartElements
-   Begin SubModelPartConditions
-   End SubModelPartConditions
+     End SubModelPartElements
 End SubModelPart

@@ -508,7 +508,7 @@ Begin Nodes
 	589  -2.2289732098579407e-01  1.6538660526275635e+00  2.9768788814544678e-01
 End Nodes
 
-Begin Elements SphericParticle3D// GUI group identifier: Particles
+Begin Elements SphericParticle3D // GUI group identifier: Particles
 	1	0	90
 	2	0	91
 	3	0	92
