@@ -45,6 +45,14 @@ class TensorAdaptorTrampoline final : public TensorAdaptor<TDataType> {
 public:
     using BaseType = TensorAdaptor<TDataType>;
 
+    void Check() const override
+    {
+        PYBIND11_OVERRIDE_PURE(void,                            /*return type*/
+                               BaseType,                        /*base type*/
+                               Check                            /*function name*/
+        );
+    }
+
     void CollectData() override
     {
         PYBIND11_OVERRIDE_PURE(void,                            /*return type*/
@@ -133,15 +141,15 @@ pybind11::array_t<TDataType> MovePybindArray(TensorAdaptor<TDataType>& rTensorAd
     }
 }
 
-template<template<class> class TTensorType, class TTensorDataType, class TPybindArrayType>
+template<template<class> class TTensorType, class TTensorStorageType, class TPybindArrayType>
 bool AssignDataImpl(
-    TTensorType<TTensorDataType>& rTensor,
+    TTensorType<TTensorStorageType>& rTensor,
     const pybind11::array& rArray)
 {
     if (pybind11::isinstance<pybind11::array_t<TPybindArrayType>>(rArray)) {
         const auto& casted_array = rArray.cast<pybind11::array_t<TPybindArrayType, pybind11::array::c_style>>();
         IndexPartition<IndexType>(rTensor.ViewData().size()).for_each([&casted_array, &rTensor](const auto Index) {
-            rTensor.ViewData()[Index] = static_cast<TTensorDataType>(casted_array.data()[Index]);
+            rTensor.ViewData()[Index] = static_cast<TTensorStorageType>(casted_array.data()[Index]);
         });
         return true;
     } else {
@@ -149,17 +157,17 @@ bool AssignDataImpl(
     }
 }
 
-template<template<class> class TTensorType, class TTensorDataType, class... TPybindArrayType>
+template<template<class> class TTensorType, class TTensorStorageType, class... TPybindArrayType>
 bool AssignData(
-    TTensorType<TTensorDataType>& rTensor,
+    TTensorType<TTensorStorageType>& rTensor,
     const pybind11::array& rArray)
 {
-    return (... || AssignDataImpl<TTensorType, TTensorDataType, TPybindArrayType>(rTensor, rArray));
+    return (... || AssignDataImpl<TTensorType, TTensorStorageType, TPybindArrayType>(rTensor, rArray));
 }
 
-template<template<class> class TTensorType, class TTensorDataType>
+template<template<class> class TTensorType, class TTensorStorageType>
 void SetPybindArray(
-    TTensorType<TTensorDataType>& rTensor,
+    TTensorType<TTensorStorageType>& rTensor,
     const pybind11::array&  rArray)
 {
     KRATOS_ERROR_IF(rArray.ndim() == 0)
@@ -185,7 +193,7 @@ void SetPybindArray(
 
     if (!AssignData<
             TTensorType,
-            TTensorDataType,
+            TTensorStorageType,
             bool,
             std::uint8_t,
             std::uint16_t,
@@ -222,23 +230,23 @@ void AddBaseTensorAdaptor(
     pybind11::module& rModule,
     const std::string& rName)
 {
-    // add the base TensorData
-    using tensor_data = TensorData<TDataType>;
-    pybind11::class_<tensor_data, typename tensor_data::Pointer>(rModule, (rName + "Data").c_str())
-        .def(pybind11::init<typename tensor_data::ContainerPointerType, const DenseVector<unsigned int>&>(), pybind11::arg("container"), pybind11::arg("tensor_shape"))
-        .def("Clone", &tensor_data::Clone)
-        .def("GetContainer", &tensor_data::GetContainer)
-        .def("Shape", &tensor_data::Shape)
-        .def("DataShape", &tensor_data::DataShape)
-        .def("Size", &tensor_data::Size)
-        .def("__str__", PrintObject<tensor_data>)
-        .def("ViewData", &Detail::GetPybindArray<TensorData, TDataType>)
-        .def("MoveData", &Detail::MovePybindArray<TensorData, TDataType>)
-        .def("SetData", &Detail::SetPybindArray<TensorData, TDataType>, pybind11::arg("array").noconvert())
+    // add the base TensorStorage
+    using tensor_storage = TensorStorage<TDataType>;
+    pybind11::class_<tensor_storage, typename tensor_storage::Pointer>(rModule, (rName + "Data").c_str())
+        .def(pybind11::init<typename tensor_storage::ContainerPointerType, const DenseVector<unsigned int>&>(), pybind11::arg("container"), pybind11::arg("tensor_shape"))
+        .def("Copy", &tensor_storage::Copy)
+        .def("GetContainer", &tensor_storage::GetContainer)
+        .def("Shape", &tensor_storage::Shape)
+        .def("DataShape", &tensor_storage::DataShape)
+        .def("Size", &tensor_storage::Size)
+        .def("__str__", PrintObject<tensor_storage>)
+        .def("ViewData", &Detail::GetPybindArray<TensorStorage, TDataType>)
+        .def("MoveData", &Detail::MovePybindArray<TensorStorage, TDataType>)
+        .def("SetData", &Detail::SetPybindArray<TensorStorage, TDataType>, pybind11::arg("array").noconvert())
         .def_property("data",
-            &Detail::GetPybindArray<TensorData, TDataType>,
+            &Detail::GetPybindArray<TensorStorage, TDataType>,
             pybind11::cpp_function(
-                &Detail::SetPybindArray<TensorData, TDataType>,
+                &Detail::SetPybindArray<TensorStorage, TDataType>,
                 pybind11::arg("self"),
                 // no convert makes sure that the numpy arrays are
                 // not converted, hence nothing will be copied. numpy
@@ -251,10 +259,11 @@ void AddBaseTensorAdaptor(
     // add the base tensor adaptor
     using tensor_adaptor = TensorAdaptor<TDataType>;
     pybind11::class_<tensor_adaptor, typename tensor_adaptor::Pointer>(rModule, (rName + "Adaptor").c_str())
+        .def("Check", &tensor_adaptor::Check)
         .def("CollectData", &tensor_adaptor::CollectData)
         .def("StoreData", &tensor_adaptor::StoreData)
         .def("GetContainer", &tensor_adaptor::GetContainer)
-        .def("GetTensorData", &tensor_adaptor::GetTensorData)
+        .def("GetStorage", pybind11::overload_cast<>(&tensor_adaptor::GetStorage))
         .def("Shape", &tensor_adaptor::Shape)
         .def("DataShape", &tensor_adaptor::DataShape)
         .def("Size", &tensor_adaptor::Size)
@@ -290,13 +299,13 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
     py::class_<HistoricalVariableTensorAdaptor, HistoricalVariableTensorAdaptor::Pointer, HistoricalVariableTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "HistoricalVariableTensorAdaptor")
         .def(py::init<ModelPart::NodesContainerType::Pointer, HistoricalVariableTensorAdaptor::VariablePointerType, const int>(), py::arg("container"), py::arg("variable"), py::arg("step_index") = 0)
         .def(py::init<ModelPart::NodesContainerType::Pointer, TensorAdaptorUtils::VariablePointerType, const std::vector<unsigned int>&, const int>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"), py::arg("step_index") = 0)
-        .def(py::init<TensorData<double>::Pointer, HistoricalVariableTensorAdaptor::VariablePointerType, const int>(), py::arg("tensor_data"), py::arg("variable"), py::arg("step_index") = 0)
+        .def(py::init<TensorStorage<double>::Pointer, HistoricalVariableTensorAdaptor::VariablePointerType, const int>(), py::arg("tensor_storage"), py::arg("variable"), py::arg("step_index") = 0)
         ;
 
     pybind11::class_<VariableTensorAdaptor, VariableTensorAdaptor::Pointer, VariableTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "VariableTensorAdaptor")
         .def(py::init<VariableTensorAdaptor::ContainerPointerType, VariableTensorAdaptor::VariablePointerType>(), py::arg("container"), py::arg("variable"))
         .def(py::init<VariableTensorAdaptor::ContainerPointerType, VariableTensorAdaptor::VariablePointerType, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"))
-        .def(py::init<TensorData<double>::Pointer, VariableTensorAdaptor::VariablePointerType>(), py::arg("tensor_data"), py::arg("variable"))
+        .def(py::init<TensorStorage<double>::Pointer, VariableTensorAdaptor::VariablePointerType>(), py::arg("tensor_storage"), py::arg("variable"))
         ;
 
     py::class_<GaussPointVariableTensorAdaptor, GaussPointVariableTensorAdaptor::Pointer, GaussPointVariableTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "GaussPointVariableTensorAdaptor")
@@ -313,13 +322,13 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
         .def(py::init<ModelPart::NodesContainerType::Pointer, const Flags&>(), pybind11::arg("container"), pybind11::arg("flag"))
         .def(py::init<ModelPart::ConditionsContainerType::Pointer, const Flags&>(), pybind11::arg("container"), pybind11::arg("flag"))
         .def(py::init<ModelPart::ElementsContainerType::Pointer, const Flags&>(), pybind11::arg("container"), pybind11::arg("flag"))
-        .def(py::init<TensorData<bool>::Pointer, const Flags&>(), pybind11::arg("tensor_data"), pybind11::arg("flag"))
+        .def(py::init<TensorStorage<bool>::Pointer, const Flags&>(), pybind11::arg("tensor_storage"), pybind11::arg("flag"))
         ;
 
     pybind11::class_<NodePositionTensorAdaptor, NodePositionTensorAdaptor::Pointer, NodePositionTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "NodePositionTensorAdaptor")
         .def(py::init<ModelPart::NodesContainerType::Pointer, Globals::Configuration>(), py::arg("container"), py::arg("configuration"))
         .def(py::init<ModelPart::NodesContainerType::Pointer, Globals::Configuration, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("configuration"), py::arg("data_shape"))
-        .def(py::init<TensorData<double>::Pointer, Globals::Configuration>(), py::arg("tensor_data"), py::arg("configuration"))
+        .def(py::init<TensorStorage<double>::Pointer, Globals::Configuration>(), py::arg("tensor_storage"), py::arg("configuration"))
         ;
 }
 

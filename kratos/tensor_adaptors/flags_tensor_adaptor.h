@@ -47,7 +47,7 @@ public:
         const Flags& rFlags);
 
     FlagsTensorAdaptor(
-        TensorData<bool>::Pointer pTensorData,
+        TensorStorage<bool>::Pointer pTensorStorage,
         const Flags& rFlags);
 
     // Destructor
@@ -56,6 +56,8 @@ public:
     ///@}
     ///@name Public operations
     ///@{
+
+    void Check() const override;
 
     /**
      * @brief Fill the internal data from Kratos data structures

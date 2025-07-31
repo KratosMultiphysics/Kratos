@@ -36,17 +36,17 @@ FlagsTensorAdaptor::FlagsTensorAdaptor(
     const Flags& rFlags)
     : mFlags(rFlags)
 {
-    this->mpStorage = Kratos::make_intrusive<TensorData<bool>>(pContainer, DenseVector<unsigned int>(1, pContainer->size()));
+    this->mpStorage = Kratos::make_intrusive<TensorStorage<bool>>(pContainer, DenseVector<unsigned int>(1, pContainer->size()));
 }
 
 FlagsTensorAdaptor::FlagsTensorAdaptor(
-    TensorData<bool>::Pointer pTensorData,
+    TensorStorage<bool>::Pointer pTensorStorage,
     const Flags& rFlags)
     : mFlags(rFlags)
 {
     KRATOS_TRY
 
-    this->mpStorage = pTensorData;
+    this->mpStorage = pTensorStorage;
 
     const auto& r_tensor_shape = this->mpStorage->Shape();
 
@@ -55,6 +55,21 @@ FlagsTensorAdaptor::FlagsTensorAdaptor(
         << "[ tensor data = " << *(this->mpStorage) << " ].\n";
 
     KRATOS_CATCH("");
+}
+
+void FlagsTensorAdaptor::Check() const
+{
+    std::visit([this](auto pContainer) {
+        using container_type = BareType<decltype(*pContainer)>;
+
+        if constexpr(IsInList<container_type, ModelPart::NodesContainerType, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>) {
+            const auto& r_tensor_shape = this->Shape();
+
+            KRATOS_ERROR_IF_NOT(this->Size() == pContainer->size())
+                << "Size mismatch [ Container size = " << pContainer->size()
+                << ", data span size = " << this->Size() << " ].\n";
+        }
+    }, this->mpStorage->GetContainer());
 }
 
 void FlagsTensorAdaptor::CollectData()

@@ -33,13 +33,15 @@ namespace Kratos {
 ///@{
 
 template<class TDataType>
-class TensorData
+class TensorStorage
 {
 public:
     ///@name Type definitions
     ///@{
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TensorData);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TensorStorage);
+
+    using ConstPointer = Kratos::intrusive_ptr<const TensorStorage<TDataType>>;
 
     using ContainerPointerType = std::variant<
                                         ModelPart::NodesContainerType::Pointer,
@@ -54,7 +56,7 @@ public:
     ///@name Life cycle
     ///@{
 
-    TensorData(
+    TensorStorage(
         ContainerPointerType pContainer,
         const DenseVector<unsigned int>& rShape)
         : mpContainer(pContainer),
@@ -84,7 +86,7 @@ public:
      *          the internal data as well if it is still owned by the TensorAdaptorStorage.
      *
      */
-    ~TensorData()
+    ~TensorStorage()
     {
         if (mpData) {
             delete[] mpData;
@@ -95,14 +97,14 @@ public:
     ///@name Public operations
     ///@{
 
-    TensorData::Pointer Clone() const
+    TensorStorage::Pointer Copy() const
     {
-        auto p_tensor_data = Kratos::make_intrusive<TensorData<TDataType>>(this->GetContainer(), this->Shape());
-        const auto&  cloned_span = p_tensor_data->ViewData();
+        auto p_tensor_data = Kratos::make_intrusive<TensorStorage<TDataType>>(this->GetContainer(), this->Shape());
+        const auto& destination_span = p_tensor_data->ViewData();
         const auto& origin_span = this->ViewData();
 
-        IndexPartition<IndexType>(cloned_span.size()).for_each([&cloned_span, &origin_span](const auto Index) {
-            cloned_span[Index] = origin_span[Index];
+        IndexPartition<IndexType>(destination_span.size()).for_each([&destination_span, &origin_span](const auto Index) {
+            destination_span[Index] = origin_span[Index];
         });
 
         return p_tensor_data;
@@ -176,7 +178,7 @@ public:
         std::stringstream info;
         std::visit([&info, this](auto pContainer) {
             using container_type = std::remove_cv_t<std::decay_t<decltype(*pContainer)>>;
-            info << "TensorData with " << pContainer->size() << " " << ModelPart::Container<container_type>::GetEntityName() << "(s) with shape = " << this->Shape();
+            info << "TensorStorage with " << pContainer->size() << " " << ModelPart::Container<container_type>::GetEntityName() << "(s) with shape = " << this->Shape();
         }, mpContainer);
         return info.str();
     }
@@ -202,12 +204,12 @@ private:
     // this block is needed for refcounting in the @ref intrusive ptr
     mutable std::atomic<int> mReferenceCounter{0};
 
-    friend void intrusive_ptr_add_ref(const TensorData* x)
+    friend void intrusive_ptr_add_ref(const TensorStorage* x)
     {
         x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
     }
 
-    friend void intrusive_ptr_release(const TensorData* x)
+    friend void intrusive_ptr_release(const TensorStorage* x)
     {
         if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
             std::atomic_thread_fence(std::memory_order_acquire);
@@ -242,6 +244,14 @@ public:
     ///@{
 
     /**
+     * @brief Check if necessary data is present in the underlying pointer vector sets.
+     * @details This method should not change anything in the underlying Kratos data structures. It should
+     *          only check data from Kratos data structures whether necessary information is there to perform
+     *          CollectData and StoreData without any errors.
+     */
+    virtual void Check() const = 0;
+
+    /**
      * @brief Fill the internal data from Kratos data structures.
      * @details This method should not change anything in the underlying Kratos data structures. It should
      *          only gather data from Kratos data structures to the TensorAdaptor.
@@ -256,12 +266,17 @@ public:
     /**
      * @brief Get the data container which is associated with the TensorAdaptor.
      */
-    typename TensorData<TDataType>::ContainerPointerType GetContainer() const
+    typename TensorStorage<TDataType>::ContainerPointerType GetContainer() const
     {
         return mpStorage->GetContainer();
     }
 
-    typename TensorData<TDataType>::Pointer GetTensorData()
+    typename TensorStorage<TDataType>::Pointer GetStorage()
+    {
+        return mpStorage;
+    }
+
+    typename TensorStorage<TDataType>::ConstPointer GetStorage() const
     {
         return mpStorage;
     }
@@ -346,7 +361,7 @@ protected:
     ///@name Protected member variables
     ///@{
 
-    typename TensorData<TDataType>::Pointer mpStorage;
+    typename TensorStorage<TDataType>::Pointer mpStorage;
 
     ///@}
 
@@ -381,7 +396,7 @@ private:
 template<class TDataType>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const TensorData<TDataType>& rThis)
+    const TensorStorage<TDataType>& rThis)
 {
     return rOStream << rThis.Info();
 }

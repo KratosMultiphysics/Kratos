@@ -27,7 +27,7 @@ VariableTensorAdaptor::VariableTensorAdaptor(
     : mpVariable(pVariable)
 {
     std::visit([this](auto pContainer, auto pVariable) {
-        this->mpStorage = Kratos::make_intrusive<TensorData<double>>(
+        this->mpStorage = Kratos::make_intrusive<TensorStorage<double>>(
                                 pContainer, TensorAdaptorUtils::GetTensorShape(
                                                 *pContainer, *pVariable,
                                                 [pVariable](auto& rValue, const auto& rEntity) {
@@ -43,7 +43,7 @@ VariableTensorAdaptor::VariableTensorAdaptor(
     : mpVariable(pVariable)
 {
     std::visit([&rDataShape, this](auto pContainer, auto pVariable) {
-        this->mpStorage = Kratos::make_intrusive<TensorData<double>>(
+        this->mpStorage = Kratos::make_intrusive<TensorStorage<double>>(
                                 pContainer, TensorAdaptorUtils::GetTensorShape(
                                 *pContainer, *pVariable, rDataShape.data(),
                                 rDataShape.data() + rDataShape.size()));
@@ -51,13 +51,13 @@ VariableTensorAdaptor::VariableTensorAdaptor(
 }
 
 VariableTensorAdaptor::VariableTensorAdaptor(
-    TensorData<double>::Pointer pTensorData,
+    TensorStorage<double>::Pointer pTensorStorage,
     VariablePointerType pVariable)
     : mpVariable(pVariable)
 {
     KRATOS_TRY
 
-    this->mpStorage = pTensorData;
+    this->mpStorage = pTensorStorage;
 
     // now check whether the given storage is compatible with the variable.
     std::visit([this](auto pVariable) {
@@ -72,6 +72,29 @@ VariableTensorAdaptor::VariableTensorAdaptor(
     KRATOS_CATCH("");
 }
 
+void VariableTensorAdaptor::Check() const
+{
+    KRATOS_TRY
+
+    std::visit([this](auto pContainer, auto pVariable) {
+        using variable_type = BareType<decltype(*pVariable)>;
+
+        const auto& r_tensor_shape = this->Shape();
+
+        KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
+            << "Underlying container of the tensor data has changed size [ tensor data = "
+            << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
+
+        block_for_each(*pContainer, [&pVariable](const auto& rEntity) {
+            KRATOS_ERROR_IF_NOT(rEntity.Has(*pVariable))
+                << "The entity with id = " << rEntity.Id() << " does not have the variable " << pVariable->Name() << ".\n";
+        });
+
+    }, this->mpStorage->GetContainer(), mpVariable);
+
+    KRATOS_CATCH("");
+}
+
 void VariableTensorAdaptor::CollectData()
 {
     std::visit([this](auto pContainer, auto pVariable) {
@@ -82,17 +105,13 @@ void VariableTensorAdaptor::CollectData()
 
         KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
             << "Underlying container of the tensor data has changed size [ tensor data = "
-            << *this->GetTensorData() << ", container size = " << pContainer->size() << " ].\n";
+            << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
 
         ContainerIOUtils::CopyToContiguousArray<data_type>(
             *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
             r_tensor_shape.data().begin() + r_tensor_shape.size(),
             [pVariable](auto& rValue, const auto& rEntity) {
-                auto p_value = rEntity.pGetValue(*pVariable);
-                KRATOS_ERROR_IF_NOT(p_value)
-                    << "The " << pVariable->Name()
-                    << " not found in the data value container of " << rEntity;
-                rValue = *p_value;
+                rValue = rEntity.GetValue(*pVariable);
             });
     }, this->mpStorage->GetContainer(), mpVariable);
 }
@@ -107,7 +126,7 @@ void VariableTensorAdaptor::StoreData()
 
         KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
             << "Underlying container of the tensor data has changed size [ tensor data = "
-            << *this->GetTensorData() << ", container size = " << pContainer->size() << " ].\n";
+            << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
 
         if constexpr(DataTypeTraits<data_type>::IsDynamic) {
             // this zero value may be different from the Variable::Zero()
@@ -119,21 +138,78 @@ void VariableTensorAdaptor::StoreData()
             // variable in their DataValueContainer.
             const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
 
+            // -----------------------------------------------------------------------------------------
+            // TODO: Following block of code is not required if the discussion in PR #13685 is accepted.
+            //       This is costly, which can be heavily improved with the above mentioned PR.
+            block_for_each(*pContainer, [&pVariable, &zero](auto& rEntity) {
+                // following code will need to do two lookups, one for Has, and one for SetValue.
+                // The PR #13685 have a mechanism to do both with one lookup, halving the cost.
+                if (!rEntity.Has(*pVariable)) {
+                    // this variable only needs to be set, if it is not present because,
+                    // in a case where this tensor is created in the following scenario
+                    //
+                    // a = VariableTensorAdaptor(nodes, VELOCITY, data_shape = [2]) //
+                    // a.data = numpy.ndarray
+                    // a.StoreData() # here i only want to write to VELOCITY_X and VELOCITY_Y, not touching VELOCITY_Z
+                    // in order to do that, i must only set the values in the entities which are not having the variable.
+                    // This can be easily avoided if as suggested in the PR #13685 we have the GetOrCreateValue method.
+                    rEntity.SetValue(*pVariable, zero);
+                }
+            });
+            // -----------------------------------------------------------------------------------------
+
             ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
                 *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
                 r_tensor_shape.data().begin() + r_tensor_shape.size(),
                 [pVariable, &zero](auto& rEntity) -> auto& {
+                    // -------------------------------------------------------------
+                    // with the PR #13685, we can reduce the 3 lookups per entity
+                    // to 1 lookup.
+                    return rEntity.GetValue(*pVariable);
+                    // -------------------------------------------------------------
+                    // TODO: Needs the approval of PR #13685
                     // only dynamic data_type types require the zero
                     // to initialize the uninitialized variables, because
                     // they need to be correctly sized.
-                    return rEntity.GetOrCreateValue(*pVariable, zero);
+                    //      return rEntity.GetOrCreateValue(*pVariable, zero);
+                    // -------------------------------------------------------------
                 });
         } else {
+            // -----------------------------------------------------------------------------------------
+            // TODO: Following block of code is not required if the discussion in PR #13685 is accepted.
+            //       This is costly, which can be heavily improved with the above mentioned PR.
+            block_for_each(*pContainer, [&pVariable](auto& rEntity) {
+                // following code will need to do two lookups, one for Has, and one for SetValue.
+                // The PR #13685 have a mechanism to do both with one lookup, halving the cost.
+                if (!rEntity.Has(*pVariable)) {
+                    // this variable only needs to be set, if it is not present because,
+                    // in a case where this tensor is created in the following scenario
+                    //
+                    // a = VariableTensorAdaptor(nodes, VELOCITY, data_shape = [2]) //
+                    // a.data = numpy.ndarray
+                    // a.StoreData() # here i only want to write to VELOCITY_X and VELOCITY_Y, not touching VELOCITY_Z
+                    // in order to do that, i must only set the values in the entities which are not having the variable.
+                    // This can be easily avoided if as suggested in the PR #13685 we have the GetOrCreateValue method.
+                    rEntity.SetValue(*pVariable, pVariable->Zero());
+                }
+            });
+            // -----------------------------------------------------------------------------------------
+
             ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
                 *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
                 r_tensor_shape.data().begin() + r_tensor_shape.size(),
                 [pVariable](auto& rEntity) -> auto& {
-                    return rEntity.GetOrCreateValue(*pVariable);
+                    // -------------------------------------------------------------
+                    // with the PR #13685, we can reduce the 3 lookups per entity
+                    // to 1 lookup.
+                    return rEntity.GetValue(*pVariable);
+                    // -------------------------------------------------------------
+                    // TODO: Needs the approval of PR #13685
+                    // only dynamic data_type types require the zero
+                    // to initialize the uninitialized variables, because
+                    // they need to be correctly sized.
+                    //      return rEntity.GetOrCreateValue(*pVariable);
+                    // -------------------------------------------------------------
                 });
         }
     }, this->mpStorage->GetContainer(), mpVariable);

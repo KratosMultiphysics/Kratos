@@ -55,7 +55,7 @@ public:
         const int StepIndex = 0);
 
     HistoricalVariableTensorAdaptor(
-        TensorData<double>::Pointer pTensorData,
+        TensorStorage<double>::Pointer pTensorStorage,
         VariablePointerType pVariable,
         const int StepIndex = 0);
 
@@ -68,13 +68,22 @@ public:
     ///@{
 
     /**
+     * @brief Checks if the given variable is available and the buffer size is enough in each node.
+     */
+    void Check() const override;
+
+    /**
      * @brief Fill the internal data from Kratos data structures
+     * @details This method will fill the internal data from the historical data value container of each node.
+     * @warning This may SEGFAULT if the variable is not found in the historical data value container of a node.
+     *          Therefore, it is suggested to use HistoricalVariableTensorAdaptor::Check method before.
      */
     void CollectData() override;
 
     /**
-     * @brief Store internal data to the given TContainerType container.
-     *
+     * @details This method will fill the historical data value container data of each node from the internal data.
+     * @warning This may SEGFAULT if the variable is not found in the historical data value container of a node.
+     *          Therefore, it is suggested to use HistoricalVariableTensorAdaptor::Check method before.
      */
     void StoreData() override;
 

@@ -40,13 +40,32 @@ GaussPointVariableTensorAdaptor::GaussPointVariableTensorAdaptor(
         using variable_type = BareType<decltype(*pVariable)>;
         using data_type = typename variable_type::Type;
 
-        this->mpStorage = Kratos::make_intrusive<TensorData<double>>(
+        this->mpStorage = Kratos::make_intrusive<TensorStorage<double>>(
             pContainer,
             TensorAdaptorUtils::GetTensorShape<std::vector<data_type>>(
                 *pContainer, [pVariable, this](auto& rValues, const auto& rEntity) {
                     const_cast<entity_type&>(rEntity).CalculateOnIntegrationPoints(*pVariable, rValues, *(this->mpProcessInfo));
                 }));
     }, mpVariable);
+}
+
+void GaussPointVariableTensorAdaptor::Check() const
+{
+    KRATOS_TRY
+
+    std::visit([this](auto pContainer) {
+        using container_type = BareType<decltype(*pContainer)>;
+
+        if constexpr(IsInList<container_type, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>) {
+            const auto& tensor_shape = this->Shape();
+
+            KRATOS_ERROR_IF_NOT(tensor_shape[0] == pContainer->size())
+                << "Underlying container of the tensor data has changed size [ tensor data = "
+                << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
+        }
+    }, this->mpStorage->GetContainer());
+
+    KRATOS_CATCH("");
 }
 
 void GaussPointVariableTensorAdaptor::CollectData()
@@ -60,6 +79,10 @@ void GaussPointVariableTensorAdaptor::CollectData()
             using data_type = typename variable_type::Type;
 
             const auto& tensor_shape = this->Shape();
+
+            KRATOS_ERROR_IF_NOT(tensor_shape[0] == pContainer->size())
+                << "Underlying container of the tensor data has changed size [ tensor data = "
+                << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
 
             ContainerIOUtils::CopyToContiguousArray<std::vector<data_type>>(
                 *pContainer, this->ViewData(), tensor_shape.data().begin(),

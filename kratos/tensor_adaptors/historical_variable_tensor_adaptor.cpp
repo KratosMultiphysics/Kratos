@@ -63,7 +63,7 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
 {
     std::visit([this, pContainer, StepIndex](auto pVariable) {
         HistoricalVariableTensorAdaptorHelperUtils::Check(*pContainer, *pVariable, StepIndex);
-        this->mpStorage = Kratos::make_intrusive<TensorData<double>>(
+        this->mpStorage = Kratos::make_intrusive<TensorStorage<double>>(
             pContainer,
             TensorAdaptorUtils::GetTensorShape(
                 *pContainer, *pVariable, [pVariable, StepIndex](auto& rValue, const Node& rNode) {
@@ -81,7 +81,7 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
       mStepIndex(StepIndex)
 {
     std::visit([&rDataShape, this, pContainer](auto pVariable) {
-        this->mpStorage = Kratos::make_intrusive<TensorData<double>>(
+        this->mpStorage = Kratos::make_intrusive<TensorStorage<double>>(
                                 pContainer, TensorAdaptorUtils::GetTensorShape(
                                 *pContainer, *pVariable, rDataShape.data(),
                                 rDataShape.data() + rDataShape.size()));
@@ -89,13 +89,13 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
 }
 
 HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
-    TensorData<double>::Pointer pTensorData,
+    TensorStorage<double>::Pointer pTensorStorage,
     VariablePointerType pVariable,
     const int StepIndex)
     : mpVariable(pVariable),
       mStepIndex(StepIndex)
 {
-    this->mpStorage = pTensorData;
+    this->mpStorage = pTensorStorage;
 
     // now check whether the given storage is compatible with the variable.
     std::visit([this](auto pVariable) {
@@ -109,6 +109,33 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
 
 }
 
+void HistoricalVariableTensorAdaptor::Check() const
+{
+    KRATOS_TRY
+
+    std::visit([this](auto pContainer, auto pVariable) {
+        using container_type = BareType<decltype(*pContainer)>;
+
+        if constexpr(IsInList<container_type, ModelPart::NodesContainerType>) {
+            const auto& r_tensor_shape = this->Shape();
+
+            KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
+                << "Underlying container of the tensor data has changed size [ tensor data = "
+                << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
+
+            // first check if the variable is there, and step index is valid
+            // This check is done every time CollectData or StoreData is called
+            // because, the PointerVectorSet which the TensorStorage holds
+            // may have nodes from different model parts, or they may come from
+            // a temporary PointerVectorSet which did not change in size, but
+            // changed the underlying nodes or variables list.
+            HistoricalVariableTensorAdaptorHelperUtils::Check(*pContainer, *pVariable, this->mStepIndex);
+        }
+    }, mpStorage->GetContainer(), mpVariable);
+
+    KRATOS_CATCH("");
+}
+
 void HistoricalVariableTensorAdaptor::CollectData()
 {
 
@@ -116,14 +143,6 @@ void HistoricalVariableTensorAdaptor::CollectData()
         using container_type = BareType<decltype(*pContainer)>;
 
         if constexpr(IsInList<container_type, ModelPart::NodesContainerType>) {
-            // first check if the variable is there, and step index is valid
-            // This check is done every time CollectData or StoreData is called
-            // because, the PointerVectorSet which the TensorData holds
-            // may have nodes from different model parts, or they may come from
-            // a temporary PointerVectorSet which did not change in size, but
-            // changed the underlying nodes or variables list.
-            HistoricalVariableTensorAdaptorHelperUtils::Check(*pContainer, *pVariable, this->mStepIndex);
-
             using variable_type = BareType<decltype(*pVariable)>;
             using data_type = typename variable_type::Type;
 
@@ -131,7 +150,7 @@ void HistoricalVariableTensorAdaptor::CollectData()
 
             KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
                 << "Underlying container of the tensor data has changed size [ tensor data = "
-                << *this->GetTensorData() << ", container size = " << pContainer->size() << " ].\n";
+                << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
 
             ContainerIOUtils::CopyToContiguousArray<data_type>(
                 *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
@@ -148,14 +167,6 @@ void HistoricalVariableTensorAdaptor::StoreData()
         using container_type = BareType<decltype(*pContainer)>;
 
         if constexpr(IsInList<container_type, ModelPart::NodesContainerType>) {
-            // first check if the variable is there, and step index is valid
-            // This check is done every time CollectData or StoreData is called
-            // because, the PointerVectorSet which the TensorData holds
-            // may have nodes from different model parts, or they may come from
-            // a temporary PointerVectorSet which did not change in size, but
-            // changed the underlying nodes or variables list.
-            HistoricalVariableTensorAdaptorHelperUtils::Check(*pContainer, *pVariable, this->mStepIndex);
-
             using variable_type = BareType<decltype(*pVariable)>;
             using data_type = typename variable_type::Type;
 
@@ -163,7 +174,7 @@ void HistoricalVariableTensorAdaptor::StoreData()
 
             KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
                 << "Underlying container of the tensor data has changed size [ tensor data = "
-                << *this->GetTensorData() << ", container size = " << pContainer->size() << " ].\n";
+                << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
 
             if constexpr(DataTypeTraits<data_type>::IsDynamic) {
                 const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());

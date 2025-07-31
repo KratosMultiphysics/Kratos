@@ -51,7 +51,7 @@ public:
         const std::vector<unsigned int>& rDataShape);
 
     NodePositionTensorAdaptor(
-        TensorData<double>::Pointer pTensorData,
+        TensorStorage<double>::Pointer pTensorStorage,
         Globals::Configuration Configuration);
 
     // Destructor
@@ -60,6 +60,8 @@ public:
     ///@}
     ///@name Public operations
     ///@{
+
+    void Check() const override;
 
     /**
      * @brief Fill the internal data from Kratos data structures

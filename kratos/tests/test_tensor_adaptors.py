@@ -153,7 +153,7 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         t_adaptor_2.data = t_adaptor_1.data
 
         with self.assertRaises(RuntimeError):
-            t_adaptor_1.CollectData()
+            t_adaptor_1.Check()
 
         t_adaptor_2.StoreData()
 
@@ -163,20 +163,17 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         t_adaptor_3 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.CONSTITUTIVE_MATRIX, data_shape=[2,3])
 
         with self.assertRaises(RuntimeError):
-            t_adaptor_3.CollectData()
+            t_adaptor_3.Check()
 
         with self.assertRaises(RuntimeError):
-            t_adaptor_3.StoreData()
+            t_adaptor_3.Check()
 
         with self.assertRaises(RuntimeError):
             t_adaptor_5 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.NORMAL_SHAPE_DERIVATIVE, step_index=6)
 
         t_adaptor_5 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.NORMAL_SHAPE_DERIVATIVE, data_shape=[2,3], step_index=6)
         with self.assertRaises(RuntimeError):
-            t_adaptor_5.CollectData()
-
-        with self.assertRaises(RuntimeError):
-            t_adaptor_5.StoreData()
+            t_adaptor_5.Check()
 
     def test_SupportedNdArrays(self):
         t_adaptor = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.DENSITY)
