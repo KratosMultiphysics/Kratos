@@ -40,44 +40,6 @@ namespace Kratos::Python {
 
 namespace Detail {
 
-template<class TDataType>
-class TensorAdaptorTrampoline final : public TensorAdaptor<TDataType> {
-public:
-    using BaseType = TensorAdaptor<TDataType>;
-
-    void Check() const override
-    {
-        PYBIND11_OVERRIDE_PURE(void,                            /*return type*/
-                               BaseType,                        /*base type*/
-                               Check                            /*function name*/
-        );
-    }
-
-    void CollectData() override
-    {
-        PYBIND11_OVERRIDE_PURE(void,                            /*return type*/
-                               BaseType,                        /*base type*/
-                               CollectData                      /*function name*/
-        );
-    }
-
-    void StoreData() override
-    {
-        PYBIND11_OVERRIDE_PURE(void,                            /*return type*/
-                               BaseType,                        /*base type*/
-                               StoreData                        /*function name*/
-        );
-    }
-
-    std::string Info() const override
-    {
-        PYBIND11_OVERRIDE_PURE(std::string,  /*return type*/
-                               BaseType,     /*base type*/
-                               Info          /*function name*/
-        );
-    }
-}; // class ExpressionTrampoline
-
 template<template<class> class TTensorType, class TDataType>
 pybind11::array_t<TDataType> GetPybindArray(TTensorType<TDataType>& rTensorAdaptor)
 {
@@ -230,32 +192,6 @@ void AddBaseTensorAdaptor(
     pybind11::module& rModule,
     const std::string& rName)
 {
-    // add the base TensorStorage
-    using tensor_storage = TensorStorage<TDataType>;
-    pybind11::class_<tensor_storage, typename tensor_storage::Pointer>(rModule, (rName + "Data").c_str())
-        .def(pybind11::init<typename tensor_storage::ContainerPointerType, const DenseVector<unsigned int>&>(), pybind11::arg("container"), pybind11::arg("tensor_shape"))
-        .def("Copy", &tensor_storage::Copy)
-        .def("GetContainer", &tensor_storage::GetContainer)
-        .def("Shape", &tensor_storage::Shape)
-        .def("DataShape", &tensor_storage::DataShape)
-        .def("Size", &tensor_storage::Size)
-        .def("__str__", PrintObject<tensor_storage>)
-        .def("ViewData", &Detail::GetPybindArray<TensorStorage, TDataType>)
-        .def("MoveData", &Detail::MovePybindArray<TensorStorage, TDataType>)
-        .def("SetData", &Detail::SetPybindArray<TensorStorage, TDataType>, pybind11::arg("array").noconvert())
-        .def_property("data",
-            &Detail::GetPybindArray<TensorStorage, TDataType>,
-            pybind11::cpp_function(
-                &Detail::SetPybindArray<TensorStorage, TDataType>,
-                pybind11::arg("self"),
-                // no convert makes sure that the numpy arrays are
-                // not converted, hence nothing will be copied. numpy
-                // array will be passed as it is to the SetPybindArray
-                // method.
-                pybind11::arg("array").noconvert())
-            )
-    ;
-
     // add the base tensor adaptor
     using tensor_adaptor = TensorAdaptor<TDataType>;
     pybind11::class_<tensor_adaptor, typename tensor_adaptor::Pointer>(rModule, (rName + "Adaptor").c_str())

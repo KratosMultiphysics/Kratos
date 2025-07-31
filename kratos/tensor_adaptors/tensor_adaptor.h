@@ -249,19 +249,34 @@ public:
      *          only check data from Kratos data structures whether necessary information is there to perform
      *          CollectData and StoreData without any errors.
      */
-    virtual void Check() const = 0;
+    virtual void Check() const
+    {
+        KRATOS_TRY
+
+        // this can check the first dimension of the storage whether it matches with the number of entities in the container.
+
+        // std::visit([](){}, mp)
+
+        KRATOS_CATCH("");
+    }
 
     /**
      * @brief Fill the internal data from Kratos data structures.
      * @details This method should not change anything in the underlying Kratos data structures. It should
      *          only gather data from Kratos data structures to the TensorAdaptor.
      */
-    virtual void CollectData() = 0;
+    virtual void CollectData()
+    {
+        KRATOS_ERROR << "Calling TensorAdaptor::CollectData method. This class can only be used for data storage, not to collect or store data.";
+    }
 
     /**
      * @brief Store internal data to the given Kratos data structure.
      */
-    virtual void StoreData() = 0;
+    virtual void StoreData()
+    {
+        KRATOS_ERROR << "Calling TensorAdaptor::StoreData method. This class can only be used for data storage, not to collect or store data.";
+    }
 
     /**
      * @brief Get the data container which is associated with the TensorAdaptor.
@@ -353,7 +368,10 @@ public:
     /**
      * @brief Provides some information about the TensorAdaptor.
      */
-    virtual std::string Info() const = 0;
+    virtual std::string Info() const
+    {
+        return "";
+    }
 
     ///@}
 
