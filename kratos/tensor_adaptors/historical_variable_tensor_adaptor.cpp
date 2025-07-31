@@ -99,7 +99,7 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
 {
     // now check whether the given storage is compatible with the variable.
     std::visit([this](auto pVariable) {
-        using data_type = BareType<decltype(*pVariable)>;
+        using data_type = typename BareType<decltype(*pVariable)>::Type;
         const auto& r_data_shape = this->mpStorage->DataShape();
         KRATOS_ERROR_IF_NOT(DataTypeTraits<data_type>::IsValidShape(r_data_shape.data().begin(), r_data_shape.data().begin() + r_data_shape.size()))
             << "The data storage within the tensor data is not compatible with the " << pVariable->Name()
