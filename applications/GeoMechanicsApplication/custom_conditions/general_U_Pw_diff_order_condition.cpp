@@ -12,15 +12,14 @@
 //                   Vahid Galavi
 //
 
+#include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
+#include "custom_utilities/dof_utilities.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/line_2d_4.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/triangle_3d_3.h"
-
-// Project includes
-#include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
-#include "custom_utilities/dof_utilities.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -227,5 +226,19 @@ Condition::DofsVectorType GeneralUPwDiffOrderCondition::GetDofs() const
 }
 
 std::string GeneralUPwDiffOrderCondition::Info() const { return "GeneralUPwDiffOrderCondition"; }
+
+void GeneralUPwDiffOrderCondition::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+
+    rSerializer.save("PressureGeometry", mpPressureGeometry);
+}
+
+void GeneralUPwDiffOrderCondition::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
+
+    rSerializer.load("PressureGeometry", mpPressureGeometry);
+}
 
 } // Namespace Kratos.
