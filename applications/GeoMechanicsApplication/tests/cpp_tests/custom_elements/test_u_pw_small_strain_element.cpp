@@ -440,11 +440,11 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndC
     auto serializer = StreamSerializer{};
     serializer.save("test_tag", p_element);
 
-    p_element = make_intrusive<UPwSmallStrainElement<2, 3>>();
-    serializer.load("test_tag", p_element);
+    auto p_loaded_element = make_intrusive<UPwSmallStrainElement<2, 3>>();
+    serializer.load("test_tag", p_loaded_element);
 
     // Assert
-    CheckValuesCalculatedOnIntegrationPoints(p_element, process_info);
+    CheckValuesCalculatedOnIntegrationPoints(p_loaded_element, process_info);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateOnIntegrationPointsVariables, KratosGeoMechanicsFastSuiteWithoutKernel)
