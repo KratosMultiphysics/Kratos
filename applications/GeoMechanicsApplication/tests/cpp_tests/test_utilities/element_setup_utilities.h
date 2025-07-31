@@ -14,7 +14,7 @@
 
 #include "geometries/point.h"
 #include "includes/element.h"
-
+#include "includes/condition.h"
 #include <vector>
 
 namespace Kratos::Testing
@@ -32,6 +32,8 @@ public:
     static Element::Pointer Create2D3NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
     static Element::Pointer Create2D3NElement();
+
+    static Condition::Pointer Create3D3NCondition(const PointerVector<Node>& rNodes);
 
     static Element::Pointer Create2D6NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);

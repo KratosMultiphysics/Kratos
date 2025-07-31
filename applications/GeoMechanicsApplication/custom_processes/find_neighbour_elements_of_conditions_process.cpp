@@ -10,7 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
+#include "find_neighbour_elements_of_conditions_process.hpp"
 #include "geometries/geometry.h"
 #include "includes/kratos_flags.h"
 
@@ -277,22 +277,8 @@ hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingTe
 {
     KRATOS_TRY
 
-    hashmap::iterator itFace = FacesMap.find(FaceIds);
-    if (itFace != FacesMap.end()) return itFace;
-
     if (FaceIds.size() == 3) {
-        // first try
-        std::swap(FaceIds[0], FaceIds[1]);
-        std::swap(FaceIds[1], FaceIds[2]);
-
-        itFace = FacesMap.find(FaceIds);
-        if (itFace != FacesMap.end()) return itFace;
-
-        // Second try
-        std::swap(FaceIds[0], FaceIds[1]);
-        std::swap(FaceIds[1], FaceIds[2]);
-
-        itFace = FacesMap.find(FaceIds);
+        hashmap::iterator itFace = FindPermutations(FaceIds, FacesMap);
         if (itFace != FacesMap.end()) return itFace;
     }
 
@@ -388,4 +374,15 @@ hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingHe
     KRATOS_CATCH("")
 }
 
+hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindPermutations(DenseVector<int> FaceIds,
+                                                                             hashmap& FacesMap) const
+{
+    for (std::size_t i = 0; i < FaceIds.size() - 1; ++i) {
+        std::rotate(FaceIds.begin(), FaceIds.begin() + 1, FaceIds.end());
+
+        hashmap::iterator itFace = FacesMap.find(FaceIds);
+        if (itFace != FacesMap.end()) return itFace;
+    }
+    return FacesMap.end();
+}
 } // namespace Kratos

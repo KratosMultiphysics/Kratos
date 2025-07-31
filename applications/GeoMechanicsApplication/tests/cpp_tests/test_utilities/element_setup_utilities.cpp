@@ -11,6 +11,7 @@
 //
 
 #include "element_setup_utilities.h"
+#include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
@@ -91,6 +92,11 @@ Element::Pointer ElementSetupUtilities::Create2D3NElement(const PointerVector<No
 Element::Pointer ElementSetupUtilities::Create2D3NElement()
 {
     return Create2D3NElement(GenerateNodes(CreatePointsFor2D3NElement()), std::make_shared<Properties>(0));
+}
+
+Condition::Pointer ElementSetupUtilities::Create3D3NCondition(const PointerVector<Node>& rNodes)
+{
+    return make_intrusive<UPwNormalFaceLoadCondition<3, 3>>(1, Kratos::make_shared<Triangle3D3<Node>>(rNodes));
 }
 
 Element::Pointer ElementSetupUtilities::Create2D6NElement(const PointerVector<Node>& rNodes,
