@@ -35,7 +35,7 @@ namespace Kratos
         const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
         //CHECKLEO - temporary predefined actuation variables
-        mACTUATION_ALPHA = 1;
+        mACTUATION_ALPHA = 0.0;
         mACTUATION_BETA = 0.0;
         mACTUATION_GAMMA = 0.0;
         mACTUATION_KAPPA_1 = 0.0;
