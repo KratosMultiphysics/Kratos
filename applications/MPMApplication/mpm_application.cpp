@@ -63,6 +63,7 @@ namespace Kratos
         mMPMUpdatedLagrangian(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         mMPMUpdatedLagrangianUP(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         mMPMUpdatedLagrangianPQ(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
+        mMPMSoftStiffness(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
 
         /// Deprecated Elements
         mMPMUpdatedLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -113,6 +114,7 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangian", mMPMUpdatedLagrangian)
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianUP", mMPMUpdatedLagrangianUP)
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianPQ", mMPMUpdatedLagrangianPQ)
+        KRATOS_REGISTER_ELEMENT("MPMSoftStiffness", mMPMSoftStiffness)
 
         // Deprecated elements
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangian2D3N", mMPMUpdatedLagrangian2D3N )

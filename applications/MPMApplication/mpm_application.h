@@ -44,6 +44,7 @@
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_dirichlet_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_load_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_point_load_condition.h"
+#include "custom_elements/mpm_soft_stiffness.hpp"
 
 //---element
 #include "custom_elements/mpm_updated_lagrangian.hpp"
@@ -233,6 +234,7 @@ private:
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian;
     const MPMUpdatedLagrangianUP mMPMUpdatedLagrangianUP;
     const MPMUpdatedLagrangianPQ mMPMUpdatedLagrangianPQ;
+    const MPMSoftStiffness mMPMSoftStiffness;
 
     // Deprecated Elements
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian2D3N;

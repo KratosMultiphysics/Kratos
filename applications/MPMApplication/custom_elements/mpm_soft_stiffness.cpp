@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/mpm_updated_lagrangian.hpp"
+#include "custom_elements/mpm_soft_stiffness.hpp"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "mpm_application_variables.h"
