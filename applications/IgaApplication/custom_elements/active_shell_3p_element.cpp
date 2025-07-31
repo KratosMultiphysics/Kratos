@@ -35,7 +35,7 @@ namespace Kratos
         const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
         //CHECKLEO - temporary predefined actuation variables
-        mACTUATION_ALPHA = 0.5;
+        mACTUATION_ALPHA = 0.5; 
         mACTUATION_BETA = 0.0;
         mACTUATION_GAMMA = 0.0;
         mACTUATION_KAPPA_1 = 0.0;
@@ -738,8 +738,10 @@ namespace Kratos
 
 
         //CHECKLEO - output of the actuated constitutive variables
-        std::cout << "L~ CalculateConstitutiveVariables:: StrainVector membrane: " << actuated_strain_vector << std::endl;
-        std::cout << "L~ CalculateConstitutiveVariables:: StrainVector curvature: " << actuated_curvature_vector << std::endl;
+        std::cout << "L~ CalculateConstitutiveVariables:: actuated StrainVector membrane : " << actuated_strain_vector << std::endl;
+        std::cout << "L~ CalculateConstitutiveVariables:: total    StrainVector membrane : " << actuated_strain_vector << std::endl;
+        std::cout << "L~ CalculateConstitutiveVariables:: actuated StrainVector curvature: " << actuated_curvature_vector << std::endl;
+        std::cout << "L~ CalculateConstitutiveVariables:: total    StrainVector curvature: " << actuated_curvature_vector << std::endl;
 
 
         // Constitive Matrices DMembrane and DCurvature
