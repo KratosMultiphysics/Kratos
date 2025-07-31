@@ -256,7 +256,7 @@ public:
      * @param ThisData Pointer to the data block associated with the node.
      * @param NewQueueSize The queue size for storing historical data (default = 1).
      */
-    Node(IndexType NewId, const double NewX, const double NewY, const double NewZ,
+    Node(IndexType NewId, const double NewX, const double NewY, const double NewZ, 
          VariablesList::Pointer pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
          : BaseType(NewX, NewY, NewZ)
          , Flags()
@@ -278,17 +278,17 @@ public:
     {
         Node::Pointer p_new_node = Kratos::make_intrusive<Node >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
         p_new_node->mNodalData = this->mNodalData;
-
+    
         Node::DofsContainerType& my_dofs = (this)->GetDofs();
         for (typename DofsContainerType::const_iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++) {
             p_new_node->pAddDof(**it_dof);
         }
-
+    
         p_new_node->mData = this->mData;
         p_new_node->mInitialPosition = this->mInitialPosition;
-
+    
         p_new_node->Set(Flags(*this));
-
+    
         return p_new_node;
     }
 
@@ -377,17 +377,17 @@ public:
     {
         BaseType::operator=(rOther);
         Flags::operator =(rOther);
-
+    
         mNodalData = rOther.mNodalData;
-
+    
         // Deep copying the dofs
         for(typename DofsContainerType::const_iterator it_dof = rOther.mDofs.begin() ; it_dof != rOther.mDofs.end() ; it_dof++) {
             pAddDof(**it_dof);
         }
-
+    
         mData = rOther.mData;
         mInitialPosition = rOther.mInitialPosition;
-
+    
         return *this;
     }
 
@@ -400,7 +400,7 @@ public:
     bool operator==(const Node& rOther)
     {
         return Point::operator ==(rOther);
-    }
+    }    
 
     /**
      * @brief Accesses a solution step value for a given variable and step index.
@@ -459,7 +459,7 @@ public:
     double& operator[](IndexType ThisIndex)
     {
         return BaseType::operator[](ThisIndex);
-    }
+    }    
 
     /**
      * @brief Const accessor for node coordinates.
@@ -732,36 +732,6 @@ public:
     }
 
     /**
-     * @brief Get the the data value if existing or create the value for a given @p rThisVariable.
-     * @details This method returns a reference to a value represented by @p rThisVariable from the
-     *          database. If the @p rThisVariable is not found, then a new value is created using
-     *          @p rThisVariable::Zero() method and then reference to new value is returned.
-     *
-     * @warning Use it with care when calling this within a parallelized loop. If the parallelization
-     *          is not done on the database, then this method is safe to use.
-     *
-     * @param rThisVariable     Variable representing the value.
-     * @return TDataType&       Reference to the value.
-     */
-    template<class TVariableType>
-    typename TVariableType::Type& GetOrCreateValue(const TVariableType& rThisVariable)
-    {
-        return mData.GetOrCreateValue(rThisVariable);
-    }
-
-    /**
-     * @brief Retrieves the stored value of a given variable.
-     * @tparam TVariableType The type of the variable.
-     * @param rThisVariable The variable whose value is to be retrieved.
-     * @return Reference to the stored value.
-     */
-    template<class TVariableType>
-    typename TVariableType::Type& GetOrCreateValue(const TVariableType& rThisVariable, const typename TVariableType::Type& rInitValue)
-    {
-        return mData.GetOrCreateValue(rThisVariable, rInitValue);
-    }
-
-    /**
      * @brief Retrieves the value of a variable, checking both node data and solution step data.
      * @details If the variable is not present in the node's data, it fetches from the solution step data.
      * @tparam TVariableType The type of the variable.
@@ -1001,7 +971,7 @@ public:
      * @param Y The Y coordinate of the new initial position.
      * @param Z The Z coordinate of the new initial position.
      */
-    void SetInitialPosition(double X,double Y, double Z)
+    void SetInitialPosition(double X,double Y, double Z)    
     {
         mInitialPosition.X() = X;
         mInitialPosition.Y() = Y;
@@ -1016,7 +986,7 @@ public:
     VariablesList::Pointer pGetVariablesList()
     {
         return SolutionStepData().pGetVariablesList();
-    }
+    }    
 
     /**
      * @brief Returns the pointer to the list of variables associated with the node (const version).
@@ -1176,7 +1146,7 @@ public:
 
     /**
      * @brief Adds a degree of freedom (DOF) to the node, returning the newly added DOF or the existing one if it already exists.
-     * @details This function checks if the DOF for the given variable already exists in the node's DOF list. If it exists,
+     * @details This function checks if the DOF for the given variable already exists in the node's DOF list. If it exists, 
      * it returns the existing DOF. Otherwise, it creates a new DOF for the given variable and adds it to the list.
      * The DOF list is then sorted to maintain order.
      * @tparam TVariableType The type of the variable associated with the degree of freedom.
@@ -1207,7 +1177,7 @@ public:
 
     /**
      * @brief Adds a degree of freedom (DOF) to the node, returning the newly added DOF or the existing one if it already exists.
-     * @details This function checks if the DOF for the given variable already exists in the node's DOF list. If it exists,
+     * @details This function checks if the DOF for the given variable already exists in the node's DOF list. If it exists, 
      * it updates the reaction and returns the existing DOF. If not, it creates a new DOF based on the provided `SourceDof`.
      * The DOF list is then sorted to maintain order.
      * @param SourceDof The DOF to be added or whose reaction should be updated.
@@ -1241,8 +1211,8 @@ public:
 
     /**
      * @brief Adds a degree of freedom (DOF) to the node, returning the newly added DOF or the existing one if it already exists, with a reaction.
-     * @details This function checks if the DOF for the given variable already exists in the node's DOF list. If it exists,
-     * it updates the reaction and returns the existing DOF. Otherwise, it creates a new DOF with both the variable
+     * @details This function checks if the DOF for the given variable already exists in the node's DOF list. If it exists, 
+     * it updates the reaction and returns the existing DOF. Otherwise, it creates a new DOF with both the variable 
      * and the reaction, and adds it to the list. The DOF list is then sorted to maintain order.
      * @tparam TVariableType The type of the variable associated with the degree of freedom.
      * @tparam TReactionType The type of the reaction associated with the degree of freedom.
@@ -1275,7 +1245,7 @@ public:
 
     /**
      * @brief Adds a degree of freedom (DOF) to the node, returning the newly added DOF or the existing one if it already exists.
-     * @details This function checks if the DOF for the given variable already exists in the node's DOF list. If it exists,
+     * @details This function checks if the DOF for the given variable already exists in the node's DOF list. If it exists, 
      * it returns the existing DOF. Otherwise, it creates a new DOF for the given variable and adds it to the list.
      * The DOF list is then sorted to maintain order.
      * @tparam TVariableType The type of the variable associated with the degree of freedom.
@@ -1306,8 +1276,8 @@ public:
 
     /**
      * @brief Adds a degree of freedom (DOF) to the node, returning the newly added DOF or the existing one if it already exists, with a reaction.
-     * @details This function checks if the DOF for the given variable already exists in the node's DOF list. If it exists,
-     * it updates the reaction and returns the existing DOF. Otherwise, it creates a new DOF with both the variable
+     * @details This function checks if the DOF for the given variable already exists in the node's DOF list. If it exists, 
+     * it updates the reaction and returns the existing DOF. Otherwise, it creates a new DOF with both the variable 
      * and the reaction, and adds it to the list. The DOF list is then sorted to maintain order.
      * @tparam TVariableType The type of the variable associated with the degree of freedom.
      * @tparam TReactionType The type of the reaction associated with the degree of freedom.
@@ -1380,7 +1350,7 @@ public:
      * @brief Checks if the GeometricalObject is active
      * @return True by default, otherwise depending on the ACTIVE flag
      */
-    inline bool IsActive() const
+    inline bool IsActive() const 
     {
         return IsDefined(ACTIVE) ? Is(ACTIVE) : true;
     }
@@ -1461,7 +1431,7 @@ private:
     /// Storage for the dof of the node
     DofsContainerType  mDofs;
 
-    /// A container with data related to this node (non-historical variables)
+    /// A container with data related to this node (non-historical variables) 
     DataValueContainer mData;
 
     /// Initial Position of the node
@@ -1538,7 +1508,7 @@ private:
         rSerializer.save("Data", mData);
         rSerializer.save("Initial Position", mInitialPosition);
         rSerializer.save("Data", mDofs);
-    }
+    }    
 
     /**
      * The load operation which restores the database of the class

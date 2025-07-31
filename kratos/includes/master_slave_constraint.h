@@ -520,7 +520,7 @@ public:
      * @brief Check if the Data exists with Has(..) methods:
      * @param rThisVariable The variable to be check
      */
-    template<class TDataType>
+    template<class TDataType> 
     bool Has(const Variable<TDataType>& rThisVariable) const
     {
         return mData.Has(rThisVariable);
@@ -558,36 +558,6 @@ public:
     typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable) const
     {
         return mData.GetValue(rThisVariable);
-    }
-
-    /**
-     * @brief Retrieves the stored value of a given variable.
-     * @tparam TVariableType The type of the variable.
-     * @param rThisVariable The variable whose value is to be retrieved.
-     * @return Reference to the stored value.
-     */
-    template<class TVariableType>
-    typename TVariableType::Type& GetOrCreateValue(const TVariableType& rThisVariable)
-    {
-        return mData.GetOrCreateValue(rThisVariable);
-    }
-
-    /**
-     * @brief Get the the data value if existing or create the value for a given @p rThisVariable.
-     * @details This method returns a reference to a value represented by @p rThisVariable from the
-     *          database. If the @p rThisVariable is not found, then a new value is created using
-     *          @p rThisVariable::Zero() method and then reference to new value is returned.
-     *
-     * @warning Use it with care when calling this within a parallelized loop. If the parallelization
-     *          is not done on the database, then this method is safe to use.
-     *
-     * @param rThisVariable     Variable representing the value.
-     * @return TDataType&       Reference to the value.
-     */
-    template<class TVariableType>
-    typename TVariableType::Type& GetOrCreateValue(const TVariableType& rThisVariable, const typename TVariableType::Type& rInitValue)
-    {
-        return mData.GetOrCreateValue(rThisVariable, rInitValue);
     }
 
     ///@}
