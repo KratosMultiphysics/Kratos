@@ -611,9 +611,11 @@ void ContainerExpressionUtils::GetGradientExpression(
 
     auto& entity_container = rOutput.GetContainer();
 
+    // give the output n-dimensions
     auto p_flat_data_expression = LiteralFlatExpression<double>::Create(entity_container.size(), {DomainSize});
     rOutput.SetExpression(p_flat_data_expression);
-
+    
+    // using multiple threads for calculations
     IndexPartition<IndexType>(entity_container.size()).for_each([&entity_container, p_flat_data_expression, DomainSize](const auto Index) {
         auto& r_entity = *(entity_container.begin() + Index);
         auto& r_geometry = r_entity.GetGeometry();
@@ -621,23 +623,65 @@ void ContainerExpressionUtils::GetGradientExpression(
         Vector DetJ;
         DenseVector<Matrix> list_dn_dx;
         r_geometry.ShapeFunctionsIntegrationPointsGradients(list_dn_dx, DetJ, GeometryData::IntegrationMethod::GI_GAUSS_1);
-
-
+        
+        // elemental values
         Vector gradient(DomainSize, 0.0);
         Vector nodal_values(r_geometry.size());
         // fill the nodal values by reading node.GetValue(TEMPORARY_SCALAR_VARIABLE_1)
-
+        for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node){
+            nodal_values[i_node] = r_geometry[i_node].GetValue(TEMPORARY_SCALAR_VARIABLE_1);
+        }
+        
         for (IndexType i_gauss = 0; i_gauss < list_dn_dx.size(); ++i_gauss) {
             const Matrix& dn_dx = list_dn_dx[i_gauss];
             noalias(gradient) += prod(dn_dx, nodal_values);
-
         }
-
+        
         // write the gradients back to the expression
         for (IndexType i_dim = 0; i_dim < DomainSize; ++i_dim) {
             p_flat_data_expression->SetData(Index, i_dim, gradient[i_dim]);
         }
     });
+    KRATOS_CATCH("");
+}
+
+// template<class TContainerType>
+void ContainerExpressionUtils::ProjectElementalToNodalViaShapeFunctions(
+    ContainerExpression<ModelPart::NodesContainerType>& rOutput,
+    const ContainerExpression<ModelPart::ElementsContainerType>& rInputExpression)
+{
+    KRATOS_TRY
+    // writing input to elements
+    VariableExpressionIO::Write(rInputExpression, &TEMPORARY_SCALAR_VARIABLE_1);
+    auto& entity_container = rInputExpression.GetContainer();
+
+    // clear the nodal value storing variable
+    VariableUtils().SetNonHistoricalVariableToZero(TEMPORARY_SCALAR_VARIABLE_2, rOutput.GetModelPart().Nodes());
+
+    // using multiple threads for calculations
+    IndexPartition<IndexType>(entity_container.size()).for_each([&entity_container, rOutput](const auto Index) {
+        auto& r_entity = *(entity_container.begin() + Index);
+        auto& r_geometry = r_entity.GetGeometry();
+
+        const Matrix& shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
+        
+        // elemental value
+        double elemental_value = r_geometry.GetValue(TEMPORARY_SCALAR_VARIABLE_1);
+        double temp = 0.0;
+
+        int i = 0;
+        for (auto& r_node : r_geometry) {
+            // std::cout << "Shape functions: " << shape_functions << "ID: " << r_node.Id() << std::endl;
+            temp = elemental_value * shape_functions(i);
+            AtomicAdd(r_node.GetValue(TEMPORARY_SCALAR_VARIABLE_2), temp);
+            i += 1;
+        }
+    });
+
+    rOutput.GetModelPart().GetCommunicator().AssembleNonHistoricalData(TEMPORARY_SCALAR_VARIABLE_2);
+    // now read in the nodal data
+    VariableExpressionIO::Read(rOutput, &TEMPORARY_SCALAR_VARIABLE_2, false);
+
 
     KRATOS_CATCH("");
 }

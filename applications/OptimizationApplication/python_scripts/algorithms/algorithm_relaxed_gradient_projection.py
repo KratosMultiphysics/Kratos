@@ -216,6 +216,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         for constraint in self.__constraints_list:
             OutputGradientFields(constraint, self._optimization_problem, constraint.IsActive())
         for process in self._optimization_problem.GetListOfProcesses("output_processes"):
+            print(f"puuksukott {process}")
             if process.IsOutputStep():
                 process.PrintOutput()
 
@@ -257,6 +258,8 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
 
                 obj_grad = self.__objective.CalculateStandardizedGradient()
 
+                print(f"DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\nType: {obj_grad.GetContainerExpressions()}")
+
                 self.__constr_value = []
                 active_constr_grad = []
                 for constraint in self.__constraints_list:
@@ -269,6 +272,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
                     print(f"RGP Constraint {constraint.GetResponseName()} is {msg}")
                     if constraint.IsActive():
                         active_constr_grad.append(constraint.CalculateStandardizedGradient())
+                        print(f"DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\nType: {constraint.CalculateStandardizedGradient().GetContainerExpressions()}")
 
                 w_r, w_c = self.ComputeBufferCoefficients()
 

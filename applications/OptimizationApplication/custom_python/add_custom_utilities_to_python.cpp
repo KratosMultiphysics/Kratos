@@ -306,6 +306,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ExtractData", &ContainerExpressionUtils::ExtractData<ModelPart::NodesContainerType>, py::arg("input_nodal_expression"), py::arg("model_part_domain_to_extract"))
         .def("ExtractData", &ContainerExpressionUtils::ExtractData<ModelPart::ConditionsContainerType>, py::arg("input_condition_expression"), py::arg("model_part_domain_to_extract"))
         .def("ExtractData", &ContainerExpressionUtils::ExtractData<ModelPart::ElementsContainerType>, py::arg("input_element_expression"), py::arg("model_part_domain_to_extract"))
+        .def("GetGradientExpression", &ContainerExpressionUtils::GetGradientExpression<ModelPart::ElementsContainerType>, py::arg("output_elemental_container_expression"), py::arg("input_nodal_container_expression"), py::arg("domain_size"))
+        .def("GetGradientExpression", &ContainerExpressionUtils::GetGradientExpression<ModelPart::ConditionsContainerType>, py::arg("output_conditions_container_expression"), py::arg("input_nodal_container_expression"), py::arg("domain_size"))
+        .def("ProjectElementalToNodalViaShapeFunctions", &ContainerExpressionUtils::ProjectElementalToNodalViaShapeFunctions, py::arg("output_nodal_container_expression"), py::arg("input_elemental_container_expression"))
         ;
 
     auto collective_expression_io = m.def_submodule("CollectiveExpressionIO");

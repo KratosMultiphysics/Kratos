@@ -359,5 +359,29 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
         collective_1 = KratosOA.CollectiveExpression([a, b])
         self.assertEqual(KratosOA.ExpressionUtils.InnerProduct(collective_1, collective_1), Kratos.Expression.Utils.InnerProduct(a, a) + Kratos.Expression.Utils.InnerProduct(b, b))
 
+    def test_GetGradientExpression(self):
+        input_nodal = Kratos.Expression.NodalExpression(self.model_part)
+        output_elemental = Kratos.Expression.ElementExpression(self.model_part)
+        dimension = 3
+
+        Kratos.Expression.VariableExpressionIO.Read(input_nodal, Kratos.PRESSURE, False)
+
+        KratosOA.ExpressionUtils.GetGradientExpression(output_elemental, input_nodal, dimension)
+        
+        # print(f"\n{input_nodal.Evaluate()}\n{output_elemental.Evaluate()}\n")
+
+    def test_ProjectElementalToNodalViaShapeFunctions(self):
+        input_elemental = Kratos.Expression.ElementExpression(self.model_part)
+        output_nodal = Kratos.Expression.NodalExpression(self.model_part)
+
+        for element in self.model_part.Elements:
+            element.SetValue(Kratos.PRESSURE, element.Id + 4)
+
+        Kratos.Expression.VariableExpressionIO.Read(input_elemental, Kratos.PRESSURE)
+
+        KratosOA.ExpressionUtils.ProjectElementalToNodalViaShapeFunctions(output_nodal, input_elemental)
+        
+        print(f"\n{input_elemental.Evaluate()}\n{output_nodal.Evaluate()}\n")
+
 if __name__ == "__main__":
     kratos_unittest.main()

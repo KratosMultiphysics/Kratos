@@ -241,6 +241,10 @@ public:
         const ContainerExpression<ModelPart::NodesContainerType>& rInputExpression,
         const IndexType DomainSize);
 
+    static void ProjectElementalToNodalViaShapeFunctions(
+        ContainerExpression<ModelPart::NodesContainerType>& rOutput,
+        const ContainerExpression<ModelPart::ElementsContainerType>& rInputExpression);
+
     ///@}
     ///@name Static operations derived from Kratos::ExpressionUtils
     ///@{
