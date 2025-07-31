@@ -14,7 +14,6 @@
 //
 
 // Application includes
-#include <omp.h>
 #include "custom_processes/apply_chimera_process.h"
 #include "containers/model.h"
 #include "includes/deprecated_variables.h"
