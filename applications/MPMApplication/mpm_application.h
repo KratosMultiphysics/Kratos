@@ -44,12 +44,12 @@
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_dirichlet_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_load_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_point_load_condition.h"
-#include "custom_elements/mpm_soft_stiffness.hpp"
 
 //---element
 #include "custom_elements/mpm_updated_lagrangian.hpp"
 #include "custom_elements/mpm_updated_lagrangian_UP.hpp"
 #include "custom_elements/mpm_updated_lagrangian_PQ.hpp"
+#include "custom_elements/mpm_soft_stiffness.hpp"
 
 //---constitutive laws
 #include "custom_constitutive/linear_elastic_3D_law.hpp"

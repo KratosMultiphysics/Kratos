@@ -7,7 +7,7 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
+//  Main authors:    Andi Makarim Katili
 //
 
 
@@ -83,7 +83,8 @@ protected:
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
 
-    struct MaterialPointVariables
+    
+    struct GridVariables
     {
     public:
         // Material Point Position
@@ -92,8 +93,18 @@ protected:
         double mass;
         // MP_DENSITY
         double density;
-        // MP_VOLUME
+        // grid volume
         double volume;
+
+        // PENALTY_FACTOR
+        double penalty_factor;
+
+        // Sum of MP volume inside the background grid
+        double mp_volume_sum;
+        //
+        double volume_ratio;
+        // stiffness_multiplier (calculated at InitializeSolutionStep)
+        double stiffness_multiplier;
 
         // MP_DISPLACEMENT
         array_1d<double, 3> displacement;
@@ -123,14 +134,17 @@ protected:
         // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
         double accumulated_plastic_deviatoric_strain;
 
-        explicit MaterialPointVariables()
+        explicit GridVariables()
         {
             // MP_MASS
             mass = 1.0;
             // MP_DENSITY
             density = 1.0;
             // MP_VOLUME
-            volume = 1.0;
+            volume = 0.0;
+
+            // PENALTY_FACTOR
+            penalty_factor = 0.0;
 
             // MP_DELTA_PLASTIC_STRAIN
             delta_plastic_strain = 1.0;
@@ -210,15 +224,14 @@ protected:
         double  ReferenceRadius;
 
         // General variables for large displacement use
-        double  detF;
-        double  detF0;
         double  detFT;
         Vector  StrainVector;
         Vector  StressVector;
         Matrix  B;
-        Matrix  F;
         Matrix  FT;
-        Matrix  F0;
+        Matrix  ShapeFunctions;
+        GeometryData::ShapeFunctionsGradientsType  ShapeFunctionsGradients;
+        Vector  N;
         Matrix  DN_DX;
         Matrix  ConstitutiveMatrix;
 
@@ -319,11 +332,6 @@ public:
      */
     virtual void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * Called at the end of each solution step
-     */
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
 
     //************* COMPUTING  METHODS
 
@@ -358,30 +366,6 @@ public:
      */
     void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix,
                                 const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-      * this is called during the assembling process in order
-      * to calculate the elemental mass matrix
-      * @param rMassMatrix: the elemental mass matrix
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-      * this is called during the assembling process in order
-      * to calculate the elemental damping matrix
-      * @param rDampingMatrix: the elemental damping matrix
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-                                const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    void AddExplicitContribution(const VectorType& rRHSVector,
-                                 const Variable<VectorType>& rRHSVariable,
-                                 const Variable<array_1d<double, 3> >& rDestinationVariable,
-                                 const ProcessInfo& rCurrentProcessInfo) override;
 
     //************************************************************************************
     //************************************************************************************
@@ -429,24 +413,12 @@ public:
     ///@name Access Get Values
     ///@{
 
-    void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
-        std::vector<bool>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
         std::vector<int>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
         std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > >& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
@@ -461,10 +433,6 @@ public:
         const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-        const std::vector<array_1d<double, 3 > >& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
     void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
         const std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
@@ -477,8 +445,17 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    MaterialPointVariables mMP;
+    
+    /**
+     * @brief Sets the used constitutive laws
+     * @param ThisConstitutiveLawVector Constitutive laws used
+     */
+    void SetConstitutiveLawVector(const std::vector<ConstitutiveLaw::Pointer>& ThisConstitutiveLawVector)
+    {
+        mConstitutiveLawVector = ThisConstitutiveLawVector;
+    }
+    
+    GridVariables mGridVariables;
 
     /**
      * Container for historical total elastic deformation measure F0 = dx/dX
@@ -492,7 +469,7 @@ protected:
     /**
      * Container for constitutive law instances on each integration point
      */
-    ConstitutiveLaw::Pointer mConstitutiveLawVector;
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
 
     /**
@@ -542,7 +519,6 @@ protected:
     virtual void CalculateAndAddRHS(
         VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
-        Vector& rVolumeForce,
         const double& rIntegrationWeight,
         const ProcessInfo& rCurrentProcessInfo);
 
@@ -556,40 +532,20 @@ protected:
                                      const double& rIntegrationWeight);
 
     /**
-     * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
-     */
-    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                                     GeneralVariables& rVariables,
-                                     const double& rIntegrationWeight,
-                                     const bool IsAxisymmetric = false);
-
-
-    /**
-     * Calculation of the External Forces Vector. Fe = N * t + N * b
-     */
-    virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-            GeneralVariables& rVariables,
-            Vector& rVolumeForce,
-            const double& rIntegrationWeight);
-
-
-    /**
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
-    virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-            GeneralVariables & rVariables,
-            const double& rIntegrationWeight);
-
-    /// Calculation of the Explicit Stresses from velocity gradient.
-    virtual void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
-        GeneralVariables& rVariables);
-
+    virtual void CalculateAndAddInternalForces(
+        VectorType& rRightHandSideVector,
+        GeneralVariables& rVariables,
+        const double& rIntegrationWeight,
+        const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
     virtual void SetGeneralVariables(GeneralVariables& rVariables,
-                                     ConstitutiveLaw::Parameters& rValues, const Vector& rN);
+                                     ConstitutiveLaw::Parameters& rValues,
+                                     const IndexType GaussPointNumber);
 
 
     /**
@@ -612,13 +568,7 @@ protected:
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
-
-
-    /**
-     * Calculation of the Current Displacement
-     */
-    Matrix& CalculateCurrentDisp(Matrix & rCurrentDisp, const ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateKinematics(GeneralVariables& rVariables, const IndexType GaussPointNumber, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Correct Precision Errors (for rigid free movements)
@@ -631,56 +581,17 @@ protected:
      */
     virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
-
-    /**
-      * Finalize Element Internal Variables
-      */
-    virtual void FinalizeStepVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-
-    /**
-      * Update the position of the MP or Gauss point when Finalize Element Internal Variables is called
-      */
-
-    virtual void UpdateGaussPoint(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Get the Historical Deformation Gradient to calculate after finalize the step
-     */
-    virtual void GetHistoricalVariables( GeneralVariables& rVariables);
-
-
-    /**
-     * Calculation of the Green Lagrange Strain Vector
-     */
-    virtual void CalculateGreenLagrangeStrain(const Matrix& rF,
-            Vector& rStrainVector);
-
-    /**
-     * Calculation of the Almansi Strain Vector
-     */
-    virtual void CalculateAlmansiStrain(const Matrix& rF,
-                                        Vector& rStrainVector);
-
-
     /**
      * Calculation of the Deformation Matrix  BL
      */
     virtual void CalculateDeformationMatrix(Matrix& rB,
                                             const Matrix& rDN_DX,
-                                            const Matrix& rN,
                                             const bool IsAxisymmetric = false);
 
     /**
      * Calculation of the Integration Weight
      */
-    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
-
-
-    /**
-     * Calculation of the Volume Change of the Element
-     */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
-
+    virtual double CalculateIntegrationWeight(const double& rGaussWeight, const double detJ);
 
     /// Calculation of the Deformation Gradient F
     void CalculateDeformationGradient(const Matrix& rDN_DX, Matrix& rF, Matrix& rDeltaPosition,

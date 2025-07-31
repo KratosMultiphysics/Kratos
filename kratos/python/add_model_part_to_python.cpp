@@ -992,6 +992,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("AddMasterSlaveConstraints", AddMasterSlaveConstraintsByIds)
         .def("CreateNewMasterSlaveConstraint", CreateNewMasterSlaveConstraint1, py::return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint", CreateNewMasterSlaveConstraint2, py::return_value_policy::reference_internal)
+        .def("SetNodalSolutionStepVariablesList", [](ModelPart& rSelf, const ModelPart& rOriginModelPart) { rSelf.SetNodalSolutionStepVariablesList(rOriginModelPart.pGetNodalSolutionStepVariablesList()); })
         .def("__str__", PrintObject<ModelPart>)
         ;
 }

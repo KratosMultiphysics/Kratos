@@ -34,6 +34,27 @@ namespace Kratos::MPMSearchElementUtility
     typedef Node NodeType;
     typedef typename ModelPart::GeometryType GeometryType;
 
+    void SumMPVolume(const ModelPart& rModelPart, Element& rElement, GeometryType& rParentGeomery)
+    {
+        KRATOS_DEBUG_ERROR_IF(!rParentGeomery.Has(TOTAL_MP_VOLUME)) << "The TOTAL_MP_VOLUME variable is not defined in the parent geometry." << std::endl;
+
+        // if (rParentGeomery.Has(TOTAL_MP_VOLUME)) {
+        //     // If the MP_VOLUME_SUM is defined, we update it
+        std::vector<double> current_mp_volume;
+        rElement.CalculateOnIntegrationPoints(MP_VOLUME, current_mp_volume, rModelPart.GetProcessInfo());
+        // KRATOS_WATCH(current_mp_volume)
+        double& rTOTAL_MP_VOLUME = rParentGeomery.GetValue(TOTAL_MP_VOLUME);
+        // KRATOS_WATCH(rTOTAL_MP_VOLUME)
+        rTOTAL_MP_VOLUME += current_mp_volume[0];
+        // KRATOS_WATCH(rTOTAL_MP_VOLUME)
+        // }
+        // else
+        // {
+        //     std::vector<double> current_mp_volume;
+        //     rpElement->CalculateOnIntegrationPoints(MP_VOLUME, current_mp_volume, rModelPart.GetProcessInfo());
+        //     rParentGeomery.SetValue(TOTAL_MP_VOLUME, current_mp_volume[0]);
+        // }
+    }
 
     inline double CrossProductDet2D(
         array_1d<double, 3> VectorA,
@@ -177,6 +198,7 @@ namespace Kratos::MPMSearchElementUtility
     {
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i) {
+            // auto& r_element = *(rMPMModelPart.ElementsBegin() + i);
             auto element_itr = (rMPMModelPart.ElementsBegin() + i);
             array_1d<double, 3> local_coordinates;
             bool is_found = false;
@@ -200,6 +222,11 @@ namespace Kratos::MPMSearchElementUtility
                     CreateQuadraturePointsUtility<Node>::UpdateFromLocalCoordinates(
                         element_itr->pGetGeometry(), local_coordinates,
                         element_itr->GetGeometry().IntegrationPoints()[0].Weight(), r_found_geom);
+
+                    if (rMPMModelPart.GetProcessInfo().GetValue(IS_ADD_NUMERICAL_STIFFNESS)){
+                        SumMPVolume(rMPMModelPart, *element_itr, r_found_geom);
+                    }
+
                 }
                 if (IsExplicitAndNeedsCorrection(element_itr->pGetGeometry(), rBackgroundGridModelPart.GetProcessInfo())) {
                     is_found = false;
@@ -304,7 +331,7 @@ namespace Kratos::MPMSearchElementUtility
             // Element search and assign background grid
             #pragma omp for
             for (int i = 0; i < static_cast<int>(rMissingElements.size()); ++i) {
-                auto element_itr = *(rMissingElements.begin() + i);
+                const Element::Pointer& element_itr = *(rMissingElements.begin() + i);
                 std::vector<array_1d<double, 3>> xg;
                 element_itr->CalculateOnIntegrationPoints(MP_COORD, xg, rMPMModelPart.GetProcessInfo());
                 typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
@@ -344,6 +371,10 @@ namespace Kratos::MPMSearchElementUtility
                         CreateQuadraturePointsUtility<Node>::UpdateFromLocalCoordinates(
                             p_quadrature_point_geometry, local_coordinates,
                             p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
+                        
+                            if (rMPMModelPart.GetProcessInfo().GetValue(IS_ADD_NUMERICAL_STIFFNESS)){
+                        SumMPVolume(rMPMModelPart, *element_itr, pelem->GetGeometry());
+                        }
                     }
                     auto& r_geometry = element_itr->GetGeometry();
                     

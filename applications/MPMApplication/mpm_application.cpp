@@ -63,6 +63,8 @@ namespace Kratos
         mMPMUpdatedLagrangian(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         mMPMUpdatedLagrangianUP(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         mMPMUpdatedLagrangianPQ(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
+        
+        /// Elements, using normal geometries
         mMPMSoftStiffness(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
 
         /// Deprecated Elements
@@ -196,7 +198,7 @@ namespace Kratos
 
         // Mesh variables
         KRATOS_REGISTER_VARIABLE( GEOMETRY_NEIGHBOURS )
-
+    
         // Numerical Stiffness variables
         KRATOS_REGISTER_VARIABLE( TOTAL_MP_VOLUME ) // Total volume of the material points in the background grid element
         KRATOS_REGISTER_VARIABLE( VOLUME_RATIO_THRESHOLD )
@@ -295,6 +297,7 @@ namespace Kratos
         // Solver related variables
         KRATOS_REGISTER_VARIABLE(IGNORE_GEOMETRIC_STIFFNESS);
         KRATOS_REGISTER_VARIABLE(IS_AXISYMMETRIC);
+        KRATOS_REGISTER_VARIABLE(IS_ADD_NUMERICAL_STIFFNESS);
 
         // Explicit time integration variables
         KRATOS_REGISTER_VARIABLE(CALCULATE_MUSL_VELOCITY_FIELD)
