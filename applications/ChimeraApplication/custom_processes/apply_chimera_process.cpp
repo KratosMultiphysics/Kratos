@@ -20,6 +20,7 @@
 #include "includes/deprecated_variables.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/variable_utils.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos {
 
@@ -370,11 +371,7 @@ template <int TDim>
 void ApplyChimera<TDim>::ReserveMemoryForConstraintContainers(
     ModelPart& rModelPart, MasterSlaveContainerVectorType& rContainerVector)
 {
-    #ifdef _OPENMP
-    const int num_threads = omp_get_num_threads();
-    #else
-    const int num_threads = 1; // Single-threaded execution
-    #endif
+    const int num_threads = OpenMPUtils::GetNumThreads();
 #pragma omp parallel
     {
         const IndexType num_constraints_per_thread =
@@ -456,13 +453,8 @@ void ApplyChimera<TDim>::FormulateConstraints(
         Vector weights;
         bool is_found = SearchNode(rBinLocator, r_boundary_node, r_host_element, weights);
         if (is_found) {
-            #ifdef _OPENMP
-                auto& ms_velocity_container = rVelocityMasterSlaveContainerVector[omp_get_thread_num()];
-                auto& ms_pressure_container = rPressureMasterSlaveContainerVector[omp_get_thread_num()];
-            #else
-                auto& ms_velocity_container = rVelocityMasterSlaveContainerVector[0];
-                auto& ms_pressure_container = rPressureMasterSlaveContainerVector[0];
-            #endif
+            auto& ms_velocity_container = rVelocityMasterSlaveContainerVector[OpenMPUtils::ThisThread()];
+            auto& ms_pressure_container = rPressureMasterSlaveContainerVector[OpenMPUtils::ThisThread()];
             removed_counter += RemoveExistingConstraintsForNode(r_boundary_node);
             MakeConstraints(r_boundary_node, r_host_element, weights,
                             ms_velocity_container, ms_pressure_container,
