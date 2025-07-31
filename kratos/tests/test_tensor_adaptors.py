@@ -11,6 +11,7 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         cls.model_part = cls.model.CreateModelPart("test")
         cls.model_part.SetBufferSize(2)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.NODAL_VAUX)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.DISPLACEMENT)
 
         cls.input_list_of_variables = [
                 Kratos.PRESSURE,                # double
@@ -310,6 +311,68 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
             self.assertEqual(node.X0, numpy_data[i, 0] * 2)
             self.assertEqual(node.Y0, numpy_data[i, 1] * 2)
             self.assertEqual(node.Z0, numpy_data[i, 2])
+
+    def test_BaseTensorAdaptor(self):
+        var_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY)
+        var_ta.Check()
+        var_ta.CollectData()
+
+        copied_ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(var_ta, copy=True)
+        base_ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(var_ta)
+        base_ta.data += 1.0
+
+        var_ta.StoreData()
+
+        for i, node in enumerate(self.model_part.Nodes):
+            self.assertEqual(node.GetValue(Kratos.VELOCITY_X), copied_ta.data[i, 0] + 1)
+            self.assertEqual(node.GetValue(Kratos.VELOCITY_Y), copied_ta.data[i, 1] + 1)
+            self.assertEqual(node.GetValue(Kratos.VELOCITY_Z), copied_ta.data[i, 2] + 1)
+
+    def test_CopyVariableTensorAdaptor(self):
+        self.__TestCopyTensorAdaptor(Kratos.TensorAdaptors.VariableTensorAdaptor, lambda x, y: x.GetValue(y))
+
+    def test_CopyHistoricalVariableTensorAdaptor(self):
+        self.__TestCopyTensorAdaptor(Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, lambda x, y: x.GetSolutionStepValue(y))
+
+    def __TestCopyTensorAdaptor(self, tensor_adaptor_type, value_getter):
+        var_ta_orig = tensor_adaptor_type(self.model_part.Nodes, Kratos.VELOCITY, data_shape=[2])
+        var_ta_orig.Check()
+        var_ta_orig.CollectData()
+
+        var_ta_dest = tensor_adaptor_type(var_ta_orig, Kratos.ACCELERATION)
+        var_ta_dest.data += 1.0
+        var_ta_dest.StoreData()
+
+        for node in self.model_part.Nodes:
+            self.assertEqual(value_getter(node, Kratos.ACCELERATION_X), value_getter(node, Kratos.VELOCITY_X) + 1.0)
+            self.assertEqual(value_getter(node, Kratos.ACCELERATION_Y), value_getter(node, Kratos.VELOCITY_Y) + 1.0)
+            self.assertEqual(value_getter(node, Kratos.ACCELERATION_Z), 0.0)
+
+        # now calling the dest CollectData of var_ta_dest. Since we did not state copy = true,
+        # it should change the storage of the var_ta_orig as well.
+        var_ta_dest.Check()
+        var_ta_dest.CollectData()
+        var_ta_orig.StoreData()
+        for node in self.model_part.Nodes:
+            self.assertEqual(value_getter(node, Kratos.ACCELERATION_X), value_getter(node, Kratos.VELOCITY_X))
+            self.assertEqual(value_getter(node, Kratos.ACCELERATION_Y), value_getter(node, Kratos.VELOCITY_Y))
+
+        # now checking the copying
+        var_ta_copy = tensor_adaptor_type(var_ta_orig, Kratos.DISPLACEMENT, copy = True)
+        var_ta_copy.data += 2.0
+        var_ta_copy.StoreData()
+        for node in self.model_part.Nodes:
+            self.assertEqual(value_getter(node, Kratos.DISPLACEMENT_X), value_getter(node, Kratos.VELOCITY_X) + 2.0)
+            self.assertEqual(value_getter(node, Kratos.DISPLACEMENT_Y), value_getter(node, Kratos.VELOCITY_Y) + 2.0)
+            self.assertEqual(value_getter(node, Kratos.DISPLACEMENT_Z), 0.0)
+
+        # now reading data to the copied. It should not change the var_ta_orig
+        var_ta_copy.Check()
+        var_ta_copy.CollectData()
+        var_ta_orig.StoreData()
+        for node in self.model_part.Nodes:
+            self.assertEqual(value_getter(node, Kratos.ACCELERATION_X), value_getter(node, Kratos.VELOCITY_X))
+            self.assertEqual(value_getter(node, Kratos.ACCELERATION_Y), value_getter(node, Kratos.VELOCITY_Y))
 
     def __TestFlagsTensorAdaptor(self, container):
         tensor_adaptor_read = Kratos.TensorAdaptors.FlagsTensorAdaptor(container, Kratos.SLIP)
