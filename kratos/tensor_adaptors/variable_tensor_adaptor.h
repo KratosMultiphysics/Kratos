@@ -36,7 +36,7 @@ public:
 
     using BaseType = TensorAdaptor<double>;
 
-    using ContainerPointerType = TensorStorage<double>::ContainerPointerType;
+    using ContainerPointerType = Storage::ContainerPointerType;
 
     using VariablePointerType = TensorAdaptorUtils::VariablePointerType;
 
@@ -54,8 +54,9 @@ public:
         const std::vector<unsigned int>& rDataShape);
 
     VariableTensorAdaptor(
-        TensorStorage<double>::Pointer pTensorStorage,
-        VariablePointerType pVariable);
+        const TensorAdaptor& rOther,
+        VariablePointerType pVariable,
+        const bool Copy = false);
 
     // Destructor
     ~VariableTensorAdaptor() override = default;

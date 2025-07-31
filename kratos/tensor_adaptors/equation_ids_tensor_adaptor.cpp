@@ -71,7 +71,7 @@ EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(
         rEntity.EquationIdVector(rEquationIde, *pProcessInfo);
     };
 
-    this->mpStorage = Kratos::make_intrusive<TensorStorage<int>>(
+    this->mpStorage = Kratos::make_intrusive<Storage>(
         pContainer, TensorAdaptorUtils::GetTensorShape<std::vector<IndexType>>(
                         *pContainer, r_getter));
 }
@@ -86,7 +86,7 @@ void EquationIdsTensorAdaptor::Check() const
 
             KRATOS_ERROR_IF_NOT(tensor_shape[0] == pContainer->size())
                 << "Underlying container of the tensor data has changed size [ tensor data = "
-                << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
+                << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
         }
     }, this->mpStorage->GetContainer());
 }
@@ -119,7 +119,7 @@ std::string EquationIdsTensorAdaptor::Info() const
 {
     std::stringstream info;
     info << "EquationIdsTensorAdaptor:";
-    info << " " << *(this->mpStorage);
+    info << " " << this->mpStorage->Info();
     return info.str();
 }
 

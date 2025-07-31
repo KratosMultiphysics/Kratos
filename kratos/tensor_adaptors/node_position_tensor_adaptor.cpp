@@ -41,7 +41,7 @@ NodePositionTensorAdaptor::NodePositionTensorAdaptor(
     KRATOS_ERROR_IF(tensor_shape[1] > 3)
         << "Invalid data shape. Only allowed to following data shapes:\n\t[1]\n\t[2]\n\t[3]";
 
-    this->mpStorage = Kratos::make_intrusive<TensorStorage<double>>(pContainer, tensor_shape);
+    this->mpStorage = Kratos::make_intrusive<Storage>(pContainer, tensor_shape);
 
     KRATOS_CATCH("");
 }
@@ -54,23 +54,23 @@ NodePositionTensorAdaptor::NodePositionTensorAdaptor(
 }
 
 NodePositionTensorAdaptor::NodePositionTensorAdaptor(
-    TensorStorage<double>::Pointer pTensorStorage,
-    Globals::Configuration Configuration)
-    : mConfiguration(Configuration)
+    const TensorAdaptor& rOther,
+    Globals::Configuration Configuration,
+    const bool Copy)
+    : BaseType(rOther, Copy),
+      mConfiguration(Configuration)
 {
     KRATOS_TRY
-
-    this->mpStorage = pTensorStorage;
 
     const auto& r_data_shape = this->mpStorage->DataShape();
 
     KRATOS_ERROR_IF_NOT(std::holds_alternative<ModelPart::NodesContainerType::Pointer>(this->mpStorage->GetContainer()))
         << "NodePositionTensorAdaptor can only be used with tensor data having nodal containers "
-        << "[ tensor data = " << *pTensorStorage << " ].\n";
+        << "[ tensor data = " << this->mpStorage->Info() << " ].\n";
 
     KRATOS_ERROR_IF_NOT(r_data_shape.size() == 1)
         << "Incompatible number of dimensions in the provided tensor adaptor. NodePositionTensorAdaptor"
-        << " requires a tensor data having 2 dimensions [ tensor data = " << *pTensorStorage << " ].\n";
+        << " requires a tensor data having 2 dimensions [ tensor data = " << this->mpStorage->Info() << " ].\n";
 
     KRATOS_ERROR_IF(r_data_shape[0] > 3)
         << "Invalid data shape. Only allowed to following data shapes:\n\t[1]\n\t[2]\n\t[3]";
@@ -87,7 +87,7 @@ void NodePositionTensorAdaptor::Check() const
 
         KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
             << "Underlying container of the tensor data has changed size [ tensor data = "
-            << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
+            << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
 
     }, this->mpStorage->GetContainer());
 
@@ -106,7 +106,7 @@ void NodePositionTensorAdaptor::CollectData()
 
             KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
                 << "Underlying container of the tensor data has changed size [ tensor data = "
-                << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
+                << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
 
             switch (this->mConfiguration) {
                 case Globals::Configuration::Current:
@@ -144,7 +144,7 @@ void NodePositionTensorAdaptor::StoreData()
 
             KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
                 << "Underlying container of the tensor data has changed size [ tensor data = "
-                << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
+                << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
 
             switch (mConfiguration) {
                 case Globals::Configuration::Current:
@@ -183,7 +183,7 @@ std::string NodePositionTensorAdaptor::Info() const
             info << " Configuration = Current, ";
             break;
     }
-    info << *(this->mpStorage);
+    info << this->mpStorage->Info();
     return info.str();
 }
 

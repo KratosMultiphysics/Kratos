@@ -63,7 +63,7 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
 {
     std::visit([this, pContainer, StepIndex](auto pVariable) {
         HistoricalVariableTensorAdaptorHelperUtils::Check(*pContainer, *pVariable, StepIndex);
-        this->mpStorage = Kratos::make_intrusive<TensorStorage<double>>(
+        this->mpStorage = Kratos::make_intrusive<Storage>(
             pContainer,
             TensorAdaptorUtils::GetTensorShape(
                 *pContainer, *pVariable, [pVariable, StepIndex](auto& rValue, const Node& rNode) {
@@ -81,7 +81,7 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
       mStepIndex(StepIndex)
 {
     std::visit([&rDataShape, this, pContainer](auto pVariable) {
-        this->mpStorage = Kratos::make_intrusive<TensorStorage<double>>(
+        this->mpStorage = Kratos::make_intrusive<Storage>(
                                 pContainer, TensorAdaptorUtils::GetTensorShape(
                                 *pContainer, *pVariable, rDataShape.data(),
                                 rDataShape.data() + rDataShape.size()));
@@ -89,21 +89,21 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
 }
 
 HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
-    TensorStorage<double>::Pointer pTensorStorage,
+    const TensorAdaptor& rOther,
     VariablePointerType pVariable,
-    const int StepIndex)
-    : mpVariable(pVariable),
+    const int StepIndex,
+    const bool Copy)
+    : BaseType(rOther, Copy),
+      mpVariable(pVariable),
       mStepIndex(StepIndex)
 {
-    this->mpStorage = pTensorStorage;
-
     // now check whether the given storage is compatible with the variable.
     std::visit([this](auto pVariable) {
         using data_type = BareType<decltype(*pVariable)>;
         const auto& r_data_shape = this->mpStorage->DataShape();
         KRATOS_ERROR_IF_NOT(DataTypeTraits<data_type>::IsValidShape(r_data_shape.data().begin(), r_data_shape.data().begin() + r_data_shape.size()))
             << "The data storage within the tensor data is not compatible with the " << pVariable->Name()
-            << "[ tensor data = " << *(this->mpStorage) << " ].\n";
+            << "[ tensor data = " << this->mpStorage->Info() << " ].\n";
 
     }, mpVariable);
 
@@ -121,11 +121,11 @@ void HistoricalVariableTensorAdaptor::Check() const
 
             KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
                 << "Underlying container of the tensor data has changed size [ tensor data = "
-                << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
+                << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
 
             // first check if the variable is there, and step index is valid
             // This check is done every time CollectData or StoreData is called
-            // because, the PointerVectorSet which the TensorStorage holds
+            // because, the PointerVectorSet which the Storage holds
             // may have nodes from different model parts, or they may come from
             // a temporary PointerVectorSet which did not change in size, but
             // changed the underlying nodes or variables list.
@@ -150,7 +150,7 @@ void HistoricalVariableTensorAdaptor::CollectData()
 
             KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
                 << "Underlying container of the tensor data has changed size [ tensor data = "
-                << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
+                << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
 
             ContainerIOUtils::CopyToContiguousArray<data_type>(
                 *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
@@ -174,7 +174,7 @@ void HistoricalVariableTensorAdaptor::StoreData()
 
             KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
                 << "Underlying container of the tensor data has changed size [ tensor data = "
-                << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
+                << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
 
             if constexpr(DataTypeTraits<data_type>::IsDynamic) {
                 const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
@@ -215,7 +215,7 @@ std::string HistoricalVariableTensorAdaptor::Info() const
     std::visit([&info](auto pVariable) {
         info << " Variable = " << pVariable->Name();
     }, this->mpVariable);
-    info << ", Step index = " << mStepIndex << ", " << *(this->mpStorage);
+    info << ", Step index = " << mStepIndex << ", " << this->mpStorage->Info();
     return info.str();
 }
 

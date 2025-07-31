@@ -40,7 +40,7 @@ GaussPointVariableTensorAdaptor::GaussPointVariableTensorAdaptor(
         using variable_type = BareType<decltype(*pVariable)>;
         using data_type = typename variable_type::Type;
 
-        this->mpStorage = Kratos::make_intrusive<TensorStorage<double>>(
+        this->mpStorage = Kratos::make_intrusive<Storage>(
             pContainer,
             TensorAdaptorUtils::GetTensorShape<std::vector<data_type>>(
                 *pContainer, [pVariable, this](auto& rValues, const auto& rEntity) {
@@ -61,7 +61,7 @@ void GaussPointVariableTensorAdaptor::Check() const
 
             KRATOS_ERROR_IF_NOT(tensor_shape[0] == pContainer->size())
                 << "Underlying container of the tensor data has changed size [ tensor data = "
-                << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
+                << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
         }
     }, this->mpStorage->GetContainer());
 
@@ -82,7 +82,7 @@ void GaussPointVariableTensorAdaptor::CollectData()
 
             KRATOS_ERROR_IF_NOT(tensor_shape[0] == pContainer->size())
                 << "Underlying container of the tensor data has changed size [ tensor data = "
-                << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
+                << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
 
             ContainerIOUtils::CopyToContiguousArray<std::vector<data_type>>(
                 *pContainer, this->ViewData(), tensor_shape.data().begin(),
@@ -107,7 +107,7 @@ std::string GaussPointVariableTensorAdaptor::Info() const
     std::visit([&info](auto pVariable) {
         info << " Variable = " << pVariable->Name();
     }, this->mpVariable);
-    info << ", " << *(this->mpStorage);
+    info << ", " << this->mpStorage->Info();
     return info.str();
 }
 

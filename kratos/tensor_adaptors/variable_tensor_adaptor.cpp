@@ -27,7 +27,7 @@ VariableTensorAdaptor::VariableTensorAdaptor(
     : mpVariable(pVariable)
 {
     std::visit([this](auto pContainer, auto pVariable) {
-        this->mpStorage = Kratos::make_intrusive<TensorStorage<double>>(
+        this->mpStorage = Kratos::make_intrusive<Storage>(
                                 pContainer, TensorAdaptorUtils::GetTensorShape(
                                                 *pContainer, *pVariable,
                                                 [pVariable](auto& rValue, const auto& rEntity) {
@@ -43,7 +43,7 @@ VariableTensorAdaptor::VariableTensorAdaptor(
     : mpVariable(pVariable)
 {
     std::visit([&rDataShape, this](auto pContainer, auto pVariable) {
-        this->mpStorage = Kratos::make_intrusive<TensorStorage<double>>(
+        this->mpStorage = Kratos::make_intrusive<Storage>(
                                 pContainer, TensorAdaptorUtils::GetTensorShape(
                                 *pContainer, *pVariable, rDataShape.data(),
                                 rDataShape.data() + rDataShape.size()));
@@ -51,13 +51,13 @@ VariableTensorAdaptor::VariableTensorAdaptor(
 }
 
 VariableTensorAdaptor::VariableTensorAdaptor(
-    TensorStorage<double>::Pointer pTensorStorage,
-    VariablePointerType pVariable)
-    : mpVariable(pVariable)
+    const TensorAdaptor& rOther,
+    VariablePointerType pVariable,
+    const bool Copy)
+    : BaseType(rOther, Copy),
+      mpVariable(pVariable)
 {
     KRATOS_TRY
-
-    this->mpStorage = pTensorStorage;
 
     // now check whether the given storage is compatible with the variable.
     std::visit([this](auto pVariable) {
@@ -65,7 +65,7 @@ VariableTensorAdaptor::VariableTensorAdaptor(
         const auto& r_data_shape = this->mpStorage->DataShape();
         KRATOS_ERROR_IF_NOT(DataTypeTraits<data_type>::IsValidShape(r_data_shape.data().begin(), r_data_shape.data().begin() + r_data_shape.size()))
             << "The data storage within the tensor data is not compatible with the " << pVariable->Name()
-            << "[ tensor data = " << *(this->mpStorage) << " ].\n";
+            << "[ tensor data = " << this->mpStorage->Info() << " ].\n";
 
     }, mpVariable);
 
@@ -81,7 +81,7 @@ void VariableTensorAdaptor::Check() const
 
         KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
             << "Underlying container of the tensor data has changed size [ tensor data = "
-            << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
+            << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
 
         block_for_each(*pContainer, [&pVariable](const auto& rEntity) {
             KRATOS_ERROR_IF_NOT(rEntity.Has(*pVariable))
@@ -103,7 +103,7 @@ void VariableTensorAdaptor::CollectData()
 
         KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
             << "Underlying container of the tensor data has changed size [ tensor data = "
-            << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
+            << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
 
         ContainerIOUtils::CopyToContiguousArray<data_type>(
             *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
@@ -124,7 +124,7 @@ void VariableTensorAdaptor::StoreData()
 
         KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
             << "Underlying container of the tensor data has changed size [ tensor data = "
-            << *this->GetStorage() << ", container size = " << pContainer->size() << " ].\n";
+            << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
 
         if constexpr(DataTypeTraits<data_type>::IsDynamic) {
             // this zero value may be different from the Variable::Zero()
@@ -220,7 +220,7 @@ std::string VariableTensorAdaptor::Info() const
     std::visit([&info](auto pVariable) {
         info << " Variable = " << pVariable->Name();
     }, this->mpVariable);
-    info << ", " << *(this->mpStorage);
+    info << ", " << this->mpStorage->Info();
     return info.str();
 }
 

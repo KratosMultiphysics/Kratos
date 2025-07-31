@@ -51,8 +51,9 @@ public:
         const std::vector<unsigned int>& rDataShape);
 
     NodePositionTensorAdaptor(
-        TensorStorage<double>::Pointer pTensorStorage,
-        Globals::Configuration Configuration);
+        const TensorAdaptor& rOther,
+        Globals::Configuration Configuration,
+        const bool Copy = false);
 
     // Destructor
     ~NodePositionTensorAdaptor() override = default;

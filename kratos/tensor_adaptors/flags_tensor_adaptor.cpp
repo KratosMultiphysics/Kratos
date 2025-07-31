@@ -36,23 +36,23 @@ FlagsTensorAdaptor::FlagsTensorAdaptor(
     const Flags& rFlags)
     : mFlags(rFlags)
 {
-    this->mpStorage = Kratos::make_intrusive<TensorStorage<bool>>(pContainer, DenseVector<unsigned int>(1, pContainer->size()));
+    this->mpStorage = Kratos::make_intrusive<Storage>(pContainer, DenseVector<unsigned int>(1, pContainer->size()));
 }
 
 FlagsTensorAdaptor::FlagsTensorAdaptor(
-    TensorStorage<bool>::Pointer pTensorStorage,
-    const Flags& rFlags)
-    : mFlags(rFlags)
+    const TensorAdaptor& rOther,
+    const Flags& rFlags,
+    const bool Copy)
+    : BaseType(rOther, Copy),
+      mFlags(rFlags)
 {
     KRATOS_TRY
-
-    this->mpStorage = pTensorStorage;
 
     const auto& r_tensor_shape = this->mpStorage->Shape();
 
     KRATOS_ERROR_IF_NOT(r_tensor_shape.size() == 1 && r_tensor_shape[0] == 1)
         << "The data storage within the tensor data is not compatible with the flags "
-        << "[ tensor data = " << *(this->mpStorage) << " ].\n";
+        << "[ tensor data = " << this->mpStorage->Info() << " ].\n";
 
     KRATOS_CATCH("");
 }
@@ -115,7 +115,7 @@ std::string FlagsTensorAdaptor::Info() const
 {
     std::stringstream info;
     info << "FlagsTensorAdaptor:";
-    info << " " << *(this->mpStorage);
+    info << " " << this->mpStorage->Info();
     return info.str();
 }
 

@@ -55,9 +55,10 @@ public:
         const int StepIndex = 0);
 
     HistoricalVariableTensorAdaptor(
-        TensorStorage<double>::Pointer pTensorStorage,
+        const TensorAdaptor& rOther,
         VariablePointerType pVariable,
-        const int StepIndex = 0);
+        const int StepIndex = 0,
+        const bool Copy = false);
 
 
     // Destructor

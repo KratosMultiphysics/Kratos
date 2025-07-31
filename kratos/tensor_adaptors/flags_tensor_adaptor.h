@@ -47,8 +47,9 @@ public:
         const Flags& rFlags);
 
     FlagsTensorAdaptor(
-        TensorStorage<bool>::Pointer pTensorStorage,
-        const Flags& rFlags);
+        const TensorAdaptor& rOther,
+        const Flags& rFlags,
+        const bool Copy = false);
 
     // Destructor
     ~FlagsTensorAdaptor() override = default;
