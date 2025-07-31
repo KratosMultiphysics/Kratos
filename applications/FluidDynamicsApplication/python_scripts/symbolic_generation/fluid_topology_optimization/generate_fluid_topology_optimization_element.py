@@ -276,7 +276,6 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 	    # 6: transport_scalar_convection: int_{\Omega}{beta*T*dot(u,grad(T))}
 	    # 7: transport_scalar_decay: int_{\Omega}{kT^2}
 	    # 8: transport_scalar_source: int_{\Omega}{-Q*T}
-
         functional_weights = DefineVector('functional_weights', n_functionals) # Weights of the functionals terms
         rv_funct_resistance_adj  = -2.0*alpha*(w_adj_gauss.transpose()*v_ns_gauss)
         rv_funct_strain_rate_adj = -4.0*mu*(sympy.Matrix([DoubleContraction(grad_sym_v_ns, grad_w_adj)]))
@@ -351,7 +350,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
             for i in range(0,dim):
                 for j in range(0,dim):
                     stab_norm_gradU_adj += grad_v_ns[i,j]**2
-            stab_norm_gradU_adj = sympy.sqrt(stab_norm_a_adj)
+            stab_norm_gradU_adj = sympy.sqrt(stab_norm_gradU_adj)
             tau1_denominator_adj += stab_c3*stab_norm_gradU_adj # convection contribution to tau_1
             tau2_factor_adj += stab_c3*stab_norm_gradU_adj*h*h # convection contribution to tau_2
         # Definition of TAU1 & TAU2

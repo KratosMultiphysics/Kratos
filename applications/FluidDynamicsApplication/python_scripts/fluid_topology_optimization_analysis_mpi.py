@@ -221,18 +221,33 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         self._InitializeFunctionalWeights()
         self._GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.FUNCTIONAL_WEIGHTS, self.functional_weights)
         self._PrintFunctionalWeights()
+        self.EvaluateTotalFunctional()
 
     def _PrintFunctionalWeights(self):
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| FUNCTIONAL WEIGHTS: " + str(self.functional_weights))
+        self._PrintFunctionalWeightsPhysicsInfo()
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| REAL FUNCTIONAL WEIGHTS: " + str(self.functional_weights))
         self.MpiPrint(self.optimization_settings["optimization_problem_settings"]["functional_weights"].PrettyPrintJsonString())
+
+    def _PrintFunctionalWeightsPhysicsInfo(self):
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIAL FUNCTIONAL: " + str(self.initial_fluid_functional))
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| NORMALIZED FUNCTIONAL WEIGHTS: " + str(self.normalized_fluid_functional_weights))
         
     def _InitializeFunctionalWeights(self):
-        fluid_weights = self._ImportFluidFunctionalWeights()
-        weights = fluid_weights + [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.n_functionals = len(weights)
+        fluid_functional_weights = self._ImportFluidFunctionalWeights()
+        # normalize weights
+        self.normalized_fluid_functional_weights = self._NormalizeFunctionalWeights(np.asarray(fluid_functional_weights))
+        # get number of functionals
+        self.n_fluid_functionals = len(self.normalized_fluid_functional_weights)
+        self.n_functionals = self.n_fluid_functionals + 6 # 6 = transport fucntionals
+        # initialize initial functionals vector container
+        self.initial_fluid_functionals_values = np.zeros(self.n_fluid_functionals)
         self.initial_functionals_values = np.zeros(self.n_functionals)
+        # initialize functionals vector container
+        self.fluid_functionals = np.zeros(self.n_fluid_functionals)
         self.functionals = np.zeros(self.n_functionals)
-        self.functional_weights = self._NormalizeFunctionalWeights(np.asarray(weights))
+        self.EvaluateFunctionals(print_functional=False)
+        self._SetInitialFunctionals()
+        self.functional_weights = self._RescaleFunctionalWeightsByInitialValues()
 
     def _ImportFluidFunctionalWeights(self):
         fluid_weights = [0.0, 0.0, 0.0]
@@ -242,6 +257,19 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         fluid_weights[2] = functional_weights_parameters["vorticity"]["weight"].GetDouble()
         return fluid_weights
     
+    def _SetInitialFunctionals(self):
+        self.initial_fluid_functional = np.dot(self.normalized_fluid_functional_weights, self.initial_fluid_functionals_values)
+        if (abs(self.initial_fluid_functional) < 1e-10):
+            self.MpiPrint("[WARNING] Initial fluid functional is zero")
+        
+    def _RescaleFunctionalWeightsByInitialValues(self):
+        if (np.sum(np.abs(self.normalized_fluid_functional_weights)) < 1e-10):
+            fluid_functional_weights = np.zeros(self.normalized_fluid_functional_weights.size)
+        else:
+            fluid_functional_weights  = self.normalized_fluid_functional_weights.copy()
+            if (abs(self.initial_fluid_functional) > 1e-15):
+                fluid_functional_weights /= abs(self.initial_fluid_functional)
+        return np.concatenate((fluid_functional_weights, np.zeros(self.n_functionals-self.n_fluid_functionals)))
 
     def _NormalizeFunctionalWeights(self, weights):
         weights_sum = np.sum(np.abs(weights))
@@ -837,54 +865,57 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
     
     def _EvaluateResistanceFunctional(self, print_functional=False):
         """
-        This method computes the resistance functional: int_{Omega}{\\alpha||u||^2}
+        This method computes the resistance functional: int_{\Omega}{\\alpha||u||^2}
         """
-        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        mp = self._GetComputingModelPart()
+        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
         nodal_velocity_norm = np.linalg.norm(velocity, axis=1)
         integrand = self.resistance * (nodal_velocity_norm**2) #component-wise multiplication
-        self.functionals[0] = np.dot(self.nodal_domain_sizes, integrand)
+        self.fluid_functionals[0] = np.dot(self.nodal_domain_sizes, integrand)
         if _CheckIsDistributed():
-            self.functionals[0] = self.MpiSynchronizeLocalValue(self.functionals[0])
+            self.fluid_functionals[0] = self.MpiSynchronizeLocalValue(self.fluid_functionals[0])
         if (self.first_iteration):
-            self.initial_functionals_values[0] = self.functionals[0] 
+            self.initial_fluid_functionals_values[0] = self.fluid_functionals[0] 
         if (print_functional):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Resistance Functional (no weight):", self.functionals[0])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Resistance Functional (no weight): " + str(self.fluid_functionals[0]))
         else:
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Resistance Functional")
 
     def _EvaluateStrainRateFunctional(self, print_functional=False):
         """
-        This method computes the Strain-Rate functional: int_{Omega}{\\2*mu*||1/2*[grad(u)+grad(u)^T]||^2}
+        This method computes the Strain-Rate functional: int_{\Omega}{\\2*mu*||1/2*[grad(u)+grad(u)^T]||^2}
         """
         vel_gradient_on_nodes = self._AssembleVelocityGradientOnNodes()
         vel_symmetric_gradient = 1.0/2.0 * (vel_gradient_on_nodes+(np.transpose(vel_gradient_on_nodes, axes=(0,2,1))))
         vel_symmetric_gradient_norm_squared = (np.linalg.norm(vel_symmetric_gradient, ord='fro', axis=(1, 2)))**2
         mu = self._GetViscosity()
-        self.functionals[1] = 2*mu* np.dot(vel_symmetric_gradient_norm_squared, self.nodal_domain_sizes)
+        self.fluid_functionals[1] = 2.0*mu* np.dot(vel_symmetric_gradient_norm_squared, self.nodal_domain_sizes)
         if _CheckIsDistributed():
-            self.functionals[1] = self.MpiSynchronizeLocalValue(self.functionals[1])
+            self.fluid_functionals[1] = self.MpiSynchronizeLocalValue(self.fluid_functionals[1])
         if (self.first_iteration):
-            self.initial_functionals_values[1] = self.functionals[1]
+            self.initial_fluid_functionals_values[1] = self.fluid_functionals[1]
         if (print_functional):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Strain-Rate Functional (no weight):", self.functionals[1])
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Strain-Rate Functional (no weight): " + str(self.fluid_functionals[1]))
         else:
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Strain-Rate Functional")
 
     def _EvaluateVorticityFunctional(self, print_functional=False):
         """
-        This method computes the Vorticity functional: int_{Omega}{\\2*mu*||1/2*[grad(u)-grad(u)^T]||^2}
+        This method computes the Vorticity functional: int_{\Omega}{\\2*mu*||1/2*[grad(u)-grad(u)^T]||^2}
         """
         vel_gradient_on_nodes = self._AssembleVelocityGradientOnNodes()
-        vel_antisymmetric_gradient = 1.0/2.0 * (vel_gradient_on_nodes-(np.transpose(vel_gradient_on_nodes, axes=(0,2,1))))
+        vel_antisymmetric_gradient = 0.5 * (vel_gradient_on_nodes-(np.transpose(vel_gradient_on_nodes, axes=(0,2,1))))
         vel_antisymmetric_gradient_norm_squared = (np.linalg.norm(vel_antisymmetric_gradient, ord='fro', axis=(1, 2)))**2
         mu = self._GetViscosity()
-        self.functionals[2] = 2*mu* np.dot(vel_antisymmetric_gradient_norm_squared, self.nodal_domain_sizes)
+        self.fluid_functionals[2] = 2.0*mu* np.dot(vel_antisymmetric_gradient_norm_squared, self.nodal_domain_sizes)
+        mu = self._GetViscosity()
+        self.fluid_functionals[1] = 2.0*mu* np.dot(vel_antisymmetric_gradient_norm_squared, self.nodal_domain_sizes)
         if _CheckIsDistributed():
-            self.functionals[2] = self.MpiSynchronizeLocalValue(self.functionals[2])
+            self.fluid_functionals[2] = self.MpiSynchronizeLocalValue(self.fluid_functionals[2])
         if (self.first_iteration):
-            self.initial_functionals_values[2] = self.functionals[2]
+            self.initial_fluid_functionals_values[2] = self.fluid_functionals[2]
         if (print_functional):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional: (no weight)", self.functionals[2])    
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional: (no weight) " + str(self.fluid_functionals[2])) 
         else:
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional")
     
@@ -1094,15 +1125,21 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         self._PrintConstraints()
     
     def _PrintFunctionals(self):
+        self._PrintTotalFunctional()
+        self._PrintFluidFunctionals()
+
+    def _PrintTotalFunctional(self):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| TOTAL FUNCTIONAL  : " +  str(self.functional))
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIAL FUNCTIONAL: " +  str(self.initial_functional))
-        if (abs(self.functional_weights[0]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Resistance Functional (" + str(self.functional_weights[0]) + "): " + str(self.weighted_functionals[0]/self.initial_functional_abs_value))
-        if (abs(self.functional_weights[1]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Strain-Rate Functional (" + str(self.functional_weights[1]) + "): " + str(self.weighted_functionals[1]/self.initial_functional_abs_value))
-        if (abs(self.functional_weights[2]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional (" + str(self.functional_weights[2]) + "): " + str(self.weighted_functionals[2]/self.initial_functional_abs_value))
         
+    def _PrintFluidFunctionals(self):
+        if (abs(self.functional_weights[0]) > 1e-10):
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Resistance Functional (" + str(self.functional_weights[0]) + "): " + str(self.weighted_functionals[0]))
+        if (abs(self.functional_weights[1]) > 1e-10):
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Strain-Rate Functional (" + str(self.functional_weights[1]) + "): " + str(self.weighted_functionals[1]))
+        if (abs(self.functional_weights[2]) > 1e-10):
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional (" + str(self.functional_weights[2]) + "): " + str(self.weighted_functionals[2]))
+    
     def _PrintFunctionalsToFile(self):
         with open("functional_history.txt", "a") as file:
             file.write(str(self.functional) + " ")
@@ -1175,16 +1212,16 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         self.design_parameter_filtered = np.zeros(self.n_nodes)
 
     def _InitializeDiffusiveFilter(self):
-        self.diffusive_filter_settings = self.optimization_settings["diffusive_filter_settings"]
-        self.apply_diffusive_filter = self.diffusive_filter_settings["use_filter"].GetBool()
-        self.diffusive_filter_type = self.diffusive_filter_settings["filter_type"].GetString()
-        self.diffusive_filter_radius = self.diffusive_filter_settings["radius"].GetDouble()
-        self.diffusive_filter_type_settings = self.diffusive_filter_settings["type_settings"]
-        if (self.apply_diffusive_filter):
-            if self.diffusive_filter_type == "pde":
-                self._InitializePdeDiffusiveFilter()
-            else:
-                self._InitializeDiscreteDiffusiveFilter()
+            self.diffusive_filter_settings = self.optimization_settings["diffusive_filter_settings"]
+            self.apply_diffusive_filter = self.diffusive_filter_settings["use_filter"].GetBool()
+            self.diffusive_filter_type = self.diffusive_filter_settings["filter_type"].GetString()
+            self.diffusive_filter_radius = self.diffusive_filter_settings["radius"].GetDouble()
+            self.diffusive_filter_type_settings = self.diffusive_filter_settings["type_settings"]
+            if (self.apply_diffusive_filter) and (self.CurrentDomainHasOptimizationNodes()):
+                if self.diffusive_filter_type == "pde":
+                    self._InitializePdeDiffusiveFilter()
+                else:
+                    self._InitializeDiscreteDiffusiveFilter()
 
     def _ComputeDesignParameterProjectiveFilterUtilities(self):
         self._InitializeProjectiveFilter()
@@ -1308,7 +1345,7 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
                 
     def _ApplyDiffusiveFilter(self, scalar_variable):
         scalar_variable_in_opt_domain = scalar_variable[self._GetOptimizationDomainNodesMask()]
-        if (self.apply_diffusive_filter):
+        if (self.apply_diffusive_filter) and (self.CurrentDomainHasOptimizationNodes()):
             if (self.diffusive_filter_type == "pde"):
                 self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ----> PDE Filter for Design Parameter")
                 self._InitializePdeDiffusiveFilterExecution(scalar_variable)
@@ -1328,7 +1365,7 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
     
     def _ApplyDiffusiveFilterDerivative(self, scalar_variable_derivative):
         scalar_variable_derivative_in_opt_domain = scalar_variable_derivative[self._GetOptimizationDomainNodesMask()]
-        if (self.apply_diffusive_filter):
+        if (self.apply_diffusive_filter) and (self.CurrentDomainHasOptimizationNodes()):
             if (self.diffusive_filter_type == "pde"):
                 self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ----> PDE Filter for Functional Derivative")
                 self._InitializePdeDiffusiveFilterExecution(scalar_variable_derivative)
@@ -1435,12 +1472,20 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         return [self._GetPhysicsSolver().main_model_part]
     
     def EvaluateFunctionals(self, print_functional):
-        if (abs(self.functional_weights[0]) > 1e-10):
+        self._EvaluateRequiredGradients()
+        if (abs(self.normalized_fluid_functional_weights[0]) > 1e-10):
             self._EvaluateResistanceFunctional(print_functional)
-        if (abs(self.functional_weights[1]) > 1e-10):
+        if (abs(self.normalized_fluid_functional_weights[1]) > 1e-10):
             self._EvaluateStrainRateFunctional(print_functional)
-        if (abs(self.functional_weights[2]) > 1e-10):
+        if (abs(self.normalized_fluid_functional_weights[2]) > 1e-10):
             self._EvaluateVorticityFunctional(print_functional)
+
+    def EvaluateTotalFunctional(self):
+        self.functionals = np.concatenate((self.fluid_functionals, np.zeros(self.n_functionals-self.n_fluid_functionals)))
+        self.weighted_functionals = self.functional_weights * self.functionals
+        self.functional = np.sum(self.weighted_functionals)
+        if (self.first_iteration):
+            self.initial_functional = self.functional
 
     def _CheckMaterialProperties(self, check = False):
         if (check):
@@ -1754,32 +1799,20 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
         """
         This method is used to evaluate the functional value
         # Functionals Database
-        # 0: resistance  : int_{Omega}{alpha*||u||^2}
-        # 1: strain-rate : int_{Omega}{2*mu*||S||^2} , with S = 1/2*(grad(u)+grad(u)^T) strain-rate tensor
-        # 2: vorticity   : int_{Omega}{2*mu*||R||^2} = int_{Omega}{mu*||curl(u)||^2} , curl(u) = vorticity vector, R = 1/2*(grad(u)-grad(u)^T) rotation-rate tensor
-        # 3: outlet_transport_scalar : int_{Gamma_{out}}{c}
-        # 4: region_transport_scalar: int_{Omega}{c^2}
-        # 5: transport_scalar_diffusion: int_{Omega}{D\\||grad(u)||^2}
-        # 6: transport_scalar_convection: int_{Omega}{beta*T*dot(u,grad(T))}
-        # 7: transport_scalar_decay: int_{Omega}{kT^2}
-        # 8: transport_scalar_source: int_{Omega}{-Q*T}
+        # 0: resistance  : int_{\Omega}{alpha*||u||^2}
+        # 1: strain-rate : int_{\Omega}{2*mu*||S||^2} , with S = 1/2*(grad(u)+grad(u)^T) strain-rate tensor
+        # 2: vorticity   : int_{\Omega}{2*mu*||R||^2} = int_{\Omega}{mu*||curl(u)||^2} , curl(u) = vorticity vector, R = 1/2*(grad(u)-grad(u)^T) rotation-rate tensor
+        # 3: outlet_transport_scalar : int_{\Gamma_{out}}{c}
+        # 4: region_transport_scalar: int_{\Omega}{c^2}
+        # 5: transport_scalar_diffusion: int_{\Omega}{D\\||grad(u)||^2}
+	    # 6: transport_scalar_convection: int_{\Omega}{beta*T*dot(u,grad(T))}
+	    # 7: transport_scalar_decay: int_{\Omega}{kT^2}
+	    # 8: transport_scalar_source: int_{\Omega}{-Q*T}
         """
         self._SetTopologyOptimizationStage(3)
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| EVALUATE FUNCTIONAL VALUE")
         self.EvaluateFunctionals(print_functional)
-        self.functional = np.dot(self.functional_weights, self.functionals)
-        self.weighted_functionals = self.functional_weights * self.functionals
-        if (self.MpiRunOnlyRank(0)):
-            if (self.first_iteration):
-                    self.initial_functional = self.functional
-                    self.initial_functional_abs_value = abs(self.initial_functional)
-                    if (abs(self.initial_functional_abs_value) < 1e-10):
-                        self.initial_functional_value = 1.0
-                        self.initial_functional_abs_value = 1.0
-                    self.initial_functionals_abs_value = np.abs(self.functionals)
-                    self.initial_weighted_functionals_abs_value = np.abs(self.weighted_functionals)
-                    # self.first_iteration = False
-            self.functional = self.functional / self.initial_functional_abs_value
+        self.EvaluateTotalFunctional()
 
     def _EvaluateVolumeConstraintAndDerivative(self):
         self.EvaluateDesignParameterIntegralInOptimizationDomain()
@@ -1856,10 +1889,11 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
     def _ComputeNodalOptimizationDomainSize(self):
         self.nodal_optimization_domain_sizes = np.zeros(self.n_nodes)
         mp = self._GetOptimizationDomain()
-        nodal_area_process = KratosMultiphysics.CalculateNodalAreaProcess(mp, self.dim)
-        nodal_area_process.Execute()
-        self._UpdateNodalOptimizationDomainSizeArrayFromNodalAreaVariable()
-        self._CorrectNodalOptimizationDomainSizeWithSymmetry()
+        if self.CurrentDomainHasOptimizationNodes():
+            nodal_area_process = KratosMultiphysics.CalculateNodalAreaProcess(mp, self.dim)
+            nodal_area_process.Execute()
+            self._UpdateNodalOptimizationDomainSizeArrayFromNodalAreaVariable()
+            self._CorrectNodalOptimizationDomainSizeWithSymmetry()
 
     def _UpdateNodalDomainSizeArrayFromNodalAreaVariable(self):
         for node in self._GetLocalMeshNodes():
@@ -2058,7 +2092,7 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
                         pvtu_path = Path(folder_name) / file_name
                         if pvtu_path.exists():
                             text = pvtu_path.read_text(encoding='utf-8')
-                            fixed_text = text.replace("vtu_output/", "")
+                            fixed_text = text.replace(folder_name+"/", "")
                             pvtu_path.write_text(fixed_text, encoding='utf-8')
 
 ###########################################################
@@ -2102,4 +2136,11 @@ class FluidTopologyOptimizationAnalysisMpi(FluidDynamicsAnalysis):
             if (self.MpiRunOnlyRank(rank)):
                 print(text_to_print)
             if (set_barrier):
-                self.MpiBarrier()    
+                self.MpiBarrier()   
+
+    def CurrentDomainHasOptimizationNodes(self):
+        opt_mp = self._GetOptimizationDomain()
+        if (len(opt_mp.Nodes) != 0):
+            return True
+        else:
+            return False

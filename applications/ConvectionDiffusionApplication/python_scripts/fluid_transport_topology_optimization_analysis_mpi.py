@@ -138,39 +138,18 @@ class FluidTransportTopologyOptimizationAnalysisMpi(TransportTopologyOptimizatio
             KratosMultiphysics.Logger.PrintError("Not Found Adjoint Volume Source Process", "It should be using the 'HEAT_FLUX_ADJ' variable")
 
     def _PrintFunctionals(self):
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| TOTAL FUNCTIONAL  : " + str(self.functional))
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIAL FUNCTIONAL: " + str(self.initial_functional))
-        if (abs(self.functional_weights[0]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Resistance Functional (" + str(self.functional_weights[0]) + "): " + str(self.weighted_functionals[0]))
-        if (abs(self.functional_weights[1]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Strain-Rate Functional (" + str(self.functional_weights[1]) + "): " + str(self.weighted_functionals[1]))
-        if (abs(self.functional_weights[2]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional (" + str(self.functional_weights[2]) + "): " + str(self.weighted_functionals[2]))
-        if (abs(self.functional_weights[3]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Outlet Transport Scalar Functional (" + str(self.functional_weights[3]) + "): " + str(self.weighted_functionals[3]))
-        if (abs(self.functional_weights[4]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Focus Region Transport Scalar Functional (" + str(self.functional_weights[4]) + "): " + str(self.weighted_functionals[4]))
-        if (abs(self.functional_weights[5]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Diffusion Functional (" + str(self.functional_weights[5]) + "): " + str(self.weighted_functionals[5]))
-        if (abs(self.functional_weights[6]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Convection Functional (" + str(self.functional_weights[6]) + "): " + str(self.weighted_functionals[6]))
-        if (abs(self.functional_weights[7]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Decay Functional (" + str(self.functional_weights[7]) + "): " + str(self.weighted_functionals[7]))
-        if (abs(self.functional_weights[8]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional (" + str(self.functional_weights[8]) + "): " + str(self.weighted_functionals[8]))
-
-    def _SetFunctionalWeights(self):
-        super()._SetFunctionalWeights()
-        self.EvaluateTotalFunctional()
+        self._PrintTotalFunctional()
+        self._PrintFluidFunctionals()
+        self._PrintTransportFunctionals()
         
     def _InitializeFunctionalWeights(self):
-        fluid_weights     = self._ImportFluidFunctionalWeights()
-        transport_weights = self._ImportTransportFunctionalWeights()
-        coupling_weights  = self._ImportCouplingFunctionalWeights()
+        fluid_functional_weights     = self._ImportFluidFunctionalWeights()
+        transport_functional_weights = self._ImportTransportFunctionalWeights()
+        coupling_functional_weights  = self._ImportCouplingFunctionalWeights()
         # normalize weights
-        self.normalized_fluid_functional_weights = self._NormalizeFunctionalWeights(np.asarray(fluid_weights))
-        self.normalized_transport_functional_weights = self._NormalizeFunctionalWeights(np.asarray(transport_weights))
-        self.normalized_coupling_functional_weights = self._NormalizeFunctionalWeights(np.asarray(coupling_weights))
+        self.normalized_fluid_functional_weights = self._NormalizeFunctionalWeights(np.asarray(fluid_functional_weights))
+        self.normalized_transport_functional_weights = self._NormalizeFunctionalWeights(np.asarray(transport_functional_weights))
+        self.normalized_coupling_functional_weights = self._NormalizeFunctionalWeights(np.asarray(coupling_functional_weights))
         # get number of functionals
         self.n_fluid_functionals = len(self.normalized_fluid_functional_weights)
         self.n_transport_functionals = len(self.normalized_transport_functional_weights)
@@ -195,13 +174,7 @@ class FluidTransportTopologyOptimizationAnalysisMpi(TransportTopologyOptimizatio
         return coupling_weights
 
     def _SetInitialFunctionals(self):
-        fluid_local_values = self.initial_fluid_functionals_values
-        fluid_total_values = self.data_communicator.SumAll(fluid_local_values)
-        self.initial_fluid_functionals_values = fluid_total_values
         self.initial_fluid_functional = np.dot(self.normalized_fluid_functional_weights, self.initial_fluid_functionals_values)
-        transport_local_values = self.initial_transport_functionals_values
-        transport_total_values = self.data_communicator.SumAll(transport_local_values)
-        self.initial_transport_functionals_values = transport_total_values
         self.initial_transport_functional = np.dot(self.normalized_transport_functional_weights, self.initial_transport_functionals_values)
         if (abs(self.initial_fluid_functional) < 1e-10):
             self.MpiPrint("[WARNING] Initial fluid functional is zero")
@@ -226,6 +199,13 @@ class FluidTransportTopologyOptimizationAnalysisMpi(TransportTopologyOptimizatio
             if (abs(self.initial_transport_functional) > 1e-15):
                 transport_functional_weights /= abs(self.initial_transport_functional)
         return np.concatenate((fluid_functional_weights, transport_functional_weights))
+    
+    def _PrintFunctionalWeightsPhysicsInfo(self):
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIAL FUNCTIONAL: " + str(self.initial_transport_functional))
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIAL FLUID FUNCTIONAL: " + str(self.initial_fluid_functional))
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIAL TRANSPORT FUNCTIONAL: " + str(self.initial_transport_functional))
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| NORMALIZED FLUID FUNCTIONAL WEIGHTS: " + str(self.normalized_fluid_functional_weights))
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| NORMALIZED TRANSPORT FUNCTIONAL WEIGHTS: " + str(self.normalized_transport_functional_weights))
 
     def _EvaluateFunctional(self, print_functional=False):
         """
@@ -276,8 +256,7 @@ class FluidTransportTopologyOptimizationAnalysisMpi(TransportTopologyOptimizatio
         if (abs(self.normalized_transport_functional_weights[4]) > 1e-10):
             self._EvaluateTransportScalarDecayFunctional(print_functional)
         if (abs(self.normalized_transport_functional_weights[5]) > 1e-10):
-            self._EvaluateTransportScalarSourceFunctional(print_functional)
-            
+            self._EvaluateTransportScalarSourceFunctional(print_functional)   
 
     def EvaluateTotalFunctional(self):
         self.functionals = np.concatenate((self.fluid_functionals, self.transport_functionals))

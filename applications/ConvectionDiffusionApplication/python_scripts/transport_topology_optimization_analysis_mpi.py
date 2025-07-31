@@ -125,28 +125,39 @@ class TransportTopologyOptimizationAnalysisMpi(FluidTopologyOptimizationAnalysis
             raise RuntimeError("Not Found Adjoint Volume Source Process", "It should be using the 'HEAT_FLUX_ADJ' variable")
 
     def _PrintFunctionals(self):
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| TOTAL FUNCTIONAL  : " + str(self.functional))
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIAL FUNCTIONAL: " + str(self.initial_functional))
+        self._PrintTotalFunctional()
+        self._PrintTransportFunctionals()
+    
+    def _PrintTransportFunctionals(self):
         if (abs(self.functional_weights[3]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Outlet Transport Scalar Functional (" + str(self.functional_weights[3]) + "): " + str(self.weighted_functionals[3]/self.initial_functional_abs_value))
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Outlet Transport Scalar Functional (" + str(self.functional_weights[3]) + "): " + str(self.weighted_functionals[3]))
         if (abs(self.functional_weights[4]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Focus Region Transport Scalar Functional (" + str(self.functional_weights[4]) + "): " + str(self.weighted_functionals[4]/self.initial_functional_abs_value))
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Focus Region Transport Scalar Functional (" + str(self.functional_weights[4]) + "): " + str(self.weighted_functionals[4]))
         if (abs(self.functional_weights[5]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Diffusion Functional (" + str(self.functional_weights[5]) + "): " + str(self.weighted_functionals[5]/self.initial_functional_abs_value))
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Diffusion Functional (" + str(self.functional_weights[5]) + "): " + str(self.weighted_functionals[5]))
         if (abs(self.functional_weights[6]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Convection Functional (" + str(self.functional_weights[6]) + "): " + str(self.weighted_functionals[6]/self.initial_functional_abs_value))
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Convection Functional (" + str(self.functional_weights[6]) + "): " + str(self.weighted_functionals[6]))
         if (abs(self.functional_weights[7]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Decay Functional (" + str(self.functional_weights[7]) + "): " + str(self.weighted_functionals[7]/self.initial_functional_abs_value))
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Decay Functional (" + str(self.functional_weights[7]) + "): " + str(self.weighted_functionals[7]))
         if (abs(self.functional_weights[8]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional (" + str(self.functional_weights[8]) + "): " + str(self.weighted_functionals[8]/self.initial_functional_abs_value))
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional (" + str(self.functional_weights[8]) + "): " + str(self.weighted_functionals[8]))
 
     def _InitializeFunctionalWeights(self):
-        transport_weights = self._ImportTransportFunctionalWeights()
-        weights = [0.0, 0.0, 0.0] + transport_weights
-        self.n_functionals = len(weights)
+        transport_functional_weights = self._ImportTransportFunctionalWeights()
+        # normalize weights
+        self.normalized_transport_functional_weights = self._NormalizeFunctionalWeights(np.asarray(transport_functional_weights))
+        # get number of functionals
+        self.n_transport_functionals = len(self.normalized_transport_functional_weights)
+        self.n_functionals = 3 + self.n_transport_functionals # 3 = transport fucntionals
+        # initialize initial functionals vector container
+        self.initial_transport_functionals_values = np.zeros(self.n_transport_functionals)
         self.initial_functionals_values = np.zeros(self.n_functionals)
+        # initialize functionals vector container
+        self.transport_functionals = np.zeros(self.n_transport_functionals)
         self.functionals = np.zeros(self.n_functionals)
-        self.functional_weights = self._NormalizeFunctionalWeights(np.asarray(weights))
+        self.EvaluateFunctionals(print_functional=False)
+        self._SetInitialFunctionals()
+        self.functional_weights = self._RescaleFunctionalWeightsByInitialValues()
 
     def _ImportTransportFunctionalWeights(self):
         transport_weights = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -160,6 +171,24 @@ class TransportTopologyOptimizationAnalysisMpi(FluidTopologyOptimizationAnalysis
         transport_weights[4] = functional_weights_parameters["decay_transfer"]["weight"].GetDouble()
         transport_weights[5] = functional_weights_parameters["source_transfer"]["weight"].GetDouble()
         return transport_weights
+    
+    def _SetInitialFunctionals(self):
+        self.initial_transport_functional = np.dot(self.normalized_transport_functional_weights, self.initial_transport_functionals_values)
+        if (abs(self.initial_transport_functional) < 1e-10):
+            self.MpiPrint("[WARNING] Initial transport functional is zero")
+
+    def _RescaleFunctionalWeightsByInitialValues(self):
+        if (np.sum(np.abs(self.normalized_transport_functional_weights)) < 1e-10):
+            transport_functional_weights = np.zeros(self.normalized_transport_functional_weights.size)
+        else:
+            transport_functional_weights  = self.normalized_transport_functional_weights.copy()
+            if (abs(self.initial_transport_functional) > 1e-15):
+                transport_functional_weights /= abs(self.initial_transport_functional)
+        return np.concatenate((np.zeros(self.n_functionals-self.n_transport_functionals), transport_functional_weights))
+    
+    def _PrintFunctionalWeightsPhysicsInfo(self):
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIAL FUNCTIONAL: " + str(self.initial_transport_functional))
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| NORMALIZED FUNCTIONAL WEIGHTS: " + str(self.normalized_transport_functional_weights))
 
     def _EvaluateRequiredGradients(self):
         self._ComputeScalarVariableNodalGradient(KratosMultiphysics.DESIGN_PARAMETER, KratosMultiphysics.DESIGN_PARAMETER_GRADIENT)
@@ -168,24 +197,33 @@ class TransportTopologyOptimizationAnalysisMpi(FluidTopologyOptimizationAnalysis
 
     def EvaluateFunctionals(self, print_functional):
         self._EvaluateRequiredGradients()
-        if (abs(self.functional_weights[3]) > 1e-10):
+        if (abs(self.normalized_transport_functional_weights[0]) > 1e-10):
             self._EvaluateOutletTransportScalarFunctional(print_functional)
-        if (abs(self.functional_weights[4]) > 1e-10):
+        if (abs(self.normalized_transport_functional_weights[1]) > 1e-10):
             self._EvaluateFocusRegionTransportScalarFunctional(print_functional)
-        if (abs(self.functional_weights[5]) > 1e-10):
+        if (abs(self.normalized_transport_functional_weights[2]) > 1e-10):
             self._EvaluateTransportScalarDiffusionFunctional(print_functional)
-        if (abs(self.functional_weights[6]) > 1e-10):
+        if (abs(self.normalized_transport_functional_weights[3]) > 1e-10):
             self._EvaluateTransportScalarConvectionFunctional(print_functional)
-        if (abs(self.functional_weights[7]) > 1e-10):
+        if (abs(self.normalized_transport_functional_weights[4]) > 1e-10):
             self._EvaluateTransportScalarDecayFunctional(print_functional)
-        if (abs(self.functional_weights[8]) > 1e-10):
+        if (abs(self.normalized_transport_functional_weights[5]) > 1e-10):
             self._EvaluateTransportScalarSourceFunctional(print_functional)
+
+    def EvaluateTotalFunctional(self):
+        self.functionals = np.concatenate((np.zeros(self.n_functionals-self.n_transport_functionals), self.transport_functionals, ))
+        self.weighted_functionals = self.functional_weights * self.functionals
+        self.functional = np.sum(self.weighted_functionals)
+        if (self.first_iteration):
+            self.initial_functional = self.functional
 
     def _EvaluateOutletTransportScalarFunctional(self, print_functional=False):
         """
-        This method computes the Outlet Concentration functional: int_{Gamma_{out}}{1/2(c-c_target)^2}
+        This method computes the Outlet Concentration functional: int_{\Gamma_{out}}{1/2(c-c_target)^2}
         """
-        outlet_mp = self._GetSubModelPart(self._GetTransportModelPart(), self.target_outlet_transport_scalar_model_part_name)
+        if (self.first_iteration):
+            self.SetTargetOutletTransportScalar()
+        outlet_mp = self._FindAdjointSurfaceSourceProcess().model_part
         integral_value = 0.0
         integral_value_sq = 0.0
         for condition in outlet_mp.Conditions:
@@ -202,102 +240,106 @@ class TransportTopologyOptimizationAnalysisMpi(FluidTopologyOptimizationAnalysis
             cond_transport_scalar_sq /= len(nodes)
             integral_value    += cond_transport_scalar*size
             integral_value_sq += cond_transport_scalar_sq*size
-        self.functionals[3] = 0.5 * integral_value_sq
+        self.transport_functionals[0] = 0.5 * integral_value_sq
         if _CheckIsDistributed():
-            self.functionals[3] = self.MpiSynchronizeLocalValue(self.functionals[3])
+            self.transport_functionals[0] = self.MpiSynchronizeLocalValue(self.transport_functionals[0])
         self.avg_outlet_transport_scalar_diff = integral_value*size
         if (self.first_iteration):
-            self.initial_functionals_values[3] = self.functionals[3] 
+            self.initial_transport_functionals_values[0] = self.transport_functionals[0] 
         if (print_functional):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Outlet Transport Scalar Functional (no weight): " + str(self.functionals[3]))
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Outlet Transport Scalar Functional (no weight): " + str(self.transport_functionals[0]))
         else:
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Outlet Transport Scalar Functional")
 
     def _EvaluateFocusRegionTransportScalarFunctional(self, print_functional=False):
         """
-        This method computes the Focus Region Concentration functional: int_{Gamma_{out}}{c}
+        This method computes the Focus Region Concentration functional: int_{\Gamma_{out}}{c}
         """
+        if (self.first_iteration):
+            self.SetTargetFocusRegionTransportScalar()
         t_target = self.target_focus_region_transport_scalar
-        focus_mp = self._GetSubModelPart(self._GetTransportModelPart(), self.target_focus_region_transport_scalar_model_part_name)
+        focus_mp = self._FindAdjointVolumeSourceProcess().model_part
         focus_nodes_list = [self.nodes_ids_global_to_local_partition_dictionary[node.Id] for node in self._GetLocalMeshNodes(focus_mp)]
         t_focus_sq = (np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(focus_mp), KratosMultiphysics.TEMPERATURE, 0))-t_target)**2
-        self.functionals[4] = np.dot(self.nodal_domain_sizes[focus_nodes_list], t_focus_sq)
+        self.transport_functionals[1] = np.dot(self.nodal_domain_sizes[focus_nodes_list], t_focus_sq)
         if _CheckIsDistributed():
-            self.functionals[4] = self.MpiSynchronizeLocalValue(self.functionals[4])
+            self.transport_functionals[1] = self.MpiSynchronizeLocalValue(self.transport_functionals[1])
         if (self.first_iteration):
-            self.initial_functionals_values[4] = self.functionals[4] 
+            self.initial_transport_functionals_values[1] = self.transport_functionals[1] 
         if (print_functional):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Focus Region Concentration Functional (no weight): " + str(self.functionals[4]))
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Focus Region Concentration Functional (no weight): " + str(self.transport_functionals[1]))
         else:
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Focus Region Concentration Functional")
 
     def _EvaluateTransportScalarDiffusionFunctional(self, print_functional=False):
         """
-        This method computes the Transport Scalar Diffusion functional: int_{Omega}{D\\||grad(u)||^2}
+        This method computes the Transport Scalar Diffusion functional: int_{\Omega}{D\\||grad(u)||^2}
         """
-        transport_scalar_gradient = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.TEMPERATURE_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        mp = self._GetComputingModelPart()
+        transport_scalar_gradient = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.TEMPERATURE_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
         transport_scalar_gradient_norm_squared = (np.linalg.norm(transport_scalar_gradient, axis=1))**2
         integrand = self.conductivity * transport_scalar_gradient_norm_squared
-        self.functionals[5] = np.dot(integrand, self.nodal_domain_sizes)
+        self.transport_functionals[2] = np.dot(integrand, self.nodal_domain_sizes)
         if _CheckIsDistributed():
-            self.functionals[5] = self.MpiSynchronizeLocalValue(self.functionals[5])
+            self.transport_functionals[2] = self.MpiSynchronizeLocalValue(self.transport_functionals[2])
         if (self.first_iteration):
-            self.initial_functionals_values[5] = self.functionals[5]
+            self.initial_transport_functionals_values[2] = self.transport_functionals[2]
         if (print_functional):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Diffusion Functional (no weight): " + str(self.functionals[5]))
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Diffusion Functional (no weight): " + str(self.transport_functionals[2]))
         else:
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Diffusion Functional")
 
     def _EvaluateTransportScalarConvectionFunctional(self, print_functional=False):
         """
-        This method computes the Transport Scalar Convection functional: int_{Omega}{beta*T*dot(u,grad(T))}
+        This method computes the Transport Scalar Convection functional: int_{\Omega}{beta*T*dot(u,grad(T))}
         """
-        local_mesh_nodes = self._GetLocalMeshNodes()
-        transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(local_mesh_nodes, KratosMultiphysics.TEMPERATURE, 0))
-        transport_scalar_gradient = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(local_mesh_nodes, KratosMultiphysics.TEMPERATURE_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        convection_velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(local_mesh_nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        mp = self._GetComputingModelPart()
+        transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.TEMPERATURE, 0))
+        transport_scalar_gradient = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.TEMPERATURE_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        convection_velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
         integrand = self.convection_coefficient * transport_scalar * np.einsum('ij,ij->i', convection_velocity, transport_scalar_gradient)
-        self.functionals[6] = np.dot(integrand, self.nodal_domain_sizes)
+        self.transport_functionals[3] = np.dot(integrand, self.nodal_domain_sizes)
         if _CheckIsDistributed():
-            self.functionals[6] = self.MpiSynchronizeLocalValue(self.functionals[6])
+            self.transport_functionals[3] = self.MpiSynchronizeLocalValue(self.transport_functionals[3])
         if (self.first_iteration):
-            self.initial_functionals_values[6] = self.functionals[6]
+            self.initial_transport_functionals_values[3] = self.transport_functionals[3]
         if (print_functional):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Convection Functional (no weight): " + str(self.functionals[6]))
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Convection Functional (no weight): " + str(self.transport_functionals[3]))
         else:
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Convection Functional")
 
     def _EvaluateTransportScalarDecayFunctional(self, print_functional=False):
         """
-        This method computes the Transport Scalar Decay functional: int_{Omega}{kT^2}
+        This method computes the Transport Scalar Decay functional: int_{\Omega}{kT^2}
         """
-        transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.TEMPERATURE, 0))
+        mp = self._GetComputingModelPart()
+        transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.TEMPERATURE, 0))
         integrand = self.decay*(transport_scalar**2)
-        self.functionals[7] = np.dot(integrand, self.nodal_domain_sizes)
+        self.transport_functionals[4] = np.dot(integrand, self.nodal_domain_sizes)
         if _CheckIsDistributed():
-            self.functionals[7] = self.MpiSynchronizeLocalValue(self.functionals[7])
+            self.transport_functionals[4] = self.MpiSynchronizeLocalValue(self.transport_functionals[4])
         if (self.first_iteration):
-            self.initial_functionals_values[7] = self.functionals[7]
+            self.initial_transport_functionals_values[4] = self.transport_functionals[4]
         if (print_functional):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Decay Functional (no weight): " + str(self.functionals[7]))
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Decay Functional (no weight): " + str(self.transport_functionals[4]))
         else:
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Decay Functional")
 
     def _EvaluateTransportScalarSourceFunctional(self, print_functional=False):
         """
-        This method computes the Transport Scalar Source functional: int_{Omega}{-Q*T}
+        This method computes the Transport Scalar Source functional: int_{\Omega}{-Q*T}
         """
-        local_mesh_nodes = self._GetLocalMeshNodes()
-        transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(local_mesh_nodes, KratosMultiphysics.TEMPERATURE, 0))
-        transport_scalar_volume_flux = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(local_mesh_nodes, KratosMultiphysics.HEAT_FLUX, 0))
+        mp = self._GetComputingModelPart()
+        transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.TEMPERATURE, 0))
+        transport_scalar_volume_flux = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.HEAT_FLUX, 0))
         integrand = -transport_scalar_volume_flux*transport_scalar
-        self.functionals[8] = np.dot(integrand, self.nodal_domain_sizes)
+        self.transport_functionals[5] = np.dot(integrand, self.nodal_domain_sizes)
         if _CheckIsDistributed():
-            self.functionals[8] = self.MpiSynchronizeLocalValue(self.functionals[8])
+            self.transport_functionals[5] = self.MpiSynchronizeLocalValue(self.transport_functionals[5])
         if (self.first_iteration):
-            self.initial_functionals_values[8] = self.functionals[8]
+            self.initial_transport_functionals_values[5] = self.transport_functionals[5]
         if (print_functional):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional (no weight): " + str(self.functionals[8]))
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional (no weight): " + str(self.transport_functionals[5]))
         else:
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional")
 
