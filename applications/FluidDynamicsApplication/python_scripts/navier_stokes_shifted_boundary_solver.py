@@ -31,19 +31,20 @@ class ShiftedBoundaryFormulation(object):
 
     def _SetUpShiftedBoundaryWeaklyCompressibleNavierStokes(self, formulation_settings):
         default_settings = KM.Parameters(r"""{
-            "element_type"                 : "shifted_boundary_weakly_compressible_navier_stokes",
-            "boundary_model_parts"         : [],
-            "enclosed_areas"               : [],
-            "slip_length"                  : 1.0e8,
-            "charact_length"               : 1.0,
-            "penalty_coefficient"          : 10.0,
-            "dynamic_tau"                  : 1.0,
-            "level_set_type"               : "point-based",
-            "extension_operator_type"      : "MLS",
-            "mls_extension_operator_order" : 1,
-            "postprocess_skin_points"      : false,
-            "postprocess_velocity"         : false,
-            "postprocess_pressure"         : false
+            "element_type"                   : "shifted_boundary_weakly_compressible_navier_stokes",
+            "boundary_model_parts"           : [],
+            "enclosed_areas"                 : [],
+            "slip_length"                    : 1.0e8,
+            "charact_length"                 : 1.0,
+            "penalty_coefficient"            : 10.0,
+            "penalty_coefficient_tangential" : 10.0,
+            "dynamic_tau"                    : 1.0,
+            "level_set_type"                 : "point-based",
+            "extension_operator_type"        : "MLS",
+            "mls_extension_operator_order"   : 1,
+            "postprocess_skin_points"        : false,
+            "postprocess_velocity"           : false,
+            "postprocess_pressure"           : false
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
@@ -62,6 +63,7 @@ class ShiftedBoundaryFormulation(object):
 
         self.process_info_data[KM.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
         self.process_info_data[KM.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+        self.process_info_data[KM.PENALTY_COEFFICIENT_TANGENTIAL] = formulation_settings["penalty_coefficient_tangential"].GetDouble()
         self.process_info_data[KM_CFD.SLIP_LENGTH] = formulation_settings["slip_length"].GetDouble()
         self.process_info_data[KM_CFD.EMBEDDED_CHARACT_LENGTH] = formulation_settings["charact_length"].GetDouble()
 
