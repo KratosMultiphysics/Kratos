@@ -16,7 +16,6 @@
 #include <string>
 #include <atomic>
 #include <variant>
-#include <numeric>
 
 // External includes
 #include <span/span.hpp>
@@ -25,7 +24,6 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "intrusive_ptr/intrusive_ptr.hpp"
-#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 
@@ -61,27 +59,7 @@ protected:
 
         Storage(
             ContainerPointerType pContainer,
-            const DenseVector<unsigned int>& rShape)
-            : mpContainer(pContainer),
-            mShape(rShape)
-        {
-            KRATOS_TRY
-
-            KRATOS_ERROR_IF(mShape.empty())
-                << "The tensor data shape cannot be empty. It atleast needs one dimension representing the number of items in the container [ tensor data = "
-                << this->Info() << " ].\n";
-
-            std::visit([this](auto pContainer){
-                KRATOS_ERROR_IF_NOT(mShape[0] == pContainer->size())
-                    << "The value of the first dimension should be equal to the number of items in the pContainer [ container size = "
-                    << pContainer->size() << ", tensor data = " << this->Info() << " ].\n";
-            }, mpContainer);
-
-            // allocate new memory
-            mpData = new TDataType[this->Size()];
-
-            KRATOS_CATCH("");
-        }
+            const DenseVector<unsigned int>& rShape);
 
         /**
          * @brief Destroy the Tensor Adaptor storage
@@ -89,29 +67,13 @@ protected:
          *          the internal data as well if it is still owned by the TensorAdaptorStorage.
          *
          */
-        ~Storage()
-        {
-            if (mpData) {
-                delete[] mpData;
-            }
-        }
+        ~Storage();
 
         ///@}
         ///@name Public operations
         ///@{
 
-        Storage::Pointer Copy() const
-        {
-            auto p_tensor_data = Kratos::make_intrusive<Storage>(this->GetContainer(), this->Shape());
-            const auto& destination_span = p_tensor_data->ViewData();
-            const auto& origin_span = this->ViewData();
-
-            IndexPartition<IndexType>(destination_span.size()).for_each([&destination_span, &origin_span](const auto Index) {
-                destination_span[Index] = origin_span[Index];
-            });
-
-            return p_tensor_data;
-        }
+        Storage::Pointer Copy() const;
 
         /**
          * @brief Moves the internal data.
@@ -121,71 +83,32 @@ protected:
          * @throws If the internal data is already moved.
          * @return Kratos::span<TDataType>  Returns a span containing the internal data.
          */
-        Kratos::span<TDataType> MoveData()
-        {
-            KRATOS_ERROR_IF_NOT(mpData) << "The data is already moved [ " << this->Info() << " ].\n";
-            auto p_data = mpData;
-            mpData = nullptr;
-            return Kratos::span<TDataType>(p_data, p_data + this->Size());
-        }
+        Kratos::span<TDataType> MoveData();
 
         /**
          * @brief Return a view of the internal data structure.
          * @throws If the internal data is already moved.
          */
-        Kratos::span<const TDataType>  ViewData() const
-        {
-            KRATOS_ERROR_IF_NOT(mpData) << "The data is already moved [ " << this->Info() << " ].\n";
-            return Kratos::span<const TDataType>(mpData, mpData + this->Size());
-        }
+        Kratos::span<const TDataType>  ViewData() const;
 
         /**
          * @brief Return a view of the internal data structure.
          * @throws If the internal data is already moved.
          */
-        Kratos::span<TDataType> ViewData()
-        {
-            KRATOS_ERROR_IF_NOT(mpData) << "The data is already moved [ " << this->Info() << " ].\n";
-            return Kratos::span<TDataType>(mpData, mpData + this->Size());
-        }
+        Kratos::span<TDataType> ViewData();
 
-        DenseVector<unsigned int> Shape() const
-        {
-            return mShape;
-        };
+        DenseVector<unsigned int> Shape() const;
 
-        DenseVector<unsigned int> DataShape() const
-        {
-            const auto& shape = this->Shape();
-            DenseVector<unsigned int> data_shape(shape.size() - 1);
-            std::copy(shape.begin() + 1, shape.end(), data_shape.begin());
-            return data_shape;
-        }
-
+        DenseVector<unsigned int> DataShape() const;
 
         /**
          * @brief Total size of the tensor adaptor.
          */
-        unsigned int Size() const
-        {
-            return std::accumulate(mShape.data().begin(), mShape.data().end(), 1, std::multiplies<unsigned int>{});
-        }
+        unsigned int Size() const;
 
-        ContainerPointerType GetContainer() const
-        {
-            return mpContainer;
-        }
+        ContainerPointerType GetContainer() const;
 
-        std::string Info() const
-        {
-            std::stringstream info;
-            std::visit([&info, this](auto pContainer) {
-                using container_type = std::remove_cv_t<std::decay_t<decltype(*pContainer)>>;
-                info << "Storage with " << pContainer->size() << " " << ModelPart::Container<container_type>::GetEntityName() << "(s) with shape = " << this->Shape();
-            }, mpContainer);
-            return info.str();
-        }
-
+        std::string Info() const;
         ///@}
 
 
@@ -239,24 +162,7 @@ public:
 
     TensorAdaptor(
         const TensorAdaptor& rOther,
-        const bool Copy = false)
-    {
-        KRATOS_TRY
-
-        if (!Copy) {
-            this->mpStorage = rOther.mpStorage;
-        } else {
-            this->mpStorage = Kratos::make_intrusive<Storage>(rOther.GetContainer(), rOther.Shape());
-
-            const auto& r_current_span = this->ViewData();
-            const auto& r_origin_span = rOther.ViewData();
-            IndexPartition<IndexType>(rOther.Size()).for_each([&r_current_span, &r_origin_span](const auto Index) {
-                r_current_span[Index] = r_origin_span[Index];
-            });
-        }
-
-        KRATOS_CATCH("");
-    }
+        const bool Copy = false);
 
     virtual ~TensorAdaptor() = default;
 
@@ -270,42 +176,24 @@ public:
      *          only check data from Kratos data structures whether necessary information is there to perform
      *          CollectData and StoreData without any errors.
      */
-    virtual void Check() const
-    {
-        KRATOS_TRY
-
-        // this can check the first dimension of the storage whether it matches with the number of entities in the container.
-
-        // std::visit([](){}, mp)
-
-        KRATOS_CATCH("");
-    }
+    virtual void Check() const;
 
     /**
      * @brief Fill the internal data from Kratos data structures.
      * @details This method should not change anything in the underlying Kratos data structures. It should
      *          only gather data from Kratos data structures to the TensorAdaptor.
      */
-    virtual void CollectData()
-    {
-        KRATOS_ERROR << "Calling TensorAdaptor::CollectData method. This class can only be used for data storage, not to collect or store data.";
-    }
+    virtual void CollectData();
 
     /**
      * @brief Store internal data to the given Kratos data structure.
      */
-    virtual void StoreData()
-    {
-        KRATOS_ERROR << "Calling TensorAdaptor::StoreData method. This class can only be used for data storage, not to collect or store data.";
-    }
+    virtual void StoreData();
 
     /**
      * @brief Get the data container which is associated with the TensorAdaptor.
      */
-    typename Storage::ContainerPointerType GetContainer() const
-    {
-        return mpStorage->GetContainer();
-    }
+    typename Storage::ContainerPointerType GetContainer() const;
 
     /**
      * @brief Moves the internal data.
@@ -315,29 +203,19 @@ public:
      * @throws If the internal data is already moved.
      * @return Kratos::span<TDataType>  Returns a span containing the internal data.
      */
-    Kratos::span<TDataType> MoveData()
-    {
-        return mpStorage->MoveData();
-    }
+    Kratos::span<TDataType> MoveData();
 
     /**
      * @brief Return a view of the internal data structure.
      * @throws If the internal data is already moved.
      */
-    Kratos::span<const TDataType>  ViewData() const
-    {
-        const auto& storage = *mpStorage;
-        return storage.ViewData();
-    }
+    Kratos::span<const TDataType>  ViewData() const;
 
     /**
      * @brief Return a view of the internal data structure.
      * @throws If the internal data is already moved.
      */
-    Kratos::span<TDataType> ViewData()
-    {
-        return mpStorage->ViewData();
-    }
+    Kratos::span<TDataType> ViewData();
 
     /**
      * @brief Get the Shape of the tensor adaptor.
@@ -346,10 +224,7 @@ public:
      *          entities.
      * @return DenseVector<unsigned int>    Shape of the tensor adaptor.
      */
-    DenseVector<unsigned int> Shape() const
-    {
-        return mpStorage->Shape();
-    }
+    DenseVector<unsigned int> Shape() const;
 
     /**
      * @brief Get the shape of the data which the tensor carries for each of the entities.
@@ -359,18 +234,12 @@ public:
      *
      * @return DenseVector<unsigned int>    Shape of the data which is for one entity.
      */
-    DenseVector<unsigned int> DataShape() const
-    {
-        return mpStorage->DataShape();
-    }
+    DenseVector<unsigned int> DataShape() const;
 
     /**
      * @brief Total size of the tensor adaptor.
      */
-    unsigned int Size() const
-    {
-        return mpStorage->Size();
-    }
+    unsigned int Size() const;
 
     ///@}
     ///@name Input and output
@@ -379,10 +248,7 @@ public:
     /**
      * @brief Provides some information about the TensorAdaptor.
      */
-    virtual std::string Info() const
-    {
-        return mpStorage->Info();
-    }
+    virtual std::string Info() const;
 
     ///@}
 
