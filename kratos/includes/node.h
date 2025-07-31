@@ -732,36 +732,6 @@ public:
     }
 
     /**
-     * @brief Get a pointer to the value specified by the variable
-     * @details This method returns a pointer to the value represented by @p rThisVariable.
-     *          If the variable is not found in the database, a @p nullptr is returned.
-     *
-     * @tparam TDataType    Data type of the variable.
-     * @param rThisVariable Variable.
-     * @return TDataType*   Pointer to the data represented by @p rThisVariable.
-     */
-    template<class TVariableType>
-    typename TVariableType::Type* pGetValue(const TVariableType& rThisVariable)
-    {
-        return mData.pGetValue(rThisVariable);
-    }
-
-    /**
-     * @brief Get a pointer to the value specified by the variable
-     * @details This method returns a const pointer to the value represented by @p rThisVariable.
-     *          If the variable is not found in the database, a @p nullptr is returned.
-     *
-     * @tparam TDataType           Data type of the variable.
-     * @param rThisVariable        Variable.
-     * @return TDataType const *   const Pointer to the data represented by @p rThisVariable.
-     */
-    template<class TVariableType>
-    typename TVariableType::Type const * pGetValue(const TVariableType& rThisVariable) const
-    {
-        return mData.pGetValue(rThisVariable);
-    }
-
-    /**
      * @brief Get the the data value if existing or create the value for a given @p rThisVariable.
      * @details This method returns a reference to a value represented by @p rThisVariable from the
      *          database. If the @p rThisVariable is not found, then a new value is created using
