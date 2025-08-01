@@ -600,6 +600,18 @@ private:
     const InterfaceElement mULineInterfacePlaneStrainElement3Plus3N{
         0, Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
         std::make_unique<Line2DInterfaceStressState>()};
+    const InterfaceElement mUSurfaceInterfaceElement3Plus3N{
+        0, Kratos::make_shared<InterfaceGeometry<Triangle3D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
+        std::make_unique<SurfaceInterfaceStressState>()};
+    const InterfaceElement mUSurfaceInterfaceElement4Plus4N{
+        0, Kratos::make_shared<InterfaceGeometry<Quadrilateral3D4<NodeType>>>(Element::GeometryType::PointsArrayType(8)),
+        std::make_unique<SurfaceInterfaceStressState>()};
+    const InterfaceElement mUSurfaceInterfaceElement6Plus6N{
+        0, Kratos::make_shared<InterfaceGeometry<Triangle3D6<NodeType>>>(Element::GeometryType::PointsArrayType(12)),
+        std::make_unique<SurfaceInterfaceStressState>()};
+    const InterfaceElement mUSurfaceInterfaceElement8Plus8N{
+        0, Kratos::make_shared<InterfaceGeometry<Quadrilateral3D8<NodeType>>>(Element::GeometryType::PointsArrayType(16)),
+        std::make_unique<SurfaceInterfaceStressState>()};
 
     // Updated-Lagrangian elements:
     const UPwUpdatedLagrangianElement<2, 3> mUPwUpdatedLagrangianElement2D3N{
