@@ -1,0 +1,96 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+
+// System includes
+
+// External includes
+
+// Project includes
+#include "iga_application_variables.h"
+
+// Include base h
+#include "active_shell_element_dofs_assignment_process.h"
+
+namespace Kratos
+{
+
+ActiveShellElementDofAssignmentProcess::ActiveShellElementDofAssignmentProcess(
+    Model& rModel,
+    Parameters ThisParameters)
+    : mrModel(rModel)
+{
+    KRATOS_TRY
+
+    ThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
+
+    mIgaModelPartName = ThisParameters["iga_model_part_name"].GetString();
+    mActiveShellDofModelPartName = ThisParameters["active_shell_model_part_name"].GetString();
+
+    KRATOS_CATCH("");
+}
+ 
+void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
+{
+    KRATOS_TRY
+
+    auto& r_iga_model_part = mrModel.GetModelPart(mIgaModelPartName);
+
+    KRATOS_ERROR_IF(mrModel.HasModelPart(mActiveShellDofModelPartName))
+        << "Already have a model part named " << mActiveShellDofModelPartName << ".\n";
+
+    auto& r_active_shell_mp = mrModel.CreateModelPart(mActiveShellDofModelPartName);
+    r_active_shell_mp.AddNodalSolutionStepVariable(ACTIVE_SHELL_ALPHA);
+    r_active_shell_mp.AddNodalSolutionStepVariable(ACTIVE_SHELL_BETA);
+    r_active_shell_mp.AddNodalSolutionStepVariable(ACTIVE_SHELL_GAMMA);
+    r_active_shell_mp.AddNodalSolutionStepVariable(ACTIVE_SHELL_KAPPA_1);
+    r_active_shell_mp.AddNodalSolutionStepVariable(ACTIVE_SHELL_KAPPA_2);
+    r_active_shell_mp.AddNodalSolutionStepVariable(ACTIVE_SHELL_KAPPA_12);
+
+
+
+    for (auto& r_element : r_iga_model_part.Elements()) {
+        auto& r_geometry = r_element.GetGeometry().GetGeometryParent(0);
+        if (!r_geometry.Has(ACTIVE_SHELL_NODE_GP)) {
+            const auto& r_center = r_geometry.Center();
+            auto p_active_shell_node = r_active_shell_mp.CreateNewNode(r_geometry.Id(), r_center[0], r_center[1], r_center[2]);
+
+            p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA) = 1.0;
+
+            GlobalPointersVector<Node> nodes;
+            nodes.push_back(p_active_shell_node);
+            r_geometry.SetValue(ACTIVE_SHELL_NODE_GP, nodes);
+        }
+    }
+
+    for (auto& r_node : r_active_shell_mp.Nodes()) {
+        r_node.AddDof(ACTIVE_SHELL_ALPHA);
+        r_node.AddDof(ACTIVE_SHELL_BETA);
+        r_node.AddDof(ACTIVE_SHELL_GAMMA);
+        r_node.AddDof(ACTIVE_SHELL_KAPPA_1);
+        r_node.AddDof(ACTIVE_SHELL_KAPPA_2);
+        r_node.AddDof(ACTIVE_SHELL_KAPPA_12);
+    }
+
+    std::cout << "Created " << r_active_shell_mp.NumberOfNodes() << " active shell nodes" << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+const Parameters ActiveShellElementDofAssignmentProcess::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "iga_model_part_name"         : "",
+        "active_shell_model_part_name": ""
+    })" );
+    return default_parameters;
+}
+
+}  // namespace Kratos.

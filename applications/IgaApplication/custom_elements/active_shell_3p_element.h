@@ -170,6 +170,8 @@ public:
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Obligatory KRATOS Operations
     ///@{
@@ -563,6 +565,8 @@ private:
     ///@}
     ///@name Geometrical Functions
     ///@{
+
+    void InitializeActiveShellDofs();
 
     void CalculateHessian(
         Matrix& Hessian,

@@ -35,12 +35,14 @@ namespace Kratos
         const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
         //CHECKLEO - temporary predefined actuation variables
-        mACTUATION_ALPHA = 0.0; 
-        mACTUATION_BETA = 0.5;
-        mACTUATION_GAMMA = 0.0;
-        mACTUATION_KAPPA_1 = 0.0;
-        mACTUATION_KAPPA_2 = 0.0;
-        mACTUATION_KAPPA_12 = 0.0;
+        // mACTUATION_ALPHA = 0.0; 
+        // mACTUATION_BETA = 0.0;
+        // mACTUATION_GAMMA = 0.5;
+        // mACTUATION_KAPPA_1 = 0.0;
+        // mACTUATION_KAPPA_2 = 0.0;
+        // mACTUATION_KAPPA_12 = 0.0;
+
+        InitializeActiveShellDofs();
 
         // Prepare memory
         if (m_A_ab_covariant_vector.size() != r_number_of_integration_points)
@@ -310,6 +312,31 @@ namespace Kratos
     ///@}
     ///@name Assembly
     ///@{
+
+    void ActiveShell3pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+    {
+        InitializeActiveShellDofs();
+    }    
+
+    void ActiveShell3pElement::InitializeActiveShellDofs()
+    {
+        const Node& r_active_shell_node = GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
+
+        mACTUATION_ALPHA = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA); 
+        mACTUATION_BETA = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_BETA); 
+        mACTUATION_GAMMA = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_GAMMA); 
+        mACTUATION_KAPPA_1 = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_1); 
+        mACTUATION_KAPPA_2 = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_2); 
+        mACTUATION_KAPPA_12 = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12);         
+
+        // for output purpose
+        GetGeometry().GetGeometryParent(0).SetValue(ACTIVE_SHELL_ALPHA, r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA)); 
+        GetGeometry().GetGeometryParent(0).SetValue(ACTIVE_SHELL_BETA, r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_BETA)); 
+        GetGeometry().GetGeometryParent(0).SetValue(ACTIVE_SHELL_GAMMA, r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_GAMMA)); 
+        GetGeometry().GetGeometryParent(0).SetValue(ACTIVE_SHELL_KAPPA_1, r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_1)); 
+        GetGeometry().GetGeometryParent(0).SetValue(ACTIVE_SHELL_KAPPA_2, r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_2)); 
+        GetGeometry().GetGeometryParent(0).SetValue(ACTIVE_SHELL_KAPPA_12, r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12));        
+    }
 
     void ActiveShell3pElement::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
