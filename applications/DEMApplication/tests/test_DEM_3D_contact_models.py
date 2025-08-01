@@ -24,21 +24,22 @@ class ContactModels3DTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
         super().Finalize()
 
     def CompareResults(self):
-        ref = self.GetReferenceResults()
         node = 335
         tol = 1e-5
+        ref = self.GetReferenceResults()
+        f_ref = ref["force"]
+        t_ref = ref["torque"]
         f = self.spheres_model_part.GetNode(node).GetSolutionStepValue(DEMApplication.CONTACT_FORCES)
         t = self.spheres_model_part.GetNode(node).GetSolutionStepValue(DEMApplication.PARTICLE_MOMENT)
         #print(self.DEM_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString())
         #print("Force:  [{:.15f}, {:.15f}, {:.15f}]".format(f[0],f[1],f[2]))
         #print("Moment: [{:.15f}, {:.15f}, {:.15f}]".format(t[0],t[1],t[2]))
-
-        self.assertLess(abs(f[0] - ref["force"][0]) / ref["force"][0], tol)
-        self.assertLess(abs(f[1] - ref["force"][1]) / ref["force"][1], tol)
-        self.assertLess(abs(f[2] - ref["force"][2]) / ref["force"][2], tol)
-        self.assertLess(abs(t[0] - ref["torque"][0]) / ref["torque"][0], tol)
-        self.assertLess(abs(t[1] - ref["torque"][1]) / ref["torque"][1], tol)
-        self.assertLess(abs(t[2] - ref["torque"][2]) / ref["torque"][2], tol)
+        self.assertLess(abs((f[0]-f_ref[0])/f_ref[0]) if f_ref[0] != 0 else abs(f[0]-f_ref[0]), tol)
+        self.assertLess(abs((f[1]-f_ref[1])/f_ref[1]) if f_ref[1] != 0 else abs(f[1]-f_ref[1]), tol)
+        self.assertLess(abs((f[2]-f_ref[2])/f_ref[2]) if f_ref[2] != 0 else abs(f[2]-f_ref[2]), tol)
+        self.assertLess(abs((t[0]-t_ref[0])/t_ref[0]) if t_ref[0] != 0 else abs(t[0]-t_ref[0]), tol)
+        self.assertLess(abs((t[1]-t_ref[1])/t_ref[1]) if t_ref[1] != 0 else abs(t[1]-t_ref[1]), tol)
+        self.assertLess(abs((t[2]-t_ref[2])/t_ref[2]) if t_ref[2] != 0 else abs(t[2]-t_ref[2]), tol)
 
     def GetReferenceResults(self):
         materials_filename = self.DEM_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
