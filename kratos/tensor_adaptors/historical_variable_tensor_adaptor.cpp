@@ -113,16 +113,12 @@ void HistoricalVariableTensorAdaptor::Check() const
 {
     KRATOS_TRY
 
+    BaseType::Check();
+
     std::visit([this](auto pContainer, auto pVariable) {
         using container_type = BareType<decltype(*pContainer)>;
 
         if constexpr(IsInList<container_type, ModelPart::NodesContainerType>) {
-            const auto& r_tensor_shape = this->Shape();
-
-            KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
-                << "Underlying container of the tensor data has changed size [ tensor data = "
-                << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
-
             // first check if the variable is there, and step index is valid
             // This check is done every time CollectData or StoreData is called
             // because, the PointerVectorSet which the Storage holds

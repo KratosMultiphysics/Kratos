@@ -168,6 +168,13 @@ void TensorAdaptor<TDataType>::Check() const
 {
     KRATOS_TRY
 
+    std::visit([this](auto pContainer) {
+        const auto& r_tensor_shape = this->Shape();
+        KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
+            << "The underlying container size mismatch with the first dimension of the tensor shape "
+            << "[ tensor = " << *this << " ].\n";
+    }, this->GetContainer());
+
     KRATOS_CATCH("");
 }
 

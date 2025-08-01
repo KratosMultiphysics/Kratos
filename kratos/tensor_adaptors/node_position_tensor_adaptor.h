@@ -62,8 +62,6 @@ public:
     ///@name Public operations
     ///@{
 
-    void Check() const override;
-
     /**
      * @brief Fill the internal data from Kratos data structures
      */

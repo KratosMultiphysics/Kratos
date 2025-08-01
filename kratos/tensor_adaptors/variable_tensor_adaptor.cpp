@@ -76,13 +76,9 @@ void VariableTensorAdaptor::Check() const
 {
     KRATOS_TRY
 
+    BaseType::Check();
+
     std::visit([this](auto pContainer, auto pVariable) {
-        const auto& r_tensor_shape = this->Shape();
-
-        KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
-            << "Underlying container of the tensor data has changed size [ tensor data = "
-            << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
-
         block_for_each(*pContainer, [&pVariable](const auto& rEntity) {
             KRATOS_ERROR_IF_NOT(rEntity.Has(*pVariable))
                 << "The entity with id = " << rEntity.Id() << " does not have the variable " << pVariable->Name() << ".\n";
@@ -159,7 +155,7 @@ void VariableTensorAdaptor::StoreData()
             ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
                 *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
                 r_tensor_shape.data().begin() + r_tensor_shape.size(),
-                [pVariable, &zero](auto& rEntity) -> auto& {
+                [pVariable](auto& rEntity) -> auto& {
                     // -------------------------------------------------------------
                     // with the PR #13685, we can reduce the 3 lookups per entity
                     // to 1 lookup.

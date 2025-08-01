@@ -31,11 +31,34 @@ namespace Kratos {
 ///@{
 
 template<class TDataType>
+/**
+ * @class TensorAdaptor
+ * @brief Provides an abstraction for managing tensor data associated with Kratos ModelPart containers.
+ *
+ * @details The TensorAdaptor class is designed to facilitate the storage, retrieval, and manipulation of tensor data
+ *          linked to various Kratos ModelPart containers (such as nodes, elements, conditions, etc.). It encapsulates
+ *          mechanisms for safe memory management, including reference counting via intrusive pointers, and provides
+ *          interfaces for copying, moving, and viewing internal tensor data. The class also supports querying the shape
+ *          and size of the tensor, as well as collecting and storing data from/to Kratos data structures.
+ *
+ * @tparam TDataType The type of the data stored in the tensor adaptor.
+ */
 class KRATOS_API(KRATOS_CORE) TensorAdaptor {
 protected:
     ///@name Class definitions
     ///@{
 
+    /**
+     * @class Storage
+     * @brief Manages the storage and lifetime of tensor adaptor data associated with various Kratos ModelPart containers.
+     *
+     * The Storage class encapsulates a pointer to a container (such as nodes, elements, conditions, etc.) and manages
+     * the associated tensor data. It provides mechanisms for copying, moving, and viewing the internal data, as well as
+     * querying the shape and size of the tensor. Reference counting is implemented for safe memory management using
+     * intrusive pointers.
+     *
+     * @tparam TDataType The type of the data stored in the tensor adaptor.
+     */
     class Storage
     {
     public:
@@ -73,6 +96,12 @@ protected:
         ///@name Public operations
         ///@{
 
+        /**
+         * @brief Creates a copy of the current storage object.
+         * @details This method returns a pointer to a new Storage object that is having copied data and copied
+         *          pointer to the container.
+         * @return Storage::Pointer A pointer to the copied Storage object.
+         */
         Storage::Pointer Copy() const;
 
         /**
@@ -97,17 +126,46 @@ protected:
          */
         Kratos::span<TDataType> ViewData();
 
+        /**
+         * @brief Returns the shape of the tensor as a dense vector of unsigned integers.
+         * @details This function provides the dimensions of the tensor, where each element in the returned
+         *          DenseVector corresponds to the size of the tensor in that particular dimension. First
+         *          dimension always represents how many entities are in the container.
+         *
+         * @return DenseVector<unsigned int> A vector containing the size of each dimension of the tensor.
+         */
         DenseVector<unsigned int> Shape() const;
 
+        /**
+         * @brief Returns the shape of the underlying tensor data as a dense vector.
+         * @details This method returns the shape of the data which may be collected and stored
+         *          in each entity of the specified container. This is always one dimension less
+         *          than the @ref Storage::Shape method.
+         * @return DenseVector<unsigned int> A vector containing the dimensions of the tensor.
+         */
         DenseVector<unsigned int> DataShape() const;
 
+
         /**
-         * @brief Total size of the tensor adaptor.
+         * @brief Returns the number of elements in the tensor adaptor.
+         * @return The size as an unsigned integer.
          */
         unsigned int Size() const;
 
+        /**
+         * @brief Returns a pointer to the underlying container.
+         * @details This method provides access to the internal container used by the tensor adaptor.
+         *          The returned pointer allows read-only operations on the container.
+         *
+         * @return ContainerPointerType Pointer to the underlying container.
+         */
         ContainerPointerType GetContainer() const;
 
+
+        /**
+         * @brief Returns a string containing information about the tensor adaptor.
+         * @return A std::string with descriptive information about the current state or properties of the tensor adaptor.
+         */
         std::string Info() const;
         ///@}
 

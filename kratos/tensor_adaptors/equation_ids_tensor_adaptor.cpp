@@ -76,21 +76,6 @@ EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(
                         *pContainer, r_getter));
 }
 
-void EquationIdsTensorAdaptor::Check() const
-{
-    std::visit([this](auto pContainer) {
-        using container_type = BareType<decltype(*pContainer)>;
-
-        if constexpr(IsInList<container_type, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>) {
-            const auto& tensor_shape = this->Shape();
-
-            KRATOS_ERROR_IF_NOT(tensor_shape[0] == pContainer->size())
-                << "Underlying container of the tensor data has changed size [ tensor data = "
-                << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
-        }
-    }, this->mpStorage->GetContainer());
-}
-
 void EquationIdsTensorAdaptor::CollectData()
 {
     KRATOS_TRY

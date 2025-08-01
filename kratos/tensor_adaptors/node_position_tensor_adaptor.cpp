@@ -78,22 +78,6 @@ NodePositionTensorAdaptor::NodePositionTensorAdaptor(
     KRATOS_CATCH("");
 }
 
-void NodePositionTensorAdaptor::Check() const
-{
-    KRATOS_TRY
-
-    std::visit([this](auto pContainer) {
-        const auto& r_tensor_shape = this->Shape();
-
-        KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
-            << "Underlying container of the tensor data has changed size [ tensor data = "
-            << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
-
-    }, this->mpStorage->GetContainer());
-
-    KRATOS_CATCH("");
-}
-
 void NodePositionTensorAdaptor::CollectData()
 {
     KRATOS_TRY
