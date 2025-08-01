@@ -28,12 +28,14 @@ public:
                       std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws,
                       std::function<Vector()>                        GetIntegrationCoefficients,
                       std::function<Vector(const Variable<double>&)> GetNodalValuesOf,
-                      std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients)
+                      std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients,
+                      std::function<std::vector<double>()> GetFluidPressures)
             : GetElementProperties(std::move(GetElementProperties)),
               GetRetentionLaws(std::move(GetRetentionLaws)),
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
               GetNodalValues(std::move(GetNodalValuesOf)),
-              GetShapeFunctionGradients(std::move(GetShapeFunctionGradients))
+              GetShapeFunctionGradients(std::move(GetShapeFunctionGradients)),
+              GetFluidPressures(std::move(GetFluidPressures))
         {
         }
 
@@ -42,6 +44,7 @@ public:
         std::function<Vector()>                                      GetIntegrationCoefficients;
         std::function<Vector(const Variable<double>&)>               GetNodalValues;
         std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients;
+        std::function<std::vector<double>()>                         GetFluidPressures;
     };
 
     explicit PermeabilityCalculator(InputProvider InputProvider);

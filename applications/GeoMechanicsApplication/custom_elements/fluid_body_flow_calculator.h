@@ -32,14 +32,16 @@ public:
                       std::function<Vector()>              GetIntegrationCoefficients,
                       std::function<std::vector<Vector>()> GetProjectedGravityAtIntegrationPoints,
                       std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients,
-                      std::function<std::size_t()> GetLocalSpaceDimension)
+                      std::function<std::size_t()>                   GetLocalSpaceDimension,
+                      std::function<std::vector<double>()>           GetFluidPressures)
 
             : GetElementProperties(std::move(GetElementProperties)),
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
               GetProjectedGravityAtIntegrationPoints(std::move(GetProjectedGravityAtIntegrationPoints)),
               GetRetentionLaws(std::move(GetRetentionLaws)),
               GetShapeFunctionGradients(std::move(GetShapeFunctionGradients)),
-              GetLocalSpaceDimension(std::move(GetLocalSpaceDimension))
+              GetLocalSpaceDimension(std::move(GetLocalSpaceDimension)),
+              GetFluidPressures(std::move(GetFluidPressures))
         {
         }
 
@@ -49,6 +51,7 @@ public:
         std::function<const std::vector<RetentionLaw::Pointer>&()>   GetRetentionLaws;
         std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients;
         std::function<std::size_t()>                                 GetLocalSpaceDimension;
+        std::function<std::vector<double>()>                         GetFluidPressures;
     };
 
     explicit FluidBodyFlowCalculator(InputProvider AnInputProvider);
@@ -59,6 +62,7 @@ public:
 
 private:
     InputProvider mInputProvider;
+    std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const;
 };
 
 } // namespace Kratos
