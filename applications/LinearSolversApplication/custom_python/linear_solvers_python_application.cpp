@@ -42,7 +42,7 @@ PYBIND11_MODULE(KratosLinearSolversApplication, m)
 #else
         return false;
 #endif
-        });
+        }, "Return true if Kratos was compiled with MKL support. False otherwise.");
 
     m.def("HasFEAST", []() {
 #if defined(USE_EIGEN_FEAST)
@@ -50,7 +50,16 @@ PYBIND11_MODULE(KratosLinearSolversApplication, m)
 #else
         return false;
 #endif
-        });
+        }, "Return true if Kratos was compiled with FEAST support. False otherwise.");
+
+    m.def("HasSuiteSparse",
+          [](){
+              #ifdef KRATOS_USE_EIGEN_SUITESPARSE
+                  return true;
+              #else
+                  return false;
+              #endif
+          }, "Return true if Kratos was compiled with SuiteSparse support. False otherwise.");
 }
 
 } // namespace Python
