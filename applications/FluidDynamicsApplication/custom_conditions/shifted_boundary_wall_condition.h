@@ -328,37 +328,31 @@ protected:
     /**
      * This function computes the penalty coefficients for the Nitsche tangential imposition
      * @param SlipLength slip length for Navier-slip (zero for no-slip)
-     * @param GammaTang Nitsche penalty coefficient (gamma)
-     * @param CharactLength Characteristic length of the problem
+     * @param Gamma Nitsche penalty coefficient (gamma)
+     * @param GammaShear Nitsche penalty coefficient for slip (gamma)
      * @param ParentSize size/ volume of the parent element
      * @param EffectiveViscosity effective viscosity
      * @return a pair of double containing the two coefficients
      */
     std::pair<const double, const double> ComputeSlipTangentialPenaltyCoefficients(
-        const Vector& rN,
         const double SlipLength,
-        const double DeltaTime,
-        const double GammaTang,
-        const double CharactLength,
+        const double Gamma,
+        const double GammaShear,
         const double ParentSize,
         const double EffectiveViscosity) const;
 
     /**
      * This function computes the Nitsche coefficients for the Nitsche tangential imposition
      * @param SlipLength slip length for Navier-slip (zero for no-slip)
-     * @param GammaTang Nitsche penalty coefficient (gamma)
+     * @param GammaShear Nitsche penalty coefficient (gamma)
      * @param CharactLength Characteristic length of the problem
-     * @param ParentSize size/ volume of the parent element
      * @param EffectiveViscosity effective viscosity
      * @return a pair of double containing the two coefficients
      */
     std::pair<const double, const double> ComputeSlipTangentialNitscheCoefficients(
-        const Vector& rN,
         const double SlipLength,
-        const double DeltaTime,
-        const double GammaTang,
+        const double GammaShear,
         const double CharactLength,
-        const double ParentSize,
         const double EffectiveViscosity) const;
 
     ///@}
