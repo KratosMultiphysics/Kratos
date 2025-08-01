@@ -24,6 +24,7 @@
 #include "includes/kratos_application.h"
 #include "custom_searching/interface_object.h"
 #include "custom_modelers/mapping_geometries_modeler.h"
+#include "custom_modelers/iga_fem_mapping_geometries_modeler.h"
 
 /// @brief Helper method to initialize the application when loading the library directly
 /// @return An application instance
@@ -189,6 +190,7 @@ private:
     const InterfaceGeometryObject   mInterfaceGeometryObject;
 
     const MappingGeometriesModeler  mMappingGeometriesModeler;
+    const IgaFEMMappingGeometriesModeler  mIgaFEMMappingGeometriesModeler;
 
     ///@}
     ///@name Private Operators
