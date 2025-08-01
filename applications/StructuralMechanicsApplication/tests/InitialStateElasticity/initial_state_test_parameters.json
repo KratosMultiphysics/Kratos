@@ -87,10 +87,7 @@
     },
     "_json_output_process" : [
     {
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
+        "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
         "Parameters"            : {
             "gauss_points_output_variables" : ["GREEN_LAGRANGE_STRAIN_VECTOR","CAUCHY_STRESS_VECTOR"],
             "output_file_name"              : "InitialStateElasticity/initial_state_test_results.json",
