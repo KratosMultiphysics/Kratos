@@ -32,7 +32,7 @@ namespace Kratos
         // Determine max wall slope
         double slope_max = -DBL_MAX;
 
-        for (unsigned int i = 0; i < mNumWallElems; i++) {
+        for (int i = 0; i < mNumWallElems; i++) {
             ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
             DEMWall *p_wall = dynamic_cast<DEMWall *>(&(*it));
             Condition::GeometryType &geom = p_wall->GetGeometry();
@@ -57,7 +57,7 @@ namespace Kratos
         double intersect_xmin = DBL_MAX;
         double intersect_ymin = DBL_MAX;
 
-        for (unsigned int i = 0; i < mNumWallElems; i++) {
+        for (int i = 0; i < mNumWallElems; i++) {
             ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
             DEMWall *p_wall = dynamic_cast<DEMWall *>(&(*it));
             Condition::GeometryType &geom = p_wall->GetGeometry();
@@ -93,7 +93,7 @@ namespace Kratos
         }
 
         // Determine on which side (negative or positive) of X walls the elements are located
-        for (unsigned int i = 0; i < wall_elems_x.size(); i++) {
+        for (int i = 0; i < wall_elems_x.size(); i++) {
             Condition::GeometryType &geom = wall_elems_x[i]->GetGeometry();
 
             // Element end coordinates
@@ -114,7 +114,7 @@ namespace Kratos
         }
 
         // Determine on which side (negative or positive) of Y walls the elements are located
-        for (unsigned int i = 0; i < wall_elems_y.size(); i++) {
+        for (int i = 0; i < wall_elems_y.size(); i++) {
             Condition::GeometryType &geom = wall_elems_y[i]->GetGeometry();
 
             // Element end coordinates
@@ -172,30 +172,30 @@ namespace Kratos
             }
         }
 
-        for (unsigned int i = 0; i < mWallXMin.size(); i++) {
+        for (int i = 0; i < mWallXMin.size(); i++) {
             DEMWall *p_wall = mWallXMin[i];
-            for (unsigned int j = 0; j < p_wall->GetGeometry().size(); j++) {
+            for (int j = 0; j < p_wall->GetGeometry().size(); j++) {
                 array_1d<double, 3> &wall_velocity = p_wall->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
                 noalias(wall_velocity) = array_1d<double, 3>({vx, 0.0, 0.0});
             }
         }
-        for (unsigned int i = 0; i < mWallXMax.size(); i++) {
+        for (int i = 0; i < mWallXMax.size(); i++) {
             DEMWall *p_wall = mWallXMax[i];
-            for (unsigned int j = 0; j < p_wall->GetGeometry().size(); j++) {
+            for (int j = 0; j < p_wall->GetGeometry().size(); j++) {
                 array_1d<double, 3> &wall_velocity = p_wall->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
                 noalias(wall_velocity) = array_1d<double, 3>({-vx, 0.0, 0.0});
             }
         }
-        for (unsigned int i = 0; i < mWallYMin.size(); i++) {
+        for (int i = 0; i < mWallYMin.size(); i++) {
             DEMWall *p_wall = mWallYMin[i];
-            for (unsigned int j = 0; j < p_wall->GetGeometry().size(); j++) {
+            for (int j = 0; j < p_wall->GetGeometry().size(); j++) {
                 array_1d<double, 3> &wall_velocity = p_wall->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
                 noalias(wall_velocity) = array_1d<double, 3>({0.0, vy, 0.0});
             }
         }
-        for (unsigned int i = 0; i < mWallYMax.size(); i++) {
+        for (int i = 0; i < mWallYMax.size(); i++) {
             DEMWall *p_wall = mWallYMax[i];
-            for (unsigned int j = 0; j < p_wall->GetGeometry().size(); j++) {
+            for (int j = 0; j < p_wall->GetGeometry().size(); j++) {
                 array_1d<double, 3> &wall_velocity = p_wall->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
                 noalias(wall_velocity) = array_1d<double, 3>({0.0, -vy, 0.0});
             }
@@ -230,7 +230,7 @@ namespace Kratos
             // Determine min/max X coordinates of lower horizontal (Ymin) wall
             double ymin_x_min =  DBL_MAX;
             double ymin_x_max = -DBL_MAX;
-            for (unsigned int i = 0; i < mWallYMin.size(); i++) {
+            for (int i = 0; i < mWallYMin.size(); i++) {
                 Condition::GeometryType& geom = mWallYMin[i]->GetGeometry();
                 const double ymin_x1 = geom[0][0];
                 const double ymin_x2 = geom[1][0];
@@ -315,7 +315,7 @@ namespace Kratos
     //------------------------------------------------------------------------------------------------------------
     // Process and sum up global RVE results accumulated from individual particle and interaction contributions.
     void RVEWallBoundary2D::ProcessGlobalResults(void) {
-        for (unsigned int i = 0; i < mNumParticles; i++) {
+        for (int i = 0; i < mNumParticles; i++) {
             ModelPart::ElementsContainerType::iterator it = mDemModelPart->GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
             SphericParticle &particle = dynamic_cast<SphericParticle&>(*it);
 
@@ -333,15 +333,9 @@ namespace Kratos
             mVolSolidInner += ComputeVolumeParticleInner(particle);
 
             // Loop over contacts with walls
-            for (unsigned int j = 0; j < particle.mNeighbourRigidFaces.size(); j++) {
-                // Neighbor properties
-                const int id2 = particle.mNeighbourRigidFaces[j]->GetId();
-                const double x2 = particle.mNeighbourRigidFaces[j]->GetGeometry()[0][0];
-                const double y2 = particle.mNeighbourRigidFaces[j]->GetGeometry()[0][1];
-                const double x3 = particle.mNeighbourRigidFaces[j]->GetGeometry()[1][0];
-                const double y3 = particle.mNeighbourRigidFaces[j]->GetGeometry()[1][1];
-
+            for (int j = 0; j < particle.mNeighbourRigidFaces.size(); j++) {
                 // Check for valid existing contact
+                const int id2 = particle.mNeighbourRigidFaces[j]->GetId();
                 if (particle.mBallToRigidFaceStoredInfo.find(id2) == particle.mBallToRigidFaceStoredInfo.end() ||
                     particle.mBallToRigidFaceStoredInfo[id2].indentation <= 0.0)
                     continue;
@@ -372,8 +366,8 @@ namespace Kratos
                 mContactChain.insert(mContactChain.end(), chain.begin(), chain.end());
 
                 // Tensors
-                for (unsigned int k = 0; k < mDim; k++) {
-                    for (unsigned int l = 0; l < mDim; l++) {
+                for (int k = 0; k < mDim; k++) {
+                    for (int l = 0; l < mDim; l++) {
                         mFabricTensor(k,l) += normal[k] * normal[l];
                         mStressTensor(k,l) += branch[k] * force[l];
                     }
@@ -384,7 +378,7 @@ namespace Kratos
             }
 
             // Loop over contacts with particles
-            for (unsigned int j = 0; j < particle.mNeighbourElements.size(); j++) {
+            for (int j = 0; j < particle.mNeighbourElements.size(); j++) {
                 // Neighbor properties
                 const int id2 = particle.mNeighbourElements[j]->GetId();
                 const double r2 = particle.mNeighbourElements[j]->GetRadius();
@@ -432,8 +426,8 @@ namespace Kratos
                     mContactChain.insert(mContactChain.end(), chain.begin(), chain.end());
 
                     // Tensors
-                    for (unsigned int k = 0; k < mDim; k++) {
-                        for (unsigned int l = 0; l < mDim; l++) {
+                    for (int k = 0; k < mDim; k++) {
+                        for (int l = 0; l < mDim; l++) {
                             mFabricTensor(k,l) += normal[k] * normal[l];
                             mStressTensor(k,l) += branch[k] * force[l];
                             if (is_inner_contact) {
@@ -769,7 +763,7 @@ namespace Kratos
         mFileParticleResults << "STEP: " << r_process_info[TIME_STEPS] << std::endl
                              << "TIME: " << std::scientific << std::setprecision(6) << r_process_info[TIME] << std::endl;
         
-        for (unsigned int i = 0; i < mNumParticles; i++) {
+        for (int i = 0; i < mNumParticles; i++) {
             ModelPart::ElementsContainerType::iterator it = mDemModelPart->GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
             SphericParticle& particle = dynamic_cast<SphericParticle&>(*it);
             const int neighbors_p = particle.mNeighbourElements.size();
@@ -782,13 +776,13 @@ namespace Kratos
                                  << std::setw(14) << std::left << neighbors_p
                                  << std::setw(12) << std::left << neighbors_w;
 
-            for (unsigned int j = 0; j < neighbors_p; j++) {
+            for (int j = 0; j < neighbors_p; j++) {
                 array_1d<double, 3> force = particle.mNeighbourElasticContactForces[j];
                 mFileParticleResults << "   ";
                 mFileParticleResults << std::fixed << std::setprecision(16) << force[0] << " "
                                      << std::fixed << std::setprecision(16) << force[1] << " ";
             }
-            for (unsigned int j = 0; j < neighbors_w; j++) {
+            for (int j = 0; j < neighbors_w; j++) {
                 array_1d<double, 3> force = particle.mNeighbourRigidFacesElasticContactForce[j];
                 mFileParticleResults << "   ";
                 mFileParticleResults << std::fixed << std::setprecision(16) << force[0] << " "
@@ -804,7 +798,7 @@ namespace Kratos
                             << "TIME: " << std::scientific << std::setprecision(6) << r_process_info[TIME] << std::endl;
 
         int count = 0;
-        for (int i = 0; i < mContactChain.size(); i+=9) {
+        for (std::size_t i = 0; i < mContactChain.size(); i+=9) {
             mFileContactResults << std::setw(13) << std::left << ++count
                                 << std::setw(21) << std::left << std::fixed << std::setprecision(16) << mContactChain[i+0] // X1
                                 << std::setw(21) << std::left << std::fixed << std::setprecision(16) << mContactChain[i+1] // Y1
@@ -870,11 +864,11 @@ namespace Kratos
                          << std::setw(14) << std::left << std::scientific << std::setprecision(6) << r_process_info[TIME];
 
         mFileRoseDiagram << "[";
-        for (int i = 0; i < mRoseDiagram.size(); i++) mFileRoseDiagram << std::setw(3) << std::left << mRoseDiagram[i];
+        for (std::size_t i = 0; i < mRoseDiagram.size(); i++) mFileRoseDiagram << std::setw(3) << std::left << mRoseDiagram[i];
         mFileRoseDiagram << "]  ";
         mFileRoseDiagram << std::setw(14) << std::left << std::scientific << std::setprecision(6) << mRoseUnif;
         mFileRoseDiagram << "[";
-        for (int i = 0; i < mRoseDiagramInner.size(); i++) mFileRoseDiagram << std::setw(3) << std::left << mRoseDiagramInner[i];
+        for (std::size_t i = 0; i < mRoseDiagramInner.size(); i++) mFileRoseDiagram << std::setw(3) << std::left << mRoseDiagramInner[i];
         mFileRoseDiagram << "]  ";
         mFileRoseDiagram << std::setw(14) << std::left << std::scientific << std::setprecision(6) << mRoseUnifInner;
         mFileRoseDiagram << std::endl;

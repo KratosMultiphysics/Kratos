@@ -59,7 +59,7 @@ namespace Kratos
     // Full computation of average radius of all particles (should be called only once).
     double RVEUtilities::ComputeAverageRadius(void) {
         double avgRadius = 0.0; 
-        for (unsigned int i = 0; i < mNumParticles; i++) {
+        for (int i = 0; i < mNumParticles; i++) {
             ModelPart::ElementsContainerType::iterator it = mDemModelPart->GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
             SphericParticle& particle = dynamic_cast<SphericParticle&>(*it);
             avgRadius += particle.GetRadius();
@@ -132,8 +132,8 @@ namespace Kratos
         double double_dot_product = 0.0;
         double double_dot_product_inner = 0.0;
 
-        for (unsigned int i = 0; i < mDim; i++) {
-            for (unsigned int j = 0; j < mDim; j++) {
+        for (int i = 0; i < mDim; i++) {
+            for (int j = 0; j < mDim; j++) {
                 mFabricTensor(i,j)      /= mNumContacts;
                 mFabricTensorInner(i,j) /= mNumContactsInner;
                 mStressTensor(i,j)      /= mVolTotal;
@@ -163,8 +163,8 @@ namespace Kratos
         double_dot_product       = 0.0;
         double_dot_product_inner = 0.0;
 
-        for (unsigned int i = 0; i < mDim; i++) {
-            for (unsigned int j = 0; j < mDim; j++) {
+        for (int i = 0; i < mDim; i++) {
+            for (int j = 0; j < mDim; j++) {
                 deviatoric_stress       = (i==j) ? mStressTensor(i,j)      - mEffStress      : mStressTensor(i,j);
                 deviatoric_stress_inner = (i==j) ? mStressTensorInner(i,j) - mEffStressInner : mStressTensorInner(i,j);
                 double_dot_product       += 0.5 * deviatoric_stress       * deviatoric_stress;
@@ -229,11 +229,11 @@ namespace Kratos
         }
 
         ModelPart::ConditionsContainerType &r_conditions = mFemModelPart->GetCommunicator().LocalMesh().Conditions();
-        for (unsigned int i = 0; i < mNumWallElems; i++) {
+        for (int i = 0; i < mNumWallElems; i++) {
             ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
             DEMWall *p_wall = dynamic_cast<DEMWall*>(&(*it));
 
-            for (unsigned int j = 0; j < p_wall->GetGeometry().size(); j++) {
+            for (int j = 0; j < p_wall->GetGeometry().size(); j++) {
                 array_1d<double, 3> &wall_velocity = p_wall->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
                 noalias(wall_velocity) = ZeroVector(3);
             }
@@ -252,13 +252,13 @@ namespace Kratos
 
         // Read and store particle-particle (pp) forces
         if (f_old_elastic_forces_pp) {
-            for (unsigned int i = 0; i < mNumParticles; i++) {
+            for (int i = 0; i < mNumParticles; i++) {
                 ModelPart::ElementsContainerType::iterator it = mDemModelPart->GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
                 SphericParticle& particle = dynamic_cast<SphericParticle&>(*it);
                 int particle_id, n_neighbors;
                 f_old_elastic_forces_pp >> particle_id >> n_neighbors;
 
-                for (unsigned int j = 0; j < n_neighbors; j++) {
+                for (int j = 0; j < n_neighbors; j++) {
                     double fx, fy, fz;
                     f_old_elastic_forces_pp >> fx >> fy >> fz;
                     particle.mNeighbourElasticContactForces[j][0] = fx;
@@ -271,13 +271,13 @@ namespace Kratos
 
         // Read and store particle-wall (pw) forces
         if (f_old_elastic_forces_pw) {
-            for (unsigned int i = 0; i < mNumParticles; i++) {
+            for (int i = 0; i < mNumParticles; i++) {
                 ModelPart::ElementsContainerType::iterator it = mDemModelPart->GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
                 SphericParticle& particle = dynamic_cast<SphericParticle&>(*it);
                 int particle_id, n_neighbors;
                 f_old_elastic_forces_pw >> particle_id >> n_neighbors;
 
-                for (unsigned int j = 0; j < n_neighbors; j++) {
+                for (int j = 0; j < n_neighbors; j++) {
                     double fx, fy, fz;
                     f_old_elastic_forces_pw >> fx >> fy >> fz;
                     particle.mNeighbourRigidFacesElasticContactForce[j][0] = fx;

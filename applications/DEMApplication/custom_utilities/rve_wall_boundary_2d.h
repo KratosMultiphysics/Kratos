@@ -46,8 +46,8 @@ namespace Kratos
             double ComputeVolumeRVE                (void) override;
             double ComputeVolumeRVEInner           (void) override;
             double ComputeSurfaceArea              (void) override;
-            double ComputeFabricIndex              (Matrix fabric_tensor);
-            void   AddContactToRoseDiagram         (std::vector<int>& rose_diagram, std::vector<double>& normal);
+            double ComputeFabricIndex              (Matrix fabric_tensor) override;
+            void   AddContactToRoseDiagram         (std::vector<int>& rose_diagram, std::vector<double>& normal) override;
             void   EvaluateRoseUniformity          (void) override;
 
             void   WriteFileHeadersGlobalResults   (void) override;
