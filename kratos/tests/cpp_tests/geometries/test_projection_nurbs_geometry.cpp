@@ -154,6 +154,24 @@ typedef Node NodeType;
         std::vector<double> projected_point2 = {-4.694701201131293, -3.571229085898834, 0.0};
 
         KRATOS_EXPECT_VECTOR_NEAR(projected_point, projected_point2, TOLERANCE);
+
+        array_1d<double, 3> curve_extreme_point{-9.0, -2.0, 0.0};
+
+        // Initialize projected point
+        array_1d<double, 3> projected_point_extreme = ZeroVector(3);
+
+        // Try projection with initial guess at u = 0.0
+        array_1d<double, 3> parameter_extreme = ZeroVector(3);
+
+        const bool is_converged_extreme = ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(parameter_extreme, curve_extreme_point, projected_point_extreme, curve);
+
+        KRATOS_EXPECT_EQ(is_converged_extreme, true);
+
+        KRATOS_EXPECT_NEAR(parameter_extreme[0], -1.0, TOLERANCE);
+
+        array_1d<double, 3> projected_point_extreme1{-9.0, -2.0, 0.0};
+
+        KRATOS_EXPECT_VECTOR_NEAR(projected_point_extreme, projected_point_extreme1, TOLERANCE);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceGeometryProjection3d, KratosCoreNurbsGeometriesFastSuite) {

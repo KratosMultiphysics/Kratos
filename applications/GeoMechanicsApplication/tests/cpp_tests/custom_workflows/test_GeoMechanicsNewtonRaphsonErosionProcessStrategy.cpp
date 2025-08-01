@@ -52,7 +52,7 @@ TEST_P(ParametrizedDGeoFlowTests, ErosionProcessStrategy)
 
     // Act
     const auto status = execute.ExecuteFlowAnalysis(working_directory, project_file, critical_head_info,
-                                                   "PorousDomain.Left_head", call_back_functions);
+                                                    "PorousDomain.Left_head", call_back_functions);
 
     // Assert
     KRATOS_EXPECT_EQ(status, 0);

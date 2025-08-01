@@ -102,8 +102,8 @@ public:
 
     /**
      * This function performs the actual meshing. The conditions used to define the
-     * surface will be mantained in the final mesh.
-     * The user is expected to prescribe the command line settings to be used accordin to the Tetgen manual.
+     * surface will be maintained in the final mesh.
+     * The user is expected to prescribe the command line settings to be used according to the Tetgen manual.
      * WARNING: please note that YY is needed between the parameters
      * @param settings - string containing the command line settings
      * @param ElementName - name of the type of elements to be created \n

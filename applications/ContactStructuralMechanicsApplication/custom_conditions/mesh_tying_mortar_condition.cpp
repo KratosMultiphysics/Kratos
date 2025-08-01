@@ -405,7 +405,7 @@ bool MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateAe(
     const IntegrationMethod ThisIntegrationMethod
     )
 {
-    // We initilize the Ae components
+    // We initialize the Ae components
     AeData rAeData;
     rAeData.Initialize();
 
@@ -560,7 +560,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalLH
         }
     }
     
-    // Update intial index
+    // Update initial index
     initial_row_index = dof_size * TNumNodesMaster;
 
     // Iterate over the number of dofs on slave side

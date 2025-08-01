@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Michael Andre, https://github.com/msandre
 //
 
-#if !defined(KRATOS_HDF5_TEST_UTILS_H_INCLUDED)
-#define KRATOS_HDF5_TEST_UTILS_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -107,10 +106,12 @@ void CompareConditions(HDF5::ConditionsContainerType& rConditions1, HDF5::Condit
 
 void CompareModelParts(ModelPart& rModelPart1, ModelPart& rModelPart2);
 
-void CompareDataValueContainers(DataValueContainer const& rData1, Flags const& rFlags1, DataValueContainer const& rData2, Flags const& rFlags2);
+void CompareDataValueContainers(const std::vector<std::string>& rFlagNames, DataValueContainer const& rData1, Flags const& rFlags1, DataValueContainer const& rData2, Flags const& rFlags2);
 
-void CompareNonHistoricalNodalData(HDF5::NodesContainerType& rNodes1,
-                                   HDF5::NodesContainerType& rNodes2);
+void CompareNonHistoricalNodalData(
+    const std::vector<std::string>& rFlagNames,
+    HDF5::NodesContainerType& rNodes1,
+    HDF5::NodesContainerType& rNodes2);
 
 HDF5::File::Pointer pGetTestSerialFile();
 
@@ -138,5 +139,3 @@ public:
 
 } // namespace Testing
 } // namespace Kratos.
-
-#endif

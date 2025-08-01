@@ -28,13 +28,14 @@ from test_factory import PlasticDamageTest
 from test_factory import AutomatedInitialDamageTest
 from test_factory import TractionSeparationLawTest
 from test_factory import CurveByPointsPlasticityTest
+from test_factory import PlaneStressJ2Plasticity
 
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
-    Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
+    Populates the test suites to run. At least, it should populate the suites:
+    "small", "nightly" and "all"
 
     Return
     ------
@@ -65,6 +66,7 @@ def AssembleTestSuites():
     smallSuite.addTest(AutomatedInitialDamageTest('test_execution'))
     smallSuite.addTest(TractionSeparationLawTest('test_execution'))
     smallSuite.addTest(CurveByPointsPlasticityTest('test_execution'))
+    smallSuite.addTest(PlaneStressJ2Plasticity('test_execution'))
 
 
     # Create a test suit with the selected tests (Nightly tests):
@@ -78,7 +80,7 @@ def AssembleTestSuites():
     nightSuite.addTest(PlasticDamageTest('test_execution'))
 
     ### Adding Validation Tests
-    # For very long tests that should not be in nighly and you can use to validate
+    # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTest(TensileTestStructuralTest('test_execution'))
 

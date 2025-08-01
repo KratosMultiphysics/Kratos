@@ -154,6 +154,12 @@ public:
     ///@}
     ///@name Friends
     ///@{
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "LaplacianIgaElement #" << Id();
+        return buffer.str();
+    }
 
 
     ///@}

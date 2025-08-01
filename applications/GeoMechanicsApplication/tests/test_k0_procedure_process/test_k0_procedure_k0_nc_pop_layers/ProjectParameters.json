@@ -45,7 +45,6 @@
       {
         "Parameters":    {
           "model_part_name":        "PorousDomain.porous_computational_model_part",
-          "variable_name":          "CAUCHY_STRESS_TENSOR",
           "use_standard_procedure": true
         },
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",

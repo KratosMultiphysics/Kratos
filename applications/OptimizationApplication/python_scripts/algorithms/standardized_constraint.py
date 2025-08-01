@@ -12,8 +12,8 @@ from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 class StandardizedConstraint(ResponseRoutine):
     """Standardized constraint response function
 
-    This class creates instances to standardize any response function for the specified type of the contraint.
-    Supported contraint types:
+    This class creates instances to standardize any response function for the specified type of the constraint.
+    Supported constraint types:
         "=",
         "<",
         "<=,
@@ -104,12 +104,14 @@ class StandardizedConstraint(ResponseRoutine):
 
             if save_value:
                 if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
+                if self.__buffered_data.HasValue("std_value"): del self.__buffered_data["std_value"]
                 self.__buffered_data["value"] = response_value
+                self.__buffered_data["std_value"] = standardized_response_value
 
             DictLogger("Constraint info",self.GetInfo())
 
         return standardized_response_value
-    
+
     def IsActive(self):
         return self.GetStandardizedValue() > 0.0
 
@@ -120,8 +122,8 @@ class StandardizedConstraint(ResponseRoutine):
             if save_field:
                 # save the physical gradients for post processing in unbuffered data container.
                 for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
-                    variable_name = f"d{self.GetResponseName()}_d{physical_var.Name()}"
                     for physical_gradient_expression in physical_gradient.GetContainerExpressions():
+                        variable_name = f"d{self.GetResponseName()}_d{physical_var.Name()}_{physical_gradient_expression.GetModelPart().Name}"
                         if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
                         # cloning is a cheap operation, it only moves underlying pointers
                         # does not create additional memory.
@@ -129,7 +131,7 @@ class StandardizedConstraint(ResponseRoutine):
 
                 # save the filtered gradients for post processing in unbuffered data container.
                 for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
-                    variable_name = f"d{self.GetResponseName()}_d{control.GetName()}"
+                    variable_name = f"d{self.GetResponseName()}_d{control.GetName()}_{physical_gradient_expression.GetModelPart().Name}"
                     if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
                     # cloning is a cheap operation, it only moves underlying pointers
                     # does not create additional memory.

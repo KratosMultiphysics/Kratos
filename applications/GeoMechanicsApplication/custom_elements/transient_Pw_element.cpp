@@ -26,7 +26,8 @@ Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType          
                                                              PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new TransientPwElement(NewId, this->GetGeometry().Create(ThisNodes),
-                                                   pProperties, this->GetStressStatePolicy().Clone()));
+                                                   pProperties, this->GetStressStatePolicy().Clone(),
+                                                   this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -34,8 +35,9 @@ Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType          
                                                              GeometryType::Pointer pGeom,
                                                              PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(
-        new TransientPwElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
+    return Element::Pointer(new TransientPwElement(NewId, pGeom, pProperties,
+                                                   this->GetStressStatePolicy().Clone(),
+                                                   this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -498,7 +500,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(M
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType&       rRightHandSideVector,
                                                              ElementVariables& rVariables,
-                                                             unsigned int      integration_point)
+                                                             unsigned int)
 {
     KRATOS_TRY
 

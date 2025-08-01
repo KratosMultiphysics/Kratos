@@ -21,14 +21,31 @@ class KratosGeoMechanicsRotationWithMovingLoadTests(KratosUnittest.TestCase):
         simulation_output = reader.read_output_from(res_path)
         rotations = simulation_output["results"]["ROTATION"]
 
-        # Validation for Time = 1.0
+        # Validation for Time = 1.0, validate total and incremental rotations also for time 1.5
         rotations_time_1 = reader.get_values_at_time(1.0, rotations)
         rotations_for_node_1 = reader.get_value_at_node(1, rotations_time_1)
 
+        total_rotations_for_node_1_time_1 = reader.nodal_values_at_time("TOTAL_ROTATION", 1,
+                                                                        simulation_output, [1])[0]
+        total_rotations_for_node_1_time_1_5 = reader.nodal_values_at_time("TOTAL_ROTATION", 1.5,
+                                                                          simulation_output, [1])[0]
+
+        incremental_rotations_for_node_1_time_1 = reader.nodal_values_at_time("INCREMENTAL_ROTATION", 1,
+                                                                              simulation_output, [1])[0]
+        incremental_rotations_for_node_1_time_1_5 = reader.nodal_values_at_time("INCREMENTAL_ROTATION", 1.5,
+                                                                                simulation_output, [1])[0]
+
         # This test is a regression test, if rotation is not added to the
         # newmark upw scheme as a variable that needs to be predicted and
-        # updated, the results will be different.
+        # updated, the results will be different. TOTAL_ROTATION should be equal to ROTATION
         self.assertAlmostEqual(-0.000177858, rotations_for_node_1[2])
+
+        self.assertAlmostEqual(-0.000177858, total_rotations_for_node_1_time_1[2])
+        self.assertAlmostEqual(-0.000238568, total_rotations_for_node_1_time_1_5[2])
+
+        # Incremental rotations are different from total rotation after the first time step
+        self.assertAlmostEqual(-0.000177858, incremental_rotations_for_node_1_time_1[2])
+        self.assertAlmostEqual(-6.07101e-05, incremental_rotations_for_node_1_time_1_5[2])
 
     def test_rotation_with_moving_load_constant_system_matrices(self):
         """

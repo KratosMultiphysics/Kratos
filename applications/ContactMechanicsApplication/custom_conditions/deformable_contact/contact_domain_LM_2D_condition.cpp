@@ -735,7 +735,7 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(ConditionVariables& rV
     if(EffectiveGapN<=0)   //if(EffectiveGap<0){
     {
 
-        //Calculate Friction coeffitients with a regularized law
+        //Calculate Friction coefficients with a regularized law
 
         //Initialize friction parameter
         rVariables.Contact.FrictionCoefficient = 0;
@@ -782,7 +782,7 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(ConditionVariables& rV
 
     //From total current gap compute multipliers:
 
-    //rVariables.Contact.Multiplier.Normal = EffectiveGap*(1./(2.0*rVariables.Contact.ContactFactor.Normal)); //posible computation of the Lagrange Multiplier
+    //rVariables.Contact.Multiplier.Normal = EffectiveGap*(1./(2.0*rVariables.Contact.ContactFactor.Normal)); //possible computation of the Lagrange Multiplier
     rVariables.Contact.Multiplier.Normal =rVariables.Contact.CurrentTensil.Normal;
     rVariables.Contact.Multiplier.Normal+=rVariables.Contact.CurrentGap.Normal*(1./(2.0*rVariables.Contact.ContactFactor.Normal));
 

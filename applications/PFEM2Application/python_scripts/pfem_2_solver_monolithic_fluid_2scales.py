@@ -172,7 +172,7 @@ class PFEM2Solver:
 	intial_offset[0]=0.0
 	intial_offset[1]=0.0
 	intial_offset[2]=0.0
-	(self.moveparticles).IntializeTransferTool(self.model_part_topo, intial_offset,overwrite_particle_data);
+	(self.moveparticles).InitializeTransferTool(self.model_part_topo, intial_offset,overwrite_particle_data);
 
 
     #######################################################################
@@ -187,7 +187,7 @@ class PFEM2Solver:
 		transfer_pressure=False
 		temperature_implicit_calculation=False;
 		viscosity_streamline_integrate=False; #True means explicit integration! False means we will have to solve the fractional velocity system implicetely later, once information has been passed to mesh
-		#pressure_gradient_integrate=False; #we use the pressure of the previous step. not reccomended for 2 fluid flows. REMOVED FROM THE CODE
+		#pressure_gradient_integrate=False; #we use the pressure of the previous step. not recommended for 2 fluid flows. REMOVED FROM THE CODE
 		calculate_viscous_contribution_after_everything=False;
 		#implicit_velocity_correction=False;	# as expected this can not be active the implicit correction is done:
 		#if (calculate_viscous_contribution_after_everything):
@@ -228,7 +228,7 @@ class PFEM2Solver:
 		#for node in self.model_part.Nodes:
 		#	node.SetSolutionStepValue(TEMP_CONV_PROJ,node.GetSolutionStepValue(DISTANCE))
 
-		#transfering data from the particles to the mesh:
+		#transferring data from the particles to the mesh:
 		(self.moveparticles).TransferLagrangianToEulerian(transfer_pressure);
 
 		#for node in self.model_part.Nodes:
@@ -292,7 +292,7 @@ class PFEM2Solver:
 		(self.moveparticles).CalculateDeltaVelocity();
 		t11 = timer.time()
 		self.navierstokes = self.navierstokes + t11-t6
-		#transfering the information to the mesh:
+		#transferring the information to the mesh:
 		modify_particle_pressure=False
 		(self.moveparticles).AccelerateParticlesWithoutMovingUsingDeltaVelocity(add_gravity,modify_particle_pressure);
 		t12 = timer.time()

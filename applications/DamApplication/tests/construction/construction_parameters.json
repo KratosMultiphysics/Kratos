@@ -86,7 +86,7 @@
             "model_part_name" : "MainModelPart.DISPLACEMENT_Displacement_Auto1",
             "variable_name"   : "DISPLACEMENT",
             "interval"        : [0.0,0.0],
-            "is_fixed"        : [true,true,true],
+            "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0],
             "Value_Table"     : [0,0,0]
         }
@@ -98,7 +98,7 @@
             "model_part_name" : "MainModelPart.INITIALTEMPERATURE_Temperature_Auto1",
             "variable_name"   : "TEMPERATURE",
             "interval"        : [0.0,0.0],
-            "is_fixed"        : false,
+            "constrained"     : false,
             "value"           : 8.3,
             "table"           : 0
         }
@@ -110,7 +110,7 @@
             "model_part_name"                                  : "MainModelPart.CONSTANTRESERVOIRTEMPERATURE_Reservoir_temperature:_Constant_Parts_Auto1",
             "variable_name"                                    : "TEMPERATURE",
             "interval"                                         : [0.0,0.0],
-            "is_fixed"                                         : true,
+            "constrained"                                      : true,
             "Gravity_Direction"                                : "Z",
             "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 0.0,
             "Water_temp"                                       : 0.0,

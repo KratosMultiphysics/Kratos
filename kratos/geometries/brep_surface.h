@@ -11,6 +11,8 @@
 //                   Andreas Apostolatos
 //                   Pooyan Dadvand
 //                   Philipp Bucher
+//                   Nicolò Antonelli
+//                   Andrea Gorgi
 //
 
 #if !defined(KRATOS_BREP_FACE_3D_H_INCLUDED )
@@ -27,6 +29,7 @@
 
 // trimming integration
 #include "utilities/geometry_utilities/brep_trimming_utilities.h"
+#include "utilities/geometry_utilities/brep_sbm_utilities.h"
 
 namespace Kratos
 {
@@ -64,7 +67,9 @@ public:
 
     typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
     typedef BrepCurveOnSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType> BrepCurveOnSurfaceType;
+
     typedef BrepTrimmingUtilities<TShiftedBoundary> BrepTrimmingUtilitiesType;
+    typedef BrepSbmUtilities<Node> BrepSbmUtilitiesType;
 
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
@@ -455,9 +460,20 @@ public:
         if (!mIsTrimmed) {
             // sbm case
             if constexpr (TShiftedBoundary) {
-                // TODO: Next PR -> Call  "BrepSBMUtilities::CreateBrepSurfaceSBMIntegrationPoints"
-                mpNurbsSurface->CreateIntegrationPoints(
-                    rIntegrationPoints, rIntegrationInfo);
+
+                std::vector<double> spans_u;
+                std::vector<double> spans_v;
+                mpNurbsSurface->SpansLocalSpace(spans_u, 0);
+                mpNurbsSurface->SpansLocalSpace(spans_v, 1);
+                
+                // Call  "BrepSBMUtilities::CreateBrepSurfaceSBMIntegrationPoints"
+                BrepSbmUtilitiesType::CreateBrepSurfaceSbmIntegrationPoints(
+                    spans_u, 
+                    spans_v,
+                    *mpSurrogateOuterLoopGeometries,
+                    *mpSurrogateInnerLoopGeometries,
+                    rIntegrationPoints,
+                    rIntegrationInfo);
             }
             // body-fitted case
             else {
@@ -559,18 +575,18 @@ public:
      * @brief Set the Surrogate Outer Loop Geometries object
      * @param pSurrogateOuterLoopArray 
      */
-    void SetSurrogateOuterLoopGeometries(GeometrySurrogateArrayType &rSurrogateOuterLoopArray)
+    void SetSurrogateOuterLoopGeometries(Kratos::shared_ptr<GeometrySurrogateArrayType> pSurrogateOuterLoopArray)
     {
-        mpSurrogateOuterLoopGeometries = &rSurrogateOuterLoopArray;
+        mpSurrogateOuterLoopGeometries = pSurrogateOuterLoopArray;
     }
     
     /**
      * @brief Set the Surrogate Inner Loop Geometries object
      * @param pSurrogateInnerLoopArray 
      */
-    void SetSurrogateInnerLoopGeometries(GeometrySurrogateArrayType &rSurrogateInnerLoopArray)
+    void SetSurrogateInnerLoopGeometries(Kratos::shared_ptr<GeometrySurrogateArrayType> pSurrogateInnerLoopArray)
     {
-        mpSurrogateInnerLoopGeometries = &rSurrogateInnerLoopArray;
+        mpSurrogateInnerLoopGeometries = pSurrogateInnerLoopArray;
     }
 
     /**
@@ -636,10 +652,10 @@ private:
 
     BrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
 
-    GeometrySurrogateArrayType* mpSurrogateInnerLoopGeometries;
-    GeometrySurrogateArrayType* mpSurrogateOuterLoopGeometries;
+    // For SBM
+    Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateOuterLoopGeometries = nullptr;
+    Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateInnerLoopGeometries = nullptr;
     
-
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.
     */

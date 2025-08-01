@@ -186,7 +186,7 @@ private:
     ///@{
 
     /// Copy constructor.
-    NodalData(NodalData const& rOther);
+    NodalData(NodalData const& rOther) = default;
 
     ///@}
 

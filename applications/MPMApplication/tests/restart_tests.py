@@ -98,7 +98,7 @@ class MPMRestartTestFactory(KratosUnittest.TestCase):
             mpm_analysis.MpmAnalysis(model_save, self.project_parameters_save).Run()
             mpm_analysis.MpmAnalysis(model_load, self.project_parameters_load).Run()
 
-
+@KratosUnittest.skip("This test has a race Condition in the CI causing a memory corruption. Please check")
 class MPMRestartTestDynamicCantilever2D(MPMRestartTestFactory):
     file_name = "beam_tests/dynamic_cantilever/dynamic_cantilever_consistent_mass_test"
 

@@ -10,7 +10,7 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-// System incldues
+// System includes
 #include <set>
 #include <type_traits>
 

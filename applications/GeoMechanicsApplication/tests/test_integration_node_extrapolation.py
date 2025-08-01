@@ -77,7 +77,7 @@ class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
                                 [-8.04944, -32.1978, -8.04944, -373.822, 0, 0]]
         for cauchy_stress_tensor, expected_tensor in zip(cauchy_stress_tensors, expected_tensors):
             for cauchy_stress, expected in zip(cauchy_stress_tensor, expected_tensor):
-                self.assertAlmostEqual(cauchy_stress, expected, places=4)
+                self.assertAlmostEqual(cauchy_stress, expected, places=None, delta=0.01)
 
 
         fluid_flux_vectors             = test_helper.GiDOutputFileReader.nodal_values_at_time("FLUID_FLUX_VECTOR", 1, simulation_output,

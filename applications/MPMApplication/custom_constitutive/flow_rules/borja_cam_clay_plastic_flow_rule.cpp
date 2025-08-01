@@ -45,7 +45,7 @@ BorjaCamClayPlasticFlowRule::BorjaCamClayPlasticFlowRule(YieldCriterionPointer p
 
 }
 
-//********* ASSIGMENT OPERATOR
+//********* ASSIGNMENT OPERATOR
 BorjaCamClayPlasticFlowRule& BorjaCamClayPlasticFlowRule::operator=(BorjaCamClayPlasticFlowRule const& rOther)
 {
     MPMFlowRule::operator=(rOther);
@@ -437,7 +437,7 @@ void BorjaCamClayPlasticFlowRule::CalculatePrincipalStressTrial(const RadialRetu
 
     this->CalculatePrincipalStressVector(main_strain, principal_stress, rProp);
 
-    // Evalute the Kirchhoff principal stress
+    // Evaluate the Kirchhoff principal stress
     for(unsigned int i=0; i<3; i++)
     {
         rStressMatrix(i,i) = principal_stress[i];

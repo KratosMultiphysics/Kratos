@@ -14,12 +14,7 @@
 
 #pragma once
 
-// System includes
-#include <optional>
-
-// Project includes
-#include "custom_constitutive/coulomb_yield_surface.h"
-#include "custom_constitutive/tension_cutoff.h"
+#include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
 #include "includes/constitutive_law.h"
 
 namespace Kratos
@@ -32,6 +27,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) MohrCoulombWithTensionCutOff : publi
 public:
     KRATOS_CLASS_POINTER_DEFINITION(MohrCoulombWithTensionCutOff);
 
+    MohrCoulombWithTensionCutOff() = default;
     explicit MohrCoulombWithTensionCutOff(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
     // Copying is not allowed. Use member `Clone` instead.
@@ -52,7 +48,9 @@ public:
     void                                   InitializeMaterial(const Properties&     rMaterialProperties,
                                                               const Geometry<Node>& rElementGeometry,
                                                               const Vector&         rShapeFunctionsValues) override;
-    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    void    InitializeMaterialResponseCauchy(Parameters& rValues) override;
+    void    GetLawFeatures(Features& rFeatures) override;
+    Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override;
     using ConstitutiveLaw::GetValue;
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
     using ConstitutiveLaw::SetValue;
@@ -67,20 +65,14 @@ private:
     Vector                                    mStressVector;
     Vector                                    mStressVectorFinalized;
     Vector                                    mStrainVectorFinalized;
-    CoulombYieldSurface                       mCoulombYieldSurface;
-    TensionCutoff                             mTensionCutOff;
+    CoulombWithTensionCutOffImpl              mCoulombWithTensionCutOffImpl;
+    bool                                      mIsModelInitialized = false;
 
-    [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector,
-                                                    double        YoungsModulus,
-                                                    double        PoissonsRatio) const;
-    [[nodiscard]] bool   IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses) const;
-    [[nodiscard]] bool   IsStressAtAxialZone(const Vector& rPrincipalTrialStresses,
-                                             double        TensileStrength,
-                                             double        Apex,
-                                             const Vector& rCornerPoint) const;
-    [[nodiscard]] static bool IsStressAtCornerReturnZone(const Vector& rPrincipalTrialStresses,
-                                                         double        DilatancyAngle,
-                                                         const Vector& rCornerPoint);
+    [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties) const;
+
+    friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 }; // Class MohrCoulombWithTensionCutOff
 
 } // namespace Kratos

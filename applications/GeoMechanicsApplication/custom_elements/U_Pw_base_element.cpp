@@ -15,6 +15,7 @@
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
 
 namespace Kratos
@@ -401,28 +402,21 @@ void UPwBaseElement::CalculateAll(MatrixType&        rLeftHandSideMatrix,
 std::vector<double> UPwBaseElement::CalculateIntegrationCoefficients(
     const GeometryType::IntegrationPointsArrayType& rIntegrationPoints, const Vector& rDetJs) const
 {
-    auto result = std::vector<double>{};
-    result.reserve(rIntegrationPoints.size());
-    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDetJs.begin(),
-                   std::back_inserter(result), [this](const auto& rIntegrationPoint, const auto& rDetJ) {
-        return mpStressStatePolicy->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ, GetGeometry());
-    });
-    return result;
+    return mIntegrationCoefficientsCalculator.Run<>(rIntegrationPoints, rDetJs, this);
 }
 
 void UPwBaseElement::CalculateDerivativesOnInitialConfiguration(
-    double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DNu_DX0, unsigned int IntegrationPointIndex) const
+    double& rDetJ, Matrix& rJ0, Matrix& rInvJ0, Matrix& rDNu_DX0, unsigned int IntegrationPointIndex) const
 {
     KRATOS_TRY
 
-    const GeometryType&                             rGeom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        rGeom.IntegrationPoints(mThisIntegrationMethod);
+    const auto& r_geometry           = this->GetGeometry();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
 
-    GeometryUtils::JacobianOnInitialConfiguration(rGeom, IntegrationPoints[IntegrationPointIndex], J0);
-    const Matrix& DN_De = rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod)[IntegrationPointIndex];
-    MathUtils<double>::InvertMatrix(J0, InvJ0, detJ);
-    GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
+    GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[IntegrationPointIndex], rJ0);
+    const auto& r_dn_de = r_geometry.ShapeFunctionsLocalGradients(mThisIntegrationMethod)[IntegrationPointIndex];
+    MathUtils<>::InvertMatrix(rJ0, rInvJ0, rDetJ);
+    GeometryUtils::ShapeFunctionsGradients(r_dn_de, rInvJ0, rDNu_DX0);
 
     KRATOS_CATCH("")
 }
@@ -448,6 +442,37 @@ Element::DofsVectorType UPwBaseElement::GetDofs() const
                                                       this->GetGeometry().WorkingSpaceDimension());
 }
 
+void UPwBaseElement::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+    rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.save("StressStatePolicy", mpStressStatePolicy);
+    rSerializer.save("RetentionLawVector", mRetentionLawVector);
+    rSerializer.save("StateVariablesFinalized", mStateVariablesFinalized);
+    rSerializer.save("StressVector", mStressVector);
+    rSerializer.save("ThisIntegrationMethod", static_cast<int>(mThisIntegrationMethod));
+    rSerializer.save("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
+}
+
+void UPwBaseElement::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+    rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.load("StressStatePolicy", mpStressStatePolicy);
+    rSerializer.load("RetentionLawVector", mRetentionLawVector);
+    rSerializer.load("StateVariablesFinalized", mStateVariablesFinalized);
+    rSerializer.load("StressVector", mStressVector);
+    int integration_method;
+    rSerializer.load("ThisIntegrationMethod", integration_method);
+    mThisIntegrationMethod = static_cast<IntegrationMethod>(integration_method);
+    rSerializer.load("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
+}
+
 StressStatePolicy& UPwBaseElement::GetStressStatePolicy() const { return *mpStressStatePolicy; }
+
+std::unique_ptr<IntegrationCoefficientModifier> UPwBaseElement::CloneIntegrationCoefficientModifier() const
+{
+    return mIntegrationCoefficientsCalculator.CloneModifier();
+}
 
 } // Namespace Kratos

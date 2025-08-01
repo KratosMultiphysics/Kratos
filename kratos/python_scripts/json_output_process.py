@@ -234,13 +234,13 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
 
-        data = read_external_json(self.output_file_name)
-
         time = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
         dt = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
         self.time_counter += dt
         if self.time_counter > self.frequency:
             self.time_counter = 0.0
+
+            data = read_external_json(self.output_file_name)
             data["TIME"].append(time)
 
             # Nodal values
@@ -382,7 +382,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                 # TODO: Add pending classes
                     count += 1
 
-        write_external_json(self.output_file_name, data)
+            write_external_json(self.output_file_name, data)
 
     def __kratos_vector_to__python_list(self, value):
         """ This method is executed in order to finalize the current computation

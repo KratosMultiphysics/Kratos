@@ -5,11 +5,11 @@ from typing import Any
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
-from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView 
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
 def OptimizationComponentFactory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
     if not parameters.Has("type"):
-        raise RuntimeError(f"Components created from OptimizationComponentFactory require the \"type\" [ provided paramters = {parameters}].")
+        raise RuntimeError(f"Components created from OptimizationComponentFactory require the \"type\" [ provided parameters = {parameters}].")
 
     python_type = parameters["type"].GetString()
 
@@ -18,7 +18,7 @@ def OptimizationComponentFactory(model: Kratos.Model, parameters: Kratos.Paramet
         # as in the case python_type is in the sys path or the current working directory.
         full_module_name = python_type
     else:
-        # in the case python type comes witha a module.
+        # in the case python type comes with a module.
         module = parameters["module"].GetString()
         full_module_name = f"{module}.{python_type}"
 
@@ -67,6 +67,33 @@ def GetComponentHavingDataByFullName(component_full_name: str, optimization_prob
             msg += "\n\t" + sub_item_name
 
     raise RuntimeError(f"\"{component_full_name}\" full component name is not found in the optimization problem. Followings are supported component with full names:" + msg)
+
+def GetComponentValueByFullName(component_data_view: ComponentDataView, value_name: str, step_index = 0) -> Any:
+    value_info = value_name.split(":")
+    if len(value_info) != 2 or value_info[1] not in ["historical", "non_historical"]:
+        raise RuntimeError(f"The value_name should contain the name of the value and either it is located at buffered data or un buffered data. Ex: \"objective_Value:historical\" for buffered container or \"reference_value:non_historical\" for unbuffered container [ value_name = \"{value_name}\" ].")
+
+    if value_info[1] == "historical":
+        data = component_data_view.GetBufferedData()
+    elif value_info[1] == "non_historical":
+        data = component_data_view.GetUnBufferedData()
+
+    if not data.HasValue(value_info[0], step_index):
+        raise RuntimeError(f"The value = \"{value_info[0]}\" is not found in the component = \"{component_data_view.GetComponentName()}\" [ value_name = \"{value_name}\", step_index = {step_index}, data = {data}, component_data_view = {component_data_view}")
+
+    return data.GetValue(value_info[0], step_index)
+
+def SetComponentValueByFullName(component_data_view: ComponentDataView, value_name: str, value: Any, step_index = 0, overwrite = False) -> None:
+    value_info = value_name.split(":")
+    if len(value_info) != 2 or value_info[1] not in ["historical", "non_historical"]:
+        raise RuntimeError(f"The value_name should contain the name of the value and either it is located at buffered data or un buffered data. Ex: \"objective_Value:historical\" for buffered container or \"reference_value:non_historical\" for unbuffered container [ value_name = \"{value_name}\" ].")
+
+    if value_info[1] == "historical":
+        data = component_data_view.GetBufferedData()
+    elif value_info[1] == "non_historical":
+        data = component_data_view.GetUnBufferedData()
+
+    data.SetValue(value_info[0], value, step_index, overwrite)
 
 def OutputGradientFields(response: ResponseRoutine, optimization_problem: OptimizationProblem, is_gradients_computed: bool) -> None:
     unbuffered_data = ComponentDataView(response.GetReponse(), optimization_problem).GetUnBufferedData()

@@ -23,6 +23,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
+#include "custom_python/add_custom_constraints_to_python.hpp"
 #include "custom_python/add_custom_response_functions_to_python.h"
 
 namespace Kratos::Python {
@@ -41,6 +42,7 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     AddCustomProcessesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomConstitutiveLawsToPython(m);
+    AddCustomConstraintsToPython(m);
     AddCustomResponseFunctionUtilitiesToPython(m);
 
     py::class_<Variable<ShellCrossSection::Pointer>,VariableData >(m,"ShellCrossSectionVariable");
@@ -181,6 +183,16 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AXIAL_FORCE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SHEAR_FORCE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BENDING_MOMENT )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SHEAR_FORCE_Y)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SHEAR_FORCE_Z)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BENDING_MOMENT_X)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BENDING_MOMENT_Y)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BENDING_MOMENT_Z)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SHEAR_STRAIN_Y)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SHEAR_STRAIN_Z)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BENDING_STRAIN_X)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BENDING_STRAIN_Y)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BENDING_STRAIN_Z)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AXIAL_STRAIN )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SHEAR_STRAIN )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BENDING_STRAIN )

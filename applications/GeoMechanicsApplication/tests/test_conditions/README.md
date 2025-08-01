@@ -30,16 +30,25 @@ The following conditions are tested.
 - UPwNormalFluxCondition2D3N
 - UPwNormalFluxCondition2D4N
 - UPwNormalFluxCondition2D5N
-
+- UPwNormalFaceLoadCondition3D3N
+- UPwNormalFaceLoadCondition3D4N
+- UPwNormalFaceLoadCondition3D6N
+- UPwNormalFaceLoadCondition3D8N
 
 ## Setup
 
-This tests consist of 3, 6, 10 and 15-noded elements with 2, 3, 4, 5 noded line conditions, respectively. For all cases, a rectangular domain of $1 \mathrm{m} \times 2 \mathrm{m}$, with 8 triangular elements is used. A schematic representation can be found in the figure below:
+This tests consist of:
+- Two dimensional elements: 3-, 6-, 10- and 15-noded triangular elements, with corresponding 2-, 3-, 4- and 5-noded line conditions. A rectangular domain of $1 \mathrm{m} \times 2 \mathrm{m}$, discretized using 8 triangular elements, is used for the simulations.
 
-<img src="documentation_data/load_flux_domain.svg" alt="Visualization of the domain and conditions" title="Visualization of the domain and conditions" width="600">
+- Three-dimensional elements: 4-, 8-, 10- and 20_noded tetrahedral and hexahedral elements, with corresponding 3-, 4-, 6- and 8-noded surface conditions. A cubic domain of $1 \mathrm{m} \times 2 \mathrm{m} \times 1 \mathrm{m}$, discretized using tetrahedral and hexahedral elements, is used.
 
-All nodes on the sides have fixed horizontal displacements. The bottom nodes have fixed displacement in both the horizontal and the vertical
-direction. At the top of the column a vertical compressive line load with a magnitude of 1000.0 N/m (or a flux of $10^{-4} \mathrm{[m^3/s]}$ for pressure test cases) is applied. This load is kept constant during the whole analysis time. Note that gravity is absent in this computation. For cases with load conditions, the pressure is kept constant, and for cases with top fluid flux conditions, the deformation is kept constant.
+A schematic representation can be found in the figure below:
+
+<img src="documentation_data/load_flux_domain.svg" alt="Visualization of the domain and conditions for 2D" title="Visualization of the domain and conditions for 2D" width="600">
+<img src="documentation_data/load_flux_domain_3d.svg" alt="Visualization of the domain and conditions for 3D" title="Visualization of the domain and conditions for 3D" width="600">
+
+All nodes on the left and right sides have fixed horizontal displacements. The bottom nodes have fixed displacement in both the horizontal and the vertical
+directions. At the top of the column a vertical compressive line load with a magnitude of 1000.0 N/m (or a flux of $10^{-4} \mathrm{[m^3/s]}$ for pressure test cases) is applied. This load is kept constant during the whole analysis time. Note that gravity is absent in this computation. For cases with load conditions, the pressure is kept constant, and for cases with top fluid flux conditions, the deformation is kept constant.
 
 The material is described using:
 -   A linear elastic plane strain model (LinearElasticPlaneStrain2DLaw)

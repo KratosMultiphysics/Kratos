@@ -1,18 +1,18 @@
 import KratosMultiphysics
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
-def Factory(settings, Model):
+def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise TypeError("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyWriteVectorProcess(Model, settings["Parameters"])
+    return ApplyWriteVectorProcess(model, settings["Parameters"])
 
 ## All the python processes should be derived from "python_process"
 
 class ApplyWriteVectorProcess(KratosMultiphysics.Process):
-    def __init__(self, Model, settings ):
+    def __init__(self, model, settings):
         KratosMultiphysics.Process.__init__(self)
 
-        self.model_part = Model[settings["model_part_name"].GetString()]
+        self.model_part = model[settings["model_part_name"].GetString()]
         variable_name = settings["variable_name"].GetString()
 
         self.components_process_list = []

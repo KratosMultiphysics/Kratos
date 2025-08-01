@@ -168,7 +168,7 @@ public:
 
 
     /**
-     * Material parameters are inizialized
+     * Material parameters are initialized
      */
     void InitializeMaterial( const Properties& rProps,
                              const GeometryType& rGeometry,

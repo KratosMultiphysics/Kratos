@@ -137,7 +137,7 @@ public:
 
 
     /**
-     * \brief Initializes solution step. It determines wether the moving load reactions are to be calculated
+     * \brief Initializes solution step. It determines whether the moving load reactions are to be calculated
      * \param rCurrentProcessInfo current process info
      */
     void InitializeSolutionStep(const ProcessInfo & rCurrentProcessInfo) override;
@@ -311,11 +311,19 @@ private:
     ///@{
 
     /**
-     * \brief Gets the nodal rotation vector
-     * \param rRotationsVector nodal rotation vector
-     * \param Step step from which the rotations needs to be retrieved
+     * \brief Gets the vector of a vector variable
+     * \param rVariableVector the vector of a variable
+     * \param rVariableType the type of the vector variable
+     * \param Step step from which the vector values needs to be retrieved
      */
-    void GetRotationsVector(Vector& rRotationsVector, const int Step) const;
+    void GetVectorVariableVector(Vector& rVariableVector, const Variable<array_1d<double, 3>>& rVariableType, const int Step=0) const;
+
+
+    /**
+     * \brief Gets the type of the rotation and displacement variable.
+     * \return a pair of variables, the first is the rotational variable and the second is the displacement variable
+     */
+    std::pair<Variable<array_1d<double, 3>>, Variable<array_1d<double, 3>>> GetRotationalAndDisplacementVariables();
 
     ///@}
     ///@name Private Operations

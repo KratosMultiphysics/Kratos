@@ -8,6 +8,7 @@ ENV HOME /root
 RUN dnf -y install gcc-toolset-11
 
 # Enable devtools 11 every time a shell is started
+# TODO: /etc/bashrc is never executed so this line does not fulfill its purpose => fix it.
 RUN echo "source /opt/rh/gcc-toolset-11/enable" >> /etc/bashrc
 
 # Install python3.8.10

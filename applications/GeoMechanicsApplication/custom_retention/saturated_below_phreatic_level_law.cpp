@@ -14,6 +14,10 @@
 #include "custom_retention/saturated_below_phreatic_level_law.h"
 #include "geo_mechanics_application_variables.h"
 
+#include <string>
+
+using namespace std::string_literals;
+
 namespace Kratos
 {
 RetentionLaw::Pointer SaturatedBelowPhreaticLevelLaw::Clone() const
@@ -83,4 +87,8 @@ int SaturatedBelowPhreaticLevelLaw::Check(const Properties& rMaterialProperties,
     return 0;
 }
 
+std::string SaturatedBelowPhreaticLevelLaw::Info() const
+{
+    return "SaturatedBelowPhreaticLevelLaw"s;
+}
 } // Namespace Kratos
