@@ -33,7 +33,7 @@ BakerJohnsonCookThermalHardeningLaw::BakerJohnsonCookThermalHardeningLaw()
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 BakerJohnsonCookThermalHardeningLaw& BakerJohnsonCookThermalHardeningLaw::operator=(BakerJohnsonCookThermalHardeningLaw const& rOther)

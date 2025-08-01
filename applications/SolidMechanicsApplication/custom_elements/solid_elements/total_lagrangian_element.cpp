@@ -52,7 +52,7 @@ TotalLagrangianElement::TotalLagrangianElement( TotalLagrangianElement const& rO
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 TotalLagrangianElement&  TotalLagrangianElement::operator=(TotalLagrangianElement const& rOther)
@@ -165,7 +165,7 @@ void TotalLagrangianElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
-        //getting informations for integration
+        //getting information for integration
         double IntegrationWeight = integration_points[PointNumber].Weight();
 
         //calculating and storing inverse of the jacobian and the parameters needed
@@ -198,7 +198,7 @@ void TotalLagrangianElement::CalculateKinematics(ElementDataType& rVariables,
 
     const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
-    //Get the parent coodinates derivative [dN/d£]
+    //Get the parent coordinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
 
     //Get the shape functions for the order of the integration method [N]
@@ -253,7 +253,7 @@ void TotalLagrangianElement::CalculateKinetics(ElementDataType& rVariables, cons
 
     const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
-    //Get the parent coodinates derivative [dN/d£]
+    //Get the parent coordinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
 
     //Get the shape functions for the order of the integration method [N]

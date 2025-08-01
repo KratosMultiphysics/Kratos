@@ -75,7 +75,7 @@ class ConvergenceCriterion : public Flags
     SetEchoLevel(1);
   }
 
-  /// Copy contructor.
+  /// Copy constructor.
   ConvergenceCriterion( ConvergenceCriterion const& rOther)
       :mEchoLevel(rOther.mEchoLevel)
   {
@@ -98,8 +98,8 @@ class ConvergenceCriterion : public Flags
 
   /**level of echo for the convergence criterion
      0 -> mute... no echo at all
-     1 -> print basic informations
-     2 -> print extra informations
+     1 -> print basic information
+     2 -> print extra information
   */
   virtual void SetEchoLevel(int Level)
   {
@@ -112,7 +112,7 @@ class ConvergenceCriterion : public Flags
   }
 
 
-  /*Criterias that need to be called before getting the solution */
+  /*Criteria that need to be called before getting the solution */
   virtual bool PreCriteria(ModelPart& rModelPart,
                            DofsArrayType& rDofSet,
                            const SystemMatrixType& rA,
@@ -122,7 +122,7 @@ class ConvergenceCriterion : public Flags
     return true;
   }
 
-  /*Criterias that need to be called after getting the solution */
+  /*Criteria that need to be called after getting the solution */
   virtual bool PostCriteria(ModelPart& rModelPart,
                             DofsArrayType& rDofSet,
                             const SystemMatrixType& rA,

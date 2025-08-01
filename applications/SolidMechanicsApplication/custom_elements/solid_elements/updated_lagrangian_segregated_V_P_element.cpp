@@ -54,7 +54,7 @@ UpdatedLagrangianSegregatedVPElement::UpdatedLagrangianSegregatedVPElement( Upda
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 UpdatedLagrangianSegregatedVPElement&  UpdatedLagrangianSegregatedVPElement::operator=(UpdatedLagrangianSegregatedVPElement const& rOther)
@@ -314,7 +314,7 @@ void UpdatedLagrangianSegregatedVPElement::CalculateKinematics(ElementDataType& 
 {
     KRATOS_TRY
 
-    //Get the parent coodinates derivative [dN/d£]
+    //Get the parent coordinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
 
     //Get the shape functions for the order of the integration method [N]
@@ -391,7 +391,7 @@ void UpdatedLagrangianSegregatedVPElement::CalculateKinetics(ElementDataType& rV
 
     const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
-    //Get the parent coodinates derivative [dN/d£]
+    //Get the parent coordinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
 
     //Get the shape functions for the order of the integration method [N]
@@ -747,7 +747,7 @@ void UpdatedLagrangianSegregatedVPElement::GetFreeSurfaceFaces(std::vector<std::
   DenseMatrix<unsigned int> NodesInFaces;
   rGeometry.NodesInFaces(NodesInFaces);
 
-  //based in existance of neighbour elements (proper detection for triangles and tetrahedra)
+  //based in existence of neighbour elements (proper detection for triangles and tetrahedra)
   ElementWeakPtrVectorType& nElements = this->GetValue(NEIGHBOUR_ELEMENTS);
   unsigned int counter=0;
   for(auto& i_nelem : nElements)

@@ -37,7 +37,7 @@ IsotropicDamageFlowRule::IsotropicDamageFlowRule(YieldCriterionPointer pYieldCri
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 IsotropicDamageFlowRule& IsotropicDamageFlowRule::operator=(IsotropicDamageFlowRule const& rOther)

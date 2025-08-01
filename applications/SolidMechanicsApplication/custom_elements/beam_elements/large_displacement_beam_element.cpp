@@ -465,7 +465,7 @@ namespace Kratos
     //Set Shape Functions Values for this integration point
     noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
-    //Get the parent coodinates derivative [dN/d£]
+    //Get the parent coordinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
 
     //TOTAL LAGRANGIAN
@@ -1140,7 +1140,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    //Differencial operator transposed
+    //Differential operator transposed
 
     //Initialize Local Matrices
     if( rDifferentialOperator.size1() != 6 )
@@ -2443,7 +2443,7 @@ namespace Kratos
 
     //Axis Local E1
     rInertiaDyadic(0,0) = rSection.Rotational_Inertia; //beam axis
-    rInertiaDyadic(1,1) = rSection.Inertia_y; //vertial axis
+    rInertiaDyadic(1,1) = rSection.Inertia_y; //vertical axis
     rInertiaDyadic(2,2) = rSection.Inertia_z; //horizontal axis
 
     rInertiaDyadic *= GetProperties()[DENSITY];

@@ -52,7 +52,7 @@ AxisymmetricUpdatedLagrangianUPElement::AxisymmetricUpdatedLagrangianUPElement( 
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 AxisymmetricUpdatedLagrangianUPElement&  AxisymmetricUpdatedLagrangianUPElement::operator=(AxisymmetricUpdatedLagrangianUPElement const& rOther)
@@ -340,7 +340,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateKinematics(ElementDataType
 
     //const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
-    //Get the parent coodinates derivative [dN/d£]
+    //Get the parent coordinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
     //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
@@ -714,7 +714,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddStabilizedPressure(V
     // if( this->Id() <= 4)
     //   std::cout<<" Element "<<this->Id()<<" "<<std::endl;
 
-    //use of this variable for the complete parameter: (deffault: 4)
+    //use of this variable for the complete parameter: (default: 4)
     double AlphaStabilization  = 1.0;
     double StabilizationFactor = 1.0;
     if( GetProperties().Has(STABILIZATION_FACTOR) ){
@@ -736,7 +736,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddStabilizedPressure(V
 
     double consistent = 1;
 
-    double FactorValue = 8.0; //JMR deffault value
+    double FactorValue = 8.0; //JMR default value
 
     unsigned int integration_points = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     if(integration_points == 1)
@@ -1029,7 +1029,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKppStab (MatrixType&
     //contributions to stiffness matrix calculated on the reference configuration
     unsigned int indexpi = dimension;
 
-    //use of this variable for the complete parameter: (deffault: 4)
+    //use of this variable for the complete parameter: (default: 4)
     double AlphaStabilization  = 1.0;
     double StabilizationFactor = 1.0;
     if( GetProperties().Has(STABILIZATION_FACTOR) ){
@@ -1051,7 +1051,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKppStab (MatrixType&
 
     double consistent = 1.0;
 
-    double FactorValue = 8.0; //JMR deffault value
+    double FactorValue = 8.0; //JMR default value
 
     unsigned int integration_points = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     if(integration_points == 1)
@@ -1098,7 +1098,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKppStab (MatrixType&
     }
 
     // std::cout<<std::endl;
-    // std::cout<<" KppStab "<<rK-Kh<<" alha stab "<<GetProperties()[STABILIZATION_FACTOR]<<std::endl;
+    // std::cout<<" KppStab "<<rK-Kh<<" alpha stab "<<GetProperties()[STABILIZATION_FACTOR]<<std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -1112,7 +1112,7 @@ double& AxisymmetricUpdatedLagrangianUPElement::CalculateTotalMass( double& rTot
 {
     KRATOS_TRY
 
-    //Compute the Volume Change acumulated:
+    //Compute the Volume Change accumulated:
     ElementDataType Variables;
     this->InitializeElementData(Variables,rCurrentProcessInfo);
 
@@ -1125,7 +1125,7 @@ double& AxisymmetricUpdatedLagrangianUPElement::CalculateTotalMass( double& rTot
 	//compute element kinematics
 	this->CalculateKinematics(Variables,PointNumber);
 
-	//getting informations for integration
+	//getting information for integration
         Variables.IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
 
 	//compute point volume change
@@ -1176,7 +1176,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateMassMatrix( MatrixType& rM
       //compute element kinematics
       this->CalculateKinematics( Variables, PointNumber );
 
-      //getting informations for integration
+      //getting information for integration
       double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ * 2.0 * Globals::Pi * Variables.CurrentRadius;
 
 
