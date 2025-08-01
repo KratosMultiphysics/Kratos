@@ -221,6 +221,6 @@ private:
 
 ///@}
 
-///@} addtogroup blocksmal
+///@} addtogroup block
 
 } // namespace Kratos
