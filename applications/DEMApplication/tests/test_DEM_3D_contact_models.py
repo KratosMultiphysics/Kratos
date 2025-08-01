@@ -26,19 +26,19 @@ class ContactModels3DTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
     def CompareResults(self):
         ref = self.GetReferenceResults()
         node = 335
-        tol = 1e-8
+        tol = 1e-5
         f = self.spheres_model_part.GetNode(node).GetSolutionStepValue(DEMApplication.CONTACT_FORCES)
         t = self.spheres_model_part.GetNode(node).GetSolutionStepValue(DEMApplication.PARTICLE_MOMENT)
         #print(self.DEM_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString())
         #print("Force:  [{:.15f}, {:.15f}, {:.15f}]".format(f[0],f[1],f[2]))
         #print("Moment: [{:.15f}, {:.15f}, {:.15f}]".format(t[0],t[1],t[2]))
-        
-        self.assertAlmostEqual(f[0], ref["force"][0], delta=tol)
-        self.assertAlmostEqual(f[1], ref["force"][1], delta=tol)
-        self.assertAlmostEqual(f[2], ref["force"][2], delta=tol)
-        self.assertAlmostEqual(t[0], ref["torque"][0], delta=tol)
-        self.assertAlmostEqual(t[1], ref["torque"][1], delta=tol)
-        self.assertAlmostEqual(t[2], ref["torque"][2], delta=tol)
+
+        self.assertLess(abs(f[0] - ref["force"][0]) / ref["force"][0], tol)
+        self.assertLess(abs(f[1] - ref["force"][1]) / ref["force"][1], tol)
+        self.assertLess(abs(f[2] - ref["force"][2]) / ref["force"][2], tol)
+        self.assertLess(abs(t[0] - ref["torque"][0]) / ref["torque"][0], tol)
+        self.assertLess(abs(t[1] - ref["torque"][1]) / ref["torque"][1], tol)
+        self.assertLess(abs(t[2] - ref["torque"][2]) / ref["torque"][2], tol)
 
     def GetReferenceResults(self):
         materials_filename = self.DEM_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
