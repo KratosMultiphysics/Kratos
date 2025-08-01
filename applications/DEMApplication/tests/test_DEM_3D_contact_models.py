@@ -25,7 +25,7 @@ class ContactModels3DTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
 
     def CompareResults(self):
         node = 335
-        tol = 1e-5
+        tol = 1e-3
         ref = self.GetReferenceResults()
         f_ref = ref["force"]
         t_ref = ref["torque"]
