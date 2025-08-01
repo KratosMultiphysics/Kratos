@@ -21,6 +21,18 @@
 #include "tensor_adaptor.h"
 #include "includes/process_info.h"
 
+/**
+ * @class EquationIdsTensorAdaptor
+ * @brief Adaptor class for handling equation IDs as tensor data within Kratos.
+ *
+ * This class inherits from TensorAdaptor<int> and provides specialized functionality
+ * for collecting and storing equation ID data from Kratos data conditions or elements. It is
+ * designed to interface with containers and process information relevant to equation IDs.
+ *
+ * @tparam TContainerPointerType Type of the pointer to the container holding equation IDs.
+ *
+ * @author Kratos Team
+ */
 namespace Kratos {
 
 ///@name Kratos Classes

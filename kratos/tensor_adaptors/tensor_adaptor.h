@@ -169,7 +169,6 @@ protected:
         std::string Info() const;
         ///@}
 
-
     private:
         ///@name private member variables
         ///@{

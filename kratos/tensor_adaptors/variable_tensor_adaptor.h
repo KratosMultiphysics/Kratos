@@ -21,6 +21,23 @@
 #include "tensor_adaptor.h"
 #include "tensor_adaptor_utils.h"
 
+/**
+ * @class VariableTensorAdaptor
+ * @brief Adaptor class for handling values represented as variables in Kratos entities' DataValueContainers.
+ *
+ * @details This class provides an interface to collect and store tensor data associated with Kratos entities,
+ *          using a specified variable from the DataValueContainer (i.e. non-historical container). It extends TensorAdaptor<double> and allows for flexible data management,
+ *          including initialization, data collection, and storage operations.
+ *
+ * @tparam double The underlying data type for tensor values.
+ *
+ * @section Usage
+ * - Use Check() to verify that the variable exists in the entities before collecting data.
+ * - Use CollectData() to fill internal data from Kratos data structures.
+ * - Use StoreData() to write internal data back to the container, adding the variable if necessary.
+ *
+ * @warning When using StoreData() to add variables to entities, avoid calling Check() to prevent unnecessary initialization.
+ */
 namespace Kratos {
 
 ///@name Kratos Classes

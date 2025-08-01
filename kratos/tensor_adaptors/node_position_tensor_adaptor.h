@@ -22,6 +22,23 @@
 #include "tensor_adaptor.h"
 #include "includes/global_variables.h"
 
+/**
+ * @class NodePositionTensorAdaptor
+ * @brief Adapts node position data from a Kratos ModelPart to a tensor representation.
+ *
+ * This class provides an adaptor for accessing and manipulating node position data
+ * as a tensor, enabling integration with tensor-based algorithms and operations.
+ * It inherits from TensorAdaptor<double> and manages the mapping between Kratos
+ * node containers and tensor data structures.
+ *
+ * @tparam double The data type for tensor elements.
+ *
+ * @section Usage
+ * - Construct with a pointer to a ModelPart::NodesContainerType and a configuration.
+ * - Optionally specify the shape of the data or copy from another TensorAdaptor.
+ * - Use CollectData() to fill internal tensor data from Kratos nodes' positions.
+ * - Use StoreData() to write tensor data back to a Kratos nodes' positions.
+ */
 namespace Kratos {
 
 ///@name Kratos Classes

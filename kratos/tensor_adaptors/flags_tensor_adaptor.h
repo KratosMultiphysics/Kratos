@@ -22,6 +22,19 @@
 #include "containers/flags.h"
 #include "tensor_adaptor.h"
 
+/**
+ * @class FlagsTensorAdaptor
+ * @brief Adaptor class for handling tensor data associated with Kratos Flags.
+ *
+ * This class extends TensorAdaptor<bool> to provide specialized operations for
+ * tensors whose elements are boolean values, typically representing flags in Kratos.
+ * It manages the association between tensor data and Kratos Flags, allowing for
+ * efficient data collection and storage from/to Kratos data structures.
+ *
+ * @tparam TContainerPointerType Pointer type to the underlying container.
+ *
+ * @see TensorAdaptor
+ */
 namespace Kratos {
 
 ///@name Kratos Classes

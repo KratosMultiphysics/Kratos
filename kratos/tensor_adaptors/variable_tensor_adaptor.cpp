@@ -78,7 +78,7 @@ void VariableTensorAdaptor::Check() const
 
     BaseType::Check();
 
-    std::visit([this](auto pContainer, auto pVariable) {
+    std::visit([](auto pContainer, auto pVariable) {
         block_for_each(*pContainer, [&pVariable](const auto& rEntity) {
             KRATOS_ERROR_IF_NOT(rEntity.Has(*pVariable))
                 << "The entity with id = " << rEntity.Id() << " does not have the variable " << pVariable->Name() << ".\n";
