@@ -129,6 +129,8 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
     KRATOS_TRY
 
     if (!mIsInitialized) {
+        mExternalForcesAtStart =  ZeroVector(this->GetGeometry().size() * (this->GetGeometry().WorkingSpaceDimension() + 1));
+        mInternalForcesAtStart =  ZeroVector(this->GetGeometry().size() * (this->GetGeometry().WorkingSpaceDimension() + 1));
         const PropertiesType&                           r_prop = this->GetProperties();
         const GeometryType&                             r_geom = GetGeometry();
         const GeometryType::IntegrationPointsArrayType& r_integration_points =
@@ -921,7 +923,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
                                                     GPoint, rCurrentProcessInfo);
     }
 
-    if (rCurrentProcessInfo[TIME] > 0.0 && CalculateResidualVectorFlag) {
+    if (rCurrentProcessInfo[USE_PROTOTYPE_NULL_STEPPING] && CalculateResidualVectorFlag) {
         auto relative_time = (rCurrentProcessInfo[TIME] - rCurrentProcessInfo[START_TIME]) /
                              (rCurrentProcessInfo[END_TIME] - rCurrentProcessInfo[START_TIME]);
         const auto f_ext = -mInternalForcesAtStart + (mExternalForcesAtStart + mInternalForcesAtStart) * relative_time;
@@ -946,8 +948,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddRHSWithProcessInfo(VectorTyp
                                                               const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateAndAddInternalForces(rRightHandSideVector, rVariables, GPoint);
-    if (rCurrentProcessInfo[TIME] <= 0.0) {
-        // For t > 0 the unbalance reduction stepping is applied for the external loads
+    if (!rCurrentProcessInfo[USE_PROTOTYPE_NULL_STEPPING]) {
+        // When using prototype the unbalance reduction stepping is applied for the external loads
         CalculateAndAddExternalForces(rRightHandSideVector, rVariables, GPoint);
     }
 }

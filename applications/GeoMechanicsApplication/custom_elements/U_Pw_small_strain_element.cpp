@@ -124,6 +124,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     if (!mIsInitialized) {
+        mInternalForcesAtStart = ZeroVector(TNumNodes * (TDim + 1));
+        mExternalForcesAtStart = ZeroVector(TNumNodes * (TDim + 1));
         const PropertiesType&                           r_properties = this->GetProperties();
         const GeometryType&                             r_geometry   = this->GetGeometry();
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
@@ -1049,7 +1051,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
         }
     }
 
-    if (rCurrentProcessInfo[TIME] > 0.0 && CalculateResidualVectorFlag) {
+    if (rCurrentProcessInfo[USE_PROTOTYPE_NULL_STEPPING] && CalculateResidualVectorFlag) {
         auto relative_time = (rCurrentProcessInfo[TIME] - rCurrentProcessInfo[START_TIME]) /
                              (rCurrentProcessInfo[END_TIME] - rCurrentProcessInfo[START_TIME]);
         const auto f_ext = -mInternalForcesAtStart + (mExternalForcesAtStart + mInternalForcesAtStart) * relative_time;
@@ -1333,7 +1335,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHSWithProcessInfo(V
                                                                                const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateAndAddInternalForces(rRightHandSideVector, rVariables, GPoint);
-    if (rCurrentProcessInfo[TIME] <= 0.0) {
+    if (!rCurrentProcessInfo[USE_PROTOTYPE_NULL_STEPPING]) {
         // For t > 0 the unbalance reduction stepping is applied for the external loads
         CalculateAndAddExternalForces(rRightHandSideVector, rVariables, GPoint);
     }
