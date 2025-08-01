@@ -36,7 +36,7 @@ namespace Kratos
 
         //CHECKLEO - temporary predefined actuation variables
         mACTUATION_ALPHA = 0.0; 
-        mACTUATION_BETA = 0.0;
+        mACTUATION_BETA = 0.5;
         mACTUATION_GAMMA = 0.0;
         mACTUATION_KAPPA_1 = 0.0;
         mACTUATION_KAPPA_2 = 0.0;
