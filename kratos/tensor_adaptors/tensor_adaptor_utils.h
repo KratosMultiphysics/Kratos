@@ -21,6 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "containers/variable.h"
 #include "includes/model_part.h"
 #include "utilities/data_type_traits.h"
 #include "utilities/container_io_utils.h"
