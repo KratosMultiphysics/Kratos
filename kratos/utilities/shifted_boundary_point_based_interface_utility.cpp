@@ -197,7 +197,8 @@ namespace Kratos
             mpBoundarySubModelPart = &(mpModelPart->CreateSubModelPart(boundary_sub_model_part_name));
         }
         // Get model part for skin points
-        mpSkinPointsModelPart = &rModel.GetModelPart("SkinPoints");
+        const std::string skin_points_model_part_name = mSkinModelPartName + "Points";
+        mpSkinPointsModelPart = &rModel.GetModelPart(skin_points_model_part_name);
         KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", mpSkinPointsModelPart->NumberOfNodes() != 0) << "Provided SBM model part has nodes." << std::endl;
         KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", mpSkinPointsModelPart->NumberOfElements() != 0) << "Provided SBM model part has elements." << std::endl;
         KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", mpSkinPointsModelPart->NumberOfConditions() != 0) << "Provided SBM model part has conditions." << std::endl;

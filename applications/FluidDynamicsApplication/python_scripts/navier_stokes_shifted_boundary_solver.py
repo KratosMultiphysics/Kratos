@@ -172,7 +172,8 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             #r_visualization_model_part.SetProcessInfo(p_process_info);
 
         # Create a model part for skin integration points
-        self.skin_point_model_part = self.model.CreateModelPart("SkinPoints")
+        for skin_mp_name in self.skin_model_part_names:
+            self.model.CreateModelPart(skin_mp_name + "Points")
 
         KM.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesShiftedBoundaryMonolithicSolver finished.")
 
@@ -196,7 +197,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             for variable in self.historical_nodal_properties_variables_list:
                 self.main_model_part.AddNodalSolutionStepVariable(variable)
 
-        # Add nodal variables to skin model part
+        # Add nodal variables to skin model part and skin integration points model part
         for skin_mp_name in self.skin_model_part_names:
             skin_mp = self.model.GetModelPart(skin_mp_name)
             skin_mp.AddNodalSolutionStepVariable(KM.VELOCITY)
@@ -205,15 +206,14 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             skin_mp.AddNodalSolutionStepVariable(KM.NEGATIVE_FACE_PRESSURE)
             skin_mp.AddNodalSolutionStepVariable(KM.POSITIVE_FACE_FLUID_VELOCITY)
             skin_mp.AddNodalSolutionStepVariable(KM.NEGATIVE_FACE_FLUID_VELOCITY)
-
-        # Add nodal variables for skin integration points model part
-        self.skin_point_model_part.AddNodalSolutionStepVariable(KM.POSITIVE_FACE_PRESSURE)
-        self.skin_point_model_part.AddNodalSolutionStepVariable(KM.NEGATIVE_FACE_PRESSURE)
-        self.skin_point_model_part.AddNodalSolutionStepVariable(KM.POSITIVE_FACE_FLUID_VELOCITY)
-        self.skin_point_model_part.AddNodalSolutionStepVariable(KM.NEGATIVE_FACE_FLUID_VELOCITY)
-        self.skin_point_model_part.AddNodalSolutionStepVariable(KM.TRACTION_FROM_FLUID_PRESSURE)
-        self.skin_point_model_part.AddNodalSolutionStepVariable(KM.TRACTION_FROM_FLUID_STRESS)
-        self.skin_point_model_part.AddNodalSolutionStepVariable(KM.DRAG_FORCE)
+            skin_mp_points = self.model.GetModelPart(skin_mp_name+"Points")
+            skin_mp_points.AddNodalSolutionStepVariable(KM.POSITIVE_FACE_PRESSURE)
+            skin_mp_points.AddNodalSolutionStepVariable(KM.NEGATIVE_FACE_PRESSURE)
+            skin_mp_points.AddNodalSolutionStepVariable(KM.POSITIVE_FACE_FLUID_VELOCITY)
+            skin_mp_points.AddNodalSolutionStepVariable(KM.NEGATIVE_FACE_FLUID_VELOCITY)
+            skin_mp_points.AddNodalSolutionStepVariable(KM.TRACTION_FROM_FLUID_PRESSURE)
+            skin_mp_points.AddNodalSolutionStepVariable(KM.TRACTION_FROM_FLUID_STRESS)
+            skin_mp_points.AddNodalSolutionStepVariable(KM.DRAG_FORCE)
 
         KM.Logger.PrintInfo(self.__class__.__name__, "Shifted-boundary fluid solver variables added correctly.")
 
@@ -242,8 +242,9 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             skin_mp = self.model.GetModelPart(skin_mp_name)
             skin_mp.CloneTimeStep(t)
             skin_mp.ProcessInfo[KM.STEP] = step
-        self.skin_point_model_part.CloneTimeStep(t)
-        self.skin_point_model_part.ProcessInfo[KM.STEP] = step
+            skin_mp_points = self.model.GetModelPart(skin_mp_name+"Points")
+            skin_mp_points.CloneTimeStep(t)
+            skin_mp_points.ProcessInfo[KM.STEP] = step
 
     def Initialize(self):
         # If the solver requires an instance of the stabilized shifted boundary formulation class, set the process info variables
@@ -275,8 +276,9 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             skin_mp = self.model.GetModelPart(skin_mp_name)
             skin_mp.CloneTimeStep(new_time)
             skin_mp.ProcessInfo[KM.STEP] = step
-        self.skin_point_model_part.CloneTimeStep(new_time)
-        self.skin_point_model_part.ProcessInfo[KM.STEP] = step
+            skin_mp_points = self.model.GetModelPart(skin_mp_name+"Points")
+            skin_mp_points.CloneTimeStep(new_time)
+            skin_mp_points.ProcessInfo[KM.STEP] = step
 
         return new_time
 
