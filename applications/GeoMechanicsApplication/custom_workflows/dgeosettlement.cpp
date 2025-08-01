@@ -371,6 +371,8 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
 
     FindNeighbourElementsOfConditionsProcess{GetComputationalModelPart()}.Execute();
     DeactivateConditionsOnInactiveElements{GetComputationalModelPart()}.Execute();
+    GetComputationalModelPart().GetProcessInfo()[START_TIME] = GetStartTimeFrom(rProjectParameters);
+    GetComputationalModelPart().GetProcessInfo()[END_TIME] = GetEndTimeFrom(rProjectParameters);
 
     // For now, we can create solving strategy wrappers only
     using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;
