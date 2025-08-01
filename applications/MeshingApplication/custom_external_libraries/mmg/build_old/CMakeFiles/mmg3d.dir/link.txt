@@ -1,0 +1,1 @@
+/usr/bin/g++ -O3 -DNDEBUG -rdynamic CMakeFiles/mmg3d.dir/src/common/apptools.c.o CMakeFiles/mmg3d.dir/src/mmg3d/mmg3d.c.o -o bin/mmg3d_O3  lib/libmmg3d.a -lm 

@@ -1,0 +1,1 @@
+/usr/bin/gcc -O3 -march=native -mtune=native -fopenmp -O3 -DNDEBUG -rdynamic CMakeFiles/genheader.dir/scripts/genheader.c.o -o bin/genheader 

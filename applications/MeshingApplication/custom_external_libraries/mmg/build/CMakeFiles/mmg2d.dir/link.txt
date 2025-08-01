@@ -1,0 +1,1 @@
+/usr/bin/gcc -O3 -march=native -mtune=native -fopenmp -O3 -DNDEBUG -rdynamic CMakeFiles/mmg2d.dir/src/common/apptools.c.o CMakeFiles/mmg2d.dir/src/mmg2d/mmg2d.c.o -o bin/mmg2d_O3  -Wl,-rpath,/home/marco/Kratos/applications/MeshingApplication/custom_external_libraries/mmg/build/lib: lib/libmmg2d.so.5.7.0 -lm 
