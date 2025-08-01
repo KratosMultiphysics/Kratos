@@ -110,8 +110,14 @@ private:
     double mSheddedWakeDistance;
     double mSheddedWakeElementSize;
     double mGrowFactor;
-
-    BoundedVector<double, 3> mWakeNormalOld;
+    double mProjectionDistance;
+    std::string mUpperSurfaceModelPartName;
+    std::string mLowerSurfaceModelPartName;
+    std::string mRootPointsModelPartName;
+    std::string mTipPointsModelPartName;
+    std::string mTailModelPartName;
+    std::string mBluntTESurfaceModelPartName;
+    std::unordered_set<IndexType> mBluntIds; 
 
     ///@}
     ///@name Private Operators
@@ -120,7 +126,7 @@ private:
 
     void InitializeWakeSubModelpart() const;
 
-    void MarkTrailingEdgeNodesAndFindWingtiprootNodes();
+    void MarkTrailingEdgeNodesAndFindWingtipNodes();
 
     void ComputeWingLowerSurfaceNormals() const;
 

@@ -31,15 +31,24 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
         # Check default settings
         default_settings = KratosMultiphysics.Parameters(r'''{
-            "model_part_name": "",
+            "model_part_name"     : "",
+            "tail_model_part_name": "",
             "body_model_part_name": "",
-            "wake_stl_file_name" : "",
-            "gid_output_wake": false,
-            "vtk_output_wake": false,
+            "wake_stl_file_name"  : "",
+            "wake_stl_dx"         : 0.0,
+            "wake_stl_dy"         : 0.0,
+            "wake_stl_dz"         : 0.0,
+            "gid_output_wake"     : false,
+            "vtk_output_wake"     : false,
             "wake_process_cpp_parameters":    {
                 "tolerance"                     : 1e-9,
                 "wake_normal"                   : [0.0,0.0,1.0],
                 "wake_direction"                : [1.0,0.0,0.0],
+                "upper_surface_model_part_name" : "",
+                "lower_surface_model_part_name" : "",
+                "root_points_model_part_name"   : "",
+                "tip_points_model_part_name"    : "",
+                "shed_wake_tail_name"           : "",
                 "switch_wake_normal"            : false,
                 "count_elements_number"         : false,
                 "write_elements_ids_to_file"    : false,
@@ -47,6 +56,8 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 "shedded_wake_distance"         : 12.5,
                 "shedded_wake_element_size"     : 0.2,
                 "shedded_grow_factor"           : 1.05,
+                "projection_distance"           : 0.0,
+                "decrease_wake_width_at_the_wing_tips" : false,
                 "echo_level": 1
             }
         }''')
@@ -56,11 +67,12 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
         self.gid_output_wake = settings["gid_output_wake"].GetBool()
         self.vtk_output_wake = settings["vtk_output_wake"].GetBool()
+        self.wake_stl_dx     = settings["wake_stl_dx"].GetDouble()
+        self.wake_stl_dy     = settings["wake_stl_dy"].GetDouble()
+        self.wake_stl_dz     = settings["wake_stl_dz"].GetDouble()
         self.wake_process_cpp_parameters = settings["wake_process_cpp_parameters"]
 
         self.epsilon = self.wake_process_cpp_parameters["tolerance"].GetDouble()
-        self.shedded_wake_distance = self.wake_process_cpp_parameters["shedded_wake_distance"].GetDouble()
-        self.shedded_wake_element_size = self.wake_process_cpp_parameters["shedded_wake_element_size"].GetDouble()
         self.echo_level = self.wake_process_cpp_parameters["echo_level"].GetInt()
 
         # This is a reference value for the wake normal
@@ -75,23 +87,17 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             raise Exception(err_msg)
         self.trailing_edge_model_part = Model[trailing_edge_model_part_name]
 
+        if self.trailing_edge_model_part.NumberOfConditions()<1:
+            self.reference_id = 10000000
+            self._IncludeConditionsToModelPart(self.trailing_edge_model_part)
+        
+        tail_model_part_name = settings["tail_model_part_name"].GetString()
+        if tail_model_part_name != "":
+            self.tail_model_part = Model[tail_model_part_name]
+            if self.tail_model_part.NumberOfConditions()<1:
+                self._IncludeConditionsToModelPart(self.tail_model_part)
+
         self.fluid_model_part = self.trailing_edge_model_part.GetRootModelPart()
-
-        # Modify to generate the wake for a list of TEs
-        if self.trailing_edge_model_part.NumberOfConditions()<1 and self.wake_process_cpp_parameters["shed_wake_from_trailing_edge"].GetBool():
-            reference_point = [0.0, 0.0, 0.0]
-            prop = self.trailing_edge_model_part.GetProperties()[1]
-            node_ids = []
-            node_distances = []
-            for node in self.trailing_edge_model_part.Nodes:
-                diference = [node.X-reference_point[0], node.Y-reference_point[1], node.Z-reference_point[2]]
-                node_distances.append(math.sqrt(DotProduct(diference, diference)))
-                node_ids.append(node.Id)
-            ordered_indexes = sorted(range(len(node_distances)), key=lambda i: node_distances[i])
-            node_list = [node_ids[i] for i in ordered_indexes]
-            for i in range(1, self.trailing_edge_model_part.NumberOfNodes()):
-                self.trailing_edge_model_part.CreateNewCondition("LineCondition3D2N", 10000000+i, [node_list[i-1], node_list[i]], prop)
-
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.WAKE_NORMAL,self.wake_normal)
 
         if self.wake_process_cpp_parameters.Has("wake_direction"):
@@ -158,14 +164,12 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         from stl import mesh #this requires numpy-stl
         wake_stl_mesh = mesh.Mesh.from_multi_file(self.wake_stl_file_name)
 
-        z = 0.0#-1e-4
-
         # Looping over stl meshes
         for stl_mesh in wake_stl_mesh:
             for vertex in stl_mesh.points:
-                node1 = self.__AddNodeToWakeModelPart(float(vertex[0]), float(vertex[1]), float(vertex[2]) + z )
-                node2 = self.__AddNodeToWakeModelPart(float(vertex[3]), float(vertex[4]), float(vertex[5]) + z )
-                node3 = self.__AddNodeToWakeModelPart(float(vertex[6]), float(vertex[7]), float(vertex[8]) + z )
+                node1 = self.__AddNodeToWakeModelPart(float(vertex[0])+self.wake_stl_dx, float(vertex[1])+self.wake_stl_dy, float(vertex[2])+self.wake_stl_dz )
+                node2 = self.__AddNodeToWakeModelPart(float(vertex[3])+self.wake_stl_dx, float(vertex[4])+self.wake_stl_dy, float(vertex[5])+self.wake_stl_dz )
+                node3 = self.__AddNodeToWakeModelPart(float(vertex[6])+self.wake_stl_dx, float(vertex[7])+self.wake_stl_dy, float(vertex[8])+self.wake_stl_dz )
 
                 side1 = node2 - node1
                 side2 = node3 - node1
@@ -261,6 +265,21 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             output.PrintOutput()
             output.ExecuteFinalizeSolutionStep()
             output.ExecuteFinalize()
+
+    def _IncludeConditionsToModelPart(self, model_part):
+        reference_point = [0.0, 0.0, 0.0]
+        prop = model_part.GetProperties()[1]
+        node_ids = []
+        node_distances = []
+        for node in model_part.Nodes:
+            diference = [node.X-reference_point[0], node.Y-reference_point[1], node.Z-reference_point[2]]
+            node_distances.append(math.sqrt(DotProduct(diference, diference)))
+            node_ids.append(node.Id)
+        ordered_indexes = sorted(range(len(node_distances)), key=lambda i: node_distances[i])
+        node_list = [node_ids[i] for i in ordered_indexes]
+        for i in range(1, model_part.NumberOfNodes()):
+            self.reference_id += i
+            model_part.CreateNewCondition("LineCondition3D2N", self.reference_id, [node_list[i-1], node_list[i]], prop)
 
     def ExecuteFinalizeSolutionStep(self):
         if not self.fluid_model_part.HasSubModelPart("wake_elements_model_part"):

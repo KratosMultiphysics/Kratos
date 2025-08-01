@@ -37,6 +37,12 @@ Define3DWakeProcess::Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
         "tolerance"                            : 1e-9,
         "wake_normal"                          : [0.0,0.0,1.0],
         "wake_direction"                       : [1.0,0.0,0.0],
+        "upper_surface_model_part_name"        : "",
+        "lower_surface_model_part_name"        : "",
+        "root_points_model_part_name"          : "",
+        "tip_points_model_part_name"           : "",
+        "blunt_te_model_part"                  : "",
+        "shed_wake_tail_name"                  : "",
         "switch_wake_normal"                   : false,
         "count_elements_number"                : false,
         "write_elements_ids_to_file"           : false,
@@ -44,6 +50,7 @@ Define3DWakeProcess::Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
         "shedded_wake_distance"                : 12.5,
         "shedded_wake_element_size"            : 0.2,
         "shedded_grow_factor"                  : 1.05,
+        "projection_distance"                  : 0.0,
         "decrease_wake_width_at_the_wing_tips" : false,
         "echo_level": 1
     })" );
@@ -58,7 +65,14 @@ Define3DWakeProcess::Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
     mShedWakeFromTrailingEdge = ThisParameters["shed_wake_from_trailing_edge"].GetBool();
     mSheddedWakeDistance = ThisParameters["shedded_wake_distance"].GetDouble();
     mSheddedWakeElementSize = ThisParameters["shedded_wake_element_size"].GetDouble();
+    mTailModelPartName         = ThisParameters["shed_wake_tail_name"].GetString();
+    mUpperSurfaceModelPartName = ThisParameters["upper_surface_model_part_name"].GetString();
+    mLowerSurfaceModelPartName = ThisParameters["lower_surface_model_part_name"].GetString();
+    mBluntTESurfaceModelPartName = ThisParameters["blunt_te_model_part"].GetString();
+    mRootPointsModelPartName   = ThisParameters["root_points_model_part_name"].GetString();
+    mTipPointsModelPartName    = ThisParameters["tip_points_model_part_name"].GetString();
     mGrowFactor = ThisParameters["shedded_grow_factor"].GetDouble();
+    mProjectionDistance = ThisParameters["projection_distance"].GetDouble();
     mDecreaseWakeWidthAtTheWingTips = ThisParameters["decrease_wake_width_at_the_wing_tips"].GetBool();
     mEchoLevel = ThisParameters["echo_level"].GetInt();
 
@@ -79,6 +93,7 @@ void Define3DWakeProcess::ExecuteInitialize()
     });
     auto& r_elements = root_model_part.Elements();
     VariableUtils().SetNonHistoricalVariable(WAKE, 0, r_elements);
+    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, 0, r_elements);
 
     InitializeTrailingEdgeSubModelpart();
 
@@ -87,7 +102,7 @@ void Define3DWakeProcess::ExecuteInitialize()
     // Compute span direction as the cross product: mWakeNormal x mWakeDirection
     MathUtils<double>::CrossProduct(mSpanDirection, mWakeNormal, mWakeDirection);
 
-    MarkTrailingEdgeNodesAndFindWingtiprootNodes();
+    MarkTrailingEdgeNodesAndFindWingtipNodes();
 
     ComputeWingLowerSurfaceNormals();
 
@@ -175,33 +190,40 @@ void Define3DWakeProcess::InitializeWakeSubModelpart() const
 }
 
 // This function marks the trailing edge nodes and finds the wingtip nodes
-void Define3DWakeProcess::MarkTrailingEdgeNodesAndFindWingtiprootNodes()
+void Define3DWakeProcess::MarkTrailingEdgeNodesAndFindWingtipNodes()
 {
-    double max_span_position = std::numeric_limits<double>::lowest();
-    double min_span_position = std::numeric_limits<double>::max();
-
-    auto p_right_wing_tip_node = &*mrTrailingEdgeModelPart.NodesBegin();
-    auto p_left_wing_tip_node = &*mrTrailingEdgeModelPart.NodesBegin();
-
+    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
+    
     for (auto& r_node : mrTrailingEdgeModelPart.Nodes()) {
         r_node.SetValue(TRAILING_EDGE, true);
-        const auto& r_coordinates = r_node.Coordinates();
-        const double distance_projection = inner_prod(r_coordinates, mSpanDirection);
+    }
 
-        // Wingtip nodes have maximum and minimum span positions
-        if(distance_projection > max_span_position){
-            p_right_wing_tip_node = &r_node;
-            max_span_position = distance_projection;
-        }
-        if(distance_projection < min_span_position){
-            p_left_wing_tip_node = &r_node;
-            min_span_position = distance_projection;
+    if (mTailModelPartName != "")
+    {
+        ModelPart& tail_trailing_edge_modelpart = root_model_part.GetSubModelPart(mTailModelPartName);
+        for (auto& r_node : tail_trailing_edge_modelpart.Nodes()) {
+            r_node.SetValue(TRAILING_EDGE, true);
         }
     }
 
-    // Marking wingtip and wingroot nodes
-    p_right_wing_tip_node->SetValue(WING_TIP, true);
-    p_left_wing_tip_node->SetValue(WING_ROOT, true);
+    if (mBluntTESurfaceModelPartName !="")
+    {
+        ModelPart& blunt_trailing_edge_modelpart = root_model_part.GetSubModelPart(mBluntTESurfaceModelPartName);
+        for (auto& r_node : blunt_trailing_edge_modelpart.Nodes()) {
+            mBluntIds.insert(r_node.Id());
+        }
+    }
+    
+    
+    ModelPart& root_sub_model_part = root_model_part.GetSubModelPart(mRootPointsModelPartName);
+    for (auto& r_node : root_sub_model_part.Nodes()) {
+        r_node.SetValue(WING_ROOT, true);
+    }
+    
+    ModelPart& tip_sub_model_part = root_model_part.GetSubModelPart(mTipPointsModelPartName);
+    for (auto& r_node : tip_sub_model_part.Nodes()) {
+        r_node.SetValue(WING_TIP, true);
+    }
 }
 
 // This function computes the wing lower surface normals and marks the upper
@@ -215,33 +237,33 @@ void Define3DWakeProcess::ComputeWingLowerSurfaceNormals() const
     // So far it has not been noted much difference in terms of speed.
     // Also, when ran in parallel, the result can be random.
     // Mark upper surface
-    for (auto& r_cond : mrBodyModelPart.Conditions()) {
+    
+    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
+    ModelPart& upper_sub_model_part = root_model_part.GetSubModelPart(mUpperSurfaceModelPartName);
+    for (auto& r_cond : upper_sub_model_part.Conditions()) {
         auto& r_geometry = r_cond.GetGeometry();
-        const auto& surface_normal = r_geometry.UnitNormal(0);
-        const double projection = inner_prod(surface_normal, mWakeNormal);
-
-        if(!(projection > 0.0)){
-            for (unsigned int j = 0; j < r_geometry.size(); j++) {
-                r_geometry[j].SetLock();
-                r_geometry[j].SetValue(UPPER_SURFACE, true);
-                r_geometry[j].UnSetLock();
-            }
+        for (unsigned int j = 0; j < r_geometry.size(); j++) {
+            r_geometry[j].SetLock();
+            r_geometry[j].SetValue(UPPER_SURFACE, true);
+            r_geometry[j].UnSetLock();
         }
     }
-
+    
     // Mark lower surface
-    for (auto& r_cond : mrBodyModelPart.Conditions()) {
+    ModelPart& lower_sub_model_part = root_model_part.GetSubModelPart(mLowerSurfaceModelPartName);
+    for (auto& r_cond : lower_sub_model_part.Conditions()) {
         auto& r_geometry = r_cond.GetGeometry();
         const auto& surface_normal = r_geometry.UnitNormal(0);
         const double projection = inner_prod(surface_normal, mWakeNormal);
-
-        if(projection > 0.0){
-            for (unsigned int j = 0; j < r_geometry.size(); j++) {
-                r_geometry[j].SetLock();
-                r_geometry[j].SetValue(NORMAL, surface_normal);
-                r_geometry[j].SetValue(LOWER_SURFACE, true);
-                r_geometry[j].UnSetLock();
-            }
+        double switching_factor = 1.0;
+        if(!(projection > 0.0)){
+            switching_factor = -1.0;
+        }
+        for (unsigned int j = 0; j < r_geometry.size(); j++) {
+            r_geometry[j].SetLock();
+            r_geometry[j].SetValue(NORMAL, surface_normal*switching_factor);
+            r_geometry[j].SetValue(LOWER_SURFACE, true);
+            r_geometry[j].UnSetLock();
         }
     }
 }
@@ -256,6 +278,7 @@ void Define3DWakeProcess::ComputeAndSaveLocalWakeNormal() const
         // Use global wake normal
         auto& r_nodes = mrTrailingEdgeModelPart.Nodes();
         VariableUtils().SetNonHistoricalVariable(WAKE_NORMAL, mWakeNormal, r_nodes);
+        KRATOS_INFO("ComputeAndSaveLocalWakeNormal") << " Trailing edge model part doesn't have conditions." << std::endl;
     }
     else{
         for (auto& r_cond : mrTrailingEdgeModelPart.Conditions()){
@@ -284,15 +307,53 @@ void Define3DWakeProcess::ComputeAndSaveLocalWakeNormal() const
             local_wake_normal /= norm;
         }
     }
+
+    if (mTailModelPartName != "")
+    {
+        ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
+        ModelPart& tail_trailing_edge_modelpart = root_model_part.GetSubModelPart(mTailModelPartName);
+        if(tail_trailing_edge_modelpart.NumberOfConditions() < 1){
+            // Use global wake normal
+            auto& r_nodes = tail_trailing_edge_modelpart.Nodes();
+            VariableUtils().SetNonHistoricalVariable(WAKE_NORMAL, mWakeNormal, r_nodes);
+            KRATOS_INFO("ComputeAndSaveLocalWakeNormal") << " Tail Trailing edge model part doesn't have conditions." << std::endl;
+        }
+        else{
+            for (auto& r_cond : tail_trailing_edge_modelpart.Conditions()){
+                auto& r_geometry = r_cond.GetGeometry();
+                const auto& coordinates1 = r_geometry[0].Coordinates();
+                const auto& coordinates2 = r_geometry[1].Coordinates();
+
+                const auto& local_span_direction = coordinates2 - coordinates1;
+                array_1d<double, 3> local_wake_normal = ZeroVector(3);
+                MathUtils<double>::CrossProduct(local_wake_normal, mWakeDirection, local_span_direction);
+
+                const double projection = inner_prod(local_wake_normal, mWakeNormal);
+
+                if(projection < 0.0){
+                    local_wake_normal *= -1.0;
+                }
+
+                for (unsigned int i = 0; i < r_geometry.size(); i++){
+                    r_geometry[i].GetValue(WAKE_NORMAL) += local_wake_normal;
+                }
+            }
+
+            for (auto& r_node: tail_trailing_edge_modelpart.Nodes()){
+                auto& local_wake_normal = r_node.GetValue(WAKE_NORMAL);
+                const double norm = MathUtils<double>::Norm3(local_wake_normal);
+                local_wake_normal /= norm;
+            }
+        }
+    }
 }
 
 // This function creates the wake surface automatically by shedding it from the
-// trailing edge in the direction of the free stream velocity (mWakeDirection).
+// trailing edge in the dicretion of the free stream velocity (mWakeDirection).
 // The user can decide how much distance is to be shedded and the element size
 // of the wake surface in the wake direction. Note that the element size in span
 // direction is predetermined by the size of the conditions constituting the
 // trailing edge.
-
 void Define3DWakeProcess::ShedWakeSurfaceFromTheTrailingEdge() const
 {
     const Properties::Pointer pElemProp = mrStlWakeModelPart.pGetProperties(0);
@@ -303,81 +364,106 @@ void Define3DWakeProcess::ShedWakeSurfaceFromTheTrailingEdge() const
     IndexType node_index = 0;
     IndexType element_index = 0;
 
-    array_1d<double,3> coordinates0;
-    array_1d<double,3> coordinates1;
-    array_1d<double,3> coordinates2;
-    array_1d<double,3> coordinates3;
-    array_1d<double,3> coordinates4;
-
     for (auto& r_cond : mrTrailingEdgeModelPart.Conditions()) {
         auto& r_geometry = r_cond.GetGeometry();
+        
+        array_1d<double,3> start_point = r_geometry[0].Coordinates();
+        array_1d<double,3> end_point = r_geometry[1].Coordinates();
 
-        if (r_geometry[0].GetValue(WING_ROOT) != 0 || r_geometry[1].GetValue(WING_ROOT) != 0){
-            coordinates1 = r_geometry[0].Coordinates();
-            coordinates2 = r_geometry[1].Coordinates();
-            if(r_geometry[0].GetValue(WING_ROOT) != 0){
-                auto local_vector = coordinates2-coordinates1;
-                coordinates0 = coordinates1-local_vector;
-            }
-            else if(r_geometry[1].GetValue(WING_ROOT) != 0){
-                auto local_vector = coordinates1-coordinates2;
-                coordinates0 = coordinates2-local_vector;
-            }
-
-            double current_element_size = initial_element_size;
-            double accumulated_distance = 0.0;
-
-            coordinates3 = coordinates0 + current_element_size * mWakeDirection;
-            coordinates4 = coordinates1 + current_element_size * mWakeDirection;
-
-            CreateWakeSurfaceNodesAndElements(node_index, coordinates0, coordinates1, coordinates3,
-                                            coordinates4, element_index, pElemProp);
-
-            while (accumulated_distance + current_element_size <= max_distance) {
-                accumulated_distance += current_element_size;
-                current_element_size *= growth_factor;
-
-                coordinates0 = coordinates3;
-                coordinates1 = coordinates4;
-                coordinates3 = coordinates0 + current_element_size * mWakeDirection;
-                coordinates4 = coordinates1 + current_element_size * mWakeDirection;
-
-                CreateWakeSurfaceNodesAndElements(node_index, coordinates0, coordinates1, coordinates3,
-                                                coordinates4, element_index, pElemProp);
+        // Check if any node is on the wing root
+        if (r_geometry[0].GetValue(WING_ROOT) != 0 || r_geometry[1].GetValue(WING_ROOT) != 0) {
+            if (r_geometry[0].GetValue(WING_ROOT) != 0) {
+                auto local_vector = end_point - start_point;
+                start_point = start_point - (local_vector*mProjectionDistance/norm_2(local_vector));
+            } else {
+                auto local_vector = start_point - end_point;
+                end_point = end_point - (local_vector*mProjectionDistance/norm_2(local_vector));
             }
         }
 
-        coordinates1 = r_geometry[0].Coordinates();
-        coordinates2 = r_geometry[1].Coordinates();
-
+        // If decreasing wake width at wing tips
         if (mDecreaseWakeWidthAtTheWingTips) {
             if (r_geometry[0].GetValue(WING_TIP) != 0) {
-                DecreaseWakeWidthAtTheWingTips(coordinates1, coordinates2);
+                DecreaseWakeWidthAtTheWingTips(start_point, end_point);
             } else if (r_geometry[1].GetValue(WING_TIP) != 0) {
-                DecreaseWakeWidthAtTheWingTips(coordinates2, coordinates1);
+                DecreaseWakeWidthAtTheWingTips(end_point, start_point);
             }
         }
 
+        // Create the wake surface
         double current_element_size = initial_element_size;
         double accumulated_distance = 0.0;
 
-        coordinates3 = coordinates1 + current_element_size * mWakeDirection;
-        coordinates4 = coordinates2 + current_element_size * mWakeDirection;
+        array_1d<double,3> next_start = start_point + current_element_size * mWakeDirection;
+        array_1d<double,3> next_end   = end_point   + current_element_size * mWakeDirection;
 
-        CreateWakeSurfaceNodesAndElements(node_index, coordinates1, coordinates2, coordinates3,
-                                          coordinates4, element_index, pElemProp);
+        CreateWakeSurfaceNodesAndElements(node_index, start_point, end_point, next_start, next_end, element_index, pElemProp);
 
         while (accumulated_distance + current_element_size <= max_distance) {
             accumulated_distance += current_element_size;
             current_element_size *= growth_factor;
 
-            coordinates1 = coordinates3;
-            coordinates2 = coordinates4;
-            coordinates3 = coordinates1 + current_element_size * mWakeDirection;
-            coordinates4 = coordinates2 + current_element_size * mWakeDirection;
+            start_point = next_start;
+            end_point   = next_end;
 
-            CreateWakeSurfaceNodesAndElements(node_index, coordinates1, coordinates2, coordinates3,
-                                              coordinates4, element_index, pElemProp);
+            next_start = start_point + current_element_size * mWakeDirection;
+            next_end   = end_point   + current_element_size * mWakeDirection;
+
+            CreateWakeSurfaceNodesAndElements(node_index, start_point, end_point, next_start, next_end, element_index, pElemProp);
+        }
+    }
+
+    if (mTailModelPartName != "")
+    {
+        ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
+        ModelPart& tail_trailing_edge_modelpart = root_model_part.GetSubModelPart(mTailModelPartName);
+        for (auto& r_cond : tail_trailing_edge_modelpart.Conditions()) {
+            auto& r_geometry = r_cond.GetGeometry();
+            
+            array_1d<double,3> start_point = r_geometry[0].Coordinates();
+            array_1d<double,3> end_point = r_geometry[1].Coordinates();
+    
+            // Check if any node is on the wing root
+            if (r_geometry[0].GetValue(WING_ROOT) != 0 || r_geometry[1].GetValue(WING_ROOT) != 0) {
+                if (r_geometry[0].GetValue(WING_ROOT) != 0) {
+                    auto local_vector = end_point - start_point;
+                    start_point = start_point - (local_vector*mProjectionDistance/norm_2(local_vector));
+                } else {
+                    auto local_vector = start_point - end_point;
+                    end_point = end_point - (local_vector*mProjectionDistance/norm_2(local_vector));
+                }
+            }
+    
+            // If decreasing wake width at wing tips
+            if (mDecreaseWakeWidthAtTheWingTips) {
+                if (r_geometry[0].GetValue(WING_TIP) != 0) {
+                    DecreaseWakeWidthAtTheWingTips(start_point, end_point);
+                } else if (r_geometry[1].GetValue(WING_TIP) != 0) {
+                    DecreaseWakeWidthAtTheWingTips(end_point, start_point);
+                }
+            }
+    
+            // Create the wake surface
+            double current_element_size = initial_element_size;
+            double accumulated_distance = 0.0;
+    
+            array_1d<double,3> next_start = start_point + current_element_size * mWakeDirection;
+            array_1d<double,3> next_end   = end_point   + current_element_size * mWakeDirection;
+    
+            CreateWakeSurfaceNodesAndElements(node_index, start_point, end_point, next_start, next_end, element_index, pElemProp);
+    
+            while (accumulated_distance + current_element_size <= max_distance) {
+                accumulated_distance += current_element_size;
+                current_element_size *= growth_factor;
+    
+                start_point = next_start;
+                end_point   = next_end;
+    
+                next_start = start_point + current_element_size * mWakeDirection;
+                next_end   = end_point   + current_element_size * mWakeDirection;
+    
+                CreateWakeSurfaceNodesAndElements(node_index, start_point, end_point, next_start, next_end, element_index, pElemProp);
+            }
         }
     }
 }
@@ -425,14 +511,10 @@ std::array<ModelPart::IndexType, 4> Define3DWakeProcess::CreateWakeSurfaceNodes(
     const array_1d<double, 3>& rCoordinates3,
     const array_1d<double, 3>& rCoordinates4) const
 {
-    const auto& p_node1 = mrStlWakeModelPart.CreateNewNode(
-        ++rNode_index, rCoordinates1[0], rCoordinates1[1], rCoordinates1[2]);
-    const auto& p_node2 = mrStlWakeModelPart.CreateNewNode(
-        ++rNode_index, rCoordinates2[0], rCoordinates2[1], rCoordinates2[2]);
-    const auto& p_node3 = mrStlWakeModelPart.CreateNewNode(
-        ++rNode_index, rCoordinates3[0], rCoordinates3[1], rCoordinates3[2]);
-    const auto& p_node4 = mrStlWakeModelPart.CreateNewNode(
-        ++rNode_index, rCoordinates4[0], rCoordinates4[1], rCoordinates4[2]);
+    const auto& p_node1 = mrStlWakeModelPart.CreateNewNode(++rNode_index, rCoordinates1[0]-0.0001, rCoordinates1[1], rCoordinates1[2]+0.0001);
+    const auto& p_node2 = mrStlWakeModelPart.CreateNewNode(++rNode_index, rCoordinates2[0]-0.0001, rCoordinates2[1], rCoordinates2[2]+0.0001);
+    const auto& p_node3 = mrStlWakeModelPart.CreateNewNode(++rNode_index, rCoordinates3[0]-0.0001, rCoordinates3[1], rCoordinates3[2]+0.0001);
+    const auto& p_node4 = mrStlWakeModelPart.CreateNewNode(++rNode_index, rCoordinates4[0]-0.0001, rCoordinates4[1], rCoordinates4[2]+0.0001);
 
     return {p_node1->Id(), p_node2->Id(), p_node3->Id(), p_node4->Id()};
 }
@@ -506,7 +588,7 @@ void Define3DWakeProcess::MarkWakeElements() const
 
         // Mark wake elements, save their ids, save the elemental distances in
         // the element and in the nodes, and save wake nodes ids
-        if (rElement.Is(TO_SPLIT))
+        if (rElement.Is(TO_SPLIT) || rElement.GetValue(UPDATE_SENSITIVITIES))
         {
             // Mark wake elements
             rElement.SetValue(WAKE, true);
@@ -576,6 +658,25 @@ void Define3DWakeProcess::CheckIfTrailingEdgeElement(
         {
             rElement.SetValue(TRAILING_EDGE, true);
             rTrailingEdgeElementsOrderedIds.enqueue(rElement.Id());
+            break;
+        }
+    }
+
+    if (mBluntTESurfaceModelPartName != "" && rElement.GetValue(TRAILING_EDGE))
+    {
+        unsigned int number_of_blunt_nodes = 0;
+        std::unordered_set<std::size_t> indices_set(mBluntIds.begin(), mBluntIds.end());
+        // Loop over element nodes
+        for (unsigned int i = 0; i < rGeometry.size(); i++)
+        {
+            if (indices_set.find(rGeometry[i].Id()) != indices_set.end())
+            {
+                number_of_blunt_nodes += 1;
+            }
+        }
+        if (number_of_blunt_nodes > 2)
+        {   
+            rElement.SetValue(UPDATE_SENSITIVITIES, true);
         }
     }
 }
@@ -624,26 +725,26 @@ void Define3DWakeProcess::RecomputeNodalDistancesToWakeOrWingLowerSurface() cons
 
     block_for_each(trailing_edge_sub_model_part.Nodes(), [&](Node& r_node)
     {
-        // Trailing edge nodes are assigned a positive distance
-        if(r_node.GetValue(TRAILING_EDGE)){
-            r_node.SetValue(WAKE_DISTANCE, mTolerance);
-        }
-        // Nodes in the lower surface are assigned a negative distance
-        else if(r_node.GetValue(LOWER_SURFACE)){
-            r_node.SetValue(WAKE_DISTANCE, -mTolerance);
-        }
-        // Nodes in the upper surface are assigned a positive distance
-        else if(r_node.GetValue(UPPER_SURFACE)){
-            r_node.SetValue(WAKE_DISTANCE, mTolerance);
-        }
-        // For the rest of the nodes the distance is recomputed:
-        else{
-            // TODO: improve the distance calculation.
-            // Find closest trailing edge node
-            NodeType::Pointer p_closest_te_node = *mrTrailingEdgeModelPart.NodesBegin().base();
-            FindClosestTrailingEdgeNode(p_closest_te_node, r_node);
-            RecomputeDistance(p_closest_te_node, r_node);
-        }
+        // // Trailing edge nodes are assigned a positive distance
+        // if(r_node.GetValue(TRAILING_EDGE)){
+        //     r_node.SetValue(WAKE_DISTANCE, mTolerance);
+        // }
+        // // Nodes in the lower surface are assigned a negative distance
+        // else if(r_node.GetValue(LOWER_SURFACE)){
+        //     r_node.SetValue(WAKE_DISTANCE, -mTolerance);
+        // }
+        // // Nodes in the upper surface are assigned a positive distance
+        // else if(r_node.GetValue(UPPER_SURFACE)){
+        //     r_node.SetValue(WAKE_DISTANCE, mTolerance);
+        // }
+        // // For the rest of the nodes the distance is recomputed:
+        // else{
+        //     // TODO: improve the distance calculation.
+        //     // Find closest trailing edge node
+        NodeType::Pointer p_closest_te_node = *mrTrailingEdgeModelPart.NodesBegin().base();
+        FindClosestTrailingEdgeNode(p_closest_te_node, r_node);
+        RecomputeDistance(p_closest_te_node, r_node);
+        // }
     });
 }
 
@@ -660,6 +761,22 @@ void Define3DWakeProcess::FindClosestTrailingEdgeNode(NodeType::Pointer& pCloses
         {
             min_distance_to_te = distance_to_te;
             pClosest_te_node = &r_te_node;
+        }
+    }
+
+    if (mTailModelPartName != "")
+    {
+        ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
+        ModelPart& tail_trailing_edge_modelpart = root_model_part.GetSubModelPart(mTailModelPartName);
+        for (auto& r_te_node : tail_trailing_edge_modelpart.Nodes())
+        {
+            const auto& distance_vector = rPoint - r_te_node;
+            const double distance_to_te = inner_prod(distance_vector, distance_vector);
+            if (distance_to_te < min_distance_to_te)
+            {
+                min_distance_to_te = distance_to_te;
+                pClosest_te_node = &r_te_node;
+            }
         }
     }
 }
@@ -792,8 +909,8 @@ void Define3DWakeProcess::SelectElementType(Element& rElement,
                                             const unsigned int number_of_nodes_with_positive_distance) const
 {
     // Wake structure elements (cut)
-    if (number_of_nodes_with_positive_distance > 0 &&
-        number_of_nodes_with_negative_distance > 0 && rElement.GetValue(WAKE))
+    if ((number_of_nodes_with_positive_distance > 0 &&
+        number_of_nodes_with_negative_distance > 0 && rElement.GetValue(WAKE)) || rElement.GetValue(UPDATE_SENSITIVITIES))
     {
         rElement.Set(STRUCTURE);
         BoundedVector<double, 4> wake_elemental_distances = ZeroVector(4);
@@ -812,9 +929,21 @@ void Define3DWakeProcess::SelectElementType(Element& rElement,
     // 2 te nodes -> 2 non te nodes with negative distance > 1 = 3 - 2
     else if (number_of_nodes_with_negative_distance > 3 - number_of_te_nodes)
     {
+        // unsigned int number_of_lower_surface_nodes = 0;
+        // for (unsigned int j = 0; j < rGeometry.size(); j++)
+        // {
+        //     const auto& r_node = rGeometry[j];
+        //     if (r_node.GetValue(LOWER_SURFACE))
+        //     {
+        //         number_of_lower_surface_nodes += 1;
+        //     }
+        // }
+        // if (number_of_lower_surface_nodes==3)
+        // {
         rElement.SetValue(KUTTA, true);
         rElement.SetValue(WAKE, false);
         rElement.Set(TO_ERASE, true);
+        // }
     }
 
     // Normal elements (above). Normal elements have all nodes with positive
