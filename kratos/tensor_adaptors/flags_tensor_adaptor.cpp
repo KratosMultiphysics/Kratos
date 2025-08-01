@@ -63,8 +63,6 @@ void FlagsTensorAdaptor::Check() const
         using container_type = BareType<decltype(*pContainer)>;
 
         if constexpr(IsInList<container_type, ModelPart::NodesContainerType, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>) {
-            const auto& r_tensor_shape = this->Shape();
-
             KRATOS_ERROR_IF_NOT(this->Size() == pContainer->size())
                 << "Size mismatch [ Container size = " << pContainer->size()
                 << ", data span size = " << this->Size() << " ].\n";
