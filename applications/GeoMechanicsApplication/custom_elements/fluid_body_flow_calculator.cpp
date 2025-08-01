@@ -38,10 +38,10 @@ Vector FluidBodyFlowCalculator::RHSContribution()
     RetentionLaw::Parameters retention_law_parameters(r_properties);
     const auto&              projected_gravity_on_integration_points =
         mInputProvider.GetProjectedGravityAtIntegrationPoints();
-    const auto& fluid_pressures = mInputProvider.GetFluidPressures();
-    const auto fluid_body_vector_length = shape_function_gradients[0].size1();
-    Vector     result(fluid_body_vector_length, 0.0);
-    const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
+    const auto& fluid_pressures          = mInputProvider.GetFluidPressures();
+    const auto  fluid_body_vector_length = shape_function_gradients[0].size1();
+    Vector      result(fluid_body_vector_length, 0.0);
+    const auto  bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
 
     for (unsigned int integration_point_index = 0;
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {

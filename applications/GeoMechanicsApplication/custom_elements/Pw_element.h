@@ -233,10 +233,7 @@ public:
     {
         KRATOS_TRY
 
-        mIntegrationCoefficients.resize(0);
-        for (const auto& rContribution : mContributions) {
-            CalculateDataForCalculator(rContribution);
-        }
+        CachingDataForCalculator();
 
         rRightHandSideVector = ZeroVector{TNumNodes};
         rLeftHandSideMatrix  = ZeroMatrix{TNumNodes, TNumNodes};
@@ -254,10 +251,7 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
         rRightHandSideVector = ZeroVector{TNumNodes};
-        mIntegrationCoefficients.resize(0);
-        for (const auto& rContribution : mContributions) {
-            CalculateDataForCalculator(rContribution);
-        }
+        CachingDataForCalculator();
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
             noalias(rRightHandSideVector) += calculator->RHSContribution();
@@ -267,10 +261,7 @@ public:
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override
     {
         rLeftHandSideMatrix = ZeroMatrix{TNumNodes, TNumNodes};
-        mIntegrationCoefficients.resize(0);
-        for (const auto& rContribution : mContributions) {
-            CalculateDataForCalculator(rContribution);
-        }
+        CachingDataForCalculator();
         for (const auto& rContribution : mContributions) {
             const auto calculator = CreateCalculator(rContribution, rCurrentProcessInfo);
             if (const auto LHSContribution = calculator->LHSContribution())
@@ -450,33 +441,19 @@ private:
         }
     }
 
-    void CalculateDataForCalculator(const CalculationContribution& rContribution)
+    void CachingDataForCalculator()
     {
-        switch (rContribution) {
-        case CalculationContribution::Permeability:
-            mIntegrationCoefficients = SaveIntegrationCoefficients();
-            mNContainer              = SaveNContainer();
-            mFluidPressures          = SaveFluidPressure();
-            break;
-        case CalculationContribution::Compressibility:
-            if (!mIntegrationCoefficients.size()) {
-                mIntegrationCoefficients = SaveIntegrationCoefficients();
-                mNContainer              = SaveNContainer();
-                mFluidPressures          = SaveFluidPressure();
-            }
-            break;
-        case CalculationContribution::FluidBodyFlow:
-            break;
-        default:
-            KRATOS_ERROR << "Unknown contribution" << std::endl;
-        }
+        mIntegrationCoefficients = SaveIntegrationCoefficients();
+        mNContainer              = SaveNContainer();
+        mFluidPressures          = SaveFluidPressure();
     }
 
     CompressibilityCalculator::InputProvider CreateCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
     {
         return CompressibilityCalculator::InputProvider(
-            MakePropertiesGetter(), MakeRetentionLawsGetter(), GetNContainer(), GetIntegrationCoefficients(),
-            MakeMatrixScalarFactorGetter(rCurrentProcessInfo), MakeNodalVariableGetter(), GetFluidPressures());
+            MakePropertiesGetter(), MakeRetentionLawsGetter(), GetNContainer(),
+            GetIntegrationCoefficients(), MakeMatrixScalarFactorGetter(rCurrentProcessInfo),
+            MakeNodalVariableGetter(), GetFluidPressures());
     }
 
     FilterCompressibilityCalculator::InputProvider CreateFilterCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
@@ -491,17 +468,15 @@ private:
     {
         return PermeabilityCalculator::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), GetIntegrationCoefficients(),
-            MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter(), 
-            GetFluidPressures());
+            MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter(), GetFluidPressures());
     }
 
     FluidBodyFlowCalculator::InputProvider CreateFluidBodyFlowInputProvider()
     {
         return FluidBodyFlowCalculator::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), GetIntegrationCoefficients(),
-            MakeProjectedGravityForIntegrationPointsGetter(), 
-            MakeShapeFunctionLocalGradientsGetter(), MakeLocalSpaceDimensionGetter(),
-            GetFluidPressures());
+            MakeProjectedGravityForIntegrationPointsGetter(), MakeShapeFunctionLocalGradientsGetter(),
+            MakeLocalSpaceDimensionGetter(), GetFluidPressures());
     }
 
     auto MakePropertiesGetter()

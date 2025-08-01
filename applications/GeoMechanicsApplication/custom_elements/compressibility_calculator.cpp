@@ -52,8 +52,8 @@ Matrix CompressibilityCalculator::CalculateCompressibilityMatrix() const
     const auto& r_N_container            = mInputProvider.GetNContainer();
     const auto& integration_coefficients = mInputProvider.GetIntegrationCoefficients();
     const auto& fluid_pressures          = mInputProvider.GetFluidPressures();
-    Matrix result(r_N_container.size2(), r_N_container.size2(), 0.0);
-    Vector N(r_N_container.size2());
+    Matrix      result(r_N_container.size2(), r_N_container.size2(), 0.0);
+    Vector      N(r_N_container.size2());
 
     for (unsigned int integration_point_index = 0;
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {

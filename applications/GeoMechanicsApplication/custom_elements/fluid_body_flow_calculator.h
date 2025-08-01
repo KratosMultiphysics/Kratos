@@ -32,8 +32,8 @@ public:
                       std::function<Vector()>              GetIntegrationCoefficients,
                       std::function<std::vector<Vector>()> GetProjectedGravityAtIntegrationPoints,
                       std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients,
-                      std::function<std::size_t()>                   GetLocalSpaceDimension,
-                      std::function<std::vector<double>()>           GetFluidPressures)
+                      std::function<std::size_t()>         GetLocalSpaceDimension,
+                      std::function<std::vector<double>()> GetFluidPressures)
 
             : GetElementProperties(std::move(GetElementProperties)),
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
