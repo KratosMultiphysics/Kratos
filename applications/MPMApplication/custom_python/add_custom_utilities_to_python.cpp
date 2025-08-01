@@ -24,6 +24,8 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/material_point_search_utility.h"
 #include "custom_utilities/material_point_generator_utility.cpp"
+#include "custom_utilities/mpm_energy_calculation_utility.h"
+#include "custom_utilities/mpm_volume_sum_utility.h"
 
 
 namespace Kratos{
@@ -67,9 +69,15 @@ namespace Python{
 
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
-        m.def("SearchElement", SearchElementAccordingToDimension);
-        m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
-        m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
+        m.def("SearchElement", SearchElementAccordingToDimension, pybind11::arg("BackgroundGridModelPart"), pybind11::arg("MPMModelPart"), pybind11::arg("MaxNumberOfResults"), pybind11::arg("Tolerance"));
+        m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension, pybind11::arg("BackgroundGridModelPart"),  pybind11::arg("InitialModelPart"), pybind11::arg("MPMModelPart"), pybind11::arg("IsMixedFormulation"));
+        m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension, pybind11::arg("BackgroundGridModelPart"),  pybind11::arg("InitialModelPart"), pybind11::arg("MPMModelPart"));
+        m.def("CalculateKineticEnergy", pybind11::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateKineticEnergy), pybind11::arg("MPMModelPart"));
+        m.def("CalculateStrainEnergy", pybind11::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateStrainEnergy), pybind11::arg("MPMModelPart"));
+        m.def("CalculatePotentialEnergy", pybind11::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculatePotentialEnergy), pybind11::arg("MPMModelPart"));
+        m.def("CalculateTotalEnergy", pybind11::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateTotalEnergy), pybind11::arg("MPMModelPart"));
+        m.def("CalculateTotalEnergy", pybind11::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateTotalEnergy), pybind11::arg("MPMModelPart"));
+        m.def("CalculateTotalMPVolume", pybind11::overload_cast<const ModelPart&>(&MPMVolumeSumUtility::AddModelPartMPMVolumeIntoGrid), pybind11::arg("MPMModelPart"));
     }
 
 }  // namespace Python.

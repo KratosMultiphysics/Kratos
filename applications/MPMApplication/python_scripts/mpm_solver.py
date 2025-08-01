@@ -160,12 +160,22 @@ class MPMSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-        # Reset TOTAL_MP_VOLUME in the background grid to zero before doing _SearchElement
+        self._SearchElement()
+    
         if self.settings["add_numerical_stiffness"].GetBool():
             numerical_stiffness_sub_model_part = self.GetComputingModelPart().GetSubModelPart("NumericalStiffnessConditions")
+            # Reset TOTAL_MP_VOLUME to zero
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMPM.TOTAL_MP_VOLUME, numerical_stiffness_sub_model_part.Elements)
-        # TODO: skip searching for GhostMP/Background Grid element. Especially important for background grid element because the element geometry is the same as the backgroundgrid
-        self._SearchElement()    
+            
+            # TODO: Instead of doing this, it would be best if we have 2 submodelpart under ComputationModelPart: MP SubModelpart and Grid SubModelpart
+            # Calculate the total volume of material point inside a grid element
+            for submodelpart in self.material_point_model_part.SubModelParts:
+                if submodelpart.Name == "NumericalStiffnessConditions":
+                    continue
+                else:
+                    KratosMPM.CalculateTotalMPVolume(submodelpart)
+            
+        
         self._GetSolutionStrategy().Initialize()
 
         #clean nodal values and map from MPs to nodes
@@ -277,12 +287,10 @@ class MPMSolver(PythonSolver):
         max_number_of_search_results = self.settings["element_search_settings"]["max_number_of_results"].GetInt()
         searching_tolerance          = self.settings["element_search_settings"]["searching_tolerance"].GetDouble()
         if (searching_alg_type == "bin_based"):
-            # TODO: Maybe we can do a loop of submodel part and do the search per submodelpart, skipping the softstiffness submodelpart 
-            #           The question is, what is the impact of parallelization efficiency by doing this? 
-            #       Alternatively, we can temporarily remove softstiffness submodelpart from material_point_model_part
             
-            if self.settings["add_numerical_stiffness"].GetBool(): # search element by looping through each submodelpart, skipping numerical stiffness submodelpart
-                
+            if self.settings["add_numerical_stiffness"].GetBool():
+                # search element by looping through each submodelpart, skipping numerical stiffness submodelpart
+                # TODO: Instead of doing this, it would be best if we have 2 submodelpart under ComputationModelPart: MP SubModelpart and Grid SubModelpart
                 for submodelpart in self.material_point_model_part.SubModelParts:
                     if submodelpart.Name == "NumericalStiffnessConditions":
                         continue # skipping to avoid error in using normal element representative / avoid inefficiencies if using MP representative, since it does not move. 
