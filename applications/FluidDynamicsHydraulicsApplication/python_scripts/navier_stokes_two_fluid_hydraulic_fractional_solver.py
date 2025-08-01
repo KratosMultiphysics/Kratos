@@ -275,6 +275,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosCFD.FRACTIONAL_VELOCITY,KratosMultiphysics.VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY,KratosCFD.AUXILIAR_VECTOR_VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
         if self.fcttest: 
+            print("AHHHHHHHHHHHHHHHHHH ESTOY HACIENDO EL EDGE BASED LEVEL SET CONVECTION")
             self.__PerformEdgeBasedLevelSetConvection()
         else:
             self.__PerformLevelSetConvection()
