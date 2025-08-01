@@ -247,11 +247,13 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
     py::class_<GaussPointVariableTensorAdaptor, GaussPointVariableTensorAdaptor::Pointer, GaussPointVariableTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "GaussPointVariableTensorAdaptor")
         .def(py::init<ModelPart::ConditionsContainerType::Pointer, GaussPointVariableTensorAdaptor::VariablePointerType, ProcessInfo::Pointer>(), py::arg("container"), py::arg("variable"), py::arg("process_info"))
         .def(py::init<ModelPart::ElementsContainerType::Pointer, GaussPointVariableTensorAdaptor::VariablePointerType, ProcessInfo::Pointer>(), py::arg("container"), py::arg("variable"), py::arg("process_info"))
+        .def(py::init<const GaussPointVariableTensorAdaptor::BaseType&, GaussPointVariableTensorAdaptor::VariablePointerType, ProcessInfo::Pointer, const bool>(), py::arg("tensor_adaptor"), py::arg("variable"), py::arg("process_info"), py::arg("copy") = false)
         ;
 
     py::class_<EquationIdsTensorAdaptor, EquationIdsTensorAdaptor::Pointer, EquationIdsTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "EquationIdsTensorAdaptor")
         .def(py::init<ModelPart::ConditionsContainerType::Pointer, ProcessInfo::Pointer>(), py::arg("container"), py::arg("process_info"))
         .def(py::init<ModelPart::ElementsContainerType::Pointer, ProcessInfo::Pointer>(), py::arg("container"), py::arg("process_info"))
+        .def(py::init<const EquationIdsTensorAdaptor::BaseType&, ProcessInfo::Pointer, const bool>(), py::arg("tensor_adaptor"), py::arg("process_info"), py::arg("copy") = false)
         ;
 
     py::class_<FlagsTensorAdaptor, FlagsTensorAdaptor::Pointer, FlagsTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "FlagsTensorAdaptor")

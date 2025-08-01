@@ -76,6 +76,15 @@ EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(
                         *pContainer, r_getter));
 }
 
+EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(
+    const TensorAdaptor& rOther,
+    ProcessInfo::Pointer pProcessInfo,
+    const bool Copy)
+    : BaseType(rOther, Copy),
+      mpProcessInfo(pProcessInfo)
+{
+}
+
 void EquationIdsTensorAdaptor::CollectData()
 {
     KRATOS_TRY

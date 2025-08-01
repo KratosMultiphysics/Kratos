@@ -57,6 +57,11 @@ public:
         TContainerPointerType pContainer,
         ProcessInfo::Pointer pProcessInfo);
 
+    EquationIdsTensorAdaptor(
+        const TensorAdaptor& rOther,
+        ProcessInfo::Pointer pProcessInfo,
+        const bool Copy = false);
+
     // Destructor
     ~EquationIdsTensorAdaptor() override = default;
 
