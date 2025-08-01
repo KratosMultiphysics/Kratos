@@ -233,7 +233,7 @@ namespace Kratos
             ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
             DEMWall *p_wall = dynamic_cast<DEMWall*>(&(*it));
 
-            for (int j = 0; j < p_wall->GetGeometry().size(); j++) {
+            for (std::size_t j = 0; j < p_wall->GetGeometry().size(); ++j) {
                 array_1d<double, 3> &wall_velocity = p_wall->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
                 noalias(wall_velocity) = ZeroVector(3);
             }

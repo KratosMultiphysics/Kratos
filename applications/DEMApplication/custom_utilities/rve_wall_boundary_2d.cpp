@@ -93,7 +93,7 @@ namespace Kratos
         }
 
         // Determine on which side (negative or positive) of X walls the elements are located
-        for (int i = 0; i < wall_elems_x.size(); i++) {
+        for (std::size_t i = 0; i < wall_elems_x.size(); i++) {
             Condition::GeometryType &geom = wall_elems_x[i]->GetGeometry();
 
             // Element end coordinates
@@ -114,7 +114,7 @@ namespace Kratos
         }
 
         // Determine on which side (negative or positive) of Y walls the elements are located
-        for (int i = 0; i < wall_elems_y.size(); i++) {
+        for (std::size_t i = 0; i < wall_elems_y.size(); i++) {
             Condition::GeometryType &geom = wall_elems_y[i]->GetGeometry();
 
             // Element end coordinates
@@ -172,30 +172,30 @@ namespace Kratos
             }
         }
 
-        for (int i = 0; i < mWallXMin.size(); i++) {
+        for (std::size_t i = 0; i < mWallXMin.size(); i++) {
             DEMWall *p_wall = mWallXMin[i];
-            for (int j = 0; j < p_wall->GetGeometry().size(); j++) {
+            for (std::size_t j = 0; j < p_wall->GetGeometry().size(); j++) {
                 array_1d<double, 3> &wall_velocity = p_wall->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
                 noalias(wall_velocity) = array_1d<double, 3>({vx, 0.0, 0.0});
             }
         }
-        for (int i = 0; i < mWallXMax.size(); i++) {
+        for (std::size_t i = 0; i < mWallXMax.size(); i++) {
             DEMWall *p_wall = mWallXMax[i];
-            for (int j = 0; j < p_wall->GetGeometry().size(); j++) {
+            for (std::size_t j = 0; j < p_wall->GetGeometry().size(); j++) {
                 array_1d<double, 3> &wall_velocity = p_wall->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
                 noalias(wall_velocity) = array_1d<double, 3>({-vx, 0.0, 0.0});
             }
         }
-        for (int i = 0; i < mWallYMin.size(); i++) {
+        for (std::size_t i = 0; i < mWallYMin.size(); i++) {
             DEMWall *p_wall = mWallYMin[i];
-            for (int j = 0; j < p_wall->GetGeometry().size(); j++) {
+            for (std::size_t j = 0; j < p_wall->GetGeometry().size(); j++) {
                 array_1d<double, 3> &wall_velocity = p_wall->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
                 noalias(wall_velocity) = array_1d<double, 3>({0.0, vy, 0.0});
             }
         }
-        for (int i = 0; i < mWallYMax.size(); i++) {
+        for (std::size_t i = 0; i < mWallYMax.size(); i++) {
             DEMWall *p_wall = mWallYMax[i];
-            for (int j = 0; j < p_wall->GetGeometry().size(); j++) {
+            for (std::size_t j = 0; j < p_wall->GetGeometry().size(); j++) {
                 array_1d<double, 3> &wall_velocity = p_wall->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
                 noalias(wall_velocity) = array_1d<double, 3>({0.0, -vy, 0.0});
             }
@@ -230,7 +230,7 @@ namespace Kratos
             // Determine min/max X coordinates of lower horizontal (Ymin) wall
             double ymin_x_min =  DBL_MAX;
             double ymin_x_max = -DBL_MAX;
-            for (int i = 0; i < mWallYMin.size(); i++) {
+            for (std::size_t i = 0; i < mWallYMin.size(); i++) {
                 Condition::GeometryType& geom = mWallYMin[i]->GetGeometry();
                 const double ymin_x1 = geom[0][0];
                 const double ymin_x2 = geom[1][0];
@@ -333,7 +333,7 @@ namespace Kratos
             mVolSolidInner += ComputeVolumeParticleInner(particle);
 
             // Loop over contacts with walls
-            for (int j = 0; j < particle.mNeighbourRigidFaces.size(); j++) {
+            for (std::size_t j = 0; j < particle.mNeighbourRigidFaces.size(); j++) {
                 // Check for valid existing contact
                 const int id2 = particle.mNeighbourRigidFaces[j]->GetId();
                 if (particle.mBallToRigidFaceStoredInfo.find(id2) == particle.mBallToRigidFaceStoredInfo.end() ||
@@ -378,7 +378,7 @@ namespace Kratos
             }
 
             // Loop over contacts with particles
-            for (int j = 0; j < particle.mNeighbourElements.size(); j++) {
+            for (std::size_t j = 0; j < particle.mNeighbourElements.size(); j++) {
                 // Neighbor properties
                 const int id2 = particle.mNeighbourElements[j]->GetId();
                 const double r2 = particle.mNeighbourElements[j]->GetRadius();

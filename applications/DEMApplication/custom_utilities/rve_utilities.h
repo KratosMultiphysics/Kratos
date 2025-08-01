@@ -98,7 +98,7 @@ namespace Kratos
             RVEUtilities() {}
             RVEUtilities(int eval_freq, int write_freq, std::vector<double> consolidation_velocity, const std::string& consolidation_criterion, double consolidation_limit, double inner_vol_offset):
             mEvalFreq(eval_freq), mWriteFreq(write_freq), mCompressVel(consolidation_velocity), mConsolidationCriterion(consolidation_criterion), mConsolidationLimit(consolidation_limit), mInnerVolOffset(inner_vol_offset) {}
-            ~RVEUtilities() {}
+            virtual ~RVEUtilities() {}
             
             void Initialize           (ModelPart& dem_model_part, ModelPart& fem_model_part);
             void FinalizeSolutionStep (void);
