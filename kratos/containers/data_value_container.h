@@ -280,48 +280,6 @@ public:
     }
 
     /**
-     * @brief Get a pointer to the value specified by the variable
-     * @details This method returns a pointer to the value represented by @p rThisVariable.
-     *          If the variable is not found in the database, a @p nullptr is returned.
-     *
-     * @tparam TDataType    Data type of the variable.
-     * @param rThisVariable Variable.
-     * @return TDataType*   Pointer to the data represented by @p rThisVariable.
-     */
-    template<class TDataType>
-    TDataType* pGetValue(const Variable<TDataType>& rThisVariable)
-    {
-        auto i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey()));
-
-        if (i != mData.end()) {
-            return (static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex());
-        } else {
-            return nullptr;
-        }
-    }
-
-    /**
-     * @brief Get a pointer to the value specified by the variable
-     * @details This method returns a const pointer to the value represented by @p rThisVariable.
-     *          If the variable is not found in the database, a @p nullptr is returned.
-     *
-     * @tparam TDataType           Data type of the variable.
-     * @param rThisVariable        Variable.
-     * @return TDataType const *   const Pointer to the data represented by @p rThisVariable.
-     */
-    template<class TDataType>
-    TDataType const * pGetValue(const Variable<TDataType>& rThisVariable) const
-    {
-        auto i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey()));
-
-        if (i != mData.end()) {
-            return (static_cast<const TDataType*>(i->second) + rThisVariable.GetComponentIndex());
-        } else {
-            return nullptr;
-        }
-    }
-
-    /**
      * @brief Get the the data value if existing or create the value for a given @p rThisVariable.
      * @details This method returns a reference to a value represented by @p rThisVariable from the
      *          database. If the @p rThisVariable is not found, then a new value is created using
@@ -334,7 +292,7 @@ public:
      * @return TDataType&       Reference to the value.
      */
     template<class TDataType>
-    TDataType& GetOrCreateValue(const Variable<TDataType>& rThisVariable)
+    TDataType& Emplace(const Variable<TDataType>& rThisVariable)
     {
         auto i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey()));
 
@@ -365,7 +323,7 @@ public:
      * @return TDataType&       Reference to the value.
      */
     template<class TDataType>
-    TDataType& GetOrCreateValue(const Variable<TDataType>& rThisVariable, const TDataType& rInitValue)
+    TDataType& Emplace(const Variable<TDataType>& rThisVariable, const TDataType& rInitValue)
     {
         auto i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey()));
 
