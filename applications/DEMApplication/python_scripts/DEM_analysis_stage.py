@@ -215,23 +215,19 @@ class DEMAnalysisStage(AnalysisStage):
 
     def SetRVEUtilities(self):
         rve_settings = self.DEM_parameters["rve_analysis_settings"]
-        self.rve_analysis                     = rve_settings["RVEAnalysis"].GetBool()
-        self.rve_evaluation_frequency         = rve_settings["RVEEvaluationFrequency"].GetInt()
-        self.rve_write_frequency              = rve_settings["RVEWriteFrequency"].GetInt()
-        self.rve_consolidation_stop_criterion = rve_settings["RVEConsolidationStopCriterion"].GetString()
-        self.rve_consolidation_limit_value    = rve_settings["RVEConsolidationLimitValue"].GetDouble()
-        self.rve_inner_volume_offset          = rve_settings["RVEInnerVolumeOffset"].GetDouble()
-
-        self.rve_consolidation_velocity = []
-        for vel in rve_settings["RVEConsolidationVelocity"].values():
-            self.rve_consolidation_velocity.append(vel.GetDouble())
-
+        self.rve_analysis = rve_settings["RVEAnalysis"].GetBool()
         self.spheres_model_part.ProcessInfo.SetValue(RVE_ANALYSIS, self.rve_analysis)
-        
-        if not self.rve_analysis:
-            return None
-        else:
+
+        if self.rve_analysis:
+            self.rve_evaluation_frequency         = rve_settings["RVEEvaluationFrequency"].GetInt()
+            self.rve_write_frequency              = rve_settings["RVEWriteFrequency"].GetInt()
+            self.rve_consolidation_stop_criterion = rve_settings["RVEConsolidationStopCriterion"].GetString()
+            self.rve_consolidation_limit_value    = rve_settings["RVEConsolidationLimitValue"].GetDouble()
+            self.rve_inner_volume_offset          = rve_settings["RVEInnerVolumeOffset"].GetDouble()
+            self.rve_consolidation_velocity       = [vel.GetDouble() for vel in rve_settings["RVEConsolidationVelocity"].values()]
             return self.GetRVEUtility()
+        else:
+            return None
 
     def GetRVEUtility(self):
         if self.DEM_parameters["Dimension"].GetInt() == 2:
