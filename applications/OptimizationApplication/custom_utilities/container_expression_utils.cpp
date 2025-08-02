@@ -625,8 +625,11 @@ void ContainerExpressionUtils::GetGradientExpression(
         Vector DetJ;
         DenseVector<Matrix> list_dn_dx;
         r_geometry.ShapeFunctionsIntegrationPointsGradients(list_dn_dx, DetJ, GeometryData::IntegrationMethod::GI_GAUSS_1);
+        // Get Gauss weights
+        const auto& integration_points = r_geometry.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
-        // elemental values
+
+        // elemental gradient
         Vector gradient(DomainSize, 0.0);
         Vector nodal_values(r_geometry.size());
         // fill the nodal values by reading node.GetValue(TEMPORARY_SCALAR_VARIABLE_1)
@@ -634,20 +637,38 @@ void ContainerExpressionUtils::GetGradientExpression(
             nodal_values[i_node] = r_geometry[i_node].GetValue(TEMPORARY_SCALAR_VARIABLE_1);
         }
 
+
+        double total_weight = 0.0;
         for (IndexType i_gauss = 0; i_gauss < list_dn_dx.size(); ++i_gauss) {
             const Matrix& dn_dx = list_dn_dx[i_gauss];
-            noalias(gradient) += prod(dn_dx, nodal_values);
+            const double det_j = DetJ[i_gauss];
+            const double gauss_weight = integration_points[i_gauss].Weight();
+            const double weight = det_j * gauss_weight;
+            noalias(gradient) += prod(dn_dx, nodal_values) * weight;
+            total_weight += weight;
+            KRATOS_INFO("INSIDE_GP_LOOP") << "Element #" << Index
+                        << ", Gradient = " << gradient << std::endl;
+        }
+
+        // Normalize to get average
+        if (total_weight > 1e-12) {
+            gradient /= total_weight;
         }
 
         // write the gradients back to the expression
         for (IndexType i_dim = 0; i_dim < DomainSize; ++i_dim) {
             p_flat_data_expression->SetData(Index, i_dim, gradient[i_dim]);
         }
+
+        KRATOS_INFO("GRADIENT_DEBUG") << "Element #" << Index 
+                              << ", Total Weight = " << total_weight 
+                              << ", Gradient = " << gradient << std::endl;
+
     });
     KRATOS_CATCH("");
 }
 
-// template<class TContainerType>
+// No Gauss weights included - assumed constant values over element
 void ContainerExpressionUtils::ProjectElementalToNodalViaShapeFunctions(
     ContainerExpression<ModelPart::NodesContainerType>& rOutput,
     const ContainerExpression<ModelPart::ElementsContainerType>& rInputExpression)
@@ -685,6 +706,44 @@ void ContainerExpressionUtils::ProjectElementalToNodalViaShapeFunctions(
     KRATOS_CATCH("");
 }
 
+// Only one (centre) Gauss-point used
+void ContainerExpressionUtils::ProjectNodalToElementalViaShapeFunctions(
+    ContainerExpression<ModelPart::ElementsContainerType>& rOutput,
+    const ContainerExpression<ModelPart::NodesContainerType>& rInputExpression)
+{
+    KRATOS_TRY
+    // writing input to nodes
+    VariableExpressionIO::Write(rInputExpression, &TEMPORARY_SCALAR_VARIABLE_1, false);
+    auto& entity_container = rOutput.GetContainer();
+
+    // clear the elemental value storing variable
+    VariableUtils().SetNonHistoricalVariableToZero(TEMPORARY_SCALAR_VARIABLE_2, rOutput.GetModelPart().Elements());
+
+    // using multiple threads for calculations
+    IndexPartition<IndexType>(entity_container.size()).for_each([&entity_container](const auto Index) {
+        auto& r_entity = *(entity_container.begin() + Index);
+        auto& r_geometry = r_entity.GetGeometry();
+
+        // Get shapefunctions for a single gauss point
+        const Matrix& shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
+        const Vector& n = row(shape_functions, 0); // First (only) Gauss point
+
+        for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node) {
+            // nodal value
+            double nodal_value = r_geometry[i_node].GetValue(TEMPORARY_SCALAR_VARIABLE_1);
+            AtomicAdd(r_geometry.GetValue(TEMPORARY_SCALAR_VARIABLE_2), nodal_value * n[i_node]);
+        }
+    });
+
+    rOutput.GetModelPart().GetCommunicator().AssembleNonHistoricalData(TEMPORARY_SCALAR_VARIABLE_2);
+
+    // now read in the nodal data
+    VariableExpressionIO::Read(rOutput, &TEMPORARY_SCALAR_VARIABLE_2);
+
+    KRATOS_CATCH("");
+}
+
+
 ContainerExpression<ModelPart::NodesContainerType>::Pointer ContainerExpressionUtils::HamilotinanUpdate(
     const ContainerExpression<ModelPart::NodesContainerType>& rPhi,
     const ContainerExpression<ModelPart::ElementsContainerType>& rVelocity,
@@ -694,8 +753,8 @@ ContainerExpression<ModelPart::NodesContainerType>::Pointer ContainerExpressionU
 
     auto& r_element_container = rVelocity.GetContainer();
 
-    // VariableUtils().SetNonHistoricalVariablesToZero(r_element_container, TEMPORARY_SCALAR_VARIABLE_1);
-    // VariableUtils().SetNonHistoricalVariablesToZero(r_element_container, TEMPORARY_SCALAR_VARIABLE_2);
+    VariableUtils().SetNonHistoricalVariablesToZero(r_element_container, TEMPORARY_SCALAR_VARIABLE_1);
+    VariableUtils().SetNonHistoricalVariablesToZero(r_element_container, TEMPORARY_SCALAR_VARIABLE_2);
 
     // clear the nodal value storing variable
     VariableUtils().SetNonHistoricalVariableToZero(TEMPORARY_SCALAR_VARIABLE_1, rPhi.GetModelPart().Nodes());
