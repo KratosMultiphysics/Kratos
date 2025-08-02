@@ -370,7 +370,7 @@ template <int TDim>
 void ApplyChimera<TDim>::ReserveMemoryForConstraintContainers(
     ModelPart& rModelPart, MasterSlaveContainerVectorType& rContainerVector)
 {
-    const int num_threads = OpenMPUtils::GetNumThreads();
+    const int num_threads = ParallelUtilities::GetNumThreads();
 #pragma omp parallel
     {
         const IndexType num_constraints_per_thread =
