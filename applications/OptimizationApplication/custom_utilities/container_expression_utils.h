@@ -249,8 +249,9 @@ public:
         ContainerExpression<ModelPart::ElementsContainerType>& rOutput,
         const ContainerExpression<ModelPart::NodesContainerType>& rInputExpression);
 
-    static ContainerExpression<ModelPart::NodesContainerType>::Pointer HamilotinanUpdate(
+    static void HamilotinanUpdate(
         const ContainerExpression<ModelPart::NodesContainerType>& rPhi,
+        ContainerExpression<ModelPart::NodesContainerType>& rOutput,
         const ContainerExpression<ModelPart::ElementsContainerType>& rVelocity,
         const ContainerExpression<ModelPart::ElementsContainerType>& rGradient);
 

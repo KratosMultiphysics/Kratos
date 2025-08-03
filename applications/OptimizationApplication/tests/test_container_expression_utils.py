@@ -368,7 +368,7 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
 
         KratosOA.ExpressionUtils.GetGradientExpression(output_elemental, input_nodal, dimension)
         
-        print(f"\nNODAL INPUT (GRAD): {input_nodal.Evaluate()}\nELEMENTAL OUTPUT (GRAD): {output_elemental.Evaluate()}\n")
+        # print(f"\nNODAL INPUT (GRAD): {input_nodal.Evaluate()}\nELEMENTAL OUTPUT (GRAD): {output_elemental.Evaluate()}\n")
 
     def test_ProjectElementalToNodalViaShapeFunctions(self):
         input_elemental = Kratos.Expression.ElementExpression(self.model_part)
@@ -382,13 +382,31 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
 
         KratosOA.ExpressionUtils.ProjectElementalToNodalViaShapeFunctions(output_nodal, input_elemental)
         
-        # print(f"\n{input_elemental.Evaluate()}\n{output_nodal.Evaluate()}\n")
+        # print(f"\nELEMENTAL INPUT: {input_elemental.Evaluate()}\nNODAL OUTPUT: {output_nodal.Evaluate()}\n")
+
+    def test_ProjectNodalToElementalViaShapeFunctions(self):
+        input_nodal = Kratos.Expression.NodalExpression(self.model_part)
+        output_elemental = Kratos.Expression.ElementExpression(self.model_part)
+
+        node: Kratos.Node
+        for node in self.model_part.Nodes:
+            node.SetValue(Kratos.DENSITY, node.Id + 4)
+
+        Kratos.Expression.VariableExpressionIO.Read(input_nodal, Kratos.DENSITY, False)
+
+        KratosOA.ExpressionUtils.ProjectNodalToElementalViaShapeFunctions(output_elemental, input_nodal)
+        
+        # print(f"\nNODAL INPUT: {input_nodal.Evaluate()}\nELEMENTAL OUTPUT: {output_elemental.Evaluate()}\n")
 
     def test_HamilotinanUpdate(self):
         input_phi = Kratos.Expression.NodalExpression(self.model_part)
         input_v = Kratos.Expression.ElementExpression(self.model_part)
         input_grad = Kratos.Expression.ElementExpression(self.model_part)
         output_phi = Kratos.Expression.NodalExpression(self.model_part)
+
+        node: Kratos.Node
+        for node in self.model_part.Nodes:
+            node.SetValue(Kratos.PRESSURE, node.Id + 4)
 
         Kratos.Expression.VariableExpressionIO.Read(input_phi, Kratos.PRESSURE, False)
         element: Kratos.Element
@@ -399,8 +417,8 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
         Kratos.Expression.VariableExpressionIO.Read(input_v, Kratos.DENSITY)
         Kratos.Expression.VariableExpressionIO.Read(input_grad, Kratos.YOUNG_MODULUS)
 
-        output_phi = KratosOA.ExpressionUtils.HamilotinanUpdate(input_phi, input_v, input_grad)
-        print(f"INPUT_PHI: {input_phi.Evaluate()}\nINPUT_V: {input_v.Evaluate()}\nINPUT_GRAD: {input_grad.Evaluate()}\nOUTPUT PHI: {output_phi.Evaluate()}")
+        KratosOA.ExpressionUtils.HamilotinanUpdate(input_phi, output_phi, input_v, input_grad)
+        # print(f"INPUT_PHI: {input_phi.Evaluate()}\nINPUT_V: {input_v.Evaluate()}\nINPUT_GRAD: {input_grad.Evaluate()}\nOUTPUT PHI: {output_phi.Evaluate()}")
 
 if __name__ == "__main__":
     kratos_unittest.main()

@@ -310,7 +310,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetGradientExpression", &ContainerExpressionUtils::GetGradientExpression<ModelPart::ConditionsContainerType>, py::arg("output_conditions_container_expression"), py::arg("input_nodal_container_expression"), py::arg("domain_size"))
         .def("ProjectElementalToNodalViaShapeFunctions", &ContainerExpressionUtils::ProjectElementalToNodalViaShapeFunctions, py::arg("output_nodal_container_expression"), py::arg("input_elemental_container_expression"))
         .def("ProjectNodalToElementalViaShapeFunctions", &ContainerExpressionUtils::ProjectNodalToElementalViaShapeFunctions, py::arg("output_elemental_container_expression"), py::arg("input_nodal_container_expression"))
-        .def("HamilotinanUpdate", &ContainerExpressionUtils::HamilotinanUpdate, py::arg("input_nodal_container_expression_phi"), py::arg("input_elemental_container_expression_velocity"), py::arg("input_elemental_container_expression_gradient"))
+        .def("HamilotinanUpdate", &ContainerExpressionUtils::HamilotinanUpdate, py::arg("input_nodal_container_expression_phi"), py::arg("output_nodal_container_expression_phi"), py::arg("input_elemental_container_expression_velocity"), py::arg("input_elemental_container_expression_gradient"))
         ;
 
     auto collective_expression_io = m.def_submodule("CollectiveExpressionIO");

@@ -613,13 +613,8 @@ void ContainerExpressionUtils::GetGradientExpression(
 
     auto& entity_container = rOutput.GetContainer();
 
-    // give the output n-dimensions
-    auto p_flat_data_expression = LiteralFlatExpression<double>::Create(entity_container.size(), {DomainSize});
-    rOutput.SetExpression(p_flat_data_expression);
-    // auto& r_flat_data_expression = *p_flat_data_expression;
-
     // using multiple threads for calculations
-    IndexPartition<IndexType>(entity_container.size()).for_each([&entity_container, &p_flat_data_expression, DomainSize](const auto Index) {
+    IndexPartition<IndexType>(entity_container.size()).for_each([&entity_container, DomainSize](const auto Index) {
         auto& r_entity = *(entity_container.begin() + Index);
         auto& r_geometry = r_entity.GetGeometry();
 
@@ -637,31 +632,18 @@ void ContainerExpressionUtils::GetGradientExpression(
 
         for (IndexType i_gauss = 0; i_gauss < list_dn_dx.size(); ++i_gauss) {
             const Matrix& dn_dx = list_dn_dx[i_gauss];
-            noalias(gradient) += prod(dn_dx, nodal_values);
+            Matrix dn_dx_T;
+            Transpose(dn_dx_T, dn_dx);
+            noalias(gradient) += prod(dn_dx_T, nodal_values);
         }
 
         // write the gradients back to the expression
-        Vector values(DomainSize, 0.0);
-        for (IndexType i_dim = 0; i_dim < DomainSize; ++i_dim) {
-            p_flat_data_expression->SetData(Index, i_dim, gradient[i_dim]);
-            values[i_dim] = p_flat_data_expression->Evaluate(Index, i_dim, 3);
-        }  
-        KRATOS_INFO("ExpressionValues") << "Entity " << Index << ": " << values
-                                        << ", Gradient" << gradient << std::endl;
+        r_entity.SetValue(TEMPORARY_ARRAY3_VARIABLE_1, gradient);
     });
     
-    rOutput.SetExpression(p_flat_data_expression);
-    
-    for (IndexType element = 0; element < entity_container.size(); element++)
-    {
-        Vector values_flat(DomainSize, 0.0);
-        for (IndexType dim = 0; dim < DomainSize; dim++)
-        {
-            values_flat[dim] = p_flat_data_expression->Evaluate(element, dim, DomainSize);
-        }
-        KRATOS_INFO("OUTPUT") << "Output " << element << ": " << values_flat << std::endl;
-    }
-    
+    rOutput.GetModelPart().GetCommunicator().AssembleNonHistoricalData(TEMPORARY_ARRAY3_VARIABLE_1);
+    // now read in the nodal data
+    VariableExpressionIO::Read(rOutput, &TEMPORARY_ARRAY3_VARIABLE_1);    
     KRATOS_CATCH("");
 }
 
@@ -741,8 +723,9 @@ void ContainerExpressionUtils::ProjectNodalToElementalViaShapeFunctions(
 }
 
 
-ContainerExpression<ModelPart::NodesContainerType>::Pointer ContainerExpressionUtils::HamilotinanUpdate(
+void ContainerExpressionUtils::HamilotinanUpdate(
     const ContainerExpression<ModelPart::NodesContainerType>& rPhi,
+    ContainerExpression<ModelPart::NodesContainerType>& rOutput,
     const ContainerExpression<ModelPart::ElementsContainerType>& rVelocity,
     const ContainerExpression<ModelPart::ElementsContainerType>& rGradient)
 {
@@ -754,8 +737,8 @@ ContainerExpression<ModelPart::NodesContainerType>::Pointer ContainerExpressionU
     VariableUtils().SetNonHistoricalVariablesToZero(r_element_container, TEMPORARY_SCALAR_VARIABLE_2);
 
     // clear the nodal value storing variable
-    VariableUtils().SetNonHistoricalVariableToZero(TEMPORARY_SCALAR_VARIABLE_1, rPhi.GetModelPart().Nodes());
-    VariableUtils().SetNonHistoricalVariableToZero(TEMPORARY_SCALAR_VARIABLE_2, rPhi.GetModelPart().Nodes());
+    VariableUtils().SetNonHistoricalVariableToZero(TEMPORARY_SCALAR_VARIABLE_1, rOutput.GetModelPart().Nodes());
+    VariableUtils().SetNonHistoricalVariableToZero(TEMPORARY_SCALAR_VARIABLE_2, rOutput.GetModelPart().Nodes());
 
     using thread_local_storage_type = std::tuple<Matrix, Vector, DenseVector<Matrix>, std::vector<Kratos::IntegrationPoint<3> >, Vector >;
 
@@ -777,23 +760,23 @@ ContainerExpression<ModelPart::NodesContainerType>::Pointer ContainerExpressionU
         list_w = r_geometry.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_1);
         r_geometry.LumpingFactors(lumping_factors);
         double volume = r_geometry.DomainSize();
-
+        
         // SHOULD I USE ELEMENTAL TO NODAL CONVERSION HERE (on integrand)?
         // IF ONE GP IS ASSUMED AND VALUES ARE CONST OVER ELEMENT THEN CURRENT SHOULD BE FINE
         const double velocity = r_velocity_expression.Evaluate(Index, Index, 0);
         const double grad_phi = r_gradient_expression.Evaluate(Index, Index, 0);
         const double integrand = velocity * grad_phi;
-
+        
         for (IndexType i_gauss = 0; i_gauss < list_det_J.size(); ++i_gauss) {
             const double det_J = list_det_J[i_gauss];
             const Vector& n = row(list_n, i_gauss);
             // const Matrix& dn_dx = list_dn_dx[i_gauss];
             const double w = list_w[i_gauss].Weight();
-
+            
             //do the computations for gp values
             double new_gp_value = integrand * w * det_J;
             // double lumped_mass = w * det_J;
-
+            
             // interpolating the values to nodes from gauss-points
             for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node) {
                 AtomicAdd(r_geometry[i_node].GetValue(TEMPORARY_SCALAR_VARIABLE_1), new_gp_value * n[i_node]);
@@ -802,20 +785,19 @@ ContainerExpression<ModelPart::NodesContainerType>::Pointer ContainerExpressionU
         }
     });
 
-    const auto& r_nodes = rPhi.GetContainer();
+    const auto& r_nodes_container = rPhi.GetContainer();
     const auto& r_phi_expression = rPhi.GetExpression();
-    auto p_new_expression = LiteralFlatExpression<double>::Create(rPhi.GetExpression().NumberOfEntities(), {});
-    IndexPartition<IndexType>(p_new_expression->NumberOfEntities()).for_each([&p_new_expression, &r_phi_expression, &r_nodes](const auto Index) {
-        const double new_contribution = (r_nodes.begin() + Index)->GetValue(TEMPORARY_SCALAR_VARIABLE_1) / (r_nodes.begin() + Index)->GetValue(TEMPORARY_SCALAR_VARIABLE_2);
+    IndexPartition<IndexType>(r_nodes_container.size()).for_each([&r_phi_expression, &r_nodes_container](const auto Index) {
+        auto& r_node = *(r_nodes_container.begin() + Index);
+        const double new_contribution = r_node.GetValue(TEMPORARY_SCALAR_VARIABLE_1) / r_node.GetValue(TEMPORARY_SCALAR_VARIABLE_2);
         // phi_new = phi_old - dt * v * |d_phi|
         // ADD DELTA T CALCULATION
-        p_new_expression->SetData(Index, Index, r_phi_expression.Evaluate(Index, Index, 0) - 1.0 * new_contribution);
-
+        r_node.SetValue(TEMPORARY_SCALAR_VARIABLE_1, r_phi_expression.Evaluate(Index, Index, 0) - 1.0 * new_contribution);
     });
 
-    auto result = rPhi.Clone();
-    result->SetExpression(p_new_expression);
-    return result;
+    rOutput.GetModelPart().GetCommunicator().AssembleNonHistoricalData(TEMPORARY_SCALAR_VARIABLE_1);
+    // now read in the nodal data
+    VariableExpressionIO::Read(rOutput, &TEMPORARY_SCALAR_VARIABLE_1, false);
 
     KRATOS_CATCH("");
 }
