@@ -245,6 +245,10 @@ public:
         ContainerExpression<ModelPart::NodesContainerType>& rOutput,
         const ContainerExpression<ModelPart::ElementsContainerType>& rInputExpression);
 
+    static void ProjectNodalToElementalViaShapeFunctions(
+        ContainerExpression<ModelPart::ElementsContainerType>& rOutput,
+        const ContainerExpression<ModelPart::NodesContainerType>& rInputExpression);
+
     static ContainerExpression<ModelPart::NodesContainerType>::Pointer HamilotinanUpdate(
         const ContainerExpression<ModelPart::NodesContainerType>& rPhi,
         const ContainerExpression<ModelPart::ElementsContainerType>& rVelocity,

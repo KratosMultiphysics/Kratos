@@ -616,18 +616,16 @@ void ContainerExpressionUtils::GetGradientExpression(
     // give the output n-dimensions
     auto p_flat_data_expression = LiteralFlatExpression<double>::Create(entity_container.size(), {DomainSize});
     rOutput.SetExpression(p_flat_data_expression);
+    // auto& r_flat_data_expression = *p_flat_data_expression;
 
     // using multiple threads for calculations
-    IndexPartition<IndexType>(entity_container.size()).for_each([&entity_container, p_flat_data_expression, DomainSize](const auto Index) {
+    IndexPartition<IndexType>(entity_container.size()).for_each([&entity_container, &p_flat_data_expression, DomainSize](const auto Index) {
         auto& r_entity = *(entity_container.begin() + Index);
         auto& r_geometry = r_entity.GetGeometry();
 
         Vector DetJ;
         DenseVector<Matrix> list_dn_dx;
         r_geometry.ShapeFunctionsIntegrationPointsGradients(list_dn_dx, DetJ, GeometryData::IntegrationMethod::GI_GAUSS_1);
-        // Get Gauss weights
-        const auto& integration_points = r_geometry.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_1);
-
 
         // elemental gradient
         Vector gradient(DomainSize, 0.0);
@@ -637,34 +635,33 @@ void ContainerExpressionUtils::GetGradientExpression(
             nodal_values[i_node] = r_geometry[i_node].GetValue(TEMPORARY_SCALAR_VARIABLE_1);
         }
 
-
-        double total_weight = 0.0;
         for (IndexType i_gauss = 0; i_gauss < list_dn_dx.size(); ++i_gauss) {
             const Matrix& dn_dx = list_dn_dx[i_gauss];
-            const double det_j = DetJ[i_gauss];
-            const double gauss_weight = integration_points[i_gauss].Weight();
-            const double weight = det_j * gauss_weight;
-            noalias(gradient) += prod(dn_dx, nodal_values) * weight;
-            total_weight += weight;
-            KRATOS_INFO("INSIDE_GP_LOOP") << "Element #" << Index
-                        << ", Gradient = " << gradient << std::endl;
-        }
-
-        // Normalize to get average
-        if (total_weight > 1e-12) {
-            gradient /= total_weight;
+            noalias(gradient) += prod(dn_dx, nodal_values);
         }
 
         // write the gradients back to the expression
+        Vector values(DomainSize, 0.0);
         for (IndexType i_dim = 0; i_dim < DomainSize; ++i_dim) {
             p_flat_data_expression->SetData(Index, i_dim, gradient[i_dim]);
-        }
-
-        KRATOS_INFO("GRADIENT_DEBUG") << "Element #" << Index 
-                              << ", Total Weight = " << total_weight 
-                              << ", Gradient = " << gradient << std::endl;
-
+            values[i_dim] = p_flat_data_expression->Evaluate(Index, i_dim, 3);
+        }  
+        KRATOS_INFO("ExpressionValues") << "Entity " << Index << ": " << values
+                                        << ", Gradient" << gradient << std::endl;
     });
+    
+    rOutput.SetExpression(p_flat_data_expression);
+    
+    for (IndexType element = 0; element < entity_container.size(); element++)
+    {
+        Vector values_flat(DomainSize, 0.0);
+        for (IndexType dim = 0; dim < DomainSize; dim++)
+        {
+            values_flat[dim] = p_flat_data_expression->Evaluate(element, dim, DomainSize);
+        }
+        KRATOS_INFO("OUTPUT") << "Output " << element << ": " << values_flat << std::endl;
+    }
+    
     KRATOS_CATCH("");
 }
 

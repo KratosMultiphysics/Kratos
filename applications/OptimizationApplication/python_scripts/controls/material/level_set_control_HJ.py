@@ -90,24 +90,6 @@ class LevelSetControlHJ(Control):
         #self._InitializeSignedDistance((2,0.5), 1, 0.25)
         Kratos.Expression.LiteralExpressionIO.SetData(self.control_phi, self.initial_phi)
 
-        # # get element neighbours
-        # self.element_neighbours = self._GetNeighbouringElements()
-        # self.structured_neighbours = self._ComputeStructuredElementNeighbours()
-
-        # # get element length for dt calculation
-        # for i, element in enumerate(self.model_part.Elements):
-        #     if i == 0:
-        #         center_1 = element.GetGeometry().Center()
-        #     elif i == 1:
-        #         center_2 = element.GetGeometry().Center()
-        #         domain_size = self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
-        #         delta_x = Kratos.Vector(domain_size)
-        #         for d in range(domain_size):
-        #             delta_x[d] = center_2[d] - center_1[d]
-        #         self.length = sum(delta_x[i]**2 for i in range(domain_size))**0.5
-        #         break
-        # # self.length = element.GetGeometry().MinEdgeLength()
-
         self._UpdateAndOutputFields(self.GetEmptyNodalField())
 
     def _GetNeighbouringElements(self) -> dict:
@@ -290,21 +272,30 @@ class LevelSetControlHJ(Control):
         if not IsSameContainerExpression(control_field, self.GetEmptyNodalField()):
              raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
 
-        # Nodal updated control field, update is nodal
+        # Nodal updated control field
         update = control_field - self.control_phi
 
         if Kratos.Expression.Utils.NormL2(update) > 1e-15:
             # Calculate nodal phi update
-            new_update = update * self._ComputePhiGradientNorm3(update)
-            self.control_phi += new_update
+            gradient_norm = Kratos.Expression.ElementExpression(self.model_part)
+            gradient_norm = self._ComputePhiGradientNorm3(update)
+            elemental_velocity = Kratos.Expression.ElementExpression(self.model_part)
+            KratosOA.ExpressionUtils.ProjectNodalToElementalViaShapeFunctions(elemental_velocity, update)
+            HJ_control_phi = KratosOA.ExpressionUtils.HamilotinanUpdate(self.control_phi, elemental_velocity, gradient_norm)
+            new_update = HJ_control_phi - self.control_phi
+            self.control_phi = HJ_control_phi
             self._UpdateAndOutputFields(new_update)
             return True
 
         return False
 
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
+        # compute elemental phi
+        elemental_phi = self.GetEmptyField()
+        KratosOA.ExpressionUtils.ProjectNodalToElementalViaShapeFunctions(elemental_phi, self.control_phi)
+        
         # get elemental heaviside values
-        heaviside = Kratos.Expression.Utils.Collapse(self._ComputeHeaviside())
+        heaviside = Kratos.Expression.Utils.Collapse(self._ComputeHeaviside(elemental_phi))
         
         # update physical variable fields: density = H(phi)*density_0
         density = heaviside * self.density
@@ -321,7 +312,7 @@ class LevelSetControlHJ(Control):
         self.un_buffered_data.SetValue("YOUNG_MODULUS", youngs_modulus.Clone(), overwrite=True)
 
         # Calculate elemental Dirac Delta of phi (dH/d_phi)
-        dirac_delta = Kratos.Expression.Utils.Collapse(self._ComputeHeavisideGradient())
+        dirac_delta = Kratos.Expression.Utils.Collapse(self._ComputeHeavisideGradient(elemental_phi))
 
         # now calculate the total sensitivities of density and E w.r.t. phi (elemental)
         self.d_density_d_phi = dirac_delta * self.density
@@ -346,23 +337,13 @@ class LevelSetControlHJ(Control):
         #     np.savetxt("dirac.txt", dirac_delta.Evaluate())
         #     raise RuntimeError(f"Nan in density")
 
-    def _ComputeHeaviside(self) -> ContainerExpressionTypes:
-        # convert nodal phi to elemental
-        elemental_phi = self.GetEmptyField()
-        KratosOA.ExpressionUtils.MapNodalVariableToContainerVariable(elemental_phi, self.control_phi)
-        # np.savetxt("control_phi.txt", self.control_phi.Evaluate())
-        # np.savetxt("elemental_phi.txt", elemental_phi.Evaluate())
-        
+    def _ComputeHeaviside(self, elemental_phi: ContainerExpressionTypes) -> ContainerExpressionTypes:
         e = elemental_phi.Clone()
         Kratos.Expression.LiteralExpressionIO.SetData(e, np.exp(1))
 
         return Kratos.Expression.Utils.Pow(Kratos.Expression.Utils.Pow(e, elemental_phi * self.k * (-2)) + 1, -1)
 
-    def _ComputeHeavisideGradient(self)  -> ContainerExpressionTypes:
-        # convert nodal phi to elemental
-        elemental_phi = self.GetEmptyField()
-        KratosOA.ExpressionUtils.MapNodalVariableToContainerVariable(elemental_phi, self.control_phi)
-        
+    def _ComputeHeavisideGradient(self, elemental_phi: ContainerExpressionTypes)  -> ContainerExpressionTypes:
         # Calculate Dirac Delta function (derivative of Heaviside function w.r.t. phi)
         e = elemental_phi.Clone()
         Kratos.Expression.LiteralExpressionIO.SetData(e, np.exp(1))
