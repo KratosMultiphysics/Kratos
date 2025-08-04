@@ -57,6 +57,13 @@ FlagsTensorAdaptor::FlagsTensorAdaptor(
     KRATOS_CATCH("");
 }
 
+FlagsTensorAdaptor::FlagsTensorAdaptor(
+    const FlagsTensorAdaptor& rOther,
+    const bool Copy)
+    : FlagsTensorAdaptor(rOther, rOther.mFlags, Copy)
+{
+}
+
 void FlagsTensorAdaptor::Check() const
 {
     std::visit([this](auto pContainer) {

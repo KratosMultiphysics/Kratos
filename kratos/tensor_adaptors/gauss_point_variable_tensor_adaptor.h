@@ -71,6 +71,10 @@ public:
         ProcessInfo::Pointer pProcessInfo,
         const bool Copy = false);
 
+    GaussPointVariableTensorAdaptor(
+        const GaussPointVariableTensorAdaptor& rOther,
+        const bool Copy = false);
+
     // Destructor
     ~GaussPointVariableTensorAdaptor() override = default;
 

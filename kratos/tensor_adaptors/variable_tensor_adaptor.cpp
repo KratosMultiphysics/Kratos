@@ -72,6 +72,13 @@ VariableTensorAdaptor::VariableTensorAdaptor(
     KRATOS_CATCH("");
 }
 
+VariableTensorAdaptor::VariableTensorAdaptor(
+    const VariableTensorAdaptor& rOther,
+    const bool Copy)
+    : VariableTensorAdaptor(rOther, rOther.mpVariable, Copy)
+{
+}
+
 void VariableTensorAdaptor::Check() const
 {
     KRATOS_TRY

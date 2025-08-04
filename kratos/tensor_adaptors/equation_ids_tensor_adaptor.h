@@ -62,6 +62,10 @@ public:
         ProcessInfo::Pointer pProcessInfo,
         const bool Copy = false);
 
+    EquationIdsTensorAdaptor(
+        const EquationIdsTensorAdaptor& rOther,
+        const bool Copy = false);
+
     // Destructor
     ~EquationIdsTensorAdaptor() override = default;
 

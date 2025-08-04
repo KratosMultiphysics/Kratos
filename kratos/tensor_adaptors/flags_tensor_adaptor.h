@@ -64,6 +64,10 @@ public:
         const Flags& rFlags,
         const bool Copy = false);
 
+    FlagsTensorAdaptor(
+        const FlagsTensorAdaptor& rOther,
+        const bool Copy = false);
+
     // Destructor
     ~FlagsTensorAdaptor() override = default;
 

@@ -78,6 +78,10 @@ public:
         const int StepIndex = 0,
         const bool Copy = false);
 
+    HistoricalVariableTensorAdaptor(
+        const HistoricalVariableTensorAdaptor& rOther,
+        const bool Copy = false);
+
 
     // Destructor
     ~HistoricalVariableTensorAdaptor() override = default;

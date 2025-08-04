@@ -72,6 +72,10 @@ public:
         Globals::Configuration Configuration,
         const bool Copy = false);
 
+    NodePositionTensorAdaptor(
+        const NodePositionTensorAdaptor& rOther,
+        const bool Copy = false);
+
     // Destructor
     ~NodePositionTensorAdaptor() override = default;
 

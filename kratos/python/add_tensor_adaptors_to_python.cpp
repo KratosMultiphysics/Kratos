@@ -109,9 +109,15 @@ bool AssignDataImpl(
     const pybind11::array& rArray)
 {
     if (pybind11::isinstance<pybind11::array_t<TPybindArrayType>>(rArray)) {
+
+        KRATOS_ERROR_IF_NOT(rArray.flags() & pybind11::detail::npy_api::constants::NPY_ARRAY_C_CONTIGUOUS_)
+            << "Only supports C-style (row-major) arrays from numpy.";
+
         const auto& casted_array = rArray.cast<pybind11::array_t<TPybindArrayType, pybind11::array::c_style>>();
-        IndexPartition<IndexType>(rTensor.ViewData().size()).for_each([&casted_array, &rTensor](const auto Index) {
-            rTensor.ViewData()[Index] = static_cast<TTensorStorageType>(casted_array.data()[Index]);
+        auto r_destination_span = rTensor.ViewData();
+        const auto& r_origin_data = casted_array.data();
+        IndexPartition<IndexType>(rTensor.ViewData().size()).for_each([&r_destination_span, &r_origin_data](const auto Index) {
+            r_destination_span[Index] = static_cast<TTensorStorageType>(r_origin_data[Index]);
         });
         return true;
     } else {
@@ -236,24 +242,28 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
         .def(py::init<ModelPart::NodesContainerType::Pointer, HistoricalVariableTensorAdaptor::VariablePointerType, const int>(), py::arg("container"), py::arg("variable"), py::arg("step_index") = 0)
         .def(py::init<ModelPart::NodesContainerType::Pointer, TensorAdaptorUtils::VariablePointerType, const std::vector<unsigned int>&, const int>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"), py::arg("step_index") = 0)
         .def(py::init<const HistoricalVariableTensorAdaptor::BaseType&, HistoricalVariableTensorAdaptor::VariablePointerType, const int, const bool>(), py::arg("tensor_adaptor"), py::arg("variable"), py::arg("step_index") = 0, py::arg("copy") = false)
+        .def(py::init<const HistoricalVariableTensorAdaptor&, const bool>(), py::arg("historical_variable_tensor_adaptor"), py::arg("copy") = false)
         ;
 
     py::class_<VariableTensorAdaptor, VariableTensorAdaptor::Pointer, VariableTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "VariableTensorAdaptor")
         .def(py::init<VariableTensorAdaptor::ContainerPointerType, VariableTensorAdaptor::VariablePointerType>(), py::arg("container"), py::arg("variable"))
         .def(py::init<VariableTensorAdaptor::ContainerPointerType, VariableTensorAdaptor::VariablePointerType, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"))
         .def(py::init<const VariableTensorAdaptor::BaseType&, VariableTensorAdaptor::VariablePointerType, const bool>(), py::arg("tensor_adaptor"), py::arg("variable"), py::arg("copy") = false)
+        .def(py::init<const VariableTensorAdaptor&, const bool>(), py::arg("variable_tensor_adaptor"), py::arg("copy") = false)
         ;
 
     py::class_<GaussPointVariableTensorAdaptor, GaussPointVariableTensorAdaptor::Pointer, GaussPointVariableTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "GaussPointVariableTensorAdaptor")
         .def(py::init<ModelPart::ConditionsContainerType::Pointer, GaussPointVariableTensorAdaptor::VariablePointerType, ProcessInfo::Pointer>(), py::arg("container"), py::arg("variable"), py::arg("process_info"))
         .def(py::init<ModelPart::ElementsContainerType::Pointer, GaussPointVariableTensorAdaptor::VariablePointerType, ProcessInfo::Pointer>(), py::arg("container"), py::arg("variable"), py::arg("process_info"))
         .def(py::init<const GaussPointVariableTensorAdaptor::BaseType&, GaussPointVariableTensorAdaptor::VariablePointerType, ProcessInfo::Pointer, const bool>(), py::arg("tensor_adaptor"), py::arg("variable"), py::arg("process_info"), py::arg("copy") = false)
+        .def(py::init<const GaussPointVariableTensorAdaptor&, const bool>(), py::arg("gauss_point_variable_tensor_adaptor"), py::arg("copy") = false)
         ;
 
     py::class_<EquationIdsTensorAdaptor, EquationIdsTensorAdaptor::Pointer, EquationIdsTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "EquationIdsTensorAdaptor")
         .def(py::init<ModelPart::ConditionsContainerType::Pointer, ProcessInfo::Pointer>(), py::arg("container"), py::arg("process_info"))
         .def(py::init<ModelPart::ElementsContainerType::Pointer, ProcessInfo::Pointer>(), py::arg("container"), py::arg("process_info"))
         .def(py::init<const EquationIdsTensorAdaptor::BaseType&, ProcessInfo::Pointer, const bool>(), py::arg("tensor_adaptor"), py::arg("process_info"), py::arg("copy") = false)
+        .def(py::init<const EquationIdsTensorAdaptor&, const bool>(), py::arg("equation_ids_tensor_adaptor"), py::arg("copy") = false)
         ;
 
     py::class_<FlagsTensorAdaptor, FlagsTensorAdaptor::Pointer, FlagsTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "FlagsTensorAdaptor")
@@ -261,12 +271,14 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
         .def(py::init<ModelPart::ConditionsContainerType::Pointer, const Flags&>(), py::arg("container"), py::arg("flag"))
         .def(py::init<ModelPart::ElementsContainerType::Pointer, const Flags&>(), py::arg("container"), py::arg("flag"))
         .def(py::init<const FlagsTensorAdaptor::BaseType&, const Flags&, const bool>(), py::arg("tensor_adaptor"), py::arg("flag"), py::arg("copy") = false)
+        .def(py::init<const FlagsTensorAdaptor&, const bool>(), py::arg("flags_tensor_adaptor"), py::arg("copy") = false)
         ;
 
     py::class_<NodePositionTensorAdaptor, NodePositionTensorAdaptor::Pointer, NodePositionTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "NodePositionTensorAdaptor")
         .def(py::init<ModelPart::NodesContainerType::Pointer, Globals::Configuration>(), py::arg("container"), py::arg("configuration"))
         .def(py::init<ModelPart::NodesContainerType::Pointer, Globals::Configuration, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("configuration"), py::arg("data_shape"))
         .def(py::init<const NodePositionTensorAdaptor::BaseType&, Globals::Configuration, const bool>(), py::arg("tensor_adaptor"), py::arg("configuration"), py::arg("copy") = false)
+        .def(py::init<const NodePositionTensorAdaptor&, const bool>(), py::arg("node_position_tensor_adaptor"), py::arg("copy") = false)
         ;
 }
 
