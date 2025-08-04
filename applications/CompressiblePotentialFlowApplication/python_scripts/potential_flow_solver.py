@@ -134,6 +134,7 @@ class PotentialFlowSolver(FluidSolver):
             "solver_type": "potential_flow_solver",
             "model_part_name": "PotentialFluidModelPart",
             "domain_size": -1,
+            "enforce_element_and_conditions_replacement": false,
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -188,7 +189,7 @@ class PotentialFlowSolver(FluidSolver):
 
         self._validate_settings_in_baseclass=True # To be removed eventually
         super().__init__(model, custom_settings)
-        self._enforce_element_and_conditions_replacement = False #TODO: Remove once we remove the I/O from the solver
+        self._enforce_element_and_conditions_replacement = custom_settings["enforce_element_and_conditions_replacement"].GetBool() #TODO: Remove once we remove the I/O from the solver
 
         # Set the element and condition names for the replace settings
         self.formulation = PotentialFlowFormulation(self.settings["formulation"])

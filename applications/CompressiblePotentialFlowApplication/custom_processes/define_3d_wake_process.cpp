@@ -93,7 +93,6 @@ void Define3DWakeProcess::ExecuteInitialize()
     });
     auto& r_elements = root_model_part.Elements();
     VariableUtils().SetNonHistoricalVariable(WAKE, 0, r_elements);
-    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, 0, r_elements);
 
     InitializeTrailingEdgeSubModelpart();
 
@@ -305,6 +304,7 @@ void Define3DWakeProcess::ComputeAndSaveLocalWakeNormal() const
             auto& local_wake_normal = r_node.GetValue(WAKE_NORMAL);
             const double norm = MathUtils<double>::Norm3(local_wake_normal);
             local_wake_normal /= norm;
+            r_node.SetValue(WAKE_NORMAL, local_wake_normal);
         }
     }
 
@@ -343,6 +343,7 @@ void Define3DWakeProcess::ComputeAndSaveLocalWakeNormal() const
                 auto& local_wake_normal = r_node.GetValue(WAKE_NORMAL);
                 const double norm = MathUtils<double>::Norm3(local_wake_normal);
                 local_wake_normal /= norm;
+                r_node.SetValue(WAKE_NORMAL, local_wake_normal);
             }
         }
     }
@@ -364,7 +365,7 @@ void Define3DWakeProcess::ShedWakeSurfaceFromTheTrailingEdge() const
     IndexType node_index = 0;
     IndexType element_index = 0;
 
-    for (auto& r_cond : mrTrailingEdgeModelPart.Conditions()) {
+    for (auto& r_cond : mrTrailingEdgeModelPart.Elements()) {
         auto& r_geometry = r_cond.GetGeometry();
         
         array_1d<double,3> start_point = r_geometry[0].Coordinates();
@@ -417,7 +418,7 @@ void Define3DWakeProcess::ShedWakeSurfaceFromTheTrailingEdge() const
     {
         ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
         ModelPart& tail_trailing_edge_modelpart = root_model_part.GetSubModelPart(mTailModelPartName);
-        for (auto& r_cond : tail_trailing_edge_modelpart.Conditions()) {
+        for (auto& r_cond : tail_trailing_edge_modelpart.Elements()) {
             auto& r_geometry = r_cond.GetGeometry();
             
             array_1d<double,3> start_point = r_geometry[0].Coordinates();
@@ -588,7 +589,7 @@ void Define3DWakeProcess::MarkWakeElements() const
 
         // Mark wake elements, save their ids, save the elemental distances in
         // the element and in the nodes, and save wake nodes ids
-        if (rElement.Is(TO_SPLIT) || rElement.GetValue(UPDATE_SENSITIVITIES))
+        if (rElement.Is(TO_SPLIT) || rElement.GetValue(WAKE))
         {
             // Mark wake elements
             rElement.SetValue(WAKE, true);
@@ -676,7 +677,7 @@ void Define3DWakeProcess::CheckIfTrailingEdgeElement(
         }
         if (number_of_blunt_nodes > 2)
         {   
-            rElement.SetValue(UPDATE_SENSITIVITIES, true);
+            rElement.SetValue(WAKE, true);
         }
     }
 }
@@ -910,7 +911,7 @@ void Define3DWakeProcess::SelectElementType(Element& rElement,
 {
     // Wake structure elements (cut)
     if ((number_of_nodes_with_positive_distance > 0 &&
-        number_of_nodes_with_negative_distance > 0 && rElement.GetValue(WAKE)) || rElement.GetValue(UPDATE_SENSITIVITIES))
+        number_of_nodes_with_negative_distance > 0 && rElement.GetValue(WAKE)) || rElement.GetValue(WAKE))
     {
         rElement.Set(STRUCTURE);
         BoundedVector<double, 4> wake_elemental_distances = ZeroVector(4);

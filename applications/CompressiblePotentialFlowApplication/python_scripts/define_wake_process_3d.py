@@ -87,8 +87,11 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             raise Exception(err_msg)
         self.trailing_edge_model_part = Model[trailing_edge_model_part_name]
 
+        self.fluid_model_part = self.trailing_edge_model_part.GetRootModelPart()
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.WAKE_NORMAL,self.wake_normal)
+
         if self.trailing_edge_model_part.NumberOfConditions()<1:
-            self.reference_id = 10000000
+            self.reference_id = self.fluid_model_part.NumberOfConditions()
             self._IncludeConditionsToModelPart(self.trailing_edge_model_part)
         
         tail_model_part_name = settings["tail_model_part_name"].GetString()
@@ -96,9 +99,6 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             self.tail_model_part = Model[tail_model_part_name]
             if self.tail_model_part.NumberOfConditions()<1:
                 self._IncludeConditionsToModelPart(self.tail_model_part)
-
-        self.fluid_model_part = self.trailing_edge_model_part.GetRootModelPart()
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.WAKE_NORMAL,self.wake_normal)
 
         if self.wake_process_cpp_parameters.Has("wake_direction"):
             self.wake_direction = self.wake_process_cpp_parameters["wake_direction"].GetVector()
@@ -279,7 +279,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         node_list = [node_ids[i] for i in ordered_indexes]
         for i in range(1, model_part.NumberOfNodes()):
             self.reference_id += i
-            model_part.CreateNewCondition("LineCondition3D2N", self.reference_id, [node_list[i-1], node_list[i]], prop)
+            model_part.CreateNewCondition("PotentialWallCondition3D2N", self.reference_id, [node_list[i-1], node_list[i]], prop)
 
     def ExecuteFinalizeSolutionStep(self):
         if not self.fluid_model_part.HasSubModelPart("wake_elements_model_part"):
