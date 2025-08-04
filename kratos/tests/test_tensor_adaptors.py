@@ -334,6 +334,15 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
     def test_CopyHistoricalVariableTensorAdaptor(self):
         self.__TestCopyTensorAdaptor(Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, lambda x, y: x.GetSolutionStepValue(y))
 
+    def test_FStyleNodalPositionTensorAdaptor(self):
+        ta = Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.model_part.Nodes, Kratos.Configuration.Initial)
+        ta.CollectData()
+
+        numpy_data = ta.data
+        fortran_numpy_data = numpy.asfortranarray(numpy_data)
+        with self.assertRaises(RuntimeError):
+            ta.data = fortran_numpy_data
+
     def __TestCopyTensorAdaptor(self, tensor_adaptor_type, value_getter):
         var_ta_orig = tensor_adaptor_type(self.model_part.Nodes, Kratos.VELOCITY, data_shape=[2])
         var_ta_orig.Check()
