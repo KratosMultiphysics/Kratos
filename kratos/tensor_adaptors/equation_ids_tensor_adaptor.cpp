@@ -85,13 +85,6 @@ EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(
 {
 }
 
-EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(
-    const EquationIdsTensorAdaptor& rOther,
-    const bool Copy)
-    : EquationIdsTensorAdaptor(rOther, rOther.mpProcessInfo, Copy)
-{
-}
-
 void EquationIdsTensorAdaptor::CollectData()
 {
     KRATOS_TRY

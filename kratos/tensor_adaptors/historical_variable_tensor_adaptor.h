@@ -76,12 +76,7 @@ public:
         const TensorAdaptor& rOther,
         VariablePointerType pVariable,
         const int StepIndex = 0,
-        const bool Copy = false);
-
-    HistoricalVariableTensorAdaptor(
-        const HistoricalVariableTensorAdaptor& rOther,
-        const bool Copy = false);
-
+        const bool Copy = true);
 
     // Destructor
     ~HistoricalVariableTensorAdaptor() override = default;

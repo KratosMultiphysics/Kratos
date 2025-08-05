@@ -109,13 +109,6 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
 
 }
 
-HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
-    const HistoricalVariableTensorAdaptor& rOther,
-    const bool Copy)
-    : HistoricalVariableTensorAdaptor(rOther, rOther.mpVariable, rOther.mStepIndex, Copy)
-{
-}
-
 void HistoricalVariableTensorAdaptor::Check() const
 {
     KRATOS_TRY

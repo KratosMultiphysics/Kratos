@@ -73,11 +73,7 @@ public:
     VariableTensorAdaptor(
         const TensorAdaptor& rOther,
         VariablePointerType pVariable,
-        const bool Copy = false);
-
-    VariableTensorAdaptor(
-        const VariableTensorAdaptor& rOther,
-        const bool Copy = false);
+        const bool Copy = true);
 
     // Destructor
     ~VariableTensorAdaptor() override = default;

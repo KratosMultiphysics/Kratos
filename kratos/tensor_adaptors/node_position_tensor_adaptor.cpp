@@ -78,13 +78,6 @@ NodePositionTensorAdaptor::NodePositionTensorAdaptor(
     KRATOS_CATCH("");
 }
 
-NodePositionTensorAdaptor::NodePositionTensorAdaptor(
-    const NodePositionTensorAdaptor& rOther,
-    const bool Copy)
-    : NodePositionTensorAdaptor(rOther, rOther.mConfiguration, Copy)
-{
-}
-
 void NodePositionTensorAdaptor::CollectData()
 {
     KRATOS_TRY

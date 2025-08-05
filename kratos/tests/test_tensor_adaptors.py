@@ -348,7 +348,7 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         var_ta_orig.Check()
         var_ta_orig.CollectData()
 
-        var_ta_dest = tensor_adaptor_type(var_ta_orig, Kratos.ACCELERATION)
+        var_ta_dest = tensor_adaptor_type(var_ta_orig, Kratos.ACCELERATION, copy=False)
         var_ta_dest.data += 1.0
         var_ta_dest.StoreData()
 
@@ -367,7 +367,7 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
             self.assertEqual(value_getter(node, Kratos.ACCELERATION_Y), value_getter(node, Kratos.VELOCITY_Y))
 
         # now checking the copying
-        var_ta_copy = tensor_adaptor_type(var_ta_orig, Kratos.DISPLACEMENT, copy = True)
+        var_ta_copy = tensor_adaptor_type(var_ta_orig, Kratos.DISPLACEMENT) # default behavior is copying
         var_ta_copy.data += 2.0
         var_ta_copy.StoreData()
         for node in self.model_part.Nodes:

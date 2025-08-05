@@ -70,11 +70,7 @@ public:
     NodePositionTensorAdaptor(
         const TensorAdaptor& rOther,
         Globals::Configuration Configuration,
-        const bool Copy = false);
-
-    NodePositionTensorAdaptor(
-        const NodePositionTensorAdaptor& rOther,
-        const bool Copy = false);
+        const bool Copy = true);
 
     // Destructor
     ~NodePositionTensorAdaptor() override = default;

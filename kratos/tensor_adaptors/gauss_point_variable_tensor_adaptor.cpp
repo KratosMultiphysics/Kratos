@@ -73,13 +73,6 @@ GaussPointVariableTensorAdaptor::GaussPointVariableTensorAdaptor(
     KRATOS_CATCH("");
 }
 
-GaussPointVariableTensorAdaptor::GaussPointVariableTensorAdaptor(
-    const GaussPointVariableTensorAdaptor& rOther,
-    const bool Copy)
-    : GaussPointVariableTensorAdaptor(rOther, rOther.mpVariable, rOther.mpProcessInfo, Copy)
-{
-}
-
 void GaussPointVariableTensorAdaptor::CollectData()
 {
     std::visit([this](auto pContainer, auto pVariable) {
