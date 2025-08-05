@@ -23,7 +23,8 @@
 namespace Kratos
 {
 
-class FluidBodyFlowCalculator : public ContributionCalculator
+template <unsigned int TNumNodes>
+class FluidBodyFlowCalculator : public ContributionCalculator<TNumNodes>
 {
 public:
     struct InputProvider {
@@ -56,9 +57,9 @@ public:
 
     explicit FluidBodyFlowCalculator(InputProvider AnInputProvider);
 
-    std::optional<Matrix>                    LHSContribution() override;
-    Vector                                   RHSContribution() override;
-    std::pair<std::optional<Matrix>, Vector> LocalSystemContribution() override;
+    std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>> LHSContribution() override;
+    BoundedVector<double, TNumNodes>                           RHSContribution() override;
+    std::pair<std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>>, BoundedVector<double, TNumNodes>> LocalSystemContribution() override;
 
 private:
     InputProvider mInputProvider;

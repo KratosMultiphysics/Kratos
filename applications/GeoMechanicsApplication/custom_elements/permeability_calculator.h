@@ -20,7 +20,8 @@
 namespace Kratos
 {
 
-class PermeabilityCalculator : public ContributionCalculator
+template <unsigned int TNumNodes>
+class PermeabilityCalculator : public ContributionCalculator<TNumNodes> ///
 {
 public:
     struct InputProvider {
@@ -49,15 +50,15 @@ public:
 
     explicit PermeabilityCalculator(InputProvider InputProvider);
 
-    std::optional<Matrix>                    LHSContribution() override;
-    Vector                                   RHSContribution() override;
-    std::pair<std::optional<Matrix>, Vector> LocalSystemContribution() override;
+    std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>> LHSContribution() override;
+    BoundedVector<double, TNumNodes>                           RHSContribution() override;
+    std::pair<std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>>, BoundedVector<double, TNumNodes>> LocalSystemContribution() override;
 
 private:
     InputProvider mInputProvider;
 
-    [[nodiscard]] Matrix CalculatePermeabilityMatrix() const;
-    [[nodiscard]] Vector RHSContribution(const Matrix& rPermeabilityMatrix) const;
+    [[nodiscard]] BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix() const;
+    [[nodiscard]] BoundedVector<double, TNumNodes> RHSContribution(const Matrix& rPermeabilityMatrix) const;
 };
 
 } // namespace Kratos

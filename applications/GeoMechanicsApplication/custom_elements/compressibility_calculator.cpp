@@ -15,45 +15,51 @@
 
 namespace Kratos
 {
-
-CompressibilityCalculator::CompressibilityCalculator(InputProvider rInputProvider)
+template <unsigned int TNumNodes>
+CompressibilityCalculator<TNumNodes>::CompressibilityCalculator(InputProvider rInputProvider)
     : mInputProvider(std::move(rInputProvider))
 {
 }
 
-std::optional<Matrix> CompressibilityCalculator::LHSContribution()
+template <unsigned int TNumNodes>
+std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>> CompressibilityCalculator<TNumNodes>::LHSContribution()
 {
     return std::make_optional(LHSContribution(CalculateCompressibilityMatrix()));
 }
 
-Vector CompressibilityCalculator::RHSContribution()
+template <unsigned int TNumNodes>
+BoundedVector<double, TNumNodes> CompressibilityCalculator<TNumNodes>::RHSContribution()
 {
     return RHSContribution(CalculateCompressibilityMatrix());
 }
 
-Vector CompressibilityCalculator::RHSContribution(const Matrix& rCompressibilityMatrix) const
+template <unsigned int TNumNodes>
+BoundedVector<double, TNumNodes> CompressibilityCalculator<TNumNodes>::RHSContribution(const Matrix& rCompressibilityMatrix) const
 {
     return -prod(rCompressibilityMatrix, mInputProvider.GetNodalValues(DT_WATER_PRESSURE));
 }
 
-Matrix CompressibilityCalculator::LHSContribution(const Matrix& rCompressibilityMatrix) const
+template <unsigned int TNumNodes>
+BoundedMatrix<double, TNumNodes, TNumNodes> CompressibilityCalculator<TNumNodes>::LHSContribution(const Matrix& rCompressibilityMatrix) const
 {
     return mInputProvider.GetMatrixScalarFactor() * rCompressibilityMatrix;
 }
 
-std::pair<std::optional<Matrix>, Vector> CompressibilityCalculator::LocalSystemContribution()
+template <unsigned int TNumNodes>
+std::pair<std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>>, BoundedVector<double, TNumNodes>> CompressibilityCalculator<TNumNodes>::LocalSystemContribution()
 {
     const auto compressibility_matrix = CalculateCompressibilityMatrix();
     return {std::make_optional(LHSContribution(compressibility_matrix)), RHSContribution(compressibility_matrix)};
 }
 
-Matrix CompressibilityCalculator::CalculateCompressibilityMatrix() const
+template <unsigned int TNumNodes>
+BoundedMatrix<double, TNumNodes, TNumNodes> CompressibilityCalculator<TNumNodes>::CalculateCompressibilityMatrix() const
 {
     const auto& r_N_container            = mInputProvider.GetNContainer();
     const auto& integration_coefficients = mInputProvider.GetIntegrationCoefficients();
     const auto& fluid_pressures          = mInputProvider.GetFluidPressures();
-    Matrix      result(r_N_container.size2(), r_N_container.size2(), 0.0);
-    Vector      N(r_N_container.size2());
+    BoundedMatrix<double, TNumNodes, TNumNodes> result;
+    BoundedVector<double, TNumNodes>            N;
 
     for (unsigned int integration_point_index = 0;
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {
@@ -67,8 +73,9 @@ Matrix CompressibilityCalculator::CalculateCompressibilityMatrix() const
     return result;
 }
 
-double CompressibilityCalculator::CalculateBiotModulusInverse(const RetentionLaw::Pointer& rRetentionLaw,
-                                                              double FluidPressure) const
+template <unsigned int TNumNodes>
+double CompressibilityCalculator<TNumNodes>::CalculateBiotModulusInverse(const RetentionLaw::Pointer& rRetentionLaw,
+                                                                         double FluidPressure) const
 {
     const auto&  r_properties     = mInputProvider.GetElementProperties();
     const double biot_coefficient = r_properties[BIOT_COEFFICIENT];

@@ -23,7 +23,8 @@
 namespace Kratos
 {
 
-class CompressibilityCalculator : public ContributionCalculator
+template <unsigned int TNumNodes>
+class CompressibilityCalculator : public ContributionCalculator<TNumNodes>
 {
 public:
     struct InputProvider {
@@ -55,16 +56,16 @@ public:
 
     explicit CompressibilityCalculator(InputProvider rInputProvider);
 
-    std::optional<Matrix>                    LHSContribution() override;
-    Vector                                   RHSContribution() override;
-    std::pair<std::optional<Matrix>, Vector> LocalSystemContribution() override;
+    std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>> LHSContribution() override;
+    BoundedVector<double, TNumNodes>                           RHSContribution() override;
+    std::pair<std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>>, BoundedVector<double, TNumNodes>> LocalSystemContribution() override;
 
 private:
-    [[nodiscard]] Matrix CalculateCompressibilityMatrix() const;
+    [[nodiscard]] BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCompressibilityMatrix() const;
     [[nodiscard]] double CalculateBiotModulusInverse(const RetentionLaw::Pointer& rRetentionLaw,
                                                      double FluidPresssure) const;
-    [[nodiscard]] Vector RHSContribution(const Matrix& rCompressibilityMatrix) const;
-    [[nodiscard]] Matrix LHSContribution(const Matrix& rCompressibilityMatrix) const;
+    [[nodiscard]] BoundedVector<double, TNumNodes> RHSContribution(const Matrix& rCompressibilityMatrix) const;
+    [[nodiscard]] BoundedMatrix<double, TNumNodes, TNumNodes> LHSContribution(const Matrix& rCompressibilityMatrix) const;
 
     InputProvider mInputProvider;
 };

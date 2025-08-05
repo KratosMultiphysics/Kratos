@@ -22,8 +22,8 @@
 
 namespace Kratos
 {
-
-class FilterCompressibilityCalculator : public ContributionCalculator
+template <unsigned int TNumNodes>
+class FilterCompressibilityCalculator : public ContributionCalculator<TNumNodes>
 {
 public:
     struct InputProvider {
@@ -52,15 +52,15 @@ public:
 
     explicit FilterCompressibilityCalculator(InputProvider AnInputProvider);
 
-    std::optional<Matrix>                    LHSContribution() override;
-    Vector                                   RHSContribution() override;
-    std::pair<std::optional<Matrix>, Vector> LocalSystemContribution() override;
+    std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>> LHSContribution() override;
+    BoundedVector<double, TNumNodes>                           RHSContribution() override;
+    std::pair<std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>>, BoundedVector<double, TNumNodes>> LocalSystemContribution() override;
 
 private:
-    [[nodiscard]] Matrix CalculateCompressibilityMatrix() const;
+    [[nodiscard]] BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCompressibilityMatrix() const;
     [[nodiscard]] double CalculateElasticCapacity(double ProjectedGravity) const;
-    [[nodiscard]] Vector RHSContribution(const Matrix& rCompressibilityMatrix) const;
-    [[nodiscard]] Matrix LHSContribution(const Matrix& rCompressibilityMatrix) const;
+    [[nodiscard]] BoundedVector<double, TNumNodes> RHSContribution(const Matrix& rCompressibilityMatrix) const;
+    [[nodiscard]] BoundedMatrix<double, TNumNodes, TNumNodes> LHSContribution(const Matrix& rCompressibilityMatrix) const;
 
     InputProvider mInputProvider;
 };

@@ -422,20 +422,21 @@ private:
         return mIntegrationCoefficientsCalculator.CloneModifier();
     }
 
-    std::unique_ptr<ContributionCalculator> CreateCalculator(const CalculationContribution& rContribution,
-                                                             const ProcessInfo& rCurrentProcessInfo)
+    std::unique_ptr<ContributionCalculator<TNumNodes>> CreateCalculator(const CalculationContribution& rContribution,
+                                                                        const ProcessInfo& rCurrentProcessInfo)
     {
         switch (rContribution) {
         case CalculationContribution::Permeability:
-            return std::make_unique<PermeabilityCalculator>(CreatePermeabilityInputProvider());
+            return std::make_unique<PermeabilityCalculator<TNumNodes>>(CreatePermeabilityInputProvider());
         case CalculationContribution::Compressibility:
             if (GetProperties()[RETENTION_LAW] == "PressureFilterLaw") {
-                return std::make_unique<FilterCompressibilityCalculator>(
+                return std::make_unique<FilterCompressibilityCalculator<TNumNodes>>(
                     CreateFilterCompressibilityInputProvider(rCurrentProcessInfo));
             }
-            return std::make_unique<CompressibilityCalculator>(CreateCompressibilityInputProvider(rCurrentProcessInfo));
+            return std::make_unique<CompressibilityCalculator<TNumNodes>>(
+                CreateCompressibilityInputProvider(rCurrentProcessInfo));
         case CalculationContribution::FluidBodyFlow:
-            return std::make_unique<FluidBodyFlowCalculator>(CreateFluidBodyFlowInputProvider());
+            return std::make_unique<FluidBodyFlowCalculator<TNumNodes>>(CreateFluidBodyFlowInputProvider());
         default:
             KRATOS_ERROR << "Unknown contribution" << std::endl;
         }
@@ -448,32 +449,33 @@ private:
         mFluidPressures          = SaveFluidPressure();
     }
 
-    CompressibilityCalculator::InputProvider CreateCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
+    typename CompressibilityCalculator<TNumNodes>::InputProvider CreateCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
     {
-        return CompressibilityCalculator::InputProvider(
+        return CompressibilityCalculator<TNumNodes>::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), GetNContainer(),
             GetIntegrationCoefficients(), MakeMatrixScalarFactorGetter(rCurrentProcessInfo),
             MakeNodalVariableGetter(), GetFluidPressures());
     }
 
-    FilterCompressibilityCalculator::InputProvider CreateFilterCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
+    typename FilterCompressibilityCalculator<TNumNodes>::InputProvider CreateFilterCompressibilityInputProvider(
+        const ProcessInfo& rCurrentProcessInfo)
     {
-        return FilterCompressibilityCalculator::InputProvider(
+        return FilterCompressibilityCalculator<TNumNodes>::InputProvider(
             MakePropertiesGetter(), GetNContainer(), GetIntegrationCoefficients(),
             MakeProjectedGravityForIntegrationPointsGetter(),
             MakeMatrixScalarFactorGetter(rCurrentProcessInfo), MakeNodalVariableGetter());
     }
 
-    PermeabilityCalculator::InputProvider CreatePermeabilityInputProvider()
+    typename PermeabilityCalculator<TNumNodes>::InputProvider CreatePermeabilityInputProvider()
     {
-        return PermeabilityCalculator::InputProvider(
+        return PermeabilityCalculator<TNumNodes>::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), GetIntegrationCoefficients(),
             MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter(), GetFluidPressures());
     }
 
-    FluidBodyFlowCalculator::InputProvider CreateFluidBodyFlowInputProvider()
+    typename FluidBodyFlowCalculator<TNumNodes>::InputProvider CreateFluidBodyFlowInputProvider()
     {
-        return FluidBodyFlowCalculator::InputProvider(
+        return FluidBodyFlowCalculator<TNumNodes>::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), GetIntegrationCoefficients(),
             MakeProjectedGravityForIntegrationPointsGetter(), MakeShapeFunctionLocalGradientsGetter(),
             MakeLocalSpaceDimensionGetter(), GetFluidPressures());

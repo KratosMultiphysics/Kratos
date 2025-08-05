@@ -18,14 +18,20 @@
 namespace Kratos
 {
 
-FluidBodyFlowCalculator::FluidBodyFlowCalculator(InputProvider AnInputProvider)
+template <unsigned int TNumNodes>
+FluidBodyFlowCalculator<TNumNodes>::FluidBodyFlowCalculator(InputProvider AnInputProvider)
     : mInputProvider(std::move(AnInputProvider))
 {
 }
 
-std::optional<Matrix> FluidBodyFlowCalculator::LHSContribution() { return std::nullopt; }
+template <unsigned int TNumNodes>
+std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>> FluidBodyFlowCalculator<TNumNodes>::LHSContribution()
+{
+    return std::nullopt;
+}
 
-Vector FluidBodyFlowCalculator::RHSContribution()
+template <unsigned int TNumNodes>
+BoundedVector<double, TNumNodes> FluidBodyFlowCalculator<TNumNodes>::RHSContribution()
 {
     const auto& shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
 
@@ -38,10 +44,10 @@ Vector FluidBodyFlowCalculator::RHSContribution()
     RetentionLaw::Parameters retention_law_parameters(r_properties);
     const auto&              projected_gravity_on_integration_points =
         mInputProvider.GetProjectedGravityAtIntegrationPoints();
-    const auto& fluid_pressures          = mInputProvider.GetFluidPressures();
-    const auto  fluid_body_vector_length = shape_function_gradients[0].size1();
-    Vector      result(fluid_body_vector_length, 0.0);
-    const auto  bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
+    const auto&                      fluid_pressures          = mInputProvider.GetFluidPressures();
+    const auto                       fluid_body_vector_length = shape_function_gradients[0].size1();
+    BoundedVector<double, TNumNodes> result;
+    const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
 
     for (unsigned int integration_point_index = 0;
          integration_point_index < integration_coefficients.size(); ++integration_point_index) {
@@ -58,12 +64,14 @@ Vector FluidBodyFlowCalculator::RHSContribution()
     return result;
 }
 
-std::pair<std::optional<Matrix>, Vector> FluidBodyFlowCalculator::LocalSystemContribution()
+template <unsigned int TNumNodes>
+std::pair<std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>>, BoundedVector<double, TNumNodes>> FluidBodyFlowCalculator<TNumNodes>::LocalSystemContribution()
 {
     return {LHSContribution(), RHSContribution()};
 }
 
-std::vector<double> FluidBodyFlowCalculator::CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const
+template <unsigned int TNumNodes>
+std::vector<double> FluidBodyFlowCalculator<TNumNodes>::CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const
 {
     KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mInputProvider.GetRetentionLaws().size());
 

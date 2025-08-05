@@ -18,33 +18,39 @@
 namespace Kratos
 {
 
-PermeabilityCalculator::PermeabilityCalculator(InputProvider InputProvider)
+template <unsigned int TNumNodes>
+PermeabilityCalculator<TNumNodes>::PermeabilityCalculator(InputProvider InputProvider)
     : mInputProvider{std::move(InputProvider)}
 {
 }
 
-std::optional<Matrix> PermeabilityCalculator::LHSContribution()
+template <unsigned int TNumNodes>
+std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>> PermeabilityCalculator<TNumNodes>::LHSContribution()
 {
     return std::make_optional(CalculatePermeabilityMatrix());
 }
 
-Vector PermeabilityCalculator::RHSContribution()
+template <unsigned int TNumNodes>
+BoundedVector<double, TNumNodes> PermeabilityCalculator<TNumNodes>::RHSContribution()
 {
     return RHSContribution(CalculatePermeabilityMatrix());
 }
 
-std::pair<std::optional<Matrix>, Vector> PermeabilityCalculator::LocalSystemContribution()
+template <unsigned int TNumNodes>
+std::pair<std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>>, BoundedVector<double, TNumNodes>> PermeabilityCalculator<TNumNodes>::LocalSystemContribution()
 {
     const auto permeability_matrix = CalculatePermeabilityMatrix();
     return {std::make_optional(permeability_matrix), RHSContribution(permeability_matrix)};
 }
 
-Vector PermeabilityCalculator::RHSContribution(const Matrix& rPermeabilityMatrix) const
+template <unsigned int TNumNodes>
+BoundedVector<double, TNumNodes> PermeabilityCalculator<TNumNodes>::RHSContribution(const Matrix& rPermeabilityMatrix) const
 {
     return -prod(rPermeabilityMatrix, mInputProvider.GetNodalValues(WATER_PRESSURE));
 }
 
-Matrix PermeabilityCalculator::CalculatePermeabilityMatrix() const
+template <unsigned int TNumNodes>
+BoundedMatrix<double, TNumNodes, TNumNodes> PermeabilityCalculator<TNumNodes>::CalculatePermeabilityMatrix() const
 {
     RetentionLaw::Parameters retention_parameters(mInputProvider.GetElementProperties());
     const auto&              r_properties             = mInputProvider.GetElementProperties();
@@ -55,7 +61,7 @@ Matrix PermeabilityCalculator::CalculatePermeabilityMatrix() const
         GeoElementUtilities::FillPermeabilityMatrix(r_properties, local_dimension);
 
     const std::size_t number_of_nodes = shape_function_gradients[0].size1();
-    Matrix            result(number_of_nodes, number_of_nodes, 0.0);
+    BoundedMatrix<double, TNumNodes, TNumNodes> result;
 
     const double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
     const auto&  fluid_pressures           = mInputProvider.GetFluidPressures();
@@ -69,7 +75,7 @@ Matrix PermeabilityCalculator::CalculatePermeabilityMatrix() const
             mInputProvider.GetRetentionLaws()[integration_point_index]->CalculateRelativePermeability(retention_parameters);
 
         // Use noalias to avoid temporaries in uBLAS
-        Matrix permeability_matrix(number_of_nodes, number_of_nodes, 0.0);
+        BoundedMatrix<double, TNumNodes, TNumNodes> permeability_matrix;
         noalias(permeability_matrix) = GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
             shape_function_gradients[integration_point_index], dynamic_viscosity_inverse, constitutive_matrix,
             relative_permeability, integration_coefficients[integration_point_index]);
