@@ -328,6 +328,9 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
             self.assertEqual(node.GetValue(Kratos.VELOCITY_Y), copied_ta.data[i, 1] + 1)
             self.assertEqual(node.GetValue(Kratos.VELOCITY_Z), copied_ta.data[i, 2] + 1)
 
+        self.assertEqual(id(var_ta.GetContainer()), id(self.model_part.Nodes))
+        self.assertEqual(id(base_ta.GetContainer()), id(self.model_part.Nodes))
+
     def test_CopyVariableTensorAdaptor(self):
         self.__TestCopyTensorAdaptor(Kratos.TensorAdaptors.VariableTensorAdaptor, lambda x, y: x.GetValue(y))
 
