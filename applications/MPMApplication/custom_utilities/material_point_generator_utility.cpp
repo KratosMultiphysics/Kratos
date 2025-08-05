@@ -389,6 +389,9 @@ namespace Kratos::MaterialPointGeneratorUtility
                                 condition_type_name = "MPMParticlePenaltyDirichletCondition";
                             else if(boundary_condition_type==2 || boundary_condition_type==3)
                                 condition_type_name = "MPMParticleLagrangeDirichletCondition";
+                            else{
+                                KRATOS_ERROR << "boundary_condition_type in material_point_generator_utility.cpp is not correctly defined." << std::endl;
+                            }
                         }
                         else{
                             if(r_cond.Has( POINT_LOAD ) ){
