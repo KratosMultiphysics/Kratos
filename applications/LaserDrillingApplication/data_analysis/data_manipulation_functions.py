@@ -4,10 +4,9 @@ Functions to load the data, clean it and fit it
 
 import numpy as np
 from scipy.interpolate import splprep, splev
-from skimage.measure import EllipseModel
+from skimage.measure import EllipseModel, ransac
 import csv
 from pathlib import Path
-
 
 
 # ==== Ellipse Fitting Function ====
@@ -37,7 +36,42 @@ def fit_ellipse_least_squares(points_2d):
     return (cx, cy, a, b, eccentricity, theta)
 
 
+def fit_ellipse_ransac(points_2d, min_samples, residual_threshold, max_trials):
+    """
+    Fit an ellipse to all given 2D points using RANSAC method.
 
+    Parameters:
+    - points_2d: Nx2 array of (x, y) points.
+
+    Returns:
+    - Tuple: (cx, cy, a, b, eccentricity, theta) or None if fitting fails.
+
+    See: https://scikit-image.org/docs/stable/api/skimage.measure.html#skimage.measure.EllipseModel
+
+    See the examples in https://scikit-image.org/docs/stable/api/skimage.measure.html#skimage.measure.ransac
+
+
+
+    Returns:
+    - Tuple: (cx, cy, a, b, eccentricity, theta) or None if fitting fails.
+
+    - inliers (np.ndarray): Boolean mask of inliers classified as True.
+
+
+    """
+
+    ransac_model, inlier_mask = ransac(
+        points_2d, EllipseModel, min_samples=min_samples, residual_threshold=residual_threshold, max_trials=max_trials
+    )
+
+    cx, cy, a, b, theta = ransac_model.params
+    if b > a:
+        a, b = b, a
+        theta += np.pi / 2
+
+    eccentricity = np.sqrt(1 - (b**2 / a**2))
+
+    return (cx, cy, a, b, eccentricity, theta), inlier_mask
 
 
 def calculate_chord_length(a):
@@ -178,21 +212,21 @@ def clean_data(data):
 
     return data_clean
 
+
 def clean_and_export_csv(input_path, output_path=None, fmt=["%.3f", "%.3f", "%.6f"], delimiter=","):
     """
     Reads the data file from a bore, removes the invalid data and exports the clean data to a csv.
     Useful to visualize the files in e.g. Paraview
     """
-    
+
     input_path = Path(input_path)
     print("Cleaning and exporting as CSV" + input_path.name)
 
     data_clean = clean_data(read_single_bore(input_path))
-    
+
     if output_path is None:
-        output_path =input_path.with_stem(input_path.stem + "_clean").with_suffix(".csv")
-    
-    
+        output_path = input_path.with_stem(input_path.stem + "_clean").with_suffix(".csv")
+
     try:
         np.savetxt(output_path, data_clean, fmt, delimiter)
     except:
@@ -200,7 +234,6 @@ def clean_and_export_csv(input_path, output_path=None, fmt=["%.3f", "%.3f", "%.6
     else:
         print("Exported as " + output_path)
 
-    
 
 def remove_surface_and_outliers(data, shallow_z_threshold, deep_outlier_quantile_threshold=None):
     """
@@ -232,7 +265,6 @@ def remove_surface_and_outliers(data, shallow_z_threshold, deep_outlier_quantile
     num_surface_outliers = len(surface_outliers)
     num_deep_outliers = len(deep_outliers)
 
-
     # print(f"{num_surface_outliers=}")
     # print(f"{total_points=}")
     print(f"Discarded {num_surface_outliers} surface outliers({100 * num_surface_outliers / total_points:.2f}%)")
@@ -252,6 +284,7 @@ def subsample_data(data, max_points, random_seed):
 
     return data
 
+
 def calculate_slice_bounds(data, slice_thickness):
     """
     Calculates the slice bounds
@@ -264,13 +297,13 @@ def calculate_slice_bounds(data, slice_thickness):
     z_min, z_max = z.min(), z.max()
     print(f"z_max={float(z_max)}, z_min={float(z_min)}")
 
-
-    num_slices = int(np.ceil((z_max - z_min)/slice_thickness))
+    num_slices = int(np.ceil((z_max - z_min) / slice_thickness))
 
     # Generate slice boundaries from top (z_max) to bottom (z_min)
-    slice_bounds = np.linspace(z_max, z_max - num_slices*slice_thickness, num_slices+1)
+    slice_bounds = np.linspace(z_max, z_max - num_slices * slice_thickness, num_slices + 1)
     # print(slice_bounds)
     return slice_bounds
+
 
 def calculate_slices(data, slice_bounds):
     """
@@ -278,7 +311,7 @@ def calculate_slices(data, slice_bounds):
     """
     z = data[:, 2]
 
-    num_slices = slice_bounds.size-1
+    num_slices = slice_bounds.size - 1
     # Initialize list to store slices
     slices = []
 
@@ -287,10 +320,10 @@ def calculate_slices(data, slice_bounds):
         z_start, z_end = slice_bounds[i], slice_bounds[i + 1]
         # print(f"{i=}")
         # print(f"{z_start=}, {z_end=}")
-        
+
         # Mask for points in the current slice
         mask = (z <= z_start) & (z > z_end)
-        
+
         data_in_slice = data[mask]
         # print(data_in_slice)
 
@@ -300,6 +333,7 @@ def calculate_slices(data, slice_bounds):
         slices.append(data_in_slice)
 
     return slices
+
 
 def compute_centroids(slices, slice_bounds):
     """
@@ -334,30 +368,69 @@ def compute_centroids(slices, slice_bounds):
     return centroids, centroid_ids
 
 
-def compute_ellipses(slices, slice_bounds):
+def compute_ellipses(slices, slice_bounds=None, method="least_squares", ransac_params=None, return_inlier_masks=False):
     """
-    Find the ellipse that best fits each spline using least squares
+    Find the ellipse that best fits each slice.
+    Possible methods for fitting the ellipse are "least_squares" and "ransac".
+
+    Parameters:
+    - slices (list): list with all the slices
+    - slice_bounds (list): list with the bounds that define the slices. Optional, only used for printing the status.
+    - method (string): method to use for the ellipse fitting
+    - ransac_params (dict): parameters for the RANSAC method
+    - return_inlier_masks (bool): toggle to return the mask of inliers "belonging" in the ellipse
+
+    Returns:
+    - ellipses (list): list of the ellipses corresponding to each slice
+    - inliers_per_slice (list): if return_inlier_masks is True, return a list where each element is a list of the indices
+        of the points that are inliers of the best fit ellipse of the corresponding slice
     """
+
+    if method == "ransac" and ransac_params is None:
+        raise ValueError("Parameters for the RANSAC fit need to be specified")
+
+    min_samples = ransac_params["min_samples"]
+    residual_threshold = ransac_params["residual_threshold"]
+    max_trials = ransac_params["max_trials"]
+
     num_slices = len(slices)
 
     ellipses = [None] * num_slices
+    inliers_per_slice = [None] * num_slices
 
     for i in range(num_slices):
-        print(f"Fitting ellipse for Slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um)")
+        if slice_bounds is not None:
+            print(f"Fitting ellipse for Slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um)")
+
         slice_points = slices[i]
 
         if len(slice_points) == 0:
             raise ValueError("Empty slice")
 
-        points_2d = slice_points[:, :2]  # [x, y]  
+        points_2d = slice_points[:, :2]  # [x, y]
 
-        center_x, center_y, a, b, eccentricity, angle = fit_ellipse_least_squares(points_2d)
-        center_z = np.mean(slice_points[:, 2]) # Set the ellipse's depth as the "center of mass" in depth of the points in the slice
+        if method == "least_squares":
+            center_x, center_y, a, b, eccentricity, angle = fit_ellipse_least_squares(points_2d)
+        elif method == "ransac":
+            center_x, center_y, a, b, eccentricity, angle, inlier_mask = fit_ellipse_ransac(
+                points_2d, min_samples, residual_threshold, max_trials
+            )
+            inliers_per_slice[i] = inlier_mask
+        else:
+            raise ValueError("The method selected is not available")
+
+        # Set the ellipse's depth as the "center of mass" in depth of the points in the slice
+        center_z = np.mean(slice_points[:, 2])
 
         ellipse_center = [center_x, center_y, center_z]
 
         ellipse_dict = {"center": ellipse_center, "a": a, "b": b, "eccentricity": eccentricity, "angle": angle}
-        ellipses[i] = ellipse_dict            
-            
+        ellipses[i] = ellipse_dict
 
-    return ellipses
+    if method == "least_squares":
+        return ellipses
+    elif method == "ransac":
+        if return_inlier_masks:
+            return ellipses, inliers_per_slice
+        else:
+            return ellipses
