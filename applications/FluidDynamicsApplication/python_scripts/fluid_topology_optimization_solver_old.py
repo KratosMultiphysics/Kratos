@@ -5,41 +5,19 @@ from importlib import import_module
 import numpy as np #import the numpy library
 import scipy as sp #import the scipy library
 
-# Auxiliary function to check the parallel type at runtime
-#TODO: Delete this once we come up with the final factory-based design
-def _CheckIsDistributed():
-    if KratosMultiphysics.ParallelEnvironment.HasDataCommunicator("World"):
-        world_data_comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator("World")
-        return world_data_comm.IsDistributed()  
-    else:
-        return False
-# If required, import parallel applications and modules
-if _CheckIsDistributed():
-    import KratosMultiphysics.mpi as KratosMPI
-    import KratosMultiphysics.MetisApplication as KratosMetis
-    import KratosMultiphysics.TrilinosApplication as KratosTrilinos
-    import KratosMultiphysics.mpi.distributed_import_model_part_utility as distributed_import_model_part_utility
-# Importing factories
-if _CheckIsDistributed():
-    import KratosMultiphysics.TrilinosApplication.trilinos_linear_solver_factory as linear_solver_factory
-else:
-    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-    import KratosMultiphysics.base_convergence_criteria_factory as convergence_criteria_factory
-
-from KratosMultiphysics import DataCommunicator
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosCD
 
 # Import base class file
-from KratosMultiphysics.FluidDynamicsApplication.trilinos_navier_stokes_monolithic_solver import TrilinosNavierStokesMonolithicSolver
+from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_monolithic_solver import NavierStokesMonolithicSolver
 
 def CreateSolver(model, custom_settings, isAdjointSolver = False):
     solver_settings = custom_settings["solver_settings"]
-    return FluidTopologyOptimizationSolverMpi(model, solver_settings, is_adjoint_solver=isAdjointSolver)
+    return FluidTopologyOptimizationSolver(model, solver_settings, is_adjoint_solver=isAdjointSolver)
 
-class FluidTopologyOptimizationSolverMpi(TrilinosNavierStokesMonolithicSolver):
+class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -60,9 +38,6 @@ class FluidTopologyOptimizationSolverMpi(TrilinosNavierStokesMonolithicSolver):
         return default_settings
 
     def __init__(self, model, custom_settings, is_adjoint_solver):
-        self._InitializeModelPartImporter()
-        self.InitializeDataCommunicator()
-        self.CheckModelPartImportSettings(custom_settings)
         super().__init__(model,custom_settings)
         self._DefineAdjointSolver(is_adjoint_solver)
         self._DefineElementsAndConditions()
@@ -72,23 +47,12 @@ class FluidTopologyOptimizationSolverMpi(TrilinosNavierStokesMonolithicSolver):
         print_str +=  "finished."
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, print_str)
 
-    def InitializeDataCommunicator(self):
-        self.data_communicator = DataCommunicator.GetDefault()
-        self.nodes_ids_global_to_local_partition_dictionary = {}
-
-    def _InitializeModelPartImporter(self):
-        self.distributed_model_part_importer = None
-
-    def CheckModelPartImportSettings(self, settings):
-        if (settings["model_import_settings"]["input_type"].GetString() != "mdpa"):
-            raise RuntimeError("Executing MPI with the wrong model part import settings")
-
     def _DefineAdjointSolver(self, isAdjointSolver):
         self.is_adjoint = isAdjointSolver
 
     def _DefineElementsAndConditions(self):
         if (self.element_name != "FluidTopologyOptimizationElement"):
-            self.MpiPrint("[WARNING] " + self.__class__.__name__ + " element_name: \' " + self.element_name + " \' is not compatible with FluidTopologyOptimization. Its value has been reset to default value: \' FluidTopologyOptimizationElement \'")
+            print("[WARNING]", self.__class__.__name__, "element_name: \'", self.element_name, "\' is not compatible with FluidTopologyOptimization. Its value has been reset to default value: \' FluidTopologyOptimizationElement \'")
             self.element_name = "FluidTopologyOptimizationElement"
         self.condition_name = "FluidTopologyOptimizationWallCondition"
         self.element_integrates_in_time = True
@@ -135,12 +99,12 @@ class FluidTopologyOptimizationSolverMpi(TrilinosNavierStokesMonolithicSolver):
     def _SetTimeSchemeBufferSize(self):
         scheme_type = self.settings["time_scheme"].GetString()
         if scheme_type == "bossak":
-            self.MpiPrint("[WARNING] " + self.__class__.__name__ + " time scheme_type: \' " + scheme_type + " \' is not compatible with the current implementation of FluidTopologyOptimization. Its value has been reset to default value: \' steady \'")
+            print("[WARNING]", self.__class__.__name__, "time scheme_type: \'", scheme_type, "\' is not compatible with the current implementation of FluidTopologyOptimization. Its value has been reset to default value: \' steady \'")
             self.settings["time_scheme"].SetString("steady")
             self.min_buffer_size = 1
             self._SetUpSteadySimulation()
         elif scheme_type == "bdf2":
-            self.MpiPrint("[WARNING] " + self.__class__.__name__ + " time scheme_type: \' " + scheme_type + " \' is not compatible with the current implementation of FluidTopologyOptimization. Its value has been reset to default value: \' steady \'")
+            print("[WARNING]", self.__class__.__name__, "time scheme_type: \'", scheme_type, "\' is not compatible with the current implementation of FluidTopologyOptimization. Its value has been reset to default value: \' steady \'")
             self.settings["time_scheme"].SetString("steady")
             self.min_buffer_size = 1
             self._SetUpSteadySimulation()
@@ -201,13 +165,13 @@ class FluidTopologyOptimizationSolverMpi(TrilinosNavierStokesMonolithicSolver):
 
         # Transfer the obtained properties to the nodes
         if set_density:
-            KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self._GetLocalMeshNodes())
+            KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
         if set_viscosity:
-            KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, kin_viscosity, self._GetLocalMeshNodes())
+            KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
         if set_sound_velocity:
-            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.SOUND_VELOCITY, sound_velocity, self._GetLocalMeshNodes())
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.SOUND_VELOCITY, sound_velocity, self.main_model_part.Nodes)
         if set_resistance:
-            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosCFD.RESISTANCE, resistance, self._GetLocalMeshNodes())
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosCFD.RESISTANCE, resistance, self.main_model_part.Nodes)
 
     def AddDofs(self):
         dofs_and_reactions_to_add = []
@@ -227,33 +191,31 @@ class FluidTopologyOptimizationSolverMpi(TrilinosNavierStokesMonolithicSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid Topology Optimization " + dofs_str + " solver DOFs added correctly.")
 
     def SolveSolutionStep(self):
-            problem_physiscs = self._GetTopologyOptimizationStage()
-            if (problem_physiscs == 1):
-                problem_phase_str = "FLUID"
-            elif (problem_physiscs == 2):
-                problem_phase_str = "ADJ-F"
-            else: 
-                problem_phase_str = "ERROR|"
-            if self.IsNodesIdsGlobalToLocalDictionaryEmpty():
-                raise RuntimeError("Executing 'SolveSolutionStep' of FluidTopologyOptimizationSolverMpi' with self.nodes_ids_global_to_local_partition_dictionary == { }")
-            self.PrintPhysicsParametersUpdateStatus(problem_phase_str)
-            self.MpiPrint("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " solution step...")
-            # Call the base fluid solver to solve current time step
-            is_converged = super().SolveSolutionStep()
-            self.MpiPrint("--|" + problem_phase_str + "| ---> Step Solved!")
-            return is_converged
+        problem_physiscs = self._GetTopologyOptimizationStage()
+        if (problem_physiscs == 1):
+            problem_phase_str = "FLUID"
+        elif (problem_physiscs == 2):
+            problem_phase_str = "ADJ-F"
+        else: 
+            problem_phase_str = "ERROR|"
+        self.PrintPhysicsParametersUpdateStatus(problem_phase_str)
+        print("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " solution step...")
+        # Call the base fluid solver to solve current time step
+        is_converged = super().SolveSolutionStep()
+        print("--|" + problem_phase_str + "| ---> Step Solved!")
+        return is_converged
     
     def AdvanceInTime(self, current_time):
         if (not self.IsAdjoint()): # NS
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_NS_STEP] += 1
             new_time =  super().AdvanceInTime(current_time)
         else: #ADJ
-            self.MpiPrint("[WARNING] The Adjoint problem should go backward buth this has not yet been implemented. Since for now it is steady, we advance in time even if it is unnecessary.")
+            print("[WARNING] The Adjoint problem should go backward buth this has not yet been implemented. Since for now it is steady, we advance in time even if it is unnecessary.")
             dt = self._ComputeDeltaTime()
             # new_time = current_time - dt
             new_time = current_time + dt
             self.main_model_part.CloneTimeStep(new_time)
-            # self.MpiPrint("\nASK HOW TO HANDLE THIS!!!\n")
+            # print("\nASK HOW TO HANDLE THIS!!!\n")
             # self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_ADJ_NS_STEP] += 1
         return new_time
@@ -273,38 +235,23 @@ class FluidTopologyOptimizationSolverMpi(TrilinosNavierStokesMonolithicSolver):
     def _GetTopologyOptimizationStage(self):
         return self.GetComputingModelPart().ProcessInfo.GetValue(KratosCFD.FLUID_TOP_OPT_PROBLEM_STAGE)
     
-    def ImportModelPart(self, model_parts=None, physics_solver_distributed_model_part_importer=None):
+    def ImportModelPart(self, model_parts=None):
         if (self.IsPhysics()):
-            if not _CheckIsDistributed():
-                self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
-            else:
-                self.distributed_model_part_importer = distributed_import_model_part_utility.DistributedImportModelPartUtility(
-                    self.main_model_part,
-                    self.settings)
-                self.distributed_model_part_importer.ImportModelPart()
+            # Call the fluid solver to import the model part from the mdpa
+            self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
         else:
             fluid_mp = model_parts[0]
             self.main_model_part = fluid_mp
-            if _CheckIsDistributed():
-                self.distributed_model_part_importer = physics_solver_distributed_model_part_importer
-
-    def PrepareModelPart(self):
-        # Call the base solver to do the PrepareModelPart
-        # Note that his also calls the PrepareModelPart of the turbulence model
-        super().PrepareModelPart()
-
-        # Create the MPI communicators
-        if _CheckIsDistributed():
-            self.distributed_model_part_importer.CreateCommunicators()
 
     def _UpdateResistanceVariable(self, resistance):
         self.is_resistance_updated = True
+        mp = self.GetComputingModelPart()
         if isinstance(resistance, (int, float)): 
-            for node in self._GetLocalMeshNodes():
+            for node in mp.Nodes:
              node.SetValue(KratosCFD.RESISTANCE, resistance)
         elif isinstance(resistance, (np.ndarray, list)): 
-            for node in self._GetLocalMeshNodes():
-                node.SetValue(KratosCFD.RESISTANCE, resistance[self.nodes_ids_global_to_local_partition_dictionary[node.Id]])
+            for node in mp.Nodes:
+                node.SetValue(KratosCFD.RESISTANCE, resistance[node.Id-1])
         else:
             raise TypeError(f"Unsupported input type in '_UpdateResistanceVariable' : {type(resistance)}")
     
@@ -314,55 +261,11 @@ class FluidTopologyOptimizationSolverMpi(TrilinosNavierStokesMonolithicSolver):
 
     def PrintPhysicsParametersUpdateStatus(self, problem_phase_str):
         if (not self.is_resistance_updated):
-            self.MpiPrint("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " without updating RESISTANCE variable")
+            print("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " without updating RESISTANCE variable")
 
     def _CheckMaterialProperties(self):
-        for node in self._GetLocalMeshNodes():
-            self.MpiPrint("--|--> Resistance: " + node.GetValue(KratosCFD.RESISTANCE))
-            break
+        print("--|--> Resistance:", self.main_model_part.Nodes[1].GetValue(KratosCFD.RESISTANCE))
 
-    def MpiCheck(self, text="before solving step", rank=-1):
-            if (rank == -1): # print for all ranks
-                self.MpiPrint("--|" + str(self.data_communicator.Rank()) + "| Checkpoint reached: " + text)
-            elif (self.data_communicator.Rank() == rank): # print only for a specific rank
-                self.MpiPrint("--|" + str(rank) + "| Checkpoint reached: " + text)
-
-    def MpiBarrier(self):
-        self.data_communicator.Barrier()
-
-    def MpiPrint(self, text_to_print="", rank=0, set_barrier=False):
-        if (not _CheckIsDistributed()):
-            print(text_to_print)
-        else:
-            if (set_barrier):
-                self.MpiBarrier()
-            if (self.MpiRunOnlyRank(rank)):
-                print(text_to_print)
-            if (set_barrier):
-                self.MpiBarrier()  
-
-    def MpiRunOnlyRank(self, rank=0):
-        """
-        Returns: True if the simulation is not distributed or if it is running on a specified data_communicator rank
-        """
-        if (not _CheckIsDistributed()):
-            return True
-        elif (self.data_communicator.Rank() == rank):
-            return True
-        else:
-            return False
-
-    def SetNodesIdsGlobalToLocalDictionary(self, dict):
-        self.nodes_ids_global_to_local_partition_dictionary = dict
-
-    def IsNodesIdsGlobalToLocalDictionaryEmpty(self):
-        return self.nodes_ids_global_to_local_partition_dictionary == {}
-    
-    def _GetLocalMeshNodes(self, mp = None):
-        if mp is None:
-            return self.GetMainModelPart().GetCommunicator().LocalMesh().Nodes
-        else:
-            return mp.GetCommunicator().LocalMesh().Nodes
         
 
 

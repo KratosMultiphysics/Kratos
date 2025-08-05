@@ -4,6 +4,29 @@ import KratosMultiphysics
 import numpy as np #import the numpy library
 import scipy as sp #import the scipy library
 
+# Auxiliary function to check the parallel type at runtime
+#TODO: Delete this once we come up with the final factory-based design
+def _CheckIsDistributed():
+    if KratosMultiphysics.ParallelEnvironment.HasDataCommunicator("World"):
+        world_data_comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator("World")
+        return world_data_comm.IsDistributed()  
+    else:
+        return False
+# If required, import parallel applications and modules
+if _CheckIsDistributed():
+    import KratosMultiphysics.mpi as KratosMPI
+    import KratosMultiphysics.MetisApplication as KratosMetis
+    import KratosMultiphysics.TrilinosApplication as KratosTrilinos
+    import KratosMultiphysics.mpi.distributed_import_model_part_utility as distributed_import_model_part_utility
+# Importing factories
+if _CheckIsDistributed():
+    import KratosMultiphysics.TrilinosApplication.trilinos_linear_solver_factory as linear_solver_factory
+else:
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+    import KratosMultiphysics.base_convergence_criteria_factory as convergence_criteria_factory
+
+from KratosMultiphysics import DataCommunicator
+
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosCD
 
@@ -13,9 +36,9 @@ import KratosMultiphysics.FluidDynamicsApplication
 
 def CreateSolver(model, custom_settings, isAdjointSolver = False):
     solver_settings = custom_settings["solver_settings"]
-    return TransportTopologyOptimizationSolver(model, solver_settings, is_adjoint_solver=isAdjointSolver)
+    return TrilinosTransportTopologyOptimizationSolver(model, solver_settings, is_adjoint_solver=isAdjointSolver)
 
-class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
+class TrilinosTransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -49,6 +72,10 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         print_str +=  "finished."
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, print_str)
 
+    def InitializeDataCommunicator(self):
+        self.data_communicator = DataCommunicator.GetDefault()
+        self.nodes_ids_global_to_local_partition_dictionary = {}
+
     def _DefineAdjointSolver(self, isAdjointSolver):
         self.is_adjoint = isAdjointSolver
 
@@ -56,9 +83,6 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         self.element_name = "TransportTopologyOptimizationElement"
         self.condition_name = "ThermalFace"
         self.element_integrates_in_time = True
-
-    def InitializeDataCommunicator(self):
-        self.nodes_ids_global_to_local_partition_dictionary = {}
 
     def _InitializeModelPartImporter(self):
         self.distributed_model_part_importer = None
@@ -134,9 +158,9 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
     
     def _CheckMaterialProperties(self):
         for node in self._GetLocalMeshNodes():
-            print("--|--> Conductivity: " + str(node.GetValue(KratosMultiphysics.CONDUCTIVITY)))
-            print("--|--> Decay: " + str(node.GetValue(KratosCD.DECAY)))
-            print("--|--> Convection Coefficient: " + str(node.GetValue(KratosMultiphysics.CONVECTION_COEFFICIENT)))
+            self.MpiPrint("--|--> Conductivity: " + str(node.GetValue(KratosMultiphysics.CONDUCTIVITY)))
+            self.MpiPrint("--|--> Decay: " + str(node.GetValue(KratosCD.DECAY)))
+            self.MpiPrint("--|--> Convection Coefficient: " + str(node.GetValue(KratosMultiphysics.CONVECTION_COEFFICIENT)))
             break
     
     def _SetTimeSchemeBufferSize(self):
@@ -157,6 +181,10 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
             
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
             self._set_and_fill_buffer()
+
+        # Create the MPI communicators
+        if _CheckIsDistributed():
+            self.distributed_model_part_importer.CreateCommunicators()
 
         if (self.settings["echo_level"].GetInt() > 0):
             KratosMultiphysics.Logger.PrintInfo(self.model)
@@ -237,7 +265,11 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = self.settings["transient_parameters"]["theta"].GetDouble()
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = self.settings["transient_parameters"]["dynamic_tau"].GetDouble()
 
-        transport_top_opt_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        # As the time integration is managed by the element, we set a "fake" scheme to perform the solution update
+        if not _CheckIsDistributed():
+            transport_top_opt_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        else:
+            transport_top_opt_scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticScheme()
         return transport_top_opt_scheme
     
     def SolveSolutionStep(self):
@@ -251,10 +283,10 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
         if self.IsNodesIdsGlobalToLocalDictionaryEmpty():
             raise RuntimeError("Executing 'SolveSolutionStep' of FluidTopologyOptimizationSolverMpi' with self.nodes_ids_global_to_local_partition_dictionary == { }")
         self.PrintPhysicsParametersUpdateStatus(problem_phase_str)
-        print("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " solution step...")
+        self.MpiPrint("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " solution step...")
         # Call the base fluid solver to solve current time step
         is_converged = self._GetSolutionStrategy().SolveSolutionStep()
-        print("--|" + problem_phase_str + "| ---> Step Solved!")
+        self.MpiPrint("--|" + problem_phase_str + "| ---> Step Solved!")
         return is_converged
     
     def AdvanceInTime(self, current_time):
@@ -262,12 +294,12 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
             self.main_model_part.ProcessInfo[KratosCD.TRANSPORT_TOP_OPT_T_STEP] += 1
             new_time =  super().AdvanceInTime(current_time)
         else: #ADJ
-            print("[WARNING] The Adjoint problem should go backward buth this has not yet been implemented. Since for now it is steady, we advance in time even if it is unnecessary.")
+            self.MpiPrint("[WARNING] The Adjoint problem should go backward buth this has not yet been implemented. Since for now it is steady, we advance in time even if it is unnecessary.")
             dt = self.ComputeDeltaTime()
             # new_time = current_time - dt
             new_time = current_time + dt
             self.main_model_part.CloneTimeStep(new_time)
-            # print("\nASK HOW TO HANDLE THIS!!!\n")
+            # self.MpiPrint("\nASK HOW TO HANDLE THIS!!!\n")
             # self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
             self.main_model_part.ProcessInfo[KratosCD.TRANSPORT_TOP_OPT_ADJ_T_STEP] += 1
         return new_time
@@ -289,10 +321,18 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
 
     def ImportModelPart(self, model_parts=None, physics_solver_distributed_model_part_importer=None):
         if (self.IsPhysics()):
-            self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
+            if not _CheckIsDistributed():
+                self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
+            else:
+                self.distributed_model_part_importer = distributed_import_model_part_utility.DistributedImportModelPartUtility(
+                    self.main_model_part,
+                    self.settings)
+                self.distributed_model_part_importer.ImportModelPart()
         else:
             transport_mp = model_parts[0]
             self.main_model_part = transport_mp
+            if _CheckIsDistributed():
+                self.distributed_model_part_importer = physics_solver_distributed_model_part_importer
     
     def InitializeSolutionStep(self):
         self.is_conductivity_updated = False
@@ -303,13 +343,44 @@ class TransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
 
     def PrintPhysicsParametersUpdateStatus(self, problem_phase_str):
         if (not self.is_conductivity_updated):
-            print("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " without updating CONDUCTIVITY variable")
+            self.MpiPrint("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " without updating CONDUCTIVITY variable")
         if (not self.is_decay_updated):
-            print("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " without updating DECAY variable")
+            self.MpiPrint("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " without updating DECAY variable")
         if (not self.is_convection_coefficient_updated):
-            print("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " without updating CONVECTION_COEFFICIENT variable")
+            self.MpiPrint("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " without updating CONVECTION_COEFFICIENT variable")
         if (not self.is_transport_source_updated):
-            print("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " without updating TRANSPORT SOURCE variable")
+            self.MpiPrint("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " without updating TRANSPORT SOURCE variable")
+
+    def MpiCheck(self, text="before solving step", rank=-1):
+            if (rank == -1): # print for all ranks
+                self.MpiPrint("--|" + str(self.data_communicator.Rank()) + "| Checkpoint reached: " + text)
+            elif (self.data_communicator.Rank() == rank): # print only for a specific rank
+                self.MpiPrint("--|" + str(rank) + "| Checkpoint reached: " + text)
+
+    def MpiBarrier(self):
+        self.data_communicator.Barrier()
+
+    def MpiPrint(self, text_to_print="", rank=0, set_barrier=False):
+        if (not _CheckIsDistributed()):
+            print(text_to_print)
+        else:
+            if (set_barrier):
+                self.MpiBarrier()
+            if (self.MpiRunOnlyRank(rank)):
+                print(text_to_print)
+            if (set_barrier):
+                self.MpiBarrier()  
+
+    def MpiRunOnlyRank(self, rank=0):
+        """
+        Returns: True if the simulation is not distributed or if it is running on a specified data_communicator rank
+        """
+        if (not _CheckIsDistributed()):
+            return True
+        elif (self.data_communicator.Rank() == rank):
+            return True
+        else:
+            return False
 
     def SetNodesIdsGlobalToLocalDictionary(self, dict):
         self.nodes_ids_global_to_local_partition_dictionary = dict

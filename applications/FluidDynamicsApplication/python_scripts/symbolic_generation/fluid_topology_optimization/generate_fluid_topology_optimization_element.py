@@ -343,16 +343,16 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
             for i in range(0, dim): # evaluate the v_ns norm
                 stab_norm_a_adj += v_ns_gauss[i]**2
             stab_norm_a_adj = sympy.sqrt(stab_norm_a_adj)
-            tau1_denominator_adj += stab_c2*rho*stab_norm_a_adj/h # convection contribution to tau_1
-            tau2_factor_adj += stab_c2*rho*stab_norm_a_adj*h # convection contribution to tau_2
+            # tau1_denominator_adj += stab_c2*rho*stab_norm_a_adj/h # convection contribution to tau_1
+            # tau2_factor_adj += stab_c2*rho*stab_norm_a_adj*h # convection contribution to tau_2
             # grad(U) ADJOINT RESISTANCE STABILIZATION
             stab_norm_gradU_adj = 0.0
             for i in range(0,dim):
                 for j in range(0,dim):
                     stab_norm_gradU_adj += grad_v_ns[i,j]**2
             stab_norm_gradU_adj = sympy.sqrt(stab_norm_gradU_adj)
-            tau1_denominator_adj += stab_c3*stab_norm_gradU_adj # convection contribution to tau_1
-            tau2_factor_adj += stab_c3*stab_norm_gradU_adj*h*h # convection contribution to tau_2
+            # tau1_denominator_adj += stab_c3*rho*stab_norm_gradU_adj # convection contribution to tau_1
+            # tau2_factor_adj += stab_c3*rho*stab_norm_gradU_adj*h*h # convection contribution to tau_2
         # Definition of TAU1 & TAU2
         tau1_adj = 1.0/tau1_denominator_adj         # Stabilization parameter 1
         tau2_adj = mu + tau2_factor_adj/stab_c1     # Stabilization parameter 2

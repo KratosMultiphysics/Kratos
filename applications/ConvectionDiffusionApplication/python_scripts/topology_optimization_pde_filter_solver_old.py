@@ -25,7 +25,6 @@ else:
     import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
     import KratosMultiphysics.base_convergence_criteria_factory as convergence_criteria_factory
 
-from KratosMultiphysics import DataCommunicator
 
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosCD
@@ -36,9 +35,9 @@ import KratosMultiphysics.FluidDynamicsApplication
 
 def CreateSolver(model, custom_settings, optimization_model_part):
     solver_settings = custom_settings["solver_settings"]
-    return TopologyOptimizationPdeFilterSolverMpi(model, solver_settings, optimization_model_part)
+    return TopologyOptimizationPdeFilterSolver(model, solver_settings, optimization_model_part)
 
-class TopologyOptimizationPdeFilterSolverMpi(ConvectionDiffusionStationarySolver):
+class TopologyOptimizationPdeFilterSolver(ConvectionDiffusionStationarySolver):
 
     def __init__(self, model, custom_settings, optimization_model_part):
         self._DisableSettingsComputeReactions(custom_settings)
@@ -47,7 +46,6 @@ class TopologyOptimizationPdeFilterSolverMpi(ConvectionDiffusionStationarySolver
         self.base_optimization_model_part = optimization_model_part
         self.solver_imports_model_part = False
         self._DefineElementsAndConditions()
-        self.InitializeDataCommunicator()
     
     def _DisableSettingsComputeReactions(self, custom_settings):
         if not custom_settings.Has("compute_reactions"):
@@ -65,9 +63,6 @@ class TopologyOptimizationPdeFilterSolverMpi(ConvectionDiffusionStationarySolver
         self.element_name = "TopologyOptimizationPdeFilterElement"
         self.condition_name = "ThermalFace"
         self.element_integrates_in_time = True
-
-    def InitializeDataCommunicator(self):
-        self.data_communicator = DataCommunicator.GetDefault()
 
     def _get_element_condition_replace_settings(self):
         ## Get and check domain size
@@ -167,9 +162,9 @@ class TopologyOptimizationPdeFilterSolverMpi(ConvectionDiffusionStationarySolver
     
     def SolveSolutionStep(self):
         # Call the base fluid solver to solve current time step
-        self.MpiPrint("--|PDE_FILTER| ---> Solve Solution Step...")
+        print("--|PDE_FILTER| ---> Solve Solution Step...")
         is_converged = self._GetSolutionStrategy().SolveSolutionStep()
-        self.MpiPrint("--|PDE_FILTER| ---> Step Solved!")
+        print("--|PDE_FILTER| ---> Step Solved!")
         return is_converged
     
     def AdvanceInTime(self, current_time):
@@ -220,31 +215,6 @@ class TopologyOptimizationPdeFilterSolverMpi(ConvectionDiffusionStationarySolver
         aux_condition_name = "LineCondition" if domain_size == 2 else "SurfaceCondition"
         condition_name = f"{self.condition_name}{domain_size}D{num_nodes_conditions}N"
         return element_name, condition_name
-    
-    def MpiBarrier(self):
-        self.data_communicator.Barrier()
-
-    def MpiPrint(self, text_to_print="", rank=0, set_barrier=False):
-        if (not _CheckIsDistributed()):
-            print(text_to_print)
-        else:
-            if (set_barrier):
-                self.MpiBarrier()
-            if (self.MpiRunOnlyRank(rank)):
-                print(text_to_print)
-            if (set_barrier):
-                self.MpiBarrier()  
-
-    def MpiRunOnlyRank(self, rank=0):
-        """
-        Returns: True if the simulation is not distributed or if it is running on a specified data_communicator rank
-        """
-        if (not _CheckIsDistributed()):
-            return True
-        elif (self.data_communicator.Rank() == rank):
-            return True
-        else:
-            return False
     
 
 

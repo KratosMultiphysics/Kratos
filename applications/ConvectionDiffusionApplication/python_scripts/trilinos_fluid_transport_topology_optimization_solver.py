@@ -4,17 +4,40 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosCD
 
 # Import applications modules
-from KratosMultiphysics.FluidDynamicsApplication import fluid_topology_optimization_solver
-from KratosMultiphysics.ConvectionDiffusionApplication import transport_topology_optimization_solver
+from KratosMultiphysics.FluidDynamicsApplication import fluid_topology_optimization_solver_mpi
+from KratosMultiphysics.ConvectionDiffusionApplication import transport_topology_optimization_solver_mpi
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
 
+# Auxiliary function to check the parallel type at runtime
+#TODO: Delete this once we come up with the final factory-based design
+def _CheckIsDistributed():
+    if KratosMultiphysics.ParallelEnvironment.HasDataCommunicator("World"):
+        world_data_comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator("World")
+        return world_data_comm.IsDistributed()  
+    else:
+        return False
+# If required, import parallel applications and modules
+if _CheckIsDistributed():
+    import KratosMultiphysics.mpi as KratosMPI
+    import KratosMultiphysics.MetisApplication as KratosMetis
+    import KratosMultiphysics.TrilinosApplication as KratosTrilinos
+    import KratosMultiphysics.mpi.distributed_import_model_part_utility as distributed_import_model_part_utility
+# Importing factories
+if _CheckIsDistributed():
+    import KratosMultiphysics.TrilinosApplication.trilinos_linear_solver_factory as linear_solver_factory
+else:
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+    import KratosMultiphysics.base_convergence_criteria_factory as convergence_criteria_factory
+
+from KratosMultiphysics import DataCommunicator
+
 def CreateSolver(main_model_part, custom_settings, isAdjointSolver = False):
     solver_settings = custom_settings["solver_settings"]
-    return FluidTransportTopologyOptimizationSolver(main_model_part, solver_settings, is_adjoint_solver=isAdjointSolver)
+    return TrilinosFluidTransportTopologyOptimizationSolver(main_model_part, solver_settings, is_adjoint_solver=isAdjointSolver)
 
-class FluidTransportTopologyOptimizationSolver(PythonSolver):
+class TrilinosFluidTransportTopologyOptimizationSolver(PythonSolver):
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -61,6 +84,7 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
         self._CreateFluidAndTransportSolvers()
 
     def InitializeDataCommunicator(self):
+        self.data_communicator = DataCommunicator.GetDefault()
         self.nodes_ids_global_to_local_partition_dictionary = {}
 
     def _InitializeModelPartImporter(self):
@@ -80,10 +104,10 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
         self._CreateTransportSolver()
 
     def _CreateFluidSolver(self):
-        self.fluid_solver = fluid_topology_optimization_solver.CreateSolver(self.model, self.settings["fluid_solver_settings"], isAdjointSolver=self.IsAdjoint())
+        self.fluid_solver = fluid_topology_optimization_solver_mpi.CreateSolver(self.model, self.settings["fluid_solver_settings"], isAdjointSolver=self.IsAdjoint())
 
     def _CreateTransportSolver(self):
-        self.transport_solver = transport_topology_optimization_solver.CreateSolver(self.model,self.settings["transport_solver_settings"], isAdjointSolver=self.IsAdjoint()) 
+        self.transport_solver = transport_topology_optimization_solver_mpi.CreateSolver(self.model,self.settings["transport_solver_settings"], isAdjointSolver=self.IsAdjoint()) 
     
     def _DefineAdjointSolver(self, is_adjoint_solver):
         self.is_adjoint = is_adjoint_solver
@@ -109,11 +133,21 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
             modeler.GenerateModelPart(self.fluid_solver.main_model_part, self.transport_solver.main_model_part, transport_element_name, transport_condition_name)
             # Set the saved convection diffusion settings to the new transport model part
             self.transport_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
+            if _CheckIsDistributed():
+                self.comm = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator()
+                ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.transport_solver.main_model_part.GetRootModelPart(), self.comm)
+                ParallelFillCommunicator.Execute()
+                self.transport_solver.distributed_model_part_importer = self.fluid_solver.distributed_model_part_importer
+                self.distributed_model_part_importer = self.fluid_solver.distributed_model_part_importer
         else:
             fluid_mp = model_parts[0]
             transport_mp = model_parts[1]
             self.fluid_solver.main_model_part = fluid_mp
             self.transport_solver.main_model_part = transport_mp
+            if _CheckIsDistributed():
+                self.fluid_solver.distributed_model_part_importer     = physics_solver_distributed_model_part_importer
+                self.transport_solver.distributed_model_part_importer = physics_solver_distributed_model_part_importer
+                self.distributed_model_part_importer = physics_solver_distributed_model_part_importer
 
     def ValidateSettings(self):
         """This function validates the settings of the solver

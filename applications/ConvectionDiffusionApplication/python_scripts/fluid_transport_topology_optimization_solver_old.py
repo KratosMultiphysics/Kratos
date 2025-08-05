@@ -4,40 +4,17 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosCD
 
 # Import applications modules
-from KratosMultiphysics.FluidDynamicsApplication import fluid_topology_optimization_solver_mpi
-from KratosMultiphysics.ConvectionDiffusionApplication import transport_topology_optimization_solver_mpi
+from KratosMultiphysics.FluidDynamicsApplication import fluid_topology_optimization_solver
+from KratosMultiphysics.ConvectionDiffusionApplication import transport_topology_optimization_solver
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
 
-# Auxiliary function to check the parallel type at runtime
-#TODO: Delete this once we come up with the final factory-based design
-def _CheckIsDistributed():
-    if KratosMultiphysics.ParallelEnvironment.HasDataCommunicator("World"):
-        world_data_comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator("World")
-        return world_data_comm.IsDistributed()  
-    else:
-        return False
-# If required, import parallel applications and modules
-if _CheckIsDistributed():
-    import KratosMultiphysics.mpi as KratosMPI
-    import KratosMultiphysics.MetisApplication as KratosMetis
-    import KratosMultiphysics.TrilinosApplication as KratosTrilinos
-    import KratosMultiphysics.mpi.distributed_import_model_part_utility as distributed_import_model_part_utility
-# Importing factories
-if _CheckIsDistributed():
-    import KratosMultiphysics.TrilinosApplication.trilinos_linear_solver_factory as linear_solver_factory
-else:
-    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-    import KratosMultiphysics.base_convergence_criteria_factory as convergence_criteria_factory
-
-from KratosMultiphysics import DataCommunicator
-
 def CreateSolver(main_model_part, custom_settings, isAdjointSolver = False):
     solver_settings = custom_settings["solver_settings"]
-    return FluidTransportTopologyOptimizationSolverMpi(main_model_part, solver_settings, is_adjoint_solver=isAdjointSolver)
+    return FluidTransportTopologyOptimizationSolver(main_model_part, solver_settings, is_adjoint_solver=isAdjointSolver)
 
-class FluidTransportTopologyOptimizationSolverMpi(PythonSolver):
+class FluidTransportTopologyOptimizationSolver(PythonSolver):
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -57,9 +34,8 @@ class FluidTransportTopologyOptimizationSolverMpi(PythonSolver):
             "transport_solver_settings": {
                 "solver_type": "transient",
                 "analysis_type": "linear",
-                "model_import_settings"              : {
-                    "input_type"     : "mdpa",
-                    "input_filename" : "unknown_name"
+                "model_import_settings": {
+                    "input_type": "use_input_model_part"
                 },
                 "material_import_settings": {
                     "materials_filename": "TransportMaterials.json"
@@ -71,9 +47,6 @@ class FluidTransportTopologyOptimizationSolverMpi(PythonSolver):
         return default_settings
 
     def __init__(self, model, custom_settings, is_adjoint_solver):
-        # Initialize MPI utilities
-        self._InitializeModelPartImporter()
-        self.InitializeDataCommunicator()
         ## Cal base class constructor
         super().__init__(model, custom_settings)
         ## Define if the adjoint problem
@@ -82,13 +55,6 @@ class FluidTransportTopologyOptimizationSolverMpi(PythonSolver):
         self._SetDomainSize()
         ## Create subdomain solvers
         self._CreateFluidAndTransportSolvers()
-
-    def InitializeDataCommunicator(self):
-        self.data_communicator = DataCommunicator.GetDefault()
-        self.nodes_ids_global_to_local_partition_dictionary = {}
-
-    def _InitializeModelPartImporter(self):
-        self.distributed_model_part_importer = None
 
     def _SetDomainSize(self):
         self.domain_size = self.settings["domain_size"].GetInt()
@@ -104,10 +70,10 @@ class FluidTransportTopologyOptimizationSolverMpi(PythonSolver):
         self._CreateTransportSolver()
 
     def _CreateFluidSolver(self):
-        self.fluid_solver = fluid_topology_optimization_solver_mpi.CreateSolver(self.model, self.settings["fluid_solver_settings"], isAdjointSolver=self.IsAdjoint())
+        self.fluid_solver = fluid_topology_optimization_solver.CreateSolver(self.model, self.settings["fluid_solver_settings"], isAdjointSolver=self.IsAdjoint())
 
     def _CreateTransportSolver(self):
-        self.transport_solver = transport_topology_optimization_solver_mpi.CreateSolver(self.model,self.settings["transport_solver_settings"], isAdjointSolver=self.IsAdjoint()) 
+        self.transport_solver = transport_topology_optimization_solver.CreateSolver(self.model,self.settings["transport_solver_settings"], isAdjointSolver=self.IsAdjoint()) 
     
     def _DefineAdjointSolver(self, is_adjoint_solver):
         self.is_adjoint = is_adjoint_solver
@@ -121,33 +87,29 @@ class FluidTransportTopologyOptimizationSolverMpi(PythonSolver):
     def _DefineTransportProperties(self, decay, convection_coefficient):
         self._GetTransportSolver()._DefineProperties(decay, convection_coefficient)
 
-    def ImportModelPart(self, model_parts=None, physics_solver_distributed_model_part_importer=None):
+    def ImportModelPart(self, model_parts=None):
         if (self.IsPhysics()):
+            # Call the fluid solver to import the model part from the mdpa
             self.fluid_solver.ImportModelPart()
             # Save the convection diffusion settings
             convection_diffusion_settings = self.transport_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
 
             # Here the fluid model part is cloned to be transport model part so that the nodes are shared
-            transport_element_name, transport_condition_name = self.__GetElementAndConditionNames(physics="transport")
+            element_name, condition_name = self.__GetElementAndConditionNames()
             modeler = KratosMultiphysics.ConnectivityPreserveModeler()
-            modeler.GenerateModelPart(self.fluid_solver.main_model_part, self.transport_solver.main_model_part, transport_element_name, transport_condition_name)
+            modeler.GenerateModelPart(
+                self.fluid_solver.main_model_part,
+                self.transport_solver.main_model_part,
+                element_name,
+                condition_name)
+
             # Set the saved convection diffusion settings to the new transport model part
             self.transport_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
-            if _CheckIsDistributed():
-                self.comm = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator()
-                ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.transport_solver.main_model_part.GetRootModelPart(), self.comm)
-                ParallelFillCommunicator.Execute()
-                self.transport_solver.distributed_model_part_importer = self.fluid_solver.distributed_model_part_importer
-                self.distributed_model_part_importer = self.fluid_solver.distributed_model_part_importer
         else:
             fluid_mp = model_parts[0]
             transport_mp = model_parts[1]
             self.fluid_solver.main_model_part = fluid_mp
             self.transport_solver.main_model_part = transport_mp
-            if _CheckIsDistributed():
-                self.fluid_solver.distributed_model_part_importer     = physics_solver_distributed_model_part_importer
-                self.transport_solver.distributed_model_part_importer = physics_solver_distributed_model_part_importer
-                self.distributed_model_part_importer = physics_solver_distributed_model_part_importer
 
     def ValidateSettings(self):
         """This function validates the settings of the solver
@@ -235,40 +197,44 @@ class FluidTransportTopologyOptimizationSolverMpi(PythonSolver):
         self.fluid_solver.FinalizeSolutionStep()
         self.transport_solver.FinalizeSolutionStep()
 
-    def __GetElementAndConditionNames(self, physics):
-        if (physics == "fluid"):
-            base_element_name = self.fluid_solver.element_name
-            base_condition_name = self.fluid_solver.condition_name
-        elif (physics == "transport"):
-            base_element_name = self.transport_solver.element_name
-            base_condition_name = self.transport_solver.condition_name
-        model_part = self.GetMainModelPart()
-        domain_size = model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+    def __GetElementAndConditionNames(self):
+        ''' Auxiliary function to get the element and condition names for the connectivity preserve modeler call
+        This function returns the element and condition names from the domain size and number of nodes.
+        Note that throughout all the substitution process a unique element type and condition is assumed.
+        Also note that the connectivity preserve modeler call will create standard base elements as these are to
+        be substituted by the corresponding ones in the PrepareModelPart call of the transport solver.
+        '''
+        ## Get and check domain size
+        fluid_model_part = self.fluid_solver.main_model_part
+        domain_size = fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if domain_size not in [2,3]:
             raise Exception("DOMAIN_SIZE is not set in ProcessInfo container.")
         ## Elements
         ## Get the number of nodes from the fluid mesh elements (if there are no elements simplicial are assumed)
         num_nodes_elements = 0
-        if (len(model_part.Elements) > 0):
-            for elem in model_part.Elements:
+        if (len(fluid_model_part.Elements) > 0):
+            for elem in fluid_model_part.Elements:
                 num_nodes_elements = len(elem.GetNodes())
                 break
+        num_nodes_elements = fluid_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_elements)
         if not num_nodes_elements:
             num_nodes_elements = domain_size + 1
-        element_name = f"{base_element_name}{domain_size}D{num_nodes_elements}N"
+
+        element_name = f"Element{domain_size}D{num_nodes_elements}N"
         ## Conditions
         ## Get the number of nodes from the fluid mesh conditions (if there are no elements simplicial are assumed)
         num_nodes_conditions = 0
-        if (len(model_part.Conditions) > 0):
-            for cond in model_part.Conditions:
+        if (len(fluid_model_part.Conditions) > 0):
+            for cond in fluid_model_part.Conditions:
                 num_nodes_conditions = len(cond.GetNodes())
                 break
-        num_nodes_conditions = model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_conditions)
+        num_nodes_conditions = fluid_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_conditions)
         if not num_nodes_conditions:
             num_nodes_conditions = domain_size
-        condition_name = f"{base_condition_name}{domain_size}D{num_nodes_conditions}N" 
+        aux_condition_name = "LineCondition" if domain_size == 2 else "SurfaceCondition"
+        condition_name = f"{aux_condition_name}{domain_size}D{num_nodes_conditions}N"
         return element_name, condition_name
-    
+
     def _GetFluidSolver(self):
         return self.fluid_solver
     
@@ -319,13 +285,5 @@ class FluidTransportTopologyOptimizationSolverMpi(PythonSolver):
 
     def _UpdateTransportSourceVariable(self, transport_source):
         self._GetTransportSolver()._UpdateTransportSourceVariable(transport_source)
-
-    def SetNodesIdsGlobalToLocalDictionary(self, dict):
-        self.nodes_ids_global_to_local_partition_dictionary = dict
-        self.fluid_solver.SetNodesIdsGlobalToLocalDictionary(dict)
-        self.transport_solver.SetNodesIdsGlobalToLocalDictionary(dict)
-
-    def IsNodesIdsGlobalToLocalDictionaryEmpty(self):
-        return self.nodes_ids_global_to_local_partition_dictionary == {}
 
     

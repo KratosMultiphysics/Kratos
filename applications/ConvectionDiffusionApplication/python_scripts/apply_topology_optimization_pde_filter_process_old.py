@@ -25,25 +25,24 @@ else:
 
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosCD
-from KratosMultiphysics.ConvectionDiffusionApplication import topology_optimization_pde_filter_solver_mpi
+from KratosMultiphysics.ConvectionDiffusionApplication import topology_optimization_pde_filter_solver
 
 from KratosMultiphysics import assign_vector_by_direction_process
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyTopologyOptimizationPdeFilterProcessMpi(Model, settings["Parameters"])
+    return ApplyTopologyOptimizationPdeFilterProcess(Model, settings["Parameters"])
 
 
-class ApplyTopologyOptimizationPdeFilterProcessMpi(KratosMultiphysics.Process):
-    def __init__(self, Model, settings, radius, main_model_part, optimization_model_part, optimization_domain_nodes_mask, nodes_ids_global_to_local_partition_dictionary):
+class ApplyTopologyOptimizationPdeFilterProcess(KratosMultiphysics.Process):
+    def __init__(self, Model, settings, radius, main_model_part, optimization_model_part, optimization_domain_nodes_mask):
         KratosMultiphysics.Process.__init__(self)
         self.model = Model
         self.main_model_part = main_model_part
         self.domain_size = self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
         self.optimization_model_part = optimization_model_part
         self.optimization_domain_nodes_mask = optimization_domain_nodes_mask
-        self.nodes_ids_global_to_local_partition_dictionary = nodes_ids_global_to_local_partition_dictionary
         self.settings = KratosMultiphysics.Parameters("""
                                     {
                                     "solver_settings": {
@@ -53,7 +52,7 @@ class ApplyTopologyOptimizationPdeFilterProcessMpi(KratosMultiphysics.Process):
                                     """)
         self.filter_radius = radius
         self.filter_reaction = 1.0
-        self.pde_solver = topology_optimization_pde_filter_solver_mpi.CreateSolver(self.model, self.settings, self.optimization_model_part)
+        self.pde_solver = topology_optimization_pde_filter_solver.CreateSolver(self.model, self.settings, self.optimization_model_part)
         self.pde_solver_set_up = False
 
     def Execute(self):
@@ -64,7 +63,6 @@ class ApplyTopologyOptimizationPdeFilterProcessMpi(KratosMultiphysics.Process):
     def _SolvePdeFilter(self):
         self._GetSolver().InitializeSolutionStep()
         self._GetSolver().Predict()
-        self._SynchronizePdeFilterParametersVariables()
         is_converged = self._GetSolver().SolveSolutionStep()
         self._GetSolver().FinalizeSolutionStep()
     
@@ -95,24 +93,19 @@ class ApplyTopologyOptimizationPdeFilterProcessMpi(KratosMultiphysics.Process):
         convection_diffusion_settings.SetSurfaceSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable("PDE_FILTER_FLUX"))
 
     def _FinalizePdeFilterExecution(self):
-        self.filtered_value_in_opt_nodes = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self.main_model_part.GetCommunicator().LocalMesh().Nodes, KratosCD.PDE_FILTER_RESULT, 0))[self.optimization_domain_nodes_mask]
+        self.filtered_value_in_opt_nodes = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self.main_model_part.Nodes, KratosCD.PDE_FILTER_RESULT, 0))[self.optimization_domain_nodes_mask]
 
     def _SetFilterDiffusionAndReactionCoefficients(self):
         self._GetSolver()._UpdateFilterDiffusionVariable(self.filter_radius)
         self._GetSolver()._UpdateFilterReactionVariable(self.filter_reaction)
 
     def _UpdatePdeFilterSourceTerm(self, source):
-        # source is intended to be defined in the main model part nodes
-        for node in self.optimization_model_part.GetCommunicator().LocalMesh().Nodes:
-            node.SetSolutionStepValue(KratosCD.PDE_FILTER_FORCING, source[self.nodes_ids_global_to_local_partition_dictionary[node.Id]])
+        # source is intende to be defined in the main model part nodes
+        for node in self.optimization_model_part.Nodes:
+            node.SetSolutionStepValue(KratosCD.PDE_FILTER_FORCING, source[node.Id-1])
 
     def _GetLastFilteredValue(self):
         return self.filtered_value_in_opt_nodes
-    
-    def _SynchronizePdeFilterParametersVariables(self):
-        self.main_model_part.GetCommunicator().SynchronizeNonHistoricalVariable(KratosCD.PDE_FILTER_DIFFUSION)
-        self.main_model_part.GetCommunicator().SynchronizeNonHistoricalVariable(KratosCD.PDE_FILTER_REACTION)
-        self.main_model_part.GetCommunicator().SynchronizeVariable(KratosCD.PDE_FILTER_FORCING)
 
 
 
