@@ -68,6 +68,7 @@ protected:
         KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Storage);
 
         using ContainerPointerType = std::variant<
+                                            ModelPart::DofsArrayType::Pointer,
                                             ModelPart::NodesContainerType::Pointer,
                                             ModelPart::ConditionsContainerType::Pointer,
                                             ModelPart::ElementsContainerType::Pointer,
@@ -219,7 +220,7 @@ public:
 
     TensorAdaptor(
         const TensorAdaptor& rOther,
-        const bool Copy = false);
+        const bool Copy = true);
 
     virtual ~TensorAdaptor() = default;
 

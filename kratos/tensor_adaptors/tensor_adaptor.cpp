@@ -181,13 +181,13 @@ void TensorAdaptor<TDataType>::Check() const
 template<class TDataType>
 void TensorAdaptor<TDataType>::CollectData()
 {
-    KRATOS_ERROR << "Calling TensorAdaptor::CollectData method. This class can only be used for data storage, not to collect or store data.";
+    KRATOS_ERROR << "Calling TensorAdaptor::CollectData method. This base class can only be used for data storage, not to collect or store data.";
 }
 
 template<class TDataType>
 void TensorAdaptor<TDataType>::StoreData()
 {
-    KRATOS_ERROR << "Calling TensorAdaptor::StoreData method. This class can only be used for data storage, not to collect or store data.";
+    KRATOS_ERROR << "Calling TensorAdaptor::StoreData method. This base class can only be used for data storage, not to collect or store data.";
 }
 
 template<class TDataType>

@@ -53,20 +53,20 @@ public:
 
     using BaseType = TensorAdaptor<double>;
 
-    using ContainerPointerType = Storage::ContainerPointerType;
-
     using VariablePointerType = TensorAdaptorUtils::VariablePointerType;
 
     ///@}
     ///@name Life cycle
     ///@
 
+    template<class TContainerPointerType>
     VariableTensorAdaptor(
-        ContainerPointerType pContainer,
+        TContainerPointerType pContainer,
         VariablePointerType pVariable);
 
+    template<class TContainerPointerType>
     VariableTensorAdaptor(
-        ContainerPointerType pContainer,
+        TContainerPointerType pContainer,
         VariablePointerType pVariable,
         const std::vector<unsigned int>& rDataShape);
 
