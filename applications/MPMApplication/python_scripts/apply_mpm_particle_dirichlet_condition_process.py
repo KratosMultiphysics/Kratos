@@ -71,6 +71,13 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
             err_msg =  "The requested type of Dirichlet boundary imposition: \"" + self.imposition_type + "\" is not available!\n"
             err_msg += "Available option is: \"penalty\", \"perturbed_lagrange\" or \"lagrange\"."
             raise Exception(err_msg)
+        
+        # check for positive Penalty factor
+        if self.penalty_factor < 0.0:
+            err_msg = '\n::[ApplyMPMParticleDirichletConditionProcess]:: W-A-R-N-I-N-G: You have specified invalid "penalty_factor", '
+            err_msg += 'and assigned negative values. \nPlease assign: "penalty_factor" > 0 or = 0!\n'
+            raise Exception(err_msg)
+
 
         # check constraint
         self.constrained = settings["constrained"].GetString()
