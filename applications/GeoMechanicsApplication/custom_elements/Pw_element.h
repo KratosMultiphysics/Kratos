@@ -16,7 +16,7 @@
 #pragma once
 
 #include "calculation_contribution.h"
-#include "compressibility_calculator.h"
+#include "compressibility_calculator.hpp"
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
@@ -25,14 +25,14 @@
 #include "custom_utilities/hydraulic_discharge.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
-#include "filter_compressibility_calculator.h"
-#include "fluid_body_flow_calculator.h"
+#include "filter_compressibility_calculator.hpp"
+#include "fluid_body_flow_calculator.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "integration_coefficients_calculator.h"
-#include "permeability_calculator.h"
+#include "permeability_calculator.hpp"
 
 #include <optional>
 
