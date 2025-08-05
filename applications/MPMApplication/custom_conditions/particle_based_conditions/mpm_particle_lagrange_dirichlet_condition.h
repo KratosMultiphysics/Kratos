@@ -12,8 +12,7 @@
 
 
 // System includes
-#if !defined(KRATOS_MPM_PARTICLE_LAGRANGE_DIRICHLET_CONDITION_H_INCLUDED )
-#define      KRATOS_MPM_PARTICLE_LAGRANGE_DIRICHLET_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 
