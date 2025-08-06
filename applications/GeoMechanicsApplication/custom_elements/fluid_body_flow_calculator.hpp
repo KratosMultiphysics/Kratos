@@ -82,7 +82,6 @@ public:
         const auto&              projected_gravity_on_integration_points =
             mInputProvider.GetProjectedGravityAtIntegrationPoints();
         const auto& fluid_pressures          = mInputProvider.GetFluidPressures();
-        const auto  fluid_body_vector_length = shape_function_gradients[0].size1();
         BoundedVector<double, TNumNodes> result;
         const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
 

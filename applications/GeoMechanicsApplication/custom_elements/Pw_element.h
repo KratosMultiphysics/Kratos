@@ -451,7 +451,7 @@ private:
 
     typename CompressibilityCalculator<TNumNodes>::InputProvider CreateCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
     {
-        return CompressibilityCalculator<TNumNodes>::InputProvider(
+        return typename CompressibilityCalculator<TNumNodes>::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), GetNContainer(),
             GetIntegrationCoefficients(), MakeMatrixScalarFactorGetter(rCurrentProcessInfo),
             MakeNodalVariableGetter(), GetFluidPressures());
@@ -460,7 +460,7 @@ private:
     typename FilterCompressibilityCalculator<TNumNodes>::InputProvider CreateFilterCompressibilityInputProvider(
         const ProcessInfo& rCurrentProcessInfo)
     {
-        return FilterCompressibilityCalculator<TNumNodes>::InputProvider(
+        return typename FilterCompressibilityCalculator<TNumNodes>::InputProvider(
             MakePropertiesGetter(), GetNContainer(), GetIntegrationCoefficients(),
             MakeProjectedGravityForIntegrationPointsGetter(),
             MakeMatrixScalarFactorGetter(rCurrentProcessInfo), MakeNodalVariableGetter());
@@ -468,14 +468,14 @@ private:
 
     typename PermeabilityCalculator<TNumNodes>::InputProvider CreatePermeabilityInputProvider()
     {
-        return PermeabilityCalculator<TNumNodes>::InputProvider(
+        return typename PermeabilityCalculator<TNumNodes>::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), GetIntegrationCoefficients(),
             MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter(), GetFluidPressures());
     }
 
     typename FluidBodyFlowCalculator<TNumNodes>::InputProvider CreateFluidBodyFlowInputProvider()
     {
-        return FluidBodyFlowCalculator<TNumNodes>::InputProvider(
+        return typename FluidBodyFlowCalculator<TNumNodes>::InputProvider(
             MakePropertiesGetter(), MakeRetentionLawsGetter(), GetIntegrationCoefficients(),
             MakeProjectedGravityForIntegrationPointsGetter(), MakeShapeFunctionLocalGradientsGetter(),
             MakeLocalSpaceDimensionGetter(), GetFluidPressures());
