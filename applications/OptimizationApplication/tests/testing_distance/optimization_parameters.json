@@ -16,7 +16,7 @@
     "responses": [
         {
             "name": "distance",
-            "type": "distance_response_function",
+            "type": "one_minus_distance_squared_response_function",
             "settings": {}
         }
     ],

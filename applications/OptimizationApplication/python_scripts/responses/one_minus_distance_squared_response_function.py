@@ -17,9 +17,9 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ResponseFu
     if not parameters.Has("settings"):
         raise RuntimeError(f"DistanceResponseFunction instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
 
-    return DistanceResponseFunction(parameters["name"].GetString(), model, parameters["settings"])
+    return OneMinusDistanceSquaredResponseFunction(parameters["name"].GetString(), model, parameters["settings"])
 
-class DistanceResponseFunction(ResponseFunction):
+class OneMinusDistanceSquaredResponseFunction(ResponseFunction):
     """Base response function.
 
     This response function is the base response function. This is assumed to have following responsibilities.
