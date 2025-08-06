@@ -20,6 +20,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
 #include "includes/cfd_variables.h"
+#include "includes/serializer.h"
 #include "utilities/math_utils.h"
 
 // Application includes
@@ -1499,6 +1500,18 @@ void SmallStrainUPwDiffOrderElement::SetUpPressureGeometryPointer()
         KRATOS_ERROR << "Unexpected geometry type for different order interpolation element "
                      << this->Id() << std::endl;
     }
+}
+
+void SmallStrainUPwDiffOrderElement::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, UPwBaseElement)
+    rSerializer.save("PressureGeometry", mpPressureGeometry);
+}
+
+void SmallStrainUPwDiffOrderElement::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, UPwBaseElement)
+    rSerializer.load("PressureGeometry", mpPressureGeometry);
 }
 
 Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector() const

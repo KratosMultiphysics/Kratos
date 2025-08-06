@@ -160,6 +160,10 @@ void KratosGeoMechanicsApplication::Register()
 
     KRATOS_REGISTER_ELEMENT("Geo_ULineInterfacePlaneStrainElement2Plus2N", mULineInterfacePlaneStrainElement2Plus2N)
     KRATOS_REGISTER_ELEMENT("Geo_ULineInterfacePlaneStrainElement3Plus3N", mULineInterfacePlaneStrainElement3Plus3N)
+    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement3Plus3N", mUSurfaceInterfaceElement3Plus3N)
+    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement4Plus4N", mUSurfaceInterfaceElement4Plus4N)
+    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement6Plus6N", mUSurfaceInterfaceElement6Plus6N)
+    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement8Plus8N", mUSurfaceInterfaceElement8Plus8N)
 
     // Updated-Lagrangian elements
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianElement2D3N", mUPwUpdatedLagrangianElement2D3N)
@@ -614,5 +618,9 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(INTERFACE_SHEAR_STIFFNESS)
 
     KRATOS_REGISTER_VARIABLE(GEO_SHEAR_CAPACITY)
+
+    Serializer::Register("PlaneStrain", PlaneStrain{});
+    Serializer::Register("PlaneStrainStressState", PlaneStrainStressState{});
+    Serializer::Register("SaturatedBelowPhreaticLevelLaw", SaturatedBelowPhreaticLevelLaw{});
 }
 } // namespace Kratos.
