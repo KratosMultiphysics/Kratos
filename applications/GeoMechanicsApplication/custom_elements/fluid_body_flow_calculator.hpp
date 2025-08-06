@@ -82,7 +82,7 @@ public:
         const auto&              projected_gravity_on_integration_points =
             mInputProvider.GetProjectedGravityAtIntegrationPoints();
         const auto&                      fluid_pressures = mInputProvider.GetFluidPressures();
-        BoundedVector<double, TNumNodes> result          = ZeroMatrix(TNumNodes, TNumNodes);
+        BoundedVector<double, TNumNodes> result          = ZeroVector(TNumNodes);
         const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
 
         for (unsigned int integration_point_index = 0;
