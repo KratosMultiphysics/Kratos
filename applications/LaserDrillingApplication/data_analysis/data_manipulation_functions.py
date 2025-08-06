@@ -386,12 +386,16 @@ def compute_ellipses(slices, slice_bounds=None, method="least_squares", ransac_p
         of the points that are inliers of the best fit ellipse of the corresponding slice
     """
 
-    if method == "ransac" and ransac_params is None:
-        raise ValueError("Parameters for the RANSAC fit need to be specified")
-
-    min_samples = ransac_params["min_samples"]
-    residual_threshold = ransac_params["residual_threshold"]
-    max_trials = ransac_params["max_trials"]
+    if method == "ransac":
+        if ransac_params is None:
+            raise ValueError("Parameters for the RANSAC fit need to be specified")
+        else:
+            try:
+                min_samples = ransac_params["min_samples"]
+                residual_threshold = ransac_params["residual_threshold"]
+                max_trials = ransac_params["max_trials"]
+            except KeyError:
+                raise KeyError("Incorrect parameters for the RANSAC fitting specified")
 
     num_slices = len(slices)
 
