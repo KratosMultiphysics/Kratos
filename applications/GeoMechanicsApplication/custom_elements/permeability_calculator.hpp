@@ -85,7 +85,7 @@ private:
         const Matrix      constitutive_matrix =
             GeoElementUtilities::FillPermeabilityMatrix(r_properties, local_dimension);
 
-        BoundedMatrix<double, TNumNodes, TNumNodes> result;
+        BoundedMatrix<double, TNumNodes, TNumNodes> result = ZeroMatrix(TNumNodes, TNumNodes);
 
         const double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
         const auto&  fluid_pressures           = mInputProvider.GetFluidPressures();
@@ -99,18 +99,16 @@ private:
                 mInputProvider.GetRetentionLaws()[integration_point_index]->CalculateRelativePermeability(
                     retention_parameters);
 
-            // Use noalias to avoid temporaries in uBLAS
-            BoundedMatrix<double, TNumNodes, TNumNodes> permeability_matrix;
-            noalias(permeability_matrix) = GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
+            noalias(result) += GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
                 shape_function_gradients[integration_point_index], dynamic_viscosity_inverse, constitutive_matrix,
                 relative_permeability, integration_coefficients[integration_point_index]);
 
-            noalias(result) += permeability_matrix;
         }
         return result;
     }
 
-    [[nodiscard]] BoundedVector<double, TNumNodes> RHSContribution(const Matrix& rPermeabilityMatrix) const
+    [[nodiscard]] BoundedVector<double, TNumNodes> RHSContribution(
+        const BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix) const
     {
         return -prod(rPermeabilityMatrix, mInputProvider.GetNodalValues(WATER_PRESSURE));
     }

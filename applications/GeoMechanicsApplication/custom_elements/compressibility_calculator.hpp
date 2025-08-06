@@ -84,7 +84,7 @@ private:
         const auto& r_N_container            = mInputProvider.GetNContainer();
         const auto& integration_coefficients = mInputProvider.GetIntegrationCoefficients();
         const auto& fluid_pressures          = mInputProvider.GetFluidPressures();
-        BoundedMatrix<double, TNumNodes, TNumNodes> result;
+        BoundedMatrix<double, TNumNodes, TNumNodes> result = ZeroMatrix(TNumNodes, TNumNodes);
         BoundedVector<double, TNumNodes>            N;
 
         for (unsigned int integration_point_index = 0;
@@ -119,7 +119,8 @@ private:
         return result;
     }
 
-    [[nodiscard]] BoundedVector<double, TNumNodes> RHSContribution(const Matrix& rCompressibilityMatrix) const
+    [[nodiscard]] BoundedVector<double, TNumNodes> RHSContribution(
+        const BoundedMatrix<double, TNumNodes, TNumNodes>& rCompressibilityMatrix) const
     {
         return -prod(rCompressibilityMatrix, mInputProvider.GetNodalValues(DT_WATER_PRESSURE));
     }

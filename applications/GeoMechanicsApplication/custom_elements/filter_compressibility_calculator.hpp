@@ -99,7 +99,8 @@ private:
                1.0 / r_properties[BULK_MODULUS_FLUID];
     }
 
-    [[nodiscard]] BoundedVector<double, TNumNodes> RHSContribution(const Matrix& rCompressibilityMatrix) const
+    [[nodiscard]] BoundedVector<double, TNumNodes> RHSContribution(
+        const BoundedMatrix<double, TNumNodes, TNumNodes>& rCompressibilityMatrix) const
     {
         return -prod(rCompressibilityMatrix, mInputProvider.GetNodalValues(DT_WATER_PRESSURE));
     }
