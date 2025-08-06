@@ -26,7 +26,7 @@
 #include "recycle.h"
 
 static GiD_FILE lastKey = 0;
-static htab *hashTable = NULL;
+static G_htab *hashTable = NULL;
 static reroot *fd_pool = NULL;
 
 int GiD_HashInit()
@@ -37,11 +37,11 @@ int GiD_HashInit()
   _INIT_MUTEX_;
 
   if(!fd_pool){
-    fd_pool = remkroot(sizeof(GiD_FILE));
+    fd_pool = _gp_remkroot(sizeof(GiD_FILE));
   }
            
   if (!hashTable) {
-    hashTable = gid_hcreate(16);
+    hashTable = _gp_hcreate(16);
     assert(hashTable);
     return 0;
   }
@@ -52,8 +52,8 @@ int GiD_HashDone()
 {
   _LOCK_;
   
-  gid_hdestroy(hashTable);
-  refree(fd_pool);
+  _gp_hdestroy(hashTable);
+  _gp_refree(fd_pool);
   hashTable = NULL;
   fd_pool=NULL;
   
@@ -73,11 +73,11 @@ GiD_FILE  GiD_HashAdd( CPostFile *file)
   /* must check overflow and possibly reuse removed keys */
   fd = ++lastKey;
   /* create a new key */
-  key = (ub1*)renew(fd_pool);
+  key = (ub1*)_gp_renew(fd_pool);
   /* with fd as value */
   memcpy(key, &fd, sizeof(fd));
   /* insert data into hash table under key */
-  gid_hadd(hashTable, key, sizeof(GiD_FILE), data);
+  _gp_hadd(hashTable, key, sizeof(GiD_FILE), data);
 
   _UNLOCK_;
   
@@ -93,8 +93,8 @@ CPostFile *GiD_HashFind  (GiD_FILE fd)
   }
   _LOCK_;
 
-  if (gid_hfind(hashTable, (ub1*)&fd, sizeof(GiD_FILE))) {
-    data = hstuff(hashTable);
+  if (_gp_hfind(hashTable, (ub1*)&fd, sizeof(GiD_FILE))) {
+    data = _gp_hstuff(hashTable);
   }
 
   _UNLOCK_;
@@ -109,11 +109,11 @@ int     GiD_HashRemove(GiD_FILE fd)
 
   _LOCK_;
   
-  if (gid_hfind(hashTable, (ub1*)&fd, sizeof(GiD_FILE))) {
+  if (_gp_hfind(hashTable, (ub1*)&fd, sizeof(GiD_FILE))) {
     /* free the key from the pool */
-    redel(fd_pool, hkey(hashTable));
+    _gp_redel(fd_pool, _gp_hkey(hashTable));
     /* free the hash entry */
-    gid_hdel(hashTable);
+    _gp_hdel(hashTable);
   }
 
   _UNLOCK_;

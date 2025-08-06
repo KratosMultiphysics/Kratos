@@ -148,7 +148,7 @@ static GP_CONST char * strElementType[]= {
   "Pyramid",
   "Sphere",
   "Circle",
-  "Cluster"
+  "Point" // <-- This stands for the cluster element type
 };
 
 GP_CONST char * GetElementTypeName( GiD_ElementType type )
@@ -158,7 +158,6 @@ GP_CONST char * GetElementTypeName( GiD_ElementType type )
 
 int _GiDfiles_CheckState( post_state s_req, CPostFile *file )
 {
-  return 1;
   post_state s_cur = CPostFile_TopState( file );
   if (s_req!=s_cur) {
     printf("invalid state '%s' should be '%s'\n", GetStateDesc(s_cur), GetStateDesc(s_req));
@@ -314,8 +313,8 @@ int _GiDfiles_BeginCoordinates( CPostFile *File )
   /* state checking */
   assert(File);
   assert( _GiDfiles_CheckState( POST_MESH_S0, File ) );
-  CPostFile_PushState( File, POST_MESH_COORD0 );
-  /* File->level_mesh = POST_MESH_COORD0; */
+  CPostFile_PushState( File, POST_MESH_COORD_INSIDE );
+  /* File->level_mesh = POST_MESH_COORD_INSIDE; */
   return CPostFile_BeginCoordinates( File );
 }
 
@@ -328,10 +327,10 @@ int _GiDfiles_EndCoordinates( CPostFile *File )
   assert( File->m_post_mode != GiD_PostHDF5);
 
   /* state checking */
-  assert( _GiDfiles_CheckState( POST_MESH_COORD0, File ) );
+  assert( _GiDfiles_CheckState( POST_MESH_COORD_INSIDE, File ) );
   CPostFile_PopState( File );
-  CPostFile_PushState( File, POST_MESH_COORD1 );
-  // File->level_mesh = POST_MESH_COORD1;
+  CPostFile_PushState( File, POST_MESH_COORD_DONE );
+  // File->level_mesh = POST_MESH_COORD_DONE;
   CPostFile_ResetLastID( File ); /* m_lastID is also checked when writing coordinates */
   return CPostFile_WriteString( File, "End Coordinates" );
 }
@@ -391,7 +390,7 @@ int _GiDfiles_WriteCoordinates(CPostFile *File, int id,
 {
   int res;
   /* state checking */
-  assert(_GiDfiles_CheckState( POST_MESH_COORD0, File));
+  assert(_GiDfiles_CheckState( POST_MESH_COORD_INSIDE, File));
   /* keep on the same level */
   res = CPostFile_WriteValuesVA( File, id, 3, x, y, z);
   CPostFile_ResetLastID( File ); /* inside _WriteValuesVA there is some trick to write gaussian  results */
@@ -406,7 +405,7 @@ int _GiDfiles_WriteCoordinates2D(CPostFile *File, int id, double x, double y)
 {
   int res = 0;
   /* state checking */
-  assert( _GiDfiles_CheckState( POST_MESH_COORD0, File ) );
+  assert( _GiDfiles_CheckState( POST_MESH_COORD_INSIDE, File ) );
   /* keep in the same level */
   res = CPostFile_IsBinary(File)
     ? CPostFile_WriteValuesVA(File,id, 3, x, y, 0.0)
@@ -423,7 +422,7 @@ int _GiDfiles_WriteCoordinatesBlock( CPostFile *File, int num_points, const doub
 
   if ( !fail ) {
     /* state checking */
-    assert( _GiDfiles_CheckState( POST_MESH_COORD0, File ) );
+    assert( _GiDfiles_CheckState( POST_MESH_COORD_INSIDE, File ) );
     /* keep on the same level */
     for ( int idx_point = 0; idx_point < num_points; idx_point++ ) {
       const int id = idx_point + 1;
@@ -452,7 +451,7 @@ int _GiDfiles_WriteCoordinatesIdBlock( CPostFile *File, int num_points, const in
 
   if ( !fail ) {
     /* state checking */
-    assert( _GiDfiles_CheckState( POST_MESH_COORD0, File ) );
+    assert( _GiDfiles_CheckState( POST_MESH_COORD_INSIDE, File ) );
     /* keep on the same level */
     for ( int idx_point = 0; idx_point < num_points; idx_point++ ) {
       const int id = list_ids[ idx_point ];
@@ -480,8 +479,14 @@ int _GiDfiles_WriteCoordinatesIdBlock( CPostFile *File, int num_points, const in
 int _GiDfiles_BeginElements( CPostFile *File )
 {
   /* state checking */
-  //assert( _GiDfiles_CheckState( POST_MESH_COORD1, File ) );
-  CPostFile_PopState( File );
+  /* check if we are after EndCoordinates or after MESH (allowing to not write Coords block, i.e. sharing with already writen coordinates */
+  // assert( _GiDfiles_CheckState( POST_MESH_COORD_DONE, File ) );
+  const post_state cur_state = CPostFile_TopState( File );
+  assert( ( cur_state == POST_MESH_COORD_DONE ) || ( cur_state == POST_MESH_S0 ) );
+  if ( cur_state == POST_MESH_COORD_DONE ) {
+    // Coord block pushesState, to now popState
+    CPostFile_PopState( File );
+  }
   CPostFile_PushState( File, POST_MESH_ELEM );
   // File->level_mesh = POST_MESH_ELEM;
   return CPostFile_BeginElements(File);
@@ -496,7 +501,7 @@ int _GiDfiles_EndElements(CPostFile *File)
   /* state checking */
   assert( _GiDfiles_CheckState( POST_MESH_ELEM, File ) );
   CPostFile_PopState( File );
-  //assert( _GiDfiles_CheckState( POST_MESH_S0, File ) );
+  assert( _GiDfiles_CheckState( POST_MESH_S0, File ) );
   // CPostFile_PopState( File );
   // File->level_mesh = POST_S0;
   return CPostFile_WriteString(File, "End Elements");
@@ -838,7 +843,6 @@ int _GiDfiles_BeginGaussPoint(CPostFile *File,
 
 static int CheckGaussPointEnd(CPostFile* File)
 {
-  return 1;
   post_state st = CPostFile_TopState( File );
   if (st != POST_GAUSS_S0 && st != POST_GAUSS_GIVEN)
     {
@@ -1496,7 +1500,6 @@ int _GiDfiles_EndResult(CPostFile *File)
   CPostFile_PopState( File );
   GP_DUMP_STATE( File );
   cur_state = CPostFile_TopState( File );
-  return _fail;
   if ( cur_state != POST_S0 && cur_state != POST_RESULT_ONGROUP )
     {
     assert( cur_state == POST_S0 || cur_state == POST_RESULT_ONGROUP );
