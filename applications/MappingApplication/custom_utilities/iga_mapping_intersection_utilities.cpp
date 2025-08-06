@@ -27,26 +27,18 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometries(
     ModelPart& rModelPartResult,
     double Tolerance)
 {
-    ModelPart* p_iga_model_part = nullptr;
-    ModelPart* p_fem_model_part = nullptr;
+    const auto& r_iga_model_part = rIsOriginIga ? rModelPartDomainA : rModelPartDomainB;
+    const auto& r_fem_model_part = rIsOriginIga ? rModelPartDomainB : rModelPartDomainA;
 
-    if (rIsOriginIga == true){
-        p_iga_model_part = &rModelPartDomainA;
-        p_fem_model_part = &rModelPartDomainB;
-    } else{
-        p_iga_model_part = &rModelPartDomainB;
-        p_fem_model_part = &rModelPartDomainA;
-    }
-
-    for (auto& fem_cond : p_fem_model_part->Conditions()) {
+    for (auto& fem_cond : r_fem_model_part.Conditions()) {
         const auto& line_geom = fem_cond.GetGeometry();
         const Point line_center = line_geom.Center();
-            
+        
         double min_distance = std::numeric_limits<double>::max();
         Condition::Pointer p_closest_iga_condition = nullptr;
 
         // Get the closest condition on the IGA interface
-        for (auto& iga_cond : p_iga_model_part->Conditions()) {
+        for (auto& iga_cond : r_iga_model_part.Conditions()) {
             const auto& brep_curve_on_surface_geom = iga_cond.GetGeometry();
 
             CoordinatesArrayType local_coords = ZeroVector(3);
@@ -60,7 +52,7 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometries(
 
             if (distance < min_distance) {
                 min_distance = distance;
-                p_closest_iga_condition = p_iga_model_part->pGetCondition(iga_cond.Id());
+                p_closest_iga_condition = r_iga_model_part.pGetCondition(iga_cond.Id());
             }
         }
 

@@ -60,7 +60,7 @@ class TestIgaFEMCouplingGeometryMapper(KratosUnittest.TestCase):
         SetConstantVariable(self.interface_model_part_origin, KM.DISPLACEMENT, reference_displacement)
         self.mapper.Map(KM.DISPLACEMENT, KM.DISPLACEMENT)
         mapped_results = GetInterfaceResult(self.interface_model_part_destination,KM.DISPLACEMENT)
-        reference_result = [1.0000000000000004, 1.0000000000000004, 1.0000000000000004, 0.9999999999999998, 0.9999999999999998, 0.9999999999999998]
+        reference_result = [1.0, 1.0, 1.0, 0.9999999999999998, 0.9999999999999998, 0.9999999999999998]
         self.assertVectorAlmostEqual(mapped_results,reference_result)
 
 @KratosUnittest.skipIfApplicationsNotAvailable("IgaApplication")

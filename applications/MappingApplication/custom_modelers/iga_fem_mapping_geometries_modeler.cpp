@@ -131,9 +131,9 @@ namespace Kratos
 
         // Loop over all quadrature points in the interface model part to detect the different brep curves on surface
         IndexType old_brep_curve_on_surface_id = 0;
-        for (auto cond_it = rInterfaceModelPart.ConditionsBegin(); cond_it != rInterfaceModelPart.ConditionsEnd(); ++cond_it){
+        for (auto& r_cond : rInterfaceModelPart.Conditions()){
             // Get the quadrature point geometry
-            const GeometryPointerType p_geometry = cond_it->pGetGeometry();
+            const GeometryPointerType p_geometry = r_cond.pGetGeometry();
 
             // Get the parent geometry of the quadrature point (brep curve on surface)
             const GeometryType& brep_curve_on_surface_geometry = p_geometry->GetGeometryParent(0);

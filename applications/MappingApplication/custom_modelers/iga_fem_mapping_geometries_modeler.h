@@ -63,9 +63,6 @@ public:
         mpModels[0] = &rModel;
     }
 
-    /// Destructor.
-    virtual ~IgaFEMMappingGeometriesModeler() = default;
-
     /// Creates the Modeler Pointer
     Modeler::Pointer Create(
         Model& rModel, const Parameters ModelParameters) const override
