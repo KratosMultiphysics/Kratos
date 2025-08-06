@@ -85,7 +85,6 @@ private:
         const Matrix      constitutive_matrix =
             GeoElementUtilities::FillPermeabilityMatrix(r_properties, local_dimension);
 
-        const std::size_t number_of_nodes = shape_function_gradients[0].size1();
         BoundedMatrix<double, TNumNodes, TNumNodes> result;
 
         const double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
