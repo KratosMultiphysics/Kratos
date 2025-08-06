@@ -14,10 +14,10 @@
 
 #include "contribution_calculator.h"
 #include "custom_retention/retention_law.h"
-#include "includes/properties.h"
-#include "includes/ublas_interface.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
+#include "includes/properties.h"
+#include "includes/ublas_interface.h"
 
 #include <utility>
 #include <vector>
@@ -66,7 +66,7 @@ public:
         return std::make_optional(LHSContribution(CalculateCompressibilityMatrix()));
     }
 
-    BoundedVector<double, TNumNodes>                           RHSContribution() override
+    BoundedVector<double, TNumNodes> RHSContribution() override
     {
         return RHSContribution(CalculateCompressibilityMatrix());
     }

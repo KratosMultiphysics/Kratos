@@ -61,7 +61,7 @@ public:
         return std::make_optional(CalculatePermeabilityMatrix());
     }
 
-    BoundedVector<double, TNumNodes>                           RHSContribution() override
+    BoundedVector<double, TNumNodes> RHSContribution() override
     {
         return RHSContribution(CalculatePermeabilityMatrix());
     }

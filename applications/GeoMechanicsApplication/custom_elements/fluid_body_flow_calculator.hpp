@@ -14,11 +14,11 @@
 
 #include "contribution_calculator.h"
 #include "custom_retention/retention_law.h"
-#include "includes/properties.h"
-#include "includes/ublas_interface.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/cfd_variables.h"
+#include "includes/properties.h"
+#include "includes/ublas_interface.h"
 
 #include <utility>
 #include <vector>
@@ -68,7 +68,7 @@ public:
         return std::nullopt;
     }
 
-    BoundedVector<double, TNumNodes>                           RHSContribution() override
+    BoundedVector<double, TNumNodes> RHSContribution() override
     {
         const auto& shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
 
@@ -81,7 +81,7 @@ public:
         RetentionLaw::Parameters retention_law_parameters(r_properties);
         const auto&              projected_gravity_on_integration_points =
             mInputProvider.GetProjectedGravityAtIntegrationPoints();
-        const auto& fluid_pressures          = mInputProvider.GetFluidPressures();
+        const auto&                      fluid_pressures = mInputProvider.GetFluidPressures();
         BoundedVector<double, TNumNodes> result;
         const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
 
@@ -107,6 +107,7 @@ public:
 
 private:
     InputProvider mInputProvider;
+
     std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const
     {
         KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mInputProvider.GetRetentionLaws().size());
