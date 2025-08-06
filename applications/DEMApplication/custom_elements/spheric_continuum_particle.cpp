@@ -250,20 +250,27 @@ namespace Kratos {
         bond_contact_area = Globals::Pi * Rbond * Rbond;
 
         bool adjust_bond_contact_area = r_process_info[ADJUST_BOND_CONTACT_AREA_OPTION];
+        std::string bond_contact_area_type = r_process_info[BOND_CONTACT_AREA_DISTRIBUTION_TYPE];
         if (adjust_bond_contact_area) {
             
-            const double bond_contact_area_lognormal_median = r_process_info[BOND_CONTACT_AREA_LOGNORMAL_MEDIAN];
-            const double bond_contact_area_lognormal_std_dev = r_process_info[BOND_CONTACT_AREA_LOGNORMAL_STD_DEV];
-            const double bond_contact_area_upper_bound = r_process_info[BOND_CONTACT_AREA_UPPER_BOUND]; // This is the upper bound for the bond contact area
+            if (bond_contact_area_type == "lognormal") {
+                
+                const double bond_contact_area_lognormal_median = r_process_info[BOND_CONTACT_AREA_LOGNORMAL_MEDIAN];
+                const double bond_contact_area_lognormal_std_dev = r_process_info[BOND_CONTACT_AREA_LOGNORMAL_STD_DEV];
+                const double bond_contact_area_upper_bound = r_process_info[BOND_CONTACT_AREA_UPPER_BOUND]; // This is the upper bound for the bond contact area
 
-            std::random_device rd;
-            std::mt19937 gen(rd());
+                std::random_device rd;
+                std::mt19937 gen(rd());
 
-            std::lognormal_distribution<> lognorm(bond_contact_area_lognormal_median, bond_contact_area_lognormal_std_dev);
-            do {
-                bond_contact_area = lognorm(gen) * 1e-12; // Convert to m^2
-            } while (bond_contact_area > bond_contact_area_upper_bound);
+                std::lognormal_distribution<> lognorm(bond_contact_area_lognormal_median, bond_contact_area_lognormal_std_dev);
+                do {
+                    bond_contact_area = lognorm(gen) * 1e-12; // Convert to m^2
+                } while (bond_contact_area > bond_contact_area_upper_bound);
 
+            } else if (bond_contact_area_type == "constant") {
+                const double bond_contact_area_constant_value = r_process_info[BOND_CONTACT_AREA_CONSTANT_VALUE];
+                bond_contact_area = bond_contact_area_constant_value;
+            }
         }
     }
 

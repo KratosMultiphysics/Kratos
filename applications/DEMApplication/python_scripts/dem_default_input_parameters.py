@@ -41,10 +41,12 @@ def GetDefaultInputParameters():
             "EnergyCalculationOption"          : false,
             "AdjustBondContactAreaOption"      : false,
             "AdjustBondContactAreaSettings"        : {
+                "BondContactAreaDistributionType"  : "lognormal",
                 "BondContactAreaLognormalMedian"   : 0.0,
                 "BondContactAreaLognormalStdDev"   : 1.0,
                 "BondContactAreaUpperBound"        : 0.0,
-                "BondGeneratePercentage"           : 1.0
+                "BondGeneratePercentage"           : 1.0,
+                "BondContactAreaConstantValue"     : 0.0
             },
             "PotentialEnergyReferencePointX"   : 0.0,
             "PotentialEnergyReferencePointY"   : 0.0,

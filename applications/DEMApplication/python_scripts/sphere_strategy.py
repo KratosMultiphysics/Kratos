@@ -224,9 +224,15 @@ class ExplicitStrategy():
             self.adjust_bond_contact_area_option = DEM_parameters["AdjustBondContactAreaOption"].GetBool()
 
         if self.adjust_bond_contact_area_option:
-            self.bond_contact_area_lognormal_median = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaLognormalMedian"].GetDouble()
-            self.bond_contact_area_lognormal_std_dev = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaLognormalStdDev"].GetDouble()
-            self.bond_contact_area_upper_bound = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaUpperBound"].GetDouble()
+            self.bond_contact_area_distribution_type = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaDistributionType"].GetString()
+            
+            if self.bond_contact_area_distribution_type == "lognormal":
+                self.bond_contact_area_lognormal_median = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaLognormalMedian"].GetDouble()
+                self.bond_contact_area_lognormal_std_dev = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaLognormalStdDev"].GetDouble()
+                self.bond_contact_area_upper_bound = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaUpperBound"].GetDouble()
+            elif self.bond_contact_area_distribution_type == "constant":
+                self.bond_contact_area_constant_value = DEM_parameters["AdjustBondContactAreaSettings"]["BondContactAreaConstantValue"].GetDouble()
+            
             if not "BondGeneratePercentage" in DEM_parameters["AdjustBondContactAreaSettings"].keys():
                 self.bond_generate_percentage = 1.0
             else:
@@ -353,9 +359,13 @@ class ExplicitStrategy():
         #Bond contact area
         self.spheres_model_part.ProcessInfo.SetValue(ADJUST_BOND_CONTACT_AREA_OPTION, self.adjust_bond_contact_area_option)
         if self.adjust_bond_contact_area_option:
-            self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_LOGNORMAL_MEDIAN, self.bond_contact_area_lognormal_median)
-            self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_LOGNORMAL_STD_DEV, self.bond_contact_area_lognormal_std_dev)
-            self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_UPPER_BOUND, self.bond_contact_area_upper_bound)
+            self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_DISTRIBUTION_TYPE, self.bond_contact_area_distribution_type)
+            if self.bond_contact_area_distribution_type == "lognormal":
+                self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_LOGNORMAL_MEDIAN, self.bond_contact_area_lognormal_median)
+                self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_LOGNORMAL_STD_DEV, self.bond_contact_area_lognormal_std_dev)
+                self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_UPPER_BOUND, self.bond_contact_area_upper_bound)
+            elif self.bond_contact_area_distribution_type == "constant":
+                self.spheres_model_part.ProcessInfo.SetValue(BOND_CONTACT_AREA_CONSTANT_VALUE, self.bond_contact_area_constant_value)
             self.spheres_model_part.ProcessInfo.SetValue(BOND_GENERATE_PERCENTAGE, self.bond_generate_percentage)
 
         # SEARCH-RELATED
