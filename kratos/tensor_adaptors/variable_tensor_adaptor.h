@@ -31,8 +31,8 @@ namespace Kratos {
  * @ingroup TensorAdaptors
  * @brief Adaptor class for handling values represented as variables in Kratos entities' DataValueContainers.
  *
- * @details This class provides an interface to collect and store tensor data associated with Kratos entities,
- *          using a specified variable from the DataValueContainer (i.e. non-historical container). It extends TensorAdaptor<double> and allows for flexible data management,
+ * @details This class provides an interface to collect and store tensor data associated with Kratos entities' variables
+ *          specified by @p pVariable in the DataValueContainer (i.e. non-historical container). It extends TensorAdaptor<double> and allows for flexible data management,
  *          including initialization, data collection, and storage operations.
  *
  * @warning When using StoreData() to add variables to entities (if they are not present already in the entities), avoid calling Check() to prevent raising an error which

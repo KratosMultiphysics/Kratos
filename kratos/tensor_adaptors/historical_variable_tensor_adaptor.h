@@ -32,12 +32,14 @@ namespace Kratos {
  * @ingroup TensorAdaptors
  * @brief Adaptor for accessing and manipulating historical variable data of nodes as tensors in Kratos.
  *
- * @details This class provides an interface to access and modify historical variable data stored in the nodes of a ModelPart,
+ * @details This class provides an interface to access and modify historical variable data specified in @p pVariable
+ *          stored in the nodes of a ModelPart for a given @p StepIndex,
  *          exposing them as tensor data structures. It inherits from TensorAdaptor<double> and allows for efficient data
  *          collection and storage operations, ensuring compatibility with Kratos' historical data containers.
  *
- * @warning CollectData() and StoreData() may cause segmentation faults if the variable is not found in the historical
- *          data value container of a node. Always use Check() before performing these operations.
+ * @warning CollectData() and StoreData() may cause segmentation faults if the variable (i.e. @p pVariable) is not found in the historical
+ *          data value container of a node or the buffer size is not adequate for the specified @p StepIndex.
+ *          Always use Check() before performing these operations.
  *
  * @section supported_container Supported container types
  * - @ref ModelPart::NodesContainerType
