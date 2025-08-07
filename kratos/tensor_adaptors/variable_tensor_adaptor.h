@@ -48,7 +48,8 @@ namespace Kratos {
  * - Use CollectData() to fill internal data from Kratos data structures.
  * - Use StoreData() to write internal data back to the container, adding the variable if necessary.
  *
- * @warning When using StoreData() to add variables to entities, avoid calling Check() to prevent unnecessary initialization.
+ * @warning When using StoreData() to add variables to entities (if they are not present already in the entities), avoid calling Check() to prevent raising an error which
+ *          will say the variable is not found.
  * @author Suneth Warnakulasuriya
  * @see @ref TensorAdaptor                  Base class.
  * @see @ref DataValueContainer::GetValue   Variable value retrieval/update method.
