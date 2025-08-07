@@ -82,11 +82,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Initialization constructor.
-    VonMisesYieldSurface()
-    {
-    }
-
     /// Copy constructor
     VonMisesYieldSurface(VonMisesYieldSurface const &rOther)
     {
@@ -97,9 +92,6 @@ public:
     {
         return *this;
     }
-
-    /// Destructor
-    virtual ~VonMisesYieldSurface(){};
 
     ///@}
     ///@name Operators
@@ -178,36 +170,36 @@ public:
      */
     static void CalculatePlasticPotentialDerivative(
         const BoundedVector& rStressVector,
-        const BoundedVector& rDeviator,
+        const BoundedVector& rDeviatoricStresses,
         const double J2,
         BoundedVector& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rStressVector, rDeviatoricStresses, J2, rDerivativePlasticPotential, rValues);
     }
 
     /**
      * @brief This  script  calculates  the derivatives  of the Yield Surf
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
-     As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
-     * @param rDeviator The deviatoric part of the stress vector
+    As:            DF/DS = c1*V1 + c2*V2 + c3*V3
+     * @param rStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rDeviatoricStresses The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
-        const BoundedVector& rPredictiveStressVector,
-        const BoundedVector& rDeviator,
+        const BoundedVector& rStressVector,
+        const BoundedVector& rDeviatoricStresses,
         const double J2,
         BoundedVector& rFFlux,
         ConstitutiveLaw::Parameters& rValues
         )
     {
         BoundedVector second_vector;
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviatoricStresses, J2, second_vector);
         const double c2 = std::sqrt(3.0);
 
         noalias(rFFlux) = c2 * second_vector;

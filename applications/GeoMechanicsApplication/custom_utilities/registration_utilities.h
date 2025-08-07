@@ -23,10 +23,10 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ScopedSerializerRegistration
 {
 public:
-    template <typename T>
-    ScopedSerializerRegistration(const std::string& rName, const T& rInstance) : mName(rName)
+    template <typename... Pairs>
+    explicit ScopedSerializerRegistration(const Pairs&... PackedNameAndInstancePairs)
     {
-        Serializer::Register(rName, rInstance);
+        Register(PackedNameAndInstancePairs...);
     }
 
     ~ScopedSerializerRegistration();
@@ -38,7 +38,22 @@ public:
     ScopedSerializerRegistration& operator=(ScopedSerializerRegistration&&) noexcept = default;
 
 private:
-    std::string mName;
+    std::vector<std::string> mNames;
+
+    template <typename Pair>
+    void Register(const Pair& rNameAndInstance)
+    {
+        const auto& [name, instance] = rNameAndInstance;
+        Serializer::Register(name, instance);
+        mNames.push_back(name);
+    }
+
+    template <typename Pair, typename... Pairs>
+    void Register(const Pair& rNameAndInstance, const Pairs&... PackedNameAndInstancePairs)
+    {
+        Register(rNameAndInstance);
+        Register(PackedNameAndInstancePairs...);
+    }
 };
 
 } // namespace Kratos
