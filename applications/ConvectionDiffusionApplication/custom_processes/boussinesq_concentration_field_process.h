@@ -188,10 +188,12 @@ namespace Kratos
       ModelPart& mrModelPart;
 
       array_1d<double,3> mrGravity;
+      array_1d<double,3> mrR0;
 
       double mRho0;
       double mRhoP;
       bool mModifyPressure;
+      bool mModifyDensity;
 
       ///@}
       ///@name Private Operators

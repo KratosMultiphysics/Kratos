@@ -60,6 +60,21 @@ namespace Kratos
         } else {
             mModifyPressure = rParameters["modify_pressure"].GetBool();
         }
+        if(!rParameters.Has("modify_density"))
+        {
+            mModifyDensity = false;
+        } else {
+            mModifyDensity = rParameters["modify_density"].GetBool();
+        }
+        if(!rParameters.Has("r0"))
+        {
+            mrR0 = ZeroVector(3);
+        } else {
+            for (int i = 0; i < 3; i++)
+            {
+                mrR0[i] = rParameters["r0"].GetArrayItem(i).GetDouble();
+            }
+        }
     }
 
     BoussinesqConcentrationFieldProcess::~BoussinesqConcentrationFieldProcess()
@@ -124,19 +139,27 @@ namespace Kratos
             double phi = iNode->FastGetSolutionStepValue(CONCENTRATION_VAR);
             double delta_rho = mRhoP - mRho0;
 
+            array_1d<double,3> delta_rho_gravity_term = (delta_rho / mRho0) * phi * mrGravity;
             if(mModifyPressure)
             {
+                // p -> p - rho_0 * g_i * (r - r0)_i
                 array_1d<double, 3> r_vec = iNode->Coordinates();
-                double gravity_field_potential = r_vec[0] * mrGravity[0] + r_vec[1] * mrGravity[1] + r_vec[2] * mrGravity[2];
+                double gravity_field_potential = 0.0;
+                for(unsigned d = 0; d < 3; d++)
+                {
+                    gravity_field_potential += (r_vec[d] - mrR0[d]) * mrGravity[d];
+                }
 
-                iNode->FastGetSolutionStepValue(BODY_FORCE) = (delta_rho / mRho0) * phi * mrGravity;
-                iNode->FastGetSolutionStepValue(PRESSURE) -= mRho0 * gravity_field_potential;
+                iNode->FastGetSolutionStepValue(BODY_FORCE) = delta_rho_gravity_term;
+                iNode->FastGetSolutionStepValue(PRESSURE) += mRho0 / mRho0 * gravity_field_potential;
+
             } else {
-                iNode->FastGetSolutionStepValue(BODY_FORCE) += (1. + (delta_rho / mRho0) * phi) * mrGravity;
+                iNode->FastGetSolutionStepValue(BODY_FORCE) += mrGravity + delta_rho_gravity_term;
             }
 
             // Change density
-            iNode->FastGetSolutionStepValue(DENSITY_VAR) = mRho0 + delta_rho * phi;
+            if(mModifyDensity)
+                iNode->FastGetSolutionStepValue(DENSITY_VAR) = mRho0 + delta_rho * phi;
         }
     }
 

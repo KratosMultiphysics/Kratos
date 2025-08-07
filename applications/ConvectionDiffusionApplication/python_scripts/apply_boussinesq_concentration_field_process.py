@@ -20,7 +20,9 @@ class ApplyBoussinesqConcentrationFieldProcess(KratosMultiphysics.Process):
             "base_fluid_density" : 1000.0,
             "particles_density" : 1200.0,
             "gravity" : [0.0,0.0,0.0],
-            "modify_pressure" : false
+            "modify_pressure" : false,
+            "modify_density": false,
+            "r0": [0.0, 0.0, 0.0]
         }  """ )
 
         settings.ValidateAndAssignDefaults(default_settings)
