@@ -159,11 +159,11 @@ void PartitionedModelPartIO::SetCommunicator(ModelPart& rModelPart) const
     auto& r_local_nodes = r_communicator.LocalMesh().Nodes();
     auto& r_ghost_nodes = r_communicator.GhostMesh().Nodes();
 
-    for (auto& p_node : rModelPart.Nodes().GetContainer()) {
-        if (p_node->FastGetSolutionStepValue(PARTITION_INDEX) == my_pid) {
-            r_local_nodes.push_back(p_node);
+    for (auto p_itr = rModelPart.Nodes().ptr_begin(); p_itr != rModelPart.Nodes().ptr_end(); ++p_itr) {
+        if ((*p_itr)->FastGetSolutionStepValue(PARTITION_INDEX) == my_pid) {
+            r_local_nodes.insert(r_local_nodes.end(), *p_itr);
         } else {
-            r_ghost_nodes.push_back(p_node);
+            r_ghost_nodes.insert(r_ghost_nodes.end(), *p_itr);
         }
     }
 
