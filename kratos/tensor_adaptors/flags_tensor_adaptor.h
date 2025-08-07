@@ -49,7 +49,8 @@ namespace Kratos {
  *
  * @author Suneth Warnakulasuriya
  * @see @ref TensorAdaptor                 Base class.
- * @see @ref Flags                         Flags used to retrieve and set within this TensorAdaptor.
+ * @see @ref Flags::Is                     Method used to retrieve flag status from entities.
+ * @see @ref Flags::Set                    Method used to set the flag status in the entities.
  */
 class KRATOS_API(KRATOS_CORE) FlagsTensorAdaptor: public TensorAdaptor<bool> {
 public:
