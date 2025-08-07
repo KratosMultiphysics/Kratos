@@ -1401,11 +1401,13 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
     Vector N_fast = ZeroVector(NumNodes);
 
     // N_fast[NumNodes-1] = 1.0;
-    for (unsigned int i = 0; i < (NumNodes-1); ++i){
-        N_fast[i] = N[i];
-        // N_fast[NumNodes-1] -= N_fast[i];
-    }
-
+    // for (unsigned int i = 0; i < (NumNodes-1); ++i){
+    // // for (unsigned int i = 0; i < (NumNodes); ++i){
+    // //     N_fast[i] = N[i];
+    //     N_fast[NumNodes-1] -= N_fast[i];
+    // }
+    for (unsigned int n = 0; n < NumNodes; n++)
+        N_fast[n] = N[n];
 
     alpha = mUseSteadyFluid ? 1.0 : alpha;
     array_1d<double, 3>& first_origin_datum = geom[0].FastGetSolutionStepValue(r_origin_variable);
@@ -1417,8 +1419,8 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
         first_origin_datum_old[j] = first_origin_datum[j];
         step_datum_fast[j] = N_fast[0] * (alpha * first_origin_datum[j] + (1.0 - alpha) * first_origin_datum_old[j]);
     }
-    // Destination data
 
+    // Destination data
     for (unsigned int i = 1; i < NumNodes; ++i){
         array_1d<double, 3>& origin_datum = geom[i].FastGetSolutionStepValue(r_origin_variable);
         array_1d<double, 3>& origin_datum_old = geom[i].FastGetSolutionStepValue(r_origin_variable, 1);
