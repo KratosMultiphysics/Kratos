@@ -26,10 +26,14 @@
  * @class NodePositionTensorAdaptor
  * @brief Adapts node position data from a Kratos ModelPart to a tensor representation.
  *
- * This class provides an adaptor for accessing and manipulating node position data
- * as a tensor, enabling integration with tensor-based algorithms and operations.
- * It inherits from TensorAdaptor<double> and manages the mapping between Kratos
- * node containers and tensor data structures.
+ * @details This class provides an adaptor for accessing and manipulating node position data
+ *          as a tensor, enabling integration with tensor-based algorithms and operations.
+ *          It inherits from TensorAdaptor<double> and manages the mapping between Kratos
+ *          node containers and tensor data structures.
+ *
+ *          The @ref Globals::Configuration is used to indicate whether this tensor adaptor will work
+ *          with the initial (@ref Globals::Configuration::Initial) nodal positions or the current (
+ *          @ref Globals::Configuration::Current) nodal positions.
  *
  * @tparam double The data type for tensor elements.
  *
