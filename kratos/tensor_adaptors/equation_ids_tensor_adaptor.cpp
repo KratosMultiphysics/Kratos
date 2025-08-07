@@ -24,10 +24,10 @@
 
 namespace Kratos {
 
-namespace EquationIdsTensorAdaptorHelpers {
+namespace {
 
 template <class TContainerType>
-void CollectData(
+void EquationIdsTensorAdaptorCollectData(
     Kratos::span<int> Span,
     const unsigned int Stride,
     const TContainerType& rContainer,
@@ -97,7 +97,7 @@ void EquationIdsTensorAdaptor::CollectData()
                 << "First dimension mismatch [ Container size = " << pContainer->size()
                 << ", shape = " << this->Shape() << " ].\n";
 
-            EquationIdsTensorAdaptorHelpers::CollectData(this->ViewData(), this->Shape()[1], *pContainer, *(this->mpProcessInfo));
+            EquationIdsTensorAdaptorCollectData(this->ViewData(), this->Shape()[1], *pContainer, *(this->mpProcessInfo));
         }
     }, this->mpStorage->GetContainer());
 
