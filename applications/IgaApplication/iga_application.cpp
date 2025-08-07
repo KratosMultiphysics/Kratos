@@ -58,6 +58,12 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSbmLaplacianConditionNeumann(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportFluidCondition(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mSupportPressureCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSbmFluidConditionDirichlet(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportSolidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadSolidCondition(0, Condition::GeometryType::Pointer(
@@ -99,6 +105,9 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SupportLaplacianCondition", mSupportLaplacianCondition)
     KRATOS_REGISTER_CONDITION("SbmLaplacianConditionDirichlet", mSbmLaplacianConditionDirichlet)
     KRATOS_REGISTER_CONDITION("SbmLaplacianConditionNeumann", mSbmLaplacianConditionNeumann)
+    KRATOS_REGISTER_CONDITION("SupportFluidCondition", mSupportFluidCondition)
+    KRATOS_REGISTER_CONDITION("SupportPressureCondition", mSupportPressureCondition)
+    KRATOS_REGISTER_CONDITION("SbmFluidConditionDirichlet", mSbmFluidConditionDirichlet)
     KRATOS_REGISTER_CONDITION("SupportSolidCondition", mSupportSolidCondition)
     KRATOS_REGISTER_CONDITION("LoadSolidCondition", mLoadSolidCondition)
     KRATOS_REGISTER_CONDITION("SbmSolidCondition", mSbmSolidCondition)
@@ -182,6 +191,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHTS)
     KRATOS_REGISTER_VARIABLE(BOUNDARY_CONDITION_TYPE)
     KRATOS_REGISTER_VARIABLE(CONDITION_NAME)
+    KRATOS_REGISTER_VARIABLE(LAYER_NAME)
     KRATOS_REGISTER_VARIABLE(KNOT_VECTOR_U)
     KRATOS_REGISTER_VARIABLE(KNOT_VECTOR_V)
     KRATOS_REGISTER_VARIABLE(KNOT_SPAN_SIZES)

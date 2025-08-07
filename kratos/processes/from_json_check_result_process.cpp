@@ -37,7 +37,7 @@ KRATOS_CREATE_LOCAL_FLAG( FromJSONCheckResultProcess, ELEMENTS_DATABASE_INITIALI
 FromJSONCheckResultProcess::FromJSONCheckResultProcess(
     Model& rModel,
     Parameters ThisParameters
-    ) : mrModelPart([](Model& rModel,const Parameters& rParameters)->ModelPart&{const std::string& r_model_part_name = rParameters["model_part_name"].GetString(); const std::string sub_model_part_name = rParameters.Has("sub_model_part_name") ? rParameters["sub_model_part_name"].GetString() : ""; if (sub_model_part_name == "") { return rModel.GetModelPart(r_model_part_name); } else { return rModel.GetModelPart(r_model_part_name).GetSubModelPart(sub_model_part_name);}}(rModel, ThisParameters)),
+    ) : mpModelPart(&[](Model& rModel,const Parameters& rParameters)->ModelPart&{const std::string& r_model_part_name = rParameters["model_part_name"].GetString(); const std::string sub_model_part_name = rParameters.Has("sub_model_part_name") ? rParameters["sub_model_part_name"].GetString() : ""; if (sub_model_part_name == "") { return rModel.GetModelPart(r_model_part_name); } else { return rModel.GetModelPart(r_model_part_name).GetSubModelPart(sub_model_part_name);}}(rModel, ThisParameters)),
         mThisParameters(ThisParameters)
 {
     mThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
@@ -49,7 +49,7 @@ FromJSONCheckResultProcess::FromJSONCheckResultProcess(
 FromJSONCheckResultProcess::FromJSONCheckResultProcess(
     ModelPart& rModelPart,
     Parameters ThisParameters
-    ) : mrModelPart(rModelPart),
+    ) : mpModelPart(&rModelPart),
         mThisParameters(ThisParameters)
 {
     mThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
@@ -102,7 +102,7 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
 {
     KRATOS_TRY;
 
-    const double dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
+    const double dt = mpModelPart->GetProcessInfo().GetValue(DELTA_TIME);
 
     mTimeCounter += dt;
 
@@ -304,7 +304,7 @@ void FromJSONCheckResultProcess::FailMessage(
 void FromJSONCheckResultProcess::CheckNodeValues(IndexType& rCheckCounter)
 {
     // Get time
-    const double time = mrModelPart.GetProcessInfo().GetValue(TIME);
+    const double time = mpModelPart->GetProcessInfo().GetValue(TIME);
 
     // Node database
     const auto& r_node_database = GetNodeDatabase();
@@ -380,7 +380,7 @@ void FromJSONCheckResultProcess::CheckNodeValues(IndexType& rCheckCounter)
 void FromJSONCheckResultProcess::CheckNodeHistoricalValues(IndexType& rCheckCounter)
 {
     // Get time
-    const double time = mrModelPart.GetProcessInfo().GetValue(TIME);
+    const double time = mpModelPart->GetProcessInfo().GetValue(TIME);
 
     // Node database
     const auto& r_node_database = GetNodeDatabase();
@@ -456,13 +456,13 @@ void FromJSONCheckResultProcess::CheckNodeHistoricalValues(IndexType& rCheckCoun
 void FromJSONCheckResultProcess::CheckGPValues(IndexType& rCheckCounter)
 {
     // Get time
-    const double time = mrModelPart.GetProcessInfo().GetValue(TIME);
+    const double time = mpModelPart->GetProcessInfo().GetValue(TIME);
 
     // GP database
     const auto& r_gp_database = GetGPDatabase();
 
     // Getting process info
-    const auto& r_process_info = mrModelPart.GetProcessInfo();
+    const auto& r_process_info = mpModelPart->GetProcessInfo();
 
     // Iterate over elements
     const auto& r_elements_array = GetElements();
@@ -821,7 +821,7 @@ FromJSONCheckResultProcess::NodesArrayType& FromJSONCheckResultProcess::GetNodes
     KRATOS_TRY;
 
     if (this->IsNot(NODES_CONTAINER_INITIALIZED)) {
-        auto& r_nodes_array = this->Is(CHECK_ONLY_LOCAL_ENTITIES) ? mrModelPart.GetCommunicator().LocalMesh().Nodes() : mrModelPart.Nodes();
+        auto& r_nodes_array = this->Is(CHECK_ONLY_LOCAL_ENTITIES) ? mpModelPart->GetCommunicator().LocalMesh().Nodes() : mpModelPart->Nodes();
         const auto it_node_begin = r_nodes_array.begin();
         const int number_of_nodes = static_cast<int>(r_nodes_array.size());
 
@@ -860,7 +860,7 @@ FromJSONCheckResultProcess::ElementsArrayType& FromJSONCheckResultProcess::GetEl
     KRATOS_TRY;
 
     if (this->IsNot(ELEMENTS_CONTAINER_INITIALIZED)) {
-        auto& r_elements_array = this->Is(CHECK_ONLY_LOCAL_ENTITIES) ? mrModelPart.GetCommunicator().LocalMesh().Elements() : mrModelPart.Elements();
+        auto& r_elements_array = this->Is(CHECK_ONLY_LOCAL_ENTITIES) ? mpModelPart->GetCommunicator().LocalMesh().Elements() : mpModelPart->Elements();
         const auto it_elem_begin = r_elements_array.begin();
         const int number_of_elements = static_cast<int>(r_elements_array.size());
 
@@ -928,7 +928,7 @@ const Parameters FromJSONCheckResultProcess::GetDefaultParameters() const
 
 const ModelPart& FromJSONCheckResultProcess::GetModelPart() const
 {
-    return this->mrModelPart;
+    return *mpModelPart;
 }
 
 /***********************************************************************************/
