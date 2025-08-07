@@ -21,23 +21,36 @@
 #include "tensor_adaptor.h"
 #include "includes/process_info.h"
 
-/**
- * @class EquationIdsTensorAdaptor
- * @brief Adaptor class for handling equation IDs as tensor data within Kratos.
- *
- * This class inherits from TensorAdaptor<int> and provides specialized functionality
- * for collecting and storing equation ID data from Kratos data conditions or elements. It is
- * designed to interface with containers and process information relevant to equation IDs.
- *
- * @tparam TContainerPointerType Type of the pointer to the container holding equation IDs.
- *
- * @author Kratos Team
- */
 namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @class EquationIdsTensorAdaptor
+ * @ingroup TensorAdaptors
+ * @brief Adaptor class for handling equation IDs as tensor data within Kratos.
+ *
+ * @details This class inherits from TensorAdaptor<int> and provides specialized functionality
+ *          for collecting and storing equation ID data from Kratos data conditions or elements. It is
+ *          designed to interface with containers and process information relevant to equation IDs.
+ *
+ * @warning StoreData method is throwing an unimplemented error since setting equation ids is not allowed.
+ *
+ * @section supported_container Supported container types
+ * - @ref ModelPart::ConditionsContainerType
+ * - @ref ModelPart::ElementsContainerType
+ *
+ * @section Usage
+ * - Use Check() to verify the tensor data shape compatibility.
+ * - Use CollectData() to fill internal tensor data from equation ids read from elements or conditions.
+ * - Use StoreData() Not used.
+ *
+ * @author Suneth Warnakulasuriya
+ * @see @ref TensorAdaptor                 Base class.
+ * @see @ref Element::EquationIdVector     Equation id retrieval method from elements.
+ * @see @ref Condition::EquationIdVector   Equation id retrieval method from conditions.
+ */
 class KRATOS_API(KRATOS_CORE) EquationIdsTensorAdaptor: public TensorAdaptor<int> {
 public:
 

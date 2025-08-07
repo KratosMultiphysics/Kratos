@@ -30,11 +30,11 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-template<class TDataType>
 /**
- * @class TensorAdaptor
- * @brief Provides an abstraction for managing tensor data associated with Kratos ModelPart containers.
- *
+ * @defgroup TensorAdaptors
+ * @brief Tensor adaptors are used to read-in or write-out variable, info, data from entities of ModelPart.
+ *        It also provides Extensive interfaces to numpy as well as Span.
+ *        Furthermore, it can b used to isolate data from ModelPart so that once isolation of data within a TensorAdaptor is done, same variable can be used to represent something different.
  * @details The TensorAdaptor class is designed to facilitate reading from variables, info, data from each entity
  *          in the containers of ModelPart to the TensorAdaptor or writing the tensor data in the TensorAdaptor to
  *          each entity's variables, info, data in the containers of ModelPart. It encapsulates
@@ -45,39 +45,62 @@ template<class TDataType>
  *          These tensor adaptors are exposed to python as well.
  *
  *          Example:
- *              ```C++
- *                  VariableTensorAdaptor var_ta(model_part.pNodes(), PRESSURE);
- *                  var_ta.Check();       // Checks if the PRESSURE variable is available in each of the nodes.
- *                  var_ta.CollectData(); // Reads the PRESSURE variable from each of the nodes and puts them into an internal storage.
+ *          @code
+ *              auto model = Model();
+ *              auto& model_part = model.CreateModelPart("test");
+ *              for (IndexType i = 0; i < 10; ++i) {
+ *                  model_part.CreateNewNode(i + 1, 0.0, 0.0, 0.0)->SetValue(PRESSURE, i + 1);
+ *              }
  *
- *                  auto data = var_ta.ViewData(); // Create a span viewing the data
+ *              VariableTensorAdaptor var_ta(model_part.pNodes(), PRESSURE);
+ *              var_ta.Check();       // Checks if the PRESSURE variable is available in each of the nodes.
+ *              var_ta.CollectData(); // Reads the PRESSURE variable from each of the nodes and puts them into an internal storage.
  *
- *                  // here we modify the internal data storage of the TensorAdaptor.
- *                  // This will not modify the PRESSURE of the nodes.
- *                  for (IndexType i = 0; i < data.size(); ++i) {
- *                      data[i] += 1.0;
- *                  }
+ *              auto data = var_ta.ViewData(); // Create a span viewing the data
  *
- *                  var_ta.StoreData(); // Writes back the modified tensor adaptor data back to each node's PRESSURE variable.
- *              ```
- *              The following is the equivalent python example.
- *              ```python
- *                  import KratosMultiphysics as Kratos
+ *              // here we modify the internal data storage of the TensorAdaptor.
+ *              // This will not modify the PRESSURE of the nodes.
+ *              for (IndexType i = 0; i < data.size(); ++i) {
+ *                  data[i] += 1.0;
+ *              }
  *
- *                  model = Kratos.Model()
- *                  model_part = model.CreateModelPart("test")
- *                  for i in range(10):
- *                      model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0).SetValue(Kratos.PRESSURE, i + 1)
+ *              var_ta.StoreData(); // Writes back the modified tensor adaptor data back to each node's PRESSURE variable.
+ *          @endcode
+ *          The following is the equivalent python example.
+ *          @code{.py}
+ *              import KratosMultiphysics as Kratos
  *
- *                  var_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(model_part.Nodes(), Kratos.PRESSURE)
- *                  var_ta.Check()
- *                  var_ta.CollectData()
- *                  var_ta.data += 1.0
- *                  var_ta.StoreData()
- *              ```
+ *              model = Kratos.Model()
+ *              model_part = model.CreateModelPart("test")
+ *              for i in range(10):
+ *                  model_part.CreateNewNode(i + 1, 0.0, 0.0, 0.0).SetValue(Kratos.PRESSURE, i + 1)
  *
+ *              var_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(model_part.Nodes(), Kratos.PRESSURE)
+ *              var_ta.Check()
+ *              var_ta.CollectData()
+ *              var_ta.data += 1.0
+ *              var_ta.StoreData()
+ *          @endcode
+ */
+
+ /**
+ * @class TensorAdaptor
+ * @ingroup TensorAdaptors
+ *
+ * @section supported_container Supported container types
+ * - @ref ModelPart::DofsArrayType
+ * - @ref ModelPart::NodesContainerType
+ * - @ref ModelPart::ConditionsContainerType
+ * - @ref ModelPart::ElementsContainerType
+ * - @ref ModelPart::PropertiesContainerType
+ * - @ref ModelPart::GeometryContainerType
+ * - @ref ModelPart::MasterSlaveConstraintContainerType
+ *
+ * @author Suneth Warnakulasuriya
+ * @brief Provides an abstraction for managing tensor data associated with Kratos ModelPart containers.
  * @tparam TDataType The type of the data stored in the tensor adaptor.
  */
+template<class TDataType>
 class KRATOS_API(KRATOS_CORE) TensorAdaptor {
 protected:
     ///@name Class definitions

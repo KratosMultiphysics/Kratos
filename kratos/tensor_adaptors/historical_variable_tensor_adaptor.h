@@ -22,29 +22,35 @@
 #include "tensor_adaptor.h"
 #include "tensor_adaptor_utils.h"
 
-/**
- * @class HistoricalVariableTensorAdaptor
- * @brief Adaptor for accessing and manipulating historical variable data of nodes as tensors in Kratos.
- *
- * This class provides an interface to access and modify historical variable data stored in the nodes of a ModelPart,
- * exposing them as tensor data structures. It inherits from TensorAdaptor<double> and allows for efficient data
- * collection and storage operations, ensuring compatibility with Kratos' historical data containers.
- *
- * @tparam double The underlying data type for tensor operations.
- *
- * @section Usage
- * - Use HistoricalVariableTensorAdaptor::Check() to verify variable availability and buffer size before data operations.
- * - Use CollectData() to fill internal tensor data from Kratos historical nodal data containers.
- * - Use StoreData() to write internal tensor data back to Kratos historical nodal data containers.
- *
- * @warning CollectData() and StoreData() may cause segmentation faults if the variable is not found in the historical
- *          data value container of a node. Always use Check() before performing these operations.
- */
 namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @class HistoricalVariableTensorAdaptor
+ * @ingroup TensorAdaptors
+ * @brief Adaptor for accessing and manipulating historical variable data of nodes as tensors in Kratos.
+ *
+ * @details This class provides an interface to access and modify historical variable data stored in the nodes of a ModelPart,
+ *          exposing them as tensor data structures. It inherits from TensorAdaptor<double> and allows for efficient data
+ *          collection and storage operations, ensuring compatibility with Kratos' historical data containers.
+ *
+ * @warning CollectData() and StoreData() may cause segmentation faults if the variable is not found in the historical
+ *          data value container of a node. Always use Check() before performing these operations.
+ *
+ * @section supported_container Supported container types
+ * - @ref ModelPart::NodesContainerType
+ *
+ * @section Usage
+ * - Use Check() to verify variable availability and buffer size before data operations.
+ * - Use CollectData() to fill internal tensor data from Kratos historical nodal data containers.
+ * - Use StoreData() to write internal tensor data back to Kratos historical nodal data containers.
+ *
+ * @author Suneth Warnakulasuriya
+ * @see @ref TensorAdaptor                  Base class.
+ * @see @ref Node::FastGetSolutionStepValue Method used to retrieve data from nodal historical data value container.
+ */
 class KRATOS_API(KRATOS_CORE) HistoricalVariableTensorAdaptor: public TensorAdaptor<double> {
 public:
 

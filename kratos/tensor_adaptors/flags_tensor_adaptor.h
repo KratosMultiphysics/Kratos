@@ -22,24 +22,35 @@
 #include "containers/flags.h"
 #include "tensor_adaptor.h"
 
-/**
- * @class FlagsTensorAdaptor
- * @brief Adaptor class for handling tensor data associated with Kratos Flags.
- *
- * This class extends TensorAdaptor<bool> to provide specialized operations for
- * tensors whose elements are boolean values, typically representing flags in Kratos.
- * It manages the association between tensor data and Kratos Flags, allowing for
- * efficient data collection and storage from/to Kratos data structures.
- *
- * @tparam TContainerPointerType Pointer type to the underlying container.
- *
- * @see TensorAdaptor
- */
 namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @class FlagsTensorAdaptor
+ * @ingroup TensorAdaptors
+ * @brief Adaptor class for handling tensor data associated with Kratos Flags.
+ *
+ * @details This class extends TensorAdaptor<bool> to provide specialized operations for
+ *          tensors whose elements are boolean values, typically representing flags in Kratos.
+ *          It manages the association between tensor data and Kratos Flags, allowing for
+ *          efficient data collection and storage from/to Kratos data structures.
+ *
+ * @section supported_container Supported container types
+ * - @ref ModelPart::NodesContainerType
+ * - @ref ModelPart::ConditionsContainerType
+ * - @ref ModelPart::ElementsContainerType
+ *
+ * @section Usage
+ * - Use Check() to verify the tensor data shape compatibility.
+ * - Use CollectData() to fill internal tensor data from flag values from nodes, conditions and elements.
+ * - Use StoreData() to store back the internal tensor data to flag values of nodes, conditions and elements.
+ *
+ * @author Suneth Warnakulasuriya
+ * @see @ref TensorAdaptor                 Base class.
+ * @see @ref Flags                         Flags used to retrieve and set within this TensorAdaptor.
+ */
 class KRATOS_API(KRATOS_CORE) FlagsTensorAdaptor: public TensorAdaptor<bool> {
 public:
 

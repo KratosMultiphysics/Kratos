@@ -22,27 +22,36 @@
 #include "tensor_adaptor_utils.h"
 #include "includes/process_info.h"
 
-/**
- * @class GaussPointVariableTensorAdaptor
- * @brief Adapts Kratos variables at Gauss points to tensor operations.
- *
- * This class provides an adaptor to retrieve Kratos variables computed at Gauss points
- * as tensors. It inherits from TensorAdaptor<double> and enables tensor operations on variables
- * associated with finite element integration points.
- *
- * @warning GaussPointVariableTensorAdaptor::StoreData method is throwing an unimplemented error
- *          since setting gauss points is not allowed.
- *
- * @section Usage
- * - Use GaussPointVariableTensorAdaptor::Check() to verify the tensor data shape compatibility.
- * - Use CollectData() to fill internal tensor data from gauss point computed values at each element or condition.
- * - Use StoreData()    Not used.
- */
 namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @class GaussPointVariableTensorAdaptor
+ * @ingroup TensorAdaptors
+ * @brief Adaptor class for handling tensor data associated with gauss point values.
+ *
+ * @details This class provides an adaptor to retrieve Kratos variables computed at Gauss points
+ *          as tensors. It inherits from TensorAdaptor<double> and enables tensor operations on variables
+ *          associated with finite element integration points.
+ *
+ * @warning StoreData method is throwing an unimplemented error since setting gauss points is not allowed.
+ *
+ * @section supported_container Supported container types
+ * - @ref ModelPart::ConditionsContainerType
+ * - @ref ModelPart::ElementsContainerType
+ *
+ * @section Usage
+ * - Use GaussPointVariableTensorAdaptor::Check() to verify the tensor data shape compatibility.
+ * - Use CollectData() to fill internal tensor data from gauss point computed values at each element or condition.
+ * - Use StoreData()    Not used.
+ *
+ * @author Suneth Warnakulasuriya
+ * @see @ref TensorAdaptor                                Base class.
+ * @see @ref Element::CalculateOnIntegrationPoints        Used to retrieve gauss point values from elements.
+ * @see @ref Condition::CalculateOnIntegrationPoints      Used to retrieve gauss point values from elements.
+ */
 class KRATOS_API(KRATOS_CORE) GaussPointVariableTensorAdaptor: public TensorAdaptor<double> {
 public:
 
