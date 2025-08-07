@@ -35,11 +35,46 @@ template<class TDataType>
  * @class TensorAdaptor
  * @brief Provides an abstraction for managing tensor data associated with Kratos ModelPart containers.
  *
- * @details The TensorAdaptor class is designed to facilitate the storage, retrieval, and manipulation of tensor data
- *          linked to various Kratos ModelPart containers (such as nodes, elements, conditions, etc.). It encapsulates
+ * @details The TensorAdaptor class is designed to facilitate reading from variables, info, data from each entity
+ *          in the containers of ModelPart to the TensorAdaptor or writing the tensor data in the TensorAdaptor to
+ *          each entity's variables, info, data in the containers of ModelPart. It encapsulates
  *          mechanisms for safe memory management, including reference counting via intrusive pointers, and provides
  *          interfaces for copying, moving, and viewing internal tensor data. The class also supports querying the shape
  *          and size of the tensor, as well as collecting and storing data from/to Kratos data structures.
+ *
+ *          These tensor adaptors are exposed to python as well.
+ *
+ *          Example:
+ *              ```C++
+ *                  VariableTensorAdaptor var_ta(model_part.pNodes(), PRESSURE);
+ *                  var_ta.Check();       // Checks if the PRESSURE variable is available in each of the nodes.
+ *                  var_ta.CollectData(); // Reads the PRESSURE variable from each of the nodes and puts them into an internal storage.
+ *
+ *                  auto data = var_ta.ViewData(); // Create a span viewing the data
+ *
+ *                  // here we modify the internal data storage of the TensorAdaptor.
+ *                  // This will not modify the PRESSURE of the nodes.
+ *                  for (IndexType i = 0; i < data.size(); ++i) {
+ *                      data[i] += 1.0;
+ *                  }
+ *
+ *                  var_ta.StoreData(); // Writes back the modified tensor adaptor data back to each node's PRESSURE variable.
+ *              ```
+ *              The following is the equivalent python example.
+ *              ```python
+ *                  import KratosMultiphysics as Kratos
+ *
+ *                  model = Kratos.Model()
+ *                  model_part = model.CreateModelPart("test")
+ *                  for i in range(10):
+ *                      model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0).SetValue(Kratos.PRESSURE, i + 1)
+ *
+ *                  var_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(model_part.Nodes(), Kratos.PRESSURE)
+ *                  var_ta.Check()
+ *                  var_ta.CollectData()
+ *                  var_ta.data += 1.0
+ *                  var_ta.StoreData()
+ *              ```
  *
  * @tparam TDataType The type of the data stored in the tensor adaptor.
  */
