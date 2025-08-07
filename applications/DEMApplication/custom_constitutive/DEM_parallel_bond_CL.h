@@ -213,6 +213,7 @@ namespace Kratos{
         bool mDebugPrintingOption = false;
         double mBondSigmaMax = 0.0;
         double mBondTauZero = 0.0;
+        double mCalculation_area = 0.0;
 
 
     protected:

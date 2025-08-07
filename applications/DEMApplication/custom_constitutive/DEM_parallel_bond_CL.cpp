@@ -270,6 +270,7 @@ void DEM_parallel_bond::CalculateElasticConstants(double& kn_el, double& kt_el, 
     InitializeContact(element1, element2, indentation_particle);
 
     mKt = GetTangentialStiffness();
+    mCalculation_area = calculation_area;
 
     KRATOS_CATCH("")
 
@@ -1004,10 +1005,11 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
         bond_rotational_moment_tangential_modulus = sqrt(bond_rotational_moment[0] * bond_rotational_moment[0]
                                                     + bond_rotational_moment[1] * bond_rotational_moment[1]);
 
-        const double my_radius         = element1->GetRadius();
-        const double other_radius      = element2->GetRadius();
-        const double bond_radius_factor = (*mpProperties)[BOND_RADIUS_FACTOR];
-        double bond_radius = std::min(my_radius, other_radius) * bond_radius_factor;
+        //const double my_radius         = element1->GetRadius();
+        //const double other_radius      = element2->GetRadius();
+        //const double bond_radius_factor = (*mpProperties)[BOND_RADIUS_FACTOR];
+        //double bond_radius = std::min(my_radius, other_radius) * bond_radius_factor;
+        const double bond_radius = std::sqrt(mCalculation_area / Globals::Pi);
 
         const double I = 0.25 * Globals::Pi * bond_radius * bond_radius * bond_radius * bond_radius;
         const double J = 2.0 * I; // This is the polar inertia
