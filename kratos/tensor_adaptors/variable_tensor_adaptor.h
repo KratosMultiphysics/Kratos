@@ -35,6 +35,9 @@ namespace Kratos {
  *          using a specified variable from the DataValueContainer (i.e. non-historical container). It extends TensorAdaptor<double> and allows for flexible data management,
  *          including initialization, data collection, and storage operations.
  *
+ * @warning When using StoreData() to add variables to entities (if they are not present already in the entities), avoid calling Check() to prevent raising an error which
+ *          will say the variable is not found.
+ *
  * @section supported_container Supported container types
  * - @ref ModelPart::NodesContainerType
  * - @ref ModelPart::ConditionsContainerType
@@ -48,8 +51,6 @@ namespace Kratos {
  * - Use CollectData() to fill internal data from Kratos data structures.
  * - Use StoreData() to write internal data back to the container, adding the variable if necessary.
  *
- * @warning When using StoreData() to add variables to entities (if they are not present already in the entities), avoid calling Check() to prevent raising an error which
- *          will say the variable is not found.
  * @author Suneth Warnakulasuriya
  * @see @ref TensorAdaptor                  Base class.
  * @see @ref DataValueContainer::GetValue   Variable value retrieval/update method.
