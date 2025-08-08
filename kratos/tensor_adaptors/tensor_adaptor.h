@@ -32,15 +32,10 @@ namespace Kratos {
 
 /**
  * @defgroup TensorAdaptors
- * @brief Tensor adaptors are used to read-in or write-out variable, info, data from entities of ModelPart.
- *        It also provides Extensive interfaces to numpy as well as Span.
- *        Furthermore, it can b used to isolate data from ModelPart so that once isolation of data within a TensorAdaptor is done, same variable can be used to represent something different.
- * @details The TensorAdaptor class is designed to facilitate reading from variables, info, data from each entity
- *          in the containers of ModelPart to the TensorAdaptor or writing the tensor data in the TensorAdaptor to
- *          each entity's variables, info, data in the containers of ModelPart. It encapsulates
- *          mechanisms for safe memory management, including reference counting via intrusive pointers, and provides
- *          interfaces for copying, moving, and viewing internal tensor data. The class also supports querying the shape
- *          and size of the tensor, as well as collecting and storing data from/to Kratos data structures.
+ * @brief Tensor adaptors are used to read or write data from/to entities (nodes, elements, conditions, constraints) of a @ref ModelPart.
+ * @details The @ref TensorAdaptor class is designed to handle reading from variables, info, data from each entity
+ *          in the containers of @p ModelPart to a @p TensorAdaptor instance or vice-versa. It encapsulates
+ *          interfaces for copying, moving, and viewing internal data.
  *
  *          These tensor adaptors are exposed to python as well.
  *
