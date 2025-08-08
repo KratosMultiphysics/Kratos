@@ -162,7 +162,7 @@ protected:
          *          The management of the data should be carried out by the owner of the
          *          returned Kratos::span. Otherwise, there will be memory leaks.
          * @throws If the internal data is already moved.
-         * @return Kratos::span<TDataType>  Returns a span containing the internal data.
+         * @return Returns a span containing the internal data.
          */
         Kratos::span<TDataType> MoveData();
 
