@@ -45,7 +45,7 @@ AxisymmetricUpdatedLagrangianElement::AxisymmetricUpdatedLagrangianElement( Axis
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 AxisymmetricUpdatedLagrangianElement&  AxisymmetricUpdatedLagrangianElement::operator=(AxisymmetricUpdatedLagrangianElement const& rOther)
@@ -322,7 +322,7 @@ double& AxisymmetricUpdatedLagrangianElement::CalculateTotalMass( double& rTotal
 {
     KRATOS_TRY
 
-    //Compute the Volume Change acumulated:
+    //Compute the Volume Change accumulated:
     ElementDataType Variables;
     this->InitializeElementData(Variables,rCurrentProcessInfo);
 
@@ -335,7 +335,7 @@ double& AxisymmetricUpdatedLagrangianElement::CalculateTotalMass( double& rTotal
 	//compute element kinematics
 	this->CalculateKinematics(Variables,PointNumber);
 
-	//getting informations for integration
+	//getting information for integration
         Variables.IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
 
 	//compute point volume change
@@ -363,7 +363,7 @@ void AxisymmetricUpdatedLagrangianElement::CalculateKinematics(ElementDataType& 
 {
     KRATOS_TRY
 
-    //Get the parent coodinates derivative [dN/d£]
+    //Get the parent coordinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
 
     //Get the shape functions for the order of the integration method [N]

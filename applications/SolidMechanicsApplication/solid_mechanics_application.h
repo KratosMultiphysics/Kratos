@@ -516,12 +516,12 @@ typedef array_1d<double,6> Vector6;
    const LinearElasticPlaneStress2DLaw           mLinearElasticPlaneStress2DLaw;
    const LinearElasticAxisym2DLaw                mLinearElasticAxisym2DLaw;
 
-   //Hyperelastic Plastic J2 specilization laws
+   //Hyperelastic Plastic J2 specialization laws
    const HyperElasticPlasticJ23DLaw              mHyperElasticPlasticJ23DLaw;
    const HyperElasticPlasticJ2PlaneStrain2DLaw   mHyperElasticPlasticJ2PlaneStrain2DLaw;
    const HyperElasticPlasticJ2Axisym2DLaw        mHyperElasticPlasticJ2Axisym2DLaw;
 
-   //Hyperelastic Plastic J2 specilization laws U-P
+   //Hyperelastic Plastic J2 specialization laws U-P
    const HyperElasticPlasticUPJ23DLaw            mHyperElasticPlasticUPJ23DLaw;
    const HyperElasticPlasticUPJ2PlaneStrain2DLaw mHyperElasticPlasticUPJ2PlaneStrain2DLaw;
    const HyperElasticPlasticUPJ2Axisym2DLaw      mHyperElasticPlasticUPJ2Axisym2DLaw;

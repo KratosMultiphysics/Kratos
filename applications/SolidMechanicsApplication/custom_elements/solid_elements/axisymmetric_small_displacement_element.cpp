@@ -176,7 +176,7 @@ double& AxisymmetricSmallDisplacementElement::CalculateTotalMass( double& rTotal
 {
     KRATOS_TRY
 
-    //Compute the Volume Change acumulated:
+    //Compute the Volume Change accumulated:
     ElementDataType Variables;
     this->InitializeElementData(Variables,rCurrentProcessInfo);
 
@@ -188,7 +188,7 @@ double& AxisymmetricSmallDisplacementElement::CalculateTotalMass( double& rTotal
 	//compute element kinematics
 	this->CalculateKinematics(Variables,PointNumber);
 
-	//getting informations for integration
+	//getting information for integration
         double IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight() * 2.0 * Globals::Pi * Variables.ReferenceRadius;
 
 	//compute point volume changes
@@ -211,7 +211,7 @@ void AxisymmetricSmallDisplacementElement::CalculateKinematics(ElementDataType& 
 {
     KRATOS_TRY
 
-    //Get the parent coodinates derivative [dN/d£]
+    //Get the parent coordinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
     //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();

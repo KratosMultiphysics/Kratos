@@ -366,7 +366,7 @@ void ShellCrossSection::CalculateSectionResponse(Parameters& rValues, const Cons
   Matrix& LT = variables.LT;
 
   // working matrices to avoid re-allocations when we need to rotate
-  // intput and outputs in composite layups
+  // input and outputs in composite layups
   Matrix R(strain_size, strain_size);
   Matrix DRT(strain_size, strain_size);
   Matrix Rc;
@@ -429,7 +429,7 @@ void ShellCrossSection::CalculateSectionResponse(Parameters& rValues, const Cons
   double oop_stress_norm = 0.0;
   bool   converged = false;
 
-  // BEGIN LOOP: Newthon iteration to solve for condensed strains
+  // BEGIN LOOP: Newton iteration to solve for condensed strains
   while(true)
   {
     noalias( generalizedStressVector ) = ZeroVector( strain_size );
@@ -632,7 +632,7 @@ void ShellCrossSection::CalculateSectionResponse(Parameters& rValues, const Cons
 
     if(iter > max_iter) break;
 
-  } // END LOOP: Newthon iteration
+  } // END LOOP: Newton iteration
 
   if(!converged || compute_constitutive_tensor)
   {
@@ -866,7 +866,7 @@ void ShellCrossSection::UpdateIntegrationPointParameters(IntegrationPoint& rPoin
 
     if(mBehavior == Thick)
     {
-      // get elastic data for the trasverse shear part (treated elastically)
+      // get elastic data for the transverse shear part (treated elastically)
       const Properties& props = rMaterialValues.GetMaterialProperties();
       if(props.Has(SHEAR_MODULUS_YZ) && props.Has(SHEAR_MODULUS_XZ))
       {

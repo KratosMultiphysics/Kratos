@@ -38,7 +38,7 @@ MisesHuberYieldCriterion::MisesHuberYieldCriterion(HardeningLawPointer pHardenin
 
 }
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 MisesHuberYieldCriterion& MisesHuberYieldCriterion::operator=(MisesHuberYieldCriterion const& rOther)

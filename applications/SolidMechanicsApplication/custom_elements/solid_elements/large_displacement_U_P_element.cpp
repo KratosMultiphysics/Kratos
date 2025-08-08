@@ -58,7 +58,7 @@ LargeDisplacementUPElement::LargeDisplacementUPElement( LargeDisplacementUPEleme
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 LargeDisplacementUPElement&  LargeDisplacementUPElement::operator=(LargeDisplacementUPElement const& rOther)
@@ -636,9 +636,9 @@ void LargeDisplacementUPElement::CalculateAndAddStabilizedPressure(VectorType& r
 
     double consistent = 1;
 
-    double FactorValue = 8.0; //JMR deffault value
+    double FactorValue = 8.0; //JMR default value
     if( dimension == 3 )
-      FactorValue = 10.0; //JMC deffault value
+      FactorValue = 10.0; //JMC default value
 
     for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
@@ -968,9 +968,9 @@ void LargeDisplacementUPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSi
 
     double consistent = 1.0;
 
-    double FactorValue = 8.0; //JMR deffault value
+    double FactorValue = 8.0; //JMR default value
     if( dimension == 3 )
-      FactorValue = 10.0; //JMC deffault value
+      FactorValue = 10.0; //JMC default value
 
     for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
@@ -1050,7 +1050,7 @@ void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, c
       //compute element kinematics
       this->CalculateKinematics( Variables, PointNumber );
 
-      //getting informations for integration
+      //getting information for integration
       Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 
       Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
@@ -1161,7 +1161,7 @@ void LargeDisplacementUPElement::CalculateDampingMatrix( MatrixType& rDampingMat
     this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
 
 
-    //3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    //3.-Get Damping Coefficients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
     double alpha = 0;
     if( GetProperties().Has(RAYLEIGH_ALPHA) ){
       alpha = GetProperties()[RAYLEIGH_ALPHA];
