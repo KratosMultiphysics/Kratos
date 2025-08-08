@@ -152,7 +152,7 @@ protected:
          * @brief Creates a copy of the current storage object.
          * @details This method returns a pointer to a new Storage object that is having copied data and copied
          *          pointer to the container.
-         * @return Storage::Pointer A pointer to the copied Storage object.
+         * @return A pointer to the copied @p Storage object.
          */
         Storage::Pointer Copy() const;
 
