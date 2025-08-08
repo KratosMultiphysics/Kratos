@@ -139,7 +139,7 @@ protected:
         /**
          * @brief Destroy the Tensor Adaptor storage
          * @details This method destroys the TensorAdaptorStorage and
-         *          the internal data as well if it is still owned by the TensorAdaptorStorage.
+         *          the internal data as well if it is still owned by @p Storage.
          *
          */
         ~Storage();
