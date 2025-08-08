@@ -1394,7 +1394,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
 
     if (mVariables.Is(PHASE_FRACTION, "Fluid")){
         const double particle_mass = particle.GetMass();
-        p_elem->GetGeometry()[i_nearest_node].FastGetSolutionStepValue(PHASE_FRACTION) += particle_mass; // here we add the mass contribution. Later we devide by the total mass of the element
+        p_elem->GetGeometry()[i_nearest_node].FastGetSolutionStepValue(PHASE_FRACTION) += particle_mass; // here we add the mass contribution. Later we divide by the total mass of the element
     }
 }
 //***************************************************************************************************************
@@ -1408,14 +1408,14 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
     const double particle_volume = particle.CalculateVolume();
 
     for (unsigned int i = 0; i < TDim + 1; ++i){
-        p_elem->GetGeometry()[i].FastGetSolutionStepValue(FLUID_FRACTION) += N[i] * particle_volume; // no multiplying by element_volume since we devide by it to get the contributed volume fraction
+        p_elem->GetGeometry()[i].FastGetSolutionStepValue(FLUID_FRACTION) += N[i] * particle_volume; // no multiplying by element_volume since we divide by it to get the contributed volume fraction
     }
 
     if (mVariables.Is(PHASE_FRACTION, "Fluid")){
         const double particle_mass = particle.GetMass();
 
         for (unsigned int i = 0; i < TDim + 1; ++i){
-            p_elem->GetGeometry()[i].FastGetSolutionStepValue(PHASE_FRACTION) += N[i] * particle_mass; // here we add the mass contribution. Later we devide by the total mass of the element
+            p_elem->GetGeometry()[i].FastGetSolutionStepValue(PHASE_FRACTION) += N[i] * particle_mass; // here we add the mass contribution. Later we divide by the total mass of the element
         }
     }
 }
