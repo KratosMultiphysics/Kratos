@@ -101,8 +101,8 @@ public:
     {
         KRATOS_TRY
         CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id());
-        CheckHasSolutionStepsDataFor(WATER_PRESSURE);
-        CheckHasDofsFor(WATER_PRESSURE);
+        CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), WATER_PRESSURE);
+        CheckUtilities::CheckHasDofsFor(this->GetGeometry(), WATER_PRESSURE);
         CheckProperties();
         // conditional on model dimension
         if constexpr (TDim == 2) {
@@ -226,42 +226,16 @@ public:
     std::string Info() const override { return "GeoSteadyStatePwPipingElement"; }
 
 private:
-    void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
-    {
-        for (const auto& node : GetGeometry()) {
-            KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(rVariable))
-                << "Missing variable " << rVariable.Name() << " on node " << node.Id() << std::endl;
-        }
-    }
-
-    void CheckHasDofsFor(const Variable<double>& rVariable) const
-    {
-        for (const auto& node : GetGeometry()) {
-            KRATOS_ERROR_IF_NOT(node.HasDofFor(rVariable))
-                << "Missing degree of freedom for " << rVariable.Name() << " on node " << node.Id()
-                << std::endl;
-        }
-    }
-
     void CheckProperties() const
     {
         // typical material parameters check, this should be in the check of the constitutive
         // law. possibly check PIPE_HEIGHT, CROSS_SECTION == 1.0
-        CheckProperty(DENSITY_WATER);
-        CheckProperty(DYNAMIC_VISCOSITY);
-        CheckProperty(PIPE_HEIGHT);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), DENSITY_WATER);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), DYNAMIC_VISCOSITY);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), PIPE_HEIGHT);
         if constexpr (TDim == 3) {
-            CheckProperty(PIPE_WIDTH_FACTOR);
+            CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), PIPE_WIDTH_FACTOR);
         }
-    }
-
-    void CheckProperty(const Kratos::Variable<double>& rVariable) const
-    {
-        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
-            << rVariable.Name() << " does not exist in the properties of element " << Id() << std::endl;
-        KRATOS_ERROR_IF(GetProperties()[rVariable] < 0.0)
-            << rVariable.Name() << " (" << GetProperties()[rVariable]
-            << ") is not in the range [0,-> at element " << Id() << std::endl;
     }
 
     void CheckForNonZeroZCoordinate() const
