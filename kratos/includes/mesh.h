@@ -56,10 +56,10 @@ namespace Kratos
 /**
  * @class Mesh
  * @ingroup KratosCore
- * @brief Mesh is the second level of abstraction in the data structure which hold Nodes, Elements and Conditions and their Properties.
- * @details Mesh is the second level of abstraction in the data structure which hold Nodes, Elements and Conditions and their Properties.
+ * @brief Mesh is the second level of abstraction in the data structure which hold Nodes, Elements, Conditions, Geometries and their Properties.
+ * @details Mesh is the second level of abstraction in the data structure which hold Nodes, Elements, Conditions, Geometries and their Properties.
  * In other words, Mesh is a complete pack of all type of entities without any additional data associated with them.
- * So a set of Elements and Conditions with their Nodes and Properties can be grouped together as a Mesh and send to
+ * So a set of Elements, Conditions and Geometries with their Nodes and Properties can be grouped together as a Mesh and send to
  * procedures like mesh refinement, material optimization, mesh movement or any other procedure which works on entities
  * without needing additional data for their processes.
  * @author Pooyan Dadvand
@@ -155,6 +155,21 @@ public:
     /// Const iterator for conditions in the container. Provides direct references to conditions.
     using ConditionConstantIterator = typename ConditionsContainerType::const_iterator;
 
+    /// Type alias for the container of geometries.
+    using GeometryContainerType = PointerVectorSet<GeometryType,
+        IndexedObject,
+        std::less<typename IndexedObject::result_type>,
+        std::equal_to<typename IndexedObject::result_type>,
+        typename GeometryType::Pointer,
+        std::vector<typename GeometryType::Pointer>
+    >;
+
+    /// Iterator for geometries in the container. Provides direct references to geometries.
+    using GeometryIterator = typename GeometryContainerType::iterator;
+
+    /// Const iterator for geometries in the container. Provides direct references to geometries.
+    using GeometryConstantIterator = typename GeometryContainerType::const_iterator;
+
     /// Type alias for the container of master-slave constraints.
     using MasterSlaveConstraintContainerType = PointerVectorSet<MasterSlaveConstraintType, IndexedObject>;
 
@@ -174,6 +189,7 @@ public:
         , mpProperties(new PropertiesContainerType())
         , mpElements(new ElementsContainerType())
         , mpConditions(new ConditionsContainerType())
+        , mpGeometries(new GeometryContainerType())
         , mpMasterSlaveConstraints(new MasterSlaveConstraintContainerType()) {}
 
     /// Copy constructor.
@@ -182,6 +198,7 @@ public:
         , mpProperties(rOther.mpProperties)
         , mpElements(rOther.mpElements)
         , mpConditions(rOther.mpConditions)
+        , mpGeometries(rOther.mpGeometries)
         , mpMasterSlaveConstraints(rOther.mpMasterSlaveConstraints) {}
 
     /// Components constructor.
@@ -189,8 +206,9 @@ public:
          typename PropertiesContainerType::Pointer NewProperties,
          typename ElementsContainerType::Pointer NewElements,
          typename ConditionsContainerType::Pointer NewConditions,
+         typename GeometryContainerType::Pointer NewGeometries,
          typename MasterSlaveConstraintContainerType::Pointer NewMasterSlaveConditions)
-        : Flags(), mpNodes(NewNodes), mpProperties(NewProperties) , mpElements(NewElements), mpConditions(NewConditions), mpMasterSlaveConstraints(NewMasterSlaveConditions) {}
+        : Flags(), mpNodes(NewNodes), mpProperties(NewProperties) , mpElements(NewElements), mpConditions(NewConditions), mpGeometries(NewGeometries), mpMasterSlaveConstraints(NewMasterSlaveConditions) {}
 
 
     /// Destructor.
@@ -210,9 +228,10 @@ public:
         typename PropertiesContainerType::Pointer p_properties(new PropertiesContainerType(*mpProperties));
         typename ElementsContainerType::Pointer p_elements(new ElementsContainerType(*mpElements));
         typename ConditionsContainerType::Pointer p_conditions(new ConditionsContainerType(*mpConditions));
+        typename GeometryContainerType::Pointer p_geometries(new GeometryContainerType(*mpGeometries));
         typename MasterSlaveConstraintContainerType::Pointer p_master_slave_constraints(new MasterSlaveConstraintContainerType(*mpMasterSlaveConstraints));
 
-        return Mesh(p_nodes, p_properties, p_elements, p_conditions, p_master_slave_constraints);
+        return Mesh(p_nodes, p_properties, p_elements, p_conditions, p_geometries, p_master_slave_constraints);
     }
 
     void Clear()
@@ -223,6 +242,7 @@ public:
         mpProperties->clear();
         mpElements->clear();
         mpConditions->clear();
+        mpGeometries->clear();
         mpMasterSlaveConstraints->clear();
     }
 
@@ -720,6 +740,182 @@ public:
     }
 
     ///@}
+    ///@name Geometries
+    ///@{
+
+    SizeType NumberOfGeometries() const
+    {
+        return mpGeometries->size();
+    }
+
+    /** Inserts a geometry in the mesh.
+    */
+    void AddGeometry(typename GeometryType::Pointer pNewGeometry)
+    {
+        mpGeometries->insert(mpGeometries->end(), pNewGeometry);
+    }
+
+    /** Returns the Geometry::Pointer corresponding to it's identifier */
+    typename GeometryType::Pointer pGetGeometry(IndexType GeometryId)
+    {
+        auto i = mpGeometries->find(GeometryId);
+        KRATOS_ERROR_IF(i == mpGeometries->end()) << "Geometry index not found: " << GeometryId << "." << std::endl;
+        return *i.base();
+    }
+
+    /** Returns the Geometry::Pointer corresponding to it's identifier */
+    const typename GeometryType::Pointer pGetGeometry(const IndexType GeometryId) const
+    {
+        const auto& r_Geometries = *mpGeometries;
+        auto i = r_Geometries.find(GeometryId);
+        KRATOS_ERROR_IF(i == r_Geometries.end()) << "Geometry index not found: " << GeometryId << "." << std::endl;
+        return *i.base();
+    }
+
+    /** Returns the Geometry::Pointer corresponding to it's name */
+    typename GeometryType::Pointer pGetGeometry(std::string GeometryName)
+    {
+        auto hash_index = GeometryType::GenerateId(GeometryName);
+        auto i = mpGeometries->find(hash_index);
+        KRATOS_ERROR_IF(i == mpGeometries->end()) << "Geometry name not found: " << GeometryName << "." << std::endl;
+        return *i.base();
+    }
+
+    /** Returns the Geometry::Pointer corresponding to it's name */
+    const typename GeometryType::Pointer pGetGeometry(const std::string GeometryName) const
+    {
+        auto hash_index = GeometryType::GenerateId(GeometryName);
+        const auto& r_Geometries = *mpGeometries;
+        auto i = r_Geometries.find(hash_index);
+        KRATOS_ERROR_IF(i == r_Geometries.end()) << "Geometry name not found: " << GeometryName << "." << std::endl;
+        return *i.base();
+    }
+
+    /** Returns a reference geometry corresponding to it's identifier */
+    GeometryType& GetGeometry(IndexType GeometryId)
+    {
+        auto i = mpGeometries->find(GeometryId);
+        KRATOS_ERROR_IF(i == mpGeometries->end()) << "Geometry index not found: " << GeometryId << "." << std::endl;
+        return *i;
+    }
+
+    /** Returns a reference geometry corresponding to it's identifier */
+    const GeometryType& GetGeometry(IndexType GeometryId) const
+    {
+        const auto& r_Geometries = *mpGeometries;
+        auto i = r_Geometries.find(GeometryId);
+        KRATOS_ERROR_IF(i == r_Geometries.end()) << "Geometry index not found: " << GeometryId << "." << std::endl;
+        return *i;
+    }
+
+    /** Returns a reference geometry corresponding to it's name */
+    GeometryType& GetGeometry(std::string GeometryName)
+    {
+        auto hash_index = GeometryType::GenerateId(GeometryName);
+        auto i = mpGeometries->find(hash_index);
+        KRATOS_ERROR_IF(i == mpGeometries->end()) << "Geometry name not found: " << GeometryName << "." << std::endl;
+        return *i;
+    }
+
+    /** Returns a reference geometry corresponding to it's name */
+    const GeometryType& GetGeometry(std::string GeometryName) const
+    {
+        auto hash_index = GeometryType::GenerateId(GeometryName);
+        const auto& r_Geometries = *mpGeometries;
+        auto i = r_Geometries.find(hash_index);
+        KRATOS_ERROR_IF(i == r_Geometries.end()) << "Geometry name not found: " << GeometryName << "." << std::endl;
+        return *i;
+    }
+
+    /** Remove the geometry with given Id from mesh.
+    */
+    void RemoveGeometry(IndexType GeometryId)
+    {
+        mpGeometries->erase(GeometryId);
+    }
+
+    /** Remove the geometry with given name from mesh.
+    */
+    void RemoveGeometry(std::string GeometryName)
+    {
+        auto index = GeometryType::GenerateId(GeometryName);
+        mpGeometries->erase(index);
+    }
+
+    /** Remove given geometry from mesh.
+    */
+    void RemoveGeometry(GeometryType& ThisGeometry)
+    {
+        mpGeometries->erase(ThisGeometry.Id());
+    }
+
+    /** Remove given geometry from mesh.
+    */
+    void RemoveGeometry(typename GeometryType::Pointer pThisGeometry)
+    {
+        mpGeometries->erase(pThisGeometry->Id());
+    }
+
+    GeometryIterator GeometriesBegin()
+    {
+        return mpGeometries->begin();
+    }
+
+    GeometryConstantIterator GeometriesBegin() const
+    {
+        return mpGeometries->begin();
+    }
+
+    GeometryIterator GeometriesEnd()
+    {
+        return mpGeometries->end();
+    }
+
+    GeometryConstantIterator GeometriesEnd() const
+    {
+        return mpGeometries->end();
+    }
+
+    GeometryContainerType& Geometries()
+    {
+        return *mpGeometries;
+    }
+
+    const GeometryContainerType& Geometries() const
+    {
+        return *mpGeometries;
+    }
+
+    typename GeometryContainerType::Pointer pGeometries()
+    {
+        return mpGeometries;
+    }
+
+    void SetGeometries(typename GeometryContainerType::Pointer pOtherGeometries)
+    {
+        mpGeometries = pOtherGeometries;
+    }
+
+    typename GeometryContainerType::ContainerType& GeometriesArray()
+    {
+        return mpGeometries->GetContainer();
+    }
+
+    bool HasGeometry(IndexType GeometryId) const
+    {
+        const auto& r_geometries = *mpGeometries;
+        return (r_geometries.find(GeometryId) != r_geometries.end());
+    }
+
+    bool HasGeometry(std::string GeometryName) const
+    {
+        const auto& r_geometries = *mpGeometries;
+        auto hash_index = GeometryType::GenerateId(GeometryName);
+        return (r_geometries.find(hash_index) != r_geometries.end());
+    }
+
+
+    ///@}
     ///@name MasterSlaveConstraints
     ///@{
 
@@ -868,6 +1064,7 @@ public:
         rOStream << "    Number of Properties  : " << mpProperties->size() << std::endl;
         rOStream << "    Number of Elements    : " << mpElements->size() << std::endl;
         rOStream << "    Number of Conditions  : " << mpConditions->size() << std::endl;
+        rOStream << "    Number of Geometries  : " << mpGeometries->size() << std::endl;
         rOStream << "    Number of Constraints : " << mpMasterSlaveConstraints->size() << std::endl;
     }
 
@@ -884,6 +1081,7 @@ public:
         rOStream << PrefixString << "    Number of Properties  : " << mpProperties->size() << std::endl;
         rOStream << PrefixString << "    Number of Elements    : " << mpElements->size() << std::endl;
         rOStream << PrefixString << "    Number of Conditions  : " << mpConditions->size() << std::endl;
+        rOStream << PrefixString << "    Number of Geometries  : " << mpGeometries->size() << std::endl;
         rOStream << PrefixString << "    Number of Constraints : " << mpMasterSlaveConstraints->size() << std::endl;
     }
 
@@ -937,6 +1135,8 @@ private:
 
     typename ConditionsContainerType::Pointer mpConditions;
 
+    typename GeometryContainerType::Pointer mpGeometries;
+
     typename MasterSlaveConstraintContainerType::Pointer mpMasterSlaveConstraints;
 
 
@@ -962,6 +1162,7 @@ private:
         rSerializer.save("Properties",mpProperties);
         rSerializer.save("Elements",mpElements);
         rSerializer.save("Conditions",mpConditions);
+        rSerializer.save("Geometries",mpGeometries);
         rSerializer.save("Constraints",mpMasterSlaveConstraints);
     }
 
@@ -973,6 +1174,7 @@ private:
         rSerializer.load("Properties",mpProperties);
         rSerializer.load("Elements",mpElements);
         rSerializer.load("Conditions",mpConditions);
+        rSerializer.load("Geometries",mpGeometries);
         rSerializer.load("Constraints",mpMasterSlaveConstraints);
     }
 
@@ -997,6 +1199,7 @@ private:
         mpProperties = rOther.mpProperties;
         mpElements = rOther.mpElements;
         mpConditions = rOther.mpConditions;
+        mpGeometries = rOther.mpGeometries;
         mpMasterSlaveConstraints = rOther.mpMasterSlaveConstraints;
     }
 
