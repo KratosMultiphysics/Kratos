@@ -37,9 +37,7 @@ namespace Kratos {
  *          in the containers of @p ModelPart to a @p TensorAdaptor instance or vice-versa. It encapsulates
  *          interfaces for copying, moving, and viewing internal data.
  *
- *          These tensor adaptors are exposed to python as well.
- *
- *          Example:
+ *          Example in C++:
  *          @code
  *              auto model = Model();
  *              auto& model_part = model.CreateModelPart("test");
