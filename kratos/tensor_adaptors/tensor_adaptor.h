@@ -106,8 +106,7 @@ protected:
      *
      * @p Storage encapsulates a pointer to a container (such as nodes, elements, conditions, etc.) and manages
      * the associated tensor data. It provides mechanisms for copying, moving, and viewing the internal data, as well as
-     * querying the shape and size of the tensor. Reference counting is implemented for safe memory management using
-     * intrusive pointers.
+     * querying the shape and size of the tensor.
      *
      * @tparam TDataType The type of the data stored in the tensor adaptor.
      */
