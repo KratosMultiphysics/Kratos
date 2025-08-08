@@ -104,7 +104,7 @@ protected:
      * @class Storage
      * @brief Manages the storage and lifetime of tensor adaptor data associated with various containers in @ref ModelPart.
      *
-     * The Storage class encapsulates a pointer to a container (such as nodes, elements, conditions, etc.) and manages
+     * @p Storage encapsulates a pointer to a container (such as nodes, elements, conditions, etc.) and manages
      * the associated tensor data. It provides mechanisms for copying, moving, and viewing the internal data, as well as
      * querying the shape and size of the tensor. Reference counting is implemented for safe memory management using
      * intrusive pointers.
