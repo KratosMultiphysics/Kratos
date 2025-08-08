@@ -102,7 +102,7 @@ protected:
 
     /**
      * @class Storage
-     * @brief Manages the storage and lifetime of tensor adaptor data associated with various Kratos ModelPart containers.
+     * @brief Manages the storage and lifetime of tensor adaptor data associated with various containers in @ref ModelPart.
      *
      * The Storage class encapsulates a pointer to a container (such as nodes, elements, conditions, etc.) and manages
      * the associated tensor data. It provides mechanisms for copying, moving, and viewing the internal data, as well as
