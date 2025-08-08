@@ -31,10 +31,7 @@ namespace Kratos {
  */
 
 template<class T, class... TList>
-struct IsInListImpl: public std::disjunction<std::is_same<T, TList>...> {};
-
-template<class T, class... TList>
-constexpr bool IsInList = IsInListImpl<T, TList...>::value;
+constexpr bool IsInList = std::disjunction<std::is_same<T, TList>...>::value;
 
 template <class T>
 struct BareTypeImpl {
