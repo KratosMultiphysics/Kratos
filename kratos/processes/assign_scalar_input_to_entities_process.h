@@ -90,6 +90,17 @@ public:
     ///@{
 
     /**
+     * @brief This method creates an pointer of the process
+     * @details We consider as input a Model and a set of Parameters for the sake of generality
+     * @param rModel The model to be consider
+     * @param ThisParameters The configuration parameters
+     */
+    AssignScalarInputToEntitiesProcess(
+        Model& rModel,
+        Parameters rParameters
+        );
+
+    /**
      * @brief Default constructor
      * @param rModelPart The model part to be set
      * @param rParameters The configuration parameters

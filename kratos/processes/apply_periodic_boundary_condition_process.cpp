@@ -67,6 +67,13 @@ ApplyPeriodicConditionProcess::~ApplyPeriodicConditionProcess()
 {
 }
 
+Process::Pointer ApplyPeriodicConditionProcess::Create(Model &rModel, Parameters ThisParameters)
+{
+    const std::string master_model_part_name = ThisParameters["master_model_part_name"].GetString();
+    const std::string slave_model_part_name = ThisParameters["slave_model_part_name"].GetString();
+    return Kratos::make_unique<ApplyPeriodicConditionProcess>(rModel.GetModelPart(master_model_part_name), rModel.GetModelPart(slave_model_part_name), ThisParameters);
+}
+
 /**
     * @brief  Function to remove the common nodes of slave and master modelparts from the slave modelpart
     */

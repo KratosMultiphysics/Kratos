@@ -34,6 +34,17 @@ const Kratos::Flags AssignScalarInputToEntitiesProcess<TEntity, THistorical>::GE
 
 template<class TEntity, bool THistorical>
 AssignScalarInputToEntitiesProcess<TEntity, THistorical>::AssignScalarInputToEntitiesProcess(
+    Model& rModel,
+    Parameters rParameters
+    ) : AssignScalarInputToEntitiesProcess(rModel.GetModelPart(rParameters["model_part_name"].GetString()), rParameters)
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity, bool THistorical>
+AssignScalarInputToEntitiesProcess<TEntity, THistorical>::AssignScalarInputToEntitiesProcess(
     ModelPart& rModelPart,
     Parameters rParameters
     ) : Process(Flags()) ,
@@ -642,3 +653,4 @@ template class AssignScalarInputToEntitiesProcess<Condition>;
 template class AssignScalarInputToEntitiesProcess<Element>;
 
 }  // namespace Kratos.
+Process::Pointer Assignscalarinputtoentitiesprocess::Create(    Model& rModel,    Parameters ThisParameters    ){    return Kratos::make_shared<Assignscalarinputtoentitiesprocess>(rModel, ThisParameters);}
