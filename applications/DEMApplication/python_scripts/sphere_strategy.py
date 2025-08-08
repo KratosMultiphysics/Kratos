@@ -469,45 +469,28 @@ class ExplicitStrategy():
         self.SolveSolutionStep()
 
     def SolveSolutionStep(self):
+        self.cplusplus_strategy.InitializeSolutionStep()
+        self.dem_fem_utils.MoveAllMeshes(self.all_model_parts.Get("RigidFacePart"), self.spheres_model_part.ProcessInfo[TIME], self.dt)
         self.cplusplus_strategy.SolveSolutionStep()
-        return True
 
     def AdvanceInTime(self, time):
-        """This function updates and return the current simulation time
-        """
         time += self.dt
         self._UpdateTimeInModelParts(time)
-
         return time
 
     def _MoveAllMeshes(self, time, dt):
-        spheres_model_part = self.all_model_parts.Get("SpheresPart")
-        dem_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
-
-        self.dem_fem_utils.MoveAllMeshes(spheres_model_part, time, dt)
-        self.dem_fem_utils.MoveAllMeshes(dem_inlet_model_part, time, dt)
         self.dem_fem_utils.MoveAllMeshes(rigid_face_model_part, time, dt)
 
     def _UpdateTimeInModelParts(self, time, is_time_to_print = False):
         spheres_model_part = self.all_model_parts.Get("SpheresPart")
-        cluster_model_part = self.all_model_parts.Get("ClusterPart")
-        dem_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
-
         self._UpdateTimeInOneModelPart(spheres_model_part, time, self.dt, is_time_to_print)
-        self._UpdateTimeInOneModelPart(cluster_model_part, time, self.dt, is_time_to_print)
-        self._UpdateTimeInOneModelPart(dem_inlet_model_part, time, self.dt, is_time_to_print)
         self._UpdateTimeInOneModelPart(rigid_face_model_part, time, self.dt, is_time_to_print)
 
     @classmethod
     def _UpdateTimeInOneModelPart(self, model_part, time, dt, is_time_to_print = False):
-        ''' This method is redirected to its cpp version with improved speed.
-        It also has been updated to classmethod and args so it can be called from external App
-        '''
-
         AuxiliaryUtilities().UpdateTimeInOneModelPart(model_part, time, dt, is_time_to_print)
-
 
     def FinalizeSolutionStep(self):
         self.cplusplus_strategy.FinalizeSolutionStep()
@@ -515,19 +498,16 @@ class ExplicitStrategy():
     def Finalize(self):
         pass
 
-    def InitializeSolutionStep(self):
-        time = self.spheres_model_part.ProcessInfo[TIME]
-        self.FixDOFsManually(time)
+    def ResetPrescribedMotionFlagsRespectingImposedDofs(self):
         self.cplusplus_strategy.ResetPrescribedMotionFlagsRespectingImposedDofs()
-        self.FixExternalForcesManually(time)
 
+    def InitializeSolutionStep(self):
         self.cplusplus_strategy.InitializeSolutionStep()
 
     def SetNormalRadiiOnAllParticles(self):
         self.cplusplus_strategy.SetNormalRadiiOnAllParticlesBeforeInitilization(self.spheres_model_part)
 
     def SetSearchRadiiOnAllParticles(self):
-
         self.cplusplus_strategy.SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
 
     def RebuildListOfDiscontinuumSphericParticles(self):

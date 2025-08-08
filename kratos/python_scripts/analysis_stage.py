@@ -56,14 +56,11 @@ class AnalysisStage(object):
         return self.time < self.end_time
 
     def RunSolutionLoop(self):
-        """This function executes the solution loop of the AnalysisStage
-        It can be overridden by derived classes
-        """
-        while self.KeepAdvancingSolutionLoop():
-            self.time = self._AdvanceTime()
-            self.InitializeSolutionStep()
-            self._GetSolver().Predict()
-            is_converged = self._GetSolver().SolveSolutionStep()
+        self._GetSolver().ResetPrescribedMotionFlagsRespectingImposedDofs()
+        while self.time < self.end_time:
+            self.time = self._solver.AdvanceInTime(self.time)
+            self.PrintAnalysisStageProgressInformation()
+            self._solver.SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
@@ -135,28 +132,14 @@ class AnalysisStage(object):
         return {}
 
     def InitializeSolutionStep(self):
-        """This function performs all the required operations that should be executed
-        (for each step) BEFORE solving the solution step.
-        """
         self.PrintAnalysisStageProgressInformation()
-
-        self.ApplyBoundaryConditions() #here the processes are called
-        self.ChangeMaterialProperties() #this is normally empty
-        self._GetSolver().InitializeSolutionStep()
-
 
     def PrintAnalysisStageProgressInformation(self):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
 
     def FinalizeSolutionStep(self):
-        """This function performs all the required operations that should be executed
-        (for each step) AFTER solving the solution step.
-        """
-        self._GetSolver().FinalizeSolutionStep()
-
-        for process in self._GetListOfProcesses():
-            process.ExecuteFinalizeSolutionStep()
+        pass #self._solver.FinalizeSolutionStep()
 
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
