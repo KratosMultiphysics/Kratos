@@ -151,14 +151,14 @@ namespace Kratos
 
          /*
             Create strain_n and incremental strain
-            ( for large strains should be overrided ) 
+            ( for large strains should be overridden ) 
           */
 
          virtual void CreateStrainsVectors( UmatDataType & rVariables, double* & rpStrain, double* & rpIncrementalStrain) override;
 
          /* 
             Create stress_n
-            ( for large strains should be overrided )
+            ( for large strains should be overridden )
           */
          virtual void CreateStressAtInitialState( UmatDataType & rVariables, double* & rpStressVector) override;
 
@@ -169,7 +169,7 @@ namespace Kratos
 
          
          /*
-            Set the constitutiveMatrixToThe appropiate size
+            Set the constitutiveMatrix to the appropriate size
             */
 
          virtual void SetConstitutiveMatrix( Matrix & rC, const Matrix & rCBig, const MatrixType& rStressMatrix) override;

@@ -381,7 +381,7 @@ class ULF_FSISolver:
 
 
         ##############THIS IS FOR EMBEDDED"""""""""""""""""""""""""
-        print("end of remesh fucntion")
+        print("end of remesh function")
     ######################################################################
     def FindNeighbours(self):
         (self.neigh_finder).Execute();
