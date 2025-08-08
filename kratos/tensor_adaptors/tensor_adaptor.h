@@ -59,7 +59,8 @@ namespace Kratos {
  *
  *              var_ta.StoreData(); // Writes back the modified tensor adaptor data back to each node's PRESSURE variable.
  *          @endcode
- *          The following is the equivalent python example.
+ *
+ *          Equivalent python code:
  *          @code{.py}
  *              import KratosMultiphysics as Kratos
  *
