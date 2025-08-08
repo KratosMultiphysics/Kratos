@@ -168,7 +168,7 @@ protected:
 
         /**
          * @brief Return a view of the internal data structure.
-         * @throws If the internal data is already moved.
+         * @throws If the internal data was moved via @ref Storage::MoveData.
          */
         Kratos::span<const TDataType>  ViewData() const;
 
