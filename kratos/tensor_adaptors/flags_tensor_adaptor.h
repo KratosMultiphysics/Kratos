@@ -43,14 +43,14 @@ namespace Kratos {
  * - @ref ModelPart::ElementsContainerType
  *
  * @section Usage
- * - Use Check() to verify the tensor data shape compatibility.
- * - Use CollectData() to fill internal tensor data from flag values from nodes, conditions and elements.
- * - Use StoreData() to store back the internal tensor data to flag values of nodes, conditions and elements.
+ * - Use @ref Check to verify the tensor data shape compatibility.
+ * - Use @ref CollectData to fill internal tensor data from flag values from nodes, conditions and elements.
+ * - Use @ref StoreData to store back the internal tensor data to flag values of nodes, conditions and elements.
  *
  * @author Suneth Warnakulasuriya
- * @see @ref TensorAdaptor                 Base class.
- * @see @ref Flags::Is                     Method used to retrieve flag status from entities.
- * @see @ref Flags::Set                    Method used to set the flag status in the entities.
+ * @see TensorAdaptor                 Base class.
+ * @see Flags::Is                     Method used to retrieve flag status from entities.
+ * @see Flags::Set                    Method used to set the flag status in the entities.
  */
 class KRATOS_API(KRATOS_CORE) FlagsTensorAdaptor: public TensorAdaptor<bool> {
 public:
