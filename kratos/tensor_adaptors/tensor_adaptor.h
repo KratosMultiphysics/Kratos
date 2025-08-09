@@ -279,7 +279,7 @@ public:
     ///@{
 
     /**
-     * @brief Check if necessary data is present in the underlying pointer vector sets.
+     * @brief Check if the necessary data is present in the underlying container.
      * @details This method should not change anything in the underlying Kratos data structures. It should
      *          only check data from Kratos data structures whether necessary information is there to perform
      *          CollectData and StoreData without any errors.
