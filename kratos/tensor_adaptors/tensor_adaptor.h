@@ -299,7 +299,7 @@ public:
     virtual void StoreData();
 
     /**
-     * @brief Get the data container which is associated with the TensorAdaptor.
+     * @brief Get the entity container which is associated with the @p TensorAdaptor instance.
      */
     typename Storage::ContainerPointerType GetContainer() const;
 
