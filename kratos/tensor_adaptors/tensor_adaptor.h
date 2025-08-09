@@ -200,7 +200,6 @@ protected:
 
         /**
          * @brief Returns the number of elements in the tensor adaptor.
-         * @return The size as an unsigned integer.
          */
         unsigned int Size() const;
 
