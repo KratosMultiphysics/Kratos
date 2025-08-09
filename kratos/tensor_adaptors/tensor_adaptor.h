@@ -184,7 +184,7 @@ protected:
          *          array corresponds to the size of the tensor in that particular dimension. The first
          *          dimension always represents the number of entities stored in the container.
          *
-         * @return DenseVector<unsigned int> A vector containing the size of each dimension of the tensor.
+         * @return A vector containing the size of each dimension of the tensor.
          */
         DenseVector<unsigned int> Shape() const;
 
