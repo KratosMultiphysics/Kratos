@@ -653,4 +653,3 @@ template class AssignScalarInputToEntitiesProcess<Condition>;
 template class AssignScalarInputToEntitiesProcess<Element>;
 
 }  // namespace Kratos.
-Process::Pointer Assignscalarinputtoentitiesprocess::Create(    Model& rModel,    Parameters ThisParameters    ){    return Kratos::make_shared<Assignscalarinputtoentitiesprocess>(rModel, ThisParameters);}
