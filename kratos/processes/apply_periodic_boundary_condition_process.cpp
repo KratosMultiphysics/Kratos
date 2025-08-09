@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "processes/apply_periodic_boundary_condition_process.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"
 #include "utilities/geometrical_transformation_utilities.h"
