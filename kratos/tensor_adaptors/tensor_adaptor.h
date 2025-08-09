@@ -179,7 +179,7 @@ protected:
         Kratos::span<TDataType> ViewData();
 
         /**
-         * @brief Returns the shape of the tensor as a dense vector of unsigned integers.
+         * @brief Returns the shape of the tensor.
          * @details This function provides the dimensions of the tensor, where each element in the returned
          *          DenseVector corresponds to the size of the tensor in that particular dimension. First
          *          dimension always represents how many entities are in the container.
