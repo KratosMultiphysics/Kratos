@@ -289,7 +289,7 @@ public:
     /**
      * @brief Fill the internal data from Kratos data structures.
      * @details This method should not change anything in the underlying Kratos data structures. It should
-     *          only gather data from Kratos data structures to the TensorAdaptor.
+     *          only gather data from Kratos data structures to the @ref TensorAdaptor instance.
      */
     virtual void CollectData();
 
