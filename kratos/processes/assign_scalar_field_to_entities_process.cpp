@@ -60,6 +60,18 @@ AssignScalarFieldToEntitiesProcess<TEntity, THistorical>::AssignScalarFieldToEnt
 /***********************************************************************************/
 
 template<class TEntity, bool THistorical>
+Process::Pointer AssignScalarFieldToEntitiesProcess<TEntity, THistorical>::Create(
+    Model& rModel,
+    Parameters ThisParameters)
+{
+    return Kratos::make_shared<AssignScalarFieldToEntitiesProcess<TEntity, THistorical>>(rModel, ThisParameters);
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity, bool THistorical>
 void AssignScalarFieldToEntitiesProcess<TEntity, THistorical>::Execute()
 {
     KRATOS_TRY;

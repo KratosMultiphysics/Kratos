@@ -89,6 +89,12 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// @copydoc Process::Create
+    AssignScalarInputToEntitiesProcess(
+        Model& rModel,
+        Parameters rParameters
+        );
+
     /**
      * @brief Default constructor
      * @param rModelPart The model part to be set
