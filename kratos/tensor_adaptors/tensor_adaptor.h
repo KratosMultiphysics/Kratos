@@ -307,7 +307,7 @@ public:
      * @brief Moves the internal data.
      * @warning The TensorAdaptor should not be used after the move is called.
      *          The management of the data should be carried out by the owner of the
-     *          returned Kratos::span. Otherwise, there will be memory leaks.
+     *          returned @ref Kratos::span "span". Otherwise, there will be memory leaks.
      * @throws If the internal data is already moved.
      * @return Kratos::span<TDataType>  Returns a span containing the internal data.
      */
