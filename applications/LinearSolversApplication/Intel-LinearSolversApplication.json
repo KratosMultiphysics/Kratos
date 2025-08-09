@@ -1,0 +1,11 @@
+{
+	"wheel_name": "KratosLinearSolversApplication",
+	"included_modules": ["LinearSolversApplication"],
+	"included_binaries": ["KratosLinearSolversApplication.*", "KratosLinearSolversCore.*", "libKratosLinearSolversCore.*", "mkl*"],
+	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
+	"author": "Kratos Team",
+	"author_email": "kratos@listas.cimne.upc.edu",
+	"description": "KratosLinearSolversApplication distribution with Intel components (MKL)",
+	"readme": "applications/LinearSolversApplication/README.md",
+    "licence": ["BSD", "ISSL"]
+}
