@@ -181,8 +181,8 @@ protected:
         /**
          * @brief Returns the shape of the tensor.
          * @details This function provides the dimensions of the tensor, where each element in the returned
-         *          DenseVector corresponds to the size of the tensor in that particular dimension. First
-         *          dimension always represents how many entities are in the container.
+         *          array corresponds to the size of the tensor in that particular dimension. The first
+         *          dimension always represents the number of entities stored in the container.
          *
          * @return DenseVector<unsigned int> A vector containing the size of each dimension of the tensor.
          */
