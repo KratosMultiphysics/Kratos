@@ -281,8 +281,8 @@ public:
     /**
      * @brief Check if the necessary data is present in the underlying container.
      * @details This method should not change anything in the underlying Kratos data structures. It should
-     *          only check data from Kratos data structures whether necessary information is there to perform
-     *          CollectData and StoreData without any errors.
+     *          only make sure that @ref TensorAdaptor::CollectData "CollectData" and @ref TensorAdaptor::StoreData "StoreData"
+     *          can be performed without errors.
      */
     virtual void Check() const;
 
