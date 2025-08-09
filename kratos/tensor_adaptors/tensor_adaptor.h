@@ -330,7 +330,6 @@ public:
      * @details The first dimension of the tensor adaptor shape will represent the number of entities in the
      *          container. The rest of the dimensions will represent the shape of the data it caries for each of the
      *          entities.
-     * @return DenseVector<unsigned int>    Shape of the tensor adaptor.
      */
     DenseVector<unsigned int> Shape() const;
 
