@@ -189,11 +189,11 @@ protected:
         DenseVector<unsigned int> Shape() const;
 
         /**
-         * @brief Returns the shape of the underlying tensor data as a dense vector.
+         * @brief Returns the shape of the underlying tensor data.
          * @details This method returns the shape of the data which may be collected and stored
          *          in each entity of the specified container. This is always one dimension less
          *          than the @ref Storage::Shape method.
-         * @return DenseVector<unsigned int> A vector containing the dimensions of the tensor.
+         * @return A vector containing the dimensions of the tensor.
          */
         DenseVector<unsigned int> DataShape() const;
 
