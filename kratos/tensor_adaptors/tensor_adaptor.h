@@ -207,8 +207,6 @@ protected:
          * @brief Returns a pointer to the underlying container.
          * @details This method provides access to the internal container used by the tensor adaptor.
          *          The returned pointer allows read-only operations on the container.
-         *
-         * @return ContainerPointerType Pointer to the underlying container.
          */
         ContainerPointerType GetContainer() const;
 
