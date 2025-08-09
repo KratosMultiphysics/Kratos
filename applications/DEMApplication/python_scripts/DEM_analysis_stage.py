@@ -686,21 +686,11 @@ class DEMAnalysisStage(AnalysisStage):
             self.KratosPrintInfo(stepinfo)
 
     def FinalizeSolutionStep(self):
-        self.RunAnalytics(self.time)
+        pass #self.RunAnalytics(self.time)
 
     def OutputSolutionStep(self):
-        #### PRINTING GRAPHS ####
-        self.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.time, self.graphs_path)
-        self.DEMFEMProcedures.PrintGraph(self.time)
-        self.DEMFEMProcedures.PrintBallsGraph(self.time)
-        self.DEMFEMProcedures.PrintAdditionalGraphs(self.time, self._GetSolver())
         self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
-        self.BeforePrintingOperations(self.time)
         self.PrintResults()
-
-        for output_process in self._GetListOfOutputProcesses():
-            if output_process.IsOutputStep():
-                output_process.PrintOutput()
 
     def BreakSolutionStepsLoop(self):
         return False
@@ -779,16 +769,8 @@ class DEMAnalysisStage(AnalysisStage):
             self.demio.InitializeMesh(self.all_model_parts)
 
     def PrintResultsForGid(self, time):
-        if self._GetSolver().poisson_ratio_option:
-            self.DEMFEMProcedures.PrintPoisson(self.spheres_model_part, self.DEM_parameters, "Poisson_ratio.txt", time)
-
-        if self.DEM_parameters["PostEulerAngles"].GetBool():
-            self.post_utils.PrintEulerAngles(self.spheres_model_part, self.cluster_model_part)
-
         self.demio.PrintMultifileLists(time, self.post_path)
         self._GetSolver().PrepareElementsForPrinting()
-        if self.DEM_parameters["ContactMeshOption"].GetBool():
-            self._GetSolver().PrepareContactElementsForPrinting()
 
         if "post_gid_option" in self.DEM_parameters.keys():
             if self.DEM_parameters["post_gid_option"].GetBool() != False:

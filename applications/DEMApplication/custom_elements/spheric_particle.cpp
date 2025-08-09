@@ -267,6 +267,8 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     SetValue(WALL_POINT_CONDITION_ELASTIC_FORCES, std::vector<array_1d<double, 3>>());
     SetValue(WALL_POINT_CONDITION_TOTAL_FORCES, std::vector<array_1d<double, 3>>());
 
+    mRadius = node.FastGetSolutionStepValue(RADIUS);
+
     KRATOS_CATCH( "" )
 }
 
@@ -280,6 +282,9 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
     KRATOS_TRY
 
     // Creating a data buffer to store those variables that we want to reuse so that we can keep function parameter lists short
+
+    double& elastic_energy = this->GetElasticEnergy();
+    elastic_energy = 0.0;
 
     SphericParticle::BufferPointerType p_buffer = CreateParticleDataBuffer(this); // all memory will be freed once this shared pointer goes out of scope
     ParticleDataBuffer& data_buffer = *p_buffer;
@@ -314,7 +319,6 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
     total_moment[1] = mContactMoment[1] + additionally_applied_moment[1];
     total_moment[2] = mContactMoment[2] + additionally_applied_moment[2];
 
-    FinalizeForceComputation(data_buffer);
     KRATOS_CATCH("")
 }
 

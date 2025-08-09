@@ -31,15 +31,19 @@ namespace Kratos
     DEMFEMUtilities::~DEMFEMUtilities() {}
 
     void DEMFEMUtilities::MoveAllMeshes(ModelPart& r_model_part, double time, double dt) {
-
         if (r_model_part.NumberOfSubModelParts()) {
-            for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_model_part.SubModelPartsBegin();
-                                                                 sub_model_part != r_model_part.SubModelPartsEnd(); ++sub_model_part) {
-
+            for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_model_part.SubModelPartsBegin(); sub_model_part != r_model_part.SubModelPartsEnd(); ++sub_model_part) {
                 ModelPart& submp = *sub_model_part;
-
                 const bool rigid_body_motion = submp[RIGID_BODY_MOTION];
                 if (!rigid_body_motion) continue;
+
+                const double angular_velocity_start_time = submp[ANGULAR_VELOCITY_START_TIME];
+                const double angular_velocity_stop_time = submp[ANGULAR_VELOCITY_STOP_TIME];
+                if (time < angular_velocity_start_time || time > angular_velocity_stop_time) return;
+
+                const array_1d<double, 3>& angular_velocity = submp[ANGULAR_VELOCITY];
+                const double angular_period = submp[ANGULAR_VELOCITY_PERIOD];
+                const array_1d<double, 3>& initial_center = submp[ROTATION_CENTER];
 
                 NodesArrayType& rNodes = submp.Nodes();
                 array_1d<double, 3>& previous_displ = submp[DISPLACEMENT];
@@ -49,12 +53,6 @@ namespace Kratos
                 const double linear_period = submp[VELOCITY_PERIOD];
                 const bool fixed_mesh = submp[FIXED_MESH_OPTION];
 
-                const array_1d<double, 3>& angular_velocity = submp[ANGULAR_VELOCITY];
-                const double angular_velocity_start_time = submp[ANGULAR_VELOCITY_START_TIME];
-                const double angular_velocity_stop_time = submp[ANGULAR_VELOCITY_STOP_TIME];
-                const double angular_period = submp[ANGULAR_VELOCITY_PERIOD];
-                const array_1d<double, 3>& initial_center = submp[ROTATION_CENTER];
-
                 array_1d<double, 3> center_position;
                 array_1d<double, 3> linear_velocity_changed;
                 array_1d<double, 3> angular_velocity_changed;
@@ -63,15 +61,9 @@ namespace Kratos
                 array_1d<double, 3> new_axes2;
                 array_1d<double, 3> new_axes3;
 
-                GeometryFunctions::TranslateGridOfNodes(time, velocity_start_time, velocity_stop_time, center_position, initial_center, previous_displ,
-                                                        linear_velocity_changed, linear_period, dt, linear_velocity);
-
-                GeometryFunctions::RotateGridOfNodes(time, angular_velocity_start_time, angular_velocity_stop_time, angular_velocity_changed,
-                                                     angular_period, mod_angular_velocity, angular_velocity, new_axes1, new_axes2, new_axes3);
-
-                GeometryFunctions::UpdateKinematicVariablesOfAGridOfNodes(mod_angular_velocity, linear_velocity, initial_center, new_axes1,
-                                                                          new_axes2, new_axes3, angular_velocity_changed, linear_velocity_changed, center_position,
-                                                                          fixed_mesh, dt, rNodes);
+                GeometryFunctions::TranslateGridOfNodes(time, velocity_start_time, velocity_stop_time, center_position, initial_center, previous_displ, linear_velocity_changed, linear_period, dt, linear_velocity);
+                GeometryFunctions::RotateGridOfNodes(time, angular_velocity_start_time, angular_velocity_stop_time, angular_velocity_changed, angular_period, mod_angular_velocity, angular_velocity, new_axes1, new_axes2, new_axes3);
+                GeometryFunctions::UpdateKinematicVariablesOfAGridOfNodes(mod_angular_velocity, linear_velocity, initial_center, new_axes1, new_axes2, new_axes3, angular_velocity_changed, linear_velocity_changed, center_position, fixed_mesh, dt, rNodes);
             } //for ModelPart::SubModelPartsContainerType::iterator
         } //if r_model_part.NumberOfMeshes() > 1
     }

@@ -418,12 +418,7 @@ namespace Kratos {
         KRATOS_TRY
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         int time_step = r_process_info[TIME_STEPS];
-        const double time = r_process_info[TIME];
         const bool is_time_to_search_neighbours = (time_step + 1) % mNStepSearch == 0 && (time_step > 0); //Neighboring search. Every N times.
-        const bool is_time_to_print_results = r_process_info[IS_TIME_TO_PRINT];
-        const bool is_time_to_mark_and_remove = is_time_to_search_neighbours && (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]);
-        BoundingBoxUtility(is_time_to_mark_and_remove);
-
         if (is_time_to_search_neighbours) {
             SearchNeighbours();
             RepairPointersToNormalProperties(mListOfSphericParticles);
@@ -1319,8 +1314,6 @@ namespace Kratos {
             for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = this->GetResults()[i].begin(); neighbour_it != this->GetResults()[i].end(); ++neighbour_it) {
                 Element* p_neighbour_element = (*neighbour_it).get();
                 SphericParticle* p_spheric_neighbour_particle = dynamic_cast<SphericParticle*> (p_neighbour_element);
-                if (mListOfSphericParticles[i]->Is(DEMFlags::BELONGS_TO_A_CLUSTER) && (mListOfSphericParticles[i]->GetClusterId() == p_spheric_neighbour_particle->GetClusterId())) continue;
-                if (mListOfSphericParticles[i]->Is(DEMFlags::POLYHEDRON_SKIN)) continue;
                 mListOfSphericParticles[i]->mNeighbourElements.push_back(p_spheric_neighbour_particle);
                 std::vector<SphericParticle*>& neighbours_of_this_neighbour_for_this_thread = thread_maps_of_connectivities[OpenMPUtils::ThisThread()][p_spheric_neighbour_particle];
                 neighbours_of_this_neighbour_for_this_thread.push_back(mListOfSphericParticles[i]);

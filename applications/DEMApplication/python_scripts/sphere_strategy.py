@@ -469,13 +469,12 @@ class ExplicitStrategy():
         self.SolveSolutionStep()
 
     def SolveSolutionStep(self):
-        self.cplusplus_strategy.InitializeSolutionStep()
         self.dem_fem_utils.MoveAllMeshes(self.all_model_parts.Get("RigidFacePart"), self.spheres_model_part.ProcessInfo[TIME], self.dt)
         self.cplusplus_strategy.SolveSolutionStep()
 
     def AdvanceInTime(self, time):
         time += self.dt
-        self._UpdateTimeInModelParts(time)
+        self._UpdateTimeInOneModelPart(self.all_model_parts.Get("SpheresPart"), time, self.dt, False)
         return time
 
     def _MoveAllMeshes(self, time, dt):
