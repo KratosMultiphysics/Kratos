@@ -161,13 +161,18 @@ public:
         // Set up the assembly helper
         Parameters build_settings = ThisParameters["build_settings"];
         build_settings.AddInt("echo_level", ThisParameters["echo_level"].GetInt());
-        const std::string builder_type = build_settings["name"].GetString();
-        if (builder_type == "block_builder") {
-            mpBuilder = Kratos::make_unique<BlockBuilderType>(rModelPart, build_settings); // TODO: Use the registry in here
-        } else if (builder_type == "elimination_builder") {
-            mpBuilder = Kratos::make_unique<EliminationBuilderType>(rModelPart, build_settings); // TODO: Use the registry in here
+        if (build_settings.Has("name")) {
+            const std::string builder_type = build_settings["name"].GetString();
+            if (builder_type == "block_builder") {
+                mpBuilder = Kratos::make_unique<BlockBuilderType>(rModelPart, build_settings); // TODO: Use the registry in here
+            } else if (builder_type == "elimination_builder") {
+                mpBuilder = Kratos::make_unique<EliminationBuilderType>(rModelPart, build_settings); // TODO: Use the registry in here
+            } else {
+                KRATOS_ERROR << "Wrong builder type \'" << builder_type << "\'. Available options are \'block_builder\' and \'elimination_builder\'." << std::endl;
+            }
         } else {
-            KRATOS_ERROR << "Wrong builder type \'" << builder_type << "\'. Available options are \'block_builder\' and \'elimination_builder\'." << std::endl;
+            KRATOS_WARNING("ImplicitScheme") << "Builder type not provided. Defaulting to \'block_builder\'." << std::endl;
+            mpBuilder = Kratos::make_unique<BlockBuilderType>(rModelPart, build_settings); // TODO: Use the registry in here
         }
     }
 
@@ -1314,8 +1319,7 @@ public:
         const Parameters default_parameters = Parameters(R"({
             "name" : "implicit_scheme",
             "build_settings" : {
-                "build_type" : "block",
-                "scaling_type" : "max_diagonal"
+                "name" : "block_builder"
             },
             "echo_level" : 0,
             "move_mesh" : false
