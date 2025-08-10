@@ -37,6 +37,7 @@ Geo::IntegrationPointVectorType MakeLumpedIntegrationPointsVector(const std::vec
     auto geom            = GeometryType{node_ptrs};
     auto lumping_factors = Vector{};
     geom.LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::DIAGONAL_SCALING);
+    lumping_factors *= geom.DomainSize();
 
     auto make_integration_point = [](const Point& rPoint, double Weight) {
         return Geo::IntegrationPointType{rPoint, Weight};
