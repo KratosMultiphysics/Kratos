@@ -51,23 +51,5 @@ class SensorSensitivityAdjointStaticSolver(StructuralMechanicsAdjointStaticSolve
     def SolveSolutionStep(self) -> bool:
         return super(StructuralMechanicsAdjointStaticSolver, self).SolveSolutionStep()
 
-    def GetSensitivities(self) -> 'dict[SupportedSensitivityFieldVariableTypes, ExpressionUnionType]':
-        sensitivity_settings = self.settings["sensitivity_settings"]
-        sensitivities_dict: 'dict[SupportedSensitivityFieldVariableTypes, ExpressionUnionType]' = {}
-        self.__ReadSensitivities(sensitivities_dict, sensitivity_settings["nodal_solution_step_sensitivity_variables"].GetStringArray(), Kratos.Expression.NodalExpression, lambda x, y: Kratos.Expression.VariableExpressionIO.Read(x, y, True))
-        self.__ReadSensitivities(sensitivities_dict, sensitivity_settings["condition_data_value_sensitivity_variables"].GetStringArray(), Kratos.Expression.ConditionExpression, lambda x, y: Kratos.Expression.VariableExpressionIO.Read(x, y))
-        self.__ReadSensitivities(sensitivities_dict, sensitivity_settings["element_data_value_sensitivity_variables"].GetStringArray(), Kratos.Expression.ElementExpression, lambda x, y: Kratos.Expression.VariableExpressionIO.Read(x, y))
-        return sensitivities_dict
-
-    def __ReadSensitivities(self, sensitivity_dict: 'dict[SupportedSensitivityFieldVariableTypes, ExpressionUnionType]', list_of_variable_names: 'list[str]', expression_type, read_lambda) -> None:
-        for sensitivity_variable_name in list_of_variable_names:
-            if not sensitivity_variable_name.endswith("_SENSITIVITY"):
-                sensitivity_variable_name += "_SENSITIVITY"
-
-            sensitivity_variable = Kratos.KratosGlobals.GetVariable(sensitivity_variable_name)
-            exp = expression_type(self.GetSensitivityModelPart())
-            read_lambda(exp, sensitivity_variable)
-            sensitivity_dict[sensitivity_variable] = exp.Clone()
-
     def _CreateScheme(self):
         return Kratos.ResidualBasedAdjointStaticScheme(None)
