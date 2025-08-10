@@ -565,17 +565,17 @@ public:
         Timer::Stop("BuildWithSafeAssemble");
     }
 
+#ifdef KRATOS_USE_TBB
     virtual void BuildWithThreadLocal(
         TSparseMatrixType& rLHS,
         TSystemVectorType& rRHS)
     {
-        Timer::Start("BuildWithSafeAssemble");
+        Timer::Start("BuildWithThreadLocal");
 
         const auto timer = BuiltinTimer();
 
         // Getting conditions and elements to be assembled
         const auto& r_process_info = mpModelPart->GetProcessInfo();
-
 
         // Initialize RHS and LHS assembly
         rRHS.BeginAssemble();
@@ -647,20 +647,19 @@ public:
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Build w/ thread local time: " << timer << std::endl;
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;
 
-        Timer::Stop("BuildWithSafeAssemble");
+        Timer::Stop("BuildWithThreadLocal");
     }
 
     virtual void BuildWithLocalAllocation(
         TSparseMatrixType& rLHS,
         TSystemVectorType& rRHS)
     {
-        Timer::Start("BuildWithSafeAssemble");
+        Timer::Start("BuildWithLocalAllocation");
 
         const auto timer = BuiltinTimer();
 
         // Getting conditions and elements to be assembled
         const auto& r_process_info = mpModelPart->GetProcessInfo();
-
 
         // Initialize RHS and LHS assembly
         rRHS.BeginAssemble();
@@ -729,8 +728,9 @@ public:
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 1) << "Build w/ local allocation time: " << timer << std::endl;
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished parallel building" << std::endl;
 
-        Timer::Stop("BuildWithSafeAssemble");
+        Timer::Stop("BuildWithLocalAllocation");
     }
+#endif
 
     virtual void Build(TSystemVectorType& rRHS)
     {
