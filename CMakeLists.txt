@@ -53,9 +53,6 @@ set (KratosMultiphysics_MAJOR_VERSION 10)
 set (KratosMultiphysics_MINOR_VERSION 3)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
-find_package(TBB REQUIRED)
-message("-- *******************************************************}")
-
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
   message("-- No KRATOS_SOURCE_DIR is defined, using: ${CMAKE_SOURCE_DIR}")
@@ -489,6 +486,7 @@ option(KRATOS_USE_TBB "Enable Intel Threading Building Blocks (TBB) support" OFF
 
 if(KRATOS_USE_TBB)
     find_package(TBB REQUIRED)
+    add_compile_definitions(KRATOS_USE_TBB)
     message(STATUS "TBB support enabled")
 endif()
 
