@@ -72,7 +72,7 @@ Process::Pointer ApplyPeriodicConditionProcess::Create(Model &rModel, Parameters
 {
     const std::string master_model_part_name = ThisParameters["master_model_part_name"].GetString();
     const std::string slave_model_part_name = ThisParameters["slave_model_part_name"].GetString();
-    return Kratos::make_unique<ApplyPeriodicConditionProcess>(rModel.GetModelPart(master_model_part_name), rModel.GetModelPart(slave_model_part_name), ThisParameters);
+    return Kratos::make_shared<ApplyPeriodicConditionProcess>(rModel.GetModelPart(master_model_part_name), rModel.GetModelPart(slave_model_part_name), ThisParameters);
 }
 
 /**

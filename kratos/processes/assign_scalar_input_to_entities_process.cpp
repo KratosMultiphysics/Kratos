@@ -92,6 +92,18 @@ AssignScalarInputToEntitiesProcess<TEntity, THistorical>::AssignScalarInputToEnt
 /***********************************************************************************/
 
 template<class TEntity, bool THistorical>
+Process::Pointer AssignScalarInputToEntitiesProcess<TEntity, THistorical>::Create(
+    Model& rModel,
+    Parameters ThisParameters
+    )
+{
+    return Kratos::make_shared<AssignScalarInputToEntitiesProcess<TEntity, THistorical>>(rModel, ThisParameters);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity, bool THistorical>
 void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY;
