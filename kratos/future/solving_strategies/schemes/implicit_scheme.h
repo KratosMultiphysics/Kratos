@@ -1505,7 +1505,7 @@ protected:
         TLSType& rTLS,
         const ProcessInfo &rProcessInfo)
     {
-        if (rEntity.Is(ACTIVE)) {
+        if (rEntity.IsActive()) {
             // Calculate local RHS contribution
             rEntity.CalculateLocalSystem(rTLS.LocalMatrix, rTLS.LocalVector, rProcessInfo);
 
@@ -1531,7 +1531,7 @@ protected:
         TLSType& rTLS,
         const ProcessInfo &rProcessInfo)
     {
-        if (rEntity.Is(ACTIVE)) {
+        if (rEntity.IsActive()) {
             // Calculate local RHS contribution
             rEntity.CalculateRightHandSide(rTLS.LocalVector, rProcessInfo);
 
@@ -1556,7 +1556,7 @@ protected:
         TLSType& rTLS,
         const ProcessInfo &rProcessInfo)
     {
-        if (rEntity.Is(ACTIVE)) {
+        if (rEntity.IsActive()) {
             // Calculate local RHS contribution
             rEntity.CalculateLeftHandSide(rTLS.LocalMatrix, rProcessInfo);
 
@@ -1581,7 +1581,7 @@ protected:
         TLSType& rTLS,
         const ProcessInfo &rProcessInfo)
     {
-        if (rEntity.Is(ACTIVE)) {
+        if (rEntity.IsActive()) {
             // Calculate local RHS contribution
             rEntity.CalculateMassMatrix(rTLS.LocalMatrix, rProcessInfo);
 
@@ -1606,7 +1606,7 @@ protected:
         TLSType& rTLS,
         const ProcessInfo &rProcessInfo)
     {
-        if (rEntity.Is(ACTIVE)) {
+        if (rEntity.IsActive()) {
             // Calculate local RHS contribution
             rEntity.CalculateDampingMatrix(rTLS.LocalMatrix, rProcessInfo);
 
@@ -1630,7 +1630,7 @@ protected:
         TLSType& rTLS,
         const ProcessInfo &rProcessInfo)
     {
-        if (rConstraint.Is(ACTIVE)) {
+        if (rConstraint.IsActive()) {
             // Calculate local RHS contribution
             rConstraint.CalculateLocalSystem(rTLS.LocalMatrix, rTLS.LocalVector, rProcessInfo);
 
