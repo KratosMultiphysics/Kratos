@@ -24,6 +24,7 @@
 #include "future/solving_strategies/builders/builder.h"
 #include "future/solving_strategies/schemes/implicit_scheme.h"
 #include "future/solving_strategies/schemes/static_scheme.h"
+#include "future/solving_strategies/strategies/strategy.h"
 #include "future/solving_strategies/strategies/implicit_strategy.h"
 #include "future/solving_strategies/strategies/linear_strategy.h"
 
@@ -43,7 +44,7 @@ void AddStrategiesToPython(py::module& m)
     ;
 
     using ImplicitSchemeType = Future::ImplicitScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
-    py::class_<ImplicitSchemeType, typename ImplicitSchemeType::Pointer>(m, "ImplicitSchemeType")
+    py::class_<ImplicitSchemeType, typename ImplicitSchemeType::Pointer>(m, "ImplicitScheme")
         .def(py::init<ModelPart&, Parameters>())
         // .def("Execute",&Future::Process::Execute)
         // .def("Info",&Future::Process::Info)
@@ -51,35 +52,45 @@ void AddStrategiesToPython(py::module& m)
     ;
 
     using StaticSchemeType = Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
-    py::class_<StaticSchemeType, typename StaticSchemeType::Pointer, ImplicitSchemeType>(m, "StaticSchemeType")
+    py::class_<StaticSchemeType, typename StaticSchemeType::Pointer, ImplicitSchemeType>(m, "StaticScheme")
         .def(py::init<ModelPart&, Parameters>())
         // .def("Execute",&Future::Process::Execute)
         // .def("Info",&Future::Process::Info)
         // .def("__str__", PrintObject<Future::Process>)
     ;
 
+    py::class_<Strategy, typename Strategy::Pointer>(m, "Strategy")
+        .def("GetModelPart", [&](const Strategy& rThis) -> const ModelPart& {return rThis.GetModelPart();}, py::return_value_policy::reference_internal)
+        .def("Info", &Strategy::Info)
+        .def("Name", &Strategy::Name)
+    ;
+
     using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearStrategyType = Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
     using ImplicitStrategyType = Future::ImplicitStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    py::class_<ImplicitStrategyType, typename ImplicitStrategyType::Pointer, Strategy>(m, "ImplicitStrategy")
+        // .def(py::init<ModelPart&, Parameters>()) //TODO: Expose this one once we fix the registry stuff
+        .def(py::init<ModelPart &, typename ImplicitSchemeType::Pointer, typename LinearSolverType::Pointer, bool, bool, bool, bool>())
+        .def("Initialize", &ImplicitStrategyType::Initialize)
+        .def("InitializeSolutionStep", &ImplicitStrategyType::InitializeSolutionStep)
+        .def("Predict", &ImplicitStrategyType::Predict)
+        .def("SolveSolutionStep", &ImplicitStrategyType::SolveSolutionStep)
+        .def("FinalizeSolutionStep", &ImplicitStrategyType::FinalizeSolutionStep)
+        .def("Clear", &ImplicitStrategyType::Clear)
+        .def("Check", &ImplicitStrategyType::Check)
+        .def("GetEchoLevel", &ImplicitStrategyType::GetEchoLevel)
+        .def("GetComputeReactions", &ImplicitStrategyType::GetComputeReactions)
+        .def("GetReformDofsAtEachStep", &ImplicitStrategyType::GetReformDofsAtEachStep)
+        .def("GetResidualNorm", &ImplicitStrategyType::GetResidualNorm)
+        .def("SetEchoLevel", &ImplicitStrategyType::SetEchoLevel)
+        .def("SetComputeReactions", &ImplicitStrategyType::SetComputeReactions)
+        .def("SetReformDofsAtEachStep", &ImplicitStrategyType::SetReformDofsAtEachStep)
+    ;
+
+    using LinearStrategyType = Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
     py::class_<LinearStrategyType, typename LinearStrategyType::Pointer, ImplicitStrategyType>(m, "LinearStrategy")
         // .def(py::init<ModelPart&, Parameters>()) //TODO: Expose this one once we fix the registry stuff
         .def(py::init<ModelPart &, typename ImplicitSchemeType::Pointer, typename LinearSolverType::Pointer, bool, bool, bool, bool>())
-        .def("Initialize", &LinearStrategyType::Initialize)
-        .def("InitializeSolutionStep", &LinearStrategyType::InitializeSolutionStep)
-        .def("Predict", &LinearStrategyType::Predict)
-        .def("SolveSolutionStep", &LinearStrategyType::SolveSolutionStep)
-        .def("FinalizeSolutionStep", &LinearStrategyType::FinalizeSolutionStep)
-        .def("Clear", &LinearStrategyType::Clear)
-        .def("Check", &LinearStrategyType::Check)
-        .def("GetEchoLevel", &LinearStrategyType::GetEchoLevel)
-        .def("GetComputeReactions", &LinearStrategyType::GetComputeReactions)
-        .def("GetReformDofsAtEachStep", &LinearStrategyType::GetReformDofsAtEachStep)
-        .def("GetResidualNorm", &LinearStrategyType::GetResidualNorm)
-        .def("GetModelPart", [&](const LinearStrategyType& rThis) -> const ModelPart& {return rThis.GetModelPart();}, py::return_value_policy::reference_internal)
-        .def("SetEchoLevel", &LinearStrategyType::SetEchoLevel)
-        .def("SetComputeReactions", &LinearStrategyType::SetComputeReactions)
-        .def("SetReformDofsAtEachStep", &LinearStrategyType::SetReformDofsAtEachStep)
-        .def("Info", &LinearStrategyType::Info);
+    ;
 }
 
 }  // namespace Kratos::Future::Python.
