@@ -55,6 +55,7 @@ from mpm_test_factory import PQMPMExplicitHexTest as TPQMPMExplicitHexTest
 ##### RESTART TESTS #####
 from restart_tests import MPMRestartTestBeamStaticLineLoad2D  as TMPMRestartTestBeamStaticLineLoad2D
 from restart_tests import MPMRestartTestDynamicCantilever2D    as TMPMRestartTestDynamicCantilever2D
+from restart_tests import MPMRestartTestCantileverLagrange2D    as TMPMRestartTestCantileverLagrange2D
 
 
 
@@ -153,6 +154,7 @@ def AssembleTestSuites():
 
     nightSuite.addTest(TMPMRestartTestBeamStaticLineLoad2D('test_execution'))
     nightSuite.addTest(TMPMRestartTestDynamicCantilever2D('test_execution'))
+    nightSuite.addTest(TMPMRestartTestCantileverLagrange2D('test_execution'))
 
     ### Adding Validation Tests
     ## For very long tests that should not be in nightly and you can use to validate
