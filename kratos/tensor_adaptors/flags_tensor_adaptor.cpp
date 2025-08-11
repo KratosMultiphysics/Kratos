@@ -57,7 +57,7 @@ FlagsTensorAdaptor::FlagsTensorAdaptor(
                      << "[ tensor adaptor = " << rOther << " ].\n";
     }
 
-    std::visit([this, &r_tensor_shape, &rOther](auto pContainer){
+    std::visit([&r_tensor_shape, &rOther](auto pContainer){
         KRATOS_ERROR_IF_NOT(r_tensor_shape.size() == 1 && r_tensor_shape[0] == pContainer->size())
             << "The data storage within the tensor data is not compatible with the flags "
             << "[ tensor adaptor = " << rOther << " ].\n";
