@@ -206,6 +206,14 @@ protected:
     virtual void WriteConditionsAndElementsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
 
     /**
+     * @brief Calculate the total number of cells
+     * @tparam TContainerType type of container.
+     * @param rContainer the container which is beging output
+     */
+    template<typename TContainerType>
+    std::size_t DetermineVtkContainerSize(const TContainerType& rContainer) const;
+
+    /**
      * @brief Calculate the total number of cells which are in the provided rModelPart. = num_elements + num_conditions
      *          It is necessary to be known prior to output
      * @tparam TContainerType type of container.
@@ -514,12 +522,19 @@ private:
         const std::string& DataName,
         std::ofstream& rFileStream) const;
 
-
     /**
      * @brief Print the given rModelPart as VTK file together with the requested results (Only for model parts without nodes)
      * @param rModelPart modelpart which is beging output
      */
     void WriteModelPartWithoutNodesToFile(ModelPart& rModelPart, const std::string& rOutputFilename);
+
+    /**
+     * @brief Checks if the given geometry can be skipped during output
+     * @param rGeometry the geometry to be checked
+     * @return true if the geometry can be skipped, false otherwise
+     */
+    template<typename TEntityType>
+    bool SkippableEntity(const TEntityType& rEntity) const;
 
     ///@}
 };

@@ -1,4 +1,4 @@
-GiDPost 2.12
+GiDPost 2.13
 ============
 
 gidpost is a set of functions (library) for writing postprocess results for GiD in ASCII, binary compressed or HDF5 format.
@@ -28,6 +28,8 @@ $ mkdir build-linux
 $ cd build-linux
 $ cmake -DENABLE_HDF5=ON -DENABLE_FORTRAN_EXAMPLES=ON ..     ;# gfortran is needed to ENABLE_FORTRAN_EXAMPLES (by default it's off)
 # more options are: -DENABLE_SHARED_LIBS=ON -DENABLE_EXAMPLES=ON -DENABLE_PARALLEL_EXAMPLE=ON
+# extra flag -DUSE_PKGCONFIG=false   to use pkg-config and pkg_check_modules() instead of cmake's find_package()
+# by default, if environemt variable VCPKG_ROOT is defined, then USE_PKGCONFIG = true
 $ make
 $ cd examples
 $ ./testc -help      ;# to view format options
@@ -88,6 +90,26 @@ $ ./testf90          ;# fortran 90 example writing hdf5 gid post file
 
 ChangeLog:
 ==========
+
+*From version 2.12 to 2.13*
+
+* CMake changes: 
+    * Added support for pkg-config, extra flag `-DUSE_PKGCONFIG=false` to use pkg-config and pkg_check_modules() instead of cmake's find_package().
+    * By default, if environment variable `VCPKG_ROOT` is defined, then `USE_PKGCONFIG = true`.
+    * Added `shlwapi` dependency for Windows+vcpkg".
+* Added prefix to hash functions to avoid collision with POSIX ones.
+* Allow writing `*MESH + Elements* without *Coords* block, i.e. these elements use already written global coordinates, for instance:
+```c++
+  GiD_fBeginMeshColor( fdm, "Spheres", GiD_3D, GiD_Sphere, 1, 1.0, 0.7, 0.3 );
+  /* empty or no coordinates = uses global coordinates */
+  // GiD_fBeginCoordinates( fdm);
+  // GiD_fEndCoordinates( fdm);
+  /* elements */
+  GiD_fBeginElements( fdm);
+  ...
+  GiD_fEndElements( fdm);
+  GiD_fEndMesh( fdm);
+  ```
 
 *From version 2.11 to 2.12*
 
