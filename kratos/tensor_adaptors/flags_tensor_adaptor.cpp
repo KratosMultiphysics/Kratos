@@ -50,9 +50,11 @@ FlagsTensorAdaptor::FlagsTensorAdaptor(
 
     const auto& r_tensor_shape = this->mpStorage->Shape();
 
-    KRATOS_ERROR_IF_NOT(r_tensor_shape.size() == 1 && r_tensor_shape[0] == 1)
-        << "The data storage within the tensor data is not compatible with the flags "
-        << "[ tensor data = " << this->mpStorage->Info() << " ].\n";
+    std::visit([this, &r_tensor_shape](auto pContainer){
+        KRATOS_ERROR_IF_NOT(r_tensor_shape.size() == 1 && r_tensor_shape[0] == pContainer->size())
+            << "The data storage within the tensor data is not compatible with the flags "
+            << "[ tensor data = " << this->mpStorage->Info() << " ].\n";
+    }, this->GetContainer());
 
     KRATOS_CATCH("");
 }
@@ -82,11 +84,11 @@ void FlagsTensorAdaptor::CollectData()
                 << "Size mismatch [ Container size = " << pContainer->size()
                 << ", data span size = " << this->Size() << " ].\n";
 
-            ContainerIOUtils::CopyToContiguousArray<bool>(
+            ContainerIOUtils::CopyToContiguousArray<int>(
                 *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
                 r_tensor_shape.data().begin() + r_tensor_shape.size(),
-                [this](bool& rValue, const auto& rEntity) {
-                    rValue = rEntity.Is(this->mFlags);
+                [this](int& rValue, const auto& rEntity) {
+                    rValue = (rEntity.IsDefined(this->mFlags) ? rEntity.Is(this->mFlags) + 1 : 3);
                 });
         }
     }, this->mpStorage->GetContainer());
@@ -102,8 +104,27 @@ void FlagsTensorAdaptor::StoreData()
                 << "Size mismatch [ Container size = " << pContainer->size()
                 << ", data span size = " << this->Size() << " ].\n";
 
-            IndexPartition<IndexType>(pContainer->size()).for_each([this, pContainer](const auto Index) {
-                (pContainer->begin() + Index)->Set(this->mFlags, *(this->ViewData().data() + Index));
+            auto span_itr = this->ViewData().data();
+
+            IndexPartition<IndexType>(pContainer->size()).for_each([this, span_itr, pContainer](const auto Index) {
+                const int value = *(span_itr + Index);
+                auto& r_entity = *(pContainer->begin() + Index);
+                switch (value) {
+                    case 1:
+                    case 2:
+                        r_entity.Set(this->mFlags, value - 1);
+                        break;
+                    case 3:
+                        r_entity.Reset(this->mFlags);
+                        break;
+                    default:
+                        KRATOS_ERROR << "Invalid flag status = " << value << " for " << ModelPart::Container<container_type>::GetEntityName()
+                                     << " with id " <<  r_entity.Id() << ". Flag tensor adaptor's internal storage should only have following values:"
+                                     << "\n\t 1 - The corresponding flag is defined and false."
+                                     << "\n\t 2 - The corresponding flag is defined and true."
+                                     << "\n\t 3 - The corresponding flag is not defined.";
+                        break;
+                }
             });
         }
     }, this->mpStorage->GetContainer());

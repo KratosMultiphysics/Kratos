@@ -31,10 +31,17 @@ namespace Kratos {
  * @ingroup TensorAdaptors
  * @brief Adaptor class for handling tensor data associated with Kratos Flags.
  *
- * @details This class extends TensorAdaptor<bool> to provide specialized operations for
+ * @details This class extends TensorAdaptor<int> to provide specialized operations for
  *          tensors whose elements are boolean values, typically representing flags in Kratos.
  *          It manages the association between tensor data and Kratos Flags, allowing for
  *          efficient data collection and storage from/to Kratos data structures.
+ *
+ *          The state of the flags are stored as int having following definitions:
+ *              1 - The flag is defined and the value is false.
+ *              2 - The flag is defined and the value is true.
+ *              3 - The flag is not defined.
+ *
+ * @throws  Throws an error if the values in the Tensor adaptor's internal data does not correspond to 1, 2, 3 states
  *
  * @section FlagsTensorAdaptor_supported_container Supported container types
  * - @ref ModelPart::NodesContainerType
@@ -51,7 +58,7 @@ namespace Kratos {
  * @see Flags::Is                     Method used to retrieve flag status from entities.
  * @see Flags::Set                    Method used to set the flag status in the entities.
  */
-class KRATOS_API(KRATOS_CORE) FlagsTensorAdaptor: public TensorAdaptor<bool> {
+class KRATOS_API(KRATOS_CORE) FlagsTensorAdaptor: public TensorAdaptor<int> {
 public:
 
     ///@name Type definitions
@@ -59,7 +66,7 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FlagsTensorAdaptor);
 
-    using BaseType = TensorAdaptor<bool>;
+    using BaseType = TensorAdaptor<int>;
 
     ///@}
     ///@name Life cycle
