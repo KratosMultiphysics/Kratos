@@ -387,8 +387,16 @@ namespace Kratos::MaterialPointGeneratorUtility
                         if (!is_neumann_condition){
                             if(boundary_condition_type==1)
                                 condition_type_name = "MPMParticlePenaltyDirichletCondition";
-                            else if(boundary_condition_type==2 || boundary_condition_type==3)
+                            else if(boundary_condition_type==2 ){
                                 condition_type_name = "MPMParticleLagrangeDirichletCondition";
+
+                                // error in case of triangular/hexahedral background elements --> causes boundary locking
+                                const GeometryData::KratosGeometryType background_geo_type = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
+                                if(background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || background_geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4)
+                                    KRATOS_ERROR << "Lagrange multiplier condition is currently only suitable for quadrilateral/hexahedral elements. Boundary locking effect in case of triangular/tetrahedral background grid elements"  << std::endl;
+                            } 
+                            else if(boundary_condition_type==3)
+                                condition_type_name = "MPMParticleLagrangeDirichletCondition"; 
                             else{
                                 KRATOS_ERROR << "boundary_condition_type in material_point_generator_utility.cpp is not correctly defined." << std::endl;
                             }
