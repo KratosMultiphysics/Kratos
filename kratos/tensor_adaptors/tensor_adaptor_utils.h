@@ -58,8 +58,9 @@ public:
     {
         KRATOS_TRY
 
+        using value_traits = DataTypeTraits<TDataType>;
+
         if (!rContainer.empty()) {
-            using value_traits = DataTypeTraits<TDataType>;
 
             TDataType dummy{};
             rGetter(dummy, rContainer.front());
@@ -71,9 +72,14 @@ public:
             return tensor_shape;
         } else {
             // if there are not entities in the rContainer, return a tensor shape which has
-            // one dimension with the value zero. TensorAdaptors are supposed to have at least
-            // one dimension.
-            return DenseVector<unsigned int>(1, 0);
+            // first dimension with zero values, and other dimensions having the exact values
+            // it the TDataType is a static one. Otherwise if the TDataType is a dynamic type such
+            // as Vector or Matrix, the tensor_shape will have correct number of dimensionality,
+            // but the values in all the dimensions will be zeros.
+            DenseVector<unsigned int> tensor_shape(value_traits::Dimension + 1);
+            value_traits::Shape(TDataType{}, tensor_shape.data().begin() + 1, tensor_shape.data().begin() + tensor_shape.size());
+            tensor_shape[0] = 0;
+            return tensor_shape;
         }
 
         KRATOS_CATCH("");
