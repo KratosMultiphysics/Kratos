@@ -41,7 +41,6 @@ public:
     /// Constructor
     Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
                         ModelPart& rBodyModelPart,
-                        ModelPart& rStlWakeModelPart,
                         Parameters ThisParameters);
 
     /// Copy constructor.
@@ -90,34 +89,30 @@ private:
     ///@name Member Variables
     ///@{
 
-    // The airfoil model part containing the trailing edge
+    // The model part containing the trailing edge
     ModelPart& mrTrailingEdgeModelPart;
     ModelPart& mrBodyModelPart;
-    ModelPart& mrStlWakeModelPart;
     // Tolerance to avoid nodes laying exactly on the wake
     double mTolerance;
     BoundedVector<double, 3> mWakeNormal;
     BoundedVector<double, 3> mWakeDirection;
     BoundedVector<double, 3> mSpanDirection;
 
-    bool mSwitchWakeDirection;
-    bool mCountElementsNumber;
-    bool mWriteElementsIdsToFile;
     bool mShedWakeFromTrailingEdge;
-    bool mDecreaseWakeWidthAtTheWingTips;
+    bool mVisualizeWakeVTK;
     int mEchoLevel;
+    
+    double mShedWakeLength;
+    double mShedWakeElementSize;
+    double mShedGrowFactor;
+    double mShedProjectionRootEdge;
 
-    double mSheddedWakeDistance;
-    double mSheddedWakeElementSize;
-    double mGrowFactor;
-    double mProjectionDistance;
-    std::string mUpperSurfaceModelPartName;
-    std::string mLowerSurfaceModelPartName;
-    std::string mRootPointsModelPartName;
-    std::string mTipPointsModelPartName;
-    std::string mTailModelPartName;
+    BoundedVector<double, 3> mWakedrTraslation;
+
     std::string mBluntTESurfaceModelPartName;
     std::unordered_set<IndexType> mBluntIds; 
+    
+    std::filesystem::path mWakeSTLFileName;
 
     ///@}
     ///@name Private Operators
@@ -126,18 +121,27 @@ private:
 
     void InitializeWakeSubModelpart() const;
 
-    void MarkTrailingEdgeNodesAndFindWingtipNodes();
+    void MarkTrailingEdgeAndBluntNodes();
+
+    void AddTrailingEdgeConditionsAndFingRootAndTipNodes() const;
 
     void ComputeWingLowerSurfaceNormals() const;
 
     void ComputeAndSaveLocalWakeNormal() const;
 
-    void ShedWakeSurfaceFromTheTrailingEdge() const;
+    void ShedWakeSurfaceFromTheTrailingEdge(ModelPart& ModelPart) const;
+
+    void LoadSTL(ModelPart& ModelPart) const;
+
+    void MoveWakeModelPart(ModelPart& ModelPart) const;
+
+    void VisualizeWake(ModelPart& ModelPart) const;
 
     void DecreaseWakeWidthAtTheWingTips(array_1d<double, 3>& rPoint1,
                                         const array_1d<double, 3>& rPoint2) const;
 
-    void CreateWakeSurfaceNodesAndElements(IndexType& rNode_index,
+    void CreateWakeSurfaceNodesAndElements(ModelPart& ModelPart,
+                                           IndexType& rNode_index,
                                            const array_1d<double, 3>& rCoordinates1,
                                            const array_1d<double, 3>& rCoordinates2,
                                            const array_1d<double, 3>& rCoordinates3,
@@ -146,6 +150,7 @@ private:
                                            const Properties::Pointer pElemProp) const;
 
     std::array<ModelPart::IndexType, 4> CreateWakeSurfaceNodes(
+        ModelPart& ModelPart,
         IndexType& rNode_index,
         const array_1d<double, 3>& rCoordinates1,
         const array_1d<double, 3>& rCoordinates2,
@@ -157,12 +162,13 @@ private:
                                                    const array_1d<double, 3>& rCoordinates3,
                                                    const array_1d<double, 3>& rCoordinates4) const;
 
-    void CreateWakeSurfaceElements(const double normal_projection,
+    void CreateWakeSurfaceElements(ModelPart& ModelPart,
+                                   const double normal_projection,
                                    IndexType& rElement_index,
                                    const std::array<ModelPart::IndexType, 4>& rNodes_ids,
                                    const Properties::Pointer pElemProp) const;
 
-    void MarkWakeElements() const;
+    void MarkWakeElements(ModelPart& ModelPart) const;
 
     void CheckIfTrailingEdgeElement(Element& rElement,
                                     const Geometry<NodeType>& rGeometry,
@@ -198,9 +204,6 @@ private:
 
     void AddWakeNodesToWakeModelPart() const;
 
-    void CountElementsNumber() const;
-
-    void WriteElementIdsToFile() const;
     ///@}
 
 }; // Class Define3DWakeProcess

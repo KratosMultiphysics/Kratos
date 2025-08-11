@@ -1,22 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
-import math
-from KratosMultiphysics.gid_output_process import GiDOutputProcess
-from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 import time as time
-
-def DotProduct(A,B):
-    result = 0
-    for i,j in zip(A,B):
-        result += i*j
-    return result
-
-def CrossProduct(A, B):
-    C = KratosMultiphysics.Vector(3)
-    C[0] = A[1]*B[2]-A[2]*B[1]
-    C[1] = A[2]*B[0]-A[0]*B[2]
-    C[2] = A[0]*B[1]-A[1]*B[0]
-    return C
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
@@ -31,81 +15,33 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
         # Check default settings
         default_settings = KratosMultiphysics.Parameters(r'''{
-            "model_part_name"     : "",
-            "tail_model_part_name": "",
-            "body_model_part_name": "",
-            "wake_stl_file_name"  : "",
-            "wake_stl_dx"         : 0.0,
-            "wake_stl_dy"         : 0.0,
-            "wake_stl_dz"         : 0.0,
-            "gid_output_wake"     : false,
-            "vtk_output_wake"     : false,
+            "trailing_edge_model_part_name" : "",
+            "body_model_part_name"          : "",
+            "check_wake_condition_tolerance": 1e-1,
             "wake_process_cpp_parameters":    {
-                "tolerance"                     : 1e-9,
-                "wake_normal"                   : [0.0,0.0,1.0],
-                "wake_direction"                : [1.0,0.0,0.0],
-                "upper_surface_model_part_name" : "",
-                "lower_surface_model_part_name" : "",
-                "root_points_model_part_name"   : "",
-                "tip_points_model_part_name"    : "",
-                "shed_wake_tail_name"           : "",
-                "switch_wake_normal"            : false,
-                "count_elements_number"         : false,
-                "write_elements_ids_to_file"    : false,
-                "shed_wake_from_trailing_edge"  : false,
-                "shedded_wake_distance"         : 12.5,
-                "shedded_wake_element_size"     : 0.2,
-                "shedded_grow_factor"           : 1.05,
-                "projection_distance"           : 0.0,
-                "decrease_wake_width_at_the_wing_tips" : false,
-                "echo_level": 1
+                "wake_normal"                      : [0.0,0.0,1.0],
+                "blunt_te_surface_model_part_name" : "",
+                "shed_wake_from_trailing_edge"     : false,
+                "shed_wake_length"                 : 12.5,
+                "shed_wake_element_size"           : 0.2,
+                "shed_grow_factor"                 : 1.05,
+                "shed_projection_root_edge"        : 0.0,
+                "wake_stl_file_name"               : "",
+                "wake_dr_translation"              : [0.0,0.0,0.0],
+                "tolerance"                        : 1e-9,
+                "visualize_wake_vtk"               : false,
+                "echo_level"                       : 0
             }
         }''')
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.model = Model
 
-        self.gid_output_wake = settings["gid_output_wake"].GetBool()
-        self.vtk_output_wake = settings["vtk_output_wake"].GetBool()
-        self.wake_stl_dx     = settings["wake_stl_dx"].GetDouble()
-        self.wake_stl_dy     = settings["wake_stl_dy"].GetDouble()
-        self.wake_stl_dz     = settings["wake_stl_dz"].GetDouble()
+        self.check_wake_condition_tolerance = settings["check_wake_condition_tolerance"].GetDouble()
+
         self.wake_process_cpp_parameters = settings["wake_process_cpp_parameters"]
 
-        self.epsilon = self.wake_process_cpp_parameters["tolerance"].GetDouble()
-        self.echo_level = self.wake_process_cpp_parameters["echo_level"].GetInt()
-
-        # This is a reference value for the wake normal
-        self.wake_normal = self.wake_process_cpp_parameters["wake_normal"].GetVector()
-        if( abs(DotProduct(self.wake_normal,self.wake_normal) - 1) > self.epsilon ):
-            raise Exception('The wake normal should be a unitary vector')
-
-        trailing_edge_model_part_name = settings["model_part_name"].GetString()
-        if trailing_edge_model_part_name == "":
-            err_msg = "Empty model_part_name in DefineWakeProcess3D\n"
-            err_msg += "Please specify the model part that contains the trailing edge nodes"
-            raise Exception(err_msg)
-        self.trailing_edge_model_part = Model[trailing_edge_model_part_name]
-
-        self.fluid_model_part = self.trailing_edge_model_part.GetRootModelPart()
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.WAKE_NORMAL,self.wake_normal)
-
-        if self.trailing_edge_model_part.NumberOfConditions()<1:
-            self.reference_id = self.fluid_model_part.NumberOfConditions()
-            self._IncludeConditionsToModelPart(self.trailing_edge_model_part)
-        
-        tail_model_part_name = settings["tail_model_part_name"].GetString()
-        if tail_model_part_name != "":
-            self.tail_model_part = Model[tail_model_part_name]
-            if self.tail_model_part.NumberOfConditions()<1:
-                self._IncludeConditionsToModelPart(self.tail_model_part)
-
-        if self.wake_process_cpp_parameters.Has("wake_direction"):
-            self.wake_direction = self.wake_process_cpp_parameters["wake_direction"].GetVector()
-        else:
-            self.wake_direction = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY_DIRECTION)
-            self.wake_process_cpp_parameters.AddEmptyValue("wake_direction")
-            self.wake_process_cpp_parameters["wake_direction"].SetVector(self.wake_direction)
+        self.echo_level = self.wake_process_cpp_parameters["echo_level"].GetInt()-1
 
         body_model_part_name = settings["body_model_part_name"].GetString()
         if body_model_part_name == "":
@@ -114,22 +50,17 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             raise Exception(err_msg)
         self.body_model_part = Model[body_model_part_name]
 
-        self.shed_wake_from_trailing_edge = self.wake_process_cpp_parameters["shed_wake_from_trailing_edge"].GetBool()
-        if self.shed_wake_from_trailing_edge:
-            warn_msg = 'Generating the wake automatically from the trailing edge.'
-            KratosMultiphysics.Logger.PrintWarning('::[DefineWakeProcess3D]::', warn_msg)
+        self.root_model_part = self.body_model_part.GetRootModelPart()
 
-        self.wake_stl_file_name = settings["wake_stl_file_name"].GetString()
-        if self.wake_stl_file_name == "":
-            self.shed_wake_from_trailing_edge = True
-            warn_msg = 'Empty wake_stl_file_name in DefineWakeProcess3D,'
-            warn_msg += ' generating the wake automatically from the trailing edge.'
-            KratosMultiphysics.Logger.PrintWarning('::[DefineWakeProcess3D]::', warn_msg)
+        trailing_edge_model_part_name = settings["trailing_edge_model_part_name"].GetString()
+        if trailing_edge_model_part_name == "":
+            err_msg = "Empty trailing_edge_model_part_name in DefineWakeProcess3D\n"
+            err_msg += "Please specify the model part that contains the trailing edge nodes"
+            raise Exception(err_msg)
+        self.trailing_edge_model_part = Model[trailing_edge_model_part_name]
 
     def ExecuteInitialize(self):
-        # If stl available, read wake from stl and create the wake model part
         start_time = time.time()
-        self.__CreateWakeModelPart()
         exe_time = time.time() - start_time
         KratosMultiphysics.Logger.PrintInfo(
             'DefineWakeProcess3D', 'Executing __CreateWakeModelPart took ', round(exe_time, 2), ' sec')
@@ -138,154 +69,19 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
         start_time = time.time()
         CPFApp.Define3DWakeProcess(self.trailing_edge_model_part, self.body_model_part,
-                                   self.wake_model_part, self.wake_process_cpp_parameters).ExecuteInitialize()
+                                   self.wake_process_cpp_parameters).ExecuteInitialize()
+        
         exe_time = time.time() - start_time
         KratosMultiphysics.Logger.PrintInfo(
             'DefineWakeProcess3D', 'Executing Define3DWakeProcess took ', round(exe_time, 2), ' sec')
         KratosMultiphysics.Logger.PrintInfo(
             'DefineWakeProcess3D', 'Executing Define3DWakeProcess took ', round(exe_time/60, 2), ' min')
 
-        # # Output the wake in GiD for visualization
-        if(self.gid_output_wake or self.vtk_output_wake):
-            self.__VisualizeWake()
-
-    # This function imports the stl file containing the wake and creates the wake model part out of it.
-    # TODO: implement an automatic generation of the wake
-    def __CreateWakeModelPart(self):
-        self.wake_model_part = self.model.CreateModelPart("wake_model_part")
-        self.dummy_property = self.wake_model_part.Properties[0]
-        self.node_id = 1
-        self.elem_id = 1
-        if not self.shed_wake_from_trailing_edge:
-            self.__ReadWakeStlModelFromFile()
-
-    def __ReadWakeStlModelFromFile(self):
-        KratosMultiphysics.Logger.PrintInfo('DefineWakeProcess3D', 'Reading wake from stl file')
-        from stl import mesh #this requires numpy-stl
-        wake_stl_mesh = mesh.Mesh.from_multi_file(self.wake_stl_file_name)
-
-        # Looping over stl meshes
-        for stl_mesh in wake_stl_mesh:
-            for vertex in stl_mesh.points:
-                node1 = self.__AddNodeToWakeModelPart(float(vertex[0])+self.wake_stl_dx, float(vertex[1])+self.wake_stl_dy, float(vertex[2])+self.wake_stl_dz )
-                node2 = self.__AddNodeToWakeModelPart(float(vertex[3])+self.wake_stl_dx, float(vertex[4])+self.wake_stl_dy, float(vertex[5])+self.wake_stl_dz )
-                node3 = self.__AddNodeToWakeModelPart(float(vertex[6])+self.wake_stl_dx, float(vertex[7])+self.wake_stl_dy, float(vertex[8])+self.wake_stl_dz )
-
-                side1 = node2 - node1
-                side2 = node3 - node1
-                face_normal = CrossProduct(side1,side2)
-
-                normal_projection = DotProduct(face_normal, self.wake_normal)
-
-                if normal_projection >  0.0:
-                    self.__AddElementToWakeModelPart(node1.Id, node2.Id, node3.Id)
-                else:
-                    self.__AddElementToWakeModelPart(node1.Id, node3.Id, node2.Id)
-
-    def __AddNodeToWakeModelPart(self, x, y, z):
-        node = self.wake_model_part.CreateNewNode(self.node_id, x, y, z)
-        self.node_id +=1
-        return node
-
-    def __AddElementToWakeModelPart(self, id1, id2, id3):
-        self.wake_model_part.CreateNewElement("Element3D3N", self.elem_id,  [id1, id2, id3], self.dummy_property)
-        self.elem_id += 1
-
-    def __VisualizeWake(self):
-        # To visualize the wake
-        number_of_nodes = self.fluid_model_part.NumberOfNodes()
-        number_of_elements = self.fluid_model_part.NumberOfElements()
-
-        node_id = number_of_nodes + 1
-        for node in self.wake_model_part.Nodes:
-            node.Id = node_id
-            node.SetValue(KratosMultiphysics.REACTION_WATER_PRESSURE, 1.0)
-            node_id += 1
-
-        counter = number_of_elements + 1
-        for elem in self.wake_model_part.Elements:
-            elem.Id = counter
-            counter +=1
-
-        output_file = "representation_of_wake"
-        if self.gid_output_wake:
-            gid_output =  GiDOutputProcess(self.wake_model_part,
-                                    output_file,
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration": {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "file_label": "time",
-                                                "output_control_type": "step",
-                                                "output_frequency": 1.0,
-                                                "body_output": true,
-                                                "node_output": false,
-                                                "skin_output": false,
-                                                "plane_output": [],
-                                                "nodal_results": [],
-                                                "nodal_nonhistorical_results": ["REACTION_WATER_PRESSURE"],
-                                                "nodal_flags_results": [],
-                                                "gauss_point_results": [],
-                                                "additional_list_files": []
-                                            }
-                                        }
-                                        """)
-                                    )
-
-            gid_output.ExecuteInitialize()
-            gid_output.ExecuteBeforeSolutionLoop()
-            gid_output.ExecuteInitializeSolutionStep()
-            gid_output.PrintOutput()
-            gid_output.ExecuteFinalizeSolutionStep()
-            gid_output.ExecuteFinalize()
-
-        if self.vtk_output_wake:
-            output = VtkOutputProcess( self.model,
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "model_part_name"                    : "wake_model_part",
-                                            "output_control_type"                : "step",
-                                            "output_interval"                    : 1,
-                                            "file_format"                        : "binary",
-                                            "output_precision"                   : 7,
-                                            "output_sub_model_parts"             : false,
-                                            "output_path"                        : "wake_output",
-                                            "save_output_files_in_folder"        : true,
-                                            "nodal_data_value_variables"         : ["REACTION_WATER_PRESSURE"]
-                                        }
-                                        """))
-            output.ExecuteInitialize()
-            output.ExecuteBeforeSolutionLoop()
-            output.ExecuteInitializeSolutionStep()
-            output.PrintOutput()
-            output.ExecuteFinalizeSolutionStep()
-            output.ExecuteFinalize()
-
-    def _IncludeConditionsToModelPart(self, model_part):
-        reference_point = [0.0, 0.0, 0.0]
-        prop = model_part.GetProperties()[1]
-        node_ids = []
-        node_distances = []
-        for node in model_part.Nodes:
-            diference = [node.X-reference_point[0], node.Y-reference_point[1], node.Z-reference_point[2]]
-            node_distances.append(math.sqrt(DotProduct(diference, diference)))
-            node_ids.append(node.Id)
-        ordered_indexes = sorted(range(len(node_distances)), key=lambda i: node_distances[i])
-        node_list = [node_ids[i] for i in ordered_indexes]
-        for i in range(1, model_part.NumberOfNodes()):
-            self.reference_id += i
-            model_part.CreateNewCondition("PotentialWallCondition3D2N", self.reference_id, [node_list[i-1], node_list[i]], prop)
-
     def ExecuteFinalizeSolutionStep(self):
-        if not self.fluid_model_part.HasSubModelPart("wake_elements_model_part"):
-            raise Exception("Fluid model part does not have a wake_elements_model_part")
+        if not self.root_model_part.HasSubModelPart("wake_elements_model_part"):
+            raise Exception("root model part does not have a wake_elements_model_part")
         else:
-            self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake_elements_model_part")
+            self.wake_sub_model_part = self.root_model_part.GetSubModelPart("wake_elements_model_part")
 
-        CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, self.echo_level-1)
+        CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, self.check_wake_condition_tolerance, self.echo_level)
         CPFApp.PotentialFlowUtilities.ComputePotentialJump3D(self.wake_sub_model_part)
