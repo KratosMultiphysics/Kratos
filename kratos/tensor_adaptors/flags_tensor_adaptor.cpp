@@ -50,6 +50,13 @@ FlagsTensorAdaptor::FlagsTensorAdaptor(
 
     const auto& r_tensor_shape = this->mpStorage->Shape();
 
+    if (!HoldsAlternative<ModelPart::NodesContainerType::Pointer,
+                          ModelPart::ConditionsContainerType::Pointer,
+                          ModelPart::ElementsContainerType::Pointer>::Evaluate(this->GetContainer())) {
+        KRATOS_ERROR << "FlagsTensorAdaptor can only be used with tensor data having nodal, condition or element containers "
+                     << "[ tensor data = " << this->mpStorage->Info() << " ].\n";
+    }
+
     std::visit([this, &r_tensor_shape](auto pContainer){
         KRATOS_ERROR_IF_NOT(r_tensor_shape.size() == 1 && r_tensor_shape[0] == pContainer->size())
             << "The data storage within the tensor data is not compatible with the flags "
@@ -61,6 +68,8 @@ FlagsTensorAdaptor::FlagsTensorAdaptor(
 
 void FlagsTensorAdaptor::Check() const
 {
+    KRATOS_TRY
+
     std::visit([this](auto pContainer) {
         using container_type = BareType<decltype(*pContainer)>;
 
@@ -70,6 +79,8 @@ void FlagsTensorAdaptor::Check() const
                 << ", data span size = " << this->Size() << " ].\n";
         }
     }, this->mpStorage->GetContainer());
+
+    KRATOS_CATCH("");
 }
 
 void FlagsTensorAdaptor::CollectData()

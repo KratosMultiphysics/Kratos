@@ -15,6 +15,7 @@
 // System includes
 #include <algorithm>
 #include <string>
+#include <variant>
 #include <type_traits>
 #include <vector>
 
@@ -26,6 +27,15 @@ namespace Kratos {
 
 template<class T, class... TList>
 constexpr bool IsInList = std::disjunction<std::is_same<T, TList>...>::value;
+
+template<class... TAlternativesList>
+struct HoldsAlternative
+{
+    template<class... TVariantTypes>
+    static bool Evaluate(std::variant<TVariantTypes...>&& rVariant) {
+        return  (... || std::holds_alternative<TAlternativesList>(rVariant));
+    }
+};
 
 template <class T>
 struct BareTypeImpl {

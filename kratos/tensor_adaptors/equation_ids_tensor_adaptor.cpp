@@ -33,6 +33,8 @@ void EquationIdsTensorAdaptorCollectData(
     const TContainerType& rContainer,
     const ProcessInfo& rProcessInfo)
 {
+    KRATOS_TRY
+
     IndexPartition<IndexType>(rContainer.size()).for_each(std::vector<IndexType>{}, [Span, &rContainer, &rProcessInfo, Stride](const auto Index, auto& rTLS){
         const auto& r_entity = *(rContainer.begin() + Index);
         r_entity.EquationIdVector(rTLS, rProcessInfo);
@@ -45,6 +47,8 @@ void EquationIdsTensorAdaptorCollectData(
 
         std::copy(rTLS.begin(), rTLS.end(), Span.data() + Index * Stride);
     });
+
+    KRATOS_CATCH("");
 }
 
 template<class TContainerType>
@@ -83,6 +87,15 @@ EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(
     : BaseType(rOther, Copy),
       mpProcessInfo(pProcessInfo)
 {
+    KRATOS_TRY
+
+    if (!HoldsAlternative<ModelPart::ConditionsContainerType::Pointer,
+                          ModelPart::ElementsContainerType::Pointer>::Evaluate(this->GetContainer())) {
+        KRATOS_ERROR << "EquationIdsTensorAdaptor can only be used with tensor data having condition or element containers "
+                     << "[ tensor data = " << this->mpStorage->Info() << " ].\n";
+    }
+
+    KRATOS_CATCH("");
 }
 
 void EquationIdsTensorAdaptor::CollectData()

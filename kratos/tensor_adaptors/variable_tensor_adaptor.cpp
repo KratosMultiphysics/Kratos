@@ -61,6 +61,16 @@ VariableTensorAdaptor::VariableTensorAdaptor(
 {
     KRATOS_TRY
 
+    if (!HoldsAlternative<ModelPart::NodesContainerType::Pointer,
+                          ModelPart::ConditionsContainerType::Pointer,
+                          ModelPart::ElementsContainerType::Pointer,
+                          ModelPart::PropertiesContainerType::Pointer,
+                          ModelPart::MasterSlaveConstraintContainerType::Pointer,
+                          ModelPart::GeometryContainerType::Pointer>::Evaluate(this->GetContainer())) {
+        KRATOS_ERROR << "VariableTensorAdaptor can only be used with tensor data having nodal, condition, element, properties, master-slave or geometry containers "
+                     << "[ tensor data = " << this->mpStorage->Info() << " ].\n";
+    }
+
     // now check whether the given storage is compatible with the variable.
     std::visit([this, &rOther](auto pVariable) {
         using data_type = typename BareType<decltype(*pVariable)>::Type;

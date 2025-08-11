@@ -82,36 +82,30 @@ void NodePositionTensorAdaptor::CollectData()
 {
     KRATOS_TRY
 
-    std::visit([this](auto pContainer) {
-        using container_type = BareType<decltype(*pContainer)>;
+    auto p_container = std::get<ModelPart::NodesContainerType::Pointer>(this->GetContainer());
+    const auto& r_tensor_shape = this->Shape();
 
-        if constexpr(IsInList<container_type, ModelPart::NodesContainerType>) {
-            const auto& r_tensor_shape = this->Shape();
+    KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == p_container->size())
+        << "Underlying container of the tensor data has changed size [ tensor data = "
+        << this->mpStorage->Info() << ", container size = " << p_container->size() << " ].\n";
 
-            KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
-                << "Underlying container of the tensor data has changed size [ tensor data = "
-                << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
-
-            switch (this->mConfiguration) {
-                case Globals::Configuration::Current:
-                    ContainerIOUtils::CopyToContiguousArray<array_1d<double, 3>>(
-                        *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
-                        r_tensor_shape.data().begin() + r_tensor_shape.size(),
-                        [](auto& rCoordinates, const Node& rNode) {
-                            rCoordinates = rNode.Coordinates();
-                        });
-                    break;
-                case Globals::Configuration::Initial:
-                    ContainerIOUtils::CopyToContiguousArray<array_1d<double, 3>>(
-                        *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
-                        r_tensor_shape.data().begin() + r_tensor_shape.size(),
-                        [](auto& rCoordinates, const Node& rNode) {
-                            rCoordinates = rNode.GetInitialPosition();
-                        });
-            }
-        }
-
-    }, mpStorage->GetContainer());
+    switch (this->mConfiguration) {
+        case Globals::Configuration::Current:
+            ContainerIOUtils::CopyToContiguousArray<array_1d<double, 3>>(
+                *p_container, this->ViewData(), r_tensor_shape.data().begin(),
+                r_tensor_shape.data().begin() + r_tensor_shape.size(),
+                [](auto& rCoordinates, const Node& rNode) {
+                    rCoordinates = rNode.Coordinates();
+                });
+            break;
+        case Globals::Configuration::Initial:
+            ContainerIOUtils::CopyToContiguousArray<array_1d<double, 3>>(
+                *p_container, this->ViewData(), r_tensor_shape.data().begin(),
+                r_tensor_shape.data().begin() + r_tensor_shape.size(),
+                [](auto& rCoordinates, const Node& rNode) {
+                    rCoordinates = rNode.GetInitialPosition();
+                });
+    }
 
     KRATOS_CATCH("");
 }
@@ -120,37 +114,32 @@ void NodePositionTensorAdaptor::StoreData()
 {
     KRATOS_TRY
 
-    std::visit([this](auto pContainer) {
-        using container_type = BareType<decltype(*pContainer)>;
+    auto p_container = std::get<ModelPart::NodesContainerType::Pointer>(this->GetContainer());
+    const auto& r_tensor_shape = this->Shape();
 
-        if constexpr(IsInList<container_type, ModelPart::NodesContainerType>) {
-            const auto& r_tensor_shape = this->Shape();
+    KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == p_container->size())
+        << "Underlying container of the tensor data has changed size [ tensor data = "
+        << this->mpStorage->Info() << ", container size = " << p_container->size() << " ].\n";
 
-            KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
-                << "Underlying container of the tensor data has changed size [ tensor data = "
-                << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
-
-            switch (mConfiguration) {
-                case Globals::Configuration::Current:
-                    ContainerIOUtils::CopyFromContiguousDataArray<array_1d<double, 3>>(
-                        *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
-                        r_tensor_shape.data().begin() + r_tensor_shape.size(),
-                        [](Node& rNode) -> auto& {
-                            // get the current coordinates
-                            return rNode.Coordinates();
-                        });
-                    break;
-                case Globals::Configuration::Initial:
-                    ContainerIOUtils::CopyFromContiguousDataArray<array_1d<double, 3>>(
-                        *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
-                        r_tensor_shape.data().begin() + r_tensor_shape.size(),
-                        [](Node& rNode) -> auto& {
-                            // get the current coordinates
-                            return rNode.GetInitialPosition();
-                        });
-            }
-        }
-    }, mpStorage->GetContainer());
+    switch (mConfiguration) {
+        case Globals::Configuration::Current:
+            ContainerIOUtils::CopyFromContiguousDataArray<array_1d<double, 3>>(
+                *p_container, this->ViewData(), r_tensor_shape.data().begin(),
+                r_tensor_shape.data().begin() + r_tensor_shape.size(),
+                [](Node& rNode) -> auto& {
+                    // get the current coordinates
+                    return rNode.Coordinates();
+                });
+            break;
+        case Globals::Configuration::Initial:
+            ContainerIOUtils::CopyFromContiguousDataArray<array_1d<double, 3>>(
+                *p_container, this->ViewData(), r_tensor_shape.data().begin(),
+                r_tensor_shape.data().begin() + r_tensor_shape.size(),
+                [](Node& rNode) -> auto& {
+                    // get the current coordinates
+                    return rNode.GetInitialPosition();
+                });
+    }
 
     KRATOS_CATCH("");
 }

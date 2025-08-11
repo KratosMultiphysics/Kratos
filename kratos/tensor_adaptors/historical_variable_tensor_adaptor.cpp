@@ -97,6 +97,12 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
       mpVariable(pVariable),
       mStepIndex(StepIndex)
 {
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(std::holds_alternative<ModelPart::NodesContainerType::Pointer>(this->mpStorage->GetContainer()))
+        << "HistoricalVariableTensorAdaptor can only be used with tensor data having nodal containers "
+        << "[ tensor data = " << this->mpStorage->Info() << " ].\n";
+
     // now check whether the given storage is compatible with the variable.
     std::visit([this, &rOther](auto pVariable) {
         using data_type = typename BareType<decltype(*pVariable)>::Type;
@@ -107,6 +113,7 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
 
     }, mpVariable);
 
+    KRATOS_CATCH("");
 }
 
 void HistoricalVariableTensorAdaptor::Check() const
@@ -115,93 +122,86 @@ void HistoricalVariableTensorAdaptor::Check() const
 
     BaseType::Check();
 
-    std::visit([this](auto pContainer, auto pVariable) {
-        using container_type = BareType<decltype(*pContainer)>;
+    auto p_container = std::get<ModelPart::NodesContainerType::Pointer>(this->GetContainer());
 
-        if constexpr(IsInList<container_type, ModelPart::NodesContainerType>) {
-            // first check if the variable is there, and step index is valid
-            // This check is done every time CollectData or StoreData is called
-            // because, the PointerVectorSet which the Storage holds
-            // may have nodes from different model parts, or they may come from
-            // a temporary PointerVectorSet which did not change in size, but
-            // changed the underlying nodes or variables list.
-            HistoricalVariableTensorAdaptorHelperUtils::Check(*pContainer, *pVariable, this->mStepIndex);
-        }
-    }, mpStorage->GetContainer(), mpVariable);
+    std::visit([this, &p_container](auto pVariable) {
+        // first check if the variable is there, and step index is valid
+        // This check is done every time CollectData or StoreData is called
+        // because, the PointerVectorSet which the Storage holds
+        // may have nodes from different model parts, or they may come from
+        // a temporary PointerVectorSet which did not change in size, but
+        // changed the underlying nodes or variables list.
+        HistoricalVariableTensorAdaptorHelperUtils::Check(*p_container, *pVariable, this->mStepIndex);
+    }, mpVariable);
 
     KRATOS_CATCH("");
 }
 
 void HistoricalVariableTensorAdaptor::CollectData()
 {
+    auto p_container = std::get<ModelPart::NodesContainerType::Pointer>(this->GetContainer());
 
-    std::visit([this](auto pContainer, auto pVariable) {
-        using container_type = BareType<decltype(*pContainer)>;
+    std::visit([this, &p_container](auto pVariable) {
+        using variable_type = BareType<decltype(*pVariable)>;
+        using data_type = typename variable_type::Type;
 
-        if constexpr(IsInList<container_type, ModelPart::NodesContainerType>) {
-            using variable_type = BareType<decltype(*pVariable)>;
-            using data_type = typename variable_type::Type;
+        const auto& r_tensor_shape = this->Shape();
 
-            const auto& r_tensor_shape = this->Shape();
+        KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == p_container->size())
+            << "Underlying container of the tensor data has changed size [ tensor data = "
+            << this->mpStorage->Info() << ", container size = " << p_container->size() << " ].\n";
 
-            KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
-                << "Underlying container of the tensor data has changed size [ tensor data = "
-                << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
-
-            ContainerIOUtils::CopyToContiguousArray<data_type>(
-                *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
-                r_tensor_shape.data().begin() + r_tensor_shape.size(), [pVariable, this](auto& rValue, const Node& rNode) {
-                        rValue = rNode.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
-                });
-        }
-    }, mpStorage->GetContainer(), mpVariable);
+        ContainerIOUtils::CopyToContiguousArray<data_type>(
+            *p_container, this->ViewData(), r_tensor_shape.data().begin(),
+            r_tensor_shape.data().begin() + r_tensor_shape.size(), [pVariable, this](auto& rValue, const Node& rNode) {
+                    rValue = rNode.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
+            });
+    }, mpVariable);
 }
 
 void HistoricalVariableTensorAdaptor::StoreData()
 {
-    std::visit([this](auto pContainer, auto pVariable){
-        using container_type = BareType<decltype(*pContainer)>;
+    auto p_container = std::get<ModelPart::NodesContainerType::Pointer>(this->GetContainer());
 
-        if constexpr(IsInList<container_type, ModelPart::NodesContainerType>) {
-            using variable_type = BareType<decltype(*pVariable)>;
-            using data_type = typename variable_type::Type;
+    std::visit([this, &p_container](auto pVariable){
+        using variable_type = BareType<decltype(*pVariable)>;
+        using data_type = typename variable_type::Type;
 
-            const auto& r_tensor_shape = this->Shape();
+        const auto& r_tensor_shape = this->Shape();
 
-            KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
-                << "Underlying container of the tensor data has changed size [ tensor data = "
-                << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
+        KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == p_container->size())
+            << "Underlying container of the tensor data has changed size [ tensor data = "
+            << this->mpStorage->Info() << ", container size = " << p_container->size() << " ].\n";
 
-            if constexpr(DataTypeTraits<data_type>::IsDynamic) {
-                const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
-                const auto& zero_shape = DataTypeTraits<data_type>::Shape(zero);
+        if constexpr(DataTypeTraits<data_type>::IsDynamic) {
+            const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
+            const auto& zero_shape = DataTypeTraits<data_type>::Shape(zero);
 
-                ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
-                    *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
-                    r_tensor_shape.data().begin() + r_tensor_shape.size(), [&zero, &zero_shape, this, pVariable](Node& rNode) -> auto& {
-                        auto& r_value = rNode.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
+            ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
+                *p_container, this->ViewData(), r_tensor_shape.data().begin(),
+                r_tensor_shape.data().begin() + r_tensor_shape.size(), [&zero, &zero_shape, this, pVariable](Node& rNode) -> auto& {
+                    auto& r_value = rNode.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
 
-                        // here we reshape the r_value to the given dimensions and sizes.
-                        // The following method will not do anything if the type is static,
-                        // but in the case where Variable<Vector> and Variable<Matrix>
-                        // it will do the proper resizing.
-                        // This adds no cost to the static data types.
-                        if (zero_shape != DataTypeTraits<data_type>::Shape(r_value)) {
-                            // if the shape is not equal, then assign the correct shape.
-                            r_value = zero;
-                        }
+                    // here we reshape the r_value to the given dimensions and sizes.
+                    // The following method will not do anything if the type is static,
+                    // but in the case where Variable<Vector> and Variable<Matrix>
+                    // it will do the proper resizing.
+                    // This adds no cost to the static data types.
+                    if (zero_shape != DataTypeTraits<data_type>::Shape(r_value)) {
+                        // if the shape is not equal, then assign the correct shape.
+                        r_value = zero;
+                    }
 
-                        return r_value;
-                    });
-            } else {
-                ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
-                    *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
-                    r_tensor_shape.data().begin() + r_tensor_shape.size(), [this, pVariable](Node& rNode) -> auto& {
-                        return rNode.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
-                    });
-            }
+                    return r_value;
+                });
+        } else {
+            ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
+                *p_container, this->ViewData(), r_tensor_shape.data().begin(),
+                r_tensor_shape.data().begin() + r_tensor_shape.size(), [this, pVariable](Node& rNode) -> auto& {
+                    return rNode.FastGetSolutionStepValue(*pVariable, this->mStepIndex);
+                });
         }
-    }, mpStorage->GetContainer(), mpVariable);
+    }, mpVariable);
 }
 
 std::string HistoricalVariableTensorAdaptor::Info() const
