@@ -46,9 +46,9 @@ namespace Kratos {
  * - Use @ref StoreData Not possible.
  *
  * @author Suneth Warnakulasuriya
- * @see TensorAdaptor                 Base class.
- * @see Element::EquationIdVector     Equation id retrieval method from elements.
- * @see Condition::EquationIdVector   Equation id retrieval method from conditions.
+ * @see @ref TensorAdaptor                 Base class.
+ * @see @ref Element::EquationIdVector     Equation id retrieval method from elements.
+ * @see @ref Condition::EquationIdVector   Equation id retrieval method from conditions.
  */
 class KRATOS_API(KRATOS_CORE) EquationIdsTensorAdaptor: public TensorAdaptor<int> {
 public:

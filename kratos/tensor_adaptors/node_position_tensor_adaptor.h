@@ -47,10 +47,10 @@ namespace Kratos {
  * - Use @ref StoreData to write tensor data back to a Kratos nodes' positions.
  *
  * @author Suneth Warnakulasuriya
- * @see TensorAdaptor                  Base class.
- * @see Node::Coordinates              Method used to retrieve/update nodes' current coordinates.
- * @see Node::GetInitialPosition       Method used to retrieve/update nodes' initial coordinates.
- * @see Globals::Configuration         Enum used to specify whether to work on current or initial coordinates.
+ * @see @ref TensorAdaptor                  Base class.
+ * @see @ref Node::Coordinates              Method used to retrieve/update nodes' current coordinates.
+ * @see @ref Node::GetInitialPosition       Method used to retrieve/update nodes' initial coordinates.
+ * @see @ref Globals::Configuration         Enum used to specify whether to work on current or initial coordinates.
  */
 class KRATOS_API(KRATOS_CORE) NodePositionTensorAdaptor: public TensorAdaptor<double> {
 public:

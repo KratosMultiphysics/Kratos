@@ -47,9 +47,9 @@ namespace Kratos {
  * - Use @ref StoreData    Not possible.
  *
  * @author Suneth Warnakulasuriya
- * @see TensorAdaptor                                Base class.
- * @see Element::CalculateOnIntegrationPoints        Used to retrieve gauss point values from elements.
- * @see Condition::CalculateOnIntegrationPoints      Used to retrieve gauss point values from elements.
+ * @see @ref TensorAdaptor                                Base class.
+ * @see @ref Element::CalculateOnIntegrationPoints        Used to retrieve gauss point values from elements.
+ * @see @ref Condition::CalculateOnIntegrationPoints      Used to retrieve gauss point values from elements.
  */
 class KRATOS_API(KRATOS_CORE) GaussPointVariableTensorAdaptor: public TensorAdaptor<double> {
 public:

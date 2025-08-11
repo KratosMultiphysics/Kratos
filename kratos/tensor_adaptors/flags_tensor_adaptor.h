@@ -52,9 +52,11 @@ namespace Kratos {
  * - Use @ref StoreData to store back the internal tensor data to flag values of nodes, conditions and elements.
  *
  * @author Suneth Warnakulasuriya
- * @see TensorAdaptor                 Base class.
- * @see Flags::Is                     Method used to retrieve flag status from entities.
- * @see Flags::Set                    Method used to set the flag status in the entities.
+ * @see @ref TensorAdaptor                 Base class.
+ * @see @ref Flags::Is                     Method used to retrieve flag status from entities.
+ * @see @ref Flags::IsDefined              Method used to retrieve flag defined status from entities.
+ * @see @ref Flags::Set                    Method used to set the flag status in the entities.
+ * @see @ref Flags::Reset                  Method used to rest the flag in entities.
  */
 class KRATOS_API(KRATOS_CORE) FlagsTensorAdaptor: public TensorAdaptor<int> {
 public:
