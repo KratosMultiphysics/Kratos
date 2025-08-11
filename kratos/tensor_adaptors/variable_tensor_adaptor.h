@@ -38,7 +38,7 @@ namespace Kratos {
  * @warning When using StoreData() to add variables to entities (if they are not present already in the entities), avoid calling Check() to prevent raising an error which
  *          will say the variable is not found.
  *
- * @section supported_container Supported container types
+ * @section VariableTensorAdaptor_supported_container "Supported container types"
  * - @ref ModelPart::NodesContainerType
  * - @ref ModelPart::ConditionsContainerType
  * - @ref ModelPart::ElementsContainerType
@@ -46,10 +46,10 @@ namespace Kratos {
  * - @ref ModelPart::GeometryContainerType
  * - @ref ModelPart::MasterSlaveConstraintContainerType
  *
- * @section Usage
- * - Use Check() to verify that the variable exists in the entities before collecting data.
- * - Use CollectData() to fill internal data from Kratos data structures.
- * - Use StoreData() to write internal data back to the container, adding the variable if necessary.
+ * @section VariableTensorAdaptor_usage "Usage"
+ * - Use @ref Check to verify that the variable exists in the entities before collecting data.
+ * - Use @ref CollectData to fill internal data from Kratos data structures.
+ * - Use @ref StoreData to write internal data back to the container, adding the variable if necessary.
  *
  * @author Suneth Warnakulasuriya
  * @see @ref TensorAdaptor                  Base class.
@@ -70,7 +70,7 @@ public:
 
     ///@}
     ///@name Life cycle
-    ///@
+    ///@{
 
     template<class TContainerPointerType>
     VariableTensorAdaptor(
@@ -96,10 +96,12 @@ public:
     ///@{
 
     /**
-     * @brief This check only suppose to be done if this VariableTensorAdaptor
-     *        is suppose to use with the CollectData method. If it is supposed to be used
-     *        with the StoreData, then this Check will disallow storing data, when the entities
-     *        does not have the variables.
+     * @brief Execution of this check is only required if this VariableTensorAdaptor
+     *        will be used to call the @ref CollectData method. If it is only required to be called
+     *        with the @ref StoreData, then please do not execute this @ref Check. Because
+     *        then this Check will disallow storing data by throwing an error, when the entities do not have the variables
+     *        already defined.
+     * @see StoreData
      */
     void Check() const override;
 
@@ -113,13 +115,12 @@ public:
     void CollectData() override;
 
     /**
-     * @brief Store internal data to the given TContainerType container.
+     * @brief Store internal data to the given container.
      * @details This method is designed to store data even if the variable is not already available in the
-     *          entities. If it is not present in the entities, then a correctly shaped zero valued values
-     *          will be set and then their relevant components will be overwritten by this method by the
-     *          values from the underlying data from the flat vector.
-     * @warning Please don't call the VariableTensorAdaptor::Check method if you intend to use VariableTensorAdaptor to add the variable
-     *          to the entities, and avoid unnecessary dummy initialization of values.
+     *          entities. If it is not present in the entities, then a correctly shaped zero valued value
+     *          will be set and then their relevant components will be overwritten by this method.
+     * @warning Do not call @ref Check if you intend to use VariableTensorAdaptor to add the variable
+     *          to the entities, and avoid unnecessarily initializing dummy values.
      */
     void StoreData() override;
 

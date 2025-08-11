@@ -58,20 +58,23 @@ public:
     {
         KRATOS_TRY
 
-        using value_traits = DataTypeTraits<TDataType>;
+        if (!rContainer.empty()) {
+            using value_traits = DataTypeTraits<TDataType>;
 
-        KRATOS_ERROR_IF(rContainer.empty())
-            << "The given container does not have any "
-            << ModelPart::Container<TContainerType>::GetEntityName() << "s.\n";
+            TDataType dummy{};
+            rGetter(dummy, rContainer.front());
 
-        TDataType dummy{};
-        rGetter(dummy, rContainer.front());
+            DenseVector<unsigned int> tensor_shape(value_traits::Dimension + 1);
+            tensor_shape[0] = rContainer.size();
+            DataTypeTraits<TDataType>::Shape(dummy, tensor_shape.data().begin() + 1, tensor_shape.data().begin() + tensor_shape.size());
 
-        DenseVector<unsigned int> tensor_shape(value_traits::Dimension + 1);
-        tensor_shape[0] = rContainer.size();
-        DataTypeTraits<TDataType>::Shape(dummy, tensor_shape.data().begin() + 1, tensor_shape.data().begin() + tensor_shape.size());
-
-        return tensor_shape;
+            return tensor_shape;
+        } else {
+            // if there are not entities in the rContainer, return a tensor shape which has
+            // one dimension with the value zero. TensorAdaptors are supposed to have at least
+            // one dimension.
+            return DenseVector<unsigned int>(1, 0);
+        }
 
         KRATOS_CATCH("");
     }
@@ -85,10 +88,6 @@ public:
         KRATOS_TRY
 
         using value_traits = DataTypeTraits<TDataType>;
-
-        KRATOS_ERROR_IF(rContainer.empty())
-            << "The given container does not have any "
-            << ModelPart::Container<TContainerType>::GetEntityName() << "s.\n";
 
         KRATOS_ERROR_IF_NOT(value_traits::IsValidShape(rDataShapeBegin, rDataShapeEnd))
             << "Invalid data shape provided. [ data shape provided = [" << StringUtilities::JoinValues(rDataShapeBegin, rDataShapeEnd, ",")

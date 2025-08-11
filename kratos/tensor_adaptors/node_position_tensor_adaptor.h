@@ -28,32 +28,29 @@ namespace Kratos {
 ///@{
 
 /**
- * @class NodePositionTensorAdaptor
  * @ingroup TensorAdaptors
  * @brief Adapts node position data from a Kratos ModelPart to a tensor representation.
  *
  * @details This class provides an adaptor for accessing and manipulating node position data
  *          as a tensor, enabling integration with tensor-based algorithms and operations.
- *          It inherits from TensorAdaptor<double> and manages the mapping between Kratos
- *          node containers and tensor data structures.
  *
  *          The @ref Globals::Configuration is used to indicate whether this tensor adaptor will work
  *          with the initial (@ref Globals::Configuration::Initial) nodal positions or the current (
  *          @ref Globals::Configuration::Current) nodal positions.
  *
- * @section supported_container Supported container types
+ * @section NodePositionTensorAdaptor_supported_container "Supported container types"
  * - @ref ModelPart::NodesContainerType
  *
- * @section Usage
- * - Construct with a pointer to a ModelPart::NodesContainerType and a configuration.
- * - Use CollectData() to fill internal tensor data from Kratos nodes' positions.
- * - Use StoreData() to write tensor data back to a Kratos nodes' positions.
+ * @section NodePositionTensorAdaptor_usage "Usage"
+ * - Construct with a pointer to an @ref ModelPart::NodesContainerType "array of nodes" and a configuration.
+ * - Use @ref CollectData to fill internal tensor data from Kratos nodes' positions.
+ * - Use @ref StoreData to write tensor data back to a Kratos nodes' positions.
  *
  * @author Suneth Warnakulasuriya
- * @see @ref TensorAdaptor                  Base class.
- * @see @ref Node::Coordinates              Method used to retrieve/update nodes' current coordinates.
- * @see @ref Node::GetInitialPosition       Method used to retrieve/update nodes' initial coordinates.
- * @see @ref Globals::Configuration         Enum used to specify whether to work on current or initial coordinates.
+ * @see TensorAdaptor                  Base class.
+ * @see Node::Coordinates              Method used to retrieve/update nodes' current coordinates.
+ * @see Node::GetInitialPosition       Method used to retrieve/update nodes' initial coordinates.
+ * @see Globals::Configuration         Enum used to specify whether to work on current or initial coordinates.
  */
 class KRATOS_API(KRATOS_CORE) NodePositionTensorAdaptor: public TensorAdaptor<double> {
 public:
@@ -67,7 +64,7 @@ public:
 
     ///@}
     ///@name Life cycle
-    ///@
+    ///@{
 
     NodePositionTensorAdaptor(
         ModelPart::NodesContainerType::Pointer pContainer,

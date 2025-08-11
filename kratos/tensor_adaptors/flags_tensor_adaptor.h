@@ -28,7 +28,6 @@ namespace Kratos {
 ///@{
 
 /**
- * @class FlagsTensorAdaptor
  * @ingroup TensorAdaptors
  * @brief Adaptor class for handling tensor data associated with Kratos Flags.
  *
@@ -37,12 +36,12 @@ namespace Kratos {
  *          It manages the association between tensor data and Kratos Flags, allowing for
  *          efficient data collection and storage from/to Kratos data structures.
  *
- * @section supported_container Supported container types
+ * @section FlagsTensorAdaptor_supported_container Supported container types
  * - @ref ModelPart::NodesContainerType
  * - @ref ModelPart::ConditionsContainerType
  * - @ref ModelPart::ElementsContainerType
  *
- * @section Usage
+ * @section FlagsTensorAdaptor_usage "Usage"
  * - Use @ref Check to verify the tensor data shape compatibility.
  * - Use @ref CollectData to fill internal tensor data from flag values from nodes, conditions and elements.
  * - Use @ref StoreData to store back the internal tensor data to flag values of nodes, conditions and elements.

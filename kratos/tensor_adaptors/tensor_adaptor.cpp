@@ -30,9 +30,6 @@
 
 namespace Kratos {
 
-///@name Kratos Classes
-///@{
-
 template<class TDataType>
 TensorAdaptor<TDataType>::Storage::Storage(
     ContainerPointerType pContainer,
@@ -43,7 +40,7 @@ TensorAdaptor<TDataType>::Storage::Storage(
     KRATOS_TRY
 
     KRATOS_ERROR_IF(mShape.empty())
-        << "The tensor data shape cannot be empty. It atleast needs one dimension representing the number of items in the container [ tensor data = "
+        << "The tensor data shape cannot be empty. It requires at least one dimension representing the number of items in the container [ tensor data = "
         << this->Info() << " ].\n";
 
     std::visit([this](auto pContainer){
@@ -121,7 +118,7 @@ DenseVector<unsigned int> TensorAdaptor<TDataType>::Storage::DataShape() const
 template<class TDataType>
 unsigned int TensorAdaptor<TDataType>::Storage::Size() const
 {
-    return std::accumulate(mShape.data().begin(), mShape.data().end(), 1, std::multiplies<unsigned int>{});
+    return std::accumulate(mShape.data().begin(), mShape.data().end(), 1u, std::multiplies<unsigned int>{});
 }
 
 template<class TDataType>

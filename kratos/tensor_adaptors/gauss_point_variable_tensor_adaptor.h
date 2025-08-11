@@ -28,7 +28,6 @@ namespace Kratos {
 ///@{
 
 /**
- * @class GaussPointVariableTensorAdaptor
  * @ingroup TensorAdaptors
  * @brief Adaptor class for handling tensor data associated with gauss point values.
  *
@@ -38,19 +37,19 @@ namespace Kratos {
  *
  * @warning StoreData method is throwing an unimplemented error since setting gauss points is not allowed.
  *
- * @section supported_container Supported container types
+ * @section GaussPointVariableTensorAdaptor_supported_container "Supported container types"
  * - @ref ModelPart::ConditionsContainerType
  * - @ref ModelPart::ElementsContainerType
  *
- * @section Usage
- * - Use GaussPointVariableTensorAdaptor::Check() to verify the tensor data shape compatibility.
- * - Use CollectData() to fill internal tensor data from gauss point computed values at each element or condition.
- * - Use StoreData()    Not used.
+ * @section GaussPointVariableTensorAdaptor_usage "Usage"
+ * - Use @ref Check to verify the tensor data shape compatibility.
+ * - Use @ref CollectData to fill internal tensor data from gauss point computed values at each element or condition.
+ * - Use @ref StoreData    Not possible.
  *
  * @author Suneth Warnakulasuriya
- * @see @ref TensorAdaptor                                Base class.
- * @see @ref Element::CalculateOnIntegrationPoints        Used to retrieve gauss point values from elements.
- * @see @ref Condition::CalculateOnIntegrationPoints      Used to retrieve gauss point values from elements.
+ * @see TensorAdaptor                                Base class.
+ * @see Element::CalculateOnIntegrationPoints        Used to retrieve gauss point values from elements.
+ * @see Condition::CalculateOnIntegrationPoints      Used to retrieve gauss point values from elements.
  */
 class KRATOS_API(KRATOS_CORE) GaussPointVariableTensorAdaptor: public TensorAdaptor<double> {
 public:

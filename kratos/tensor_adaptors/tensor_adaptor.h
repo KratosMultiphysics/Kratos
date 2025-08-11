@@ -31,7 +31,7 @@ namespace Kratos {
 ///@{
 
 /**
- * @defgroup TensorAdaptors
+ * @defgroup TensorAdaptors "Tensor Adaptors"
  * @brief Tensor adaptors are used to read or write data from/to entities (nodes, elements, conditions, constraints) of a @ref ModelPart.
  * @details The @ref TensorAdaptor class is designed to handle reading from variables, info, data from each entity
  *          in the containers of @p ModelPart to a @p TensorAdaptor instance or vice-versa. It encapsulates
@@ -81,7 +81,7 @@ namespace Kratos {
  * @class TensorAdaptor
  * @ingroup TensorAdaptors
  *
- * @section supported_container Supported container types
+ * @section TensorAdaptor_supported_container Supported container types
  * - @ref ModelPart::DofsArrayType
  * - @ref ModelPart::NodesContainerType
  * - @ref ModelPart::ConditionsContainerType
@@ -97,8 +97,6 @@ namespace Kratos {
 template<class TDataType>
 class KRATOS_API(KRATOS_CORE) TensorAdaptor {
 protected:
-    ///@name Class definitions
-    ///@{
 
     /**
      * @class Storage
@@ -150,9 +148,8 @@ protected:
 
         /**
          * @brief Creates a copy of the current storage object.
-         * @details This method returns a pointer to a new Storage object that is having copied data and copied
+         * @details This method returns a pointer to a new @p Storage which is having the copied internal data and the copied
          *          pointer to the container.
-         * @return A pointer to the copied @p Storage object.
          */
         Storage::Pointer Copy() const;
 
@@ -254,7 +251,6 @@ protected:
         ///@}
     };
 
-    ///@}
 public:
 
     ///@name Type definitions
@@ -306,20 +302,20 @@ public:
      * @warning The TensorAdaptor should not be used after the move is called.
      *          The management of the data should be carried out by the owner of the
      *          returned @ref Kratos::span "span". Otherwise, there will be memory leaks.
-     * @throws If the internal data is already moved.
+     * @throws If the internal data is already moved as defined in @ref Storage::MoveData.
      * @return Kratos::span<TDataType>  Returns a span containing the internal data.
      */
     Kratos::span<TDataType> MoveData();
 
     /**
      * @brief Return a view of the internal data structure.
-     * @throws If the internal data is already moved.
+     * @throws If the internal data is already moved as defined in @ref Storage::ViewData.
      */
     Kratos::span<const TDataType>  ViewData() const;
 
     /**
      * @brief Return a view of the internal data structure.
-     * @throws If the internal data is already moved.
+     * @throws If the internal data is already moved as defined in @ref Storage::ViewData.
      */
     Kratos::span<TDataType> ViewData();
 
@@ -337,7 +333,7 @@ public:
      *          of the container. This will be always one dimension less than what is given in \ref Shape, because
      *          this will not contain the dimension representing number of entities in the container.
      *
-     * @return DenseVector<unsigned int>    Shape of the data which is for one entity.
+     * @return DenseVector  Shape of the data which is for one entity.
      */
     DenseVector<unsigned int> DataShape() const;
 
@@ -350,15 +346,12 @@ public:
     ///@name Input and output
     ///@{
 
-    /**
-     * @brief Provides some information about the TensorAdaptor.
-     */
     virtual std::string Info() const;
 
     ///@}
 
 protected:
-    ///@name Protected life cycle constructors
+    ///@name Protected life cycle
     ///@{
 
     TensorAdaptor() = default;
@@ -397,8 +390,7 @@ private:
     ///@}
 };
 
-/// @}
-/// output stream functions
+///@}
 template<class TDataType>
 inline std::ostream& operator<<(
     std::ostream& rOStream,

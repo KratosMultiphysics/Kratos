@@ -65,7 +65,7 @@ GaussPointVariableTensorAdaptor::GaussPointVariableTensorAdaptor(
         using data_type = typename BareType<decltype(*pVariable)>::Type;
         const auto& r_data_shape = this->mpStorage->DataShape();
         KRATOS_ERROR_IF_NOT(DataTypeTraits<std::vector<data_type>>::IsValidShape(r_data_shape.data().begin(), r_data_shape.data().begin() + r_data_shape.size()))
-            << "The data storage within the tensor data is not compatible with the " << pVariable->Name()
+            << "The data storage within the tensor data is not compatible with " << pVariable->Name()
             << " [ origin data shape = " << rOther.DataShape() << ", tensor adaptor = " << *this << " ].\n";
 
     }, mpVariable);

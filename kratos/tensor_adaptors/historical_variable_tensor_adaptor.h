@@ -28,26 +28,25 @@ namespace Kratos {
 ///@{
 
 /**
- * @class HistoricalVariableTensorAdaptor
  * @ingroup TensorAdaptors
- * @brief Adaptor for accessing and manipulating historical variable data of nodes as tensors in Kratos.
+ * @brief Adaptor for accessing and manipulating historical variable data of nodes as tensors.
  *
  * @details This class provides an interface to access and modify historical variable data specified in @p pVariable
- *          stored in the nodes of a ModelPart for a given @p StepIndex,
+ *          stored in the nodes of a @ref ModelPart for a given @p StepIndex,
  *          exposing them as tensor data structures. It inherits from TensorAdaptor<double> and allows for efficient data
  *          collection and storage operations, ensuring compatibility with Kratos' historical data containers.
  *
- * @warning CollectData() and StoreData() may cause segmentation faults if the variable (i.e. @p pVariable) is not found in the historical
+ * @warning @ref CollectData and @ref StoreData may cause segmentation faults if the variable (i.e. @p pVariable) is not found in the historical
  *          data value container of a node or the buffer size is not adequate for the specified @p StepIndex.
- *          Always use Check() before performing these operations.
+ *          Always use @ref Check before performing these operations.
  *
- * @section supported_container Supported container types
+ * @section HistoricalVariableTensorAdaptor_supported_container "Supported container types"
  * - @ref ModelPart::NodesContainerType
  *
- * @section Usage
- * - Use Check() to verify variable availability and buffer size before data operations.
- * - Use CollectData() to fill internal tensor data from Kratos historical nodal data containers.
- * - Use StoreData() to write internal tensor data back to Kratos historical nodal data containers.
+ * @section HistoricalVariableTensorAdaptor_usage "Usage"
+ * - Use @ref Check to verify variable availability and buffer size before data operations.
+ * - Use @ref CollectData to fill internal tensor data from Kratos historical nodal data containers.
+ * - Use @ref StoreData to write internal tensor data back to Kratos historical nodal data containers.
  *
  * @author Suneth Warnakulasuriya
  * @see @ref TensorAdaptor                  Base class.
@@ -67,7 +66,7 @@ public:
 
     ///@}
     ///@name Life cycle
-    ///@
+    ///@{
 
     HistoricalVariableTensorAdaptor(
         ModelPart::NodesContainerType::Pointer pContainer,

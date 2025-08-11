@@ -32,14 +32,14 @@ NodePositionTensorAdaptor::NodePositionTensorAdaptor(
     KRATOS_TRY
 
     KRATOS_ERROR_IF_NOT(rDataShape.size() == 1)
-        << "Invalid data shape. Only allowed to following data shapes:\n\t[1]\n\t[2]\n\t[3]";
+        << "Invalid data shape. Following data shapes are allowed:\n\t[1]\n\t[2]\n\t[3]";
 
     DenseVector<unsigned int> tensor_shape(2);
     tensor_shape[0] = pContainer->size();
     tensor_shape[1] = rDataShape[0];
 
     KRATOS_ERROR_IF(tensor_shape[1] > 3)
-        << "Invalid data shape. Only allowed to following data shapes:\n\t[1]\n\t[2]\n\t[3]";
+        << "Invalid data shape. Following data shapes are allowed:\n\t[1]\n\t[2]\n\t[3]";
 
     this->mpStorage = Kratos::make_intrusive<Storage>(pContainer, tensor_shape);
 
@@ -98,7 +98,7 @@ void NodePositionTensorAdaptor::CollectData()
                         *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
                         r_tensor_shape.data().begin() + r_tensor_shape.size(),
                         [](auto& rCoordinates, const Node& rNode) {
-                            noalias(rCoordinates) = rNode.Coordinates();
+                            rCoordinates = rNode.Coordinates();
                         });
                     break;
                 case Globals::Configuration::Initial:
@@ -106,7 +106,7 @@ void NodePositionTensorAdaptor::CollectData()
                         *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
                         r_tensor_shape.data().begin() + r_tensor_shape.size(),
                         [](auto& rCoordinates, const Node& rNode) {
-                            noalias(rCoordinates) = rNode.GetInitialPosition();
+                            rCoordinates = rNode.GetInitialPosition();
                         });
             }
         }

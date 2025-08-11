@@ -24,12 +24,6 @@
 
 namespace Kratos {
 
-/**
- * @brief Generic data type traits class for arithmetic types.
- *
- * @tparam TDataType        Arithmetic data type
- */
-
 template<class T, class... TList>
 constexpr bool IsInList = std::disjunction<std::is_same<T, TList>...>::value;
 
@@ -41,6 +35,11 @@ struct BareTypeImpl {
 template <typename T>
 using BareType = typename BareTypeImpl<T>::type;
 
+/**
+ * @brief Generic data type traits class for arithmetic types.
+ *
+ * @tparam TDataType        Arithmetic data type
+ */
 template<class TDataType> class DataTypeTraits
 {
 public:
