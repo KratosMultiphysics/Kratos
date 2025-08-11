@@ -63,7 +63,7 @@ GaussPointVariableTensorAdaptor::GaussPointVariableTensorAdaptor(
     if (!HoldsAlternative<ModelPart::ConditionsContainerType::Pointer,
                           ModelPart::ElementsContainerType::Pointer>::Evaluate(this->GetContainer())) {
         KRATOS_ERROR << "GaussPointVariableTensorAdaptor can only be used with tensor data having condition or element containers "
-                     << "[ tensor data = " << this->mpStorage->Info() << " ].\n";
+                     << "[ tensor adaptor = " << rOther << " ].\n";
     }
 
     // now check whether the given storage is compatible with the variable.

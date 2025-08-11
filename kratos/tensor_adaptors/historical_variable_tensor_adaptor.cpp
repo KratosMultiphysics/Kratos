@@ -101,7 +101,7 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
 
     KRATOS_ERROR_IF_NOT(std::holds_alternative<ModelPart::NodesContainerType::Pointer>(this->mpStorage->GetContainer()))
         << "HistoricalVariableTensorAdaptor can only be used with tensor data having nodal containers "
-        << "[ tensor data = " << this->mpStorage->Info() << " ].\n";
+        << "[ tensor adaptor = " << rOther << " ].\n";
 
     // now check whether the given storage is compatible with the variable.
     std::visit([this, &rOther](auto pVariable) {

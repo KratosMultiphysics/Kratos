@@ -54,13 +54,13 @@ FlagsTensorAdaptor::FlagsTensorAdaptor(
                           ModelPart::ConditionsContainerType::Pointer,
                           ModelPart::ElementsContainerType::Pointer>::Evaluate(this->GetContainer())) {
         KRATOS_ERROR << "FlagsTensorAdaptor can only be used with tensor data having nodal, condition or element containers "
-                     << "[ tensor data = " << this->mpStorage->Info() << " ].\n";
+                     << "[ tensor adaptor = " << rOther << " ].\n";
     }
 
-    std::visit([this, &r_tensor_shape](auto pContainer){
+    std::visit([this, &r_tensor_shape, &rOther](auto pContainer){
         KRATOS_ERROR_IF_NOT(r_tensor_shape.size() == 1 && r_tensor_shape[0] == pContainer->size())
             << "The data storage within the tensor data is not compatible with the flags "
-            << "[ tensor data = " << this->mpStorage->Info() << " ].\n";
+            << "[ tensor adaptor = " << rOther << " ].\n";
     }, this->GetContainer());
 
     KRATOS_CATCH("");

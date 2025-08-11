@@ -92,7 +92,7 @@ EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(
     if (!HoldsAlternative<ModelPart::ConditionsContainerType::Pointer,
                           ModelPart::ElementsContainerType::Pointer>::Evaluate(this->GetContainer())) {
         KRATOS_ERROR << "EquationIdsTensorAdaptor can only be used with tensor data having condition or element containers "
-                     << "[ tensor data = " << this->mpStorage->Info() << " ].\n";
+                     << "[ tensor adaptor = " << rOther << " ].\n";
     }
 
     KRATOS_CATCH("");

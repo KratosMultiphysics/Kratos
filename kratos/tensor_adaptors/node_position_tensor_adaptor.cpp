@@ -66,7 +66,7 @@ NodePositionTensorAdaptor::NodePositionTensorAdaptor(
 
     KRATOS_ERROR_IF_NOT(std::holds_alternative<ModelPart::NodesContainerType::Pointer>(this->mpStorage->GetContainer()))
         << "NodePositionTensorAdaptor can only be used with tensor data having nodal containers "
-        << "[ tensor data = " << this->mpStorage->Info() << " ].\n";
+        << "[ tensor adaptor = " << rOther << " ].\n";
 
     KRATOS_ERROR_IF_NOT(r_data_shape.size() == 1)
         << "Incompatible number of dimensions in the provided tensor adaptor. NodePositionTensorAdaptor"
