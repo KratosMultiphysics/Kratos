@@ -235,7 +235,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-        Node* pBoundaryParticle;
+        Node* pLagrangeNode;
         double m_penalty = 0.0;
 
     ///@}

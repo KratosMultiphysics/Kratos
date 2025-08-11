@@ -554,13 +554,13 @@ void RotateLagrangeCondition(TLocalMatrixType& rLocalMatrix,
 			}
 		}
 		else{
-			auto pBoundaryParticle = rGeometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
+			auto pLagrangeNode = rGeometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
 			
-			if( this->IsSlip(*pBoundaryParticle) )
+			if( this->IsSlip(*pLagrangeNode) )
 			{
 				NeedRotation[i] = true;
 				rotations_needed++;
-				this->LocalRotationOperatorPure(rRot[i],*pBoundaryParticle);
+				this->LocalRotationOperatorPure(rRot[i],*pLagrangeNode);
 				if constexpr (TRevertRotation)
 				{
 					noalias(tmp) = trans(rRot[i]);

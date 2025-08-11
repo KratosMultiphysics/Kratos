@@ -80,8 +80,8 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
     GeneralVariables Variables;
     MPMShapeFunctionPointValues(Variables.N);
 
-    auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
-    array_1d<double, 3 > & r_lagrange_multiplier  = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+    auto pLagrangeNode = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
+    array_1d<double, 3 > & r_lagrange_multiplier  = pLagrangeNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
 
     for ( unsigned int j = 0; j < dimension; j++ )
     {
@@ -89,17 +89,17 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
         r_lagrange_multiplier[j] *= 0.0;
     }
 
-    pBoundaryParticle->SetLock();
-    pBoundaryParticle->FastGetSolutionStepValue(NODAL_AREA) += this->GetIntegrationWeight();
-    pBoundaryParticle->UnSetLock();
+    pLagrangeNode->SetLock();
+    pLagrangeNode->FastGetSolutionStepValue(NODAL_AREA) += this->GetIntegrationWeight();
+    pLagrangeNode->UnSetLock();
 
     // The calculation of the normal is required for slip and contact conditions
     if (Is(SLIP))
     {
-        pBoundaryParticle->SetLock();
-        pBoundaryParticle->Set(SLIP);
-        pBoundaryParticle->FastGetSolutionStepValue(NORMAL) += this->GetIntegrationWeight() * m_normal;
-        pBoundaryParticle->UnSetLock();
+        pLagrangeNode->SetLock();
+        pLagrangeNode->Set(SLIP);
+        pLagrangeNode->FastGetSolutionStepValue(NORMAL) += this->GetIntegrationWeight() * m_normal;
+        pLagrangeNode->UnSetLock();
         
 
         // Here MPC contribution of normal vector are added
@@ -170,8 +170,8 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     if (Is(CONTACT) && this->Is(ACTIVE))
     {  
-        auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
-        array_1d<double, 3>& r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER); 
+        auto pLagrangeNode = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
+        array_1d<double, 3>& r_lagrange_multiplier = pLagrangeNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER); 
 
         const double normal_force = MathUtils<double>::Dot(r_lagrange_multiplier, m_normal);
        
@@ -225,8 +225,8 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
             
             //first rows of RHS
             gap_function = ZeroVector(matrix_size);
-            auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
-            const array_1d<double, 3>& r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+            auto pLagrangeNode = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
+            const array_1d<double, 3>& r_lagrange_multiplier = pLagrangeNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
            
             for (unsigned int j = 0; j < dimension; j++){
                 gap_function[dimension * number_of_nodes+j] = r_lagrange_multiplier[j];
@@ -244,9 +244,9 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
         }
         
         if (Is(SLIP)){
-            auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
+            auto pLagrangeNode = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
             // normalize normal at boundary particle node
-            MPMMathUtilities<double>::Normalize(pBoundaryParticle->FastGetSolutionStepValue(NORMAL));
+            MPMMathUtilities<double>::Normalize(pLagrangeNode->FastGetSolutionStepValue(NORMAL));
             
             // rotate to normal-tangential frame
             if (CalculateStiffnessMatrixFlag == true){
@@ -305,9 +305,9 @@ void MPMParticleLagrangeDirichletCondition::CalculateNodalReactions(const Proces
 
     GeneralVariables Variables;
     array_1d<double, 3 > mpc_force = ZeroVector(3);
-    auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
+    auto pLagrangeNode = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
 
-    mpc_force = - pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+    mpc_force = - pLagrangeNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
 
     // Calculating shape function
     MPMShapeFunctionPointValues(Variables.N);
@@ -331,11 +331,11 @@ void MPMParticleLagrangeDirichletCondition::FinalizeSolutionStep( const ProcessI
     if (Is(SLIP))
     {
         GeometryType& r_geometry = GetGeometry();
-        auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
-        pBoundaryParticle->SetLock();
-        pBoundaryParticle->Reset(SLIP);
-        pBoundaryParticle->FastGetSolutionStepValue(NORMAL).clear();
-        pBoundaryParticle->UnSetLock();
+        auto pLagrangeNode = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
+        pLagrangeNode->SetLock();
+        pLagrangeNode->Reset(SLIP);
+        pLagrangeNode->FastGetSolutionStepValue(NORMAL).clear();
+        pLagrangeNode->UnSetLock();
 
         const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
@@ -380,12 +380,12 @@ void MPMParticleLagrangeDirichletCondition::EquationIdVector(
     }
 
     unsigned int index = number_of_nodes * dimension;
-    auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
+    auto pLagrangeNode = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
 
-    rResult[index    ] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
-    rResult[index + 1] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
+    rResult[index    ] = pLagrangeNode->GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
+    rResult[index + 1] = pLagrangeNode->GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
     if(dimension == 3)
-        rResult[index + 2] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_Z).EquationId();
+        rResult[index + 2] = pLagrangeNode->GetDof(VECTOR_LAGRANGE_MULTIPLIER_Z).EquationId();
 
 
     KRATOS_CATCH("")
@@ -412,12 +412,12 @@ void MPMParticleLagrangeDirichletCondition::GetDofList(
             rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Z));
 
     }
-    auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
+    auto pLagrangeNode = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
 
-    rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
-    rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
+    rElementalDofList.push_back(pLagrangeNode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+    rElementalDofList.push_back(pLagrangeNode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
     if(dimension == 3)
-        rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
+        rElementalDofList.push_back(pLagrangeNode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
 
 
 
@@ -451,8 +451,8 @@ void MPMParticleLagrangeDirichletCondition::GetValuesVector(
             rValues[index + k] = r_displacement[k];
         }
     }
-    auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
-    const array_1d<double, 3 > & r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, Step);
+    auto pLagrangeNode = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
+    const array_1d<double, 3 > & r_lagrange_multiplier = pLagrangeNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, Step);
     const unsigned int lagrange_index = number_of_nodes * dimension;
     for(unsigned int k = 0; k < dimension; ++k)
         {
