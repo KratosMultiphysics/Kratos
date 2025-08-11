@@ -41,8 +41,6 @@ namespace Kratos {
  *              - @p 0 - The flag is defined and the value is false.
  *              - @p 1 - The flag is defined and the value is true.
  *
- * @throws  Throws an error if the values in the Tensor adaptor's internal data does not correspond to @p -1,  @p 0 or @p 1 states
- *
  * @section FlagsTensorAdaptor_supported_container Supported container types
  * - @ref ModelPart::NodesContainerType
  * - @ref ModelPart::ConditionsContainerType
@@ -98,7 +96,7 @@ public:
 
     /**
      * @brief Store internal data to the given TContainerType container.
-     *
+     * @throws RuntimeError if the values in the Tensor adaptor's internal data does not correspond to any of the @p -1,  @p 0 or @p 1 states
      */
     void StoreData() override;
 
