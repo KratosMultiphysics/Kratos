@@ -9,7 +9,7 @@ from KratosMultiphysics.python_linear_solver_factory import ConstructSolver
 import pathlib
 
 
-class TestEigenDirectSolver(KratosUnittest.TestCase):
+class TestMKLSmoothers(KratosUnittest.TestCase):
 
     def __Run(self, solver_type: str):
         settings: KratosMultiphysics.Parameters = KratosMultiphysics.Parameters('{"solver_type" : "LinearSolversApplication.' + solver_type + '" }')
