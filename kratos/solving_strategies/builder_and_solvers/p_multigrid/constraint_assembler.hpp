@@ -46,7 +46,7 @@ public:
 
     using DofSet = PointerVectorSet<Dof<typename TDense::DataType>>;
 
-    using ConstraintArray = PointerVectorSet<MasterSlaveConstraint, IndexedObject>;
+    using ConstraintArray = PointerVectorSet<MasterSlaveConstraint,IndexedObject>;
 
     ConstraintAssembler() noexcept
         : ConstraintAssembler(ConstraintImposition::MasterSlave, "unnamed")
@@ -93,8 +93,8 @@ public:
     /// @param itDofEnd Sentinel of the unconstrained system's array of @ref Dof "DoFs".
     /// @note This function should be invoked @b after the unconstrained system is allocated, but @b before
     ///       it is assembled.
-    virtual void AllocateConstraints(ConstraintArray::const_iterator itConstraintBegin,
-                                     ConstraintArray::const_iterator itConstraintEnd,
+    virtual void AllocateConstraints(PointerVectorSet<MasterSlaveConstraint,IndexedObject>::const_iterator itConstraintBegin,
+                                     PointerVectorSet<MasterSlaveConstraint,IndexedObject>::const_iterator itConstraintEnd,
                                      const ProcessInfo& rProcessInfo,
                                      typename DofSet::const_iterator itDofBegin,
                                      typename DofSet::const_iterator itDofEnd)
