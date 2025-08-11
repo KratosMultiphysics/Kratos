@@ -31,7 +31,7 @@ namespace Kratos {
 ///@{
 
 /**
- * @defgroup TensorAdaptors "Tensor Adaptors"
+ * @defgroup TensorAdaptors Tensor Adaptors
  * @brief Tensor adaptors are used to read or write data from/to entities (nodes, elements, conditions, constraints) of a @ref ModelPart.
  * @details The @ref TensorAdaptor class is designed to handle reading from variables, info, data from each entity
  *          in the containers of @p ModelPart to a @p TensorAdaptor instance or vice-versa. It encapsulates
