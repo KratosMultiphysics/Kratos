@@ -1000,31 +1000,6 @@ protected:
 		}
 	}
 
-	//auxiliary functions
-	template< unsigned int TBlockSize >
-	void ReadBlockMatrix( BoundedMatrix<double,TBlockSize, TBlockSize>& block, const Matrix& origin, const unsigned int Ibegin, const unsigned int Jbegin) const
-	{
-		for(unsigned int i=0; i<TBlockSize; i++)
-		{
-			for(unsigned int j=0; j<TBlockSize; j++)
-			{
-				block(i,j) = origin(Ibegin+i, Jbegin+j);
-			}
-		}
-	}
-
-	template< unsigned int TBlockSize >
-	void WriteBlockMatrix( const BoundedMatrix<double,TBlockSize, TBlockSize>& block, Matrix& destination, const unsigned int Ibegin, const unsigned int Jbegin) const
-	{
-		for(unsigned int i=0; i<TBlockSize; i++)
-		{
-			for(unsigned int j=0; j<TBlockSize; j++)
-			{
-				destination(Ibegin+i, Jbegin+j) = block(i,j);
-			}
-		}
-	}
-
 	///@}
 	///@name Protected  Access
 	///@{
