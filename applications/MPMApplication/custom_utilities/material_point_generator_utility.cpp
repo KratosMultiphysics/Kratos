@@ -1008,10 +1008,10 @@ namespace Kratos::MaterialPointGeneratorUtility
     {
         for (int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i)
         {
-            auto element_itr = (rBackgroundGridModelPart.ElementsBegin() + i);
-            auto coord = element_itr->GetGeometry().Center();
+            const auto element_itr = (rBackgroundGridModelPart.ElementsBegin() + i);
+            const auto coord = element_itr->GetGeometry().Center();
             const int id = rBackgroundGridModelPart.GetRootModelPart().Nodes().back().Id();
-            auto p_new_node = rBackgroundGridModelPart.CreateNewNode(id + 1, coord[0], coord[1], coord[2]);
+            auto const p_new_node = rBackgroundGridModelPart.CreateNewNode(id + 1, coord[0], coord[1], coord[2]);
 
             p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_X,WEIGHTED_VECTOR_RESIDUAL_X);
             p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Y,WEIGHTED_VECTOR_RESIDUAL_Y);
