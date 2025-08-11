@@ -110,19 +110,19 @@ void FlagsTensorAdaptor::StoreData()
                 const int value = *(span_itr + Index);
                 auto& r_entity = *(pContainer->begin() + Index);
                 switch (value) {
+                    case 0:
                     case 1:
-                    case 2:
-                        r_entity.Set(this->mFlags, value - 1);
+                        r_entity.Set(this->mFlags, value);
                         break;
-                    case 3:
+                    case -1:
                         r_entity.Reset(this->mFlags);
                         break;
                     default:
                         KRATOS_ERROR << "Invalid flag status = " << value << " for " << ModelPart::Container<container_type>::GetEntityName()
                                      << " with id " <<  r_entity.Id() << ". Flag tensor adaptor's internal storage should only have following values:"
-                                     << "\n\t 1 - The corresponding flag is defined and false."
-                                     << "\n\t 2 - The corresponding flag is defined and true."
-                                     << "\n\t 3 - The corresponding flag is not defined.";
+                                     << "\n\t -1 - The corresponding flag is not defined.";
+                                     << "\n\t  0 - The corresponding flag is defined and false."
+                                     << "\n\t  1 - The corresponding flag is defined and true."
                         break;
                 }
             });

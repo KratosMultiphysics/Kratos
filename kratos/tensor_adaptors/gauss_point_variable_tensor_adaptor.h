@@ -37,11 +37,11 @@ namespace Kratos {
  *
  * @warning StoreData method is throwing an unimplemented error since setting gauss points is not allowed.
  *
- * @section GaussPointVariableTensorAdaptor_supported_container "Supported container types"
+ * @section GaussPointVariableTensorAdaptor_supported_container Supported container types
  * - @ref ModelPart::ConditionsContainerType
  * - @ref ModelPart::ElementsContainerType
  *
- * @section GaussPointVariableTensorAdaptor_usage "Usage"
+ * @section GaussPointVariableTensorAdaptor_usage Usage
  * - Use @ref Check to verify the tensor data shape compatibility.
  * - Use @ref CollectData to fill internal tensor data from gauss point computed values at each element or condition.
  * - Use @ref StoreData    Not possible.

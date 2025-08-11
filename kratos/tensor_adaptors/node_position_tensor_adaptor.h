@@ -38,10 +38,10 @@ namespace Kratos {
  *          with the initial (@ref Globals::Configuration::Initial) nodal positions or the current (
  *          @ref Globals::Configuration::Current) nodal positions.
  *
- * @section NodePositionTensorAdaptor_supported_container "Supported container types"
+ * @section NodePositionTensorAdaptor_supported_container Supported container types
  * - @ref ModelPart::NodesContainerType
  *
- * @section NodePositionTensorAdaptor_usage "Usage"
+ * @section NodePositionTensorAdaptor_usage Usage
  * - Construct with a pointer to an @ref ModelPart::NodesContainerType "array of nodes" and a configuration.
  * - Use @ref CollectData to fill internal tensor data from Kratos nodes' positions.
  * - Use @ref StoreData to write tensor data back to a Kratos nodes' positions.

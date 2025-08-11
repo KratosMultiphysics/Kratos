@@ -38,7 +38,7 @@ namespace Kratos {
  * @warning When using StoreData() to add variables to entities (if they are not present already in the entities), avoid calling Check() to prevent raising an error which
  *          will say the variable is not found.
  *
- * @section VariableTensorAdaptor_supported_container "Supported container types"
+ * @section VariableTensorAdaptor_supported_container Supported container types
  * - @ref ModelPart::NodesContainerType
  * - @ref ModelPart::ConditionsContainerType
  * - @ref ModelPart::ElementsContainerType
@@ -46,7 +46,7 @@ namespace Kratos {
  * - @ref ModelPart::GeometryContainerType
  * - @ref ModelPart::MasterSlaveConstraintContainerType
  *
- * @section VariableTensorAdaptor_usage "Usage"
+ * @section VariableTensorAdaptor_usage Usage
  * - Use @ref Check to verify that the variable exists in the entities before collecting data.
  * - Use @ref CollectData to fill internal data from Kratos data structures.
  * - Use @ref StoreData to write internal data back to the container, adding the variable if necessary.

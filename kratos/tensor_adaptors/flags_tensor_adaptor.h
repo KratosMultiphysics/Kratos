@@ -36,19 +36,19 @@ namespace Kratos {
  *          It manages the association between tensor data and Kratos Flags, allowing for
  *          efficient data collection and storage from/to Kratos data structures.
  *
- *          The state of the flags are stored as int having following definitions:
- *              1 - The flag is defined and the value is false.
- *              2 - The flag is defined and the value is true.
- *              3 - The flag is not defined.
+ *          The state of the flags are stored as int having following definitions for each int value:
+ *              - @p -1 - The flag is not defined.
+ *              - @p 0 - The flag is defined and the value is false.
+ *              - @p 1 - The flag is defined and the value is true.
  *
- * @throws  Throws an error if the values in the Tensor adaptor's internal data does not correspond to 1, 2, 3 states
+ * @throws  Throws an error if the values in the Tensor adaptor's internal data does not correspond to @p -1,  @p 0 or @p 1 states
  *
  * @section FlagsTensorAdaptor_supported_container Supported container types
  * - @ref ModelPart::NodesContainerType
  * - @ref ModelPart::ConditionsContainerType
  * - @ref ModelPart::ElementsContainerType
  *
- * @section FlagsTensorAdaptor_usage "Usage"
+ * @section FlagsTensorAdaptor_usage Usage
  * - Use @ref Check to verify the tensor data shape compatibility.
  * - Use @ref CollectData to fill internal tensor data from flag values from nodes, conditions and elements.
  * - Use @ref StoreData to store back the internal tensor data to flag values of nodes, conditions and elements.

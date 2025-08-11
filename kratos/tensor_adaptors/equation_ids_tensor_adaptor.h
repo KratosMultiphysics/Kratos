@@ -36,11 +36,11 @@ namespace Kratos {
  *
  * @warning StoreData method is throwing an unimplemented error since setting equation ids is not allowed.
  *
- * @section EquationIdsTensorAdaptor_supported_container "Supported container types"
+ * @section EquationIdsTensorAdaptor_supported_container Supported container types
  * - @ref ModelPart::ConditionsContainerType
  * - @ref ModelPart::ElementsContainerType
  *
- * @section EquationIdsTensorAdaptor_usage "Usage"
+ * @section EquationIdsTensorAdaptor_usage Usage
  * - Use @ref Check to verify the tensor data shape compatibility.
  * - Use @ref CollectData to fill internal tensor data from equation ids read from elements or conditions.
  * - Use @ref StoreData Not possible.

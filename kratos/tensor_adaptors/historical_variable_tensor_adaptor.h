@@ -40,10 +40,10 @@ namespace Kratos {
  *          data value container of a node or the buffer size is not adequate for the specified @p StepIndex.
  *          Always use @ref Check before performing these operations.
  *
- * @section HistoricalVariableTensorAdaptor_supported_container "Supported container types"
+ * @section HistoricalVariableTensorAdaptor_supported_container Supported container types
  * - @ref ModelPart::NodesContainerType
  *
- * @section HistoricalVariableTensorAdaptor_usage "Usage"
+ * @section HistoricalVariableTensorAdaptor_usage Usage
  * - Use @ref Check to verify variable availability and buffer size before data operations.
  * - Use @ref CollectData to fill internal tensor data from Kratos historical nodal data containers.
  * - Use @ref StoreData to write internal tensor data back to Kratos historical nodal data containers.
