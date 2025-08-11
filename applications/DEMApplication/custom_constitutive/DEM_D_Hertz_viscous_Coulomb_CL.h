@@ -15,6 +15,8 @@ namespace Kratos {
     class KRATOS_API(DEM_APPLICATION) DEM_D_Hertz_viscous_Coulomb : public DEMDiscontinuumConstitutiveLaw {
 
     public:
+        using DEMDiscontinuumConstitutiveLaw::CalculateNormalForce;
+
         KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Hertz_viscous_Coulomb);
 
         DEM_D_Hertz_viscous_Coulomb() {}
@@ -59,6 +61,25 @@ namespace Kratos {
                                     SphericParticle* const element,
                                     Condition* const wall,
                                     bool& sliding) override;
+
+        double CalculateNormalForce(const double indentation) override;
+
+        double CalculateNormalForce(SphericParticle* const element1,
+                                            SphericParticle* const element2,
+                                            const double indentation,
+                                            double LocalCoordSystem[3][3]) override;
+
+        double CalculateNormalForce(SphericParticle* const element,
+                                            Condition* const wall,
+                                            const double indentation) override;
+
+        double CalculateCohesiveNormalForce(SphericParticle* const element1,
+                                            SphericParticle* const element2,
+                                            const double indentation) override;
+
+        double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element,
+                                                   Condition* const wall,
+                                                   const double indentation) override;
 
         template <class NeighbourClassType>
         void CalculateTangentialForceWithNeighbour(const double normal_contact_force,
@@ -108,14 +129,23 @@ namespace Kratos {
         void CalculateInelasticViscodampingEnergyFEM(double& inelastic_viscodamping_energy,
                                                      double ViscoDampingLocalContactForce[3],
                                                      double LocalDeltDisp[3]);
-                                                     
         double GetTangentialStiffness() override;
 
     private:
-        friend class Serializer;
-        virtual void save(Serializer& rSerializer) const override {KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)}
-        virtual void load(Serializer& rSerializer) override {KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)}
 
-    };
-}
-#endif
+        friend class Serializer;
+
+        virtual void save(Serializer& rSerializer) const override {
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)
+                    //rSerializer.save("MyMemberName",myMember);
+        }
+
+        virtual void load(Serializer& rSerializer) override {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)
+                    //rSerializer.load("MyMemberName",myMember);
+        }
+
+    }; //class DEM_D_Hertz_viscous_Coulomb
+
+} /* namespace Kratos.*/
+#endif /* DEM_D_HERTZ_VISCOUS_COULOMB_CL_H_INCLUDED  defined */
