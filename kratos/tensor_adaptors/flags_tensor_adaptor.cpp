@@ -88,7 +88,7 @@ void FlagsTensorAdaptor::CollectData()
                 *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
                 r_tensor_shape.data().begin() + r_tensor_shape.size(),
                 [this](int& rValue, const auto& rEntity) {
-                    rValue = (rEntity.IsDefined(this->mFlags) ? rEntity.Is(this->mFlags) + 1 : 3);
+                    rValue = (rEntity.IsDefined(this->mFlags) ? rEntity.Is(this->mFlags) : -1);
                 });
         }
     }, this->mpStorage->GetContainer());
@@ -120,9 +120,9 @@ void FlagsTensorAdaptor::StoreData()
                     default:
                         KRATOS_ERROR << "Invalid flag status = " << value << " for " << ModelPart::Container<container_type>::GetEntityName()
                                      << " with id " <<  r_entity.Id() << ". Flag tensor adaptor's internal storage should only have following values:"
-                                     << "\n\t -1 - The corresponding flag is not defined.";
+                                     << "\n\t -1 - The corresponding flag is not defined."
                                      << "\n\t  0 - The corresponding flag is defined and false."
-                                     << "\n\t  1 - The corresponding flag is defined and true."
+                                     << "\n\t  1 - The corresponding flag is defined and true.";
                         break;
                 }
             });

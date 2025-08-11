@@ -392,13 +392,12 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
 
         numpy_data_read = tensor_adaptor_read.data
         for i, entity in enumerate(container):
-            self.assertEqual(numpy_data_read[i], entity.Is(Kratos.SLIP) + 1)
+            self.assertEqual(numpy_data_read[i], entity.Is(Kratos.SLIP))
 
         tensor_adaptor_write = Kratos.TensorAdaptors.FlagsTensorAdaptor(tensor_adaptor_read.GetContainer(), Kratos.SELECTED)
         numpy_data_write = tensor_adaptor_write.data
 
-        numpy_data_write[:] = numpy.invert(numpy.asarray(numpy_data_read - 1, dtype=bool))
-        numpy_data_write[:] += 1
+        numpy_data_write[:] = numpy.invert(numpy.asarray(numpy_data_read, dtype=bool))
         tensor_adaptor_write.StoreData()
 
         for entity in container:
@@ -413,9 +412,9 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
         tensor_adaptor_undef_read.CollectData()
 
         for entity, value in zip(container, tensor_adaptor_undef_read.data):
-            self.assertEqual(entity.IsDefined(Kratos.VISITED), value != 3)
-            if value < 3:
-                self.assertEqual(entity.Is(Kratos.VISITED), bool(value - 1))
+            self.assertEqual(entity.IsDefined(Kratos.VISITED), value != -1)
+            if value > 0:
+                self.assertEqual(entity.Is(Kratos.VISITED), bool(value))
 
         tensor_adaptor_undef_write = Kratos.TensorAdaptors.FlagsTensorAdaptor(tensor_adaptor_undef_read, Kratos.STRUCTURE)
         tensor_adaptor_undef_write.StoreData()
