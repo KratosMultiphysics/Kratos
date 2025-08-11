@@ -47,8 +47,8 @@ TransientPwInterfaceElement <|-- SteadyStatePwInterfaceElement
 SteadyStatePwInterfaceElement <|-- SteadyStatePwPipingElement
 UPwSmallStrainInterfaceElement <|-- UPwSmallStrainLinkInterfaceElement
 
-class LineInterfaceElement
-Element <|-- LineInterfaceElement
+class InterfaceElement
+Element <|-- InterfaceElement
 
 'Pw Elements
 class TransientPwLineElement
