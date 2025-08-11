@@ -55,7 +55,7 @@ template <class TSparse, class TDense>
 MKLSmootherBase<TSparse,TDense>::~MKLSmootherBase() = default;
 
 
-/// Copy and transform the index arrays to MKL_INT, and a 1-based indices. ...
+/// Copy and transform the index arrays to MKL_INT, and 1-based indices. ...
 template <class TSparse, class TDense>
 void MKLSmootherBase<TSparse,TDense>::InitializeSolutionStep(SparseMatrix& rLhs,
                                                              Vector&,

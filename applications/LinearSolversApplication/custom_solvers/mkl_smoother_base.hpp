@@ -26,7 +26,7 @@
 namespace Kratos {
 
 
-/// @brief Base class for MKL linear solvers.
+/// @brief Base class for MKL smoothers.
 /// @internal
 template <class TSparse, class TDense>
 class KRATOS_API(LINEARSOLVERS_APPLICATION) MKLSmootherBase : public LinearSolver<TSparse,TDense>

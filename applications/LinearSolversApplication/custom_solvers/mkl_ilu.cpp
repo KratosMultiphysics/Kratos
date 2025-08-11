@@ -357,11 +357,11 @@ Parameters MKLILUTSmoother<TSparse,TDense>::GetDefaultParameters()
 
 template <class TSparse, class TDense>
 void MKLILUTSmoother<TSparse,TDense>::Factorize(std::vector<int>& rRowExtents,
-                                               std::vector<int>& rColumnIndices,
-                                               std::vector<typename TSparse::DataType>& rEntries,
-                                               typename Base::CSRView LhsView,
-                                               const std::array<int,128>& rIntegerSettings,
-                                               const std::array<typename TSparse::DataType,128>& rNumericSettings)
+                                                std::vector<int>& rColumnIndices,
+                                                std::vector<typename TSparse::DataType>& rEntries,
+                                                typename Base::CSRView LhsView,
+                                                const std::array<int,128>& rIntegerSettings,
+                                                const std::array<typename TSparse::DataType,128>& rNumericSettings)
 {
     KRATOS_TRY
     const auto ilut_entry_count = (2 * mFillFactor + 1) * LhsView.row_count
