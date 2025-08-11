@@ -167,14 +167,20 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
             t_adaptor_3.Check()
 
         with self.assertRaises(RuntimeError):
-            t_adaptor_3.Check()
-
-        with self.assertRaises(RuntimeError):
             t_adaptor_5 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.NORMAL_SHAPE_DERIVATIVE, step_index=6)
 
         t_adaptor_5 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.NORMAL_SHAPE_DERIVATIVE, data_shape=[2,3], step_index=6)
         with self.assertRaises(RuntimeError):
             t_adaptor_5.Check()
+
+        with self.assertRaises(RuntimeError):
+            Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Conditions, Kratos.VELOCITY), Kratos.PRESSURE)
+
+        with self.assertRaises(RuntimeError):
+            Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.VELOCITY), Kratos.PRESSURE)
+
+        with self.assertRaises(RuntimeError):
+            Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Properties, Kratos.VELOCITY), Kratos.PRESSURE)
 
     def test_SupportedNdArrays(self):
         t_adaptor = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.DENSITY)
@@ -311,6 +317,15 @@ class TestVariableTensorAdaptors(KratosUnittest.TestCase):
             self.assertEqual(node.X0, numpy_data[i, 0] * 2)
             self.assertEqual(node.Y0, numpy_data[i, 1] * 2)
             self.assertEqual(node.Z0, numpy_data[i, 2])
+
+        with self.assertRaises(RuntimeError):
+            Kratos.TensorAdaptors.NodePositionTensorAdaptor(Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Conditions, Kratos.VELOCITY), Kratos.Configuration.Initial)
+
+        with self.assertRaises(RuntimeError):
+            Kratos.TensorAdaptors.NodePositionTensorAdaptor(Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.VELOCITY), Kratos.Configuration.Initial)
+
+        with self.assertRaises(RuntimeError):
+            Kratos.TensorAdaptors.NodePositionTensorAdaptor(Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Properties, Kratos.VELOCITY), Kratos.Configuration.Initial)
 
     def test_BaseTensorAdaptor(self):
         var_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY)
