@@ -115,6 +115,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/discrete_random_variable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rve_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rve_wall_boundary_2d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/ondem_drum_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model_constant_torque.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model_viscous_torque.cpp

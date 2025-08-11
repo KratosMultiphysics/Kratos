@@ -40,6 +40,7 @@
 #include "custom_utilities/parallel_bond_utilities.h"
 #include "custom_utilities/rve_utilities.h"
 #include "custom_utilities/rve_wall_boundary_2d.h"
+#include "custom_utilities/ondem_drum_utilities.h"
 
 namespace Kratos {
 
@@ -450,6 +451,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("FinalizeSolutionStep", &RVEWallBoundary2D::FinalizeSolutionStep)
         .def("Finalize", &RVEWallBoundary2D::Finalize)
         ;
+
+      py::class_<ONDEMDrumUtilities, ONDEMDrumUtilities::Pointer>(m, "ONDEMDrumUtilities")
+        .def(py::init<>())
+        .def("ExecuteInitialize", &ONDEMDrumUtilities::ExecuteInitialize)
+        .def("Calculate",         &ONDEMDrumUtilities::Calculate)
+        .def("ExecuteFinalize",   &ONDEMDrumUtilities::ExecuteFinalize);
     }
 
 /*ModelPart::NodesContainerType::Pointer ModelPartGetNodes1(ModelPart& rModelPart)
