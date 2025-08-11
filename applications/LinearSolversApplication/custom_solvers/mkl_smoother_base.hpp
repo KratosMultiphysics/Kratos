@@ -77,7 +77,7 @@ public:
     void InitializeSolutionStep(SparseMatrix& rLhs, Vector& rSolution, Vector& rRhs) override;
 
     /// @copydoc Base::PerformSolutionStep
-    void PerformSolutionStep(SparseMatrix& rLhs, Vector& rSolution, Vector& rRhs) override;
+    bool PerformSolutionStep(SparseMatrix& rLhs, Vector& rSolution, Vector& rRhs) final override;
 
     /// @copydoc Base::Solve(SparseMatrix&,Vector&,Vector&)
     bool Solve(SparseMatrix& rLhs, Vector& rSolution, Vector& rRhs) final override;

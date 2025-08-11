@@ -81,12 +81,11 @@ void MKLSmootherBase<TSparse,TDense>::InitializeSolutionStep(SparseMatrix& rLhs,
 
 
 template <class TSparse, class TDense>
-void MKLSmootherBase<TSparse,TDense>::PerformSolutionStep(SparseMatrix& rLhs,
+bool MKLSmootherBase<TSparse,TDense>::PerformSolutionStep(SparseMatrix& rLhs,
                                                           Vector& rSolution,
                                                           Vector& rRhs)
 {
-    //if (!rLhs.nnz()) return true;
-    if (!rLhs.nnz()) return;
+    if (!rLhs.nnz()) return true;
 
     // Sanity checks.
     KRATOS_ERROR_IF_NOT(rSolution.size());
@@ -99,8 +98,7 @@ void MKLSmootherBase<TSparse,TDense>::PerformSolutionStep(SparseMatrix& rLhs,
         (&*rSolution.begin()) + rSolution.size(),
         &*rRhs.begin(),
         (&*rRhs.begin()) + rRhs.size());
-    //return this->Solve(lhs_view, solution_view, rhs_view);
-    this->Solve(lhs_view, solution_view, rhs_view);
+    return this->Solve(lhs_view, solution_view, rhs_view);
     KRATOS_CATCH("")
 }
 
@@ -112,11 +110,9 @@ bool MKLSmootherBase<TSparse,TDense>::Solve(SparseMatrix& rLhs,
 {
     KRATOS_TRY
     this->InitializeSolutionStep(rLhs, rSolution, rRhs);
-    //return this->PerformSolutionStep(rLhs, rSolution, rRhs);
-    this->PerformSolutionStep(rLhs, rSolution, rRhs);
+    const auto status = this->PerformSolutionStep(rLhs, rSolution, rRhs);
     this->FinalizeSolutionStep(rLhs, rSolution, rRhs);
-    this->Clear();
-    return false;
+    return status;
     KRATOS_CATCH("")
 }
 
