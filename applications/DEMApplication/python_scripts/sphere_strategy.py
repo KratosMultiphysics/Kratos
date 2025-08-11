@@ -248,6 +248,7 @@ class ExplicitStrategy():
 
 
         self.SetContinuumType()
+        self.ondem_drum_utils = ONDEMDrumUtilities()
 
     def _GetRestartSettings(self, model_part_import_settings):
         restart_settings = model_part_import_settings.Clone()
@@ -454,6 +455,7 @@ class ExplicitStrategy():
     def Initialize(self):
         self.CheckMomentumConservation()
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy (C++) Initialize function (initializes all elements and performs other necessary tasks before starting the time loop in Python)
+        self.ondem_drum_utils.ExecuteInitialize(self.spheres_model_part, self.fem_model_part)
 
     def SetDt(self, dt):
         self.dt = dt
@@ -511,9 +513,10 @@ class ExplicitStrategy():
 
     def FinalizeSolutionStep(self):
         self.cplusplus_strategy.FinalizeSolutionStep()
+        self.ondem_drum_utils.Calculate(self.spheres_model_part, self.fem_model_part)
 
     def Finalize(self):
-        pass
+        self.ondem_drum_utils.ExecuteFinalize(self.spheres_model_part, self.fem_model_part)
 
     def InitializeSolutionStep(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
