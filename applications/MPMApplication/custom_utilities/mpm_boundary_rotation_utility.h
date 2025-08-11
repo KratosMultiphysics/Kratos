@@ -581,7 +581,7 @@ void RotateLagrangeCondition(TLocalMatrixType& rLocalMatrix,
 			{	
 				for(unsigned int j=0; j<NumBlocks; j++)
 				{
-					if(NeedRotation[i] == true)
+					if(NeedRotation[j] == true)
 					{	
 						this->template ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*TDim, j*TDim);
 						noalias(tmp) = prod(mat_block,trans(rRot[j]));
