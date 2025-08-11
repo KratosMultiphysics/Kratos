@@ -34,8 +34,8 @@ struct MKLCSRAdaptorDestructor {
         if (pAdaptor) {
             mkl_sparse_destroy(*pAdaptor);
             delete pAdaptor;
+            pAdaptor = nullptr;
         }
-        pAdaptor = nullptr;
     }
 }; // struct MKLCSRAdaptorDestructor
 
