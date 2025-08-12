@@ -11,6 +11,9 @@
 //
 
 // System includes
+#include <string>      // For std::string
+#include <sstream>     // For std::stringstream
+#include <iomanip>     // For std::setw and std::setfill
 
 // External includes
 
@@ -79,5 +82,26 @@ bool InputOutputUtilities::SkippableEntity(
 template bool InputOutputUtilities::SkippableEntity<Node>(const Node&, const std::string&);
 template bool InputOutputUtilities::SkippableEntity<Element>(const Element&, const std::string&);
 template bool InputOutputUtilities::SkippableEntity<Condition>(const Condition&, const std::string&);
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::string InputOutputUtilities::GenerateStepLabel(
+    const std::size_t Step,
+    const std::size_t Spaces
+    )
+{
+    // 1. Create a stringstream object to build the string.
+    std::stringstream ss;
+
+    // 2. Use stream manipulators to format the output:
+    //    - std::setw(Spaces): Sets the total width of the string.
+    //    - std::setfill('0'): Sets the character used for padding.
+    //    - std::right: Aligns the number to the right (so padding is on the left).
+    ss << std::setw(Spaces) << std::setfill('0') << std::right << Step;
+
+    // 3. Return the resulting formatted string.
+    return ss.str();
+}
 
 } // namespace Kratos

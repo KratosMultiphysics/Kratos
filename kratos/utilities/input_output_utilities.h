@@ -46,6 +46,18 @@ public:
         const TEntityType& rEntity,
         const std::string& rWarningLabel
         );
+
+    /**
+     * @brief This method generates a string label for the step with a given step and the number of spaces considered.
+     * @details For example Step = 3 and Spaces = 6, would be "000003".
+     * @param Step The numerical value of the step.
+     * @param Spaces The total desired width of the output string, padded with leading zeros.
+     * @return A zero-padded string representation of the step.
+     */
+    static std::string GenerateStepLabel(
+        const std::size_t Step,
+        const std::size_t Spaces
+        );
 };
 
 ///@}
