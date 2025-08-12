@@ -89,6 +89,9 @@ public:
      */
     void StoreData() override;
 
+    /**
+     * @brief Get the list of tensor adaptors stored in this CombinedTensorAdaptor
+     */
     TensorAdaptorVectorType GetTensorAdaptors() const;
 
     ///@}

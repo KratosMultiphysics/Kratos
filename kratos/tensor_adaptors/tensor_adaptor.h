@@ -197,7 +197,6 @@ protected:
          */
         DenseVector<unsigned int> DataShape() const;
 
-
         /**
          * @brief Returns the number of elements in the tensor adaptor.
          */
@@ -207,9 +206,17 @@ protected:
          * @brief Returns a pointer to the underlying container.
          * @details This method provides access to the internal container used by the tensor adaptor.
          *          The returned pointer allows read-only operations on the container.
+         * @throws std::runtime_error if the @ref HasContainer() method returns false.
          */
         ContainerPointerType GetContainer() const;
 
+        /**
+         * @brief Returns whether this tensor adaptor has an associated valid underlying container.
+         * @details If the underlying tensor adaptor does not have a valid container representation, then
+         *          this method will return false. Example is @ref CombinedTensorAdaptor, where
+         *          there is no valid representation of the container, so in this case this method
+         *          returns false.
+         */
         bool HasContainer() const;
 
         /**
@@ -298,9 +305,17 @@ public:
 
     /**
      * @brief Get the entity container which is associated with the @p TensorAdaptor instance.
+     * @throws std::runtime_error if the @ref HasContainer() method returns false.
      */
     typename Storage::ContainerPointerType GetContainer() const;
 
+    /**
+     * @brief Returns whether this tensor adaptor has an associated valid underlying container.
+     * @details If the underlying tensor adaptor does not have a valid container representation, then
+     *          this method will return false. Example is @ref CombinedTensorAdaptor, where
+     *          there is no valid representation of the container, so in this case this method
+     *          returns false.
+     */
     bool HasContainer() const;
 
     /**
