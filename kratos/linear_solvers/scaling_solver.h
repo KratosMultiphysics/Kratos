@@ -381,8 +381,7 @@ private:
     {
         const typename TSparseSpaceType::DataType row_weight = weights[kkk];
 
-        for(int i = 0; i < number_of_entries_in_row; i++)
-        {
+        for(int i = 0; i < number_of_entries_in_row; i++) {
             const typename TSparseSpaceType::DataType col_weight = weights[*index2_begin];
             typename TSparseSpaceType::DataType t = (*value_begin);
             t /= (row_weight*col_weight);
