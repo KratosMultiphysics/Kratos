@@ -5,6 +5,7 @@ Functions to load the data, clean it and fit it
 import numpy as np
 from scipy.interpolate import splprep, splev
 from skimage.measure import EllipseModel, ransac
+from sklearn.linear_model import RANSACRegressor, LinearRegression
 import csv
 from pathlib import Path
 
@@ -435,3 +436,39 @@ def compute_ellipses(slices, slice_bounds=None, method="least_squares", ransac_p
             return ellipses
 
 
+def find_sample_face(data, ransac_params=None):
+    """
+    Finds the face of the sample, that is, the original flat surface before perforation.
+    It assumes the data is valid.
+
+    Parameters:
+    - data (np.ndarray): Nx3 matrix with the data points
+    - ransac_params (dict, default=None): parameters to use for the ransac fitting
+
+    Returns:
+    - a, b, c (floats): coefficients of the plane face: z = a*x + b*y + c
+    """
+
+    XY = data[:, [0,1]]
+    z = data[:, 2]
+
+    # Fit RANSAC with built-in LinearRegression
+    if ransac_params is None:
+        raise ValueError("Parameters for the RANSAC fit need to be specified")
+    else:
+        try:
+            min_samples = ransac_params["min_samples"]
+            residual_threshold = ransac_params["residual_threshold"]
+            max_trials = ransac_params["max_trials"]
+            rng_seed = ransac_params["rng_seed"]
+        except KeyError:
+            raise KeyError("Incorrect parameters for the RANSAC fitting specified")
+    
+    ransac = RANSACRegressor(LinearRegression(), residual_threshold=residual_threshold, min_samples=min_samples, max_trials=max_trials, random_state=rng_seed)
+    ransac.fit(XY, z)
+
+    # Coefficients of the plane from LinearRegression: z = a*x + b*y + c.    
+    a, b = ransac.estimator_.coef_    
+    c = ransac.estimator_.intercept_
+    
+    return a, b, c
