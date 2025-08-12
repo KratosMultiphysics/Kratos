@@ -134,7 +134,11 @@ if(${CMAKE_COMPILER_IS_GNUCXX})
     endif()
 endif()
 
+if(KRATOS_USE_TBB)
+    set(KRATOS_EXTERNAL_LIBRARIES ${KRATOS_EXTERNAL_LIBRARIES} TBB::tbb)
+endif()
 target_link_libraries(KratosCore PUBLIC ${KRATOS_EXTERNAL_LIBRARIES})
+
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 
 # Set batch size in the unity build
