@@ -537,6 +537,15 @@ class TensorAdaptors(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(Kratos.VELOCITY_Y), numpy_data[i, 6] * 4.5)
             self.assertEqual(node.GetSolutionStepValue(Kratos.VELOCITY_Z), numpy_data[i, 7] * 4.5)
 
+    def test_CombinedTensorAdaptorGetTensorAdaptors(self):
+        u_nodes_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY)
+        u_elems_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.PRESSURE)
+
+        combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([u_nodes_ta, u_elems_ta], ravel=True, collect_and_store_recursively=True)
+
+        self.assertEqual(id(u_nodes_ta), id(combined_ta.GetTensorAdaptors()[0]))
+        self.assertEqual(id(u_elems_ta), id(combined_ta.GetTensorAdaptors()[1]))
+
     def __TestCopyTensorAdaptor(self, tensor_adaptor_type, value_getter):
         var_ta_orig = tensor_adaptor_type(self.model_part.Nodes, Kratos.VELOCITY, data_shape=[2])
         var_ta_orig.Check()
