@@ -9,25 +9,24 @@ import json
 
 if __name__ == "__main__":
     """
-    This script takes as its argument a name of a dataset corresponding to one bore and makes multiple plots
+    This script takes as its argument a name of a dataset corresponding to one bore and makes multiple plots.
     """
 
     # Read filepath as argument
     parser = argparse.ArgumentParser(description="Make plots and extract metrics of the measurements of a bore.")
     parser.add_argument("--filepath", required=True, help="Path to file containing the data file.")
-    parser.add_argument("--keep-surface-and-outliers", required=False, action="store_true", help="Toggle to keep outliers. Optional (by default, they are removed).")
-    parser.add_argument("--parameters-file", required=True, help="Path of the file that contains the parameters to be used")
 
+    parser.add_argument("--parameters-file", required=True, help="Path of the file that contains the parameters to be used")
+    
+    parser.add_argument("--remove-surface-and-outliers", required=False, action="store_true", help="Toggle to remove points above the surface and outliers based on depth. Optional (by default, they are NOT removed).")
 
     args = parser.parse_args()
 
     filepath = args.filepath
-    keep_surface_and_outliers_toggle = args.keep_surface_and_outliers
+    remove_surface_and_outliers_toggle = args.remove_surface_and_outliers
     parameters_file = args.parameters_file
 
-    # remove_surface_and_outliers_toggle = False if args.remove_surface_and_outliers == "False" else True
-    # print(f"{args.keep_surface_and_outliers=}")
-    print(f"{keep_surface_and_outliers_toggle=}")
+    print(f"{remove_surface_and_outliers_toggle=}")
     filename = Path(filepath).stem
     print(f"Plots for {filename}")
 
@@ -83,7 +82,7 @@ if __name__ == "__main__":
     data_raw = read_single_bore(filepath)
     data = clean_data(data_raw)
 
-    if not keep_surface_and_outliers_toggle:
+    if remove_surface_and_outliers_toggle:
         data, surface_outliers, deep_outliers = remove_surface_and_outliers(data, shallow_z_threshold, deep_outlier_quantile_threshold)
 
     # ==== Random subsample after filtering ====
