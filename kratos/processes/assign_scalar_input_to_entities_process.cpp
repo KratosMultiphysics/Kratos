@@ -34,6 +34,17 @@ const Kratos::Flags AssignScalarInputToEntitiesProcess<TEntity, THistorical>::GE
 
 template<class TEntity, bool THistorical>
 AssignScalarInputToEntitiesProcess<TEntity, THistorical>::AssignScalarInputToEntitiesProcess(
+    Model& rModel,
+    Parameters rParameters
+    ) : AssignScalarInputToEntitiesProcess(rModel.GetModelPart(rParameters["model_part_name"].GetString()), rParameters)
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity, bool THistorical>
+AssignScalarInputToEntitiesProcess<TEntity, THistorical>::AssignScalarInputToEntitiesProcess(
     ModelPart& rModelPart,
     Parameters rParameters
     ) : Process(Flags()) ,
@@ -75,6 +86,18 @@ AssignScalarInputToEntitiesProcess<TEntity, THistorical>::AssignScalarInputToEnt
     ComputeExtrapolationWeight();
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity, bool THistorical>
+Process::Pointer AssignScalarInputToEntitiesProcess<TEntity, THistorical>::Create(
+    Model& rModel,
+    Parameters ThisParameters
+    )
+{
+    return Kratos::make_shared<AssignScalarInputToEntitiesProcess<TEntity, THistorical>>(rModel, ThisParameters);
 }
 
 /***********************************************************************************/
