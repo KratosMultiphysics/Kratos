@@ -348,7 +348,6 @@ namespace Kratos::MaterialPointGeneratorUtility
                                 IntegrationPointUtilities::CreateIntegrationPoints1D(
                                             integration_points, spans, integration_info);
                                
-                                IntegrationInfo::QuadratureMethod integration_method = IntegrationInfo::QuadratureMethod::GRID;
                             }
                             else{
                                 KRATOS_WARNING("MaterialPointGeneratorUtility") << "Equal distribution of material point conditions only available for line segments:  "  << std::endl;
