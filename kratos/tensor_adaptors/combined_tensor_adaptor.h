@@ -35,6 +35,9 @@ namespace Kratos {
  *          @ref CombinedTensorAdaptor instance. So, this will enable working on multiple tensor adaptors
  *          as a single @ref TensorAdaptor, and interfacing with numpy or C arrays.
  *
+ * @note    @ref CombinedTensorAdaptor always keeps a copy of all the internal data of the sub @ref TensorAdaptor instances
+ *          which are passed as @p rTensorAdaptorVector.
+ *
  *          Example use case 1: (Extending tensor adaptors in axis = 1)
  *              In this example, PRESSURE, VELOCITY of nodes are combined together.
  *              @code{.py}
