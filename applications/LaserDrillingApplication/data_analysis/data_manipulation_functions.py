@@ -9,7 +9,6 @@ import csv
 from pathlib import Path
 
 
-# ==== Ellipse Fitting Function ====
 def fit_ellipse_least_squares(points_2d):
     """
     Fit an ellipse to all given 2D points using least-squares method.
@@ -36,32 +35,27 @@ def fit_ellipse_least_squares(points_2d):
     return (cx, cy, a, b, eccentricity, theta)
 
 
-def fit_ellipse_ransac(points_2d, min_samples, residual_threshold, max_trials):
+def fit_ellipse_ransac(points_2d, min_samples, residual_threshold, max_trials, rng_seed):
     """
     Fit an ellipse to all given 2D points using RANSAC method.
 
-    Parameters:
-    - points_2d: Nx2 array of (x, y) points.
-
-    Returns:
-    - Tuple: (cx, cy, a, b, eccentricity, theta) or None if fitting fails.
 
     See: https://scikit-image.org/docs/stable/api/skimage.measure.html#skimage.measure.EllipseModel
 
     See the examples in https://scikit-image.org/docs/stable/api/skimage.measure.html#skimage.measure.ransac
 
+    Parameters:
+    - points_2d: Nx2 array of (x, y) points.
 
 
     Returns:
     - Tuple: (cx, cy, a, b, eccentricity, theta) or None if fitting fails.
 
-    - inliers (np.ndarray): Boolean mask of inliers classified as True.
-
-
+    - inlier_mask (np.ndarray): Boolean mask of inliers classified as True.
     """
 
     ransac_model, inlier_mask = ransac(
-        points_2d, EllipseModel, min_samples=min_samples, residual_threshold=residual_threshold, max_trials=max_trials
+        points_2d, EllipseModel, min_samples=min_samples, residual_threshold=residual_threshold, max_trials=max_trials, rng=rng_seed
     )
 
     cx, cy, a, b, theta = ransac_model.params
@@ -394,6 +388,7 @@ def compute_ellipses(slices, slice_bounds=None, method="least_squares", ransac_p
                 min_samples = ransac_params["min_samples"]
                 residual_threshold = ransac_params["residual_threshold"]
                 max_trials = ransac_params["max_trials"]
+                rng_seed = ransac_params["rng_seed"]
             except KeyError:
                 raise KeyError("Incorrect parameters for the RANSAC fitting specified")
 
@@ -417,7 +412,7 @@ def compute_ellipses(slices, slice_bounds=None, method="least_squares", ransac_p
             center_x, center_y, a, b, eccentricity, angle = fit_ellipse_least_squares(points_2d)
         elif method == "ransac":
             center_x, center_y, a, b, eccentricity, angle, inlier_mask = fit_ellipse_ransac(
-                points_2d, min_samples, residual_threshold, max_trials
+                points_2d, min_samples, residual_threshold, max_trials, rng_seed
             )
             inliers_per_slice[i] = inlier_mask
         else:
@@ -438,3 +433,5 @@ def compute_ellipses(slices, slice_bounds=None, method="least_squares", ransac_p
             return ellipses, inliers_per_slice
         else:
             return ellipses
+
+
