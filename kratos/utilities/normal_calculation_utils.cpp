@@ -598,7 +598,7 @@ void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm(
 
     const auto* p_retrieve_normal = ConsiderUnitNormal ? &retrieve_normal_unit_normal : &retrieve_normal_area_normal;
 
-    // Declare auxiliar coordinates
+    // Declare auxiliary coordinates
     struct TLS {
         Point::CoordinatesArrayType aux_coords;
     };
