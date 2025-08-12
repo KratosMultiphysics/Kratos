@@ -33,7 +33,7 @@ Element::Pointer VolumeCouplingParticle::Create(IndexType NewId, NodesArrayType 
     return Element::Pointer(new VolumeCouplingParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
-// Function to compute contact forces and moments between ball and rigid face considering coupling weight.
+// Function to compute contact forces and moments between ball and rigid face considering coupling weight. can be removed just here for exprimentation
 void VolumeCouplingParticle::ComputeBallToRigidFaceContactForceAndMoment(
     SphericParticle::ParticleDataBuffer & data_buffer,
     array_1d<double, 3>& r_elastic_force,
