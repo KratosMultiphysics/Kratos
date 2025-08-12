@@ -65,6 +65,12 @@ CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
         }
     }
 
+    KRATOS_ERROR_IF(mAxis >= static_cast<int>(tensor_shape.size()))
+        << "Axis must be lesser than the number of dimensions [ axis = " << mAxis
+        << "tensor shape = " << tensor_shape << " ].\n";
+
+    tensor_shape[Axis] = 0;
+
     // first check whether all the other axes in the dimensions except for the specified @p Axis
     // is having same number of components.
     std::for_each(rTensorAdaptorVector.begin(), rTensorAdaptorVector.end(), [&rTensorAdaptorVector, &tensor_shape, Axis](const typename BaseType::Pointer& pTensorAdaptor) {
@@ -86,13 +92,9 @@ CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
                 << "\n\ttensor_1 = " << rTensorAdaptorVector.front()
                 << "\n\ttensor_2 = " << *pTensorAdaptor << " ].\n";
         }
-    });
 
-    // now modify the tensor shape along the axis
-    tensor_shape[Axis] = 0;
-    for (const auto& p_tensor_adaptor : rTensorAdaptorVector) {
-        tensor_shape[Axis] += GetModifiedTensorShape(tensor_shape.size(), p_tensor_adaptor->Shape())[Axis];
-    }
+        tensor_shape[Axis] += modified_current_tensor_shape[Axis];
+    });
 
     // now create the storage
     // here we create a storage with a nullptr for the container, because
