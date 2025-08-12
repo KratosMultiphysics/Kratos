@@ -3,10 +3,17 @@ Functions to load the data, clean it and fit it
 """
 
 import numpy as np
+
 from scipy.interpolate import splprep, splev
+from scipy.spatial.transform import Rotation
+from scipy.spatial.transform import RigidTransform as Tf
+
 from skimage.measure import EllipseModel, ransac
+
 from sklearn.linear_model import RANSACRegressor, LinearRegression
+
 import csv
+
 from pathlib import Path
 
 
@@ -472,3 +479,110 @@ def find_sample_face(data, ransac_params=None):
     c = ransac.estimator_.intercept_
     
     return a, b, c
+
+def unit_vector(vector, epsilon=1e-10):
+    """
+    Returns the normalized vector of the input vector.
+
+    Parameters:
+        - vector (ndarray): (N,) vector to be normalized
+    
+    Returns:
+        - (ndarray): (N,) normalized vector
+    """
+    norm = np.linalg.norm(vector)
+    
+    if norm < epsilon:
+        raise ValueError("Cannot normalize a vector close to zero")
+        
+    return vector/norm
+
+
+def angle_between(v1, v2):
+    """ 
+    Returns the angle in radians between vectors v1 and v2.
+
+    Parameters:
+        - v1 (ndarray): (N,) vector.
+        - v2 (ndarray): (N,) vector.
+    
+    Returns:
+        - angle (float): angle between v1 and v2 in radians.
+    """
+
+    v1_u = unit_vector(v1)
+    v2_u = unit_vector(v2)
+    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
+
+def rotate_data(data, vector_initial, vector_final):
+    """
+    Rotates points in data by the rotation that takes initial_vector to final_vector.
+    Assumes valid data.
+    
+    Parameters:
+    - data (np.ndarray): Nx3 matrix with the data points.
+    - vector_initial (np.ndarray): (3,) array with the initial vector.
+    - vector_final (np.ndarray): (3,) array with the final vector.
+
+    Returns:
+    - data_rotated (np.ndarray): Nx3 matrix with the rotated data points.
+    """
+
+    rot_dir = unit_vector(np.cross(vector_initial, vector_final))
+
+    rot_angle = angle_between(vector_initial, vector_final)
+
+    rot_vector = rot_dir*rot_angle
+
+    r = Rotation.from_rotvec(rot_vector)
+
+    rot_mat = r.as_matrix()
+
+    data_rotated = (rot_mat @ data.T).T
+
+    return data_rotated
+
+def align_data(data, ransac_params=None):
+    """
+    Aligns the data to the XY plane. It finds the data surface face, rotates and translates the data so that this face
+    coincides with the XY plane and, lastly, centers the data by translating it so that is center of mass in XY is
+    at the origin.
+
+    Parameters:
+    - data (np.ndarray): Nx3 matrix with the data points
+    - ransac_params (dict, default=None): parameters to use for the ransac fitting
+
+    Returns:
+    - data_aligned (np.ndarray): Nx3 matrix with the aligned data points
+    """
+
+    # Find the data's plane face
+    a, b, c = find_sample_face(data, ransac_params)
+
+    # Rotate the data so it is parallel to the XY plane
+    z_dir = np.asarray([0,0,1])
+
+    # Coefficients of the plane from find_sample_face: z = a*x + b*y + c. 
+    # Implicit plane equation: a*x + b*y - z + d = 0
+    surface_normal_vect = -np.asarray([a, b, -1])
+
+    data_rotated = rotate_data(data, surface_normal_vect, z_dir)
+
+    # Translate the data to the XY plane
+    translation_to_XY_vector = -c*z_dir # c is the Z axis intercept of the data's face
+
+    translation_to_XY = Tf.from_translation(translation_to_XY_vector)
+    
+    data_on_XY = translation_to_XY.apply(data_rotated)
+
+
+    # Translate the data on the XY plane to the origin
+    com_XY = np.sum(data_on_XY, axis=0)/data_on_XY.shape[0]
+    com_XY[2] = 0
+
+    translation_to_origin = Tf.from_translation(-com_XY)
+
+    data_aligned = translation_to_origin.apply(data_on_XY)
+
+    return data_aligned
