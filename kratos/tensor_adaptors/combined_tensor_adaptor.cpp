@@ -255,9 +255,9 @@ std::string CombinedTensorAdaptor<TDataType>::Info() const
     } else {
         info << "Axis = " << mAxis;
     }
-    info << ", Shape = " << this->Shape() << " with TensorAdaptors:";
-    for (const auto& p_tensor_adaptor : mTensorAdaptors) {
-        info << "\n\t" << p_tensor_adaptor->Info();
+    info << ", Shape = " << this->Shape() << " with " << mTensorAdaptors.size() << "  TensorAdaptors:";
+    for (IndexType i = 0; i < mTensorAdaptors.size(); ++i) {
+        info << "\n\t" << i + 1 << ") " << mTensorAdaptors[i]->Info();
     }
     return info.str();
 }
