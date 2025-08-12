@@ -255,10 +255,11 @@ std::string CombinedTensorAdaptor<TDataType>::Info() const
     } else {
         info << "Axis = " << mAxis;
     }
-    info << ", Shape = " << this->Shape() << " with " << mTensorAdaptors.size() << "  TensorAdaptors:";
+    info << ", Shape = " << this->Shape() << " with " << mTensorAdaptors.size() << "  TensorAdaptors \n[";
     for (IndexType i = 0; i < mTensorAdaptors.size(); ++i) {
-        info << "\n\t" << i + 1 << ") " << mTensorAdaptors[i]->Info();
+        info << "\n\t" << mTensorAdaptors[i]->Info();
     }
+    info << "\n]";
     return info.str();
 }
 
