@@ -96,6 +96,14 @@ protected:
 
     virtual void ReadParitionIndices(ModelPart& rModelPart);
 
+    /**
+     * @brief Set the Communicator for the given @p rModelPart
+     * @details This method sets the communicator of the given @p rModelPart,
+     *          sets the local mesh entities correctly. This is done recursively for
+     *          all the sub model parts as well.
+     *
+     * @param rModelPart Model part to set the communicator.
+     */
     virtual void SetCommunicator(ModelPart& rModelPart) const;
 
     ///@}
