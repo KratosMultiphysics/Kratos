@@ -158,20 +158,20 @@ protected:
          * @warning The TensorAdaptor should not be used after the move is called.
          *          The management of the data should be carried out by the owner of the
          *          returned Kratos::span. Otherwise, there will be memory leaks.
-         * @throws If the internal data is already moved.
+         * @throws std::runtime_error If the internal data is already moved.
          * @return Returns a span containing the internal data.
          */
         Kratos::span<TDataType> MoveData();
 
         /**
          * @brief Return a view of the internal data structure.
-         * @throws If the internal data was moved via @ref Storage::MoveData.
+         * @throws std::runtime_error If the internal data was moved via @ref Storage::MoveData.
          */
         Kratos::span<const TDataType>  ViewData() const;
 
         /**
          * @brief Return a view of the internal data structure.
-         * @throws If the internal data is already moved.
+         * @throws std::runtime_error If the internal data is already moved.
          */
         Kratos::span<TDataType> ViewData();
 
@@ -302,20 +302,20 @@ public:
      * @warning The TensorAdaptor should not be used after the move is called.
      *          The management of the data should be carried out by the owner of the
      *          returned @ref Kratos::span "span". Otherwise, there will be memory leaks.
-     * @throws If the internal data is already moved as defined in @ref Storage::MoveData.
+     * @throws std::runtime_error If the internal data is already moved as defined in @ref Storage::MoveData.
      * @return Kratos::span<TDataType>  Returns a span containing the internal data.
      */
     Kratos::span<TDataType> MoveData();
 
     /**
      * @brief Return a view of the internal data structure.
-     * @throws If the internal data is already moved as defined in @ref Storage::ViewData.
+     * @throws std::runtime_error If the internal data is already moved as defined in @ref Storage::ViewData.
      */
     Kratos::span<const TDataType>  ViewData() const;
 
     /**
      * @brief Return a view of the internal data structure.
-     * @throws If the internal data is already moved as defined in @ref Storage::ViewData.
+     * @throws std::runtime_error If the internal data is already moved as defined in @ref Storage::ViewData.
      */
     Kratos::span<TDataType> ViewData();
 
