@@ -1019,10 +1019,12 @@ private:
     const SmallStrainUMAT2DInterfaceLaw mSmallStrainUMAT2DInterfaceLaw{std::make_unique<ThreeDimensional>()};
     const SmallStrainUMAT3DInterfaceLaw mSmallStrainUMAT3DInterfaceLaw{std::make_unique<ThreeDimensional>()};
 
-    // This UMAT law actually uses the correct template parameter and ConstitutiveDimension
+    // These UMAT laws actually use the correct template parameter and ConstitutiveDimension
     // (InterfacePlaneStrain), since it assumes the UMAT is implemented using the correct vector sizes.
     const SmallStrainUMATLaw<VOIGT_SIZE_2D_INTERFACE> mSmallStrainUMAT2DLineInterfaceLaw{
         std::make_unique<InterfacePlaneStrain>()};
+    const SmallStrainUMATLaw<VOIGT_SIZE_3D_INTERFACE> mSmallStrainUMAT3DSurfaceInterfaceLaw{
+        std::make_unique<InterfaceThreeDimensionalSurface>()};
 
     const LinearElastic2DInterfaceLaw mLinearElastic2DInterfaceLaw;
     const LinearElastic3DInterfaceLaw mLinearElastic3DInterfaceLaw;

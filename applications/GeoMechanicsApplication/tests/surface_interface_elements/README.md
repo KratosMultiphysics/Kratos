@@ -11,7 +11,7 @@ Two types of test cases—Dirichlet_single_stage and Neumann_single_stage—are 
 
 Additional test cases—Dirichlet_multi_stage and Neumann_multi_stage—involve two stages, with two time steps per stage.
 
-The applied tractions in the Neumann test cases are selected such that they produce the same displacement field as the corresponding Dirichlet cases. All interfaces are modeled using a linear elastic material law.
+The applied tractions in the Neumann test cases are selected such that they produce the same displacement field as the corresponding Dirichlet cases. All interfaces are modeled using a linear elastic material law. A subset of the tests are done with a linear elastic user defined dll (UMAT) to validate that workflow.
 
 ## Assertions
 For all tests, the displacements, relative displacements and tractions are compared to the known linear elastic behavior:

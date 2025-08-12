@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Aditya Ghantasala
 //                   Philipp Bucher (https://github.com/philbucher)
@@ -112,11 +112,9 @@ VtkOutput::VtkOutput(
 
     if (entity_type == "element") {
         mEntityType = EntityType::ELEMENT;
-    }
-    else if (entity_type == "condition") {
+    } else if (entity_type == "condition") {
         mEntityType = EntityType::CONDITION;
-    }
-    else if (entity_type == "automatic") {
+    } else if (entity_type == "automatic") {
         mEntityType = EntityType::AUTOMATIC;
 
         const std::size_t num_elements = rModelPart.GetCommunicator().GlobalNumberOfElements();
@@ -136,8 +134,7 @@ VtkOutput::EntityType VtkOutput::GetEntityType(const ModelPart& rModelPart) cons
 
     if (mEntityType == EntityType::ELEMENT) {
         return (num_elements > 0) ? EntityType::ELEMENT : EntityType::NONE;
-    }
-    else if (mEntityType == EntityType::CONDITION) {
+    } else if (mEntityType == EntityType::CONDITION) {
         return (num_conditions > 0) ? EntityType::CONDITION : EntityType::NONE;
     }
 
