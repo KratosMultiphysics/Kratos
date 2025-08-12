@@ -561,20 +561,19 @@ class DEMAnalysisStage(AnalysisStage):
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
-        return
-        if self.post_normal_impact_velocity_option:
-            if self.IsCountStep():
-                self.FillAnalyticSubModelPartsWithNewParticles()
-        if self.DEM_parameters["ContactMeshOption"].GetBool():
-            self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
-        if self.bounding_box_servo_loading_option:
-            self.UpdateIsTimeToUpdateContactElementForServo(self.IsTimeToUpdateContactElementForServo())
+        #if self.post_normal_impact_velocity_option:
+        #    if self.IsCountStep():
+        #        self.FillAnalyticSubModelPartsWithNewParticles()
+        #if self.DEM_parameters["ContactMeshOption"].GetBool():
+        #    self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
+        #if self.bounding_box_servo_loading_option:
+        #    self.UpdateIsTimeToUpdateContactElementForServo(self.IsTimeToUpdateContactElementForServo())
 
-        if self.DEM_parameters["Dimension"].GetInt() == 2:
-            self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION] = self.DEM_parameters["ImposeZStrainIn2DOption"].GetBool()
-            if not self.DEM_parameters["ImposeZStrainIn2DWithControlModule"].GetBool():
-                if self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION]:
-                    self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, eval(self.DEM_parameters["ZStrainValue"].GetString()))
+        #if self.DEM_parameters["Dimension"].GetInt() == 2:
+        #    self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION] = self.DEM_parameters["ImposeZStrainIn2DOption"].GetBool()
+        #    if not self.DEM_parameters["ImposeZStrainIn2DWithControlModule"].GetBool():
+        #        if self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION]:
+        #            self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, eval(self.DEM_parameters["ZStrainValue"].GetString()))
 
         bounding_box_servo_loading_option = False
         if "BoundingBoxServoLoadingOption" in self.DEM_parameters.keys():

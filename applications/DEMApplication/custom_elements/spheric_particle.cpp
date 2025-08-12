@@ -1116,7 +1116,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
             rigid_element_force[2] -= GlobalContactForce[2];
 
             // ROTATION FORCES AND ROLLING FRICTION
-            //if (this->Is(DEMFlags::HAS_ROTATION)) {
+            if (this->Is(DEMFlags::HAS_ROTATION)) {
               ComputeMomentsWithWalls(LocalContactForce[2], GlobalContactForce, data_buffer.mLocalCoordSystem[2], wall, indentation, i); //WARNING: sending itself as the neighbor!!
               
               //if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
@@ -1128,7 +1128,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
               //    mRollingFrictionModel->ComputeRollingResistanceWithWall(this, wall, LocalContactForce);
               //  }      
               //}
-            //}
+            }
 
             //WEAR
             //if (wall->GetProperties()[COMPUTE_WEAR]) {
@@ -1601,14 +1601,56 @@ void SphericParticle::CorrectRepresentativeVolume(double& rRepresentative_Volume
 }
 
 void SphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info){
+
     KRATOS_TRY
 
     ComputeReactions();
+
     auto& central_node = GetGeometry()[0];
+
     central_node.FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) = mPartialRepresentativeVolume;
     double& rRepresentative_Volume = central_node.FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
-    CorrectRepresentativeVolume(rRepresentative_Volume);
 
+    //bool is_smaller_than_sphere = false;
+    CorrectRepresentativeVolume(rRepresentative_Volume/*, is_smaller_than_sphere*/);
+
+    if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
+
+        //Divide Stress Tensor by the total volume:
+        //const array_1d<double, 3>& reaction_force=central_node.FastGetSolutionStepValue(FORCE_REACTION);
+
+        //make a copy
+        if (this->Is(DEMFlags::PRINT_STRESS_TENSOR)) {
+            this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_TENSOR_RAW) = (*mStressTensor);
+        }
+
+        //KRATOS_WATCH(this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_TENSOR_RAW))
+
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                (*mStressTensor)(i,j) /= rRepresentative_Volume;
+            }
+            //(*mStressTensor)(i,i) += GeometryFunctions::sign( (*mStressTensor)(i,i) ) * GetRadius() * fabs(reaction_force[i]) / rRepresentative_Volume;
+        }
+        /*if( this->Is(DEMFlags::HAS_ROTATION) ) { //THIS IS GIVING STABILITY PROBLEMS WHEN USING THE EXTRA TERMS FOR CONTINUUM
+            const array_1d<double, 3>& reaction_moment=central_node.FastGetSolutionStepValue(MOMENT_REACTION);
+            const double fabs_reaction_moment_modulus = fabs( DEM_MODULUS_3(reaction_moment) );
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    if(i!=j){
+                        (*mStressTensor)(i,j) += GeometryFunctions::sign( (*mStressTensor)(i,j) ) * fabs_reaction_moment_modulus / rRepresentative_Volume;
+                    }
+                }
+            }
+        }*/
+
+        ComputeDifferentialStrainTensor(r_process_info);
+        SymmetrizeDifferentialStrainTensor();
+        ComputeStrainTensor(r_process_info);
+
+        FinalizeStressTensor(r_process_info, rRepresentative_Volume);
+        SymmetrizeStressTensor();
+    }
     KRATOS_CATCH("")
 }
 
