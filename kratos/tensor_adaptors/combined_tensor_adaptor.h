@@ -104,6 +104,7 @@ namespace Kratos {
  *                  combined_tensor_adaptor = Kratos.TensorAdaptor.DoubleCombinedTensorAdaptor([tensor_adaptor_1, tensor_adaptor_2])
  *              @endcode
  *
+ *
  * @section CombinedTensorAdaptor_supported_container Supported container types
  * - @ref ModelPart::DofsArrayType
  * - @ref ModelPart::NodesContainerType
@@ -113,8 +114,13 @@ namespace Kratos {
  * - @ref ModelPart::GeometryContainerType
  * - @ref ModelPart::MasterSlaveConstraintContainerType
  *
+ * @section CombinedTensorAdaptor_Usage Usage
+ * - @ref CollectData() - To read in the data from sub tensor adaptors to the @ref CombinedTensorAdaptor. If @p CollectAndStoreRecursively is true, then this will first call @ref CollectData() of the sub tensor adaptors.
+ * - @ref StoreData() - To store back the data from @ref CombinedTensorAdaptor to sub tensor adaptors. If @p CollectAndStoreRecursively is true, then this will call sub tensor adaptors' @ref StoreData() afterwards.
+ * - @ref GetContainer() - Not used. throws an error
+ * - @ref HasContainer() - Can be used to check if the container is there. Returns false for CombinedTensorAdaptor.
+ *
  * @author Suneth Warnakulasuriya
- * @tparam TDataType The type of the data stored in the tensor adaptor.
  */
 template<class TDataType>
 class KRATOS_API(KRATOS_CORE) CombinedTensorAdaptor : public TensorAdaptor<TDataType> {
@@ -133,20 +139,77 @@ public:
     ///@name Life cycle
     ///@{
 
+    /**
+     * @brief Construct a new Combined Tensor Adaptor with given list of @ref TensorAdaptor instances.
+     * @details This constructor construct a @ref CombinedTensorAdaptor, by concatenating the given
+     *          list of tensor adaptors on the axis = 0.
+     *
+     * @see @ref CombinedTensorAdaptor(const TensorAdaptorVectorType&, const unsigned int, const bool)
+     *
+     * @param rTensorAdaptorVector          List of tensor adaptors.
+     * @param CollectAndStoreRecursively    If true, @ref CollectData() and @ref StoreData() methods will call sub tensor adaptors recursively.
+     */
     CombinedTensorAdaptor(
         const TensorAdaptorVectorType& rTensorAdaptorVector,
         const bool CollectAndStoreRecursively = true);
 
+    /**
+     * @brief Construct a new Combined Tensor Adaptor  given list of @ref TensorAdaptor instances along the specified @p Axis.
+     * @details This constructor will construct a @ref TensorAdaptor, by concatenating the given
+     *          list of tensor adaptors on the specified @p Axis.
+     *
+     * @note   If there are tensor adaptors with different number of dimensionalities, then the final number of dimensions of the resulting
+     *         CombineTensorAdaptor will be having the same number of dimensions of a tensor adaptor which has the maximum number of dimensions.
+     *         All the tensor adaptors which has less number of dimensions will have a modifed shape appending @p 1 to its original shape making all
+     *         the tensor adaptors having the same number of dimensions at the end.
+     *
+     *          Example:
+     *          @code{.py}
+     *            a = VariableTensorAdaptor(nodes, PRESSURE) -> shape = [10]
+     *            b = VariableTensorAdaptor(nodes, VELOCITY) -> shape = [10, 3]
+     *            # When combining, a's shape will be modified to [10, 1].
+     *          @endcode
+     *
+     * @throws std::runtime_error if the @p rTensorAdaptorVector is empty.
+     * @throws std::runtime_error if the @p Axis is less than zero.
+     * @throws std::runtime_error if the @p Axis is equal or larger than the largest number of dimensions found in the tensor adaptors of @p rTensorAdaptorVector.
+     * @throws std::runtime_error if the number of components in each dimension except for axis dimension is not equal on all the tensor adaptors in @p rTensorAdaptorVector.
+     *
+     * @param rTensorAdaptorVector          List of tensor adaptors.
+     * @param Axis                          Axis to concatenate the tensor adaptors.
+     * @param CollectAndStoreRecursively    If true, @ref CollectData() and @ref StoreData() methods will call sub tensor adaptors recursively.
+     */
     CombinedTensorAdaptor(
         const TensorAdaptorVectorType& rTensorAdaptorVector,
         const unsigned int Axis,
         const bool CollectAndStoreRecursively = true);
 
+    /**
+     * @brief Construct a new Combined Tensor Adaptor given list of @ref TensorAdaptor instances by raveling them.
+     * @details This will construct a @ref CombinedTensorAdaptor by reveling all the tensor adaptors given in @p rTensorAdaptorVector.
+     *          Final shape of the CombinedTensorAdaptor will be summation of @ref TensorAdaptor::Size() values from each tensor adaptor
+     *          in @p rTensorAdaptorVector.
+     *
+     * @note    This always return a flat tensor adaptor having only one dimensionality.
+     *
+     * @throws std::runtime_error If Ravel = false, because this constructor should only be used if raveling is expected.
+     *
+     * @param rTensorAdaptorVector          List of tensor adaptors.
+     * @param Ravel                         To ravel the tensor adaptors.
+     * @param CollectAndStoreRecursively    If true, @ref CollectData() and @ref StoreData() methods will call sub tensor adaptors recursively.
+     */
     CombinedTensorAdaptor(
         const TensorAdaptorVectorType& rTensorAdaptorVector,
         const bool Ravel,
         const bool CollectAndStoreRecursively = true);
 
+    /**
+     * @brief Construct a new Combined Tensor Adaptor based on an existing @p rOther.
+     *
+     * @param rOther                        Other @ref CombinedTensorAdaptor to copy/refer from.
+     * @param CollectAndStoreRecursively    If true, @ref CollectData() and @ref StoreData() methods will call sub tensor adaptors recursively.
+     * @param Copy                          If true, the underlying internal data will be copied along with the pointers to the containers.
+     */
     CombinedTensorAdaptor(
         const CombinedTensorAdaptor& rOther,
         const bool CollectAndStoreRecursively = true,
