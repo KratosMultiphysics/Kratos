@@ -472,6 +472,7 @@ class ExplicitStrategy():
 
     def SolveSolutionStep(self):
         self.cplusplus_strategy.SolveSolutionStep()
+        self.ondem_drum_utils.Calculate(self.spheres_model_part, self.fem_model_part)
         return True
 
     def AdvanceInTime(self, time):
@@ -513,7 +514,6 @@ class ExplicitStrategy():
 
     def FinalizeSolutionStep(self):
         self.cplusplus_strategy.FinalizeSolutionStep()
-        self.ondem_drum_utils.Calculate(self.spheres_model_part, self.fem_model_part)
 
     def Finalize(self):
         self.ondem_drum_utils.ExecuteFinalize(self.spheres_model_part, self.fem_model_part)
