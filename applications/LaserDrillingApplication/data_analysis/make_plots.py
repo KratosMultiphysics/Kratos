@@ -14,37 +14,34 @@ if __name__ == "__main__":
     """
 
     # Read filepath as argument
-    parser = argparse.ArgumentParser(description="Make plots and extract metrics of the measurements of a bore.")
+    parser = argparse.ArgumentParser(
+        description=("Make plots and extract metrics of the measurements of a bore."    
+        "The options in the parameters file to align the data to the XY plane and to remove the surface are incompatible (if the surface has been removed, how can we find it and then align the data to the XY plane?).")
+        )
 
 
     parser.add_argument("--filepath", required=True, help="Path to file containing the data file.")
 
-    parser.add_argument("--parameters-file", required=True, help="Path of the file that contains the parameters to be used")
+    parser.add_argument("--parameters-file", required=True, help="Path of the file that contains the parameters to be used.")
     
     # The sample surface won't exist if it has been removed. Therefore, these arguments can't be both true simultaneously
-    data_manipulation_group = parser.add_mutually_exclusive_group(required=False)
-    data_manipulation_group.add_argument("--align-data", action="store_true", help="Toggle to rotate and translate the data points so that the sample's face is coincident with the XY plane. Incompatible with --remove-surface-and-outliers")
+    # data_manipulation_group = parser.add_mutually_exclusive_group(required=False)
+    # data_manipulation_group.add_argument("--align-data", action="store_true", help="Toggle to rotate and translate the data points so that the sample's face is coincident with the XY plane. Incompatible with --remove-surface-and-outliers")
 
-    data_manipulation_group.add_argument("--remove-surface-and-outliers", action="store_true", help="Toggle to remove points above the surface and outliers based on depth. Optional (by default, they are NOT removed). Incompatible with --align-data")
+    # data_manipulation_group.add_argument("--remove-surface-and-outliers", action="store_true", help="Toggle to remove points above the surface and outliers based on depth. Optional (by default, they are NOT removed). Incompatible with --align-data")
 
     
-    parser.add_argument("--ellipse-fit-method", required=True, help="Method to use when fitting the ellipses. Options are: ls (least squares) and ransac")
+    # parser.add_argument("--ellipse-fit-method", required=True, help="Method to use when fitting the ellipses. Options are: ls (least squares) and ransac")
     
     args = parser.parse_args()
 
     filepath = args.filepath
     parameters_file = args.parameters_file
 
-    align_data_toggle = args.align_data
-    remove_surface_and_outliers_toggle = args.remove_surface_and_outliers
 
-    if args.ellipse_fit_method == "ls":
-        ellipse_fitting_method = "least_squares"
-    elif args.ellipse_fit_method == "ransac": 
-        ellipse_fitting_method = "ransac"
     
 
-    print(f"{remove_surface_and_outliers_toggle=}")
+    # print(f"{remove_surface_and_outliers_toggle=}")
     filename = Path(filepath).stem
     print(f"Plots for {filename}")
 
@@ -67,12 +64,23 @@ if __name__ == "__main__":
         deep_outlier_quantile_threshold = params["deep_outlier_quantile_threshold"]  # Lower quantile for discarding deep outliers. Set it to None to not discard any.
         
         shallow_z_threshold = params["shallow_z_threshold"] # Discard points shallower than this z (closer to surface). Set it to None to not discard any.
-        random_seed = params["random_seed"]  # Seed for reproducibility
+        subsample_rng_seed = params["subsample_rng_seed"]  # Seed for reproducibility
         spline_order = params["spline_order"]  # Spline interpolation order
         n_spline_points = params["n_spline_points"]  # Number of points in the splines
 
         surface_ransac_params = params["surface_ransac_params"]
         ellipse_ransac_params = params["ellipse_ransac_params"]        
+
+        align_data_toggle = params["align_data"]
+        remove_surface_and_outliers_toggle = params["remove_surface_and_outliers"]
+        if align_data_toggle and remove_surface_and_outliers_toggle:
+            print("The options 'align_data' and 'remove_surface_outliers' are mutually exclusive.")
+            exit(-1)
+            
+        if params["ellipse_fitting_method"] == "least_squares":
+            ellipse_fitting_method = "least_squares"
+        elif params["ellipse_fitting_method"] == "ransac": 
+            ellipse_fitting_method = "ransac"
     except KeyError:
         print("Missing parameters in the parameters JSON file.")
         exit(-1)
@@ -119,7 +127,7 @@ if __name__ == "__main__":
 
     # ==== Random subsample after filtering ====
     if subsample_points and max_points < len(data):
-        data = subsample_data(data, max_points, random_seed)
+        data = subsample_data(data, max_points, subsample_rng_seed)
 
     x, y, z = data[:, 0], data[:, 1], data[:, 2]
 
