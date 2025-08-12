@@ -50,7 +50,7 @@ namespace Kratos {
  */
 template< class TSparseSpaceType, class TDenseSpaceType>
 class KRATOS_API(KRATOS_CORE) AMGCLSolver
-    : public LinearSolver< TSparseSpaceType,TDenseSpaceType>
+    : public LinearSolver<TSparseSpaceType,TDenseSpaceType>
 {
 public:
     ///@name Type Definitions
