@@ -1093,7 +1093,7 @@ Parameters PMultigridBuilderAndSolver<TSparse,TDense>::GetDefaultParameters() co
             "solver_type" : "amgcl"
         },
         "constraint_imposition_settings" : {
-            "method" : "master_slave_elimination"
+            "method" : "master_slave"
         },
         "coarse_hierarchy_settings" : {}
     })");
