@@ -130,15 +130,18 @@ namespace Kratos {
     ResetMapLMI(mCountParticlesSmall);
 
     // Open temporary files
-    std::ofstream file_walls_info((std::ostringstream() << "data_walls_info_" << std::fixed << std::setprecision(6) << time << ".txt").str());
-    KRATOS_ERROR_IF_NOT(file_walls_info) << "Could not open file data_walls_info_" << std::fixed << std::setprecision(6) << time << ".txt!" << std::endl;
-    file_walls_info << "ID X1 Y1 Z1 X2 Y2 Z2 X3 Y3 Z3";
-    file_walls_info << std::endl;
+    std::ostringstream walls_filename;
+    walls_filename << "data_walls_info_" << std::fixed << std::setprecision(6) << time << ".txt";
+    std::ofstream file_walls_info(walls_filename.str());
+    KRATOS_ERROR_IF_NOT(file_walls_info) << "Could not open file " << walls_filename.str() << "!" << std::endl;
+    file_walls_info << "ID X1 Y1 Z1 X2 Y2 Z2 X3 Y3 Z3" << std::endl;
 
-    std::ofstream file_particles_info((std::ostringstream() << "data_particles_info_" << std::fixed << std::setprecision(6) << time << ".txt").str());
-    KRATOS_ERROR_IF_NOT(file_particles_info) << "Could not open file data_particles_info_" << std::fixed << std::setprecision(6) << time << ".txt!" << std::endl;
-    file_particles_info << "1 - ID | 2 - RADIUS | 3 - X | 4 - Y | 5 - Z | 6 - CONTACTS_P | 7 - CONTACTS_W | 8 - VEL_TRL_X | 9 - VEL_TRL_Y | 10 - VEL_TRL_Z | 11 - VEL_ROT_X | 12 - VEL_ROT_Y | 13 - VEL_ROT_Z | 14 - DISSIP_FRIC | 15 - DISSIP_DAMP";
-    file_particles_info << std::endl;
+    std::ostringstream particles_filename;
+    particles_filename << "data_particles_info_" << std::fixed << std::setprecision(6) << time << ".txt";
+    std::ofstream file_particles_info(particles_filename.str());
+    KRATOS_ERROR_IF_NOT(file_particles_info) << "Could not open file " << particles_filename.str() << "!" << std::endl;
+    file_particles_info << "1 - ID | 2 - RADIUS | 3 - X | 4 - Y | 5 - Z | 6 - CONTACTS_P | 7 - CONTACTS_W | 8 - VEL_TRL_X | 9 - VEL_TRL_Y | 10 - VEL_TRL_Z | 11 - VEL_ROT_X | 12 - VEL_ROT_Y | 13 - VEL_ROT_Z | 14 - DISSIP_FRIC | 15 - DISSIP_DAMP" << std::endl;
+
 
     // Get pointers to first elements
     ModelPart::ConditionsContainerType::iterator itw = wallsMP.GetCommunicator().LocalMesh().Conditions().ptr_begin();
