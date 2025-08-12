@@ -473,6 +473,7 @@ class ExplicitStrategy():
     def SolveSolutionStep(self):
         self.dem_fem_utils.MoveAllMeshes(self.all_model_parts.Get("RigidFacePart"), self.spheres_model_part.ProcessInfo[TIME], self.dt)
         self.cplusplus_strategy.SolveSolutionStep()
+        return True
 
     def AdvanceInTime(self, time):
         time += self.dt
@@ -491,7 +492,12 @@ class ExplicitStrategy():
 
     @classmethod
     def _UpdateTimeInOneModelPart(self, model_part, time, dt, is_time_to_print = False):
+        ''' This method is redirected to its cpp version with improved speed.
+        It also has been updated to classmethod and args so it can be called from external App
+        '''
+
         AuxiliaryUtilities().UpdateTimeInOneModelPart(model_part, time, dt, is_time_to_print)
+
 
     def FinalizeSolutionStep(self):
         self.cplusplus_strategy.FinalizeSolutionStep()
@@ -510,6 +516,7 @@ class ExplicitStrategy():
         self.cplusplus_strategy.SetNormalRadiiOnAllParticlesBeforeInitilization(self.spheres_model_part)
 
     def SetSearchRadiiOnAllParticles(self):
+        
         self.cplusplus_strategy.SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
 
     def RebuildListOfDiscontinuumSphericParticles(self):

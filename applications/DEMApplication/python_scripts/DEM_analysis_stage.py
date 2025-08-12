@@ -559,9 +559,50 @@ class DEMAnalysisStage(AnalysisStage):
     def SetInitialNodalValues(self):
         self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.dem_inlet_model_part, self.rigid_face_model_part)
 
+    def InitializeSolutionStep(self):
+        super().InitializeSolutionStep()
+        return
+        if self.post_normal_impact_velocity_option:
+            if self.IsCountStep():
+                self.FillAnalyticSubModelPartsWithNewParticles()
+        if self.DEM_parameters["ContactMeshOption"].GetBool():
+            self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
+        if self.bounding_box_servo_loading_option:
+            self.UpdateIsTimeToUpdateContactElementForServo(self.IsTimeToUpdateContactElementForServo())
+
+        if self.DEM_parameters["Dimension"].GetInt() == 2:
+            self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION] = self.DEM_parameters["ImposeZStrainIn2DOption"].GetBool()
+            if not self.DEM_parameters["ImposeZStrainIn2DWithControlModule"].GetBool():
+                if self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION]:
+                    self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, eval(self.DEM_parameters["ZStrainValue"].GetString()))
+
+        bounding_box_servo_loading_option = False
+        if "BoundingBoxServoLoadingOption" in self.DEM_parameters.keys():
+            if self.DEM_parameters["BoundingBoxServoLoadingOption"].GetBool():
+                bounding_box_servo_loading_option = True
+
+        if "BoundingBoxMoveOption" in self.DEM_parameters.keys():
+            if self.DEM_parameters["BoundingBoxMoveOption"].GetBool():
+                time_step = self.spheres_model_part.ProcessInfo[TIME_STEPS]
+                if bounding_box_servo_loading_option:
+                    NStepSearch = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingFrequency"].GetInt()
+                    if (time_step + 1) % NStepSearch == 0 and (time_step > 0):
+                        measured_global_stress = self.MeasureSphereForGettingGlobalStressTensor()
+                        self.CalculateBoundingBoxMoveVelocity(measured_global_stress)
+                        self.UpdateSearchStartegyAndCPlusPlusStrategy(self.bounding_box_move_velocity)
+                        self.procedures.UpdateBoundingBox(self.spheres_model_part, self.creator_destructor, self.bounding_box_move_velocity)
+                else:
+                    NStepSearch = self.DEM_parameters["NeighbourSearchFrequency"].GetInt()
+                    if (time_step + 1) % NStepSearch == 0 and (time_step > 0):
+                        bounding_box_move_velocity = self.DEM_parameters["BoundingBoxMoveVelocity"].GetVector()
+                        self.UpdateSearchStartegyAndCPlusPlusStrategy(bounding_box_move_velocity)
+                        self.procedures.UpdateBoundingBox(self.spheres_model_part, self.creator_destructor, bounding_box_move_velocity)
+
     def CalculateBoundingBoxMoveVelocity(self, measured_global_stress):
+
         # note: servo_loading_type = "isotropic" or "anisotropic"
         servo_loading_type = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingType"].GetString()
+
         if servo_loading_type == "isotropic":
             self.CalculateBoundingBoxMoveVelocityIsotropic(measured_global_stress)
         elif servo_loading_type == "anisotropic":
@@ -570,6 +611,7 @@ class DEMAnalysisStage(AnalysisStage):
             self.CalculateBoundingBoxMoveVelocityTriaxailLoading(measured_global_stress)
     
     def CalculateBoundingBoxMoveVelocityIsotropic(self, measured_global_stress):
+
         servo_loading_stress = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingStress"].GetVector()
         servo_loading_factor = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["BoundingBoxServoLoadingFactor"].GetDouble()
         d50 = self.DEM_parameters["BoundingBoxServoLoadingSettings"]["MeanParticleDiameterD50"].GetDouble()
@@ -686,11 +728,31 @@ class DEMAnalysisStage(AnalysisStage):
             self.KratosPrintInfo(stepinfo)
 
     def FinalizeSolutionStep(self):
-        pass #self.RunAnalytics(self.time)
+        super().FinalizeSolutionStep()
+
+        if self.rve_utils is not None:
+            self.rve_utils.FinalizeSolutionStep()
+
+        #Phantom Walls
+        self.RunAnalytics(self.time)
+
+        ##### adding DEM elements by the inlet ######
+        if self.DEM_parameters["dem_inlet_option"].GetBool():
+            self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.
 
     def OutputSolutionStep(self):
-        self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
+        #### PRINTING GRAPHS ####
+        #self.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.time, self.graphs_path)
+        #self.DEMFEMProcedures.PrintGraph(self.time)
+        #self.DEMFEMProcedures.PrintBallsGraph(self.time)
+        #self.DEMFEMProcedures.PrintAdditionalGraphs(self.time, self._GetSolver())
+        #self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
+        #self.BeforePrintingOperations(self.time)
         self.PrintResults()
+
+        #for output_process in self._GetListOfOutputProcesses():
+        #    if output_process.IsOutputStep():
+        #        output_process.PrintOutput()
 
     def BreakSolutionStepsLoop(self):
         return False
@@ -769,8 +831,16 @@ class DEMAnalysisStage(AnalysisStage):
             self.demio.InitializeMesh(self.all_model_parts)
 
     def PrintResultsForGid(self, time):
+        #if self._GetSolver().poisson_ratio_option:
+        #    self.DEMFEMProcedures.PrintPoisson(self.spheres_model_part, self.DEM_parameters, "Poisson_ratio.txt", time)
+
+        #if self.DEM_parameters["PostEulerAngles"].GetBool():
+        #    self.post_utils.PrintEulerAngles(self.spheres_model_part, self.cluster_model_part)
+
         self.demio.PrintMultifileLists(time, self.post_path)
         self._GetSolver().PrepareElementsForPrinting()
+        #if self.DEM_parameters["ContactMeshOption"].GetBool():
+        #    self._GetSolver().PrepareContactElementsForPrinting()
 
         if "post_gid_option" in self.DEM_parameters.keys():
             if self.DEM_parameters["post_gid_option"].GetBool() != False:
