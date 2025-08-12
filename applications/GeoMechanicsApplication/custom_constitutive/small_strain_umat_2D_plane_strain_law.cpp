@@ -11,9 +11,15 @@
 //
 
 #include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
+#include "constitutive_law_dimension.h"
 
 namespace Kratos
 {
+
+SmallStrainUMAT2DPlaneStrainLaw::SmallStrainUMAT2DPlaneStrainLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
+    : SmallStrainUMATLaw<VOIGT_SIZE_3D>(std::move(pConstitutiveDimension))
+{
+}
 
 ConstitutiveLaw::Pointer SmallStrainUMAT2DPlaneStrainLaw::Clone() const
 {
@@ -77,10 +83,18 @@ void SmallStrainUMAT2DPlaneStrainLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Pa
     KRATOS_CATCH("")
 }
 
+void SmallStrainUMAT2DPlaneStrainLaw::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainUMATLaw)
+}
+
+void SmallStrainUMAT2DPlaneStrainLaw::load(Serializer& rSerializer){
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUMATLaw)}
+
 Vector& SmallStrainUMAT2DPlaneStrainLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == STATE_VARIABLES) {
-        SmallStrainUMAT3DLaw::GetValue(rThisVariable, rValue);
+        SmallStrainUMATLaw::GetValue(rThisVariable, rValue);
     } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
         if (rValue.size() != VoigtSize) rValue.resize(VoigtSize);
         for (unsigned int i = 0; i < VoigtSize; ++i) {
@@ -95,7 +109,7 @@ void SmallStrainUMAT2DPlaneStrainLaw::SetValue(const Variable<Vector>& rVariable
                                                const ProcessInfo&      rCurrentProcessInfo)
 {
     if (rVariable == STATE_VARIABLES) {
-        SmallStrainUMAT3DLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
+        SmallStrainUMATLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
     } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
         this->SetInternalStressVector(rValue);
     }

@@ -4,6 +4,7 @@ import shutil
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 
 import test_helper
 import analytical_solutions
@@ -124,7 +125,7 @@ class KratosGeoMechanics1DConsolidation(OneDimensionalConsolidationTestBase):
 
 
     def test_1d_consolidation(self):
-        test_helper.run_stages(self.test_path, self.number_of_stages)
+        run_multiple_stages.run_stages(self.test_path, self.number_of_stages)
 
         self._check_relative_water_pressures()
         self._check_degree_of_consolidation()

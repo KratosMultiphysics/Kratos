@@ -107,7 +107,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("__iter__", [](typename ModelPart::SubModelPartsContainerType& self){ return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
         ;
 
-    MapInterface<ModelPart::GeometriesMapType>().CreateInterface(m,"GeometriesMapType");
+    MapInterface<ModelPart::GeometryContainerType>().CreateInterface(m,"GeometryContainerType");
     PointerVectorSetPythonInterface<ModelPart::MasterSlaveConstraintContainerType>().CreateInterface(m,"MasterSlaveConstraintsArray");
 
     py::class_<Kratos::Python::SubModelPartView>(m, "SubModelPartView")
@@ -283,7 +283,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("RemoveGeometryFromAllLevels", [](ModelPart& rModelPart, ModelPart::IndexType GeometryId){ rModelPart.RemoveGeometryFromAllLevels(GeometryId); })
         .def("RemoveGeometryFromAllLevels", [](ModelPart& rModelPart, const std::string& GeometryName){ rModelPart.RemoveGeometryFromAllLevels(GeometryName); })
         .def_property("Geometries", [](ModelPart &self)
-                      { return self.Geometries(); }, [](ModelPart &self, ModelPart::GeometriesMapType &geometries)
+                      { return self.Geometries(); }, [](ModelPart &self, ModelPart::GeometryContainerType &geometries)
                       { KRATOS_ERROR << "Setting geometries is not allowed! Trying to set value of ModelPart::Geometries."; })
         .def("CreateSubModelPart", &ModelPart::CreateSubModelPart, py::return_value_policy::reference_internal)
         .def("NumberOfSubModelParts", &ModelPart::NumberOfSubModelParts)
