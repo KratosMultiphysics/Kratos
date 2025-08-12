@@ -140,13 +140,15 @@ public:
     ///@{
 
     /**
-     * @brief Construct a new Combined Tensor Adaptor with given list of @ref TensorAdaptor instances.
-     * @details This constructor construct a @ref CombinedTensorAdaptor, by concatenating the given
-     *          list of tensor adaptors on the axis = 0.
+     * @brief Construct a new Combined Tensor Adaptor given list of @ref TensorAdaptor instances by raveling them.
+     * @details This will construct a @ref CombinedTensorAdaptor by reveling all the tensor adaptors given in @p rTensorAdaptorVector.
+     *          Final shape of the CombinedTensorAdaptor will be summation of @ref TensorAdaptor::Size() values from each tensor adaptor
+     *          in @p rTensorAdaptorVector.
      *
-     * @see @ref CombinedTensorAdaptor(const TensorAdaptorVectorType&, const unsigned int, const bool)
+     * @note    This always return a flat tensor adaptor having only one dimensionality.
      *
      * @param rTensorAdaptorVector          List of tensor adaptors.
+     * @param Ravel                         To ravel the tensor adaptors.
      * @param CollectAndStoreRecursively    If true, @ref CollectData() and @ref StoreData() methods will call sub tensor adaptors recursively.
      */
     CombinedTensorAdaptor(
@@ -182,25 +184,6 @@ public:
     CombinedTensorAdaptor(
         const TensorAdaptorVectorType& rTensorAdaptorVector,
         const unsigned int Axis,
-        const bool CollectAndStoreRecursively = true);
-
-    /**
-     * @brief Construct a new Combined Tensor Adaptor given list of @ref TensorAdaptor instances by raveling them.
-     * @details This will construct a @ref CombinedTensorAdaptor by reveling all the tensor adaptors given in @p rTensorAdaptorVector.
-     *          Final shape of the CombinedTensorAdaptor will be summation of @ref TensorAdaptor::Size() values from each tensor adaptor
-     *          in @p rTensorAdaptorVector.
-     *
-     * @note    This always return a flat tensor adaptor having only one dimensionality.
-     *
-     * @throws std::runtime_error If Ravel = false, because this constructor should only be used if raveling is expected.
-     *
-     * @param rTensorAdaptorVector          List of tensor adaptors.
-     * @param Ravel                         To ravel the tensor adaptors.
-     * @param CollectAndStoreRecursively    If true, @ref CollectData() and @ref StoreData() methods will call sub tensor adaptors recursively.
-     */
-    CombinedTensorAdaptor(
-        const TensorAdaptorVectorType& rTensorAdaptorVector,
-        const bool Ravel,
         const bool CollectAndStoreRecursively = true);
 
     /**

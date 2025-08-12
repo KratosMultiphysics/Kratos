@@ -432,7 +432,7 @@ class TensorAdaptors(KratosUnittest.TestCase):
         u_nodes_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY)
         u_elems_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.VELOCITY)
 
-        combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([u_nodes_ta, u_elems_ta])
+        combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([u_nodes_ta, u_elems_ta], axis=0)
         combined_ta.Check()
         combined_ta.CollectData()
 
@@ -464,7 +464,7 @@ class TensorAdaptors(KratosUnittest.TestCase):
         u_nodes_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY)
         u_elems_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.PRESSURE)
 
-        combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([u_nodes_ta, u_elems_ta], ravel=True)
+        combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([u_nodes_ta, u_elems_ta])
         combined_ta.Check()
         combined_ta.CollectData()
 
@@ -533,7 +533,7 @@ class TensorAdaptors(KratosUnittest.TestCase):
         u_nodes_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY)
         u_elems_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.PRESSURE)
 
-        combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([u_nodes_ta, u_elems_ta], ravel=True)
+        combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([u_nodes_ta, u_elems_ta])
 
         self.assertEqual(id(u_nodes_ta), id(combined_ta.GetTensorAdaptors()[0]))
         self.assertEqual(id(u_elems_ta), id(combined_ta.GetTensorAdaptors()[1]))

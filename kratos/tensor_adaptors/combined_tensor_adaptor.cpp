@@ -108,15 +108,12 @@ CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
 template<class TDataType>
 CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
     const TensorAdaptorVectorType& rTensorAdaptorVector,
-    const bool Ravel,
     const bool CollectAndStoreRecursively)
     : mCollectAndStoreRecursively(CollectAndStoreRecursively),
       mAxis(-1), // represent that this combined tensor adaptor is used with ravel
       mTensorAdaptors(rTensorAdaptorVector)
 {
     KRATOS_TRY
-
-    KRATOS_ERROR_IF_NOT(Ravel) << "The construction of a CombinedTensorAdaptor with ravel argument should only be used if the Ravel is true.";
 
     // this combined tensor will have everything raveled. Therefore, it will only have one dimension.
     DenseVector<unsigned int> tensor_shape(1);
@@ -139,14 +136,6 @@ CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
       mCollectAndStoreRecursively(CollectAndStoreRecursively),
       mAxis(rOther.mAxis),
       mTensorAdaptors(rOther.mTensorAdaptors)
-{
-}
-
-template<class TDataType>
-CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
-    const TensorAdaptorVectorType& rTensorAdaptorVector,
-    const bool CollectAndStoreRecursively)
-    : CombinedTensorAdaptor(rTensorAdaptorVector, 0u, CollectAndStoreRecursively)
 {
 }
 
