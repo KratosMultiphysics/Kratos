@@ -1,0 +1,143 @@
+{
+    "Dimension"                      : 3,
+    "PeriodicDomainOption"           : false,
+    "BoundingBoxOption"              : false,
+    "AutomaticBoundingBoxOption"     : false,
+    "BoundingBoxEnlargementFactor"   : 1.1,
+    "BoundingBoxStartTime"           : 0.0,
+    "BoundingBoxStopTime"            : 1000.0,
+    "BoundingBoxMaxX"                : 10,
+    "BoundingBoxMaxY"                : 10,
+    "BoundingBoxMaxZ"                : 10,
+    "BoundingBoxMinX"                : -10,
+    "BoundingBoxMinY"                : -10,
+    "BoundingBoxMinZ"                : -10,
+    "dem_inlet_option"               : false,
+    "GravityX"                       : 0.0,
+    "GravityY"                       : 0.0,
+    "GravityZ"                       : 0.0,
+    "RotationOption"                 : true,
+    "CleanIndentationsOption"        : false,
+    "solver_settings"                : {
+        "RemoveBallsInitiallyTouchingWalls" : false,
+        "strategy"                          : "sphere_strategy",
+        "material_import_settings"          : {
+            "materials_filename" : "MaterialsDEM.json"
+        }
+    },
+	    "processes"        : {
+        "constraints_process_list" : [],
+        "loads_process_list"       : [
+		{
+            "python_module" : "processes.apply_kinematic_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.DEM-FEM-Wall_movingplate",
+		"velocity_constraints_settings" : {
+                    "constrained"          : [true, true, true],
+                    "value"                : [0.0, 0.0, 0.0],
+                    "table"                : [null, null, null]
+                },
+                "angular_velocity_constraints_settings" : {
+                    "constrained"          : [true, true, true],
+                    "value"                : [null, null, null],
+                    "table"                : [null, null, null]
+                },
+                "interval"             : [0.0,1]
+            }
+        },
+		{
+            "python_module" : "processes.apply_kinematic_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.DEM-FEM-Wall_movingplate",
+		"velocity_constraints_settings" : {
+                    "constrained"          : [true, true, true],
+                    "value"                : [null, "-0.001", null],
+                    "table"                : [null, null, null]
+                },
+                "angular_velocity_constraints_settings" : {
+                    "constrained"          : [true, true, true],
+                    "value"                : [null, null, null],
+                    "table"                : [null, null, null]
+                },
+                "interval"             : [1,6]
+            }
+        },
+		{
+            "python_module" : "processes.apply_kinematic_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.DEM-FEM-Wall_movingplate",
+		"velocity_constraints_settings" : {
+                    "constrained"          : [true, true, true],
+                    "value"                : [0.0, 0.0, 0.0],
+                    "table"                : [null, null, null]
+                },
+                "angular_velocity_constraints_settings" : {
+                    "constrained"          : [true, true, true],
+                    "value"                : [null, null, null],
+                    "table"                : [null, null, null]
+                },
+                "interval"             : [6,7]
+            }
+        },
+				{
+            "python_module" : "processes.apply_kinematic_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.DEM-FEM-Wall_movingplate",
+		"velocity_constraints_settings" : {
+                    "constrained"          : [true, true, true],
+                    "value"                : [null, "0.001", null],
+                    "table"                : [null, null, null]
+                },
+                "angular_velocity_constraints_settings" : {
+                    "constrained"          : [true, true, true],
+                    "value"                : [null, null, null],
+                    "table"                : [null, null, null]
+                },
+                "interval"             : [7,"End"]
+            }
+        }
+		],
+        "list_other_processes"     : []
+    },
+    "VirtualMassCoefficient"         : 1.0,
+    "RollingFrictionOption"          : false,
+    "GlobalDamping"                  : 0.0,
+    "ContactMeshOption"              : true,
+    "OutputFileType"                 : "ascii",
+    "Multifile"                      : "multiple_files",
+    "ElementType"                    : "SphericPartDEMElement3D",
+    "TranslationalIntegrationScheme" : "Forward_Euler",
+    "RotationalIntegrationScheme"    : "Direct_Integration",
+    "MaxTimeStep"                    : 1e-5,
+    "FinalTime"                      : 12,
+    "NeighbourSearchFrequency"       : 50,
+    "SearchTolerance"                : 0.001,
+    "GraphExportFreq"                : 0.001,
+    "VelTrapGraphExportFreq"         : 0.001,
+    "OutputTimeStep"                 : 0.01,
+    "PostBoundingBox"                : true,
+    "PostLocalContactForce"          : true,
+    "PostDisplacement"               : true,
+    "PostRadius"                     : true,
+    "PostVelocity"                   : true,
+    "PostAngularVelocity"            : true,
+    "PostElasticForces"              : true,
+    "PostContactForces"              : true,
+    "PostRigidElementForces"         : true,
+    "PostStressStrainOption"         : true,
+    "PostTangentialElasticForces"    : true,
+    "PostTotalForces"                : true,
+    "PostPressure"                   : true,
+    "PostShearStress"                : true,
+    "PostSkinSphere"                 : true,
+    "PostNonDimensionalVolumeWear"   : false,
+    "PostParticleMoment"             : true,
+    "PostEulerAngles"                : true,
+    "PostRollingResistanceMoment"    : false,
+	"post_vtk_option"                : true,
+    "problem_name"                   : "DEM_compression"
+}

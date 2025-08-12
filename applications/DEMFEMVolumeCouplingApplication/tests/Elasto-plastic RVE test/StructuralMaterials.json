@@ -1,0 +1,27 @@
+{
+    "properties" : [{
+            "model_part_name": "Structure.Parts_Solid_Solid_Auto1",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "SmallStrainIsotropicPlasticityFactory",
+                    "yield_surface": "DruckerPrager",
+                    "plastic_potential": "DruckerPrager"
+                },
+                "Variables": {
+                     "DENSITY": 1526.00,
+                    "YOUNG_MODULUS": 250000,
+                    "POISSON_RATIO": 0.25,
+                    "FRACTURE_ENERGY": 50000000,
+                    "YIELD_STRESS_COMPRESSION": 10,
+                    "YIELD_STRESS_TENSION": 10.0,
+                    "FRICTION_ANGLE": 24.24,
+                    "DILATANCY_ANGLE": 8.32,
+                    "HARDENING_CURVE": 3
+                },
+                "Tables": {}
+            }
+        }
+		]
+}
+                   

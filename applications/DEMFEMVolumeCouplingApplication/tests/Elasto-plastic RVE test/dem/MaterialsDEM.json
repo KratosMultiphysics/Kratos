@@ -1,0 +1,60 @@
+{
+    "materials"                  : [{
+        "material_name" : "DEM-DefaultMaterial",
+        "material_id"   : 1,
+        "Variables"     : {
+            "PARTICLE_DENSITY"    : 2500.0,
+            "YOUNG_MODULUS"       : 100000.0,
+            "POISSON_RATIO"       : 0.2,
+            "PARTICLE_SPHERICITY" : 1.0
+        }
+    },
+	{
+        "material_name" : "DEM-WallMaterial",
+        "material_id"   : 2,
+        "Variables"     : {
+            "PARTICLE_DENSITY"    : 2500.0,
+            "YOUNG_MODULUS"       : 10000000.0,
+            "POISSON_RATIO"       : 0.2,
+            "PARTICLE_SPHERICITY" : 1.0
+        }
+    }],
+    "material_relations"         : [{
+        "material_names_list" : ["DEM-DefaultMaterial","DEM-DefaultMaterial"],
+        "material_ids_list"   : [1,1],
+        "Variables"           : {
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME" : "DEM_D_Linear_Custom_Constants",
+            "K_NORMAL"                               : 2000,
+            "K_TANGENTIAL"                           : 2000,
+            "PARTICLE_COHESION"                      : 0.0,
+            "STATIC_FRICTION"                        : 0.1,
+            "DYNAMIC_FRICTION"                       : 0.1,
+            "FRICTION_DECAY"                         : 0,
+            "COEFFICIENT_OF_RESTITUTION"             : 0.1,
+            "ROLLING_FRICTION"                       : 0.02,
+            "ROLLING_FRICTION_WITH_WALLS"            : 0.02
+        }
+    },
+	{
+        "material_names_list" : ["DEM-DefaultMaterial","DEM-WallMaterial"],
+        "material_ids_list"   : [1,2],
+        "Variables"           : {
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME" : "DEM_D_Linear_Custom_Constants",
+            "K_NORMAL"                               : 4000,
+            "K_TANGENTIAL"                           : 4000,
+            "PARTICLE_COHESION"                      : 0.0,
+            "STATIC_FRICTION"                        : 0,
+            "DYNAMIC_FRICTION"                       : 0,
+            "FRICTION_DECAY"                         : 0,
+            "COEFFICIENT_OF_RESTITUTION"             : 0.1,
+            "ROLLING_FRICTION"                       : 0.0,
+            "ROLLING_FRICTION_WITH_WALLS"            : 0.0
+        }
+    }],
+    "material_assignation_table" : [["SpheresPart.DEMParts_Define_particle_groups_Auto1","DEM-DefaultMaterial"],["RigidFacePart.DEM-FEM-Wall_Rigid_Walls_Auto-x","DEM-WallMaterial"],
+	["RigidFacePart.DEM-FEM-Wall_Rigid_Walls_Auto+z","DEM-WallMaterial"],["RigidFacePart.DEM-FEM-Wall_Rigid_Walls_Auto+x","DEM-WallMaterial"],["RigidFacePart.DEM-FEM-Wall_Rigid_Walls_Auto-z","DEM-WallMaterial"],
+	["RigidFacePart.DEM-FEM-Wall_Rigid_Walls_Auto-y","DEM-WallMaterial"],["RigidFacePart.DEM-FEM-Wall_movingplate","DEM-WallMaterial"]]
+}
+
+
+
