@@ -387,7 +387,7 @@ def compute_ellipses(slices, slice_bounds=None, method="least_squares", ransac_p
     - inliers_per_slice (list): if return_inlier_masks is True, return a list where each element is a list of the indices
         of the points that are inliers of the best fit ellipse of the corresponding slice
     """
-
+    print(f"Fitting ellipses using {method}, from the available methods least_squares and ransac.")
     if method == "ransac":
         if ransac_params is None:
             raise ValueError("Parameters for the RANSAC fit need to be specified")
@@ -397,8 +397,8 @@ def compute_ellipses(slices, slice_bounds=None, method="least_squares", ransac_p
                 residual_threshold = ransac_params["residual_threshold"]
                 max_trials = ransac_params["max_trials"]
                 rng_seed = ransac_params["rng_seed"]
-            except KeyError:
-                raise KeyError("Incorrect parameters for the RANSAC fitting specified")
+            except KeyError as e:
+                raise KeyError("Incorrect parameters for the RANSAC fitting specified") from e
 
     num_slices = len(slices)
 
@@ -419,7 +419,7 @@ def compute_ellipses(slices, slice_bounds=None, method="least_squares", ransac_p
         if method == "least_squares":
             center_x, center_y, a, b, eccentricity, angle = fit_ellipse_least_squares(points_2d)
         elif method == "ransac":
-            center_x, center_y, a, b, eccentricity, angle, inlier_mask = fit_ellipse_ransac(
+            (center_x, center_y, a, b, eccentricity, angle), inlier_mask = fit_ellipse_ransac(
                 points_2d, min_samples, residual_threshold, max_trials, rng_seed
             )
             inliers_per_slice[i] = inlier_mask
@@ -586,3 +586,4 @@ def align_data(data, ransac_params=None):
     data_aligned = translation_to_origin.apply(data_on_XY)
 
     return data_aligned
+    

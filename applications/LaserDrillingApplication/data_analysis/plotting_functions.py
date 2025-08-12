@@ -47,7 +47,14 @@ def plot_3d_geometry(x, y, z, sample_limits, filename, centroid_spline=None, cx=
     if ellipse_spline is not None:
         ax.plot(*ellipse_spline, c="g", lw=2, label="Ellipse center spline")
 
-
+    # Plot XY plane
+    xx, yy = np.meshgrid(
+    np.linspace(sample_x_min, sample_x_max, 10), np.linspace(sample_y_min, sample_y_max, 10)
+    )
+    zz = np.full_like(xx, 0)
+    ax.plot_surface(xx, yy, zz, alpha=0.3, color="red")
+    
+    # Plot slice planes
     if slice_bounds is not None:
         for bound in slice_bounds:
             xx, yy = np.meshgrid(
