@@ -362,7 +362,7 @@ private:
             perform_matrix_scaling_row(
                 Index, // Current row index
                 number_of_entries_in_row,
-                row_begin_it, // Iterator to the beginning of the current row's data in index1_data
+                row_begin_it,
                 index2_begin_it, // Iterator to the beginning of the current row's data in index2_data
                 value_begin_it, // Iterator to the beginning of the current row's data in value_data
                 aux
