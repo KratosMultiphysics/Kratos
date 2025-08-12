@@ -81,7 +81,7 @@ public:
      *       dimensions will be correct, but all values will be zero.
      *
      * @warning In distributed environments, if the data type is dynamic and the @p rContainer is empty on a rank,
-     *          the computed shape may be incorrect. It is recommended to use a predefined data shape in such cases,
+     *          the computed shape may be incorrect in that rank. Therefore, it is recommended to use a predefined data shape in such cases,
      *          communicated from ranks with non-empty containers.
      */
     template<class TDataType, class TContainerType, class TGetterType>
