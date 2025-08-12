@@ -316,7 +316,7 @@ namespace Kratos
                 for (IndexType i = 0; i < 2; ++i) unit_normal_vector_2d[i] = unit_normal_vector[i];
 
                 // Normal component regularization (original behavior)
-                double gp_normal_gradient = inner_prod(interpolated_solution_gradient, unit_normal_vector_2d);
+                double gp_normal_gradient = inner_prod(interpolated_solution_gradient, unit_normal_vector);
                 RHSTrimmedElementsContribution_elemental = beta * prod(dN_dx, unit_normal_vector_2d) * gp_normal_gradient * weight * det_jacobian[0];
             }
 

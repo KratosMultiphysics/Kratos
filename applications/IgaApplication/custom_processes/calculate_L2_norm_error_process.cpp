@@ -31,7 +31,6 @@ namespace Kratos
         std::string analytical_solution = mParameters["analytical_solution"].GetString();
         // Create the function to be evaluated
         mpAnalyticalSolution = Kratos::make_unique<GenericFunctionUtility>(analytical_solution);
-    
         double L2_norm_error = 0.0;
 
         const Variable<double>& UNKNOWN_VARIABLE = KratosComponents<Variable<double>>::Get(mUnknownVariable);
@@ -64,7 +63,7 @@ namespace Kratos
             // Iterate over the nodes in the geometry and retrieve the numerical solution and the numerical gradient
             for (std::size_t i = 0; i < p_gauss_point_geometry->size(); ++i) {
                 auto& node = (*p_gauss_point_geometry)[i]; 
-                double nodal_value = node.FastGetSolutionStepValue(UNKNOWN_VARIABLE, current_time); 
+                double nodal_value = node.FastGetSolutionStepValue(UNKNOWN_VARIABLE); 
                 value_numerical_solution += N_row[i] * nodal_value; 
                 gradient_x += r_DN_De[0](i, 0) * nodal_value; 
                 gradient_y += r_DN_De[0](i, 1) * nodal_value; 
