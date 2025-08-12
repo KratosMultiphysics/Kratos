@@ -21,6 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kernel.h"
 #include "containers/variable.h"
 #include "includes/model_part.h"
 #include "utilities/data_type_traits.h"
@@ -78,6 +79,15 @@ public:
             // but the values in all the dimensions will be zeros.
             DenseVector<unsigned int> tensor_shape(value_traits::Dimension + 1);
             value_traits::Shape(TDataType{}, tensor_shape.data().begin() + 1, tensor_shape.data().begin() + tensor_shape.size());
+
+            if constexpr(value_traits::IsDynamic) {
+                KRATOS_WARNING_IF("TensorAdaptorUtils::GetTensorShape", Kernel::IsDistributedRun())
+                    << "The " << TDataType{} << " is a dynamic value type, and the method is called in an distributed environment"
+                    << " which may lead to wrong tensor shape in this rank since this rank has an empty container."
+                    << " Therefore, it is suggested to use the method with the predefined data shape in the distributed environemnt where the"
+                    << " data shape is computed on ranks where there are non-empty containers and communicated to the empty container ranks.\n";
+            }
+
             tensor_shape[0] = 0;
             return tensor_shape;
         }
