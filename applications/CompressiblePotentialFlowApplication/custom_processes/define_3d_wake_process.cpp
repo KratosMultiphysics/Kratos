@@ -57,8 +57,8 @@ Define3DWakeProcess::Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
     mShedWakeFromTrailingEdge    = ThisParameters["shed_wake_from_trailing_edge"].GetBool();
     mShedWakeLength              = ThisParameters["shed_wake_length"].GetDouble();
     mShedWakeElementSize         = ThisParameters["shed_wake_element_size"].GetDouble();
-    mShedGrowFactor              = ThisParameters["shed_grow_factor"].GetDouble();
-    mShedProjectionRootEdge      = ThisParameters["shed_projection_root_edge"].GetDouble();
+    mShedGrowFactor              = ThisParameters["shed_wake_grow_factor"].GetDouble();
+    mShedProjectionRootEdge      = ThisParameters["shed_wake_projection_root_edge"].GetDouble();
     mWakeSTLFileName             = ThisParameters["wake_stl_file_name"].GetString();
     mWakedrTraslation            = ThisParameters["wake_dr_translation"].GetVector();
     mTolerance                   = ThisParameters["tolerance"].GetDouble();
