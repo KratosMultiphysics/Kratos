@@ -394,23 +394,29 @@ namespace Kratos {
 
         //DO NOT PARALLELIZE THIS LOOP, IT IS PARALLELIZED INSIDE
         for (int k = 0; k < number_of_rigid_body_elements; k++) {
+
             ElementsArrayType::iterator it = pElements.ptr_begin() + k;
             RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES).clear();
             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT).clear();
             rigid_body_element.GetRigidBodyElementsForce(gravity);
+
         } // loop over rigid body elements
+
         KRATOS_CATCH("")
     }
 
     double ExplicitSolverStrategy::SolveSolutionStep() {
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
+
         SearchDEMOperations(r_model_part);
         SearchFEMOperations(r_model_part);
         ForceOperations(r_model_part);
         PerformTimeIntegrationOfMotion();
+
         return 0.00;
+
         KRATOS_CATCH("")
     }
 
@@ -418,23 +424,53 @@ namespace Kratos {
         KRATOS_TRY
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         int time_step = r_process_info[TIME_STEPS];
+        //const double time = r_process_info[TIME];
         const bool is_time_to_search_neighbours = (time_step + 1) % mNStepSearch == 0 && (time_step > 0); //Neighboring search. Every N times.
+        //const bool is_time_to_print_results = r_process_info[IS_TIME_TO_PRINT];
+        //const bool is_time_to_mark_and_remove = is_time_to_search_neighbours && (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]);
+        //BoundingBoxUtility(is_time_to_mark_and_remove);
+
         if (is_time_to_search_neighbours) {
+            //if (!is_time_to_mark_and_remove) { //Just in case that some entities were marked as TO_ERASE without a bounding box (manual removal)
+            //    mpParticleCreatorDestructor->DestroyParticles<Cluster3D>(*mpCluster_model_part);
+            //    mpParticleCreatorDestructor->DestroyParticles<SphericParticle>(r_model_part);
+            //}
+
+            //RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+            //RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
+
             SearchNeighbours();
+
+            //RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+            //RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
             RepairPointersToNormalProperties(mListOfSphericParticles);
+            //RepairPointersToNormalProperties(mListOfGhostSphericParticles);
             RebuildPropertiesProxyPointers(mListOfSphericParticles);
+            //RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
+
             ComputeNewNeighboursHistoricalData();
+
             mSearchControl = 2; // Search is active and has been performed during this time step
-        }
-        else {
+            //ReorderParticles();
+        } else {
             mSearchControl = 1; // Search is active but no search has been done this time step;
         }
+
+        //if (is_time_to_print_results && r_process_info[CONTACT_MESH_OPTION] == 1) {
+        //    CreateContactElements();
+        //    InitializeContactElements();
+        //}else if (r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] && r_process_info[CONTACT_MESH_OPTION] == 1) {
+        //    CreateContactElements();
+        //    InitializeContactElements();
+        //}
+
+        //RebuildPropertiesProxyPointers(mListOfSphericParticles);
+        //RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
         KRATOS_CATCH("")
     }//SearchDEMOperations;
 
     void ExplicitSolverStrategy::SearchFEMOperations(ModelPart& r_model_part, bool has_mpi) {
         KRATOS_TRY
-
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         int time_step = r_process_info[TIME_STEPS];
         const bool is_time_to_search_neighbours = (time_step + 1) % mNStepSearch == 0 && (time_step > 0); //Neighboring search. Every N times.
@@ -445,9 +481,11 @@ namespace Kratos {
             ComputeNewRigidFaceNeighboursHistoricalData();
             mSearchControl = 2; // Search is active and has been performed during this time step
         }
+
         else {
             ConditionsArrayType& pTConditions = mpFem_model_part->GetCommunicator().LocalMesh().Conditions();
             const int number_of_conditions = (int) pTConditions.size();
+
             if (number_of_conditions > 0) {
                 CheckHierarchyWithCurrentNeighbours();
                 ComputeNewRigidFaceNeighboursHistoricalData();
@@ -459,17 +497,30 @@ namespace Kratos {
 
     void ExplicitSolverStrategy::ForceOperations(ModelPart& r_model_part) {
         KRATOS_TRY
-        GetForce();
-        SynchronizeRHS(r_model_part); // Synchronize (should be just FORCE and TORQUE)
+
+        GetForce(); // Basically only calls CalculateRightHandSide()
+        //FastGetForce();
+        //GetClustersForce();
+        //GetRigidBodyElementsForce();
+
+        //if (r_model_part.GetProcessInfo()[COMPUTE_FEM_RESULTS_OPTION]) {
+        //    CalculateNodalPressuresAndStressesOnWalls();
+        //}
+
+        // Synchronize (should be just FORCE and TORQUE)
+        SynchronizeRHS(r_model_part);
+
         KRATOS_CATCH("")
-    }
+    }//ForceOperations;
 
     void ExplicitSolverStrategy::GetForce() {
+
         KRATOS_TRY
 
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         double dt = r_process_info[DELTA_TIME];
         const array_1d<double, 3>& gravity = r_process_info[GRAVITY];
+
         const int number_of_particles = (int) mListOfSphericParticles.size();
 
         #pragma omp parallel for schedule(dynamic, 100)
@@ -507,29 +558,66 @@ namespace Kratos {
     }
 
     void ExplicitSolverStrategy::PerformTimeIntegrationOfMotion(int StepFlag) {
+
         KRATOS_TRY
 
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         double delta_t = r_process_info[DELTA_TIME];
+        //double virtual_mass_coeff = r_process_info[NODAL_MASS_COEFF]; //TODO: change the name of this variable to FORCE_REDUCTION_FACTOR
+        //bool virtual_mass_option = (bool) r_process_info[VIRTUAL_MASS_OPTION];
+        double force_reduction_factor = 1.0;
+        //if (virtual_mass_option) {
+        //    force_reduction_factor = virtual_mass_coeff;
+        //    KRATOS_ERROR_IF((force_reduction_factor > 1.0) || (force_reduction_factor < 0.0)) << "The force reduction factor is either larger than 1 or negative: FORCE_REDUCTION_FACTOR= "<< virtual_mass_coeff << std::endl;
+        //}
+
         bool rotation_option = r_process_info[ROTATION_OPTION];
-        const int number_of_particles = (int) mListOfSphericParticles.size();
-        ModelPart& r_fem_model_part = *mpFem_model_part;
+
+        const int number_of_particles       = (int) mListOfSphericParticles.size();
+        //const int number_of_ghost_particles = (int) mListOfGhostSphericParticles.size();
+
+        //ModelPart& r_clusters_model_part  = *mpCluster_model_part;
+        //ElementsArrayType& pLocalClusters = r_clusters_model_part.GetCommunicator().LocalMesh().Elements();
+        //ElementsArrayType& pGhostClusters = r_clusters_model_part.GetCommunicator().GhostMesh().Elements();
+        ModelPart& r_fem_model_part  = *mpFem_model_part;
         ElementsArrayType& pFemElements = r_fem_model_part.GetCommunicator().LocalMesh().Elements();
 
         #pragma omp parallel
         {
             #pragma omp for nowait
             for (int i = 0; i < number_of_particles; i++) {
-                mListOfSphericParticles[i]->Move(delta_t, rotation_option, 1.0, StepFlag);
+                mListOfSphericParticles[i]->Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
+
+            //#pragma omp for nowait
+            //for (int i = 0; i < number_of_ghost_particles; i++) {
+            //    mListOfGhostSphericParticles[i]->Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
+            //}
+
+            //#pragma omp for nowait
+            //for (int k = 0; k < (int) pLocalClusters.size(); k++) {
+            //    ElementsArrayType::iterator it = pLocalClusters.ptr_begin() + k;
+            //    Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
+            //    cluster_element.RigidBodyElement3D::Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
+            //}
+
+            //#pragma omp for nowait
+            //for (int k = 0; k < (int) pGhostClusters.size(); k++) {
+            //    ElementsArrayType::iterator it = pGhostClusters.ptr_begin() + k;
+            //    Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
+            //    cluster_element.RigidBodyElement3D::Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
+            //}
 
             #pragma omp for nowait
             for (int k = 0; k < (int) pFemElements.size(); k++) {
                 ElementsArrayType::iterator it = pFemElements.ptr_begin() + k;
                 RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
-                rigid_body_element.Move(delta_t, rotation_option, 1.0, StepFlag);
+                rigid_body_element.Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
         }
+
+        //GetScheme()->Calculate(GetModelPart(), StepFlag);
+        //GetScheme()->Calculate(*mpCluster_model_part, StepFlag);
         KRATOS_CATCH("")
     }
 
@@ -543,6 +631,10 @@ namespace Kratos {
         ModelPart& r_fem_model_part = GetFemModelPart();
         const ProcessInfo& r_fem_process_info = r_fem_model_part.GetProcessInfo();
         ConditionsArrayType& pConditions = r_fem_model_part.GetCommunicator().LocalMesh().Conditions();
+
+        //RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+
+        //SetNormalRadiiOnAllParticles(*mpDem_model_part);
 
         #pragma omp parallel
         {
@@ -558,6 +650,8 @@ namespace Kratos {
                 (it)->InitializeSolutionStep(r_fem_process_info);
             }
         }
+
+        //ApplyPrescribedBoundaryConditions();
         KRATOS_CATCH("")
     }
 
@@ -584,13 +678,17 @@ namespace Kratos {
     }
 
     void ExplicitSolverStrategy::FinalizeSolutionStep() {
+
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
         const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+
         block_for_each(rElements, [&r_process_info](ModelPart::ElementType& rElement) {
             rElement.FinalizeSolutionStep(r_process_info);
         });
+
+        //if (true) AuxiliaryFunctions::ComputeReactionOnTopAndBottomSpheres(r_model_part);
         KRATOS_CATCH("")
     }
 
@@ -876,23 +974,51 @@ namespace Kratos {
 
     void ExplicitSolverStrategy::ResetPrescribedMotionFlagsRespectingImposedDofs() {
         KRATOS_TRY
-
         ModelPart& r_model_part = GetModelPart();
+
         NodesArrayType& r_model_part_nodes = r_model_part.Nodes();
+
         if (!r_model_part_nodes.size()) return;
 
         const unsigned int vel_x_dof_position = (r_model_part.NodesBegin())->GetDofPosition(VELOCITY_X);
         const unsigned int ang_vel_x_dof_position = (r_model_part.NodesBegin())->GetDofPosition(ANGULAR_VELOCITY_X);
 
+
         block_for_each(r_model_part_nodes, [&](ModelPart::NodeType& rNode) {
+
             if (rNode.Is(BLOCKED)) return;
             Node& node = rNode;
-            node.Set(DEMFlags::FIXED_VEL_X, node.GetDof(VELOCITY_X, vel_x_dof_position).IsFixed());
-            node.Set(DEMFlags::FIXED_VEL_Y, node.GetDof(VELOCITY_Y, vel_x_dof_position + 1).IsFixed());
-            node.Set(DEMFlags::FIXED_VEL_Z, node.GetDof(VELOCITY_Z, vel_x_dof_position + 2).IsFixed());
-            node.Set(DEMFlags::FIXED_ANG_VEL_X, node.GetDof(ANGULAR_VELOCITY_X, ang_vel_x_dof_position).IsFixed());
-            node.Set(DEMFlags::FIXED_ANG_VEL_Y, node.GetDof(ANGULAR_VELOCITY_Y, ang_vel_x_dof_position + 1).IsFixed());
-            node.Set(DEMFlags::FIXED_ANG_VEL_Z, node.GetDof(ANGULAR_VELOCITY_Z, ang_vel_x_dof_position + 2).IsFixed());
+
+            if (node.GetDof(VELOCITY_X, vel_x_dof_position).IsFixed()) {
+                node.Set(DEMFlags::FIXED_VEL_X, true);
+            } else {
+                node.Set(DEMFlags::FIXED_VEL_X, false);
+            }
+            if (node.GetDof(VELOCITY_Y, vel_x_dof_position + 1).IsFixed()) {
+                node.Set(DEMFlags::FIXED_VEL_Y, true);
+            } else {
+                node.Set(DEMFlags::FIXED_VEL_Y, false);
+            }
+            if (node.GetDof(VELOCITY_Z, vel_x_dof_position + 2).IsFixed()) {
+                node.Set(DEMFlags::FIXED_VEL_Z, true);
+            } else {
+                node.Set(DEMFlags::FIXED_VEL_Z, false);
+            }
+            if (node.GetDof(ANGULAR_VELOCITY_X, ang_vel_x_dof_position).IsFixed()) {
+                node.Set(DEMFlags::FIXED_ANG_VEL_X, true);
+            } else {
+                node.Set(DEMFlags::FIXED_ANG_VEL_X, false);
+            }
+            if (node.GetDof(ANGULAR_VELOCITY_Y, ang_vel_x_dof_position + 1).IsFixed()) {
+                node.Set(DEMFlags::FIXED_ANG_VEL_Y, true);
+            } else {
+                node.Set(DEMFlags::FIXED_ANG_VEL_Y, false);
+            }
+            if (node.GetDof(ANGULAR_VELOCITY_Z, ang_vel_x_dof_position + 2).IsFixed()) {
+                node.Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+            } else {
+                node.Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+            }
         });
         KRATOS_CATCH("")
     }
@@ -1203,9 +1329,7 @@ namespace Kratos {
         KRATOS_TRY
 
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
-        IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){
-            mListOfSphericParticles[i]->SetRadius();
-        });
+        IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){mListOfSphericParticles[i]->SetRadius();});
 
         KRATOS_CATCH("")
     }
@@ -1314,6 +1438,8 @@ namespace Kratos {
             for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = this->GetResults()[i].begin(); neighbour_it != this->GetResults()[i].end(); ++neighbour_it) {
                 Element* p_neighbour_element = (*neighbour_it).get();
                 SphericParticle* p_spheric_neighbour_particle = dynamic_cast<SphericParticle*> (p_neighbour_element);
+                //if (mListOfSphericParticles[i]->Is(DEMFlags::BELONGS_TO_A_CLUSTER) && (mListOfSphericParticles[i]->GetClusterId() == p_spheric_neighbour_particle->GetClusterId())) continue;
+                //if (mListOfSphericParticles[i]->Is(DEMFlags::POLYHEDRON_SKIN)) continue;
                 mListOfSphericParticles[i]->mNeighbourElements.push_back(p_spheric_neighbour_particle);
                 std::vector<SphericParticle*>& neighbours_of_this_neighbour_for_this_thread = thread_maps_of_connectivities[OpenMPUtils::ThisThread()][p_spheric_neighbour_particle];
                 neighbours_of_this_neighbour_for_this_thread.push_back(mListOfSphericParticles[i]);
