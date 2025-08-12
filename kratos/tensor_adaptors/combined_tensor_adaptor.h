@@ -77,7 +77,7 @@ namespace Kratos {
  *                  tensor_adaptor_2 = Kratos.TensorAdaptor.VariableTensorAdaptor(self.model_part_2.Nodes, Kratos.VELOCITY)
  *
  *                  # following will be a tensor adaptor with shape = [15, 3]
- *                  combined_tensor_adaptor = Kratos.TensorAdaptor.DoubleCombinedTensorAdaptor([tensor_adaptor_1, tensor_adaptor_2])
+ *                  combined_tensor_adaptor = Kratos.TensorAdaptor.DoubleCombinedTensorAdaptor([tensor_adaptor_1, tensor_adaptor_2], axis=0)
  *              @endcode
  *
  *          Example use case 3: (Extending tensor adaptors by raveling)
