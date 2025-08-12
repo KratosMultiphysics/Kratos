@@ -16,6 +16,7 @@
 #include <string>
 #include <atomic>
 #include <variant>
+#include <optional>
 
 // External includes
 #include <span/span.hpp>
@@ -126,12 +127,14 @@ protected:
                                             ModelPart::GeometryContainerType::Pointer
                                         >;
 
+        using OptionalContainerPointerType = std::optional<ContainerPointerType>;
+
         ///@}
         ///@name Life cycle
         ///@{
 
         Storage(
-            ContainerPointerType pContainer,
+            OptionalContainerPointerType pContainer,
             const DenseVector<unsigned int>& rShape);
 
         /**
@@ -207,6 +210,7 @@ protected:
          */
         ContainerPointerType GetContainer() const;
 
+        bool HasContainer() const;
 
         /**
          * @brief Returns a string containing information about the tensor adaptor.
@@ -219,7 +223,7 @@ protected:
         ///@name private member variables
         ///@{
 
-        const ContainerPointerType mpContainer;
+        const OptionalContainerPointerType mpContainer;
 
         const DenseVector<unsigned int> mShape;
 
@@ -296,6 +300,8 @@ public:
      * @brief Get the entity container which is associated with the @p TensorAdaptor instance.
      */
     typename Storage::ContainerPointerType GetContainer() const;
+
+    bool HasContainer() const;
 
     /**
      * @brief Moves the internal data.
