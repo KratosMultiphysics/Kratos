@@ -10,21 +10,31 @@ import json
 if __name__ == "__main__":
     """
     This script takes as its argument a name of a dataset corresponding to one bore and makes multiple plots.
+    The default actions leave the data unchanged. Any modifications to the data, such as removing outliers or rotating it must be toggled on by the user explicitely.
     """
 
     # Read filepath as argument
     parser = argparse.ArgumentParser(description="Make plots and extract metrics of the measurements of a bore.")
+
+
     parser.add_argument("--filepath", required=True, help="Path to file containing the data file.")
 
     parser.add_argument("--parameters-file", required=True, help="Path of the file that contains the parameters to be used")
     
-    parser.add_argument("--remove-surface-and-outliers", required=False, action="store_true", help="Toggle to remove points above the surface and outliers based on depth. Optional (by default, they are NOT removed).")
+    # The sample surface won't exist if it has been removed. Therefore, these arguments can't be both true simultaneously
+    arg_group = parser.add_mutually_exclusive_group(required=False)
+    arg_group.add_argument("--align-data", action="store_true", help="Toggle to rotate and translate the data points so that the sample's face is coincident with the XY plane. Incompatible with --remove-surface-and-outliers")
+
+    arg_group.add_argument("--remove-surface-and-outliers", action="store_true", help="Toggle to remove points above the surface and outliers based on depth. Optional (by default, they are NOT removed). Incompatible with --align-data")
 
     args = parser.parse_args()
 
     filepath = args.filepath
-    remove_surface_and_outliers_toggle = args.remove_surface_and_outliers
     parameters_file = args.parameters_file
+
+    align_data_toggle = args.align_data
+    remove_surface_and_outliers_toggle = args.remove_surface_and_outliers
+    
 
     print(f"{remove_surface_and_outliers_toggle=}")
     filename = Path(filepath).stem
