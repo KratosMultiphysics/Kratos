@@ -98,7 +98,7 @@ public:
 
     /**
      * @brief Store internal data to the given TContainerType container.
-     * @throws RuntimeError if the values in the Tensor adaptor's internal data does not correspond to any of the @p -1,  @p 0 or @p 1 states
+     * @throws std::runtime_error if the values in the Tensor adaptor's internal data does not correspond to any of the @p -1,  @p 0 or @p 1 states
      */
     void StoreData() override;
 
