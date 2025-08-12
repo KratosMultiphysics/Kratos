@@ -677,7 +677,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateShearCapacity, KratosGe
 class MockConstitutiveLaw : public ConstitutiveLaw
 {
 public:
-    ConstitutiveLaw::Pointer Clone() const override
+    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override
     {
         return std::make_shared<MockConstitutiveLaw>();
     }
@@ -688,24 +688,28 @@ public:
             mStateVariables = rValue;
         }
     }
+    using ConstitutiveLaw::SetValue;
 
     bool RequiresInitializeMaterialResponse() override { return false; }
 
     void CalculateMaterialResponseCauchy(Parameters& rValues) override {}
+
     void FinalizeMaterialResponseCauchy(Parameters& rValues) override {}
 
     Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override
     {
         if (rVariable == STATE_VARIABLES) {
             rValue = mStateVariables;
-            return rValue;
         }
+        return rValue;
     }
+    using ConstitutiveLaw::GetValue;
 
     bool Has(const Variable<Vector>& rThisVariable) override
     {
         return rThisVariable == STATE_VARIABLES;
     }
+    using ConstitutiveLaw::Has;
 
 private:
     Vector mStateVariables;
@@ -716,9 +720,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeCorrectlySetsStatePara
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
-    p_properties->SetValue(CONSTITUTIVE_LAW,
-                           std::make_shared<MockConstitutiveLaw>());
-    Model model;
+    p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<MockConstitutiveLaw>());
+    Model      model;
     const auto process_info = ProcessInfo{};
     auto       p_element    = CreateUPwSmallStrainElementWithUPwDofs(model, p_properties);
 
