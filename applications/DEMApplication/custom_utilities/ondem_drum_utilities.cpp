@@ -1,6 +1,6 @@
 #include "ondem_drum_utilities.h"
 
-#define FREQUENCY_PRINT_LMI 0.10
+#define FREQUENCY_PRINT_LMI 0.010
 #define FREQUENCY_PRINT_EMI 0.25
 #define FREQUENCY_TOL 1e-9
 #define DOMAIN_MIN_X -0.10
