@@ -198,7 +198,7 @@ void ExpressionIO::Write(
 
     KRATOS_ERROR_IF(appended_attribs.Has("__container_type"))
         << "The reserved keyword \"__container_type\" is found. Please remove it from attributes.";
-    appended_attribs.AddString("__container_type", Internals::GetContainerType<TContainerType>());
+    appended_attribs.AddString("__container_type", Internals::GetContainerName<TContainerType>());
 
     Write(rContainerExpressionName, rContainerExpression.GetExpression(), appended_attribs);
 
