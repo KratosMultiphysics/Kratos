@@ -1,7 +1,6 @@
 #include "ondem_drum_utilities.h"
 
-#define FREQUENCY_PRINT_LMI 0.010
-#define FREQUENCY_PRINT_EMI 0.25
+#define FREQUENCY_TIME 0.10
 #define FREQUENCY_TOL 1e-9
 #define DOMAIN_MIN_X -0.10
 #define DOMAIN_MIN_Y -0.10
@@ -9,59 +8,21 @@
 #define DOMAIN_MAX_X 0.10
 #define DOMAIN_MAX_Y 0.10
 #define DOMAIN_MAX_Z 0.03
-#define CELL_SIZE_LMI 0.010
-#define CELL_SIZE_EMI 0.125
-#define MIN_NUM_PARTICLES_LMI 30
+#define CELL_SIZE 0.010
+#define CELL_MIN_PARTICLES_SMALL 30
 
 namespace Kratos {
   //------------------------------------------------------------------------------------------------------------
   void ONDEMDrumUtilities::ExecuteInitialize(ModelPart& particlesMP, ModelPart& wallsMP) {
     // Open permanent files
     mFile_Contact.open("data_contact.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(mFile_Contact) << "Could not open data_contact.txt!" << std::endl;
-    mFile_Contact << "1 - TIME | ";
-    mFile_Contact << "2 - ALL | ";
-    mFile_Contact << "3 - P-P | ";
-    mFile_Contact << "4 - PLARGE-PLARGE | ";
-    mFile_Contact << "5 - PSMALL-PSMALL | ";
-    mFile_Contact << "6 - PLARGE-PSMALL | ";
-    mFile_Contact << "7 - P-W | ";
-    mFile_Contact << "8 - PLARGE-W | ";
-    mFile_Contact << "9 - PSMALL-W | ";
-    mFile_Contact << "10 - CN_ALL | ";
-    mFile_Contact << "11 - CN_LARGE | ";
-    mFile_Contact << "12 - CN_SMALL";
-    mFile_Contact << std::endl;
-
-    mFile_Dissipation.open("data_dissipation.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(mFile_Dissipation) << "Could not open data_dissipation.txt!" << std::endl;
-    mFile_Dissipation << "1 - TIME | ";
-    mFile_Dissipation << "2 - TOTAL | ";
-    mFile_Dissipation << "3 - FRICTION | ";
-    mFile_Dissipation << "4 - DAMPING";
-    mFile_Dissipation << std::endl;
+    mFile_Contact << "1 - TIME | " << "2 - ALL | " << "3 - P-P | " << "4 - PL-PL | " << "5 - PS-PS | " << "6 - PL-PS | " << "7 - P-W | " << "8 - PL-W | " << "9 - PS-W | " << "10 - CN_ALL | " << "11 - CN_LARGE | " << "12 - CN_SMALL" << std::endl;
 
     mFile_Velocity.open("data_velocity.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(mFile_Velocity) << "Could not open data_velocity.txt!" << std::endl;
-    mFile_Velocity << "1 - TIME | ";
-    mFile_Velocity << "2 - AVG TRANSLATION (ALL) | ";
-    mFile_Velocity << "3 - AVG TRANSLATION (LARGE) | ";
-    mFile_Velocity << "4 - AVG TRANSLATION (SMALL) | ";
-    mFile_Velocity << "5 - AVG ROTATION (ALL) | ";
-    mFile_Velocity << "6 - AVG ROTATION (LARGE) | ";
-    mFile_Velocity << "7 - AVG ROTATION (SMALL)";
-    mFile_Velocity << std::endl;
+    mFile_Velocity << "1 - TIME | " << "2 - AVG TRANSLATION (ALL) | " << "3 - AVG TRANSLATION (LARGE) | " << "4 - AVG TRANSLATION (SMALL) | " << "5 - AVG ROTATION (ALL) | " << "6 - AVG ROTATION (LARGE) | " << "7 - AVG ROTATION (SMALL)" << std::endl;
 
-    mFile_CellsLMI.open("data_cells_lmi.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(mFile_CellsLMI) << "Could not open data_cells_lmi.txt!" << std::endl;
-    mFile_CellsLMI << "#TIME" << std::endl;
-    mFile_CellsLMI << "[XMIN,XMAX; YMIN,YMAX; ZMIN,ZMAX]: (NUM_PARTICLES_LARGE, NUM_PARTICLES_SMALL)" << std::endl << std::endl;
-
-    mFile_LMI.open("data_lacey.txt", std::ios::out);
-    KRATOS_ERROR_IF_NOT(mFile_LMI) << "Could not open data_lacey.txt!" << std::endl;
-    mFile_LMI << "1 - TIME | ";
-    mFile_LMI << "2 - LMI";
-    mFile_LMI << std::endl;
+    mFile_Energy.open("data_energy.txt", std::ios::out);
+    mFile_Energy << "1 - TIME | " << "2 - MECHANICAL | " << "3 - KINETIC TRL | " << "4 - KINETIC ROT | " << "5 - ELASTIC | " << "6 - GRAVITY | " << "7 - DISSIP | " << "8 - DISSIP FRICTION | " << "9 - DISSIP DAMPING" << std::endl;
 
     // Get radii
     mNumParticlesAll = particlesMP.GetCommunicator().LocalMesh().Elements().size();
@@ -89,11 +50,11 @@ namespace Kratos {
     }
 
     // Initialize maps
-    mCellsX = static_cast<int>((DOMAIN_MAX_X - DOMAIN_MIN_X) / CELL_SIZE_LMI);
-    mCellsY = static_cast<int>((DOMAIN_MAX_Y - DOMAIN_MIN_Y) / CELL_SIZE_LMI);
-    mCellsZ = static_cast<int>((DOMAIN_MAX_Z - DOMAIN_MIN_Z) / CELL_SIZE_LMI);
-    InitializeMapLMI(mCountParticlesLarge);
-    InitializeMapLMI(mCountParticlesSmall);
+    mCellsX = static_cast<int>((DOMAIN_MAX_X - DOMAIN_MIN_X) / CELL_SIZE);
+    mCellsY = static_cast<int>((DOMAIN_MAX_Y - DOMAIN_MIN_Y) / CELL_SIZE);
+    mCellsZ = static_cast<int>((DOMAIN_MAX_Z - DOMAIN_MIN_Z) / CELL_SIZE);
+    InitializeCellsMap(mCountParticlesLarge);
+    InitializeCellsMap(mCountParticlesSmall);
   }
 
   //------------------------------------------------------------------------------------------------------------
@@ -101,47 +62,53 @@ namespace Kratos {
     // Check if it is time to execute
     const ProcessInfo& r_process_info = particlesMP.GetProcessInfo();
     const double time = r_process_info[TIME];
-    double resid_LMI = std::fmod(time, FREQUENCY_PRINT_LMI);
-    if (resid_LMI > FREQUENCY_TOL && std::fabs(resid_LMI - FREQUENCY_PRINT_LMI) > FREQUENCY_TOL) return;
+    double resid = std::fmod(time, FREQUENCY_TIME);
+    if (resid > FREQUENCY_TOL && std::fabs(resid - FREQUENCY_TIME) > FREQUENCY_TOL) return;
 
     // Initialize variables
-    int num_contacts_all      = 0;
-    int num_contacts_p_p      = 0;
-    int num_contacts_pl_pl    = 0;
-    int num_contacts_ps_ps    = 0;
-    int num_contacts_pl_ps    = 0;
-    int num_contacts_p_w      = 0;
-    int num_contacts_pl_w     = 0;
-    int num_contacts_ps_w     = 0;
-    double coord_num_all      = 0.0;
-    double coord_num_large    = 0.0;
-    double coord_num_small    = 0.0;
-    double vel_trl_all_avg    = 0.0;
-    double vel_trl_large_avg  = 0.0;
-    double vel_trl_small_avg  = 0.0;
-    double vel_rot_all_avg    = 0.0;
-    double vel_rot_large_avg  = 0.0;
-    double vel_rot_small_avg  = 0.0;
-    double energy_dissip_fric = 0.0;
-    double energy_dissip_damp = 0.0;
-    double energy_dissip      = 0.0;
-    double lmi                = 0.0;
-    ResetMapLMI(mCountParticlesLarge);
-    ResetMapLMI(mCountParticlesSmall);
+    int num_contacts_all   = 0;
+    int num_contacts_p_p   = 0;
+    int num_contacts_pl_pl = 0;
+    int num_contacts_ps_ps = 0;
+    int num_contacts_pl_ps = 0;
+    int num_contacts_p_w   = 0;
+    int num_contacts_pl_w  = 0;
+    int num_contacts_ps_w  = 0;
+    double coord_num_all   = 0.0;
+    double coord_num_pl    = 0.0;
+    double coord_num_ps    = 0.0;
+    double vel_trl_all_avg = 0.0;
+    double vel_trl_pl_avg  = 0.0;
+    double vel_trl_ps_avg  = 0.0;
+    double vel_rot_all_avg = 0.0;
+    double vel_rot_pl_avg  = 0.0;
+    double vel_rot_ps_avg  = 0.0;
+    double energy_kint     = 0.0;
+    double energy_kinr     = 0.0;
+    double energy_elast    = 0.0;
+    double energy_grav     = 0.0;
+    double energy_mech     = 0.0;
+    double dissip_fric     = 0.0;
+    double dissip_damp     = 0.0;
+    double dissip          = 0.0;
+    ResetCellsMap(mCountParticlesLarge);
+    ResetCellsMap(mCountParticlesSmall);
 
     // Open temporary files
     std::ostringstream walls_filename;
-    walls_filename << "data_walls_info_" << std::fixed << std::setprecision(6) << time << ".txt";
+    walls_filename << "data_walls_" << std::fixed << std::setprecision(6) << time << ".txt";
     std::ofstream file_walls_info(walls_filename.str());
-    KRATOS_ERROR_IF_NOT(file_walls_info) << "Could not open file " << walls_filename.str() << "!" << std::endl;
     file_walls_info << "ID X1 Y1 Z1 X2 Y2 Z2 X3 Y3 Z3" << std::endl;
 
     std::ostringstream particles_filename;
-    particles_filename << "data_particles_info_" << std::fixed << std::setprecision(6) << time << ".txt";
+    particles_filename << "data_particles_" << std::fixed << std::setprecision(6) << time << ".txt";
     std::ofstream file_particles_info(particles_filename.str());
-    KRATOS_ERROR_IF_NOT(file_particles_info) << "Could not open file " << particles_filename.str() << "!" << std::endl;
-    file_particles_info << "1 - ID | 2 - RADIUS | 3 - X | 4 - Y | 5 - Z | 6 - CONTACTS_P | 7 - CONTACTS_W | 8 - VEL_TRL_X | 9 - VEL_TRL_Y | 10 - VEL_TRL_Z | 11 - VEL_ROT_X | 12 - VEL_ROT_Y | 13 - VEL_ROT_Z | 14 - DISSIP_FRIC | 15 - DISSIP_DAMP" << std::endl;
+    file_particles_info << "1 - ID | 2 - RADIUS | 3 - X | 4 - Y | 5 - Z | 6 - CONTACTS_P | 7 - CONTACTS_W | 8 - VEL_TRL_X | 9 - VEL_TRL_Y | 10 - VEL_TRL_Z | 11 - VEL_ROT_X | 12 - VEL_ROT_Y | 13 - VEL_ROT_Z | 14 - ENERGY_KINT | 15 - ENERGY_KINR | 16 - ENERGY_ELAST | 17 - ENERGY_GRAV | 18 - DISSIP_FRIC | 19 - DISSIP_DAMP" << std::endl;
 
+    std::ostringstream cells_filename;
+    cells_filename << "data_cells_" << std::fixed << std::setprecision(6) << time << ".txt";
+    std::ofstream file_cells_info(cells_filename.str());
+    file_cells_info << "[XMIN XMAX YMIN YMAX ZMIN ZMAX]: #PL #PS" << std::endl;
 
     // Get pointers to first elements
     ModelPart::ConditionsContainerType::iterator itw = wallsMP.GetCommunicator().LocalMesh().Conditions().ptr_begin();
@@ -174,9 +141,9 @@ namespace Kratos {
       const double x1 = coords1[0];
       const double y1 = coords1[1];
       const double z1 = coords1[2];
-      const int num_neighbors_particles = particle.mNeighbourElements.size();
-      const int num_neighbors_walls = particle.mNeighbourRigidFaces.size();
-      const int num_neighbors = num_neighbors_particles + num_neighbors_walls;
+      const int num_neighbors_p = particle.mNeighbourElements.size();
+      const int num_neighbors_w = particle.mNeighbourRigidFaces.size();
+      const int num_neighbors = num_neighbors_p + num_neighbors_w;
       const array_1d<double, 3>& vel_trl = node1.FastGetSolutionStepValue(VELOCITY);
       const array_1d<double, 3>& vel_rot = node1.FastGetSolutionStepValue(ANGULAR_VELOCITY);
       const double vel_trl_norm = DEM_MODULUS_3(vel_trl);
@@ -187,11 +154,19 @@ namespace Kratos {
       const double vel_rot_x = vel_rot[0];
       const double vel_rot_y = vel_rot[1];
       const double vel_rot_z = vel_rot[2];
+      double particle_energy_kint = 0.0;
+      double particle_energy_kinr = 0.0;
+      double particle_energy_elast = 0.0;
+      double particle_energy_grav = 0.0;
       double particle_dissip_fric = 0.0;
       double particle_dissip_damp = 0.0;
-      particle.Calculate(PARTICLE_INELASTIC_FRICTIONAL_ENERGY, particle_dissip_fric, r_process_info);
-      particle.Calculate(PARTICLE_INELASTIC_VISCODAMPING_ENERGY, particle_dissip_damp, r_process_info);
-
+      particle.Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY, particle_energy_kint,  r_process_info);
+      particle.Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY,    particle_energy_kinr,  r_process_info);
+      particle.Calculate(PARTICLE_ELASTIC_ENERGY,                 particle_energy_elast, r_process_info);
+      particle.Calculate(PARTICLE_GRAVITATIONAL_ENERGY,           particle_energy_grav,  r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_FRICTIONAL_ENERGY,    particle_dissip_fric,  r_process_info);
+      particle.Calculate(PARTICLE_INELASTIC_VISCODAMPING_ENERGY,  particle_dissip_damp,  r_process_info);
+      
       // Write particle information to file
       if (file_particles_info.is_open()) {
         file_particles_info
@@ -200,80 +175,53 @@ namespace Kratos {
         << std::fixed << std::setprecision(16)
         << r1 << " " << x1 << " " << y1 << " " << z1 << " "
         << std::fixed << std::setprecision(0)
-        << num_neighbors_particles << " " << num_neighbors_walls << " "
+        << num_neighbors_p << " " << num_neighbors_w << " "
         << std::fixed << std::setprecision(16)
         << vel_trl_x << " " << vel_trl_y << " " << vel_trl_z << " "
         << vel_rot_x << " " << vel_rot_y << " " << vel_rot_z << " "
+        << particle_energy_kint << " " << particle_energy_kinr << " " << particle_energy_elast << " " << particle_energy_grav << " "
         << particle_dissip_fric << " " << particle_dissip_damp
         << std::endl;
       }
 
       // Update contact statistics
-      num_contacts_all += num_neighbors_walls;
-      num_contacts_p_w += num_neighbors_walls;
+      num_contacts_all += num_neighbors_w;
+      num_contacts_p_w += num_neighbors_w;
       coord_num_all += num_neighbors;
       if (r1 > mRadiusMean) {
-        num_contacts_pl_w += num_neighbors_walls;
-        coord_num_large += num_neighbors;
+        num_contacts_pl_w += num_neighbors_w;
+        coord_num_pl += num_neighbors;
       }
       else {
-        num_contacts_ps_w += num_neighbors_walls;
-        coord_num_small += num_neighbors;
+        num_contacts_ps_w += num_neighbors_w;
+        coord_num_ps += num_neighbors;
       }
 
       // Loop over particle neighbors
-      if (true) { // Faster: evaluate existing interactions
-        for (int j = 0; j < num_neighbors_particles; j++) {
-          // Get particle properties
-          SphericParticle& neighbor = dynamic_cast<SphericParticle&>(*particle.mNeighbourElements[j]);
-          const int id2 = neighbor.GetId();
-          if (id2 <= id1) continue;
-          const double r2 = neighbor.GetRadius();
-          const auto& node2 = neighbor.GetGeometry()[0];
-          const array_1d<double, 3>& coords2 = node2.Coordinates();
-          const double x2 = coords2[0];
-          const double y2 = coords2[1];
-          const double z2 = coords2[2];
+      for (int j = 0; j < num_neighbors_p; j++) {
+        // Get particle properties
+        SphericParticle& neighbor = dynamic_cast<SphericParticle&>(*particle.mNeighbourElements[j]);
+        const int id2 = neighbor.GetId();
+        if (id2 <= id1) continue;
+        const double r2 = neighbor.GetRadius();
+        const auto& node2 = neighbor.GetGeometry()[0];
+        const array_1d<double, 3>& coords2 = node2.Coordinates();
+        const double x2 = coords2[0];
+        const double y2 = coords2[1];
+        const double z2 = coords2[2];
 
-          // Check if neighbor is in contact
-          const double dist = std::sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1) + (z2-z1)*(z2-z1));
-          if (dist < (r1 + r2)) {
-            // Update contact statistics
-            num_contacts_all++;
-            num_contacts_p_p++;
-            if (r1 > mRadiusMean && r2 > mRadiusMean) 
-              num_contacts_pl_pl++;
-            else if (r1 < mRadiusMean && r2 < mRadiusMean)
-              num_contacts_ps_ps++;
-            else
-              num_contacts_pl_ps++;
-          }
-        }
-      }
-      else { // Slower: evaluate all interactions (each interaction only once)
-        for (int j = i+1; j < mNumParticlesAll; j++) {
-          // Get particle properties
-          SphericParticle& neighbor = dynamic_cast<SphericParticle&>(*(itp+j));
-          const auto& node2 = neighbor.GetGeometry()[0];
-          const double r2 = neighbor.GetRadius();
-          const array_1d<double, 3>& coords2 = node2.Coordinates();
-          const double x2 = coords2[0];
-          const double y2 = coords2[1];
-          const double z2 = coords2[2];
-          
-          // Check if neighbor is in contact
-          const double dist = std::sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1) + (z2-z1)*(z2-z1));
-          if (dist < (r1 + r2)) {
-            // Update contact statistics
-            num_contacts_all++;
-            num_contacts_p_p++;
-            if (r1 > mRadiusMean && r2 > mRadiusMean) 
-              num_contacts_pl_pl++;
-            else if (r1 < mRadiusMean && r2 < mRadiusMean)
-              num_contacts_ps_ps++;
-            else
-              num_contacts_pl_ps++;
-          }
+        // Check if neighbor is in contact
+        const double dist = std::sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1) + (z2-z1)*(z2-z1));
+        if (dist < (r1 + r2)) {
+          // Update contact statistics
+          num_contacts_all++;
+          num_contacts_p_p++;
+          if (r1 > mRadiusMean && r2 > mRadiusMean) 
+            num_contacts_pl_pl++;
+          else if (r1 < mRadiusMean && r2 < mRadiusMean)
+            num_contacts_ps_ps++;
+          else
+            num_contacts_pl_ps++;
         }
       }
       
@@ -281,74 +229,64 @@ namespace Kratos {
       vel_trl_all_avg += vel_trl_norm;
       vel_rot_all_avg += vel_rot_norm;
       if (r1 > mRadiusMean) {
-        vel_trl_large_avg += vel_trl_norm;
-        vel_rot_large_avg += vel_rot_norm;
+        vel_trl_pl_avg += vel_trl_norm;
+        vel_rot_pl_avg += vel_rot_norm;
       }
       else {
-        vel_trl_small_avg += vel_trl_norm;
-        vel_rot_small_avg += vel_rot_norm;
+        vel_trl_ps_avg += vel_trl_norm;
+        vel_rot_ps_avg += vel_rot_norm;
       }
 
-      // Accumulate energy dissipation
-      energy_dissip_fric += particle_dissip_fric;
-      energy_dissip_damp += particle_dissip_damp;
-      energy_dissip      += particle_dissip_fric + particle_dissip_damp;
+      // Accumulate energies
+      energy_kint  += particle_energy_kint;
+      energy_kinr  += particle_energy_kinr;
+      energy_elast += particle_energy_elast;
+      energy_grav  += particle_energy_grav;
+      energy_mech  += particle_energy_kint + particle_energy_kinr + particle_energy_elast + particle_energy_grav;
+      dissip_fric  += particle_dissip_fric;
+      dissip_damp  += particle_dissip_damp;
+      dissip       += particle_dissip_fric + particle_dissip_damp;
 
-      // Determine map indices of current particle
-      const int i_x = std::max(0, std::min(mCellsX - 1, static_cast<int>(std::floor((x1 - DOMAIN_MIN_X) / CELL_SIZE_LMI))));
-      const int i_y = std::max(0, std::min(mCellsY - 1, static_cast<int>(std::floor((y1 - DOMAIN_MIN_Y) / CELL_SIZE_LMI))));
-      const int i_z = std::max(0, std::min(mCellsZ - 1, static_cast<int>(std::floor((z1 - DOMAIN_MIN_Z) / CELL_SIZE_LMI))));
+      // Determine cells map indices of current particle
+      const int i_x = std::max(0, std::min(mCellsX - 1, static_cast<int>(std::floor((x1 - DOMAIN_MIN_X) / CELL_SIZE))));
+      const int i_y = std::max(0, std::min(mCellsY - 1, static_cast<int>(std::floor((y1 - DOMAIN_MIN_Y) / CELL_SIZE))));
+      const int i_z = std::max(0, std::min(mCellsZ - 1, static_cast<int>(std::floor((z1 - DOMAIN_MIN_Z) / CELL_SIZE))));
 
-      // Update maps
+      // Update cells map
       if (r1 > mRadiusMean) mCountParticlesLarge[i_x][i_y][i_z]++;
       else mCountParticlesSmall[i_x][i_y][i_z]++;
     }
-    
-    // Compute Lacey Mixing Index
-    std::vector<double> x_list;
-    std::vector<double> n_list;
-    for (int ix = 0; ix < mCellsX; ++ix) {
-      for (int iy = 0; iy < mCellsY; ++iy) {
-        for (int iz = 0; iz < mCellsZ; ++iz) {
-          int n_small = mCountParticlesSmall[ix][iy][iz];
-          int n_large = mCountParticlesLarge[ix][iy][iz];
-          int n_tot   = n_small + n_large;
-          if (n_small < MIN_NUM_PARTICLES_LMI || n_tot == 0) continue;
-          double frac_small = static_cast<double>(n_small) / n_tot;
-          x_list.push_back(frac_small);
-          n_list.push_back(n_tot);
+
+    coord_num_all   /= mNumParticlesAll;
+    coord_num_pl    /= mNumParticlesLarge;
+    coord_num_ps    /= mNumParticlesSmall;
+    vel_trl_all_avg /= mNumParticlesAll;
+    vel_trl_pl_avg  /= mNumParticlesLarge;
+    vel_trl_ps_avg  /= mNumParticlesSmall;
+    vel_rot_all_avg /= mNumParticlesAll;
+    vel_rot_pl_avg  /= mNumParticlesLarge;
+    vel_rot_ps_avg  /= mNumParticlesSmall;
+
+    // Write results
+    if (file_cells_info.is_open()) {
+      for (int iz = 0; iz < mCellsZ; ++iz) {
+        double zmin = DOMAIN_MIN_Z + CELL_SIZE * iz;
+        double zmax = DOMAIN_MIN_Z + CELL_SIZE * (iz + 1);
+        for (int iy = 0; iy < mCellsY; ++iy) {
+          double ymin = DOMAIN_MIN_Y + CELL_SIZE * iy;
+          double ymax = DOMAIN_MIN_Y + CELL_SIZE * (iy + 1);
+          for (int ix = 0; ix < mCellsX; ++ix) {
+            double xmin = DOMAIN_MIN_X + CELL_SIZE * ix;
+            double xmax = DOMAIN_MIN_X + CELL_SIZE * (ix + 1);
+            file_cells_info << std::fixed << std::setprecision(2);
+            file_cells_info << "[" << xmin << " " << xmax << " " << ymin << " " << ymax << " " << zmin << " " << zmax << "]: ";
+            file_cells_info << std::fixed << std::setprecision(0);
+            file_cells_info << mCountParticlesLarge[ix][iy][iz] << " " << mCountParticlesSmall[ix][iy][iz] << std::endl;
+          }
         }
       }
     }
-    const size_t N = x_list.size();
-    if (N > 0) {
-      // Mean fraction of small particles
-      double x_bar = std::accumulate(x_list.begin(), x_list.end(), 0.0) / static_cast<double>(N);
-      // Observed variance
-      double sigma_obs2 = 0.0;
-      for (auto xi : x_list) sigma_obs2 += (xi - x_bar) * (xi - x_bar);
-      // Population variance
-      sigma_obs2 /= static_cast<double>(N);
-      // Mean particles per cell
-      double n_bar = std::accumulate(n_list.begin(), n_list.end(), 0.0) / static_cast<double>(N);
-      // Random mixing variance (binomial assumption)
-      double sigma_rand2 = 0.0;
-      if (n_bar > 0.0) sigma_rand2 = x_bar * (1.0 - x_bar) / n_bar;
-      // Compute LMI
-      if (sigma_rand2 > 0.0) lmi = 1.0 - (sigma_obs2 / sigma_rand2);
-    }
-
-    coord_num_all     /= mNumParticlesAll;
-    coord_num_large   /= mNumParticlesLarge;
-    coord_num_small   /= mNumParticlesSmall;
-    vel_trl_all_avg   /= mNumParticlesAll;
-    vel_trl_large_avg /= mNumParticlesLarge;
-    vel_trl_small_avg /= mNumParticlesSmall;
-    vel_rot_all_avg   /= mNumParticlesAll;
-    vel_rot_large_avg /= mNumParticlesLarge;
-    vel_rot_small_avg /= mNumParticlesSmall;
-
-    // Write results
+    
     if (mFile_Contact.is_open()) {
       mFile_Contact
       << std::fixed << std::setprecision(6)
@@ -363,9 +301,9 @@ namespace Kratos {
       << num_contacts_pl_w  << " "
       << num_contacts_ps_w  << " "
       << std::fixed << std::setprecision(15)
-      << coord_num_all      << " "
-      << coord_num_large    << " "
-      << coord_num_small    << " "
+      << coord_num_all << " "
+      << coord_num_pl  << " "
+      << coord_num_ps  << " "
       << std::endl;
     }
     if (mFile_Velocity.is_open()) {
@@ -373,74 +311,51 @@ namespace Kratos {
       << std::fixed << std::setprecision(6)
       << time << " "
       << std::fixed << std::setprecision(15)
-      << vel_trl_all_avg   << " "
-      << vel_trl_large_avg << " "
-      << vel_trl_small_avg << " "
-      << vel_rot_all_avg   << " "
-      << vel_rot_large_avg << " "
-      << vel_rot_small_avg << " "
+      << vel_trl_all_avg << " "
+      << vel_trl_pl_avg  << " "
+      << vel_trl_ps_avg  << " "
+      << vel_rot_all_avg << " "
+      << vel_rot_pl_avg  << " "
+      << vel_rot_ps_avg  << " "
       << std::endl;
     }
-    if (mFile_Dissipation.is_open()) {
-      mFile_Dissipation
+    if (mFile_Energy.is_open()) {
+      mFile_Energy
       << std::fixed << std::setprecision(6)
       << time << " "
       << std::fixed << std::setprecision(15)
-      << energy_dissip      << " "
-      << energy_dissip_fric << " "
-      << energy_dissip_damp << " "
-      << std::endl;
-    }
-    if (mFile_CellsLMI.is_open()) {
-      mFile_CellsLMI << std::fixed << std::setprecision(6) << "#TIME: " << time << std::endl;
-      for (int iz = 0; iz < mCellsZ; ++iz) {
-        double zmin = DOMAIN_MIN_Z + CELL_SIZE_LMI * iz;
-        double zmax = DOMAIN_MIN_Z + CELL_SIZE_LMI * (iz + 1);
-        for (int iy = 0; iy < mCellsY; ++iy) {
-          double ymin = DOMAIN_MIN_Y + CELL_SIZE_LMI * iy;
-          double ymax = DOMAIN_MIN_Y + CELL_SIZE_LMI * (iy + 1);
-          for (int ix = 0; ix < mCellsX; ++ix) {
-            double xmin = DOMAIN_MIN_X + CELL_SIZE_LMI * ix;
-            double xmax = DOMAIN_MIN_X + CELL_SIZE_LMI * (ix + 1);
-            mFile_CellsLMI << std::fixed << std::setprecision(2);
-            mFile_CellsLMI << "[" << xmin << "," << xmax << "; " << ymin << "," << ymax << "; "  << zmin << "," << zmax << "]: ";
-            mFile_CellsLMI << std::fixed << std::setprecision(0);
-            mFile_CellsLMI << "(" << mCountParticlesLarge[ix][iy][iz] << ", " << mCountParticlesSmall[ix][iy][iz] << ") " << std::endl;
-          }
-        }
-      }
-      mFile_CellsLMI << std::endl;
-    }
-    if (mFile_LMI.is_open()) {
-      mFile_LMI
-      << std::fixed << std::setprecision(6)
-      << time << " "
-      << std::fixed << std::setprecision(15)
-      << lmi << " "
+      << energy_mech  << " "
+      << energy_kint  << " "
+      << energy_kinr  << " "
+      << energy_elast << " "
+      << energy_grav  << " "
+      << dissip       << " "
+      << dissip_fric  << " "
+      << dissip_damp  << " "
       << std::endl;
     }
 
     // Close temporary files
-    if (file_particles_info.is_open()) file_particles_info.close();
     if (file_walls_info.is_open()) file_walls_info.close();
+    if (file_particles_info.is_open()) file_particles_info.close();
+    if (file_cells_info.is_open()) file_cells_info.close();
   }
 
   //------------------------------------------------------------------------------------------------------------
   void ONDEMDrumUtilities::ExecuteFinalize(ModelPart& particlesMP, ModelPart& wallsMP) {
+    // Close permanent files
     if (mFile_Contact.is_open()) mFile_Contact.close();
     if (mFile_Velocity.is_open()) mFile_Velocity.close();
-    if (mFile_Dissipation.is_open()) mFile_Dissipation.close();
-    if (mFile_CellsLMI.is_open()) mFile_CellsLMI.close();
-    if (mFile_LMI.is_open()) mFile_LMI.close();
+    if (mFile_Energy.is_open()) mFile_Energy.close();
   }
 
   //------------------------------------------------------------------------------------------------------------
-  void ONDEMDrumUtilities::InitializeMapLMI(std::vector<std::vector<std::vector<int>>>& map) {
+  void ONDEMDrumUtilities::InitializeCellsMap(std::vector<std::vector<std::vector<int>>>& map) {
     map.assign(mCellsX, std::vector<std::vector<int>>(mCellsY, std::vector<int>(mCellsZ, 0)));
   }
 
   //------------------------------------------------------------------------------------------------------------
-  void ONDEMDrumUtilities::ResetMapLMI(std::vector<std::vector<std::vector<int>>>& map) {
+  void ONDEMDrumUtilities::ResetCellsMap(std::vector<std::vector<std::vector<int>>>& map) {
     for (auto& plane : map)
       for (auto& row : plane)
         std::fill(row.begin(), row.end(), 0.0);
