@@ -594,6 +594,17 @@ void File::WriteDataSetIndependent(
     WriteDataSetImpl<TDataType, DataTransferMode::Independent>(rPath, rData, rInfo);
 }
 
+template<class TDataType, class TIntegerType>
+void File::WriteDataSetIndependent(
+    const std::string& rPath,
+    TDataType const * pData,
+    TIntegerType const * pShapeIteratorBegin,
+    TIntegerType const * pShapeIteratorEnd,
+    WriteInfo& rInfo)
+{
+    WriteDataSetImpl<DataTransferMode::Independent>(rPath, pData, pShapeIteratorBegin, pShapeIteratorEnd, rInfo);
+}
+
 std::vector<unsigned> File::GetDataDimensions(const std::string& rPath) const
 {
     KRATOS_TRY;
@@ -793,9 +804,10 @@ void File::ReadDataSet(
     const std::string& rPath,
     TDataType * pData,
     TIntegerType const * pShapeIteratorBegin,
-    TIntegerType const * pShapeIteratorEnd)
+    TIntegerType const * pShapeIteratorEnd,
+    const unsigned StartIndex)
 {
-    ReadDataSetImpl<DataTransferMode::Collective>(rPath, pData, pShapeIteratorBegin, pShapeIteratorEnd);
+    ReadDataSetImpl<DataTransferMode::Collective>(rPath, pData, pShapeIteratorBegin, pShapeIteratorEnd, StartIndex);
 }
 
 template<class TDataType>
@@ -806,6 +818,17 @@ void File::ReadDataSetIndependent(
     const unsigned BlockSize) const
 {
     ReadDataSetImpl<TDataType, DataTransferMode::Independent>(rPath, rData, StartIndex, BlockSize);
+}
+
+template<class TDataType, class TIntegerType>
+void File::ReadDataSetIndependent(
+    const std::string& rPath,
+    TDataType * pData,
+    TIntegerType const * pShapeIteratorBegin,
+    TIntegerType const * pShapeIteratorEnd,
+    const unsigned StartIndex)
+{
+    ReadDataSetImpl<DataTransferMode::Independent>(rPath, pData, pShapeIteratorBegin, pShapeIteratorEnd, StartIndex);
 }
 
 unsigned File::GetOpenObjectsCount() const
@@ -1052,12 +1075,13 @@ void File::WriteDataSetImpl(
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
 
-template<File::DataTransferMode TDataTransferMode, class TDataType, class TIntegerType = unsigned int>
+template<File::DataTransferMode TDataTransferMode, class TDataType, class TIntegerType>
 void File::ReadDataSetImpl(
     const std::string& rPath,
     TDataType * pData,
     TIntegerType const * pShapeIteratorBegin,
-    TIntegerType const * pShapeIteratorEnd)
+    TIntegerType const * pShapeIteratorEnd,
+    const unsigned StartIndex) const
 {
     KRATOS_TRY;
 
@@ -1076,7 +1100,7 @@ void File::ReadDataSetImpl(
         << "Invalid data set dimension. [ file space shape = " << global_shape
         << ", required local shape = " << local_shape << std::endl;
 
-    for (IndexType i_dim = 0; i_dim < local_shape.size(); ++i_dim) {
+    for (IndexType i_dim = 1; i_dim < local_shape.size(); ++i_dim) {
         KRATOS_ERROR_IF(local_shape[i_dim] != 0 && local_shape[i_dim] != global_shape[i_dim])
             << "Shape mismatch. Every rank should have data with same number of components in each"
             << " dimension or zero number of components (except for the first dimension) [ "
@@ -1093,10 +1117,7 @@ void File::ReadDataSetImpl(
     // only for the first dimension we will calculate the offsets. Other dimensions
     // should be of same number of components in each dimension in each rank.
     std::vector<hsize_t> offset(global_shape.size(), 0);
-    if constexpr(TDataTransferMode == DataTransferMode::Collective) {
-        // if it is collective, calculate the offsets for each rank.
-        offset[0] = this->GetDataCommunicator().ScanSum(local_shape[0]) - local_shape[0];
-    }
+    offset[0] = StartIndex;
 
     KRATOS_ERROR_IF(offset[0] + local_shape[0] > global_shape[0])
         << "Data size mismatch. [ current rank offset = " << offset
@@ -1176,9 +1197,13 @@ void File::WriteDataSetImpl(
     TypeTraits::Shape(rData, shape.data(), shape.data() + local_dimension);
 
     if (TypeTraits::Size(rData) > 0) {
-        WriteDataSetImpl<TDataTransferMode, typename TypeTraits::PrimitiveType, hsize_t>(rPath, TypeTraits::GetContiguousData(rData), shape.data(), shape.data() + local_dimension, rInfo);
-    } else {
-        WriteDataSetImpl<TDataTransferMode, typename TypeTraits::PrimitiveType, hsize_t>(rPath, nullptr, shape.data(), shape.data() + local_dimension, rInfo);
+        WriteDataSetImpl<TDataTransferMode, typename TypeTraits::PrimitiveType, hsize_t>(
+            rPath, TypeTraits::GetContiguousData(rData), shape.data(),
+            shape.data() + local_dimension, rInfo);
+    }
+    else {
+        WriteDataSetImpl<TDataTransferMode, typename TypeTraits::PrimitiveType, hsize_t>(
+            rPath, nullptr, shape.data(), shape.data() + local_dimension, rInfo);
     }
 
     KRATOS_CATCH("Path: \"" + rPath + "\".");
@@ -1199,9 +1224,6 @@ void File::ReadDataSetImpl(
 
     constexpr auto local_dimension = TypeTraits::Dimension;
 
-    constexpr auto global_dimension = (local_dimension == 1 ? 1 : 2);
-
-    BuiltinTimer timer;
     // Check that full path exists.
     KRATOS_ERROR_IF_NOT(IsDataSet(rPath))
         << "Path is not a data set: " << rPath << std::endl;
@@ -1209,90 +1231,24 @@ void File::ReadDataSetImpl(
     const auto& file_space_dims = GetDataDimensions(rPath);
 
     // Check consistency of file's data set dimensions.
-    KRATOS_ERROR_IF(file_space_dims.size() != global_dimension)
+    KRATOS_ERROR_IF(file_space_dims.size() != local_dimension)
         << "Invalid data set dimension." << std::endl;
-    KRATOS_ERROR_IF(StartIndex + BlockSize > file_space_dims[0])
-        << "StartIndex (" << StartIndex << ") + BlockSize (" << BlockSize
-        << ") > size of data set (" << file_space_dims[0] << ")." << std::endl;
 
-    std::vector<hsize_t> memory_space_dims(local_dimension);
-    TypeTraits::Shape(rData, memory_space_dims.data(), memory_space_dims.data() + local_dimension);
-
-    if constexpr(local_dimension >= 2) {
-        if constexpr(TypeTraits::template IsDimensionDynamic<1>()) {
-            const auto v = std::accumulate(memory_space_dims.begin() + 2, memory_space_dims.end(), hsize_t{1}, std::multiplies<hsize_t>());
-            KRATOS_ERROR_IF_NOT(file_space_dims[1] % v == 0) << "Size mismatch with memory space and file space.";
-            memory_space_dims[1] = file_space_dims[1] / v;
-        }
-    }
-    memory_space_dims[0] = BlockSize;
+    std::vector<hsize_t> shape(file_space_dims.begin(), file_space_dims.end());
+    shape[0] = BlockSize;
 
     // now reshape the memory space data
-    TypeTraits::Reshape(rData, memory_space_dims.data(), memory_space_dims.data() + local_dimension);
+    TypeTraits::Reshape(rData, shape.data(), shape.data() + local_dimension);
 
-    std::vector<hsize_t> local_reduced_space_dims(file_space_dims.begin(), file_space_dims.end()), local_space_start(global_dimension, 0);
-    local_reduced_space_dims[0] = BlockSize;
-    local_space_start[0] = StartIndex;
-
-    KRATOS_ERROR_IF_NOT(HasDataType<typename TypeTraits::PrimitiveType>(rPath))
-        << "Data type mismatch at " << rPath << std::endl;
-
-    // Set the data type.
-    hid_t dtype_id = Internals::GetPrimitiveH5Type<TDataType>();
-
-    hid_t file_id = GetFileId();
-
-    hid_t dset_id, file_space_id, mem_space_id;
-    KRATOS_HDF5_CALL_WITH_RETURN(dset_id, H5Dopen, file_id, rPath.c_str(), H5P_DEFAULT)
-    KRATOS_HDF5_CALL_WITH_RETURN(file_space_id, H5Dget_space, dset_id)
-    KRATOS_HDF5_CALL_WITH_RETURN(mem_space_id, H5Screate_simple, global_dimension, local_reduced_space_dims.data(), nullptr)
-    KRATOS_HDF5_CALL(H5Sselect_hyperslab, file_space_id, H5S_SELECT_SET, local_space_start.data(), nullptr, local_reduced_space_dims.data(), nullptr)
-
-    if (!GetDataCommunicator().IsDistributed()) {
-        if (TypeTraits::Size(rData) > 0) {
-            KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, H5P_DEFAULT, TypeTraits::GetContiguousData(rData))
-        } else {
-            KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, H5P_DEFAULT, nullptr)
-        }
+    if (TypeTraits::Size(rData) > 0) {
+        ReadDataSetImpl<TDataTransferMode, typename TypeTraits::PrimitiveType, hsize_t>(
+            rPath, TypeTraits::GetContiguousData(rData), shape.data(),
+            shape.data() + local_dimension, StartIndex);
     } else {
-        #ifdef KRATOS_USING_MPI
-            bool read_data  = true;
-            #if H5_VERS_MAJOR < 2 && ((H5_VERS_MINOR == 14 && H5_VERS_RELEASE < 2) ||  H5_VERS_MINOR < 14)
-                /**
-                 *  Until hdf5 1.14.2, if someone tries to read/write empty containers from every rank, it throws an error. This is
-                 *  fixed in the later versions.
-                 *
-                 * TODO: Remove this pre-compiler directive once we move to compatible versions.
-                 */
-                read_data &= mpDataCommunicator->SumAll(TypeTraits::Size(rData)) > 0;
-            #endif
-
-            if (read_data) {
-                hid_t dxpl_id;
-                KRATOS_HDF5_CALL_WITH_RETURN(dxpl_id, H5Pcreate, H5P_DATASET_XFER)
-                if constexpr(TDataTransferMode == DataTransferMode::Collective) {
-                    KRATOS_HDF5_CALL(H5Pset_dxpl_mpio, dxpl_id, H5FD_MPIO_COLLECTIVE)
-                } else {
-                    KRATOS_HDF5_CALL(H5Pset_dxpl_mpio, dxpl_id, H5FD_MPIO_INDEPENDENT)
-                }
-                if (TypeTraits::Size(rData) > 0) {
-                    KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, TypeTraits::GetContiguousData(rData))
-                } else {
-                    KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, nullptr)
-                }
-                KRATOS_HDF5_CALL(H5Pclose, dxpl_id)
-            }
-        #else
-            KRATOS_ERROR << "HDF5Application is not compiled with MPI.";
-        #endif
+        ReadDataSetImpl<TDataTransferMode, typename TypeTraits::PrimitiveType, hsize_t>(
+            rPath, nullptr, shape.data(), shape.data() + local_dimension,
+            StartIndex);
     }
-
-    KRATOS_HDF5_CALL(H5Dclose, dset_id)
-    KRATOS_HDF5_CALL(H5Sclose, file_space_id)
-    KRATOS_HDF5_CALL(H5Sclose, mem_space_id)
-
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
-        << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
 
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
@@ -1300,12 +1256,19 @@ void File::ReadDataSetImpl(
 // template instantiations
 template KRATOS_API(HDF5_APPLICATION) bool File::HasDataType<int>(const std::string&) const;
 template KRATOS_API(HDF5_APPLICATION) bool File::HasDataType<double>(const std::string&) const;
-template KRATOS_API(HDF5_APPLICATION) void File::WriteDataSetImpl<File::DataTransferMode::Collective>(const std::string&, double const *, unsigned int const *, unsigned int const *, WriteInfo&);
-template KRATOS_API(HDF5_APPLICATION) void File::WriteDataSetImpl<File::DataTransferMode::Independent>(const std::string&, double const *, unsigned int const *, unsigned int const *, WriteInfo&);
-template KRATOS_API(HDF5_APPLICATION) void File::WriteDataSet(const std::string&, double const *, unsigned int const *, unsigned int const *, WriteInfo&);
-template KRATOS_API(HDF5_APPLICATION) void File::ReadDataSetImpl<File::DataTransferMode::Collective>(const std::string&, double *, unsigned int const *, unsigned int const *);
-template KRATOS_API(HDF5_APPLICATION) void File::ReadDataSetImpl<File::DataTransferMode::Independent>(const std::string&, double *, unsigned int const *, unsigned int const *);
-template KRATOS_API(HDF5_APPLICATION) void File::ReadDataSet(const std::string&, double *, unsigned int const *, unsigned int const *);
+
+#ifndef KRATOS_HDF5_FILE_DATA_SET_PRIMITIVE_METHOD_INSTANTIATION
+#define KRATOS_HDF5_FILE_DATA_SET_PRIMITIVE_METHOD_INSTANTIATION(PRIMITIVE_TYPE)                                                                                                                                \
+template KRATOS_API(HDF5_APPLICATION) void File::WriteDataSetImpl<File::DataTransferMode::Collective>(const std::string&, PRIMITIVE_TYPE const *, unsigned int const *, unsigned int const *, WriteInfo&);      \
+template KRATOS_API(HDF5_APPLICATION) void File::WriteDataSetImpl<File::DataTransferMode::Independent>(const std::string&, PRIMITIVE_TYPE const *, unsigned int const *, unsigned int const *, WriteInfo&);     \
+template KRATOS_API(HDF5_APPLICATION) void File::WriteDataSet(const std::string&, PRIMITIVE_TYPE const *, unsigned int const *, unsigned int const *, WriteInfo&);                                              \
+template KRATOS_API(HDF5_APPLICATION) void File::WriteDataSetIndependent(const std::string&, PRIMITIVE_TYPE const *, unsigned int const *, unsigned int const *, WriteInfo&);                                   \
+template KRATOS_API(HDF5_APPLICATION) void File::ReadDataSetImpl<File::DataTransferMode::Collective>(const std::string&, PRIMITIVE_TYPE *, unsigned int const *, unsigned int const *, const unsigned) const;   \
+template KRATOS_API(HDF5_APPLICATION) void File::ReadDataSetImpl<File::DataTransferMode::Independent>(const std::string&, PRIMITIVE_TYPE *, unsigned int const *, unsigned int const *, const unsigned) const;  \
+template KRATOS_API(HDF5_APPLICATION) void File::ReadDataSet(const std::string&, PRIMITIVE_TYPE *, unsigned int const *, unsigned int const *, const unsigned);                                                 \
+template KRATOS_API(HDF5_APPLICATION) void File::ReadDataSetIndependent(const std::string&, PRIMITIVE_TYPE *, unsigned int const *, unsigned int const *, const unsigned);                                      \
+
+#endif
 
 #ifndef KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION
 #define KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(...)                                                                                                                                     \
@@ -1327,6 +1290,10 @@ template KRATOS_API(HDF5_APPLICATION) void File::ReadDataSet(const std::string&,
     template KRATOS_API(HDF5_APPLICATION) void File::ReadAttribute(const std::string&, const std::string&, __VA_ARGS__&) const;     \
 
 #endif
+
+KRATOS_HDF5_FILE_DATA_SET_PRIMITIVE_METHOD_INSTANTIATION(bool)
+KRATOS_HDF5_FILE_DATA_SET_PRIMITIVE_METHOD_INSTANTIATION(int)
+KRATOS_HDF5_FILE_DATA_SET_PRIMITIVE_METHOD_INSTANTIATION(double)
 
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(bool);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(int);
@@ -1358,6 +1325,7 @@ KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Matrix<double>);
 #undef KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION
 #undef KRATOS_HDF5_CALL
 #undef KRATOS_HDF5_CALL_WITH_RETURN
+#undef KRATOS_HDF5_FILE_DATA_SET_PRIMITIVE_METHOD_INSTANTIATION
 
 } // namespace HDF5.
 } // namespace Kratos.
