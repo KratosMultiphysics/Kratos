@@ -24,7 +24,7 @@
 #include "custom_utilities/container_io_utils.h"
 
 // Include base h
-#include "hdf5_expression_io.h"
+#include "hdf5_tensor_adaptor_io.h"
 
 namespace Kratos
 {
@@ -33,7 +33,7 @@ class Parameters;
 namespace HDF5
 {
 
-ExpressionIO::ExpressionIO(
+TensorAdaptorIO::TensorAdaptorIO(
     Parameters Settings,
     File::Pointer pFile)
     : mpFile(pFile)
@@ -48,7 +48,7 @@ ExpressionIO::ExpressionIO(
     mPrefix = Settings["prefix"].GetString();
 }
 
-void ExpressionIO::Write(
+void TensorAdaptorIO::Write(
     const std::string& rExpressionName,
     const Expression& rExpression,
     const Parameters Attributes)
@@ -98,7 +98,7 @@ void ExpressionIO::Write(
     KRATOS_CATCH("");
 }
 
-std::pair<Expression::Pointer, Parameters> ExpressionIO::Read(const std::string& rExpressionName)
+std::pair<Expression::Pointer, Parameters> TensorAdaptorIO::Read(const std::string& rExpressionName)
 {
     KRATOS_TRY
 
@@ -187,7 +187,7 @@ std::pair<Expression::Pointer, Parameters> ExpressionIO::Read(const std::string&
 }
 
 template<class TContainerType>
-void ExpressionIO::Write(
+void TensorAdaptorIO::Write(
     const std::string& rContainerExpressionName,
     const ContainerExpression<TContainerType>& rContainerExpression,
     const Parameters Attributes)
@@ -206,7 +206,7 @@ void ExpressionIO::Write(
 }
 
 template<class TContainerType>
-Parameters ExpressionIO::Read(
+Parameters TensorAdaptorIO::Read(
     const std::string& rExpressionName,
     ContainerExpression<TContainerType>& rContainerExpression)
 {
@@ -223,8 +223,8 @@ Parameters ExpressionIO::Read(
 // template instantiations
 #ifndef Parameters
 #define KRATOS_HDF5_EXPRESSION_IO_INSTANTIATION(CONTAINER_TYPE)                                                                                 \
-template KRATOS_API(HDF5_APPLICATION) void  ExpressionIO::Write(const std::string&, const ContainerExpression<CONTAINER_TYPE>&, Parameters);    \
-template KRATOS_API(HDF5_APPLICATION) Parameters  ExpressionIO::Read(const std::string&, ContainerExpression<CONTAINER_TYPE>&);                 \
+template KRATOS_API(HDF5_APPLICATION) void  TensorAdaptorIO::Write(const std::string&, const ContainerExpression<CONTAINER_TYPE>&, Parameters);    \
+template KRATOS_API(HDF5_APPLICATION) Parameters  TensorAdaptorIO::Read(const std::string&, ContainerExpression<CONTAINER_TYPE>&);                 \
 
 #endif
 

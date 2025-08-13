@@ -19,7 +19,7 @@ set( KRATOS_HDF5_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_variables_io.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_model_part_io.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_vertex_container_io.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_expression_io.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_tensor_adaptor_io.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/hdf5_xdmf_connectivities_writer_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/vertex.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/vertex_utilities.cpp

@@ -39,7 +39,7 @@ namespace HDF5
 ///@{
 
 /// A class for IO of element data in HDF5.
-class KRATOS_API(HDF5_APPLICATION) ExpressionIO
+class KRATOS_API(HDF5_APPLICATION) TensorAdaptorIO
 {
 public:
     ///@name Type Definitions
@@ -48,14 +48,14 @@ public:
     using IndexType = std::size_t;
 
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(ExpressionIO);
+    KRATOS_CLASS_POINTER_DEFINITION(TensorAdaptorIO);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    ExpressionIO(
+    TensorAdaptorIO(
         Parameters Settings,
         File::Pointer pFile);
 
@@ -93,7 +93,7 @@ private:
 
     ///@}
 
-}; // class ExpressionIO.
+}; // class TensorAdaptorIO.
 
 
 ///@} // Kratos Classes

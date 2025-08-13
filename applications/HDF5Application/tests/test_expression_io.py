@@ -7,12 +7,12 @@ from KratosMultiphysics import KratosUnittest as UnitTest
 from KratosMultiphysics.testing.utilities import ReadModelPart
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 
-class TestExpressionIO(UnitTest.TestCase):
+class TestTensorAdaptorIO(UnitTest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("test")
-        ReadModelPart(str(TestExpressionIO.GetInputMDPAPath()), cls.model_part)
+        ReadModelPart(str(TestTensorAdaptorIO.GetInputMDPAPath()), cls.model_part)
 
         for node in cls.model_part.Nodes:
             node.SetValue(Kratos.PRESSURE, node.Id)
@@ -61,10 +61,10 @@ class TestExpressionIO(UnitTest.TestCase):
         condition_expression = Kratos.Expression.ConditionExpression(self.model_part)
         element_expression = Kratos.Expression.ElementExpression(self.model_part)
 
-        Kratos.Expression.VariableExpressionIO.Read(nodal_expression, variable, False)
-        Kratos.Expression.VariableExpressionIO.Read(condition_expression, variable)
-        Kratos.Expression.VariableExpressionIO.Read(element_expression, variable)
-        expression_io = KratosHDF5.ExpressionIO(Kratos.Parameters("""{"prefix": "/expressions"}"""), self.h5_file)
+        Kratos.Expression.VariableTensorAdaptorIO.Read(nodal_expression, variable, False)
+        Kratos.Expression.VariableTensorAdaptorIO.Read(condition_expression, variable)
+        Kratos.Expression.VariableTensorAdaptorIO.Read(element_expression, variable)
+        expression_io = KratosHDF5.TensorAdaptorIO(Kratos.Parameters("""{"prefix": "/expressions"}"""), self.h5_file)
         expression_io.Write("nodal", nodal_expression, attribs_in)
         expression_io.Write("condition", condition_expression, attribs_in)
         expression_io.Write("element", element_expression, attribs_in)
@@ -86,8 +86,8 @@ class TestExpressionIO(UnitTest.TestCase):
         pass
         # TODO: this test needs to be enabled when then the problem of return type deduction in python is solved which is caused by the use of Trampoline class for expressions.
         # nodal_expression = Kratos.Expression.NodalExpression(self.model_part)
-        # Kratos.Expression.VariableExpressionIO.Read(nodal_expression, Kratos.PRESSURE, False)
-        # expression_io = KratosHDF5.ExpressionIO(Kratos.Parameters("""{"prefix": "/expressions"}"""), self.h5_file)
+        # Kratos.Expression.VariableTensorAdaptorIO.Read(nodal_expression, Kratos.PRESSURE, False)
+        # expression_io = KratosHDF5.TensorAdaptorIO(Kratos.Parameters("""{"prefix": "/expressions"}"""), self.h5_file)
 
         # in_attribs = Kratos.Parameters("""{"custom_attrib": "custom_value"}""")
         # expression_io.Write("test", nodal_expression.GetExpression(), in_attribs)
@@ -99,9 +99,9 @@ class TestExpressionIO(UnitTest.TestCase):
         nodal_io = KratosHDF5.HDF5NodalDataValueIO(nodal_params, self.h5_file)
         nodal_io.Write(self.model_part)
         nodal_expression_orig = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.VariableExpressionIO.Read(nodal_expression_orig, variable, False)
+        Kratos.Expression.VariableTensorAdaptorIO.Read(nodal_expression_orig, variable, False)
         nodal_expression_read = Kratos.Expression.NodalExpression(self.model_part)
-        KratosHDF5.ExpressionIO(Kratos.Parameters("""{"prefix": "/ResultsData/NodalDataValues/"}"""), self.h5_file).Read(variable.Name(), nodal_expression_read)
+        KratosHDF5.TensorAdaptorIO(Kratos.Parameters("""{"prefix": "/ResultsData/NodalDataValues/"}"""), self.h5_file).Read(variable.Name(), nodal_expression_read)
         self.assertEqual(np.linalg.norm((nodal_expression_read - nodal_expression_orig).Evaluate()), 0)
 
         condition_params = Kratos.Parameters("""{"prefix": "/ResultsData" }""")
@@ -109,9 +109,9 @@ class TestExpressionIO(UnitTest.TestCase):
         condition_io = KratosHDF5.HDF5ConditionDataValueIO(condition_params, self.h5_file)
         condition_io.Write(self.model_part)
         condition_expression_orig = Kratos.Expression.ConditionExpression(self.model_part)
-        Kratos.Expression.VariableExpressionIO.Read(condition_expression_orig, variable)
+        Kratos.Expression.VariableTensorAdaptorIO.Read(condition_expression_orig, variable)
         condition_expression_read = Kratos.Expression.ConditionExpression(self.model_part)
-        KratosHDF5.ExpressionIO(Kratos.Parameters("""{"prefix": "/ResultsData/ConditionDataValues/"}"""), self.h5_file).Read(variable.Name(), condition_expression_read)
+        KratosHDF5.TensorAdaptorIO(Kratos.Parameters("""{"prefix": "/ResultsData/ConditionDataValues/"}"""), self.h5_file).Read(variable.Name(), condition_expression_read)
         self.assertEqual(np.linalg.norm((condition_expression_read - condition_expression_orig).Evaluate()), 0)
 
         element_params = Kratos.Parameters("""{"prefix": "/ResultsData" }""")
@@ -119,9 +119,9 @@ class TestExpressionIO(UnitTest.TestCase):
         element_io = KratosHDF5.HDF5ElementDataValueIO(element_params, self.h5_file)
         element_io.Write(self.model_part)
         element_expression_orig = Kratos.Expression.ElementExpression(self.model_part)
-        Kratos.Expression.VariableExpressionIO.Read(element_expression_orig, variable)
+        Kratos.Expression.VariableTensorAdaptorIO.Read(element_expression_orig, variable)
         element_expression_read = Kratos.Expression.ElementExpression(self.model_part)
-        KratosHDF5.ExpressionIO(Kratos.Parameters("""{"prefix": "/ResultsData/ElementDataValues/"}"""), self.h5_file).Read(variable.Name(), element_expression_read)
+        KratosHDF5.TensorAdaptorIO(Kratos.Parameters("""{"prefix": "/ResultsData/ElementDataValues/"}"""), self.h5_file).Read(variable.Name(), element_expression_read)
         self.assertEqual(np.linalg.norm((element_expression_read - element_expression_orig).Evaluate()), 0)
 
     def test_ReadWriteExpressionScalar(self):
