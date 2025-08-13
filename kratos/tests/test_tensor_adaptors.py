@@ -367,7 +367,7 @@ class TensorAdaptors(KratosUnittest.TestCase):
         combined_ta.Check()
         combined_ta.CollectData()
 
-        numpy_concat = numpy.concat([p_ta.data.reshape((len(self.model_part.Nodes), 1)), x_ta.data, u_ta.data], axis=1)
+        numpy_concat = numpy.concatenate([p_ta.data.reshape((len(self.model_part.Nodes), 1)), x_ta.data, u_ta.data], axis=1)
 
         self.assertVectorAlmostEqual(numpy_concat.shape, combined_ta.Shape())
 
@@ -436,7 +436,7 @@ class TensorAdaptors(KratosUnittest.TestCase):
         combined_ta.Check()
         combined_ta.CollectData()
 
-        numpy_concat = numpy.concat([u_nodes_ta.data, u_elems_ta.data])
+        numpy_concat = numpy.concatenate([u_nodes_ta.data, u_elems_ta.data])
 
         self.assertVectorAlmostEqual(numpy_concat.shape, combined_ta.Shape())
 
@@ -468,7 +468,7 @@ class TensorAdaptors(KratosUnittest.TestCase):
         combined_ta.Check()
         combined_ta.CollectData()
 
-        numpy_concat = numpy.concat([u_nodes_ta.data.ravel(), u_elems_ta.data.ravel()])
+        numpy_concat = numpy.concatenate([u_nodes_ta.data.ravel(), u_elems_ta.data.ravel()])
 
         self.assertVectorAlmostEqual(numpy_concat.shape, combined_ta.Shape())
 
@@ -537,6 +537,25 @@ class TensorAdaptors(KratosUnittest.TestCase):
 
         self.assertEqual(id(u_nodes_ta), id(combined_ta.GetTensorAdaptors()[0]))
         self.assertEqual(id(u_elems_ta), id(combined_ta.GetTensorAdaptors()[1]))
+
+    def test_CombinedTensorAdaptorCopy(self):
+        u_nodes_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY)
+        u_elems_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.PRESSURE)
+
+        combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([u_nodes_ta, u_elems_ta])
+        combined_ta.Check()
+        combined_ta.CollectData()
+
+        copied_combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(combined_ta)
+        copied_combined_ta.CollectData()
+
+        copied_combined_ta.data *= 2.0
+
+        self.assertAlmostEqual(numpy.linalg.norm(combined_ta.data - copied_combined_ta.data), numpy.linalg.norm(combined_ta.data))
+
+        ref_combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(combined_ta, copy=False)
+        ref_combined_ta.data *= 3.0
+        self.assertAlmostEqual(numpy.linalg.norm(ref_combined_ta.data - combined_ta.data), 0.0)
 
     def __TestCopyTensorAdaptor(self, tensor_adaptor_type, value_getter):
         var_ta_orig = tensor_adaptor_type(self.model_part.Nodes, Kratos.VELOCITY, data_shape=[2])
