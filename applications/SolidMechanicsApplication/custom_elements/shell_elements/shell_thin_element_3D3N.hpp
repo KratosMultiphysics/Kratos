@@ -80,7 +80,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThinElement3D3N : public Elem
   ///@name Classes
   ///@{
 
-  // TODO: Add Calulation Data
+  // TODO: Add Calculation Data
 
   ///@}
 

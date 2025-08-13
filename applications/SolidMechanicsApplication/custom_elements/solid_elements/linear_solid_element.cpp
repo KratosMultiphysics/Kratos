@@ -53,10 +53,10 @@ LinearSolidElement::LinearSolidElement( LinearSolidElement const& rOther)
     ,mConstitutiveLawVector(rOther.mConstitutiveLawVector)
 {
     //ALL MEMBER VARIABLES THAT MUST BE KEPT AFTER COPYING AN ELEMENT HAVE TO BE DEFINED HERE
-    //IF NO ASSIGMENT OPERATOR IS DEFINED THE COPY CONSTRUCTOR WILL DEFINE IT BY DEFFAULT
+    //IF NO ASSIGNMENT OPERATOR IS DEFINED THE COPY CONSTRUCTOR WILL DEFINE IT BY DEFAULT
 }
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 LinearSolidElement&  LinearSolidElement::operator=(LinearSolidElement const& rOther)
@@ -396,7 +396,7 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
     Matrix DN_DX(number_of_nodes, dimension);
     noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
 
-    //deffault values for the infinitessimal theory
+    //default values for the infinitessimal theory
     double detF = 1;
     Matrix F(dimension,dimension);
     noalias(F) = IdentityMatrix(dimension);
@@ -409,7 +409,7 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
     //get the shape functions [N] (for the order of the default integration method)
     const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
-    //get the shape functions parent coodinates derivative [dN/d£] (for the order of the default integration method)
+    //get the shape functions parent coordinates derivative [dN/d£] (for the order of the default integration method)
     const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
     //calculate delta position (here coincides with the current displacement)
@@ -755,7 +755,7 @@ Vector& LinearSolidElement::CalculateVolumeForce( Vector& rVolumeForce, const Ve
 
     for ( SizeType j = 0; j < number_of_nodes; j++ )
     {
-      if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ){ // it must be checked once at the begining only
+      if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ){ // it must be checked once at the beginning only
 	array_1d<double, 3 >& VolumeAcceleration = GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 	for( SizeType i = 0; i < dimension; i++ )
 	  rVolumeForce[i] += rN[j] * VolumeAcceleration[i] ;
@@ -846,7 +846,7 @@ void LinearSolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, con
     this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
 
 
-    //3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    //3.-Get Damping Coefficients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
     double alpha = 0;
     if( GetProperties().Has(RAYLEIGH_ALPHA) ){ //if is stored in material properties
       alpha = GetProperties()[RAYLEIGH_ALPHA];
@@ -911,7 +911,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
       Matrix DN_DX(number_of_nodes, dimension);
       noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
 
-      //deffault values for the infinitessimal theory
+      //default values for the infinitessimal theory
       double detF = 1;
       Matrix F(dimension,dimension);
       noalias(F) = IdentityMatrix(dimension);
@@ -919,7 +919,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
       //get the shape functions [N] (for the order of the default integration method)
       const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
-      //get the shape functions parent coodinates derivative [dN/d£] (for the order of the default integration method)
+      //get the shape functions parent coordinates derivative [dN/d£] (for the order of the default integration method)
       const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
       //calculate delta position (here coincides with the current displacement)
@@ -1009,7 +1009,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
 
       //Calculate Strain (in this case the infinitessimal strain vector)
 
-      //get the shape functions parent coodinates derivative [dN/d£] (for the order of the default integration method)
+      //get the shape functions parent coordinates derivative [dN/d£] (for the order of the default integration method)
       const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
       //calculate delta position (here coincides with the current displacement)

@@ -972,11 +972,11 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticUP3DLaw", mHyperElasticUP3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticUPPlaneStrain2DLaw", mHyperElasticUPPlaneStrain2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticUPAxisym2DLaw", mHyperElasticUPAxisym2DLaw);
-    //Hyperelastic Plastic J2 specilization laws
+    //Hyperelastic Plastic J2 specialization laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticJ23DLaw", mHyperElasticPlasticJ23DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticJ2PlaneStrain2DLaw",mHyperElasticPlasticJ2PlaneStrain2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticJ2Axisym2DLaw", mHyperElasticPlasticJ2Axisym2DLaw);
-    //Hyperelastic Plastic J2 specilization laws U-P
+    //Hyperelastic Plastic J2 specialization laws U-P
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticUPJ23DLaw", mHyperElasticPlasticUPJ23DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticUPJ2PlaneStrain2DLaw",mHyperElasticPlasticUPJ2PlaneStrain2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticUPJ2Axisym2DLaw", mHyperElasticPlasticUPJ2Axisym2DLaw);
