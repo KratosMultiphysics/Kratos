@@ -204,6 +204,31 @@ Vector SmallStrainUPwDiffOrderElement::GetPressures(const size_t n_nodes) const
     return pressure;
 }
 
+void set_arithmetic_average_pressure(Geometry<Node>&                               rGeometry,
+                                     const Vector&                                 rPressure,
+                                     const std::vector<std::pair<size_t, size_t>>& index_pairs,
+                                     size_t                                        dest_offset = 0)
+{
+    for (size_t i = 0; i < index_pairs.size(); ++i) {
+        GeoElementUtilities::ThreadSafeNodeWrite(
+            rGeometry[dest_offset + i], WATER_PRESSURE,
+            0.5 * (rPressure[index_pairs[i].first] + rPressure[index_pairs[i].second]));
+    }
+}
+
+void set_arithmetic_average_pressure(Geometry<Node>& rGeometry,
+                                     const Vector&   rPressure,
+                                     const std::vector<std::tuple<size_t, size_t, size_t, size_t>>& indices,
+                                     size_t dest_offset = 0)
+{
+    for (size_t i = 0; i < indices.size(); ++i) {
+        GeoElementUtilities::ThreadSafeNodeWrite(
+            rGeometry[dest_offset + i], WATER_PRESSURE,
+            0.25 * (rPressure[std::get<0>(indices[i])] + rPressure[std::get<1>(indices[i])] +
+                    rPressure[std::get<2>(indices[i])] + rPressure[std::get<3>(indices[i])]));
+    }
+}
+
 void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
 {
     // Assign pressure values to the intermediate nodes for post-processing
@@ -216,52 +241,51 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
     switch (num_u_nodes) {
     case 6: // 2D T6P3
     {
-        const Vector p = GetPressures(3);
-        ThreadSafeNodeWrite(r_geom[3], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
-        ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, 0.5 * (p[1] + p[2]));
-        ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, 0.5 * (p[2] + p[0]));
+        const Vector                                 pressure = GetPressures(3);
+        const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 0}};
+        set_arithmetic_average_pressure(r_geom, pressure, pairs, 3);
         break;
     }
     case 8: // 2D Q8P4
     {
-        const Vector p = GetPressures(4);
-        ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
-        ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, 0.5 * (p[1] + p[2]));
-        ThreadSafeNodeWrite(r_geom[6], WATER_PRESSURE, 0.5 * (p[2] + p[3]));
-        ThreadSafeNodeWrite(r_geom[7], WATER_PRESSURE, 0.5 * (p[3] + p[0]));
+        const Vector                                 pressure = GetPressures(4);
+        const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 3}, {3, 0}};
+        set_arithmetic_average_pressure(r_geom, pressure, pairs, 4);
         break;
     }
     case 9: // 2D Q9P4
     {
-        const Vector p = GetPressures(4);
-        ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
-        ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, 0.5 * (p[1] + p[2]));
-        ThreadSafeNodeWrite(r_geom[6], WATER_PRESSURE, 0.5 * (p[2] + p[3]));
-        ThreadSafeNodeWrite(r_geom[7], WATER_PRESSURE, 0.5 * (p[3] + p[0]));
-        ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE, 0.25 * (p[0] + p[1] + p[2] + p[3]));
+        const Vector                                 pressure = GetPressures(4);
+        const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 3}, {3, 0}};
+        set_arithmetic_average_pressure(r_geom, pressure, pairs, 4);
+        const std::vector<std::tuple<size_t, size_t, size_t, size_t>>& indices = {{0, 1, 2, 3}};
+        set_arithmetic_average_pressure(r_geom, pressure, indices, 8);
         break;
     }
     case 10: // 3D T10P4  //2D T10P6
     {
         if (n_dim == 3) {
-            const Vector p = GetPressures(4);
-            ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
-            ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, 0.5 * (p[1] + p[2]));
-            ThreadSafeNodeWrite(r_geom[6], WATER_PRESSURE, 0.5 * (p[2] + p[0]));
-            ThreadSafeNodeWrite(r_geom[7], WATER_PRESSURE, 0.5 * (p[0] + p[3]));
-            ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE, 0.5 * (p[1] + p[3]));
-            ThreadSafeNodeWrite(r_geom[9], WATER_PRESSURE, 0.5 * (p[2] + p[3]));
+            const Vector                                 pressure = GetPressures(4);
+            const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 0},
+                                                                     {0, 3}, {1, 3}, {2, 3}};
+            set_arithmetic_average_pressure(r_geom, pressure, pairs, 4);
         } else if (n_dim == 2) {
             constexpr double c1 = 1.0 / 9.0;
             const Vector     p  = GetPressures(6);
-            ThreadSafeNodeWrite(r_geom[3], WATER_PRESSURE, (2.0 * p[0] - p[1] + 8.0 * p[3]) * c1);
-            ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, (2.0 * p[1] - p[0] + 8.0 * p[3]) * c1);
-            ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, (2.0 * p[1] - p[2] + 8.0 * p[4]) * c1);
-            ThreadSafeNodeWrite(r_geom[6], WATER_PRESSURE, (2.0 * p[2] - p[1] + 8.0 * p[4]) * c1);
-            ThreadSafeNodeWrite(r_geom[7], WATER_PRESSURE, (2.0 * p[2] - p[0] + 8.0 * p[5]) * c1);
-            ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE, (2.0 * p[0] - p[2] + 8.0 * p[5]) * c1);
-            ThreadSafeNodeWrite(r_geom[9], WATER_PRESSURE,
-                                (4.0 * (p[3] + p[4] + p[5]) - (p[0] + p[1] + p[2])) * c1);
+            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[3], WATER_PRESSURE,
+                                                     (2.0 * p[0] - p[1] + 8.0 * p[3]) * c1);
+            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE,
+                                                     (2.0 * p[1] - p[0] + 8.0 * p[3]) * c1);
+            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE,
+                                                     (2.0 * p[1] - p[2] + 8.0 * p[4]) * c1);
+            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[6], WATER_PRESSURE,
+                                                     (2.0 * p[2] - p[1] + 8.0 * p[4]) * c1);
+            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[7], WATER_PRESSURE,
+                                                     (2.0 * p[2] - p[0] + 8.0 * p[5]) * c1);
+            GeoElementUtilities::ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE,
+                                                     (2.0 * p[0] - p[2] + 8.0 * p[5]) * c1);
+            GeoElementUtilities::ThreadSafeNodeWrite(
+                r_geom[9], WATER_PRESSURE, (4.0 * (p[3] + p[4] + p[5]) - (p[0] + p[1] + p[2])) * c1);
         }
         break;
     }
@@ -269,77 +293,89 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
     {
         constexpr double c1 = 0.0390625;
         const Vector     p  = GetPressures(10);
-        ThreadSafeNodeWrite(r_geom[3], WATER_PRESSURE, (3.0 * p[0] + p[1] + 27.0 * p[3] - 5.4 * p[4]) * c1);
-        ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, (14.4 * (p[3] + p[4]) - 1.6 * (p[0] + p[1])) * c1);
-        ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, (3.0 * p[1] + p[0] + 27.0 * p[4] - 5.4 * p[3]) * c1);
-        ThreadSafeNodeWrite(r_geom[6], WATER_PRESSURE, (3.0 * p[1] + p[2] + 27.0 * p[5] - 5.4 * p[6]) * c1);
-        ThreadSafeNodeWrite(r_geom[7], WATER_PRESSURE, (14.4 * (p[5] + p[6]) - 1.6 * (p[1] + p[2])) * c1);
-        ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE, (3.0 * p[2] + p[1] + 27.0 * p[6] - 5.4 * p[5]) * c1);
-        ThreadSafeNodeWrite(r_geom[9], WATER_PRESSURE, (3.0 * p[2] + p[0] + 27.0 * p[7] - 5.4 * p[8]) * c1);
-        ThreadSafeNodeWrite(r_geom[10], WATER_PRESSURE, (14.4 * (p[7] + p[8]) - 1.6 * (p[0] + p[2])) * c1);
-        ThreadSafeNodeWrite(r_geom[11], WATER_PRESSURE, (3.0 * p[0] + p[2] + 27.0 * p[8] - 5.4 * p[7]) * c1);
-        ThreadSafeNodeWrite(r_geom[12], WATER_PRESSURE,
-                            (p[1] + p[2] + 7.2 * (p[3] + p[8]) - 3.6 * (p[4] + p[7]) -
-                             1.8 * (p[5] + p[6]) + 21.6 * p[9] - 1.6 * p[0]) *
-                                c1);
-        ThreadSafeNodeWrite(r_geom[13], WATER_PRESSURE,
-                            (p[0] + p[2] + 7.2 * (p[4] + p[5]) - 3.6 * (p[3] + p[6]) -
-                             1.8 * (p[7] + p[8]) + 21.6 * p[9] - 1.6 * p[1]) *
-                                c1);
-        ThreadSafeNodeWrite(r_geom[14], WATER_PRESSURE,
-                            (p[0] + p[1] + 7.2 * (p[6] + p[7]) - 3.6 * (p[5] + p[8]) -
-                             1.8 * (p[3] + p[4]) + 21.6 * p[9] - 1.6 * p[2]) *
-                                c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(
+            r_geom[3], WATER_PRESSURE, (3.0 * p[0] + p[1] + 27.0 * p[3] - 5.4 * p[4]) * c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE,
+                                                 (14.4 * (p[3] + p[4]) - 1.6 * (p[0] + p[1])) * c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(
+            r_geom[5], WATER_PRESSURE, (3.0 * p[1] + p[0] + 27.0 * p[4] - 5.4 * p[3]) * c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(
+            r_geom[6], WATER_PRESSURE, (3.0 * p[1] + p[2] + 27.0 * p[5] - 5.4 * p[6]) * c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[7], WATER_PRESSURE,
+                                                 (14.4 * (p[5] + p[6]) - 1.6 * (p[1] + p[2])) * c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(
+            r_geom[8], WATER_PRESSURE, (3.0 * p[2] + p[1] + 27.0 * p[6] - 5.4 * p[5]) * c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(
+            r_geom[9], WATER_PRESSURE, (3.0 * p[2] + p[0] + 27.0 * p[7] - 5.4 * p[8]) * c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[10], WATER_PRESSURE,
+                                                 (14.4 * (p[7] + p[8]) - 1.6 * (p[0] + p[2])) * c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(
+            r_geom[11], WATER_PRESSURE, (3.0 * p[0] + p[2] + 27.0 * p[8] - 5.4 * p[7]) * c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[12], WATER_PRESSURE,
+                                                 (p[1] + p[2] + 7.2 * (p[3] + p[8]) - 3.6 * (p[4] + p[7]) -
+                                                  1.8 * (p[5] + p[6]) + 21.6 * p[9] - 1.6 * p[0]) *
+                                                     c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[13], WATER_PRESSURE,
+                                                 (p[0] + p[2] + 7.2 * (p[4] + p[5]) - 3.6 * (p[3] + p[6]) -
+                                                  1.8 * (p[7] + p[8]) + 21.6 * p[9] - 1.6 * p[1]) *
+                                                     c1);
+        GeoElementUtilities::ThreadSafeNodeWrite(r_geom[14], WATER_PRESSURE,
+                                                 (p[0] + p[1] + 7.2 * (p[6] + p[7]) - 3.6 * (p[5] + p[8]) -
+                                                  1.8 * (p[3] + p[4]) + 21.6 * p[9] - 1.6 * p[2]) *
+                                                     c1);
         break;
     }
     case 20: // 3D H20P8
     {
-        const Vector p = GetPressures(8);
-        // edges -- bottom
-        ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
-        ThreadSafeNodeWrite(r_geom[9], WATER_PRESSURE, 0.5 * (p[1] + p[2]));
-        ThreadSafeNodeWrite(r_geom[10], WATER_PRESSURE, 0.5 * (p[2] + p[3]));
-        ThreadSafeNodeWrite(r_geom[11], WATER_PRESSURE, 0.5 * (p[3] + p[0]));
-        // edges -- middle
-        ThreadSafeNodeWrite(r_geom[12], WATER_PRESSURE, 0.5 * (p[4] + p[0]));
-        ThreadSafeNodeWrite(r_geom[13], WATER_PRESSURE, 0.5 * (p[5] + p[1]));
-        ThreadSafeNodeWrite(r_geom[14], WATER_PRESSURE, 0.5 * (p[6] + p[2]));
-        ThreadSafeNodeWrite(r_geom[15], WATER_PRESSURE, 0.5 * (p[7] + p[3]));
-        // edges -- top
-        ThreadSafeNodeWrite(r_geom[16], WATER_PRESSURE, 0.5 * (p[4] + p[5]));
-        ThreadSafeNodeWrite(r_geom[17], WATER_PRESSURE, 0.5 * (p[5] + p[6]));
-        ThreadSafeNodeWrite(r_geom[18], WATER_PRESSURE, 0.5 * (p[6] + p[7]));
-        ThreadSafeNodeWrite(r_geom[19], WATER_PRESSURE, 0.5 * (p[7] + p[4]));
+        const Vector                                 pressure = GetPressures(8);
+        const std::vector<std::pair<size_t, size_t>> pairs =
+            // edges -- bottom
+            {{0, 1},
+             {1, 2},
+             {2, 3},
+             {3, 0},
+             // edges -- middle
+             {4, 0},
+             {5, 1},
+             {6, 2},
+             {7, 3},
+             // edges -- top
+             {4, 5},
+             {5, 6},
+             {6, 7},
+             {7, 4}};
+        set_arithmetic_average_pressure(r_geom, pressure, pairs, 8);
         break;
     }
     case 27: // 3D H27P8
     {
-        const Vector p = GetPressures(8);
-        // edges -- bottom
-        ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
-        ThreadSafeNodeWrite(r_geom[9], WATER_PRESSURE, 0.5 * (p[1] + p[2]));
-        ThreadSafeNodeWrite(r_geom[10], WATER_PRESSURE, 0.5 * (p[2] + p[3]));
-        ThreadSafeNodeWrite(r_geom[11], WATER_PRESSURE, 0.5 * (p[3] + p[0]));
-        // edges -- middle
-        ThreadSafeNodeWrite(r_geom[12], WATER_PRESSURE, 0.5 * (p[4] + p[0]));
-        ThreadSafeNodeWrite(r_geom[13], WATER_PRESSURE, 0.5 * (p[5] + p[1]));
-        ThreadSafeNodeWrite(r_geom[14], WATER_PRESSURE, 0.5 * (p[6] + p[2]));
-        ThreadSafeNodeWrite(r_geom[15], WATER_PRESSURE, 0.5 * (p[7] + p[3]));
-        // edges -- top
-        ThreadSafeNodeWrite(r_geom[16], WATER_PRESSURE, 0.5 * (p[4] + p[5]));
-        ThreadSafeNodeWrite(r_geom[17], WATER_PRESSURE, 0.5 * (p[5] + p[6]));
-        ThreadSafeNodeWrite(r_geom[18], WATER_PRESSURE, 0.5 * (p[6] + p[7]));
-        ThreadSafeNodeWrite(r_geom[19], WATER_PRESSURE, 0.5 * (p[7] + p[0]));
+        const Vector                                 pressure = GetPressures(8);
+        const std::vector<std::pair<size_t, size_t>> pairs =
+            // edges -- bottom
+            {{0, 1},
+             {1, 2},
+             {2, 3},
+             {3, 0},
+             // edges -- middle
+             {4, 0},
+             {5, 1},
+             {6, 2},
+             {7, 3},
+             // edges -- top
+             {4, 5},
+             {5, 6},
+             {6, 7},
+             {7, 0}};
+        set_arithmetic_average_pressure(r_geom, pressure, pairs, 8);
         // face centers
-        ThreadSafeNodeWrite(r_geom[20], WATER_PRESSURE, 0.25 * (p[0] + p[1] + p[2] + p[3]));
-        ThreadSafeNodeWrite(r_geom[21], WATER_PRESSURE, 0.25 * (p[0] + p[1] + p[4] + p[5]));
-        ThreadSafeNodeWrite(r_geom[22], WATER_PRESSURE, 0.25 * (p[1] + p[2] + p[5] + p[6]));
-        ThreadSafeNodeWrite(r_geom[23], WATER_PRESSURE, 0.25 * (p[2] + p[3] + p[6] + p[7]));
-        ThreadSafeNodeWrite(r_geom[24], WATER_PRESSURE, 0.25 * (p[3] + p[0] + p[7] + p[4]));
-        ThreadSafeNodeWrite(r_geom[25], WATER_PRESSURE, 0.25 * (p[4] + p[5] + p[6] + p[7]));
+        const std::vector<std::tuple<size_t, size_t, size_t, size_t>>& indices = {
+            {0, 1, 2, 3}, {0, 1, 4, 5}, {1, 2, 5, 6}, {2, 3, 6, 7}, {3, 0, 7, 4}, {4, 5, 6, 7}};
+        set_arithmetic_average_pressure(r_geom, pressure, indices, 20);
         // element center
-        ThreadSafeNodeWrite(r_geom[26], WATER_PRESSURE,
-                            0.125 * (p[0] + p[1] + p[2] + p[3] + p[4] + p[5] + p[6] + p[7]));
+        GeoElementUtilities::ThreadSafeNodeWrite(
+            r_geom[26], WATER_PRESSURE,
+            0.125 * (pressure[0] + pressure[1] + pressure[2] + pressure[3] + pressure[4] +
+                     pressure[5] + pressure[6] + pressure[7]));
         break;
     }
     default:
@@ -1297,19 +1333,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow(VectorTy
 
 std::vector<double> SmallStrainUPwDiffOrderElement::CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const
 {
-    KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mRetentionLawVector.size());
-
-    auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
-
-    auto result = std::vector<double>{};
-    result.reserve(mRetentionLawVector.size());
-    std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   std::back_inserter(result),
-                   [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
-        retention_law_params.SetFluidPressure(FluidPressure);
-        return pRetentionLaw->CalculateRelativePermeability(retention_law_params);
-    });
-    return result;
+    return RetentionLaw::CalculateRelativePermeabilityValues(
+        mRetentionLawVector, this->GetProperties(), rFluidPressures);
 }
 
 std::vector<double> SmallStrainUPwDiffOrderElement::CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const

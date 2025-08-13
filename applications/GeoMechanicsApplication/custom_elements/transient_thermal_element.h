@@ -126,11 +126,11 @@ public:
         KRATOS_TRY
 
         CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id());
-        CheckHasSolutionStepsDataFor(TEMPERATURE);
-        CheckHasSolutionStepsDataFor(DT_TEMPERATURE);
-        CheckHasDofsFor(TEMPERATURE);
+        CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), TEMPERATURE);
+        CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), DT_TEMPERATURE);
+        CheckUtilities::CheckHasDofsFor(this->GetGeometry(), TEMPERATURE);
         CheckProperties();
-        CheckForNonZeroZCoordinateIn2D();
+        CheckUtilities::CheckForNonZeroZCoordinateIn2D(TDim, this->GetGeometry());
 
         KRATOS_CATCH("")
 
@@ -145,69 +145,24 @@ public:
 private:
     IntegrationCoefficientsCalculator mIntegrationCoefficientsCalculator;
 
-    void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
-    {
-        for (const auto& node : GetGeometry()) {
-            KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(rVariable))
-                << "Missing variable " << rVariable.Name() << " on node " << node.Id() << std::endl;
-        }
-    }
-
-    void CheckHasDofsFor(const Variable<double>& rVariable) const
-    {
-        for (const auto& node : GetGeometry()) {
-            KRATOS_ERROR_IF_NOT(node.HasDofFor(rVariable))
-                << "Missing degree of freedom for " << rVariable.Name() << " on node " << node.Id()
-                << std::endl;
-        }
-    }
-
     void CheckProperties() const
     {
-        CheckProperty(DENSITY_WATER);
-        CheckProperty(POROSITY);
-        CheckProperty(RETENTION_LAW, "SaturatedLaw");
-        CheckProperty(SATURATED_SATURATION);
-        CheckProperty(DENSITY_SOLID);
-        CheckProperty(SPECIFIC_HEAT_CAPACITY_WATER);
-        CheckProperty(SPECIFIC_HEAT_CAPACITY_SOLID);
-        CheckProperty(THERMAL_CONDUCTIVITY_WATER);
-        CheckProperty(THERMAL_CONDUCTIVITY_SOLID_XX);
-        CheckProperty(THERMAL_CONDUCTIVITY_SOLID_YY);
-        CheckProperty(THERMAL_CONDUCTIVITY_SOLID_XY);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), DENSITY_WATER);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), POROSITY);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), RETENTION_LAW, "SaturatedLaw");
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), SATURATED_SATURATION);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), DENSITY_SOLID);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), SPECIFIC_HEAT_CAPACITY_WATER);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), SPECIFIC_HEAT_CAPACITY_SOLID);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_WATER);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_SOLID_XX);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_SOLID_YY);
+        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_SOLID_XY);
 
         if constexpr (TDim == 3) {
-            CheckProperty(THERMAL_CONDUCTIVITY_SOLID_ZZ);
-            CheckProperty(THERMAL_CONDUCTIVITY_SOLID_YZ);
-            CheckProperty(THERMAL_CONDUCTIVITY_SOLID_XZ);
-        }
-    }
-
-    void CheckProperty(const Kratos::Variable<double>& rVariable) const
-    {
-        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
-            << rVariable.Name() << " does not exist in the thermal element's properties" << std::endl;
-        KRATOS_ERROR_IF(GetProperties()[rVariable] < 0.0)
-            << rVariable.Name() << " has an invalid value at element " << Id() << std::endl;
-    }
-
-    void CheckProperty(const Kratos::Variable<std::string>& rVariable, const std::string& rName) const
-    {
-        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
-            << rVariable.Name() << " does not exist in the thermal element's properties" << std::endl;
-        KRATOS_ERROR_IF_NOT(GetProperties()[rVariable] == rName)
-            << rVariable.Name() << " has a value of (" << GetProperties()[rVariable]
-            << ") instead of (" << rName << ") at element " << Id() << std::endl;
-    }
-
-    void CheckForNonZeroZCoordinateIn2D() const
-    {
-        if constexpr (TDim == 2) {
-            const auto& r_geometry = GetGeometry();
-            auto        pos        = std::find_if(r_geometry.begin(), r_geometry.end(),
-                                                  [](const auto& node) { return node.Z() != 0.0; });
-            KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
-                << " Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
+            CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_SOLID_ZZ);
+            CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_SOLID_YZ);
+            CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_SOLID_XZ);
         }
     }
 
