@@ -154,7 +154,7 @@ public:
      */
     CombinedTensorAdaptor(
         const TensorAdaptorVectorType& rTensorAdaptorVector,
-        const bool CollectAndStoreRecursively = true);
+        const bool CollectAndStoreRecursively = false);
 
     /**
      * @brief Construct a new Combined Tensor Adaptor  given list of @ref TensorAdaptor instances along the specified @p Axis.
@@ -185,7 +185,7 @@ public:
     CombinedTensorAdaptor(
         const TensorAdaptorVectorType& rTensorAdaptorVector,
         const unsigned int Axis,
-        const bool CollectAndStoreRecursively = true);
+        const bool CollectAndStoreRecursively = false);
 
     /**
      * @brief Construct a new Combined Tensor Adaptor based on an existing @p rOther.
@@ -196,7 +196,7 @@ public:
      */
     CombinedTensorAdaptor(
         const CombinedTensorAdaptor& rOther,
-        const bool CollectAndStoreRecursively = true,
+        const bool CollectAndStoreRecursively = false,
         const bool Copy = true);
 
     virtual ~CombinedTensorAdaptor() = default;
