@@ -33,6 +33,13 @@ def parse_filename(file):
     return power, pulses, identifier
 
 
+def check_and_confirm_overwrite(path):
+    if path.exists():
+        response = input(f"File '{path}' already exists. Overwrite? (yes/y to confirm): ").strip().lower()
+        if response not in ['yes', 'y']:
+            print("Operation cancelled by user.")
+            exit(1)
+
 if __name__ == "__main__":
     """
     This script takes as its argument the path of a folder containing multiple bore measurements, extracts the ellipses from each dataset and exports them to a json
@@ -52,7 +59,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output-failures",
         required=True,
-        help="Path to the output JSON file that conatins the list of data files that failed and the reason.",
+        help="Path to the output JSON file that contains the list of data files that failed and the reason.",
     )
     parser.add_argument(
         "--output-plots",
@@ -67,9 +74,19 @@ if __name__ == "__main__":
     folderpath = args.input_folder
     parameters_file = args.parameters_file
 
-    output_file = args.output_file
-    output_failures = args.output_failures
-    output_plots_path = args.output_plots
+    output_file = Path(args.output_file)
+    output_failures = Path(args.output_failures)
+    output_plots_path = Path(args.output_plots)
+
+    print("File for extracted data output")
+    check_and_confirm_overwrite(output_file)
+    
+    print("Log file for failures")
+    check_and_confirm_overwrite(output_failures)
+    
+    print("Path to output folder for plots")
+    check_and_confirm_overwrite(output_plots_path)
+
 
     material = args.material
 
