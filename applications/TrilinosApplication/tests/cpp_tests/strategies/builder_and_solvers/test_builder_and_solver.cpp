@@ -31,7 +31,9 @@
 
 /* Element include */
 #include "geometries/line_2d_2.h"
+#include "geometries/triangle_2d_3.h"
 #include "tests/test_utilities/test_bar_element.h"
+#include "tests/test_utilities/test_element.h"
 
 /* Linear solvers */
 #include "linear_solvers/linear_solver.h"
@@ -856,6 +858,53 @@ namespace Kratos::Testing
     //     std::vector<double> values;
     //     TrilinosCPPTestUtilities::GenerateSparseMatrixIndexAndValuesVectors(rA, row_indexes, column_indexes, values, true, 0.99);
     // }
+
+    void PrepareModelPartWithHangingNode(ModelPart& rRootModelPart, ModelPart& rWorkModelPart, const DataCommunicator& rComm)
+    {
+        /* Mesh one quarter of a circle with triangular slices (one triangle per rank)
+        * Nodes at (0,0), (1,0) and (0,1) always belong to rank 0.
+        * NOTE: the modelpart should at least have PARTITION_INDEX in the nodal solution step data */
+        constexpr double total_angle = Globals::Pi/2.0;
+        constexpr double side_length = 1.0;
+
+        Properties::Pointer p_properties = rRootModelPart.CreateNewProperties(0);
+
+        const int rank = rComm.Rank();
+        const int size = rComm.Size();
+
+        auto p_center = rRootModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+        p_center->FastGetSolutionStepValue(PARTITION_INDEX) = 0;
+
+        const double angle_start = rank   * (total_angle / size);
+        const double angle_end   = rank+1 * (total_angle / size);
+
+        const double x1 = side_length * std::cos(angle_start);
+        const double y1 = side_length * std::sin(angle_start);
+
+        const double x2 = side_length * std::cos(angle_end);
+        const double y2 = side_length * std::sin(angle_end);
+
+        const unsigned int local_index = rank + 2;
+        const unsigned int ghost_index = rank + 3;
+        auto p_node_1 = rRootModelPart.CreateNewNode(local_index, x1, y1, 0.0);
+        auto p_node_2 = rRootModelPart.CreateNewNode(ghost_index, x2, y2, 0.0);
+
+        p_node_1->FastGetSolutionStepValue(PARTITION_INDEX) = rank;
+        const int remote_rank = (rank != size-1) ? rank + 1 : rank;
+        p_node_2->FastGetSolutionStepValue(PARTITION_INDEX) = remote_rank;
+
+        std::vector<ModelPart::IndexType> element_nodes{1, local_index, ghost_index};
+
+        GeometryType::Pointer p_geometry = Kratos::make_shared<Triangle2D3<Node>>(
+            PointerVector<Node>{std::vector<Node::Pointer>({p_center, p_node_1, p_node_2})});
+
+        rRootModelPart.AddElement(Kratos::make_intrusive<TestElement>(rank+1, p_geometry, p_properties));
+
+        rWorkModelPart.AddNodes({1, local_index, ghost_index});
+        if (rank != size - 1) rWorkModelPart.AddElements({static_cast<unsigned int>(rank+1)});
+
+        ParallelFillCommunicator(rRootModelPart, Testing::GetDefaultDataCommunicator()).Execute();
+    }
 
     /**
     * Checks if the block builder and solver performs correctly the assemble of the system
@@ -1856,6 +1905,49 @@ namespace Kratos::Testing
     //     // Check assembly
     //     TrilinosCPPTestUtilities::CheckSparseMatrix(rA, row_indexes, column_indexes, values);
     // }
+
+
+    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DofSetSynchronization, KratosTrilinosApplicationMPITestSuite)
+    {
+        Model model;
+        ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+
+        const DataCommunicator& r_mpi_comm = Testing::GetDefaultDataCommunicator();
+        KRATOS_SKIP_TEST_IF(r_mpi_comm.Size() == 1);
+
+        r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(REACTION);
+
+        ModelPart& r_work_part = r_model_part.CreateSubModelPart("WorkModelPart");
+
+        Testing::PrepareModelPartWithHangingNode(r_model_part, r_work_part, r_mpi_comm);
+
+        for (auto& r_node : r_model_part.Nodes()) {
+            r_node.AddDof(DISPLACEMENT_X, REACTION_X);
+            r_node.AddDof(DISPLACEMENT_Y, REACTION_Y);
+            r_node.AddDof(DISPLACEMENT_Z, REACTION_Z);
+        }
+
+        // Instantiate the builder and solver
+        Epetra_MpiComm epetra_comm(MPIDataCommunicator::GetMPICommunicator(r_mpi_comm));
+        auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
+        auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
+        auto bs_parameters = Kratos::Parameters(R"({ "guess_row_size": 15, "synchronize_dof_set": true })");
+        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer(
+            new TrilinosBlockBuilderAndSolverType(epetra_comm, p_solver, bs_parameters) );
+
+        p_builder_and_solver->SetUpDofSet(p_scheme, r_work_part);
+        const auto& r_dofset = p_builder_and_solver->GetDofSet();
+
+        // expected known dofs:
+        // - on regular ranks: x & y displacement for each known node
+        // - on last rank: x & y displacement for the two nodes shared with other partitions (0 & n-1)
+        unsigned int expected_size = (r_mpi_comm.Rank() < r_mpi_comm.Size() - 1) ? 6 : 4;
+
+        KRATOS_ERROR_IF(r_dofset.size() != expected_size) \
+            << "Got " << r_dofset.size() << " dofs, expected " << expected_size << std::endl;
+    }
 
     /**
     * Checks if the block builder and solver performs correctly the assemble of the extended system with constraints
