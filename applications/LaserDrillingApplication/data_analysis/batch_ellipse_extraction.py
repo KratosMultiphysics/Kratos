@@ -8,11 +8,14 @@ import json
 from data_manipulation_functions import (
     read_single_bore,
     clean_data,
-    remove_surface_and_outliers,
+    remove_surface,
+    remove_deep_outliers,
     subsample_data,
     calculate_slice_bounds,
     calculate_slices,
     compute_ellipses,
+    align_data,
+    center_data_XY
 )
 from plotting_functions import plot_individual_slices_grid
 
@@ -86,17 +89,32 @@ if __name__ == "__main__":
 
         max_points = params["max_points"]  # Max number of points to use for entire dataset
         subsample_points = params["subsample_points"]  # Toggle for random subsampling of entire dataset
-        slice_thickness = params["slice_thickness"]  # Thickness of each slice in um
-        deep_outlier_quantile_threshold = params[
-            "deep_outlier_quantile_threshold"
-        ]  # Lower quantile for discarding deep outliers. Set it to None to not discard any.
-
-        shallow_z_threshold = params[
-            "shallow_z_threshold"
-        ]  # Discard points shallower than this z (closer to surface). Set it to None to not discard any.
-        random_seed = params["random_seed"]  # Seed for reproducibility
+        slice_thickness = params["slice_thickness"] # Thickness of each slice in um
+        
+        
+        
+        subsample_rng_seed = params["subsample_rng_seed"]  # Seed for reproducibility
         spline_order = params["spline_order"]  # Spline interpolation order
         n_spline_points = params["n_spline_points"]  # Number of points in the splines
+
+        align_data_to_XY_toggle = params["align_data_to_XY"]
+        
+        remove_surface_toggle = params["remove_surface"]
+        shallow_z_threshold = params["shallow_z_threshold"] # Discard points shallower than this z (closer to surface). Set it to None to not discard any.
+
+
+        remove_deep_outliers_toggle = params["remove_deep_outliers"]
+        deep_outlier_quantile_threshold = params["deep_outlier_quantile_threshold"]  # Lower quantile for discarding deep outliers. Set it to None to not discard any.
+        
+        
+        surface_ransac_params = params["surface_ransac_params"]
+        ellipse_ransac_params = params["ellipse_ransac_params"]        
+
+                
+        if params["ellipse_fitting_method"] == "least_squares":
+            ellipse_fitting_method = "least_squares"
+        elif params["ellipse_fitting_method"] == "ransac": 
+            ellipse_fitting_method = "ransac"
     except KeyError:
         print("Missing parameters in the parameters JSON file.")
         exit(-1)
@@ -112,20 +130,47 @@ if __name__ == "__main__":
 
         power, pulses, identifier = parse_filename(file)
 
+        # ======================
+        # == Prepare the data ==
+        # ======================
+
         # ==== Read and Clean the Data ====
         data_raw = read_single_bore(file)
         data = clean_data(data_raw)
 
-        # ALIGN THE DATA TO THE XY PLANE
-
-        data, surface_outliers, deep_outliers = remove_surface_and_outliers(
-            data, shallow_z_threshold, deep_outlier_quantile_threshold
-        )
+        # ==== Align data to the XY plane ====
+        if align_data_to_XY_toggle:
+            print("Aligning data")
+            data = align_data(data, surface_ransac_params)
+            
+        # ==== Remove surface ====
+        if remove_surface_toggle:
+            print("Removing surface")
+            data, surface_outliers = remove_surface(data, shallow_z_threshold)
+        
+        # ==== Remove deep outliers ====
+        if remove_deep_outliers_toggle:
+            print("Removing deep outliers")
+            data, deep_outliers = remove_deep_outliers(data, deep_outlier_quantile_threshold)
 
         # ==== Random subsample after filtering ====
         if subsample_points and max_points < len(data):
-            data = subsample_data(data, max_points, random_seed)
+            data = subsample_data(data, max_points, subsample_rng_seed)
 
+
+        # ==== Center data on the XY plane ====
+        center_XY_x = (sample_x_max + sample_x_min)/2
+        center_XY_y = (sample_y_max + sample_y_min)/2
+        center_XY = (center_XY_x, center_XY_y, 0)
+
+        data = center_data_XY(data, center_XY)
+
+        
+        
+        # ==================
+        # == Use the data ==
+        # ==================
+        
         # ==== Compute data slices ====
         try:
             slice_bounds = calculate_slice_bounds(data, slice_thickness)
@@ -146,7 +191,7 @@ if __name__ == "__main__":
             continue
 
         try:
-            ellipses = compute_ellipses(slices, slice_bounds)
+            ellipses = compute_ellipses(slices, slice_bounds, method=ellipse_fitting_method, ransac_params=ellipse_ransac_params)
         except ValueError:
             failed_files[filename] = "Error calculating ellipses"
             print("Error in file" + filename)

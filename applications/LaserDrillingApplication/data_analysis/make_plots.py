@@ -136,8 +136,6 @@ if __name__ == "__main__":
     center_XY_y = (sample_y_max + sample_y_min)/2
     center_XY = (center_XY_x, center_XY_y, 0)
 
-    print(f"{center_XY=}")
-
     data = center_data_XY(data, center_XY)
     
 
