@@ -92,7 +92,6 @@ Here, $\nu$ is the Poisson ratio. Then the solid skeleton compressibility is:
 
 $$ \alpha = \frac{Biot - n}{K_s}  $$
 
-$n$ is thr porosity.
 The liquid phase compressibility is defined as:
 
 $$ \beta =\frac{1}{K_f} $$
