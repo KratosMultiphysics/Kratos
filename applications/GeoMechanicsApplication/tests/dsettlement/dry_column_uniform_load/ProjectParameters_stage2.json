@@ -54,7 +54,7 @@
             "scaling": true
         },
         "problem_domain_sub_model_part_list": ["Soil-0"],
-        "processes_sub_model_part_list": ["gravity", "PhreaticLineContactStress", "TopWaterPressure", "Bottom", "FixedPressure", "Side_Nodes", "LineLoad2"],
+        "processes_sub_model_part_list": ["gravity", "TopWaterPressure", "Bottom", "FixedPressure", "Side_Nodes", "LineLoad2"],
         "body_domain_sub_model_part_list": ["Soil-0"],
         "move_mesh_flag": false
     },
@@ -167,22 +167,6 @@
                     "active": [false, true, false],
                     "value": [0.0, -9.81, 0.0],
                     "table": [0, 0, 0]
-                }
-            },
-            {
-                "python_module": "apply_normal_load_table_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyNormalLoadTableProcess",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.PhreaticLineContactStress",
-                    "variable_name": "NORMAL_CONTACT_STRESS",
-                    "active": [true, false],
-                    "value": [0.0, 0.0],
-                    "table": [0, 0],
-                    "fluid_pressure_type": "Hydrostatic",
-                    "gravity_direction": 1,
-                    "reference_coordinate": 0,
-                    "specific_weight": 10000
                 }
             },
             {
