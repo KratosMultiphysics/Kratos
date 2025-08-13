@@ -455,7 +455,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
             if data_comm.Rank() == 0:
                 # Create and read an auxiliary materials file for each one of the fields (only on one rank)
-                for i_material in materials["properties"]:
+                for i_material in materials["properties"].values():
                     aux_materials = KratosMultiphysics.Parameters()
                     aux_materials.AddEmptyArray("properties")
                     aux_materials["properties"].Append(i_material)
@@ -467,7 +467,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
             data_comm.Barrier()
 
             # read the files on all ranks
-            for i_material in materials["properties"]:
+            for i_material in materials["properties"].values():
                 aux_materials_filename = GetAuxMaterialsFileName(materials_filename, i_material["properties_id"].GetInt())
                 aux_material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
                 aux_material_settings["Parameters"]["materials_filename"].SetString(aux_materials_filename)
@@ -477,7 +477,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
             if data_comm.Rank() == 0:
                 # remove aux files after every rank read them
-                for i_material in materials["properties"]:
+                for i_material in materials["properties"].values():
                     aux_materials_filename = GetAuxMaterialsFileName(materials_filename, i_material["properties_id"].GetInt())
                     KratosUtilities.DeleteFileIfExisting(aux_materials_filename)
 
@@ -575,14 +575,15 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
         # Construct the level set convection process
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        model = self.main_model_part.GetModel()
         linear_solver = self._GetLevelsetLinearSolver()
         fractional_splitting_settings = self.settings["fractional_splitting_settings"]
         if domain_size == 2:
             fractional_splitting_process = KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess2D(
-            self.model, linear_solver, fractional_splitting_settings)
+            model, linear_solver, fractional_splitting_settings)
         else:
             fractional_splitting_process = KratosCFD.TwoFluidNavierStokesFractionalConvectionProcess3D(
-             self.model, linear_solver, fractional_splitting_settings)
+             model, linear_solver, fractional_splitting_settings)
         return fractional_splitting_process
 
 
