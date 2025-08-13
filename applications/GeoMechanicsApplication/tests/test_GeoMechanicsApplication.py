@@ -68,7 +68,7 @@ from test_nodal_hydraulic_head import KratosGeoMechanicsHydraulicHeads
 from test_set_moving_load_process import KratosGeoMechanicsSetMovingLoadProcessTests
 from moving_column_with_fixed_pressure_above_phreatic_line import KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine
 from test_surface_interface_elements import KratosGeoMechanicsSurfaceInterfaceElementTests
-from test_dsettlement_flows import  KratosGeoMechanicsDSettlementTests
+from test_dsettlement_flows import  KratosGeoMechanicsDSettlementValidationTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -155,7 +155,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsDynamicsLongTests,
                         KratosGeoMechanicsThreeDimensionalPipingValidation,
                         KratosGeoMechanicsTransientThermalValidationTests,
-                        KratosGeoMechanicsDSettlementTests,
+                        KratosGeoMechanicsDSettlementValidationTests,
                         ]
 
     # Create an array that contains all the tests from every testCase
