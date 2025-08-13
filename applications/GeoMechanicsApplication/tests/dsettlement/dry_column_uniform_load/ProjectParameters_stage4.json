@@ -53,9 +53,9 @@
             "solver_type": "LinearSolversApplication.sparse_lu",
             "scaling": true
         },
-        "problem_domain_sub_model_part_list": ["Soil-0"],
-        "processes_sub_model_part_list": ["gravity", "TopWaterPressure", "Bottom", "FixedPressure", "Side_Nodes", "LineLoad4"],
-        "body_domain_sub_model_part_list": ["Soil-0"],
+        "problem_domain_sub_model_part_list": ["Soil"],
+        "processes_sub_model_part_list": ["gravity", "Side_Nodes", "LineLoad4"],
+        "body_domain_sub_model_part_list": ["Soil"],
         "move_mesh_flag": false
     },
     "output_processes": {
@@ -96,18 +96,13 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyScalarConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.TopWaterPressure",
+                    "model_part_name": "PorousDomain.Soil",
                     "variable_name": "WATER_PRESSURE",
                     "is_fixed": true,
                     "value": 0.0,
                     "table": 0,
-                    "fluid_pressure_type": "Phreatic_Multi_Line",
-                    "gravity_direction": 1,
-                    "out_of_plane_direction": 2,
-                    "x_coordinates": [0, 1],
-                    "y_coordinates": [0, 0],
-                    "z_coordinates": [0, 0],
-                    "specific_weight": 10000
+                    "fluid_pressure_type": "Uniform",
+                    "specific_weight": 9810
                 }
             },
             {
@@ -121,25 +116,6 @@
                     "is_fixed": [true, true, true],
                     "value": [0.0, 0.0, 0.0],
                     "table": [0, 0, 0]
-                }
-            },
-            {
-                "python_module": "apply_scalar_constraint_table_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyScalarConstraintTableProcess",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.FixedPressure",
-                    "variable_name": "WATER_PRESSURE",
-                    "is_fixed": true,
-                    "value": 0.0,
-                    "table": 0,
-                    "fluid_pressure_type": "Phreatic_Multi_Line",
-                    "gravity_direction": 1,
-                    "out_of_plane_direction": 2,
-                    "x_coordinates": [0, 1],
-                    "y_coordinates": [0, 0],
-                    "z_coordinates": [0, 0],
-                    "specific_weight": 10000
                 }
             },
             {
