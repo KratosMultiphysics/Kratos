@@ -62,9 +62,13 @@ def fit_ellipse_ransac(points_2d, min_samples, residual_threshold, max_trials, r
     - inlier_mask (np.ndarray): Boolean mask of inliers classified as True.
     """
 
-    ransac_model, inlier_mask = ransac(
-        points_2d, EllipseModel, min_samples=min_samples, residual_threshold=residual_threshold, max_trials=max_trials, rng=rng_seed
-    )
+    try:
+        ransac_model, inlier_mask = ransac(
+            points_2d, EllipseModel, min_samples=min_samples, residual_threshold=residual_threshold, max_trials=max_trials, rng=rng_seed
+        )
+    except ValueError as e:
+        print(e)
+        raise ValueError from e
 
     cx, cy, a, b, theta = ransac_model.params
     if b > a:
@@ -440,18 +444,41 @@ def compute_ellipses(slices, slice_bounds=None, method="least_squares", ransac_p
 
         slice_points = slices[i]
 
-        if len(slice_points) == 0:
-            raise ValueError("Empty slice")
+        # if len(slice_points) == 0:
+        #     raise ValueError("Empty slice")
+
+        # if len(slice_points) < ransac_params["min_samples"]:
+        #     print()
+        #     ellipses[i] = None
+        #     continue
 
         points_2d = slice_points[:, :2]  # [x, y]
 
         if method == "least_squares":
-            center_x, center_y, a, b, eccentricity, angle = fit_ellipse_least_squares(points_2d)
+            try:
+                center_x, center_y, a, b, eccentricity, angle = fit_ellipse_least_squares(points_2d)
+            except ValueError as e:
+                print("Error fitting ellipse")
+                if slice_bounds is not None:
+                    print(f"to slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um)")
+                print(e)
+                ellipses[i] = None
+                continue
+
         elif method == "ransac":
-            (center_x, center_y, a, b, eccentricity, angle), inlier_mask = fit_ellipse_ransac(
+            try:
+                (center_x, center_y, a, b, eccentricity, angle), inlier_mask = fit_ellipse_ransac(
                 points_2d, min_samples, residual_threshold, max_trials, rng_seed
             )
-            inliers_per_slice[i] = inlier_mask
+                inliers_per_slice[i] = inlier_mask
+            except ValueError as e:
+                print("Error fitting ellipse")
+                if slice_bounds is not None:
+                    print(f"to slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um)")
+                print(e)
+                ellipses[i] = None
+                continue
+
         else:
             raise ValueError("The method selected is not available")
 

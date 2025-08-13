@@ -292,7 +292,8 @@ def plot_ellipses_and_axes(
     for i in range(num_ellipses):
         ellipse = ellipses[i]
         if ellipse is None:
-            raise ValueError("An ellipse is None")
+            # raise ValueError("An ellipse is None")
+            continue
 
         center = ellipse["center"]
         cx, cy = center[0], center[1]
@@ -387,9 +388,34 @@ def plot_ellipse_metrics(ellipses, filename):
     """
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(8, 6), sharex=True)
 
-    eccentricities = [ellipse["eccentricity"] for ellipse in ellipses]
-    thetas = [np.degrees(ellipse["angle"]) % 360 for ellipse in ellipses]  # Convert to degrees
-    depths = [ellipse["center"][2] for ellipse in ellipses]
+    # eccentricities = []
+    # thetas = []
+    # depths = []
+    # for ellipse in ellipses:
+    #     if ellipse is not None:
+    #         eccentricities.append(ellipse["eccentricity"])
+    #         thetas.append(np.degrees(ellipse["angle"]))
+    #         depths.append(ellipse["center"][2])
+    #     else:
+    #         pass
+    eccentricities = [ellipse["eccentricity"] if ellipse is not None else None for ellipse in ellipses]
+    thetas = [np.degrees(ellipse["angle"]) if ellipse is not None else None for ellipse in ellipses]  # Convert to degrees
+    
+    # shifted_thetas = [thetas[i] if thetas[i] <= 90 else thetas[i] - 180 for i in range(len(thetas))]
+    shifted_thetas = []
+    for theta in thetas:
+        if theta is None:
+            shifted_thetas.append(None)
+        else:
+            if theta <= 90:
+                shifted_thetas.append(theta)
+            else:
+                shifted_thetas.append(theta - 180)
+
+    
+
+
+    depths = [ellipse["center"][2] if ellipse is not None else None for ellipse in ellipses]
 
     ax1.plot(depths, eccentricities, ".-", color="blue", markersize=12, label="Eccentricity")
     ax1.set_xlabel("Depth (Z, um)")
@@ -408,7 +434,6 @@ def plot_ellipse_metrics(ellipses, filename):
     ax2.set_yticks([30 * i for i in range(7)])
     ax2.legend(loc="upper right")
 
-    shifted_thetas = [thetas[i] if thetas[i] <= 90 else thetas[i] - 180 for i in range(len(thetas))]
     ax3.plot(depths, shifted_thetas, ".-", color="green", markersize=12, label="Major axis angle (-90º to 90º)")
     ax3.set_xlabel("Depth (Z, um)")
     ax3.set_ylabel("Major axis angle (degrees)")

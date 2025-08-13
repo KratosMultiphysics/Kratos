@@ -174,12 +174,15 @@ if __name__ == "__main__":
     except ValueError as e:
         print("Errors computing the ellipses")
         print(e)
-        exit(-1)
+        raise ValueError from e
 
 
     ellipse_centers = []
     for ellipse in ellipses:
-        ellipse_centers.append(ellipse["center"])
+        if ellipse is not None:
+            ellipse_centers.append(ellipse["center"])
+        else:
+            ellipse_centers.append(np.array([0,0,0])) # TODO: handle better
 
     ellipse_centers = np.array(ellipse_centers)
 
