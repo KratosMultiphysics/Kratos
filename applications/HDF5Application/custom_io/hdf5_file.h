@@ -265,6 +265,14 @@ public:
         const TDataType& rData,
         WriteInfo& rInfo);
 
+    template<class TDataType, class TIntegerType>
+    void WriteDataSet(
+        const std::string& rPath,
+        TDataType const * pData,
+        TIntegerType const * pShapeIteratorBegin,
+        TIntegerType const * pShapeIteratorEnd,
+        WriteInfo& rInfo);
+
     /**
      * @brief Independently write dataset to the HDF5 file.
      *
@@ -389,6 +397,13 @@ public:
         const unsigned StartIndex,
         const unsigned BlockSize) const;
 
+    template<class TDataType, class TIntegerType>
+    void ReadDataSet(
+        const std::string& rPath,
+        TDataType * pData,
+        TIntegerType const * pShapeIteratorBegin,
+        TIntegerType const * pShapeIteratorEnd);
+
     /**
      * @brief Independently read a dataset from the HDF5 file.
      *
@@ -447,6 +462,21 @@ private:
         TDataType& rData,
         const unsigned StartIndex,
         const unsigned BlockSize) const;
+
+    template<DataTransferMode TDataTransferMode, class TDataType, class TIntegerType>
+    void WriteDataSetImpl(
+        const std::string& rPath,
+        TDataType const * pData,
+        TIntegerType const * pShapeIteratorBegin,
+        TIntegerType const * pShapeIteratorEnd,
+        WriteInfo& rInfo);
+
+    template<DataTransferMode TDataTransferMode, class TDataType, class TIntegerType>
+    void ReadDataSetImpl(
+        const std::string& rPath,
+        TDataType * pData,
+        TIntegerType const * pShapeIteratorBegin,
+        TIntegerType const * pShapeIteratorEnd);
 
     ///@}
 };
