@@ -61,6 +61,8 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
                 "dynamic_tau": 1.0,
                 "mass_source":true
             },
+            "energy_measurement":true,
+            "file_name" : "energy.txt",
             "artificial_viscosity": false,
             "artificial_visocosity_settings":{
                 "limiter_coefficient": 1000
@@ -232,6 +234,13 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.ACCELERATION, self.main_model_part.Nodes)
         if self.artificial_viscosity:
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.Elements)
+        self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.previous_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        self.energy_process_activation = self.settings["energy_measurement"].GetBool()
+        if self.energy_process_activation:
+            self.post_file_name = self.settings["file_name"].GetString()
+            self.my_energy_process = KratosCFD.EnergyCheckProcess(
+                self.main_model_part, self.domain_size, self.post_file_name)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
     def Check(self):
@@ -313,6 +322,8 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         # Acceleration for generalised alpha time integration method.
         self.__CalculateTimeIntegrationAcceleration()
+        if self.energy_process_activation:
+            self.my_energy_process.Execute()
 
     def _ComputeStepInitialWaterVolume(self):
 

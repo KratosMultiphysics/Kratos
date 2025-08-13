@@ -84,6 +84,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     "cross_wind_stabilization_factor" : 0.7
                 }
             },
+            "energy_measurement":true,
+            "file_name" : "energy.txt",
             "distance_reinitialization": "variational",
             "parallel_redistance_max_layers" : 25,
             "distance_smoothing": false,
@@ -236,6 +238,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
+        # Initialize the distance reinitialization process
+        self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.previous_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        self.energy_process_activation = self.settings["energy_measurement"].GetBool()
+        if self.energy_process_activation:
+            self.post_file_name = self.settings["file_name"].GetString()
+            self.my_energy_process = KratosCFD.EnergyCheckProcess(
+                self.main_model_part, self.domain_size, self.post_file_name)
+
     def InitializeSolutionStep(self):
 
         if self.momentum_correction:
@@ -319,6 +330,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         # We intentionally avoid correcting the acceleration in the first resolution step as this might cause problems with zero initial conditions
         if self._apply_acceleration_limitation and self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] > 1:
             self._GetAccelerationLimitationUtility().Execute()
+
+
+        if self.energy_process_activation:
+            self.my_energy_process.Execute()
+
 
     def _PerformLevelSetConvection(self):
         # Solve the levelset convection problem

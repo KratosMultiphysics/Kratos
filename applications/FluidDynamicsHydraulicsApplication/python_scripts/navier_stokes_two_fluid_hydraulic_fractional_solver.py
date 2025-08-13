@@ -60,7 +60,8 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
             "move_mesh_flag": false,
             "formulation": {
                 "dynamic_tau": 1.0,
-                "mass_source":true
+                "mass_source":true,
+                "mass_levelset":false
             },
             "artificial_viscosity": false,
             "artificial_visocosity_settings":{
@@ -82,7 +83,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
                     "tau_nodal":true
                 }
             },
-            "fcttest":true,
+            "fcttest":false,
             "edge_based_level_set_convection":{
                 "convected_variable_name": "DISTANCE",
                 "convection_variable_name": "VELOCITY",
@@ -225,12 +226,17 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         else:
             self._GetLevelSetConvectionProcess()
 
-    
+
         self._GetNSFractionalSplittingProcess()
 
         # Set the flag for the mass loss correction
         if self.settings["formulation"].Has("mass_source"):
             self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
+
+        # Set the flag for the mass levelset correction
+        self.mass_levelset = False
+        if self.settings["formulation"].Has("mass_levelset"):
+            self.mass_levelset = self.settings["formulation"]["mass_levelset"].GetBool()
 
         # Initialize non historical artificial velocity to zero
         if self.artificial_viscosity:
@@ -255,7 +261,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self._HydraulicBoundaryConditionCheck(KratosMultiphysics.OUTLET,"OUTLET")
 
     def InitializeSolutionStep(self):
-
+        self._ComputeStepInitialWaterVolume()
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
             self._ComputeStepInitialWaterVolume()
@@ -274,12 +280,12 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         # And the previous previous velocity is copied in an auxiliar variable
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosCFD.FRACTIONAL_VELOCITY,KratosMultiphysics.VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY,KratosCFD.AUXILIAR_VECTOR_VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
-        if self.fcttest: 
+        if self.fcttest:
             print("AHHHHHHHHHHHHHHHHHH ESTOY HACIENDO EL EDGE BASED LEVEL SET CONVECTION")
             self.__PerformEdgeBasedLevelSetConvection()
         else:
             self.__PerformLevelSetConvection()
-            
+
         self.levelset_iterations = self.main_model_part.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER]
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
@@ -299,6 +305,11 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         if self.artificial_viscosity:
             self.__CalculateArtificialViscosity()
 
+
+        if self.mass_levelset:
+            current_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+            if current_step>2:
+                self._CorrectLevelSet()
         # Initialize the solver current step
         self._GetSolutionStrategy().InitializeSolutionStep()
 
@@ -365,6 +376,20 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.WATER_VOLUME_ERROR, water_cut_element_error)
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.AIR_VOLUME_ERROR, -air_cut_element_error)
+    def _CalculateVolumeError(self):
+        water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
+        print(self.__initial_water_system_volume)
+        volume_error = (water_volume_after_transport -  self.__initial_water_system_volume) /  self.__initial_water_system_volume
+
+        return volume_error
+
+    def _CorrectLevelSet(self):
+        volume_error=self._CalculateVolumeError()
+        interface_area =self.my_energy_process.CalculateInterfaceArea()
+        a = volume_error/interface_area
+        for node in self.main_model_part.Nodes:
+            phi=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, phi+a)
 
     def __CalculateArtificialViscosity(self):
         properties_1 = self.main_model_part.Properties[1]
