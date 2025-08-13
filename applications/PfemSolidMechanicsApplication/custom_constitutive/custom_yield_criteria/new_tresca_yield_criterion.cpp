@@ -40,7 +40,7 @@ namespace Kratos
 
    }
 
-   //*******************************ASSIGMENT OPERATOR***********************************
+   //******************************ASSIGNMENT OPERATOR***********************************
    //************************************************************************************
 
    NewTrescaYieldCriterion& NewTrescaYieldCriterion::operator=(NewTrescaYieldCriterion const& rOther)
@@ -77,7 +77,7 @@ namespace Kratos
       KRATOS_TRY
 
       double Su = this->GetHardeningLaw().GetProperties()[YIELD_STRESS];
-      double AlphaS = this->GetHardeningLaw().GetProperties()[LAMBDA]; // quotient between the compression and extension undrained shear strenght
+      double AlphaS = this->GetHardeningLaw().GetProperties()[LAMBDA]; // quotient between the compression and extension undrained shear strength
       if ( AlphaS < 1.0 || AlphaS > 2.0)
          AlphaS = 1.0;
       double smoothing = 10.0; // to smooth the sharp corners

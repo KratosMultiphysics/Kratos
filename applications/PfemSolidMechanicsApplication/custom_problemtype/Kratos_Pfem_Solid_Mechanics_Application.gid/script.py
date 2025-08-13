@@ -238,7 +238,7 @@ while(time < end_time):
 
     print(" [STEP:",step," TIME:",time,"]")
 
-    # processes to be executed at the begining of the solution step
+    # processes to be executed at the beginning of the solution step
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
 
