@@ -23,23 +23,20 @@ namespace Kratos
 
 class ApplyHydrostaticPressureTableProcess : public ApplyConstantHydrostaticPressureProcess
 {
-
 public:
-
     KRATOS_CLASS_POINTER_DEFINITION(ApplyHydrostaticPressureTableProcess);
 
     /// Defining a table with double argument and result type as table type.
-    using TableType = Table<double,double>;
+    using TableType = Table<double, double>;
 
-    ApplyHydrostaticPressureTableProcess(ModelPart& model_part,
-                                         Parameters rParameters
-                                         ) : ApplyConstantHydrostaticPressureProcess(model_part, rParameters)
+    ApplyHydrostaticPressureTableProcess(ModelPart& model_part, Parameters rParameters)
+        : ApplyConstantHydrostaticPressureProcess(model_part, rParameters)
     {
         KRATOS_TRY
 
         unsigned int TableId = rParameters["table"].GetInt();
-        mpTable            = model_part.pGetTable(TableId);
-        mTimeUnitConverter = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
+        mpTable              = model_part.pGetTable(TableId);
+        mTimeUnitConverter   = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
 
         KRATOS_CATCH("")
     }
@@ -53,13 +50,13 @@ public:
     {
         KRATOS_TRY
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
-        const double Time   = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
-        const double deltaH = mpTable->GetValue(Time);
+        const Variable<double>& var    = KratosComponents<Variable<double>>::Get(mVariableName);
+        const double            Time   = mrModelPart.GetProcessInfo()[TIME] / mTimeUnitConverter;
+        const double            deltaH = mpTable->GetValue(Time);
 
         block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node& rNode) {
             const double distance = mReferenceCoordinate - rNode.Coordinates()[mGravityDirection];
-            const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * (distance + deltaH);
+            const double pressure = -PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * (distance + deltaH);
             if (mIsSeepage) {
                 if (pressure < PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff) { // Before 0. was used i.s.o. the tension cut off value -> no effect in any test.
                     rNode.FastGetSolutionStepValue(var) = pressure;
@@ -68,7 +65,8 @@ public:
                     if (mIsFixedProvided) rNode.Free(var);
                 }
             } else {
-                rNode.FastGetSolutionStepValue(var) = std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
+                rNode.FastGetSolutionStepValue(var) =
+                    std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
             }
         });
 
@@ -76,16 +74,12 @@ public:
     }
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "ApplyHydrostaticPressureTableProcess";
-    }
+    std::string Info() const override { return "ApplyHydrostaticPressureTableProcess"; }
 
 private:
     /// Member Variables
     TableType::Pointer mpTable;
-    double mTimeUnitConverter;
-
+    double             mTimeUnitConverter;
 };
 
-}
+} // namespace Kratos

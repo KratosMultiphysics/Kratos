@@ -1,6 +1,7 @@
 # Importing the Kratos Library
 from typing import Type
 import KratosMultiphysics
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 from KratosMultiphysics.read_csv_table_utility import ReadCsvTableUtility
 
 # Import applications
@@ -96,7 +97,7 @@ class ApplyParabolicInletProcess(KratosMultiphysics.Process):
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplexNonHistorical(
             inlet_model_part,
             domain_size,
-            KratosBio.INLET_NORMAL)
+            KratosCFD.INLET_NORMAL)
 
         # Create an auxiliary volumetric model part with the elements attached to the inlet
         # On top of accelerating the wall distance calculation, this prevents missbehaviors in presence of complex geometries

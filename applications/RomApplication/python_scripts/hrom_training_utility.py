@@ -47,6 +47,7 @@ class HRomTrainingUtility(object):
         self.include_minimum_condition = settings["include_minimum_condition"].GetBool()
         self.include_condition_parents = settings["include_condition_parents"].GetBool()
         self.num_of_right_rom_dofs = self.rom_settings["number_of_rom_dofs"].GetInt()
+        self.constraint_sum_weights =  settings["constraint_sum_weights"].GetBool()
 
         # Retrieve list of model parts from settings
         self.include_conditions_model_parts_list = settings["include_conditions_model_parts_list"].GetStringArray()
@@ -63,10 +64,13 @@ class HRomTrainingUtility(object):
                 raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
 
 
+        #TODO use cpp mappings
+        root_model_part = self.solver.GetComputingModelPart().GetRootModelPart()
+        number_of_elements = root_model_part.NumberOfElements()
+        self._setup_mappings(root_model_part, number_of_elements)
+
         # getting initial candidate ids for empirical cubature
         initial_candidate_elements_model_part_list = settings["initial_candidate_elements_model_part_list"].GetStringArray()
-        initial_candidate_conditions_model_part_list = settings["initial_candidate_conditions_model_part_list"].GetStringArray()
-
         candidate_ids = np.empty(0)
         for model_part_name in initial_candidate_elements_model_part_list:
             if not self.solver.model.HasModelPart(model_part_name):
@@ -79,16 +83,19 @@ class HRomTrainingUtility(object):
             else:
                 this_modelpart_element_ids = KratosROM.RomAuxiliaryUtilities.GetElementIdsInModelPart(candidate_elements_model_part)
             if len(this_modelpart_element_ids)>0:
-                candidate_ids = np.r_[candidate_ids, np.array(this_modelpart_element_ids)]
+                this_modelpart_element_ids = self.map_element_ids_to_numpy_indexes(this_modelpart_element_ids)
+                candidate_ids = np.r_[candidate_ids, this_modelpart_element_ids]
 
-        number_of_elements = self.solver.GetComputingModelPart().GetRootModelPart().NumberOfElements()
+
+        initial_candidate_conditions_model_part_list = settings["initial_candidate_conditions_model_part_list"].GetStringArray()
+
         for model_part_name in initial_candidate_conditions_model_part_list:
             if not self.solver.model.HasModelPart(model_part_name):
                 raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
             this_modelpart_condition_ids = KratosROM.RomAuxiliaryUtilities.GetConditionIdsInModelPart(self.solver.model.GetModelPart(model_part_name))
             if len(this_modelpart_condition_ids)>0:
-                candidate_ids = np.r_[candidate_ids, np.array(this_modelpart_condition_ids)+number_of_elements]
-
+                this_modelpart_condition_ids = self.map_condition_ids_to_numpy_indexes(this_modelpart_condition_ids)
+                candidate_ids = np.r_[candidate_ids, this_modelpart_condition_ids]
         if np.size(candidate_ids)>0:
             self.candidate_ids = np.unique(candidate_ids).astype(int)
         else:
@@ -97,6 +104,53 @@ class HRomTrainingUtility(object):
         # Rom settings files
         self.rom_basis_output_name = Path(custom_settings["rom_basis_output_name"].GetString())
         self.rom_basis_output_folder = Path(custom_settings["rom_basis_output_folder"].GetString())
+
+        # Retrieve the svd_type from settings and validate it
+        self.svd_type = settings["svd_type"].GetString()
+        # Check if the svd_type is either 'numpy_rsvd' or 'numpy_svd'
+        if self.svd_type not in ["numpy_rsvd", "numpy_svd"]:
+            raise Exception(f"Unsupported SVD type specified: {self.svd_type}. Available options are 'numpy_rsvd' or 'numpy_svd'.")
+
+    def _setup_mappings(self, root_model_part, number_of_elements):
+        self.element_id_to_numpy_index_mapping = {}
+        self.numpy_index_to_element_id_mapping = {}
+        for index, element in enumerate(root_model_part.Elements):
+            self.numpy_index_to_element_id_mapping[index] = element.Id-1 #FIXME -1
+            self.element_id_to_numpy_index_mapping[element.Id-1] = index #FIXME -1
+
+        self.condition_id_to_numpy_index_mapping = {}
+        self.numpy_index_to_condition_id_mapping = {}
+        for index, condition in enumerate(root_model_part.Conditions):
+            self.numpy_index_to_condition_id_mapping[index+number_of_elements] = condition.Id -1 +number_of_elements  #FIXME -1 #FIXME +number_of_elements We should remove redundant fixes
+            self.condition_id_to_numpy_index_mapping[condition.Id-1] = index+number_of_elements #FIXME -1
+
+
+    def map_condition_ids_to_numpy_indexes(self, this_modelpart_condition_ids):
+        this_modelpart_indexes_numpy = []
+        for cond_id in this_modelpart_condition_ids:
+            this_modelpart_indexes_numpy.append(self.condition_id_to_numpy_index_mapping[cond_id])
+        return np.array(this_modelpart_indexes_numpy)
+
+
+    def map_element_ids_to_numpy_indexes(self, this_modelpart_element_ids):
+        this_modelpart_indexes_numpy = []
+        for elem_id in this_modelpart_element_ids:
+            this_modelpart_indexes_numpy.append(self.element_id_to_numpy_index_mapping[elem_id])
+        return np.array(this_modelpart_indexes_numpy)
+
+
+    def map_numpy_indexes_to_element_and_conditions_ids(self,indexes,number_of_elements):
+
+        kratos_indexes = []
+        for i in range(np.size(indexes)):
+            if indexes[i]<=number_of_elements-1:
+                kratos_indexes.append(self.numpy_index_to_element_id_mapping[indexes[i]])
+            else:
+                kratos_indexes.append(self.numpy_index_to_condition_id_mapping[indexes[i]])
+
+        return np.array(kratos_indexes) #FIXME -1
+
+
 
     def AppendCurrentStepResiduals(self):
         # Get the computing model part from the solver implementing the problem physics
@@ -126,7 +180,7 @@ class HRomTrainingUtility(object):
             err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
             raise Exception(err_msg)
 
-        np_res_mat = np.array(res_mat, copy=False)
+        np_res_mat = np.asarray(res_mat)
         self.time_step_residual_matrix_container.append(np_res_mat)
 
     def GetJacobianPhiMultiplication(self, computing_model_part):
@@ -148,12 +202,12 @@ class HRomTrainingUtility(object):
         # Calculate the residuals basis and compute the HROM weights from it
         residual_basis = self.__CalculateResidualBasis()
         n_conditions = self.solver.GetComputingModelPart().NumberOfConditions() # Conditions must be included as an extra restriction to enforce ECM to capture all BC's regions.
-        self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = self.candidate_ids, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
+        self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = self.candidate_ids, constrain_sum_of_weights=self.constraint_sum_weights, constrain_conditions = False, number_of_conditions = n_conditions)
         self.hyper_reduction_element_selector.Run()
         if not self.hyper_reduction_element_selector.success:
             KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", "The Empirical Cubature Method did not converge using the initial set of candidates. Launching again without initial candidates.")
             #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
-            self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = None, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
+            self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = None, constrain_sum_of_weights=self.constraint_sum_weights, constrain_conditions = False, number_of_conditions = n_conditions)
             self.hyper_reduction_element_selector.Run()
         # Save the HROM weights in the RomParameters.json
         # Note that in here we are assuming this naming convention for the ROM json file
@@ -176,7 +230,7 @@ class HRomTrainingUtility(object):
         hrom_main_model_part = aux_model.CreateModelPart(model_part_name)
 
         if self.hrom_output_format == "numpy":
-            hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights()))
+            element_ids_list, condition_ids_list = self.__CreateListsWithRomElements()
         elif self.hrom_output_format == "json":
             with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
                 rom_parameters = KratosMultiphysics.Parameters(f.read())
@@ -184,9 +238,13 @@ class HRomTrainingUtility(object):
 
         # Get the weights and fill the HROM computing model part
         if (self.projection_strategy=="lspg"):
+            hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights())) #TODO: Adapt SetHRomComputingModelPartWithNeighbours to work with lists (i.e. self.__CreateListsWithRomElements()). Dictionaries are very slow for bigger problems.
             KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithNeighbours(hrom_info,computing_model_part,hrom_main_model_part)
         else:
-            KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
+            if self.hrom_output_format == "numpy":
+                KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithLists(element_ids_list, condition_ids_list, computing_model_part, hrom_main_model_part)
+            elif self.hrom_output_format == "json":
+                KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part) #TODO: Adapt SetHRomComputingModelPart to work with lists (i.e. self.__CreateListsWithRomElements()). Dictionaries are very slow for bigger problems.
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
 
@@ -226,7 +284,7 @@ class HRomTrainingUtility(object):
             "element_selection_type": "empirical_cubature",
             "element_selection_svd_truncation_tolerance": 1.0e-6,
             "echo_level" : 0,
-            "create_hrom_visualization_model_part" : true,
+            "create_hrom_visualization_model_part" : false,
             "projection_strategy": "galerkin",
             "include_conditions_model_parts_list": [],
             "include_elements_model_parts_list": [],
@@ -234,31 +292,38 @@ class HRomTrainingUtility(object):
             "initial_candidate_conditions_model_part_list" : [],
             "include_nodal_neighbouring_elements_model_parts_list":[],
             "include_minimum_condition": false,
-            "include_condition_parents": false
+            "include_condition_parents": false,
+            "constraint_sum_weights": true,
+            "svd_type": "numpy_rsvd"
         }""")
         return default_settings
 
     def __CalculateResidualBasis(self):
-        # Set up the residual snapshots matrix
-        residuals_snapshot_matrix = self._GetResidualsProjectedMatrix()
-
-        # Calculate the randomized and truncated SVD of the residual snapshots
-        u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
-            residuals_snapshot_matrix,
-            self.element_selection_svd_truncation_tolerance)
+        if self.svd_type == "numpy_rsvd":
+            # Calculate the randomized and truncated SVD of the residual snapshots #TODO add other SVD options
+            u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
+                self._GetResidualsProjectedMatrix(),
+                self.element_selection_svd_truncation_tolerance)
+        elif self.svd_type == "numpy_svd":
+            # Use NumPy's SVD and manually truncate based on the truncation tolerance
+            u, s, _ = np.linalg.svd(self._GetResidualsProjectedMatrix(), full_matrices=False)
+            # Calculate total energy and identify truncation point
+            total_energy = np.sqrt(np.sum(s**2))
+            # Reverse the squared singular values, compute the cumulative sum, then take the square root
+            squared_s = s**2
+            reversed_cumulative_sum = np.cumsum(squared_s[::-1])
+            # Reverse the cumulative sum back to the original order and then take the square root
+            cumulative_energy_reversed = np.sqrt(reversed_cumulative_sum[::-1])
+            r = np.argmax(cumulative_energy_reversed/total_energy < self.element_selection_svd_truncation_tolerance)
+            # Truncate the singular vectors accordingly
+            u = u[:, :r]
 
         return u
 
 
 
     def _GetResidualsProjectedMatrix(self):
-        # Set up the residual snapshots matrix
-        n_steps = len(self.time_step_residual_matrix_container)
-        residuals_snapshot_matrix = self.time_step_residual_matrix_container[0]
-        for i in range(1,n_steps):
-            del self.time_step_residual_matrix_container[0] # Avoid having two matrices, numpy does not concatenate references.
-            residuals_snapshot_matrix = np.c_[residuals_snapshot_matrix,self.time_step_residual_matrix_container[0]]
-        return residuals_snapshot_matrix
+        return np.block(self.time_step_residual_matrix_container)
 
 
 
@@ -266,6 +331,7 @@ class HRomTrainingUtility(object):
         number_of_elements = self.solver.GetComputingModelPart().GetRootModelPart().NumberOfElements()
         weights = np.squeeze(self.hyper_reduction_element_selector.w)
         indexes = self.hyper_reduction_element_selector.z
+        indexes = self.map_numpy_indexes_to_element_and_conditions_ids(indexes,number_of_elements)
 
         # Create dictionary with HROM weights (Only used for the expansion of the selected Conditions to include their parent Elements)
         hrom_weights = self.__CreateDictionaryWithRomElementsAndWeights(weights,indexes,number_of_elements)
@@ -281,7 +347,6 @@ class HRomTrainingUtility(object):
 
                 # Call the GetConditionIdsNotInHRomModelPart function
                 new_conditions = KratosROM.RomAuxiliaryUtilities.GetConditionIdsNotInHRomModelPart(
-                    root_model_part, # The complete model part
                     conditions_to_include_model_part, # The model part containing the conditions to be included
                     hrom_weights)
 
@@ -318,6 +383,7 @@ class HRomTrainingUtility(object):
 
                 # Call the GetNodalNeighbouringElementIdsNotInHRom function
                 new_nodal_neighbours = KratosROM.RomAuxiliaryUtilities.GetNodalNeighbouringElementIdsNotInHRom(
+                    root_model_part, # The complete model part
                     nodal_neighbours_model_part, # The model part containing the nodal neighbouring elements to be included
                     hrom_weights)
 
@@ -417,4 +483,29 @@ class HRomTrainingUtility(object):
                     hrom_weights["Conditions"][int(indexes[j])-number_of_elements] = float(weights[j])
 
         return hrom_weights
+
+    def __CreateListsWithRomElements(self):
+        number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
+
+        # Load combined indexes for elements and conditions
+        element_ids = np.load(self.rom_basis_output_folder / "HROM_ElementIds.npy")
+        condition_ids = np.load(self.rom_basis_output_folder / "HROM_ConditionIds.npy") + number_of_elements
+
+        # Combine element and condition IDs
+        combined_indexes = np.r_[element_ids, condition_ids]
+
+        # Separate element and condition indexes
+        element_mask = combined_indexes < number_of_elements
+        condition_mask = ~element_mask
+
+        # Extract unique element and condition indexes
+        unique_element_ids = np.unique(combined_indexes[element_mask], return_inverse=False)
+        unique_condition_ids = np.unique(combined_indexes[condition_mask] - number_of_elements, return_inverse=False)
+
+        # Convert to Python lists
+        unique_element_ids_list = unique_element_ids.astype(int).tolist()
+        unique_condition_ids_list = unique_condition_ids.astype(int).tolist()
+
+        return unique_element_ids_list, unique_condition_ids_list
+
 

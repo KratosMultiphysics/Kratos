@@ -42,7 +42,6 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
 
     def setUp(self):
         # Create search
-        
         if KM.IsDistributedRun():
             raise Exception("MPI version comming in a future PR")
             self.search = KM.GeometricalObjectsBinsMPI(self.model_part.Conditions, self.model_part.GetCommunicator().GetDataCommunicator())

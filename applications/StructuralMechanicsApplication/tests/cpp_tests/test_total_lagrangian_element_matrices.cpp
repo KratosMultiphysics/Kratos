@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "containers/model.h"
 #include "includes/node.h"
 #include "includes/element.h"
@@ -28,7 +28,7 @@
 #include "includes/kratos_components.h"
 
 // Application includes
-#include "custom_elements/total_lagrangian.h"
+#include "custom_elements/solid_elements/total_lagrangian.h"
 #include "custom_constitutive/linear_plane_strain.h"
 
 namespace Kratos

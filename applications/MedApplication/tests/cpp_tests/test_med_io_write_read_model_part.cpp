@@ -61,14 +61,14 @@ void MedWriteReadModelPart(
 
 KRATOS_TEST_CASE_IN_SUITE(WriteReadMedEmpty, KratosMedFastSuite)
 {
-    MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
+    MedWriteReadModelPart(std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()), [](ModelPart& rModelPart){
         // deliberately do not create any entities
     });
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WriteReadMedNodes, KratosMedFastSuite)
 {
-    MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
+    MedWriteReadModelPart(std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()), [](ModelPart& rModelPart){
         int node_id = 0;
         for (int x=0; x<20; ++x) {
             for (int y=0; y<10; ++y) {
@@ -82,7 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteReadMedNodes, KratosMedFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(WriteReadMedNodesNonConsecutiveNodeIds, KratosMedFastSuite)
 {
-    MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
+    MedWriteReadModelPart(std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()), [](ModelPart& rModelPart){
         int node_id = 1;
         for (int x=0; x<20; ++x) {
             for (int y=0; y<10; ++y) {
@@ -97,7 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteReadMedNodesNonConsecutiveNodeIds, KratosMedFastS
 
 KRATOS_TEST_CASE_IN_SUITE(WriteRead2DLineMesh, KratosMedFastSuite)
 {
-    MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
+    MedWriteReadModelPart(std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()), [](ModelPart& rModelPart){
         constexpr std::size_t num_nodes = 10;
         for (std::size_t i=0; i<num_nodes; ++i) {
             rModelPart.CreateNewNode(i+1, i,0,0);
@@ -110,7 +110,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead2DLineMesh, KratosMedFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(WriteRead2DLineMeshNonConsecutiveNodeIds, KratosMedFastSuite)
 {
-    MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
+    MedWriteReadModelPart(std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()), [](ModelPart& rModelPart){
         constexpr std::size_t num_nodes = 10;
         for (std::size_t i=0; i<num_nodes; ++i) {
             rModelPart.CreateNewNode(i*10+1, i,0,0)->Id();
@@ -123,7 +123,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead2DLineMeshNonConsecutiveNodeIds, KratosMedFas
 
 KRATOS_TEST_CASE_IN_SUITE(WriteRead2DTriangularMesh, KratosMedFastSuite)
 {
-    MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
+    MedWriteReadModelPart(std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()), [](ModelPart& rModelPart){
         auto p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
         auto p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
         auto p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
@@ -147,7 +147,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead2DTriangularMesh, KratosMedFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(WriteRead2DQuadrilateralMesh, KratosMedFastSuite)
 {
-    MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
+    MedWriteReadModelPart(std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()), [](ModelPart& rModelPart){
         constexpr std::size_t num_quads = 10;
         int node_id = 0;
         for (std::size_t i=0; i<num_quads+1; ++i) {
@@ -168,7 +168,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead2DQuadrilateralMesh, KratosMedFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(WriteRead2DTriAndQuadMesh, KratosMedFastSuite)
 {
-    MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
+    MedWriteReadModelPart(std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()), [](ModelPart& rModelPart){
         constexpr std::size_t num_quads = 10;
         int node_id = 0;
         for (std::size_t i=0; i<num_quads+1; ++i) {
@@ -200,7 +200,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead2DTriAndQuadMesh, KratosMedFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(WriteRead3DTetraMesh, KratosMedFastSuite)
 {
-    MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
+    MedWriteReadModelPart(std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()), [](ModelPart& rModelPart){
         const double max_x = 1.0;
         const double min_x = 0.0;
         const double max_y = 1.0;
@@ -233,7 +233,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead3DTetraMesh, KratosMedFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(WriteRead3DHexa, KratosMedFastSuite)
 {
-    MedWriteReadModelPart(this->Name(), [](ModelPart& rModelPart){
+    MedWriteReadModelPart(std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()), [](ModelPart& rModelPart){
         const double max_x = 1.0;
         const double min_x = 0.0;
         const double max_y = 1.0;

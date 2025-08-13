@@ -82,6 +82,11 @@ public:
         return mShape;
     }
 
+    IndexType GetMaxDepth() const override
+    {
+        return mpSourceExpression->GetMaxDepth() + 1;
+    }
+
     std::string Info() const override
     {
         std::stringstream msg;

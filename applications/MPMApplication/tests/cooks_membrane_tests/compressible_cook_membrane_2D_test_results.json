@@ -1,0 +1,192 @@
+{
+  "TIME": [
+    1.1
+  ],
+  "NODE_1594": {
+    "DISPLACEMENT_X": [
+      -0.061530340038165356
+    ],
+    "DISPLACEMENT_Y": [
+      0.29624398184019385
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_1610": {
+    "DISPLACEMENT_X": [
+      -0.0714772686480328
+    ],
+    "DISPLACEMENT_Y": [
+      0.2968704185589443
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_1624": {
+    "DISPLACEMENT_X": [
+      -0.08085123349653826
+    ],
+    "DISPLACEMENT_Y": [
+      0.2975914609672479
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_1635": {
+    "DISPLACEMENT_X": [
+      -0.0899560520559696
+    ],
+    "DISPLACEMENT_Y": [
+      0.29855247061062173
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_1647": {
+    "DISPLACEMENT_X": [
+      -0.09904955203180242
+    ],
+    "DISPLACEMENT_Y": [
+      0.29969289266506316
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_1657": {
+    "DISPLACEMENT_X": [
+      -0.10824268522921987
+    ],
+    "DISPLACEMENT_Y": [
+      0.3009973647579524
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_1667": {
+    "DISPLACEMENT_X": [
+      -0.11760702857034212
+    ],
+    "DISPLACEMENT_Y": [
+      0.3024591969466162
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_1676": {
+    "DISPLACEMENT_X": [
+      -0.12719812319987098
+    ],
+    "DISPLACEMENT_Y": [
+      0.3040841446007588
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_1683": {
+    "DISPLACEMENT_X": [
+      -0.13708391233074044
+    ],
+    "DISPLACEMENT_Y": [
+      0.3057185938632393
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_1691": {
+    "DISPLACEMENT_X": [
+      -0.1473570540745881
+    ],
+    "DISPLACEMENT_Y": [
+      0.30743674965700757
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_1698": {
+    "DISPLACEMENT_X": [
+      -0.15801769899233423
+    ],
+    "DISPLACEMENT_Y": [
+      0.30919758407399367
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_1705": {
+    "DISPLACEMENT_X": [
+      -0.16913761323965434
+    ],
+    "DISPLACEMENT_Y": [
+      0.3110538126742278
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_1710": {
+    "DISPLACEMENT_X": [
+      -0.18094667527164157
+    ],
+    "DISPLACEMENT_Y": [
+      0.3129735395671892
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_1714": {
+    "DISPLACEMENT_X": [
+      -0.19331340884277104
+    ],
+    "DISPLACEMENT_Y": [
+      0.314650488408722
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_1717": {
+    "DISPLACEMENT_X": [
+      -0.2066515277572842
+    ],
+    "DISPLACEMENT_Y": [
+      0.3162198024331148
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_1719": {
+    "DISPLACEMENT_X": [
+      -0.22106314466897947
+    ],
+    "DISPLACEMENT_Y": [
+      0.3174793496471431
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_1720": {
+    "DISPLACEMENT_X": [
+      -0.2370831521926267
+    ],
+    "DISPLACEMENT_Y": [
+      0.3181747320663449
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  }
+}

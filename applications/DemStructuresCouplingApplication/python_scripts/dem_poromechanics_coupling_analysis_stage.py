@@ -392,8 +392,8 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
 
     def _CheckCoherentInputs(self):
         variables_exported_from_gauss_points_to_nodes = self.parameters["poromechanics_parameters"]["solver_settings"]["gp_to_nodal_variable_list"].GetStringArray()
-        if not "WATER_PRESSURE_GRADIENT" in variables_exported_from_gauss_points_to_nodes or not "EFFECTIVE_STRESS_TENSOR" in variables_exported_from_gauss_points_to_nodes:
-            raise Exception("Coupling DEM with Poromechanics Error: [\"poromechanics_parameters\"][\"solver_settings\"][\"gp_to_nodal_variable_list\"] must contain \"WATER_PRESSURE_GRADIENT\" and \"EFFECTIVE_STRESS_TENSOR\"\n")
+        if not "LIQUID_PRESSURE_GRADIENT" in variables_exported_from_gauss_points_to_nodes or not "EFFECTIVE_STRESS_TENSOR" in variables_exported_from_gauss_points_to_nodes:
+            raise Exception("Coupling DEM with Poromechanics Error: [\"poromechanics_parameters\"][\"solver_settings\"][\"gp_to_nodal_variable_list\"] must contain \"LIQUID_PRESSURE_GRADIENT\" and \"EFFECTIVE_STRESS_TENSOR\"\n")
 
     def _YieldDEMTime(self, current_time, current_time_plus_increment, delta_time):
         current_time += delta_time

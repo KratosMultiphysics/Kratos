@@ -77,11 +77,17 @@ class TestDofs(KratosUnittest.TestCase):
         dy.EquationId = 6
         dz.EquationId = 7
 
+        # Assign effective equation Id
+        dx.EffectiveEquationId = 1
+        dy.EffectiveEquationId = 2
+        dz.EffectiveEquationId = 3
+
         # Checks
         self.assertEqual(p.GetVariable(), KratosMultiphysics.PRESSURE)
         self.assertEqual(dx.GetVariable(), KratosMultiphysics.DISPLACEMENT_X)
         self.assertEqual(dx.GetReaction(), KratosMultiphysics.REACTION_X)
         self.assertEqual(dx.EquationId, 5)
+        self.assertEqual(dx.EffectiveEquationId, 1)
 
         self.assertLess(p,p2)
         self.assertGreater(dy,dx)
@@ -164,6 +170,37 @@ class TestDofs(KratosUnittest.TestCase):
         self.assertEqual(len(dofs_vector), 3*test_model_part.NumberOfNodes())
         dofs_vector.unique()
         self.assertEqual(len(dofs_vector), test_model_part.NumberOfNodes())
+
+    def testBlockBuildDofSetUtility(self):
+        """
+        Test the block build DOF set utility
+
+        This test creates an auxiliary mesh with elements having DISTANCE as DOF to
+        then create the corresponding block build DOF set.
+
+        """
+
+        # Set up the auxiliary model part
+        current_model = KratosMultiphysics.Model()
+        test_model_part = current_model.CreateModelPart("TestModelPart")
+        test_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+        test_model_part.CreateNewNode(3, 1.0, 1.0, 0.0)
+        test_model_part.CreateNewNode(4, 0.0, 1.0, 0.0)
+        for node in test_model_part.Nodes:
+            node.AddDof(KratosMultiphysics.DISTANCE)
+        aux_properties = test_model_part.CreateNewProperties(1)
+        test_model_part.CreateNewElement("DistanceCalculationElementSimplex2D3N", 1, [1,2,3], aux_properties)
+        test_model_part.CreateNewElement("DistanceCalculationElementSimplex2D3N", 2, [1,3,4], aux_properties)
+
+        # Create the corresponding block build DOF set
+        dofs_array = KratosMultiphysics.DofsArrayType()
+        KratosMultiphysics.BlockBuildDofArrayUtility.SetUpDofArray(test_model_part, dofs_array)
+
+        # Check the obtained DOF set
+        self.assertEqual(len(dofs_array), test_model_part.NumberOfNodes())
+
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)

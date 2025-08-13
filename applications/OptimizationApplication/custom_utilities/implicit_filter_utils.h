@@ -42,10 +42,6 @@ public:
 
     static void SetBulkRadiusForShapeFiltering(ModelPart& rModelPart);
 
-    static void AssignProperties(
-        ModelPart& rModelPart,
-        Parameters PropertiesParams);
-
     ///@}
 };
 

@@ -12,19 +12,22 @@
 
 #pragma once
 
+#include "containers/model.h"
 #include <filesystem>
 #include <includes/kratos_parameters.h>
-#include "containers/model.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
-class InputUtility {
+class InputUtility
+{
 public:
     virtual ~InputUtility() = default;
 
     [[nodiscard]] virtual Parameters ProjectParametersFromFile(const std::filesystem::path& rProjectFilePath) const = 0;
-    virtual void ReadModelFromFile(const std::filesystem::path& rModelPartFilePath, ModelPart& rModelPart) const = 0;
+    virtual void ReadModelFromFile(const std::filesystem::path& rModelPartFilePath,
+                                   ModelPart&                   rModelPart) const = 0;
     virtual void AddMaterialsFromFile(const std::filesystem::path& rMaterialFilePath, Model& rModel) const = 0;
 };
 
-}
+} // namespace Kratos

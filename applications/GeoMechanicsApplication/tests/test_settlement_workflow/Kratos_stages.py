@@ -5,16 +5,9 @@ from KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis import Geo
 
 if __name__ == "__main__":
 
-    currentWorking = os.getcwd()
-
     # construct parameterfile names of stages to run
-    project_path = r"C:\Users\graaf\OneDrive - Stichting Deltares\Documents\settlement_app\scenario_1\input_files"
     n_stages = 4
-    parameter_file_names = [os.path.join(project_path, 'ProjectParameters_stage' + str(i + 1) + '.json') for i in
-                            range(n_stages)]
-
-    # change to project directory
-    os.chdir(project_path)
+    parameter_file_names = [f'ProjectParameters_stage{i+1}.json' for i in range(n_stages)]
 
     # setup stages from parameterfiles
     parameters_stages = [None] * n_stages
@@ -28,6 +21,3 @@ if __name__ == "__main__":
     # execute the stages
     for stage in stages:
         stage.Run()
-
-    # back to working directory
-    os.chdir(currentWorking)

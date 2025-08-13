@@ -867,7 +867,8 @@ double ElementSizeCalculator<2,4>::AverageElementSizeDerivative(
 template<>
 double ElementSizeCalculator<2,9>::AverageElementSize(const Geometry<Node >& rGeometry)
 {
-    return rGeometry.Length();
+    // this is to compensate for the missing 2.0 in the geometry length computation.
+    return rGeometry.Length() * 2.0;
 }
 
 template<>
@@ -893,9 +894,9 @@ double ElementSizeCalculator<2,9>::AverageElementSizeDerivative(
     const auto detJ = MathUtils<double>::Det2(jacobian);
 
     if (detJ > 0.0) {
-        return 0.5 * detJ_derivative / (std::sqrt(detJ));
+        return detJ_derivative / (std::sqrt(detJ));
     } else if (detJ < 0.0) {
-        return -0.5 * detJ_derivative / (std::sqrt(-detJ));
+        return -detJ_derivative / (std::sqrt(-detJ));
     } else {
         return 0.0;
     }

@@ -12,14 +12,15 @@
 //
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/cfd_variables.h"
 
+// Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/statistics_record.h"
 #include "custom_utilities/statistics_data.h"
 #include "custom_utilities/statistics_utilities.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 namespace Testing  {

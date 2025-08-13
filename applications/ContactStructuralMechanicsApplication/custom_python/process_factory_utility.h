@@ -50,7 +50,7 @@ namespace Kratos
  * @details This class is used in order to interoperate between c++ and python
  * @author Vicente Mataix Ferrandiz
  */
-class ProcessFactoryUtility
+class KRATOS_API_EXPORT ProcessFactoryUtility
 {
 public:
 
@@ -81,7 +81,7 @@ public:
 
     /**
      * @brief Constructor using just one process
-     * @param rProcess The process that will be added  at the begining of the vector of processes
+     * @param rProcess The process that will be added  at the beginning of the vector of processes
      * @note This constructor overrides the previous ones ("everything" is an object, so here I try first to work as it is a list)
      */
     ProcessFactoryUtility(ObjectType& rProcess);

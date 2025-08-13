@@ -215,7 +215,7 @@ namespace Kratos
     //   out_buffer_active = false;
     // }
 
-    // Located in the begining of the assignation:
+    // Located in the beginning of the assignation:
 
     // check mesh size introduced :: warning must be shown
     // if(!out_buffer_active)
@@ -241,7 +241,7 @@ namespace Kratos
       std::cout<<" --------------       DOMAIN        -------------- "<<std::endl;
     }
 
-    // Located in the begining of the assignation:
+    // Located in the beginning of the assignation:
 
     //generate mesh
     this->Generate(rModelPart,*(mpMeshingVariables));

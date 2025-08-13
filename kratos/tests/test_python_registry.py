@@ -12,6 +12,18 @@ class TestPythonRegistry(KratosUnittest.TestCase):
         # Check that base Process is registered in its corresponding module as well as in the All block
         self.assertTrue(KratosMultiphysics.Registry.HasItem("Processes.All.Process"))
         self.assertTrue(KratosMultiphysics.Registry.HasItem("Processes.KratosMultiphysics.Process"))
+        self.assertFalse(KratosMultiphysics.Registry.HasItem("Processes.KratosMultiphysics.ProcessPikachu"))
+
+    def testGetItemCpp(self):
+        # Check that base Process is registered in its corresponding module as well as in the All block
+        base_process = KratosMultiphysics.Registry["Processes.All.Process.Prototype"]
+        self.assertTrue(isinstance(base_process, KratosMultiphysics.Process))
+        base_process = KratosMultiphysics.Registry["Processes.KratosMultiphysics.Process.Prototype"]
+        self.assertTrue(isinstance(base_process, KratosMultiphysics.Process))
+
+    @KratosUnittest.expectedFailure
+    def testHasItemCppFail(self):
+        KratosMultiphysics.Registry["Processes.All.ProcessPikachu.Prototype"]
 
     def testHasItemPython(self):
         # Add a fake entity to the Python registry
@@ -38,7 +50,6 @@ class TestPythonRegistry(KratosUnittest.TestCase):
 
         # Remove the auxiliary testing tentities from the Python registry
         KratosMultiphysics.Registry.RemoveItem("FakeEntities")
-
 
     def testAddItem(self):
         # Add some fake entities to the Python registry
@@ -217,4 +228,5 @@ class TestPythonRegistry(KratosUnittest.TestCase):
         KratosMultiphysics.Registry.RemoveItem("Processes")
 
 if __name__ == "__main__":
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

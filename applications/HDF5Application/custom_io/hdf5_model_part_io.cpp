@@ -40,7 +40,7 @@ ModelPartIO::ModelPartIO(
     Parameters Settings,
     File::Pointer pFile)
     : mpFile(pFile),
-      mWriteEntityProperyIds(true)
+      mWriteEntityPropertyIds(true)
 {
     Parameters default_params(R"(
         {
@@ -61,7 +61,7 @@ ModelPartIO::ModelPartIO(
 
     KRATOS_ERROR_IF(mPrefix.back() == '/')
         << "The ModelPartIO prefix is always assumed to be representing a group,"
-        << " hence ending \"\\\" is not required [ provided prefix = "
+        << " hence the trailing \"/\" is not required [ provided prefix = "
         << mPrefix << " ].\n";
 }
 
@@ -69,10 +69,11 @@ ModelPartIO::ModelPartIO(
     const std::string& rPrefix,
     const bool WriteEntityPropertyIds,
     File::Pointer pFile)
-    : mpFile(pFile),
-      mPrefix(rPrefix),
-      mWriteEntityProperyIds(WriteEntityPropertyIds)
+    : ModelPartIO(
+        [&rPrefix](){Parameters output; output.AddString("prefix", rPrefix); return output; }(),
+        pFile)
 {
+    mWriteEntityPropertyIds = WriteEntityPropertyIds;
 }
 
 bool ModelPartIO::ReadNodes(NodesContainerType& rNodes)
@@ -108,11 +109,6 @@ void ModelPartIO::WriteNodes(NodesContainerType const& rNodes)
 void ModelPartIO::ReadProperties(PropertiesContainerType& rProperties)
 {
     Internals::ReadProperties(*mpFile, mPrefix, rProperties);
-}
-
-void ModelPartIO::WriteProperties(Properties const& rProperties)
-{
-    Internals::WriteProperties(*mpFile, mPrefix, rProperties);
 }
 
 void ModelPartIO::WriteProperties(PropertiesContainerType const& rProperties)
@@ -154,7 +150,7 @@ void ModelPartIO::WriteElements(ElementsContainerType const& rElements)
     mpFile->AddPath(element_path);
     for (unsigned int i = 0; i < names.size(); ++i) {
         Internals::ConnectivitiesData<ElementsContainerType> connectivities(element_path, mpFile);
-        connectivities.Write(factored_elements[i], mWriteEntityProperyIds);
+        connectivities.Write(factored_elements[i], mWriteEntityPropertyIds);
     }
 
     KRATOS_CATCH("");
@@ -193,7 +189,7 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rConditions)
     mpFile->AddPath(condition_path);
     for (unsigned int i = 0; i < names.size(); ++i) {
         Internals::ConnectivitiesData<ConditionsContainerType> connectivities(condition_path, mpFile);
-        connectivities.Write(factored_conditions[i], mWriteEntityProperyIds);
+        connectivities.Write(factored_conditions[i], mWriteEntityPropertyIds);
     }
 
     KRATOS_CATCH("");
@@ -224,6 +220,7 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
 
     // Avoid inadvertently reordering partway through
     // the writing process.
+    // TODO: Remove after PVS refactoring
     rModelPart.Nodes().Unique();
     rModelPart.Conditions().Unique();
     rModelPart.Elements().Unique();
@@ -307,8 +304,7 @@ std::vector<std::size_t> ModelPartIO::ReadContainerIds(std::string const& rPath)
 {
     KRATOS_TRY
 
-    unsigned start_index, block_size;
-    std::tie(start_index, block_size) = HDF5::StartIndexAndBlockSize(*mpFile, rPath);
+    const auto [start_index, block_size] = HDF5::StartIndexAndBlockSize(*mpFile, rPath);
 
     Vector<int> id_buf;
     mpFile->ReadDataSet(rPath + "/Ids", id_buf, start_index, block_size);

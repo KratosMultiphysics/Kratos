@@ -21,6 +21,7 @@ class KratosProcessFactory(object):
                     # Get already stored prototype
                     if KM.Registry.HasItem(f"{registry_entry}.Prototype"):
                         prototype = KM.Registry[f"{registry_entry}.Prototype"]
+                        instance = prototype.Create(self.Model, item["Parameters"])
                     # Get prototype from stored Python module
                     elif KM.Registry.HasItem(f"{registry_entry}.ModuleName"):
                         class_name = registry_entry.split(".")[-1]
@@ -28,6 +29,7 @@ class KratosProcessFactory(object):
                         module = import_module(module_name)
                         if hasattr(module, class_name):
                             prototype = getattr(module, class_name)
+                            instance = prototype(self.Model, item["Parameters"])
                         else:
                             #TODO: In here we're assuming that the registry last key is the class name
                             #TODO: We should enforce this. Now an error happens but as we populate we should throw a warning and search for a ClassName item
@@ -37,7 +39,6 @@ class KratosProcessFactory(object):
                         err_msg = f"Registry process '{registry_entry}' cannot be constructed."
                         raise Exception(err_msg)
                     # Construct the process from the obtained prototype and append it to the list
-                    instance = prototype(self.Model, item["Parameters"])
                     constructed_processes.append(instance)
                 else:
                     KM.Logger.PrintWarning(f"Asking to construct the non-registered 'name' '{registry_entry}'.")

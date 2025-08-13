@@ -27,14 +27,13 @@ file(GLOB_RECURSE KRATOS_SHALLOW_WATER_APPLICATION_PYTHON_INTERFACE
 
 ## define shallow water test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_SHALLOW_WATER_TESTING
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
-    )
+    file(GLOB_RECURSE KRATOS_SHALLOW_WATER_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    kratos_add_gtests(TARGET KratosShallowWaterCore SOURCES "${KRATOS_SHALLOW_WATER_TESTING_SOURCES}" USE_CUSTOM_MAIN)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################
 ## ShallowWaterApplication core library (C++ parts)
-add_library(KratosShallowWaterCore SHARED ${KRATOS_SHALLOW_WATER_APPLICATION_SOURCES} ${KRATOS_SHALLOW_WATER_TESTING})
+add_library(KratosShallowWaterCore SHARED ${KRATOS_SHALLOW_WATER_APPLICATION_SOURCES})
 target_link_libraries(KratosShallowWaterCore PUBLIC KratosCore)
 set_target_properties(KratosShallowWaterCore PROPERTIES COMPILE_DEFINITIONS "SHALLOW_WATER_APPLICATION=EXPORT,API")
 

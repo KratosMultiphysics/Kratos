@@ -108,7 +108,7 @@ public:
                         work_array.push_back(index_j);
                 }
 
-                //sorting the indices and elminating the duplicates
+                //sorting the indices and eliminating the duplicates
                 std::sort(work_array.begin(),work_array.end());
                 typename std::vector<int>::iterator new_end = std::unique(work_array.begin(),work_array.end());
                 unsigned int number_of_entries = new_end - work_array.begin();

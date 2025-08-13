@@ -21,9 +21,7 @@
 #include "includes/expect.h"
 #include "includes/registry.h"
 
-namespace Kratos {
-
-namespace Testing {
+namespace Kratos::Testing {
 
 namespace
 {
@@ -99,7 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryDataValue, KratosCoreFastSuite)
 {
     double value = 3.14;
     RegistryItem value_registry_item("value_item", value);
-    
+
     KRATOS_EXPECT_EQ(value_registry_item.Name(),"value_item");
     KRATOS_EXPECT_TRUE(value_registry_item.HasValue());
     KRATOS_EXPECT_FALSE(value_registry_item.HasItems());
@@ -115,7 +113,7 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryJsonValue, KratosCoreFastSuite)
     std::string value_item_json = R"({
 "value_item": "3.14"
 })";
-    
+
     KRATOS_EXPECT_EQ(value_registry_item.ToJson(), value_item_json);
 }
 
@@ -125,7 +123,7 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryJsonSubValue, KratosCoreFastSuite)
     RegistryItem registry_item("items");
 
     registry_item.AddItem<double>("sub_value_item", value);
-    
+
     KRATOS_EXPECT_FALSE(registry_item.HasValue());
     KRATOS_EXPECT_TRUE(registry_item.HasItems());
     KRATOS_EXPECT_FALSE(registry_item.HasItem("test"));
@@ -138,15 +136,16 @@ KRATOS_TEST_CASE_IN_SUITE(RegistrySubValue, KratosCoreFastSuite)
 {
     double value = 3.14;
     RegistryItem registry_item("items");
-    
+
     registry_item.AddItem<double>("sub_value_item", value);
     auto& sub_item = registry_item.GetItem("sub_value_item");
-    
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(registry_item.GetItem("sub_value_item_2"), "");
+
     KRATOS_EXPECT_EQ(sub_item.Name(),"sub_value_item");
     KRATOS_EXPECT_TRUE(sub_item.HasValue());
-    
+
     registry_item.RemoveItem("sub_value_item");
-    
+
     KRATOS_EXPECT_FALSE(registry_item.HasItems());
     KRATOS_EXPECT_FALSE(registry_item.HasItem("sub_value_item"));
 }
@@ -309,6 +308,10 @@ KRATOS_TEST_CASE_IN_SUITE(RegistrySomeRegisteredVariables, KratosCoreFastSuite){
      KRATOS_EXPECT_TRUE(Registry::HasItem("variables.all.DISPLACEMENT_Z"));
 }
 
-
+KRATOS_TEST_CASE_IN_SUITE(RegistryIsSameType, KratosCoreFastSuite) {
+    Variable<double> test_double("TEST_DOUBLE");
+    KRATOS_EXPECT_TRUE(Registry::GetItem("variables.all.TEMPERATURE").IsSameType(test_double));
+    KRATOS_EXPECT_FALSE(Registry::GetItem("variables.all.VELOCITY").IsSameType(test_double));
 }
-}  // namespace Kratos.
+
+}  // namespace Kratos::Testing.

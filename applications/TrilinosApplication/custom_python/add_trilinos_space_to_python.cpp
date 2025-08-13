@@ -313,6 +313,8 @@ void  AddBasicOperations(pybind11::module& m)
     .def("SetValue", SetValue)
     //.def("GetValue", GetValue) //deliberately commented out. Only works for local Ids
     .def("GatherValues", GatherValues)
+    .def_static("IsDistributed", &TrilinosSparseSpaceType::IsDistributed)
+    .def_static("FastestDirectSolverList", &TrilinosSparseSpaceType::FastestDirectSolverList)
     ;
 
     m.def("CreateCommunicator", CreateCommunicator);

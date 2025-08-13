@@ -154,7 +154,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         # not all solvers provide time (e.g. external solvers or steady solvers)
         # hence we have to check first if they return time (i.e. time != 0.0)
         # and then if the times are matching, since currently no interpolation in time is possible
-
         self.time = 0.0
         for solver in self.solver_wrappers.values():
             # TODO maybe do a check to make sure all ranks have the same time?
@@ -325,6 +324,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             else:
                 solver_model = models.get(solver_name) # returns None if "solver_name" is not in models
             solvers[solver_name] = solver_wrapper_factory.CreateSolverWrapper(solver_settings, solver_model, solver_name)
+            solvers[solver_name]._parent_process_info = self.process_info
 
         # then order them according to the coupling-loop
         solvers_map = OrderedDict()
