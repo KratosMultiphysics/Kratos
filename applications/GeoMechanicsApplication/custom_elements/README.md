@@ -51,13 +51,13 @@ where
 - $t$				= time $\mathrm{\left[ T \right]}$
 - $x$				= global coordinates $\mathrm{\left[ L \right]}$
 - $q_i$				= specific discharge $\mathrm{\left[ LT^{-1} \right]}$
-- $\alpha$			= $\left( Biot - n \right) / K_{soild}$, solid skeleton compressibility $\mathrm{\left[ L^2 F^{-1} \right]}$
-- $\beta$			= $1 / K_{Fluid}$, liquid phase compressibility $\mathrm{\left[ L^2 F^{-1} \right]}$
+- $\alpha$			= $\left( Biot - n \right) / K_{solid}$, solid skeleton compressibility $\mathrm{\left[ L^2 F^{-1} \right]}$
+- $\beta$			= $1 / K_{fluid}$, liquid phase compressibility $\mathrm{\left[ L^2 F^{-1} \right]}$
 - $\rho^w$			= fluid density $\mathrm{\left[ M L^{-3} \right]}$
 - $\Omega$			= flow domain $\mathrm{\left[ L^2 \right]}$
 - $K_{solid}$		= bulk modulus of soil $\mathrm{\left[ F L^{-2} \right]}$
-- $K_{Fluid}$		= bulk modulus of water $\mathrm{\left[ F L^{-2} \right]}$
-- $Biot$            = Biot coefficient $\mathrm{\left[ - \right]}$
+- $K_{fluid}$		= bulk modulus of water $\mathrm{\left[ F L^{-2} \right]}$
+- $Biot$			= Biot coefficient $\mathrm{\left[ - \right]}$
 Darcy's law
 
 ```math
@@ -68,7 +68,7 @@ q = -\frac{K_{ij}}{\mu} \left( \frac{\partial p}{\partial x_j} - \rho^w g_j \rig
 - $K_{ij}$			= intrinsic permeability $\mathrm{\left[ L^2 \right]}$
 - $\mu$				= dynamic viscosity $\mathrm{\left[ F T L^{-2} \right]}$
 
-Richard's equation for partly saturates soil
+Richard's equation for partly saturated soil
 
 ```math
 \left[ \left( \alpha + n \beta \right) \rho^w S + n \rho^w \frac{dS}{dP} \right] \frac{\partial p}{\partial t} = \frac{\partial}{\partial x_i} \left[ \frac{\rho^w k_r K_{ij}}{\mu} \left( \frac{\partial p}{\partial x_j} - \rho^w g_j \right) \right]  \quad \quad \text{on} \quad \Omega
@@ -82,28 +82,31 @@ In Biot’s poroelasticity, the Biot coefficient is:
 $$ Biot=1 - \frac{K}{K_{solid}} $$
 
 where
-- $K$ = drained bulk modulus of the skeleton $\mathrm{\left[ F L^{-2} \right]}$
+- $K$ 			= drained bulk modulus of the skeleton $\mathrm{\left[ F L^{-2} \right]}$
 
 $$ K = \frac{1}{3} \frac{E}{1 - 2 \nu} $$
 
-Here, $\nu$ is the Poisson ratio. As mentioned above, the solid skeleton compressibility is:
+- $\nu$			= Poisson's ratio $\mathrm{\left[ - \right]}$
+- $E$			= Young's modulus of skeleton $\mathrm{\left[ F L^{-2} \right]}$
+
+As mentioned above, the solid skeleton compressibility is:
 
 $$ \alpha = \frac{Biot - n}{K_{solid}}  $$
 
 And the liquid phase compressibility:
 
-$$ \beta =\frac{1}{K_{Fluid}} $$
+$$ \beta =\frac{1}{K_{fluid}} $$
 
-However, Biot coefficient can be a user defined coefficient. In the case the used does not define Biot, the above calculation is applied. In the case of defining it, the Biot coefficient is replaced by the defined value.
+However, Biot coefficient can be a user defined coefficient. In the case the user does not define Biot, the above calculation is applied. In the case of defining it, the Biot coefficient is replaced by the defined value.
 
 for most soils and even many rocks, the Biot coefficient is very close to 1. Since mineral grains are much stiffer than the porous frame.
 
 When it’s not close to 1?
 - In very stiff, low-porosity rocks (e.g., crystalline granite)
 - In cemented or heavily compacted materials
-  Here, K can be a significant fraction of Ks, making α noticeably less than 1, sometimes 0.6–0.8.
+  Here, $K$ can be a significant fraction of $K_{solid}$, making α noticeably less than 1, sometimes 0.6–0.8.
 
-for "IGNORE_UNDRAINED = true" a trick is applied. The fluid bulk module $K_f$ is set a very small number of $10^{-60}$.  This lades to a very large $\beta$ and hence a very large term of the coefficient of $\frac{\partial p}{\partial t}$. Or better to say, to a large compressibility matrix. This eliminates the effect of ground water flow.
+for "IGNORE_UNDRAINED = true" a trick is applied. The fluid bulk module $K_{fluid}$ is set a very small number of $10^{-60}$. This lades to a very large $\beta$ and hence a very large term of the coefficient of $\frac{\partial p}{\partial t}$. Or better to say, to a large compressibility matrix. This eliminates the effect of ground water flow.
 
 The governing equations in matrix form for the Pw elements are:
 ```math
@@ -138,7 +141,7 @@ where
 K_w = \frac{R^2 \rho_0 g}{8 \mu_0} \quad \quad \quad \quad f_u = \frac{\mu_0}{\mu} \quad \quad \quad \quad \chi = \frac{\rho - \rho_0}{\rho_0} \quad \quad \quad \quad h = \frac{p}{\rho_0 g} + y
 ```
 
-- $Q_w$			= pumping rate sink $\mathrm{\left[ L^3 T^{-1} \right]}$
+- $Q_w$				= pumping rate sink $\mathrm{\left[ L^3 T^{-1} \right]}$
 - $t$				= time $\mathrm{\left[ T \right]}$
 - $y$				= vertical coordinate $\mathrm{\left[ L \right]}$
 - $y_w$				= location of the discharge point $\mathrm{\left[ L \right]}$
@@ -154,7 +157,7 @@ K_w = \frac{R^2 \rho_0 g}{8 \mu_0} \quad \quad \quad \quad f_u = \frac{\mu_0}{\m
 - $g$				= gravitational acceleration $\mathrm{\left[ L T^{-2} \right]}$
 - $\rho_0$			= reference density of the fluid $\mathrm{\left[ M L^{-3} \right]}$
 - $\mu_0$			= reference viscosity of the fluid $\mathrm{\left[ F T L^{-2} \right]}$
-- $p$				= liquid pressure $\mathrm{\left[ Pa \right]}$
+- $p$				= liquid pressure $\mathrm{\left[ FL^{-2} \right]}$
 
 reformulated in pressure and preserving mass
 
