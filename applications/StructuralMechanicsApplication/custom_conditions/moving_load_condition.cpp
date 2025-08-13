@@ -206,9 +206,8 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
         array_1d<double, TDim> load_end_node = ZeroVector(TDim);
 
         BoundedMatrix<double, TDim, TNumNodes> local_load_matrix = ZeroMatrix(TDim, TNumNodes);
-        BoundedMatrix<double, TDim, TNumNodes> global_load_matrix = ZeroMatrix(TDim, TNumNodes);
 
-        const Matrix global_moment_matrix = CalculateGlobalMomentMatrix(rotational_shape_functions_vector, local_moving_load);
+        const Matrix global_moment_matrix = CalculateGlobalMomentMatrix(rotation_matrix, rotational_shape_functions_vector, local_moving_load);
 
         for (IndexType i_nod = 0; i_nod < TNumNodes; ++i_nod){
             local_load_matrix(0, i_nod) = normal_shape_functions_vector[i_nod] * local_moving_load[0];
@@ -219,7 +218,7 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
         }
 
         // rotate load back to global
-        noalias(global_load_matrix) = prod(trans(rotation_matrix), local_load_matrix);
+        const Matrix global_load_matrix = prod(trans(rotation_matrix), local_load_matrix);
 
         for (IndexType ii = 0; ii < TNumNodes; ++ii){
             const IndexType base = ii * block_size;
@@ -242,7 +241,7 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
 }
 
 template< std::size_t TDim, std::size_t TNumNodes >
-Matrix MovingLoadCondition<TDim, TNumNodes>::CalculateGlobalMomentMatrix(const VectorType& rRotationalShapeFunctionVector, const array_1d<double, TDim>& rLocalMovingLoad) const
+Matrix MovingLoadCondition<TDim, TNumNodes>::CalculateGlobalMomentMatrix(const bounded_matrix<double, TDim, TDim>&rRotationMatrix, const VectorType& rRotationalShapeFunctionVector, const array_1d<double, TDim>& rLocalMovingLoad) const
 {
     KRATOS_TRY
 
@@ -260,17 +259,18 @@ Matrix MovingLoadCondition<TDim, TNumNodes>::CalculateGlobalMomentMatrix(const V
     if (has_rot_dof) {
         if constexpr (TDim == 2) {
             // rotation around z axis (2D)
-            global_moment_matrix(0, 0) = rRotationalShapeFunctionVector[0] * rLocalMovingLoad[1];
-            global_moment_matrix(0, 1) = rRotationalShapeFunctionVector[1] * rLocalMovingLoad[1];
+			for (IndexType i = 0; i < TNumNodes; ++i) {
+				global_moment_matrix(0, i) = rRotationalShapeFunctionVector[i] * rLocalMovingLoad[1];
+			}
         } else if constexpr (TDim == 3){
-            // rotation around y and z axis (3D)
-            global_moment_matrix(0, 0) = 0;
-            global_moment_matrix(1, 0) = rRotationalShapeFunctionVector[0] * rLocalMovingLoad[2];
-            global_moment_matrix(2, 0) = rRotationalShapeFunctionVector[0] * rLocalMovingLoad[1];
-
-            global_moment_matrix(0, 1) = 0;
-            global_moment_matrix(1, 1) = rRotationalShapeFunctionVector[1] * rLocalMovingLoad[2];
-            global_moment_matrix(2, 1) = rRotationalShapeFunctionVector[1] * rLocalMovingLoad[1];
+			Matrix local_moment_matrix(TDim, TNumNodes);
+			for (IndexType i = 0; i < TNumNodes; ++i) {
+                // rotation around y and z axis (3D)
+                local_moment_matrix(0, i) = 0.0;
+				local_moment_matrix(1, i) = -rRotationalShapeFunctionVector[i] * rLocalMovingLoad[2];
+				local_moment_matrix(2, i) = rRotationalShapeFunctionVector[i] * rLocalMovingLoad[1];
+			}
+			global_moment_matrix = prod(trans(rRotationMatrix), local_moment_matrix);
         }
     }
     return global_moment_matrix;
