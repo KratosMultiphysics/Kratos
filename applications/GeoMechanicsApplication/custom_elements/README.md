@@ -51,13 +51,13 @@ where
 - $t$				= time $\mathrm{\left[ T \right]}$
 - $x$				= global coordinates $\mathrm{\left[ L \right]}$
 - $q_i$				= specific discharge $\mathrm{\left[ LT^{-1} \right]}$
-- $\alpha$			= $\left( 1 - n \right) / K_{soild}$, solid skeleton compressibility $\mathrm{\left[ L^2 F^{-1} \right]}$
+- $\alpha$			= $\left( Biot - n \right) / K_{soild}$, solid skeleton compressibility $\mathrm{\left[ L^2 F^{-1} \right]}$
 - $\beta$			= $1 / K_{Fluid}$, liquid phase compressibility $\mathrm{\left[ L^2 F^{-1} \right]}$
 - $\rho^w$			= fluid density $\mathrm{\left[ M L^{-3} \right]}$
 - $\Omega$			= flow domain $\mathrm{\left[ L^2 \right]}$
 - $K_{solid}$		= bulk modulus of soil $\mathrm{\left[ F L^{-2} \right]}$
 - $K_{Fluid}$		= bulk modulus of water $\mathrm{\left[ F L^{-2} \right]}$
-
+- $Biot$            = Biot coefficient $\mathrm{\left[ - \right]}$
 Darcy's law
 
 ```math
@@ -79,24 +79,20 @@ Richard's equation for partly saturates soil
 
 In Biot’s poroelasticity, the Biot coefficient is:
 
-$$ Biot=1 - \frac{K}{K_s} $$
+$$ Biot=1 - \frac{K}{K_{solid}} $$
 
 where
-
-- $K_s$ = bulk modules of the soil
-- $K$ = drained bulk modulus of the skeleton
+- $K$ = drained bulk modulus of the skeleton $\mathrm{\left[ F L^{-2} \right]}$
 
 $$ K = \frac{1}{3} \frac{E}{1 - 2 \nu} $$
 
-Here, $\nu$ is the Poisson ratio. Then the solid skeleton compressibility is:
+Here, $\nu$ is the Poisson ratio. As mentioned above, the solid skeleton compressibility is:
 
-$$ \alpha = \frac{Biot - n}{K_s}  $$
+$$ \alpha = \frac{Biot - n}{K_{solid}}  $$
 
-The liquid phase compressibility is defined as:
+And the liquid phase compressibility:
 
-$$ \beta =\frac{1}{K_f} $$
-
-Where $K_f$ is the bulk modulus of the water.
+$$ \beta =\frac{1}{K_{Fluid}} $$
 
 However, Biot coefficient can be a user defined coefficient. In the case the used does not define Biot, the above calculation is applied. In the case of defining it, the Biot coefficient is replaced by the defined value.
 
