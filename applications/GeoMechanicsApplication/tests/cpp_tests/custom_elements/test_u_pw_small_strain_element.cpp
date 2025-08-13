@@ -690,11 +690,9 @@ public:
     }
     using ConstitutiveLaw::SetValue;
 
-    bool RequiresInitializeMaterialResponse() override { return false; }
-
-    void CalculateMaterialResponseCauchy(Parameters& rValues) override {}
-
-    void FinalizeMaterialResponseCauchy(Parameters& rValues) override {}
+    MOCK_METHOD(bool, RequiresInitializeMaterialResponse, (), (override));
+    MOCK_METHOD(void, CalculateMaterialResponseCauchy, (Parameters&), (override));
+    MOCK_METHOD(void, FinalizeMaterialResponseCauchy, (Parameters&), (override));
 
     Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override
     {
@@ -740,8 +738,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeCorrectlySetsStatePara
     p_element->FinalizeSolutionStep(process_info);
 
     // Act
-    p_element->Initialize(process_info); // This should copy the state variables from the element to the new constitutive laws
+    p_element->Initialize(process_info); // This call should copy the state variables from the element to the new constitutive laws
 
+    // Assert
     std::vector<ConstitutiveLaw::Pointer> new_constitutive_laws;
     p_element->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, new_constitutive_laws, ProcessInfo{});
     for (const auto& rpConstitutiveLaw : new_constitutive_laws) {
