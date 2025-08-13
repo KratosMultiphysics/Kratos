@@ -574,9 +574,8 @@ def rotate_data(data, vector_initial, vector_final):
 
 def align_data(data, ransac_params=None):
     """
-    Aligns the data to the XY plane. It finds the data surface face, rotates and translates the data so that this face
-    coincides with the XY plane and, lastly, centers the data by translating it so that is center of mass in XY is
-    at the origin.
+    Aligns the data to the XY plane. It finds the data surface face and rotates and translates the data so that this face
+    coincides with the XY plane.
 
     Parameters:
     - data (np.ndarray): Nx3 matrix with the data points
@@ -605,14 +604,30 @@ def align_data(data, ransac_params=None):
     
     data_on_XY = translation_to_XY.apply(data_rotated)
 
+    return data_on_XY
+    
 
+
+def center_data_XY(data, center):
+    """
+    Centers the data point cloud on the XY plane by translating all points so that their center of mass becomes 'center'
+
+    Parameters
+    ----------
+    data (ndarray): Nx3 array of points
+    center (array): (3,) array with the coordinates of the new center
+
+    Returns
+    -------
+    data_centered (ndarray): Nx3 array of points whose center of mass on the XY plane is 'center'
+    """
+    
     # Translate the data on the XY plane to the origin
-    com_XY = np.sum(data_on_XY, axis=0)/data_on_XY.shape[0]
+    com_XY = np.sum(data, axis=0)/data.shape[0]
     com_XY[2] = 0
 
     translation_to_origin = Tf.from_translation(-com_XY)
 
-    data_aligned = translation_to_origin.apply(data_on_XY)
+    data_centered = translation_to_origin.apply(data)
 
-    return data_aligned
-    
+    return data_centered
