@@ -8,27 +8,20 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Richard Faasse
+//                   Carlos A. Roig
 //
 
-// External includes
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
-
 // Project includes
-#include "testing/testing.h"
-#include "convection_diffusion_application.h"
+#include "convection_diffusion_fast_suite.h"
 
-int main(int argc, char* argv[]) 
+namespace Kratos::Testing 
 {
-    ::testing::InitGoogleTest(&argc, argv);
 
-    Kratos::Testing::mApplicationInitializerList.push_back([](std::vector<Kratos::KratosApplication::Pointer> & rRegisteredApplications, Kratos::Kernel & rKernel) {
-      if (!rKernel.IsImported("ConvectionDiffusionApplication")) {
-        auto pApplication = std::make_shared<Kratos::KratosConvectionDiffusionApplication>();
-        rKernel.ImportApplication(pApplication);
-        rRegisteredApplications.push_back(std::move(pApplication));
-      }
-    });
-
-    return RUN_ALL_TESTS();
+KratosConvectionDiffusionFastSuite::KratosConvectionDiffusionFastSuite()
+    : KratosCoreFastSuite() 
+{
+    mpConvectionDiffusionApp = std::make_shared<KratosConvectionDiffusionApplication>();
+    this->ImportApplicationIntoKernel(mpConvectionDiffusionApp);
 }
+
+} // namespace Kratos::Testing
