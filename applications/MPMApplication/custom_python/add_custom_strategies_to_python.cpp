@@ -86,12 +86,10 @@ namespace Python{
 
         py::class_< MPMResidualBasedSimpleSteadySchemeType, typename MPMResidualBasedSimpleSteadySchemeType:: Pointer, BaseSchemeType >(m, "MPMResidualBasedSimpleSteadyScheme")
             .def(py::init < ModelPart& >())
-            //.def("Initialize", &MPMResidualBasedSimpleSteadyScheme::Initialize)
             ;
 
         py::class_< MPMResidualBasedSimpleSteadyVelocitySchemeType, typename MPMResidualBasedSimpleSteadyVelocitySchemeType:: Pointer, BaseSchemeType >(m, "MPMResidualBasedSimpleSteadyVelocityScheme")
             .def(py::init < ModelPart& >())
-            //.def("Initialize", &MPMResidualBasedSimpleSteadyVelocityScheme::Initialize)
             ;
 
         // MPM Residual Based Newton Raphson Strategy Type

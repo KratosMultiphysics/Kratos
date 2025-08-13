@@ -216,7 +216,7 @@ class MPMSolver(PythonSolver):
 
     def _GenerateMaterialPoint(self):
         pressure_dofs          = self.settings["pressure_dofs"].GetBool()
-        velocity_formulation   = self.settings["velocity_formulation"].GetBool() #°
+        velocity_formulation   = self.settings["velocity_formulation"].GetBool()
         axis_symmetric_flag    = self.settings["axis_symmetric_flag"].GetBool()
         stabilization_type     = self.settings["stabilization"].GetString()
         constant1 = self.settings["stabilization_constant_1"].GetDouble()
@@ -239,7 +239,7 @@ class MPMSolver(PythonSolver):
                 stabilization_type = 3
             self.grid_model_part.ProcessInfo.SetValue(KratosMPM.STABILIZATION_TYPE, stabilization_type)
         if velocity_formulation:
-            self.grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_MIXED_VP, True) #°
+            self.grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_MIXED_VP, True)
         self.grid_model_part.ProcessInfo.SetValue(KratosMPM.CONSTANT1, constant1)
         self.grid_model_part.ProcessInfo.SetValue(KratosMPM.CONSTANT2, constant2)
         # Assigning extra information to the main model part
@@ -249,7 +249,7 @@ class MPMSolver(PythonSolver):
             self.material_point_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
 
             # Generate MP Element and Condition
-            KratosMPM.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, pressure_dofs, velocity_formulation) #°
+            KratosMPM.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, pressure_dofs, velocity_formulation)
             KratosMPM.GenerateMaterialPointCondition(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, velocity_formulation)
         else:
             self.grid_model_part.ProcessInfo = self.material_point_model_part.ProcessInfo
@@ -297,7 +297,6 @@ class MPMSolver(PythonSolver):
 
     def _AddVariablesToModelPart(self, model_part):
         # Add displacements (or velocities) and reaction
-        #°
         if self.settings["velocity_formulation"].GetBool():
             model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         else:
@@ -330,7 +329,6 @@ class MPMSolver(PythonSolver):
             model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_MPRESSURE)
 
     def _AddDynamicVariables(self, model_part):
-        #°
         if self.settings["velocity_formulation"].GetBool():
             model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         else:
@@ -386,7 +384,6 @@ class MPMSolver(PythonSolver):
         conv_params = KratosMultiphysics.Parameters("{}")
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
         conv_params.AddValue("echo_level",self.settings["echo_level"])
-        #°
         conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
         conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
         conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
@@ -396,7 +393,6 @@ class MPMSolver(PythonSolver):
 
     def _CreateConvergenceCriteria(self):
         convergence_criterion_parameters = self._GetConvergenceCriteriaSettings()
-        #°
         if (convergence_criterion_parameters["convergence_criterion"].GetString() == "residual_criterion"):
             R_RT = convergence_criterion_parameters["residual_relative_tolerance"].GetDouble()
             R_AT = convergence_criterion_parameters["residual_absolute_tolerance"].GetDouble()

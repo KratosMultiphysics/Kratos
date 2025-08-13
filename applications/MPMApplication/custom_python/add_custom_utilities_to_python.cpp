@@ -48,6 +48,7 @@ namespace Python{
         bool IsMixedVP)
     {
         const auto dimension = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
+
         if (dimension == 2) MaterialPointGeneratorUtility::GenerateMaterialPointElement<2>(
             rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, IsMixedFormulation, IsMixedVP);
         else if (dimension == 3) MaterialPointGeneratorUtility::GenerateMaterialPointElement<3>(
@@ -61,6 +62,7 @@ namespace Python{
         bool IsMixedVP)
     {
         const auto dimension = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        
         if (dimension == 2) MaterialPointGeneratorUtility::GenerateMaterialPointCondition<2>(
             rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, IsMixedVP);
         else if (dimension == 3) MaterialPointGeneratorUtility::GenerateMaterialPointCondition<3>(

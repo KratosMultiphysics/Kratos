@@ -7,7 +7,7 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Laura Moreno Martínez
+//  Main authors:    Laura Moreno Martínez, Giovanni Campanella
 //
 
 #if !defined(KRATOS_mpm_updated_lagrangian_VP_VMS_H_INCLUDED )
@@ -268,7 +268,6 @@ public:
     ///@}
     ///@name Access Get Values
     ///@{
-    //°!!
     void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
         std::vector<bool>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
@@ -345,7 +344,7 @@ protected:
         array_1d<double, 3> volume_acceleration;
 
         // MP_CAUCHY_STRESS_VECTOR
-        Vector cauchy_stress_vector; //° da togliere?
+        Vector cauchy_stress_vector;
         // MP_ALMANSI_STRAIN_VECTOR
         Vector almansi_strain_vector;
 
@@ -529,7 +528,6 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    //virtual SizeType GetNumberOfDofs() {
     SizeType GetNumberOfDofs() {
         return GetGeometry().WorkingSpaceDimension() + 1;
     }
@@ -571,7 +569,7 @@ protected:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag); //override;
+        const bool CalculateResidualVectorFlag);  
 
 
     ///@}
@@ -598,8 +596,6 @@ protected:
      */
     void ComputeResidual(GeneralVariables& rVariables, Vector& rVolumeForce, Vector& rResidualV, double& rResidualP);
 
-    //virtual void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
-
     /**
      * Calculation and addition of the matrices of the LHS
      */
@@ -607,7 +603,7 @@ protected:
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                             GeneralVariables& rVariables,
                             const double& rIntegrationWeight,
-                            const ProcessInfo& rCurrentProcessInfo); //override;
+                            const ProcessInfo& rCurrentProcessInfo);  
 
     /**
      * Calculation and addition of the vectors of the RHS
@@ -617,7 +613,7 @@ protected:
                             GeneralVariables& rVariables,
                             Vector& rVolumeForce,
                             const double& rIntegrationWeight,
-                            const ProcessInfo& rCurrentProcessInfo); //override;
+                            const ProcessInfo& rCurrentProcessInfo);  
 
     /**
      * Calculation of the K matrix
@@ -643,10 +639,10 @@ protected:
                                        );
 
 
-    virtual void CalculateAndAddKpp(MatrixType& rK,
+    /*virtual void CalculateAndAddKpp(MatrixType& rK,
                                         GeneralVariables & rVariables,
                                         const double& rIntegrationWeight
-                                       );
+                                       );*/
 
     /**
      * Calculation of the stabilization matrix
@@ -681,14 +677,6 @@ protected:
             const double& rIntegrationWeight);
 
     /**
-     * Calculation stabilization terms for the momentum equation
-     */
-    virtual void CalculateAndAddStabilizedVelocity(VectorType& rRightHandSideVector,
-            GeneralVariables & rVariables,
-            Vector& rVolumeForce,
-            const double& rIntegrationWeight);
-
-    /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
     virtual void SetGeneralVariables(GeneralVariables& rVariables,
@@ -710,6 +698,10 @@ protected:
      * Calculation of the Current Displacement
      */
     Matrix& CalculateCurrentDisp(Matrix & rCurrentDisp, const ProcessInfo& rCurrentProcessInfo);
+
+   /**
+     * Calculation of the Current Velocity
+     */
     Matrix& CalculateCurrentVel(Matrix & rCurrentVel, const ProcessInfo& rCurrentProcessInfo);
 
     /**
@@ -720,19 +712,17 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo); //override;
+    void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);  
 
     /**
     * Finalize Element Internal Variables
     */
-    //virtual void FinalizeStepVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
     void FinalizeStepVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
    /**
       * Update the position of the MP or Gauss point when Finalize Element Internal Variables is called
       */
 
-    //virtual void UpdateGaussPoint(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
     void UpdateGaussPoint(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
     void InitializeMaterial(const ProcessInfo& rCurrentProcessInfo);
@@ -744,29 +734,11 @@ protected:
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    //virtual void GetHistoricalVariables( GeneralVariables& rVariables);
     void GetHistoricalVariables( GeneralVariables& rVariables);
-
-    /**
-     * Calculation of the Green Lagrange Strain Vector
-     */
-    //virtual void CalculateGreenLagrangeStrain(const Matrix& rF,
-    //        Vector& rStrainVector);
-
-    /**
-     * Calculation of the Almansi Strain Vector
-     */
-    //virtual void CalculateAlmansiStrain(const Matrix& rF,
-    //                                    Vector& rStrainVector);
-
 
     /**
      * Calculation of the Deformation Matrix  BL
      */
-    //virtual void CalculateDeformationMatrix(Matrix& rB,
-    //                                        const Matrix& rDN_DX,
-    //                                        const Matrix& rN,
-    //                                        const bool IsAxisymmetric = false);
     void CalculateDeformationMatrix(Matrix& rB,
                                     Matrix& rF,
                                     Matrix& rDN_DX);
@@ -775,14 +747,6 @@ protected:
      * Calculation of the Integration Weight
      */
     virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
-
-
-    /**
-     * Calculation of the Volume Change of the Element
-     */
-    //virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
-    //double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
-
 
     /// Calculation of the Deformation Gradient F
     void CalculateDeformationGradient(const Matrix& rDN_DX, Matrix& rF, Matrix& rDeltaPosition,

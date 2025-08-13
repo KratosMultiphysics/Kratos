@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Laura Moreno
+//  Main authors:    Laura Moreno, Giovanni Campanella
 //
 //
 
