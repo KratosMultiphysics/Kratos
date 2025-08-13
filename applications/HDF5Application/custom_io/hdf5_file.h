@@ -482,7 +482,7 @@ public:
      * Performs independent read in MPI. Throws if out of range.
      *
      * @note The @p pData and the shape [ @p pShapeIteratorBegin, @p pShapeIteratorEnd ) must be
-     *       correctly sized for the collective reading.
+     *       correctly sized for the independent reading.
      *
      * @tparam TDataType            Datatype of the read data.
      * @tparam TIntegerType
