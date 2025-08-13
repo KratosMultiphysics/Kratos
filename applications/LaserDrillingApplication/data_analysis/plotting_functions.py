@@ -412,12 +412,10 @@ def plot_ellipse_metrics(ellipses, filename):
             else:
                 shifted_thetas.append(theta - 180)
 
-    
-
 
     depths = [ellipse["center"][2] if ellipse is not None else None for ellipse in ellipses]
 
-    ax1.plot(depths, eccentricities, ".-", color="blue", markersize=12, label="Eccentricity")
+    ax1.plot(depths, eccentricities, ".", color="blue", markersize=12, label="Eccentricity")
     ax1.set_xlabel("Depth (Z, um)")
     ax1.set_ylabel("Eccentricity")
     ax1.set_title("Ellipse eccentricity vs. depth\n" + filename)
@@ -425,7 +423,7 @@ def plot_ellipse_metrics(ellipses, filename):
     ax1.set_ylim(0, 1)
     ax1.legend(loc="upper right")
 
-    ax2.plot(depths, thetas, ".-", color="red", markersize=12, label="Major axis angle (0 to 180º)")
+    ax2.plot(depths, thetas, ".", color="red", markersize=12, label="Major axis angle (0 to 180º)")
     ax2.set_xlabel("Depth (Z, um)")
     ax2.set_ylabel("Major axis angle (degrees)")
     ax2.set_title("Ellipse major axis angle vs. depth\n" + filename)
@@ -434,7 +432,7 @@ def plot_ellipse_metrics(ellipses, filename):
     ax2.set_yticks([30 * i for i in range(7)])
     ax2.legend(loc="upper right")
 
-    ax3.plot(depths, shifted_thetas, ".-", color="green", markersize=12, label="Major axis angle (-90º to 90º)")
+    ax3.plot(depths, shifted_thetas, ".", color="green", markersize=12, label="Major axis angle (-90º to 90º)")
     ax3.set_xlabel("Depth (Z, um)")
     ax3.set_ylabel("Major axis angle (degrees)")
     ax3.set_title("Ellipse major axis angle vs. depth\n" + filename)
