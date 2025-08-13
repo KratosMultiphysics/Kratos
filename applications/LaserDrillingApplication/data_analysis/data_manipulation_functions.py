@@ -626,7 +626,7 @@ def center_data_XY(data, center):
     com_XY = np.sum(data, axis=0)/data.shape[0]
     com_XY[2] = 0
 
-    translation_to_origin = Tf.from_translation(-com_XY)
+    translation_to_origin = Tf.from_translation(center-com_XY)
 
     data_centered = translation_to_origin.apply(data)
 
