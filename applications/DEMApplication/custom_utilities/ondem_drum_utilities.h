@@ -19,14 +19,12 @@ namespace Kratos
       void ExecuteInitialize(ModelPart& particlesMP, ModelPart& wallsMP);
       void Calculate(ModelPart& particlesMP, ModelPart& wallsMP);
       void ExecuteFinalize(ModelPart& particlesMP, ModelPart& wallsMP);
-      void InitializeMapLMI(std::vector<std::vector<std::vector<int>>>& map);
-      void ResetMapLMI(std::vector<std::vector<std::vector<int>>>& map);
+      void InitializeCellsMap(std::vector<std::vector<std::vector<int>>>& map);
+      void ResetCellsMap(std::vector<std::vector<std::vector<int>>>& map);
 
       std::ofstream mFile_Contact;
       std::ofstream mFile_Velocity;
-      std::ofstream mFile_Dissipation;
-      std::ofstream mFile_CellsLMI;
-      std::ofstream mFile_LMI;
+      std::ofstream mFile_Energy;
       int mNumParticlesAll;
       int mNumParticlesLarge;
       int mNumParticlesSmall;
