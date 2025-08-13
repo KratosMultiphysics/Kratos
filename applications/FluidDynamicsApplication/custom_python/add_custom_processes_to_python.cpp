@@ -42,6 +42,7 @@
 #include "custom_processes/stokes_initialization_process.h"
 #include "custom_processes/compute_y_plus_process.h"
 #include "custom_processes/two_fluid_navier_stokes_fractional_convection_process.h"
+#include "custom_processes/energy_splitelements_process.h"
 
 #include "spaces/ublas_space.h"
 
@@ -191,6 +192,12 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<TwoFluidNavierStokesFractionalConvectionProcess<3, SparseSpaceType, LocalSpaceType, LinearSolverType>, TwoFluidNavierStokesFractionalConvectionProcess<3, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(m, "TwoFluidNavierStokesFractionalConvectionProcess3D")
         .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
     ;
+
+    py::class_<EnergyCheckProcess, EnergyCheckProcess::Pointer, Process>(m, "EnergyCheckProcess")
+        .def(py::init<ModelPart &, unsigned int, const std::string &>())
+        .def("WritingFile", &EnergyCheckProcess::WritingFile)
+        .def("CalculateInterfaceArea", &EnergyCheckProcess::CalculateInterfaceArea)
+        .def("EnergyCalculator", &EnergyCheckProcess::EnergyCalculator);
 }
 
 } // namespace Python.

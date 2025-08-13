@@ -35,7 +35,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
             solver_module_name = "conjugate_heat_transfer_solver"
 
         elif solver_type == "two_fluids" or solver_type == "TwoFluids":
-            solver_module_name = "navier_stokes_two_fluid_solver"
+            solver_module_name = "navier_stokes_two_fluids_solver"
 
         elif solver_type == "low_mach":
             solver_module_name = "navier_stokes_low_mach_solver"
