@@ -10,9 +10,9 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Model object")
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return MPMJsonConditionOutputProcess(Model, settings["Parameters"])
+    return MPMJsonOutputProcess(Model, settings["Parameters"])
 
-class MPMJsonConditionOutputProcess(JsonOutputProcess):
+class MPMJsonOutputProcess(JsonOutputProcess):
         
     def __init__(self, model, params):
         
