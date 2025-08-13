@@ -68,7 +68,7 @@ q = -\frac{K_{ij}}{\mu} \left( \frac{\partial p}{\partial x_j} - \rho^w g_j \rig
 - $K_{ij}$			= intrinsic permeability $\mathrm{\left[ L^2 \right]}$
 - $\mu$				= dynamic viscosity $\mathrm{\left[ F T L^{-2} \right]}$
 
-Richard's eqyation for partly saturates soil
+Richard's equation for partly saturates soil
 
 ```math
 \left[ \left( \alpha + n \beta \right) \rho^w S + n \rho^w \frac{dS}{dP} \right] \frac{\partial p}{\partial t} = \frac{\partial}{\partial x_i} \left[ \frac{\rho^w k_r K_{ij}}{\mu} \left( \frac{\partial p}{\partial x_j} - \rho^w g_j \right) \right]  \quad \quad \text{on} \quad \Omega
@@ -76,6 +76,39 @@ Richard's eqyation for partly saturates soil
 
 - $k_r$				= relative permeability $\mathrm{\left[ - \right]}$
 - $S$				= saturation $\mathrm{\left[ - \right]}$
+
+In Biot’s poroelasticity, the Biot coefficient is:
+
+$$ Biot=1 - \frac{K}{K_s} $$
+
+where
+
+- $K_s$ = bulk modules of the soil
+- $K$ = drained bulk modulus of the skeleton
+
+$$ K = \frac{1}{3} \frac{E}{1 - 2 \nu} $$
+
+Here, $\nu$ is the Poisson ratio. Then the solid skeleton compressibility is:
+
+$$ \alpha = \frac{Biot - n}{K_s}  $$
+
+$n$ is thr porosity.
+The liquid phase compressibility is defined as:
+
+$$ \beta =\frac{1}{K_f} $$
+
+Where $K_f$ is the bulk modulus of the water.
+
+However, Biot coefficient can be a user defined coefficient. In the case the used does not define Biot, the above calculation is applied. In the case of defining it, the Biot coefficient is replaced by the defined value.
+
+for most soils and even many rocks, the Biot coefficient is very close to 1. Since mineral grains are much stiffer than the porous frame.
+
+When it’s not close to 1?
+- In very stiff, low-porosity rocks (e.g., crystalline granite)
+- In cemented or heavily compacted materials
+  Here, K can be a significant fraction of Ks, making α noticeably less than 1, sometimes 0.6–0.8.
+
+for "IGNORE_UNDRAINED = true" a trick is applied. The fluid bulk module $K_f$ is set a very small number of $10^{-60}$.  This lades to a very large $\beta$ and hence a very large term of the coefficient of $\frac{\partial p}{\partial t}$. Or better to say, to a large compressibility matrix. This eliminates the effect of ground water flow.
 
 The governing equations in matrix form for the Pw elements are:
 ```math
