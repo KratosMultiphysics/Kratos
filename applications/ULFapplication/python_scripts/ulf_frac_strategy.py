@@ -442,7 +442,7 @@ class ULFFracStrategyPython:
         WorkArray = Vector(self.space_utils.Size(self.MPinv))
 
         # we are assuming that the initial guess for the unknown X is 0 vecotr, =>r(0) = b - Ax = b
-        # x0 = 0. mult by b just to get teh right size
+        # x0 = 0. mult by b just to get the right size
 
         # here ri is r0 - before we enter the loop. we basically say: initialize ri=r0=d0
         # same is valid for xi=x0, and di = d0 =r0 in the beginning
