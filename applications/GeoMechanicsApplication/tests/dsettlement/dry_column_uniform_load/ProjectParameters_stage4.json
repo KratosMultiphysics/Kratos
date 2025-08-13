@@ -24,10 +24,8 @@
         },
         "buffer_size": 2,
         "echo_level": 1,
-        "clear_storage": false,
         "compute_reactions": true,
         "reform_dofs_at_each_step": false,
-        "nodal_smoothing": false,
         "block_builder": true,
         "solution_type": "Quasi-Static",
         "scheme_type": "Backward_Euler",
@@ -101,8 +99,7 @@
                     "is_fixed": true,
                     "value": 0.0,
                     "table": 0,
-                    "fluid_pressure_type": "Uniform",
-                    "specific_weight": 9810
+                    "fluid_pressure_type": "Uniform"
                 }
             },
             {
@@ -112,8 +109,8 @@
                 "Parameters": {
                     "model_part_name": "PorousDomain.Bottom",
                     "variable_name": "DISPLACEMENT",
-                    "active": [true, true, true],
-                    "is_fixed": [true, true, true],
+                    "active": [true, true, false],
+                    "is_fixed": [true, true, false],
                     "value": [0.0, 0.0, 0.0],
                     "table": [0, 0, 0]
                 }
@@ -125,8 +122,8 @@
                 "Parameters": {
                     "model_part_name": "PorousDomain.Side_Nodes",
                     "variable_name": "DISPLACEMENT",
-                    "active": [true, false, true],
-                    "is_fixed": [true, false, true],
+                    "active": [true, false, false],
+                    "is_fixed": [true, false, false],
                     "value": [0.0, 0.0, 0.0],
                     "table": [0, 0, 0]
                 }

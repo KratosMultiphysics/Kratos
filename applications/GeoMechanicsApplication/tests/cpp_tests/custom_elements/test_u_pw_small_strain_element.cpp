@@ -723,7 +723,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeCorrectlySetsStatePara
     const auto process_info = ProcessInfo{};
     auto       p_element    = CreateUPwSmallStrainElementWithUPwDofs(model, p_properties);
 
-    // First performa a simplified 'stage' cycle
+    // First performa a simplified 'stage'
     p_element->Initialize(process_info);
     p_element->FinalizeNonLinearIteration(process_info);
 
@@ -734,7 +734,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeCorrectlySetsStatePara
         rpConstitutiveLaw->SetValue(STATE_VARIABLES, Vector{ScalarVector(5, 0.3)}, ProcessInfo{});
     }
 
-    // In the FinalizeSolutionStep, the state variables on the constitutive are saved to the element
+    // In the FinalizeSolutionStep, the state variables on the constitutive law are saved to the element
     p_element->FinalizeSolutionStep(process_info);
 
     // Act
@@ -746,7 +746,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeCorrectlySetsStatePara
     for (const auto& rpConstitutiveLaw : new_constitutive_laws) {
         Vector state_variables;
         rpConstitutiveLaw->GetValue(STATE_VARIABLES, state_variables);
-        // Assert
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(state_variables, Vector{ScalarVector(5, 0.3)},
                                            Defaults::relative_tolerance);
     }

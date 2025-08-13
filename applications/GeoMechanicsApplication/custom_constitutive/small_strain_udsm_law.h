@@ -153,6 +153,7 @@ public:
     using ConstitutiveLaw::SetValue;
 
     bool Has(const Variable<Vector>& rThisVariable) override;
+    using ConstitutiveLaw::Has;
 
     [[nodiscard]] std::string Info() const override;
     void                      PrintInfo(std::ostream& rOStream) const override;

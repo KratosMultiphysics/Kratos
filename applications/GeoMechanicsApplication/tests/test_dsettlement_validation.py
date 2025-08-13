@@ -17,7 +17,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         test_root = "dsettlement"
         project_path = test_helper.get_file_path(os.path.join(test_root, test_name))
 
-        cwd = os.getcwd()
+        original_working_dir = os.getcwd()
         os.chdir(project_path)
 
         import KratosMultiphysics.GeoMechanicsApplication.run_geo_settlement as run_geo_settlement
@@ -59,7 +59,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             4,
         )
 
-        os.chdir(cwd)
+        os.chdir(original_working_dir)
 
 
 if __name__ == "__main__":
