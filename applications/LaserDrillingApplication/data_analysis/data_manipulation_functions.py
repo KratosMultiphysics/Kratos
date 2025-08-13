@@ -237,42 +237,71 @@ def clean_and_export_csv(input_path, output_path=None, fmt=["%.3f", "%.3f", "%.6
         print("Exported as " + output_path)
 
 
-def remove_surface_and_outliers(data, shallow_z_threshold, deep_outlier_quantile_threshold=None):
+def remove_surface(data, shallow_z_threshold):
     """
     Removes the points corresponding to the surface by removing the points shallower than
-    shallow_z_threshold (points closer to the surface than shallow_z_threshold), and (optionally) removes
-    outliers that lie too deep in the sample that correspond to wrongly measured data by
-    removing the deep_outlier_quantile_threshold deepest points
+    shallow_z_threshold (points closer to the surface than shallow_z_threshold)
+
+    Parameters
+    ----------
+    data (ndarray): Nx3 array with data points
+    shallow_z_threshold (float): points with z larger than shallow_z_threshold are considred to be part of the surface and are removed
+
+    Returns
+    -------
+    data (ndarray): the data without the surface points
+    surface (ndarray): points corresponding to the surface
+    """
+
+    total_points = len(data)
+
+    z_vals = data[:, 2]
+
+    surface_mask = z_vals > shallow_z_threshold
+
+    keep_mask = ~surface_mask
+
+    surface = data[surface_mask]
+    data = data[keep_mask]
+
+    n_surface = len(surface)
+    print(f"Discarded {n_surface} surface outliers({100 * n_surface / total_points:.2f}%)")
+
+    return data, surface
+
+
+def remove_deep_outliers(data, quantile_threshold):
+    """
+    Removes outliers that lie too deep in the sample that correspond to wrongly measured data by removing the deep_outlier_quantile_threshold deepest points
+
+    Parameters
+    ----------
+    data (ndarray): Nx3 array with data points
+    quantile_threshold (float): points whose z is in the quantile determined by quantile_threshold are removed
+
+    Returns
+    -------
+    data (ndarray): the data without the deep points
+    deep_outliers (ndarray): points considered deep outliers
     """
     total_points = len(data)
 
     z_vals = data[:, 2]
 
-    # If shallow_z_threshold is None, do not exclude any points from the surface
-    surface_mask = np.zeros_like(z_vals, dtype=bool) if shallow_z_threshold is None else z_vals > shallow_z_threshold
+    z_deep_cutoff = np.quantile(z_vals, quantile_threshold)
+    deep_mask = z_vals < z_deep_cutoff
 
-    # Similarly, to not exclude deep outliers
-    if deep_outlier_quantile_threshold is None:
-        deep_mask = np.zeros_like(z_vals, dtype=bool)
-    else:
-        z_deep_cutoff = np.quantile(z_vals, deep_outlier_quantile_threshold)
-        deep_mask = z_vals < z_deep_cutoff
+    keep_mask = ~deep_mask
 
-    keep_mask = ~(surface_mask | deep_mask)
-
-    surface_outliers = data[surface_mask]
     deep_outliers = data[deep_mask]
     data = data[keep_mask]
 
-    num_surface_outliers = len(surface_outliers)
     num_deep_outliers = len(deep_outliers)
 
-    # print(f"{num_surface_outliers=}")
-    # print(f"{total_points=}")
-    print(f"Discarded {num_surface_outliers} surface outliers({100 * num_surface_outliers / total_points:.2f}%)")
     print(f"Discarded {num_deep_outliers} deep outliers({100 * num_deep_outliers / total_points:.2f}%)")
 
-    return data, surface_outliers, deep_outliers
+    return data, deep_outliers
+
 
 
 def subsample_data(data, max_points, random_seed):
