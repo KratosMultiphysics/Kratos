@@ -3,8 +3,8 @@
 
 <svg
    width="241.64101mm"
-   height="193.73875mm"
-   viewBox="0 0 241.64101 193.73875"
+   height="209.93208mm"
+   viewBox="0 0 241.64101 209.93208"
    version="1.1"
    id="svg1"
    inkscape:version="1.4 (86a8ad7, 2024-10-11)"
@@ -25,7 +25,7 @@
      inkscape:document-units="mm"
      inkscape:zoom="0.71891835"
      inkscape:cx="361.65442"
-     inkscape:cy="264.98141"
+     inkscape:cy="298.3649"
      inkscape:window-width="1920"
      inkscape:window-height="1009"
      inkscape:window-x="-8"
@@ -99,15 +99,14 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-7.6992808,-53.894764)">
+     transform="translate(-7.6992807,-45.06205)">
     <rect
-       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:4.64771;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:4.83805;stroke-dasharray:none;stroke-opacity:1"
        id="rect2-0"
        width="241.64101"
-       height="193.73877"
+       height="209.93208"
        x="7.6992807"
-       y="53.894764"
-       transform="translate(0)" />
+       y="45.06205" />
     <path
        d="M 93.012778,71.384766 V 225.24805 H 163.70239 V 71.384766 Z m 1.5,1.5 H 162.20239 V 223.74805 H 94.512778 Z"
        id="rect1" />
