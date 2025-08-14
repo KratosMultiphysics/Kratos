@@ -363,8 +363,9 @@ def calculate_slices(data, slice_bounds):
         # print(data_in_slice)
 
         if len(data_in_slice) <= 0:
-            raise ValueError(f"Empty slice between {z_start=}, {z_end=}")
-
+            # raise ValueError(f"Empty slice between {z_start=}, {z_end=}")
+            print(f"Empty slice between {z_start=}, {z_end=}, appending the empty slice to the list anyways")
+            
         slices.append(data_in_slice)
 
     return slices
@@ -385,9 +386,12 @@ def compute_centroids(slices, slice_bounds):
         slice_points = slices[i]
 
         if len(slice_points) == 0:
-            raise ValueError(
-                f"Slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um) contains no points"
-            )
+            # raise ValueError(
+            #     f"Slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um) contains no points"
+            # )
+            print(f"Slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um) contains no points")
+            centroids[i] = None
+            continue
 
         centroid = np.mean(slice_points, axis=0)
 
