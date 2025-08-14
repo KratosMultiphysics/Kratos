@@ -58,7 +58,7 @@ public:
     ///@name Type definitions
     ///@{
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(NodePositionTensorAdaptor);
+    KRATOS_CLASS_POINTER_DEFINITION(NodePositionTensorAdaptor);
 
     using BaseType = TensorAdaptor<double>;
 
