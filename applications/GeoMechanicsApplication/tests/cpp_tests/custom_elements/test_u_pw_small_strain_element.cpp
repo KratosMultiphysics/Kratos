@@ -723,7 +723,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeCorrectlySetsStatePara
     const auto process_info = ProcessInfo{};
     auto       p_element    = CreateUPwSmallStrainElementWithUPwDofs(model, p_properties);
 
-    // First performa a simplified 'stage'
+    // First perform a simplified 'stage'
     p_element->Initialize(process_info);
     p_element->FinalizeNonLinearIteration(process_info);
 
