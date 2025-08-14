@@ -233,7 +233,7 @@ public:
     ///@name Type definitions
     ///@{
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TensorAdaptor);
+    KRATOS_CLASS_POINTER_DEFINITION(TensorAdaptor);
 
     using ContainerPointerType = std::variant<
                                         ModelPart::DofsArrayType::Pointer,
@@ -397,31 +397,6 @@ protected:
     typename Storage::Pointer mpStorage;
 
     OptionalContainerPointerType mpContainer;
-
-    ///@}
-
-private:
-    ///@name Private operations
-    ///@{
-
-    //*********************************************
-    // this block is needed for refcounting in the @ref intrusive ptr
-    mutable std::atomic<int> mReferenceCounter{0};
-
-    friend void intrusive_ptr_add_ref(const TensorAdaptor* x)
-    {
-        x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
-    }
-
-    friend void intrusive_ptr_release(const TensorAdaptor* x)
-    {
-        if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
-            std::atomic_thread_fence(std::memory_order_acquire);
-            delete x;
-        }
-    }
-
-    //*********************************************
 
     ///@}
 };
