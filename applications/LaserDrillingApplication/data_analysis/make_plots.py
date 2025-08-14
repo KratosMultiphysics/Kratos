@@ -166,6 +166,16 @@ if __name__ == "__main__":
     # ==== Compute centroids for slices ====
     centroids, centroid_ids = compute_centroids(slices, slice_bounds)
 
+    valid_centroids = []
+    valid_centroids_ids = []
+    for centroid, centroid_id in zip(centroids, centroid_ids):
+        if centroid is not None:
+            valid_centroids.append(centroid)
+            valid_centroids_ids.append(centroid_id)
+
+    centroids = np.array(valid_centroids)
+    centroid_ids = np.array(valid_centroids_ids)
+
     centroids_x, centroids_y, centroids_z = centroids[:, 0], centroids[:, 1], centroids[:, 2]
 
     # ==== Fit ellipses to slices ====
@@ -181,8 +191,8 @@ if __name__ == "__main__":
     for ellipse in ellipses:
         if ellipse is not None:
             ellipse_centers.append(ellipse["center"])
-        else:
-            ellipse_centers.append(np.array([0,0,0])) # TODO: handle better
+        # else:
+        #     ellipse_centers.append(np.array([0,0,0])) # TODO: handle better
 
     ellipse_centers = np.array(ellipse_centers)
 
