@@ -181,11 +181,6 @@ public:
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, mMassMatrix, dummy_rDx, dummy_b);
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, mDampingMatrix, dummy_rDx, dummy_b);
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverLinearElasticDynamic", BaseType::GetEchoLevel() >= 3)
-            << "Before the solution of the system"
-            << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << dummy_rDx
-            << "\nRHS vector = " << rb << std::endl;
-
         if (mCalculateInitialSecondDerivative) {
             this->CalculateInitialSecondDerivative(rModelPart, rA, pScheme);
             mCopyExternalForceVector = true;
