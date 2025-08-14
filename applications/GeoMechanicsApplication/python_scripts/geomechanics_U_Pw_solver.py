@@ -122,6 +122,10 @@ class UPwSolver(GeoSolver):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,self.main_model_part)
 
+            KratosMultiphysics.VariableUtils().AddDof(KratosGeo.TOTAL_ROTATION_X, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosGeo.TOTAL_ROTATION_Y, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosGeo.TOTAL_ROTATION_Z, self.main_model_part)
+
         if (self.settings["solution_type"].GetString() == "Dynamic"):
             KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "Dynamic analysis.")
             for node in self.main_model_part.Nodes:

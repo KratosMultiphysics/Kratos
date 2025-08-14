@@ -339,6 +339,8 @@ class GeoMechanicalSolver(PythonSolver):
             if self.settings["rotation_dofs"].GetBool():
                 # Add specific variables for the problem (rotation dofs).
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+                self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.TOTAL_ROTATION)
+                self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.INCREMENTAL_ROTATION)
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
                 self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)

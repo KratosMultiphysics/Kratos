@@ -6,7 +6,7 @@ from KratosMultiphysics.GeoMechanicsApplication import *
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the tests o test_classes to create the suits
+# Import the tests of test_classes to create the suits
 from test_excavation import KratosGeoMechanicsExcavationTests
 from test_interface import KratosGeoMechanicsInterfaceTests
 from test_reset_displacement import KratosGeoMechanicsResetDisplacementTests
@@ -63,6 +63,12 @@ from test_mohr_coulomb_with_tension_cutoff import KratosGeoMechanicsMohrCoulombW
 from test_single_element_with_Mohr_Coulomb import KratosGeoMechanicsSingleElementWithMohrCoulomb
 from one_dimensional_consolidation import KratosGeoMechanics1DConsolidation, KratosGeoMechanics1DConsolidationCppRoute
 from test_apply_initial_uniform_stress_field import KratosGeoMechanicsApplyInitialUniformStressFieldTests
+from test_dirichlet_release import KratosGeoMechanicsDirichletReleaseTests
+from test_nodal_hydraulic_head import KratosGeoMechanicsHydraulicHeads
+from test_set_moving_load_process import KratosGeoMechanicsSetMovingLoadProcessTests
+from moving_column_with_fixed_pressure_above_phreatic_line import KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine
+from test_surface_interface_elements import KratosGeoMechanicsSurfaceInterfaceElementTests
+from test_dsettlement_validation import  KratosGeoMechanicsDSettlementValidationTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -110,14 +116,13 @@ def AssembleTestSuites():
                         KratosGeoMechanicsMasterSlaveConstraints,
                         KratosGeoMechanicsSingleElementWithMohrCoulomb,
                         KratosGeoMechanicsMohrCoulombWithTensionTests,
-                        KratosGeoMechanicsApplyInitialUniformStressFieldTests
+                        KratosGeoMechanicsApplyInitialUniformStressFieldTests,
+                        KratosGeoMechanicsDirichletReleaseTests,
+                        KratosGeoMechanicsDeactivationWithStructuralTest,
+                        KratosGeoMechanicsHydraulicHeads,
+                        KratosGeoMechanicsSetMovingLoadProcessTests,
+                        KratosGeoMechanicsSurfaceInterfaceElementTests,
     ]
-
-    # Create an array with the selected tests
-    # nightSuite will contain the following tests:
-    # - testSmallExample
-    # - testNightlyFirstExample
-    # - testNightlySecondExample
 
     night_test_cases = [
                         KratosGeoMechanicsSettlementWorkflowCppRoute,
@@ -135,6 +140,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsPartialSaturation,
                         KratosGeoMechanics1DConsolidation,
                         KratosGeoMechanics1DConsolidationCppRoute,
+                        KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine,
                         ]
     night_test_cases.extend(small_test_cases)
 
@@ -148,7 +154,8 @@ def AssembleTestSuites():
                         TestSellmeijersRuleValidation,
                         KratosGeoMechanicsDynamicsLongTests,
                         KratosGeoMechanicsThreeDimensionalPipingValidation,
-                        KratosGeoMechanicsTransientThermalValidationTests
+                        KratosGeoMechanicsTransientThermalValidationTests,
+                        KratosGeoMechanicsDSettlementValidationTests,
                         ]
 
     # Create an array that contains all the tests from every testCase
