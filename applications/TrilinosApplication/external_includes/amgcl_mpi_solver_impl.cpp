@@ -33,7 +33,7 @@ struct AMGCLAdaptor<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>>
             return amgcl::adapter::map(rMatrix);
         } else {
             using BackendMatrix = amgcl::static_matrix<
-                TValue,
+                double,
                 BlockSize,
                 BlockSize
             >;
