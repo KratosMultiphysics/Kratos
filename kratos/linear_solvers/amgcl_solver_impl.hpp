@@ -411,7 +411,7 @@ inline void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType
     }
 
     KRATOS_TRY
-    using ValueType = typename TSparse::DataType;
+    using ScalarType = typename TSparse::DataType;
 
     // Apply settings that depend on the LHS matrix.
     // Use rigid body modes or set block size
@@ -439,6 +439,9 @@ inline void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType
         mAMGCLParameters.put("precond.coarsening.aggr.block_size", mBlockSize.value());
     }
 
+    if(mUseAMGPreconditioning)
+        mAMGCLParameters.put("precond.coarse_enough",mCoarseEnough / mBlockSize.value());
+
     if (mVerbosity > 2) {
         write_json(std::cout, mAMGCLParameters);
     }
@@ -460,11 +463,8 @@ inline void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType
         KRATOS_ERROR << " Verbosity = 4 prints the matrix and exits" << std::endl;
     }
 
-    if(mUseAMGPreconditioning)
-        mAMGCLParameters.put("precond.coarse_enough",mCoarseEnough / mBlockSize.value());
-
     if(mUseBlockMatricesIfPossible) {
-        KRATOS_ERROR_IF(TSparse::Size1(rLhs)%mBlockSize.value() != 0)
+        KRATOS_ERROR_IF(TSparse::Size1(rLhs) % mBlockSize.value())
             << "The requested block size (" << mBlockSize.value() << ") "
             << "is not an exact multiple of the matrix size (" << TSparse::Size1(rLhs) << ")";
     }
@@ -476,29 +476,61 @@ inline void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType
         auto &vexcl_context = VexCLContext();
         KRATOS_ERROR_IF_NOT(vexcl_context) << "failed to initialize VexCL context";
 
-        using BackendType = amgcl::backend::vexcl<ValueType>;
-        using SolverType = typename Impl::template MakeSolver<BackendType>::element_type;
+        #define KRATOS_MAKE_AMGCL_SOLVER(BLOCK_SIZE)                                                        \
+            using BackendType = amgcl::backend::vexcl<typename Impl::template BackendMatrix<BLOCK_SIZE>>;   \
+            using SolverType = typename Impl::template MakeSolver<BackendType>::element_type;               \
+                                                                                                            \
+            typename BackendType::params backend_parameters;                                                \
+            backend_parameters.q = vexcl_context;                                                           \
+                                                                                                            \
+            KRATOS_TRY                                                                                      \
+            mpImpl->mpSolver = std::unique_ptr<SolverType>(new SolverType(                                  \
+                AMGCLAdaptor<TSparse>().template MakeMatrixAdaptor<BLOCK_SIZE>(rLhs),                       \
+                mAMGCLParameters,                                                                           \
+                backend_parameters));                                                                       \
+            KRATOS_CATCH("")
 
-        typename BackendType::params backend_parameters;
-        backend_parameters.q = vexcl_context;
+        switch (mBlockSize.value()) {
+            case 1: {KRATOS_MAKE_AMGCL_SOLVER(1) break;}
+            case 2: {KRATOS_MAKE_AMGCL_SOLVER(2) break;}
+            case 3: {KRATOS_MAKE_AMGCL_SOLVER(3) break;}
+            case 4: {KRATOS_MAKE_AMGCL_SOLVER(4) break;}
+            case 5: {KRATOS_MAKE_AMGCL_SOLVER(5) break;}
+            case 6: {KRATOS_MAKE_AMGCL_SOLVER(6) break;}
+            default: KRATOS_ERROR << "Unsupported block size for AMGCLSolver: " << mBlockSize.value() << ". "
+                                  << "Options are 1, 2, 3, 4, 5, 6.";
+        } // switch mBlockSize
 
-        mpImpl->mpSolver = std::unique_ptr<SolverType>(new SolverType(
-            AMGCLAdaptor<TSparse>().MakeMatrixAdaptor(rLhs),
-            mAMGCLParameters,
-            backend_parameters));
+        #undef KRATOS_MAKE_AMGCL_SOLVER
 
         #else
         KRATOS_ERROR << "Requested a GPU-bound AMGCL solver, but Kratos was compiled without VexCL support!";
         #endif
-    } else {
+    } /*if mUseGPGPU*/ else {
         // Construct a CPU-bound solver.
-        using Backend = amgcl::backend::builtin<ValueType>;
-        using SolverType = typename Impl::template MakeSolver<Backend>::element_type;
+        #define KRATOS_MAKE_AMGCL_SOLVER(BLOCK_SIZE)                                                        \
+            using BackendType = amgcl::backend::builtin<typename Impl::template BackendMatrix<BLOCK_SIZE>>; \
+            using SolverType = typename Impl::template MakeSolver<BackendType>::element_type;               \
+                                                                                                            \
+            KRATOS_TRY                                                                                      \
+            mpImpl->mpSolver = std::unique_ptr<SolverType>(new SolverType(                                  \
+                AMGCLAdaptor<TSparse>().template MakeMatrixAdaptor<BLOCK_SIZE>(rLhs),                       \
+                mAMGCLParameters));                                                                         \
+            KRATOS_CATCH("")
 
-        mpImpl->mpSolver = std::unique_ptr<SolverType>(new SolverType(
-            AMGCLAdaptor<TSparse>().MakeMatrixAdaptor(rLhs),
-            mAMGCLParameters));
-    }
+        switch (mBlockSize.value()) {
+            case 1: {KRATOS_MAKE_AMGCL_SOLVER(1) break;}
+            case 2: {KRATOS_MAKE_AMGCL_SOLVER(2) break;}
+            case 3: {KRATOS_MAKE_AMGCL_SOLVER(3) break;}
+            case 4: {KRATOS_MAKE_AMGCL_SOLVER(4) break;}
+            case 5: {KRATOS_MAKE_AMGCL_SOLVER(5) break;}
+            case 6: {KRATOS_MAKE_AMGCL_SOLVER(6) break;}
+            default: KRATOS_ERROR << "Unsupported block size for AMGCLSolver: " << mBlockSize.value() << ". "
+                                  << "Options are 1, 2, 3, 4, 5, 6.";
+        } // switch mBlockSize
+
+        #undef KRATOS_MAKE_AMGCL_SOLVER
+    } /*if mUseGPGPU else*/
 
     // Issue message about memory footprint.
     if (1 < mVerbosity) {

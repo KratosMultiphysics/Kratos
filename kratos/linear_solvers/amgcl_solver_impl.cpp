@@ -20,12 +20,27 @@ namespace Kratos {
 template <class TValue>
 struct AMGCLAdaptor<TUblasSparseSpace<TValue>>
 {
+    template <int BlockSize>
     auto MakeMatrixAdaptor(const typename TUblasSparseSpace<TValue>::MatrixType& rMatrix) const
     {
-        return amgcl::adapter::zero_copy(rMatrix.size1(),
-                                         rMatrix.index1_data().begin(),
-                                         rMatrix.index2_data().begin(),
-                                         rMatrix.value_data().begin());
+        if constexpr (BlockSize == 1) {
+            return amgcl::adapter::zero_copy(rMatrix.size1(),
+                                             rMatrix.index1_data().begin(),
+                                             rMatrix.index2_data().begin(),
+                                             rMatrix.value_data().begin());
+        } else {
+            using BackendMatrix = amgcl::static_matrix<
+                TValue,
+                BlockSize,
+                BlockSize
+            >;
+            return amgcl::adapter::block_matrix<BackendMatrix>(
+                std::tuple_cat(
+                    std::make_tuple(rMatrix.size1()),
+                    std::tie(rMatrix.index1_data(), rMatrix.index2_data(), rMatrix.value_data())
+                )
+            );
+        }
     }
 
     auto MakeVectorIterator(const typename TUblasSparseSpace<TValue>::VectorType& rVector) const

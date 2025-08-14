@@ -26,9 +26,19 @@ namespace Kratos {
 template <>
 struct AMGCLAdaptor<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>>
 {
+    template <int BlockSize>
     auto MakeMatrixAdaptor(const Epetra_FECrsMatrix& rMatrix) const
     {
-        return amgcl::adapter::map(rMatrix);
+        if constexpr (BlockSize == 1) {
+            return amgcl::adapter::map(rMatrix);
+        } else {
+            using BackendMatrix = amgcl::static_matrix<
+                TValue,
+                BlockSize,
+                BlockSize
+            >;
+            return amgcl::adapter::block_matrix<BackendMatrix>(amgcl::adapter::map(rMatrix));
+        }
     }
 
     auto MakeVectorIterator(const Epetra_FEVector& rVector) const
