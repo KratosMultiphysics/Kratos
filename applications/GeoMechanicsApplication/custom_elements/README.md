@@ -106,8 +106,6 @@ When it’s not close to 1?
 - In cemented or heavily compacted materials
   Here, $K$ can be a significant fraction of $K_{solid}$, making α noticeably less than 1, sometimes 0.6–0.8.
 
-for "IGNORE_UNDRAINED = true" a trick is applied. The fluid bulk module $K_{fluid}$ is set a very small number of $10^{-60}$. This lades to a very large $\beta$ and hence a very large term of the coefficient of $\frac{\partial p}{\partial t}$. Or better to say, to a large compressibility matrix. This eliminates the effect of ground water flow.
-
 The governing equations in matrix form for the Pw elements are:
 ```math
 \boldsymbol{C} \dot{p} + \boldsymbol{H} p = \boldsymbol{f_p}
