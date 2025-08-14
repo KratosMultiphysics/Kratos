@@ -51,16 +51,17 @@ void TensorAdaptorIO::Write(
 {
     KRATOS_TRY
 
-    std::visit([this, &rTensorAdaptorName, Attributes](auto pContainer){
-        auto appended_attribs = Attributes.Clone();
-        const auto& r_tensor_shape = pContainer->Shape();
-        const auto& dataset_path = mPrefix + rTensorAdaptorName;
-        WriteInfo info;
-        mpFile->WriteDataSet(dataset_path, pContainer->ViewData().data(), r_tensor_shape.data().begin(), r_tensor_shape.data().end(), info);
-        mpFile->WriteAttribute(dataset_path, appended_attribs);
-        WritePartitionTable(*mpFile, dataset_path, info);
+    const auto& dataset_path = mPrefix + rTensorAdaptorName;
 
+    std::visit([this, &dataset_path](auto p_tensor_adaptor){
+        WriteInfo info;
+        const auto& r_tensor_shape = p_tensor_adaptor->Shape();
+        this->mpFile->WriteDataSet(dataset_path, p_tensor_adaptor->ViewData().data(), r_tensor_shape.data().begin(), r_tensor_shape.data().end(), info);
+        WritePartitionTable(*this->mpFile, dataset_path, info);
     }, pTensorAdaptor);
+
+    auto appended_attribs = Attributes.Clone();
+    mpFile->WriteAttribute(dataset_path, appended_attribs);
 
     KRATOS_CATCH("");
 }
@@ -98,15 +99,15 @@ std::pair<TensorAdaptorIO::TensorAdaptorPointerType, Parameters> TensorAdaptorIO
     const auto& h5_dimensions = mpFile->GetDataDimensions(dataset_path);
     DenseVector<unsigned int> tensor_shape(h5_dimensions.size());
     tensor_shape[0] = block_size;
-    std::copy(h5_dimensions.begin() + 1, h5_dimensions.end(), tensor_shape.data().begin());
+    std::copy(h5_dimensions.begin() + 1, h5_dimensions.end(), tensor_shape.data().begin() + 1);
 
-    TensorAdaptorPointerType pTensorAdaptor;
+    TensorAdaptorPointerType tensor_adaptor;
     if (mpFile->HasDataType<bool>(dataset_path)) {
-        pTensorAdaptor = Kratos::make_intrusive<TensorAdaptor<bool>>(tensor_shape);
+        tensor_adaptor = Kratos::make_shared<TensorAdaptor<bool>>(tensor_shape);
     } else if (mpFile->HasDataType<int>(dataset_path)) {
-        pTensorAdaptor = Kratos::make_intrusive<TensorAdaptor<int>>(tensor_shape);
+        tensor_adaptor = Kratos::make_shared<TensorAdaptor<int>>(tensor_shape);
     } else if (mpFile->HasDataType<double>(dataset_path)) {
-        pTensorAdaptor = Kratos::make_intrusive<TensorAdaptor<double>>(tensor_shape);
+        tensor_adaptor = Kratos::make_shared<TensorAdaptor<double>>(tensor_shape);
     } else {
         KRATOS_ERROR
                 << "Unsupported data set type found at \"" << dataset_path
@@ -114,12 +115,11 @@ std::pair<TensorAdaptorIO::TensorAdaptorPointerType, Parameters> TensorAdaptorIO
     }
 
     std::visit([this, &dataset_path, &tensor_shape, start_index](auto p_tensor_adaptor) {
-        mpFile->ReadDataSet(dataset_path, p_tensor_adaptor->ViewData().data(), tensor_shape.data().begin(),tensor_shape.data().end(), start_index);
-    }, pTensorAdaptor);
+        this->mpFile->ReadDataSet(dataset_path, p_tensor_adaptor->ViewData().data(), tensor_shape.data().begin(),tensor_shape.data().end(), start_index);
+    }, tensor_adaptor);
 
     auto attributes = mpFile->ReadAttribute(dataset_path);
-
-    return std::make_pair(pTensorAdaptor, attributes);
+    return std::make_pair(tensor_adaptor, attributes);
 
     KRATOS_CATCH("");
 }
