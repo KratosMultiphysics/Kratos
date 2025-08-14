@@ -942,7 +942,7 @@ void File::WriteDataSetImpl(
     const auto& r_data_communicator = GetDataCommunicator();
 
     // gather all the shapes from every rank
-    const auto& r_collected_local_shapes = r_data_communicator.AllGatherv(local_shape);
+    const auto& r_collected_local_shapes = r_data_communicator.AllGatherv(std::vector<unsigned int>(local_shape.begin(), local_shape.end()));
 
     // identifying the global shape
     for (const auto& r_rank_shape : r_collected_local_shapes) {
