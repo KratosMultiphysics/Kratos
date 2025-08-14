@@ -411,8 +411,6 @@ inline void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType
     }
 
     KRATOS_TRY
-    using ScalarType = typename TSparse::DataType;
-
     // Apply settings that depend on the LHS matrix.
     // Use rigid body modes or set block size
     int static_block_size = mUseBlockMatricesIfPossible ? mBlockSize.value() : 1;
