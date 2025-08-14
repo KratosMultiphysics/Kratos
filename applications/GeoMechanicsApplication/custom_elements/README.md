@@ -97,9 +97,9 @@ And the liquid phase compressibility:
 
 $$ \beta =\frac{1}{K_{fluid}} $$
 
-However, Biot coefficient can be a user defined coefficient. In the case the user does not define Biot, the above calculation is applied. In the case of defining it, the Biot coefficient is replaced by the defined value.
+However, Biot coefficient can be a user defined value. In this case, a value calculated with above equations is replaced with the user value.
 
-for most soils and even many rocks, the Biot coefficient is very close to 1. Since mineral grains are much stiffer than the porous frame.
+For most soils and even many rocks, the Biot coefficient is very close to 1. Since mineral grains are much stiffer than the porous frame.
 
 When it’s not close to 1?
 - In very stiff, low-porosity rocks (e.g., crystalline granite)
