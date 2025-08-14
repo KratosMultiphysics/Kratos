@@ -21,7 +21,7 @@ from test_hdf5_xdmf import TestCreateXdmfTemporalGridFromMultifile
 from test_vertex import TestVertex
 from test_point_set_output_process import TestPointSetOutputProcess as TestHDF5PointSetOutputProcess
 from test_line_output_process import TestLineOutputProcess as TestHDF5LineOutputProcess
-from test_expression_io import TestTensorAdaptorIO
+from test_tensor_adaptor_io import TestTensorAdaptorIO
 
 def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites

@@ -11,7 +11,7 @@ from test_hdf5_core_mpi import TestOperations as TestHDF5Operations
 from test_hdf5_core_mpi import TestFileIO as TestHDF5FileIO
 from test_point_set_output_process import TestPointSetOutputProcess
 from test_line_output_process import TestLineOutputProcess
-from test_expression_io import TestTensorAdaptorIO
+from test_tensor_adaptor_io import TestTensorAdaptorIO
 
 def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
