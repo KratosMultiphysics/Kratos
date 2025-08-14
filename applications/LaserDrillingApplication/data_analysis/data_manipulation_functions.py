@@ -378,7 +378,6 @@ def compute_centroids(slices, slice_bounds):
     num_slices = len(slices)
 
     centroids = [None] * num_slices
-    centroid_zs = [None] * num_slices
     centroid_ids = [None] * num_slices
 
     for i in range(num_slices):
@@ -390,7 +389,7 @@ def compute_centroids(slices, slice_bounds):
             #     f"Slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um) contains no points"
             # )
             print(f"Slice {i + 1} (z ∈ [{slice_bounds[i]:.2f}, {slice_bounds[i + 1]:.2f}] um) contains no points")
-            centroids[i] = None
+            # centroids[i] = None # Not needed since centroids starts full of None
             continue
 
         centroid = np.mean(slice_points, axis=0)
@@ -398,12 +397,13 @@ def compute_centroids(slices, slice_bounds):
         centroids[i] = centroid
         centroid_ids[i] = i + 1
 
-    # Filter out None values
-    valid_centroids = [c for c in centroids if c is not None]
-    centroids = np.array(valid_centroids)
-    centroid_zs = [z for z in centroid_zs if z is not None]
-    centroid_ids = [id for id in centroid_ids if id is not None]
-
+    # # Filter out None values
+    # valid_centroids = [c for c in centroids if c is not None]
+    # centroids_np = np.array(valid_centroids)
+    
+    # valid_centroid_ids = [id for id in centroid_ids if id is not None]
+    # centroid_ids_np = np.array(valid_centroid_ids)
+    
     return centroids, centroid_ids
 
 
