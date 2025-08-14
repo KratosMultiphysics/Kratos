@@ -129,8 +129,10 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
     KRATOS_TRY
 
     if (!mIsInitialized) {
-        mExternalForcesAtStart =  ZeroVector(this->GetGeometry().size() * (this->GetGeometry().WorkingSpaceDimension() + 1));
-        mInternalForcesAtStart =  ZeroVector(this->GetGeometry().size() * (this->GetGeometry().WorkingSpaceDimension() + 1));
+        mExternalForcesAtStart =
+            ZeroVector(this->GetGeometry().size() * (this->GetGeometry().WorkingSpaceDimension() + 1));
+        mInternalForcesAtStart =
+            ZeroVector(this->GetGeometry().size() * (this->GetGeometry().WorkingSpaceDimension() + 1));
         const PropertiesType&                           r_prop = this->GetProperties();
         const GeometryType&                             r_geom = GetGeometry();
         const GeometryType::IntegrationPointsArrayType& r_integration_points =
@@ -158,8 +160,8 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
 
         const auto deformation_gradients = CalculateDeformationGradients();
         auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
-            deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-            GetStressStatePolicy().GetVoigtSize());
+            deformation_gradients, b_matrices, Variables.DisplacementVector,
+            Variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
         std::vector<Matrix> constitutive_matrices;
         this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                              Variables.NuContainer, Variables.DNu_DXContainer,
@@ -172,8 +174,8 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
         const auto derivatives_of_saturation = CalculateDerivativesOfSaturation(fluid_pressures);
         const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
             biot_coefficients, degrees_of_saturation, derivatives_of_saturation, r_prop);
-        auto       relative_permeability_values = CalculateRelativePermeabilityValues(fluid_pressures);
-        const auto permeability_update_factors  = GetOptionalPermeabilityUpdateFactors(strain_vectors);
+        auto relative_permeability_values = CalculateRelativePermeabilityValues(fluid_pressures);
+        const auto permeability_update_factors = GetOptionalPermeabilityUpdateFactors(strain_vectors);
         std::transform(permeability_update_factors.cbegin(), permeability_update_factors.cend(),
                        relative_permeability_values.cbegin(), relative_permeability_values.begin(),
                        std::multiplies<>{});
@@ -919,23 +921,23 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
 
         // Contributions to the right hand side
         if (CalculateResidualVectorFlag)
-            this->CalculateAndAddRHSWithProcessInfo(rRightHandSideVector, Variables,
-                                                    GPoint, rCurrentProcessInfo);
+            this->CalculateAndAddRHSWithProcessInfo(rRightHandSideVector, Variables, GPoint, rCurrentProcessInfo);
     }
 
     if (rCurrentProcessInfo[USE_PROTOTYPE_NULL_STEPPING] && CalculateResidualVectorFlag) {
-        auto relative_time = (rCurrentProcessInfo[TIME] - rCurrentProcessInfo[START_TIME]) /
-                             (rCurrentProcessInfo[END_TIME] - rCurrentProcessInfo[START_TIME]);
-        const auto f_ext = -mInternalForcesAtStart + (mExternalForcesAtStart + mInternalForcesAtStart) * relative_time;
+        auto fraction_of_unbalance = (rCurrentProcessInfo[TIME] - rCurrentProcessInfo[START_TIME]) /
+                                     (rCurrentProcessInfo[END_TIME] - rCurrentProcessInfo[START_TIME]);
+        const auto f_ext = -mInternalForcesAtStart +
+                           (mExternalForcesAtStart + mInternalForcesAtStart) * fraction_of_unbalance;
 
-        //KRATOS_INFO("time_data") << relative_time << " " << rCurrentProcessInfo[START_TIME] << "->" <<rCurrentProcessInfo[END_TIME] << std::endl;
-        //KRATOS_INFO("f_ext") << f_ext << std::endl;
+        // KRATOS_INFO("fraction of unbalance") << fraction_of_unbalance << "\n";
+        // KRATOS_INFO("f_ext") << f_ext << std::endl;
         // KRATOS_INFO("total_external_forces") << total_external_forces << std::endl;
-        //KRATOS_INFO("mInternalForcesAtStart") << mInternalForcesAtStart << std::endl;
-        //KRATOS_INFO("mExternalForcesAtStart") << mExternalForcesAtStart << std::endl;
-        //KRATOS_INFO("RHS total after before external force: ") << rRightHandSideVector << std::endl;
+        // KRATOS_INFO("mInternalForcesAtStart") << mInternalForcesAtStart << std::endl;
+        // KRATOS_INFO("mExternalForcesAtStart") << mExternalForcesAtStart << std::endl;
+        // KRATOS_INFO("RHS total after before external force: ") << rRightHandSideVector << std::endl;
         rRightHandSideVector += f_ext;
-        //KRATOS_INFO("RHS total after adding external force: ") << rRightHandSideVector << std::endl;
+        // KRATOS_INFO("RHS total after adding external force: ") << rRightHandSideVector << std::endl;
     }
     // KRATOS_INFO("CalculateAll") << "END\n";
 
@@ -943,9 +945,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddRHSWithProcessInfo(VectorType& rRightHandSideVector,
-                                                              ElementVariables& rVariables,
-                                                              unsigned int GPoint,
-                                                              const ProcessInfo& rCurrentProcessInfo)
+                                                                       ElementVariables& rVariables,
+                                                                       unsigned int      GPoint,
+                                                                       const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateAndAddInternalForces(rRightHandSideVector, rVariables, GPoint);
     if (!rCurrentProcessInfo[USE_PROTOTYPE_NULL_STEPPING]) {
@@ -954,10 +956,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddRHSWithProcessInfo(VectorTyp
     }
 }
 
-
 void SmallStrainUPwDiffOrderElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-                                                          ElementVariables& rVariables,
-                                                          unsigned int GPoint)
+                                                                   ElementVariables& rVariables,
+                                                                   unsigned int      GPoint)
 {
     this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables, GPoint);
 
@@ -970,10 +971,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddInternalForces(VectorType& r
     }
 }
 
-
 void SmallStrainUPwDiffOrderElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
                                                                    ElementVariables& rVariables,
-                                                                   unsigned int GPoint)
+                                                                   unsigned int      GPoint)
 {
     this->CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
 
@@ -981,8 +981,6 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddExternalForces(VectorType& r
         this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
     }
 }
-
-
 
 std::vector<double> SmallStrainUPwDiffOrderElement::GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>& rStrainVectors) const
 {

@@ -590,8 +590,9 @@ public:
 
         // Put back the prediction into the database
         // TSparseSpace::InplaceMult(dx_prediction, -1.0); //change sign to dx_prediction
-        const auto multiplier = mPreviousDeltaTime > 0.0 ? rModelPart.GetProcessInfo()[DELTA_TIME] / mPreviousDeltaTime : 1.0;
-        //KRATOS_INFO("BuildAndSolveLinearizedOnPreviousIteration") << "Multiplier = " << multiplier << std::endl;
+        const auto multiplier =
+            mPreviousDeltaTime > 0.0 ? rModelPart.GetProcessInfo()[DELTA_TIME] / mPreviousDeltaTime : 1.0;
+        // KRATOS_INFO("BuildAndSolveLinearizedOnPreviousIteration") << "Multiplier = " << multiplier << std::endl;
         TSparseSpace::UnaliasedAdd(rDx, multiplier, dx_prediction);
 
         // Use UpdateDatabase to bring back the solution
@@ -670,7 +671,7 @@ public:
             << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         if (rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] > 1) {
-            //KRATOS_INFO("Let's multiply\n");
+            // KRATOS_INFO("Let's multiply\n");
             TSparseSpace::InplaceMult(rb, 1.5);
         }
 
@@ -711,7 +712,7 @@ public:
             if (rDof.IsFixed()) b[i] = 0.0;
         });
 
-        //KRATOS_INFO("BuildRHS [after zeroing fixed DOFs") << "b: " << b << "\n";
+        // KRATOS_INFO("BuildRHS [after zeroing fixed DOFs") << "b: " << b << "\n";
 
         Timer::Stop("BuildRHS");
 
@@ -1087,11 +1088,10 @@ public:
 
     ///@}
 
-    void FinalizeSolutionStep(
-        ModelPart&                                                                     rModelPart,
-        BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::TSystemMatrixType& rA,
-        BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::TSystemVectorType& rDx,
-        BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::TSystemVectorType& rb) override
+    void FinalizeSolutionStep(ModelPart& rModelPart,
+                              BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::TSystemMatrixType& rA,
+                              BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::TSystemVectorType& rDx,
+                              BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::TSystemVectorType& rb) override
     {
         mPreviousDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
     }
@@ -1181,7 +1181,7 @@ protected:
             }
         }
 
-        //KRATOS_INFO("BuildRHSNoDirichlet") << "b: " << b << "\n";
+        // KRATOS_INFO("BuildRHSNoDirichlet") << "b: " << b << "\n";
 
         KRATOS_CATCH("")
     }

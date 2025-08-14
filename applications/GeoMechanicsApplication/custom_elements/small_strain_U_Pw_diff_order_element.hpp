@@ -120,8 +120,6 @@ public:
     // Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
-
-
 protected:
     struct ElementVariables {
         // Variables at all integration points
@@ -272,9 +270,9 @@ protected:
 
 private:
     GeometryType::Pointer mpPressureGeometry;
-    Vector mInternalForcesAtStart = ZeroVector(6 * (2 + 1));
-    Vector mExternalForcesAtStart = ZeroVector(6 * (2 + 1));
-    bool   mIsInitialized         = false;
+    Vector                mInternalForcesAtStart = ZeroVector(6 * (2 + 1));
+    Vector                mExternalForcesAtStart = ZeroVector(6 * (2 + 1));
+    bool                  mIsInitialized         = false;
 
     [[nodiscard]] DofsVectorType GetDofs() const override;
 

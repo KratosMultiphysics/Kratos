@@ -79,9 +79,9 @@ void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList,
     rConditionDofList = GetDofs();
 }
 
-void GeneralUPwDiffOrderCondition::CalculateLocalSystem(Matrix& rLeftHandSideMatrix,
-                                                        Vector& rRightHandSideVector,
-                                                        const ProcessInfo&)
+void GeneralUPwDiffOrderCondition::CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
+                                                        Vector&            rRightHandSideVector,
+                                                        const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -94,11 +94,16 @@ void GeneralUPwDiffOrderCondition::CalculateLocalSystem(Matrix& rLeftHandSideMat
 
     const auto CalculateResidualVectorFlag = true;
     CalculateAll(rRightHandSideVector, CalculateResidualVectorFlag);
-
+    if (rCurrentProcessInfo[USE_PROTOTYPE_NULL_STEPPING] && CalculateResidualVectorFlag) {
+        auto fraction_of_unbalance = (rCurrentProcessInfo[TIME] - rCurrentProcessInfo[START_TIME]) /
+                                     (rCurrentProcessInfo[END_TIME] - rCurrentProcessInfo[START_TIME]);
+        rRightHandSideVector *= fraction_of_unbalance;
+    }
     KRATOS_CATCH("")
 }
 
-void GeneralUPwDiffOrderCondition::CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo&)
+void GeneralUPwDiffOrderCondition::CalculateRightHandSide(Vector&            rRightHandSideVector,
+                                                          const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = GetGeometry();
     const auto  condition_size =
@@ -111,6 +116,11 @@ void GeneralUPwDiffOrderCondition::CalculateRightHandSide(Vector& rRightHandSide
     bool CalculateResidualVectorFlag = true;
 
     CalculateAll(rRightHandSideVector, CalculateResidualVectorFlag);
+    if (rCurrentProcessInfo[USE_PROTOTYPE_NULL_STEPPING] && CalculateResidualVectorFlag) {
+        auto fraction_of_unbalance = (rCurrentProcessInfo[TIME] - rCurrentProcessInfo[START_TIME]) /
+                                     (rCurrentProcessInfo[END_TIME] - rCurrentProcessInfo[START_TIME]);
+        rRightHandSideVector *= fraction_of_unbalance;
+    }
 }
 
 void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
@@ -123,6 +133,7 @@ void GeneralUPwDiffOrderCondition::CalculateAll(Vector& rRightHandSideVector, bo
     KRATOS_TRY
 
     ConditionVariables Variables;
+
     this->InitializeConditionVariables(Variables);
 
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
@@ -132,7 +143,6 @@ void GeneralUPwDiffOrderCondition::CalculateAll(Vector& rRightHandSideVector, bo
         this->CalculateKinematics(Variables, PointNumber);
 
         this->CalculateConditionVector(Variables, PointNumber);
-
         Variables.IntegrationCoefficient =
             this->CalculateIntegrationCoefficient(PointNumber, Variables.JContainer, IntegrationPoints);
 

@@ -59,9 +59,11 @@ public:
 
     void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
 
-    void CalculateLocalSystem(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo&) override;
+    void CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
+                              Vector&            rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo&) override;
+    void CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 

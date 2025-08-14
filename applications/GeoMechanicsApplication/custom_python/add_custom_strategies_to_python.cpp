@@ -127,8 +127,7 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
 
     using GeoResidualBasedBlockBuilderAndSolverType =
         GeoResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
-    py::class_<GeoResidualBasedBlockBuilderAndSolverType,
-               GeoResidualBasedBlockBuilderAndSolverType::Pointer, BuilderAndSolverType>(
+    py::class_<GeoResidualBasedBlockBuilderAndSolverType, GeoResidualBasedBlockBuilderAndSolverType::Pointer, BuilderAndSolverType>(
         m, "GeoResidualBasedBlockBuilderAndSolver")
         .def(py::init<LinearSolverType::Pointer>())
         .def(py::init<LinearSolverType::Pointer, Parameters>());
