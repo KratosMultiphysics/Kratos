@@ -184,7 +184,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet9, KratosHDF5TestSuite)
         HDF5::File::Vector<double> data_in;
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             test_file.ReadDataSet("/data", data_in, 10, 3);
-            , "StartIndex (10) + BlockSize (3) > size of data set (3).");
+            , "Data size mismatch. [ current rank offset = [10], local shape = [3], global shape = [3] ].");
         KRATOS_EXPECT_TRUE(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
     }
     H5close(); // Clean HDF5 for next unit test.
@@ -268,7 +268,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet14, KratosHDF5TestSuite)
         HDF5::File::Matrix<double> data_in;
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             test_file.ReadDataSet("/data", data_in, 10, 3);
-            , "StartIndex (10) + BlockSize (3) > size of data set (3).");
+            , "Data size mismatch. [ current rank offset = [10, 0], local shape = [3, 3], global shape = [3, 3] ].");
         KRATOS_EXPECT_TRUE(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
     }
     H5close(); // Clean HDF5 for next unit test.
