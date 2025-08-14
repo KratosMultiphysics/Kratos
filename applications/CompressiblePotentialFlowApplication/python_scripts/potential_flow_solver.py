@@ -347,4 +347,5 @@ class PotentialFlowSolver(FluidSolver):
 
     def _SetPhysicalProperties(self):
         # There are no properties in the potential flow solver. Free stream quantities are defined in the apply_far_field_process.py
+        if (not self.main_model_part.HasProperties(0)): self.main_model_part.CreateNewProperties(0)
         return True

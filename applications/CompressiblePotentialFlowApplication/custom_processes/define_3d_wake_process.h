@@ -110,6 +110,12 @@ private:
     BoundedVector<double, 3> mWakedrTraslation;
 
     std::string mBluntTESurfaceModelPartName;
+    std::string mUpperSurfaceModelPartName;
+    std::string mLowerSurfaceModelPartName;
+    std::string mRootPointsModelPartName;
+    std::string mTipPointsModelPartName;
+    std::string mTailModelPartName;
+    
     std::unordered_set<IndexType> mBluntIds; 
     
     std::filesystem::path mWakeSTLFileName;

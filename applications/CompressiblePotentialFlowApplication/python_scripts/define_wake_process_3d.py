@@ -21,15 +21,20 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             "wake_process_cpp_parameters":    {
                 "wake_normal"                      : [0.0,0.0,1.0],
                 "blunt_te_surface_model_part_name" : "",
+                "wake_stl_file_name"               : "",
                 "shed_wake_from_trailing_edge"     : false,
                 "shed_wake_length"                 : 12.5,
                 "shed_wake_element_size"           : 0.2,
                 "shed_wake_grow_factor"            : 1.05,
                 "shed_wake_projection_root_edge"   : 0.0,
-                "wake_stl_file_name"               : "",
                 "wake_dr_translation"              : [0.0,0.0,0.0],
                 "tolerance"                        : 1e-9,
                 "visualize_wake_vtk"               : false,
+                "blunt_te_surface_model_part_name" : "",
+                "upper_surface_model_part_name"    : "",
+                "lower_surface_model_part_name"    : "",
+                "root_points_model_part_name"      : "",
+                "tip_points_model_part_name"       : "",
                 "echo_level"                       : 0
             }
         }''')
@@ -41,7 +46,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
         self.wake_process_cpp_parameters = settings["wake_process_cpp_parameters"]
 
-        self.echo_level = self.wake_process_cpp_parameters["echo_level"].GetInt()-1
+        self.echo_level = self.wake_process_cpp_parameters["echo_level"].GetInt() - 1
 
         body_model_part_name = settings["body_model_part_name"].GetString()
         if body_model_part_name == "":
@@ -61,13 +66,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
         start_time = time.time()
-        exe_time = time.time() - start_time
-        KratosMultiphysics.Logger.PrintInfo(
-            'DefineWakeProcess3D', 'Executing __CreateWakeModelPart took ', round(exe_time, 2), ' sec')
-        KratosMultiphysics.Logger.PrintInfo(
-            'DefineWakeProcess3D', 'Executing __CreateWakeModelPart took ', round(exe_time/60, 2), ' min')
 
-        start_time = time.time()
         CPFApp.Define3DWakeProcess(self.trailing_edge_model_part, self.body_model_part,
                                    self.wake_process_cpp_parameters).ExecuteInitialize()
         
