@@ -105,12 +105,16 @@ class MPMRestartTestDynamicCantilever2D(MPMRestartTestFactory):
 class MPMRestartTestBeamStaticLineLoad2D(MPMRestartTestFactory):
     file_name = "beam_tests/cantilever_beam/static_line_load_2D_quad_test"
 
+class MPMRestartTestCantileverLagrange2D(MPMRestartTestFactory):
+    file_name = "beam_tests/hyperelastic_cantilever_beam/lagrange_self_weight_load_2D_quad_test"
+
 
 if __name__ == "__main__":
     suites = KratosUnittest.KratosSuites
     small_suite = suites['small'] # These tests are executed by the continuous integration tool
     small_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MPMRestartTestBeamStaticLineLoad2D]))
     small_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MPMRestartTestDynamicCantilever2D]))
+    small_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MPMRestartTestCantileverLagrange2D]))
     all_suite = suites['all']
     all_suite.addTests(small_suite)
     KratosUnittest.runTests(suites)
