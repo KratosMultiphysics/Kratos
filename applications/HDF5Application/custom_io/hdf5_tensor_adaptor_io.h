@@ -16,17 +16,16 @@
 #include <string>
 #include <vector>
 #include <tuple>
+#include <variant>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-#include "expression/expression.h"
-#include "expression/container_expression.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 
 // Application includes
-#include "custom_io/hdf5_file.h"
 
 namespace Kratos
 {
@@ -47,6 +46,12 @@ public:
 
     using IndexType = std::size_t;
 
+    using TensorAdaptorPointerType = std::variant<
+                                            TensorAdaptor<bool>::Pointer,
+                                            TensorAdaptor<int>::Pointer,
+                                            TensorAdaptor<double>::Pointer
+                                        >;
+
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(TensorAdaptorIO);
 
@@ -64,22 +69,11 @@ public:
     ///@{
 
     void Write(
-        const std::string& rExpressionName,
-        const Expression& rExpression,
+        const std::string& rTensorAdaptorName,
+        TensorAdaptorPointerType pTensorAdaptor,
         const Parameters Attributes);
 
-    std::pair<Expression::Pointer, Parameters> Read(const std::string& rExpressionName);
-
-    template<class TContainerType>
-    void Write(
-        const std::string& rContainerExpressionName,
-        const ContainerExpression<TContainerType>& rContainerExpression,
-        const Parameters Attributes);
-
-    template<class TContainerType>
-    Parameters Read(
-        const std::string& rExpressionName,
-        ContainerExpression<TContainerType>& rContainerExpression);
+    std::pair<TensorAdaptorPointerType, Parameters> Read(const std::string& rTensorAdaptorName);
 
     ///@}
 

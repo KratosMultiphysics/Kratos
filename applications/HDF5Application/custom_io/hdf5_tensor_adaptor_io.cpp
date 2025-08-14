@@ -7,21 +7,17 @@
 //  License:        BSD License
 //                  license: HDF5Application/license.txt
 //
-//  Main author:    Suneth Warnakulasuriya, https://github.com/sunethwarna
+//  Main author:    Suneth Warnakulasuriya
 //
 
 // System includes
-#include <numeric>
 
 // External includes
 
 // Project includes
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
-#include "expression/literal_flat_expression.h"
-#include "utilities/parallel_utilities.h"
 
 // Application includes
-#include "custom_utilities/container_io_utils.h"
 
 // Include base h
 #include "hdf5_tensor_adaptor_io.h"
@@ -49,56 +45,27 @@ TensorAdaptorIO::TensorAdaptorIO(
 }
 
 void TensorAdaptorIO::Write(
-    const std::string& rExpressionName,
-    const Expression& rExpression,
+    const std::string& rTensorAdaptorName,
+    TensorAdaptorPointerType pTensorAdaptor,
     const Parameters Attributes)
 {
     KRATOS_TRY
 
-    const auto stride = rExpression.GetItemComponentCount();
+    std::visit([this, &rTensorAdaptorName, Attributes](auto pContainer){
+        auto appended_attribs = Attributes.Clone();
+        const auto& r_tensor_shape = pContainer->Shape();
+        const auto& dataset_path = mPrefix + rTensorAdaptorName;
+        WriteInfo info;
+        mpFile->WriteDataSet(dataset_path, pContainer->ViewData().data(), r_tensor_shape.data().begin(), r_tensor_shape.data().end(), info);
+        mpFile->WriteAttribute(dataset_path, appended_attribs);
+        WritePartitionTable(*mpFile, dataset_path, info);
 
-    Vector<double> values;
-    values.resize(rExpression.size(), false);
-    IndexPartition<IndexType>(rExpression.NumberOfEntities()).for_each([&rExpression, &values, stride](const auto Index) {
-        const auto begin_index = Index * stride;
-        auto* p_begin = values.data().begin() + begin_index;
-        for (unsigned int i = 0; i < stride; ++i) {
-            *(p_begin++) = rExpression.Evaluate(Index, begin_index, i);
-        }
-    });
-
-    auto appended_attribs = Attributes.Clone();
-
-    const auto& shape = rExpression.GetItemShape();
-
-    KRATOS_ERROR_IF(appended_attribs.Has("__data_dimension"))
-        << "The reserved keyword \"__data_dimension\" is found. Please remove it from attributes.";
-    appended_attribs.AddInt("__data_dimension", static_cast<int>(shape.size()));
-
-    KRATOS_ERROR_IF(Attributes.Has("__data_name"))
-        << "The reserved keyword \"__data_name\" is found. Please remove it from attributes.";
-    appended_attribs.AddString("__data_name", rExpressionName);
-
-    KRATOS_ERROR_IF(appended_attribs.Has("__data_shape"))
-        << "The reserved keyword \"__data_shape\" is found. Please remove it from attributes.";
-
-    if (shape.size() > 0) {
-        appended_attribs.AddEmptyArray("__data_shape");
-        for (const auto& dim_size : shape) {
-            appended_attribs["__data_shape"].Append(static_cast<int>(dim_size));
-        }
-    }
-
-    const auto& dataset_path = mPrefix + rExpressionName;
-    WriteInfo info;
-    mpFile->WriteDataSet(dataset_path, values, info);
-    mpFile->WriteAttribute(dataset_path, appended_attribs);
-    WritePartitionTable(*mpFile, dataset_path, info);
+    }, pTensorAdaptor);
 
     KRATOS_CATCH("");
 }
 
-std::pair<Expression::Pointer, Parameters> TensorAdaptorIO::Read(const std::string& rExpressionName)
+std::pair<TensorAdaptorIO::TensorAdaptorPointerType, Parameters> TensorAdaptorIO::Read(const std::string& rExpressionName)
 {
     KRATOS_TRY
 
@@ -107,132 +74,55 @@ std::pair<Expression::Pointer, Parameters> TensorAdaptorIO::Read(const std::stri
     KRATOS_ERROR_IF_NOT(mpFile->HasPath(dataset_path))
         << "Path \"" << dataset_path << "\" does not exist.";
 
-    KRATOS_ERROR_IF_NOT(mpFile->HasDataType<double>(dataset_path))
-        << "Data at \"" << dataset_path << "\" is not of double type.";
-
-    auto attributes = mpFile->ReadAttribute(dataset_path);
-
-    KRATOS_ERROR_IF_NOT(attributes.Has("__data_dimension"))
-        << "Dataset dimension not found for expression at \"" << dataset_path << "\".";
-
-    const auto dimension = attributes["__data_dimension"].GetInt();
-    std::vector<std::size_t> shape;
-    std::size_t stride = 1;
-    shape.reserve(dimension);
-    if (dimension > 0) {
-        KRATOS_ERROR_IF_NOT(attributes.Has("__data_shape"))
-            << "Dataset shape not found for expression at \"" << dataset_path << "\".";
-        for (const auto& p_v : attributes["__data_shape"]){
-            const auto v = p_v.GetInt();
-            stride *= v;
-            shape.push_back(static_cast<std::size_t>(v));
-        }
-        attributes.RemoveValue("__data_shape");
-    }
-
-    IndexType start_index, block_size;
+    IndexType start_index{}, block_size{};
     if (HasPartitionTable(*mpFile, dataset_path)) {
         // partition table is available for the given data set.
         std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, dataset_path);
     } else {
-        // check if the patiton table is written as a common table for set of datasets
-        // such as in the Variable data writing.
-        std::string data_set_name;
-        mpFile->ReadAttribute(dataset_path, "__data_name", data_set_name);
+        // check if the partition table is written as a common table for set of datasets
+        // such as in the Variable data writing. This common data set should be having a partition table in the same
+        // group.
+        const auto group_name_pos = dataset_path.rfind("/");
+        const auto& partition_path = dataset_path.substr(0, group_name_pos + 1);
 
-        const auto& partition_path = dataset_path.substr(0, dataset_path.size() - data_set_name.size());
         if (HasPartitionTable(*mpFile, partition_path)) {
             std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, partition_path);
         } else {
             KRATOS_ERROR << "Partition table not found for dataset at \""
-                         << data_set_name << "\" either at the dataset location or at \""
+                         << dataset_path << "\" either at the dataset location or at \""
                          << partition_path << "\".";
         }
     }
 
     // get raw data dimensions of h5.
     const auto& h5_dimensions = mpFile->GetDataDimensions(dataset_path);
-    const auto h5_total_data_size = std::accumulate(h5_dimensions.begin(), h5_dimensions.end(), 1U, std::multiplies<unsigned int>{});
+    DenseVector<unsigned int> tensor_shape(h5_dimensions.size());
+    tensor_shape[0] = block_size;
+    std::copy(h5_dimensions.begin() + 1, h5_dimensions.end(), tensor_shape.data().begin());
 
-    KRATOS_ERROR_IF_NOT(h5_total_data_size % stride == 0)
-        << "Dataset at \"" << dataset_path << "\" size is not a multiple of stride [ stride = "
-        << stride << ", dataset total size = " << h5_total_data_size << ", shape = " << shape << " ].\n";
-
-    const IndexType number_of_items = h5_total_data_size / stride;
-    auto p_expression = LiteralFlatExpression<double>::Create(number_of_items, shape);
-
-    if (h5_dimensions.size() == 1) {
-        // reading a scalar or a flattened expression
-        Vector<double> values;
-        mpFile->ReadDataSet(dataset_path, values, start_index, block_size);
-        IndexPartition<IndexType>(h5_total_data_size).for_each([&p_expression, &values](const auto Index) {
-            *(p_expression->begin() + Index) = values[Index];
-        });
+    TensorAdaptorPointerType pTensorAdaptor;
+    if (mpFile->HasDataType<bool>(dataset_path)) {
+        pTensorAdaptor = Kratos::make_intrusive<TensorAdaptor<bool>>(tensor_shape);
+    } else if (mpFile->HasDataType<int>(dataset_path)) {
+        pTensorAdaptor = Kratos::make_intrusive<TensorAdaptor<int>>(tensor_shape);
+    } else if (mpFile->HasDataType<double>(dataset_path)) {
+        pTensorAdaptor = Kratos::make_intrusive<TensorAdaptor<double>>(tensor_shape);
     } else {
-        // reading a non-flattened multi-dimensional dataset.
-        Matrix<double> values;
-        mpFile->ReadDataSet(dataset_path, values, start_index, block_size);
-        IndexPartition<IndexType>(h5_total_data_size).for_each([&p_expression, &values](const auto Index) {
-            *(p_expression->begin() + Index) = *(values.data().begin() + Index);
-        });
+        KRATOS_ERROR
+                << "Unsupported data set type found at \"" << dataset_path
+                << "\". TensorAdaptors only support bool, int and double data types.\n";
     }
 
-    if (attributes.Has("__data_dimension")) attributes.RemoveValue("__data_dimension");
-    if (attributes.Has("__data_shape")) attributes.RemoveValue("__data_shape");
-    if (attributes.Has("__data_name")) attributes.RemoveValue("__data_name");
+    std::visit([this, &dataset_path, &tensor_shape, start_index](auto p_tensor_adaptor) {
+        mpFile->ReadDataSet(dataset_path, p_tensor_adaptor->ViewData().data(), tensor_shape.data().begin(),tensor_shape.data().end(), start_index);
+    }, pTensorAdaptor);
 
-    return std::make_pair(p_expression, attributes);
+    auto attributes = mpFile->ReadAttribute(dataset_path);
 
-    KRATOS_CATCH("");
-}
-
-template<class TContainerType>
-void TensorAdaptorIO::Write(
-    const std::string& rContainerExpressionName,
-    const ContainerExpression<TContainerType>& rContainerExpression,
-    const Parameters Attributes)
-{
-    KRATOS_TRY
-
-    auto appended_attribs = Attributes.Clone();
-
-    KRATOS_ERROR_IF(appended_attribs.Has("__container_type"))
-        << "The reserved keyword \"__container_type\" is found. Please remove it from attributes.";
-    appended_attribs.AddString("__container_type", Internals::GetContainerName<TContainerType>());
-
-    Write(rContainerExpressionName, rContainerExpression.GetExpression(), appended_attribs);
+    return std::make_pair(pTensorAdaptor, attributes);
 
     KRATOS_CATCH("");
 }
-
-template<class TContainerType>
-Parameters TensorAdaptorIO::Read(
-    const std::string& rExpressionName,
-    ContainerExpression<TContainerType>& rContainerExpression)
-{
-    auto expression_attr_pair = Read(rExpressionName);
-
-    auto attribs = expression_attr_pair.second;
-
-    if (attribs.Has("__mesh_location")) attribs.RemoveValue("__mesh_location");
-    if (attribs.Has("__container_type")) attribs.RemoveValue("__container_type");
-
-    rContainerExpression.SetExpression(expression_attr_pair.first);
-    return attribs;
-}
-// template instantiations
-#ifndef Parameters
-#define KRATOS_HDF5_EXPRESSION_IO_INSTANTIATION(CONTAINER_TYPE)                                                                                 \
-template KRATOS_API(HDF5_APPLICATION) void  TensorAdaptorIO::Write(const std::string&, const ContainerExpression<CONTAINER_TYPE>&, Parameters);    \
-template KRATOS_API(HDF5_APPLICATION) Parameters  TensorAdaptorIO::Read(const std::string&, ContainerExpression<CONTAINER_TYPE>&);                 \
-
-#endif
-
-KRATOS_HDF5_EXPRESSION_IO_INSTANTIATION(NodesContainerType);
-KRATOS_HDF5_EXPRESSION_IO_INSTANTIATION(ConditionsContainerType);
-KRATOS_HDF5_EXPRESSION_IO_INSTANTIATION(ElementsContainerType);
-
-#undef KRATOS_HDF5_EXPRESSION_IO_INSTANTIATION
 
 } // namespace HDF5.
 } // namespace Kratos.
