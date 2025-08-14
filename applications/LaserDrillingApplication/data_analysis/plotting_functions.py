@@ -186,40 +186,47 @@ def plot_superposed_slices_xy(
 
     Parameters:
     - slices: List of point arrays for each slice (slices[i] for slice i+1).
-    - centroids: List of centroid coordinates for each slice.
+    - centroids: List of centroid coordinates for selected slices.
     - centroid_ids: List of slice indices (1-based).
-    - ellipses: List of ellipses.
-    - num_slices: Total number of slices.
-    - plot_centroids_in_all_slices_xy: Boolean to toggle centroid plotting.
-    - plot_ellipses_in_all_slices_xy: Boolean to toggle ellipse plotting.
+    - ellipses: List of ellipses (aligned with centroids / centroid_ids).
     - sample_limits: (sample_x_min, sample_x_max, sample_y_min, sample_y_max)
     """
-
     num_slices = len(slices)
     sample_x_min, sample_x_max, sample_y_min, sample_y_max = sample_limits
 
     fig, ax = plt.subplots(figsize=(8, 8))
-    colors = plt.cm.viridis(np.linspace(0, 1, num_slices))  # Distinct colors for slices
+    colors = plt.cm.viridis(np.linspace(0, 1, num_slices))  # Distinct colors per slice
+
+    # First loop: plot all slices
     for i in range(num_slices):
         slice_points = slices[i]
-        centroid = centroids[i]
-        idx = centroid_ids[i]
-        if len(slice_points) > 0 and centroid is not None:
-            ax.scatter(slice_points[:, 0], slice_points[:, 1], s=3, c=[colors[i]], label=f"Slice {idx}")
-            if plot_centroids_in_all_slices_xy:
-                ax.plot(centroid[0], centroid[1], "o", c=colors[i], markersize=8)
-                label = f"Slice {idx}\nZ={centroid[2]:.2f}"
-                ax.annotate(
-                    label,
-                    (centroid[0], centroid[1]),
-                    textcoords="offset points",
-                    xytext=(0, 6),
-                    ha="center",
-                    fontsize=8,
-                )
+        if len(slice_points) > 0:
+            ax.scatter(slice_points[:, 0], slice_points[:, 1], s=3, c=[colors[i]], label=f"Slice {i+1}")
 
-            ellipse = ellipses[i]
-            if plot_ellipses_in_all_slices_xy and ellipse is not None:
+    # Second loop: plot centroids
+    if plot_centroids_in_all_slices_xy:
+        for i, centroid in enumerate(centroids):
+            if centroid is not None:
+                idx = centroid_ids[i]
+                color_idx = idx - 1  # Assuming idx is 1-based
+                if 0 <= color_idx < num_slices:
+                    ax.plot(centroid[0], centroid[1], "o", c=colors[color_idx], markersize=8)
+                    label = f"Slice {idx}\nZ={centroid[2]:.2f}"
+                    ax.annotate(
+                        label,
+                        (centroid[0], centroid[1]),
+                        textcoords="offset points",
+                        xytext=(0, 6),
+                        ha="center",
+                        fontsize=8,
+                    )
+
+    # Third loop: plot ellipses
+    if plot_ellipses_in_all_slices_xy:
+        for i, ellipse in enumerate(ellipses):
+            if ellipse is not None:
+                # idx = centroid_ids[i]
+                idx = i+1
                 center = ellipse["center"]
                 cx, cy = center[0], center[1]
                 a = ellipse["a"]
@@ -227,12 +234,12 @@ def plot_superposed_slices_xy(
                 theta = ellipse["angle"]
 
                 t = np.linspace(0, 2 * np.pi, 100)
-
                 x_ellipse = cx + a * np.cos(t) * np.cos(theta) - b * np.sin(t) * np.sin(theta)
                 y_ellipse = cy + a * np.cos(t) * np.sin(theta) + b * np.sin(t) * np.cos(theta)
+
                 ax.plot(x_ellipse, y_ellipse, "-", color="black", linewidth=3.5)
                 ax.plot(x_ellipse, y_ellipse, "-", color="white", linewidth=2)
-                # Annotate ellipse at a point (e.g., t=0) with slice index
+
                 ax.annotate(
                     f"{idx}",
                     (x_ellipse[0], y_ellipse[0]),
@@ -243,6 +250,7 @@ def plot_superposed_slices_xy(
                     color="black",
                     bbox=dict(facecolor="white", alpha=0.8, edgecolor="none"),
                 )
+
                 if plot_ellipse_centers:
                     ax.plot(cx, cy, "g*", markersize=10)
                     ax.annotate(
@@ -255,6 +263,7 @@ def plot_superposed_slices_xy(
                         color="black",
                         bbox=dict(facecolor="white", alpha=0.8, edgecolor="none"),
                     )
+
     ax.set_title("XY Projection of All Slices\n" + filename)
     ax.set_xlabel("X (um)")
     ax.set_ylabel("Y (um)")
@@ -264,6 +273,7 @@ def plot_superposed_slices_xy(
     ax.legend()
     ax.grid(True, alpha=0.3)
     plt.show()
+
 
 
 def plot_ellipses_and_axes(
