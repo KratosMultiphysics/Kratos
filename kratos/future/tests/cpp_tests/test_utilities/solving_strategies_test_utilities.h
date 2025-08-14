@@ -17,8 +17,6 @@
 
 // Project includes
 #include "containers/model.h"
-#include "includes/define.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
 #include "testing/testing.h"
 
