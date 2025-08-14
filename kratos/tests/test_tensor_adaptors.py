@@ -358,6 +358,41 @@ class TensorAdaptors(KratosUnittest.TestCase):
         with self.assertRaises(RuntimeError):
             ta.data = fortran_numpy_data
 
+    def test_BaseTensorAdaptorShapeOnly(self):
+        ta = Kratos.TensorAdaptors.DoubleTensorAdaptor([2,3,4])
+        self.assertEqual(ta.data.shape, (2, 3,4))
+
+        with self.assertRaises(RuntimeError):
+            ta.GetContainer()
+
+    def test_BaseTensorAdaptorChangeContainers(self):
+        ta = Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.model_part.Nodes, Kratos.Configuration.Initial)
+        ta.CollectData()
+
+        original_values = numpy.array(ta.data)
+
+        base_no_container_ta_copy = Kratos.TensorAdaptors.DoubleTensorAdaptor(ta, None)
+
+        self.assertEqual(numpy.linalg.norm(ta.data - base_no_container_ta_copy.data), 0.0)
+        ta.data *= 2.0
+        self.assertEqual(numpy.linalg.norm(ta.data - base_no_container_ta_copy.data * 2.0), 0.0)
+
+        base_no_container_ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(ta, None, copy=False)
+        self.assertEqual(numpy.linalg.norm(ta.data - base_no_container_ta.data), 0.0)
+        ta.data *= 2.0
+        self.assertEqual(numpy.linalg.norm(ta.data - base_no_container_ta.data), 0.0)
+
+        assigned_container = Kratos.TensorAdaptors.DoubleTensorAdaptor(base_no_container_ta, self.model_part.Nodes, copy=False)
+        Kratos.TensorAdaptors.NodePositionTensorAdaptor(assigned_container, Kratos.Configuration.Current, copy=False).StoreData()
+
+        for i, node in enumerate(self.model_part.Nodes):
+            self.assertEqual(node.X, original_values[i, 0] * 4.0)
+            self.assertEqual(node.Y, original_values[i, 1] * 4.0)
+            self.assertEqual(node.Z, original_values[i, 2] * 4.0)
+
+        with self.assertRaises(RuntimeError):
+            Kratos.TensorAdaptors.NodePositionTensorAdaptor(base_no_container_ta, Kratos.Configuration.Current, copy=False)
+
     def test_CombinedTensorAdaptorAxis1(self):
         x_ta = Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.model_part.Nodes, Kratos.Configuration.Initial)
         p_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
