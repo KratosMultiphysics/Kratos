@@ -101,10 +101,9 @@ protected:
 
     /**
      * @class Storage
-     * @brief Manages the storage and lifetime of tensor adaptor data associated with various containers in @ref ModelPart.
+     * @brief Manages the storage and lifetime of tensor adaptor data.
      *
-     * @p Storage encapsulates a pointer to a container (such as nodes, elements, conditions, etc.) and manages
-     * the associated tensor data. It provides mechanisms for copying, moving, and viewing the internal data, as well as
+     * @p Storage manages the associated tensor data. It provides mechanisms for copying, moving, and viewing the internal data, as well as
      * querying the shape and size of the tensor.
      *
      * @tparam TDataType The type of the data stored in the tensor adaptor.
@@ -117,25 +116,16 @@ protected:
 
         KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Storage);
 
-        using ContainerPointerType = std::variant<
-                                            ModelPart::DofsArrayType::Pointer,
-                                            ModelPart::NodesContainerType::Pointer,
-                                            ModelPart::ConditionsContainerType::Pointer,
-                                            ModelPart::ElementsContainerType::Pointer,
-                                            ModelPart::PropertiesContainerType::Pointer,
-                                            ModelPart::MasterSlaveConstraintContainerType::Pointer,
-                                            ModelPart::GeometryContainerType::Pointer
-                                        >;
-
-        using OptionalContainerPointerType = std::optional<ContainerPointerType>;
-
         ///@}
         ///@name Life cycle
         ///@{
 
-        Storage(
-            OptionalContainerPointerType pContainer,
-            const DenseVector<unsigned int>& rShape);
+        /**
+         * @brief Construct a new data Storage with a given a tensor shape
+         *
+         * @param rShape Tensor shape.
+         */
+        Storage(const DenseVector<unsigned int>& rShape);
 
         /**
          * @brief Destroy the Tensor Adaptor storage
@@ -202,35 +192,11 @@ protected:
          */
         unsigned int Size() const;
 
-        /**
-         * @brief Returns a pointer to the underlying container.
-         * @details This method provides access to the internal container used by the tensor adaptor.
-         *          The returned pointer allows read-only operations on the container.
-         * @throws std::runtime_error if the @ref HasContainer() method returns false.
-         */
-        ContainerPointerType GetContainer() const;
-
-        /**
-         * @brief Returns whether this tensor adaptor has an associated valid underlying container.
-         * @details If the underlying tensor adaptor does not have a valid container representation, then
-         *          this method will return false. Example is @ref CombinedTensorAdaptor, where
-         *          there is no valid representation of the container, so in this case this method
-         *          returns false.
-         */
-        bool HasContainer() const;
-
-        /**
-         * @brief Returns a string containing information about the tensor adaptor.
-         * @return A std::string with descriptive information about the current state or properties of the tensor adaptor.
-         */
-        std::string Info() const;
         ///@}
 
     private:
         ///@name private member variables
         ///@{
-
-        const OptionalContainerPointerType mpContainer;
 
         const DenseVector<unsigned int> mShape;
 
@@ -269,12 +235,59 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TensorAdaptor);
 
+    using ContainerPointerType = std::variant<
+                                        ModelPart::DofsArrayType::Pointer,
+                                        ModelPart::NodesContainerType::Pointer,
+                                        ModelPart::ConditionsContainerType::Pointer,
+                                        ModelPart::ElementsContainerType::Pointer,
+                                        ModelPart::PropertiesContainerType::Pointer,
+                                        ModelPart::MasterSlaveConstraintContainerType::Pointer,
+                                        ModelPart::GeometryContainerType::Pointer
+                                    >;
+
+    using OptionalContainerPointerType = std::optional<ContainerPointerType>;
+
     ///@}
     ///@name Life cycle
     ///@{
 
+    /**
+     * @brief Construct a new Tensor Adaptor instance with only a given shape.
+     * @details This constructor will construct a @ref TensorAdaptor instance with the given tensor shape @p rShape.
+     *          Hence, there will be no container associated. So the instances constructed by this constructor
+     *          will throw an error if @ref GetContainer() method is called.
+     *
+     * @param rShape
+     */
+    TensorAdaptor(const DenseVector<unsigned int>& rShape);
+
+    /**
+     * @brief Construct a new Tensor Adaptor from another instance of a Tensor Adaptor.
+     * @details This constructor will construct an instance of a @ref TensorAdaptor by:
+     *              - Copying the internal storage of @p rOther if @p Copy is true, and assigning the container pointer from @p rOther to the new instance.
+     *              - Sharing the internal storage of @p rOther if @p Copy is false, and assigning the container pointer from @p rOther to the new instance.
+     *
+     * @param rOther    Other @ref TensorAdaptor instance.
+     * @param Copy      If true, the internal storage will be copied. Otherwise, internal storage will be shared.
+     */
     TensorAdaptor(
         const TensorAdaptor& rOther,
+        const bool Copy = true);
+
+    /**
+     * @brief Construct a new Tensor Adaptor instance from another instance of a Tensor adaptor and another container.
+     * @details This constructs a new instance of a @ref TensorAdaptor from another given tensor adaptor @p rOther . The new
+     *          @ref TensorAdaptor will be assigned the container pointer referred by @p pContainer. The internal storage will be:
+     *              - Copied from @p rOther if @p Copy is true.
+     *              - Shared with @p rOther if @p Copy is false.
+     *
+     * @param rOther        Other @ref TensorAdaptor instance.
+     * @param pContainer    Pointer to the container to be assigned to this instance.
+     * @param Copy          If true, the internal storage will be copied. Otherwise, internal storage will be shared.
+     */
+    TensorAdaptor(
+        const TensorAdaptor& rOther,
+        OptionalContainerPointerType pContainer,
         const bool Copy = true);
 
     virtual ~TensorAdaptor() = default;
@@ -307,7 +320,7 @@ public:
      * @brief Get the entity container which is associated with the @p TensorAdaptor instance.
      * @throws std::runtime_error if the @ref HasContainer() method returns false.
      */
-    typename Storage::ContainerPointerType GetContainer() const;
+    ContainerPointerType GetContainer() const;
 
     /**
      * @brief Returns whether this tensor adaptor has an associated valid underlying container.
@@ -382,6 +395,8 @@ protected:
     ///@{
 
     typename Storage::Pointer mpStorage;
+
+    OptionalContainerPointerType mpContainer;
 
     ///@}
 
