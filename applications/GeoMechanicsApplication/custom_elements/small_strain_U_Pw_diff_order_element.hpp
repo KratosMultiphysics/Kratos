@@ -69,6 +69,10 @@ public:
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
@@ -230,6 +234,18 @@ protected:
     Matrix              CalculateDeformationGradient(unsigned int GPoint) const;
     std::vector<Matrix> CalculateDeformationGradients() const;
 
+    virtual void CalculateAndAddInternalForces(VectorType&       rRightHandSideVector,
+                                               ElementVariables& rVariables,
+                                               unsigned int      GPoint);
+    virtual void CalculateAndAddExternalForces(VectorType&       rRightHandSideVector,
+                                               ElementVariables& rVariables,
+                                               unsigned int      GPoint);
+
+    virtual void CalculateAndAddRHSWithProcessInfo(VectorType&        rRightHandSideVector,
+                                                   ElementVariables&  rVariables,
+                                                   unsigned int       GPoint,
+                                                   const ProcessInfo& rCurrentProcessInfo);
+
     ///
     /// \brief This function calculates the constitutive matrices, stresses and strains depending on the
     ///        constitutive parameters. Note that depending on the settings in the rConstitutiveParameters
@@ -254,6 +270,9 @@ protected:
 
 private:
     GeometryType::Pointer mpPressureGeometry;
+    Vector                mInternalForcesAtStart = ZeroVector(6 * (2 + 1));
+    Vector                mExternalForcesAtStart = ZeroVector(6 * (2 + 1));
+    bool                  mIsInitialized         = false;
 
     [[nodiscard]] DofsVectorType GetDofs() const override;
 

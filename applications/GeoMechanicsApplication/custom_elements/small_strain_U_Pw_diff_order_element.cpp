@@ -56,6 +56,12 @@ Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               
                                                           this->CloneIntegrationCoefficientModifier());
 }
 
+void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    UPwBaseElement::Initialize(rCurrentProcessInfo);
+    mIsInitialized = false;
+}
+
 int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
@@ -115,6 +121,91 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     }
 
     return 0;
+
+    KRATOS_CATCH("")
+}
+
+void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (!mIsInitialized) {
+        mExternalForcesAtStart =
+            ZeroVector(this->GetGeometry().size() * (this->GetGeometry().WorkingSpaceDimension() + 1));
+        mInternalForcesAtStart =
+            ZeroVector(this->GetGeometry().size() * (this->GetGeometry().WorkingSpaceDimension() + 1));
+        const PropertiesType&                           r_prop = this->GetProperties();
+        const GeometryType&                             r_geom = GetGeometry();
+        const GeometryType::IntegrationPointsArrayType& r_integration_points =
+            r_geom.IntegrationPoints(this->GetIntegrationMethod());
+
+        ConstitutiveLaw::Parameters ConstitutiveParameters(r_geom, r_prop, rCurrentProcessInfo);
+
+        // Stiffness matrix is needed to calculate Biot coefficient
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+        ElementVariables Variables;
+        this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+
+        const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
+        const auto integration_coefficients =
+            this->CalculateIntegrationCoefficients(r_integration_points, Variables.detJuContainer);
+
+        const auto det_Js_initial_configuration = GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(
+            r_geom, this->GetIntegrationMethod());
+
+        const auto integration_coefficients_on_initial_configuration =
+            this->CalculateIntegrationCoefficients(r_integration_points, det_Js_initial_configuration);
+
+        const auto deformation_gradients = CalculateDeformationGradients();
+        auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
+            deformation_gradients, b_matrices, Variables.DisplacementVector,
+            Variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
+        std::vector<Matrix> constitutive_matrices;
+        this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
+                                             Variables.NuContainer, Variables.DNu_DXContainer,
+                                             strain_vectors, mStressVector, constitutive_matrices);
+        const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
+            constitutive_matrices, this->GetProperties());
+        const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+            Variables.NpContainer, Variables.PressureVector);
+        const auto degrees_of_saturation     = CalculateDegreesOfSaturation(fluid_pressures);
+        const auto derivatives_of_saturation = CalculateDerivativesOfSaturation(fluid_pressures);
+        const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
+            biot_coefficients, degrees_of_saturation, derivatives_of_saturation, r_prop);
+        auto relative_permeability_values = CalculateRelativePermeabilityValues(fluid_pressures);
+        const auto permeability_update_factors = GetOptionalPermeabilityUpdateFactors(strain_vectors);
+        std::transform(permeability_update_factors.cbegin(), permeability_update_factors.cend(),
+                       relative_permeability_values.cbegin(), relative_permeability_values.begin(),
+                       std::multiplies<>{});
+
+        const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
+
+        for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
+            this->CalculateKinematics(Variables, GPoint);
+            Variables.B                  = b_matrices[GPoint];
+            Variables.F                  = deformation_gradients[GPoint];
+            Variables.StrainVector       = strain_vectors[GPoint];
+            Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
+
+            Variables.RelativePermeability = relative_permeability_values[GPoint];
+            Variables.BishopCoefficient    = bishop_coefficients[GPoint];
+
+            Variables.BiotCoefficient        = biot_coefficients[GPoint];
+            Variables.BiotModulusInverse     = biot_moduli_inverse[GPoint];
+            Variables.DegreeOfSaturation     = degrees_of_saturation[GPoint];
+            Variables.IntegrationCoefficient = integration_coefficients[GPoint];
+
+            Variables.IntegrationCoefficientInitialConfiguration =
+                integration_coefficients_on_initial_configuration[GPoint];
+
+            this->CalculateAndAddExternalForces(mExternalForcesAtStart, Variables, GPoint);
+            this->CalculateAndAddInternalForces(mInternalForcesAtStart, Variables, GPoint);
+        }
+        mIsInitialized = true;
+    }
 
     KRATOS_CATCH("")
 }
@@ -831,10 +922,57 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
 
         // Contributions to the right hand side
         if (CalculateResidualVectorFlag)
-            this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
+            this->CalculateAndAddRHSWithProcessInfo(rRightHandSideVector, Variables, GPoint, rCurrentProcessInfo);
+    }
+
+    if (rCurrentProcessInfo[USE_PROTOTYPE_NULL_STEPPING] && CalculateResidualVectorFlag) {
+        auto fraction_of_unbalance = (rCurrentProcessInfo[TIME] - rCurrentProcessInfo[START_TIME]) /
+                                     (rCurrentProcessInfo[END_TIME] - rCurrentProcessInfo[START_TIME]);
+        const auto f_ext = -mInternalForcesAtStart +
+                           (mExternalForcesAtStart + mInternalForcesAtStart) * fraction_of_unbalance;
+
+        rRightHandSideVector += f_ext;
     }
 
     KRATOS_CATCH("")
+}
+
+void SmallStrainUPwDiffOrderElement::CalculateAndAddRHSWithProcessInfo(VectorType& rRightHandSideVector,
+                                                                       ElementVariables& rVariables,
+                                                                       unsigned int      GPoint,
+                                                                       const ProcessInfo& rCurrentProcessInfo)
+{
+    CalculateAndAddInternalForces(rRightHandSideVector, rVariables, GPoint);
+    if (!rCurrentProcessInfo[USE_PROTOTYPE_NULL_STEPPING]) {
+        // When using prototype the unbalance reduction stepping is applied for the external loads
+        CalculateAndAddExternalForces(rRightHandSideVector, rVariables, GPoint);
+    }
+}
+
+void SmallStrainUPwDiffOrderElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+                                                                   ElementVariables& rVariables,
+                                                                   unsigned int      GPoint)
+{
+    this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables, GPoint);
+
+    this->CalculateAndAddCouplingTerms(rRightHandSideVector, rVariables);
+
+    if (!rVariables.IgnoreUndrained) {
+        this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
+
+        this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
+    }
+}
+
+void SmallStrainUPwDiffOrderElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+                                                                   ElementVariables& rVariables,
+                                                                   unsigned int      GPoint)
+{
+    this->CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
+
+    if (!rVariables.IgnoreUndrained) {
+        this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
+    }
 }
 
 std::vector<double> SmallStrainUPwDiffOrderElement::GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>& rStrainVectors) const
