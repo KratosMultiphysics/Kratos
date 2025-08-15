@@ -17,16 +17,8 @@
 
 // External includes
 #include "containers/system_vector.h"
-#include "geo_aliases.h"
-#include "geometries/geometry.h"
-#include "includes/dof.h"
 #include "includes/node.h"
-#include "includes/variables.h"
-#include "solving_strategies/schemes/scheme.h"
 #include "spaces/ublas_space.h"
-
-#include "includes/define.h"
-#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 
 namespace Kratos::Geo
@@ -45,7 +37,7 @@ public:
                                                    SystemVectorType&    rSecondDerivativeVector,
                                                    const DofsArrayType& rDofSet,
                                                    const ModelPart&     rModelPart,
-                                                   const IndexType      bufferIndex);
+                                                   const IndexType      BufferIndex);
 
     static void SetUFirstAndSecondDerivativeVector(const SystemVectorType& rFirstDerivativeVector,
                                                    const SystemVectorType& rSecondDerivativeVector,
@@ -56,7 +48,7 @@ private:
                                                   const Node&             rNode,
                                                   SystemVectorType&       rFirstDerivativeVector,
                                                   SystemVectorType&       rSecondDerivativeVector,
-                                                  const IndexType         bufferIndex);
+                                                  const IndexType         BufferIndex);
 
     static void SetDerivativesForOptionalVariable(const Variable<double>& rVariable,
                                                   Node&                   rNode,
@@ -67,7 +59,7 @@ private:
                                           const Node&             rNode,
                                           SystemVectorType&       rFirstDerivativeVector,
                                           SystemVectorType&       rSecondDerivativeVector,
-                                          const IndexType         bufferIndex);
+                                          const IndexType         BufferIndex);
 
     static void SetDerivativesForVariable(const Variable<double>& rVariable,
                                           Node&                   rNode,

@@ -9,8 +9,8 @@
 //
 //  Main authors:    Aron Noordam
 //
-#include "custom_utilities/dof_utilities.h"
-#include "geo_custom_element.h"
+#include "dof.h"
+#include "geo_mock_element.h"
 
 namespace Kratos::Testing
 {

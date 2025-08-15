@@ -23,17 +23,11 @@
 /* Project includes */
 #include "custom_utilities/sparse_system_utilities.h"
 #include "includes/define.h"
-#include "includes/key_hash.h"
-#include "includes/kratos_flags.h"
-#include "includes/lock_object.h"
 #include "includes/model_part.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "spaces/ublas_space.h"
-#include "utilities/atomic_utilities.h"
 #include "utilities/builtin_timer.h"
-#include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/timer.h"
-#include "utilities/variable_utils.h"
 
 namespace Kratos
 {

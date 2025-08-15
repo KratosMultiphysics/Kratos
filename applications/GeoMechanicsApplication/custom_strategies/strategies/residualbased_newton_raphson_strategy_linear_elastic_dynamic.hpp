@@ -13,7 +13,6 @@
 #pragma once
 
 // System includes
-#include <iostream>
 
 // External includes
 
@@ -24,7 +23,6 @@
 
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-#include "utilities/builtin_timer.h"
 
 // default builder and solver
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_linear_elastic_dynamic.h"
@@ -34,7 +32,6 @@
 #include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
 
 // Application includes
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -128,15 +125,11 @@ public:
         KRATOS_TRY
         BaseType::Initialize();
 
-        // Note that FindNeighbourElementsOfConditionsProcess and DeactivateConditionsOnInactiveElements are required to be perfomed before initializing the System and State
+        // Note that FindNeighbourElementsOfConditionsProcess and DeactivateConditionsOnInactiveElements are required to be performed before initializing the System and State
         // this means that these operations are done twice in the GeomechanicsSolver in python
-        auto find_neighbour_elements_of_conditions_process =
-            FindNeighbourElementsOfConditionsProcess(BaseType::GetModelPart());
-        find_neighbour_elements_of_conditions_process.Execute();
+        FindNeighbourElementsOfConditionsProcess{ BaseType::GetModelPart() }.Execute();
 
-        auto deactivate_conditions_on_inactive_elements_process =
-            DeactivateConditionsOnInactiveElements(BaseType::GetModelPart());
-        deactivate_conditions_on_inactive_elements_process.Execute();
+        DeactivateConditionsOnInactiveElements{ BaseType::GetModelPart() }.Execute();
 
         if (!BaseType::mStiffnessMatrixIsBuilt)
             // initialize the system matrices and the initial second derivative
@@ -154,7 +147,6 @@ public:
 
         // Note that constraints are not applied in this predict, nor is an update performed, constrains are added in the builder and solver
 
-        // Move the mesh if needed
         if (BaseType::MoveMeshFlag()) BaseType::MoveMesh();
 
         KRATOS_CATCH("")
@@ -195,53 +187,13 @@ public:
         TSystemVectorType& rb  = *BaseType::mpb;
 
         // initializing the parameters of the Newton-Raphson cycle
-        unsigned int iteration_number                      = 1;
+        unsigned int iteration_number = 1;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
-        p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
-
-        BaseType::mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
-        bool is_converged =
-            BaseType::mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
-
-        TSparseSpace::SetToZero(rDx);
-        TSparseSpace::SetToZero(rb);
-
-        p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
-        // Debugging info
-        BaseType::EchoInfo(iteration_number);
-
-        // Updating the results stored in the database
-        this->UpdateSolutionStepValue(rDx, mDxTot);
-
-        p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
-
-        BaseType::mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
-
-        if (BaseType::mStoreNonconvergedSolutionsFlag) {
-            Vector first;
-            BaseType::GetCurrentSolution(r_dof_set, first);
-            non_converged_solutions.push_back(first);
-        }
+        bool is_converged = this->PerformIterationCycle(rA, rDx, rb, mDxTot, non_converged_solutions, iteration_number);
 
         if (is_converged) {
-            if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
-                TSparseSpace::SetToZero(rb);
-
-                p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
-            }
-
-            is_converged =
-                BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
-        }
-
-        // Iteration Cycle... performed only for non linear RHS
-        if (!is_converged) {
-            is_converged = this->PerformIterationCycle(rA, rDx, rb, mDxTot, non_converged_solutions, iteration_number);
-        }
-
-        if (is_converged) {
-            // here only the derivatives are updated
+			// here only the derivatives are updated in the scheme that is used, generally both derivatives and solution step are updated
             p_scheme->Update(r_model_part, r_dof_set, rA, mDxTot, rb);
         }
 
@@ -366,9 +318,7 @@ private:
         const auto& r_current_process_info = r_model_part.GetProcessInfo();
 
         bool is_converged = false;
-        rIterationNumber++;
         for (; rIterationNumber < BaseType::mMaxIterationNumber; rIterationNumber++) {
-            // setting the number of iteration
             r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = rIterationNumber;
 
             p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
@@ -376,8 +326,6 @@ private:
 
             is_converged = BaseType::mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
-            // call the linear system solver to find the correction mDx for the
-            // it is not called if there is no system to solve
             if (SparseSpaceType::Size(rDx) != 0) {
                 TSparseSpace::SetToZero(rDx);
                 TSparseSpace::SetToZero(rb);
@@ -395,11 +343,7 @@ private:
             this->UpdateSolutionStepValue(rDx, rDxTot);
 
             // only finalize condition non linear iteration
-            block_for_each(r_model_part.Conditions(), [&r_current_process_info](Condition& r_condition) {
-                if (r_condition.IsActive()) {
-                    r_condition.FinalizeNonLinearIteration(r_current_process_info);
-                }
-            });
+			p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
 
             BaseType::mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 

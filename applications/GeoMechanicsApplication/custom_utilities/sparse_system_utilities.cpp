@@ -21,23 +21,23 @@ void SparseSystemUtilities::GetUFirstAndSecondDerivativeVector(SystemVectorType&
                                                                SystemVectorType& rSecondDerivativeVector,
                                                                const DofsArrayType& rDofSet,
                                                                const ModelPart&     rModelPart,
-                                                               const IndexType      bufferIndex)
+                                                               const IndexType      BufferIndex)
 {
     KRATOS_TRY
     rFirstDerivativeVector  = SystemVectorType(rDofSet.size(), 0.0);
     rSecondDerivativeVector = SystemVectorType(rDofSet.size(), 0.0);
 
-    block_for_each(rModelPart.Nodes(), [&rFirstDerivativeVector, &rSecondDerivativeVector, bufferIndex](const Node& rNode) {
+    block_for_each(rModelPart.Nodes(), [&rFirstDerivativeVector, &rSecondDerivativeVector, BufferIndex](const Node& rNode) {
         if (rNode.IsActive()) {
-            GetDerivativesForVariable(DISPLACEMENT_X, rNode, rFirstDerivativeVector, rSecondDerivativeVector, bufferIndex);
-            GetDerivativesForVariable(DISPLACEMENT_Y, rNode, rFirstDerivativeVector, rSecondDerivativeVector, bufferIndex);
+            GetDerivativesForVariable(DISPLACEMENT_X, rNode, rFirstDerivativeVector, rSecondDerivativeVector, BufferIndex);
+            GetDerivativesForVariable(DISPLACEMENT_Y, rNode, rFirstDerivativeVector, rSecondDerivativeVector, BufferIndex);
 
             const std::vector<const Variable<double>*> optional_variables = {
                 &ROTATION_X, &ROTATION_Y, &ROTATION_Z, &DISPLACEMENT_Z};
 
             for (const auto p_variable : optional_variables) {
                 GetDerivativesForOptionalVariable(*p_variable, rNode, rFirstDerivativeVector,
-                                                  rSecondDerivativeVector, bufferIndex);
+                                                  rSecondDerivativeVector, BufferIndex);
             }
         }
     });
@@ -69,11 +69,11 @@ void SparseSystemUtilities::GetDerivativesForOptionalVariable(const Variable<dou
                                                               const Node&             rNode,
                                                               SystemVectorType& rFirstDerivativeVector,
                                                               SystemVectorType& rSecondDerivativeVector,
-                                                              const IndexType bufferIndex)
+                                                              const IndexType BufferIndex)
 {
     KRATOS_TRY
     if (rNode.HasDofFor(rVariable)) {
-        GetDerivativesForVariable(rVariable, rNode, rFirstDerivativeVector, rSecondDerivativeVector, bufferIndex);
+        GetDerivativesForVariable(rVariable, rNode, rFirstDerivativeVector, rSecondDerivativeVector, BufferIndex);
     }
     KRATOS_CATCH("")
 }
@@ -94,15 +94,15 @@ void SparseSystemUtilities::GetDerivativesForVariable(const Variable<double>& rV
                                                       const Node&             rNode,
                                                       SystemVectorType& rFirstDerivativeVector,
                                                       SystemVectorType& rSecondDerivativeVector,
-                                                      const IndexType   bufferIndex)
+                                                      const IndexType   BufferIndex)
 {
     KRATOS_TRY
     const auto& r_first_derivative  = rVariable.GetTimeDerivative();
     const auto& r_second_derivative = r_first_derivative.GetTimeDerivative();
 
     const auto equation_id               = rNode.GetDof(rVariable).EquationId();
-    rFirstDerivativeVector[equation_id]  = rNode.FastGetSolutionStepValue(r_first_derivative, bufferIndex);
-    rSecondDerivativeVector[equation_id] = rNode.FastGetSolutionStepValue(r_second_derivative, bufferIndex);
+    rFirstDerivativeVector[equation_id]  = rNode.FastGetSolutionStepValue(r_first_derivative, BufferIndex);
+    rSecondDerivativeVector[equation_id] = rNode.FastGetSolutionStepValue(r_second_derivative, BufferIndex);
 
     KRATOS_CATCH("")
 }
