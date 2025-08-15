@@ -921,8 +921,13 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
 
         // Contributions to the right hand side
-        if (CalculateResidualVectorFlag)
-            this->CalculateAndAddRHSWithProcessInfo(rRightHandSideVector, Variables, GPoint, rCurrentProcessInfo);
+        if (CalculateResidualVectorFlag) {
+            this->CalculateAndAddInternalForces(rRightHandSideVector, Variables, GPoint);
+            if (!rCurrentProcessInfo[USE_PROTOTYPE_NULL_STEPPING]) {
+                // When not using prototype, external forces are added directly to the RHS
+                this->CalculateAndAddExternalForces(rRightHandSideVector, Variables, GPoint);
+            }
+        }
     }
 
     if (rCurrentProcessInfo[USE_PROTOTYPE_NULL_STEPPING] && CalculateResidualVectorFlag) {
@@ -958,18 +963,6 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddRHS(VectorType&       rRight
     }
 
     KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::CalculateAndAddRHSWithProcessInfo(VectorType& rRightHandSideVector,
-                                                                       ElementVariables& rVariables,
-                                                                       unsigned int      GPoint,
-                                                                       const ProcessInfo& rCurrentProcessInfo)
-{
-    CalculateAndAddInternalForces(rRightHandSideVector, rVariables, GPoint);
-    if (!rCurrentProcessInfo[USE_PROTOTYPE_NULL_STEPPING]) {
-        // When using prototype the unbalance reduction stepping is applied for the external loads
-        CalculateAndAddExternalForces(rRightHandSideVector, rVariables, GPoint);
-    }
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,

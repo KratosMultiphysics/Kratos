@@ -241,11 +241,6 @@ protected:
                                                ElementVariables& rVariables,
                                                unsigned int      GPoint);
 
-    virtual void CalculateAndAddRHSWithProcessInfo(VectorType&        rRightHandSideVector,
-                                                   ElementVariables&  rVariables,
-                                                   unsigned int       GPoint,
-                                                   const ProcessInfo& rCurrentProcessInfo);
-
     ///
     /// \brief This function calculates the constitutive matrices, stresses and strains depending on the
     ///        constitutive parameters. Note that depending on the settings in the rConstitutiveParameters
