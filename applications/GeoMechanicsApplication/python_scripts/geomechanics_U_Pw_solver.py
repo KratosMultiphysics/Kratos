@@ -168,6 +168,9 @@ class UPwSolver(GeoSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosGeo.VELOCITY_COEFFICIENT,    1.0)
         self.main_model_part.ProcessInfo.SetValue(KratosGeo.DT_PRESSURE_COEFFICIENT, 1.0)
 
+        if (scheme_type.lower() == "static"):
+            return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+
         if (scheme_type.lower() == "newmark"):
             beta  = self.settings["newmark_beta"].GetDouble()
             gamma = self.settings["newmark_gamma"].GetDouble()
