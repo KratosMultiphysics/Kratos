@@ -22,7 +22,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer PotentialWallCondition<TDim, TNumNodes>::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    KRATOS_TRY
+    KRATOS_TRY;
     return Condition::Pointer(Kratos::make_intrusive<PotentialWallCondition>(
         NewId, GetGeometry().Create(ThisNodes), pProperties));
     KRATOS_CATCH("");
@@ -326,7 +326,6 @@ void PotentialWallCondition<TDim, TNumNodes>::FindParentElement(
 // Template class instantiation
 
 template class PotentialWallCondition<2, 2>;
-template class PotentialWallCondition<3, 2>;
 template class PotentialWallCondition<3, 3>;
 
 } // namespace Kratos

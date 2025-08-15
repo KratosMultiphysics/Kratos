@@ -20,7 +20,6 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             "check_wake_condition_tolerance": 1e-1,
             "wake_process_cpp_parameters":    {
                 "wake_normal"                      : [0.0,0.0,1.0],
-                "blunt_te_surface_model_part_name" : "",
                 "wake_stl_file_name"               : "",
                 "shed_wake_from_trailing_edge"     : false,
                 "shed_wake_length"                 : 12.5,

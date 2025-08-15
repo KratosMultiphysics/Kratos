@@ -131,7 +131,6 @@ private:
 
 
     const PotentialWallCondition<2,2> mPotentialWallCondition2D2N;
-    const PotentialWallCondition<3,2> mPotentialWallCondition3D2N;
     const PotentialWallCondition<3,3> mPotentialWallCondition3D3N;
     const AdjointPotentialWallCondition<PotentialWallCondition<2,2>> mAdjointPotentialWallCondition2D2N;
     const AdjointPotentialWallCondition<PotentialWallCondition<3,3>> mAdjointPotentialWallCondition3D3N;

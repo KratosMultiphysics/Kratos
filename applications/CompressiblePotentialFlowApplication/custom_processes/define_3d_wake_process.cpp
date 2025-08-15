@@ -1104,6 +1104,8 @@ void Define3DWakeProcess::AddTrailingEdgeConditionsAndFingRootAndTipNodes() cons
                 
             }
             
+            // Temporary solution until we find a way to generate a line3D2N condition without 
+            // overconditioning the system, possibly creating a condition that does nothing or work with geometries.
             if (assign_conditions) {
                 std::sort(group.begin(), group.end(),
                     [this](const Node* a, const Node* b) {
@@ -1115,7 +1117,7 @@ void Define3DWakeProcess::AddTrailingEdgeConditionsAndFingRootAndTipNodes() cons
                 for (std::size_t i = 1; i < group.size(); ++i) {
                     ++reference_id;
                     std::vector<ModelPart::IndexType> cond{group[i - 1]->Id(), group[i]->Id()};
-                    mrTrailingEdgeModelPart.CreateNewCondition("PotentialWallCondition3D2N", reference_id, cond, pCondProp);
+                    mrTrailingEdgeModelPart.CreateNewCondition("LineCondition3D2N", reference_id, cond, pCondProp);
                 }
             }
         }
