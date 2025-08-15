@@ -13,6 +13,7 @@
 // System includes
 
 // External includes
+#include <pybind11/stl_bind.h>
 
 // Project includes
 #include "includes/define_python.h"
@@ -41,9 +42,21 @@ void AddDofUtilitiesToPython(pybind11::module& m)
         .def_static("SetUpDofArray", [](const ModelPart& rModelPart, EliminationBuildDofArrayUtility::DofsArrayType& rDofArray, const unsigned int EchoLevel, const bool CheckReactionDofs){EliminationBuildDofArrayUtility::SetUpDofArray(rModelPart, rDofArray, EchoLevel, CheckReactionDofs);})
     ;
 
+    py::bind_map<DofArrayUtilities::SlaveToMasterDofsMap>(m, "SlaveToMasterDofsMap");
+
     py::class_<DofArrayUtilities>(m, "DofArrayUtilities")
-        .def_static("SetUpDofArray", [](const ModelPart& rModelPart, DofArrayUtilities::DofsArrayType& rDofArray){DofArrayUtilities::SetUpDofArray(rModelPart, rDofArray);})
-        .def_static("SetUpDofArray", [](const ModelPart& rModelPart, DofArrayUtilities::DofsArrayType& rDofArray, const unsigned int EchoLevel){DofArrayUtilities::SetUpDofArray(rModelPart, rDofArray, EchoLevel);})
+        .def_static("SetUpDofArray", [](const ModelPart &rModelPart, DofArrayUtilities::DofsArrayType &rDofArray)
+            { DofArrayUtilities::SetUpDofArray(rModelPart, rDofArray); })
+        .def_static("SetUpDofArray", [](const ModelPart &rModelPart, DofArrayUtilities::DofsArrayType &rDofArray, const unsigned int EchoLevel)
+            { DofArrayUtilities::SetUpDofArray(rModelPart, rDofArray, EchoLevel); })
+        .def_static("SetUpEffectiveDofArray", [](const ModelPart& rModelPart, const DofArrayUtilities::DofsArrayType& rDofArray, DofArrayUtilities::DofsArrayType& rEffectiveDofArray, DofArrayUtilities::SlaveToMasterDofsMap& rSlaveToMasterDofsMap)
+            { DofArrayUtilities::SetUpEffectiveDofArray(rModelPart, rDofArray, rEffectiveDofArray, rSlaveToMasterDofsMap);})
+        .def_static("SetUpEffectiveDofArray", [](const ModelPart& rModelPart, const DofArrayUtilities::DofsArrayType& rDofArray, DofArrayUtilities::DofsArrayType& rEffectiveDofArray, DofArrayUtilities::SlaveToMasterDofsMap& rSlaveToMasterDofsMap, unsigned int EchoLevel)
+            { DofArrayUtilities::SetUpEffectiveDofArray(rModelPart, rDofArray, rEffectiveDofArray, rSlaveToMasterDofsMap, EchoLevel);})
+        .def_static("SetDofEquationIds", [](const DofArrayUtilities::DofsArrayType& rDofArray)
+            { DofArrayUtilities::SetDofEquationIds(rDofArray);})
+        .def_static("SetEffectiveDofEquationIds", [](const DofArrayUtilities::DofsArrayType& rDofArray, DofArrayUtilities::DofsArrayType& rEffectiveDofArray)
+            { DofArrayUtilities::SetEffectiveDofEquationIds(rDofArray, rEffectiveDofArray);})
     ;
 }
 
