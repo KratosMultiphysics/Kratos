@@ -406,7 +406,9 @@ inline void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType
     // @matekelemen
     if (!mBlockSize.has_value()) {
         KRATOS_WARNING_IF("AMGCLSolver", 0 < mVerbosity)
-            << "System solution requested without choosing a block size or calling AMGCLSolver::ProvideAdditionalData. Defaulting to a block size of 1.";
+            << "System solution requested without choosing a block size or calling AMGCLSolver::ProvideAdditionalData. "
+            << "Defaulting to a block size of 1."
+            << std::endl;
         mBlockSize = 1;
     }
 
