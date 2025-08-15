@@ -32,12 +32,12 @@ struct AMGCLAdaptor<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>>
         if constexpr (BlockSize == 1) {
             return amgcl::adapter::map(rMatrix);
         } else {
-            using BackendMatrix = amgcl::static_matrix<
+            using BlockType = amgcl::static_matrix<
                 double,
                 BlockSize,
                 BlockSize
             >;
-            return amgcl::adapter::block_matrix<BackendMatrix>(amgcl::adapter::map(rMatrix));
+            return amgcl::adapter::block_matrix<BlockType>(amgcl::adapter::map(rMatrix));
         }
     }
 
