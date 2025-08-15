@@ -271,10 +271,12 @@ void Define3DWakeProcess::ComputeWingLowerSurfaceNormals() const
             auto& r_geometry = r_cond.GetGeometry();
             const auto& surface_normal = r_geometry.UnitNormal(0);
             const double projection = inner_prod(surface_normal, mWakeNormal);
+
             double switching_factor = 1.0;
             if(!(projection > 0.0)){
                 switching_factor = -1.0;
             }
+            
             for (unsigned int j = 0; j < r_geometry.size(); j++) {
                 r_geometry[j].SetLock();
                 r_geometry[j].SetValue(NORMAL, surface_normal*switching_factor);
@@ -311,10 +313,28 @@ void Define3DWakeProcess::ComputeAndSaveLocalWakeNormal() const
     KRATOS_TRY;    
     for (auto& r_cond : mrTrailingEdgeModelPart.Conditions()){
         auto& r_geometry = r_cond.GetGeometry();
-        const auto& coordinates1 = r_geometry[0].Coordinates();
-        const auto& coordinates2 = r_geometry[1].Coordinates();
 
-        const auto& local_span_direction = coordinates2 - coordinates1;
+        array_1d<double,3> coordinates1;
+        array_1d<double,3> coordinates2 ;
+        array_1d<double,3> local_span_direction;
+
+        // To ensure that local_span has the same direction as mSpanDirection
+        const auto& test_start_point = r_geometry[0].Coordinates();
+        const auto& test_end_point   = r_geometry[1].Coordinates();
+        const auto& test_local_span_direction = test_end_point - test_start_point;
+        const double test_projection = inner_prod(test_local_span_direction, mSpanDirection);
+
+        if (!(test_projection > 0.0))
+        {
+            coordinates1 = r_geometry[1].Coordinates();
+            coordinates2 = r_geometry[0].Coordinates();
+        }else
+        {
+            coordinates1 = r_geometry[0].Coordinates();
+            coordinates2 = r_geometry[1].Coordinates();
+        }
+        local_span_direction = coordinates2 - coordinates1;
+
         array_1d<double, 3> local_wake_normal = ZeroVector(3);
         MathUtils<double>::CrossProduct(local_wake_normal, mWakeDirection, local_span_direction);
 
@@ -354,8 +374,24 @@ void Define3DWakeProcess::ShedWakeSurfaceFromTheTrailingEdge(ModelPart& StlWakeM
     for (auto& r_cond : mrTrailingEdgeModelPart.Conditions()) {
         auto& r_geometry = r_cond.GetGeometry();
         
-        array_1d<double,3> start_point = r_geometry[0].Coordinates();
-        array_1d<double,3> end_point = r_geometry[1].Coordinates();
+        array_1d<double,3> start_point;
+        array_1d<double,3> end_point  ;
+
+        // To ensure that local_span has the same direction as mSpanDirection
+        const auto& test_start_point = r_geometry[0].Coordinates();
+        const auto& test_end_point   = r_geometry[1].Coordinates();
+        const auto& test_local_span_direction = test_end_point - test_start_point;
+        const double test_projection = inner_prod(test_local_span_direction, mSpanDirection);
+
+        if (!(test_projection > 0.0))
+        {
+            start_point = r_geometry[1].Coordinates();
+            end_point   = r_geometry[0].Coordinates();
+        }else
+        {
+            start_point = r_geometry[0].Coordinates();
+            end_point   = r_geometry[1].Coordinates();
+        }
 
         // Check if any node is on the wing root
         if (r_geometry[0].GetValue(WING_ROOT) != 0) {
@@ -1104,8 +1140,7 @@ void Define3DWakeProcess::AddTrailingEdgeConditionsAndFingRootAndTipNodes() cons
                 
             }
             
-            // Temporary solution until we find a way to generate a line3D2N condition without 
-            // overconditioning the system, possibly creating a condition that does nothing or work with geometries.
+            // Temporary solution -- possibly working with geometries.
             if (assign_conditions) {
                 std::sort(group.begin(), group.end(),
                     [this](const Node* a, const Node* b) {
@@ -1117,7 +1152,7 @@ void Define3DWakeProcess::AddTrailingEdgeConditionsAndFingRootAndTipNodes() cons
                 for (std::size_t i = 1; i < group.size(); ++i) {
                     ++reference_id;
                     std::vector<ModelPart::IndexType> cond{group[i - 1]->Id(), group[i]->Id()};
-                    mrTrailingEdgeModelPart.CreateNewCondition("LineCondition3D2N", reference_id, cond, pCondProp);
+                    mrTrailingEdgeModelPart.CreateNewCondition("PotentialWallCondition3D2N", reference_id, cond, pCondProp);
                 }
             }
         }

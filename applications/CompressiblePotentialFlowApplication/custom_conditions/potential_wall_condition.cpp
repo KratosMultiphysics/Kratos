@@ -326,6 +326,7 @@ void PotentialWallCondition<TDim, TNumNodes>::FindParentElement(
 // Template class instantiation
 
 template class PotentialWallCondition<2, 2>;
+template class PotentialWallCondition<3, 2>;
 template class PotentialWallCondition<3, 3>;
 
 } // namespace Kratos
