@@ -26,7 +26,7 @@
           "VAN_GENUCHTEN_GN": 1.377,
           "VAN_GENUCHTEN_GL": 1.25,
           "MINIMUM_RELATIVE_PERMEABILITY": 0.0001,
-          "UDSM_NAME": "UDSM.dll",
+          "UDSM_NAME": "../UDSM.dll",
           "UDSM_NUMBER": 1,
           "IS_FORTRAN_UDSM": true,
           "UMAT_PARAMETERS": [

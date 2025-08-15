@@ -68,7 +68,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         settlement values at specific times against expected results.
         The expected settlement values are based on an analytical solution.
         """
-        test_name = "fully-saturated_column_uniform_load"
+        test_name = "fully_saturated_column_uniform_load"
         test_root = "dsettlement"
         project_path = test_helper.get_file_path(os.path.join(test_root, test_name))
 

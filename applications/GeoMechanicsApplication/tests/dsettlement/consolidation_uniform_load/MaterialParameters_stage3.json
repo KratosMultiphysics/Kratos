@@ -22,7 +22,7 @@
           "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
           "RESIDUAL_SATURATION": 0.06203,
           "SATURATED_SATURATION": 1,
-          "UDSM_NAME": "UDSM.dll",
+          "UDSM_NAME": "../UDSM.dll",
           "UDSM_NUMBER": 1,
           "IS_FORTRAN_UDSM": true,
           "UMAT_PARAMETERS": [
