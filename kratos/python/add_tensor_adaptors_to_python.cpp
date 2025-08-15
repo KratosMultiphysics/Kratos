@@ -201,11 +201,14 @@ void AddBaseTensorAdaptor(
     // add the base tensor adaptor
     using tensor_adaptor = TensorAdaptor<TDataType>;
     pybind11::class_<tensor_adaptor, typename tensor_adaptor::Pointer>(rModule, (rName + "Adaptor").c_str())
-        .def(pybind11::init<const tensor_adaptor&, const bool>(), pybind11::arg("tensor_adaptor"), pybind11::arg("copy") = false)
+        .def(pybind11::init<const DenseVector<unsigned int>&>(), pybind11::arg("tensor_shape"))
+        .def(pybind11::init<const tensor_adaptor&, const bool>(), pybind11::arg("tensor_adaptor"), pybind11::arg("copy") = true)
+        .def(pybind11::init<const tensor_adaptor&, typename tensor_adaptor::OptionalContainerPointerType, const bool>(), pybind11::arg("tensor_adaptor"), pybind11::arg("container"), pybind11::arg("copy") = true)
         .def("Check", &tensor_adaptor::Check)
         .def("CollectData", &tensor_adaptor::CollectData)
         .def("StoreData", &tensor_adaptor::StoreData)
         .def("GetContainer", &tensor_adaptor::GetContainer)
+        .def("HasContainer", &tensor_adaptor::HasContainer)
         .def("Shape", &tensor_adaptor::Shape)
         .def("DataShape", &tensor_adaptor::DataShape)
         .def("Size", &tensor_adaptor::Size)

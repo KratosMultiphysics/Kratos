@@ -230,7 +230,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vectorized_interpolation.TestVectorizedInterpolation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_clean_up_problematic_triangles_modeler.TestCleanUpProblematicTrianglesModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tetrahedral_mesh_orientation_check.TestTetrahedralMeshOrientationCheck]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tensor_adaptors.TestVariableTensorAdaptors]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tensor_adaptors.TensorAdaptors]))
 
 
     if sympy_available:
