@@ -5,7 +5,6 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise TypeError("expected input shall be a Parameters object, encapsulating a json string")
-    return SetAbsorbingBoundaryParametersProcess(model, settings["Parameters"])
 
     default_settings = KratosMultiphysics.Parameters("""
             {

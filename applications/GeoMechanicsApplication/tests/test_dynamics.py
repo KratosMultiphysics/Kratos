@@ -69,7 +69,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         simulation = self.run_wave_through_drained_linear_elastic_soil_test(test_name, ["NODE_41"])
 
         # check if the correct solver is used
-        self.assertTrue(isinstance(simulation._GetSolver().solver,
+        self.assertTrue(isinstance(simulation._GetSolver().solving_strategy,
                                    KratosGeo.GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic))
 
 
@@ -93,7 +93,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         simulation = self.run_wave_through_drained_linear_elastic_soil_test(test_name,node_keys)
 
         # check if the correct solver is used
-        self.assertTrue(isinstance(simulation._GetSolver().solver,
+        self.assertTrue(isinstance(simulation._GetSolver().solving_strategy,
                                    KratosGeo.GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic))
 
     def test_wave_through_drained_linear_elastic_soil_linear_elastic_solver_initial_acceleration(self):
@@ -114,7 +114,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         simulation = self.run_wave_through_drained_linear_elastic_soil_test(test_name, ["NODE_41"])
 
         # check if the correct solver is used
-        self.assertTrue(isinstance(simulation._GetSolver().solver,
+        self.assertTrue(isinstance(simulation._GetSolver().solving_strategy,
                                    KratosGeo.GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic))
 
     def test_wave_through_drained_linear_elastic_soil_linear_elastic_solver_multi_stage(self):
@@ -136,7 +136,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         n_stages = 3
 
         # run simulation
-        test_helper.run_stages(file_path, n_stages)
+        KratosGeo.run_multiple_stages.run_stages(file_path, n_stages)
 
         where = "NODE_41"
         what = "DISPLACEMENT_Y"
@@ -230,7 +230,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         n_stages = 2
 
         # run simulation
-        test_helper.run_stages(file_path, n_stages)
+        KratosGeo.run_multiple_stages.run_stages(file_path, n_stages)
 
         where = "NODE_7"
         what = "VELOCITY_Y"
