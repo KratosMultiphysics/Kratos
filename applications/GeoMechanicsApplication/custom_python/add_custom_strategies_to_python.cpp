@@ -27,6 +27,7 @@
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_mass_and_damping.h"
 
 // schemes
+#include "custom_strategies/schemes/geomechanics_time_integration_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_T_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
@@ -68,6 +69,8 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
         BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>;
     using BackwardEulerQuasistaticTSchemeType = BackwardEulerTScheme<SparseSpaceType, LocalSpaceType>;
 
+    using GeoStaticSchemeType = GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>({},{});
+
     using GeoMechanicsNewtonRaphsonStrategyType =
         GeoMechanicsNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
     using GeoMechanicsNewtonRaphsonErosionProcessStrategyType =
@@ -103,6 +106,10 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
 
     py::class_<BackwardEulerQuasistaticTSchemeType, typename BackwardEulerQuasistaticTSchemeType::Pointer, BaseSchemeType>(
         m, "BackwardEulerTScheme")
+        .def(py::init<>());
+
+    py::class_<GeoStaticSchemeType, typename GeoStaticSchemeType::Pointer, BaseSchemeType>(
+        m, "GeoStaticScheme")
         .def(py::init<>());
 
     py::class_<GeoMechanicsNewtonRaphsonStrategyType, typename GeoMechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType>(
