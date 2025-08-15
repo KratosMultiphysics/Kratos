@@ -91,6 +91,15 @@ class GeoMechanicsAnalysis(AnalysisStage):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
+
+        self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.START_TIME] = self.start_time
+        self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.END_TIME]   = self.end_time
+
+        if self._GetSolver().settings.Has("use_prototype_null_stepping"):
+            self._GetSolver().GetComputingModelPart().ProcessInfo[KratosGeo.USE_PROTOTYPE_NULL_STEPPING]   = self._GetSolver().settings["use_prototype_null_stepping"]
+        else:
+            self._GetSolver().GetComputingModelPart().ProcessInfo[KratosGeo.USE_PROTOTYPE_NULL_STEPPING]   = False
+
         self._GetSolver().solving_strategy.SetRebuildLevel(self.rebuild_level)
 
         while self.KeepAdvancingSolutionLoop():
