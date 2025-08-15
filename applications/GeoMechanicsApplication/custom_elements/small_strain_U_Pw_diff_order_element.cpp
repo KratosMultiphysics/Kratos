@@ -937,6 +937,29 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     KRATOS_CATCH("")
 }
 
+void SmallStrainUPwDiffOrderElement::CalculateAndAddRHS(VectorType&       rRightHandSideVector,
+                                                        ElementVariables& rVariables,
+                                                        unsigned int      GPoint)
+{
+    KRATOS_TRY
+
+    this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables, GPoint);
+
+    this->CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
+
+    this->CalculateAndAddCouplingTerms(rRightHandSideVector, rVariables);
+
+    if (!rVariables.IgnoreUndrained) {
+        this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
+
+        this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
+
+        this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
+    }
+
+    KRATOS_CATCH("")
+}
+
 void SmallStrainUPwDiffOrderElement::CalculateAndAddRHSWithProcessInfo(VectorType& rRightHandSideVector,
                                                                        ElementVariables& rVariables,
                                                                        unsigned int      GPoint,
@@ -1322,29 +1345,6 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityMatrix(Matrix
 
     GeoElementUtilities::AssemblePPBlockMatrix(
         rLeftHandSideMatrix, compressibility_matrix * rVariables.DtPressureCoefficient);
-
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::CalculateAndAddRHS(VectorType&       rRightHandSideVector,
-                                                        ElementVariables& rVariables,
-                                                        unsigned int      GPoint)
-{
-    KRATOS_TRY
-
-    this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables, GPoint);
-
-    this->CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
-
-    this->CalculateAndAddCouplingTerms(rRightHandSideVector, rVariables);
-
-    if (!rVariables.IgnoreUndrained) {
-        this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
-
-        this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
-
-        this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
-    }
 
     KRATOS_CATCH("")
 }
