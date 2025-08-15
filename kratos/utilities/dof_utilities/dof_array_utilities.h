@@ -47,9 +47,6 @@ public:
     /// Pointer definition of DofArrayUtilities
     KRATOS_CLASS_POINTER_DEFINITION(DofArrayUtilities);
 
-    /// Definition of the size type
-    using SizeType = std::size_t;
-
     /// Definition of the index type
     using IndexType = std::size_t;
 
@@ -76,6 +73,13 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Set the Up Dof Array object
+     * This function fills a sorted DOFs array with the DOFs of the provided model part (elements, conditions and constraints)
+     * @param rModelPart The model part containing the entities from which the DOFs are to be taken
+     * @param rDofArray The DOFs array to be filled
+     * @param EchoLevel The echo level (i.e., verbosity level)
+     */
     static void SetUpDofArray(
         const ModelPart& rModelPart,
         DofsArrayType& rDofArray,
@@ -91,7 +95,7 @@ public:
 
         // Allocate auxiliary arrays
         DofsVectorType dof_list;
-        SizeType n_threads = ParallelUtilities::GetNumThreads();
+        std::size_t n_threads = ParallelUtilities::GetNumThreads();
         std::vector<AuxiliaryDofsSetType> dofs_aux_list(n_threads);
         for (IndexType i = 0; i < n_threads; ++i) {
             dofs_aux_list[i].reserve(rModelPart.NumberOfElements());
@@ -102,9 +106,9 @@ public:
 
         // Add the DOFs from the model part elements
         const auto& r_elements_array = rModelPart.Elements();
-        const SizeType n_elements = rModelPart.NumberOfElements();
+        const std::size_t n_elements = rModelPart.NumberOfElements();
         KRATOS_INFO_IF("DofArrayUtilities", EchoLevel > 2) << "Initializing elements loop" << std::endl;
-        IndexPartition<SizeType>(n_elements).for_each(dof_list, [&](IndexType Index, DofsVectorType& tls_dof_list){
+        IndexPartition<std::size_t>(n_elements).for_each(dof_list, [&](IndexType Index, DofsVectorType& tls_dof_list){
             // Get current element iterator
             const auto it_elem = r_elements_array.begin() + Index;
 
@@ -115,9 +119,9 @@ public:
 
         // Add the DOFs from the model part conditions
         const auto& r_conditions_array = rModelPart.Conditions();
-        const SizeType n_conditions = rModelPart.NumberOfConditions();
+        const std::size_t n_conditions = rModelPart.NumberOfConditions();
         KRATOS_INFO_IF("DofArrayUtilities", EchoLevel > 2) << "Initializing conditions loop" << std::endl;
-        IndexPartition<SizeType>(n_conditions).for_each(dof_list, [&](IndexType Index, DofsVectorType& tls_dof_list){
+        IndexPartition<std::size_t>(n_conditions).for_each(dof_list, [&](IndexType Index, DofsVectorType& tls_dof_list){
             // Get current condition iterator
             const auto it_cond = r_conditions_array.begin() + Index;
 
@@ -127,10 +131,10 @@ public:
         });
 
         // Here we do a reduction in a tree so to have everything on thread 0
-        SizeType old_max = n_threads;
-        SizeType new_max = ceil(0.5*static_cast<double>(old_max));
+        std::size_t old_max = n_threads;
+        std::size_t new_max = ceil(0.5*static_cast<double>(old_max));
         while (new_max >= 1 && new_max != old_max) {
-            IndexPartition<SizeType>(new_max).for_each([&](SizeType Index){
+            IndexPartition<std::size_t>(new_max).for_each([&](std::size_t Index){
                 if (Index + new_max < old_max) {
                     dofs_aux_list[Index].insert(dofs_aux_list[Index + new_max].begin(), dofs_aux_list[Index + new_max].end());
                     dofs_aux_list[Index + new_max].clear();
@@ -156,6 +160,17 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief Set the Up Effective Dof Array and Slave To Master Dofs objects
+     * This function fills a map relating each slave DOF with a vector containing its master DOF(s)
+     * If there are constraints, the effective (i.e., non-slave) DOF array is set based on this map
+     * If there are no constraints, the effective DOF array is the standard DOF array
+     * @param rModelPart The model part containing the constraints
+     * @param rDofArray The already filled and sorted DOF array
+     * @param rEffectiveDofArray The effective DOF array to be filled
+     * @param rSlaveToMasterDofsMap The slave to master DOFs map to be filled
+     * @param EchoLevel The echo level (i.e., verbosity level)
+     */
     static void SetUpEffectiveDofArray(
         const ModelPart& rModelPart,
         const DofsArrayType& rDofArray,
@@ -164,6 +179,9 @@ public:
         const unsigned int EchoLevel = 0)
     {
         KRATOS_TRY;
+
+        //TODO: MPI implementation
+        KRATOS_ERROR_IF(rModelPart.GetCommunicator().IsDistributed()) << "MPI parallelism is not available yet." << std::endl;
 
         // Clear the provided containers
         KRATOS_WARNING_IF("Builder", !rEffectiveDofArray.empty()) << "Provided effective DOFs set is not empty. About to clear it." << std::endl;
@@ -235,7 +253,12 @@ public:
         KRATOS_CATCH("");
     }
 
-    static void SetUpDofIds(const DofsArrayType& rDofArray)
+    /**
+     * @brief Set the Dof Equation Ids
+     * This function sets the equation id for each DOF in the given DOFs array
+     * @param rDofArray The already filled and sorted DOF array
+     */
+    static void SetDofEquationIds(const DofsArrayType& rDofArray)
     {
         // Set up the DOFs equation global ids
         IndexPartition<IndexType>(rDofArray.size()).for_each([&](IndexType Index) {
@@ -244,7 +267,14 @@ public:
         });
     }
 
-    static void SetUpEffectiveDofIds(
+    /**
+     * @brief Set the Effective Dof Equation Ids
+     * This function sets the effective equation ids in the effective DOF array
+     * If the effective DOF array matches the DOF array the effective equation ids are set as the equation ids
+     * @param rDofArray The already filled and sorted DOF array
+     * @param rEffectiveDofArray The effective DOFs array in which the effective DOF id are set
+     */
+    static void SetEffectiveDofEquationIds(
         const DofsArrayType& rDofArray,
         DofsArrayType& rEffectiveDofArray)
     {
