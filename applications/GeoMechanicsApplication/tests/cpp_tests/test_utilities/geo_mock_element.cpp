@@ -9,7 +9,7 @@
 //
 //  Main authors:    Aron Noordam
 //
-#include "dof.h"
+#include "includes/variables.h"
 #include "geo_mock_element.h"
 
 namespace Kratos::Testing
