@@ -95,8 +95,8 @@ class GeoMechanicsAnalysis(AnalysisStage):
         self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.START_TIME] = self.start_time
         self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.END_TIME]   = self.end_time
 
-        if self._GetSolver().settings.Has("use_prototype_null_stepping"):
-            self._GetSolver().GetComputingModelPart().ProcessInfo[KratosGeo.USE_PROTOTYPE_NULL_STEPPING]   = self._GetSolver().settings["use_prototype_null_stepping"]
+        if self._GetSolver().settings.Has("prototype_null_stepping"):
+            self._GetSolver().GetComputingModelPart().ProcessInfo[KratosGeo.USE_PROTOTYPE_NULL_STEPPING]   = self._GetSolver().settings["prototype_null_stepping"].GetBool()
         else:
             self._GetSolver().GetComputingModelPart().ProcessInfo[KratosGeo.USE_PROTOTYPE_NULL_STEPPING]   = False
 
