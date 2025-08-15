@@ -200,6 +200,11 @@ class UPwSolver(GeoSolver):
 
             raise RuntimeError(f"Undefined/incompatible solution type with Backward Euler: '{solution_type}'")
 
+        if (scheme_type.lower() == "backward_euler_null_stepping"):
+            if (solution_type.lower() == "quasi-static" or solution_type.lower() == "quasi_static"):
+                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Prototype Null Stepping.")
+                return KratosGeo.PrototypeNullSteppingScheme()
+
         raise RuntimeError("Apart from Newmark and Backward Euler, other scheme_type are not available.")
 
     def _ConstructConvergenceCriterion(self, convergence_criterion):

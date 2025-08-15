@@ -69,7 +69,7 @@ public:
                 (mrModelPart.GetProcessInfo()[TIME] - mrModelPart.GetProcessInfo()[START_TIME]) /
                 (mrModelPart.GetProcessInfo()[END_TIME] - mrModelPart.GetProcessInfo()[START_TIME]);
             KRATOS_INFO("Fraction of unbalance") << fraction_of_unbalance << "\n";
-            }
+        }
     }
 
     void Predict() override { mpStrategy->Predict(); }

@@ -14,6 +14,7 @@
 
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/prototype_null_stepping_scheme.hpp"
 #include "solving_strategies/schemes/scheme.h"
 #include <memory>
 
@@ -36,6 +37,11 @@ public:
         if (rSolverSettings["scheme_type"].GetString() == "Backward_Euler" &&
             rSolverSettings["solution_type"].GetString() == "Quasi-Static") {
             return std::make_shared<BackwardEulerQuasistaticUPwScheme<TSparseSpace, TDenseSpace>>();
+        }
+
+        if (rSolverSettings["scheme_type"].GetString() == "backward_euler_null_stepping" &&
+            rSolverSettings["solution_type"].GetString() == "Quasi-Static") {
+            return std::make_shared<PrototypeNullSteppingScheme<TSparseSpace, TDenseSpace>>();
         }
 
         if (rSolverSettings["scheme_type"].GetString() == "Newmark") {

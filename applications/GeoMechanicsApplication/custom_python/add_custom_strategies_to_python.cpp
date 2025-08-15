@@ -35,6 +35,7 @@
 #include "custom_strategies/schemes/newmark_quasistatic_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_damped_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/prototype_null_stepping_scheme.hpp"
 
 // linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -61,6 +62,7 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
     using NewmarkDynamicUPwSchemeType = NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType>;
     using NewmarkQuasistaticPwSchemeType = NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>;
     using NewmarkQuasistaticTSchemeType = GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType>;
+    using PrototypeNullSteppingType = PrototypeNullSteppingScheme<SparseSpaceType, LocalSpaceType>;
 
     using BackwardEulerQuasistaticUPwSchemeType =
         BackwardEulerQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType>;
@@ -103,6 +105,10 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
 
     py::class_<BackwardEulerQuasistaticTSchemeType, typename BackwardEulerQuasistaticTSchemeType::Pointer, BaseSchemeType>(
         m, "BackwardEulerTScheme")
+        .def(py::init<>());
+
+    py::class_<PrototypeNullSteppingType, typename PrototypeNullSteppingType::Pointer, BaseSchemeType>(
+        m, "PrototypeNullSteppingScheme")
         .def(py::init<>());
 
     py::class_<GeoMechanicsNewtonRaphsonStrategyType, typename GeoMechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType>(

@@ -119,6 +119,8 @@ public:
     // Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
+    void Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo) override;
+
 protected:
     struct ElementVariables {
         // Variables at all integration points
