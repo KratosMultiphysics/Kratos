@@ -27,7 +27,6 @@
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
 #include "future/solving_strategies/schemes/static_scheme.h"
-#include "future/solving_strategies/strategies/linear_strategy.h"
 #include "test_utilities/solving_strategies_test_utilities.h"
 #endif
 
