@@ -37,7 +37,7 @@ namespace Kratos
  * @details This static class collects some functions to handle the DOFs.
  * @author Ruben Zorrilla
  */
-class DofArrayUtilities
+class KRATOS_API(KRATOS_CORE) DofArrayUtilities
 {
 public:
     ///@name Type Definitions
