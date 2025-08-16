@@ -113,10 +113,8 @@
             "table":           [0,1,0]
         }
     }],
-        	"json_output": [{
-            "python_module": "json_output_process",
-            "kratos_module": "KratosMultiphysics",
-            "process_name": "JsonOutputProcess",
+    "json_output": [{
+            "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.output",
                 "output_file_name": "calculated_result.json",
