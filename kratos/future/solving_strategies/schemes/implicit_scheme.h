@@ -376,11 +376,11 @@ public:
         KRATOS_ERROR_IF(pEffectiveDofSet->empty()) << "Effective DOFs set is empty. Call the 'SetUpDofArray' first." << std::endl;
 
         // Call the external utility to set up the DOF ids
-        DofArrayUtilities::SetUpDofIds(*pDofSet);
+        DofArrayUtilities::SetDofEquationIds(*pDofSet);
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished setting the DOF ids." << std::endl;
 
         // Call the external utility to set up the effective DOF ids
-        DofArrayUtilities::SetUpEffectiveDofIds(*pDofSet, *pEffectiveDofSet);
+        DofArrayUtilities::SetEffectiveDofEquationIds(*pDofSet, *pEffectiveDofSet);
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished setting the effective DOF ids." << std::endl;
 
         KRATOS_CATCH("")
