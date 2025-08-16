@@ -90,11 +90,7 @@ void DofArrayUtilities::SetUpDofArray(
 
     // Fill and sort the provided DOF array from the auxiliary global DOFs set
     KRATOS_INFO_IF("DofArrayUtilities", EchoLevel > 2) << "Initializing ordered array filling" << std::endl;
-    rDofArray.reserve(dofs_aux_list[0].size());
-    for (auto it = dofs_aux_list[0].begin(); it != dofs_aux_list[0].end(); ++it) {
-        rDofArray.push_back(*it);
-    }
-    rDofArray.Sort();
+    rDofArray.insert(dofs_aux_list[0].begin(), dofs_aux_list[0].end());
 
     // Throw an exception if there are no DOFs involved in the analysis
     KRATOS_ERROR_IF(rDofArray.size() == 0) << "No degrees of freedom in model part: " << rModelPart.FullName() << std::endl;
@@ -164,18 +160,8 @@ void DofArrayUtilities::SetUpEffectiveDofArray(
             }
         }
 
-        // Sort the effective DOFs before setting the equation ids
-        // Note that we dereference the DOF pointers in order to use the greater operator from dof.h
-        KRATOS_INFO_IF("DofArrayUtilities", EchoLevel > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Sorting the effective DOFs auxiliary container." << std::endl;
-        std::vector<typename Node::DofType::Pointer> ordered_eff_dofs_vector(effective_dofs_set.begin(), effective_dofs_set.end());
-        std::sort(
-            ordered_eff_dofs_vector.begin(),
-            ordered_eff_dofs_vector.end(),
-            [](const typename Node::DofType::Pointer& pA, const typename Node::DofType::Pointer& pB){return *pA > *pB;});
-
-        // Fill the effective DOFs PVS with the sorted effective DOFs container
-        KRATOS_INFO_IF("DofArrayUtilities", EchoLevel > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Creating the effective DOFs array from the auxiliary sorted container." << std::endl;
-        rEffectiveDofArray = DofsArrayType(ordered_eff_dofs_vector.begin(), ordered_eff_dofs_vector.end());
+        // Fill the effective DOFs PVS with the effective DOFs container
+        rEffectiveDofArray.insert(effective_dofs_set.begin(), effective_dofs_set.end());
     } else {
         // If there are no constraints the effective DOF set is the standard one
         KRATOS_INFO_IF("DofArrayUtilities", EchoLevel > 2) << "There are no constraints. The effective DOF array matches the standard one." << std::endl;
