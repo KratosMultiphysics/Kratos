@@ -23,6 +23,8 @@
 #include "utilities/dof_utilities/block_build_dof_array_utility.h"
 #include "utilities/dof_utilities/elimination_build_dof_array_utility.h"
 
+PYBIND11_MAKE_OPAQUE(Kratos::DofArrayUtilities::SlaveToMasterDofsMap); // prevents pybind11 from trying to convert the unordered_map into a dict
+
 namespace Kratos::Python
 {
 
@@ -42,7 +44,18 @@ void AddDofUtilitiesToPython(pybind11::module& m)
         .def_static("SetUpDofArray", [](const ModelPart& rModelPart, EliminationBuildDofArrayUtility::DofsArrayType& rDofArray, const unsigned int EchoLevel, const bool CheckReactionDofs){EliminationBuildDofArrayUtility::SetUpDofArray(rModelPart, rDofArray, EchoLevel, CheckReactionDofs);})
     ;
 
-    py::bind_map<DofArrayUtilities::SlaveToMasterDofsMap>(m, "SlaveToMasterDofsMap");
+    py::class_<DofArrayUtilities::SlaveToMasterDofsMap>(m, "SlaveToMasterDofsMap")
+        .def(py::init<>())
+        .def("__len__", [](const DofArrayUtilities::SlaveToMasterDofsMap &rSelf)
+            { return rSelf.size(); })
+        .def("__contains__", [](const DofArrayUtilities::SlaveToMasterDofsMap &rSelf, Node::DofType::Pointer Key)
+            { return rSelf.find(Key) != rSelf.end(); })
+        .def("__getitem__", [](const DofArrayUtilities::SlaveToMasterDofsMap &rSelf, Node::DofType::Pointer Key)
+            { return rSelf.at(Key); }) // returns by value (copy)
+        .def("__iter__", [](const DofArrayUtilities::SlaveToMasterDofsMap &rSelf)
+            { return py::make_key_iterator(rSelf.begin(), rSelf.end()); }, py::keep_alive<0, 1>()) // iteration over keys
+        .def("items", [](const DofArrayUtilities::SlaveToMasterDofsMap &rSelf)
+            { return py::make_iterator(rSelf.begin(), rSelf.end()); }, py::keep_alive<0, 1>()); // items() for key/value iteration
 
     py::class_<DofArrayUtilities>(m, "DofArrayUtilities")
         .def_static("SetUpDofArray", [](const ModelPart &rModelPart, DofArrayUtilities::DofsArrayType &rDofArray)
