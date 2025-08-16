@@ -20,10 +20,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-<<<<<<< HEAD
-#include "utilities/openmp_utils.h"
-=======
->>>>>>> core/future-builder-and-schemes
 
 namespace Kratos
 {
@@ -50,12 +46,6 @@ public:
     /// Pointer definition of DofArrayUtilities
     KRATOS_CLASS_POINTER_DEFINITION(DofArrayUtilities);
 
-<<<<<<< HEAD
-    /// Definition of the size type
-    using SizeType = std::size_t;
-
-=======
->>>>>>> core/future-builder-and-schemes
     /// Definition of the index type
     using IndexType = std::size_t;
 
