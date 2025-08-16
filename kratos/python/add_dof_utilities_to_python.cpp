@@ -13,7 +13,6 @@
 // System includes
 
 // External includes
-#include <pybind11/stl_bind.h>
 
 // Project includes
 #include "includes/define_python.h"
