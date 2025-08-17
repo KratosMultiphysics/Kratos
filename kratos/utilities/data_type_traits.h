@@ -15,6 +15,7 @@
 // System includes
 #include <algorithm>
 #include <string>
+#include <variant>
 #include <type_traits>
 #include <vector>
 
@@ -23,6 +24,26 @@
 #include "includes/ublas_interface.h"
 
 namespace Kratos {
+
+template<class T, class... TList>
+constexpr bool IsInList = std::disjunction<std::is_same<T, TList>...>::value;
+
+template<class... TAlternativesList>
+struct HoldsAlternative
+{
+    template<class... TVariantTypes>
+    static bool Evaluate(std::variant<TVariantTypes...>&& rVariant) {
+        return  (... || std::holds_alternative<TAlternativesList>(rVariant));
+    }
+};
+
+template <class T>
+struct BareTypeImpl {
+    using type = std::remove_cv_t<std::remove_pointer_t<std::remove_cv_t<std::remove_reference_t<T>>>>;
+};
+
+template <typename T>
+using BareType = typename BareTypeImpl<T>::type;
 
 /**
  * @brief Generic data type traits class for arithmetic types.
@@ -1477,7 +1498,7 @@ public:
             KRATOS_ERROR
                 << "The given number of components are larger than the data size of DenseMatrix [ number of components in the dimensions = ("
                 << *pShapeBegin << ", " << *(pShapeBegin + 1) << "), number of components available in the data = ("
-                << rContainer.size1() << ", " << rContainer.size2() << " ].\n";
+                << rContainer.size1() << ", " << rContainer.size2() << ") ].\n";
         }
     }
 

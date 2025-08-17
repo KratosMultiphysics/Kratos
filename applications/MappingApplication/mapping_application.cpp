@@ -97,6 +97,7 @@ void KratosMappingApplication::Register()
     KRATOS_REGISTER_MAPPER(CouplingGeometryMapper,  "coupling_geometry");
 
     KRATOS_REGISTER_MODELER("MappingGeometriesModeler", mMappingGeometriesModeler);
+    KRATOS_REGISTER_MODELER("IgaFEMMappingGeometriesModeler", mIgaFEMMappingGeometriesModeler);
 
     KRATOS_REGISTER_VARIABLE( INTERFACE_EQUATION_ID )
     KRATOS_REGISTER_VARIABLE( PAIRING_STATUS )

@@ -11,9 +11,8 @@
     "solver_type": "U_Pw",
     "model_part_name": "PorousDomain",
     "domain_size": 2,
-    "model_import_settings": {
-      "input_type": "mdpa",
-      "input_filename": "mesh_stage2"
+    "model_import_settings":              {
+      "input_type":       "use_input_model_part"
     },
     "material_import_settings": {
       "materials_filename": "MaterialParameters2.json"

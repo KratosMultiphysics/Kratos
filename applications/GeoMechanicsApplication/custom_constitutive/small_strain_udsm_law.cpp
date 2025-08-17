@@ -929,6 +929,11 @@ void SmallStrainUDSMLaw::SetValue(const Variable<Vector>& rVariable, const Vecto
     }
 }
 
+bool SmallStrainUDSMLaw::Has(const Variable<Vector>& rThisVariable)
+{
+    return rThisVariable == STATE_VARIABLES || rThisVariable == CAUCHY_STRESS_VECTOR;
+}
+
 std::string SmallStrainUDSMLaw::Info() const { return "SmallStrainUDSMLaw"; }
 
 void SmallStrainUDSMLaw::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }

@@ -14,12 +14,12 @@
 //
 
 // Application includes
-#include <omp.h>
 #include "custom_processes/apply_chimera_process.h"
 #include "containers/model.h"
 #include "includes/deprecated_variables.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/variable_utils.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos {
 
@@ -370,13 +370,14 @@ template <int TDim>
 void ApplyChimera<TDim>::ReserveMemoryForConstraintContainers(
     ModelPart& rModelPart, MasterSlaveContainerVectorType& rContainerVector)
 {
+    const int num_threads = ParallelUtilities::GetNumThreads();
 #pragma omp parallel
     {
         const IndexType num_constraints_per_thread =
-            (rModelPart.NumberOfNodes() * 4) / omp_get_num_threads();
+            (rModelPart.NumberOfNodes() * 4) / num_threads;
 #pragma omp single
         {
-            rContainerVector.resize(omp_get_num_threads());
+            rContainerVector.resize(num_threads);
             for (auto& container : rContainerVector)
                 container.reserve(num_constraints_per_thread);
         }
@@ -441,6 +442,7 @@ void ApplyChimera<TDim>::FormulateConstraints(
                                 rVelocityMasterSlaveContainerVector, \
                                 rPressureMasterSlaveContainerVector, \
                                 rBinLocator) reduction(+ : found_counter)
+    
     for (int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn) {
         ModelPart::NodesContainerType::iterator i_boundary_node =
             rBoundaryModelPart.NodesBegin() + i_bn;
@@ -450,10 +452,8 @@ void ApplyChimera<TDim>::FormulateConstraints(
         Vector weights;
         bool is_found = SearchNode(rBinLocator, r_boundary_node, r_host_element, weights);
         if (is_found) {
-            auto& ms_velocity_container =
-                rVelocityMasterSlaveContainerVector[omp_get_thread_num()];
-            auto& ms_pressure_container =
-                rPressureMasterSlaveContainerVector[omp_get_thread_num()];
+            auto& ms_velocity_container = rVelocityMasterSlaveContainerVector[OpenMPUtils::ThisThread()];
+            auto& ms_pressure_container = rPressureMasterSlaveContainerVector[OpenMPUtils::ThisThread()];
             removed_counter += RemoveExistingConstraintsForNode(r_boundary_node);
             MakeConstraints(r_boundary_node, r_host_element, weights,
                             ms_velocity_container, ms_pressure_container,

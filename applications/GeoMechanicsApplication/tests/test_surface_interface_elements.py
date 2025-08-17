@@ -27,6 +27,10 @@ class KratosGeoMechanicsSurfaceInterfaceElementTests(KratosUnittest.TestCase):
         simulation = self.run_simulation('Neumann_single_stage_3_plus_3')
         self.assert_outputs_for_surface_interface_element(simulation, 4, 3, 6)
 
+    def test_neumann_single_stage_3_plus_3_umat(self):
+        simulation = self.run_simulation('Neumann_single_stage_3_plus_3_umat')
+        self.assert_outputs_for_surface_interface_element(simulation, 4, 3, 6)
+
     def test_neumann_single_stage_4_plus_4(self):
         simulation = self.run_simulation('Neumann_single_stage_4_plus_4')
         self.assert_outputs_for_surface_interface_element(simulation, 4, 4, 3)
@@ -59,6 +63,9 @@ class KratosGeoMechanicsSurfaceInterfaceElementTests(KratosUnittest.TestCase):
 
     def test_neumann_multi_stage_3_plus_3(self):
         self.run_simulation_multistages('Neumann_multi_stage_3_plus_3', 4, 3, [-1334.0, -3000.0], [-666.0, -1332.0])
+
+    def test_neumann_multi_stage_3_plus_3_umat(self):
+        self.run_simulation_multistages('Neumann_multi_stage_3_plus_3_umat', 4, 3, [-1334.0, -3000.0], [-666.0, -1332.0])
 
     def test_neumann_multi_stage_4_plus_4(self):
         self.run_simulation_multistages('Neumann_multi_stage_4_plus_4', 4, 4, [-1334.0, -3000.0], [-666.0, -1332.0])

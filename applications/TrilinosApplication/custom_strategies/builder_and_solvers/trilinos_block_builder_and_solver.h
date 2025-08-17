@@ -275,21 +275,25 @@ public:
 
         // Assemble all elements
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
-            pScheme->CalculateLHSContribution(**it, LHS_Contribution, equation_ids_vector, r_current_process_info);
+            if ((*it)->IsActive()) {
+                pScheme->CalculateLHSContribution(**it, LHS_Contribution, equation_ids_vector, r_current_process_info);
 
-            // Assemble the elemental contribution
-            TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+                // Assemble the elemental contribution
+                TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+            }
         }
 
         LHS_Contribution.resize(0, 0, false);
 
         // Assemble all conditions
         for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
-            // calculate elemental contribution
-            pScheme->CalculateLHSContribution(**it, LHS_Contribution, equation_ids_vector, r_current_process_info);
+            if ((*it)->IsActive()) {
+                // calculate condition contribution
+                pScheme->CalculateLHSContribution(**it, LHS_Contribution, equation_ids_vector, r_current_process_info);
 
-            // Assemble the elemental contribution
-            TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+                // Assemble the condition contribution
+                TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+            }
         }
 
         // Finalizing the assembly
@@ -562,21 +566,25 @@ public:
         // Assemble all elements
         for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
             // Calculate elemental Right Hand Side Contribution
-            pScheme->CalculateRHSContribution(**it, RHS_Contribution, equation_ids_vector, r_current_process_info);
+            if ((*it)->IsActive()) {
+                pScheme->CalculateRHSContribution(**it, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
-            // Assemble the elemental contribution
-            TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+                // Assemble the elemental contribution
+                TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+            }
         }
 
         RHS_Contribution.resize(0, false);
 
         // Assemble all conditions
         for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
-            // calculate elemental contribution
-            pScheme->CalculateRHSContribution(**it, RHS_Contribution, equation_ids_vector, r_current_process_info);
+            // calculate condition contribution
+            if ((*it)->IsActive()) {
+                pScheme->CalculateRHSContribution(**it, RHS_Contribution, equation_ids_vector, r_current_process_info);
 
-            // Assemble the elemental contribution
-            TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+                // Assemble the condition contribution
+                TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+            }
         }
 
         // Finalizing the assembly

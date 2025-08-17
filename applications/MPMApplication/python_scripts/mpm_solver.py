@@ -84,7 +84,6 @@ class MPMSolver(PythonSolver):
                 "verbosity" : 0,
                 "tolerance": 1e-7,
                 "scaling": false,
-                "block_size": 3,
                 "use_block_matrices_if_possible" : true,
                 "coarse_enough" : 50
             }
@@ -520,7 +519,7 @@ class MPMSolver(PythonSolver):
         # this function avoids the long call to ProcessInfo and is also safer
         # in case the detection of a restart is changed later
         return self.material_point_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
-    
+
 # TODO: Remove this temporary fix once PR #13376 is merged
 def _SetProcessInfo(target_model_part: KratosMultiphysics.ModelPart,
                     process_info: KratosMultiphysics.ProcessInfo) -> None:
