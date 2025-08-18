@@ -288,11 +288,11 @@ inline void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings)
 
 
 template <class TSparse, class TDense>
-inline void AMGCLSolver<TSparse,TDense>::ProvideAdditionalData(SparseMatrixType& rA,
-                                                               VectorType& rX,
-                                                               VectorType& rB,
-                                                               DofsArrayType& rDofSet,
-                                                               ModelPart& rModelPart)
+void AMGCLSolver<TSparse,TDense>::ProvideAdditionalData(SparseMatrixType& rA,
+                                                        VectorType& rX,
+                                                        VectorType& rB,
+                                                        DofsArrayType& rDofSet,
+                                                        ModelPart& rModelPart)
 {
     if (!mBlockSize.has_value()) {
         mBlockSize = 1;
@@ -367,6 +367,10 @@ inline void AMGCLSolver<TSparse,TDense>::ProvideAdditionalData(SparseMatrixType&
     KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 1)
         << "mndof: " << mBlockSize.value() << std::endl;
 
+    KRATOS_ERROR_IF(TSparse::Size1(rA) % mBlockSize.value())
+        << "LHS matrix (" << TSparse::Size1(rA) << "," << TSparse::Size2(rA) << ") "
+        << "is incompatible with a \"block_size\" of " << mBlockSize.value();
+
     if(mProvideCoordinates) {
         mCoordinates.resize(TSparse::Size1(rA) / mBlockSize.value());
         unsigned int i=0;
@@ -436,7 +440,7 @@ inline void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType
         mAMGCLParameters.put("precond.coarsening.nullspace.B",     &B[0]);
     } else if(mUseAMGPreconditioning && mAMGCLParameters.get<std::string>("precond.coarsening.type") != std::string("ruge_stuben")) {
         mAMGCLParameters.put("precond.coarsening.aggr.eps_strong", 0.0);
-        mAMGCLParameters.put("precond.coarsening.aggr.block_size", mBlockSize.value());
+        mAMGCLParameters.put("precond.coarsening.aggr.block_size", 1);
     }
 
     if(mUseAMGPreconditioning)

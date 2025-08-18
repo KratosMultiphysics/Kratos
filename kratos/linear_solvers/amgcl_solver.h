@@ -368,17 +368,17 @@ protected:
 
 
 template<class TSparseSpaceType, class TDenseSpaceType,class TReordererType>
-inline std::istream& operator >> (std::istream& rIStream, AMGCLSolver< TSparseSpaceType,
-                                  TDenseSpaceType>& rThis)
+std::istream& operator >> (std::istream& rIStream, AMGCLSolver< TSparseSpaceType,
+                           TDenseSpaceType>& rThis)
 {
     return rIStream;
 }
 
 
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const AMGCLSolver<TSparseSpaceType,
-                                  TDenseSpaceType>& rThis)
+std::ostream& operator << (std::ostream& rOStream,
+                           const AMGCLSolver<TSparseSpaceType,
+                           TDenseSpaceType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
