@@ -131,9 +131,11 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
 
     if (!mIsInitialized) {
         mExternalForcesAtStart =
-            ZeroVector(this->GetGeometry().size() * (this->GetGeometry().WorkingSpaceDimension() + 1));
+            ZeroVector(this->GetGeometry().size() * this->GetGeometry().WorkingSpaceDimension() +
+                       mpPressureGeometry->size());
         mInternalForcesAtStart =
-            ZeroVector(this->GetGeometry().size() * (this->GetGeometry().WorkingSpaceDimension() + 1));
+            ZeroVector(this->GetGeometry().size() * this->GetGeometry().WorkingSpaceDimension() +
+                       mpPressureGeometry->size());
         const PropertiesType&                           r_prop = this->GetProperties();
         const GeometryType&                             r_geom = GetGeometry();
         const GeometryType::IntegrationPointsArrayType& r_integration_points =
@@ -847,7 +849,8 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
                                                const ProcessInfo&      rCurrentProcessInfo)
 {
     if (rVariable == EXTERNAL_FORCES_VECTOR || rVariable == INTERNAL_FORCES_VECTOR) {
-        Output = ZeroVector(this->GetGeometry().size() * (this->GetGeometry().WorkingSpaceDimension() + 1));
+        Output = ZeroVector(this->GetGeometry().size() * this->GetGeometry().WorkingSpaceDimension() +
+                            mpPressureGeometry->size());
 
         const PropertiesType&                           r_prop = this->GetProperties();
         const GeometryType&                             r_geom = GetGeometry();

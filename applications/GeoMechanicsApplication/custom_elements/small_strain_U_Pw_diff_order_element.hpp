@@ -267,9 +267,9 @@ protected:
 
 private:
     GeometryType::Pointer mpPressureGeometry;
-    Vector                mInternalForcesAtStart = ZeroVector(6 * (2 + 1));
-    Vector                mExternalForcesAtStart = ZeroVector(6 * (2 + 1));
-    bool                  mIsInitialized         = false;
+    Vector                mInternalForcesAtStart;
+    Vector                mExternalForcesAtStart;
+    bool                  mIsInitialized = false;
 
     [[nodiscard]] DofsVectorType GetDofs() const override;
 
