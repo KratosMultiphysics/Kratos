@@ -27,11 +27,11 @@
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_mass_and_damping.h"
 
 // schemes
-#include "custom_strategies/schemes/geomechanics_time_integration_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_T_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/generalized_newmark_T_scheme.hpp"
+#include "custom_strategies/schemes/geomechanics_static_scheme.hpp"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
@@ -69,7 +69,7 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
         BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>;
     using BackwardEulerQuasistaticTSchemeType = BackwardEulerTScheme<SparseSpaceType, LocalSpaceType>;
 
-    using GeoStaticSchemeType = GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>({},{});
+    using GeoStaticSchemeType = GeoMechanicsStaticScheme<SparseSpaceType, LocalSpaceType>;
 
     using GeoMechanicsNewtonRaphsonStrategyType =
         GeoMechanicsNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
