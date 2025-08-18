@@ -51,7 +51,6 @@ void AddBaseTensorAdaptor(
     pybind11::class_<tensor_adaptor, typename tensor_adaptor::Pointer>(rModule, (rName + "Adaptor").c_str())
         .def(pybind11::init<typename tensor_adaptor::ContainerPointerType, typename DynamicDimensionalArray<TDataType>::Pointer, const bool>(), pybind11::arg("container"), pybind11::arg("dynamic_dimensional_array"), pybind11::arg("copy") = true)
         .def(pybind11::init<const tensor_adaptor&, const bool>(), pybind11::arg("tensor_adaptor"), pybind11::arg("copy") = true)
-        .def(pybind11::init<const tensor_adaptor&, typename tensor_adaptor::ContainerPointerType, const bool>(), pybind11::arg("tensor_adaptor"), pybind11::arg("container"), pybind11::arg("copy") = true)
         .def("Check", &tensor_adaptor::Check)
         .def("CollectData", &tensor_adaptor::CollectData)
         .def("StoreData", &tensor_adaptor::StoreData)

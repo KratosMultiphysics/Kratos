@@ -364,29 +364,6 @@ class TestTensorAdaptors(KratosUnittest.TestCase):
             self.assertEqual(node.Y0, 1.0)
             self.assertEqual(node.Z0, 1.0)
 
-    def test_BaseTensorAdaptorChangeContainers(self):
-        ta_conditions = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Conditions, Kratos.VELOCITY)
-        ta_conditions.CollectData()
-
-        base_ta_elements = Kratos.TensorAdaptors.DoubleTensorAdaptor(ta_conditions, self.model_part.Elements, copy=False)
-        base_ta_elements_copy = Kratos.TensorAdaptors.DoubleTensorAdaptor(ta_conditions, self.model_part.Elements)
-        ta_elements = Kratos.TensorAdaptors.VariableTensorAdaptor(base_ta_elements, Kratos.VELOCITY, copy=False)
-        ta_elements_copy_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(base_ta_elements, Kratos.ACCELERATION)
-        ta_elements_copy_2 = Kratos.TensorAdaptors.VariableTensorAdaptor(base_ta_elements_copy, Kratos.FORCE)
-
-        self.assertEqual(numpy.linalg.norm(ta_conditions.data - base_ta_elements.data), 0.0)
-        ta_conditions.data *= 5.4
-        ta_elements.StoreData()
-        ta_elements_copy_1.StoreData()
-        ta_elements_copy_2.StoreData()
-        for condition, element in zip(self.model_part.Conditions, self.model_part.Elements):
-            self.assertVectorAlmostEqual(condition.GetValue(Kratos.VELOCITY) * 5.4, element.GetValue(Kratos.VELOCITY))
-            self.assertVectorAlmostEqual(condition.GetValue(Kratos.VELOCITY), element.GetValue(Kratos.ACCELERATION))
-            self.assertVectorAlmostEqual(condition.GetValue(Kratos.VELOCITY), element.GetValue(Kratos.FORCE))
-
-        with self.assertRaises(RuntimeError):
-            Kratos.TensorAdaptors.NodePositionTensorAdaptor(base_ta_elements, Kratos.Configuration.Current, copy=False)
-
     def __TestCopyTensorAdaptor(self, tensor_adaptor_type, value_getter):
         var_ta_orig = tensor_adaptor_type(self.model_part.Nodes, Kratos.VELOCITY, data_shape=[2])
         var_ta_orig.Check()

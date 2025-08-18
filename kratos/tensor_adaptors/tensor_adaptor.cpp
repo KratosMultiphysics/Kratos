@@ -58,34 +58,6 @@ TensorAdaptor<TDataType>::TensorAdaptor(
 }
 
 template<class TDataType>
-TensorAdaptor<TDataType>::TensorAdaptor(
-    const TensorAdaptor& rOther,
-    ContainerPointerType pContainer,
-    const bool Copy)
-    : TensorAdaptor(pContainer, rOther.mpStorage, Copy)
-{
-    KRATOS_TRY
-
-    if (HasContainer()) {
-        std::visit([this](auto pContainer) {
-            const auto& r_tensor_shape = this->mpStorage->Shape();
-
-            KRATOS_ERROR_IF(r_tensor_shape.size() == 0)
-                << "Tensor with a valid container should atleast have one dimension representing number of entities in the pContainer [ "
-                << "container size = " << pContainer->size() << ", tensor adaptor = "
-                << this->Info() << " ].\n";
-
-            KRATOS_ERROR_IF_NOT(pContainer->size() == r_tensor_shape[0])
-                << "TensorAdaptor with a valid container should have a shape with first dimension representing number of entities in the pContainer [ "
-                << "container size = " << pContainer->size() << ", tensor adaptor = "
-                << this->Info() << " ].\n";
-        }, GetContainer());
-    }
-
-    KRATOS_CATCH("");
-}
-
-template<class TDataType>
 void TensorAdaptor<TDataType>::Check() const
 {
     KRATOS_TRY

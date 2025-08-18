@@ -139,22 +139,6 @@ public:
         const TensorAdaptor& rOther,
         const bool Copy = true);
 
-    /**
-     * @brief Copy constructor with container assignment and an optional deep copy.
-     * @details This constructs a new instance of a @ref TensorAdaptor from another given tensor adaptor @p rOther . The new
-     *          @ref TensorAdaptor will be assigned the container pointer referenced by @p pContainer. The internal storage will be:
-     *              - Copied from @p rOther if @p Copy is true.
-     *              - Shared with @p rOther if @p Copy is false.
-     *
-     * @param rOther        Other @ref TensorAdaptor instance.
-     * @param pContainer    Pointer to the container to be assigned to this instance.
-     * @param Copy          If true, the internal storage will be copied. Otherwise, internal storage will be shared.
-     */
-    TensorAdaptor(
-        const TensorAdaptor& rOther,
-        ContainerPointerType pContainer,
-        const bool Copy = true);
-
     virtual ~TensorAdaptor() = default;
 
     ///@}
