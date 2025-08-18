@@ -94,9 +94,9 @@ bool AssignDataImpl(
         KRATOS_ERROR_IF_NOT(rArray.flags() & pybind11::detail::npy_api::constants::NPY_ARRAY_C_CONTIGUOUS_)
             << "Only supports C-style (row-major) arrays from numpy.";
 
-        const auto& casted_array = rArray.cast<pybind11::array_t<TPybindArrayType, pybind11::array::c_style>>();
+        const auto& cast_array = rArray.cast<pybind11::array_t<TPybindArrayType, pybind11::array::c_style>>();
         auto r_destination_span = rDDArray.ViewData();
-        const auto& r_origin_data = casted_array.data();
+        const auto& r_origin_data = cast_array.data();
         IndexPartition<IndexType>(r_destination_span.size()).for_each([&r_destination_span, &r_origin_data](const auto Index) {
             r_destination_span[Index] = static_cast<TDataType>(r_origin_data[Index]);
         });
