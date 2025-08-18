@@ -158,7 +158,7 @@ public:
         const TDataType Value);
 
     /**
-     * @brief Construct a new Dynamic Dimensional Array with given data pointer, shape.
+     * @brief Construct a new instance with given pointer and shape.
      * @details This constructor will construct a dynamic dimensional array with the @p pData pointer
      *          and the given shape.
      *              - If @p Copy = true, then the data in the @p pData will be copied
