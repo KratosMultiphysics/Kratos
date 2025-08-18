@@ -110,14 +110,14 @@ struct AMGCLSolver<TSparse,TDense>::Impl
 
 
 template <class TSparse, class TDense>
-inline AMGCLSolver<TSparse,TDense>::AMGCLSolver()
+AMGCLSolver<TSparse,TDense>::AMGCLSolver()
     : AMGCLSolver(Parameters())
 {
 }
 
 
 template <class TSparse, class TDense>
-inline AMGCLSolver<TSparse,TDense>::AMGCLSolver(Parameters Settings)
+AMGCLSolver<TSparse,TDense>::AMGCLSolver(Parameters Settings)
     : mTolerance(0),
       mMaxIterationsNumber(0),
       mVerbosity(0),
@@ -136,12 +136,12 @@ inline AMGCLSolver<TSparse,TDense>::AMGCLSolver(Parameters Settings)
 
 
 template <class TSparse, class TDense>
-inline AMGCLSolver<TSparse,TDense>::AMGCLSolver(const std::string& rSmootherName,
-                                                const std::string& rSolverName,
-                                                double Tolerance,
-                                                int MaxIterationsNumber,
-                                                int Verbosity,
-                                                int GMRESSize)
+AMGCLSolver<TSparse,TDense>::AMGCLSolver(const std::string& rSmootherName,
+                                         const std::string& rSolverName,
+                                         double Tolerance,
+                                         int MaxIterationsNumber,
+                                         int Verbosity,
+                                         int GMRESSize)
     : mTolerance(Tolerance),
       mMaxIterationsNumber(MaxIterationsNumber),
       mVerbosity(Verbosity),
@@ -164,14 +164,14 @@ inline AMGCLSolver<TSparse,TDense>::AMGCLSolver(const std::string& rSmootherName
 
 
 template <class TSparse, class TDense>
-inline AMGCLSolver<TSparse,TDense>::AMGCLSolver(const std::string& rSmootherName,
-                                                const std::string& rSolverName,
-                                                const std::string& rCoarseningName,
-                                                double Tolerance,
-                                                int MaxIterationsNumber,
-                                                int Verbosity,
-                                                int GMRESSize,
-                                                bool ProvideCoordinates)
+AMGCLSolver<TSparse,TDense>::AMGCLSolver(const std::string& rSmootherName,
+                                         const std::string& rSolverName,
+                                         const std::string& rCoarseningName,
+                                         double Tolerance,
+                                         int MaxIterationsNumber,
+                                         int Verbosity,
+                                         int GMRESSize,
+                                         bool ProvideCoordinates)
     : mTolerance(Tolerance),
       mMaxIterationsNumber(MaxIterationsNumber),
       mVerbosity(Verbosity),
@@ -194,15 +194,15 @@ inline AMGCLSolver<TSparse,TDense>::AMGCLSolver(const std::string& rSmootherName
 
 
 template <class TSparse, class TDense>
-inline AMGCLSolver<TSparse,TDense>::AMGCLSolver(AMGCLSolver&&) noexcept = default;
+AMGCLSolver<TSparse,TDense>::AMGCLSolver(AMGCLSolver&&) noexcept = default;
 
 
 template <class TSparse, class TDense>
-inline AMGCLSolver<TSparse,TDense>::~AMGCLSolver() = default;
+AMGCLSolver<TSparse,TDense>::~AMGCLSolver() = default;
 
 
 template <class TSparse, class TDense>
-inline void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings)
+void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings)
 {
     Parameters default_parameters = this->GetDefaultParameters();
 
@@ -386,9 +386,9 @@ void AMGCLSolver<TSparse,TDense>::ProvideAdditionalData(SparseMatrixType& rA,
 
 
 template <class TSparse, class TDense>
-inline void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType& rLhs,
-                                                                VectorType& rSolution,
-                                                                VectorType& rRhs)
+void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType& rLhs,
+                                                         VectorType& rSolution,
+                                                         VectorType& rRhs)
 {
     // Sanity checks.
     KRATOS_ERROR_IF(   TSparse::Size1(rLhs) != TSparse::Size2(rLhs)
@@ -584,9 +584,9 @@ struct AMGCLStaticVectorTraits<amgcl::static_matrix<TValue,RowCount,ColumnCount>
 
 
 template <class TSparse, class TDense>
-inline bool AMGCLSolver<TSparse,TDense>::PerformSolutionStep(SparseMatrixType& rLhs,
-                                                             VectorType& rSolution,
-                                                             VectorType& rRhs)
+bool AMGCLSolver<TSparse,TDense>::PerformSolutionStep(SparseMatrixType& rLhs,
+                                                      VectorType& rSolution,
+                                                      VectorType& rRhs)
 {
     KRATOS_TRY
 
