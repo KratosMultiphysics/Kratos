@@ -10,6 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
+#pragma once
+
 // System includes
 #include <numeric>
 
