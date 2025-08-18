@@ -142,7 +142,7 @@ public:
         const bool Copy = true);
 
     /**
-     * @brief Construct a new Tensor Adaptor instance from another instance of a Tensor adaptor and another container.
+     * @brief Copy constructor with container assignment and an optional deep copy.
      * @details This constructs a new instance of a @ref TensorAdaptor from another given tensor adaptor @p rOther . The new
      *          @ref TensorAdaptor will be assigned the container pointer referred by @p pContainer. The internal storage will be:
      *              - Copied from @p rOther if @p Copy is true.
