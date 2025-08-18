@@ -148,7 +148,7 @@ public:
         const DenseVector<unsigned int>& rShape);
 
     /**
-     * @brief Construct a new Dynamic Dimensional Array with a given @p rShape, and initialized with the @p Value.
+     * @brief Construct a new instance with a given @p rShape, and initialized with the @p Value.
      *
      * @param rShape Dynamic Dimensional Array shape.
      * @param Value  Initialization value.
