@@ -177,7 +177,7 @@ public:
         const bool Copy = true);
 
     /**
-     * @brief Construct a new Dynamic Dimensional Array with @p rShape and by always copying the data pointer by @p pData
+     * @brief Construct a new instance with @p rShape, copying the array referenced by @p pData.
      *
      * @param pData     Pointer to the data
      * @param rShape    Dynamic Dimensional Array shape.
