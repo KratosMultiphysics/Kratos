@@ -28,10 +28,10 @@ void CheckUtilities::CheckDomainSize(double DomainSize, std::size_t Id, const st
 void CheckUtilities::CheckNodalVariables(const Geometry<Node>&            rGeometry,
                                          const std::vector<VariableData>& rVectorVariables)
 {
-    for (unsigned int i = 0; i < rGeometry.PointsNumber(); ++i) {
-		for (const auto & rVariable : rVectorVariables){
-           if (!rGeometry[i].SolutionStepsDataHas(rVariable))
-               KRATOS_ERROR << "missing variable " << rVariable.Name() << " on node "
+    for (std::size_t i = 0; i < rGeometry.PointsNumber(); ++i) {
+		for (const auto & r_variable : rVectorVariables){
+           if (!rGeometry[i].SolutionStepsDataHas(r_variable))
+               KRATOS_ERROR << "missing variable " << r_variable.Name() << " on node "
                             << rGeometry[i].Id() << std::endl;
 		}
 	}

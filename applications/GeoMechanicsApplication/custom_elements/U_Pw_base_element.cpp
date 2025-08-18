@@ -29,49 +29,49 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     // Base class checks for positive area and Id > 0
     if (int ierr = Element::Check(rCurrentProcessInfo); ierr != 0) return ierr;
 
-    const PropertiesType& rProp = this->GetProperties();
-    const GeometryType&   rGeom = this->GetGeometry();
+    const PropertiesType& r_properties = this->GetProperties();
+    const GeometryType&   r_geometry = this->GetGeometry();
 
-    CheckUtilities::CheckNodalVariables(rGeom, {DISPLACEMENT, VELOCITY, ACCELERATION, WATER_PRESSURE,
+    CheckUtilities::CheckNodalVariables(r_geometry, {DISPLACEMENT, VELOCITY, ACCELERATION, WATER_PRESSURE,
                                                 DT_WATER_PRESSURE, VOLUME_ACCELERATION});
 
     // verify dofs
     for (unsigned int i = 0; i < this->GetGeometry().PointsNumber(); ++i) {
-        if (!rGeom[i].HasDofFor(DISPLACEMENT_X) || !rGeom[i].HasDofFor(DISPLACEMENT_Y) ||
-            (this->GetGeometry().WorkingSpaceDimension() > 2 && !rGeom[i].HasDofFor(DISPLACEMENT_Z)))
+        if (!r_geometry[i].HasDofFor(DISPLACEMENT_X) || !r_geometry[i].HasDofFor(DISPLACEMENT_Y) ||
+            (this->GetGeometry().WorkingSpaceDimension() > 2 && !r_geometry[i].HasDofFor(DISPLACEMENT_Z)))
             KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node "
-                         << rGeom[i].Id() << std::endl;
+                         << r_geometry[i].Id() << std::endl;
 
-        if (!rGeom[i].HasDofFor(WATER_PRESSURE))
+        if (!r_geometry[i].HasDofFor(WATER_PRESSURE))
             KRATOS_ERROR << "missing the dof for the variable WATER_PRESSURE on node "
-                         << rGeom[i].Id() << std::endl;
+                         << r_geometry[i].Id() << std::endl;
     }
 
     // Verify properties
-    if (!rProp.Has(DENSITY_SOLID) || rProp[DENSITY_SOLID] < 0.0)
+    if (!r_properties.Has(DENSITY_SOLID) || r_properties[DENSITY_SOLID] < 0.0)
         KRATOS_ERROR << "DENSITY_SOLID has Key zero, is not defined or has an "
                         "invalid value at element"
                      << this->Id() << std::endl;
 
-    if (!rProp.Has(DENSITY_WATER) || rProp[DENSITY_WATER] < 0.0)
+    if (!r_properties.Has(DENSITY_WATER) || r_properties[DENSITY_WATER] < 0.0)
         KRATOS_ERROR << "DENSITY_WATER has Key zero, is not defined or has an "
                         "invalid value at element"
                      << this->Id() << std::endl;
 
-    if (!rProp.Has(BULK_MODULUS_SOLID) || rProp[BULK_MODULUS_SOLID] < 0.0)
+    if (!r_properties.Has(BULK_MODULUS_SOLID) || r_properties[BULK_MODULUS_SOLID] < 0.0)
         KRATOS_ERROR
             << "BULK_MODULUS_SOLID has Key zero, is not defined or has an invalid value at element"
             << this->Id() << std::endl;
 
-    if (!rProp.Has(POROSITY) || rProp[POROSITY] < 0.0 || rProp[POROSITY] > 1.0)
+    if (!r_properties.Has(POROSITY) || r_properties[POROSITY] < 0.0 || r_properties[POROSITY] > 1.0)
         KRATOS_ERROR << "POROSITY has Key zero, is not defined or has an invalid value at element"
                      << this->Id() << std::endl;
 
     if (this->GetGeometry().WorkingSpaceDimension() == 2) {
         // If this is a 2D problem, nodes must be in XY plane
         for (unsigned int i = 0; i < this->GetGeometry().PointsNumber(); ++i) {
-            if (rGeom[i].Z() != 0.0)
-                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << rGeom[i].Id() << std::endl;
+            if (r_geometry[i].Z() != 0.0)
+                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << r_geometry[i].Id() << std::endl;
         }
     }
 
