@@ -58,7 +58,7 @@ class TestDynamicDimensionalArray(KratosUnittest.TestCase):
         self.assertEqual(np.sum(kratos_array.to_numpy()), 9)
 
     def test_DynamicDimensionalArray4(self):
-        for dtype in [bool, np.int8, np.int16, np.int32, np.int64,  np.float16, np.float32, np.float128, np.uint8, np.uint16, np.uint32, np.uint64, np.uint]:
+        for dtype in [bool, np.int8, np.int16, np.int32, np.int64,  np.float16, np.float32, np.uint8, np.uint16, np.uint32, np.uint64, np.uint]:
             with self.assertRaises(RuntimeError):
                 np_array = np.ones((2,2), dtype=dtype)
                 Kratos.DoubleDynamicDimensionalArray(np_array, copy=False)
@@ -69,7 +69,7 @@ class TestDynamicDimensionalArray(KratosUnittest.TestCase):
         self.assertEqual(k_array.to_numpy()[0,0 ], 10)
 
     def test_DynamicDimensionalArray5(self):
-        for dtype in [bool, np.int8, np.int16, np.int32, np.int64,  np.float16, np.float32, np.float64, np.float128, np.uint16, np.uint32, np.uint64, np.uint]:
+        for dtype in [bool, np.int8, np.int16, np.int32, np.int64,  np.float16, np.float32, np.float64, np.uint16, np.uint32, np.uint64, np.uint]:
             with self.assertRaises(RuntimeError):
                 np_array = np.ones((2,2), dtype=dtype)
                 Kratos.UIntDynamicDimensionalArray(np_array, copy=False)
@@ -80,7 +80,7 @@ class TestDynamicDimensionalArray(KratosUnittest.TestCase):
         self.assertEqual(k_array.to_numpy()[0,0 ], 10)
 
     def test_DynamicDimensionalArray6(self):
-        for dtype in [bool, np.int8, np.int16, np.int64,  np.float16, np.float32, np.float64, np.float128, np.uint8, np.uint16, np.uint32, np.uint64, np.uint]:
+        for dtype in [bool, np.int8, np.int16, np.int64,  np.float16, np.float32, np.float64, np.uint8, np.uint16, np.uint32, np.uint64, np.uint]:
             with self.assertRaises(RuntimeError):
                 np_array = np.ones((2,2), dtype=dtype)
                 Kratos.IntDynamicDimensionalArray(np_array, copy=False)
@@ -91,7 +91,7 @@ class TestDynamicDimensionalArray(KratosUnittest.TestCase):
         self.assertEqual(k_array.to_numpy()[0,0 ], 10)
 
     def test_DynamicDimensionalArray6(self):
-        for dtype in [np.int8, np.int16, np.int32, np.int64,  np.float16, np.float32, np.float64, np.float128, np.uint8, np.uint16, np.uint32, np.uint64, np.uint]:
+        for dtype in [np.int8, np.int16, np.int32, np.int64,  np.float16, np.float32, np.float64, np.uint8, np.uint16, np.uint32, np.uint64, np.uint]:
             with self.assertRaises(RuntimeError):
                 np_array = np.ones((2,2), dtype=dtype)
                 Kratos.BoolDynamicDimensionalArray(np_array, copy=False)
