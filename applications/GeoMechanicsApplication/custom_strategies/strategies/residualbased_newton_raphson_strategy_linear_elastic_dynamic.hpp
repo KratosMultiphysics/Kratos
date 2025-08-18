@@ -318,7 +318,7 @@ private:
         const auto& r_current_process_info = r_model_part.GetProcessInfo();
 
         bool is_converged = false;
-        for (; rIterationNumber < BaseType::mMaxIterationNumber; rIterationNumber++) {
+        for (; rIterationNumber <= BaseType::mMaxIterationNumber; rIterationNumber++) {
             r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = rIterationNumber;
 
             p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
