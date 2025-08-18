@@ -115,8 +115,6 @@ public:
                                         ModelPart::GeometryContainerType::Pointer
                                     >;
 
-    using OptionalContainerPointerType = std::optional<ContainerPointerType>;
-
     using Storage = DynamicDimensionalArray<TDataType>;
 
     ///@}
@@ -262,7 +260,7 @@ protected:
 
     typename Storage::Pointer mpStorage;
 
-    OptionalContainerPointerType mpContainer;
+    std::optional<ContainerPointerType> mpContainer;
 
     ///@}
 };
