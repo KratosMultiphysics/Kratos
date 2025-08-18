@@ -17,9 +17,10 @@
 
 // External includes
 #include "containers/system_vector.h"
+#include "geo_mechanics_application_variables.h"
+#include "includes/model_part.h"
 #include "includes/node.h"
 #include "spaces/ublas_space.h"
-#include "includes/model_part.h"
 
 namespace Kratos::Geo
 {
@@ -32,6 +33,10 @@ public:
     /// DoF array type definition
     using DofsArrayType = ModelPart::DofsArrayType;
 
+    static void GetTotalSolutionStepValueVector(SystemVectorType&    rTotalSolutionStepValues,
+                                                const DofsArrayType& rDofSet,
+                                                const ModelPart&     rModelPart,
+                                                const IndexType      BufferIndex);
 
     static void GetUFirstAndSecondDerivativeVector(SystemVectorType&    rFirstDerivativeVector,
                                                    SystemVectorType&    rSecondDerivativeVector,

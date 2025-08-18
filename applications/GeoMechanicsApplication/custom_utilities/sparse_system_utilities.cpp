@@ -17,6 +17,50 @@ using namespace Kratos;
 
 namespace Kratos::Geo
 {
+
+void SparseSystemUtilities::GetTotalSolutionStepValueVector(SystemVectorType& rTotalSolutionStepValues,
+                                                            const DofsArrayType& rDofSet,
+                                                            const ModelPart&     rModelPart,
+                                                            const IndexType      BufferIndex)
+{
+    rTotalSolutionStepValues = SystemVectorType(rDofSet.size(), 0.0);
+
+    // Firstly initialize the rTotalSolutionStepValues with all DOFs in the DofSet, also the Dofs which do not have a "TOTAL" counterpart
+    block_for_each(rDofSet, [&rTotalSolutionStepValues](Dof<double>& r_dof) {
+        rTotalSolutionStepValues[r_dof.EquationId()] = r_dof.GetSolutionStepValue(0);
+    });
+
+    // Overwrite the values in rTotalSolutionStepValues with the TOTAL values from the nodes
+    block_for_each(rModelPart.Nodes(), [&rTotalSolutionStepValues, BufferIndex](Node& rNode) {
+        if (rNode.IsActive()) {
+            // Mandatory variables (always present)
+            const std::vector<std::pair<const Variable<double>*, const Variable<double>*>> mandatory_variables = {
+                {&DISPLACEMENT_X, &TOTAL_DISPLACEMENT_X}, {&DISPLACEMENT_Y, &TOTAL_DISPLACEMENT_Y}};
+
+            for (const auto& var_pair : mandatory_variables) {
+                const auto equation_id = rNode.GetDof(*var_pair.first).EquationId();
+                rTotalSolutionStepValues[equation_id] =
+                    rNode.FastGetSolutionStepValue(*var_pair.second, BufferIndex);
+            }
+
+            // Optional variables (only if DOF exists)
+            const std::vector<std::pair<const Variable<double>*, const Variable<double>*>> optional_variables = {
+                {&DISPLACEMENT_Z, &TOTAL_DISPLACEMENT_Z},
+                {&ROTATION_X, &TOTAL_ROTATION_X},
+                {&ROTATION_Y, &TOTAL_ROTATION_Y},
+                {&ROTATION_Z, &TOTAL_ROTATION_Z}};
+
+            for (const auto& var_pair : optional_variables) {
+                if (rNode.HasDofFor(*var_pair.first)) {
+                    const auto equation_id = rNode.GetDof(*var_pair.first).EquationId();
+                    rTotalSolutionStepValues[equation_id] =
+                        rNode.FastGetSolutionStepValue(*var_pair.second, BufferIndex);
+                }
+            }
+        }
+    });
+}
+
 void SparseSystemUtilities::GetUFirstAndSecondDerivativeVector(SystemVectorType& rFirstDerivativeVector,
                                                                SystemVectorType& rSecondDerivativeVector,
                                                                const DofsArrayType& rDofSet,

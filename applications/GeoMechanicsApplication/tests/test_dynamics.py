@@ -3,6 +3,7 @@ import json
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
+from KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages import run_stages
 import test_helper
 
 
@@ -136,10 +137,10 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         n_stages = 3
 
         # run simulation
-        KratosGeo.run_multiple_stages.run_stages(file_path, n_stages)
+        run_stages(file_path, n_stages)
 
         where = "NODE_41"
-        what = "DISPLACEMENT_Y"
+        what = "TOTAL_DISPLACEMENT_Y"
         calculated_displacement = []
 
         # get calculated results per stage
@@ -230,7 +231,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         n_stages = 2
 
         # run simulation
-        KratosGeo.run_multiple_stages.run_stages(file_path, n_stages)
+        run_stages(file_path, n_stages)
 
         where = "NODE_7"
         what = "VELOCITY_Y"

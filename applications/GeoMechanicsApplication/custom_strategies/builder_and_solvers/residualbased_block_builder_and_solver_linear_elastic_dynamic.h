@@ -584,22 +584,21 @@ private:
                                           TSystemMatrixType&            rStiffnessMatrix,
                                           typename TSchemeType::Pointer pScheme)
     {
-        TSystemVectorType solution_step_values = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
+        TSystemVectorType total_solution_step_values = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
         TSystemVectorType first_derivative_vector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
         TSystemVectorType second_derivative_vector = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
 
         auto& r_dof_set = BaseType::GetDofSet();
 
-        block_for_each(r_dof_set, [&solution_step_values](Dof<double>& r_dof) {
-            solution_step_values[r_dof.EquationId()] = r_dof.GetSolutionStepValue(0);
-        });
+        Geo::SparseSystemUtilities::GetTotalSolutionStepValueVector(total_solution_step_values, r_dof_set,
+                                                                    rModelPart, 0);
 
         Geo::SparseSystemUtilities::GetUFirstAndSecondDerivativeVector(
             first_derivative_vector, second_derivative_vector, r_dof_set, rModelPart, 0);
 
         // calculate initial second derivative vector
         TSystemVectorType stiffness_contribution = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
-        TSparseSpace::Mult(rStiffnessMatrix, solution_step_values, stiffness_contribution);
+        TSparseSpace::Mult(rStiffnessMatrix, total_solution_step_values, stiffness_contribution);
 
         TSystemVectorType damping_contribution = TSystemVectorType(BaseType::mEquationSystemSize, 0.0);
         TSparseSpace::Mult(mDampingMatrix, first_derivative_vector, damping_contribution);
