@@ -43,7 +43,7 @@ NodePositionTensorAdaptor::NodePositionTensorAdaptor(
     KRATOS_ERROR_IF(tensor_shape[1] > 3)
         << "Invalid data shape. Following data shapes are allowed:\n\t[1]\n\t[2]\n\t[3]";
 
-    this->mpStorage = Kratos::make_intrusive<Storage>(tensor_shape);
+    this->mpStorage = Kratos::make_shared<Storage>(tensor_shape);
 
     KRATOS_CATCH("");
 }
@@ -64,7 +64,7 @@ NodePositionTensorAdaptor::NodePositionTensorAdaptor(
 {
     KRATOS_TRY
 
-    const auto& r_data_shape = this->mpStorage->DataShape();
+    const auto& r_data_shape = this->DataShape();
 
     KRATOS_ERROR_IF_NOT(std::holds_alternative<ModelPart::NodesContainerType::Pointer>(this->GetContainer()))
         << "NodePositionTensorAdaptor can only be used with tensor data having nodal containers "
