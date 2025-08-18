@@ -3,10 +3,17 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 class TestDynamicDimensionalArray(KratosUnittest.TestCase):
+    def test_DynamicDimensionalArrayVanishingDims(self):
+        kratos_array = Kratos.DoubleDynamicDimensionalArray([10, 0, 5])
+        numpy_array = kratos_array.to_numpy()
+        self.assertEqual(numpy_array.shape, (10, 0, 5))
+        self.assertEqual(numpy_array.size, 0)
+
     def test_DynamicDimensionalArray0(self):
         kratos_array = Kratos.DoubleDynamicDimensionalArray([0, 0])
         numpy_array = kratos_array.to_numpy()
         self.assertEqual(numpy_array.shape, (0, 0))
+        self.assertEqual(numpy_array.size, 0)
 
     def test_DynamicDimensionalArray1(self):
         np_array = np.ones((10,3))

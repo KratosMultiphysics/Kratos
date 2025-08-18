@@ -4,7 +4,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-class TensorAdaptors(KratosUnittest.TestCase):
+class TestTensorAdaptors(KratosUnittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.model = Kratos.Model()
