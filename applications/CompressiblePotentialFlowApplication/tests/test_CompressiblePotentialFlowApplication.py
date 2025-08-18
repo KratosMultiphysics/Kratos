@@ -27,22 +27,22 @@ def AssembleTestSuites():
 
     suites = KratosUnittest.KratosSuites
 
-    # # Create a test suite with the selected tests (Small tests):
-    # # smallSuite will contain the following tests:
-    # # - testSmallExample
-    # smallSuite = suites['small']
-    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([PotentialFlowTests]))
+    # Create a test suite with the selected tests (Small tests):
+    # smallSuite will contain the following tests:
+    # - testSmallExample
+    smallSuite = suites['small']
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([PotentialFlowTests]))
 
-    # # Create a test suite with the selected tests
-    # # nightSuite will contain the following tests:
-    # nightSuite = suites['nightly']
-    # nightSuite.addTests(smallSuite)
-    # nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NightlyPotentialFlowTests]))
+    # Create a test suite with the selected tests
+    # nightSuite will contain the following tests:
+    nightSuite = suites['nightly']
+    nightSuite.addTests(smallSuite)
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NightlyPotentialFlowTests]))
 
-    # # Create a test suite that contains all the tests from every testCase
-    # # in the list:
-    # allSuite = suites['all']
-    # allSuite.addTests(nightSuite) # already contains the smallSuite
+    # Create a test suite that contains all the tests from every testCase
+    # in the list:
+    allSuite = suites['all']
+    allSuite.addTests(nightSuite) # already contains the smallSuite
 
     return suites
 
