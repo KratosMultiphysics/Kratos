@@ -150,7 +150,7 @@ public:
     /**
      * @brief Construct a new instance with a given @p rShape, and initialized with the @p Value.
      *
-     * @param rShape Dynamic Dimensional Array shape.
+     * @param rShape Array shape.
      * @param Value  Initialization value.
      */
     DynamicDimensionalArray(
