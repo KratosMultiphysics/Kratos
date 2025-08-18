@@ -52,9 +52,9 @@ int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCu
     if (this->Id() < 1)
         KRATOS_ERROR << "Element found with Id 0 or negative, element: " << this->Id() << std::endl;
 
-        CheckUtilities::CheckNodalVariables(r_geometry, {WATER_PRESSURE, DT_WATER_PRESSURE, VOLUME_ACCELERATION});
+    CheckUtilities::CheckNodalVariables(r_geometry, {WATER_PRESSURE, DT_WATER_PRESSURE, VOLUME_ACCELERATION});
 
-    // Verify dof variables
+    // Verify dof
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         if (r_geometry[i].HasDofFor(WATER_PRESSURE) == false)
             KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << r_geometry[i].Id() << std::endl;
