@@ -37,10 +37,20 @@ namespace Kratos
         //CHECKLEO - temporary predefined actuation variables
         mACTUATION_ALPHA = 0.0; 
         mACTUATION_BETA = 0.0;
-        mACTUATION_GAMMA = 0.25;
+        mACTUATION_GAMMA = 0.0;
         mACTUATION_KAPPA_1 = 0.0;
         mACTUATION_KAPPA_2 = 0.0;
         mACTUATION_KAPPA_12 = 0.0;
+
+        // CHECKLEO Testausgabe der Variable
+        std::cout << "L~ CalculateConstitutiveVariables::" <<  std::endl;
+        std::cout << "mACTUATION_ALPHA    in CalculateConstitutiveVariables: " << mACTUATION_ALPHA << std::endl;
+        std::cout << "mACTUATION_BETA     in CalculateConstitutiveVariables: " << mACTUATION_BETA << std::endl;
+        std::cout << "mACTUATION_GAMMA    in CalculateConstitutiveVariables: " << mACTUATION_GAMMA << std::endl;
+        std::cout << "mACTUATION_KAPPA_1  in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_1 << std::endl;
+        std::cout << "mACTUATION_KAPPA_2  in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_2 << std::endl;
+        std::cout << "mACTUATION_KAPPA_12 in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_12 << std::endl;
+        //############
 
         // Prepare memory
         if (m_A_ab_covariant_vector.size() != r_number_of_integration_points)
@@ -701,13 +711,13 @@ namespace Kratos
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
         // CHECKLEO Testausgabe der Variable
-        std::cout << "L~ CalculateConstitutiveVariables::" <<  std::endl;
-        std::cout << "mACTUATION_ALPHA    in CalculateConstitutiveVariables: " << mACTUATION_ALPHA << std::endl;
-        std::cout << "mACTUATION_BETA     in CalculateConstitutiveVariables: " << mACTUATION_BETA << std::endl;
-        std::cout << "mACTUATION_GAMMA    in CalculateConstitutiveVariables: " << mACTUATION_GAMMA << std::endl;
-        std::cout << "mACTUATION_KAPPA_1  in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_1 << std::endl;
-        std::cout << "mACTUATION_KAPPA_2  in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_2 << std::endl;
-        std::cout << "mACTUATION_KAPPA_12 in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_12 << std::endl;
+        // std::cout << "L~ CalculateConstitutiveVariables::" <<  std::endl;
+        // std::cout << "mACTUATION_ALPHA    in CalculateConstitutiveVariables: " << mACTUATION_ALPHA << std::endl;
+        // std::cout << "mACTUATION_BETA     in CalculateConstitutiveVariables: " << mACTUATION_BETA << std::endl;
+        // std::cout << "mACTUATION_GAMMA    in CalculateConstitutiveVariables: " << mACTUATION_GAMMA << std::endl;
+        // std::cout << "mACTUATION_KAPPA_1  in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_1 << std::endl;
+        // std::cout << "mACTUATION_KAPPA_2  in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_2 << std::endl;
+        // std::cout << "mACTUATION_KAPPA_12 in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_12 << std::endl;
         //############
 
         //Strain - Membrane Part
