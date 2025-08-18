@@ -14,6 +14,9 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/variables.h"
+#include "includes/node.h"
+#include "geometries/geometry.h"
 
 #include <optional>
 #include <string>
@@ -27,5 +30,8 @@ public:
     static void CheckDomainSize(double                            DomainSize,
                                 std::size_t                       Id,
                                 const std::optional<std::string>& PrintName = std::nullopt);
+								
+	static void CheckNodalVariables(const Geometry<Node>&            rGeometry,
+                                    const std::vector<VariableData>& rVectorVariables);
 }; /* Class CheckUtilities*/
 } /* namespace Kratos.*/

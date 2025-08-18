@@ -13,6 +13,7 @@
 // Application includes
 #include "custom_elements/steady_state_Pw_interface_element.hpp"
 #include "includes/cfd_variables.h"
+#include "custom_utilities/check_utilities.h"
 
 namespace Kratos
 {
@@ -51,17 +52,10 @@ int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCu
     if (this->Id() < 1)
         KRATOS_ERROR << "Element found with Id 0 or negative, element: " << this->Id() << std::endl;
 
+        CheckUtilities::CheckNodalVariables(Geom, {WATER_PRESSURE, DT_WATER_PRESSURE, VOLUME_ACCELERATION});
+
     // Verify dof variables
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        if (Geom[i].SolutionStepsDataHas(WATER_PRESSURE) == false)
-            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
-
-        if (Geom[i].SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
-            KRATOS_ERROR << "missing variable DT_WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
-
-        if (Geom[i].SolutionStepsDataHas(VOLUME_ACCELERATION) == false)
-            KRATOS_ERROR << "missing variable VOLUME_ACCELERATION on node " << Geom[i].Id() << std::endl;
-
         if (Geom[i].HasDofFor(WATER_PRESSURE) == false)
             KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
     }

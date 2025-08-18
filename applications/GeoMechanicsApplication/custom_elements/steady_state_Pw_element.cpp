@@ -49,14 +49,9 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
 
     CheckUtilities::CheckDomainSize(Geom.DomainSize(), this->Id());
 
+    CheckUtilities::CheckNodalVariables(Geom, {WATER_PRESSURE, VOLUME_ACCELERATION});
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        if (Geom[i].SolutionStepsDataHas(WATER_PRESSURE) == false)
-            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
-
-        if (Geom[i].SolutionStepsDataHas(VOLUME_ACCELERATION) == false)
-            KRATOS_ERROR << "missing VOLUME_ACCELERATION variable on node " << Geom[i].Id() << std::endl;
-
-        if (Geom[i].HasDofFor(WATER_PRESSURE) == false)
+          if (Geom[i].HasDofFor(WATER_PRESSURE) == false)
             KRATOS_ERROR << "missing the dof for the variable WATER_PRESSURE "
                             "on node "
                          << Geom[i].Id() << std::endl;

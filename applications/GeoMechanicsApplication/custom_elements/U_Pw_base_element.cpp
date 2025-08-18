@@ -17,6 +17,7 @@
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
+#include "custom_utilities/check_utilities.h"
 
 namespace Kratos
 {
@@ -31,26 +32,11 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     const PropertiesType& rProp = this->GetProperties();
     const GeometryType&   rGeom = this->GetGeometry();
 
-    // verify nodal variables and dofs
+    CheckUtilities::CheckNodalVariables(rGeom, {DISPLACEMENT, VELOCITY, ACCELERATION, WATER_PRESSURE,
+                                                DT_WATER_PRESSURE, VOLUME_ACCELERATION});
+
+    // verify dofs
     for (unsigned int i = 0; i < this->GetGeometry().PointsNumber(); ++i) {
-        if (!rGeom[i].SolutionStepsDataHas(DISPLACEMENT))
-            KRATOS_ERROR << "missing variable DISPLACEMENT on node " << rGeom[i].Id() << std::endl;
-
-        if (!rGeom[i].SolutionStepsDataHas(VELOCITY))
-            KRATOS_ERROR << "missing variable VELOCITY on node " << rGeom[i].Id() << std::endl;
-
-        if (!rGeom[i].SolutionStepsDataHas(ACCELERATION))
-            KRATOS_ERROR << "missing variable ACCELERATION on node " << rGeom[i].Id() << std::endl;
-
-        if (!rGeom[i].SolutionStepsDataHas(WATER_PRESSURE))
-            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << rGeom[i].Id() << std::endl;
-
-        if (!rGeom[i].SolutionStepsDataHas(DT_WATER_PRESSURE))
-            KRATOS_ERROR << "missing variable DT_WATER_PRESSURE on node " << rGeom[i].Id() << std::endl;
-
-        if (!rGeom[i].SolutionStepsDataHas(VOLUME_ACCELERATION))
-            KRATOS_ERROR << "missing variable VOLUME_ACCELERATION on node " << rGeom[i].Id() << std::endl;
-
         if (!rGeom[i].HasDofFor(DISPLACEMENT_X) || !rGeom[i].HasDofFor(DISPLACEMENT_Y) ||
             (this->GetGeometry().WorkingSpaceDimension() > 2 && !rGeom[i].HasDofFor(DISPLACEMENT_Z)))
             KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node "

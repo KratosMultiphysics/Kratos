@@ -17,6 +17,7 @@
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
+#include "custom_utilities/check_utilities.h"
 
 namespace Kratos
 {
@@ -55,17 +56,10 @@ int TransientPwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurr
     KRATOS_ERROR_IF(this->Id() < 1)
         << "Element found with Id 0 or negative, element: " << this->Id() << std::endl;
 
-    // Verify dof variables
+    CheckUtilities::CheckNodalVariables(Geom, {WATER_PRESSURE, DT_WATER_PRESSURE, VOLUME_ACCELERATION});
+
+    // Verify dof
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        KRATOS_ERROR_IF_NOT(Geom[i].SolutionStepsDataHas(WATER_PRESSURE))
-            << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
-
-        KRATOS_ERROR_IF_NOT(Geom[i].SolutionStepsDataHas(DT_WATER_PRESSURE))
-            << "missing variable DT_WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
-
-        KRATOS_ERROR_IF_NOT(Geom[i].SolutionStepsDataHas(VOLUME_ACCELERATION))
-            << "missing variable VOLUME_ACCELERATION on node " << Geom[i].Id() << std::endl;
-
         KRATOS_ERROR_IF_NOT(Geom[i].HasDofFor(WATER_PRESSURE))
             << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
     }
