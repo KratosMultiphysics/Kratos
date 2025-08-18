@@ -34,10 +34,9 @@ template<class TContainerPointerType>
 FlagsTensorAdaptor::FlagsTensorAdaptor(
     TContainerPointerType pContainer,
     const Flags& rFlags)
-    : mFlags(rFlags)
+    : BaseType(pContainer,  Kratos::make_shared<Storage>(DenseVector<unsigned int>(1, pContainer->size()))),
+      mFlags(rFlags)
 {
-    this->mpStorage = Kratos::make_shared<Storage>(DenseVector<unsigned int>(1, pContainer->size()));
-    this->mpContainer = pContainer;
 }
 
 FlagsTensorAdaptor::FlagsTensorAdaptor(
