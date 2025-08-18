@@ -881,7 +881,7 @@ namespace Kratos {
         
         _mat_rod_var.clear();
 
-        size_t permutation[3][3][3];
+        int permutation[3][3][3];
         for (size_t i = 0; i < 3; i++)
         {
             for (size_t j = 0; j < 3; j++)
