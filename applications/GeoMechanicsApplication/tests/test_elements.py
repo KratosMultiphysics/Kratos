@@ -44,7 +44,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         bottom_node_ids = [5, 7, 9]
         self.assertVerticalStressAtBottomNodes(output_data, bottom_node_ids)
 
-        with open(os.path.join(file_path,"json_output.json")) as f:
+        with open(os.path.join(file_path,f"{test_name}_json_output.json")) as f:
             calculated_results = json.load(f)
 
         calculated_velocity_y = calculated_results["NODE_1"]["VELOCITY_Y"]

@@ -74,7 +74,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_triangle_3n",
+                "output_name": "test_triangle_3n_static",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -106,7 +106,7 @@
                 "process_name"                     : "JsonOutputProcess",
                 "Parameters": {
                     "model_part_name"              : "PorousDomain.json_output",
-                    "output_file_name"             : "json_output.json",
+                    "output_file_name"             : "test_triangle_3n_static_json_output.json",
                     "output_variables"             : ["VELOCITY_Y", "ACCELERATION_Y"],
                     "gauss_points_output_variables": [],
                     "time_frequency"               : 0.2499
