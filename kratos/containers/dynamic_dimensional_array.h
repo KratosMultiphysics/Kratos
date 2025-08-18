@@ -51,8 +51,8 @@ public:
      * @ingroup KratosCore
      * @author Suneth Warnakulasuriya
      * @brief A class wrapping a pointer to an array.
-     * @details This class wraps around a pointer to an array with an @ref intrusive_ptr.
-     *          It needs to be an @ref intrusive_ptr to enable sharing the internal data
+     * @details This class wraps around a pointer to an array with an @p intrusive_ptr.
+     *          It needs to be an @p intrusive_ptr to enable sharing the internal data
      *          represented by @p mpData with numpy, whilst having the possibility to extend
      *          the life time.
      */
@@ -72,7 +72,7 @@ public:
          * @brief Construct a new Pointer Wrapper for a given @p pData pointer.
          * @details This construct a PointerWrapper for the given @p pData pointer.
          *              - @p if IsManaged is true, then the data will be deallocated when the last instance of the
-         *                @ref intrusive_ptr is destroyed.
+         *                @p intrusive_ptr is destroyed.
          *              - @p if IsManaged is false, then the data will not be managed by this @ref PointerWrapper.
          *
          * @param pData         Pointer to the data
@@ -192,7 +192,6 @@ public:
 
     /**
      * @brief Return a view of the internal data structure.
-     * @throws std::runtime_error If the internal data was moved via @ref DynamicDimensionalArray::MoveData.
      */
     Kratos::span<const TDataType> ViewData() const;
 
