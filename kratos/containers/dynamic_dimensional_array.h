@@ -138,7 +138,7 @@ public:
     ///@{
 
     /**
-     * @brief Construct a new data DynamicDimensionalArray with a given a dynamic dimensional array @p rShape
+     * @brief Construct a new instance with a provided shape.
      * @details This constructor will only allocate memory for the given shape.
      * @warning The values will be uninitialized.
      *
