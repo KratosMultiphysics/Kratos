@@ -127,9 +127,9 @@ public:
 
         // Note that FindNeighbourElementsOfConditionsProcess and DeactivateConditionsOnInactiveElements are required to be performed before initializing the System and State
         // this means that these operations are done twice in the GeomechanicsSolver in python
-        FindNeighbourElementsOfConditionsProcess{ BaseType::GetModelPart() }.Execute();
+        FindNeighbourElementsOfConditionsProcess{BaseType::GetModelPart()}.Execute();
 
-        DeactivateConditionsOnInactiveElements{ BaseType::GetModelPart() }.Execute();
+        DeactivateConditionsOnInactiveElements{BaseType::GetModelPart()}.Execute();
 
         if (!BaseType::mStiffnessMatrixIsBuilt)
             // initialize the system matrices and the initial second derivative
@@ -187,13 +187,14 @@ public:
         TSystemVectorType& rb  = *BaseType::mpb;
 
         // initializing the parameters of the Newton-Raphson cycle
-        unsigned int iteration_number = 1;
+        unsigned int iteration_number                      = 1;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
-        bool is_converged = this->PerformIterationCycle(rA, rDx, rb, mDxTot, non_converged_solutions, iteration_number);
+        bool is_converged =
+            this->PerformIterationCycle(rA, rDx, rb, mDxTot, non_converged_solutions, iteration_number);
 
         if (is_converged) {
-			// here only the derivatives are updated in the scheme that is used, generally both derivatives and solution step are updated
+            // here only the derivatives are updated in the scheme that is used, generally both derivatives and solution step are updated
             p_scheme->Update(r_model_part, r_dof_set, rA, mDxTot, rb);
         }
 
@@ -314,8 +315,7 @@ private:
         ModelPart&                    r_model_part = BaseType::GetModelPart();
         typename TSchemeType::Pointer p_scheme     = BaseType::GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
-        auto&       r_dof_set              = p_builder_and_solver->GetDofSet();
-        const auto& r_current_process_info = r_model_part.GetProcessInfo();
+        auto& r_dof_set = p_builder_and_solver->GetDofSet();
 
         bool is_converged = false;
         for (; rIterationNumber <= BaseType::mMaxIterationNumber; rIterationNumber++) {
@@ -343,7 +343,7 @@ private:
             this->UpdateSolutionStepValue(rDx, rDxTot);
 
             // only finalize condition non linear iteration
-			p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
+            p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
 
             BaseType::mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
