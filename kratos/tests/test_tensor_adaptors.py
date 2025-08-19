@@ -4,7 +4,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-class TensorAdaptors(KratosUnittest.TestCase):
+class TestTensorAdaptors(KratosUnittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.model = Kratos.Model()
@@ -228,18 +228,6 @@ class TensorAdaptors(KratosUnittest.TestCase):
         for node in self.model_part.Nodes:
             self.assertEqual(node.GetValue(Kratos.PRESSURE), node.GetValue(Kratos.DENSITY))
 
-    def test_TensorAdaptorMoveData(self):
-        t_adaptor_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
-        t_adaptor_1.CollectData()
-
-        numpy_data = t_adaptor_1.MoveData()
-        for i, node in enumerate(self.model_part.Nodes):
-            self.assertEqual(numpy_data[i], node.GetValue(Kratos.PRESSURE))
-
-        # now the tensor adaptor should be unusable
-        with self.assertRaises(RuntimeError):
-            t_adaptor_1.data
-
     def test_NodeVariableTensorAdaptor(self):
         self.__TestVariableTensorAdaptor(self.model_part.Nodes)
 
@@ -358,40 +346,23 @@ class TensorAdaptors(KratosUnittest.TestCase):
         with self.assertRaises(RuntimeError):
             ta.data = fortran_numpy_data
 
-    def test_BaseTensorAdaptorShapeOnly(self):
-        ta = Kratos.TensorAdaptors.DoubleTensorAdaptor([2,3,4])
-        self.assertEqual(ta.data.shape, (2, 3,4))
+    def test_TensorAdaptorWithDynamicDimensionalArray(self):
+        np_array = numpy.ones((self.model_part.NumberOfNodes(), 3))
+        dd_array = Kratos.DoubleDynamicDimensionalArray(np_array, copy=False)
+        ta_no_copy = Kratos.TensorAdaptors.DoubleTensorAdaptor(self.model_part.Nodes, dd_array, copy = False)
+        ta_copy = Kratos.TensorAdaptors.DoubleTensorAdaptor(self.model_part.Nodes, dd_array)
 
-        with self.assertRaises(RuntimeError):
-            ta.GetContainer()
+        self.assertEqual(numpy.linalg.norm(ta_no_copy.data - np_array), 0.0)
+        self.assertEqual(numpy.linalg.norm(ta_copy.data - np_array), 0.0)
+        np_array[0, 0] = -500.0
+        self.assertEqual(numpy.linalg.norm(ta_no_copy.data - np_array), 0.0)
+        self.assertEqual(numpy.sum(ta_copy.data - np_array), 501)
 
-    def test_BaseTensorAdaptorChangeContainers(self):
-        ta = Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.model_part.Nodes, Kratos.Configuration.Initial)
-        ta.CollectData()
-
-        original_values = numpy.array(ta.data)
-
-        base_no_container_ta_copy = Kratos.TensorAdaptors.DoubleTensorAdaptor(ta, None)
-
-        self.assertEqual(numpy.linalg.norm(ta.data - base_no_container_ta_copy.data), 0.0)
-        ta.data *= 2.0
-        self.assertEqual(numpy.linalg.norm(ta.data - base_no_container_ta_copy.data * 2.0), 0.0)
-
-        base_no_container_ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(ta, None, copy=False)
-        self.assertEqual(numpy.linalg.norm(ta.data - base_no_container_ta.data), 0.0)
-        ta.data *= 2.0
-        self.assertEqual(numpy.linalg.norm(ta.data - base_no_container_ta.data), 0.0)
-
-        assigned_container = Kratos.TensorAdaptors.DoubleTensorAdaptor(base_no_container_ta, self.model_part.Nodes, copy=False)
-        Kratos.TensorAdaptors.NodePositionTensorAdaptor(assigned_container, Kratos.Configuration.Current, copy=False).StoreData()
-
-        for i, node in enumerate(self.model_part.Nodes):
-            self.assertEqual(node.X, original_values[i, 0] * 4.0)
-            self.assertEqual(node.Y, original_values[i, 1] * 4.0)
-            self.assertEqual(node.Z, original_values[i, 2] * 4.0)
-
-        with self.assertRaises(RuntimeError):
-            Kratos.TensorAdaptors.NodePositionTensorAdaptor(base_no_container_ta, Kratos.Configuration.Current, copy=False)
+        Kratos.TensorAdaptors.NodePositionTensorAdaptor(ta_copy, Kratos.Configuration.Initial, copy=False).StoreData()
+        for node in self.model_part.Nodes:
+            self.assertEqual(node.X0, 1.0)
+            self.assertEqual(node.Y0, 1.0)
+            self.assertEqual(node.Z0, 1.0)
 
     def __TestCopyTensorAdaptor(self, tensor_adaptor_type, value_getter):
         var_ta_orig = tensor_adaptor_type(self.model_part.Nodes, Kratos.VELOCITY, data_shape=[2])

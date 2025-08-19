@@ -42,7 +42,7 @@ GaussPointVariableTensorAdaptor::GaussPointVariableTensorAdaptor(
         using variable_type = BareType<decltype(*pVariable)>;
         using data_type = typename variable_type::Type;
 
-        this->mpStorage = Kratos::make_intrusive<Storage>(
+        this->mpStorage = Kratos::make_shared<Storage>(
             TensorAdaptorUtils::GetTensorShape<std::vector<data_type>>(
                 *pContainer, [pVariable, this](auto& rValues, const auto& rEntity) {
                     const_cast<entity_type&>(rEntity).CalculateOnIntegrationPoints(*pVariable, rValues, *(this->mpProcessInfo));
@@ -70,7 +70,7 @@ GaussPointVariableTensorAdaptor::GaussPointVariableTensorAdaptor(
     // now check whether the given storage is compatible with the variable.
     std::visit([this, &rOther](auto pVariable) {
         using data_type = typename BareType<decltype(*pVariable)>::Type;
-        const auto& r_data_shape = this->mpStorage->DataShape();
+        const auto& r_data_shape = this->DataShape();
         KRATOS_ERROR_IF_NOT(DataTypeTraits<std::vector<data_type>>::IsValidShape(r_data_shape.data().begin(), r_data_shape.data().begin() + r_data_shape.size()))
             << "The data storage within the tensor data is not compatible with " << pVariable->Name()
             << " [ origin data shape = " << rOther.DataShape() << ", tensor adaptor = " << *this << " ].\n";
