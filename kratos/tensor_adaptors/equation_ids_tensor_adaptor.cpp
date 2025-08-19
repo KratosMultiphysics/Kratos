@@ -77,7 +77,7 @@ EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(
         rEntity.EquationIdVector(rEquationIde, *pProcessInfo);
     };
 
-    this->mpStorage = Kratos::make_intrusive<Storage>(
+    this->mpStorage = Kratos::make_shared<Storage>(
         TensorAdaptorUtils::GetTensorShape<std::vector<IndexType>>(*pContainer, r_getter));
 }
 
