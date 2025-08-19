@@ -263,8 +263,6 @@ protected:
 
 private:
     GeometryType::Pointer mpPressureGeometry;
-    Vector                mInternalForcesAtStart;
-    Vector                mExternalForcesAtStart;
 
     [[nodiscard]] DofsVectorType GetDofs() const override;
 
