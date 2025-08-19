@@ -30,31 +30,41 @@ void SparseSystemUtilities::GetTotalSolutionStepValueVector(SystemVectorType& rT
         rTotalSolutionStepValues[r_dof.EquationId()] = r_dof.GetSolutionStepValue(0);
     });
 
+    // Mandatory variables (always present)
+    const std::vector<std::pair<const Variable<double>*, const Variable<double>*>> mandatory_variables = {
+        {&DISPLACEMENT_X, &TOTAL_DISPLACEMENT_X}, {&DISPLACEMENT_Y, &TOTAL_DISPLACEMENT_Y}};
+
+    // Optional variables (only if DOF exists)
+    const std::vector<std::pair<const Variable<double>*, const Variable<double>*>> optional_variables = {
+        {&DISPLACEMENT_Z, &TOTAL_DISPLACEMENT_Z},
+        {&ROTATION_X, &TOTAL_ROTATION_X},
+        {&ROTATION_Y, &TOTAL_ROTATION_Y},
+        {&ROTATION_Z, &TOTAL_ROTATION_Z}};
+
     // Overwrite the values in rTotalSolutionStepValues with the TOTAL values from the nodes
-    block_for_each(rModelPart.Nodes(), [&rTotalSolutionStepValues, BufferIndex](Node& rNode) {
+    block_for_each(rModelPart.Nodes(), [&rTotalSolutionStepValues, BufferIndex,
+                                        &mandatory_variables, &optional_variables](Node& rNode) {
         if (rNode.IsActive()) {
-            // Mandatory variables (always present)
-            const std::vector<std::pair<const Variable<double>*, const Variable<double>*>> mandatory_variables = {
-                {&DISPLACEMENT_X, &TOTAL_DISPLACEMENT_X}, {&DISPLACEMENT_Y, &TOTAL_DISPLACEMENT_Y}};
-
             for (const auto& var_pair : mandatory_variables) {
-                const auto equation_id = rNode.GetDof(*var_pair.first).EquationId();
-                rTotalSolutionStepValues[equation_id] =
-                    rNode.FastGetSolutionStepValue(*var_pair.second, BufferIndex);
-            }
-
-            // Optional variables (only if DOF exists)
-            const std::vector<std::pair<const Variable<double>*, const Variable<double>*>> optional_variables = {
-                {&DISPLACEMENT_Z, &TOTAL_DISPLACEMENT_Z},
-                {&ROTATION_X, &TOTAL_ROTATION_X},
-                {&ROTATION_Y, &TOTAL_ROTATION_Y},
-                {&ROTATION_Z, &TOTAL_ROTATION_Z}};
-
-            for (const auto& var_pair : optional_variables) {
-                if (rNode.HasDofFor(*var_pair.first)) {
+                if (rNode.SolutionStepsDataHas(*var_pair.second)) {
                     const auto equation_id = rNode.GetDof(*var_pair.first).EquationId();
                     rTotalSolutionStepValues[equation_id] =
                         rNode.FastGetSolutionStepValue(*var_pair.second, BufferIndex);
+                } else {
+                    KRATOS_ERROR << "Missing TOTAL variable " << var_pair.second->Name()
+                                 << " on node " << rNode.Id() << std::endl;
+                }
+            }
+
+            for (const auto& var_pair : optional_variables) {
+                if (rNode.HasDofFor(*var_pair.first)) {
+                    if (rNode.SolutionStepsDataHas(*var_pair.second)) {
+                        const auto equation_id = rNode.GetDof(*var_pair.first).EquationId();
+                        rTotalSolutionStepValues[equation_id] =
+                            rNode.FastGetSolutionStepValue(*var_pair.second, BufferIndex);
+                    } else
+                        KRATOS_ERROR << "Missing TOTAL variable " << var_pair.second->Name()
+                                     << " on node " << rNode.Id() << std::endl;
                 }
             }
         }
@@ -71,10 +81,13 @@ void SparseSystemUtilities::GetUFirstAndSecondDerivativeVector(SystemVectorType&
     rFirstDerivativeVector  = SystemVectorType(rDofSet.size(), 0.0);
     rSecondDerivativeVector = SystemVectorType(rDofSet.size(), 0.0);
 
-    block_for_each(rModelPart.Nodes(), [&rFirstDerivativeVector, &rSecondDerivativeVector, BufferIndex](const Node& rNode) {
+    block_for_each(rModelPart.Nodes(),
+                   [&rFirstDerivativeVector, &rSecondDerivativeVector, BufferIndex](const Node& rNode) {
         if (rNode.IsActive()) {
-            GetDerivativesForVariable(DISPLACEMENT_X, rNode, rFirstDerivativeVector, rSecondDerivativeVector, BufferIndex);
-            GetDerivativesForVariable(DISPLACEMENT_Y, rNode, rFirstDerivativeVector, rSecondDerivativeVector, BufferIndex);
+            GetDerivativesForVariable(DISPLACEMENT_X, rNode, rFirstDerivativeVector,
+                                      rSecondDerivativeVector, BufferIndex);
+            GetDerivativesForVariable(DISPLACEMENT_Y, rNode, rFirstDerivativeVector,
+                                      rSecondDerivativeVector, BufferIndex);
 
             const std::vector<const Variable<double>*> optional_variables = {
                 &ROTATION_X, &ROTATION_Y, &ROTATION_Z, &DISPLACEMENT_Z};
@@ -144,8 +157,8 @@ void SparseSystemUtilities::GetDerivativesForVariable(const Variable<double>& rV
     const auto& r_first_derivative  = rVariable.GetTimeDerivative();
     const auto& r_second_derivative = r_first_derivative.GetTimeDerivative();
 
-    const auto equation_id               = rNode.GetDof(rVariable).EquationId();
-    rFirstDerivativeVector[equation_id]  = rNode.FastGetSolutionStepValue(r_first_derivative, BufferIndex);
+    const auto equation_id = rNode.GetDof(rVariable).EquationId();
+    rFirstDerivativeVector[equation_id] = rNode.FastGetSolutionStepValue(r_first_derivative, BufferIndex);
     rSecondDerivativeVector[equation_id] = rNode.FastGetSolutionStepValue(r_second_derivative, BufferIndex);
 
     KRATOS_CATCH("")
