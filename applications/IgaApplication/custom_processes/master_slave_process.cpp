@@ -35,70 +35,186 @@ MasterSlaveProcess::MasterSlaveProcess(
 
 void MasterSlaveProcess::ExecuteBeforeSolutionLoop()
 {
-    // Input (hard-code)
+    // // Input (hard-code) for KL
+    // std::vector<Dof<double>*> dofs_master;
+    // dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(DISPLACEMENT_X));
+    // dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(DISPLACEMENT_Y));
+    // dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(DISPLACEMENT_Z));
+
+    // dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(DISPLACEMENT_X));
+    // dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(DISPLACEMENT_Y));
+    // dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(DISPLACEMENT_Z));
+
+    // dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(DISPLACEMENT_X));
+    // dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(DISPLACEMENT_Y));
+    // dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(DISPLACEMENT_Z));
+
+    // dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(DISPLACEMENT_X));
+    // dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(DISPLACEMENT_Y));
+    // dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(DISPLACEMENT_Z));
+
+    // dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(DISPLACEMENT_X));
+    // dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(DISPLACEMENT_Y));
+    // dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(DISPLACEMENT_Z));
+
+    // dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(DISPLACEMENT_X));
+    // dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(DISPLACEMENT_Y));
+    // dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(DISPLACEMENT_Z));
+
+    // dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(DISPLACEMENT_X));
+    // dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(DISPLACEMENT_Y));
+    // dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(DISPLACEMENT_Z));
+
+    // dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(DISPLACEMENT_X));
+    // dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(DISPLACEMENT_Y));
+    // dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(DISPLACEMENT_Z));
+
+    // std::vector<Dof<double>*> dofs_slave;
+    // dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(DISPLACEMENT_X));
+    // dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(DISPLACEMENT_Y));
+    // dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(DISPLACEMENT_Z));
+
+    // dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(DISPLACEMENT_X));
+    // dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(DISPLACEMENT_Y));
+    // dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(DISPLACEMENT_Z));
+
+    // dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(DISPLACEMENT_X));
+    // dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(DISPLACEMENT_Y));
+    // dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(DISPLACEMENT_Z));
+
+    // Matrix relation_matrix = ZeroMatrix(9, 24);
+    // for (IndexType i = 0; i < 3; i++)
+    // {
+    //     for (IndexType j = 0; j < 2; j++)
+    //     {
+    //         relation_matrix(i,j*3+i) = 0.5;
+    //     }
+    // }
+
+    // for (IndexType ii = 3; ii < 6; ii++)
+    // {
+    //     for (IndexType jj = 2; jj < 6; jj++)
+    //     {
+    //         relation_matrix(ii,jj*3+(ii-3)) = 0.25;
+    //     }
+    // }
+
+    // for (IndexType iii = 6; iii < 9; iii++)
+    // {
+    //     for (IndexType jjj = 6; jjj < 8; jjj++)
+    //     {
+    //         relation_matrix(iii,jjj*3+(iii-6)) = 0.5;
+    //     }
+    // }
+
+    // Vector constraint_vector = ZeroVector(24);
+
+    // Input (hard-code) for RM
     std::vector<Dof<double>*> dofs_master;
     dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(DISPLACEMENT_X));
     dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(DISPLACEMENT_Y));
     dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(DISPLACEMENT_Z));
+    dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(ROTATION_X));
+    dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(ROTATION_Y));
+    dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(ROTATION_Z));
+
     dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(DISPLACEMENT_X));
     dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(DISPLACEMENT_Y));
     dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(DISPLACEMENT_Z));
+    dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(ROTATION_X));
+    dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(ROTATION_Y));
+    dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(ROTATION_Z));
+
     dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(DISPLACEMENT_X));
     dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(DISPLACEMENT_Y));
     dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(DISPLACEMENT_Z));
+    dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(ROTATION_X));
+    dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(ROTATION_Y));
+    dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(ROTATION_Z));
+
     dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(DISPLACEMENT_X));
     dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(DISPLACEMENT_Y));
     dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(DISPLACEMENT_Z));
+    dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(ROTATION_X));
+    dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(ROTATION_Y));
+    dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(ROTATION_Z));
+
     dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(DISPLACEMENT_X));
     dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(DISPLACEMENT_Y));
     dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(DISPLACEMENT_Z));
+    dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(ROTATION_X));
+    dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(ROTATION_Y));
+    dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(ROTATION_Z));
+
     dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(DISPLACEMENT_X));
     dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(DISPLACEMENT_Y));
     dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(DISPLACEMENT_Z));
+    dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(ROTATION_X));
+    dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(ROTATION_Y));
+    dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(ROTATION_Z));
+
     dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(DISPLACEMENT_X));
     dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(DISPLACEMENT_Y));
     dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(DISPLACEMENT_Z));
+    dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(ROTATION_X));
+    dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(ROTATION_Y));
+    dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(ROTATION_Z));
+
     dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(DISPLACEMENT_X));
     dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(DISPLACEMENT_Y));
     dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(DISPLACEMENT_Z));
+    dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(ROTATION_X));
+    dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(ROTATION_Y));
+    dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(ROTATION_Z));
 
     std::vector<Dof<double>*> dofs_slave;
     dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(DISPLACEMENT_X));
     dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(DISPLACEMENT_Y));
     dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(DISPLACEMENT_Z));
+    dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(ROTATION_X));
+    dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(ROTATION_Y));
+    dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(ROTATION_Z));
+
     dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(DISPLACEMENT_X));
     dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(DISPLACEMENT_Y));
     dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(DISPLACEMENT_Z));
+    dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(ROTATION_X));
+    dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(ROTATION_Y));
+    dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(ROTATION_Z));
+
     dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(DISPLACEMENT_X));
     dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(DISPLACEMENT_Y));
     dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(DISPLACEMENT_Z));
+    dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(ROTATION_X));
+    dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(ROTATION_Y));
+    dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(ROTATION_Z));
 
-    Matrix relation_matrix = ZeroMatrix(9, 24);
-    for (IndexType i = 0; i < 3; i++)
+    Matrix relation_matrix = ZeroMatrix(18, 48);
+    for (IndexType i = 0; i < 6; i++)
     {
         for (IndexType j = 0; j < 2; j++)
         {
-            relation_matrix(i,j*3+i) = 0.5;
+            relation_matrix(i,j*6+i) = 0.5;
         }
     }
 
-    for (IndexType ii = 3; ii < 6; ii++)
+    for (IndexType ii = 6; ii < 12; ii++)
     {
         for (IndexType jj = 2; jj < 6; jj++)
         {
-            relation_matrix(ii,jj*3+(ii-3)) = 0.25;
+            relation_matrix(ii,jj*6+(ii-6)) = 0.25;
         }
     }
 
-    for (IndexType iii = 6; iii < 9; iii++)
+    for (IndexType iii = 12; iii < 18; iii++)
     {
         for (IndexType jjj = 6; jjj < 8; jjj++)
         {
-            relation_matrix(iii,jjj*3+(iii-6)) = 0.5;
+            relation_matrix(iii,jjj*6+(iii-12)) = 0.5;
         }
     }
 
-    Vector constraint_vector = ZeroVector(24);
+    Vector constraint_vector = ZeroVector(48);
 
     // Get random constraint_id
     const std::size_t constraint_id = 55;
