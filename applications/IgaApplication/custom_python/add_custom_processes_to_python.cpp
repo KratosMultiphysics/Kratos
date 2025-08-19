@@ -15,6 +15,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 
 #include "custom_processes/output_quadrature_domain_process.h"
+#include "custom_processes/master_slave_process.h"
 #include "custom_processes/output_eigen_values_process.h"
 #include "custom_processes/nitsche_stabilization_model_part_process.h"
 #include "custom_processes/map_nurbs_volume_results_to_embedded_geometry_process.h"
@@ -30,6 +31,10 @@ void AddCustomProcessesToPython(
     pybind11::module& m)
 {
     namespace py = pybind11;
+
+    py::class_<MasterSlaveProcess, MasterSlaveProcess::Pointer, Process>(m, "MasterSlaveProcess")
+        .def(py::init<Model&, Parameters >())
+        ;
 
     py::class_<OutputQuadratureDomainProcess, OutputQuadratureDomainProcess::Pointer, Process>(m, "OutputQuadratureDomainProcess")
         .def(py::init<Model&, Parameters >())

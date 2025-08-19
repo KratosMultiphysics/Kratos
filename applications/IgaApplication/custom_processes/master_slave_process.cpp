@@ -35,14 +35,73 @@ MasterSlaveProcess::MasterSlaveProcess(
 
 void MasterSlaveProcess::ExecuteBeforeSolutionLoop()
 {
-    // Input (TO DO)
+    // Input (hard-code)
     std::vector<Dof<double>*> dofs_master;
-    std::vector<Dof<double>*> dofs_slave;
-    Matrix relation_matrix(1, 1);
-    Vector constraint_vector(1, 0.0);
+    dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(DISPLACEMENT_X));
+    dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(DISPLACEMENT_Y));
+    dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(DISPLACEMENT_Z));
+    dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(DISPLACEMENT_X));
+    dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(DISPLACEMENT_Y));
+    dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(DISPLACEMENT_Z));
+    dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(DISPLACEMENT_X));
+    dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(DISPLACEMENT_Y));
+    dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(DISPLACEMENT_Z));
+    dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(DISPLACEMENT_X));
+    dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(DISPLACEMENT_Y));
+    dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(DISPLACEMENT_Z));
+    dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(DISPLACEMENT_X));
+    dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(DISPLACEMENT_Y));
+    dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(DISPLACEMENT_Z));
+    dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(DISPLACEMENT_X));
+    dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(DISPLACEMENT_Y));
+    dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(DISPLACEMENT_Z));
+    dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(DISPLACEMENT_X));
+    dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(DISPLACEMENT_Y));
+    dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(DISPLACEMENT_Z));
+    dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(DISPLACEMENT_X));
+    dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(DISPLACEMENT_Y));
+    dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(DISPLACEMENT_Z));
 
-    // Get constraint_id
-    const std::size_t constraint_id = mpModelPart->GetRootModelPart().MasterSlaveConstraints().back().Id() + 1;
+    std::vector<Dof<double>*> dofs_slave;
+    dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(DISPLACEMENT_X));
+    dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(DISPLACEMENT_Y));
+    dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(DISPLACEMENT_Z));
+    dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(DISPLACEMENT_X));
+    dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(DISPLACEMENT_Y));
+    dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(DISPLACEMENT_Z));
+    dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(DISPLACEMENT_X));
+    dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(DISPLACEMENT_Y));
+    dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(DISPLACEMENT_Z));
+
+    Matrix relation_matrix = ZeroMatrix(9, 24);
+    for (IndexType i = 0; i < 3; i++)
+    {
+        for (IndexType j = 0; j < 2; j++)
+        {
+            relation_matrix(i,j*3+i) = 0.5;
+        }
+    }
+
+    for (IndexType ii = 3; ii < 6; ii++)
+    {
+        for (IndexType jj = 2; jj < 6; jj++)
+        {
+            relation_matrix(ii,jj*3+(ii-3)) = 0.25;
+        }
+    }
+
+    for (IndexType iii = 6; iii < 9; iii++)
+    {
+        for (IndexType jjj = 6; jjj < 8; jjj++)
+        {
+            relation_matrix(iii,jjj*3+(iii-6)) = 0.5;
+        }
+    }
+
+    Vector constraint_vector = ZeroVector(24);
+
+    // Get random constraint_id
+    const std::size_t constraint_id = 55;
 
     mpModelPart->AddMasterSlaveConstraint(LinearMasterSlaveConstraint::Pointer(
         new LinearMasterSlaveConstraint(
