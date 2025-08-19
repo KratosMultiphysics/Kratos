@@ -24,6 +24,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mShell3pElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mShellRMElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mShell5pHierarchicElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mShell5pElement(0, Element::GeometryType::Pointer(
@@ -41,6 +43,8 @@ KratosIgaApplication::KratosIgaApplication()
     , mLoadMomentDirector5pCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mCouplingPenaltyCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mCouplingPenaltyRMCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mCouplingLagrangeCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
@@ -86,6 +90,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("TrussEmbeddedEdgeElement", mTrussEmbeddedEdgeElement)
     KRATOS_REGISTER_ELEMENT("IgaMembraneElement", mIgaMembraneElement)
     KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
+    KRATOS_REGISTER_ELEMENT("ShellRMElement", mShellRMElement)
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
     KRATOS_REGISTER_ELEMENT("LaplacianIGAElement", mLaplacianIGAElement)
@@ -97,6 +102,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("LoadCondition", mLoadCondition)
     KRATOS_REGISTER_CONDITION("LoadMomentDirector5pCondition", mLoadMomentDirector5pCondition)
     KRATOS_REGISTER_CONDITION("CouplingPenaltyCondition", mCouplingPenaltyCondition)
+    KRATOS_REGISTER_CONDITION("CouplingPenaltyRMCondition", mCouplingPenaltyRMCondition)
     KRATOS_REGISTER_CONDITION("CouplingLagrangeCondition", mCouplingLagrangeCondition)
     KRATOS_REGISTER_CONDITION("CouplingNitscheCondition", mCouplingNitscheCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyCondition", mSupportPenaltyCondition)

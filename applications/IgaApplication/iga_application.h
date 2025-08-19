@@ -21,6 +21,7 @@
 #include "custom_elements/truss_embedded_edge_element.h"
 #include "custom_elements/iga_membrane_element.h"
 #include "custom_elements/shell_3p_element.h"
+#include "custom_elements/shell_RM_element.h"
 #include "custom_elements/shell_5p_hierarchic_element.h"
 #include "custom_elements/shell_5p_element.h"
 #include "custom_elements/laplacian_IGA_element.h"
@@ -32,6 +33,7 @@
 #include "custom_conditions/load_condition.h"
 #include "custom_conditions/load_moment_director_5p_condition.h"
 #include "custom_conditions/coupling_penalty_condition.h"
+#include "custom_conditions/coupling_penalty_RM_condition.h"
 #include "custom_conditions/coupling_lagrange_condition.h"
 #include "custom_conditions/coupling_nitsche_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
@@ -133,6 +135,7 @@ private:
     const TrussEmbeddedEdgeElement mTrussEmbeddedEdgeElement;
     const IgaMembraneElement mIgaMembraneElement;
     const Shell3pElement mShell3pElement;
+    const ShellRMElement mShellRMElement;
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
     const LaplacianIGAElement mLaplacianIGAElement;
@@ -144,6 +147,7 @@ private:
     const LoadCondition mLoadCondition;
     const LoadMomentDirector5pCondition mLoadMomentDirector5pCondition;
     const CouplingPenaltyCondition mCouplingPenaltyCondition;
+    const CouplingPenaltyRMCondition mCouplingPenaltyRMCondition;
     const CouplingLagrangeCondition mCouplingLagrangeCondition;
     const CouplingNitscheCondition mCouplingNitscheCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
