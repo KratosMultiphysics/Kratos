@@ -57,7 +57,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalVariables, KratosGeoMechanics
     // Act and Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         CheckUtilities::CheckNodalVariables(line_geometry, {WATER_PRESSURE, VOLUME_ACCELERATION}),
-        "missing variable WATER_PRESSURE on node 0")
+        "Missing variable WATER_PRESSURE on node 0")
 
     // Arrange 2
     Model model;
@@ -71,7 +71,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalVariables, KratosGeoMechanics
     // Act and Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         CheckUtilities::CheckNodalVariables(line_geometry, {WATER_PRESSURE, VOLUME_ACCELERATION}),
-        "missing variable VOLUME_ACCELERATION on node 0")
+        "Missing variable VOLUME_ACCELERATION on node 0")
 }
 
 } // namespace Kratos::Testing

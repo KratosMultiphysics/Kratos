@@ -50,14 +50,7 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
     CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), this->Id());
 
     CheckUtilities::CheckNodalVariables(r_geometry, {WATER_PRESSURE, VOLUME_ACCELERATION});
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-          if (r_geometry[i].HasDofFor(WATER_PRESSURE) == false)
-            KRATOS_ERROR << "missing the dof for the variable WATER_PRESSURE "
-                            "on node "
-                         << r_geometry[i].Id() << std::endl;
-    }
-
-    // Verify ProcessInfo variables
+    CheckUtilities::CheckNodalDof(r_geometry, {WATER_PRESSURE});
 
     // Verify properties
     if (r_properties.Has(DENSITY_WATER) == false || r_properties[DENSITY_WATER] < 0.0)

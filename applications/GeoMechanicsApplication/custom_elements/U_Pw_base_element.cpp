@@ -34,18 +34,7 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 
     CheckUtilities::CheckNodalVariables(r_geometry, {DISPLACEMENT, VELOCITY, ACCELERATION, WATER_PRESSURE,
                                                 DT_WATER_PRESSURE, VOLUME_ACCELERATION});
-
-    // verify dofs
-    for (unsigned int i = 0; i < this->GetGeometry().PointsNumber(); ++i) {
-        if (!r_geometry[i].HasDofFor(DISPLACEMENT_X) || !r_geometry[i].HasDofFor(DISPLACEMENT_Y) ||
-            (this->GetGeometry().WorkingSpaceDimension() > 2 && !r_geometry[i].HasDofFor(DISPLACEMENT_Z)))
-            KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node "
-                         << r_geometry[i].Id() << std::endl;
-
-        if (!r_geometry[i].HasDofFor(WATER_PRESSURE))
-            KRATOS_ERROR << "missing the dof for the variable WATER_PRESSURE on node "
-                         << r_geometry[i].Id() << std::endl;
-    }
+    CheckUtilities::CheckNodalDof(r_geometry, {DISPLACEMENT_X, DISPLACEMENT_Y, WATER_PRESSURE});
 
     // Verify properties
     if (!r_properties.Has(DENSITY_SOLID) || r_properties[DENSITY_SOLID] < 0.0)

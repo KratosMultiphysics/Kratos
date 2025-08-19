@@ -155,22 +155,8 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
     const GeometryType&   r_geom       = this->GetGeometry();
 
     CheckUtilities::CheckDomainSize(r_geom.DomainSize(), this->Id());
-
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        if (r_geom[i].SolutionStepsDataHas(WATER_PRESSURE) == false)
-            KRATOS_ERROR << "Missing variable WATER_PRESSURE on node " << r_geom[i].Id() << std::endl;
-
-        if (r_geom[i].SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
-            KRATOS_ERROR << "Missing variable DT_WATER_PRESSURE on node " << r_geom[i].Id() << std::endl;
-
-        if (r_geom[i].SolutionStepsDataHas(VOLUME_ACCELERATION) == false)
-            KRATOS_ERROR << "Missing variable VOLUME_ACCELERATION on node " << r_geom[i].Id() << std::endl;
-
-        if (r_geom[i].HasDofFor(WATER_PRESSURE) == false)
-            KRATOS_ERROR << "Missing variable WATER_PRESSURE on node " << r_geom[i].Id() << std::endl;
-    }
-
-    // Verify ProcessInfo variables
+    CheckUtilities::CheckNodalVariables(r_geom, {WATER_PRESSURE, DT_WATER_PRESSURE, VOLUME_ACCELERATION});
+    CheckUtilities::CheckNodalDof(r_geom, {WATER_PRESSURE});
 
     // Verify properties
     if (r_properties.Has(DENSITY_WATER) == false || r_properties[DENSITY_WATER] < 0.0)

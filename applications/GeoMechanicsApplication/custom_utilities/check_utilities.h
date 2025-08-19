@@ -32,6 +32,8 @@ public:
                                 const std::optional<std::string>& PrintName = std::nullopt);
 								
 	static void CheckNodalVariables(const Geometry<Node>&            rGeometry,
-                                    const std::vector<VariableData>& rVectorVariables);
+                                    const std::vector<VariableData>& rVariables);
+    static void CheckNodalDof(const Geometry<Node>&            rGeometry,
+                              const std::vector<VariableData>& rVariables);
 }; /* Class CheckUtilities*/
 } /* namespace Kratos.*/

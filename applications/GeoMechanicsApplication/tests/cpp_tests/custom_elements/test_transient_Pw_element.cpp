@@ -241,20 +241,20 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     // Act and Assert
     const auto dummy_process_info = ProcessInfo{};
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element_with_coincident_nodes.Check(dummy_process_info),
-                                      "Error: DomainSize (0) is smaller than 1e-15 for element 1")
+                                      "DomainSize (0) is smaller than 1e-15 for element 1")
 
     const TransientPwElement<2, 3> element_with_correct_domain_size(
         1, std::make_shared<Triangle2D3<Node>>(CreateThreeNodes()), p_properties,
         std::make_unique<PlaneStrainStressState>(), nullptr);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element_with_correct_domain_size.Check(dummy_process_info),
-                                      "Error: Missing variable WATER_PRESSURE on node 1")
+                                      "Missing variable WATER_PRESSURE on node 1")
 
     Model model;
     auto& model_part = model.CreateModelPart("Main");
     model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
     auto p_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Error: Missing variable DT_WATER_PRESSURE on node 1")
+                                      "Missing variable DT_WATER_PRESSURE on node 1")
 
     RemoveThreeNodes(model_part);
     model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
@@ -266,7 +266,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
     p_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Missing variable WATER_PRESSURE on node 1")
+                                      "Missing the DoF for the variable WATER_PRESSURE on node 1")
 
     RemoveThreeNodes(model_part);
     p_element = CreateTransientPwElementWithPWDofs<2, 3>(model_part, p_properties);
