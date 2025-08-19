@@ -1,6 +1,7 @@
 #include "ondem_drum_utilities.h"
 
-#define FREQUENCY_TIME 0.10
+#define FREQUENCY_TIME_1 0.10
+#define FREQUENCY_TIME_2 0.25
 #define FREQUENCY_TOL 1e-9
 #define DOMAIN_MIN_X -0.10
 #define DOMAIN_MIN_Y -0.10
@@ -8,7 +9,8 @@
 #define DOMAIN_MAX_X 0.10
 #define DOMAIN_MAX_Y 0.10
 #define DOMAIN_MAX_Z 0.03
-#define CELL_SIZE 0.010
+#define CELL_SIZE_0100 0.0100
+#define CELL_SIZE_0125 0.0125
 #define CELL_MIN_PARTICLES_SMALL 30
 
 namespace Kratos {
@@ -50,11 +52,14 @@ namespace Kratos {
     }
 
     // Initialize maps
-    mCellsX = static_cast<int>((DOMAIN_MAX_X - DOMAIN_MIN_X) / CELL_SIZE);
-    mCellsY = static_cast<int>((DOMAIN_MAX_Y - DOMAIN_MIN_Y) / CELL_SIZE);
-    mCellsZ = static_cast<int>((DOMAIN_MAX_Z - DOMAIN_MIN_Z) / CELL_SIZE);
-    InitializeCellsMap(mCountParticlesLarge);
-    InitializeCellsMap(mCountParticlesSmall);
+    mCellsX_0100 = static_cast<int>(std::ceil((DOMAIN_MAX_X - DOMAIN_MIN_X) / CELL_SIZE_0100));
+    mCellsY_0100 = static_cast<int>(std::ceil((DOMAIN_MAX_Y - DOMAIN_MIN_Y) / CELL_SIZE_0100));
+    mCellsZ_0100 = static_cast<int>(std::ceil((DOMAIN_MAX_Z - DOMAIN_MIN_Z) / CELL_SIZE_0100));
+    mCellsX_0125 = static_cast<int>(std::ceil((DOMAIN_MAX_X - DOMAIN_MIN_X) / CELL_SIZE_0125));
+    mCellsY_0125 = static_cast<int>(std::ceil((DOMAIN_MAX_Y - DOMAIN_MIN_Y) / CELL_SIZE_0125));
+    mCellsZ_0125 = static_cast<int>(std::ceil((DOMAIN_MAX_Z - DOMAIN_MIN_Z) / CELL_SIZE_0125));
+    InitializeCellsMaps_0100();
+    InitializeCellsMaps_0125();
   }
 
   //------------------------------------------------------------------------------------------------------------
@@ -62,8 +67,11 @@ namespace Kratos {
     // Check if it is time to execute
     const ProcessInfo& r_process_info = particlesMP.GetProcessInfo();
     const double time = r_process_info[TIME];
-    double resid = std::fmod(time, FREQUENCY_TIME);
-    if (resid > FREQUENCY_TOL && std::fabs(resid - FREQUENCY_TIME) > FREQUENCY_TOL) return;
+    double resid_1 = std::fmod(time, FREQUENCY_TIME_1);
+    double resid_2 = std::fmod(time, FREQUENCY_TIME_2);
+    bool execute_1 = !((resid_1 > FREQUENCY_TOL && std::fabs(resid_1 - FREQUENCY_TIME_1) > FREQUENCY_TOL));
+    bool execute_2 = !((resid_2 > FREQUENCY_TOL && std::fabs(resid_2 - FREQUENCY_TIME_2) > FREQUENCY_TOL));
+    if (!execute_1 && !execute_2) return;
 
     // Initialize variables
     int num_contacts_all   = 0;
@@ -91,46 +99,50 @@ namespace Kratos {
     double dissip_fric     = 0.0;
     double dissip_damp     = 0.0;
     double dissip          = 0.0;
-    ResetCellsMap(mCountParticlesLarge);
-    ResetCellsMap(mCountParticlesSmall);
 
+    ResetCellsMap(mCountParticlesLarge_0100);
+    ResetCellsMap(mCountParticlesSmall_0100);
+    ResetCellsMap(mCountParticlesLarge_0125);
+    ResetCellsMap(mCountParticlesSmall_0125);
+    
     // Open temporary files
-    std::ostringstream walls_filename;
-    walls_filename << "data_walls_" << std::fixed << std::setprecision(6) << time << ".txt";
-    std::ofstream file_walls_info(walls_filename.str());
-    file_walls_info << "ID X1 Y1 Z1 X2 Y2 Z2 X3 Y3 Z3" << std::endl;
-
     std::ostringstream particles_filename;
     particles_filename << "data_particles_" << std::fixed << std::setprecision(6) << time << ".txt";
-    std::ofstream file_particles_info(particles_filename.str());
+    std::ofstream file_particles_info(particles_filename.str(), std::ios::out);
     file_particles_info << "1 - ID | 2 - RADIUS | 3 - X | 4 - Y | 5 - Z | 6 - CONTACTS_P | 7 - CONTACTS_W | 8 - VEL_TRL_X | 9 - VEL_TRL_Y | 10 - VEL_TRL_Z | 11 - VEL_ROT_X | 12 - VEL_ROT_Y | 13 - VEL_ROT_Z | 14 - ENERGY_KINT | 15 - ENERGY_KINR | 16 - ENERGY_ELAST | 17 - ENERGY_GRAV | 18 - DISSIP_FRIC | 19 - DISSIP_DAMP" << std::endl;
 
-    std::ostringstream cells_filename;
-    cells_filename << "data_cells_" << std::fixed << std::setprecision(6) << time << ".txt";
-    std::ofstream file_cells_info(cells_filename.str());
-    file_cells_info << "[XMIN XMAX YMIN YMAX ZMIN ZMAX]: #PL #PS" << std::endl;
+    std::ostringstream walls_filename;
+    walls_filename << "data_walls_" << std::fixed << std::setprecision(6) << time << ".txt";
+    std::ofstream file_walls_info(walls_filename.str(), std::ios::out);
+    file_walls_info << "ID X1 Y1 Z1 X2 Y2 Z2 X3 Y3 Z3" << std::endl;
 
-    // Get pointers to first elements
-    ModelPart::ConditionsContainerType::iterator itw = wallsMP.GetCommunicator().LocalMesh().Conditions().ptr_begin();
-    ModelPart::ElementsContainerType::iterator itp = particlesMP.GetCommunicator().LocalMesh().Elements().ptr_begin();
+    std::ostringstream cells_0100_filename;
+    cells_0100_filename << "data_cells_0100_" << std::fixed << std::setprecision(6) << time << ".txt";
+    std::ofstream file_cells_0100_info(cells_0100_filename.str(), std::ios::out);
+    file_cells_0100_info << "[XMIN XMAX YMIN YMAX ZMIN ZMAX]: #PL #PS" << std::endl;
 
+    std::ostringstream cells_0125_filename;
+    cells_0125_filename << "data_cells_0125_" << std::fixed << std::setprecision(6) << time << ".txt";
+    std::ofstream file_cells_0125_info(cells_0125_filename.str(), std::ios::out);
+    file_cells_0125_info << "[XMIN XMAX YMIN YMAX ZMIN ZMAX]: #PL #PS" << std::endl;
+    
     // Loop over all walls
+    ModelPart::ConditionsContainerType::iterator itw = wallsMP.GetCommunicator().LocalMesh().Conditions().ptr_begin();
     for (int i = 0; i < mNumWalls; i++) {
-      // Get wall properties
+      // Write wall information to file
       DEMWall& wall = dynamic_cast<DEMWall&>(*(itw+i));
       const int id = wall.GetId();
       Condition::GeometryType &geom = wall.GetGeometry();
       const double x1 = geom[0][0]; const double y1 = geom[0][1]; const double z1 = geom[0][2];
       const double x2 = geom[1][0]; const double y2 = geom[1][1]; const double z2 = geom[1][2];
       const double x3 = geom[2][0]; const double y3 = geom[2][1]; const double z3 = geom[2][2];
-
-      // Write wall information to file
       if (file_walls_info.is_open()) {
         file_walls_info << std::fixed << std::setprecision(0) << id << " " << std::fixed << std::setprecision(16) << x1 << " " << y1 << " " << z1 << " " << x2 << " " << y2 << " " << z2 << " " << x3 << " " << y3 << " " << z3 << std::endl;
       }
     }
 
     // Loop over all particles
+    ModelPart::ElementsContainerType::iterator itp = particlesMP.GetCommunicator().LocalMesh().Elements().ptr_begin();
     for (int i = 0; i < mNumParticlesAll; i++) {
       // Get particle properties
       SphericParticle& particle = dynamic_cast<SphericParticle&>(*(itp+i));
@@ -154,12 +166,12 @@ namespace Kratos {
       const double vel_rot_x = vel_rot[0];
       const double vel_rot_y = vel_rot[1];
       const double vel_rot_z = vel_rot[2];
-      double particle_energy_kint = 0.0;
-      double particle_energy_kinr = 0.0;
+      double particle_energy_kint  = 0.0;
+      double particle_energy_kinr  = 0.0;
       double particle_energy_elast = 0.0;
-      double particle_energy_grav = 0.0;
-      double particle_dissip_fric = 0.0;
-      double particle_dissip_damp = 0.0;
+      double particle_energy_grav  = 0.0;
+      double particle_dissip_fric  = 0.0;
+      double particle_dissip_damp  = 0.0;
       particle.Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY, particle_energy_kint,  r_process_info);
       particle.Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY,    particle_energy_kinr,  r_process_info);
       particle.Calculate(PARTICLE_ELASTIC_ENERGY,                 particle_energy_elast, r_process_info);
@@ -199,7 +211,7 @@ namespace Kratos {
 
       // Loop over particle neighbors
       for (int j = 0; j < num_neighbors_p; j++) {
-        // Get particle properties
+        // Get neighbor properties
         SphericParticle& neighbor = dynamic_cast<SphericParticle&>(*particle.mNeighbourElements[j]);
         const int id2 = neighbor.GetId();
         if (id2 <= id1) continue;
@@ -247,14 +259,20 @@ namespace Kratos {
       dissip_damp  += particle_dissip_damp;
       dissip       += particle_dissip_fric + particle_dissip_damp;
 
-      // Determine cells map indices of current particle
-      const int i_x = std::max(0, std::min(mCellsX - 1, static_cast<int>(std::floor((x1 - DOMAIN_MIN_X) / CELL_SIZE))));
-      const int i_y = std::max(0, std::min(mCellsY - 1, static_cast<int>(std::floor((y1 - DOMAIN_MIN_Y) / CELL_SIZE))));
-      const int i_z = std::max(0, std::min(mCellsZ - 1, static_cast<int>(std::floor((z1 - DOMAIN_MIN_Z) / CELL_SIZE))));
+      // Determine cells map indices of current particle and update map
+      int i_x, i_y, i_z;
+      
+      i_x = std::max(0, std::min(mCellsX_0100 - 1, static_cast<int>(std::floor((x1 - DOMAIN_MIN_X) / CELL_SIZE_0100))));
+      i_y = std::max(0, std::min(mCellsY_0100 - 1, static_cast<int>(std::floor((y1 - DOMAIN_MIN_Y) / CELL_SIZE_0100))));
+      i_z = std::max(0, std::min(mCellsZ_0100 - 1, static_cast<int>(std::floor((z1 - DOMAIN_MIN_Z) / CELL_SIZE_0100))));
+      if (r1 > mRadiusMean) mCountParticlesLarge_0100[i_x][i_y][i_z]++;
+      else mCountParticlesSmall_0100[i_x][i_y][i_z]++;
 
-      // Update cells map
-      if (r1 > mRadiusMean) mCountParticlesLarge[i_x][i_y][i_z]++;
-      else mCountParticlesSmall[i_x][i_y][i_z]++;
+      i_x = std::max(0, std::min(mCellsX_0125 - 1, static_cast<int>(std::floor((x1 - DOMAIN_MIN_X) / CELL_SIZE_0125))));
+      i_y = std::max(0, std::min(mCellsY_0125 - 1, static_cast<int>(std::floor((y1 - DOMAIN_MIN_Y) / CELL_SIZE_0125))));
+      i_z = std::max(0, std::min(mCellsZ_0125 - 1, static_cast<int>(std::floor((z1 - DOMAIN_MIN_Z) / CELL_SIZE_0125))));
+      if (r1 > mRadiusMean) mCountParticlesLarge_0125[i_x][i_y][i_z]++;
+      else mCountParticlesSmall_0125[i_x][i_y][i_z]++;
     }
 
     coord_num_all   /= mNumParticlesAll;
@@ -268,20 +286,39 @@ namespace Kratos {
     vel_rot_ps_avg  /= mNumParticlesSmall;
 
     // Write results
-    if (file_cells_info.is_open()) {
-      for (int iz = 0; iz < mCellsZ; ++iz) {
-        double zmin = DOMAIN_MIN_Z + CELL_SIZE * iz;
-        double zmax = DOMAIN_MIN_Z + CELL_SIZE * (iz + 1);
-        for (int iy = 0; iy < mCellsY; ++iy) {
-          double ymin = DOMAIN_MIN_Y + CELL_SIZE * iy;
-          double ymax = DOMAIN_MIN_Y + CELL_SIZE * (iy + 1);
-          for (int ix = 0; ix < mCellsX; ++ix) {
-            double xmin = DOMAIN_MIN_X + CELL_SIZE * ix;
-            double xmax = DOMAIN_MIN_X + CELL_SIZE * (ix + 1);
-            file_cells_info << std::fixed << std::setprecision(2);
-            file_cells_info << "[" << xmin << " " << xmax << " " << ymin << " " << ymax << " " << zmin << " " << zmax << "]: ";
-            file_cells_info << std::fixed << std::setprecision(0);
-            file_cells_info << mCountParticlesLarge[ix][iy][iz] << " " << mCountParticlesSmall[ix][iy][iz] << std::endl;
+    if (file_cells_0100_info.is_open()) {
+      for (int iz = 0; iz < mCellsZ_0100; ++iz) {
+        double zmin = DOMAIN_MIN_Z + CELL_SIZE_0100 * iz;
+        double zmax = DOMAIN_MIN_Z + CELL_SIZE_0100 * (iz + 1);
+        for (int iy = 0; iy < mCellsY_0100; ++iy) {
+          double ymin = DOMAIN_MIN_Y + CELL_SIZE_0100 * iy;
+          double ymax = DOMAIN_MIN_Y + CELL_SIZE_0100 * (iy + 1);
+          for (int ix = 0; ix < mCellsX_0100; ++ix) {
+            double xmin = DOMAIN_MIN_X + CELL_SIZE_0100 * ix;
+            double xmax = DOMAIN_MIN_X + CELL_SIZE_0100 * (ix + 1);
+            file_cells_0100_info << std::fixed << std::setprecision(2);
+            file_cells_0100_info << "[" << xmin << " " << xmax << " " << ymin << " " << ymax << " " << zmin << " " << zmax << "]: ";
+            file_cells_0100_info << std::fixed << std::setprecision(0);
+            file_cells_0100_info << mCountParticlesLarge_0100[ix][iy][iz] << " " << mCountParticlesSmall_0100[ix][iy][iz] << std::endl;
+          }
+        }
+      }
+    }
+
+    if (file_cells_0125_info.is_open()) {
+      for (int iz = 0; iz < mCellsZ_0125; ++iz) {
+        double zmin = DOMAIN_MIN_Z + CELL_SIZE_0125 * iz;
+        double zmax = DOMAIN_MIN_Z + CELL_SIZE_0125 * (iz + 1);
+        for (int iy = 0; iy < mCellsY_0125; ++iy) {
+          double ymin = DOMAIN_MIN_Y + CELL_SIZE_0125 * iy;
+          double ymax = DOMAIN_MIN_Y + CELL_SIZE_0125 * (iy + 1);
+          for (int ix = 0; ix < mCellsX_0125; ++ix) {
+            double xmin = DOMAIN_MIN_X + CELL_SIZE_0125 * ix;
+            double xmax = DOMAIN_MIN_X + CELL_SIZE_0125 * (ix + 1);
+            file_cells_0125_info << std::fixed << std::setprecision(2);
+            file_cells_0125_info << "[" << xmin << " " << xmax << " " << ymin << " " << ymax << " " << zmin << " " << zmax << "]: ";
+            file_cells_0125_info << std::fixed << std::setprecision(0);
+            file_cells_0125_info << mCountParticlesLarge_0125[ix][iy][iz] << " " << mCountParticlesSmall_0125[ix][iy][iz] << std::endl;
           }
         }
       }
@@ -338,7 +375,8 @@ namespace Kratos {
     // Close temporary files
     if (file_walls_info.is_open()) file_walls_info.close();
     if (file_particles_info.is_open()) file_particles_info.close();
-    if (file_cells_info.is_open()) file_cells_info.close();
+    if (file_cells_0100_info.is_open()) file_cells_0100_info.close();
+    if (file_cells_0125_info.is_open()) file_cells_0125_info.close();
   }
 
   //------------------------------------------------------------------------------------------------------------
@@ -350,8 +388,15 @@ namespace Kratos {
   }
 
   //------------------------------------------------------------------------------------------------------------
-  void ONDEMDrumUtilities::InitializeCellsMap(std::vector<std::vector<std::vector<int>>>& map) {
-    map.assign(mCellsX, std::vector<std::vector<int>>(mCellsY, std::vector<int>(mCellsZ, 0)));
+  void ONDEMDrumUtilities::InitializeCellsMaps_0100() {
+    mCountParticlesLarge_0100.assign(mCellsX_0100, std::vector<std::vector<int>>(mCellsY_0100, std::vector<int>(mCellsZ_0100, 0)));
+    mCountParticlesSmall_0100.assign(mCellsX_0100, std::vector<std::vector<int>>(mCellsY_0100, std::vector<int>(mCellsZ_0100, 0)));
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void ONDEMDrumUtilities::InitializeCellsMaps_0125() {
+    mCountParticlesLarge_0125.assign(mCellsX_0125, std::vector<std::vector<int>>(mCellsY_0125, std::vector<int>(mCellsZ_0125, 0)));
+    mCountParticlesSmall_0125.assign(mCellsX_0125, std::vector<std::vector<int>>(mCellsY_0125, std::vector<int>(mCellsZ_0125, 0)));
   }
 
   //------------------------------------------------------------------------------------------------------------
