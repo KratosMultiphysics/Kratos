@@ -52,6 +52,7 @@ public:
         result.AddNodalSolutionStepVariable(DISPLACEMENT);
         result.AddNodalSolutionStepVariable(VELOCITY);
         result.AddNodalSolutionStepVariable(ACCELERATION);
+		result.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
 
         // add nodes, elements and conditions
         auto       p_node   = result.CreateNewNode(0, 0.0, 0.0, 0.0);
@@ -66,9 +67,11 @@ public:
 
         // add dofs
         p_node->AddDof(DISPLACEMENT_X);
+   //     p_node->AddDof(TOTAL_DISPLACEMENT_X);
         p_node->pGetDof(DISPLACEMENT_X)->SetEquationId(0);
 
         p_node->AddDof(DISPLACEMENT_Y);
+//		p_node->AddDof(TOTAL_DISPLACEMENT_Y);
         p_node->pGetDof(DISPLACEMENT_Y)->SetEquationId(1);
 
         // initialize nodal values

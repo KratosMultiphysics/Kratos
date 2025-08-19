@@ -46,25 +46,16 @@ void SparseSystemUtilities::GetTotalSolutionStepValueVector(SystemVectorType& rT
                                         &mandatory_variables, &optional_variables](Node& rNode) {
         if (rNode.IsActive()) {
             for (const auto& var_pair : mandatory_variables) {
-                if (rNode.SolutionStepsDataHas(*var_pair.second)) {
-                    const auto equation_id = rNode.GetDof(*var_pair.first).EquationId();
-                    rTotalSolutionStepValues[equation_id] =
-                        rNode.FastGetSolutionStepValue(*var_pair.second, BufferIndex);
-                } else {
-                    KRATOS_ERROR << "Missing TOTAL variable " << var_pair.second->Name()
-                                 << " on node " << rNode.Id() << std::endl;
-                }
+                const auto equation_id = rNode.GetDof(*var_pair.first).EquationId();
+                rTotalSolutionStepValues[equation_id] =
+                    rNode.FastGetSolutionStepValue(*var_pair.second, BufferIndex);
             }
 
             for (const auto& var_pair : optional_variables) {
                 if (rNode.HasDofFor(*var_pair.first)) {
-                    if (rNode.SolutionStepsDataHas(*var_pair.second)) {
-                        const auto equation_id = rNode.GetDof(*var_pair.first).EquationId();
-                        rTotalSolutionStepValues[equation_id] =
-                            rNode.FastGetSolutionStepValue(*var_pair.second, BufferIndex);
-                    } else
-                        KRATOS_ERROR << "Missing TOTAL variable " << var_pair.second->Name()
-                                     << " on node " << rNode.Id() << std::endl;
+                    const auto equation_id = rNode.GetDof(*var_pair.first).EquationId();
+                    rTotalSolutionStepValues[equation_id] =
+                        rNode.FastGetSolutionStepValue(*var_pair.second, BufferIndex);
                 }
             }
         }
