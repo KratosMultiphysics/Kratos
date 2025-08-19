@@ -60,10 +60,7 @@ public:
             gid_output_settings, mWorkingDirectory.generic_string(), mrModelPart);
     }
 
-    void InitializeSolutionStep() override
-    {
-        mpStrategy->InitializeSolutionStep();
-    }
+    void InitializeSolutionStep() override { mpStrategy->InitializeSolutionStep(); }
 
     void Predict() override { mpStrategy->Predict(); }
 

@@ -62,8 +62,8 @@ public:
     }
 
 protected:
-    void SetTimeFactors(ModelPart& rModelPart) override{};
-    void UpdateVariablesDerivatives(ModelPart& rModelPart) override{};
+    void SetTimeFactors(ModelPart& rModelPart) override {};
+    void UpdateVariablesDerivatives(ModelPart& rModelPart) override {};
 
 public:
     void CalculateSystemContributions(
