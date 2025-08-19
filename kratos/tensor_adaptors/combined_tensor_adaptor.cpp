@@ -100,7 +100,7 @@ CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
     // here we create a storage with a nullptr for the container, because
     // the combined tensor adaptor will not be able to represent the underlying
     // container without incurring heavy additional cost.
-    this->mpStorage = Kratos::make_intrusive<typename BaseType::Storage>(tensor_shape);
+    this->mpStorage = Kratos::make_shared<typename BaseType::Storage>(tensor_shape);
 
     this->mpContainer = std::nullopt;
 
@@ -124,7 +124,7 @@ CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
         return Value + pTensorAdaptor->Size();
     });
 
-    this->mpStorage = Kratos::make_intrusive<typename BaseType::Storage>(tensor_shape);
+    this->mpStorage = Kratos::make_shared<typename BaseType::Storage>(tensor_shape);
 
     this->mpContainer = std::nullopt;
 
