@@ -27,7 +27,7 @@
         "compute_reactions":                  true,
         "move_mesh_flag":                     true,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    true,
+        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "static",
         "scheme_type":                        "Newmark",
