@@ -85,7 +85,6 @@ class KratosCoreLegacySuite : public KratosCoreFastSuite {};
 // This classes are temporal and should be changed. Please see: GeoMechanicsApplication, StructuralMechanicsApplication or TrilinosApplication
 // TODO: Remove once every test includes its own suit
 class CompressiblePotentialApplicationFastSuite : public KratosCoreFastSuite {};
-class KratosConvectionDiffusionFastSuite : public KratosCoreFastSuite {};
 class KratosCSharpWrapperApplicationFastSuite : public KratosCoreFastSuite {};
 class ExaquteSandboxApplicationFastSuite : public KratosCoreFastSuite {};
 class FSIApplicationFastSuite : public KratosCoreFastSuite {};

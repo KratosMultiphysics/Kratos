@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
+#include "tests/cpp_tests/convection_diffusion_fast_suite.h"
 #include "containers/model.h"
 #include "includes/convection_diffusion_settings.h"
 

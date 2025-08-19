@@ -1238,7 +1238,7 @@ public:
         BoundedMatrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
         BoundedMatrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
 
-        double most_common_sign=0; //the side of the cut in which two nodes are found (same sign) will be the ones that remains unchanged when builing the discontinuity
+        // double most_common_sign=0; //the side of the cut in which two nodes are found (same sign) will be the ones that remains unchanged when builing the discontinuity
         double Area;//area of the complete element
         rGPShapeFunctionValues(0,0)=one_third;
         rGPShapeFunctionValues(0,1)=one_third;
@@ -1392,12 +1392,12 @@ public:
             if (rDistances[i] < 0.0)
             {
                 exact_distance[i] = -abs_distance[i];
-                --most_common_sign;
+                // --most_common_sign;
             }
             else
             {
                 exact_distance[i] = abs_distance[i];
-                ++most_common_sign;
+                // ++most_common_sign;
             }
         }
 

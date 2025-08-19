@@ -28,7 +28,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ## ChimeraApplication Testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_CHIMERA_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
-    kratos_add_gtests(TARGET KratosChimeraApplicationCore SOURCES "${KRATOS_CHIMERA_APPLICATION_TESTING_SOURCES}" USE_CUSTOM_MAIN)
+    kratos_add_gtests(TARGET KratosChimeraApplicationCore SOURCES "${KRATOS_CHIMERA_APPLICATION_TESTING_SOURCES}")
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## ChimeraApplication python interface sources
