@@ -374,10 +374,6 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
 
     GetComputationalModelPart().GetProcessInfo()[START_TIME] = GetStartTimeFrom(rProjectParameters);
     GetComputationalModelPart().GetProcessInfo()[END_TIME]   = GetEndTimeFrom(rProjectParameters);
-    GetComputationalModelPart().GetProcessInfo()[USE_PROTOTYPE_NULL_STEPPING] =
-        rProjectParameters["solver_settings"].Has("prototype_null_stepping")
-            ? rProjectParameters["solver_settings"]["prototype_null_stepping"].GetBool()
-            : false;
 
     // For now, we can create solving strategy wrappers only
     using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;

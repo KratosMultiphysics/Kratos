@@ -61,6 +61,11 @@ public:
         rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
     }
 
+protected:
+    void SetTimeFactors(ModelPart& rModelPart) override{};
+    void UpdateVariablesDerivatives(ModelPart& rModelPart) override{};
+
+public:
     void CalculateSystemContributions(
         Condition& rCurrentCondition,
         typename GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemMatrixType& LHS_Contribution,

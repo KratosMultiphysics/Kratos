@@ -69,7 +69,6 @@ class GeoMechanicalSolver(PythonSolver):
             "time_stepping": {
                 "time_step": 0.1
             },
-            "prototype_null_stepping": false,
             "buffer_size": 2,
             "echo_level": 0,
             "rebuild_level": 2,
