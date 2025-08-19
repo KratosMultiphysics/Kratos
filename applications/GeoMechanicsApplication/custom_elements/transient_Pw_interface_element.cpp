@@ -484,8 +484,8 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeElementVariables(InterfaceElementVariables& rVariables,
-                                                                              const GeometryType& r_geometry,
-                                                                              const PropertiesType& r_properties,
+                                                                              const GeometryType& rGeometry,
+                                                                              const PropertiesType& rProperties,
                                                                               const ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
@@ -493,22 +493,22 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeElementVariables(In
     // Properties variables
     rVariables.IgnoreUndrained = false; // by inheritance? does not have a meaning for a Pw element
 
-    rVariables.DynamicViscosityInverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
+    rVariables.DynamicViscosityInverse = 1.0 / rProperties[DYNAMIC_VISCOSITY];
 
     // ProcessInfo variables
     rVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
 
     // Nodal Variables
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rVariables.PressureVector[i]   = r_geometry[i].FastGetSolutionStepValue(WATER_PRESSURE);
-        rVariables.DtPressureVector[i] = r_geometry[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
+        rVariables.PressureVector[i]   = rGeometry[i].FastGetSolutionStepValue(WATER_PRESSURE);
+        rVariables.DtPressureVector[i] = rGeometry[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
     }
 
     GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rVariables.VolumeAcceleration,
-                                                                 r_geometry, VOLUME_ACCELERATION);
+                                                                 rGeometry, VOLUME_ACCELERATION);
 
     // General Variables
-    this->CalculateRotationMatrix(rVariables.RotationMatrix, r_geometry);
+    this->CalculateRotationMatrix(rVariables.RotationMatrix, rGeometry);
 
     // Variables computed at each GP
     rVariables.Np.resize(TNumNodes, false);
