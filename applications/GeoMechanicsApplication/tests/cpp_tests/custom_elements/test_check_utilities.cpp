@@ -19,6 +19,22 @@ using namespace Kratos;
 namespace
 {
 
+Geometry<Node> CreatLineGeometryWithoutVariables() {
+    PointerVector<Node> nodes;
+    nodes.push_back(make_intrusive<Node>(0, 0.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(1, 1.0, 0.0, 0.0));
+    return Line2D2<Node>(nodes);
+}
+
+Geometry<Node> CreatLineGeometryWithVariables() {
+    Model model;
+    auto& r_model_part = model.CreateModelPart("ModelPart", 1);
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 1.0, 1.0));
+    return Line2D2<Node>(nodes);
+}
 }
 
 namespace Kratos::Testing
@@ -54,10 +70,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckDomainSize, KratosGeoMechanicsFast
 KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalVariables, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    PointerVector<Node> nodes;
-    nodes.push_back(make_intrusive<Node>(0, 0.0, 0.0, 0.0));
-    nodes.push_back(make_intrusive<Node>(1, 1.0, 0.0, 0.0));
-    auto line_geometry = Line2D2<Node>(nodes);
+    auto line_geometry = CreatLineGeometryWithoutVariables();
 
     // Act and Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -65,13 +78,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalVariables, KratosGeoMechanics
         "Missing variable WATER_PRESSURE on node 0")
 
     // Arrange 2
-    Model model;
-    auto& r_model_part = model.CreateModelPart("ModelPart", 1);
-    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    nodes.clear();
-    nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 1.0, 1.0));
-    line_geometry = Line2D2<Node>(nodes);
+    line_geometry = CreatLineGeometryWithVariables();
 
     // Act and Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -82,10 +89,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalVariables, KratosGeoMechanics
 KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalDof, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    PointerVector<Node> nodes;
-    nodes.push_back(make_intrusive<Node>(0, 0.0, 0.0, 0.0));
-    nodes.push_back(make_intrusive<Node>(1, 1.0, 0.0, 0.0));
-    auto line_geometry = Line2D2<Node>(nodes);
+    auto line_geometry = CreatLineGeometryWithoutVariables();
 
     // Act and Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -93,13 +97,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalDof, KratosGeoMechanicsFastSu
         "Missing the DoF for the variable WATER_PRESSURE on node 0")
 
     // Arrange 2
-    Model model;
-    auto& r_model_part = model.CreateModelPart("ModelPart", 1);
-    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    nodes.clear();
-    nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 1.0, 1.0));
-    line_geometry = Line2D2<Node>(nodes);
+    line_geometry = CreatLineGeometryWithVariables();
+
     for (auto& r_node : line_geometry) {
         r_node.AddDof(WATER_PRESSURE);
     }
