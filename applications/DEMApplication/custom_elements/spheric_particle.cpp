@@ -2044,11 +2044,13 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
 
     if (rVariable == PARTICLE_GRAVITATIONAL_ENERGY) {
 
-       // Energy relative to the origin [0,0,0]
-       const double coord[3] = { this->GetGeometry()[0][0], this->GetGeometry()[0][1], this->GetGeometry()[0][2] };
-       Output = - this->GetMass() * DEM_INNER_PRODUCT_3(r_process_info[GRAVITY], coord);
-
-        return;
+       // Energy relative to the drum bottom at [0.0,-0.1,0.0]
+       const double ref_point[3] = {0.0, -0.1, 0.0};
+       const double coord[3] = {this->GetGeometry()[0][0], this->GetGeometry()[0][1], this->GetGeometry()[0][2]};
+       double relative_coord[3] = {coord[0] - ref_point[0], coord[1] - ref_point[1], coord[2] - ref_point[2]};
+       Output = - this->GetMass() * DEM_INNER_PRODUCT_3(r_process_info[GRAVITY], relative_coord);
+       
+       return;
     }
 
     if (rVariable == PARTICLE_ELASTIC_ENERGY) {
