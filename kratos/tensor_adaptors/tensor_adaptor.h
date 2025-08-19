@@ -121,6 +121,16 @@ public:
     ///@name Life cycle
     ///@{
 
+    /**
+     * @brief Construct a new Tensor Adaptor from a given @p pContainer and a @p pData
+     * @details This constructor creates an instance of @ref TensorAdaptor using the @p pContainer
+     *          as the container and the data in the @p pData .
+     *              - Copying the internal storage of @p pData if @p Copy is true.
+     *              - Sharing the internal storage of @p pData if @p Copy is false.
+     * @param pContainer    Container to use in the @ref TensorAdaptor.
+     * @param pData         Data to be used in the @ref TensorAdaptor.
+     * @param Copy          If true, the internal storage will be copied. Otherwise, internal storage will be shared.
+     */
     TensorAdaptor(
         ContainerPointerType pContainer,
         typename DynamicDimensionalArray<TDataType>::Pointer pData,
