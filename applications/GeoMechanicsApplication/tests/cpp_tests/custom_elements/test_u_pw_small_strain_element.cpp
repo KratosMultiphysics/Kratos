@@ -688,6 +688,7 @@ public:
             mStateVariables = rValue;
         }
     }
+
     using ConstitutiveLaw::SetValue;
 
     MOCK_METHOD(bool, RequiresInitializeMaterialResponse, (), (override));
@@ -701,12 +702,14 @@ public:
         }
         return rValue;
     }
+
     using ConstitutiveLaw::GetValue;
 
     bool Has(const Variable<Vector>& rThisVariable) override
     {
         return rThisVariable == STATE_VARIABLES;
     }
+
     using ConstitutiveLaw::Has;
 
 private:
