@@ -244,7 +244,13 @@ void AddCustomIOToPython(pybind11::module& m)
         ;
 
     py::class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer, IO>(m,"HDF5ModelPartIO")
-        .def(py::init<HDF5::File::Pointer, std::string const&>())
+        .def(py::init([](HDF5::File::Pointer pFile, const std::string& rPrefix) {
+                KRATOS_WARNING("DEPRECATION") << "Using deprecated constructor in \"HDF5::ModelPartIO\". Please use (Parameters, HDF5File) constructor.\n";
+                auto parameters = Parameters(R"({"prefix": ""})");
+                parameters["prefix"].SetString(rPrefix);
+                return Kratos::make_shared<HDF5::ModelPartIO>(parameters, pFile);
+            }), py::arg("hdf5_file"), py::arg("prefix"))
+        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         ;
 
     using nodal_solution_step_data_io = VariableContainerComponentIOWrapper<ModelPart::NodesContainerType, HDF5::Internals::HistoricalIO>::ContainerIOType;
@@ -377,9 +383,14 @@ void AddCustomIOToPython(pybind11::module& m)
     hdf5_properties_io.def("Write", &HDF5::Internals::WriteProperties, py::arg("hdf5_file"), py::arg("prefix"), py::arg("list_of_properties"));
 
 #ifdef KRATOS_USING_MPI
-    py::class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, HDF5::ModelPartIO>
-        (m,"HDF5PartitionedModelPartIO")
-        .def(py::init<HDF5::File::Pointer, std::string const&>())
+    py::class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, HDF5::ModelPartIO>(m,"HDF5PartitionedModelPartIO")
+        .def(py::init([](HDF5::File::Pointer pFile, const std::string& rPrefix) {
+                KRATOS_WARNING("DEPRECATION") << "Using deprecated constructor in \"HDF5::PartitionedModelPartIO\". Please use (Parameters, HDF5File) constructor.\n";
+                auto parameters = Parameters(R"({"prefix": ""})");
+                parameters["prefix"].SetString(rPrefix);
+                return Kratos::make_shared<HDF5::PartitionedModelPartIO>(parameters, pFile);
+            }), py::arg("prefix"), py::arg("hdf5_file"))
+        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         ;
 #endif
 

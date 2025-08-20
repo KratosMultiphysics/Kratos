@@ -91,6 +91,16 @@ public:
 
     /**
      * @brief Default constructor
+     * @param Model The model to be set
+     * @param rParameters The configuration parameters
+     */
+    AssignScalarInputToEntitiesProcess(
+        Model& rModel,
+        Parameters rParameters
+        );
+
+    /**
+     * @brief Default constructor
      * @param rModelPart The model part to be set
      * @param rParameters The configuration parameters
      */
@@ -109,6 +119,12 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /// @copydoc Process::Create
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters
+        ) override;
 
     /**
      * @brief This function will be executed at every time step BEFORE performing the solve phase

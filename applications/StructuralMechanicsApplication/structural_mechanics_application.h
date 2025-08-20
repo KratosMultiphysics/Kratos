@@ -92,6 +92,7 @@
 #include "custom_elements/beam_elements/timoshenko_beam_element_3D2N.h"
 #include "custom_elements/beam_elements/timoshenko_beam_element_2D3N.h"
 #include "custom_elements/beam_elements/timoshenko_curved_beam_element_2D3N.h"
+#include "custom_elements/beam_elements/timoshenko_curved_beam_element_3D3N.h"
 
 /* Conditions */
 #include "custom_conditions/base_load_condition.h"
@@ -290,6 +291,7 @@ private:
     const LinearTimoshenkoBeamElement3D2N mLinearTimoshenkoBeamElement3D2N;
     const LinearTimoshenkoBeamElement2D3N mLinearTimoshenkoBeamElement2D3N;
     const LinearTimoshenkoCurvedBeamElement2D3N mLinearTimoshenkoCurvedBeamElement2D3N;
+    const LinearTimoshenkoCurvedBeamElement3D3N mLinearTimoshenkoCurvedBeamElement3D3N;
 
 
     // Adding the shells elements
