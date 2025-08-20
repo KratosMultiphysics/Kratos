@@ -1,0 +1,21 @@
+{
+   "properties": [{
+      "model_part_name":         "PorousDomain.Beam",
+      "properties_id":           1,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "TimoshenkoBeamElasticConstitutiveLaw3D"
+          },
+          "Variables": {
+              "YOUNG_MODULUS"     :  1000.0,
+              "POISSON_RATIO"     :  0.3,
+              "DENSITY"           :  7.850,
+              "CROSS_AREA"        :  1.0,
+              "AREA_EFFECTIVE_Y" :   0.1E9,
+              "I33"               :  0.083333333,
+              "AREA_EFFECTIVE_Z" :   0.01E9,
+              "I22"               :  0.008333333
+         }
+      }
+   }]
+}
