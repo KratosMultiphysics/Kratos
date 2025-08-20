@@ -133,6 +133,8 @@ public:
 
     using IndexType = std::size_t;
 
+    using DataType = TDataType;
+
     ///@}
     ///@name Life cycle
     ///@{
