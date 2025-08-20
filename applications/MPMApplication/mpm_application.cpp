@@ -64,8 +64,12 @@ namespace Kratos
         mMPMUpdatedLagrangianUP(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         mMPMUpdatedLagrangianPQ(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         
-        /// Elements, using normal geometries
-        mMPMSoftStiffness(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
+        /// Elements, using grid geometries
+        mMPMSoftStiffnessGeneric(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))), // geometry not specified. for use with connectivity preserver modeler in mpm_solver, which use pGeometry when creating element
+        mMPMSoftStiffness2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+        mMPMSoftStiffness2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+        mMPMSoftStiffness3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node>(Element::GeometryType::PointsArrayType(4)))),
+        mMPMSoftStiffness3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8 <Node>(Element::GeometryType::PointsArrayType(8)))),
 
         /// Deprecated Elements
         mMPMUpdatedLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -116,7 +120,13 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangian", mMPMUpdatedLagrangian)
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianUP", mMPMUpdatedLagrangianUP)
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianPQ", mMPMUpdatedLagrangianPQ)
-        KRATOS_REGISTER_ELEMENT("MPMSoftStiffness", mMPMSoftStiffness)
+
+        // Grid Elements
+        KRATOS_REGISTER_ELEMENT("MPMSoftStiffnessGeneric", mMPMSoftStiffnessGeneric) // geometry not specified. for use with connectivity preserver modeler in mpm_solver, which use pGeometry when creating element
+        KRATOS_REGISTER_ELEMENT("MPMSoftStiffness2D3N", mMPMSoftStiffness2D3N)
+        KRATOS_REGISTER_ELEMENT("MPMSoftStiffness2D4N", mMPMSoftStiffness2D4N)
+        KRATOS_REGISTER_ELEMENT("MPMSoftStiffness3D4N", mMPMSoftStiffness3D4N)
+        KRATOS_REGISTER_ELEMENT("MPMSoftStiffness3D8N", mMPMSoftStiffness3D8N)
 
         // Deprecated elements
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangian2D3N", mMPMUpdatedLagrangian2D3N )

@@ -261,8 +261,10 @@ class MPMSolver(PythonSolver):
         numerical_stiffness_sub_model_part = self.material_point_model_part.GetSubModelPart("NumericalStiffness")
         # TODO: decide to use normal element or material point representation
         # normal element representation
-        connectivity_preserve_modeller = KratosMultiphysics.ConnectivityPreserveModeler() 
-        connectivity_preserve_modeller.GenerateModelPart(self.GetGridModelPart(), numerical_stiffness_sub_model_part, "MPMSoftStiffness") 
+        modeller = KratosMultiphysics.ConnectivityPreserveModeler() 
+        modeller.GenerateModelPart(self.GetGridModelPart(),
+                                   numerical_stiffness_sub_model_part,
+                                   "MPMSoftStiffnessGeneric") # the modeller uses pGeometry to create new element, background grid geometry doesn't matter. Named MPMSoftStiffnessGeneric for clarity.     
         # for Element in numerical_stiffness_sub_model_part.Elements:
             # print("Element name is: ",Element)
             # print("Element property is: ",Element.Properties)

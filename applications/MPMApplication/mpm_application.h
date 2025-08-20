@@ -230,11 +230,17 @@ private:
     ///@name Member Variables
     ///@{
 
-    // Elements
+    // Material Point Elements
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian;
     const MPMUpdatedLagrangianUP mMPMUpdatedLagrangianUP;
     const MPMUpdatedLagrangianPQ mMPMUpdatedLagrangianPQ;
-    const MPMSoftStiffness mMPMSoftStiffness;
+
+    // Grid Elements
+    const MPMSoftStiffness mMPMSoftStiffnessGeneric; // geometry not specified. for use with connectivity preserver modeler in mpm_solver, which use pGeometry when creating element
+    const MPMSoftStiffness mMPMSoftStiffness2D3N;
+    const MPMSoftStiffness mMPMSoftStiffness2D4N;
+    const MPMSoftStiffness mMPMSoftStiffness3D4N;
+    const MPMSoftStiffness mMPMSoftStiffness3D8N;
 
     // Deprecated Elements
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian2D3N;
