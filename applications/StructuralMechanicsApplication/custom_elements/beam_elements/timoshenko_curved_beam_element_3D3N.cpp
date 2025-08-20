@@ -427,7 +427,6 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateLocalSystem(
     const auto &r_props    = GetProperties();
     const auto &r_geometry = GetGeometry();
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-
     if (rLHS.size1() != SystemSize || rLHS.size2() != SystemSize) {
         rLHS.resize(SystemSize, SystemSize, false);
     }
@@ -766,6 +765,53 @@ void LinearTimoshenkoCurvedBeamElement3D3N::CalculateOnIntegrationPoints(
 
             mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
             rOutput[IP] = cl_values.GetStressVector()[component];
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoCurvedBeamElement3D3N::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rOutput,
+    const ProcessInfo& rProcessInfo
+    )
+{
+    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
+    rOutput.resize(r_integration_points.size());
+
+    if (rVariable == PK2_STRESS_VECTOR) {
+        ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
+        VectorType strain_vector(StrainSize), stress_vector(StrainSize);
+        StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector);
+        GlobalSizeVector nodal_values;
+        GetNodalValuesVector(nodal_values);
+        BoundedMatrix<double, 6, 18> B;
+        BoundedMatrix<double, 3, 3> frenet_serret;
+        BoundedMatrix<double, 6, 6> element_frenet_serret;
+        array_3 t, n, b, shape_functions, d_shape_functions;
+
+        // Loop over the integration points (IP)
+        const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
+        for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
+            const double xi = r_integration_points[IP].X();
+            const double J  = GetJacobian(xi);
+
+            GetNodalValuesVector(nodal_values);
+
+            noalias(shape_functions)   = GetShapeFunctionsValues(xi);
+            noalias(d_shape_functions) = GetFirstDerivativesShapeFunctionsValues(xi, J);
+
+            GetTangentandTransverseUnitVectors(xi, t, n, b);
+            noalias(frenet_serret) = GetFrenetSerretMatrix(xi, t, n, b);
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(frenet_serret, element_frenet_serret);
+            noalias(B) = CalculateB(shape_functions, d_shape_functions, t);
+            B = prod(element_frenet_serret, B);
+            noalias(strain_vector) = CalculateStrainVector(B, nodal_values);
+
+            mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+            rOutput[IP] = cl_values.GetStressVector();
         }
     }
 }
