@@ -63,7 +63,6 @@
                                          "FixedPressure2",
                                          "Side3",
                                          "Side4",
-                                         "SoilExcludingBoundary",
                                          "K0_model_part",
                                          "Head_line0"],
     "body_domain_sub_model_part_list" : ["Soil-0"],
@@ -120,7 +119,6 @@
           "model_part_name"        : "PorousDomain.TopWaterPressure0",
           "variable_name"          : "WATER_PRESSURE",
           "is_fixed"               : true,
-          "value"                  : 0.0,
           "table"                  : 0,
           "fluid_pressure_type"    : "Phreatic_Multi_Line",
           "gravity_direction"      : 1,
@@ -152,7 +150,6 @@
           "model_part_name"        : "PorousDomain.FixedPressure2",
           "variable_name"          : "WATER_PRESSURE",
           "is_fixed"               : true,
-          "value"                  : 0.0,
           "table"                  : 0,
           "fluid_pressure_type"    : "Phreatic_Multi_Line",
           "gravity_direction"      : 1,
@@ -240,17 +237,6 @@
       }
     ],
     "auxiliary_process_list": [
-      {
-        "python_module"            : "fix_model_part_above_phreatic_line_process",
-        "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name"             : "FixWaterPressuresAbovePhreaticLineProcess",
-        "Parameters": {
-          "model_part_name"        : "PorousDomain.SoilExcludingBoundary",
-          "x_coordinates"          : [0, 1],
-          "y_coordinates"          : [50, 50],
-          "z_coordinates"          : [0, 0]
-        }
-      },
       {
         "python_module"            : "apply_k0_procedure_process",
         "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",

@@ -94,12 +94,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         actual_settlement_after_one_hundred_days = reader.nodal_values_at_time(
             "TOTAL_DISPLACEMENT", 8640000, output_data, [104]
         )[0][1]
-        expected_settlement_after_one_hundred_days = -1.71094
-        self.assertAlmostEqual(
-            actual_settlement_after_one_hundred_days,
-            expected_settlement_after_one_hundred_days,
-            4,
-        )
+        self.assertAlmostEqual(actual_settlement_after_one_hundred_days, -1.71094, 4)
 
         output_data = reader.read_output_from(
             os.path.join(project_path, "stage5.post.res")
@@ -107,12 +102,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         actual_settlement_after_ten_thousand_days = reader.nodal_values_at_time(
             "TOTAL_DISPLACEMENT", 864000000, output_data, [104]
         )[0][1]
-        expected_settlement_after_ten_thousand_days = -8.63753
-        self.assertAlmostEqual(
-            actual_settlement_after_ten_thousand_days,
-            expected_settlement_after_ten_thousand_days,
-            4,
-        )
+        self.assertAlmostEqual(actual_settlement_after_ten_thousand_days, -8.63753, 4)
 
         os.chdir(cwd)
 
