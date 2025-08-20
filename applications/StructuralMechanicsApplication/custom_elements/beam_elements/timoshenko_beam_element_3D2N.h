@@ -375,6 +375,17 @@ public:
         std::vector<array_1d<double, 3>>& rOutput,
         const ProcessInfo& rProcessInfo) override;
 
+    /**
+     * @brief Calculate a Vector Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
+        const ProcessInfo& rProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{

@@ -712,6 +712,27 @@ void LinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void LinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rOutput,
+    const ProcessInfo& rProcessInfo
+    )
+{
+    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
+    rOutput.resize(r_integration_points.size());
+
+    if (rVariable == PK2_STRESS_VECTOR) {
+        std::vector<Vector> pk2_stress;
+        BaseType::CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, pk2_stress, rProcessInfo);
+        for (SizeType integration_point = 0; integration_point < r_integration_points.size(); ++integration_point) {
+            rOutput[integration_point] = pk2_stress[integration_point];
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void LinearTimoshenkoBeamElement3D2N::CalculateLeftHandSide(
     MatrixType& rLHS,
     const ProcessInfo& rProcessInfo

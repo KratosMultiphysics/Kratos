@@ -352,6 +352,18 @@ public:
         ) override;
 
     /**
+     * @brief Calculate a Vector Variable from the Constitutive Law of the element
+     * @param rVariable The variable we want to get
+     * @param rValues The results in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
+        const ProcessInfo& rProcessInfo
+        ) override;
+
+    /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
