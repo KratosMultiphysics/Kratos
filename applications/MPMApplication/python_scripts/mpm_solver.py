@@ -163,17 +163,13 @@ class MPMSolver(PythonSolver):
         self._SearchElement()
     
         if self.settings["add_numerical_stiffness"].GetBool():
-            numerical_stiffness_sub_model_part = self.GetComputingModelPart().GetSubModelPart("NumericalStiffnessConditions")
+            numerical_stiffness_sub_model_part = self.GetComputingModelPart().GetSubModelPart("NumericalStiffness")
             # Reset TOTAL_MP_VOLUME to zero
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMPM.TOTAL_MP_VOLUME, numerical_stiffness_sub_model_part.Elements)
             
             # TODO: Instead of doing this, it would be best if we have 2 submodelpart under ComputationModelPart: MP SubModelpart and Grid SubModelpart
             # Calculate the total volume of material point inside a grid element
-            for submodelpart in self.material_point_model_part.SubModelParts:
-                if submodelpart.Name == "NumericalStiffnessConditions":
-                    continue
-                else:
-                    KratosMPM.CalculateTotalMPVolume(submodelpart)
+            self._CalculateTotalMPVolume()
             
         
         self._GetSolutionStrategy().Initialize()
@@ -248,10 +244,6 @@ class MPMSolver(PythonSolver):
                 stabilization_type = 1
             self.grid_model_part.ProcessInfo.SetValue(KratosMPM.STABILIZATION_TYPE, stabilization_type)
 
-        # Assigning extra information to the main model part
-        self.material_point_model_part.SetNodalSolutionStepVariablesList(self.grid_model_part)
-        self.material_point_model_part.SetNodes(self.grid_model_part.GetNodes())
-
         if not self.is_restarted():
             # TODO: Revert this temporary fix once PR #13376 is merged
             _SetProcessInfo(self.material_point_model_part, self.grid_model_part.ProcessInfo)
@@ -266,8 +258,7 @@ class MPMSolver(PythonSolver):
             # self.grid_model_part.ProcessInfo = self.material_point_model_part.ProcessInfo
             
     def _GenerateNumericalStiffnessElements(self) -> None:
-        
-        numerical_stiffness_sub_model_part = self.material_point_model_part.CreateSubModelPart("NumericalStiffnessConditions") # create container for numerical stiffness conditions
+        numerical_stiffness_sub_model_part = self.material_point_model_part.GetSubModelPart("NumericalStiffness")
         # TODO: decide to use normal element or material point representation
         # normal element representation
         connectivity_preserve_modeller = KratosMultiphysics.ConnectivityPreserveModeler() 
@@ -281,6 +272,7 @@ class MPMSolver(PythonSolver):
         # KratosMPM.GenerateGridMaterialPointCondition(self.grid_model_part, self.material_point_model_part)
         
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMPM.TOTAL_MP_VOLUME, numerical_stiffness_sub_model_part.Elements)
+        self._CalculateTotalMPVolume()
 
     def _SearchElement(self):
         searching_alg_type = self.settings["element_search_settings"]["search_algorithm_type"].GetString()
@@ -292,7 +284,7 @@ class MPMSolver(PythonSolver):
                 # search element by looping through each submodelpart, skipping numerical stiffness submodelpart
                 # TODO: Instead of doing this, it would be best if we have 2 submodelpart under ComputationModelPart: MP SubModelpart and Grid SubModelpart
                 for submodelpart in self.material_point_model_part.SubModelParts:
-                    if submodelpart.Name == "NumericalStiffnessConditions":
+                    if submodelpart.Name == "NumericalStiffness":
                         continue # skipping to avoid error in using normal element representative / avoid inefficiencies if using MP representative, since it does not move. 
                     else:
                         KratosMPM.SearchElement(self.grid_model_part, submodelpart, max_number_of_search_results, searching_tolerance)
@@ -325,6 +317,10 @@ class MPMSolver(PythonSolver):
         if not self.model.HasModelPart("Background_Grid"):
             self.grid_model_part = self.model.CreateModelPart("Background_Grid") #Equivalent to model_part1 in the old format
             self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+            
+        # Numerical stiffness model part definition
+        if (not self.material_point_model_part.HasSubModelPart("NumericalStiffness") and self.settings["add_numerical_stiffness"].GetBool()):
+            self.material_point_model_part.CreateSubModelPart("NumericalStiffness") # create container for numerical stiffness conditions
 
         if not self.is_restarted():
             # Initial material model part definition
@@ -358,8 +354,16 @@ class MPMSolver(PythonSolver):
             model_part.AddNodalSolutionStepVariable(KratosMPM.PRESSURE_REACTION)
             model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_MPRESSURE)
             
+        # Assigning extra information to the main model part
+        self.material_point_model_part.SetNodes(self.grid_model_part.GetNodes())
+        self.material_point_model_part.SetNodalSolutionStepVariablesList(self.grid_model_part) # TODO: Move this to _AddVariablesToModelPart
+        
+        
         if self.settings["add_numerical_stiffness"].GetBool():
+            # extra information and specific variables for numerical stiffness
             model_part.AddNodalSolutionStepVariable(KratosMPM.TOTAL_MP_VOLUME)
+            self.material_point_model_part.GetSubModelPart("NumericalStiffness").SetNodalSolutionStepVariablesList(self.grid_model_part)
+        
 
     def _AddDynamicVariables(self, model_part):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
@@ -577,6 +581,13 @@ class MPMSolver(PythonSolver):
         # in case the detection of a restart is changed later
         return self.material_point_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
     
+    def _CalculateTotalMPVolume(self):
+        for submodelpart in self.material_point_model_part.SubModelParts:
+            if submodelpart.Name == "NumericalStiffness":
+                continue
+            else:
+                KratosMPM.CalculateTotalMPVolume(submodelpart)
+
 # TODO: Remove this temporary fix once PR #13376 is merged
 def _SetProcessInfo(target_model_part: KratosMultiphysics.ModelPart,
                     process_info: KratosMultiphysics.ProcessInfo) -> None:
