@@ -15,14 +15,16 @@ class OptimizationHDF5Output(Kratos.OutputProcess):
         default_settings = Kratos.Parameters("""{
             "model_part_name": "MainModelPart",
             "file_settings": {
-                "file_name": "<model_part_name>_T_<step>.h5",
-                "file_access_mode": "truncate",
+                "file_name": "<model_part_name>.h5",
+                "file_access_mode": "read_write",
                 "echo_level": 1
             },
             "element_data_value_settings": {
+                "prefix": "/Step_<step>",
                 "list_of_variables": []
             },
             "nodal_data_value_settings": {
+                "prefix": "/Step_<step>",
                 "list_of_variables" : []
             }
         }""")
@@ -44,10 +46,14 @@ class OptimizationHDF5Output(Kratos.OutputProcess):
         file_name = file_name.replace("<step>", str(self.optimization_problem.GetStep()))
         current_file_params["file_name"].SetString(file_name)
         with OpenHDF5File(current_file_params, self.model_part) as h5_file:
-            io = KratosHDF5.HDF5NodalDataValueIO(self.parameters["nodal_data_value_settings"], h5_file)
+            current_settings = self.parameters["nodal_data_value_settings"].Clone()
+            current_settings["prefix"].SetString(current_settings["prefix"].GetString().replace("<step>", str(self.optimization_problem.GetStep())))
+            io = KratosHDF5.HDF5NodalDataValueIO(current_settings, h5_file)
             io.Write(self.model_part)
 
-            io = KratosHDF5.HDF5ElementDataValueIO(self.parameters["element_data_value_settings"], h5_file)
+            current_settings = self.parameters["element_data_value_settings"].Clone()
+            current_settings["prefix"].SetString(current_settings["prefix"].GetString().replace("<step>", str(self.optimization_problem.GetStep())))
+            io = KratosHDF5.HDF5ElementDataValueIO(current_settings, h5_file)
             io.Write(self.model_part)
 
 
