@@ -369,16 +369,17 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         self.analytical_ablated_volume_in_n_pulses = 0.0
 
-        for properties, i in enumerate(materials["properties"]):
-            full_material_part_name_i = i["model_part_name"].GetString()
+        materials_list = materials["properties"].values() # List with dictionaries that contain the properties of each material
+        for material in materials_list:
+            full_material_part_name = material["model_part_name"].GetString()
             prefix = "ThermalModelPart."
-            material_part_name_i = full_material_part_name_i.removeprefix(prefix)
+            material_part_name = full_material_part_name.removeprefix(prefix)
 
-            material_part_i = self.main_model_part.GetSubModelPart(material_part_name_i)
-            material_settings_i = i["Material"]
-            thermal_energy_per_volume_i = material_settings_i["Variables"]["ENERGY_PER_VOLUME_THRESHOLD"].GetDouble()
-            for elem in material_part_i.Elements:
-                elem.SetValue(LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME, thermal_energy_per_volume_i)
+            material_part = self.main_model_part.GetSubModelPart(material_part_name)
+            material_settings = material["Material"] # Dictionary with the material's properties
+            thermal_energy_per_volume = material_settings["Variables"]["ENERGY_PER_VOLUME_THRESHOLD"].GetDouble()
+            for elem in material_part.Elements:
+                elem.SetValue(LaserDrillingApplication.MATERIAL_THERMAL_ENERGY_PER_VOLUME, thermal_energy_per_volume)
 
         # self.sigma = 0.5 * self.R_far
         # self.K = 1 / (2 * self.sigma**2)
