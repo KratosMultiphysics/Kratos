@@ -6,7 +6,7 @@ from KratosMultiphysics.GeoMechanicsApplication import *
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the tests o test_classes to create the suits
+# Import the tests of test_classes to create the suits
 from test_excavation import KratosGeoMechanicsExcavationTests
 from test_interface import KratosGeoMechanicsInterfaceTests
 from test_reset_displacement import KratosGeoMechanicsResetDisplacementTests
@@ -65,7 +65,10 @@ from one_dimensional_consolidation import KratosGeoMechanics1DConsolidation, Kra
 from test_apply_initial_uniform_stress_field import KratosGeoMechanicsApplyInitialUniformStressFieldTests
 from test_dirichlet_release import KratosGeoMechanicsDirichletReleaseTests
 from test_nodal_hydraulic_head import KratosGeoMechanicsHydraulicHeads
+from test_set_moving_load_process import KratosGeoMechanicsSetMovingLoadProcessTests
 from moving_column_with_fixed_pressure_above_phreatic_line import KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine
+from test_surface_interface_elements import KratosGeoMechanicsSurfaceInterfaceElementTests
+from test_dsettlement_validation import  KratosGeoMechanicsDSettlementValidationTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -117,6 +120,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsDirichletReleaseTests,
                         KratosGeoMechanicsDeactivationWithStructuralTest,
                         KratosGeoMechanicsHydraulicHeads,
+                        KratosGeoMechanicsSetMovingLoadProcessTests,
+                        KratosGeoMechanicsSurfaceInterfaceElementTests,
     ]
 
     night_test_cases = [
@@ -149,7 +154,8 @@ def AssembleTestSuites():
                         TestSellmeijersRuleValidation,
                         KratosGeoMechanicsDynamicsLongTests,
                         KratosGeoMechanicsThreeDimensionalPipingValidation,
-                        KratosGeoMechanicsTransientThermalValidationTests
+                        KratosGeoMechanicsTransientThermalValidationTests,
+                        KratosGeoMechanicsDSettlementValidationTests,
                         ]
 
     # Create an array that contains all the tests from every testCase

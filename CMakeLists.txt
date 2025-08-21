@@ -50,8 +50,8 @@ endif(POLICY CMP0167)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 10)
-set (KratosMultiphysics_MINOR_VERSION 2)
-set (KratosMultiphysics_PATCH_VERSION 1)
+set (KratosMultiphysics_MINOR_VERSION 3)
+set (KratosMultiphysics_PATCH_VERSION 0)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -481,6 +481,14 @@ elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "None")
 else()
   message(FATAL_ERROR "Invalid option chosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
 endif ()
+
+option(KRATOS_USE_TBB "Enable Intel Threading Building Blocks (TBB) support" OFF)
+
+if(KRATOS_USE_TBB)
+    find_package(TBB REQUIRED)
+    add_compile_definitions(KRATOS_USE_TBB)
+    message(STATUS "TBB support enabled")
+endif()
 
 OPTION(KRATOS_NO_TRY_CATCH "Disabled the use of try/catch through the code" OFF)
 if( KRATOS_NO_TRY_CATCH MATCHES ON )

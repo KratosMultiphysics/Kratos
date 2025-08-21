@@ -36,4 +36,9 @@ namespace Kratos {
     return 0.0;
   }
 
+  //------------------------------------------------------------------------------------------------------------
+  double HeatExchangeMechanism::ComputeEffectiveThermalConductivity(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
+    return 0.0;
+  }
+
 } // namespace Kratos

@@ -230,10 +230,11 @@ std::vector<Matrix> InterfaceElement::CalculateLocalBMatricesAtIntegrationPoints
                                                                         const auto& rIntegrationPoint) {
         // For interface elements, the shape function gradients are not used, since these are
         // non-continuum elements. Therefore, we pass an empty matrix.
-        const auto rotation_matrix = mfpCalculateRotationMatrix(r_geometry, rIntegrationPoint);
         const auto dummy_gradients = Matrix{};
-        return Matrix{prod(rotation_matrix, mpStressStatePolicy->CalculateBMatrix(dummy_gradients, rShapeFunctionValuesAtIntegrationPoint,
-                                                                                  r_geometry))};
+        auto       b_matrix        = mpStressStatePolicy->CalculateBMatrix(
+            dummy_gradients, rShapeFunctionValuesAtIntegrationPoint, r_geometry);
+        ApplyRotationToBMatrix(b_matrix, mfpCalculateRotationMatrix(r_geometry, rIntegrationPoint));
+        return b_matrix;
     };
     std::transform(shape_function_values_at_integration_points.begin(),
                    shape_function_values_at_integration_points.end(), r_integration_points.begin(),
@@ -297,10 +298,18 @@ std::vector<Vector> InterfaceElement::CalculateTractionsAtIntegrationPoints(cons
     };
     auto result = std::vector<Vector>{};
     result.reserve(rRelativeDisplacements.size());
-    std::transform(rRelativeDisplacements.begin(), rRelativeDisplacements.end(),
-                   mConstitutiveLaws.begin(), std::back_inserter(result), calculate_traction);
+    std::ranges::transform(rRelativeDisplacements, mConstitutiveLaws, std::back_inserter(result), calculate_traction);
 
     return result;
+}
+
+void InterfaceElement::ApplyRotationToBMatrix(Matrix& rBMatrix, const Matrix& rRotationMatrix) const
+{
+    const auto dim = GetGeometry().WorkingSpaceDimension();
+    for (int i = 0; i + dim <= rBMatrix.size2(); i += dim) {
+        auto sub_matrix = subrange(rBMatrix, 0, rBMatrix.size1(), i, i + dim);
+        sub_matrix.assign(Matrix{prod(sub_matrix, trans(rRotationMatrix))});
+    }
 }
 
 // Instances of this class can not be copied but can be moved. Check that at compile time.

@@ -27,7 +27,7 @@ class FluidTests(KratosUnittest.TestCase):
         model_part.AddElement(element)
         return element
 
-    def create_condition(self, model_part, integration_point):
+    def create_condition(self, model_part, integration_point, name_condition):
         # Define properties
         props = model_part.CreateNewProperties(0)
         props.SetValue(IGA.PENALTY_FACTOR, 100.0)
@@ -40,7 +40,7 @@ class FluidTests(KratosUnittest.TestCase):
         geometry = TestCreationUtility.GetQuadraturePointGeometryOnCurveP2(model_part, integration_point)
 
         # Create the condition and add it to the model part
-        condition = model_part.CreateNewCondition("SupportFluidCondition", 1, geometry, props)
+        condition = model_part.CreateNewCondition(name_condition, 1, geometry, props)
         model_part.AddCondition(condition)
 
         return condition
@@ -100,7 +100,7 @@ class FluidTests(KratosUnittest.TestCase):
         ipt = [0.333333333333333, 0.05, 0.0, 0.086963711284364]
 
         # Create the support condition
-        condition = self.create_condition(model_part, ipt)
+        condition = self.create_condition(model_part, ipt, "SupportFluidCondition")
 
         # Set prescribed displacement value
         u_D = KM.Vector(3)
@@ -138,7 +138,7 @@ class FluidTests(KratosUnittest.TestCase):
         self.assertEqual(rhs.Size(), len(expected_RHS))
         for i in range(rhs.Size()):
             self.assertAlmostEqual(rhs[i], expected_RHS[i], delta=tolerance)
-                
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
