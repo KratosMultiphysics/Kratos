@@ -44,6 +44,16 @@ namespace Kratos
 
         InitializeActiveShellDofs();
 
+        // CHECKLEO Testausgabe der Variable
+        // std::cout << "L~ CalculateConstitutiveVariables::" <<  std::endl;
+        // std::cout << "mACTUATION_ALPHA    in CalculateConstitutiveVariables: " << mACTUATION_ALPHA << std::endl;
+        // std::cout << "mACTUATION_BETA     in CalculateConstitutiveVariables: " << mACTUATION_BETA << std::endl;
+        // std::cout << "mACTUATION_GAMMA    in CalculateConstitutiveVariables: " << mACTUATION_GAMMA << std::endl;
+        // std::cout << "mACTUATION_KAPPA_1  in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_1 << std::endl;
+        // std::cout << "mACTUATION_KAPPA_2  in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_2 << std::endl;
+        // std::cout << "mACTUATION_KAPPA_12 in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_12 << std::endl;
+        //############
+
         // Prepare memory
         if (m_A_ab_covariant_vector.size() != r_number_of_integration_points)
             m_A_ab_covariant_vector.resize(r_number_of_integration_points);
@@ -377,9 +387,10 @@ namespace Kratos
                 constitutive_variables_curvature,
                 constitutive_law_parameters,
                 ConstitutiveLaw::StressMeasure_PK2);
+
             //CHECKLEO - output of the actuated constitutive variables
-            std::cout << "L~ CalculateAll:: StrainVector membrane: " << constitutive_variables_membrane.StrainVector << std::endl;
-            std::cout << "L~ CalculateAll:: StrainVector curvature: " << constitutive_variables_curvature.StrainVector << std::endl;
+            //std::cout << "L~ CalculateAll:: StrainVector membrane: " << constitutive_variables_membrane.StrainVector << std::endl;
+            //std::cout << "L~ CalculateAll:: StrainVector curvature: " << constitutive_variables_curvature.StrainVector << std::endl;
             //############
 
             // //CHECKLEO
@@ -728,13 +739,13 @@ namespace Kratos
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
         // CHECKLEO Testausgabe der Variable
-        std::cout << "L~ CalculateConstitutiveVariables::" <<  std::endl;
-        std::cout << "mACTUATION_ALPHA    in CalculateConstitutiveVariables: " << mACTUATION_ALPHA << std::endl;
-        std::cout << "mACTUATION_BETA     in CalculateConstitutiveVariables: " << mACTUATION_BETA << std::endl;
-        std::cout << "mACTUATION_GAMMA    in CalculateConstitutiveVariables: " << mACTUATION_GAMMA << std::endl;
-        std::cout << "mACTUATION_KAPPA_1  in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_1 << std::endl;
-        std::cout << "mACTUATION_KAPPA_2  in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_2 << std::endl;
-        std::cout << "mACTUATION_KAPPA_12 in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_12 << std::endl;
+        // std::cout << "L~ CalculateConstitutiveVariables::" <<  std::endl;
+        // std::cout << "mACTUATION_ALPHA    in CalculateConstitutiveVariables: " << mACTUATION_ALPHA << std::endl;
+        // std::cout << "mACTUATION_BETA     in CalculateConstitutiveVariables: " << mACTUATION_BETA << std::endl;
+        // std::cout << "mACTUATION_GAMMA    in CalculateConstitutiveVariables: " << mACTUATION_GAMMA << std::endl;
+        // std::cout << "mACTUATION_KAPPA_1  in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_1 << std::endl;
+        // std::cout << "mACTUATION_KAPPA_2  in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_2 << std::endl;
+        // std::cout << "mACTUATION_KAPPA_12 in CalculateConstitutiveVariables: " << mACTUATION_KAPPA_12 << std::endl;
         //############
 
         //Strain - Membrane Part
@@ -765,10 +776,10 @@ namespace Kratos
 
 
         //CHECKLEO - output of the actuated constitutive variables
-        std::cout << "L~ CalculateConstitutiveVariables:: actuated StrainVector membrane : " << actuated_strain_vector << std::endl;
-        std::cout << "L~ CalculateConstitutiveVariables:: total    StrainVector membrane : " << actuated_strain_vector << std::endl;
-        std::cout << "L~ CalculateConstitutiveVariables:: actuated StrainVector curvature: " << actuated_curvature_vector << std::endl;
-        std::cout << "L~ CalculateConstitutiveVariables:: total    StrainVector curvature: " << actuated_curvature_vector << std::endl;
+        // std::cout << "L~ CalculateConstitutiveVariables:: actuated StrainVector membrane : " << actuated_strain_vector << std::endl;
+        // std::cout << "L~ CalculateConstitutiveVariables:: total    StrainVector membrane : " << total_strain_vector << std::endl;
+        // std::cout << "L~ CalculateConstitutiveVariables:: actuated StrainVector curvature: " << actuated_curvature_vector << std::endl;
+        // std::cout << "L~ CalculateConstitutiveVariables:: total    StrainVector curvature: " << total_curvature_vector << std::endl;
 
 
         // Constitive Matrices DMembrane and DCurvature

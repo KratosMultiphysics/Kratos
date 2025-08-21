@@ -123,7 +123,7 @@ namespace Kratos
                 if (CalculateResidualVectorFlag) {
                     for (IndexType i = 0; i < mat_size; ++i)
                     {
-                        rRightHandSideVector[i] = (diff_phi(0) * phi_r(i)) * penalty_integration;
+                        rRightHandSideVector[i] = -1.0*(diff_phi(0) * phi_r(i)) * penalty_integration;
                     }
                 }
             }
@@ -251,7 +251,7 @@ namespace Kratos
         }
         else
         {
-            diff_phi = phi_slave - phi_master;
+            diff_phi = -(phi_slave - phi_master);
         }
         
         for (IndexType i = 0; i < phi_r_master.size(); i++)
