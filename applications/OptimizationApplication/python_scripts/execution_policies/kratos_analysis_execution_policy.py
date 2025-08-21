@@ -49,8 +49,10 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
 
         if analysis_module == "KratosMultiphysics":
             analysis_full_module, analysis_type = GetClassModuleFromKratos(analysis_type)
-        else:
+        elif analysis_module != "":
             analysis_full_module = f"{analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(analysis_type)}"
+        else:
+            analysis_full_module = f"{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(analysis_type)}"
 
         self.model_parts: 'list[Kratos.ModelPart]' = []
         self.analysis: AnalysisStage = getattr(import_module(analysis_full_module), analysis_type)(self.model, analysis_settings.Clone())
