@@ -234,7 +234,7 @@ class PotentialFlowSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def _ComputeNodalElementalNeighbours(self):
-        # Find nodal neigbours util call
+        # Find nodal neighbours util call
         KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.GetComputingModelPart()).Execute()
 
     def _GetStrategyType(self):

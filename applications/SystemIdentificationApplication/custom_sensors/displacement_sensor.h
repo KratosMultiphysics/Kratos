@@ -51,7 +51,7 @@ public:
     /// Constructor.
     DisplacementSensor(
         const std::string& rName,
-        const Point& rLocation,
+        Node::Pointer pNode,
         const array_1d<double, 3>& rDirection,
         const Element& rElement,
         const double Weight);
@@ -60,12 +60,22 @@ public:
     ~DisplacementSensor() override = default;
 
     ///@}
-    ///@name Operations
+    ///@name Static operations
     ///@{
+
+    static Sensor::Pointer Create(
+        ModelPart& rDomainModelPart,
+        ModelPart& rSensorModelPart,
+        const IndexType Id,
+        Parameters SensorParameters);
 
     static Parameters GetDefaultParameters();
 
-    const Parameters GetSensorParameters() const override;
+    ///@}
+    ///@name Operations
+    ///@{
+
+    Parameters GetSensorParameters() const override;
 
     double CalculateValue(ModelPart& rModelPart) override;
 

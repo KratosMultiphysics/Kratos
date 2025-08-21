@@ -61,16 +61,20 @@ public:
     /// Constructor using an array of nodes
     SteadyStatePwPipingElement(IndexType                          NewId,
                                const NodesArrayType&              ThisNodes,
-                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
+                               std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                               std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(
+              NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
     /// Constructor using Geometry
     SteadyStatePwPipingElement(IndexType                          NewId,
                                GeometryType::Pointer              pGeometry,
-                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
+                               std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                               std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(
+              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -78,8 +82,10 @@ public:
     SteadyStatePwPipingElement(IndexType                          NewId,
                                GeometryType::Pointer              pGeometry,
                                PropertiesType::Pointer            pProperties,
-                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                               std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                               std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(
+              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -101,7 +107,9 @@ public:
 
     double CalculateHeadGradient(const PropertiesType& Prop, const GeometryType& Geom, double pipe_length);
 
-    double CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom, double dx);
+    double CalculateEquilibriumPipeHeight(const PropertiesType& rProperties,
+                                          const GeometryType&   rGeometry,
+                                          double                PipeLength);
 
     void CalculateLength(const GeometryType& Geom);
 

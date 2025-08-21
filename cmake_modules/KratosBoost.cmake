@@ -3,6 +3,11 @@
 # Check if the BOOST_ROOT environment variable is defined
 if(DEFINED ENV{BOOST_ROOT})
   set(BOOST_ROOT $ENV{BOOST_ROOT})
+  # Check that boost/any.hpp exists in the BOOST_ROOT include directory
+  if(EXISTS "${BOOST_ROOT}/boost/any.hpp")
+    set(BOOST_INCLUDEDIR "${BOOST_ROOT}")
+    set(BOOST_LIBRARYDIR "${BOOST_ROOT}")
+  endif(EXISTS "${BOOST_ROOT}/boost/any.hpp")
 else(DEFINED ENV{BOOST_ROOT})
   # Check if BOOST_INCLUDEDIR and BOOST_LIBRARYDIR are already defined as environment variables
   if(DEFINED ENV{BOOST_INCLUDEDIR})

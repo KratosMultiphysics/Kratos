@@ -22,6 +22,7 @@
 #include "geometries/geometry.h"
 #include "utilities/integration_utilities.h"
 #include "integration/pyramid_gauss_legendre_integration_points.h"
+#include "integration/pyramid_gauss_lobatto_integration_points.h"
 
 namespace Kratos {
 
@@ -802,6 +803,8 @@ private:
                 Quadrature < PyramidGaussLegendreIntegrationPoints4,
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < PyramidGaussLegendreIntegrationPoints5,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < PyramidGaussLobattoIntegrationPoints1,
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
@@ -817,7 +820,8 @@ private:
                 Pyramid3D13<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_2),
                 Pyramid3D13<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_3),
                 Pyramid3D13<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_4),
-                Pyramid3D13<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_5)
+                Pyramid3D13<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_5),
+                Pyramid3D13<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_LOBATTO_1)
             }
         };
         return shape_functions_values;
@@ -832,7 +836,8 @@ private:
                 Pyramid3D13<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_2),
                 Pyramid3D13<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_3),
                 Pyramid3D13<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_4),
-                Pyramid3D13<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_5)
+                Pyramid3D13<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_5),
+                Pyramid3D13<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_LOBATTO_1)
             }
         };
         return shape_functions_local_gradients;

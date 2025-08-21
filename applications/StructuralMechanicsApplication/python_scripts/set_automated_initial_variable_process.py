@@ -13,7 +13,7 @@ def Factory(settings, Model):
     This process reads tables in csv format containing the strain/stress components as function of the spatial radial coordinate from the edge of a given hole.
     Tables are defined by layers ortogonally to the radial direction (generatrix hole direction). Each layer of elements must be allocated in a modelpart.
     Stress components provided by the tables (linear picewise tables) are interpolated according to each element centroid. 
-    Interpolated components are transfered to the initial variable (INITIAL_STRAIN_VECTOR/INITIAL_STRESS_VECTOR).
+    Interpolated components are transferred to the initial variable (INITIAL_STRAIN_VECTOR/INITIAL_STRESS_VECTOR).
     A minimum of one table per layer must be provided to the process. 
     Missing stress component are considered to be zero in the INITIAL_STRAIN_VECTOR/INITIAL_STRESS_VECTOR variables. 
     Tables corresponding to out of range strain/stress components are neglect (e.g. Layer1_StresComp7, Layer2_StresComp8).

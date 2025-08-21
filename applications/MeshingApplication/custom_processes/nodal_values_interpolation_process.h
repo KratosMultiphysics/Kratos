@@ -204,7 +204,7 @@ private:
 /**
  * @class NodalValuesInterpolationProcess
  * @ingroup MeshingApplication
- * @brief This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
+ * @brief This utility has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
  * @details The process employs the projection.h from MeshingApplication, which works internally using a kd-tree. Additionally if it can't found the node inside the reference mesh it will try to extrapolate from the skin (if the option is activated)
  * @author Vicente Mataix Ferrandiz
  */

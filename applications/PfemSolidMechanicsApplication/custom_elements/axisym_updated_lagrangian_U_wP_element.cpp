@@ -305,14 +305,14 @@ namespace Kratos
          }
 
       }
-      else if ( rVariable == PERMEABILITY)
+      else if ( rVariable == PERMEABILITY_WATER)
       {
          const unsigned int& integration_points_number = mConstitutiveLawVector.size();
 
          if ( rOutput.size() != mConstitutiveLawVector.size() )
             rOutput.resize( mConstitutiveLawVector.size() );
 
-         double Permeability    = GetProperties()[PERMEABILITY];
+         double Permeability    = GetProperties()[PERMEABILITY_WATER];
          bool Kozeny = GetProperties()[KOZENY_CARMAN];
          if ( Kozeny == false)
          {
@@ -371,7 +371,7 @@ namespace Kratos
          }
 
          // CONSTITUTIVE PARAMETERS
-         double Permeability = GetProperties()[PERMEABILITY];
+         double Permeability = GetProperties()[PERMEABILITY_WATER];
          double WaterDensity = GetProperties()[DENSITY_WATER];
 
          // GEOMETRY PARAMETERS

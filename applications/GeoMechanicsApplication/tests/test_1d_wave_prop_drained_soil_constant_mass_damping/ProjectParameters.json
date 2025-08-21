@@ -113,9 +113,7 @@
             "table":           [0,1,0]
         }
     }],
-        "auxiliar_process_list": [
-			],
-			"json_output": [{
+        	"json_output": [{
             "python_module": "json_output_process",
             "kratos_module": "KratosMultiphysics",
             "process_name": "JsonOutputProcess",

@@ -143,7 +143,6 @@
                     "fluid_pressure_type"          : "Uniform"
                 }
             }
-        ],
-        "auxiliary_process_list": []
+        ]
     }
 }

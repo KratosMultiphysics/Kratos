@@ -2,6 +2,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication # registering the mappers
 import basic_mapper_tests
 import blade_mapping_test
+import quadratic_mapper_tests
 
 class BasicTestsLine(basic_mapper_tests.BasicMapperTests):
     @classmethod
@@ -138,6 +139,24 @@ class BladeMappingUnevenRanks(blade_mapping_test.BladeMappingTestsUnevenRanks):
         }""")
         super().setUpMapper(mapper_params)
         cls.print_output = False
+
+class QuadraticMapperTests(quadratic_mapper_tests.QuadraticMapperTests):
+    @classmethod
+    def setUpClass(cls):
+        mapper_params = KM.Parameters("""{
+            "mapper_type": "nearest_element",
+            "echo_level" : 0
+        }""")
+        super().setUpMapper(mapper_params)
+
+class QuadraticMapperTestsSwitchedSides(quadratic_mapper_tests.QuadraticMapperTests):
+    @classmethod
+    def setUpClass(cls):
+        mapper_params = KM.Parameters("""{
+            "mapper_type": "nearest_element",
+            "echo_level" : 0
+        }""")
+        super().setUpMapper(mapper_params, switch_sides=True)
 
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)

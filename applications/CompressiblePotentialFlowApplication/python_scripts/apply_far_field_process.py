@@ -149,7 +149,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 # A negative projection means inflow (i.e. inlet condition)
                 self._AssignDirichletFarFieldBoundaryCondition(reference_inlet_node, cond)
             else:
-                # A positive projection means outlow (i.e. outlet condition)
+                # A positive projection means outflow (i.e. outlet condition)
                 self._AssignNeumannFarFieldBoundaryCondition(cond)
 
     def _AssignDirichletFarFieldBoundaryCondition(self, reference_inlet_node, cond):

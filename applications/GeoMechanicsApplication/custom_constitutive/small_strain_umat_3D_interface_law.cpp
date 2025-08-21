@@ -108,13 +108,13 @@ Vector& SmallStrainUMAT3DInterfaceLaw::GetValue(const Variable<Vector>& rThisVar
     return rValue;
 }
 
-void SmallStrainUMAT3DInterfaceLaw::SetValue(const Variable<Vector>& rThisVariable,
+void SmallStrainUMAT3DInterfaceLaw::SetValue(const Variable<Vector>& rVariable,
                                              const Vector&           rValue,
                                              const ProcessInfo&      rCurrentProcessInfo)
 {
-    if (rThisVariable == STATE_VARIABLES) {
-        SmallStrainUMAT3DLaw::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    } else if ((rThisVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
+    if (rVariable == STATE_VARIABLES) {
+        SmallStrainUMAT3DLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
+    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
         this->SetInternalStressVector(rValue);
     }
 }

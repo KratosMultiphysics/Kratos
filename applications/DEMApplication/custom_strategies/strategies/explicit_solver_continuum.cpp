@@ -58,7 +58,9 @@ namespace Kratos {
         // Search Neighbors with tolerance (after first repartition process)
         SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_RADIUS_INCREMENT_FOR_BONDS_CREATION], 1.0);
         SearchNeighbours();
-        MeshRepairOperations();
+        if (r_process_info[USE_MESH_REPAIR_OPTION] == 1) {
+            MeshRepairOperations();
+        }
         SearchNeighbours();
 
         const bool automatic_skin_computation = r_process_info[AUTOMATIC_SKIN_COMPUTATION];
@@ -678,7 +680,16 @@ namespace Kratos {
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         ParticleCreatorDestructor::Pointer& p_creator_destructor = GetParticleCreatorDestructor();
 
-        p_creator_destructor->MarkDistantParticlesForErasing<SphericParticle>(r_model_part);
+        //p_creator_destructor->MarkDistantParticlesForErasing<SphericParticle>(r_model_part);
+        if (r_process_info[DOMAIN_IS_PERIODIC]) {
+            p_creator_destructor->MoveParticlesOutsideBoundingBoxBackInside(r_model_part);
+            if (is_time_to_mark_and_remove){ //in "periodic" condition, we should also could delete particles
+                p_creator_destructor->DestroyParticles<SphericParticle>(r_model_part);
+            }
+        } else if (is_time_to_mark_and_remove) {
+            p_creator_destructor->DestroyParticlesOutsideBoundingBox<Cluster3D>(*mpCluster_model_part);
+            p_creator_destructor->DestroyParticlesOutsideBoundingBox<SphericParticle>(r_model_part);
+        }
 
         if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) {
             p_creator_destructor->MarkContactElementsForErasingContinuum(r_model_part, *mpContact_model_part);

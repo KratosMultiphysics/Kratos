@@ -26,7 +26,7 @@ namespace Kratos
   }
 
 
-  //*******************************ASSIGMENT OPERATOR***********************************
+  //******************************ASSIGNMENT OPERATOR***********************************
   //************************************************************************************
 
   GensNovaHardeningRule& GensNovaHardeningRule::operator=(GensNovaHardeningRule const& rOther)
