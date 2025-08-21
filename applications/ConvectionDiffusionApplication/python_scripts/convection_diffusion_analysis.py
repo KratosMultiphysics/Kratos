@@ -8,6 +8,7 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 
 # Other imports
 import sys
+import time
 
 class ConvectionDiffusionAnalysis(AnalysisStage):
     """
@@ -34,6 +35,20 @@ class ConvectionDiffusionAnalysis(AnalysisStage):
 
     def _GetSimulationName(self):
         return "::[Convection-Diffusion Simulation]:: "
+    
+    # Optional: override solution loop to measure per step time
+    def RunSolutionLoop(self):
+        while self.time < self.end_time:
+            start_step = time.perf_counter()
+
+            self.time = self._GetSolver().AdvanceInTime(self.time)
+            self.InitializeSolutionStep()
+            self._GetSolver().Predict()
+            self._GetSolver().SolveSolutionStep()
+            self.FinalizeSolutionStep()
+
+            end_step = time.perf_counter()
+            print(f"[Step @ t={self.time:.4f}] Time: {end_step - start_step:.6f} seconds")
 
 if __name__ == "__main__":
     from sys import argv
@@ -57,4 +72,7 @@ if __name__ == "__main__":
 
     model = KratosMultiphysics.Model()
     simulation = ConvectionDiffusionAnalysis(model, parameters)
+    total_start = time.perf_counter()
     simulation.Run()
+    total_end = time.perf_counter()
+    print(f"\nTotal simulation time: {total_end - total_start:.6f} seconds")

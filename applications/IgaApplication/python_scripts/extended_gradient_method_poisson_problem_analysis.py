@@ -14,6 +14,7 @@ import matplotlib
 matplotlib.use('Agg')  # Use Agg for rendering plots to files
 import matplotlib.pyplot as plt
 from colorama import Fore, Style, init
+import time
 
 class ExtendedGradientMethodPoissonProblemAnalysis(AnalysisStage):
     """
@@ -67,13 +68,17 @@ class ExtendedGradientMethodPoissonProblemAnalysis(AnalysisStage):
             self.time = self._AdvanceTime()
 
             while (is_not_converged == True and self.iteration_number < self.maximum_iterations):
+                start_time = time.perf_counter()
                 self._GetSolver().Predict()
 
                 self.InitializeSolutionStep() 
 
                 is_converged = self._GetSolver().SolveSolutionStep()
 
+                end_time = time.perf_counter() 
                 solution_error = self.ComputeErrorAndUpdateOldSolutionField()
+                iteration_time = end_time - start_time
+                print(f"{Fore.YELLOW}Time {iteration_time}{Style.RESET_ALL}")
 
                 print(f"{Fore.BLUE}Iteration # {self.iteration_number}{Style.RESET_ALL}")
                 print(f"{Fore.RED}Error between iterations: {solution_error}{Style.RESET_ALL}")
