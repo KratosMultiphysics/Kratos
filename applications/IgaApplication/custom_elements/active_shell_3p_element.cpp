@@ -360,9 +360,10 @@ namespace Kratos
                 constitutive_variables_curvature,
                 constitutive_law_parameters,
                 ConstitutiveLaw::StressMeasure_PK2);
+
             //CHECKLEO - output of the actuated constitutive variables
-            std::cout << "L~ CalculateAll:: StrainVector membrane: " << constitutive_variables_membrane.StrainVector << std::endl;
-            std::cout << "L~ CalculateAll:: StrainVector curvature: " << constitutive_variables_curvature.StrainVector << std::endl;
+            //std::cout << "L~ CalculateAll:: StrainVector membrane: " << constitutive_variables_membrane.StrainVector << std::endl;
+            //std::cout << "L~ CalculateAll:: StrainVector curvature: " << constitutive_variables_curvature.StrainVector << std::endl;
             //############
 
             // //CHECKLEO
@@ -748,10 +749,10 @@ namespace Kratos
 
 
         //CHECKLEO - output of the actuated constitutive variables
-        std::cout << "L~ CalculateConstitutiveVariables:: actuated StrainVector membrane : " << actuated_strain_vector << std::endl;
-        std::cout << "L~ CalculateConstitutiveVariables:: total    StrainVector membrane : " << total_strain_vector << std::endl;
-        std::cout << "L~ CalculateConstitutiveVariables:: actuated StrainVector curvature: " << actuated_curvature_vector << std::endl;
-        std::cout << "L~ CalculateConstitutiveVariables:: total    StrainVector curvature: " << total_curvature_vector << std::endl;
+        // std::cout << "L~ CalculateConstitutiveVariables:: actuated StrainVector membrane : " << actuated_strain_vector << std::endl;
+        // std::cout << "L~ CalculateConstitutiveVariables:: total    StrainVector membrane : " << total_strain_vector << std::endl;
+        // std::cout << "L~ CalculateConstitutiveVariables:: actuated StrainVector curvature: " << actuated_curvature_vector << std::endl;
+        // std::cout << "L~ CalculateConstitutiveVariables:: total    StrainVector curvature: " << total_curvature_vector << std::endl;
 
 
         // Constitive Matrices DMembrane and DCurvature
