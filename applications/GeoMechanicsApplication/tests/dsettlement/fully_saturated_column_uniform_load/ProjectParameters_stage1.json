@@ -38,12 +38,9 @@
     "displacement_absolute_tolerance" : 1.0E-9,
     "min_iterations"                  : 6,
     "max_iterations"                  : 30,
-    "number_cycles"                   : 100,
+    "number_cycles"                   : 1,
     "reduction_factor"                : 0.5,
     "increase_factor"                 : 2.0,
-    "desired_iterations"              : 4,
-    "max_radius_factor"               : 10.0,
-    "min_radius_factor"               : 0.1,
     "calculate_reactions"             : true,
     "max_line_search_iterations"      : 5,
     "first_alpha_value"               : 0.5,
@@ -91,18 +88,8 @@
               "body_output"             : true,
               "node_output"             : false,
               "skin_output"             : false,
-              "nodal_results"           : ["DISPLACEMENT",
-                                           "TOTAL_DISPLACEMENT",
-                                           "WATER_PRESSURE",
-                                           "VOLUME_ACCELERATION",
-                                           "LINE_LOAD_Y",
-                                           "TOTAL_STRESS_TENSOR",
-                                           "CAUCHY_STRESS_TENSOR"],
-              "gauss_point_results"     : ["GREEN_LAGRANGE_STRAIN_TENSOR",
-                                           "ENGINEERING_STRAIN_TENSOR",
-                                           "VON_MISES_STRESS",
-                                           "FLUID_FLUX_VECTOR",
-                                           "HYDRAULIC_HEAD"]
+              "nodal_results"           : ["TOTAL_DISPLACEMENT"],
+              "gauss_point_results"     : []
             }
           }
         }

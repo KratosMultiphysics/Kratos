@@ -12,8 +12,7 @@
     "model_part_name"                 : "PorousDomain",
     "domain_size"                     : 2,
     "model_import_settings": {
-      "input_type"                    : "mdpa",
-      "input_filename"                : "mesh"
+      "input_type"                    : "use_input_model_part"
     },
     "material_import_settings": {
       "materials_filename"            : "MaterialParameters_abc.json"
@@ -41,9 +40,6 @@
     "number_cycles"                   : 100,
     "reduction_factor"                : 0.5,
     "increase_factor"                 : 2.0,
-    "desired_iterations"              : 4,
-    "max_radius_factor"               : 10.0,
-    "min_radius_factor"               : 0.1,
     "calculate_reactions"             : true,
     "max_line_search_iterations"      : 5,
     "first_alpha_value"               : 0.5,
@@ -89,18 +85,8 @@
               "body_output"             : true,
               "node_output"             : false,
               "skin_output"             : false,
-              "nodal_results"           : ["DISPLACEMENT",
-                                           "TOTAL_DISPLACEMENT",
-                                           "WATER_PRESSURE",
-                                           "VOLUME_ACCELERATION",
-                                           "LINE_LOAD_Y",
-                                           "TOTAL_STRESS_TENSOR",
-                                           "CAUCHY_STRESS_TENSOR"],
-              "gauss_point_results"     : ["GREEN_LAGRANGE_STRAIN_TENSOR",
-                                           "ENGINEERING_STRAIN_TENSOR",
-                                           "VON_MISES_STRESS",
-                                           "FLUID_FLUX_VECTOR",
-                                           "HYDRAULIC_HEAD"]
+              "nodal_results"           : ["TOTAL_DISPLACEMENT"],
+              "gauss_point_results"     : []
             }
           }
         }
