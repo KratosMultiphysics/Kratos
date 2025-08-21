@@ -368,45 +368,45 @@ namespace Kratos {
             // KRATOS_WATCH(B_torsion1);
             // KRATOS_WATCH(B_torsion2);
 
-            // Matrix G_axial, G_bending1, G_bending2, G_torsion1, G_torsion2;
-            // ComputeGMatrices(point_number, kinematic_variables, G_axial, G_bending1, G_bending2, G_torsion1, G_torsion2);
-            //  // Assemble stiffness with cross-sectional scaling
-            // double integration_weight = r_integration_points[point_number].Weight()* kinematic_variables.A;
-            // const double inv_A2 = 1.0 / (kinematic_variables.A * kinematic_variables.A);
-            // const double inv_A4 = inv_A2 * inv_A2;
-            // if (CalculateStiffnessMatrixFlag == true)
-            // {   
-            //     //Material Stiffness
-            //     rLeftHandSideMatrix +=  inv_A4 * integration_weight * prod(trans(B_axial), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_axial)));
-            //     rLeftHandSideMatrix +=  inv_A4 * integration_weight * prod(trans(B_bending1), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_bending1)));
-            //     rLeftHandSideMatrix +=  inv_A4 * integration_weight * prod(trans(B_bending2), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_bending2)));
-            //     rLeftHandSideMatrix +=  inv_A2 * integration_weight * prod(trans(B_torsion1), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_torsion1)));
-            //     rLeftHandSideMatrix +=  inv_A2 * integration_weight * prod(trans(B_torsion2), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_torsion2)));
+            Matrix G_axial, G_bending1, G_bending2, G_torsion1, G_torsion2;
+            ComputeGMatrices(point_number, nested_element_kinematic_variables, G_axial, G_bending1, G_bending2, G_torsion1, G_torsion2);
+             // Assemble stiffness with cross-sectional scaling
+            double integration_weight = r_integration_points[point_number].Weight()* nested_element_kinematic_variables.A;
+            const double inv_A2 = 1.0 / (nested_element_kinematic_variables.A * nested_element_kinematic_variables.A);
+            const double inv_A4 = inv_A2 * inv_A2;
+            if (CalculateStiffnessMatrixFlag == true)
+            {   
+                //Material Stiffness
+                rLeftHandSideMatrix +=  inv_A4 * integration_weight * prod(trans(B_axial), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_axial)));
+                rLeftHandSideMatrix +=  inv_A4 * integration_weight * prod(trans(B_bending1), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_bending1)));
+                rLeftHandSideMatrix +=  inv_A4 * integration_weight * prod(trans(B_bending2), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_bending2)));
+                rLeftHandSideMatrix +=  inv_A2 * integration_weight * prod(trans(B_torsion1), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_torsion1)));
+                rLeftHandSideMatrix +=  inv_A2 * integration_weight * prod(trans(B_torsion2), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_torsion2)));
                 
-            //     //Geometrical Stiffness
-            //     rLeftHandSideMatrix += inv_A4 * integration_weight * G_axial * constitutive_variables.StressVector[0];
-            //     rLeftHandSideMatrix += inv_A4 * integration_weight * G_bending1 * constitutive_variables.StressVector[1];
-            //     rLeftHandSideMatrix += inv_A4 * integration_weight * G_bending2 * constitutive_variables.StressVector[2];
-            //     rLeftHandSideMatrix += inv_A2 * integration_weight * G_torsion1 * constitutive_variables.StressVector[3];
-            //     rLeftHandSideMatrix += inv_A2 * integration_weight * G_torsion2 * constitutive_variables.StressVector[4];
+                //Geometrical Stiffness
+                rLeftHandSideMatrix += inv_A4 * integration_weight * G_axial * constitutive_variables.StressVector[0];
+                rLeftHandSideMatrix += inv_A4 * integration_weight * G_bending1 * constitutive_variables.StressVector[1];
+                rLeftHandSideMatrix += inv_A4 * integration_weight * G_bending2 * constitutive_variables.StressVector[2];
+                rLeftHandSideMatrix += inv_A2 * integration_weight * G_torsion1 * constitutive_variables.StressVector[3];
+                rLeftHandSideMatrix += inv_A2 * integration_weight * G_torsion2 * constitutive_variables.StressVector[4];
 
-            // }
-            // if (CalculateResidualVectorFlag == true)
-            // {
-            //     // Map stress vector components to different behaviors
-            //     stress_axial[0] = constitutive_variables.StressVector[0];     // S11 for axial
-            //     stress_bending1[1] = constitutive_variables.StressVector[1];  // S11 for bending n  
-            //     stress_bending2[2] = constitutive_variables.StressVector[2];  // S11 for bending v
-            //     stress_torsion1[3] = constitutive_variables.StressVector[3];   // S12 for torsion n
-            //     stress_torsion2[4] = constitutive_variables.StressVector[4];   // S13 for torsion v
+            }
+            if (CalculateResidualVectorFlag == true)
+            {
+                // Map stress vector components to different behaviors
+                stress_axial[0] = constitutive_variables.StressVector[0];     // S11 for axial
+                stress_bending1[1] = constitutive_variables.StressVector[1];  // S11 for bending n  
+                stress_bending2[2] = constitutive_variables.StressVector[2];  // S11 for bending v
+                stress_torsion1[3] = constitutive_variables.StressVector[3];   // S12 for torsion n
+                stress_torsion2[4] = constitutive_variables.StressVector[4];   // S13 for torsion v
 
-            //     // Assemble forces with cross-sectional scaling (similar to stiffness)
-            //     rRightHandSideVector -= inv_A4 * integration_weight * prod(trans(B_axial), stress_axial);
-            //     rRightHandSideVector -= inv_A4 * integration_weight * prod(trans(B_bending1), stress_bending1);
-            //     rRightHandSideVector -= inv_A4 * integration_weight * prod(trans(B_bending2), stress_bending2);
-            //     rRightHandSideVector -= inv_A2 * integration_weight * prod(trans(B_torsion1), stress_torsion1);
-            //     rRightHandSideVector -= inv_A2 * integration_weight * prod(trans(B_torsion2), stress_torsion2);
-            // }
+                // Assemble forces with cross-sectional scaling (similar to stiffness)
+                rRightHandSideVector -= inv_A4 * integration_weight * prod(trans(B_axial), stress_axial);
+                rRightHandSideVector -= inv_A4 * integration_weight * prod(trans(B_bending1), stress_bending1);
+                rRightHandSideVector -= inv_A4 * integration_weight * prod(trans(B_bending2), stress_bending2);
+                rRightHandSideVector -= inv_A2 * integration_weight * prod(trans(B_torsion1), stress_torsion1);
+                rRightHandSideVector -= inv_A2 * integration_weight * prod(trans(B_torsion2), stress_torsion2);
+            }
         }
         KRATOS_CATCH("")
     }
@@ -3197,555 +3197,218 @@ namespace Kratos {
         Vector dR_vec = column(r_geometry.ShapeFunctionDerivatives(1, point_number, this->GetIntegrationMethod()), 0);
         Vector ddR_vec = column(r_geometry.ShapeFunctionDerivatives(2, point_number, this->GetIntegrationMethod()), 0);
         
-        Vector R_vec_ref(mNumberOfDofs);			//stays empty (variation of reference rotation =0) used for mat_Rod_var
-        R_vec_ref.clear();
-        Vector dR_vec_ref(mNumberOfDofs);		//stays empty (variation of reference rotation =0) used for mat_Rod_var & mat_Rod_der_var
-        dR_vec_ref.clear();
-
-        Vector phi_r(mNumberOfDofs);
-        Vector phi_der_r(mNumberOfDofs);
-        std::vector<Vector> phi_rs;
-        phi_rs.resize(mNumberOfDofs);
-        std::vector<Vector> phi_der_rs;
-        phi_der_rs.resize(mNumberOfDofs);
-        Vector Phi_r(mNumberOfDofs);
-        Vector Phi_der_r(mNumberOfDofs);
-        std::vector<Vector> Phi_rs;
-        Phi_rs.resize(mNumberOfDofs);
-        std::vector<Vector> Phi_der_rs;
-        Phi_der_rs.resize(mNumberOfDofs);
-
-        // 1st variation
         // variation of the axial strain 
-        Vector eps_dof(mNumberOfDofs,false);
+        Vector eps_dof;
+        eps_dof.resize(mNumberOfDofs);
+        eps_dof.clear();
+        
         //variation of curvature
-        Vector curv_dof_n(mNumberOfDofs);
-        Vector curv_dof_v(mNumberOfDofs);
+        Vector curv_dof_n;
+        Vector curv_dof_v;
+        curv_dof_n.resize(mNumberOfDofs);
+        curv_dof_v.resize(mNumberOfDofs);
+        curv_dof_n.clear();
+        curv_dof_v.clear();
+
         //variation of torsion
-        Vector tor_dof_n(mNumberOfDofs);     //E12
-        Vector tor_dof_v(mNumberOfDofs);     //E13
-
-        // 2nd variation
-        // variation of the axial strain 
-        Matrix eps_dof_2(mNumberOfDofs,mNumberOfDofs);
-        //variation of curvature
-        Matrix curv_dof_n_2(mNumberOfDofs,mNumberOfDofs);
-        Matrix curv_dof_v_2(mNumberOfDofs,mNumberOfDofs);  
-        //variation of torsion
-        Matrix tor_dof_n_2(mNumberOfDofs,mNumberOfDofs);
-        Matrix tor_dof_v_2(mNumberOfDofs,mNumberOfDofs);
-
-        Matrix mat_rod_var(3*mNumberOfDofs, 3);
-        Matrix mat_rodRod_var(3*mNumberOfDofs, 3);
-        Matrix mat_rod_der_var(3*mNumberOfDofs, 3);
-        Matrix mat_rodRod_der_var(3*mNumberOfDofs, 3);
-        Matrix mat_Rod_var(3*mNumberOfDofs, 3);
-        Matrix mat_Rod_der_var(3*mNumberOfDofs, 3);
-        Matrix mat_rod_var_var(3*mNumberOfDofs, 3*mNumberOfDofs);
-        Matrix mat_Rod_var_var(3*mNumberOfDofs, 3*mNumberOfDofs);
-        Matrix mat_rodRod_var_var(3*mNumberOfDofs, 3*mNumberOfDofs);
-        Matrix mat_rod_der_var_var(3*mNumberOfDofs, 3*mNumberOfDofs);
-        Matrix mat_Rod_der_var_var(3*mNumberOfDofs, 3*mNumberOfDofs);
-        Matrix mat_rodRod_der_var_var(3*mNumberOfDofs, 3*mNumberOfDofs);
-
-        Vector vec_rodRod_t3_r(3*mNumberOfDofs);
-        Vector vec_rodRod_t1_r(3*mNumberOfDofs);
-        Vector vec_rodRod_t3_der_r(3*mNumberOfDofs);
-        Vector vec_rodRod_t1_der_r(3*mNumberOfDofs);
-        Matrix vec_rodRod_r_t3_s(3*mNumberOfDofs,mNumberOfDofs);
-        Matrix vec_rodRod_t3_rs(3*mNumberOfDofs,mNumberOfDofs);
-        Matrix vec_rodRod_rs_t3(3*mNumberOfDofs,mNumberOfDofs);
-        Matrix vec_rodRod_r_t1_s(3*mNumberOfDofs,mNumberOfDofs);
-        Matrix vec_rodRod_t1_rs(3*mNumberOfDofs,mNumberOfDofs);
-        Matrix vec_rodRod_rs_t1(3*mNumberOfDofs,mNumberOfDofs);
+        Vector tor_dof_n;
+        Vector tor_dof_v;
+        tor_dof_n.resize(mNumberOfDofs);
+        tor_dof_v.resize(mNumberOfDofs);
+        tor_dof_n.clear();
+        tor_dof_v.clear();
 
         Matrix3d mat_rod;
+        mat_rod.clear();
         Matrix3d mat_Rod;
-        Matrix3d mat_Rod_ref;
+        mat_Rod.clear();
         Matrix3d mat_rodRod;
+        mat_rodRod.clear();
         Matrix3d mat_rod_der;
+        mat_rod_der.clear();
         Matrix3d mat_Rod_der;
-        Matrix3d mat_Rod_ref_der;
+        mat_Rod_der.clear();
         Matrix3d mat_rodRod_der;
+        mat_rodRod_der.clear();
+        Matrix mat_rod_var;
+        mat_rod_var.resize(3*mNumberOfDofs, 3);
+        mat_rod_var.clear();
+        Matrix mat_Rod_var;
+        mat_Rod_var.resize(3*mNumberOfDofs, 3);
+        mat_Rod_var.clear();
+        Matrix mat_rodRod_var;
+        mat_rodRod_var.resize(3*mNumberOfDofs, 3);
+        mat_rodRod_var.clear();
+        Matrix mat_rod_der_var;
+        mat_rod_der_var.resize(3*mNumberOfDofs, 3);
+        mat_rod_der_var.clear();
+        Matrix mat_Rod_der_var;
+        mat_Rod_der_var.resize(3*mNumberOfDofs, 3);
+        mat_Rod_der_var.clear();
+        Matrix mat_rodRod_der_var;
+        mat_rodRod_der_var.resize(3*mNumberOfDofs, 3);
+        mat_rodRod_der_var.clear();
+
+        Vector vec_rodRod_t3_r;
+        vec_rodRod_t3_r.resize(3*mNumberOfDofs);
+        vec_rodRod_t3_r.clear();
+        Vector vec_rodRod_t1_r;
+        vec_rodRod_t1_r.resize(3*mNumberOfDofs);
+        vec_rodRod_t1_r.clear();
+
+        Vector tmp_dof;
+        tmp_dof.resize(4,false);
+        tmp_dof.clear(); 
+
+        Vector phi_r;
+        Vector phi_der_r;
+        Vector Phi_r;
+        Vector Phi_der_r;
+        phi_r.resize(mNumberOfDofs);
+        phi_r.clear();
+        phi_der_r.resize(mNumberOfDofs);
+        phi_der_r.clear();
+        Phi_r.resize(mNumberOfDofs);
+        Phi_r.clear();
+        Phi_der_r.resize(mNumberOfDofs);
+        Phi_der_r.clear();
+
         
-        CompMatRodrigues(mat_rod,rNestedElementKinematicVariables.t2,rNestedElementKinematicVariables.phi);
         CompMatRodrigues(mat_Rod,rNestedElementKinematicVariables.t2,rNestedElementKinematicVariables.Phi);
-        CompMatRodrigues(mat_Rod_ref,rNestedElementKinematicVariables.T2,rNestedElementKinematicVariables.Phi);
-        CompMatRodriguesDeriv(mat_rod_der,rNestedElementKinematicVariables.t2,rNestedElementKinematicVariables.t2_der,rNestedElementKinematicVariables.phi,rNestedElementKinematicVariables.phi_der);
         CompMatRodriguesDeriv(mat_Rod_der,rNestedElementKinematicVariables.t2,rNestedElementKinematicVariables.t2_der,rNestedElementKinematicVariables.Phi,rNestedElementKinematicVariables.Phi_der);
-        CompMatRodriguesDeriv(mat_Rod_ref_der,rNestedElementKinematicVariables.T2,rNestedElementKinematicVariables.T2_der,rNestedElementKinematicVariables.Phi,rNestedElementKinematicVariables.Phi_der);
-
-        if (!mRotationXActive)
+        
+        Vector3d T3_rot = prod(mat_Rod,rNestedElementKinematicVariables.t3);
+        
+        if(!mRotationXActive)
         {
-            
-            CompMatRodriguesVar(mat_Rod_var,
-                rNestedElementKinematicVariables.t2,
-                rNestedElementKinematicVariables.t2_r,
-                Phi_r,
-                rNestedElementKinematicVariables.Phi); //Phi_r output?
-            CompMatRodriguesDerivVar(mat_Rod_der_var,
-                rNestedElementKinematicVariables.t2,
-                rNestedElementKinematicVariables.t2_r,
-                rNestedElementKinematicVariables.t2_der,
-                rNestedElementKinematicVariables.t2_der_r,
-                Phi_r,
-                Phi_der_r,
-                rNestedElementKinematicVariables.Phi,
-                rNestedElementKinematicVariables.Phi_der);
-            CompMatRodriguesVarVar(mat_Rod_var_var,
-                rNestedElementKinematicVariables.t2,
-                rNestedElementKinematicVariables.t2_r,
-                rNestedElementKinematicVariables.t2_rs,
-                R_vec,
-                rNestedElementKinematicVariables.Phi);
-            CompMatRodriguesDerivVarVar(mat_Rod_der_var_var,
-                rNestedElementKinematicVariables.t2,
-                rNestedElementKinematicVariables.t2_r,
-                rNestedElementKinematicVariables.t2_der,
-                rNestedElementKinematicVariables.t2_der_r,
-                rNestedElementKinematicVariables.t2_rs,
-                rNestedElementKinematicVariables.t2_der_rs,
-                R_vec,
-                dR_vec,
-                rNestedElementKinematicVariables.Phi,
-                rNestedElementKinematicVariables.Phi_der);
-            
-            KRATOS_WATCH("HI");
-            for( size_t t =0;t<3;t++)  
-            { 
-            for( size_t k=0;k<3;k++)
+            for (size_t r=0;r<mNumberOfDofs; r++)
             {
-                for(size_t r=0;r<mNumberOfDofs;r++)
-                {
-                size_t i = r/mDofsPerNode;
-                size_t xyz_r = r%mDofsPerNode;
-                size_t r_new = i*3+xyz_r;
-                vec_rodRod_t3_r(t*mNumberOfDofs+r) += mat_Rod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3(k);
-                vec_rodRod_t1_r(t*mNumberOfDofs+r) += mat_Rod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1(k);
-                vec_rodRod_t3_der_r(t*mNumberOfDofs+r) += mat_Rod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3(k) + mat_Rod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_der(k);
-                vec_rodRod_t1_der_r(t*mNumberOfDofs+r) += mat_Rod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1(k) + mat_Rod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_der(k);
-
-                if(xyz_r<3)
-                {
-                    vec_rodRod_t3_r(t*mNumberOfDofs+r) += mat_Rod(t,k)*rNestedElementKinematicVariables.t3_r[r_new](k);
-                    vec_rodRod_t1_r(t*mNumberOfDofs+r) += mat_Rod(t,k)*rNestedElementKinematicVariables.t1_r[r_new](k); 
-                    vec_rodRod_t3_der_r(t*mNumberOfDofs+r) += mat_Rod_der(t,k)*rNestedElementKinematicVariables.t3_r[r_new](k)+mat_Rod(t,k)*rNestedElementKinematicVariables.t3_der_r[r_new](k);
-                    vec_rodRod_t1_der_r(t*mNumberOfDofs+r) += mat_Rod_der(t,k)*rNestedElementKinematicVariables.t1_r[r_new](k)+mat_Rod(t,k)*rNestedElementKinematicVariables.t1_der_r[r_new](k);
-                }
-                            for(size_t s=0;s<mDofsPerNode;s++)
-                {
-                    size_t j = s/mDofsPerNode;
-                    size_t xyz_s = s%mDofsPerNode;
-                    size_t s_new = j*3+xyz_s;
-
-                    vec_rodRod_rs_t3(t*mNumberOfDofs+r,s) += mat_Rod_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t3(k);
-                    vec_rodRod_rs_t1(t*mNumberOfDofs+r,s) += mat_Rod_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t1(k);
-                    if (xyz_s < 3)
-                    {
-                    vec_rodRod_r_t3_s(t*mNumberOfDofs+r,s) += mat_Rod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_r[s_new](k);
-                    vec_rodRod_r_t1_s(t*mNumberOfDofs+r,s) += mat_Rod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_r[s_new](k);
-                    if( xyz_r<3)
-                    {
-                        vec_rodRod_t3_rs(t*mNumberOfDofs+r,s) += mat_Rod(t,k)*rNestedElementKinematicVariables.t3_rs[r_new][s_new](k);
-                        vec_rodRod_t1_rs(t*mNumberOfDofs+r,s) += mat_Rod(t,k)*rNestedElementKinematicVariables.t1_rs[r_new][s_new](k);
-                    }
-                    }
-                }
-                }
+                eps_dof(r) = inner_prod(rNestedElementKinematicVariables.tilde_t2, rNestedElementKinematicVariables.tilde_t2_r[r]);
+                Vector3d temp_curv_n_1 = prec_prod(mat_Rod,rNestedElementKinematicVariables.t3_der_r[r])+prec_prod(mat_Rod_der,rNestedElementKinematicVariables.t3_r[r]);
+                Vector3d temp_curv_n_2 = prec_prod(mat_Rod,rNestedElementKinematicVariables.t3_der)+prec_prod(mat_Rod_der,rNestedElementKinematicVariables.t3);
+                curv_dof_n(r) = inner_prod(temp_curv_n_1,rNestedElementKinematicVariables.tilde_t2)+inner_prod(temp_curv_n_2,rNestedElementKinematicVariables.tilde_t2_r[r]);
+                Vector3d temp_curv_v_1 = prec_prod(mat_Rod,rNestedElementKinematicVariables.t1_der_r[r])+prec_prod(mat_Rod_der,rNestedElementKinematicVariables.t1_r[r]);
+                Vector3d temp_curv_v_2 = prec_prod(mat_Rod,rNestedElementKinematicVariables.t1_der)+prec_prod(mat_Rod_der,rNestedElementKinematicVariables.t1);
+                curv_dof_v(r) = inner_prod(temp_curv_v_1,rNestedElementKinematicVariables.tilde_t2)+inner_prod(temp_curv_v_2,rNestedElementKinematicVariables.tilde_t2_r[r]);
+                Vector3d temp_tor_n_1 = prec_prod(mat_Rod,rNestedElementKinematicVariables.t1_der_r[r])+prec_prod(mat_Rod_der,rNestedElementKinematicVariables.t1_r[r]);
+                Vector3d temp_tor_n_2 = prec_prod(mat_Rod,rNestedElementKinematicVariables.t3);
+                Vector3d temp_tor_n_3 = prec_prod(mat_Rod,rNestedElementKinematicVariables.t1_der)+prec_prod(mat_Rod_der,rNestedElementKinematicVariables.t1);
+                Vector3d temp_tor_n_4 = prec_prod(mat_Rod,rNestedElementKinematicVariables.t3_r[r]);
+                tor_dof_n(r) = inner_prod(temp_tor_n_1,temp_tor_n_2)+inner_prod(temp_tor_n_3,temp_tor_n_4);
+                Vector3d temp_tor_v_1 = prec_prod(mat_Rod,rNestedElementKinematicVariables.t3_der_r[r])+prec_prod(mat_Rod_der,rNestedElementKinematicVariables.t3_r[r]);
+                Vector3d temp_tor_v_2 = prec_prod(mat_Rod,rNestedElementKinematicVariables.t1);
+                Vector3d temp_tor_v_3 = prec_prod(mat_Rod,rNestedElementKinematicVariables.t3_der)+prec_prod(mat_Rod_der,rNestedElementKinematicVariables.t3);
+                Vector3d temp_tor_v_4 = prec_prod(mat_Rod,rNestedElementKinematicVariables.t1_r[r]);
+                tor_dof_v(r) = inner_prod(temp_tor_v_1,temp_tor_v_2)+inner_prod(temp_tor_v_3,temp_tor_v_4);
             }
-            }
+        }
+        else
+        {
 
+            for (size_t r=0;r<mNumberOfDofs; r++)
+            {
+            eps_dof(r) = inner_prod(rNestedElementKinematicVariables.tilde_t2, rNestedElementKinematicVariables.tilde_t2_r[r]);
+                    size_t i = r/mDofsPerNode;
+                    size_t xyz = r%mDofsPerNode;
+                    if (xyz ==3)
+                    {
+                        phi_r(r) = R_vec[i];
+                        phi_der_r(r) = dR_vec[i];
+                    }
+            }
+            CompMatRodrigues(mat_rod,rNestedElementKinematicVariables.t2,rNestedElementKinematicVariables.phi);
+            CompMatRodriguesDeriv(mat_rod_der,rNestedElementKinematicVariables.t2,rNestedElementKinematicVariables.t2_der,rNestedElementKinematicVariables.phi,rNestedElementKinematicVariables.phi_der); 
+            CompMatRodriguesDeriv(mat_Rod_der,rNestedElementKinematicVariables.t2,rNestedElementKinematicVariables.t2_der,rNestedElementKinematicVariables.Phi,rNestedElementKinematicVariables.Phi_der);
+            CompMatRodriguesVar(mat_rod_var,rNestedElementKinematicVariables.t2,rNestedElementKinematicVariables.t2_r,phi_r,rNestedElementKinematicVariables.Phi);
+            CompMatRodriguesVar(mat_Rod_var,rNestedElementKinematicVariables.t2,rNestedElementKinematicVariables.t2_r,Phi_r,rNestedElementKinematicVariables.Phi);
+            CompMatRodriguesDerivVar(mat_rod_der_var,rNestedElementKinematicVariables.t2,rNestedElementKinematicVariables.t2_r,rNestedElementKinematicVariables.t2_der,rNestedElementKinematicVariables.t2_der_r,phi_r,phi_der_r,rNestedElementKinematicVariables.Phi,rNestedElementKinematicVariables.Phi_der);
+            CompMatRodriguesDerivVar(mat_Rod_der_var,rNestedElementKinematicVariables.t2,rNestedElementKinematicVariables.t2_r,rNestedElementKinematicVariables.t2_der,rNestedElementKinematicVariables.t2_der_r,Phi_r,Phi_der_r,rNestedElementKinematicVariables.Phi,rNestedElementKinematicVariables.Phi_der);
+            
             for( size_t t =0;t<3;t++)
             { 
-            for( size_t k=0;k<3;k++)
-            {
-                for(size_t r=0;r<mNumberOfDofs;r++)
-                {
-                    eps_dof(r) = inner_prod(rNestedElementKinematicVariables.tilde_t2, rNestedElementKinematicVariables.tilde_t2_r[r]);
-                    size_t i = r/mDofsPerNode;
-                    size_t xyz_r = r%mDofsPerNode;
-                    size_t r_new = i*3+xyz_r; 
-
-                {
-                    curv_dof_n(r)+=mat_Rod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3(k)*rNestedElementKinematicVariables.tilde_t2[t]+mat_Rod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_der[k]*rNestedElementKinematicVariables.tilde_t2[t];
-                    curv_dof_v(r)+=mat_Rod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1(k)*rNestedElementKinematicVariables.tilde_t2[t]+mat_Rod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_der[k]*rNestedElementKinematicVariables.tilde_t2[t];
-                    tor_dof_n(r)+=(mat_Rod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1[k]+mat_Rod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_der[k])*rNestedElementKinematicVariables.t3_rot(t) + (mat_Rod_der(t,k)*rNestedElementKinematicVariables.t1[k]+mat_Rod(t,k)*rNestedElementKinematicVariables.t1_der[k])*vec_rodRod_t3_r(t*mNumberOfDofs+r);
-                    tor_dof_v(r)+=(mat_Rod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3[k]+mat_Rod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_der[k])*rNestedElementKinematicVariables.t1_rot(t) + (mat_Rod_der(t,k)*rNestedElementKinematicVariables.t3[k]+mat_Rod(t,k)*rNestedElementKinematicVariables.t3_der[k])*vec_rodRod_t1_r(t*mNumberOfDofs+r);
-                }
-                //else
-                if(xyz_r<3)
-                {
-                    curv_dof_n(r)+=mat_Rod_der(t,k)*(rNestedElementKinematicVariables.t3_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2[t] + rNestedElementKinematicVariables.t3[k]*rNestedElementKinematicVariables.tilde_t2_r[r][t]) + mat_Rod(t,k)*(rNestedElementKinematicVariables.t3_der_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2[t]+rNestedElementKinematicVariables.t3_der[k]*rNestedElementKinematicVariables.tilde_t2_r[r][t]);
-                    curv_dof_v(r)+=mat_Rod_der(t,k)*(rNestedElementKinematicVariables.t1_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2[t] + rNestedElementKinematicVariables.t1[k]*rNestedElementKinematicVariables.tilde_t2_r[r][t]) + mat_Rod(t,k)*(rNestedElementKinematicVariables.t1_der_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2[t]+rNestedElementKinematicVariables.t1_der[k]*rNestedElementKinematicVariables.tilde_t2_r[r][t]);
-                    tor_dof_n(r)+=(mat_Rod_der(t,k)*rNestedElementKinematicVariables.t1_r[r_new][k]+mat_Rod(t,k)*rNestedElementKinematicVariables.t1_der_r[r_new][k])*rNestedElementKinematicVariables.t3_rot(t);
-                    tor_dof_v(r)+=(mat_Rod_der(t,k)*rNestedElementKinematicVariables.t3_r[r_new][k]+mat_Rod(t,k)*rNestedElementKinematicVariables.t3_der_r[r_new][k])*rNestedElementKinematicVariables.t1_rot(t);
-                }
-                for (size_t s = 0; s< mNumberOfDofs;s++)
-                {
-                    size_t j = s/mDofsPerNode;
-                    size_t xyz_s = s%mDofsPerNode;
-                    size_t s_new = j*3+xyz_s; 
-                    eps_dof_2(r,s) = inner_prod(rNestedElementKinematicVariables.tilde_t2_r[r], rNestedElementKinematicVariables.tilde_t2_r[s]);
-                    {
-                    curv_dof_n_2(r,s)+=mat_Rod_der_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t3(k)*rNestedElementKinematicVariables.tilde_t2[t]
-                                                                        +mat_Rod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3(k)*rNestedElementKinematicVariables.tilde_t2_r[s][t]
-                                                                        +mat_Rod_der_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t3(k)*rNestedElementKinematicVariables.tilde_t2_r[r][t]
-                                                                        +mat_Rod_der(t,k)* rNestedElementKinematicVariables.t3[k]*rNestedElementKinematicVariables.tilde_t2_rs[r][s][t]
-                                                                        +mat_Rod_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t3_der[k]*rNestedElementKinematicVariables.tilde_t2[t]
-                                                                        +mat_Rod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_der[k]*rNestedElementKinematicVariables.tilde_t2_r[s][t]
-                                                                        +mat_Rod_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t3_der[k]*rNestedElementKinematicVariables.tilde_t2_r[r][t]
-                                                                        +mat_Rod(t,k)* rNestedElementKinematicVariables.t3_der[k]*rNestedElementKinematicVariables.tilde_t2_rs[r][s][t];
-                    curv_dof_v_2(r,s)+=mat_Rod_der_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t1(k)*rNestedElementKinematicVariables.tilde_t2[t]
-                                                                        +mat_Rod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1(k)*rNestedElementKinematicVariables.tilde_t2_r[s][t]
-                                                                        +mat_Rod_der_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t1(k)*rNestedElementKinematicVariables.tilde_t2_r[r][t]
-                                                                        +mat_Rod_der(t,k)* rNestedElementKinematicVariables.t1[k]*rNestedElementKinematicVariables.tilde_t2_rs[r][s][t]
-                                                                        +mat_Rod_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t1_der[k]*rNestedElementKinematicVariables.tilde_t2[t]
-                                                                        +mat_Rod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_der[k]*rNestedElementKinematicVariables.tilde_t2_r[s][t]
-                                                                        +mat_Rod_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t1_der[k]*rNestedElementKinematicVariables.tilde_t2_r[r][t]
-                                                                        +mat_Rod(t,k)* rNestedElementKinematicVariables.t1_der[k]*rNestedElementKinematicVariables.tilde_t2_rs[r][s][t];
-                    tor_dof_n_2(r,s)+=(mat_Rod_der_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t1[k]+mat_Rod_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t1_der[k])*rNestedElementKinematicVariables.t3_rot(t)
-                                        +(mat_Rod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1[k]+mat_Rod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_der[k])*vec_rodRod_t3_r(t*mNumberOfDofs+s) 
-                                        +(mat_Rod_der_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t1[k]+mat_Rod_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t1_der[k])*vec_rodRod_t3_r(t*mNumberOfDofs+r)
-                                        +(mat_Rod_der(t,k)*rNestedElementKinematicVariables.t1[k]+mat_Rod(t,k)*rNestedElementKinematicVariables.t1_der[k])*(vec_rodRod_rs_t3(t*mNumberOfDofs+r,s)+vec_rodRod_r_t3_s(t*mNumberOfDofs+r,s)+vec_rodRod_r_t3_s(t*mNumberOfDofs+s,r)+vec_rodRod_t3_rs(t*mNumberOfDofs+r,s));
-                    tor_dof_v_2(r,s)+=(mat_Rod_der_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t3[k]+mat_Rod_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t3_der[k])*rNestedElementKinematicVariables.t1_rot(t)
-                                        +(mat_Rod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3[k]+mat_Rod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_der[k])*vec_rodRod_t1_r(t*mNumberOfDofs+s) 
-                                        +(mat_Rod_der_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t3[k]+mat_Rod_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t3_der[k])*vec_rodRod_t1_r(t*mNumberOfDofs+r)
-                                        +(mat_Rod_der(t,k)*rNestedElementKinematicVariables.t3[k]+mat_Rod(t,k)*rNestedElementKinematicVariables.t3_der[k])*(vec_rodRod_rs_t1(t*mNumberOfDofs+r,s)+vec_rodRod_r_t1_s(t*mNumberOfDofs+r,s)+vec_rodRod_r_t1_s(t*mNumberOfDofs+s,r)+vec_rodRod_t1_rs(t*mNumberOfDofs+r,s));
-                    if (xyz_s<3)
-                    {
-                        curv_dof_n_2(r,s)+= mat_Rod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_r[s_new](k)*rNestedElementKinematicVariables.tilde_t2[t]
-                                                                            + mat_Rod_der(t,k)*rNestedElementKinematicVariables.t3_r[s_new][k]*rNestedElementKinematicVariables.tilde_t2_r[r][t]
-                                                                            + mat_Rod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_der_r[s_new][k]*rNestedElementKinematicVariables.tilde_t2[t]
-                                                                            + mat_Rod(t,k)*rNestedElementKinematicVariables.t3_der_r[s_new][k]*rNestedElementKinematicVariables.tilde_t2_r[r][t];
-                        curv_dof_v_2(r,s)+=mat_Rod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_r[s_new](k)*rNestedElementKinematicVariables.tilde_t2[t]
-                                                                            + mat_Rod_der(t,k)*rNestedElementKinematicVariables.t1_r[s_new][k]*rNestedElementKinematicVariables.tilde_t2_r[r][t]
-                                                                            + mat_Rod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_der_r[s_new][k]*rNestedElementKinematicVariables.tilde_t2[t]
-                                                                            + mat_Rod(t,k)*rNestedElementKinematicVariables.t1_der_r[s_new][k]*rNestedElementKinematicVariables.tilde_t2_r[r][t];
-                        tor_dof_n_2(r,s)+=(mat_Rod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_r[s_new][k]+mat_Rod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_der_r[s_new][k])*rNestedElementKinematicVariables.t3_rot(t) 
-                                                                        + (mat_Rod_der(t,k)*rNestedElementKinematicVariables.t1_r[s_new][k]+mat_Rod(t,k)*rNestedElementKinematicVariables.t1_der_r[s_new][k])*vec_rodRod_t3_r(t*mNumberOfDofs+r);
-                        tor_dof_v_2(r,s)+=(mat_Rod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_r[s_new][k]+mat_Rod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_der_r[s_new][k])*rNestedElementKinematicVariables.t1_rot(t) 
-                                                                        + (mat_Rod_der(t,k)*rNestedElementKinematicVariables.t3_r[s_new][k]+mat_Rod(t,k)*rNestedElementKinematicVariables.t3_der_r[s_new][k])*vec_rodRod_t1_r(t*mNumberOfDofs+r);
-                    }
-                    }
-                    if(xyz_r<3)
-                    {
-                    curv_dof_n_2(r,s)+= mat_Rod_der_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t3_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2[t] 
-                                                                        + mat_Rod_der(t,k)*rNestedElementKinematicVariables.t3_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2_r[s][t]
-                                                                        + mat_Rod_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t3_der_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2[t] 
-                                                                        + mat_Rod(t,k)*rNestedElementKinematicVariables.t3_der_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2_r[s][t];
-                    curv_dof_v_2(r,s)+= mat_Rod_der_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t1_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2[t] 
-                                                                        + mat_Rod_der(t,k)*rNestedElementKinematicVariables.t1_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2_r[s][t]
-                                                                        + mat_Rod_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t1_der_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2[t] 
-                                                                        + mat_Rod(t,k)*rNestedElementKinematicVariables.t1_der_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2_r[s][t];
-                                    tor_dof_n_2(r,s)+=  (mat_Rod_der_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t1_r[r_new][k]+mat_Rod_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t1_der_r[r_new][k])*rNestedElementKinematicVariables.t3_rot(t)
-                                        + (mat_Rod_der(t,k)*rNestedElementKinematicVariables.t1_r[r_new][k]+mat_Rod(t,k)*rNestedElementKinematicVariables.t1_der_r[r_new][k])*vec_rodRod_t3_r[t*mNumberOfDofs+s];
-                    tor_dof_v_2(r,s)+=  (mat_Rod_der_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t3_r[r_new][k]+mat_Rod_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t3_der_r[r_new][k])*rNestedElementKinematicVariables.t1_rot(t)
-                                        + (mat_Rod_der(t,k)*rNestedElementKinematicVariables.t3_r[r_new][k]+mat_Rod(t,k)*rNestedElementKinematicVariables.t3_der_r[r_new][k])*vec_rodRod_t1_r[t*mNumberOfDofs+s];
-                    if(xyz_s<3)
-                    {
-                        curv_dof_n_2(r,s)+= mat_Rod_der(t,k)*rNestedElementKinematicVariables.t3_rs[r_new][s_new][k]*rNestedElementKinematicVariables.tilde_t2[t] 
-                                                                            + mat_Rod(t,k)*rNestedElementKinematicVariables.t3_der_rs[r_new][s_new][k]*rNestedElementKinematicVariables.tilde_t2[t];
-                        curv_dof_v_2(r,s)+= mat_Rod_der(t,k)*rNestedElementKinematicVariables.t1_rs[r_new][s_new][k]*rNestedElementKinematicVariables.tilde_t2[t] 
-                                                                            + mat_Rod(t,k)*rNestedElementKinematicVariables.t1_der_rs[r_new][s_new][k]*rNestedElementKinematicVariables.tilde_t2[t];
-                        tor_dof_n_2(r,s)+=  (mat_Rod_der(t,k)*rNestedElementKinematicVariables.t1_rs[r_new][s_new][k]+mat_Rod(t,k)*rNestedElementKinematicVariables.t1_der_rs[r_new][s_new][k])*rNestedElementKinematicVariables.t3_rot(t);
-                        tor_dof_v_2(r,s)+=  (mat_Rod_der(t,k)*rNestedElementKinematicVariables.t3_rs[r_new][s_new][k]+mat_Rod(t,k)*rNestedElementKinematicVariables.t3_der_rs[r_new][s_new][k])*rNestedElementKinematicVariables.t1_rot(t);
-                    }
-                    }
-                }
-                }
-            }
-            }
-        }
-        else //(if 4th dof is activated)
-        {
-        for(size_t r = 0; r<mNumberOfDofs;r++)
-        {
-            size_t xyz_r = r%mDofsPerNode; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-            size_t i = r/mDofsPerNode;     // index for the shape functions
-            //size_t r_new = i*3+xyz_r;   // for variations without variation wrt to phi
-            eps_dof(r) = inner_prod(rNestedElementKinematicVariables.tilde_t2, rNestedElementKinematicVariables.tilde_t2_r[r]);
-            if(xyz_r==3)
-            {
-                phi_r[r] = R_vec[i];
-                phi_der_r[r]= dR_vec[i];     
-            }
-            Phi_r[r] = 0;
-            Phi_der_r[r] = 0;      
-            phi_rs[r].resize(mNumberOfDofs);
-            phi_rs[r].clear();
-            phi_der_rs[r].resize(mNumberOfDofs);
-            phi_der_rs[r].clear();
-            Phi_rs[r].resize(mNumberOfDofs);
-            Phi_rs[r].clear();
-            Phi_der_rs[r].resize(mNumberOfDofs);
-            Phi_der_rs[r].clear();
-            for (size_t s=0; s<mNumberOfDofs; s++) 
-            {
-                eps_dof_2(r,s) = inner_prod(rNestedElementKinematicVariables.tilde_t2_r[r], rNestedElementKinematicVariables.tilde_t2_r[s]);
-            }
-        }
-
-        CompMatRodriguesVar(mat_rod_var,
-            rNestedElementKinematicVariables.t2,
-            rNestedElementKinematicVariables.t2_r,
-            phi_r,
-            rNestedElementKinematicVariables.phi);
-        CompMatRodriguesDerivVar(mat_rod_der_var,
-            rNestedElementKinematicVariables.t2,
-            rNestedElementKinematicVariables.t2_r,
-            rNestedElementKinematicVariables.t2_der,
-            rNestedElementKinematicVariables.t2_der_r,
-            phi_r,
-            phi_der_r,
-            rNestedElementKinematicVariables.phi,
-            rNestedElementKinematicVariables.phi_der);
-        CompMatRodriguesVar(mat_Rod_var,
-            rNestedElementKinematicVariables.t2,
-            rNestedElementKinematicVariables.t2_r,
-            Phi_r,
-            rNestedElementKinematicVariables.Phi);
-        CompMatRodriguesDerivVar(mat_Rod_der_var,
-            rNestedElementKinematicVariables.t2,
-            rNestedElementKinematicVariables.t2_r,
-            rNestedElementKinematicVariables.t2_der,
-            rNestedElementKinematicVariables.t2_der_r,
-            Phi_r,
-            Phi_der_r,
-            rNestedElementKinematicVariables.Phi,
-            rNestedElementKinematicVariables.Phi_der);
-        CompMatRodriguesVarVar(mat_rod_var_var,
-            rNestedElementKinematicVariables.t2,
-            rNestedElementKinematicVariables.t2_r,
-            rNestedElementKinematicVariables.t2_rs,
-            R_vec,
-            rNestedElementKinematicVariables.phi);
-        CompMatRodriguesVarVar(mat_Rod_var_var,
-            rNestedElementKinematicVariables.t2,
-            rNestedElementKinematicVariables.t2_r,
-            rNestedElementKinematicVariables.t2_rs,
-            R_vec_ref,
-            rNestedElementKinematicVariables.Phi);
-        CompMatRodriguesDerivVarVar(mat_rod_der_var_var,
-            rNestedElementKinematicVariables.t2,
-            rNestedElementKinematicVariables.t2_r,
-            rNestedElementKinematicVariables.t2_der,
-            rNestedElementKinematicVariables.t2_der_r,
-            rNestedElementKinematicVariables.t2_rs,
-            rNestedElementKinematicVariables.t2_der_rs,
-            R_vec,
-            dR_vec,
-            rNestedElementKinematicVariables.phi,
-            rNestedElementKinematicVariables.phi_der);
-        CompMatRodriguesDerivVarVar(mat_Rod_der_var_var,
-            rNestedElementKinematicVariables.t2,
-            rNestedElementKinematicVariables.t2_r,
-            rNestedElementKinematicVariables.t2_der,
-            rNestedElementKinematicVariables.t2_der_r,
-            rNestedElementKinematicVariables.t2_rs,
-            rNestedElementKinematicVariables.t2_der_rs,
-            R_vec_ref,
-            dR_vec_ref,
-            rNestedElementKinematicVariables.Phi,
-            rNestedElementKinematicVariables.Phi_der);
-
-        for( size_t t =0;t<3;t++)  
-        { 
             for( size_t u=0;u<3;u++)
             {
                 for( size_t k=0;k<3;k++)
                 {
-                    for(size_t r=0;r<mNumberOfDofs;r++)
-                    {
-                        mat_rodRod_der_var(t*mNumberOfDofs+r,u)+=mat_rod_der_var(t*mNumberOfDofs+r,k)*mat_Rod(k,u)+mat_rod_der(t,k)*mat_Rod_var(k*mNumberOfDofs+r,u)+mat_rod_var(t*mNumberOfDofs+r,k)*mat_Rod_der(k,u)+mat_rod(t,k)*mat_Rod_der_var(k*mNumberOfDofs+r,u);
-                        mat_rodRod_var(t*mNumberOfDofs+r,u)+=mat_rod_var(t*mNumberOfDofs+r,k)*mat_Rod(k,u)+mat_rod(t,k)*mat_Rod_var(k*mNumberOfDofs+r,u);
-                                    for(size_t s=0;s<mNumberOfDofs;s++)
-                        {
-                        mat_rodRod_der_var_var(t*mNumberOfDofs+r,u*mNumberOfDofs+s)+=mat_rod_der_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*mat_Rod(k,u)
-                                                                    +mat_rod_der_var(t*mNumberOfDofs+r,k)*mat_Rod_var(k*mNumberOfDofs+s,u)
-                                                                    +mat_rod_der_var(t*mNumberOfDofs+s,k)*mat_Rod_var(k*mNumberOfDofs+r,u)
-                                                                    +mat_rod_der(t,k)*mat_Rod_var_var(k*mNumberOfDofs+r,u*mNumberOfDofs+s)
-                                                                    +mat_rod_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*mat_Rod_der(k,u)
-                                                                    +mat_rod_var(t*mNumberOfDofs+r,k)*mat_Rod_der_var(k*mNumberOfDofs+s,u)
-                                                                    +mat_rod_var(t*mNumberOfDofs+s,k)*mat_Rod_der_var(k*mNumberOfDofs+r,u)
-                                                                    +mat_rod(t,k)*mat_Rod_der_var_var(k*mNumberOfDofs+r,u*mNumberOfDofs+s);
-                        mat_rodRod_var_var(t*mNumberOfDofs+r,u*mNumberOfDofs+s)+=mat_rod_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*mat_Rod(k,u)
-                                                                +mat_rod_var(t*mNumberOfDofs+r,k)*mat_Rod_var(k*mNumberOfDofs+s,u)
-                                                                +mat_rod_var(t*mNumberOfDofs+s,k)*mat_Rod_var(k*mNumberOfDofs+r,u)
-                                                                +mat_rod(t,k)*mat_Rod_var_var(k*mNumberOfDofs+r,u*mNumberOfDofs+s);
-                        }
-                    }
+                mat_rodRod_der(t,u)+=mat_rod_der(t,k)*mat_Rod(k,u)+mat_rod(t,k)*mat_Rod_der(k,u);
+                mat_rodRod(t,u)+=mat_rod(t,k)*mat_Rod(k,u);
+                for(size_t r=0;r<mNumberOfDofs;r++)
+                {
+                    mat_rodRod_der_var(t*mNumberOfDofs+r,u)+=mat_rod_der_var(t*mNumberOfDofs+r,k)*mat_Rod(k,u)+mat_rod_der(t,k)*mat_Rod_var(k*mNumberOfDofs+r,u)+mat_rod_var(t*mNumberOfDofs+r,k)*mat_Rod_der(k,u)+mat_rod(t,k)*mat_Rod_der_var(k*mNumberOfDofs+r,u);
+                    mat_rodRod_var(t*mNumberOfDofs+r,u)+=mat_rod_var(t*mNumberOfDofs+r,k)*mat_Rod(k,u)+mat_rod(t,k)*mat_Rod_var(k*mNumberOfDofs+r,u);
+                }
                 }
             }
-        }
+            }
 
-        for( size_t t =0;t<3;t++)  
-        { 
+            for( size_t t =0;t<3;t++)  
+            { 
             for( size_t k=0;k<3;k++)
             {
+                rNestedElementKinematicVariables.t3_rot(t)+=mat_rodRod(t,k)*rNestedElementKinematicVariables.t3(k);
+                rNestedElementKinematicVariables.t1_rot(t)+=mat_rodRod(t,k)*rNestedElementKinematicVariables.t1(k);
                 for(size_t r=0;r<mNumberOfDofs;r++)
                 {
                 size_t i = r/mDofsPerNode;
-                size_t xyz_r = r%mDofsPerNode;
-                size_t r_new = i*3+xyz_r;
+                size_t xyz = r%mDofsPerNode;
+                size_t r_new = i*3+xyz;
                 vec_rodRod_t3_r(t*mNumberOfDofs+r) += mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3(k);
                 vec_rodRod_t1_r(t*mNumberOfDofs+r) += mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1(k);
-                vec_rodRod_t3_der_r(t*mNumberOfDofs+r) += mat_rodRod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3(k) + mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_der(k);
-                vec_rodRod_t1_der_r(t*mNumberOfDofs+r) += mat_rodRod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1(k) + mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_der(k);
-
-                if(xyz_r<3)
+                if(xyz<3)
                 {
                     vec_rodRod_t3_r(t*mNumberOfDofs+r) += mat_rodRod(t,k)*rNestedElementKinematicVariables.t3_r[r_new](k);
                     vec_rodRod_t1_r(t*mNumberOfDofs+r) += mat_rodRod(t,k)*rNestedElementKinematicVariables.t1_r[r_new](k); 
-                    vec_rodRod_t3_der_r(t*mNumberOfDofs+r) += mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t3_r[r_new](k)+mat_rodRod(t,k)*rNestedElementKinematicVariables.t3_der_r[r_new](k);
-                    vec_rodRod_t1_der_r(t*mNumberOfDofs+r) += mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t1_r[r_new](k)+mat_rodRod(t,k)*rNestedElementKinematicVariables.t1_der_r[r_new](k);
-                }
-                            for(size_t s=0;s<mNumberOfDofs;s++)
-                {
-                    size_t j = s/mDofsPerNode;
-                    size_t xyz_s = s%mDofsPerNode;
-                    size_t s_new = j*3+xyz_s;
-
-                    vec_rodRod_rs_t3(t*mNumberOfDofs+r,s) += mat_rodRod_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t3(k);
-                    vec_rodRod_rs_t1(t*mNumberOfDofs+r,s) += mat_rodRod_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t1(k);
-
-                    if (xyz_s < 3)
-                    {
-                    vec_rodRod_r_t3_s(t*mNumberOfDofs+r,s) += mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_r[s_new](k);
-                    vec_rodRod_r_t1_s(t*mNumberOfDofs+r,s) += mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_r[s_new](k);
-                    if( xyz_r<3)
-                    {
-                        vec_rodRod_t3_rs(t*mNumberOfDofs+r,s) += mat_rodRod(t,k)*rNestedElementKinematicVariables.t3_rs[r_new][s_new](k);
-                        vec_rodRod_t1_rs(t*mNumberOfDofs+r,s) += mat_rodRod(t,k)*rNestedElementKinematicVariables.t1_rs[r_new][s_new](k);
-                    }
-                    }
                 }
                 }
             }
-        }
-    
-    
-        for( size_t t =0;t<3;t++)
-        { 
+            }
+            
+            for( size_t t =0;t<3;t++)   
+            { 
             for( size_t k=0;k<3;k++)
             {
                 for(size_t r=0;r<mNumberOfDofs;r++)
                 {
                 size_t i = r/mDofsPerNode;
-                size_t xyz_r = r%mDofsPerNode;
-                size_t r_new = i*3+xyz_r; 
-                //if (xyz >2)
+                size_t xyz = r%mDofsPerNode;
+                size_t r_new = i*3+xyz;
                 {
                     curv_dof_n(r)+=mat_rodRod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3(k)*rNestedElementKinematicVariables.tilde_t2[t]+mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_der[k]*rNestedElementKinematicVariables.tilde_t2[t];
                     curv_dof_v(r)+=mat_rodRod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1(k)*rNestedElementKinematicVariables.tilde_t2[t]+mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_der[k]*rNestedElementKinematicVariables.tilde_t2[t];
                     tor_dof_n(r)+=(mat_rodRod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1[k]+mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_der[k])*rNestedElementKinematicVariables.t3_rot(t) + (mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t1[k]+mat_rodRod(t,k)*rNestedElementKinematicVariables.t1_der[k])*vec_rodRod_t3_r(t*mNumberOfDofs+r);
-                    tor_dof_v(r)+=(mat_rodRod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3[k]+mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_der[k])*rNestedElementKinematicVariables.t1_rot(t) + (mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t3[k]+mat_rodRod(t,k)*rNestedElementKinematicVariables.t3_der[k])*vec_rodRod_t1_r(t*mNumberOfDofs+r);
+                    tor_dof_v(r)+=(mat_rodRod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3[k]+mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_der[k])*rNestedElementKinematicVariables.t1_rot(t) + (mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t3[k]+mat_rodRod(t,k)*rNestedElementKinematicVariables.t3_der[k])*vec_rodRod_t1_r(t*mNumberOfDofs+r); 
                 }
                 //else
-                if(xyz_r<3)
+                if(xyz<3)
                 {
                     curv_dof_n(r)+=mat_rodRod_der(t,k)*(rNestedElementKinematicVariables.t3_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2[t] + rNestedElementKinematicVariables.t3[k]*rNestedElementKinematicVariables.tilde_t2_r[r][t]) + mat_rodRod(t,k)*(rNestedElementKinematicVariables.t3_der_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2[t]+rNestedElementKinematicVariables.t3_der[k]*rNestedElementKinematicVariables.tilde_t2_r[r][t]);
                     curv_dof_v(r)+=mat_rodRod_der(t,k)*(rNestedElementKinematicVariables.t1_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2[t] + rNestedElementKinematicVariables.t1[k]*rNestedElementKinematicVariables.tilde_t2_r[r][t]) + mat_rodRod(t,k)*(rNestedElementKinematicVariables.t1_der_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2[t]+rNestedElementKinematicVariables.t1_der[k]*rNestedElementKinematicVariables.tilde_t2_r[r][t]);
                     tor_dof_n(r)+=(mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t1_r[r_new][k]+mat_rodRod(t,k)*rNestedElementKinematicVariables.t1_der_r[r_new][k])*rNestedElementKinematicVariables.t3_rot(t);
                     tor_dof_v(r)+=(mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t3_r[r_new][k]+mat_rodRod(t,k)*rNestedElementKinematicVariables.t3_der_r[r_new][k])*rNestedElementKinematicVariables.t1_rot(t);
                 }
-                for (size_t s = 0; s< mNumberOfDofs;s++)
-                {
-                    size_t j = s/mDofsPerNode;
-                    size_t xyz_s = s%mDofsPerNode;
-                    size_t s_new = j*3+xyz_s; 
-                    
-                    {
-                    curv_dof_n_2(r,s)+=mat_rodRod_der_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t3(k)*rNestedElementKinematicVariables.tilde_t2[t]
-                                                                        +mat_rodRod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3(k)*rNestedElementKinematicVariables.tilde_t2_r[s][t]
-                                                                        +mat_rodRod_der_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t3(k)*rNestedElementKinematicVariables.tilde_t2_r[r][t]
-                                                                        +mat_rodRod_der(t,k)* rNestedElementKinematicVariables.t3[k]*rNestedElementKinematicVariables.tilde_t2_rs[r][s][t]
-                                                                        +mat_rodRod_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t3_der[k]*rNestedElementKinematicVariables.tilde_t2[t]
-                                                                        +mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_der[k]*rNestedElementKinematicVariables.tilde_t2_r[s][t]
-                                                                        +mat_rodRod_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t3_der[k]*rNestedElementKinematicVariables.tilde_t2_r[r][t]
-                                                                        +mat_rodRod(t,k)* rNestedElementKinematicVariables.t3_der[k]*rNestedElementKinematicVariables.tilde_t2_rs[r][s][t]
-                                                                        ;
-                    curv_dof_v_2(r,s)+=mat_rodRod_der_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t1(k)*rNestedElementKinematicVariables.tilde_t2[t]
-                                                                        +mat_rodRod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1(k)*rNestedElementKinematicVariables.tilde_t2_r[s][t]
-                                                                        +mat_rodRod_der_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t1(k)*rNestedElementKinematicVariables.tilde_t2_r[r][t]
-                                                                        +mat_rodRod_der(t,k)* rNestedElementKinematicVariables.t1[k]*rNestedElementKinematicVariables.tilde_t2_rs[r][s][t]
-                                                                        +mat_rodRod_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t1_der[k]*rNestedElementKinematicVariables.tilde_t2[t]
-                                                                        +mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_der[k]*rNestedElementKinematicVariables.tilde_t2_r[s][t]
-                                                                        +mat_rodRod_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t1_der[k]*rNestedElementKinematicVariables.tilde_t2_r[r][t]
-                                                                        +mat_rodRod(t,k)* rNestedElementKinematicVariables.t1_der[k]*rNestedElementKinematicVariables.tilde_t2_rs[r][s][t]
-                                                                        ;
-                    tor_dof_n_2(r,s)+=(mat_rodRod_der_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t1[k]+mat_rodRod_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t1_der[k])*rNestedElementKinematicVariables.t3_rot(t)
-                                        +(mat_rodRod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1[k]+mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_der[k])*vec_rodRod_t3_r(t*mNumberOfDofs+s) 
-                                        +(mat_rodRod_der_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t1[k]+mat_rodRod_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t1_der[k])*vec_rodRod_t3_r(t*mNumberOfDofs+r)
-                                        +(mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t1[k]+mat_rodRod(t,k)*rNestedElementKinematicVariables.t1_der[k])*(vec_rodRod_rs_t3(t*mNumberOfDofs+r,s)+vec_rodRod_r_t3_s(t*mNumberOfDofs+r,s)+vec_rodRod_r_t3_s(t*mNumberOfDofs+s,r)+vec_rodRod_t3_rs(t*mNumberOfDofs+r,s));
-                    tor_dof_v_2(r,s)+=(mat_rodRod_der_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t3[k]+mat_rodRod_var_var(t*mNumberOfDofs+r,k*mNumberOfDofs+s)*rNestedElementKinematicVariables.t3_der[k])*rNestedElementKinematicVariables.t1_rot(t)
-                                        +(mat_rodRod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3[k]+mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_der[k])*vec_rodRod_t1_r(t*mNumberOfDofs+s) 
-                                        +(mat_rodRod_der_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t3[k]+mat_rodRod_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t3_der[k])*vec_rodRod_t1_r(t*mNumberOfDofs+r)
-                                        +(mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t3[k]+mat_rodRod(t,k)*rNestedElementKinematicVariables.t3_der[k])*(vec_rodRod_rs_t1(t*mNumberOfDofs+r,s)+vec_rodRod_r_t1_s(t*mNumberOfDofs+r,s)+vec_rodRod_r_t1_s(t*mNumberOfDofs+s,r)+vec_rodRod_t1_rs(t*mNumberOfDofs+r,s));
-                    if (xyz_s<3)
-                    {
-                        curv_dof_n_2(r,s)+= mat_rodRod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_r[s_new](k)*rNestedElementKinematicVariables.tilde_t2[t]
-                                                                            + mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t3_r[s_new][k]*rNestedElementKinematicVariables.tilde_t2_r[r][t]
-                                                                            + mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_der_r[s_new][k]*rNestedElementKinematicVariables.tilde_t2[t]
-                                                                            + mat_rodRod(t,k)*rNestedElementKinematicVariables.t3_der_r[s_new][k]*rNestedElementKinematicVariables.tilde_t2_r[r][t]
-                                                                            ;
-                        curv_dof_v_2(r,s)+=mat_rodRod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_r[s_new](k)*rNestedElementKinematicVariables.tilde_t2[t]
-                                                                            + mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t1_r[s_new][k]*rNestedElementKinematicVariables.tilde_t2_r[r][t]
-                                                                            + mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_der_r[s_new][k]*rNestedElementKinematicVariables.tilde_t2[t]
-                                                                            + mat_rodRod(t,k)*rNestedElementKinematicVariables.t1_der_r[s_new][k]*rNestedElementKinematicVariables.tilde_t2_r[r][t]
-                                                                            ;
-                        tor_dof_n_2(r,s)+=(mat_rodRod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_r[s_new][k]+mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t1_der_r[s_new][k])*rNestedElementKinematicVariables.t3_rot(t) 
-                                                                        + (mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t1_r[s_new][k]+mat_rodRod(t,k)*rNestedElementKinematicVariables.t1_der_r[s_new][k])*vec_rodRod_t3_r(t*mNumberOfDofs+r);
-                        tor_dof_v_2(r,s)+=(mat_rodRod_der_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_r[s_new][k]+mat_rodRod_var(t*mNumberOfDofs+r,k)*rNestedElementKinematicVariables.t3_der_r[s_new][k])*rNestedElementKinematicVariables.t1_rot(t) 
-                                                                        + (mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t3_r[s_new][k]+mat_rodRod(t,k)*rNestedElementKinematicVariables.t3_der_r[s_new][k])*vec_rodRod_t1_r(t*mNumberOfDofs+r);
-                    }
-                    }
-                    if(xyz_r<3)
-                    {
-                    curv_dof_n_2(r,s)+= mat_rodRod_der_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t3_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2[t] 
-                                                                        + mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t3_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2_r[s][t]
-                                                                        + mat_rodRod_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t3_der_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2[t] 
-                                                                        + mat_rodRod(t,k)*rNestedElementKinematicVariables.t3_der_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2_r[s][t];
-                    curv_dof_v_2(r,s)+= mat_rodRod_der_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t1_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2[t] 
-                                                                        + mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t1_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2_r[s][t]
-                                                                        + mat_rodRod_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t1_der_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2[t] 
-                                                                        + mat_rodRod(t,k)*rNestedElementKinematicVariables.t1_der_r[r_new][k]*rNestedElementKinematicVariables.tilde_t2_r[s][t];
-                                    tor_dof_n_2(r,s)+=  (mat_rodRod_der_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t1_r[r_new][k]+mat_rodRod_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t1_der_r[r_new][k])*rNestedElementKinematicVariables.t3_rot(t)
-                                        + (mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t1_r[r_new][k]+mat_rodRod(t,k)*rNestedElementKinematicVariables.t1_der_r[r_new][k])*vec_rodRod_t3_r[t*mNumberOfDofs+s];
-                    tor_dof_v_2(r,s)+=  (mat_rodRod_der_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t3_r[r_new][k]+mat_rodRod_var(t*mNumberOfDofs+s,k)*rNestedElementKinematicVariables.t3_der_r[r_new][k])*rNestedElementKinematicVariables.t1_rot(t)
-                                        + (mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t3_r[r_new][k]+mat_rodRod(t,k)*rNestedElementKinematicVariables.t3_der_r[r_new][k])*vec_rodRod_t1_r[t*mNumberOfDofs+s];
-                    if(xyz_s<3)
-                    {
-                        curv_dof_n_2(r,s)+= mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t3_rs[r_new][s_new][k]*rNestedElementKinematicVariables.tilde_t2[t] 
-                                                                            + mat_rodRod(t,k)*rNestedElementKinematicVariables.t3_der_rs[r_new][s_new][k]*rNestedElementKinematicVariables.tilde_t2[t];
-                        curv_dof_v_2(r,s)+= mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t1_rs[r_new][s_new][k]*rNestedElementKinematicVariables.tilde_t2[t] 
-                                                                            + mat_rodRod(t,k)*rNestedElementKinematicVariables.t1_der_rs[r_new][s_new][k]*rNestedElementKinematicVariables.tilde_t2[t];
-                        tor_dof_n_2(r,s)+=  (mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t1_rs[r_new][s_new][k]+mat_rodRod(t,k)*rNestedElementKinematicVariables.t1_der_rs[r_new][s_new][k])*rNestedElementKinematicVariables.t3_rot(t);
-                        tor_dof_v_2(r,s)+=  (mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t3_rs[r_new][s_new][k]+mat_rodRod(t,k)*rNestedElementKinematicVariables.t3_der_rs[r_new][s_new][k])*rNestedElementKinematicVariables.t1_rot(t);
-                    }
-                    }
-                }
                 }
             }
+            }
         }
-    }
+       
 
-    // Initialize B matrices
-    rBAxial.resize(5, mNumberOfDofs);
-    rBBending1.resize(5, mNumberOfDofs);
-    rBBending2.resize(5, mNumberOfDofs);
-    rBTorsion1.resize(5, mNumberOfDofs);
-    rBTorsion2.resize(5, mNumberOfDofs);
-    rBAxial.clear();
-    rBBending1.clear();
-    rBBending2.clear();
-    rBTorsion1.clear();
-    rBTorsion2.clear();
+        // Initialize B matrices
+        rBAxial.resize(5, mNumberOfDofs);
+        rBBending1.resize(5, mNumberOfDofs);
+        rBBending2.resize(5, mNumberOfDofs);
+        rBTorsion1.resize(5, mNumberOfDofs);
+        rBTorsion2.resize(5, mNumberOfDofs);
+        rBAxial.clear();
+        rBBending1.clear();
+        rBBending2.clear();
+        rBTorsion1.clear();
+        rBTorsion2.clear();
 
-    noalias(row(rBAxial, 0)) = eps_dof; //Normal force
-    noalias(row(rBBending1, 1)) = curv_dof_n;  // Bending about n-axis
-    noalias(row(rBBending2, 2)) = curv_dof_v;  // Bending about v-axis
-    noalias(row(rBTorsion1, 3)) = tor_dof_n;   // Torsion n in row 1 (shear stress)
-    noalias(row(rBTorsion2, 4)) = tor_dof_v;   // Torsion v in row 2 (shear stress)
+        row(rBAxial, 0) = eps_dof; //Normal force
+        row(rBBending1, 1) = curv_dof_n;  // Bending about n-axis
+        row(rBBending2, 2) = curv_dof_v;  // Bending about v-axis
+        row(rBTorsion1, 3) = tor_dof_n;   // Torsion n in row 1 (shear stress)
+        row(rBTorsion2, 4) = tor_dof_v;   // Torsion v in row 2 (shear stress)
     }
 
 
@@ -3878,7 +3541,6 @@ namespace Kratos {
                 rNestedElementKinematicVariables.Phi,
                 rNestedElementKinematicVariables.Phi_der);
             
-            KRATOS_WATCH("HI");
             for( size_t t =0;t<3;t++)  
             { 
             for( size_t k=0;k<3;k++)
@@ -4312,7 +3974,7 @@ namespace Kratos {
         noalias(rGBending1) = curv_dof_n_2;
         noalias(rGBending2) = curv_dof_v_2;  
         noalias(rGTorsion1) = tor_dof_n_2;   
-        noalias(rGTorsion1) = tor_dof_v_2;  
+        noalias(rGTorsion2) = tor_dof_v_2;  
     }
 }
 
