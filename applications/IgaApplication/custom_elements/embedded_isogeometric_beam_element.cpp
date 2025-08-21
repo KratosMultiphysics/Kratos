@@ -57,10 +57,11 @@ namespace Kratos {
     void EmbeddedIsogeometricBeamElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
+        KRATOS_WATCH("INITIALIZE")
         InitializeMaterial();
         
         mRotationXActive = this->GetProperties()[ROTATIONAL_DOF_ACTIVE];
-
+        
         mDofsPerNode = 4;
         mNumberOfDofs  = this->GetGeometry().size() * mDofsPerNode;
         mSMatRodVar.resize(mNumberOfDofs * 3, 3);
@@ -119,85 +120,198 @@ namespace Kratos {
 
     void EmbeddedIsogeometricBeamElement::CalculateKinematics(
     const IndexType IntegrationPointIndex,
-    KinematicVariables& rKinematicVariables)
+    SuperElementKinematicVariables& rSuperElementKinematicVariables,
+    NestedElementKinematicVariales& rNestedElementKinematicVariables)
     {
-        const auto& r_geometry = GetGeometry();
+
+        // const auto& r_geometry = GetGeometry();
+        // const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+        // const Matrix& r_DN = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex);
+        // const Matrix& r_DDN = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex);
+
+        // //calculate super element base vectors
+        // for (SizeType i = 0;i < r_geometry.size();++i) {
+        //     const array_1d<double, 3>& X0 = r_geometry[i].GetInitialPosition();
+        //     const array_1d<double, 3>& u = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+            
+        //     rSuperElementKinematicVariables.G1 += r_DN(i, 0) * X0;
+        //     rSuperElementKinematicVariables.G2 += r_DN(i, 0) * X0;
+
+        //     rSuperElementKinematicVariables.GiDeri(0,0) += r_DDN(i,0)*X0[0];
+        //     rSuperElementKinematicVariables.GiDeri(0,1) += r_DDN(i,1)*X0[0];
+        //     rSuperElementKinematicVariables.GiDeri(0,2) += r_DDN(i,2)*X0[0];
+        //     rSuperElementKinematicVariables.GiDeri(1,0) += r_DDN(i,0)*X0[1];
+        //     rSuperElementKinematicVariables.GiDeri(1,1) += r_DDN(i,1)*X0[1];
+        //     rSuperElementKinematicVariables.GiDeri(1,2) += r_DDN(i,2)*X0[1];
+        //     rSuperElementKinematicVariables.GiDeri(2,0) += r_DDN(i,0)*X0[2];
+        //     rSuperElementKinematicVariables.GiDeri(2,1) += r_DDN(i,1)*X0[2];
+        //     rSuperElementKinematicVariables.GiDeri(2,2) += r_DDN(i,2)*X0[2];
+
+        //     array_1d<double, 3> x = X0 + u;
+        //     rSuperElementKinematicVariables.g1 += r_DN(i, 0) * x;
+        //     rSuperElementKinematicVariables.g2 += r_DN(i, 1) * x;
+
+        //     rSuperElementKinematicVariables.giDeri(0,0) += r_DDN(i,0)*x[0];
+        //     rSuperElementKinematicVariables.giDeri(0,1) += r_DDN(i,1)*x[0];
+        //     rSuperElementKinematicVariables.giDeri(0,2) += r_DDN(i,2)*x[0];
+        //     rSuperElementKinematicVariables.giDeri(1,0) += r_DDN(i,0)*x[1];
+        //     rSuperElementKinematicVariables.giDeri(1,1) += r_DDN(i,1)*x[1];
+        //     rSuperElementKinematicVariables.giDeri(1,2) += r_DDN(i,2)*x[1];
+        //     rSuperElementKinematicVariables.giDeri(2,0) += r_DDN(i,0)*x[2];
+        //     rSuperElementKinematicVariables.giDeri(2,1) += r_DDN(i,1)*x[2];
+        //     rSuperElementKinematicVariables.giDeri(2,2) += r_DDN(i,2)*x[2];
+        // }
+        // rSuperElementKinematicVariables.G3 = cross_prod(rSuperElementKinematicVariables.G1,rSuperElementKinematicVariables.G2);
+        // rSuperElementKinematicVariables.G3 = rSuperElementKinematicVariables.G3/norm_2(rSuperElementKinematicVariables.G3);
+        // rSuperElementKinematicVariables.g3 = cross_prod(rSuperElementKinematicVariables.g1,rSuperElementKinematicVariables.g2);
+        // rSuperElementKinematicVariables.g3 = rSuperElementKinematicVariables.g3/norm_2(rSuperElementKinematicVariables.g3);
+
+        // getSecondVarOfDerLocalCoordinateSystemWrtDispGlobal(IntegrationPointIndex, rSuperElementKinematicVariables,rNestedElementKinematicVariables);
+        // //compute the variation of the local coordinate system with respect to thedisplacements in global direction
+        // Vector3d G1_der_1;
+        // Vector3d G1_der_2;
+        // Vector3d G2_der_1;
+        // Vector3d G2_der_2;
+        // Vector3d G1_der_act;
+        // Vector3d G2_der_act;
+        // Vector3d G3_der_act;
+
+        // for( size_t i = 0;i<3;i++)
+        // {
+        //     G1_der_1[i]=rSuperElementKinematicVariables.GiDeri(i,0);
+        //     G2_der_2[i]=rSuperElementKinematicVariables.GiDeri(i,1);
+        //     G1_der_2[i]=rSuperElementKinematicVariables.GiDeri(i,2);
+        // }
+        // G2_der_1=G1_der_2;
+        // Vector3d tangents;
+        // GetGeometry().Calculate(LOCAL_TANGENT, tangents);
+        // G1_der_act = G1_der_1*tangents[0] + G1_der_2*tangents[1];
+        // G2_der_act = G2_der_1*tangents[0] + G2_der_2*tangents[1];
+
+        // //compute base vectors in reference configuration
+        // Vector3d tilde_T2 = rSuperElementKinematicVariables.G1*tangents[0] + rSuperElementKinematicVariables.G2*tangents[1];
+        // double l_t2 = norm_2(tilde_T2);
+        // rNestedElementKinematicVariables.T2 = tilde_T2/l_t2;
         
-        // Get shape functions and derivatives
-        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
-        const Matrix& r_DN = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex);
-        const Matrix& r_DDN = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex);
+        // Vector3d tilde_T3 = cross_prod(rSuperElementKinematicVariables.G1,rSuperElementKinematicVariables.G2);
+        // double l_t3 = norm_2(tilde_T3);
+        // rNestedElementKinematicVariables.T3 = tilde_T3/l_t3;
 
-        // Clear variables
-        rKinematicVariables.R1.clear();
-        rKinematicVariables.R2.clear();
-        rKinematicVariables.r1.clear();
-        rKinematicVariables.r2.clear();
+        // Vector3d tilde_T1 = cross_prod(tilde_T2,tilde_T3);
+        // double l_t1 = norm_2(tilde_T1);
+        // rNestedElementKinematicVariables.T1 = tilde_T1/l_t1;
+
+        // //compute base vectors in actual configuration
+        // Vector3d tilde_T2_der = G1_der_act*tangents[0] + G2_der_act*tangents[1];
+        // rNestedElementKinematicVariables.T2_der = tilde_T2_der/l_t2-tilde_T2*inner_prod(tilde_T2_der,tilde_T2)/pow(l_t2,3);
         
-        array_1d<double, 3> tangents;
-        GetGeometry().Calculate(LOCAL_TANGENT, tangents);
+        // Vector3d tilde_T3_der = cross_prod(G1_der_act,rSuperElementKinematicVariables.G2)+cross_prod(rSuperElementKinematicVariables.G1,G2_der_act);
+        // rNestedElementKinematicVariables.T3_der = tilde_T3_der/l_t3-tilde_T3*inner_prod(tilde_T3_der,tilde_T3)/pow(l_t3,3);
 
-        Vector A1 = ZeroVector(3);
-        Vector A2 = ZeroVector(3);
-        Vector a1 = ZeroVector(3);
-        Vector a2 = ZeroVector(3);
+        // Vector3d tilde_T1_der = cross_prod(tilde_T2_der,tilde_T3)+cross_prod(tilde_T2,tilde_T3_der);
+        // rNestedElementKinematicVariables.T1_der = tilde_T1_der/l_t1-tilde_T1*inner_prod(tilde_T1_der,tilde_T1)/pow(l_t1,3);
+    
+        // CompPhiRefProp(rNestedElementKinematicVariables, rNestedElementKinematicVariables.Phi, rNestedElementKinematicVariables.Phi_der);
 
-        Vector A1_1 = ZeroVector(3);
-        Vector A2_1 = ZeroVector(3);
-        Vector a1_1 = ZeroVector(3);
-        Vector a2_1  = ZeroVector(3);
-        //compute R1/r1 according to eq. 6
-        for (SizeType i = 0;i < r_geometry.size();++i) {
-            const array_1d<double, 3>& X0 = r_geometry[i].GetInitialPosition();
-            const array_1d<double, 3>& u = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
-            // Reference configuration
-            A1 += r_DN(i, 0) * X0;
-            A1_1 += r_DDN(i, 0) * X0;
-            A2 += r_DN(i, 1) * X0; 
-            A2_1 += r_DDN(i, 1) * X0;
-            // Current configuration
-            array_1d<double, 3> x = X0 + u;
-            a1 += r_DN(i, 0) * x;
-            a1_1 += r_DDN(i, 0) * x;
-            a2 += r_DN(i, 1) * x;
-            a2_1 += r_DDN(i, 1) * x;
-        }
+        // rNestedElementKinematicVariables.tilde_t2 = rSuperElementKinematicVariables.g1*tangents[0] + rSuperElementKinematicVariables.g2*tangents[1];
+        // rNestedElementKinematicVariables.tilde_T2 = rSuperElementKinematicVariables.G1*tangents[0] + rSuperElementKinematicVariables.G2*tangents[1];
+        // rNestedElementKinematicVariables.tilde_t2_r.resize(mNumberOfDofs);
+        // rNestedElementKinematicVariables.tilde_t2_rs.resize(mNumberOfDofs);
 
-        rKinematicVariables.R1 = A1 * tangents[0] + A2 * tangents[1];
-        rKinematicVariables.R2 = A1_1 * tangents[0] + A2_1 * tangents[1];
-        rKinematicVariables.r1 = a1 * tangents[0] + a2 * tangents[1];
-        rKinematicVariables.r2 = a1_1 * tangents[0] + a2_1 * tangents[1];
+        // for (int r=0; r<mNumberOfDofs;r++)
+        // {
+        //     rNestedElementKinematicVariables.tilde_t2_rs[r].resize(mNumberOfDofs);
+        //     for (int s=0; s<mNumberOfDofs;s++)
+        //     {
+        //         rNestedElementKinematicVariables.tilde_t2_rs[r][s].clear();
+        //     }
+        //     for (int t=0; t<3; t++)
+        //     {
+        //     int i = r/mDofsPerNode;
+        //     int xyz_r = r%mDofsPerNode;
+        //     rNestedElementKinematicVariables.tilde_t2_r[r](t) = 0;
+        //     if (xyz_r==t)
+        //     {
+        //         rNestedElementKinematicVariables.tilde_t2_r[r](t) = (r_DN(i,0)*tangents[0]+r_DN(i,1)*tangents[1]);
+        //     }
+        //     }
+        // }
 
-        // Calculate reference and current configurations
-        if (!mRotationXActive){
-            for (IndexType i = 0; i < r_geometry.size(); ++i) {
-                double rotation = r_geometry[i].FastGetSolutionStepValue(ROTATION_X);
-                rKinematicVariables.phi += r_N(IntegrationPointIndex, i) * rotation;
-                rKinematicVariables.phi_der += r_DN(i, 0) * rotation;
-            }
-        }
+        // Matrix3d mat_rod;
+        // Matrix3d mat_Rod;
+        // Matrix3d mat_Rod_ref;
+        // Matrix3d mat_rodRod;
+        // Matrix3d mat_rod_der;
+        // Matrix3d mat_Rod_der;
+        // Matrix3d mat_Rod_ref_der;
+        // Matrix3d mat_rodRod_der;
         
-        // Calculate length measures
-        rKinematicVariables.A = norm_2(rKinematicVariables.R1);
-        rKinematicVariables.a = norm_2(rKinematicVariables.r1);
-        
-        // Calculate curvature measures
-        double R1_R2 = inner_prod(rKinematicVariables.R1, rKinematicVariables.R2);
-        double r1_r2 = inner_prod(rKinematicVariables.r1, rKinematicVariables.r2);
-        
-        rKinematicVariables.B = sqrt(inner_prod(rKinematicVariables.R2, rKinematicVariables.R2) - pow(R1_R2/rKinematicVariables.A, 2));
-        rKinematicVariables.b = sqrt(inner_prod(rKinematicVariables.r2, rKinematicVariables.r2) - pow(r1_r2/rKinematicVariables.a, 2));
-        
-        // Compute reference cross-section geometry
-        CompGeometryReferenceCrossSection(rKinematicVariables);
+        // CompMatRodrigues(mat_rod,rNestedElementKinematicVariables.t2,rNestedElementKinematicVariables.phi);
+        // CompMatRodrigues(mat_Rod,rNestedElementKinematicVariables.t2,rNestedElementKinematicVariables.Phi);
+        // CompMatRodrigues(mat_Rod_ref,rNestedElementKinematicVariables.T2,rNestedElementKinematicVariables.Phi);
+        // CompMatRodriguesDeriv(mat_rod_der,rNestedElementKinematicVariables.t2,rNestedElementKinematicVariables.t2_der,rNestedElementKinematicVariables.phi,rNestedElementKinematicVariables.phi_der);
+        // CompMatRodriguesDeriv(mat_Rod_der,rNestedElementKinematicVariables.t2,rNestedElementKinematicVariables.t2_der,rNestedElementKinematicVariables.Phi,rNestedElementKinematicVariables.Phi_der);
+        // CompMatRodriguesDeriv(mat_Rod_ref_der,rNestedElementKinematicVariables.T2,rNestedElementKinematicVariables.T2_der,rNestedElementKinematicVariables.Phi,rNestedElementKinematicVariables.Phi_der);
 
-        if (!mRotationXActive){
-            rKinematicVariables.phi = rKinematicVariables.Phi;
-            rKinematicVariables.phi_der = rKinematicVariables.Phi_der;
-        }
+        // mat_rodRod_der.clear();
+        // mat_rodRod.clear();
+        // for( size_t t =0;t<3;t++)
+        // { 
+        //     for( size_t k=0;k<3;k++)
+        //     {
+        //     for( size_t u=0;u<3;u++)
+        //     {
+        //         mat_rodRod_der(t,u)+=mat_rod_der(t,k)*mat_Rod(k,u)+mat_rod(t,k)*mat_Rod_der(k,u);
+        //         mat_rodRod(t,u)+=mat_rod(t,k)*mat_Rod(k,u);
+        //     }
+        //     }
+        // }
 
-        // Compute actual cross-section geometry
-        CompGeometryActualCrossSection(rKinematicVariables);
+        // rNestedElementKinematicVariables.t3_rot.clear();
+        // rNestedElementKinematicVariables.t1_rot.clear();
+        // rNestedElementKinematicVariables.t3_rot_der.clear();
+        // rNestedElementKinematicVariables.t1_rot_der.clear();
+        // rNestedElementKinematicVariables.T3_rot.clear();
+        // rNestedElementKinematicVariables.T1_rot.clear();
+        // rNestedElementKinematicVariables.T3_rot_der.clear();
+        // rNestedElementKinematicVariables.T1_rot_der.clear();
+        
+        // for( size_t t =0;t<3;t++)    
+        // { 
+        //     for( size_t k=0;k<3;k++)
+        //     {
+        //         rNestedElementKinematicVariables.t3_rot(t)+=mat_rodRod(t,k)*rNestedElementKinematicVariables.t3(k);
+        //         rNestedElementKinematicVariables.t1_rot(t)+=mat_rodRod(t,k)*rNestedElementKinematicVariables.t1(k);
+        //         rNestedElementKinematicVariables.t3_rot_der(t)+=mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t3(k) + mat_rodRod(t,k)*rNestedElementKinematicVariables.t3_der(k);
+        //         rNestedElementKinematicVariables.t1_rot_der(t)+=mat_rodRod_der(t,k)*rNestedElementKinematicVariables.t1(k) + mat_rodRod(t,k)*rNestedElementKinematicVariables.t1_der(k);
+        //         rNestedElementKinematicVariables.T3_rot(t)+=mat_Rod_ref(t,k)*rNestedElementKinematicVariables.T3(k);
+        //         rNestedElementKinematicVariables.T1_rot(t)+=mat_Rod_ref(t,k)*rNestedElementKinematicVariables.T1(k);
+        //         rNestedElementKinematicVariables.T3_rot_der(t)+=mat_Rod_ref_der(t,k)*rNestedElementKinematicVariables.T3(k) + mat_Rod_ref(t,k)*rNestedElementKinematicVariables.T3_der(k);
+        //         rNestedElementKinematicVariables.T1_rot_der(t)+=mat_Rod_ref_der(t,k)*rNestedElementKinematicVariables.T1(k) + mat_Rod_ref(t,k)*rNestedElementKinematicVariables.T1_der(k);
+        //     }
+        // }
+
+        // double a = norm_2(rNestedElementKinematicVariables.tilde_t2);
+        // double A = norm_2(rNestedElementKinematicVariables.tilde_T2);
+        // double b_n = inner_prod(rNestedElementKinematicVariables.t3_rot_der, rNestedElementKinematicVariables.tilde_t2);
+        // double B_n = inner_prod(rNestedElementKinematicVariables.T3_rot_der, rNestedElementKinematicVariables.tilde_T2);
+        // double b_v = inner_prod(rNestedElementKinematicVariables.t1_rot_der, rNestedElementKinematicVariables.tilde_t2);
+        // double B_v = inner_prod(rNestedElementKinematicVariables.T1_rot_der, rNestedElementKinematicVariables.tilde_T2);
+        // double c_n = inner_prod(rNestedElementKinematicVariables.t1_rot_der, rNestedElementKinematicVariables.t3_rot);
+        // double C_n = inner_prod(rNestedElementKinematicVariables.T1_rot_der, rNestedElementKinematicVariables.T3_rot);
+        // double c_v = inner_prod(rNestedElementKinematicVariables.t3_rot_der, rNestedElementKinematicVariables.t1_rot);
+        // double C_v = inner_prod(rNestedElementKinematicVariables.T3_rot_der, rNestedElementKinematicVariables.T1_rot);
+        
+        // rNestedElementKinematicVariables.a = a;
+        // rNestedElementKinematicVariables.A = A;
+        // rNestedElementKinematicVariables.b_n = b_n;
+        // rNestedElementKinematicVariables.B_n = B_n;
+        // rNestedElementKinematicVariables.b_v = b_v;
+        // rNestedElementKinematicVariables.B_v = B_v;
+        // rNestedElementKinematicVariables.c_12 = c_n;
+        // rNestedElementKinematicVariables.C_12 = C_n;
+        // rNestedElementKinematicVariables.c_13 = c_v;
+        // rNestedElementKinematicVariables.C_13 = C_v;
     }
     
 
@@ -208,11 +322,10 @@ namespace Kratos {
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag)
     {
+        KRATOS_WATCH("CALCULATE_ALL")
         KRATOS_TRY
         const auto& r_geometry = GetGeometry();
         const auto& r_integration_points = r_geometry.IntegrationPoints();
-        
-        //set_Memory(); //to be removed!!
         
         Vector stress_axial = ZeroVector(5);
         Vector stress_bending1 = ZeroVector(5);
@@ -222,74 +335,80 @@ namespace Kratos {
 
          for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) 
          {
+            KRATOS_WATCH("HI")
             // Compute Kinematics and Metric
-            KinematicVariables kinematic_variables(
-                GetGeometry().WorkingSpaceDimension());
-            CalculateKinematics(
-                point_number,
-                kinematic_variables);
+            // KinematicVariables kinematic_variables(
+            //     GetGeometry().WorkingSpaceDimension());
 
-             // Create constitutive law parameters:
-            ConstitutiveLaw::Parameters constitutive_law_parameters(
-                GetGeometry(), GetProperties(), rCurrentProcessInfo);
-            ConstitutiveVariables constitutive_variables(5);
+            // SuperElementKinematicVariables super_element_kinematic_variables(GetGeometry().WorkingSpaceDimension());
+            // NestedElementKinematicVariales nested_element_kinematic_variables(GetGeometry().WorkingSpaceDimension());
+            // CalculateKinematics(
+            //     point_number,
+            //     super_element_kinematic_variables,
+            //     nested_element_kinematic_variables
+            // );
 
-            CalculateConstitutiveVariables(
-                point_number,
-                kinematic_variables,
-                constitutive_variables,
-                constitutive_law_parameters,
-                ConstitutiveLaw::StressMeasure_PK2);
+            //  // Create constitutive law parameters:
+            // ConstitutiveLaw::Parameters constitutive_law_parameters(
+            //     GetGeometry(), GetProperties(), rCurrentProcessInfo);
+            // ConstitutiveVariables constitutive_variables(5);
+
+            // CalculateConstitutiveVariables(
+            //     point_number,
+            //     kinematic_variables,
+            //     constitutive_variables,
+            //     constitutive_law_parameters,
+            //     ConstitutiveLaw::StressMeasure_PK2);
             
-            Matrix B_axial, B_bending1, B_bending2, B_torsion1, B_torsion2;
+            // Matrix B_axial, B_bending1, B_bending2, B_torsion1, B_torsion2;
 
-            ComputeBMatrices(point_number, kinematic_variables, B_axial, B_bending1, B_bending2, B_torsion1, B_torsion2);
+            // ComputeBMatrices(point_number, kinematic_variables, B_axial, B_bending1, B_bending2, B_torsion1, B_torsion2);
             
-            KRATOS_WATCH(B_axial);
-            KRATOS_WATCH(B_bending1);
-            KRATOS_WATCH(B_bending2);
-            KRATOS_WATCH(B_torsion1);
-            KRATOS_WATCH(B_torsion2);
+            // KRATOS_WATCH(B_axial);
+            // KRATOS_WATCH(B_bending1);
+            // KRATOS_WATCH(B_bending2);
+            // KRATOS_WATCH(B_torsion1);
+            // KRATOS_WATCH(B_torsion2);
 
-            Matrix G_axial, G_bending1, G_bending2, G_torsion1, G_torsion2;
-            ComputeGMatrices(point_number, kinematic_variables, G_axial, G_bending1, G_bending2, G_torsion1, G_torsion2);
-             // Assemble stiffness with cross-sectional scaling
-            double integration_weight = r_integration_points[point_number].Weight()* kinematic_variables.A;
-            const double inv_A2 = 1.0 / (kinematic_variables.A * kinematic_variables.A);
-            const double inv_A4 = inv_A2 * inv_A2;
-            if (CalculateStiffnessMatrixFlag == true)
-            {   
-                //Material Stiffness
-                rLeftHandSideMatrix +=  inv_A4 * integration_weight * prod(trans(B_axial), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_axial)));
-                rLeftHandSideMatrix +=  inv_A4 * integration_weight * prod(trans(B_bending1), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_bending1)));
-                rLeftHandSideMatrix +=  inv_A4 * integration_weight * prod(trans(B_bending2), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_bending2)));
-                rLeftHandSideMatrix +=  inv_A2 * integration_weight * prod(trans(B_torsion1), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_torsion1)));
-                rLeftHandSideMatrix +=  inv_A2 * integration_weight * prod(trans(B_torsion2), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_torsion2)));
+            // Matrix G_axial, G_bending1, G_bending2, G_torsion1, G_torsion2;
+            // ComputeGMatrices(point_number, kinematic_variables, G_axial, G_bending1, G_bending2, G_torsion1, G_torsion2);
+            //  // Assemble stiffness with cross-sectional scaling
+            // double integration_weight = r_integration_points[point_number].Weight()* kinematic_variables.A;
+            // const double inv_A2 = 1.0 / (kinematic_variables.A * kinematic_variables.A);
+            // const double inv_A4 = inv_A2 * inv_A2;
+            // if (CalculateStiffnessMatrixFlag == true)
+            // {   
+            //     //Material Stiffness
+            //     rLeftHandSideMatrix +=  inv_A4 * integration_weight * prod(trans(B_axial), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_axial)));
+            //     rLeftHandSideMatrix +=  inv_A4 * integration_weight * prod(trans(B_bending1), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_bending1)));
+            //     rLeftHandSideMatrix +=  inv_A4 * integration_weight * prod(trans(B_bending2), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_bending2)));
+            //     rLeftHandSideMatrix +=  inv_A2 * integration_weight * prod(trans(B_torsion1), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_torsion1)));
+            //     rLeftHandSideMatrix +=  inv_A2 * integration_weight * prod(trans(B_torsion2), Matrix(prod(constitutive_variables.ConstitutiveMatrix, B_torsion2)));
                 
-                //Geometrical Stiffness
-                rLeftHandSideMatrix += inv_A4 * integration_weight * G_axial * constitutive_variables.StressVector[0];
-                rLeftHandSideMatrix += inv_A4 * integration_weight * G_bending1 * constitutive_variables.StressVector[1];
-                rLeftHandSideMatrix += inv_A4 * integration_weight * G_bending2 * constitutive_variables.StressVector[2];
-                rLeftHandSideMatrix += inv_A2 * integration_weight * G_torsion1 * constitutive_variables.StressVector[3];
-                rLeftHandSideMatrix += inv_A2 * integration_weight * G_torsion2 * constitutive_variables.StressVector[4];
+            //     //Geometrical Stiffness
+            //     rLeftHandSideMatrix += inv_A4 * integration_weight * G_axial * constitutive_variables.StressVector[0];
+            //     rLeftHandSideMatrix += inv_A4 * integration_weight * G_bending1 * constitutive_variables.StressVector[1];
+            //     rLeftHandSideMatrix += inv_A4 * integration_weight * G_bending2 * constitutive_variables.StressVector[2];
+            //     rLeftHandSideMatrix += inv_A2 * integration_weight * G_torsion1 * constitutive_variables.StressVector[3];
+            //     rLeftHandSideMatrix += inv_A2 * integration_weight * G_torsion2 * constitutive_variables.StressVector[4];
 
-            }
-            if (CalculateResidualVectorFlag == true)
-            {
-                // Map stress vector components to different behaviors
-                stress_axial[0] = constitutive_variables.StressVector[0];     // S11 for axial
-                stress_bending1[1] = constitutive_variables.StressVector[1];  // S11 for bending n  
-                stress_bending2[2] = constitutive_variables.StressVector[2];  // S11 for bending v
-                stress_torsion1[3] = constitutive_variables.StressVector[3];   // S12 for torsion n
-                stress_torsion2[4] = constitutive_variables.StressVector[4];   // S13 for torsion v
+            // }
+            // if (CalculateResidualVectorFlag == true)
+            // {
+            //     // Map stress vector components to different behaviors
+            //     stress_axial[0] = constitutive_variables.StressVector[0];     // S11 for axial
+            //     stress_bending1[1] = constitutive_variables.StressVector[1];  // S11 for bending n  
+            //     stress_bending2[2] = constitutive_variables.StressVector[2];  // S11 for bending v
+            //     stress_torsion1[3] = constitutive_variables.StressVector[3];   // S12 for torsion n
+            //     stress_torsion2[4] = constitutive_variables.StressVector[4];   // S13 for torsion v
 
-                // Assemble forces with cross-sectional scaling (similar to stiffness)
-                rRightHandSideVector -= inv_A4 * integration_weight * prod(trans(B_axial), stress_axial);
-                rRightHandSideVector -= inv_A4 * integration_weight * prod(trans(B_bending1), stress_bending1);
-                rRightHandSideVector -= inv_A4 * integration_weight * prod(trans(B_bending2), stress_bending2);
-                rRightHandSideVector -= inv_A2 * integration_weight * prod(trans(B_torsion1), stress_torsion1);
-                rRightHandSideVector -= inv_A2 * integration_weight * prod(trans(B_torsion2), stress_torsion2);
-            }
+            //     // Assemble forces with cross-sectional scaling (similar to stiffness)
+            //     rRightHandSideVector -= inv_A4 * integration_weight * prod(trans(B_axial), stress_axial);
+            //     rRightHandSideVector -= inv_A4 * integration_weight * prod(trans(B_bending1), stress_bending1);
+            //     rRightHandSideVector -= inv_A4 * integration_weight * prod(trans(B_bending2), stress_bending2);
+            //     rRightHandSideVector -= inv_A2 * integration_weight * prod(trans(B_torsion1), stress_torsion1);
+            //     rRightHandSideVector -= inv_A2 * integration_weight * prod(trans(B_torsion2), stress_torsion2);
+            // }
         }
         KRATOS_CATCH("")
     }
@@ -421,7 +540,7 @@ namespace Kratos {
 
     void EmbeddedIsogeometricBeamElement::CalculateConstitutiveVariables(
     const IndexType IntegrationPointIndex,
-    KinematicVariables& rKinematics,
+    NestedElementKinematicVariales& rNestedElementKinematicVariales,
     ConstitutiveVariables& rConstitutiveVars,
     ConstitutiveLaw::Parameters& rValues,
     const ConstitutiveLaw::StressMeasure ThisStressMeasure)
@@ -430,11 +549,11 @@ namespace Kratos {
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         
-        rConstitutiveVars.StrainVector[0] = 0.5 * (rKinematics.a * rKinematics.a - rKinematics.A * rKinematics.A);
-        rConstitutiveVars.StrainVector[1] = (rKinematics.b_n - rKinematics.B_n) ;
-        rConstitutiveVars.StrainVector[2] = (rKinematics.b_v - rKinematics.B_v) ;
-        rConstitutiveVars.StrainVector[3] = (rKinematics.c_12 - rKinematics.C_12) ;
-        rConstitutiveVars.StrainVector[4] = (rKinematics.c_13 - rKinematics.C_13) ;
+        rConstitutiveVars.StrainVector[0] = 0.5 * (rNestedElementKinematicVariales.a * rNestedElementKinematicVariales.a - rNestedElementKinematicVariales.A * rNestedElementKinematicVariales.A);
+        rConstitutiveVars.StrainVector[1] = (rNestedElementKinematicVariales.b_n - rNestedElementKinematicVariales.B_n) ;
+        rConstitutiveVars.StrainVector[2] = (rNestedElementKinematicVariales.b_v - rNestedElementKinematicVariales.B_v) ;
+        rConstitutiveVars.StrainVector[3] = (rNestedElementKinematicVariales.c_12 - rNestedElementKinematicVariales.C_12) ;
+        rConstitutiveVars.StrainVector[4] = (rNestedElementKinematicVariales.c_13 - rNestedElementKinematicVariales.C_13) ;
         rValues.SetStrainVector(rConstitutiveVars.StrainVector);
         rValues.SetStressVector(rConstitutiveVars.StressVector);
         rValues.SetConstitutiveMatrix(rConstitutiveVars.ConstitutiveMatrix);
@@ -2673,7 +2792,7 @@ namespace Kratos {
 
     }
 
- void EmbeddedIsogeometricBeamElement::CompPhiRefProp(KinematicVariables &kinematic_variables, double& _Phi, double& _Phi_0_der)
+ void EmbeddedIsogeometricBeamElement::CompPhiRefProp(NestedElementKinematicVariales rNestedElementKinematicVariables, double& _Phi, double& _Phi_0_der)
     {
 
         const auto& r_geometry = GetGeometry();
@@ -2689,6 +2808,8 @@ namespace Kratos {
         Matrix local_axis_orientation = this->GetProperties()[LOCAL_AXIS_ORIENTATION];
         n_size = local_axis_orientation.size1();
 
+        if (n_size!=0)
+	    {
         u_0 = local_axis_orientation(0, 0);
         u_1 = local_axis_orientation(n_size - 1, 0);
         
@@ -2705,8 +2826,8 @@ namespace Kratos {
         
         // Convert normal vectors to rotation angles (phi) for backward compatibility
         Vector3d _n;
-        phi_0 = GetDeltaPhi(kinematic_variables, normal_0);
-        phi_1 = GetDeltaPhi(kinematic_variables, normal_1);
+        phi_0 = GetDeltaPhi(rNestedElementKinematicVariables, normal_0);
+        phi_1 = GetDeltaPhi(rNestedElementKinematicVariables, normal_1);
 
         for (int i = 1; i < n_size; i++)
         {
@@ -2717,7 +2838,7 @@ namespace Kratos {
                 normal_temp[0] = local_axis_orientation(i - 1, 1);
                 normal_temp[1] = local_axis_orientation(i - 1, 2);
                 normal_temp[2] = local_axis_orientation(i - 1, 3);
-                phi_0 = GetDeltaPhi(kinematic_variables, normal_temp);
+                phi_0 = GetDeltaPhi(rNestedElementKinematicVariables, normal_temp);
                 break;
             }
         }
@@ -2731,7 +2852,7 @@ namespace Kratos {
                 normal_temp[0] = local_axis_orientation(n_size - i, 1);
                 normal_temp[1] = local_axis_orientation(n_size - i, 2);
                 normal_temp[2] = local_axis_orientation(n_size - i, 3);
-                phi_1 = GetDeltaPhi(kinematic_variables, normal_temp);;
+                phi_1 = GetDeltaPhi(rNestedElementKinematicVariables, normal_temp);;
                 break;
             }
         }
@@ -2746,12 +2867,18 @@ namespace Kratos {
 
         _Phi += phi_0 + (_u_act - u_0) / (u_1 - u_0) * diff_phi;
         _Phi_0_der += diff_phi / (u_1 - u_0);
+        }
+        else
+        {
+            _Phi = 0.0;
+            _Phi_0_der =0.0 ;
+        }
     }
 
-    double EmbeddedIsogeometricBeamElement::GetDeltaPhi(KinematicVariables &kinematic_variables, Vector3d &n)
+    double EmbeddedIsogeometricBeamElement::GetDeltaPhi(NestedElementKinematicVariales rNestedElementKinematicVariables, Vector3d &n)
     {
         Vector3d _t0_0 = this->GetProperties()[T_0];
-        Vector3d _t0 = kinematic_variables.R1;
+        Vector3d _t0 = rNestedElementKinematicVariables.t1;
 
         double phi = 0.0;
         // Normalize tangent vectors
@@ -2790,260 +2917,6 @@ namespace Kratos {
         return phi;
     }
 
-
-   void EmbeddedIsogeometricBeamElement::CompGeometryReferenceCrossSection(KinematicVariables &kinematic_variables)
-    {
-        // Get inputs from kinematic_variables and properties
-        Vector3d _R1 = kinematic_variables.R1;
-        Vector3d _R2 = kinematic_variables.R2;
-        Vector3d _T0_vec = this->GetProperties()[T_0];
-
-        CompPhiRefProp(kinematic_variables, kinematic_variables.Phi, kinematic_variables.Phi_der);
-
-        Matrix3d mat_lamb;
-        Matrix3d mat_lamb_deriv;
-        Matrix3d mat_rod;
-        Matrix3d mat_rod_deriv;
-        Matrix3d mat_Ax1;
-        mat_Ax1.clear();
-
-        double R1_dL = norm_2(_R1);
-
-        Vector3d T_deriv;
-        Vector3d T0_deriv;
-        T0_deriv.clear();
-
-        T_deriv = _R2 / R1_dL - inner_prod(_R1, _R2) / pow(R1_dL, 3) * _R1;
-
-        Vector3d  _T_vec = _R1 / R1_dL;
-
-        CompMatLambda(mat_lamb, _T0_vec, _T_vec);
-        CompMatLambdaDeriv(mat_lamb_deriv, _T0_vec, _T_vec, T0_deriv, T_deriv);
-        
-        
-        Matrix3d mat_test;
-        CompMatRodrigues(mat_rod, _T_vec, kinematic_variables.Phi);
-        CompMatRodriguesDeriv(mat_rod_deriv, _T_vec, T_deriv, kinematic_variables.Phi, kinematic_variables.Phi_der);
-        kinematic_variables.n.clear();
-        kinematic_variables.N0 = this->GetProperties()[N_0];
-
-        double T0_L = norm_2(_T0_vec);
-        Vector3d T0 = _T0_vec / T0_L;
-
-        
-        kinematic_variables.N0 = kinematic_variables.N0 - inner_prod(T0, kinematic_variables.N0) * T0;
-
-        kinematic_variables.V0 = cross_prod(T0, kinematic_variables.N0);
-
-        kinematic_variables.N0 = kinematic_variables.N0 / norm_2(kinematic_variables.N0);
-
-        kinematic_variables.V0 = kinematic_variables.V0 / norm_2(kinematic_variables.V0);
-
-        Vector3d n_tmp;
-        n_tmp.clear();
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                n_tmp[i] += mat_lamb(i, j) * kinematic_variables.N0[j];
-            }
-        }
-
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                kinematic_variables.n(i) += mat_rod(i, j) * n_tmp[j];
-            }
-        }
-        kinematic_variables.n = kinematic_variables.n / norm_2(kinematic_variables.n);
-
-        kinematic_variables.v = cross_prod(_T_vec, kinematic_variables.n);
-
-        for (int i = 0; i < 3;i++)
-        {
-            for (int j = 0; j < 3;j++)
-            {
-                for (int k = 0; k < 3;k++)
-                {
-                    mat_Ax1(i, j) += mat_rod_deriv(i, k) * mat_lamb(k, j);
-                    mat_Ax1(i, j) += mat_rod(i, k) * mat_lamb_deriv(k, j);
-                }
-            }
-        }
-
-        Vector3d A21;
-        Vector3d A31;
-        A21.clear();
-        A31.clear();
-
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                A21[i] += mat_Ax1(i, j) * kinematic_variables.N0[j];
-            }
-        }
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                A31[i] += mat_Ax1(i, j) * kinematic_variables.V0[j];
-            }
-        }
-
-        kinematic_variables.B_n = inner_prod(A21, _R1);
-        kinematic_variables.B_v = inner_prod(A31, _R1);
-        kinematic_variables.C_12 = inner_prod(A31, kinematic_variables.n);
-        kinematic_variables.C_13 = inner_prod(A21, kinematic_variables.v);
-
-    }
-
-    void EmbeddedIsogeometricBeamElement::CompGeometryActualCrossSection(KinematicVariables &kinematic_variables)
-    {
-        // Get inputs from kinematic_variables and properties
-        Vector3d _r1 = kinematic_variables.r1;
-        Vector3d _R1 = kinematic_variables.R1;
-        Vector3d _r2 = kinematic_variables.r2;
-        Vector3d _R2 = kinematic_variables.R2;
-        
-        Vector3d t0_0 = this->GetProperties()[T_0];
-
-        kinematic_variables.n.clear();
-        kinematic_variables.v.clear();
-
-        Matrix3d mat_lam;
-        Matrix3d mat_lam_der;
-        Matrix3d mat_rod;
-        Matrix3d mat_rod_der;
-        Matrix3d mat_Lam;
-        Matrix3d mat_Lam_der;
-        Matrix3d mat_Rod;
-        Matrix3d mat_Rod_der;
-        Matrix3d mat_Ax1;
-        mat_Ax1.clear();
-
-        double r1_dL = norm_2(_r1);
-        double R1_dL = norm_2(_R1);
-
-
-        Vector3d t_deriv;
-        Vector3d T_deriv;
-        Vector3d T0_deriv;
-        T0_deriv.clear();
-
-        t_deriv = _r2 / r1_dL - inner_prod(_r1, _r2) / pow(r1_dL, 3) * _r1;
-        T_deriv = _R2 / R1_dL - inner_prod(_R1, _R2) / pow(R1_dL, 3) * _R1;
-
-        Vector3d  _t = _r1 / r1_dL;
-        Vector3d  _T_vec = _R1 / R1_dL;   
-
-        CompMatLambda(mat_lam, _T_vec, _t);
-        CompMatLambdaDeriv(mat_lam_der, _T_vec, _t, T_deriv, t_deriv);
-        CompMatLambda(mat_Lam, t0_0, _T_vec);
-        CompMatLambdaDeriv(mat_Lam_der, t0_0, _T_vec, T0_deriv, T_deriv);
-
-        CompMatRodrigues(mat_rod, _t, kinematic_variables.phi);
-        CompMatRodriguesDeriv(mat_rod_der, _t, t_deriv, kinematic_variables.phi, kinematic_variables.phi_der);
-        CompMatRodrigues(mat_Rod, _T_vec, kinematic_variables.Phi);
-        CompMatRodriguesDeriv(mat_Rod_der, _T_vec, T_deriv, kinematic_variables.Phi, kinematic_variables.Phi_der);
-
-        Matrix3d mat_Rod_Lam_der;
-        mat_Rod_Lam_der.clear();
-        Matrix3d mat_Rod_der_Lam;
-        mat_Rod_der_Lam.clear();
-        Matrix3d mat_Rod_Lam;
-        mat_Rod_Lam.clear();
-
-        for (size_t  t   = 0;t < 3;t++)
-        {
-            for (int u = 0;u < 3;u++)
-            {
-                for (int k = 0;k < 3;k++)
-                {
-                    mat_Rod_Lam(t, u) += mat_Rod(t, k) * mat_Lam(k, u);
-                    mat_Rod_Lam_der(t, u) += mat_Rod(t, k) * mat_Lam_der(k, u);
-                    mat_Rod_der_Lam(t, u) += mat_Rod_der(t, k) * mat_Lam(k, u);
-                }
-            }
-        }
-
-        Matrix3d mat_lam_Rod_Lam_der;
-        mat_lam_Rod_Lam_der.clear();
-        Matrix3d mat_lam_Rod_der_Lam;
-        mat_lam_Rod_der_Lam.clear();
-        Matrix3d mat_lam_Rod_Lam;
-        mat_lam_Rod_Lam.clear();
-        Matrix3d mat_lam_der_Rod_Lam;
-        mat_lam_der_Rod_Lam.clear();
-
-        for (size_t  t   = 0;t < 3;t++)
-        {
-            for (int u = 0;u < 3;u++)
-            {
-                for (int k = 0;k < 3;k++)
-                {
-                    mat_lam_Rod_Lam(t, u) += mat_lam(t, k) * mat_Rod_Lam(k, u);
-                    mat_lam_Rod_Lam_der(t, u) += mat_lam(t, k) * mat_Rod_Lam_der(k, u);
-                    mat_lam_Rod_der_Lam(t, u) += mat_lam(t, k) * mat_Rod_der_Lam(k, u);
-                    mat_lam_der_Rod_Lam(t, u) += mat_lam_der(t, k) * mat_Rod_Lam(k, u);
-                }
-            }
-        }
-
-        Matrix3d mat_rod_lam_Rod_Lam_der;
-        mat_rod_lam_Rod_Lam_der.clear();
-        Matrix3d mat_rod_lam_Rod_der_Lam;
-        mat_rod_lam_Rod_der_Lam.clear();
-        Matrix3d mat_rod_lam_der_Rod_Lam;
-        mat_rod_lam_der_Rod_Lam.clear();
-        Matrix3d mat_rod_der_lam_Rod_Lam;
-        mat_rod_der_lam_Rod_Lam.clear();
-        Matrix3d mat_rod_lam_Rod_Lam;
-        mat_rod_lam_Rod_Lam.clear();
-
-        for (size_t  t   = 0;t < 3;t++)
-        {
-            for (int u = 0;u < 3;u++)
-            {
-                for (int k = 0;k < 3;k++)
-                {
-                    mat_rod_lam_Rod_Lam_der(t, u) += mat_rod(t, k) * mat_lam_Rod_Lam_der(k, u);
-                    mat_rod_lam_Rod_der_Lam(t, u) += mat_rod(t, k) * mat_lam_Rod_der_Lam(k, u);
-                    mat_rod_lam_der_Rod_Lam(t, u) += mat_rod(t, k) * mat_lam_der_Rod_Lam(k, u);
-                    mat_rod_der_lam_Rod_Lam(t, u) += mat_rod_der(t, k) * mat_lam_Rod_Lam(k, u);
-                    mat_rod_lam_Rod_Lam(t, u) += mat_rod(t, k) * mat_lam_Rod_Lam(k, u);
-                }
-            }
-        }
-
-        Matrix3d mat_rodlamRodLam_der;
-        mat_rodlamRodLam_der.clear();
-        mat_rodlamRodLam_der = mat_rod_lam_Rod_Lam_der + mat_rod_lam_Rod_der_Lam + mat_rod_lam_der_Rod_Lam + mat_rod_der_lam_Rod_Lam;
-
-        Vector3d A21;
-        Vector3d A31;
-        A21.clear();
-        A31.clear();
-
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                A21[i] += mat_rodlamRodLam_der(i, j) * kinematic_variables.N0[j];
-                A31[i] += mat_rodlamRodLam_der(i, j) * kinematic_variables.V0[j];
-                kinematic_variables.n[i] += mat_rod_lam_Rod_Lam(i, j) * kinematic_variables.N0[j];
-                kinematic_variables.v[i] += mat_rod_lam_Rod_Lam(i, j) * kinematic_variables.V0[j];
-            }
-        }
-
-        kinematic_variables.b_n = inner_prod(A21, _r1);
-        kinematic_variables.b_v = inner_prod(A31, _r1);
-        kinematic_variables.c_12 = inner_prod(A31, kinematic_variables.n);
-        kinematic_variables.c_13 = inner_prod(A21, kinematic_variables.v);
-
-    }
-
     void EmbeddedIsogeometricBeamElement::ComputeBMatrices(
         IndexType point_number,
         KinematicVariables& rKinematicVariables,
@@ -3053,341 +2926,220 @@ namespace Kratos {
         Matrix& rBTorsion1,
         Matrix& rBTorsion2)
     {
-        KRATOS_TRY
-        const auto& r_geometry = GetGeometry();
 
-        // Get shape functions and derivatives at integration point
-        Vector R_vec = row(r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod()), point_number);
-        Vector dR_vec = column(r_geometry.ShapeFunctionDerivatives(1, point_number, this->GetIntegrationMethod()), 0);
-        Vector ddR_vec = column(r_geometry.ShapeFunctionDerivatives(2, point_number, this->GetIntegrationMethod()), 0);
-        
-        // Extract kinematic variables
-        Vector3d r1 = rKinematicVariables.r1;
-        Vector3d r2 = rKinematicVariables.r2;
-        Vector3d R1 = rKinematicVariables.R1;
-        Vector3d R2 = rKinematicVariables.R2;
-        Vector3d N0 = rKinematicVariables.N0;
-        Vector3d V0 = rKinematicVariables.V0;
-        double phi = rKinematicVariables.phi;
-        double phi_der = rKinematicVariables.phi_der;
-        double Phi = rKinematicVariables.Phi;
-        double Phi_der = rKinematicVariables.Phi_der;
-        Vector3d t0_0 = this->GetProperties()[T_0];
-
-        // Compute curvature and torsion variations
-        Vector axi_var(mNumberOfDofs);
-        Vector cur_var_n(mNumberOfDofs);
-        Vector cur_var_v(mNumberOfDofs);
-        Vector tor_var_n(mNumberOfDofs);
-        Vector tor_var_v(mNumberOfDofs);
-        axi_var.clear();
-        cur_var_n.clear();
-        cur_var_v.clear();
-        tor_var_n.clear();
-        tor_var_v.clear();
-
-        //compute axi_var
-        // for (size_t  r  = 0;r < mNumberOfDofs;r++)
-        // {
-        //     size_t xyz_r = r % mDofsPerNode; 
-        //     size_t i = r / mDofsPerNode;     
-        //     if (xyz_r > 2)
-        //         axi_var[r] = 0;
-        //     else
-        //         axi_var[r] = rKinematicVariables.r1[xyz_r] * dR_vec[i];
-        // }
-
-        //compute axi_var with new b1,r acc. to eq. 13
-        array_1d<double, 3> tangents;
-        GetGeometry().Calculate(LOCAL_TANGENT, tangents);
-        Vector dR_vec1 = column(r_geometry.ShapeFunctionDerivatives(1, point_number, this->GetIntegrationMethod()), 0);
-        Vector dR_vec2 = column(r_geometry.ShapeFunctionDerivatives(1, point_number, this->GetIntegrationMethod()), 1);
-
-        for (size_t  r  = 0;r < mNumberOfDofs;r++)
-        {
-            size_t xyz_r = r % mDofsPerNode; 
-            size_t i = r / mDofsPerNode;     
-            if (xyz_r > 2)
-                axi_var[r] = 0;
-            else
-                axi_var[r] = rKinematicVariables.r1[xyz_r] * (dR_vec1[i] * tangents[0] + dR_vec2[i] * tangents[1]);
-        }
-
-        //compute cur_var_n, cur_var_v, tor_var_n, tor_var_v
-        Vector3d t_;
-        t_.clear();
-        Vector3d t_der;
-        t_der.clear();
-        Vector3d T_;
-        T_.clear();
-        Vector3d T_der;
-        T_der.clear();
-        Vector3d T0_der;
-        T0_der.clear();
-        Vector t_var;
-        Vector t_der_var;
-        Matrix3d mat_lam;
-        Matrix3d mat_lam_der;
-        Matrix3d mat_Lam;
-        Matrix3d mat_Lam_der;
-        Matrix3d mat_rod;
-        Matrix3d mat_rod_der;
-        Matrix3d mat_Rod;
-        Matrix3d mat_Rod_der;
-
-        t_ = r1 / norm_2(r1);
-        t_der = r2 / norm_2(r1) - inner_prod(r1, r2) / pow(norm_2(r1), 3) * r1;
-        T_ = R1 / norm_2(R1);
-        T_der = R2 / norm_2(R1) - inner_prod(R1, R2) / pow(norm_2(R1), 3) * R1;
-        CompTVar(t_var, dR_vec, r1);
-        CompTDerivVar(t_der_var, dR_vec, ddR_vec, r1, r2);
-
-        CompMatLambda(mat_lam, T_, t_);
-        CompMatLambdaDeriv(mat_lam_der, T_, t_, T_der, t_der);
-        CompMatLambdaVar(mSMatLamVar, T_, t_, t_var);
-        CompMatLambdaDerivVar(mSMatLamDerVar, T_, t_, T_der, t_var, t_der, t_der_var);
-        CompMatLambda(mat_Lam, t0_0, T_);
-        CompMatLambdaDeriv(mat_Lam_der, t0_0, T_, T0_der, T_der);
-
-        CompMatRodrigues(mat_rod, t_, phi);
-        CompMatRodriguesDeriv(mat_rod_der, t_, t_der, phi, phi_der);
-        CompMatRodriguesVar(mSMatRodVar, t_, t_var, R_vec, phi);
-        comp_mat_rodrigues_deriv_var(mSMatRodDerVar, t_, t_var, t_der, t_der_var, R_vec, dR_vec, phi, phi_der);
-        CompMatRodrigues(mat_Rod, T_, Phi);
-        CompMatRodriguesDeriv(mat_Rod_der, T_, T_der, Phi, Phi_der);
-
-        Matrix3d mat_Rod_Lam_der;
-        mat_Rod_Lam_der.clear();
-        Matrix3d mat_Rod_der_Lam;
-        mat_Rod_der_Lam.clear();
-        Matrix3d mat_Rod_Lam;
-        mat_Rod_Lam.clear();
-        Matrix3d mat_RodLam_der;
-        mat_RodLam_der.clear();
-
-        for (size_t t = 0; t < 3; t++)
-        {
-            for (int u = 0; u < 3; u++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    mat_Rod_Lam(t, u) += mat_Rod(t, k) * mat_Lam(k, u);
-                    mat_Rod_Lam_der(t, u) += mat_Rod(t, k) * mat_Lam_der(k, u);
-                    mat_Rod_der_Lam(t, u) += mat_Rod_der(t, k) * mat_Lam(k, u);
-                }
-            }
-        }
-        mat_RodLam_der = mat_Rod_Lam_der + mat_Rod_der_Lam;
-
-        Matrix3d mat_lam_Rod_Lam_der;
-        mat_lam_Rod_Lam_der.clear();
-        Matrix3d mat_lam_Rod_der_Lam;
-        mat_lam_Rod_der_Lam.clear();
-        Matrix3d mat_lam_Rod_Lam;
-        mat_lam_Rod_Lam.clear();
-        Matrix3d mat_lam_der_Rod_Lam;
-        mat_lam_der_Rod_Lam.clear();
-        Matrix3d mat_lamRodLam_der;
-        mat_lamRodLam_der.clear();
-
-        for (size_t t = 0; t < 3; t++)
-        {
-            for (int u = 0; u < 3; u++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    mat_lam_Rod_Lam(t, u) += mat_lam(t, k) * mat_Rod_Lam(k, u);
-                    mat_lam_Rod_Lam_der(t, u) += mat_lam(t, k) * mat_Rod_Lam_der(k, u);
-                    mat_lam_Rod_der_Lam(t, u) += mat_lam(t, k) * mat_Rod_der_Lam(k, u);
-                    mat_lam_der_Rod_Lam(t, u) += mat_lam_der(t, k) * mat_Rod_Lam(k, u);
-                }
-            }
-        }
-
-        mat_lamRodLam_der = mat_lam_Rod_Lam_der + mat_lam_Rod_der_Lam + mat_lam_der_Rod_Lam;
-
-        Matrix3d mat_rod_lam_Rod_Lam_der;
-        mat_rod_lam_Rod_Lam_der.clear();
-        Matrix3d mat_rod_lam_Rod_der_Lam;
-        mat_rod_lam_Rod_der_Lam.clear();
-        Matrix3d mat_rod_lam_der_Rod_Lam;
-        mat_rod_lam_der_Rod_Lam.clear();
-        Matrix3d mat_rod_der_lam_Rod_Lam;
-        mat_rod_der_lam_Rod_Lam.clear();
-        Matrix3d mat_rod_lam_Rod_Lam;
-        mat_rod_lam_Rod_Lam.clear();
-
-        for (size_t t = 0; t < 3; t++)
-        {
-            for (int u = 0; u < 3; u++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    mat_rod_lam_Rod_Lam_der(t, u) += mat_rod(t, k) * mat_lam_Rod_Lam_der(k, u);
-                    mat_rod_lam_Rod_der_Lam(t, u) += mat_rod(t, k) * mat_lam_Rod_der_Lam(k, u);
-                    mat_rod_lam_der_Rod_Lam(t, u) += mat_rod(t, k) * mat_lam_der_Rod_Lam(k, u);
-                    mat_rod_der_lam_Rod_Lam(t, u) += mat_rod_der(t, k) * mat_lam_Rod_Lam(k, u);
-                    mat_rod_lam_Rod_Lam(t, u) += mat_rod(t, k) * mat_lam_Rod_Lam(k, u);
-                }
-            }
-        }
-
-        Matrix3d mat_rodlamRodLam_der;
-        mat_rodlamRodLam_der.clear();
-        mat_rodlamRodLam_der = mat_rod_lam_Rod_Lam_der + mat_rod_lam_Rod_der_Lam + mat_rod_lam_der_Rod_Lam + mat_rod_der_lam_Rod_Lam;
-
-        mSMatLamVarRodLamDer.clear();
-        mSMatLamVarRodDerLam.clear();
-        mSMatLamVarRodLam.clear();
-        mSMatLamDerVarRodLam.clear();
-
-        for (size_t t = 0; t < 3; t++)
-        {
-            for (int u = 0; u < 3; u++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    for (size_t r = 0; r < mNumberOfDofs; r++)
-                    {
-                        mSMatLamVarRodLam(t * mNumberOfDofs + r, u) += mSMatLamVar(t * mNumberOfDofs + r, k) * mat_Rod_Lam(k, u);
-                        mSMatLamVarRodLamDer(t * mNumberOfDofs + r, u) += mSMatLamVar(t * mNumberOfDofs + r, k) * mat_Rod_Lam_der(k, u);
-                        mSMatLamVarRodDerLam(t * mNumberOfDofs + r, u) += mSMatLamVar(t * mNumberOfDofs + r, k) * mat_Rod_der_Lam(k, u);
-                        mSMatLamDerVarRodLam(t * mNumberOfDofs + r, u) += mSMatLamDerVar(t * mNumberOfDofs + r, k) * mat_Rod_Lam(k, u);
-                    }
-                }
-            }
-        }
-
-        Matrix mat_lamRodLam_der_var;
-        mat_lamRodLam_der_var.resize(3 * mNumberOfDofs, 3);
-        mat_lamRodLam_der_var.clear();
-
-        mat_lamRodLam_der_var = mSMatLamVarRodLamDer + mSMatLamVarRodDerLam + mSMatLamDerVarRodLam;
-
-        mSMatRodVarLamRodLamDer.clear();
-        mSMatRodVarLamRodDerLam.clear();
-        mSMatRodVarLamDerRodLam.clear();
-        mSMatRodDerVarLamRodLam.clear();
-        mSMatRodDerLamVarRodLam.clear();
-        mSMatRodLamDerVarRodLam.clear();
-        mSMatRodLamVarRodDerLam.clear();
-        mSMatRodLamVarRodLamDer.clear();
-        mSMatRodLamVarRodLam.clear();
-        mSMatRodVarLamRodLam.clear();
-
-        for (size_t t = 0; t < 3; t++)
-        {
-            for (int u = 0; u < 3; u++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    for (size_t r = 0; r < mNumberOfDofs; r++)
-                    {
-                        mSMatRodVarLamRodLamDer(t * mNumberOfDofs + r, u) += mSMatRodVar(t * mNumberOfDofs + r, k) * mat_lam_Rod_Lam_der(k, u);
-                        mSMatRodVarLamRodDerLam(t * mNumberOfDofs + r, u) += mSMatRodVar(t * mNumberOfDofs + r, k) * mat_lam_Rod_der_Lam(k, u);
-                        mSMatRodVarLamDerRodLam(t * mNumberOfDofs + r, u) += mSMatRodVar(t * mNumberOfDofs + r, k) * mat_lam_der_Rod_Lam(k, u);
-                        mSMatRodDerVarLamRodLam(t * mNumberOfDofs + r, u) += mSMatRodDerVar(t * mNumberOfDofs + r, k) * mat_lam_Rod_Lam(k, u);
-                        mSMatRodLamVarRodLamDer(t * mNumberOfDofs + r, u) += mat_rod(t, k) * mSMatLamVarRodLamDer(k * mNumberOfDofs + r, u);
-                        mSMatRodLamVarRodDerLam(t * mNumberOfDofs + r, u) += mat_rod(t, k) * mSMatLamVarRodDerLam(k * mNumberOfDofs + r, u);
-                        mSMatRodLamDerVarRodLam(t * mNumberOfDofs + r, u) += mat_rod(t, k) * mSMatLamDerVarRodLam(k * mNumberOfDofs + r, u);
-                        mSMatRodDerLamVarRodLam(t * mNumberOfDofs + r, u) += mat_rod_der(t, k) * mSMatLamVarRodLam(k * mNumberOfDofs + r, u);
-                        mSMatRodLamVarRodLam(t * mNumberOfDofs + r, u) += mat_rod(t, k) * mSMatLamVarRodLam(k * mNumberOfDofs + r, u);
-                        mSMatRodVarLamRodLam(t * mNumberOfDofs + r, u) += mSMatRodVar(t * mNumberOfDofs + r, k) * mat_lam_Rod_Lam(k, u);
-                    }
-                }
-            }
-        }
-
-        mSMatRodLamRodLamDerVar.clear();
-        mSMatRodLamRodLamVar.clear();
-
-        mSMatRodLamRodLamDerVar = mSMatRodVarLamRodLamDer + mSMatRodVarLamRodDerLam + mSMatRodVarLamDerRodLam + mSMatRodDerVarLamRodLam
-            + mSMatRodLamVarRodLamDer + mSMatRodLamVarRodDerLam + mSMatRodLamDerVarRodLam + mSMatRodDerLamVarRodLam;
-        mSMatRodLamRodLamVar = mSMatRodVarLamRodLam + mSMatRodLamVarRodLam;
-
-        Vector3d vec_n;
-        vec_n.clear();
-        Vector3d vec_v;
-        vec_v.clear();
-
-        for (size_t t = 0; t < 3; t++)
-        {
-            for (int k = 0; k < 3; k++)
-            {
-                vec_n(t) += mat_rod_lam_Rod_Lam(t, k) * N0(k);
-                vec_v(t) += mat_rod_lam_Rod_Lam(t, k) * V0(k);
-            }
-        }
-
-        Vector vec_n_var;
-        vec_n_var.resize(3 * mNumberOfDofs);
-        vec_n_var.clear();
-        Vector vec_v_var;
-        vec_v_var.resize(3 * mNumberOfDofs);
-        vec_v_var.clear();
-
-        for (size_t t = 0; t < 3; t++)
-        {
-            for (size_t r = 0; r < mNumberOfDofs; r++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    vec_n_var(t * mNumberOfDofs + r) += mSMatRodLamRodLamVar(t * mNumberOfDofs + r, k) * N0(k);
-                    vec_v_var(t * mNumberOfDofs + r) += mSMatRodLamRodLamVar(t * mNumberOfDofs + r, k) * V0(k);
-                }
-            }
-        }
-
-        Vector r1_var;
-        r1_var.resize(3 * mNumberOfDofs);
-        r1_var.clear();
-        for (size_t t = 0; t < 3; t++) 
-        {
-            for (size_t r = 0; r < mNumberOfDofs; r++) 
-            {
-                size_t xyz = r % mDofsPerNode;
-                size_t i = r / mDofsPerNode;
-                if (t == xyz)
-                    r1_var(t * mNumberOfDofs + r) = dR_vec[i];
-            }
-        }
-
-        for (size_t t = 0; t < 3; t++)
-        {
-            for (int k = 0; k < 3; k++)
-            {
-                for (size_t r = 0; r < mNumberOfDofs; r++)
-                {
-                    cur_var_n(r) += mSMatRodLamRodLamDerVar(t * mNumberOfDofs + r, k) * N0(k) * r1[t] + mat_rodlamRodLam_der(t, k) * N0(k) * r1_var[t * mNumberOfDofs + r];
-                    cur_var_v(r) += mSMatRodLamRodLamDerVar(t * mNumberOfDofs + r, k) * V0(k) * r1[t] + mat_rodlamRodLam_der(t, k) * V0(k) * r1_var[t * mNumberOfDofs + r];
-                    tor_var_n(r) += mSMatRodLamRodLamDerVar(t * mNumberOfDofs + r, k) * V0(k) * vec_n(t) + mat_rodlamRodLam_der(t, k) * V0(k) * vec_n_var(t * mNumberOfDofs + r);
-                    tor_var_v(r) += mSMatRodLamRodLamDerVar(t * mNumberOfDofs + r, k) * N0(k) * vec_v(t) + mat_rodlamRodLam_der(t, k) * N0(k) * vec_v_var(t * mNumberOfDofs + r);
-                }
-            }
-        }
-
-       
-        // Initialize B matrices
-        rBAxial.resize(5, mNumberOfDofs);
-        rBBending1.resize(5, mNumberOfDofs);
-        rBBending2.resize(5, mNumberOfDofs);
-        rBTorsion1.resize(5, mNumberOfDofs);
-        rBTorsion2.resize(5, mNumberOfDofs);
-        rBAxial.clear();
-        rBBending1.clear();
-        rBBending2.clear();
-        rBTorsion1.clear();
-        rBTorsion2.clear();
-
-        noalias(row(rBAxial, 0)) = axi_var; //Normal force
-        noalias(row(rBBending1, 1)) = cur_var_n;  // Bending about n-axis
-        noalias(row(rBBending2, 2)) = cur_var_v;  // Bending about v-axis
-        noalias(row(rBTorsion1, 3)) = tor_var_n;   // Torsion n in row 1 (shear stress)
-        noalias(row(rBTorsion2, 4)) = tor_var_v;   // Torsion v in row 2 (shear stress)
-        
-        KRATOS_CATCH("")
     }
 
+    
+
+
+    void EmbeddedIsogeometricBeamElement::getSecondVarOfDerLocalCoordinateSystemWrtDispGlobal(
+        const IndexType IntegrationPointIndex, 
+        SuperElementKinematicVariables rSuperElementKinematicVariables,
+        NestedElementKinematicVariales rNestedElementKinematicVariables)
+    {
+        // // computer base vectors derived ;
+        // Vector3d g1_der_1;
+        // Vector3d g1_der_2;
+        // Vector3d g2_der_1;
+        // Vector3d g2_der_2;
+        // // computer base vectors derived wrt tilde_theta;
+        // Vector3d g1_der_act;
+        // Vector3d g2_der_act;
+        // Vector3d g3_der_act;
+
+        // const auto& r_geometry = GetGeometry();
+        // const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+        // const Matrix& r_DN = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex);
+        // const Matrix& r_DDN = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex);
+
+        // rNestedElementKinematicVariables.t1_r.resize(mNumberOfDofs);//or times 3??
+        // rNestedElementKinematicVariables.t2_r.resize(mNumberOfDofs);
+        // rNestedElementKinematicVariables.t3_r.resize(mNumberOfDofs);
+        // rNestedElementKinematicVariables.t1_der_r.resize(mNumberOfDofs);
+        // rNestedElementKinematicVariables.t2_der_r.resize(mNumberOfDofs);
+        // rNestedElementKinematicVariables.t3_der_r.resize(mNumberOfDofs);
+
+        // rNestedElementKinematicVariables.t1_rs.resize(mNumberOfDofs);
+        // rNestedElementKinematicVariables.t2_rs.resize(mNumberOfDofs);
+        // rNestedElementKinematicVariables.t3_rs.resize(mNumberOfDofs);
+        // rNestedElementKinematicVariables.t1_der_rs.resize(mNumberOfDofs);
+        // rNestedElementKinematicVariables.t2_der_rs.resize(mNumberOfDofs);
+        // rNestedElementKinematicVariables.t3_der_rs.resize(mNumberOfDofs);
+
+        // for (int i=0; i<3 * mNumberOfDofs;i++)
+        // {
+        //     rNestedElementKinematicVariables.t1_rs[i].resize(mNumberOfDofs);
+        //     rNestedElementKinematicVariables.t2_rs[i].resize(mNumberOfDofs);
+        //     rNestedElementKinematicVariables.t3_rs[i].resize(mNumberOfDofs);
+        //     rNestedElementKinematicVariables.t1_der_rs[i].resize(mNumberOfDofs);
+        //     rNestedElementKinematicVariables.t2_der_rs[i].resize(mNumberOfDofs);
+        //     rNestedElementKinematicVariables.t3_der_rs[i].resize(mNumberOfDofs);
+        // }
+        
+        // for( size_t i = 0;i<3;i++)
+        // {
+        //     g1_der_1[i]=rSuperElementKinematicVariables.giDeri(i,0);
+        //     g2_der_2[i]=rSuperElementKinematicVariables.giDeri(i,1);
+        //     g1_der_2[i]=rSuperElementKinematicVariables.giDeri(i,2);
+        // }
+        // g2_der_1=g1_der_2;
+        
+        // Vector3d tangents;
+        // GetGeometry().Calculate(LOCAL_TANGENT, tangents);
+        // g1_der_act = g1_der_1*tangents[0] + g1_der_2*tangents[1];
+        // g2_der_act = g2_der_1*tangents[0] + g2_der_2*tangents[1];
+
+        // //compute base vectors in actual configuration
+        // Vector3d tilde_t2 = rSuperElementKinematicVariables.g1*tangents[0] + rSuperElementKinematicVariables.g2*tangents[1];
+        // double l_t2 = norm_2(tilde_t2);
+        // rNestedElementKinematicVariables.t2 = tilde_t2/l_t2;
+        // Vector3d tilde_t3 = rSuperElementKinematicVariables.g3;
+        // double l_t3 = norm_2(tilde_t3);
+        // rNestedElementKinematicVariables.t3 = tilde_t3/l_t3;
+        // Vector3d tilde_t1 = cross_prod(tilde_t2,tilde_t3);
+        // double l_t1 = norm_2(tilde_t1);
+        // rNestedElementKinematicVariables.t1 = tilde_t1/l_t1;
+
+        // //compute base vectors in actual configuration
+        // Vector3d tilde_t2_der = g1_der_act*tangents[0] + g2_der_act*tangents[1];
+        // rNestedElementKinematicVariables.t2_der = tilde_t2_der/l_t2-tilde_t2*inner_prod(tilde_t2_der,tilde_t2)/pow(l_t2,3);
+        // Vector3d tilde_t3_der = cross_prod(g1_der_act,rSuperElementKinematicVariables.g2)+cross_prod(rSuperElementKinematicVariables.g1,g2_der_act);
+        // rNestedElementKinematicVariables.t3_der = tilde_t3_der/l_t3-tilde_t3*inner_prod(tilde_t3_der,tilde_t3)/pow(l_t3,3);
+        // Vector3d tilde_t1_der = cross_prod(tilde_t2_der,tilde_t3)+cross_prod(tilde_t2,tilde_t3_der);
+        // rNestedElementKinematicVariables.t1_der = tilde_t1_der/l_t1-tilde_t1*inner_prod(tilde_t1_der,tilde_t1)/pow(l_t1,3);
+
+        // //variations of the base vectors
+        // Vector3d a1_r;
+        // Vector3d a2_r;
+        // Vector3d a1_der_r;
+        // Vector3d a2_der_r;
+        // //variations of the base vectors
+        // Vector3d a1_s;
+        // Vector3d a2_s;
+        // Vector3d a1_der_s;
+        // Vector3d a2_der_s;
+
+        // for(int r=0;r<mNumberOfDofs;r++)
+        // {
+        //     int xyz_r = r%3; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+        //     int i = r/3;     // index for the shape functions
+
+        //     a1_r.clear();
+        //     a2_r.clear();
+        //     a1_der_r.clear();
+        //     a2_der_r.clear();
+        //     a1_r(xyz_r) = r_DN(i,0);
+        //     a2_r(xyz_r) = r_DN(i,1);
+        //     a1_der_r(xyz_r) = r_DDN(i,0)*tangents[0]+r_DDN(i,2)*tangents[1];
+        //     a2_der_r(xyz_r) = r_DDN(i,2)*tangents[0]+r_DDN(i,1)*tangents[1];
+
+        //     //variation of the non normalized local vector
+        //     Vector3d tilde_2_r = tangents[0]*a1_r + tangents[1]*a2_r;
+        //     Vector3d tilde_3_r = cross_prod(a1_r,rSuperElementKinematicVariables.g2) + cross_prod(rSuperElementKinematicVariables.g1,a2_r);
+        //     Vector3d tilde_1_r = cross_prod(tilde_2_r,tilde_t3) + cross_prod(tilde_t2,tilde_3_r);
+        //     Vector3d tilde_2_der_r = tangents[0]*a1_der_r + tangents[1]*a2_der_r;
+        //     Vector3d tilde_3_der_r = cross_prod(a1_der_r,rSuperElementKinematicVariables.g2) + cross_prod(g1_der_act,a2_r)+cross_prod(a1_r,g2_der_act) + cross_prod(rSuperElementKinematicVariables.g1,a2_der_r);
+        //     Vector3d tilde_1_der_r = cross_prod(tilde_2_der_r,tilde_t3) + cross_prod(tilde_t2_der,tilde_3_r)+cross_prod(tilde_2_r,tilde_t3_der) + cross_prod(tilde_t2,tilde_3_der_r);
+
+        //     double line_t1_r = inner_prod(rNestedElementKinematicVariables.t1,tilde_1_r);
+        //     double line_t2_r = inner_prod(rNestedElementKinematicVariables.t2,tilde_2_r);
+        //     double line_t3_r = inner_prod(rNestedElementKinematicVariables.t3,tilde_3_r);
+        //     double line_tilde_t1_r = inner_prod(tilde_t1,tilde_1_r);
+        //     double line_tilde_t2_r = inner_prod(tilde_t2,tilde_2_r);
+        //     double line_tilde_t3_r = inner_prod(tilde_t3,tilde_3_r);
+        //     double line_tilde_t1_der_r = inner_prod(tilde_t1_der,tilde_1_r) + inner_prod(tilde_t1,tilde_1_der_r);
+        //     double line_tilde_t2_der_r = inner_prod(tilde_t2_der,tilde_2_r) + inner_prod(tilde_t2,tilde_2_der_r);
+        //     double line_tilde_t3_der_r = inner_prod(tilde_t3_der,tilde_3_r) + inner_prod(tilde_t3,tilde_3_der_r);
+
+
+        //     std::vector<Vector3d > tilde_2_rs;
+        //     std::vector<Vector3d > tilde_3_rs;
+        //     std::vector<Vector3d > tilde_1_rs;
+        //     tilde_2_rs.resize(mNumberOfDofs);
+        //     tilde_3_rs.resize(mNumberOfDofs);
+        //     tilde_1_rs.resize(mNumberOfDofs);
+        //     std::vector<Vector3d > tilde_2_der_rs;
+        //     std::vector<Vector3d > tilde_3_der_rs;
+        //     std::vector<Vector3d > tilde_1_der_rs;
+        //     tilde_2_der_rs.resize(mNumberOfDofs);
+        //     tilde_3_der_rs.resize(mNumberOfDofs);
+        //     tilde_1_der_rs.resize(mNumberOfDofs);
+
+        //     rNestedElementKinematicVariables.t1_r[r] = tilde_1_r/l_t1 - line_t1_r*rNestedElementKinematicVariables.t1/l_t1;
+        //     rNestedElementKinematicVariables.t2_r[r] = tilde_2_r/l_t2 - line_t2_r*rNestedElementKinematicVariables.t2/l_t2;
+        //     rNestedElementKinematicVariables.t3_r[r] = tilde_3_r/l_t3 - line_t3_r*rNestedElementKinematicVariables.t3/l_t3;
+
+        //     rNestedElementKinematicVariables.t1_der_r[r] = tilde_1_der_r/l_t1 - (line_tilde_t1_r*tilde_t1_der)/pow(l_t1,3)-(tilde_1_r*inner_prod(tilde_t1,tilde_t1_der)+tilde_t1*line_tilde_t1_der_r)/pow(l_t1,3)+3*(tilde_t1*inner_prod(tilde_t1,tilde_t1_der)*line_tilde_t1_r)/pow(l_t1,5);
+        //     rNestedElementKinematicVariables.t2_der_r[r] = tilde_2_der_r/l_t2 - (line_tilde_t2_r*tilde_t2_der)/pow(l_t2,3)-(tilde_2_r*inner_prod(tilde_t2,tilde_t2_der)+tilde_t2*line_tilde_t2_der_r)/pow(l_t2,3)+3*(tilde_t2*inner_prod(tilde_t2,tilde_t2_der)*line_tilde_t2_r)/pow(l_t2,5);
+        //     rNestedElementKinematicVariables.t3_der_r[r] = tilde_3_der_r/l_t3 - (line_tilde_t3_r*tilde_t3_der)/pow(l_t3,3)-(tilde_3_r*inner_prod(tilde_t3,tilde_t3_der)+tilde_t3*line_tilde_t3_der_r)/pow(l_t3,3)+3*(tilde_t3*inner_prod(tilde_t3,tilde_t3_der)*line_tilde_t3_r)/pow(l_t3,5);
+
+        //     for (int s=0; s<mNumberOfDofs; s++)
+        //     {
+        //         int xyz_s = s%3; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+        //         int j = s/3;     // index for the shape functions
+
+        //         a1_s.clear();
+        //         a2_s.clear();
+        //         a1_der_s.clear();
+        //         a2_der_s.clear();
+        //         a1_s(xyz_s) = r_DN(j,0);
+        //         a2_s(xyz_s) = r_DN(j,0);
+        //         a1_der_s(xyz_s) = r_DDN(j,0)* tangents[0]+r_DDN(j,2)*tangents[1];
+        //         a2_der_s(xyz_s) = r_DDN(j,2)* tangents[0]+r_DDN(j,1)*tangents[1];
+
+
+        //         //variation of the non normalized local vector
+        //         Vector3d tilde_2_s = tangents[0]*a1_s +  tangents[1]*a2_s;
+        //         Vector3d tilde_3_s = cross_prod(a1_s,rSuperElementKinematicVariables.g2) + cross_prod(rSuperElementKinematicVariables.g1,a2_s);
+        //         Vector3d tilde_1_s = cross_prod(tilde_2_s,tilde_t3) + cross_prod(tilde_t2,tilde_3_s);
+        //         Vector3d tilde_2_der_s = tangents[0]*a1_der_s + tangents[1]*a2_der_s;
+        //         Vector3d tilde_3_der_s = cross_prod(a1_der_s,rSuperElementKinematicVariables.g2) + cross_prod(g1_der_act,a2_s)+cross_prod(a1_s,g2_der_act) + cross_prod(rSuperElementKinematicVariables.g1,a2_der_s);
+        //         Vector3d tilde_1_der_s = cross_prod(tilde_2_der_s,tilde_t3) + cross_prod(tilde_t2_der,tilde_3_s)+cross_prod(tilde_2_s,tilde_t3_der) + cross_prod(tilde_t2,tilde_3_der_s);
+
+        //         tilde_2_rs[s].clear();
+        //         tilde_3_rs[s] = cross_prod(a1_r,a2_s) + cross_prod(a1_s,a2_r);
+        //         tilde_1_rs[s] = cross_prod(tilde_2_s,tilde_3_r) + cross_prod(tilde_2_r,tilde_3_s) + cross_prod(tilde_t2,tilde_3_rs[s]);
+        //         tilde_2_der_rs[s].clear();
+        //         tilde_3_der_rs[s] = cross_prod(a1_der_s,a2_r) + cross_prod(a1_der_r,a2_s)+cross_prod(a1_s,a2_der_r) + cross_prod(a1_r,a2_der_s);
+        //         tilde_1_der_rs[s] = cross_prod(tilde_2_der_s,tilde_3_r) + cross_prod(tilde_2_der_r,tilde_3_s) + cross_prod(tilde_t2_der,tilde_3_rs[s]) + cross_prod(tilde_2_s,tilde_3_der_r) + cross_prod(tilde_2_r,tilde_3_der_s) + cross_prod(tilde_t2,tilde_3_der_rs[s]);
+
+        //         double line_tilde_t1_s = inner_prod(tilde_t1,tilde_1_s);
+        //         double line_tilde_t2_s = inner_prod(tilde_t2,tilde_2_s);
+        //         double line_tilde_t3_s = inner_prod(tilde_t3,tilde_3_s);
+        //         double line_tilde_t1_der_s = inner_prod(tilde_t1_der,tilde_1_s) + inner_prod(tilde_t1,tilde_1_der_s);
+        //         double line_tilde_t2_der_s = inner_prod(tilde_t2_der,tilde_2_s) + inner_prod(tilde_t2,tilde_2_der_s);
+        //         double line_tilde_t3_der_s = inner_prod(tilde_t3_der,tilde_3_s) + inner_prod(tilde_t3,tilde_3_der_s);
+        //         double line_tilde_t1_rs = inner_prod(tilde_1_r,tilde_1_s)+inner_prod(tilde_t1,tilde_1_rs[s]);
+        //         double line_tilde_t2_rs = inner_prod(tilde_2_r,tilde_2_s)+inner_prod(tilde_t2,tilde_2_rs[s]);
+        //         double line_tilde_t3_rs = inner_prod(tilde_3_r,tilde_3_s)+inner_prod(tilde_t3,tilde_3_rs[s]);
+        //         double line_tilde_t1_der_rs = inner_prod(tilde_1_der_r,tilde_1_s) + inner_prod(tilde_1_r,tilde_1_der_s);
+        //         double line_tilde_t2_der_rs = inner_prod(tilde_2_der_r,tilde_2_s) + inner_prod(tilde_2_r,tilde_2_der_s);
+        //         double line_tilde_t3_der_rs = inner_prod(tilde_3_der_r,tilde_3_s) + inner_prod(tilde_3_r,tilde_3_der_s);
+        //         rNestedElementKinematicVariables.t1_rs[r][s] = tilde_1_rs[s]/l_t1 - line_tilde_t1_s*tilde_1_r/pow(l_t1,3) - (line_tilde_t1_rs*tilde_t1+line_tilde_t1_r*tilde_1_s)/pow(l_t1,3) + 3*line_tilde_t1_r*line_tilde_t1_s*tilde_t1/pow(l_t1,5);    
+        //         rNestedElementKinematicVariables.t2_rs[r][s] = tilde_2_rs[s]/l_t2 - line_tilde_t2_s*tilde_2_r/pow(l_t2,3) - (line_tilde_t2_rs*tilde_t2+line_tilde_t2_r*tilde_2_s)/pow(l_t2,3) + 3*line_tilde_t2_r*line_tilde_t2_s*tilde_t2/pow(l_t2,5);    
+        //         rNestedElementKinematicVariables.t3_rs[r][s] = tilde_3_rs[s]/l_t3 - line_tilde_t3_s*tilde_3_r/pow(l_t3,3) - (line_tilde_t3_rs*tilde_t3+line_tilde_t3_r*tilde_3_s)/pow(l_t3,3) + 3*line_tilde_t3_r*line_tilde_t3_s*tilde_t3/pow(l_t3,5);    
+
+        //         rNestedElementKinematicVariables.t1_der_rs[r][s] = tilde_1_der_rs[s]/l_t1 - tilde_1_der_r*line_tilde_t1_s/pow(l_t1,3) - (tilde_1_der_s*line_tilde_t1_r + tilde_t1_der * line_tilde_t1_rs)/pow(l_t1,3)+3*(tilde_t1_der*line_tilde_t1_r*line_tilde_t1_s)/pow(l_t1,5)
+        //                             - (tilde_1_rs[s] * inner_prod(tilde_t1,tilde_t1_der)+tilde_1_r*line_tilde_t1_der_s+tilde_1_s*line_tilde_t1_der_r)/pow(l_t1,3)
+        //                             - (tilde_t1*(inner_prod(tilde_1_rs[s],tilde_t1_der)+inner_prod(tilde_1_der_rs[s],tilde_t1)+line_tilde_t1_der_rs))/pow(l_t1,3)
+        //                             + 3*((tilde_1_r * inner_prod(tilde_t1,tilde_t1_der)+tilde_t1*line_tilde_t1_der_r)*line_tilde_t1_s)/pow(l_t1,5)
+        //                             +3*(tilde_1_s * inner_prod(tilde_t1,tilde_t1_der)*line_tilde_t1_r + tilde_t1*line_tilde_t1_der_s*line_tilde_t1_r+tilde_t1 * inner_prod(tilde_t1,tilde_t1_der)*line_tilde_t1_rs)/pow(l_t1,5)
+        //                             - 15* (tilde_t1*inner_prod(tilde_t1,tilde_t1_der)*line_tilde_t1_r*line_tilde_t1_s)/pow(l_t1,7);
+        //         rNestedElementKinematicVariables.t2_der_rs[r][s] = tilde_2_der_rs[s]/l_t2 - tilde_2_der_r*line_tilde_t2_s/pow(l_t2,3) - (tilde_2_der_s*line_tilde_t2_r + tilde_t2_der * line_tilde_t2_rs)/pow(l_t2,3)+3*(tilde_t2_der*line_tilde_t2_r*line_tilde_t2_s)/pow(l_t2,5)
+        //                             - (tilde_2_rs[s] * inner_prod(tilde_t2,tilde_t2_der)+tilde_2_r*line_tilde_t2_der_s+tilde_2_s*line_tilde_t2_der_r)/pow(l_t2,3)
+        //                             - (tilde_t2*(inner_prod(tilde_2_rs[s],tilde_t2_der)+inner_prod(tilde_2_der_rs[s],tilde_t2)+line_tilde_t2_der_rs))/pow(l_t2,3)
+        //                             + 3*((tilde_2_r * inner_prod(tilde_t2,tilde_t2_der)+tilde_t2*line_tilde_t2_der_r)*line_tilde_t2_s)/pow(l_t2,5)
+        //                             +3*(tilde_2_s * inner_prod(tilde_t2,tilde_t2_der)*line_tilde_t2_r + tilde_t2*line_tilde_t2_der_s*line_tilde_t2_r+tilde_t2 * inner_prod(tilde_t2,tilde_t2_der)*line_tilde_t2_rs)/pow(l_t2,5)
+        //                             - 25* (tilde_t2*inner_prod(tilde_t2,tilde_t2_der)*line_tilde_t2_r*line_tilde_t2_s)/pow(l_t2,7);
+        //         rNestedElementKinematicVariables.t3_der_rs[r][s] = tilde_3_der_rs[s]/l_t3 - tilde_3_der_r*line_tilde_t3_s/pow(l_t3,3) - (tilde_3_der_s*line_tilde_t3_r + tilde_t3_der * (inner_prod(tilde_3_s,tilde_3_r)+inner_prod(tilde_t3,tilde_3_rs[s])))/pow(l_t3,3)+3*(tilde_t3_der*line_tilde_t3_r*line_tilde_t3_s)/pow(l_t3,5)
+        //                             - (tilde_3_rs[s] * inner_prod(tilde_t3,tilde_t3_der)+tilde_3_r*line_tilde_t3_der_s+tilde_3_s*line_tilde_t3_der_r)/pow(l_t3,3)
+        //                             - (tilde_t3*(inner_prod(tilde_3_rs[s],tilde_t3_der)+inner_prod(tilde_3_der_rs[s],tilde_t3)+line_tilde_t3_der_rs))/pow(l_t3,3)
+        //                             + 3*((tilde_3_r * inner_prod(tilde_t3,tilde_t3_der)+tilde_t3*line_tilde_t3_der_r)*line_tilde_t3_s)/pow(l_t3,5)
+        //                             +3*(tilde_3_s * inner_prod(tilde_t3,tilde_t3_der)*line_tilde_t3_r + tilde_t3*line_tilde_t3_der_s*line_tilde_t3_r+tilde_t3 * inner_prod(tilde_t3,tilde_t3_der)*(inner_prod(tilde_3_s, tilde_3_r)+inner_prod(tilde_t3,tilde_3_rs[s])))/pow(l_t3,5)
+        //                             - 15* (tilde_t3*inner_prod(tilde_t3,tilde_t3_der)*line_tilde_t3_r*line_tilde_t3_s)/pow(l_t3,7);
+        //     }
+        // }
+    }
 
      void EmbeddedIsogeometricBeamElement::ComputeGMatrices(
         IndexType point_number,
@@ -3398,495 +3150,7 @@ namespace Kratos {
         Matrix& rGTorsion1,
         Matrix& rGTorsion2)
     {
-    KRATOS_TRY
-
-    const auto& r_geometry = GetGeometry();
-
-    // Get shape functions and derivatives at integration point
-    Vector R_vec = row(r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod()), point_number);
-    Vector dR_vec = column(r_geometry.ShapeFunctionDerivatives(1, point_number, this->GetIntegrationMethod()), 0);
-    Vector ddR_vec = column(r_geometry.ShapeFunctionDerivatives(2, point_number, this->GetIntegrationMethod()), 0);
     
-    // Extract kinematic variables
-    Vector3d r1 = rKinematicVariables.r1;
-    Vector3d r2 = rKinematicVariables.r2;
-    Vector3d R1 = rKinematicVariables.R1;
-    Vector3d R2 = rKinematicVariables.R2;
-    Vector3d N0 = rKinematicVariables.N0;
-    Vector3d V0 = rKinematicVariables.V0;
-    double phi = rKinematicVariables.phi;
-    double phi_der = rKinematicVariables.phi_der;
-    double Phi = rKinematicVariables.Phi;
-    double Phi_der = rKinematicVariables.Phi_der;
-    Vector3d t0_0 = this->GetProperties()[T_0];
-
-    // Compute curvature and torsion variations
-    Matrix axi_var_2(mNumberOfDofs, mNumberOfDofs);
-    Matrix cur_var_n_2(mNumberOfDofs, mNumberOfDofs);
-    Matrix cur_var_v_2(mNumberOfDofs, mNumberOfDofs);
-    Matrix tor_var_n_2(mNumberOfDofs, mNumberOfDofs);
-    Matrix tor_var_v_2(mNumberOfDofs, mNumberOfDofs);
-    axi_var_2.clear();
-    cur_var_n_2.clear();
-    cur_var_v_2.clear();
-    tor_var_n_2.clear();
-    tor_var_v_2.clear();
-
-    //compute axi_var
-    for (size_t  r  = 0;r < mNumberOfDofs;r++) 
-    {
-        size_t xyz_r = r % mDofsPerNode; 
-        size_t i = r / mDofsPerNode;     
-        if (xyz_r > 2)
-            for (size_t  s  = 0;s < mNumberOfDofs;s++)
-                axi_var_2(r, s) = 0.0;
-        else
-        {
-            for (size_t  s  = 0;s < mNumberOfDofs;s++)
-            {
-                size_t xyz_s = s % mDofsPerNode; 
-                int j = s / mDofsPerNode;     
-                if (xyz_s > 2)
-                    axi_var_2(r, s) = 0;
-                else
-                    if (xyz_r == xyz_s)
-                        axi_var_2(r, s) = dR_vec[i] * dR_vec[j];
-                    else
-                        axi_var_2(r, s) = 0;
-            }
-        }
-    }
-    
-    //compute cur_var_n_2, cur_var_v_2, tor_var_n_2, tor_var_v_2
-    Vector3d t_;
-    t_.clear();
-    Vector3d t_der;
-    t_der.clear();
-    Vector3d T_;
-    T_.clear();
-    Vector3d T_der;
-    T_der.clear();
-    Vector3d T0_der;
-    T0_der.clear();
-    Vector t_var;
-    Vector t_der_var;
-    Matrix t_var_var;
-    Matrix t_der_var_var;
-    Matrix3d mat_lam;
-    Matrix3d mat_lam_der;
-    Matrix3d mat_Lam;
-    Matrix3d mat_Lam_der;
-    Matrix3d mat_rod;
-    Matrix3d mat_rod_der;
-    Matrix3d mat_Rod;
-    Matrix3d mat_Rod_der;
-
-    t_ = r1 / norm_2(r1);
-    t_der = r2 / norm_2(r1) - inner_prod(r1, r2) / pow(norm_2(r1), 3) * r1;
-    T_ = R1 / norm_2(R1);
-    T_der = R2 / norm_2(R1) - inner_prod(R1, R2) / pow(norm_2(R1), 3) * R1;
-    CompTVar(t_var, dR_vec, r1);
-    CompTDerivVar(t_der_var, dR_vec, ddR_vec, r1, r2);
-    CompTVarVar(t_var_var, dR_vec, r1);
-    CompTDerivVarVar(t_der_var_var, dR_vec, ddR_vec, r1, r2);
-
-    CompMatLambda(mat_lam, T_, t_);
-    CompMatLambdaDeriv(mat_lam_der, T_, t_, T_der, t_der);
-
-    CompMatLambda(mat_Lam, t0_0, T_);
-    CompMatLambdaDeriv(mat_Lam_der, t0_0, T_, T0_der, T_der);
-    CompMatLambdaAll(mSMatLamVar, mSMatLamDerVar, mSMatLamVarVar, mSMatLamDerVarVar, T_, t_, T_der, t_var, t_der, t_der_var, t_var_var, t_der_var_var);
-
-    CompMatRodrigues(mat_rod, t_, phi);
-    CompMatRodriguesDeriv(mat_rod_der, t_, t_der, phi, phi_der);
-    CompMatRodriguesVar(mSMatRodVar, t_, t_var, R_vec, phi);
-    comp_mat_rodrigues_deriv_var(mSMatRodDerVar, t_, t_var, t_der, t_der_var, R_vec, dR_vec, phi, phi_der);
-    comp_mat_rodrigues_var_var(mSMatRodVarVar, t_, t_var, t_var_var, R_vec, phi);
-    comp_mat_rodrigues_deriv_var_var(mSMatRodDerVarVar, t_, t_var, t_der, t_der_var, t_var_var, t_der_var_var, R_vec, dR_vec, phi, phi_der);
-    
-    CompMatRodrigues(mat_Rod, T_, Phi);
-    CompMatRodriguesDeriv(mat_Rod_der, T_, T_der, Phi, Phi_der);
-
-    Matrix3d mat_Rod_Lam_der;
-    mat_Rod_Lam_der.clear();
-    Matrix3d mat_Rod_der_Lam;
-    mat_Rod_der_Lam.clear();
-    Matrix3d mat_Rod_Lam;
-    mat_Rod_Lam.clear();
-    Matrix3d mat_RodLam_der;
-    mat_RodLam_der.clear();
-
-    for (size_t  t   = 0;t < 3;t++)
-    {
-        for (int u = 0;u < 3;u++)
-        {
-            for (int k = 0;k < 3;k++)
-            {
-                mat_Rod_Lam(t, u) += mat_Rod(t, k) * mat_Lam(k, u);
-                mat_Rod_Lam_der(t, u) += mat_Rod(t, k) * mat_Lam_der(k, u);
-                mat_Rod_der_Lam(t, u) += mat_Rod_der(t, k) * mat_Lam(k, u);
-            }
-        }
-    }
-    mat_RodLam_der = mat_Rod_Lam_der + mat_Rod_der_Lam;
-
-    Matrix3d mat_lam_Rod_Lam_der;
-    mat_lam_Rod_Lam_der.clear();
-    Matrix3d mat_lam_Rod_der_Lam;
-    mat_lam_Rod_der_Lam.clear();
-    Matrix3d mat_lam_Rod_Lam;
-    mat_lam_Rod_Lam.clear();
-    Matrix3d mat_lam_der_Rod_Lam;
-    mat_lam_der_Rod_Lam.clear();
-    Matrix3d mat_lamRodLam_der;
-    mat_lamRodLam_der.clear();
-
-    for (size_t  t   = 0;t < 3;t++)
-    {
-        for (int u = 0;u < 3;u++)
-        {
-            for (int k = 0;k < 3;k++)
-            {
-                mat_lam_Rod_Lam(t, u) += mat_lam(t, k) * mat_Rod_Lam(k, u);
-                mat_lam_Rod_Lam_der(t, u) += mat_lam(t, k) * mat_Rod_Lam_der(k, u);
-                mat_lam_Rod_der_Lam(t, u) += mat_lam(t, k) * mat_Rod_der_Lam(k, u);
-                mat_lam_der_Rod_Lam(t, u) += mat_lam_der(t, k) * mat_Rod_Lam(k, u);
-            }
-        }
-    }
-
-    mat_lamRodLam_der = mat_lam_Rod_Lam_der + mat_lam_Rod_der_Lam + mat_lam_der_Rod_Lam;
-
-    Matrix3d mat_rod_lam_Rod_Lam_der;
-    mat_rod_lam_Rod_Lam_der.clear();
-    Matrix3d mat_rod_lam_Rod_der_Lam;
-    mat_rod_lam_Rod_der_Lam.clear();
-    Matrix3d mat_rod_lam_der_Rod_Lam;
-    mat_rod_lam_der_Rod_Lam.clear();
-    Matrix3d mat_rod_der_lam_Rod_Lam;
-    mat_rod_der_lam_Rod_Lam.clear();
-    Matrix3d mat_rod_lam_Rod_Lam;
-    mat_rod_lam_Rod_Lam.clear();
-
-    for (size_t  t   = 0;t < 3;t++)
-    {
-        for (int u = 0;u < 3;u++)
-        {
-            for (int k = 0;k < 3;k++)
-            {
-                mat_rod_lam_Rod_Lam_der(t, u) += mat_rod(t, k) * mat_lam_Rod_Lam_der(k, u);
-                mat_rod_lam_Rod_der_Lam(t, u) += mat_rod(t, k) * mat_lam_Rod_der_Lam(k, u);
-                mat_rod_lam_der_Rod_Lam(t, u) += mat_rod(t, k) * mat_lam_der_Rod_Lam(k, u);
-                mat_rod_der_lam_Rod_Lam(t, u) += mat_rod_der(t, k) * mat_lam_Rod_Lam(k, u);
-                mat_rod_lam_Rod_Lam(t, u) += mat_rod(t, k) * mat_lam_Rod_Lam(k, u);
-            }
-        }
-    }
-
-    Matrix3d mat_rodlamRodLam_der;
-    mat_rodlamRodLam_der.clear();
-    mat_rodlamRodLam_der = mat_rod_lam_Rod_Lam_der + mat_rod_lam_Rod_der_Lam + mat_rod_lam_der_Rod_Lam + mat_rod_der_lam_Rod_Lam;
-
-    
-    mSMatLamVarRodLamDer.clear();
-    mSMatLamVarRodDerLam.clear();
-    mSMatLamVarRodLam.clear();
-    mSMatLamDerVarRodLam.clear();
-
-    for (size_t  t   = 0;t < 3;t++)
-    {
-        for (int u = 0;u < 3;u++)
-        {
-            for (int k = 0;k < 3;k++)
-            {
-                for (size_t  r  = 0;r < mNumberOfDofs;r++)
-                {
-                    mSMatLamVarRodLam(t * mNumberOfDofs + r, u) += mSMatLamVar(t * mNumberOfDofs + r, k) * mat_Rod_Lam(k, u);
-                    mSMatLamVarRodLamDer(t * mNumberOfDofs + r, u) += mSMatLamVar(t * mNumberOfDofs + r, k) * mat_Rod_Lam_der(k, u);
-                    mSMatLamVarRodDerLam(t * mNumberOfDofs + r, u) += mSMatLamVar(t * mNumberOfDofs + r, k) * mat_Rod_der_Lam(k, u);
-                    mSMatLamDerVarRodLam(t * mNumberOfDofs + r, u) += mSMatLamDerVar(t * mNumberOfDofs + r, k) * mat_Rod_Lam(k, u);
-                }
-            }
-        }
-    }
-
-    Matrix mat_lamRodLam_der_var;
-    mat_lamRodLam_der_var.resize(3 * mNumberOfDofs, 3);
-    mat_lamRodLam_der_var.clear();
-
-    mat_lamRodLam_der_var = mSMatLamVarRodLamDer + mSMatLamVarRodDerLam + mSMatLamDerVarRodLam;
-
-    mSMatRodVarLamRodLamDer.clear();
-    mSMatRodVarLamRodDerLam.clear();
-    mSMatRodVarLamDerRodLam.clear();
-    mSMatRodDerVarLamRodLam.clear();
-    mSMatRodDerLamVarRodLam.clear();
-    mSMatRodLamDerVarRodLam.clear();
-    mSMatRodLamVarRodDerLam.clear();
-    mSMatRodLamVarRodLamDer.clear();
-    mSMatRodLamVarRodLam.clear();
-    mSMatRodVarLamRodLam.clear();
-
-    for (size_t  t   = 0;t < 3;t++)
-    {
-        for (int u = 0;u < 3;u++)
-        {
-            for (int k = 0;k < 3;k++)
-            {
-                for (size_t  r  = 0;r < mNumberOfDofs;r++)
-                {
-                    mSMatRodVarLamRodLamDer(t * mNumberOfDofs + r, u) += mSMatRodVar(t * mNumberOfDofs + r, k) * mat_lam_Rod_Lam_der(k, u);
-                    mSMatRodVarLamRodDerLam(t * mNumberOfDofs + r, u) += mSMatRodVar(t * mNumberOfDofs + r, k) * mat_lam_Rod_der_Lam(k, u);
-                    mSMatRodVarLamDerRodLam(t * mNumberOfDofs + r, u) += mSMatRodVar(t * mNumberOfDofs + r, k) * mat_lam_der_Rod_Lam(k, u);
-                    mSMatRodDerVarLamRodLam(t * mNumberOfDofs + r, u) += mSMatRodDerVar(t * mNumberOfDofs + r, k) * mat_lam_Rod_Lam(k, u);
-                    mSMatRodLamVarRodLamDer(t * mNumberOfDofs + r, u) += mat_rod(t, k) * mSMatLamVarRodLamDer(k * mNumberOfDofs + r, u);
-                    mSMatRodLamVarRodDerLam(t * mNumberOfDofs + r, u) += mat_rod(t, k) * mSMatLamVarRodDerLam(k * mNumberOfDofs + r, u);
-                    mSMatRodLamDerVarRodLam(t * mNumberOfDofs + r, u) += mat_rod(t, k) * mSMatLamDerVarRodLam(k * mNumberOfDofs + r, u);
-                    mSMatRodDerLamVarRodLam(t * mNumberOfDofs + r, u) += mat_rod_der(t, k) * mSMatLamVarRodLam(k * mNumberOfDofs + r, u);
-                    mSMatRodLamVarRodLam(t * mNumberOfDofs + r, u) += mat_rod(t, k) * mSMatLamVarRodLam(k * mNumberOfDofs + r, u);
-                    mSMatRodVarLamRodLam(t * mNumberOfDofs + r, u) += mSMatRodVar(t * mNumberOfDofs + r, k) * mat_lam_Rod_Lam(k, u);
-                }
-            }
-        }
-    }
-
-    
-    
-    mSMatRodLamRodLamDerVar.clear();
-    mSMatRodLamRodLamVar.clear();
-    mSMatRodLamRodLamDerVar = mSMatRodVarLamRodLamDer + mSMatRodVarLamRodDerLam + mSMatRodVarLamDerRodLam + mSMatRodDerVarLamRodLam
-        + mSMatRodLamVarRodLamDer + mSMatRodLamVarRodDerLam + mSMatRodLamDerVarRodLam + mSMatRodDerLamVarRodLam;
-    mSMatRodLamRodLamVar = mSMatRodVarLamRodLam + mSMatRodLamVarRodLam;
-
-    mSMatLamVarVarRodLam.clear();
-    mSMatLamDerVarVarRodLam.clear();
-    mSMatLamVarVarRodDerLam.clear();
-    mSMatLamVarVarRodLamDer.clear();
-
-    for (size_t  t   = 0;t < 3;t++)
-    {
-        for (int u = 0;u < 3;u++)
-        {
-            for (int k = 0;k < 3;k++)
-            {
-                for (size_t  r  = 0;r < mNumberOfDofs;r++)
-                {
-                    for (size_t  s  = 0;s < mNumberOfDofs;s++)
-                    {
-                        mSMatLamVarVarRodLam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mSMatLamVarVar(t * mNumberOfDofs + r, k * mNumberOfDofs + s) * mat_Rod_Lam(k, u);
-                        mSMatLamDerVarVarRodLam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mSMatLamDerVarVar(t * mNumberOfDofs + r, k * mNumberOfDofs + s) * mat_Rod_Lam(k, u);
-                        mSMatLamVarVarRodDerLam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mSMatLamVarVar(t * mNumberOfDofs + r, k * mNumberOfDofs + s) * mat_Rod_der_Lam(k, u);
-                        mSMatLamVarVarRodLamDer(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mSMatLamVarVar(t * mNumberOfDofs + r, k * mNumberOfDofs + s) * mat_Rod_Lam_der(k, u);
-                    }
-                }
-            }
-        }
-    }
-
-    Matrix mat_rod_der_lam_var_var_Rod_Lam;
-    mat_rod_der_lam_var_var_Rod_Lam.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
-    mat_rod_der_lam_var_var_Rod_Lam.clear();
-    Matrix mat_rod_lam_der_var_var_Rod_Lam;
-    mat_rod_lam_der_var_var_Rod_Lam.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
-    mat_rod_lam_der_var_var_Rod_Lam.clear();
-    Matrix mat_rod_lam_var_var_Rod_der_Lam;
-    mat_rod_lam_var_var_Rod_der_Lam.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
-    mat_rod_lam_var_var_Rod_der_Lam.clear();
-    Matrix mat_rod_lam_var_var_Rod_Lam_der;
-    mat_rod_lam_var_var_Rod_Lam_der.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
-    mat_rod_lam_var_var_Rod_Lam_der.clear();
-
-    Matrix mat_rod_der_var_lam_var_Rod_Lam;
-    mat_rod_der_var_lam_var_Rod_Lam.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
-    mat_rod_der_var_lam_var_Rod_Lam.clear();
-    Matrix mat_rod_var_lam_der_var_Rod_Lam;
-    mat_rod_var_lam_der_var_Rod_Lam.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
-    mat_rod_var_lam_der_var_Rod_Lam.clear();
-    Matrix mat_rod_var_lam_var_Rod_der_Lam;
-    mat_rod_var_lam_var_Rod_der_Lam.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
-    mat_rod_var_lam_var_Rod_der_Lam.clear();
-    Matrix mat_rod_var_lam_var_Rod_Lam_der;
-    mat_rod_var_lam_var_Rod_Lam_der.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
-    mat_rod_var_lam_var_Rod_Lam_der.clear();
-
-    Matrix mat_rod_der_var_var_lam_Rod_Lam;
-    mat_rod_der_var_var_lam_Rod_Lam.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
-    mat_rod_der_var_var_lam_Rod_Lam.clear();
-    Matrix mat_rod_var_var_lam_der_Rod_Lam;
-    mat_rod_var_var_lam_der_Rod_Lam.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
-    mat_rod_var_var_lam_der_Rod_Lam.clear();
-    Matrix mat_rod_var_var_lam_Rod_der_Lam;
-    mat_rod_var_var_lam_Rod_der_Lam.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
-    mat_rod_var_var_lam_Rod_der_Lam.clear();
-    Matrix mat_rod_var_var_lam_Rod_Lam_der;
-    mat_rod_var_var_lam_Rod_Lam_der.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
-    mat_rod_var_var_lam_Rod_Lam_der.clear();
-    Matrix mat_rod_lam_var_var_Rod_Lam;
-    mat_rod_lam_var_var_Rod_Lam.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
-    mat_rod_lam_var_var_Rod_Lam.clear();
-    Matrix mat_rod_var_lam_var_Rod_Lam;
-    mat_rod_var_lam_var_Rod_Lam.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
-    mat_rod_var_lam_var_Rod_Lam.clear();
-    Matrix mat_rod_var_var_lam_Rod_Lam;
-    mat_rod_var_var_lam_Rod_Lam.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
-    mat_rod_var_var_lam_Rod_Lam.clear();
-
-    for (size_t  t   = 0;t < 3;t++)
-    {
-        for (int u = 0;u < 3;u++)
-        {
-            for (int k = 0;k < 3;k++)
-            {
-                for (size_t  r  = 0;r < mNumberOfDofs;r++)
-                {
-                    for (size_t  s  = 0;s < mNumberOfDofs;s++)
-                    {
-                        mat_rod_der_lam_var_var_Rod_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mat_rod_der(t, k) * mSMatLamVarVarRodLam(k * mNumberOfDofs + r, u * mNumberOfDofs + s);
-                        mat_rod_lam_der_var_var_Rod_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mat_rod(t, k) * mSMatLamDerVarVarRodLam(k * mNumberOfDofs + r, u * mNumberOfDofs + s);
-                        mat_rod_lam_var_var_Rod_der_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mat_rod(t, k) * mSMatLamVarVarRodDerLam(k * mNumberOfDofs + r, u * mNumberOfDofs + s);
-                        mat_rod_lam_var_var_Rod_Lam_der(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mat_rod(t, k) * mSMatLamVarVarRodLamDer(k * mNumberOfDofs + r, u * mNumberOfDofs + s);
-                        mat_rod_der_var_lam_var_Rod_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mSMatRodDerVar(t * mNumberOfDofs + r, k) * mSMatLamVarRodLam(k * mNumberOfDofs + s, u);
-                        mat_rod_var_lam_der_var_Rod_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mSMatRodVar(t * mNumberOfDofs + r, k) * mSMatLamDerVarRodLam(k * mNumberOfDofs + s, u);
-                        mat_rod_var_lam_var_Rod_der_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mSMatRodVar(t * mNumberOfDofs + r, k) * mSMatLamVarRodDerLam(k * mNumberOfDofs + s, u);
-                        mat_rod_var_lam_var_Rod_Lam_der(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mSMatRodVar(t * mNumberOfDofs + r, k) * mSMatLamVarRodLamDer(k * mNumberOfDofs + s, u);
-                        mat_rod_der_var_var_lam_Rod_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mSMatRodDerVarVar(t * mNumberOfDofs + r, k * mNumberOfDofs + s) * mat_lam_Rod_Lam(k, u);
-                        mat_rod_var_var_lam_der_Rod_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mSMatRodVarVar(t * mNumberOfDofs + r, k * mNumberOfDofs + s) * mat_lam_der_Rod_Lam(k, u);
-                        mat_rod_var_var_lam_Rod_der_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mSMatRodVarVar(t * mNumberOfDofs + r, k * mNumberOfDofs + s) * mat_lam_Rod_der_Lam(k, u);
-                        mat_rod_var_var_lam_Rod_Lam_der(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mSMatRodVarVar(t * mNumberOfDofs + r, k * mNumberOfDofs + s) * mat_lam_Rod_Lam_der(k, u);
-                        mat_rod_lam_var_var_Rod_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mat_rod(t, k) * mSMatLamVarVarRodLam(k * mNumberOfDofs + r, u * mNumberOfDofs + s);
-                        mat_rod_var_lam_var_Rod_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mSMatRodVar(t * mNumberOfDofs + r, k) * mSMatLamVarRodLam(k * mNumberOfDofs + s, u);
-                        mat_rod_var_var_lam_Rod_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mSMatRodVarVar(t * mNumberOfDofs + r, k * mNumberOfDofs + s) * mat_lam_Rod_Lam(k, u);
-                    }
-                }
-            }
-        }
-    }
-
-    Matrix mat_rodlamRodLam_der_var_var;
-    mat_rodlamRodLam_der_var_var.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
-    mat_rodlamRodLam_der_var_var.clear();
-
-    Vector3d vec_n;
-    vec_n.clear();
-    Vector3d vec_v;
-    vec_v.clear();
-
-    for (size_t  t   = 0;t < 3;t++)
-    {
-        for (int k = 0;k < 3;k++)
-        {
-            vec_n(t) += mat_rod_lam_Rod_Lam(t, k) * N0(k);
-            vec_v(t) += mat_rod_lam_Rod_Lam(t, k) * V0(k);
-        }
-    }
-
-    Vector vec_n_var;
-    vec_n_var.resize(3 * mNumberOfDofs);
-    vec_n_var.clear();
-    Vector vec_v_var;
-    vec_v_var.resize(3 * mNumberOfDofs);
-    vec_v_var.clear();
-
-    for (size_t  t   = 0;t < 3;t++)
-    {
-        for (size_t  r  = 0;r < mNumberOfDofs;r++)
-        {
-            for (int k = 0;k < 3;k++)
-            {
-                vec_n_var(t * mNumberOfDofs + r) += mSMatRodLamRodLamVar(t * mNumberOfDofs + r, k) * N0(k);
-                vec_v_var(t * mNumberOfDofs + r) += mSMatRodLamRodLamVar(t * mNumberOfDofs + r, k) * V0(k);
-            }
-        }
-    }
-
-    Matrix mat_rodlamRodLam_var_var;
-    mat_rodlamRodLam_var_var.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
-    mat_rodlamRodLam_var_var.clear();
-
-    for (size_t  t   = 0;t < 3;t++)
-    {
-        for (int u = 0;u < 3;u++)
-        {
-            for (size_t  r  = 0;r < mNumberOfDofs;r++)
-            {
-                for (size_t  s  = 0;s < mNumberOfDofs;s++)
-                {
-                    mat_rodlamRodLam_var_var(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mat_rod_lam_var_var_Rod_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) + mat_rod_var_lam_var_Rod_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) + mat_rod_var_lam_var_Rod_Lam(t * mNumberOfDofs + s, u * mNumberOfDofs + r) + mat_rod_var_var_lam_Rod_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s);
-                    mat_rodlamRodLam_der_var_var(t * mNumberOfDofs + r, u * mNumberOfDofs + s) += mat_rod_der_lam_var_var_Rod_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) + mat_rod_lam_der_var_var_Rod_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) + mat_rod_lam_var_var_Rod_der_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) + mat_rod_lam_var_var_Rod_Lam_der(t * mNumberOfDofs + r, u * mNumberOfDofs + s)
-                        + mat_rod_der_var_lam_var_Rod_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) + mat_rod_var_lam_der_var_Rod_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) + mat_rod_var_lam_var_Rod_der_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) + mat_rod_var_lam_var_Rod_Lam_der(t * mNumberOfDofs + r, u * mNumberOfDofs + s)
-                        + mat_rod_der_var_lam_var_Rod_Lam(t * mNumberOfDofs + s, u * mNumberOfDofs + r) + mat_rod_var_lam_der_var_Rod_Lam(t * mNumberOfDofs + s, u * mNumberOfDofs + r) + mat_rod_var_lam_var_Rod_der_Lam(t * mNumberOfDofs + s, u * mNumberOfDofs + r) + mat_rod_var_lam_var_Rod_Lam_der(t * mNumberOfDofs + s, u * mNumberOfDofs + r)
-                        + mat_rod_der_var_var_lam_Rod_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) + mat_rod_var_var_lam_der_Rod_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) + mat_rod_var_var_lam_Rod_der_Lam(t * mNumberOfDofs + r, u * mNumberOfDofs + s) + mat_rod_var_var_lam_Rod_Lam_der(t * mNumberOfDofs + r, u * mNumberOfDofs + s);
-                }
-            }
-        }
-    }
-
-    Matrix vec_n_var_var;
-    vec_n_var_var.resize(3 * mNumberOfDofs, mNumberOfDofs);
-    vec_n_var_var.clear();
-    Matrix vec_v_var_var;
-    vec_v_var_var.resize(3 * mNumberOfDofs, mNumberOfDofs);
-    vec_v_var_var.clear();
-
-    for (size_t  t   = 0;t < 3;t++)
-    {
-        for (size_t  r  = 0;r < mNumberOfDofs;r++)
-        {
-            for (size_t  s  = 0;s < mNumberOfDofs;s++)
-            {
-                for (size_t  k = 0;k < 3;k++)
-                {
-                    vec_n_var_var(t * mNumberOfDofs + r, s) += mat_rodlamRodLam_var_var(t * mNumberOfDofs + r, k * mNumberOfDofs + s) * N0(k);
-                    vec_v_var_var(t * mNumberOfDofs + r, s) += mat_rodlamRodLam_var_var(t * mNumberOfDofs + r, k * mNumberOfDofs + s) * V0(k);
-                }
-            }
-        }
-    }
-
-    for (size_t  t   = 0;t < 3;t++)
-    {
-        for (size_t  k = 0;k < 3;k++)
-        {
-            for (size_t  r  = 0;r < mNumberOfDofs;r++)
-            {
-                for (size_t  s  = 0;s < mNumberOfDofs;s++)
-                {
-                    cur_var_n_2(r, s) += 0;
-                    cur_var_n_2(r, s) += 0;
-
-                    tor_var_n_2(r, s) += mat_rodlamRodLam_der_var_var(t * mNumberOfDofs + r, k * mNumberOfDofs + s) * V0(k) * vec_n(t)
-                        + mSMatRodLamRodLamDerVar(t * mNumberOfDofs + r, k) * V0(k) * vec_n_var(t * mNumberOfDofs + s)
-                        + mSMatRodLamRodLamDerVar(t * mNumberOfDofs + s, k) * V0(k) * vec_n_var(t * mNumberOfDofs + r)
-                        + mat_rodlamRodLam_der(t, k) * V0(k) * vec_n_var_var(t * mNumberOfDofs + r, s);
-
-                    tor_var_v_2(r, s) += mat_rodlamRodLam_der_var_var(t * mNumberOfDofs + r, k * mNumberOfDofs + s) * N0(k) * vec_v(t)
-                        + mSMatRodLamRodLamDerVar(t * mNumberOfDofs + r, k) * N0(k) * vec_v_var(t * mNumberOfDofs + s)
-                        + mSMatRodLamRodLamDerVar(t * mNumberOfDofs + s, k) * N0(k) * vec_v_var(t * mNumberOfDofs + r)
-                        + mat_rodlamRodLam_der(t, k) * N0(k) * vec_v_var_var(t * mNumberOfDofs + r, s);
-                }
-            }
-        }
-    }
-
-    // Initialize G matrices
-    rGAxial.resize(mNumberOfDofs, mNumberOfDofs);
-    rGBending1.resize(mNumberOfDofs, mNumberOfDofs);
-    rGBending2.resize(mNumberOfDofs, mNumberOfDofs);
-    rGTorsion1.resize(mNumberOfDofs, mNumberOfDofs);
-    rGTorsion2.resize(mNumberOfDofs, mNumberOfDofs);
-    rGAxial.clear();
-    rGBending1.clear();
-    rGBending2.clear();
-    rGTorsion1.clear();
-    rGTorsion2.clear();
-
-    noalias(rGAxial) = axi_var_2 ;
-    noalias(rGBending1) = cur_var_n_2;
-    noalias(rGBending2) = cur_var_v_2;  
-    noalias(rGTorsion1) = tor_var_n_2;   
-    noalias(rGTorsion1) = tor_var_v_2;   
-        
-    KRATOS_CATCH("")
     }
 }
 

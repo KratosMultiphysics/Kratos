@@ -42,26 +42,90 @@ protected:
     auto cross_prod(Args&&... args) {
         return MathUtils<double>::CrossProduct(std::forward<Args>(args)...);
     }
+    template <typename... Args>
+    auto inner_prod(Args&&... args) {
+        return Kratos::MathUtils<double>::Dot(std::forward<Args>(args)...);
+    }
 
-    struct KinematicVariables
+
+    struct SuperElementKinematicVariables
+    {   
+        //reference config
+        array_1d<double, 3> G1;
+        array_1d<double, 3> G2;
+        array_1d<double, 3> G3;
+        Matrix3d GiDeri;
+
+        //current config
+        array_1d<double, 3> g1;
+        array_1d<double, 3> g2;
+        array_1d<double, 3> g3;
+        Matrix3d giDeri;
+
+        SuperElementKinematicVariables(SizeType Dimension = 3)
+        {
+            G1 = ZeroVector(Dimension);
+            G2 = ZeroVector(Dimension);
+            G3 = ZeroVector(Dimension);
+            GiDeri = ZeroMatrix(Dimension,Dimension);
+
+            g1 = ZeroVector(Dimension);
+            g2 = ZeroVector(Dimension);
+            g3 = ZeroVector(Dimension);
+            giDeri = ZeroMatrix(Dimension,Dimension);
+        }
+    };
+
+    struct NestedElementKinematicVariales
     {
+        Vector3d t1;
+        Vector3d t2;
+        Vector3d t3;
+        Vector3d T1;
+        Vector3d T2;
+        Vector3d T3;
+
+        Vector3d t1_der;
+        Vector3d t2_der;
+        Vector3d t3_der;
+        Vector3d tilde_t2;
+        Vector3d T1_der;
+        Vector3d T2_der;
+        Vector3d T3_der;
+        Vector3d tilde_T2;
+
+        Vector3d T3_rot;
+        Vector3d T1_rot;
+        Vector3d T3_rot_der;
+        Vector3d T1_rot_der;
+        Vector3d t3_rot;
+        Vector3d t1_rot;
+        Vector3d t3_rot_der;
+        Vector3d t1_rot_der;
+
+        std::vector<Vector3d> t1_r;
+        std::vector<Vector3d> t2_r;
+        std::vector<Vector3d> t3_r;
+        std::vector<Vector3d> t1_der_r;
+        std::vector<Vector3d> t2_der_r;
+        std::vector<Vector3d> t3_der_r;
+        std::vector<Vector3d> tilde_t2_r;
+
+        std::vector<std::vector<Vector3d>> t1_rs;
+        std::vector<std::vector<Vector3d>> t2_rs;
+        std::vector<std::vector<Vector3d>> t3_rs;
+        std::vector<std::vector<Vector3d>> t1_der_rs;
+        std::vector<std::vector<Vector3d>> t2_der_rs;
+        std::vector<std::vector<Vector3d>> t3_der_rs;
+        std::vector<std::vector<Vector3d>> tilde_t2_rs;
+
         // Reference configuration
-        array_1d<double, 3> R1;     // Reference tangent vector
-        array_1d<double, 3> R2;     // Reference curvature vector  
-        array_1d<double, 3> R3;     // Reference third derivative
         double A;                    // Reference length measure
         double B;                    // Reference curvature measure
         
         // Current configuration
-        array_1d<double, 3> r1;     // Current tangent vector
-        array_1d<double, 3> r2;     // Current curvature vector
-        array_1d<double, 3> r3;     // Current third derivative
         double a;                    // Current length measure
         double b;                    // Current curvature measure
-        
-        // Cross-section directors
-        array_1d<double, 3> N0, V0;  // Reference directors
-        array_1d<double, 3> n, v;    // Current directors
         
         // Curvature components
         double B_n, B_v;             // Reference curvatures
@@ -72,24 +136,66 @@ protected:
         // Rotations
         double Phi, Phi_der, Phi_der2;    // Reference rotation
         double phi, phi_der, phi_der2;    // Current rotation
-        
-        KinematicVariables(SizeType Dimension = 3)
-        {
-            R1 = ZeroVector(Dimension);
-            R2 = ZeroVector(Dimension);
-            R3 = ZeroVector(Dimension);
-            r1 = ZeroVector(Dimension);
-            r2 = ZeroVector(Dimension);
-            r3 = ZeroVector(Dimension);
-            N0 = ZeroVector(Dimension);
-            V0 = ZeroVector(Dimension);
-            n = ZeroVector(Dimension);
-            v = ZeroVector(Dimension);
+
+        NestedElementKinematicVariales(SizeType Dimension=3, SizeType outer_size=0,SizeType inner_size=0)
+        {   
+            t1 = ZeroVector(Dimension);//
+            t2 = ZeroVector(Dimension);//
+            t3 = ZeroVector(Dimension);//
+            T1 = ZeroVector(Dimension);//
+            T2 = ZeroVector(Dimension);//
+            T3 = ZeroVector(Dimension);//
+
+            t1_der = ZeroVector(Dimension);//
+            t2_der = ZeroVector(Dimension);//
+            t3_der = ZeroVector(Dimension);//
+            tilde_t2 = ZeroVector(Dimension);//
+            T1_der = ZeroVector(Dimension);//
+            T2_der = ZeroVector(Dimension);//
+            T3_der = ZeroVector(Dimension);//
+            tilde_T2 = ZeroVector(Dimension);//
+
+            T3_rot = ZeroVector(Dimension);//
+            T1_rot = ZeroVector(Dimension);//
+            T3_rot_der = ZeroVector(Dimension);//
+            T1_rot_der = ZeroVector(Dimension);//
+            t3_rot = ZeroVector(Dimension);//
+            t1_rot = ZeroVector(Dimension);//
+            t3_rot_der = ZeroVector(Dimension);//
+            t1_rot_der = ZeroVector(Dimension);//
+
+            t1_r.assign(outer_size, ZeroVector(Dimension));//
+            t2_r.assign(outer_size, ZeroVector(Dimension));//
+            t3_r.assign(outer_size, ZeroVector(Dimension));//
+            t1_der_r.assign(outer_size, ZeroVector(Dimension));//
+            t2_der_r.assign(outer_size, ZeroVector(Dimension));//
+            t3_der_r.assign(outer_size, ZeroVector(Dimension));//
+            tilde_t2_r.assign(outer_size, ZeroVector(Dimension));//
+    
+            t1_rs.assign(outer_size, std::vector<Vector3d>(inner_size, ZeroVector(Dimension)));//
+            t2_rs.assign(outer_size, std::vector<Vector3d>(inner_size, ZeroVector(Dimension)));//
+            t3_rs.assign(outer_size, std::vector<Vector3d>(inner_size, ZeroVector(Dimension)));//
+
+            t1_der_rs.assign(outer_size, std::vector<Vector3d>(inner_size, ZeroVector(Dimension)));//
+            t2_der_rs.assign(outer_size, std::vector<Vector3d>(inner_size, ZeroVector(Dimension)));//
+            t3_der_rs.assign(outer_size, std::vector<Vector3d>(inner_size, ZeroVector(Dimension)));//
+            tilde_t2_rs.assign(outer_size, std::vector<Vector3d>(inner_size, ZeroVector(Dimension)));//
+
             A = B = a = b = 0.0;
             B_n = B_v = b_n = b_v = 0.0;
             C_12 = C_13 = c_12 = c_13 = 0.0;
             Phi = Phi_der = Phi_der2 = 0.0;
             phi = phi_der = phi_der2 = 0.0;
+        }
+    };
+
+
+    struct KinematicVariables
+    {
+        
+        KinematicVariables(SizeType Dimension = 3)
+        {
+        
         }
     };
 
@@ -266,11 +372,12 @@ public:
 
     void CalculateKinematics(
         const IndexType IntegrationPointIndex,
-        KinematicVariables& rKinematicVariables);
+        SuperElementKinematicVariables& rSuperElementKinematicVariables,
+        NestedElementKinematicVariales& rNestedElementKinematicVariables);
 
     void CalculateConstitutiveVariables(
         const IndexType IntegrationPointIndex,
-        KinematicVariables& rKinematics,
+        NestedElementKinematicVariales& rNestedElementKinematicVariales,
         ConstitutiveVariables& rConstitutiveVars,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure);
@@ -347,10 +454,10 @@ private:
     void CompTVarVar(Matrix& _t_var_var, Vector& _deriv, Vector3d& _r1);
     void CompTDerivVarVar(Matrix& _t_deriv_var_var, Vector& _deriv, Vector& _deriv2, Vector3d& _r1, Vector3d& _r2);
     void CompTDeriv2Var(Vector& _t_deriv2_var, Vector& _deriv, Vector& _deriv2, Vector& _deriv3, Vector3d& _r1, Vector3d& _r2, Vector3d& _r3);
-    void CompGeometryReferenceCrossSection(KinematicVariables &kinematic_variables);
-    void CompGeometryActualCrossSection(KinematicVariables &kinematic_variables);
-    double GetDeltaPhi(KinematicVariables &kinematic_variables, Vector3d &n);
-    void CompPhiRefProp(KinematicVariables &kinematic_variables, double& _Phi, double& _Phi_0_der);
+    //void CompGeometryReferenceCrossSection(const IndexType IntegrationPointIndex, SuperElementKinematicVariables & rSuperElementKinematicVariables, NestedElementKinematicVariales& rNestedElementKinematicVariables, KinematicVariables &kinematic_variables);
+    //void CompGeometryActualCrossSection(const IndexType IntegrationPointIndex, SuperElementKinematicVariables & rSuperElementKinematicVariables, NestedElementKinematicVariales& rNestedElementKinematicVariables, KinematicVariables &kinematic_variables);
+    double GetDeltaPhi(NestedElementKinematicVariales rNestedElementKinematicVariables, Vector3d &n);
+    void CompPhiRefProp(NestedElementKinematicVariales rNestedElementKinematicVariables, double& _Phi, double& _Phi_0_der);
     Vector CompEpsilonDof(Vector3d& _r1, Vector& _shape_func_deriv);
     Matrix CompEpsilonDof2(Vector3d& _r1, Vector& _shape_func_deriv);
 
@@ -363,6 +470,12 @@ private:
     void comp_mat_rodrigues_deriv2(Matrix3d& _mat_rod_derder, Vector3d _vec, Vector3d _vec_deriv, Vector3d _vec_deriv2, double _phi, double _phi_deriv, double _phi_deriv2);
     void comp_mat_rodrigues_deriv2_var(Matrix& _mat_rod_derder_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Vector3d _vec_derder, Vector _vec_derder_var, Vector _func, Vector _deriv, Vector _deriv2, double _phi, double _phi_der, double _phi_der2);
     void comp_mat_rodrigues_all(Matrix& _mat_rod_var, Matrix& _mat_rod_der_var, Matrix& _mat_rod_var_var, Matrix& _mat_rod_der_var_var, Vector3d _vec, Vector3d _vec_var, Vector3d _vec_der, Vector _vec_der_var, Matrix& _vec_var_var, Matrix& _vec_der_var_var, Vector _func, Vector _deriv, double _phi, double _phi_der);
+
+
+    //void stiff_mat_el_lin(SuperElementKinematicVariables & rSuperElementKinematicVariables, NestedElementKinematicVariales& rNestedElementKinematicVariables, IndexType point_number);
+    //void getVarOfDerLocalCoordinateSystemWrtDispGlobal(const IndexType IntegrationPointIndex,SuperElementKinematicVariables rSuperElementKinematicVariables, NestedElementKinematicVariales rNestedElementKinematicVariales);
+    void getSecondVarOfDerLocalCoordinateSystemWrtDispGlobal(const IndexType IntegrationPointIndex,SuperElementKinematicVariables rSuperElementKinematicVariables, NestedElementKinematicVariales rNestedElementKinematicVariales);
+
 
     Matrix3d cross_prod_vec_mat(const Vector3d& vec, const Matrix3d& mat)
     {

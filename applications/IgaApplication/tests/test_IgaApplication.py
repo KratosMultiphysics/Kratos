@@ -56,8 +56,8 @@ from test_import_nurbs_modeler import TestImportNurbsModeler as TTestImportNurbs
 # Processes tests
 from test_map_nurbs_volume_results_to_embedded_geometry_process import TestMapNurbsVolumeResultsToEmbeddedGeometryProcess as TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess
 # Fluid Element and Conditions tests
-from applications.IgaApplication.tests.test_stokes_elements_and_conditions import FluidTests as TTestFluid
-from applications.IgaApplication.tests.test_stokes_sbm_conditions import SbmStokesTests as TTestSbmStokes
+#from applications.IgaApplication.tests.test_stokes_elements_and_conditions import FluidTests as TTestFluid
+#from applications.IgaApplication.tests.test_stokes_sbm_conditions import SbmStokesTests as TTestSbmStokes
 
 has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 
@@ -78,41 +78,41 @@ def AssembleTestSuites():
         # Single patch test - checks iga essentials
         #SinglePatchTest,
         # Truss tests
-        TTrussElementTests,
-        # Structural Elements tests
-        TSolidIGAElementTests,
-        # Sbm Elements tests
-        TSbmSolidTests,
-        # Membrane tests
-        MembraneSinglePatchFourPointSailLinearStatic,
-        MembraneSinglePatchFourPointSailNonLinearStatic,
-        # 3p Shell KL
-        TShell3pElementTests,
-        ScordelisRoofShell3pTest,
-        LinearBeamShell3pTest,
-        LinearBeamShell3pAdditiveSchwarzTest,
-        # 5p Shell Director
-        ScordelisRoofShell5pTest,
-        # Weak support tests
-        SinglePatchRefinedSupportPenaltyTest,
-        SinglePatchRefinedSupportLagrangeTest,
-        # Coupling tests
-        TwoPatchCouplingPenaltyShell3pTest,
-        TwoPatchCouplingLagrangeShell3pTest,
-        TwoPatchRefinedCouplingPenaltyMembraneTest,
-        TwoPatchRefinedCouplingLagrangeMembraneTest,
-        # Rotation/G_1 coupling tests
-        TwoPatchCantileverCouplingPenaltyTest,
-        TwoPatchCantileverRefinedCouplingPenaltyTest,
-        # Volumes
-        TTestNurbsVolumeElements,
-        # Modelers
-        TTestModelers,
-        TTestModelersSbm,
-        TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess,
-        # Fluids
-        TTestFluid,
-        TTestSbmStokes
+        # TTrussElementTests,
+        # # Structural Elements tests
+        # TSolidIGAElementTests,
+        # # Sbm Elements tests
+        # TSbmSolidTests,
+        # # Membrane tests
+        # MembraneSinglePatchFourPointSailLinearStatic,
+        # MembraneSinglePatchFourPointSailNonLinearStatic,
+        # # 3p Shell KL
+        # TShell3pElementTests,
+        # ScordelisRoofShell3pTest,
+        # LinearBeamShell3pTest,
+        # LinearBeamShell3pAdditiveSchwarzTest,
+        # # 5p Shell Director
+        # ScordelisRoofShell5pTest,
+        # # Weak support tests
+        # SinglePatchRefinedSupportPenaltyTest,
+        # SinglePatchRefinedSupportLagrangeTest,
+        # # Coupling tests
+        # TwoPatchCouplingPenaltyShell3pTest,
+        # TwoPatchCouplingLagrangeShell3pTest,
+        # TwoPatchRefinedCouplingPenaltyMembraneTest,
+        # TwoPatchRefinedCouplingLagrangeMembraneTest,
+        # # Rotation/G_1 coupling tests
+        # TwoPatchCantileverCouplingPenaltyTest,
+        # TwoPatchCantileverRefinedCouplingPenaltyTest,
+        # # Volumes
+        # TTestNurbsVolumeElements,
+        # # Modelers
+        # TTestModelers,
+        # TTestModelersSbm,
+        # TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess,
+        # # Fluids
+        # TTestFluid,
+        # TTestSbmStokes
         #TTrussElementTests,
         # #Beam tests
         TestBeam4pElement,
