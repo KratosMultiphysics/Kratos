@@ -937,7 +937,7 @@ namespace Kratos {
 
     }
 
-    void IsogeometricBeamElement::comp_mat_rodrigues_var_var(Matrix& _mat_rod_var_var, Vector3d _vec, Vector _vec_var, Matrix _vec_var_var, Vector _func, double _phi)
+    void IsogeometricBeamElement::CompMatRodriguesVarVar(Matrix& _mat_rod_var_var, Vector3d _vec, Vector _vec_var, Matrix _vec_var_var, Vector _func, double _phi)
     {
         
         _mat_rod_var_var.clear();
@@ -1010,7 +1010,7 @@ namespace Kratos {
         }
     }
 
-    void IsogeometricBeamElement::comp_mat_rodrigues_deriv_var(Matrix& _mat_rod_der_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Vector _func, Vector _deriv, double _phi, double _phi_der)
+    void IsogeometricBeamElement::CompMatRodriguesDerivVar(Matrix& _mat_rod_der_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Vector _func, Vector _deriv, double _phi, double _phi_der)
     {
         _mat_rod_der_var.clear();
 
@@ -1083,7 +1083,7 @@ namespace Kratos {
 
     }
 
-    void IsogeometricBeamElement::comp_mat_rodrigues_deriv_var_var(Matrix& _mat_rod_der_var_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Matrix& _vec_var_var, Matrix& _vec_der_var_var, Vector _func, Vector _deriv, double _phi, double _phi_der)
+    void IsogeometricBeamElement::CompMatRodriguesDerivVarVar(Matrix& _mat_rod_der_var_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Matrix& _vec_var_var, Matrix& _vec_der_var_var, Vector _func, Vector _deriv, double _phi, double _phi_der)
     {
         _mat_rod_der_var_var.clear();
 
@@ -1169,7 +1169,7 @@ namespace Kratos {
         }
     }
 
-    void IsogeometricBeamElement::comp_mat_rodrigues_deriv2(Matrix3d& _mat_rod_derder, Vector3d _vec, Vector3d _vec_deriv, Vector3d _vec_deriv2, double _phi, double _phi_deriv, double _phi_deriv2)
+    void IsogeometricBeamElement::CompMatRodriguesDeriv2(Matrix3d& _mat_rod_derder, Vector3d _vec, Vector3d _vec_deriv, Vector3d _vec_deriv2, double _phi, double _phi_deriv, double _phi_deriv2)
     {
         _mat_rod_derder.clear();
 
@@ -1183,7 +1183,7 @@ namespace Kratos {
         _mat_rod_derder += cross_prod_vec_mat(_vec_deriv2, _mat_identity) * sin(_phi);
     }
 
-    void IsogeometricBeamElement::comp_mat_rodrigues_deriv2_var(Matrix& _mat_rod_derder_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Vector3d _vec_derder, Vector _vec_derder_var, Vector _func, Vector _deriv, Vector _deriv2, double _phi, double _phi_der, double _phi_der2)
+    void IsogeometricBeamElement::CompMatRodriguesDeriv2Var(Matrix& _mat_rod_derder_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Vector3d _vec_derder, Vector _vec_derder_var, Vector _func, Vector _deriv, Vector _deriv2, double _phi, double _phi_der, double _phi_der2)
     {
         
         _mat_rod_derder_var.resize(3 * mNumberOfDofs, 3);
@@ -1240,7 +1240,7 @@ namespace Kratos {
 
     }
 
-    void IsogeometricBeamElement::comp_mat_rodrigues_all(Matrix& _mat_rod_var, Matrix& _mat_rod_der_var, Matrix& _mat_rod_var_var, Matrix& _mat_rod_der_var_var, Vector3d _vec, Vector3d _vec_var, Vector3d _vec_der, Vector _vec_der_var, Matrix& _vec_var_var, Matrix& _vec_der_var_var, Vector _func, Vector _deriv, double _phi, double _phi_der)
+    void IsogeometricBeamElement::CompMatRodriguesAll(Matrix& _mat_rod_var, Matrix& _mat_rod_der_var, Matrix& _mat_rod_var_var, Matrix& _mat_rod_der_var_var, Vector3d _vec, Vector3d _vec_var, Vector3d _vec_der, Vector _vec_der_var, Matrix& _vec_var_var, Matrix& _vec_der_var_var, Vector _func, Vector _deriv, double _phi, double _phi_der)
     {
   
         _mat_rod_var.clear();
@@ -3097,7 +3097,7 @@ namespace Kratos {
         CompMatRodrigues(mat_rod, t_, phi);
         CompMatRodriguesDeriv(mat_rod_der, t_, t_der, phi, phi_der);
         CompMatRodriguesVar(mSMatRodVar, t_, t_var, R_vec, phi);
-        comp_mat_rodrigues_deriv_var(mSMatRodDerVar, t_, t_var, t_der, t_der_var, R_vec, dR_vec, phi, phi_der);
+        CompMatRodriguesDerivVar(mSMatRodDerVar, t_, t_var, t_der, t_der_var, R_vec, dR_vec, phi, phi_der);
         CompMatRodrigues(mat_Rod, T_, Phi);
         CompMatRodriguesDeriv(mat_Rod_der, T_, T_der, Phi, Phi_der);
 
@@ -3445,9 +3445,9 @@ namespace Kratos {
     CompMatRodrigues(mat_rod, t_, phi);
     CompMatRodriguesDeriv(mat_rod_der, t_, t_der, phi, phi_der);
     CompMatRodriguesVar(mSMatRodVar, t_, t_var, R_vec, phi);
-    comp_mat_rodrigues_deriv_var(mSMatRodDerVar, t_, t_var, t_der, t_der_var, R_vec, dR_vec, phi, phi_der);
-    comp_mat_rodrigues_var_var(mSMatRodVarVar, t_, t_var, t_var_var, R_vec, phi);
-    comp_mat_rodrigues_deriv_var_var(mSMatRodDerVarVar, t_, t_var, t_der, t_der_var, t_var_var, t_der_var_var, R_vec, dR_vec, phi, phi_der);
+    CompMatRodriguesDerivVar(mSMatRodDerVar, t_, t_var, t_der, t_der_var, R_vec, dR_vec, phi, phi_der);
+    CompMatRodriguesVarVar(mSMatRodVarVar, t_, t_var, t_var_var, R_vec, phi);
+    CompMatRodriguesDerivVarVar(mSMatRodDerVarVar, t_, t_var, t_der, t_der_var, t_var_var, t_der_var_var, R_vec, dR_vec, phi, phi_der);
     
     CompMatRodrigues(mat_Rod, T_, Phi);
     CompMatRodriguesDeriv(mat_Rod_der, T_, T_der, Phi, Phi_der);

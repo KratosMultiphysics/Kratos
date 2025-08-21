@@ -377,31 +377,24 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def(py::init<
             NurbsCurveOnSurfaceGeometry3DType::NurbsSurfaceType::Pointer,
             NurbsCurveOnSurfaceGeometry3DType::NurbsCurveType::Pointer>())
-        ;
-
-
-    py::class_<SurfaceInNurbsVolumeGeometry<3, NodeContainerType>, SurfaceInNurbsVolumeGeometry<3, NodeContainerType>::Pointer, GeometryType>(m, "SurfaceInNurbsVolumeGeometry")
-        .def(py::init<NurbsVolumeGeometry<NodeContainerType>::Pointer, GeometryType::Pointer>())
-        ;
-
-    py::class_<NurbsCurveOnSurfaceGeometry<3, NodeContainerType, NodeContainerType>, NurbsCurveOnSurfaceGeometry<3, NodeContainerType, NodeContainerType>::Pointer, GeometryType>(m, "NurbsCurveOnSurfaceGeometry3D")
-        .def(py::init< NurbsSurfaceGeometry<3, NodeContainerType>::Pointer, NurbsCurveGeometry<2, NodeContainerType>::Pointer>())
-        .def("SpansLocalSpace", [](const  NurbsCurveOnSurfaceGeometry<3, NodeContainerType, NodeContainerType>& self, double start, double end) {
-        std::vector<double> spans;
-        self.SpansLocalSpace(spans, start, end);
-        return spans;
-            })
-        .def("SpansLocalSpace", [](const NurbsCurveOnSurfaceGeometry<3, NodeContainerType, NodeContainerType>& self, IndexType direction_index = 0) {
-        std::vector<double> spans;
-        self.SpansLocalSpace(spans, direction_index);
-        return spans;
-            })
-        .def("GlobalSpaceDerivatives", [](NurbsCurveOnSurfaceGeometry<3, NodeContainerType, NodeContainerType>& self, std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives, CoordinatesArrayType& rLocalCoordinates, SizeType DerivativeOrder)
-            {
-                self.GlobalSpaceDerivatives(rGlobalSpaceDerivatives, rLocalCoordinates, DerivativeOrder);
-                return rGlobalSpaceDerivatives;
-            })
-        ;
-}
+        .def("SpansLocalSpace", [](const NurbsCurveOnSurfaceGeometry3DType& self, double start, double end) {
+            std::vector<double> spans;
+            self.SpansLocalSpace(spans, start, end);
+            return spans;
+        })
+        .def("SpansLocalSpace", [](const NurbsCurveOnSurfaceGeometry3DType& self, IndexType direction_index) {
+            std::vector<double> spans;
+            self.SpansLocalSpace(spans, direction_index);
+            return spans;
+        })
+        .def("GlobalSpaceDerivatives", [](NurbsCurveOnSurfaceGeometry3DType& self,
+                std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+                CoordinatesArrayType& rLocalCoordinates, SizeType DerivativeOrder)
+        {
+            self.GlobalSpaceDerivatives(rGlobalSpaceDerivatives, rLocalCoordinates, DerivativeOrder);
+            return rGlobalSpaceDerivatives;
+        })
+    ;
+    }
 
 }  // namespace Kratos::Python.

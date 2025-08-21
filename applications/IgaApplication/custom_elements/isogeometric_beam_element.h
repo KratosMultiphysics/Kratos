@@ -71,8 +71,8 @@ protected:
         double c_12, c_13;           // Current twist
         
         // Rotations
-        double Phi, Phi_der, Phi_der2;    // Reference rotation
-        double phi, phi_der, phi_der2;    // Current rotation
+        double Phi, Phi_der;    // Reference rotation
+        double phi, phi_der;    // Current rotation
         
         KinematicVariables(SizeType Dimension = 3)
         {
@@ -89,8 +89,8 @@ protected:
             A = B = a = b = 0.0;
             B_n = B_v = b_n = b_v = 0.0;
             C_12 = C_13 = c_12 = c_13 = 0.0;
-            Phi = Phi_der = Phi_der2 = 0.0;
-            phi = phi_der = phi_der2 = 0.0;
+            Phi = Phi_der = 0.0;
+            phi = phi_der =  0.0;
         }
     };
 
@@ -358,12 +358,12 @@ private:
     void CompMatRodrigues(Matrix3d& _mat_rod, Vector3d _vec, double _phi);
     void CompMatRodriguesDeriv(Matrix3d& _mat_rod_der, Vector3d _vec, Vector3d _vec_deriv, double _phi, double _phi_deriv);
     void CompMatRodriguesVar(Matrix& _mat_rod_var, Vector3d _vec, Vector _vec_var, Vector _func, double _phi);
-    void comp_mat_rodrigues_var_var(Matrix& _mat_rod_var_var, Vector3d _vec, Vector _vec_var, Matrix _vec_var_var, Vector _func, double _phi);
-    void comp_mat_rodrigues_deriv_var(Matrix& _mat_rod_der_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Vector _func, Vector _deriv, double _phi, double _phi_der);
-    void comp_mat_rodrigues_deriv_var_var(Matrix& _mat_rod_der_var_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Matrix& _vec_var_var, Matrix& _vec_der_var_var, Vector _func, Vector _deriv, double _phi, double _phi_der);
-    void comp_mat_rodrigues_deriv2(Matrix3d& _mat_rod_derder, Vector3d _vec, Vector3d _vec_deriv, Vector3d _vec_deriv2, double _phi, double _phi_deriv, double _phi_deriv2);
-    void comp_mat_rodrigues_deriv2_var(Matrix& _mat_rod_derder_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Vector3d _vec_derder, Vector _vec_derder_var, Vector _func, Vector _deriv, Vector _deriv2, double _phi, double _phi_der, double _phi_der2);
-    void comp_mat_rodrigues_all(Matrix& _mat_rod_var, Matrix& _mat_rod_der_var, Matrix& _mat_rod_var_var, Matrix& _mat_rod_der_var_var, Vector3d _vec, Vector3d _vec_var, Vector3d _vec_der, Vector _vec_der_var, Matrix& _vec_var_var, Matrix& _vec_der_var_var, Vector _func, Vector _deriv, double _phi, double _phi_der);
+    void CompMatRodriguesVarVar(Matrix& _mat_rod_var_var, Vector3d _vec, Vector _vec_var, Matrix _vec_var_var, Vector _func, double _phi);
+    void CompMatRodriguesDerivVar(Matrix& _mat_rod_der_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Vector _func, Vector _deriv, double _phi, double _phi_der);
+    void CompMatRodriguesDerivVarVar(Matrix& _mat_rod_der_var_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Matrix& _vec_var_var, Matrix& _vec_der_var_var, Vector _func, Vector _deriv, double _phi, double _phi_der);
+    void CompMatRodriguesDeriv2(Matrix3d& _mat_rod_derder, Vector3d _vec, Vector3d _vec_deriv, Vector3d _vec_deriv2, double _phi, double _phi_deriv, double _phi_deriv2);
+    void CompMatRodriguesDeriv2Var(Matrix& _mat_rod_derder_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Vector3d _vec_derder, Vector _vec_derder_var, Vector _func, Vector _deriv, Vector _deriv2, double _phi, double _phi_der, double _phi_der2);
+    void CompMatRodriguesAll(Matrix& _mat_rod_var, Matrix& _mat_rod_der_var, Matrix& _mat_rod_var_var, Matrix& _mat_rod_der_var_var, Vector3d _vec, Vector3d _vec_var, Vector3d _vec_der, Vector _vec_der_var, Matrix& _vec_var_var, Matrix& _vec_der_var_var, Vector _func, Vector _deriv, double _phi, double _phi_der);
 
     Matrix3d cross_prod_vec_mat(const Vector3d& vec, const Matrix3d& mat)
     {
