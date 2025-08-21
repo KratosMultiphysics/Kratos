@@ -2,7 +2,7 @@
     "properties": [
         {
             "properties_id": 0,
-            "model_part_name": "PorousDomain.Soil",
+            "model_part_name": "PorousDomain.Soil-0",
             "Material": {
                 "constitutive_law": {
                     "name": "SmallStrainUDSM2DPlaneStrainLaw"
@@ -15,10 +15,10 @@
                     "POROSITY": 0.5,
                     "BULK_MODULUS_SOLID": 2.0e10,
                     "BULK_MODULUS_FLUID": 2.2e9,
-                    "PERMEABILITY_XX": 1.5041e-14,
-                    "PERMEABILITY_YY": 1.5041e-14,
+                    "PERMEABILITY_XX": 1.2995423999999998e-09,
+                    "PERMEABILITY_YY": 1.2995423999999998e-09,
                     "PERMEABILITY_XY": 0.0,
-                    "DYNAMIC_VISCOSITY": 0.0013,
+                    "DYNAMIC_VISCOSITY": 112.32,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "RESIDUAL_SATURATION": 0.06203,
                     "SATURATED_SATURATION": 1.0,

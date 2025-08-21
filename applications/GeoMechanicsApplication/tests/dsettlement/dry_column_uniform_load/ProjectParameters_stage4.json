@@ -2,7 +2,7 @@
     "problem_data": {
         "problem_name": "mesh",
         "start_time": 8640000,
-        "end_time": 8640008.64,
+        "end_time": 8640001,
         "echo_level": 1,
         "parallel_type": "OpenMP",
         "number_of_threads": 1
@@ -18,7 +18,7 @@
             "materials_filename": "MaterialParameters_abc.json"
         },
         "time_stepping": {
-            "time_step": 8.64,
+            "time_step": 1,
             "max_delta_time_factor": 86400000000
         },
         "buffer_size": 2,
@@ -35,7 +35,7 @@
         "displacement_absolute_tolerance": 1e-09,
         "min_iterations": 6,
         "max_iterations": 30,
-        "number_cycles": 100,
+        "number_cycles": 5,
         "reduction_factor": 0.5,
         "increase_factor": 2.0,
         "calculate_reactions": true,
@@ -50,9 +50,9 @@
             "solver_type": "LinearSolversApplication.sparse_lu",
             "scaling": true
         },
-        "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list": ["gravity", "Side_Nodes", "LineLoad"],
-        "body_domain_sub_model_part_list": ["Soil"],
+        "problem_domain_sub_model_part_list": ["Soil-0"],
+        "processes_sub_model_part_list": ["gravity", "Bottom1", "Side3", "Side4", "LineLoad4", "Soil-0"],
+        "body_domain_sub_model_part_list": ["Soil-0"],
         "move_mesh_flag": false
     },
     "output_processes": {
@@ -93,7 +93,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyScalarConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.Soil",
+                    "model_part_name": "PorousDomain.Soil-0",
                     "variable_name": "WATER_PRESSURE",
                     "is_fixed": true,
                     "value": 0.0,
@@ -106,10 +106,10 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.Bottom",
+                    "model_part_name": "PorousDomain.Bottom1",
                     "variable_name": "DISPLACEMENT",
-                    "active": [true, true, false],
-                    "is_fixed": [true, true, false],
+                    "active": [true, true, true],
+                    "is_fixed": [true, true, true],
                     "value": [0.0, 0.0, 0.0],
                     "table": [0, 0, 0]
                 }
@@ -119,7 +119,20 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.Side_Nodes",
+                    "model_part_name": "PorousDomain.Side3",
+                    "variable_name": "DISPLACEMENT",
+                    "active": [true, false, false],
+                    "is_fixed": [true, false, false],
+                    "value": [0.0, 0.0, 0.0],
+                    "table": [0, 0, 0]
+                }
+            },
+            {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyVectorConstraintTableProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Side4",
                     "variable_name": "DISPLACEMENT",
                     "active": [true, false, false],
                     "is_fixed": [true, false, false],
@@ -146,11 +159,11 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.LineLoad",
+                    "model_part_name": "PorousDomain.LineLoad4",
                     "variable_name": "LINE_LOAD",
                     "active": [false, true, false],
                     "value": [0.0, 0.0, 0.0],
-                    "table": [0, 2, 0]
+                    "table": [0, 4, 0]
                 }
             }
         ]
