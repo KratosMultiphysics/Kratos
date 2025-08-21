@@ -26,7 +26,7 @@ void NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(Node& rNode,
                                                                     IndexType SolutionStepIndex)
 {
     const std::vector<std::string> components = {"X", "Y", "Z"};
-    for (const auto [new_value, component] : boost::combine(rNewValues, components)) {
+    for (const auto& [new_value, component] : boost::combine(rNewValues, components)) {
         if (const auto& component_variable =
                 VariablesUtilities::GetComponentFromVectorVariable(rDestinationVariable.Name(), component);
             !rNode.IsFixed(component_variable)) {
