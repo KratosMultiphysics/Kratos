@@ -2085,12 +2085,19 @@ Begin SubModelPart Side4
   End SubModelPartNodes
 End SubModelPart
 
+Begin Table 1 X LINE_LOAD_Y
+   0.0000000000 -20000.0000000000 
+   1.0000000000 -20000.0000000000 
+End Table
+
 Begin Table 2 X LINE_LOAD_Y
-   0.0000000000 -20000.0000000000 
-   1.0000000000 -20000.0000000000 
+   0.0000000000 -25000.0000000000
+   1.0000000000 -25000.0000000000
 End Table
-Begin SubModelPart LineLoad2
+
+Begin SubModelPart LineLoad
   Begin SubModelPartTables
+    1
     2
   End SubModelPartTables
   Begin SubModelPartNodes
@@ -2102,62 +2109,3 @@ Begin SubModelPart LineLoad2
     171
   End SubModelPartConditions
 End SubModelPart
-
-Begin Table 3 X LINE_LOAD_Y
-   0.0000000000 -20000.0000000000 
-   1.0000000000 -20000.0000000000 
-End Table
-Begin SubModelPart LineLoad3
-  Begin SubModelPartTables
-    3
-  End SubModelPartTables
-  Begin SubModelPartNodes
-    2
-    3
-    104
-  End SubModelPartNodes
-  Begin SubModelPartConditions
-    171
-  End SubModelPartConditions
-End SubModelPart
-
-Begin Table 4 X LINE_LOAD_Y
-   0.0000000000 -25000.0000000000 
-   1.0000000000 -25000.0000000000 
-End Table
-Begin SubModelPart LineLoad4
-  Begin SubModelPartTables
-    4
-  End SubModelPartTables
-  Begin SubModelPartElements
-  End SubModelPartElements
-  Begin SubModelPartNodes
-    2
-    3
-    104
-  End SubModelPartNodes
-  Begin SubModelPartConditions
-    171
-  End SubModelPartConditions
-End SubModelPart
-
-Begin Table 5 X LINE_LOAD_Y
-   0.0000000000 -25000.0000000000 
-   1.0000000000 -25000.0000000000 
-End Table
-Begin SubModelPart LineLoad5
-  Begin SubModelPartTables
-    5
-  End SubModelPartTables
-  Begin SubModelPartElements
-  End SubModelPartElements
-  Begin SubModelPartNodes
-    2
-    3
-    104
-  End SubModelPartNodes
-  Begin SubModelPartConditions
-    171
-  End SubModelPartConditions
-End SubModelPart 
-

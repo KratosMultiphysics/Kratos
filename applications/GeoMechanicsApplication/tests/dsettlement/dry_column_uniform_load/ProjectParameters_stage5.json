@@ -51,7 +51,7 @@
             "scaling": true
         },
         "problem_domain_sub_model_part_list": ["Soil-0"],
-        "processes_sub_model_part_list": ["gravity", "Bottom1", "Side3", "Side4", "LineLoad5", "Soil-0"],
+        "processes_sub_model_part_list": ["gravity", "Bottom1", "Side3", "Side4", "LineLoad", "Soil-0"],
         "body_domain_sub_model_part_list": ["Soil-0"],
         "move_mesh_flag": false
     },
@@ -159,11 +159,11 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.LineLoad5",
+                    "model_part_name": "PorousDomain.LineLoad",
                     "variable_name": "LINE_LOAD",
                     "active": [false, true, false],
                     "value": [0.0, 0.0, 0.0],
-                    "table": [0, 5, 0]
+                    "table": [0, 2, 0]
                 }
             }
         ]
