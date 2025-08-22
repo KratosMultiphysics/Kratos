@@ -1868,7 +1868,7 @@ Begin SubModelPart gravity
   End SubModelPartElements
 End SubModelPart 
 
-Begin SubModelPart TopWaterPressure0
+Begin SubModelPart TopWaterPressure
   Begin SubModelPartNodes
     2
     3
@@ -1884,7 +1884,7 @@ Begin SubModelPart Bottom1
   End SubModelPartNodes
 End SubModelPart 
 
-Begin SubModelPart FixedPressure2
+Begin SubModelPart BottomWaterPressure
   Begin SubModelPartNodes
     1
     4
@@ -1892,7 +1892,7 @@ Begin SubModelPart FixedPressure2
   End SubModelPartNodes
 End SubModelPart 
 
-Begin SubModelPart Side3
+Begin SubModelPart LeftSide
   Begin SubModelPartNodes
     3
     4
@@ -1998,7 +1998,7 @@ Begin SubModelPart Side3
   End SubModelPartNodes
 End SubModelPart 
 
-Begin SubModelPart Side4
+Begin SubModelPart RightSide
   Begin SubModelPartNodes
     1
     2

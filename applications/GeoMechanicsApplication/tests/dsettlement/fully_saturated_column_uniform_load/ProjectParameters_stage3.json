@@ -55,11 +55,11 @@
     "problem_domain_sub_model_part_list": ["Soil-0"],
     "processes_sub_model_part_list"   : ["gravity",
                                          "PhreaticLineContactStress2",
-                                         "TopWaterPressure0",
+                                         "TopWaterPressure",
                                          "Bottom1",
-                                         "FixedPressure2",
-                                         "Side3",
-                                         "Side4"],
+                                         "BottomWaterPressure",
+                                         "LeftSide",
+                                         "RightSide"],
     "body_domain_sub_model_part_list" : ["Soil-0"],
     "move_mesh_flag"                  : false
   },
@@ -101,7 +101,7 @@
         "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
         "process_name"             : "ApplyScalarConstraintTableProcess",
         "Parameters": {
-          "model_part_name"        : "PorousDomain.TopWaterPressure0",
+          "model_part_name"        : "PorousDomain.TopWaterPressure",
           "variable_name"          : "WATER_PRESSURE",
           "is_fixed"               : true,
           "table"                  : 0,
@@ -132,7 +132,7 @@
         "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
         "process_name"             : "ApplyScalarConstraintTableProcess",
         "Parameters": {
-          "model_part_name"        : "PorousDomain.FixedPressure2",
+          "model_part_name"        : "PorousDomain.BottomWaterPressure",
           "variable_name"          : "WATER_PRESSURE",
           "is_fixed"               : true,
           "table"                  : 0,
@@ -150,7 +150,7 @@
         "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
         "process_name"             : "ApplyVectorConstraintTableProcess",
         "Parameters": {
-          "model_part_name"        : "PorousDomain.Side3",
+          "model_part_name"        : "PorousDomain.LeftSide",
           "variable_name"          : "DISPLACEMENT",
           "active"                 : [true, false, true],
           "is_fixed"               : [true, false, true],
@@ -163,7 +163,7 @@
         "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
         "process_name"             : "ApplyVectorConstraintTableProcess",
         "Parameters": {
-          "model_part_name"        : "PorousDomain.Side4",
+          "model_part_name"        : "PorousDomain.RightSide",
           "variable_name"          : "DISPLACEMENT",
           "active"                 : [true, false, true],
           "is_fixed"               : [true, false, true],
