@@ -93,7 +93,7 @@
                         "skin_output":         false,
                         "plane_output":        [],
                         "nodal_results":       ["DISPLACEMENT","TOTAL_DISPLACEMENT","INCREMENTAL_DISPLACEMENT","ROTATION","TOTAL_ROTATION","INCREMENTAL_ROTATION","POINT_LOAD"],
-                        "gauss_point_results": ["MOMENT","FORCE"]
+                        "gauss_point_results": ["BENDING_MOMENT_X","BENDING_MOMENT_Y","BENDING_MOMENT_Z","AXIAL_FORCE","SHEAR_FORCE_Y","SHEAR_FORCE_Z"]
                     }
                 }
             }
