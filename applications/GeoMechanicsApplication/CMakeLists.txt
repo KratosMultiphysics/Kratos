@@ -53,7 +53,7 @@ set_target_properties(KratosGeoMechanicsCore PROPERTIES COMPILE_DEFINITIONS "GEO
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosGeoMechanicsApplication MODULE THIN_LTO ${KRATOS_GEO_MECHANICS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosGeoMechanicsApplication PRIVATE KratosGeoMechanicsCore)
-set_target_properties(KratosGeoMechanicsApplication PROPERTIES PREFIX "")
+set_target_properties(KratosGeoMechanicsApplication PROPERTIES PREFIX "" CXX_STANDARD 20)
 
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
