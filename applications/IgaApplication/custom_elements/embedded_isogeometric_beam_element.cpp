@@ -6,28 +6,37 @@
 namespace Kratos {
     
     void EmbeddedIsogeometricBeamElement::EquationIdVector(
-    EquationIdVectorType& rResult,
-    const ProcessInfo& rCurrentProcessInfo
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo
     ) const
     {
         KRATOS_TRY;
 
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_control_points = r_geometry.size();
-
-        if (rResult.size() != 4 * number_of_control_points)
-            rResult.resize(4 * number_of_control_points, false);
-
         const IndexType pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
 
-        for (IndexType i = 0; i < number_of_control_points; ++i) {
-            const IndexType index = i * 4;
-            rResult[index] = r_geometry[i].GetDof(DISPLACEMENT_X, pos).EquationId();
-            rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
-            rResult[index + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
-            rResult[index + 3] = r_geometry[i].GetDof(ROTATION_X, pos + 3).EquationId();
+        if (this->GetProperties()[ROTATIONAL_DOF_ACTIVE]){
+            if (rResult.size() != 4 * number_of_control_points)
+            rResult.resize(4 * number_of_control_points, false);
+            for (IndexType i = 0; i < number_of_control_points; ++i) {
+                const IndexType index = i * 4;
+                rResult[index] = r_geometry[i].GetDof(DISPLACEMENT_X, pos).EquationId();
+                rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
+                rResult[index + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
+                rResult[index + 3] = r_geometry[i].GetDof(ROTATION_X, pos + 3).EquationId();
+            }
         }
-
+        else{
+            if (rResult.size() != 3 * number_of_control_points)
+            rResult.resize(3 * number_of_control_points, false);
+            for (IndexType i = 0; i < number_of_control_points; ++i) {
+                const IndexType index = i * 3;
+                rResult[index] = r_geometry[i].GetDof(DISPLACEMENT_X, pos).EquationId();
+                rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
+                rResult[index + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
+            }
+        }
         KRATOS_CATCH("")
     };
 
@@ -39,140 +48,169 @@ namespace Kratos {
         KRATOS_TRY;
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_control_points = r_geometry.size();
-
-        rElementalDofList.resize(0);
-        rElementalDofList.reserve(4 * number_of_control_points);
-
-        for (IndexType i = 0; i < number_of_control_points; ++i) {
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
+        
+        if (this->GetProperties()[ROTATIONAL_DOF_ACTIVE]){
+            rElementalDofList.resize(0);
+            rElementalDofList.reserve(4 * number_of_control_points);
+            for (IndexType i = 0; i < number_of_control_points; ++i) {
+                rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
+                rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
+                rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+                rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
+            }
+        }
+        else{
+            rElementalDofList.resize(0);
+            rElementalDofList.reserve(3 * number_of_control_points);
+            for (IndexType i = 0; i < number_of_control_points; ++i) {
+                rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
+                rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
+                rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+            }
         }
         KRATOS_CATCH("")
     };
 
     void EmbeddedIsogeometricBeamElement::GetValuesVector(Vector& rValues,int Step) const 
-    {
+    {   
+        KRATOS_TRY;
         const auto& r_geometry = GetGeometry();
         const IndexType nb_nodes = r_geometry.size();
-        if (rValues.size() != nb_nodes * 4) {
+
+        if (this->GetProperties()[ROTATIONAL_DOF_ACTIVE]){
+            if (rValues.size() != nb_nodes * 4) {
             rValues.resize(nb_nodes * 4, false);
+            }
+
+            for (IndexType i = 0; i < nb_nodes; ++i) {
+                IndexType index = i * 4;
+                const auto& disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+                const auto& rot = r_geometry[i].FastGetSolutionStepValue(ROTATION_X, Step);
+                rValues[index] = disp[0];
+                rValues[index + IndexType(1)] = disp[1];
+                rValues[index + IndexType(2)] = disp[2];
+                rValues[index + IndexType(3)] = rot;
+            }
+        }
+        else{
+            if (rValues.size() != nb_nodes * 3) {
+                rValues.resize(nb_nodes * 3, false);
+                }
+                for (IndexType i = 0; i < nb_nodes; ++i) {
+                    IndexType index = i * 3;
+                    const auto& disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+                    rValues[index] = disp[0];
+                    rValues[index + IndexType(1)] = disp[1];
+                    rValues[index + IndexType(2)] = disp[2];
+                }
+        }
+        KRATOS_CATCH("")
+    }
+    
+
+    void EmbeddedIsogeometricBeamElement::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable, std::vector<array_1d<double, 3>>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+    {
+ 
+        const auto& r_geometry = GetGeometry();
+        const auto& integration_points = r_geometry.IntegrationPoints();
+
+        array_1d<double, 3> local_tangent;
+
+        if (rOutput.size() != integration_points.size()) {
+            rOutput.resize(GetGeometry().IntegrationPointsNumber());
         }
 
-        for (IndexType i = 0; i < nb_nodes; ++i) {
-            IndexType index = i * 4;
-            const auto& disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-            const auto& rot = r_geometry[i].FastGetSolutionStepValue(ROTATION_X, Step);
-            rValues[index] = disp[0];
-            rValues[index + IndexType(1)] = disp[1];
-            rValues[index + IndexType(2)] = disp[2];
-            rValues[index + IndexType(3)] = mRotationXActive ? rot : 0.0;
+        for (IndexType IntegrationPointIndex = 0; IntegrationPointIndex < integration_points.size(); ++IntegrationPointIndex) {
+            if (rVariable == FORCE || rVariable == MOMENT)
+            {
+                BeamInternalForces rInternalForces;
+                ComputeInternalForcesAndStresses(IntegrationPointIndex, rCurrentProcessInfo,rInternalForces);
+                
+
+                if (rVariable == FORCE)
+                {
+                    rOutput[IntegrationPointIndex][0] = rInternalForces.axial_force;
+                    rOutput[IntegrationPointIndex][1] = rInternalForces.shear_force_v;//added later
+                    rOutput[IntegrationPointIndex][2] = rInternalForces.shear_force_n;//added later
+                }
+                if (rVariable == MOMENT)
+                {
+                    rOutput[IntegrationPointIndex][0] = rInternalForces.torsion_moment;//added later
+                    rOutput[IntegrationPointIndex][1] = rInternalForces.bending_moment_v;//added later
+                    rOutput[IntegrationPointIndex][2] = rInternalForces.bending_moment_n;//added later
+                }
+            }
+            if (rVariable == LOCAL_AXIS_1 || rVariable == LOCAL_AXIS_2 ||  rVariable == LOCAL_AXIS_3)
+            {
+
+                SuperElementKinematicVariables super_element_kinematic_variables(GetGeometry().WorkingSpaceDimension());
+                NestedElementKinematicVariables nested_element_kinematic_variables(GetGeometry().WorkingSpaceDimension());
+                CalculateKinematics(
+                    IntegrationPointIndex,
+                    super_element_kinematic_variables,
+                    nested_element_kinematic_variables
+                );
+
+
+                if (rVariable == LOCAL_AXIS_1)
+                {
+                    rOutput[IntegrationPointIndex][0] = nested_element_kinematic_variables.T1[0];
+                    rOutput[IntegrationPointIndex][1] = nested_element_kinematic_variables.T1[1];
+                    rOutput[IntegrationPointIndex][2] = nested_element_kinematic_variables.T1[2];
+                }
+                if (rVariable == LOCAL_AXIS_2)
+                {
+                    rOutput[IntegrationPointIndex][0] = nested_element_kinematic_variables.T2[0];
+                    rOutput[IntegrationPointIndex][1] = nested_element_kinematic_variables.T2[1];
+                    rOutput[IntegrationPointIndex][2] = nested_element_kinematic_variables.T2[2];
+                }
+                if (rVariable == LOCAL_AXIS_3)
+                {
+                    rOutput[IntegrationPointIndex][0] = nested_element_kinematic_variables.T3[0];
+                    rOutput[IntegrationPointIndex][1] = nested_element_kinematic_variables.T3[1];
+                    rOutput[IntegrationPointIndex][2] = nested_element_kinematic_variables.T3[2];
+                }
+            }
+            if (rVariable == INTEGRATION_COORDINATES)
+            {
+                rOutput[IntegrationPointIndex] = integration_points[IntegrationPointIndex].Coordinates();
+            }
+            if (rVariable ==  LOCAL_TANGENT)
+            {
+                GetGeometry().Calculate(LOCAL_TANGENT, local_tangent);
+                rOutput[IntegrationPointIndex] = local_tangent;
+            }
         }
     }
 
-    // void EmbeddedIsogeometricBeamElement::EquationIdVector(
-    //     EquationIdVectorType& rResult,
-    //     const ProcessInfo& rCurrentProcessInfo
-    // ) const
-    // {
-    //     KRATOS_TRY;
 
-    //     const auto& r_geometry = GetGeometry();
-    //     const SizeType number_of_control_points = r_geometry.size();
-    //     const IndexType pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    void EmbeddedIsogeometricBeamElement::CalculateOnIntegrationPoints(const  Variable<double>& rVariable, std::vector <double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+    {
+        //KRATOS_WATCH("EmbeddedIsogeometricBeamElement::CalculateOnIntegrationPoints");
+        const auto& integration_points = GetGeometry().IntegrationPoints();
 
-    //     if (this->GetProperties()[ROTATIONAL_DOF_ACTIVE]){
-    //         if (rResult.size() != 4 * number_of_control_points)
-    //         rResult.resize(4 * number_of_control_points, false);
-    //         for (IndexType i = 0; i < number_of_control_points; ++i) {
-    //             const IndexType index = i * 4;
-    //             rResult[index] = r_geometry[i].GetDof(DISPLACEMENT_X, pos).EquationId();
-    //             rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
-    //             rResult[index + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
-    //             rResult[index + 3] = r_geometry[i].GetDof(ROTATION_X, pos + 3).EquationId();
-    //         }
-    //     }
-    //     else{
-    //         if (rResult.size() != 3 * number_of_control_points)
-    //         rResult.resize(3 * number_of_control_points, false);
-    //         for (IndexType i = 0; i < number_of_control_points; ++i) {
-    //             const IndexType index = i * 3;
-    //             rResult[index] = r_geometry[i].GetDof(DISPLACEMENT_X, pos).EquationId();
-    //             rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
-    //             rResult[index + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
-    //         }
-    //     }
-    //     KRATOS_CATCH("")
-    // };
+        if (rOutput.size() != integration_points.size()) {
+            rOutput.resize(GetGeometry().IntegrationPointsNumber());
+        }
 
-    // void EmbeddedIsogeometricBeamElement::GetDofList(
-    //     DofsVectorType& rElementalDofList,
-    //     const ProcessInfo& rCurrentProcessInfo
-    // ) const
-    // {
-    //     KRATOS_TRY;
-    //     const auto& r_geometry = GetGeometry();
-    //     const SizeType number_of_control_points = r_geometry.size();
-        
-    //     if (this->GetProperties()[ROTATIONAL_DOF_ACTIVE]){
-    //         rElementalDofList.resize(0);
-    //         rElementalDofList.reserve(4 * number_of_control_points);
-    //         for (IndexType i = 0; i < number_of_control_points; ++i) {
-    //             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-    //             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-    //             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-    //             rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
-    //         }
-    //     }
-    //     else{
-    //         rElementalDofList.resize(0);
-    //         rElementalDofList.reserve(3 * number_of_control_points);
-    //         for (IndexType i = 0; i < number_of_control_points; ++i) {
-    //             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-    //             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-    //             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-    //         }
-    //     }
-    //     KRATOS_CATCH("")
-    // };
+        for (IndexType IntegrationPointIndex = 0; IntegrationPointIndex < integration_points.size(); ++IntegrationPointIndex) {
+            if (rVariable == INTEGRATION_COORDINATES_X)
+            {
+                rOutput[IntegrationPointIndex] = integration_points[IntegrationPointIndex].Coordinates()[0];
+            }
+            else if (rVariable == NODAL_MASS) {
+                double detJ = GetGeometry().DeterminantOfJacobian(IntegrationPointIndex);
+                double mass = integration_points[IntegrationPointIndex].Weight() * detJ * GetProperties()[CROSS_AREA] * GetProperties()[DENSITY];
+                rOutput[IntegrationPointIndex] = mass;
+            }
+            else if (rVariable == VON_MISES_STRESS) {
+                BeamInternalForces rInternalForces;
+                ComputeInternalForcesAndStresses(IntegrationPointIndex, rCurrentProcessInfo,rInternalForces);
+                rOutput[IntegrationPointIndex] = rInternalForces.sigma_von_mises;
+            }
+        }
+    }
 
-    // void EmbeddedIsogeometricBeamElement::GetValuesVector(Vector& rValues,int Step) const 
-    // {   
-    //     KRATOS_TRY;
-    //     const auto& r_geometry = GetGeometry();
-    //     const IndexType nb_nodes = r_geometry.size();
-
-    //     if (this->GetProperties()[ROTATIONAL_DOF_ACTIVE]){
-    //         if (rValues.size() != nb_nodes * 4) {
-    //         rValues.resize(nb_nodes * 4, false);
-    //         }
-
-    //         for (IndexType i = 0; i < nb_nodes; ++i) {
-    //             IndexType index = i * 4;
-    //             const auto& disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-    //             const auto& rot = r_geometry[i].FastGetSolutionStepValue(ROTATION_X, Step);
-    //             rValues[index] = disp[0];
-    //             rValues[index + IndexType(1)] = disp[1];
-    //             rValues[index + IndexType(2)] = disp[2];
-    //             rValues[index + IndexType(3)] = rot;
-    //         }
-    //     }
-    //     else{
-    //         if (rValues.size() != nb_nodes * 3) {
-    //             rValues.resize(nb_nodes * 3, false);
-    //             }
-    //             for (IndexType i = 0; i < nb_nodes; ++i) {
-    //                 IndexType index = i * 3;
-    //                 const auto& disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-    //                 rValues[index] = disp[0];
-    //                 rValues[index + IndexType(1)] = disp[1];
-    //                 rValues[index + IndexType(2)] = disp[2];
-    //             }
-    //     }
-    //     KRATOS_CATCH("")
-    // }
-    
     void EmbeddedIsogeometricBeamElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
@@ -182,12 +220,13 @@ namespace Kratos {
         
         if (mRotationXActive){
             mDofsPerNode = 3;
-            //mDofsPerNode = 4;
+            //mDofsPerNode = 4; somehow this does not work
         }
         else{
             mDofsPerNode = 3;
         }
-        mNumberOfDofs  = this->GetGeometry().size() * mDofsPerNode;
+        mNodeVecSize = this->GetGeometry().size();
+        mNumberOfDofs  =mNodeVecSize * mDofsPerNode;
         KRATOS_CATCH("")
     }
 
@@ -205,9 +244,9 @@ namespace Kratos {
         if (mConstitutiveLawVector.size() != r_number_of_integration_points)
             mConstitutiveLawVector.resize(r_number_of_integration_points);
 
-        for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number) {
-            mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-            mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, row(r_N, point_number));
+        for (IndexType IntegrationPointIndex = 0; IntegrationPointIndex < r_number_of_integration_points; ++IntegrationPointIndex) {
+            mConstitutiveLawVector[IntegrationPointIndex] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+            mConstitutiveLawVector[IntegrationPointIndex]->InitializeMaterial(r_properties, r_geometry, row(r_N, IntegrationPointIndex));
         }
 
         KRATOS_CATCH("");
@@ -221,47 +260,48 @@ namespace Kratos {
 
         const auto& r_geometry = GetGeometry();
         //const Matrix& r_N = r_geometry.ShapeFunctionsValues();
-        const Matrix& r_DN = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex);
-        const Matrix& r_DDN = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex);
+        const Matrix& dr = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex);
+        const Matrix& ddr = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex);
 
         //calculate super element base vectors
         for (SizeType i = 0;i < r_geometry.size();++i) {
             const array_1d<double, 3>& X0 = r_geometry[i].GetInitialPosition();
             const array_1d<double, 3>& u = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
             
-            rSuperElementKinematicVariables.G1 += r_DN(i, 0) * X0;
-            rSuperElementKinematicVariables.G2 += r_DN(i, 1) * X0;
+            rSuperElementKinematicVariables.G1 += dr(i, 0) * X0;
+            rSuperElementKinematicVariables.G2 += dr(i, 1) * X0;
 
-            rSuperElementKinematicVariables.GiDeri(0,0) += r_DDN(i,0)*X0[0];
-            rSuperElementKinematicVariables.GiDeri(0,1) += r_DDN(i,1)*X0[0];
-            rSuperElementKinematicVariables.GiDeri(0,2) += r_DDN(i,2)*X0[0];
-            rSuperElementKinematicVariables.GiDeri(1,0) += r_DDN(i,0)*X0[1];
-            rSuperElementKinematicVariables.GiDeri(1,1) += r_DDN(i,1)*X0[1];
-            rSuperElementKinematicVariables.GiDeri(1,2) += r_DDN(i,2)*X0[1];
-            rSuperElementKinematicVariables.GiDeri(2,0) += r_DDN(i,0)*X0[2];
-            rSuperElementKinematicVariables.GiDeri(2,1) += r_DDN(i,1)*X0[2];
-            rSuperElementKinematicVariables.GiDeri(2,2) += r_DDN(i,2)*X0[2];
+            rSuperElementKinematicVariables.GiDeri(0,0) += ddr(i,0)*X0[0];
+            rSuperElementKinematicVariables.GiDeri(0,1) += ddr(i,1)*X0[0];
+            rSuperElementKinematicVariables.GiDeri(0,2) += ddr(i,2)*X0[0];
+            rSuperElementKinematicVariables.GiDeri(1,0) += ddr(i,0)*X0[1];
+            rSuperElementKinematicVariables.GiDeri(1,1) += ddr(i,1)*X0[1];
+            rSuperElementKinematicVariables.GiDeri(1,2) += ddr(i,2)*X0[1];
+            rSuperElementKinematicVariables.GiDeri(2,0) += ddr(i,0)*X0[2];
+            rSuperElementKinematicVariables.GiDeri(2,1) += ddr(i,1)*X0[2];
+            rSuperElementKinematicVariables.GiDeri(2,2) += ddr(i,2)*X0[2];
 
             array_1d<double, 3> x = X0 + u;
-            rSuperElementKinematicVariables.g1 += r_DN(i, 0) * x;
-            rSuperElementKinematicVariables.g2 += r_DN(i, 1) * x;
+            rSuperElementKinematicVariables.g1 += dr(i, 0) * x;
+            rSuperElementKinematicVariables.g2 += dr(i, 1) * x;
 
-            rSuperElementKinematicVariables.giDeri(0,0) += r_DDN(i,0)*x[0];
-            rSuperElementKinematicVariables.giDeri(0,1) += r_DDN(i,1)*x[0];
-            rSuperElementKinematicVariables.giDeri(0,2) += r_DDN(i,2)*x[0];
-            rSuperElementKinematicVariables.giDeri(1,0) += r_DDN(i,0)*x[1];
-            rSuperElementKinematicVariables.giDeri(1,1) += r_DDN(i,1)*x[1];
-            rSuperElementKinematicVariables.giDeri(1,2) += r_DDN(i,2)*x[1];
-            rSuperElementKinematicVariables.giDeri(2,0) += r_DDN(i,0)*x[2];
-            rSuperElementKinematicVariables.giDeri(2,1) += r_DDN(i,1)*x[2];
-            rSuperElementKinematicVariables.giDeri(2,2) += r_DDN(i,2)*x[2];
+            rSuperElementKinematicVariables.giDeri(0,0) += ddr(i,0)*x[0];
+            rSuperElementKinematicVariables.giDeri(0,1) += ddr(i,1)*x[0];
+            rSuperElementKinematicVariables.giDeri(0,2) += ddr(i,2)*x[0];
+            rSuperElementKinematicVariables.giDeri(1,0) += ddr(i,0)*x[1];
+            rSuperElementKinematicVariables.giDeri(1,1) += ddr(i,1)*x[1];
+            rSuperElementKinematicVariables.giDeri(1,2) += ddr(i,2)*x[1];
+            rSuperElementKinematicVariables.giDeri(2,0) += ddr(i,0)*x[2];
+            rSuperElementKinematicVariables.giDeri(2,1) += ddr(i,1)*x[2];
+            rSuperElementKinematicVariables.giDeri(2,2) += ddr(i,2)*x[2];
         }
         rSuperElementKinematicVariables.G3 = cross_prod(rSuperElementKinematicVariables.G1,rSuperElementKinematicVariables.G2);
         rSuperElementKinematicVariables.G3 = rSuperElementKinematicVariables.G3/norm_2(rSuperElementKinematicVariables.G3);
         rSuperElementKinematicVariables.g3 = cross_prod(rSuperElementKinematicVariables.g1,rSuperElementKinematicVariables.g2);
         rSuperElementKinematicVariables.g3 = rSuperElementKinematicVariables.g3/norm_2(rSuperElementKinematicVariables.g3);
-
-        getVarOfDerLocalCoordinateSystemWrtDispGlobal(IntegrationPointIndex, rSuperElementKinematicVariables,rNestedElementKinematicVariables);
+        
+        GetGeometry().Calculate(LOCAL_TANGENT, rNestedElementKinematicVariables.local_tangent);
+        GetVarOfDerLocalCoordinateSystemWrtDispGlobal(IntegrationPointIndex, rSuperElementKinematicVariables,rNestedElementKinematicVariables);
         //compute the variation of the local coordinate system with respect to thedisplacements in global direction
         Vector3d G1_der_1;
         Vector3d G1_der_2;
@@ -278,13 +318,11 @@ namespace Kratos {
             G1_der_2[i]=rSuperElementKinematicVariables.GiDeri(i,2);
         }
         G2_der_1=G1_der_2;
-        Vector3d tangents;
-        GetGeometry().Calculate(LOCAL_TANGENT, tangents);
-        G1_der_act = G1_der_1*tangents[0] + G1_der_2*tangents[1];
-        G2_der_act = G2_der_1*tangents[0] + G2_der_2*tangents[1];
+        G1_der_act = G1_der_1*rNestedElementKinematicVariables.local_tangent[0] + G1_der_2*rNestedElementKinematicVariables.local_tangent[1];
+        G2_der_act = G2_der_1*rNestedElementKinematicVariables.local_tangent[0] + G2_der_2*rNestedElementKinematicVariables.local_tangent[1];
 
         //compute base vectors in reference configuration
-        Vector3d tilde_T2 = rSuperElementKinematicVariables.G1*tangents[0] + rSuperElementKinematicVariables.G2*tangents[1];
+        Vector3d tilde_T2 = rSuperElementKinematicVariables.G1*rNestedElementKinematicVariables.local_tangent[0] + rSuperElementKinematicVariables.G2*rNestedElementKinematicVariables.local_tangent[1];
         double l_t2 = norm_2(tilde_T2);
         rNestedElementKinematicVariables.T2 = tilde_T2/l_t2;
         
@@ -297,7 +335,7 @@ namespace Kratos {
         rNestedElementKinematicVariables.T1 = tilde_T1/l_t1;
 
         //compute base vectors in actual configuration
-        Vector3d tilde_T2_der = G1_der_act*tangents[0] + G2_der_act*tangents[1];
+        Vector3d tilde_T2_der = G1_der_act*rNestedElementKinematicVariables.local_tangent[0] + G2_der_act*rNestedElementKinematicVariables.local_tangent[1];
         rNestedElementKinematicVariables.T2_der = tilde_T2_der/l_t2-tilde_T2*inner_prod(tilde_T2_der,tilde_T2)/pow(l_t2,3);
         
         Vector3d tilde_T3_der = cross_prod(G1_der_act,rSuperElementKinematicVariables.G2)+cross_prod(rSuperElementKinematicVariables.G1,G2_der_act);
@@ -307,9 +345,9 @@ namespace Kratos {
         rNestedElementKinematicVariables.T1_der = tilde_T1_der/l_t1-tilde_T1*inner_prod(tilde_T1_der,tilde_T1)/pow(l_t1,3);
     
         CompPhiRefProp(rNestedElementKinematicVariables, rNestedElementKinematicVariables.Phi, rNestedElementKinematicVariables.Phi_der);
-
-        rNestedElementKinematicVariables.tilde_t2 = rSuperElementKinematicVariables.g1*tangents[0] + rSuperElementKinematicVariables.g2*tangents[1];
-        rNestedElementKinematicVariables.tilde_T2 = rSuperElementKinematicVariables.G1*tangents[0] + rSuperElementKinematicVariables.G2*tangents[1];
+        
+        rNestedElementKinematicVariables.tilde_t2 = rSuperElementKinematicVariables.g1*rNestedElementKinematicVariables.local_tangent[0] + rSuperElementKinematicVariables.g2*rNestedElementKinematicVariables.local_tangent[1];
+        rNestedElementKinematicVariables.tilde_T2 = rSuperElementKinematicVariables.G1*rNestedElementKinematicVariables.local_tangent[0] + rSuperElementKinematicVariables.G2*rNestedElementKinematicVariables.local_tangent[1];
         rNestedElementKinematicVariables.tilde_t2_r.resize(mNumberOfDofs);
         rNestedElementKinematicVariables.tilde_t2_rs.resize(mNumberOfDofs);
 
@@ -318,7 +356,7 @@ namespace Kratos {
             rNestedElementKinematicVariables.tilde_t2_rs[r].resize(mNumberOfDofs);
             for (size_t s=0; s<mNumberOfDofs;s++)
             {
-                rNestedElementKinematicVariables.tilde_t2_rs[r][s].clear();
+                rNestedElementKinematicVariables.tilde_t2_rs[r][s].clear();	//second variation of tilde_t2 = 0
             }
             for (size_t t=0; t<3; t++)
             {
@@ -327,7 +365,7 @@ namespace Kratos {
             rNestedElementKinematicVariables.tilde_t2_r[r](t) = 0;
             if (xyz_r==t)
             {
-                rNestedElementKinematicVariables.tilde_t2_r[r](t) = (r_DN(i,0)*tangents[0]+r_DN(i,1)*tangents[1]);
+                rNestedElementKinematicVariables.tilde_t2_r[r](t) = (dr(i,0)*rNestedElementKinematicVariables.local_tangent[0]+dr(i,1)*rNestedElementKinematicVariables.local_tangent[1]);
             }
             }
         }
@@ -427,13 +465,13 @@ namespace Kratos {
         Vector stress_torsion1 = ZeroVector(5);
         Vector stress_torsion2 = ZeroVector(5);
 
-         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) 
+         for (IndexType IntegrationPointIndex = 0; IntegrationPointIndex < r_integration_points.size(); ++IntegrationPointIndex) 
          {
 
             SuperElementKinematicVariables super_element_kinematic_variables(GetGeometry().WorkingSpaceDimension());
             NestedElementKinematicVariables nested_element_kinematic_variables(GetGeometry().WorkingSpaceDimension());
             CalculateKinematics(
-                point_number,
+                IntegrationPointIndex,
                 super_element_kinematic_variables,
                 nested_element_kinematic_variables
             );
@@ -444,7 +482,7 @@ namespace Kratos {
             ConstitutiveVariables constitutive_variables(5);
 
             CalculateConstitutiveVariables(
-                point_number,
+                IntegrationPointIndex,
                 nested_element_kinematic_variables,
                 constitutive_variables,
                 constitutive_law_parameters,
@@ -452,7 +490,7 @@ namespace Kratos {
             
             Matrix B_axial, B_bending1, B_bending2, B_torsion1, B_torsion2;
 
-            ComputeBMatrices(point_number, nested_element_kinematic_variables, B_axial, B_bending1, B_bending2, B_torsion1, B_torsion2);
+            ComputeBMatrices(IntegrationPointIndex, nested_element_kinematic_variables, B_axial, B_bending1, B_bending2, B_torsion1, B_torsion2);
             
             // KRATOS_WATCH(B_axial);
             // KRATOS_WATCH(B_bending1);
@@ -461,9 +499,9 @@ namespace Kratos {
             // KRATOS_WATCH(B_torsion2);
 
             Matrix G_axial, G_bending1, G_bending2, G_torsion1, G_torsion2;
-            ComputeGMatrices(point_number, nested_element_kinematic_variables, G_axial, G_bending1, G_bending2, G_torsion1, G_torsion2);
+            ComputeGMatrices(IntegrationPointIndex, nested_element_kinematic_variables, G_axial, G_bending1, G_bending2, G_torsion1, G_torsion2);
              // Assemble stiffness with cross-sectional scaling
-            double integration_weight = r_integration_points[point_number].Weight()* nested_element_kinematic_variables.A;
+            double integration_weight = r_integration_points[IntegrationPointIndex].Weight()* nested_element_kinematic_variables.A;
             const double inv_A2 = 1.0 / (nested_element_kinematic_variables.A * nested_element_kinematic_variables.A);
             const double inv_A4 = inv_A2 * inv_A2;
             if (CalculateStiffnessMatrixFlag == true)
@@ -1087,7 +1125,7 @@ namespace Kratos {
         return phi;
     }
 
-    void EmbeddedIsogeometricBeamElement::getVarOfDerLocalCoordinateSystemWrtDispGlobal(
+    void EmbeddedIsogeometricBeamElement::GetVarOfDerLocalCoordinateSystemWrtDispGlobal(
         const IndexType IntegrationPointIndex, 
         SuperElementKinematicVariables rSuperElementKinematicVariables,
         NestedElementKinematicVariables& rNestedElementKinematicVariables)
@@ -1104,10 +1142,10 @@ namespace Kratos {
 
         const auto& r_geometry = GetGeometry();
         //const Matrix& r_N = r_geometry.ShapeFunctionsValues();
-        const Matrix& r_DN = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex);
-        const Matrix& r_DDN = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex);
+        const Matrix& dr = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex, this->GetIntegrationMethod());
+        const Matrix& ddr = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, this->GetIntegrationMethod());
 
-        rNestedElementKinematicVariables.t1_r.resize(mNumberOfDofs);//or times 3??
+        rNestedElementKinematicVariables.t1_r.resize(mNumberOfDofs);
         rNestedElementKinematicVariables.t2_r.resize(mNumberOfDofs);
         rNestedElementKinematicVariables.t3_r.resize(mNumberOfDofs);
         rNestedElementKinematicVariables.t1_der_r.resize(mNumberOfDofs);
@@ -1139,13 +1177,11 @@ namespace Kratos {
         }
         g2_der_1=g1_der_2;
         
-        Vector3d tangents;
-        GetGeometry().Calculate(LOCAL_TANGENT, tangents);
-        g1_der_act = g1_der_1*tangents[0] + g1_der_2*tangents[1];
-        g2_der_act = g2_der_1*tangents[0] + g2_der_2*tangents[1];
+        g1_der_act = g1_der_1*rNestedElementKinematicVariables.local_tangent[0] + g1_der_2*rNestedElementKinematicVariables.local_tangent[1];
+        g2_der_act = g2_der_1*rNestedElementKinematicVariables.local_tangent[0] + g2_der_2*rNestedElementKinematicVariables.local_tangent[1];
 
         //compute base vectors in actual configuration
-        Vector3d tilde_t2 = rSuperElementKinematicVariables.g1*tangents[0] + rSuperElementKinematicVariables.g2*tangents[1];
+        Vector3d tilde_t2 = rSuperElementKinematicVariables.g1*rNestedElementKinematicVariables.local_tangent[0] + rSuperElementKinematicVariables.g2*rNestedElementKinematicVariables.local_tangent[1];
         double l_t2 = norm_2(tilde_t2);
         rNestedElementKinematicVariables.t2 = tilde_t2/l_t2;
         Vector3d tilde_t3 = rSuperElementKinematicVariables.g3;
@@ -1156,7 +1192,7 @@ namespace Kratos {
         rNestedElementKinematicVariables.t1 = tilde_t1/l_t1;
 
         //compute base vectors in actual configuration
-        Vector3d tilde_t2_der = g1_der_act*tangents[0] + g2_der_act*tangents[1];
+        Vector3d tilde_t2_der = g1_der_act*rNestedElementKinematicVariables.local_tangent[0] + g2_der_act*rNestedElementKinematicVariables.local_tangent[1];
         rNestedElementKinematicVariables.t2_der = tilde_t2_der/l_t2-tilde_t2*inner_prod(tilde_t2_der,tilde_t2)/pow(l_t2,3);
         Vector3d tilde_t3_der = cross_prod(g1_der_act,rSuperElementKinematicVariables.g2)+cross_prod(rSuperElementKinematicVariables.g1,g2_der_act);
         rNestedElementKinematicVariables.t3_der = tilde_t3_der/l_t3-tilde_t3*inner_prod(tilde_t3_der,tilde_t3)/pow(l_t3,3);
@@ -1183,16 +1219,16 @@ namespace Kratos {
             a2_r.clear();
             a1_der_r.clear();
             a2_der_r.clear();
-            a1_r(xyz_r) = r_DN(i,0);
-            a2_r(xyz_r) = r_DN(i,1);
-            a1_der_r(xyz_r) = r_DDN(i,0)*tangents[0]+r_DDN(i,2)*tangents[1];
-            a2_der_r(xyz_r) = r_DDN(i,2)*tangents[0]+r_DDN(i,1)*tangents[1];
+            a1_r(xyz_r) = dr(i,0);
+            a2_r(xyz_r) = dr(i,1);
+            a1_der_r(xyz_r) = ddr(i,0)*rNestedElementKinematicVariables.local_tangent[0]+ddr(i,2)*rNestedElementKinematicVariables.local_tangent[1];
+            a2_der_r(xyz_r) = ddr(i,2)*rNestedElementKinematicVariables.local_tangent[0]+ddr(i,1)*rNestedElementKinematicVariables.local_tangent[1];
 
             //variation of the non normalized local vector
-            Vector3d tilde_2_r = tangents[0]*a1_r + tangents[1]*a2_r;
+            Vector3d tilde_2_r = rNestedElementKinematicVariables.local_tangent[0]*a1_r + rNestedElementKinematicVariables.local_tangent[1]*a2_r;
             Vector3d tilde_3_r = cross_prod(a1_r,rSuperElementKinematicVariables.g2) + cross_prod(rSuperElementKinematicVariables.g1,a2_r);
             Vector3d tilde_1_r = cross_prod(tilde_2_r,tilde_t3) + cross_prod(tilde_t2,tilde_3_r);
-            Vector3d tilde_2_der_r = tangents[0]*a1_der_r + tangents[1]*a2_der_r;
+            Vector3d tilde_2_der_r = rNestedElementKinematicVariables.local_tangent[0]*a1_der_r + rNestedElementKinematicVariables.local_tangent[1]*a2_der_r;
             Vector3d tilde_3_der_r = cross_prod(a1_der_r,rSuperElementKinematicVariables.g2) + cross_prod(g1_der_act,a2_r)+cross_prod(a1_r,g2_der_act) + cross_prod(rSuperElementKinematicVariables.g1,a2_der_r);
             Vector3d tilde_1_der_r = cross_prod(tilde_2_der_r,tilde_t3) + cross_prod(tilde_t2_der,tilde_3_r)+cross_prod(tilde_2_r,tilde_t3_der) + cross_prod(tilde_t2,tilde_3_der_r);
 
@@ -1236,16 +1272,16 @@ namespace Kratos {
                 a2_s.clear();
                 a1_der_s.clear();
                 a2_der_s.clear();
-                a1_s(xyz_s) = r_DN(j,0);
-                a2_s(xyz_s) = r_DN(j,0);
-                a1_der_s(xyz_s) = r_DDN(j,0)* tangents[0]+r_DDN(j,2)*tangents[1];
-                a2_der_s(xyz_s) = r_DDN(j,2)* tangents[0]+r_DDN(j,1)*tangents[1];
+                a1_s(xyz_s) = dr(j,0);
+                a2_s(xyz_s) = dr(j,0);
+                a1_der_s(xyz_s) = ddr(j,0)* rNestedElementKinematicVariables.local_tangent[0]+ddr(j,2)*rNestedElementKinematicVariables.local_tangent[1];
+                a2_der_s(xyz_s) = ddr(j,2)* rNestedElementKinematicVariables.local_tangent[0]+ddr(j,1)*rNestedElementKinematicVariables.local_tangent[1];
 
                 //variation of the non normalized local vector
-                Vector3d tilde_2_s = tangents[0]*a1_s +  tangents[1]*a2_s;
+                Vector3d tilde_2_s = rNestedElementKinematicVariables.local_tangent[0]*a1_s +  rNestedElementKinematicVariables.local_tangent[1]*a2_s;
                 Vector3d tilde_3_s = cross_prod(a1_s,rSuperElementKinematicVariables.g2) + cross_prod(rSuperElementKinematicVariables.g1,a2_s);
                 Vector3d tilde_1_s = cross_prod(tilde_2_s,tilde_t3) + cross_prod(tilde_t2,tilde_3_s);
-                Vector3d tilde_2_der_s = tangents[0]*a1_der_s + tangents[1]*a2_der_s;
+                Vector3d tilde_2_der_s = rNestedElementKinematicVariables.local_tangent[0]*a1_der_s + rNestedElementKinematicVariables.local_tangent[1]*a2_der_s;
                 Vector3d tilde_3_der_s = cross_prod(a1_der_s,rSuperElementKinematicVariables.g2) + cross_prod(g1_der_act,a2_s)+cross_prod(a1_s,g2_der_act) + cross_prod(rSuperElementKinematicVariables.g1,a2_der_s);
                 Vector3d tilde_1_der_s = cross_prod(tilde_2_der_s,tilde_t3) + cross_prod(tilde_t2_der,tilde_3_s)+cross_prod(tilde_2_s,tilde_t3_der) + cross_prod(tilde_t2,tilde_3_der_s);
 
@@ -1295,7 +1331,7 @@ namespace Kratos {
     }
 
     void EmbeddedIsogeometricBeamElement::ComputeBMatrices(
-        IndexType point_number,
+        const IndexType IntegrationPointIndex,
         NestedElementKinematicVariables& rNestedElementKinematicVariables,
         Matrix& rBAxial,
         Matrix& rBBending1,
@@ -1304,12 +1340,40 @@ namespace Kratos {
         Matrix& rBTorsion2)
     {   
 
-        // Get shape functions and derivatives at integration point
         const auto& r_geometry = GetGeometry();
-        Vector R_vec = row(r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod()), point_number);
-        Vector dR_vec = column(r_geometry.ShapeFunctionDerivatives(1, point_number, this->GetIntegrationMethod()), 0);
-        Vector ddR_vec = column(r_geometry.ShapeFunctionDerivatives(2, point_number, this->GetIntegrationMethod()), 0);
-        
+
+        Matrix r_shape;
+        Matrix dr; //1st Derivatives of shape functions
+        Matrix ddr; //2nd Derivatives of shape functions
+        Vector func; //shape functions o surface CP wrt theta^1
+        Vector deriv; //1st derivative of shape functions of surface CP wrt theta^1  vector<cfloat> phi_r;
+        deriv.resize(mNodeVecSize);
+        func.resize(mNodeVecSize);
+        Vector phi_r;
+        Vector phi_der_r;
+        Vector Phi_r;
+        Vector Phi_der_r;
+        phi_r.resize(mNumberOfDofs);
+        phi_r.clear();
+        phi_der_r.resize(mNumberOfDofs);
+        phi_der_r.clear();
+        Phi_r.resize(mNumberOfDofs);
+        Phi_r.clear();
+        Phi_der_r.resize(mNumberOfDofs);
+        Phi_der_r.clear();
+
+
+        // Get shape functions and derivative of shape functions
+        r_shape = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+        dr = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex, this->GetIntegrationMethod());
+        ddr = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, this->GetIntegrationMethod());
+
+        for (size_t i = 0; i<mNodeVecSize; i++)
+        {
+            deriv(i) = dr(i,0)*rNestedElementKinematicVariables.local_tangent[0]+dr(i,1)*rNestedElementKinematicVariables.local_tangent[1];
+            func(i) = r_shape(i); 
+        }
+       
         // variation of the axial strain 
         Vector eps_dof;
         eps_dof.resize(mNumberOfDofs);
@@ -1373,18 +1437,6 @@ namespace Kratos {
         tmp_dof.resize(4,false);
         tmp_dof.clear(); 
 
-        Vector phi_r;
-        Vector phi_der_r;
-        Vector Phi_r;
-        Vector Phi_der_r;
-        phi_r.resize(mNumberOfDofs);
-        phi_r.clear();
-        phi_der_r.resize(mNumberOfDofs);
-        phi_der_r.clear();
-        Phi_r.resize(mNumberOfDofs);
-        Phi_r.clear();
-        Phi_der_r.resize(mNumberOfDofs);
-        Phi_der_r.clear();
 
         
         CompMatRodrigues(mat_Rod,rNestedElementKinematicVariables.t2,rNestedElementKinematicVariables.Phi);
@@ -1425,8 +1477,8 @@ namespace Kratos {
                     size_t xyz = r%mDofsPerNode;
                     if (xyz ==3)
                     {
-                        phi_r(r) = R_vec[i];
-                        phi_der_r(r) = dR_vec[i];
+                        phi_r(r) = func[i];
+                        phi_der_r(r) = deriv[i];
                     }
             }
             CompMatRodrigues(mat_rod,rNestedElementKinematicVariables.t2,rNestedElementKinematicVariables.phi);
@@ -1527,7 +1579,7 @@ namespace Kratos {
 
 
     void EmbeddedIsogeometricBeamElement::ComputeGMatrices(
-        IndexType point_number,
+        IndexType IntegrationPointIndex,
         NestedElementKinematicVariables& rNestedElementKinematicVariables,
         Matrix& rGAxial,
         Matrix& rGBending1,
@@ -1535,33 +1587,68 @@ namespace Kratos {
         Matrix& rGTorsion1,
         Matrix& rGTorsion2)
     {
-            // Get shape functions and derivatives at integration point
         const auto& r_geometry = GetGeometry();
-        Vector R_vec = row(r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod()), point_number);
-        Vector dR_vec = column(r_geometry.ShapeFunctionDerivatives(1, point_number, this->GetIntegrationMethod()), 0);
-        Vector ddR_vec = column(r_geometry.ShapeFunctionDerivatives(2, point_number, this->GetIntegrationMethod()), 0);
-        
-        Vector R_vec_ref(mNumberOfDofs);			//stays empty (variation of reference rotation =0) used for mat_Rod_var
-        R_vec_ref.clear();
-        Vector dR_vec_ref(mNumberOfDofs);		//stays empty (variation of reference rotation =0) used for mat_Rod_var & mat_Rod_der_var
-        dR_vec_ref.clear();
+
+        Matrix r_shape;
+        Matrix dr; //1st Derivatives of shape functions
+        Matrix ddr; //2nd Derivatives of shape functions
+        Vector func; //shape functions o surface CP wrt theta^1
+        Vector deriv; //1st derivative of shape functions of surface CP wrt theta^1  vector<cfloat> phi_r;
+        Vector func_ref;			//stays empty (variation of reference rotation =0) used for mat_Rod_var
+        Vector deriv_ref;		//stays empty (variation of reference rotation =0) used for mat_Rod_var & mat_Rod_der_var
+
+        func.resize(mNodeVecSize);
+        func.clear();
+        deriv.resize(mNodeVecSize);
+        deriv.clear();
+        func_ref.resize(mNodeVecSize);
+        func_ref.clear();
+        deriv_ref.resize(mNodeVecSize);
+        deriv_ref.clear();
+
+
+        // Get shape functions and derivative of shape functions
+        r_shape = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+        dr = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex, this->GetIntegrationMethod());
+        ddr = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, this->GetIntegrationMethod());
+
+        for (size_t i = 0; i<mNodeVecSize; i++)
+        {
+            deriv(i) = dr(i,0)*rNestedElementKinematicVariables.local_tangent[0]+dr(i,1)*rNestedElementKinematicVariables.local_tangent[1];
+            func(i) = r_shape(i); 
+        }
+
+        if (mRotationXActive) //simplified
+        {
+            for(size_t i=0;i<mNodeVecSize;i++)
+		  {
+			  double rotation = r_geometry[i].FastGetSolutionStepValue(ROTATION_X);
+			  rNestedElementKinematicVariables.phi+= func(i)*rotation;
+			  rNestedElementKinematicVariables.phi_der+=deriv(i)*rotation;
+		  }
+        }
 
         Vector phi_r(mNumberOfDofs);
+        phi_r.clear();
         Vector phi_der_r(mNumberOfDofs);
-        std::vector<Vector> phi_rs;
-        phi_rs.resize(mNumberOfDofs);
-        std::vector<Vector> phi_der_rs;
-        phi_der_rs.resize(mNumberOfDofs);
+        phi_der_r.clear();
         Vector Phi_r(mNumberOfDofs);
+        Phi_r.clear();  //vector stays empty, since the variations are zero, but for application in general functions
         Vector Phi_der_r(mNumberOfDofs);
+        Phi_der_r.clear(); //vector stays empty, since the variations are zero, but for application in general functions
+
         std::vector<Vector> Phi_rs;
         Phi_rs.resize(mNumberOfDofs);
         std::vector<Vector> Phi_der_rs;
         Phi_der_rs.resize(mNumberOfDofs);
+        std::vector<Vector> phi_rs;
+        phi_rs.resize(mNumberOfDofs);
+        std::vector<Vector> phi_der_rs;
+        phi_der_rs.resize(mNumberOfDofs);
 
         // 1st variation
         // variation of the axial strain 
-        Vector eps_dof(mNumberOfDofs,false);
+        Vector eps_dof(mNumberOfDofs);
         //variation of curvature
         Vector curv_dof_n(mNumberOfDofs);
         Vector curv_dof_v(mNumberOfDofs);
@@ -1626,7 +1713,7 @@ namespace Kratos {
                 rNestedElementKinematicVariables.t2,
                 rNestedElementKinematicVariables.t2_r,
                 Phi_r,
-                rNestedElementKinematicVariables.Phi); //Phi_r output?
+                rNestedElementKinematicVariables.Phi);
             CompMatRodriguesDerivVar(mat_Rod_der_var,
                 rNestedElementKinematicVariables.t2,
                 rNestedElementKinematicVariables.t2_r,
@@ -1640,7 +1727,7 @@ namespace Kratos {
                 rNestedElementKinematicVariables.t2,
                 rNestedElementKinematicVariables.t2_r,
                 rNestedElementKinematicVariables.t2_rs,
-                R_vec,
+                func_ref,
                 rNestedElementKinematicVariables.Phi);
             CompMatRodriguesDerivVarVar(mat_Rod_der_var_var,
                 rNestedElementKinematicVariables.t2,
@@ -1649,8 +1736,8 @@ namespace Kratos {
                 rNestedElementKinematicVariables.t2_der_r,
                 rNestedElementKinematicVariables.t2_rs,
                 rNestedElementKinematicVariables.t2_der_rs,
-                R_vec,
-                dR_vec,
+                func_ref,
+                deriv_ref,
                 rNestedElementKinematicVariables.Phi,
                 rNestedElementKinematicVariables.Phi_der);
             
@@ -1809,8 +1896,8 @@ namespace Kratos {
             eps_dof(r) = inner_prod(rNestedElementKinematicVariables.tilde_t2, rNestedElementKinematicVariables.tilde_t2_r[r]);
             if(xyz_r==3)
             {
-                phi_r[r] = R_vec[i];
-                phi_der_r[r]= dR_vec[i];     
+                phi_r[r] = func[i];
+                phi_der_r[r]= func[i];     
             }
             Phi_r[r] = 0;
             Phi_der_r[r] = 0;      
@@ -1860,13 +1947,13 @@ namespace Kratos {
             rNestedElementKinematicVariables.t2,
             rNestedElementKinematicVariables.t2_r,
             rNestedElementKinematicVariables.t2_rs,
-            R_vec,
+            func,
             rNestedElementKinematicVariables.phi);
         CompMatRodriguesVarVar(mat_Rod_var_var,
             rNestedElementKinematicVariables.t2,
             rNestedElementKinematicVariables.t2_r,
             rNestedElementKinematicVariables.t2_rs,
-            R_vec_ref,
+            func_ref,
             rNestedElementKinematicVariables.Phi);
         CompMatRodriguesDerivVarVar(mat_rod_der_var_var,
             rNestedElementKinematicVariables.t2,
@@ -1875,8 +1962,8 @@ namespace Kratos {
             rNestedElementKinematicVariables.t2_der_r,
             rNestedElementKinematicVariables.t2_rs,
             rNestedElementKinematicVariables.t2_der_rs,
-            R_vec,
-            dR_vec,
+            func,
+            deriv,
             rNestedElementKinematicVariables.phi,
             rNestedElementKinematicVariables.phi_der);
         CompMatRodriguesDerivVarVar(mat_Rod_der_var_var,
@@ -1886,8 +1973,8 @@ namespace Kratos {
             rNestedElementKinematicVariables.t2_der_r,
             rNestedElementKinematicVariables.t2_rs,
             rNestedElementKinematicVariables.t2_der_rs,
-            R_vec_ref,
-            dR_vec_ref,
+            func_ref,
+            deriv_ref,
             rNestedElementKinematicVariables.Phi,
             rNestedElementKinematicVariables.Phi_der);
 
@@ -2088,6 +2175,90 @@ namespace Kratos {
         noalias(rGBending2) = curv_dof_v_2;  
         noalias(rGTorsion1) = tor_dof_n_2;   
         noalias(rGTorsion2) = tor_dof_v_2;  
+    }
+
+    void EmbeddedIsogeometricBeamElement::ComputeInternalForcesAndStresses(const IndexType IntegrationPointIndex, const ProcessInfo& rCurrentProcessInfo, BeamInternalForces& rInternalForces) {
+        
+        //Kinematics
+        SuperElementKinematicVariables super_element_kinematic_variables(GetGeometry().WorkingSpaceDimension());
+        NestedElementKinematicVariables nested_element_kinematic_variables(GetGeometry().WorkingSpaceDimension());
+        CalculateKinematics(
+            IntegrationPointIndex,
+            super_element_kinematic_variables,
+            nested_element_kinematic_variables
+        );
+
+        //Constitutive law
+        ConstitutiveLaw::Parameters constitutive_law_parameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        ConstitutiveVariables constitutive_variables(5);
+
+        CalculateConstitutiveVariables(
+            IntegrationPointIndex,
+            nested_element_kinematic_variables,
+            constitutive_variables,
+            constitutive_law_parameters,
+            ConstitutiveLaw::StressMeasure_PK2
+        );
+
+        //Material and geometry properties
+        const double Apow2 = pow(nested_element_kinematic_variables.A, 2);
+        const double E = GetProperties()[YOUNG_MODULUS];
+        const double G = E / (2.0 + 2.0 * GetProperties()[POISSON_RATIO]);
+        const double Area = GetProperties()[CROSS_AREA];
+        const double I_n = GetProperties()[I_N];
+        const double I_v = GetProperties()[I_V];
+        const double I_t = GetProperties()[I_T];
+        const double height = GetProperties()[HEIGHT];
+        const double width = GetProperties()[WIDTH];
+
+        //Extract strains
+        const double E11_m = constitutive_variables.StressVector[0]; 
+        const double E11_cur_n = constitutive_variables.StressVector[1];
+        const double E11_cur_v = constitutive_variables.StressVector[2];
+        const double E12 = constitutive_variables.StressVector[3];
+        const double E13 = constitutive_variables.StressVector[4];
+
+        //Internal forces
+        double n = ((Area + I_v*pow(nested_element_kinematic_variables.B_n/Apow2,2)
+                    - I_n*pow(nested_element_kinematic_variables.B_v/Apow2,2)) * E11_m
+                    + E11_cur_n*I_v*nested_element_kinematic_variables.B_n/Apow2
+                    + E11_cur_v*I_n*nested_element_kinematic_variables.B_v/Apow2) * E / Apow2;
+
+        n *= nested_element_kinematic_variables.a / nested_element_kinematic_variables.A;
+        const double q_v =  G * E13 * Area; 
+        const double q_n =  G * E12 * Area; 
+        const double m_v = E11_cur_n * I_v * E / Apow2;
+        const double m_n = E11_cur_v * I_n * E / Apow2;
+        const double t = -0.5 * (E12 - E13) * G * I_t / nested_element_kinematic_variables.A;
+        
+        //Stresses
+        const double sigma_axial = n / Area;
+        const double sigma_bending_v = std::abs(m_v) * (height / 2.0) / I_v;
+        const double sigma_bending_n = std::abs(m_n) * (width / 2.0) / I_n;
+        const double tau_torsion_max = std::abs(t) * std::max(height, width) / (2.0 * I_t);
+        const double tau_shear_v_max = 1.5 * std::abs(q_v) / Area;
+        const double tau_shear_n_max = 1.5 * std::abs(q_n) / Area;
+
+        //Maximum / equivalent stresses
+        // Axial + bending combined
+        const double sigma_x_max = std::abs(sigma_axial) + sigma_bending_v + sigma_bending_n;
+        // Combined maximum shear
+        const double tau_max_combined = std::sqrt(
+            tau_torsion_max*tau_torsion_max +
+            tau_shear_v_max*tau_shear_v_max +
+            tau_shear_n_max*tau_shear_n_max
+        );
+        // Von Mises for rectangular beam
+        const double sigma_von_mises = std::sqrt(sigma_x_max*sigma_x_max + 3.0 * tau_max_combined*tau_max_combined);
+
+        rInternalForces.axial_force = n;
+        rInternalForces.shear_force_v = q_v;
+        rInternalForces.shear_force_n = q_n;
+        rInternalForces.bending_moment_v = m_v;
+        rInternalForces.bending_moment_n = m_n;
+        rInternalForces.torsion_moment = t;
+
+        rInternalForces.sigma_von_mises = sigma_von_mises;
     }
 }
 

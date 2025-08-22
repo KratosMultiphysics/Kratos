@@ -84,6 +84,7 @@ protected:
         Vector3d T1;
         Vector3d T2;
         Vector3d T3;
+        Vector3d local_tangent;
 
         Vector3d t1_der;
         Vector3d t2_der;
@@ -146,6 +147,8 @@ protected:
             T2 = ZeroVector(Dimension);//
             T3 = ZeroVector(Dimension);//
 
+            local_tangent = ZeroVector(Dimension);//
+
             t1_der = ZeroVector(Dimension);//
             t2_der = ZeroVector(Dimension);//
             t3_der = ZeroVector(Dimension);//
@@ -201,6 +204,28 @@ protected:
             StressVector = ZeroVector(StrainSize);
             ConstitutiveMatrix = ZeroMatrix(StrainSize, StrainSize);
         }
+    };
+
+    struct BeamInternalForces {
+        double axial_force;         // _n
+        double shear_force_v;       // _q_v
+        double shear_force_n;       // _q_n
+        double bending_moment_v;    // _m_v
+        double bending_moment_n;    // _m_n
+        double torsion_moment;      // _t
+
+    
+        double sigma_von_mises ;
+
+        BeamInternalForces()
+            : axial_force(0),
+            shear_force_v(0),
+            shear_force_n(0),
+            bending_moment_v(0),
+            bending_moment_n(0),
+            torsion_moment(0),
+            sigma_von_mises (0)
+            {}
     };
 
 public:
@@ -390,6 +415,10 @@ public:
         Matrix& rGTorsion1,
         Matrix& rGTorsion2);
 
+
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable, std::vector<array_1d<double, 3>>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const  Variable<double>& rVariable, std::vector <double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
     /// Get Displacemnts
     void GetValuesVector(Vector& rValues, int Step) const override;
 
@@ -430,32 +459,6 @@ private:
     double mTolerance = 1.0e-8;
 
     void CompMatLambda(Matrix3d& _mat_lambda, Vector3d _vec1, Vector3d _vec2);
-    // void CompMatLambdaDeriv(Matrix3d& _mat_lambda_der, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_deriv, Vector3d _vec2_deriv);
-    // void CompMatLambdaDeriv2(Matrix3d& _mat_lambda_derder, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_deriv, Vector3d _vec2_deriv, Vector3d _vec1_deriv2, Vector3d _vec2_deriv2);
-    // void CompMatLambdaVar(Matrix& _mat_lam_var, Vector3d _vec1, Vector3d _vec2, Vector _vec2_var);
-    // void CompMatLambdaVarVar(Matrix& _mat_lam_var_var, Vector3d _vec1, Vector3d _vec2, Vector _vec2_var, Matrix _vec2_var_var);
-    // void CompMatLambdaDerivVar(Matrix& _mat_lam_der_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector _vec2_var, Vector3d _vec2_der, Vector _vec2_der_var);
-    // void CompMatLambdaDeriv2Var(Matrix& _mat_lam_derder_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector3d _vec1_derder, Vector _vec2_var, Vector3d _vec2_der, Vector3d _vec2_derder, Vector _vec2_der_var, Vector _vec2_derder_var);
-    // void CompMatLambdaDerivVarVar(Matrix& _mat_lam_der_var_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector _vec2_var, Vector3d _vec2_der, Vector _vec2_der_var, Matrix _vec2_var_var, Matrix _vec2_der_var_var);
-    // void CompMatLambdaAll(Matrix& _mat_lambda_var, Matrix& _mat_lam_der_var, Matrix& _mat_lam_var_var, Matrix& _mat_lam_der_var_var, Vector3d _vec1, Vector3d _vec2, Vector3d _vec1_der, Vector _vec2_var, Vector3d _vec2_der, Vector _vec2_der_var, Matrix _vec2_var_var, Matrix _vec2_der_var_var);
-    
-    // void CompTVar(Vector& _t_var, Vector& _deriv, Vector3d& _r1);
-    // void CompTDerivVar(Vector& _t_deriv_var, Vector& _deriv, Vector& _deriv2, Vector3d& _r1, Vector3d& _r2);
-    // void CompTVarVar(Matrix& _t_var_var, Vector& _deriv, Vector3d& _r1);
-    // void CompTDerivVarVar(Matrix& _t_deriv_var_var, Vector& _deriv, Vector& _deriv2, Vector3d& _r1, Vector3d& _r2);
-    // void CompTDeriv2Var(Vector& _t_deriv2_var, Vector& _deriv, Vector& _deriv2, Vector& _deriv3, Vector3d& _r1, Vector3d& _r2, Vector3d& _r3);
-    // //void CompGeometryReferenceCrossSection(const IndexType IntegrationPointIndex, SuperElementKinematicVariables & rSuperElementKinematicVariables, NestedElementKinematicVariables& rNestedElementKinematicVariables, KinematicVariables &kinematic_variables);
-    // //void CompGeometryActualCrossSection(const IndexType IntegrationPointIndex, SuperElementKinematicVariables & rSuperElementKinematicVariables, NestedElementKinematicVariables& rNestedElementKinematicVariables, KinematicVariables &kinematic_variables);
-    // Vector CompEpsilonDof(Vector3d& _r1, Vector& _shape_func_deriv);
-    // Matrix CompEpsilonDof2(Vector3d& _r1, Vector& _shape_func_deriv);
-    // void CompMatRodriguesDeriv2(Matrix3d& _mat_rod_derder, Vector3d _vec, Vector3d _vec_deriv, Vector3d _vec_deriv2, double _phi, double _phi_deriv, double _phi_deriv2);
-    // void CompMatRodriguesDeriv2Var(Matrix& _mat_rod_derder_var, Vector3d _vec, Vector _vec_var, Vector3d _vec_der, Vector _vec_der_var, Vector3d _vec_derder, Vector _vec_derder_var, Vector _func, Vector _deriv, Vector _deriv2, double _phi, double _phi_der, double _phi_der2);
-    // void CompMatRodriguesAll(Matrix& _mat_rod_var, Matrix& _mat_rod_der_var, Matrix& _mat_rod_var_var, Matrix& _mat_rod_der_var_var, Vector3d _vec, Vector3d _vec_var, Vector3d _vec_der, Vector _vec_der_var, Matrix& _vec_var_var, Matrix& _vec_der_var_var, Vector _func, Vector _deriv, double _phi, double _phi_der);
-
-
-    //void stiff_mat_el_lin(SuperElementKinematicVariables & rSuperElementKinematicVariables, NestedElementKinematicVariables& rNestedElementKinematicVariables, IndexType point_number);
-    //void getVarOfDerLocalCoordinateSystemWrtDispGlobal(const IndexType IntegrationPointIndex,SuperElementKinematicVariables rSuperElementKinematicVariables, NestedElementKinematicVariables rNestedElementKinematicVariales);
-    
     double GetDeltaPhi(NestedElementKinematicVariables rNestedElementKinematicVariables, Vector3d &n);
     void CompPhiRefProp(NestedElementKinematicVariables rNestedElementKinematicVariables, double& _Phi, double& _Phi_0_der);
     void CompMatRodrigues(Matrix3d& _mat_rod, Vector3d _vec, double _phi);
@@ -464,8 +467,8 @@ private:
     void CompMatRodriguesVarVar(Matrix& _mat_rod_var_var, Vector3d _vec, std::vector<Vector3d> _vec_var, std::vector<std::vector<Vector3d>> _vec_var_var, Vector _func, double _phi);
     void CompMatRodriguesDerivVar(Matrix& _mat_rod_der_var, Vector3d _vec, std::vector<Vector3d> _vec_var, Vector3d _vec_der, std::vector<Vector3d> _vec_der_var, Vector _func, Vector _deriv, double _phi, double _phi_der);
     void CompMatRodriguesDerivVarVar(Matrix& _mat_rod_der_var_var, Vector3d _vec, std::vector<Vector3d> _vec_var, Vector3d _vec_der, std::vector<Vector3d> _vec_der_var, std::vector<std::vector<Vector3d>>& _vec_var_var, std::vector<std::vector<Vector3d>>& _vec_der_var_var, Vector _func, Vector _deriv, double _phi, double _phi_der);
-    void getVarOfDerLocalCoordinateSystemWrtDispGlobal(const IndexType IntegrationPointIndex,SuperElementKinematicVariables rSuperElementKinematicVariables, NestedElementKinematicVariables& rNestedElementKinematicVariales);
-
+    void GetVarOfDerLocalCoordinateSystemWrtDispGlobal(const IndexType IntegrationPointIndex,SuperElementKinematicVariables rSuperElementKinematicVariables, NestedElementKinematicVariables& rNestedElementKinematicVariales);
+    void ComputeInternalForcesAndStresses(const IndexType IntegrationPointIndex, const ProcessInfo& rCurrentProcessInfo, BeamInternalForces& rInternalForces);
 
     Matrix3d cross_prod_vec_mat(const Vector3d& vec, const Matrix3d& mat)
     {
@@ -510,41 +513,9 @@ private:
 
     bool mRotationXActive;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+    SizeType mNodeVecSize;
     SizeType mNumberOfDofs;
     SizeType mDofsPerNode;
-    // Matrix mSMatRodVar;
-    // Matrix mSMatLamVar;
-    // Matrix mSMatLamVarRodLam;
-    // Matrix mSMatRodLamVarRodLam;
-    // Matrix mSMatRodVarLamRodLam;
-    // Matrix mSMatRodLamRodLamVar;
-    // Matrix mSMatRodDerVar;
-    // Matrix mSMatLamDerVar;
-    // Matrix mSMatLamDerVarRodLam;
-    // Matrix mSMatLamVarRodDerLam;
-    // Matrix mSMatLamVarRodLamDer;
-    // Matrix mSMatRodDerLamVarRodLam;
-    // Matrix mSMatRodLamDerVarRodLam;
-    // Matrix mSMatRodLamVarRodDerLam;
-    // Matrix mSMatRodLamVarRodLamDer;
-    // Matrix mSMatRodDerVarLamRodLam;
-    // Matrix mSMatRodVarLamDerRodLam;
-    // Matrix mSMatRodVarLamRodDerLam;
-    // Matrix mSMatRodVarLamRodLamDer;
-    // Matrix mSMatRodLamRodLamDerVar;
-    // Matrix mSMatRodVarVar;
-    // Matrix mSMatLamVarVar;
-    // Matrix mSMatLamVarVarRodLam;
-    // Matrix mSMatRodDerVarVar;
-    // Matrix mSMatLamDerVarVar;
-    // Matrix mSMatLamDerVarVarRodLam;
-    // Matrix mSMatLamVarVarRodDerLam;
-    // Matrix mSMatLamVarVarRodLamDer;
-
-    //Vector3d N;
-    //Vector3d n;
-    //Vector3d V;
-    //Vector3d v;
 };
 
 } // namespace Kratos
