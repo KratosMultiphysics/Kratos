@@ -22,7 +22,6 @@
 #include "includes/smart_pointers.h"
 #include "includes/ublas_interface.h"
 
-#include <format>
 #include <iosfwd>
 #include <memory>
 #include <string>
@@ -105,13 +104,7 @@ public:
     using Element::CalculateOnIntegrationPoints;
 
     // Turn back information as a string.
-    std::string Info() const override
-    {
-        const std::string constitutive_info =
-            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-        return std::format("U-Pw small strain different order Element #{}\nConstitutive law: {}",
-                           Id(), constitutive_info);
-    }
+    std::string Info() const override;
 
     // Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }

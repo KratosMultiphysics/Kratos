@@ -37,6 +37,7 @@
 #include "stress_state_policy.h"
 
 #include <numeric>
+#include <format>
 
 namespace Kratos
 {
@@ -749,6 +750,13 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
     }
 
     KRATOS_CATCH("")
+}
+
+std::string SmallStrainUPwDiffOrderElement::Info() const
+{
+    const std::string constitutive_info =
+        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+    return std::format("U-Pw small strain different order Element #{}\nConstitutive law: {}", Id(), constitutive_info);
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSideMatrix,

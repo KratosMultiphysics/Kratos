@@ -18,6 +18,8 @@
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "utilities/math_utils.h"
 
+#include <format>
+
 namespace Kratos
 {
 
@@ -119,6 +121,14 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Va
     }
 
     KRATOS_CATCH("")
+}
+
+std::string UpdatedLagrangianUPwDiffOrderElement::Info() const
+{
+    const std::string constitutive_info =
+        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+    return std::format("Updated Lagrangian U-Pw different order Element #{}\nConstitutive law: {}",
+                       this->Id(), constitutive_info);
 }
 
 void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,

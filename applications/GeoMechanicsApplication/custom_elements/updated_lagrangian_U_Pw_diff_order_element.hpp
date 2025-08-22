@@ -20,8 +20,6 @@
 #include "geo_mechanics_application_variables.h"
 #include "stress_state_policy.h"
 
-#include <format>
-
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -157,14 +155,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        const std::string constitutive_info =
-            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-        return std::format(
-            "Updated Lagrangian U-Pw different order Element #{}\nConstitutive law: {}", this->Id(),
-            constitutive_info);
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
