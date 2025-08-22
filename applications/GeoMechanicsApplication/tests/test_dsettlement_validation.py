@@ -36,23 +36,40 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         output_data = reader.read_output_from(
             os.path.join(project_path, "stage3.post.res")
         )
+        top_middle_node_id = 104
         actual_settlement_after_one_hundred_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 8640000, output_data, [104]
+            "TOTAL_DISPLACEMENT", 8640000, output_data, [top_middle_node_id]
         )[0][1]
         expected_settlement_after_one_hundred_days = -3.22
-        # Within 1% of the expected value
-        self.assertTrue((expected_settlement_after_one_hundred_days - actual_settlement_after_one_hundred_days)/expected_settlement_after_one_hundred_days < 0.01)
+
+        # Assert the value to be within 1% of the analytical solution
+        self.assertTrue(
+            (
+                expected_settlement_after_one_hundred_days
+                - actual_settlement_after_one_hundred_days
+            )
+            / expected_settlement_after_one_hundred_days
+            < 0.01
+        )
 
         output_data = reader.read_output_from(
             os.path.join(project_path, "stage5.post.res")
         )
         actual_settlement_after_ten_thousand_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 864000000, output_data, [104]
+            "TOTAL_DISPLACEMENT", 864000000, output_data, [top_middle_node_id]
         )[0][1]
 
         expected_settlement_after_ten_thousand_days = -8.01
-        self.assertTrue((expected_settlement_after_ten_thousand_days - actual_settlement_after_ten_thousand_days)/expected_settlement_after_one_hundred_days < 0.01)
 
+        # Assert the value to be within 1% of the analytical solution
+        self.assertTrue(
+            (
+                expected_settlement_after_ten_thousand_days
+                - actual_settlement_after_ten_thousand_days
+            )
+            / expected_settlement_after_one_hundred_days
+            < 0.01
+        )
 
         os.chdir(original_working_dir)
 
