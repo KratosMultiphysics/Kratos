@@ -101,5 +101,18 @@ class TestDynamicDimensionalArray(KratosUnittest.TestCase):
         np_array[2,3] = False
         self.assertEqual(k_array.to_numpy()[2,3], False)
 
+    def test_DynamicDimensionalArrayCopy(self):
+        ddarray = Kratos.DoubleDynamicDimensionalArray([4,3,2], 8.0)
+
+        for i in range(24):
+            self.assertEqual(ddarray.to_numpy().ravel()[i], 8.0)
+
+        ddarray.to_numpy()[0,2,1] = 4.0
+        copy_ddarray = Kratos.DoubleDynamicDimensionalArray(ddarray)
+        copy_ddarray.to_numpy()[0,2,1] = 10.0
+
+        self.assertEqual(ddarray.to_numpy()[0,2,1], 4.0)
+        self.assertEqual(copy_ddarray.to_numpy()[0,2,1], 10.0)
+
 if __name__ == '__main__':
     KratosUnittest.main()
