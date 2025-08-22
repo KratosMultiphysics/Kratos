@@ -16,7 +16,8 @@ class KratosGeoMechanicsTimoshenkoBeamStagedTests(KratosUnittest.TestCase):
         stage 2: z direction load erased, x direction tip load applied
         """
 
-        # calculate deflection for pure bending beam ( the shear areas have been 
+        # calculate deflection for pure bending beam
+        # ( the shear areas have been set to large values in the material parameters to approach a Bernoulli formulation )
         F = 0.1
         EI_33 = 0.083333333 * 1000.0
         EI_22 = 0.008333333 * 1000.0
