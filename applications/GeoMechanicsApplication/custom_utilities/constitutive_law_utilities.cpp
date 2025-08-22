@@ -94,9 +94,10 @@ void ConstitutiveLawUtilities::CheckProperty(const Properties&       rMaterialPr
         << rVariable.Name() << " is not defined for property " << rMaterialProperties.Id() << std::endl;
     KRATOS_ERROR_IF(rMaterialProperties[rVariable] < 0.0 ||
                     (MaxValue.has_value() && rMaterialProperties[rVariable] > MaxValue.value()))
-        << "value of " << rVariable.Name() << " for property " << rMaterialProperties.Id()
-        << " is out of range: " << rMaterialProperties[rVariable] << " is not in [0.0, "
-        << (MaxValue ? std::to_string(*MaxValue) + "]" : "->") << std::endl;
+        << std::format("value of {} for property {} is out of range: {} is not in [0.0, {}]",
+                       rVariable.Name(), rMaterialProperties.Id(), rMaterialProperties[rVariable],
+                       MaxValue ? std::to_string(*MaxValue) : "->")
+        << std::endl;
 }
 
 Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      NormalStiffness,

@@ -28,6 +28,8 @@
 #include "integration_coefficients_calculator.h"
 #include "stress_state_policy.h"
 
+#include <format>
+
 namespace Kratos
 {
 
@@ -152,7 +154,7 @@ public:
     {
         const std::string constitutive_info =
             !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-        return "U-Pw Base class Element #" + std::to_string(Id()) + "\nConstitutive law: " + constitutive_info;
+        return std::format("U-Pw Base class Element #{}\nConstitutive law: {}", Id(), constitutive_info);
     }
 
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }

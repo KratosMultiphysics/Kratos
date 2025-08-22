@@ -20,6 +20,8 @@
 #include "geo_mechanics_application_variables.h"
 #include "stress_state_policy.h"
 
+#include <format>
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -159,8 +161,9 @@ public:
     {
         const std::string constitutive_info =
             !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-        return "Updated Lagrangian U-Pw different order Element #" + std::to_string(this->Id()) +
-               "\nConstitutive law: " + constitutive_info;
+        return std::format(
+            "Updated Lagrangian U-Pw different order Element #{}\nConstitutive law: {}", this->Id(),
+            constitutive_info);
     }
 
     /// Print information about this object.

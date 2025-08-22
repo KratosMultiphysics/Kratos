@@ -22,6 +22,7 @@
 #include "includes/smart_pointers.h"
 #include "includes/ublas_interface.h"
 
+#include <format>
 #include <iosfwd>
 #include <memory>
 #include <string>
@@ -108,8 +109,8 @@ public:
     {
         const std::string constitutive_info =
             !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-        return "U-Pw small strain different order Element #" + std::to_string(Id()) +
-               "\nConstitutive law: " + constitutive_info;
+        return std::format("U-Pw small strain different order Element #{}\nConstitutive law: {}",
+                           Id(), constitutive_info);
     }
 
     // Print information about this object.
