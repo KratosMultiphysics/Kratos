@@ -18,6 +18,8 @@
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
 
+#include <format>
+
 namespace Kratos
 {
 
