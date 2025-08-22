@@ -12,16 +12,17 @@
 //                   Gennady Markelov
 //
 
-#include "custom_elements/transient_Pw_line_element.h"
+#include "custom_elements/Pw_element.h"
 
 namespace Kratos
 {
 
-template class TransientPwLineElement<2, 2>;
-template class TransientPwLineElement<2, 3>;
-template class TransientPwLineElement<2, 4>;
-template class TransientPwLineElement<2, 5>;
-template class TransientPwLineElement<3, 2>;
-template class TransientPwLineElement<3, 3>;
+template class PwElement<2, 2>;
+template class PwElement<2, 3>;
+template class PwElement<2, 4>;
+template class PwElement<2, 5>;
+template class PwElement<3, 2>;
+template class PwElement<3, 3>;
+template class PwElement<3, 4>;
 
 } // Namespace Kratos
