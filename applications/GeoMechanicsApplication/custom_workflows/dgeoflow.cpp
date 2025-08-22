@@ -460,7 +460,7 @@ int KratosExecute::FindCriticalHead(ModelPart&                 rModelPart,
             << "Searching at head: " << mCurrentHead << std::endl;
 
         const auto progress =
-            std::format("Calculating head level {:.8}m ({} / {})", mCurrentHead, step, max_steps);
+            std::format("Calculating head level {:.8}m ({}/{})", mCurrentHead, step, max_steps);
         rCallBackFunctions.ReportTextualProgress(progress.data());
         rCallBackFunctions.ReportProgress(((double)step) / ((double)max_steps));
 
