@@ -38,7 +38,7 @@ file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_CORE
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
     kratos_add_gtests(TARGET KratosGeoMechanicsCore SOURCES "${KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES}")
-    set_target_properties("KratosGeoMechanicsCoreTest" PROPERTIES CXX_STANDARD 20)
+    set_target_properties(KratosGeoMechanicsCoreTest PROPERTIES CXX_STANDARD 20)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## GeoMechanics python interface sources
