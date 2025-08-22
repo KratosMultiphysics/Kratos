@@ -93,6 +93,7 @@ void AddDynamicDimensionalArray(
     py::class_<DynamicDimensionalArray<TDataType>, typename DynamicDimensionalArray<TDataType>::Pointer>(m, rName.c_str())
         .def(py::init<const DenseVector<unsigned int>&>(), py::arg("shape"))
         .def(py::init<const DenseVector<unsigned int>&, const TDataType>(), py::arg("shape"), py::arg("value"))
+        .def(py::init<const DynamicDimensionalArray<TDataType>&>(), py::arg("other"))
         .def(py::init([](py::array& rArray, const bool Copy){
             KRATOS_TRY
 
