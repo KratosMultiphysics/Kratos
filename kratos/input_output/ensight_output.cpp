@@ -44,7 +44,6 @@ Parameters EnSightOutput::GetDefaultParameters()
         "custom_name_postfix"                         : "",
         "entity_type"                                 : "automatic",
         "save_output_files_in_folder"                 : true,
-        "save_output_files_in_folder"                 : true,
         "evolving_geometry"                           : true, // For meshes with evolving geometry // TODO: Generate just one geo file if false
         "nodal_solution_step_data_variables"          : [],
         "nodal_data_value_variables"                  : [],
