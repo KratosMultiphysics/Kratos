@@ -15,6 +15,8 @@
 #include "geo_mechanics_application_variables.h"
 #include "utilities/math_utils.h"
 
+#include <format>
+
 namespace
 {
 
@@ -94,9 +96,9 @@ void ConstitutiveLawUtilities::CheckProperty(const Properties&       rMaterialPr
         << rVariable.Name() << " is not defined for property " << rMaterialProperties.Id() << std::endl;
     KRATOS_ERROR_IF(rMaterialProperties[rVariable] < 0.0 ||
                     (MaxValue.has_value() && rMaterialProperties[rVariable] > MaxValue.value()))
-        << std::format("value of {} for property {} is out of range: {} is not in [0.0, {}]",
+        << std::format("value of {} for property {} is out of range: {} is not in [0.0, {}",
                        rVariable.Name(), rMaterialProperties.Id(), rMaterialProperties[rVariable],
-                       MaxValue ? std::to_string(*MaxValue) : "->")
+                       MaxValue ? std::format("{:.6f}]", *MaxValue) : "->")
         << std::endl;
 }
 

@@ -36,8 +36,8 @@
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "stress_state_policy.h"
 
-#include <numeric>
 #include <format>
+#include <numeric>
 
 namespace Kratos
 {
