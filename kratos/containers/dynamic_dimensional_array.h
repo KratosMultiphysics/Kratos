@@ -188,6 +188,13 @@ public:
         TDataType const * pData,
         const DenseVector<unsigned int>& rShape);
 
+    /**
+     * @brief Copy constructor.
+     * @details Copy constructs having the internal data also copied.
+     */
+    DynamicDimensionalArray(
+        const DynamicDimensionalArray& rOther);
+
     ///@}
     ///@name Public operations
     ///@{

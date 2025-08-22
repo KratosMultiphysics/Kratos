@@ -79,6 +79,12 @@ DynamicDimensionalArray<TDataType>::DynamicDimensionalArray(
 }
 
 template<class TDataType>
+DynamicDimensionalArray<TDataType>::DynamicDimensionalArray(const DynamicDimensionalArray& rOther)
+    : DynamicDimensionalArray(rOther.ViewData().data(), rOther.Shape())
+{
+}
+
+template<class TDataType>
 Kratos::span<const TDataType> DynamicDimensionalArray<TDataType>::ViewData() const
 {
     return Kratos::span<const TDataType>(this->mpData->Data(), this->mpData->Data() + this->Size());
