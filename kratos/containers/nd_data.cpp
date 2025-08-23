@@ -21,12 +21,12 @@
 #include "utilities/parallel_utilities.h"
 
 // Include base h
-#include "dynamic_dimensional_array.h"
+#include "nd_data.h"
 
 namespace Kratos {
 
 template<class TDataType>
-DynamicDimensionalArray<TDataType>::DynamicDimensionalArray(const DenseVector<unsigned int>& rShape)
+NDData<TDataType>::NDData(const DenseVector<unsigned int>& rShape)
     : mShape(rShape)
 {
     // allocate new memory
@@ -34,10 +34,10 @@ DynamicDimensionalArray<TDataType>::DynamicDimensionalArray(const DenseVector<un
 }
 
 template<class TDataType>
-DynamicDimensionalArray<TDataType>::DynamicDimensionalArray(
+NDData<TDataType>::NDData(
     const DenseVector<unsigned int>& rShape,
     const TDataType Value)
-    : DynamicDimensionalArray(rShape)
+    : NDData(rShape)
 {
     auto span = this->ViewData();
     IndexPartition<IndexType>(this->Size()).for_each([&span, Value](const auto Index) {
@@ -46,7 +46,7 @@ DynamicDimensionalArray<TDataType>::DynamicDimensionalArray(
 }
 
 template<class TDataType>
-DynamicDimensionalArray<TDataType>::DynamicDimensionalArray(
+NDData<TDataType>::NDData(
     TDataType * pData,
     const DenseVector<unsigned int>& rShape,
     const bool Copy)
@@ -65,7 +65,7 @@ DynamicDimensionalArray<TDataType>::DynamicDimensionalArray(
 }
 
 template<class TDataType>
-DynamicDimensionalArray<TDataType>::DynamicDimensionalArray(
+NDData<TDataType>::NDData(
     TDataType const * pData,
     const DenseVector<unsigned int>& rShape)
     : mShape(rShape)
@@ -79,53 +79,53 @@ DynamicDimensionalArray<TDataType>::DynamicDimensionalArray(
 }
 
 template<class TDataType>
-DynamicDimensionalArray<TDataType>::DynamicDimensionalArray(const DynamicDimensionalArray& rOther)
-    : DynamicDimensionalArray(rOther.ViewData().data(), rOther.Shape())
+NDData<TDataType>::NDData(const NDData& rOther)
+    : NDData(rOther.ViewData().data(), rOther.Shape())
 {
 }
 
 template<class TDataType>
-Kratos::span<const TDataType> DynamicDimensionalArray<TDataType>::ViewData() const
+Kratos::span<const TDataType> NDData<TDataType>::ViewData() const
 {
     return Kratos::span<const TDataType>(this->mpData->Data(), this->mpData->Data() + this->Size());
 }
 
 template<class TDataType>
-Kratos::span<TDataType> DynamicDimensionalArray<TDataType>::ViewData()
+Kratos::span<TDataType> NDData<TDataType>::ViewData()
 {
     return Kratos::span<TDataType>(this->mpData->Data(), this->mpData->Data() + this->Size());
 }
 
 template<class TDataType>
-typename DynamicDimensionalArray<TDataType>::PointerWrapper::Pointer DynamicDimensionalArray<TDataType>::pData() const
+typename NDData<TDataType>::PointerWrapper::Pointer NDData<TDataType>::pData() const
 {
     return mpData;
 }
 
 template<class TDataType>
-DenseVector<unsigned int> DynamicDimensionalArray<TDataType>::Shape() const
+DenseVector<unsigned int> NDData<TDataType>::Shape() const
 {
     return mShape;
 }
 
 template<class TDataType>
-unsigned int DynamicDimensionalArray<TDataType>::Size() const
+unsigned int NDData<TDataType>::Size() const
 {
     return std::accumulate(mShape.data().begin(), mShape.data().end(), 1u, std::multiplies<unsigned int>{});
 }
 
 template<class TDataType>
-std::string DynamicDimensionalArray<TDataType>::Info() const
+std::string NDData<TDataType>::Info() const
 {
     std::stringstream info;
-    info << "DynamicDimensionalArray with shape = " << this->Shape() << ".";
+    info << "NDData with shape = " << this->Shape() << ".";
     return info.str();
 }
 
 // template instantiations
-template class DynamicDimensionalArray<unsigned char>; // We have to use the unsigned char, because numpy does not have proper bindings for std::uint8_t.
-template class DynamicDimensionalArray<bool>;
-template class DynamicDimensionalArray<int>;
-template class DynamicDimensionalArray<double>;
+template class NDData<unsigned char>; // We have to use the unsigned char, because numpy does not have proper bindings for std::uint8_t.
+template class NDData<bool>;
+template class NDData<int>;
+template class NDData<double>;
 
 } // namespace Kratos

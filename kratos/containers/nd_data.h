@@ -29,19 +29,19 @@ namespace Kratos {
 ///@{
 
 /**
- * @class DynamicDimensionalArray
+ * @class NDData
  * @ingroup KratosCore
  * @author Suneth Warnakulasuriya
  * @brief An array with dynamic number of dimensions to interface Kratos C++ objects with numpy easily.
  * @details This class provides possibilities to interface with numpy arrays easily within Kratos C++ interfaces.
- *          This also ensures that, the numpy arrays created from these @ref DynamicDimensionalArray are sharing
+ *          This also ensures that, the numpy arrays created from these @ref NDData are sharing
  *          the internal data. So the life time of the internal data will be shared as well, making it possible to
- *          use numpy array pointing to the internal data of an instance of @ref DynamicDimensionalArray even if
- *          the @ref DynamicDimensionalArray gets destroyed.
+ *          use numpy array pointing to the internal data of an instance of @ref NDData even if
+ *          the @ref NDData gets destroyed.
  * @tparam TDataType The type of the data stored in the tensor adaptor.
  */
 template<class TDataType>
-class KRATOS_API(KRATOS_CORE) DynamicDimensionalArray {
+class KRATOS_API(KRATOS_CORE) NDData {
 public:
     ///@name Class definitions
     ///@{
@@ -129,7 +129,7 @@ public:
     ///@name Type definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(DynamicDimensionalArray);
+    KRATOS_CLASS_POINTER_DEFINITION(NDData);
 
     using IndexType = std::size_t;
 
@@ -146,7 +146,7 @@ public:
      *
      * @param rShape Dynamic Dimensional Array shape.
      */
-    DynamicDimensionalArray(
+    NDData(
         const DenseVector<unsigned int>& rShape);
 
     /**
@@ -155,7 +155,7 @@ public:
      * @param rShape Array shape.
      * @param Value  Initialization value.
      */
-    DynamicDimensionalArray(
+    NDData(
         const DenseVector<unsigned int>& rShape,
         const TDataType Value);
 
@@ -166,14 +166,14 @@ public:
      *              - If @p Copy = true, then the data in the @p pData will be copied
      *              - If @p Copy = false, then the internal data will point to the @p pData .
      *
-     * @warning This may SEGFAULT if a @ref DynamicDimensionalArray is created with @p Copy = false, and when
+     * @warning This may SEGFAULT if a @ref NDData is created with @p Copy = false, and when
      *          any of the @ref ViewData method is called while the @p pData is deallocated.
      *
      * @param pData     Pointer to the data
      * @param rShape    Dynamic Dimensional Array shape.
      * @param Copy      Whether to copy the data @p pData referring to or not.
      */
-    DynamicDimensionalArray(
+    NDData(
         TDataType * pData,
         const DenseVector<unsigned int>& rShape,
         const bool Copy = true);
@@ -184,7 +184,7 @@ public:
      * @param pData     Pointer to the data
      * @param rShape    Dynamic Dimensional Array shape.
      */
-    DynamicDimensionalArray(
+    NDData(
         TDataType const * pData,
         const DenseVector<unsigned int>& rShape);
 
@@ -192,8 +192,8 @@ public:
      * @brief Copy constructor.
      * @details Copy constructs having the internal data also copied.
      */
-    DynamicDimensionalArray(
-        const DynamicDimensionalArray& rOther);
+    NDData(
+        const NDData& rOther);
 
     ///@}
     ///@name Public operations
@@ -254,7 +254,7 @@ private:
 template<class TDataType>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const DynamicDimensionalArray<TDataType>& rThis)
+    const NDData<TDataType>& rThis)
 {
     return rOStream << rThis.Info();
 }
