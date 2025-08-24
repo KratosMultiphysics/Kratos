@@ -36,5 +36,8 @@ public:
         const Geo::ConstVariableDataRefs& rVariableRefs);
     static void CheckHasDofs(const Geometry<Node>& rGeometry, 
         const Geo::ConstVariableDataRefs& rVariableRefs);
+
+private:
+    static std::string PrintVectorContent(const std::vector<size_t>& rVector);
 }; /* Class CheckUtilities*/
 } /* namespace Kratos.*/

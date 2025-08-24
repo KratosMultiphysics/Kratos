@@ -75,7 +75,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalVariables, KratosGeoMechanics
     // Act and Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         CheckUtilities::CheckHasNodalSolutionStepData(line_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)}),
-        "Missing variable WATER_PRESSURE on node 0")
+        "Missing variable WATER_PRESSURE on nodes 0 1")
 
     // Arrange 2
     line_geometry = CreatLineGeometryWithVariables();
@@ -83,7 +83,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalVariables, KratosGeoMechanics
     // Act and Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         CheckUtilities::CheckHasNodalSolutionStepData(line_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)}),
-        "Missing variable VOLUME_ACCELERATION on node 0")
+        "Missing variable VOLUME_ACCELERATION on nodes 0 1")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalDof, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -94,7 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalDof, KratosGeoMechanicsFastSu
     // Act and Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         CheckUtilities::CheckHasDofs(line_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)}),
-        "Missing the DoF for the variable WATER_PRESSURE on node 0")
+        "Missing the DoF for the variable WATER_PRESSURE on nodes 0 1")
 
     // Arrange 2
     line_geometry = CreatLineGeometryWithVariables();
@@ -106,6 +106,6 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalDof, KratosGeoMechanicsFastSu
     // Act and Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         CheckUtilities::CheckHasDofs(line_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)}),
-        "Missing the DoF for the variable VOLUME_ACCELERATION on node 0")
+        "Missing the DoF for the variable VOLUME_ACCELERATION on nodes 0 1")
 }
 } // namespace Kratos::Testing

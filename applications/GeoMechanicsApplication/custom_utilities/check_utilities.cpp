@@ -14,6 +14,8 @@
 #include "check_utilities.h"
 #include "includes/exception.h"
 
+#include <sstream>
+
 namespace Kratos
 {
 
@@ -28,34 +30,50 @@ void CheckUtilities::CheckDomainSize(double DomainSize, std::size_t Id, const st
 void CheckUtilities::CheckHasNodalSolutionStepData(const Geometry<Node>& rGeometry, 
     const Geo::ConstVariableDataRefs& rVariableRefs)
 {
-    auto has_all_variables = [&](const auto& node) {
-        return std::all_of(rVariableRefs.begin(), rVariableRefs.end(), [&node](const auto& variable_ref) {
-            return node.SolutionStepsDataHas(variable_ref.get());
-        });
-    };
-
-    if (!std::all_of(rGeometry.begin(), rGeometry.end(), has_all_variables)) {
-        for (const auto& r_node : rGeometry) {
-            for (const auto& r_variable_ref : rVariableRefs) {
-                if (!r_node.SolutionStepsDataHas(r_variable_ref.get()))
-                    KRATOS_INFO("Missing variable ") << r_variable_ref.get().Name()
-                                 << " on node " << r_node.Id() << std::endl;
+    for (const auto& r_variable_ref : rVariableRefs) {
+        std::vector<std::size_t> missing_node_ids;
+        std::copy_if(rGeometry.begin(), rGeometry.end(), std::back_inserter(missing_node_ids),
+                     [&r_variable_ref, &missing_node_ids](const Node& node) {
+            if (!node.SolutionStepsDataHas(r_variable_ref.get())) {
+                missing_node_ids.push_back(node.Id());
             }
-        }
-        KRATOS_ERROR << "Missing variables on nodes" << std::endl;
+            return false;
+        });
+        if (!missing_node_ids.empty())
+           KRATOS_ERROR << "Missing variable " << r_variable_ref.get().Name() << " on nodes "
+                         << PrintVectorContent(missing_node_ids) << std::endl;
     }
 }
 
-void CheckUtilities::CheckHasDofs(const Geometry<Node>&            rGeometry, 
-    const Geo::ConstVariableDataRefs& rVariableRefs)
+void CheckUtilities::CheckHasDofs(const Geometry<Node>& rGeometry, const Geo::ConstVariableDataRefs& rVariableRefs)
 {
-    for (const auto& r_node : rGeometry) {
-        for (const auto& r_variable_ref : rVariableRefs) {
-            if (!r_node.HasDofFor(r_variable_ref.get()))
-                KRATOS_ERROR << "Missing the DoF for the variable " << r_variable_ref.get().Name()
-                             << " on node " << r_node.Id() << std::endl;
-        }
+    for (const auto& r_variable_ref : rVariableRefs) {
+        std::vector<std::size_t> missing_node_ids;
+        std::copy_if(
+            rGeometry.begin(), rGeometry.end(), std::back_inserter(missing_node_ids),
+            [&r_variable_ref, &missing_node_ids](const Node& node) {
+            if (!node.HasDofFor(r_variable_ref.get())) {
+                missing_node_ids.push_back(node.Id());
+            }
+            return false;
+        });
+
+        if (!missing_node_ids.empty())
+            KRATOS_ERROR << "Missing the DoF for the variable " << r_variable_ref.get().Name()
+                             << " on nodes " << PrintVectorContent(missing_node_ids) << std::endl;
     }
+}
+
+    std::string CheckUtilities::PrintVectorContent(const std::vector<size_t>& rVector)
+{
+    std::ostringstream oss;
+    for (const auto& r_value : rVector)
+        oss << r_value << " ";
+
+    std::string output = oss.str();
+    output.pop_back();
+
+    return output;
 }
 
 } /* namespace Kratos.*/
