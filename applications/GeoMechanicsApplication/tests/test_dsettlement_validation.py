@@ -118,6 +118,31 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         os.chdir(cwd)
 
+    def test_settlement_phreatic_line_below_surface(self):
+        """
+        This test validates the settlement of a soil column where the phreatic line
+        is 10 m below the soil surface.
+        """
+        test_name = "phreatic_line_below_soil_surface"
+        test_root = "dsettlement"
+        project_path = test_helper.get_file_path(os.path.join(test_root, test_name))
+
+        original_working_dir = os.getcwd()
+        os.chdir(project_path)
+
+        import KratosMultiphysics.GeoMechanicsApplication.run_geo_settlement as run_geo_settlement
+
+        n_stages = 5
+        project_parameters_filenames = [
+            f"ProjectParameters_stage{i+1}.json" for i in range(n_stages)
+        ]
+        status = run_geo_settlement.run_stages(
+            project_path, project_parameters_filenames
+        )
+        self.assertEqual(status, 0)
+
+        os.chdir(original_working_dir)
+
       
 if __name__ == "__main__":
     KratosUnittest.main()
