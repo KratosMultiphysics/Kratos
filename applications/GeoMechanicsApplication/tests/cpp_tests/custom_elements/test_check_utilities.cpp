@@ -19,14 +19,16 @@ using namespace Kratos;
 namespace
 {
 
-Geometry<Node> CreatLineGeometryWithoutVariables() {
+Line2D2<Node> CreatLineGeometryWithoutVariables()
+{
     PointerVector<Node> nodes;
     nodes.push_back(make_intrusive<Node>(0, 0.0, 0.0, 0.0));
     nodes.push_back(make_intrusive<Node>(1, 1.0, 0.0, 0.0));
     return Line2D2<Node>(nodes);
 }
 
-Geometry<Node> CreatLineGeometryWithVariables() {
+Line2D2<Node> CreatLineGeometryWithVariables()
+{
     Model model;
     auto& r_model_part = model.CreateModelPart("ModelPart", 1);
     r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
