@@ -60,22 +60,22 @@ int TransientPwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurr
     CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
 
     // Verify specific properties
-    if (r_properties.Has(MINIMUM_JOINT_WIDTH) == false || r_properties[MINIMUM_JOINT_WIDTH] <= 0.0)
+    if (!r_properties.Has(MINIMUM_JOINT_WIDTH) || r_properties[MINIMUM_JOINT_WIDTH] <= 0.0)
         KRATOS_ERROR << "MINIMUM_JOINT_WIDTH has Key zero, is not defined or "
                         "has an invalid value at element"
                      << this->Id() << std::endl;
 
-    if (r_properties.Has(TRANSVERSAL_PERMEABILITY) == false || r_properties[TRANSVERSAL_PERMEABILITY] < 0.0)
+    if (!r_properties.Has(TRANSVERSAL_PERMEABILITY) || r_properties[TRANSVERSAL_PERMEABILITY] < 0.0)
         KRATOS_ERROR << "TRANSVERSAL_PERMEABILITY has Key zero, is not defined "
                         "or has an invalid value at element"
                      << this->Id() << std::endl;
 
-    if (r_properties.Has(BULK_MODULUS_FLUID) == false || r_properties[BULK_MODULUS_FLUID] <= 0.0)
+    if (!r_properties.Has(BULK_MODULUS_FLUID) || r_properties[BULK_MODULUS_FLUID] <= 0.0)
         KRATOS_ERROR << "BULK_MODULUS_FLUID has Key zero, is not defined or "
                         "has an invalid value at element"
                      << this->Id() << std::endl;
 
-    if (r_properties.Has(DYNAMIC_VISCOSITY) == false || r_properties[DYNAMIC_VISCOSITY] <= 0.0)
+    if (!r_properties.Has(DYNAMIC_VISCOSITY) || r_properties[DYNAMIC_VISCOSITY] <= 0.0)
         KRATOS_ERROR << "DYNAMIC_VISCOSITY has Key zero, is not defined or has "
                         "an invalid value at element"
                      << this->Id() << std::endl;
@@ -86,17 +86,17 @@ int TransientPwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurr
         << this->Id() << std::endl;
 
     // Verify properties
-    if (r_properties.Has(DENSITY_WATER) == false || r_properties[DENSITY_WATER] < 0.0)
+    if (!r_properties.Has(DENSITY_WATER) || r_properties[DENSITY_WATER] < 0.0)
         KRATOS_ERROR << "DENSITY_WATER does not exist in the material "
                         "properties or has an invalid value at element"
                      << this->Id() << std::endl;
 
-    if (r_properties.Has(BULK_MODULUS_SOLID) == false || r_properties[BULK_MODULUS_SOLID] < 0.0)
+    if (!r_properties.Has(BULK_MODULUS_SOLID) || r_properties[BULK_MODULUS_SOLID] < 0.0)
         KRATOS_ERROR << "BULK_MODULUS_SOLID does not exist in the material "
                         "properties or has an invalid value at element"
                      << this->Id() << std::endl;
 
-    if (r_properties.Has(POROSITY) == false || r_properties[POROSITY] < 0.0 || r_properties[POROSITY] > 1.0)
+    if (!r_properties.Has(POROSITY) || r_properties[POROSITY] < 0.0 || r_properties[POROSITY] > 1.0)
         KRATOS_ERROR << "POROSITY does not exist in the material properties or "
                         "has an invalid value at element"
                      << this->Id() << std::endl;

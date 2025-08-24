@@ -35,6 +35,8 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     CheckUtilities::CheckHasNodalSolutionStepData(r_geometry, {std::cref(DISPLACEMENT), std::cref(VELOCITY), std::cref(ACCELERATION), std::cref(WATER_PRESSURE),
                                                 std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
     CheckUtilities::CheckHasDofs(r_geometry, {std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y), std::cref(WATER_PRESSURE)});
+    if (this->GetGeometry().WorkingSpaceDimension() > 2)
+        CheckUtilities::CheckHasDofs(r_geometry, {std::cref(DISPLACEMENT_Z)});
 
     // Verify properties
     if (!r_properties.Has(DENSITY_SOLID) || r_properties[DENSITY_SOLID] < 0.0)
