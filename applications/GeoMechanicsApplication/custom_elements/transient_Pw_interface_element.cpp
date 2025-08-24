@@ -56,8 +56,8 @@ int TransientPwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurr
     KRATOS_ERROR_IF(this->Id() < 1)
         << "Element found with Id 0 or negative, element: " << this->Id() << std::endl;
 
-    CheckUtilities::CheckNodalVariables(r_geometry, {WATER_PRESSURE, DT_WATER_PRESSURE, VOLUME_ACCELERATION});
-    CheckUtilities::CheckNodalDof(r_geometry, {WATER_PRESSURE});
+    CheckUtilities::CheckHasNodalSolutionStepData(r_geometry, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
+    CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
 
     // Verify specific properties
     if (r_properties.Has(MINIMUM_JOINT_WIDTH) == false || r_properties[MINIMUM_JOINT_WIDTH] <= 0.0)

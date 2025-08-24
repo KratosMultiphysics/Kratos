@@ -32,9 +32,9 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     const PropertiesType& r_properties = this->GetProperties();
     const GeometryType&   r_geometry = this->GetGeometry();
 
-    CheckUtilities::CheckNodalVariables(r_geometry, {DISPLACEMENT, VELOCITY, ACCELERATION, WATER_PRESSURE,
-                                                DT_WATER_PRESSURE, VOLUME_ACCELERATION});
-    CheckUtilities::CheckNodalDof(r_geometry, {DISPLACEMENT_X, DISPLACEMENT_Y, WATER_PRESSURE});
+    CheckUtilities::CheckHasNodalSolutionStepData(r_geometry, {std::cref(DISPLACEMENT), std::cref(VELOCITY), std::cref(ACCELERATION), std::cref(WATER_PRESSURE),
+                                                std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
+    CheckUtilities::CheckHasDofs(r_geometry, {std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y), std::cref(WATER_PRESSURE)});
 
     // Verify properties
     if (!r_properties.Has(DENSITY_SOLID) || r_properties[DENSITY_SOLID] < 0.0)

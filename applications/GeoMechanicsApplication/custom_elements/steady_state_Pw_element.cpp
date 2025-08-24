@@ -49,8 +49,8 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
 
     CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), this->Id());
 
-    CheckUtilities::CheckNodalVariables(r_geometry, {WATER_PRESSURE, VOLUME_ACCELERATION});
-    CheckUtilities::CheckNodalDof(r_geometry, {WATER_PRESSURE});
+    CheckUtilities::CheckHasNodalSolutionStepData(r_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
+    CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
 
     // Verify properties
     if (r_properties.Has(DENSITY_WATER) == false || r_properties[DENSITY_WATER] < 0.0)

@@ -17,6 +17,7 @@
 #include "includes/variables.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
+#include "geo_aliases.h"
 
 #include <optional>
 #include <string>
@@ -31,9 +32,9 @@ public:
                                 std::size_t                       Id,
                                 const std::optional<std::string>& PrintName = std::nullopt);
 								
-	static void CheckNodalVariables(const Geometry<Node>&            rGeometry,
-                                    const std::vector<VariableData>& rVariables);
-    static void CheckNodalDof(const Geometry<Node>&            rGeometry,
-                              const std::vector<VariableData>& rVariables);
+	static void CheckHasNodalSolutionStepData(const Geometry<Node>&             rGeometry, 
+        const Geo::ConstVariableDataRefs& rVariableRefs);
+    static void CheckHasDofs(const Geometry<Node>& rGeometry, 
+        const Geo::ConstVariableDataRefs& rVariableRefs);
 }; /* Class CheckUtilities*/
 } /* namespace Kratos.*/

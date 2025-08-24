@@ -155,8 +155,8 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
     const GeometryType&   r_geom       = this->GetGeometry();
 
     CheckUtilities::CheckDomainSize(r_geom.DomainSize(), this->Id());
-    CheckUtilities::CheckNodalVariables(r_geom, {WATER_PRESSURE, DT_WATER_PRESSURE, VOLUME_ACCELERATION});
-    CheckUtilities::CheckNodalDof(r_geom, {WATER_PRESSURE});
+    CheckUtilities::CheckHasNodalSolutionStepData(r_geom, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
+    CheckUtilities::CheckHasDofs(r_geom, {std::cref(WATER_PRESSURE)});
 
     // Verify properties
     if (r_properties.Has(DENSITY_WATER) == false || r_properties[DENSITY_WATER] < 0.0)

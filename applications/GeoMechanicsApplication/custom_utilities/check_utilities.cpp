@@ -25,26 +25,26 @@ void CheckUtilities::CheckDomainSize(double DomainSize, std::size_t Id, const st
         << min_domain_size << " for element " << Id << std::endl;
 }
 
-void CheckUtilities::CheckNodalVariables(const Geometry<Node>&            rGeometry,
-                                         const std::vector<VariableData>& rVariables)
+void CheckUtilities::CheckHasNodalSolutionStepData(const Geometry<Node>&            rGeometry, 
+    const Geo::ConstVariableDataRefs& rVariableRefs)
 {
-    for (std::size_t i = 0; i < rGeometry.PointsNumber(); ++i) {
-		for (const auto & r_variable : rVariables){
-           if (!rGeometry[i].SolutionStepsDataHas(r_variable))
-               KRATOS_ERROR << "Missing variable " << r_variable.Name() << " on node "
-                            << rGeometry[i].Id() << std::endl;
-		}
-	}
+    for (const auto& r_node : rGeometry) {
+        for (const auto& r_variable_ref : rVariableRefs) {
+            if (!r_node.SolutionStepsDataHas(r_variable_ref.get()))
+                KRATOS_ERROR << "Missing variable " << r_variable_ref.get().Name() << " on node "
+                             << r_node.Id() << std::endl;
+        }
+    }
 }
 
-void CheckUtilities::CheckNodalDof(const Geometry<Node>&            rGeometry,
-                                   const std::vector<VariableData>& rVariables)
+void CheckUtilities::CheckHasDofs(const Geometry<Node>&            rGeometry, 
+    const Geo::ConstVariableDataRefs& rVariableRefs)
 {
-    for (std::size_t i = 0; i < rGeometry.PointsNumber(); ++i) {
-        for (const auto& r_variable : rVariables) {
-            if (!rGeometry[i].HasDofFor(r_variable))
-                KRATOS_ERROR << "Missing the DoF for the variable " << r_variable.Name() << " on node "
-                             << rGeometry[i].Id() << std::endl;
+    for (const auto& r_node : rGeometry) {
+        for (const auto& r_variable_ref : rVariableRefs) {
+            if (!r_node.HasDofFor(r_variable_ref.get()))
+                KRATOS_ERROR << "Missing the DoF for the variable " << r_variable_ref.get().Name()
+                             << " on node " << r_node.Id() << std::endl;
         }
     }
 }
