@@ -404,6 +404,8 @@ void EnSightOutput::WriteCaseFile()
     // filename increment:     1
     // time values:            1.0    2.0    3.0
 
+    // TODO: May be diffent for Gold
+
     // FORMAT Section
     case_file << "FORMAT\n";
     if (mEnSightFileFormat == EnSightFileFormat::EnSightGold) {
@@ -506,11 +508,11 @@ void EnSightOutput::WriteCaseFile()
         const auto variable_type = mVariableTypeMap[r_variable_name];
         const std::string file_extension = GetExtensionFile(variable_type);
         if (variable_type == VariableType::SCALAR) {
-            case_file << "scalar per condition: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".cond" << file_extension << "\n";
+            case_file << "scalar per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".cond" << file_extension << "\n";
         } else if (variable_type == VariableType::VECTOR) {
-            case_file << "vector per condition: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".cond" << file_extension << "\n";
+            case_file << "vector per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".cond" << file_extension << "\n";
         } else if (variable_type == VariableType::TENSOR_SYMMETRIC) {
-            case_file << "tensor symm per condition: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".cond" << file_extension << "\n";
+            case_file << "tensor symm per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".cond" << file_extension << "\n";
         } else {
             KRATOS_ERROR << "Unknown variable type for condition data variable: " << r_variable_name << std::endl;
         }
@@ -519,7 +521,7 @@ void EnSightOutput::WriteCaseFile()
     // Condition flags (always VariableType::SCALAR)
     for (const auto& r_flag_name_param : mOutputSettings["condition_flags"]) {
         const std::string& r_flag_name = r_flag_name_param.GetString();
-        case_file << "scalar per condition: 1 " << r_flag_name << " " << base_filename << "." << r_flag_name << "." << asterisk_label << ".cond" << ".scl\n";
+        case_file << "scalar per element: 1 " << r_flag_name << " " << base_filename << "." << r_flag_name << "." << asterisk_label << ".cond" << ".scl\n";
     }
 
     case_file << "\n";
