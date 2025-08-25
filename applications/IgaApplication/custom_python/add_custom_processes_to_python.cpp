@@ -54,6 +54,7 @@ void AddCustomProcessesToPython(
         ;
 
     py::class_<ComputeBeamVectorsProcess, ComputeBeamVectorsProcess::Pointer, Process>(m, "ComputeBeamVectorsProcess")
+        .def(py::init<ModelPart&>())
         .def(py::init<ModelPart&, const NurbsCurveGeometry<3, PointerVector<Node>>&>())
         .def(py::init<ModelPart&, const NurbsCurveOnSurfaceGeometry<3, PointerVector<Node>, PointerVector<Node>>&>())
         ;

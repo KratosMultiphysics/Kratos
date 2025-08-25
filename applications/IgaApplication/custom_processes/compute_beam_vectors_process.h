@@ -53,6 +53,9 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Constructor from the model part
+    ComputeBeamVectorsProcess(ModelPart& rModelPart);
+
     /// Constructor for NurbsCurveGeometry
     ComputeBeamVectorsProcess(ModelPart& rModelPart, 
                               const NurbsCurveGeometry<3, PointerVector<Node>>& rParentCurve);

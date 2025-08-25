@@ -22,6 +22,14 @@
 namespace Kratos
 {
 
+ComputeBeamVectorsProcess::ComputeBeamVectorsProcess(
+    ModelPart& rModelPart)
+    : Process()
+    , mrThisModelPart(rModelPart)
+    , mpParentCurve(&(rModelPart.ElementsBegin()->GetGeometry().GetGeometryParent(0)))
+{
+}
+
 
 ComputeBeamVectorsProcess::ComputeBeamVectorsProcess(
     ModelPart& rModelPart,
