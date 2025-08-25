@@ -112,12 +112,29 @@ Parameters TensorAdaptorIO::Read(
 
     // get raw data dimensions of h5.
     const auto& h5_dimensions = mpFile->GetDataDimensions(dataset_path);
-    DenseVector<unsigned int> tensor_shape(h5_dimensions.size());
+
+    // h5 reading shape and tensor_shape may differ
+    // in case if we are reading Kratos variable data from h5 to tensors.
+    DenseVector<unsigned int> reading_shape(h5_dimensions.size()), tensor_shape;
+
+    auto attributes = mpFile->ReadAttribute(dataset_path);
+    // now check whether the shape information is written in the attributes
+    // This is done in the variable writing, to flatten the higher dimensions.
+    if (attributes.Has("__data_shape")) {
+        const auto& r_data_shape = attributes["__data_shape"].GetVector();
+        tensor_shape.resize(r_data_shape.size() + 1, false);
+
+        // it has the __data_shape, then configure the shape accordingly.
+        std::copy(r_data_shape.begin(), r_data_shape.end(), tensor_shape.data().begin() + 1);
+    } else {
+        tensor_shape.resize(h5_dimensions.size(), false);
+        std::copy(h5_dimensions.begin() + 1, h5_dimensions.end(), tensor_shape.data().begin() + 1);
+    }
     tensor_shape[0] = block_size;
-    std::copy(h5_dimensions.begin() + 1, h5_dimensions.end(), tensor_shape.data().begin() + 1);
+    reading_shape[0] = block_size;
+    std::copy(h5_dimensions.begin() + 1, h5_dimensions.end(), reading_shape.data().begin() + 1);
 
-
-    std::visit([this, &dataset_path, &tensor_shape, start_index](auto p_tensor_adaptor) {
+    std::visit([this, &dataset_path, &tensor_shape, &reading_shape, start_index](auto p_tensor_adaptor) {
         const auto& current_shape = p_tensor_adaptor->Shape();
 
         KRATOS_ERROR_IF_NOT(tensor_shape.size() == current_shape.size())
@@ -135,17 +152,17 @@ Parameters TensorAdaptorIO::Read(
             // bool and and unsigned char when written. Therefore, we only allow reading
             // unsigned char. Hence, we need to convert unsigned char array to bool.
             Vector<unsigned char> temp_values(p_tensor_adaptor->Size());
-            this->mpFile->ReadDataSet(dataset_path, temp_values.data().begin(), tensor_shape.data().begin(),tensor_shape.data().end(), start_index);
+            this->mpFile->ReadDataSet(dataset_path, temp_values.data().begin(), reading_shape.data().begin(),reading_shape.data().end(), start_index);
             const auto span = p_tensor_adaptor->ViewData();
             IndexPartition<IndexType>(temp_values.size()).for_each([&temp_values, &span](const auto Index) {
                 span[Index] = temp_values[Index];
             });
         } else {
-            this->mpFile->ReadDataSet(dataset_path, p_tensor_adaptor->ViewData().data(), tensor_shape.data().begin(),tensor_shape.data().end(), start_index);
+            this->mpFile->ReadDataSet(dataset_path, p_tensor_adaptor->ViewData().data(), reading_shape.data().begin(),reading_shape.data().end(), start_index);
         }
     }, pTensorAdaptor);
 
-    return mpFile->ReadAttribute(dataset_path);
+    return attributes;
 
     KRATOS_CATCH("");
 }
