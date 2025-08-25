@@ -1743,7 +1743,7 @@ void EnSightOutput::WriteGeometricalVariableToFile(
                     new_line = check_counter(counter);
                     WriteScalarData(var_file, p_geometrical_object->GetValue(r_variable), new_line, !is_ensight_gold && counter == 1, !new_line);
                 }
-            }  else if (KratosComponents<Variable<double>>::Has(rVariableName)) {
+            } else if (KratosComponents<Variable<double>>::Has(rVariableName)) {
                 const auto& r_variable = KratosComponents<Variable<double>>::Get(rVariableName);
                 for (const auto* p_geometrical_object : r_geometrical_objects) {
                     ++counter;
@@ -2138,7 +2138,7 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                     const int value = GetAverageIntegrationValue<int>(r_element, r_variable);
                     WriteScalarData(var_file, value, new_line, is_ensight_6 && counter == 1, !new_line);
                 }
-            }  else if (KratosComponents<Variable<double>>::Has(rVariableName)) {
+            } else if (KratosComponents<Variable<double>>::Has(rVariableName)) {
                 const auto& r_variable = KratosComponents<Variable<double>>::Get(rVariableName);
                 for (const auto* p_geometrical_object : r_geometrical_objects) {
                     ++counter;
