@@ -709,8 +709,6 @@ public:
         // SBM -> check to which axis the brep is aligned
         std::vector<CoordinatesArrayType> first_integration_point(2); // first integration point of the brep in the parameter space
         std::vector<CoordinatesArrayType> last_integration_point(2); // last integration point of the brep in the parameter space
-        // mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,rIntegrationPoints[0],1); 
-        // mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point,rIntegrationPoints[rIntegrationPoints.size()-1],1); 
 
         if (rIntegrationPoints.size() > 3) 
         {
@@ -719,17 +717,17 @@ public:
         } 
         else if (rIntegrationPoints.size() == 1)
         {
-            IntegrationPointsArrayType temp_intergation_points_array;
-            CreateIntegrationPoints(temp_intergation_points_array, rIntegrationInfo);
-            if (temp_intergation_points_array.size() > 3)
+            IntegrationPointsArrayType temp_integration_points_array;
+            CreateIntegrationPoints(temp_integration_points_array, rIntegrationInfo);
+            if (temp_integration_points_array.size() > 3)
             {
-                mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,temp_intergation_points_array[1],1);
-                mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point,temp_intergation_points_array[temp_intergation_points_array.size()-2],1);
+                mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,temp_integration_points_array[1],1);
+                mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point,temp_integration_points_array[temp_integration_points_array.size()-2],1);
             }
             else
             {
-                mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,temp_intergation_points_array[0],1);
-                mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point,temp_intergation_points_array[temp_intergation_points_array.size()-1],1);
+                mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,temp_integration_points_array[0],1);
+                mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point,temp_integration_points_array[temp_integration_points_array.size()-1],1);
             }
         }
         else 

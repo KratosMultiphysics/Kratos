@@ -61,11 +61,6 @@ void CutSbmLoadSolidCondition::InitializeMemberVariables()
 
     KRATOS_ERROR_IF(mDim != 2) << "CutSbmLoadSolidCondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
     
-    Vector mesh_size_uv = this->GetValue(KNOT_SPAN_SIZES);
-    double h = std::min(mesh_size_uv[0], mesh_size_uv[1]);
-
-    if (mDim == 3) {h = std::min(h,  mesh_size_uv[2]);}
-    
     // Compute basis function order (Note: it is not allow to use different orders in different directions)
     if (mDim == 3) {
         mBasisFunctionsOrder = std::cbrt(r_DN_De[0].size1()) - 1;
