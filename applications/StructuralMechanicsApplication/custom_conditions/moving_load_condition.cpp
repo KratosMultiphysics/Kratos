@@ -28,6 +28,7 @@ MovingLoadCondition< TDim, TNumNodes> ::MovingLoadCondition( IndexType NewId, Ge
     : BaseLoadCondition( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
+    this->SetValue(MOTION_TYPE, "base");
 }
 
 //************************************************************************************
@@ -36,6 +37,7 @@ template< std::size_t TDim, std::size_t TNumNodes >
 MovingLoadCondition< TDim, TNumNodes>::MovingLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
     : BaseLoadCondition( NewId, pGeometry, pProperties )
 {
+    this->SetValue(MOTION_TYPE, "base");
 }
 
 //********************************* CREATE *******************************************
@@ -118,8 +120,11 @@ void MovingLoadCondition<TDim, TNumNodes>::InitializeNonLinearIteration(const Pr
         this->CalculateLoadPointRotationVector();
     }
     else {
-        this->SetValue(DISPLACEMENT, ZeroVector(3));
-        this->SetValue(ROTATION, ZeroVector(3));
+
+        const auto [rotational_variable, displacement_variable] = this->GetRotationalAndDisplacementVariables();
+
+        this->SetValue(displacement_variable, ZeroVector(3));
+        this->SetValue(rotational_variable, ZeroVector(3));
     }
 }
 
@@ -201,9 +206,8 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
         array_1d<double, TDim> load_end_node = ZeroVector(TDim);
 
         BoundedMatrix<double, TDim, TNumNodes> local_load_matrix = ZeroMatrix(TDim, TNumNodes);
-        BoundedMatrix<double, TDim, TNumNodes> global_load_matrix = ZeroMatrix(TDim, TNumNodes);
 
-        const Matrix global_moment_matrix = CalculateGlobalMomentMatrix(rotational_shape_functions_vector, local_moving_load);
+        const Matrix global_moment_matrix = CalculateGlobalMomentMatrix(rotation_matrix, rotational_shape_functions_vector, local_moving_load);
 
         for (IndexType i_nod = 0; i_nod < TNumNodes; ++i_nod){
             local_load_matrix(0, i_nod) = normal_shape_functions_vector[i_nod] * local_moving_load[0];
@@ -214,7 +218,7 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
         }
 
         // rotate load back to global
-        noalias(global_load_matrix) = prod(trans(rotation_matrix), local_load_matrix);
+        const Matrix global_load_matrix = prod(trans(rotation_matrix), local_load_matrix);
 
         for (IndexType ii = 0; ii < TNumNodes; ++ii){
             const IndexType base = ii * block_size;
@@ -237,11 +241,11 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
 }
 
 template< std::size_t TDim, std::size_t TNumNodes >
-Matrix MovingLoadCondition<TDim, TNumNodes>::CalculateGlobalMomentMatrix(const VectorType& rRotationalShapeFunctionVector, const array_1d<double, TDim>& rLocalMovingLoad) const
+Matrix MovingLoadCondition<TDim, TNumNodes>::CalculateGlobalMomentMatrix(const bounded_matrix<double, TDim, TDim>&rRotationMatrix, const VectorType& rRotationalShapeFunctionVector, const array_1d<double, TDim>& rLocalMovingLoad) const
 {
     KRATOS_TRY
 
-    // check if condition has rotation dof 
+    // check if condition has rotation dof
     const bool has_rot_dof = this->HasRotDof();
 
     Matrix global_moment_matrix;
@@ -250,22 +254,23 @@ Matrix MovingLoadCondition<TDim, TNumNodes>::CalculateGlobalMomentMatrix(const V
         global_moment_matrix.resize(1, TNumNodes, false);
     } else if constexpr (TDim == 3) {
         global_moment_matrix.resize(3, TNumNodes, false);
-    } 
+    }
 
     if (has_rot_dof) {
         if constexpr (TDim == 2) {
             // rotation around z axis (2D)
-            global_moment_matrix(0, 0) = rRotationalShapeFunctionVector[0] * rLocalMovingLoad[1];
-            global_moment_matrix(0, 1) = rRotationalShapeFunctionVector[1] * rLocalMovingLoad[1];
+			for (IndexType i = 0; i < TNumNodes; ++i) {
+				global_moment_matrix(0, i) = rRotationalShapeFunctionVector[i] * rLocalMovingLoad[1];
+			}
         } else if constexpr (TDim == 3){
-            // rotation around y and z axis (3D)
-            global_moment_matrix(0, 0) = 0;
-            global_moment_matrix(1, 0) = rRotationalShapeFunctionVector[0] * rLocalMovingLoad[2];
-            global_moment_matrix(2, 0) = rRotationalShapeFunctionVector[0] * rLocalMovingLoad[1];
-
-            global_moment_matrix(0, 1) = 0;
-            global_moment_matrix(1, 1) = rRotationalShapeFunctionVector[1] * rLocalMovingLoad[2];
-            global_moment_matrix(2, 1) = rRotationalShapeFunctionVector[1] * rLocalMovingLoad[1];
+			Matrix local_moment_matrix(TDim, TNumNodes);
+			for (IndexType i = 0; i < TNumNodes; ++i) {
+                // rotation around y and z axis (3D)
+                local_moment_matrix(0, i) = 0.0;
+				local_moment_matrix(1, i) = -rRotationalShapeFunctionVector[i] * rLocalMovingLoad[2];
+				local_moment_matrix(2, i) = rRotationalShapeFunctionVector[i] * rLocalMovingLoad[1];
+			}
+			global_moment_matrix = prod(trans(rRotationMatrix), local_moment_matrix);
         }
     }
     return global_moment_matrix;
@@ -406,7 +411,7 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateRotationMatrix(BoundedMatri
             vz[1] *= inv_norm_z;
             vz[2] *= inv_norm_z;
         }
-   
+
         rRotationMatrix(0, 2) = vx[2];
 
         rRotationMatrix(1, 2) = vy[2];
@@ -425,7 +430,7 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateRotationMatrix(BoundedMatri
 
     KRATOS_CATCH("")
 }
-    
+
 
 template< std::size_t TDim, std::size_t TNumNodes >
 Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVector()
@@ -433,9 +438,11 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
 
     KRATOS_TRY
 
+    const auto [rotational_variable, displacement_variable] = GetRotationalAndDisplacementVariables();
+
     // Get global displacement vector
     Vector displacement_vector;
-    this->GetValuesVector(displacement_vector);
+    this->GetVectorVariableVector(displacement_vector, displacement_variable);
 
     // check if rotation degrees of freedom are active
     const bool has_rot_dof = this->HasRotDof();
@@ -457,9 +464,11 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
     if (has_rot_dof) {
         for (IndexType ii = 0; ii < TNumNodes; ++ii) {
 
-            nodal_rotation_matrix(0, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_X);
-            nodal_rotation_matrix(1, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_Y);
-            nodal_rotation_matrix(2, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_Z);
+            array_1d<double, 3> nodal_rotation = GetGeometry()[ii].FastGetSolutionStepValue(rotational_variable);
+
+            nodal_rotation_matrix(0, ii) = nodal_rotation[0];
+            nodal_rotation_matrix(1, ii) = nodal_rotation[1];
+            nodal_rotation_matrix(2, ii) = nodal_rotation[2];
         }
     }
 
@@ -551,7 +560,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
         local_disp_vector(1) = disp_shear_axis_1;
         local_disp_vector(2) = disp_shear_axis_2;
     }
-    
+
     // calculate global displacement vector at the location of the moving load
     VectorType global_point_disp_vector = prod(trans(rotation_matrix), local_disp_vector);
 
@@ -562,7 +571,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
     }
 
     // Set Displacement at the location of the point load to the element
-    this->SetValue(DISPLACEMENT, displacements);
+    this->SetValue(displacement_variable, displacements);
 
     return displacements;
 
@@ -576,9 +585,11 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
 
     KRATOS_TRY
 
+    const auto [rotational_variable, displacement_variable] = GetRotationalAndDisplacementVariables();
+
     // Get global displacement vector
     Vector displacement_vector;
-    this->GetValuesVector(displacement_vector);
+    this->GetVectorVariableVector(displacement_vector, displacement_variable);
 
     // check if rotation degrees of freedom are active
     const bool has_rot_dof = this->HasRotDof();
@@ -601,9 +612,10 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
     if (has_rot_dof) {
         for (IndexType ii = 0; ii < TNumNodes; ++ii) {
 
-            nodal_rotation_matrix(0, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_X);
-            nodal_rotation_matrix(1, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_Y);
-            nodal_rotation_matrix(2, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_Z);
+            array_1d<double,3> rotation_values = GetGeometry()[ii].FastGetSolutionStepValue(rotational_variable);
+            nodal_rotation_matrix(0, ii) = rotation_values[0];
+            nodal_rotation_matrix(1, ii) = rotation_values[1];
+            nodal_rotation_matrix(2, ii) = rotation_values[2];
         }
     }
 
@@ -662,7 +674,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
     // calculate local rotation at the location of the moving load
     VectorType local_rot_vector = ZeroVector(3);
     if constexpr (TDim == 2) {
-        
+
         double local_rotation = 0;
         // calculate inner product local displacement and shape functions
         for (IndexType ii = 0; ii < TNumNodes; ++ii) {
@@ -706,45 +718,52 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
     }
 
     // Set Displacement at the location of the point load to the element
-    this->SetValue(ROTATION, global_point_rotation_vector);
+    this->SetValue(rotational_variable, global_point_rotation_vector);
 
     return global_point_rotation_vector;
     KRATOS_CATCH("")
 }
 
-
-template <std::size_t TDim, std::size_t TNumNodes>
-void MovingLoadCondition<TDim, TNumNodes>::GetRotationsVector(Vector& rRotationsVector, const int Step) const
+template< std::size_t TDim, std::size_t TNumNodes >
+void MovingLoadCondition< TDim, TNumNodes>::GetVectorVariableVector(Vector& rVariableVector, const Variable<array_1d<double, 3>>& rVariableType, const int Step) const
 {
-
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
+    const SizeType mat_size = number_of_nodes * dim;
 
-    SizeType mat_size;
-    if constexpr (TDim == 2) {
-        mat_size = number_of_nodes;
-    } else {
-        mat_size = number_of_nodes * dim;
+    if (rVariableVector.size() != mat_size) {
+        rVariableVector.resize(mat_size, false);
     }
 
-
-    if (rRotationsVector.size() != mat_size) {
-        rRotationsVector.resize(mat_size, false);
-    }
-
-    if constexpr (TDim == 2) {
-        for (SizeType i = 0; i < number_of_nodes; ++i) {
-            rRotationsVector[i] = GetGeometry()[i].FastGetSolutionStepValue(ROTATION_Z, Step);
-        }
-    } else {
-        for (SizeType i = 0; i < number_of_nodes; ++i) {
-            const array_1d<double, 3 >& r_rotation = GetGeometry()[i].FastGetSolutionStepValue(ROTATION, Step);
-            const SizeType index = i * dim;
-            for (SizeType k = 0; k < dim; ++k) {
-                rRotationsVector[index + k] = r_rotation[k];
-            }
+    for (SizeType i = 0; i < number_of_nodes; ++i) {
+        const array_1d<double, 3 >& r_solution_step_values = GetGeometry()[i].FastGetSolutionStepValue(rVariableType, Step);
+        SizeType index = i * dim;
+        for (SizeType k = 0; k < dim; ++k) {
+            rVariableVector[index + k] = r_solution_step_values[k];
         }
     }
+}
+
+template< std::size_t TDim, std::size_t TNumNodes >
+std::pair<Variable<array_1d<double, 3>>, Variable<array_1d<double, 3>>> MovingLoadCondition< TDim, TNumNodes>::GetRotationalAndDisplacementVariables()
+{
+
+    if (this->GetValue(MOTION_TYPE) == "total") {
+        if (KratosComponents<Variable<array_1d<double, 3>>>::Has("TOTAL_ROTATION") &&
+            KratosComponents<Variable<array_1d<double, 3>>>::Has("TOTAL_DISPLACEMENT")) {
+            const auto& rotational_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get("TOTAL_ROTATION");
+            const auto& displacement_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get("TOTAL_DISPLACEMENT");
+            return std::make_pair(rotational_variable, displacement_variable);
+        }
+        else {
+            KRATOS_ERROR << "the variables TOTAL_ROTATION and/or TOTAL_DISPLACEMENT are not defined in the installed applications." << std::endl;
+        }
+    }
+
+    const auto& rotational_variable = ROTATION;
+    const auto& displacement_variable = DISPLACEMENT;
+
+    return std::make_pair(rotational_variable, displacement_variable);
 }
 
 

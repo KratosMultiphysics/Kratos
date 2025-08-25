@@ -9,7 +9,7 @@
 //  Main authors:    Aron Noordam
 //
 
-#pragma once 
+#pragma once
 
 // System includes
 
@@ -261,7 +261,7 @@ protected:
     void CalculateExactRotationalShapeFunctionsDerivatives(VectorType& rShapeFunctionsVector, const double LocalXCoord) const;
 
     /**
-     * \brief Calculates rotation matrix 
+     * \brief Calculates rotation matrix
      * \param rRotationMatrix rotation matrix for current condition element
      * \param rGeom condition element
      */
@@ -270,11 +270,12 @@ protected:
 
     /**
      * \brief Calculates the global bending moment matrix
+	 * \param rRotationMatrix rotation matrix for current condition element
      * \param rRotationalShapeFunctionVector shape functions vector for rotation
      * \param rLocalMovingLoad array for the value if the local moving load
      * \return global bending moment matrix
      */
-    Matrix CalculateGlobalMomentMatrix(const VectorType& rRotationalShapeFunctionVector, const array_1d<double, TDim>& rLocalMovingLoad) const;
+    Matrix CalculateGlobalMomentMatrix(const BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const VectorType& rRotationalShapeFunctionVector, const array_1d<double, TDim>& rLocalMovingLoad) const;
 
     ///@}
     ///@name Protected  Access
@@ -311,11 +312,19 @@ private:
     ///@{
 
     /**
-     * \brief Gets the nodal rotation vector
-     * \param rRotationsVector nodal rotation vector
-     * \param Step step from which the rotations needs to be retrieved
+     * \brief Gets the vector of a vector variable
+     * \param rVariableVector the vector of a variable
+     * \param rVariableType the type of the vector variable
+     * \param Step step from which the vector values needs to be retrieved
      */
-    void GetRotationsVector(Vector& rRotationsVector, const int Step) const;
+    void GetVectorVariableVector(Vector& rVariableVector, const Variable<array_1d<double, 3>>& rVariableType, const int Step=0) const;
+
+
+    /**
+     * \brief Gets the type of the rotation and displacement variable.
+     * \return a pair of variables, the first is the rotational variable and the second is the displacement variable
+     */
+    std::pair<Variable<array_1d<double, 3>>, Variable<array_1d<double, 3>>> GetRotationalAndDisplacementVariables();
 
     ///@}
     ///@name Private Operations
@@ -362,7 +371,7 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-    
+
     ///@}
 
 }; // Class MovingLoadCondition
