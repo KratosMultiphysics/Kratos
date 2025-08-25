@@ -19,7 +19,7 @@
 #include <pybind11/numpy.h>
 
 // Project includes
-#include "containers/dynamic_dimensional_array.h"
+#include "containers/nd_data.h"
 
 namespace Kratos::Python
 {
@@ -86,7 +86,7 @@ pybind11::array_t<TDataType> MakeNumpyArray(
 
 template<class TDataType, class TPybindArrayType>
 bool AssignDataImpl(
-    DynamicDimensionalArray<TDataType>& rDDArray,
+    NDData<TDataType>& rDDArray,
     const pybind11::array& rArray)
 {
     if (pybind11::isinstance<pybind11::array_t<TPybindArrayType>>(rArray)) {
@@ -108,7 +108,7 @@ bool AssignDataImpl(
 
 template<class TDataType, class... TPybindArrayType>
 bool AssignData(
-    DynamicDimensionalArray<TDataType>& rDDArray,
+    NDData<TDataType>& rDDArray,
     const pybind11::array& rArray)
 {
     return (... || AssignDataImpl<TDataType, TPybindArrayType>(rDDArray, rArray));
@@ -116,12 +116,12 @@ bool AssignData(
 
 template<class TDataType>
 void SetPybindArray(
-    DynamicDimensionalArray<TDataType>& rDDArray,
+    NDData<TDataType>& rDDArray,
     const pybind11::array&  rArray)
 {
     KRATOS_ERROR_IF(rArray.ndim() == 0)
         << "Passed data is not compatible [ array = "
-        << rArray << ", DynamicDimensionalArray = " << rDDArray << " ].\n";
+        << rArray << ", NDData = " << rDDArray << " ].\n";
 
     std::vector<unsigned int> shape(rArray.ndim());
     std::copy(rArray.shape(), rArray.shape() + rArray.ndim(), shape.begin());
@@ -129,12 +129,12 @@ void SetPybindArray(
     const auto& r_shape = rDDArray.Shape();
 
     KRATOS_ERROR_IF_NOT(shape.size() == r_shape.size())
-        << "Dimensions mismatch. [ DynamicDimensionalArray dimensions = " << r_shape.size()
+        << "Dimensions mismatch. [ NDData dimensions = " << r_shape.size()
         << ", numpy array dimensions = " << shape.size() << " ].\n";
 
     for (unsigned int i = 0; i < shape.size(); ++i) {
         KRATOS_ERROR_IF_NOT(r_shape[i] == shape[i])
-            << "Shape mismatch. [ DynamicDimensionalArray shape = " << rDDArray.Shape()
+            << "Shape mismatch. [ NDData shape = " << rDDArray.Shape()
             << ", numpy array shape = " << shape << " ].\n";
     }
 
@@ -154,7 +154,7 @@ void SetPybindArray(
             long double>(rDDArray, rArray))
     {
         KRATOS_ERROR
-            << "DynamicDimensionalArray cannot be assigned an numpy array with \""
+            << "NDData cannot be assigned an numpy array with \""
             << rArray.dtype() << "\". They can be only set with numpy arrays having following dtypes:"
             << "\n\t numpy.bool"
             << "\n\t numpy.uint8"
@@ -172,7 +172,7 @@ void SetPybindArray(
 }
 
 template<class TDataType>
-pybind11::array_t<TDataType, pybind11::array::c_style> GetPybindArray(DynamicDimensionalArray<TDataType>& rDDArray)
+pybind11::array_t<TDataType, pybind11::array::c_style> GetPybindArray(NDData<TDataType>& rDDArray)
 {
     const auto& r_shape = rDDArray.Shape();
 
@@ -193,8 +193,8 @@ pybind11::array_t<TDataType, pybind11::array::c_style> GetPybindArray(DynamicDim
     // is killed, the numpy array will be able to function without a problem.
     auto p_raw_data = &*rDDArray.pData();
 
-    pybind11::capsule release(new Kratos::intrusive_ptr<typename DynamicDimensionalArray<TDataType>::PointerWrapper>(p_raw_data), [](void* a){
-        delete static_cast<Kratos::intrusive_ptr<typename DynamicDimensionalArray<TDataType>::PointerWrapper>*>(a);
+    pybind11::capsule release(new Kratos::intrusive_ptr<typename NDData<TDataType>::PointerWrapper>(p_raw_data), [](void* a){
+        delete static_cast<Kratos::intrusive_ptr<typename NDData<TDataType>::PointerWrapper>*>(a);
     });
 
     return pybind11::array_t<TDataType, pybind11::array::c_style>(pybind11::buffer_info(

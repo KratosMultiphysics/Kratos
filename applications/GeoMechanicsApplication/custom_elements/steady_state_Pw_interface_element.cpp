@@ -189,7 +189,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                                                                         InterfaceElementVariables& rVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     this->CalculateAndAddPermeabilityMatrix(rLeftHandSideMatrix, rVariables);
 
@@ -201,7 +201,7 @@ void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorTy
                                                                         InterfaceElementVariables& rVariables,
                                                                         unsigned int GPoint)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);

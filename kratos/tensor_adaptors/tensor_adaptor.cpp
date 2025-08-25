@@ -33,13 +33,13 @@ namespace Kratos {
 template<class TDataType>
 TensorAdaptor<TDataType>::TensorAdaptor(
     ContainerPointerType pContainer,
-    typename DynamicDimensionalArray<TDataType>::Pointer pData,
+    typename NDData<TDataType>::Pointer pData,
     const bool Copy)
 {
     if (!Copy) {
         this->mpStorage = pData;
     } else {
-        this->mpStorage = Kratos::make_shared<DynamicDimensionalArray<TDataType>>(pData->ViewData().data(), pData->Shape(), Copy);
+        this->mpStorage = Kratos::make_shared<NDData<TDataType>>(pData->ViewData().data(), pData->Shape(), Copy);
     }
     this->mpContainer = pContainer;
 }
@@ -52,7 +52,7 @@ TensorAdaptor<TDataType>::TensorAdaptor(
     if (!Copy) {
         this->mpStorage = rOther.mpStorage;
     } else {
-        this->mpStorage = Kratos::make_shared<DynamicDimensionalArray<TDataType>>(rOther.ViewData().data(), rOther.Shape());
+        this->mpStorage = Kratos::make_shared<NDData<TDataType>>(rOther.ViewData().data(), rOther.Shape());
     }
     this->mpContainer = rOther.mpContainer;
 }
