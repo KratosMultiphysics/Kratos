@@ -576,8 +576,22 @@ private:
     {
         const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
 
-        rA += 1.0 / (mBeta * delta_time * delta_time) * mMassMatrix;
-        rA += mGamma / (mBeta * delta_time) * mDampingMatrix;
+        double*       a_values = rA.value_data().begin();
+        const double* m_values = mMassMatrix.value_data().begin();
+        const double* c_values = mDampingMatrix.value_data().begin();
+
+        // add mass and damping contribution to LHS sparse matrix, not that this has to be done in a
+        // loop to preserve the sparsity of the matrix mass contribution: 1.0 / (mBeta * delta_time
+        // * delta_time) * M damping contribution: mGamma / (mBeta * delta_time) * C
+        for (std::size_t i = 0; i < rA.size1(); i++) {
+            const std::size_t col_begin = rA.index1_data()[i];
+            const std::size_t col_end   = rA.index1_data()[i + 1];
+
+            for (std::size_t j = col_begin; j < col_end; ++j) {
+                a_values[j] += (1.0 / (mBeta * delta_time * delta_time)) * m_values[j];
+                a_values[j] += (mGamma / (mBeta * delta_time)) * c_values[j];
+            }
+        }
     }
 
     void CalculateInitialSecondDerivative(ModelPart&                    rModelPart,
@@ -590,8 +604,8 @@ private:
 
         auto& r_dof_set = BaseType::GetDofSet();
 
-        Geo::SparseSystemUtilities::GetTotalSolutionStepValueVector(total_solution_step_values, r_dof_set,
-                                                                    rModelPart, 0);
+        Geo::SparseSystemUtilities::GetTotalSolutionStepValueVector(total_solution_step_values,
+                                                                    r_dof_set, rModelPart, 0);
 
         Geo::SparseSystemUtilities::GetUFirstAndSecondDerivativeVector(
             first_derivative_vector, second_derivative_vector, r_dof_set, rModelPart, 0);
