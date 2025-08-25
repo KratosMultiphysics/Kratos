@@ -38,6 +38,7 @@ Parameters EnSightOutput::GetDefaultParameters()
         "ensight_file_format"                         : "gold", // Options: "6", "gold"
         "file_format"                                 : "ascii", // Options: "ascii", "binary" // TODO: Check if binary is supported
         "output_precision"                            : 7,
+        "step_label_precision"                        : 4,
         "output_control_type"                         : "step",
         "output_interval"                             : 1.0,
         "output_sub_model_parts"                      : false,
@@ -94,6 +95,9 @@ EnSightOutput::EnSightOutput(ModelPart& rModelPart, Parameters ThisParameters)
 
     // Set the default precision
     mDefaultPrecision = mOutputSettings["output_precision"].GetInt();
+
+    // Set the step label precision
+    mStepLabelPrecision = mOutputSettings["step_label_precision"].GetInt();
 
     // Adding GP variables to nodal data variables list
     if(mOutputSettings["gauss_point_variables_extrapolated_to_nodes"].size() > 0) {
@@ -159,19 +163,14 @@ void EnSightOutput::PrintOutput(const std::string& rOutputFilename)
     // Extrapolate GP results to nodes if requested
     PrepareGaussPointResults();
 
-    // Determine the base filename for this time step
-    const double current_time = mrModelPart.GetProcessInfo()[TIME];
-    const std::size_t current_step = mrModelPart.GetProcessInfo()[STEP];
-    mTimeValues.push_back(current_time);
-
     // If no output filename is provided, use the model part name
     const std::string& r_custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
     const std::string& r_custom_name_postfix = mOutputSettings["custom_name_postfix"].GetString();
     std::string base_filename = rOutputFilename == "" ? r_custom_name_prefix + mrModelPart.Name() + r_custom_name_postfix : r_custom_name_prefix + rOutputFilename + r_custom_name_postfix;
 
     // Write the geometry file for the current step
-    const std::string step_label = InputOutputUtilities::GenerateStepLabel(current_step, 8);
-    std::string geometry_filename = base_filename + ".geo." + step_label;
+    const std::string step_label = InputOutputUtilities::GenerateStepLabel(mTimeValues.size(), mStepLabelPrecision);
+    std::string geometry_filename = base_filename + "." + step_label;
     WriteGeometryFile(geometry_filename);
 
     // Write each variable file for the current step
@@ -231,6 +230,10 @@ void EnSightOutput::PrintOutput(const std::string& rOutputFilename)
         const std::string var_filename = base_filename + "." + r_flag_name + "." + step_label + ".cond";
         WriteGeometricalFlagToFile(r_flag_name, var_filename);
     }
+
+    // Determine the base filename for this time step
+    const double current_time = mrModelPart.GetProcessInfo()[TIME];
+    mTimeValues.push_back(current_time);
 
     // (Re)Write the main .case file to link everything
     WriteCaseFile();
@@ -412,7 +415,11 @@ void EnSightOutput::WriteCaseFile()
     // GEOMETRY Section
     case_file << "GEOMETRY\n";
     // Using wildcards for transient geometry
-    case_file << "model: 1 " << base_filename << ".geo.*\n\n";
+    std::string asterisk_label = "";
+    for (std::size_t i = 0; i < mStepLabelPrecision; ++i) {
+        asterisk_label += "*";
+    }
+    case_file << "model: 1 " << base_filename << "." << asterisk_label << ".geo\n\n";
 
     // VARIABLE Section
     case_file << "VARIABLE\n";
@@ -423,11 +430,11 @@ void EnSightOutput::WriteCaseFile()
         const auto variable_type = mVariableTypeMap[r_variable_name];
         const std::string file_extension = GetExtensionFile(variable_type);
         if (variable_type == VariableType::SCALAR) {
-            case_file << "scalar per node: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << ".node" << file_extension << "**\n";
+            case_file << "scalar per node: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".node" << file_extension << "\n";
         } else if (variable_type == VariableType::VECTOR) {
-            case_file << "vector per node: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << ".node" << file_extension << "**\n";
+            case_file << "vector per node: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".node" << file_extension << "\n";
         } else if (variable_type == VariableType::TENSOR_SYMMETRIC) {
-            case_file << "tensor symm per node: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << ".node" << file_extension << "**\n";
+            case_file << "tensor symm per node: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".node" << file_extension << "\n";
         } else {
             KRATOS_ERROR << "Unknown variable type for element data variable: " << r_variable_name << std::endl;
         }
@@ -439,11 +446,11 @@ void EnSightOutput::WriteCaseFile()
         const auto variable_type = mVariableTypeMap[r_variable_name];
         const std::string file_extension = GetExtensionFile(variable_type);
         if (variable_type == VariableType::SCALAR) {
-            case_file << "scalar per node: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << ".node" << file_extension << "**\n";
+            case_file << "scalar per node: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".node" << file_extension << "\n";
         } else if (variable_type == VariableType::VECTOR) {
-            case_file << "vector per node: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << ".node" << file_extension << "**\n";
+            case_file << "vector per node: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".node" << file_extension << "\n";
         } else if (variable_type == VariableType::TENSOR_SYMMETRIC) {
-            case_file << "tensor symm per node: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << ".node" << file_extension << "**\n";
+            case_file << "tensor symm per node: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".node" << file_extension << "\n";
         } else {
             KRATOS_ERROR << "Unknown variable type for element data variable: " << r_variable_name << std::endl;
         }
@@ -452,7 +459,7 @@ void EnSightOutput::WriteCaseFile()
     // Nodal flags (always VariableType::SCALAR)
     for (const auto& r_flag_name_param : mOutputSettings["nodal_flags"]) {
         const std::string& r_flag_name = r_flag_name_param.GetString();
-        case_file << "scalar per node: 1 " << r_flag_name << " " << base_filename << "." << r_flag_name << ".node.scl**\n";
+        case_file << "scalar per node: 1 " << r_flag_name << " " << base_filename << "." << r_flag_name << "." << asterisk_label << ".node" << ".scl\n";
     }
 
     // Element data variables
@@ -461,11 +468,11 @@ void EnSightOutput::WriteCaseFile()
         const auto variable_type = mVariableTypeMap[r_variable_name];
         const std::string file_extension = GetExtensionFile(variable_type);
         if (variable_type == VariableType::SCALAR) {
-            case_file << "scalar per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << ".elem" << file_extension << "**\n";
+            case_file << "scalar per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".elem" << file_extension << "\n";
         } else if (variable_type == VariableType::VECTOR) {
-            case_file << "vector per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << ".elem" << file_extension << "**\n";
+            case_file << "vector per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".elem" << file_extension << "\n";
         } else if (variable_type == VariableType::TENSOR_SYMMETRIC) {
-            case_file << "tensor symm per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << ".elem" << file_extension << "**\n";
+            case_file << "tensor symm per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".elem" << file_extension << "\n";
         } else {
             KRATOS_ERROR << "Unknown variable type for element data variable: " << r_variable_name << std::endl;
         }
@@ -474,7 +481,7 @@ void EnSightOutput::WriteCaseFile()
     // Element flags (always VariableType::SCALAR)
     for (const auto& r_flag_name_param : mOutputSettings["element_flags"]) {
         const std::string& r_flag_name = r_flag_name_param.GetString();
-        case_file << "scalar per element: 1 " << r_flag_name << " " << base_filename << "." << r_flag_name << ".elem.scl**\n";
+        case_file << "scalar per element: 1 " << r_flag_name << " " << base_filename << "." << r_flag_name << "." << asterisk_label << ".elem" << ".scl\n";
     }
 
     // Gauss point variables for elements
@@ -483,11 +490,11 @@ void EnSightOutput::WriteCaseFile()
         const auto variable_type = mVariableTypeMap[r_variable_name];
         const std::string file_extension = GetExtensionFile(variable_type);
         if (variable_type == VariableType::SCALAR) {
-            case_file << "scalar per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << ".gp_elem" << file_extension << "**\n";
+            case_file << "scalar per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".gp_elem" << file_extension << "\n";
         } else if (variable_type == VariableType::VECTOR) {
-            case_file << "vector per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << ".gp_elem" << file_extension << "**\n";
+            case_file << "vector per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".gp_elem" << file_extension << "\n";
         } else if (variable_type == VariableType::TENSOR_SYMMETRIC) {
-            case_file << "tensor symm per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << ".gp_elem" << file_extension << "**\n";
+            case_file << "tensor symm per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".gp_elem" << file_extension << "\n";
         } else {
             KRATOS_ERROR << "Unknown variable type for element data variable: " << r_variable_name << std::endl;
         }
@@ -499,11 +506,11 @@ void EnSightOutput::WriteCaseFile()
         const auto variable_type = mVariableTypeMap[r_variable_name];
         const std::string file_extension = GetExtensionFile(variable_type);
         if (variable_type == VariableType::SCALAR) {
-            case_file << "scalar per condition: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << ".cond" << file_extension << "**\n";
+            case_file << "scalar per condition: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".cond" << file_extension << "\n";
         } else if (variable_type == VariableType::VECTOR) {
-            case_file << "vector per condition: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << ".cond" << file_extension << "**\n";
+            case_file << "vector per condition: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".cond" << file_extension << "\n";
         } else if (variable_type == VariableType::TENSOR_SYMMETRIC) {
-            case_file << "tensor symm per condition: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << ".cond" << file_extension << "**\n";
+            case_file << "tensor symm per condition: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".cond" << file_extension << "\n";
         } else {
             KRATOS_ERROR << "Unknown variable type for condition data variable: " << r_variable_name << std::endl;
         }
@@ -512,7 +519,7 @@ void EnSightOutput::WriteCaseFile()
     // Condition flags (always VariableType::SCALAR)
     for (const auto& r_flag_name_param : mOutputSettings["condition_flags"]) {
         const std::string& r_flag_name = r_flag_name_param.GetString();
-        case_file << "scalar per condition: 1 " << r_flag_name << " " << base_filename << "." << r_flag_name << ".cond.scl**\n";
+        case_file << "scalar per condition: 1 " << r_flag_name << " " << base_filename << "." << r_flag_name << "." << asterisk_label << ".cond" << ".scl\n";
     }
 
     case_file << "\n";
@@ -541,11 +548,8 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
 {
     KRATOS_TRY
 
-    // Get the current step from the model part's process info
-    const std::size_t current_step = mrModelPart.GetProcessInfo()[STEP];
-
     // Open the geometry file for writing
-    const std::string step_label = InputOutputUtilities::GenerateStepLabel(current_step, 8);
+    const std::string step_label = InputOutputUtilities::GenerateStepLabel(mTimeValues.size(), mStepLabelPrecision);
     const std::string full_path = GetOutputFileName(rFileName, ".geo");
     std::ofstream geo_file(full_path, mFileFormat == FileFormat::BINARY ? std::ios::binary : std::ios::out);
 

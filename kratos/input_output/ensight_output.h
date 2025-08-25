@@ -243,9 +243,10 @@ protected:
     ModelPart& mrModelPart;                                         /// Reference to the model part containing the simulation data
     Parameters mOutputSettings;                                     /// Parameters for output settings, including file names, variable types, and output intervals
     unsigned int mDefaultPrecision;                                 /// The default precision
+    unsigned int mStepLabelPrecision;                               /// The precision for the step label in filenames
     EnSightFileFormat mEnSightFileFormat;                           /// The EnSight file format (6 or Gold)
     FileFormat mFileFormat;                                         /// The file format for output (ASCII or BINARY)
-    EntityType mEntityType;                                         /// The entities to be written
+    EntityType mEntityType;                                         /// The entities to be written (nodes, elements, conditions, etc.)
     GPProcessPointerType mpGaussToNodesProcess;                     /// Process for extrapolating integration values to nodes
     std::vector<double> mTimeValues;                                /// Vector to store time values for transient simulations
     std::vector<PartData> mPartDatas;                               /// Vector to store data for each part (TODO: Add a method to check that the model parts are not changed during time steps, and avoid manually defined)
