@@ -20,6 +20,7 @@
 #include "processes/process.h"
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_curve_on_surface_geometry.h"
+#include "geometries/nurbs_surface_geometry.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "iga_application_variables.h"
@@ -53,18 +54,14 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor from the model part
     ComputeBeamVectorsProcess(ModelPart& rModelPart);
 
-    /// Constructor for NurbsCurveGeometry
     ComputeBeamVectorsProcess(ModelPart& rModelPart, 
                               const NurbsCurveGeometry<3, PointerVector<Node>>& rParentCurve);
 
-    /// Constructor for NurbsCurveOnSurfaceGeometry
     ComputeBeamVectorsProcess(ModelPart& rModelPart, 
                               const NurbsCurveOnSurfaceGeometry<3, PointerVector<Node>, PointerVector<Node>>& rParentCurve);
 
-    /// Destructor.
     ~ComputeBeamVectorsProcess() = default;
 
     ///@}
@@ -111,10 +108,9 @@ public:
 private:
     ///@name Member Variables
     ///@{
-
-    /// Model part and parent curve
-    ModelPart& mrThisModelPart; /// The model part to compute
-    const Geometry<Node>* mpParentCurve; /// Parent curve for computing derivatives (pointer to base)
+    ModelPart& mrThisModelPart; 
+    const Geometry<Node>* mpParentCurve; 
+    const NurbsSurfaceGeometry<3, PointerVector<Node>>* mpParentSurface;
     ///@}
 }; // Class ComputeBeamVectorsProcess
 }  // namespace Kratos.
