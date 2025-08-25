@@ -30,6 +30,8 @@ namespace Kratos
 
 Parameters EnSightOutput::GetDefaultParameters()
 {
+    KRATOS_TRY
+
     return Parameters(R"(
     {
         "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
@@ -55,6 +57,8 @@ Parameters EnSightOutput::GetDefaultParameters()
         "gauss_point_variables_extrapolated_to_nodes" : [],
         "gauss_point_variables_in_elements"           : []
     })" );
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -64,6 +68,8 @@ EnSightOutput::EnSightOutput(ModelPart& rModelPart, Parameters ThisParameters)
     : mrModelPart(rModelPart),
       mOutputSettings(ThisParameters)
 {
+    KRATOS_TRY
+
     // Validate and assign default parameters
     mOutputSettings.ValidateAndAssignDefaults(GetDefaultParameters());
 
@@ -131,6 +137,8 @@ EnSightOutput::EnSightOutput(ModelPart& rModelPart, Parameters ThisParameters)
     if (!mOutputSettings["evolving_geometry"].GetBool()) {
         UpdatePartData();
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -138,6 +146,8 @@ EnSightOutput::EnSightOutput(ModelPart& rModelPart, Parameters ThisParameters)
 
 void EnSightOutput::PrintOutput(const std::string& rOutputFilename)
 {
+    KRATOS_TRY
+
     // Update part data
     if (mOutputSettings["evolving_geometry"].GetBool()) {
         UpdatePartData();
@@ -157,7 +167,7 @@ void EnSightOutput::PrintOutput(const std::string& rOutputFilename)
     // If no output filename is provided, use the model part name
     const std::string& r_custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
     const std::string& r_custom_name_postfix = mOutputSettings["custom_name_postfix"].GetString();
-    std::string base_filename = r_custom_name_prefix + rOutputFilename + r_custom_name_postfix;
+    std::string base_filename = rOutputFilename == "" ? r_custom_name_prefix + mrModelPart.Name() + r_custom_name_postfix : r_custom_name_prefix + rOutputFilename + r_custom_name_postfix;
 
     // Write the geometry file for the current step
     const std::string step_label = InputOutputUtilities::GenerateStepLabel(current_step, 8);
@@ -224,6 +234,8 @@ void EnSightOutput::PrintOutput(const std::string& rOutputFilename)
 
     // (Re)Write the main .case file to link everything
     WriteCaseFile();
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -231,6 +243,8 @@ void EnSightOutput::PrintOutput(const std::string& rOutputFilename)
 
 EnSightOutput::EntityType EnSightOutput::GetEntityType(const ModelPart& rModelPart) const
 {
+    KRATOS_TRY
+
     const std::size_t num_elements = rModelPart.GetCommunicator().GlobalNumberOfElements();
     const std::size_t num_conditions = rModelPart.GetCommunicator().GlobalNumberOfConditions();
 
@@ -248,6 +262,8 @@ EnSightOutput::EntityType EnSightOutput::GetEntityType(const ModelPart& rModelPa
     } else {
         return EntityType::NONE;
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -255,6 +271,8 @@ EnSightOutput::EntityType EnSightOutput::GetEntityType(const ModelPart& rModelPa
 
 void EnSightOutput::PrepareVariableTypeMap()
 {
+    KRATOS_TRY
+
     // Clear the existing map
     mVariableTypeMap.clear();
 
@@ -323,6 +341,8 @@ void EnSightOutput::PrepareVariableTypeMap()
             mVariableTypeMap[r_variable_name] = VariableType::SCALAR;
         }
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -330,6 +350,8 @@ void EnSightOutput::PrepareVariableTypeMap()
 
 void EnSightOutput::PrepareGaussPointResults()
 {
+    KRATOS_TRY
+
     // Check if any Gauss point variables are requested for extrapolation
     if (mOutputSettings["gauss_point_variables_extrapolated_to_nodes"].size() > 0) {
         // Ensure the Gauss point to nodes process is initialized
@@ -337,6 +359,8 @@ void EnSightOutput::PrepareGaussPointResults()
         // Execute the process to extrapolate Gauss point results to nodes
         mpGaussToNodesProcess->Execute();
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -344,6 +368,8 @@ void EnSightOutput::PrepareGaussPointResults()
 
 void EnSightOutput::WriteCaseFile()
 {
+    KRATOS_TRY
+
     // Get the model part name from the settings
     const std::string base_filename = mrModelPart.Name();
     const std::string case_filename = GetOutputFileName(base_filename, ".case");
@@ -504,6 +530,8 @@ void EnSightOutput::WriteCaseFile()
     case_file << std::endl;
 
     case_file.close();
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -511,6 +539,8 @@ void EnSightOutput::WriteCaseFile()
 
 void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
 {
+    KRATOS_TRY
+
     // Get the current step from the model part's process info
     const std::size_t current_step = mrModelPart.GetProcessInfo()[STEP];
 
@@ -746,6 +776,8 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
         }
     }
     geo_file.close();
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -757,6 +789,8 @@ void EnSightOutput::WriteNodalVariableToFile(
     const std::string& rFileName
     )
 {
+    KRATOS_TRY
+
     // TODO: Use IndexPartition in tensors
 
     // Get the variable type and its extension
@@ -1409,6 +1443,8 @@ void EnSightOutput::WriteNodalVariableToFile(
 
     // Close the variable file
     var_file.close();
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1419,6 +1455,8 @@ void EnSightOutput::WriteNodalFlagToFile(
     const std::string& rFileName
     )
 {
+    KRATOS_TRY
+
     // Get the variable type and its extension
     const auto variable_type = VariableType::SCALAR;
     const std::string file_extension = GetExtensionFile(variable_type);
@@ -1476,6 +1514,8 @@ void EnSightOutput::WriteNodalFlagToFile(
 
     // Close the variable file
     var_file.close();
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1487,6 +1527,8 @@ void EnSightOutput::WriteGeometricalVariableToFile(
     const bool IsElement
     )
 {
+    KRATOS_TRY
+
     // TODO: Use IndexPartition in tensors
 
     // Get the variable type and its extension
@@ -1846,6 +1888,8 @@ void EnSightOutput::WriteGeometricalVariableToFile(
 
     // Close the variable file
     var_file.close();
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1857,6 +1901,8 @@ void EnSightOutput::WriteGeometricalFlagToFile(
     const bool IsElement
     )
 {
+    KRATOS_TRY
+
     // Get the variable type and its extension
     const auto variable_type = VariableType::SCALAR;
     const std::string file_extension = GetExtensionFile(variable_type);
@@ -1926,6 +1972,8 @@ void EnSightOutput::WriteGeometricalFlagToFile(
 
     // Close the variable file
     var_file.close();
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -1937,6 +1985,8 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
     const bool IsElement
     )
 {
+    KRATOS_TRY
+
     // Check if the variable is defined on the element
     if (!IsElement) return;
 
@@ -2234,6 +2284,8 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
 
     // Close the variable file
     var_file.close();
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -2244,6 +2296,8 @@ std::string EnSightOutput::GetOutputFileName(
     const std::string& rFileExtension
     ) const
 {
+    KRATOS_TRY
+
     std::string output_file_name = "";
 
     if (rFileLabel != "") { // user specified file name externally
@@ -2286,6 +2340,8 @@ std::string EnSightOutput::GetOutputFileName(
     }
 
     return output_file_name;
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -2296,6 +2352,8 @@ void EnSightOutput::CollectPartData(
     PartData& rPartData
     ) const
 {
+    KRATOS_TRY
+
     // Collect unique node IDs from the sub-model part
     std::unordered_set<std::size_t> unique_node_ids;
 
@@ -2352,6 +2410,8 @@ void EnSightOutput::CollectPartData(
     } else {
         KRATOS_ERROR << "Entity type not supported for EnSight Gold output: " << static_cast<int>(entity_type) << std::endl;
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -2366,6 +2426,8 @@ void EnSightOutput::WriteScalarData(
     const bool AddEndTabulation
     ) const
 {
+    KRATOS_TRY
+
     if (mFileFormat == FileFormat::ASCII) {
         if (AddInitialTabulation) rFileStream << "\t";
         if constexpr (std::is_integral_v<TData>) {
@@ -2378,6 +2440,8 @@ void EnSightOutput::WriteScalarData(
     } else { // Binary
         rFileStream.write(reinterpret_cast<const char*>(&rData), sizeof(TData));
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -2392,6 +2456,8 @@ void EnSightOutput::WriteVectorData(
     const bool AddEndTabulation
     ) const
 {
+    KRATOS_TRY
+
     if (mFileFormat == FileFormat::ASCII) {
         if (AddInitialTabulation) rFileStream << "\t";
         rFileStream << std::scientific << std::setprecision(mDefaultPrecision) << rData[0] << "\t" << rData[1] << "\t" << rData[2] << std::fixed;
@@ -2401,6 +2467,8 @@ void EnSightOutput::WriteVectorData(
         double buffer[3] = {static_cast<double>(rData[0]), static_cast<double>(rData[1]), static_cast<double>(rData[2])};
         rFileStream.write(reinterpret_cast<const char*>(buffer), sizeof(buffer));
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -2415,6 +2483,8 @@ void EnSightOutput::WriteSymmetricTensorData(
     const bool AddEndTabulation
     ) const
 {
+    KRATOS_TRY
+
     // Ordering of Voigt notation 11 22 33 12 23 13 (Kratos) -> 11 22 33 12 13 23 (EnSight)
     if (mFileFormat == FileFormat::ASCII) {
         if (AddInitialTabulation) rFileStream << "\t";
@@ -2445,6 +2515,8 @@ void EnSightOutput::WriteSymmetricTensorData(
         }
         rFileStream.write(reinterpret_cast<const char*>(buffer), sizeof(buffer));
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -2458,6 +2530,8 @@ void EnSightOutput::WriteString(
     const bool AddEndTabulation
     ) const
 {
+    KRATOS_TRY
+
     if (mFileFormat == FileFormat::ASCII) {
         if (AddInitialTabulation) rFileStream << "\t";
         rFileStream << rString;
@@ -2468,6 +2542,8 @@ void EnSightOutput::WriteString(
         rString.copy(buffer, std::min(rString.length(), static_cast<size_t>(79)));
         rFileStream.write(buffer, 80);
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -2475,6 +2551,8 @@ void EnSightOutput::WriteString(
 
 std::string EnSightOutput::GetEnSightName(const GeometryData::KratosGeometryType& rGeometryType) const
 {
+    KRATOS_TRY
+
     switch (rGeometryType) {
         // 0D Geometries
         case GeometryData::KratosGeometryType::Kratos_Point2D:               return "point";
@@ -2510,6 +2588,8 @@ std::string EnSightOutput::GetEnSightName(const GeometryData::KratosGeometryType
             KRATOS_ERROR << "Geometry type not supported for EnSight Gold output: " << static_cast<int>(rGeometryType) << std::endl;
             return "unsupported_type"; // Fallback for unsupported types
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -2517,6 +2597,8 @@ std::string EnSightOutput::GetEnSightName(const GeometryData::KratosGeometryType
 
 void EnSightOutput::UpdatePartData()
 {
+    KRATOS_TRY
+
     // Define model part pointer
     std::vector<const ModelPart*> p_model_parts;
 
@@ -2553,6 +2635,8 @@ void EnSightOutput::UpdatePartData()
         r_part_data.PartName = r_sub_model_part.Name();
         r_part_data.PartId = part_index++;
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -2565,6 +2649,8 @@ EnSightOutput::VariableType EnSightOutput::GetVariableType(
     const bool IsHistorical
     ) const
 {
+    KRATOS_TRY
+
     if (KratosComponents<Variable<bool>>::Has(rVariableName)) {
         return VariableType::SCALAR;
     } else if (KratosComponents<Variable<int>>::Has(rVariableName)) {
@@ -2681,6 +2767,8 @@ EnSightOutput::VariableType EnSightOutput::GetVariableType(
         KRATOS_ERROR << "Unknown variable type for EnSight output: " << rVariableName << std::endl;
         return VariableType::UNKNOWN;
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -2688,6 +2776,8 @@ EnSightOutput::VariableType EnSightOutput::GetVariableType(
 
 std::string EnSightOutput::GetExtensionFile(const VariableType Type) const
 {
+    KRATOS_TRY
+
     switch (Type) {
         case VariableType::SCALAR: return ".scl";
         case VariableType::VECTOR: return ".vec";
@@ -2701,6 +2791,8 @@ std::string EnSightOutput::GetExtensionFile(const VariableType Type) const
             KRATOS_ERROR << "Unknown variable type for EnSight Gold output: " << static_cast<int>(Type) << std::endl;
     }
     return ".unknown"; // Fallback for unknown types
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -2708,6 +2800,8 @@ std::string EnSightOutput::GetExtensionFile(const VariableType Type) const
 
 std::string EnSightOutput::GetTypeLabel(const VariableType Type) const
 {
+    KRATOS_TRY
+
     switch (Type) {
         case VariableType::SCALAR: return "scalar";
         case VariableType::VECTOR: return "vector";
@@ -2721,6 +2815,8 @@ std::string EnSightOutput::GetTypeLabel(const VariableType Type) const
             KRATOS_ERROR << "Unknown variable type for EnSight Gold output: " << static_cast<int>(Type) << std::endl;
     }
     return ".unknown"; // Fallback for unknown types
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -2731,6 +2827,8 @@ BoundingBox<Point> EnSightOutput::ComputeBoundingBox(
     const double Coefficient
     )
 {
+    KRATOS_TRY
+
     // The bounding box is the same as the bins bounding box
     using MultipleReduction = CombinedReduction<MinReduction<double>, MinReduction  <double>, MinReduction<double>, MaxReduction<double>, MaxReduction<double>, MaxReduction<double>>;
     BoundingBox<Point> bb;
@@ -2770,6 +2868,8 @@ BoundingBox<Point> EnSightOutput::ComputeBoundingBox(
     }
 
     return bb;
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -2780,6 +2880,8 @@ void EnSightOutput::GetGeometryConnectivity(
     std::vector<std::size_t>& rConnectivity
     )
 {
+    KRATOS_TRY
+
     const auto& r_geometry = rGeometricalObject.GetGeometry();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     if (rConnectivity.size() != number_of_nodes) {
@@ -2823,6 +2925,8 @@ void EnSightOutput::GetGeometryConnectivity(
                 rConnectivity[i] = r_geometry[i].Id();
             }
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -2834,6 +2938,8 @@ TData EnSightOutput::GetAverageIntegrationValue(
     const Variable<TData>& rVariable
     )
 {
+    KRATOS_TRY
+
     // Average value
     TData value = TData();
 
@@ -2860,6 +2966,8 @@ TData EnSightOutput::GetAverageIntegrationValue(
         value /= static_cast<double>(integration_points_number);
     }
     return value;
+
+    KRATOS_CATCH("")
 }
 
 } // namespace Kratos
