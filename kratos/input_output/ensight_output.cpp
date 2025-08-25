@@ -384,18 +384,34 @@ void EnSightOutput::WriteCaseFile()
     KRATOS_ERROR_IF_NOT(case_file.is_open()) << "File \"" << case_filename << "\" could not be opened!" << std::endl;
 
     // Example with evolving geometry:
+    /* ENSIGHT 6 */
+    // FORMAT
+    // Type: ensight
+    //
+    // GEOMETRY
+    // model:            1                 example2.geo**
+    //
+    // VARIABLE
+    // scalar per node:  1   Stress        example2.scl**
+    // vector per node:  1   Displacement  example2.dis**
+    //
+    // TIME
+    // time set:               1
+    // number of steps:        3
+    // filename start number:  0
+    // filename increment:     1
+    // time values:            1.0 2.0 3.0
+
+    /* ENSIGHT GOLD */
     // FORMAT
     // type:       ensight gold
-    //
     //
     // GEOMETRY
     // model:             1                   exgold2.geo**
     //
-    //
     // VARIABLE
     // scalar per node:   1   Stress          exgold2.scl**
     // vector per node:   1   Displacement    exgold2.vct**
-    //
     //
     // TIME
     // time set:               1
@@ -404,7 +420,7 @@ void EnSightOutput::WriteCaseFile()
     // filename increment:     1
     // time values:            1.0    2.0    3.0
 
-    // TODO: May be diffent for Gold
+    // TODO: Check this
 
     // FORMAT Section
     case_file << "FORMAT\n";
