@@ -85,7 +85,7 @@ void DofArrayUtilities::SetUpDofArray(
         });
 
         old_max = new_max;
-        new_max = ceil(0.5*static_cast<double>(old_max));
+        new_max = std::ceil(0.5*static_cast<double>(old_max));
     }
 
     // Fill and sort the provided DOF array from the auxiliary global DOFs set
