@@ -76,7 +76,7 @@ def SetSolution(model_part):
 def SetupEnsightOutputProcess(current_model, parameters):
     return ensight_output_process.Factory(parameters, current_model)
 
-def Check(output_file,reference_file, file_format):
+def Check(output_file,reference_file, file_format, extension):
     ## Settings string in json format
     params = KratosMultiphysics.Parameters("""{
         "reference_file_name" : "",
@@ -85,7 +85,7 @@ def Check(output_file,reference_file, file_format):
     params["reference_file_name"].SetString(GetFilePath(reference_file))
     params["output_file_name"].SetString(output_file)
     if file_format == "ascii":
-        params.AddEmptyValue("comparison_type").SetString("ensight")
+        params.AddEmptyValue("comparison_type").SetString(extension)
 
     CompareTwoFilesCheckProcess(params).Execute()
 
@@ -143,7 +143,6 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
 
     while (time <= end_time):
         time = time + dt
-        step = step + 1
         model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
         SetSolution(model_part)
         ensight_output_process.ExecuteInitializeSolutionStep()
@@ -152,8 +151,10 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
         if ensight_output_process.IsOutputStep():
             ensight_output_process.PrintOutput()
 
-            # Check(os.path.join("test_ensight_output","Main_0_" + str(step)+".case"),\
-            #     os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main_0_"+str(step)+".case"), file_format)
+            Check(os.path.join("test_ensight_output","Main.case"),\
+                os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main.case"), file_format, "case")
+            Check(os.path.join("test_ensight_output","Main.000" + str(step)+".geo"),\
+                os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main.000"+str(step)+".geo"), file_format, "geo")
 
             # if bc_defined:
             #     Check(os.path.join("test_ensight_output","Main_FixedEdgeNodes_0_" + str(step)+".case"),\
@@ -161,6 +162,8 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
 
             #     Check(os.path.join("test_ensight_output","Main_MovingNodes_0_"+str(step)+".case"),\
             #         os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main_MovingNodes_0_"+str(step)+".case"), file_format)
+
+            step = step + 1
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
