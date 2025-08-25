@@ -241,10 +241,14 @@ namespace Kratos
         if (enclosed_area != "positive" && enclosed_area != "negative" && enclosed_area != "none") {
             KRATOS_ERROR << "Unknown 'enclosed_area' keyword given. 'positive' or 'negative' side or 'none' are supported by point based shifted boundary interface utility." << std::endl;
         }
-        if (enclosed_area == "positive") {
-            mPositiveSideIsEnclosed = true;
-        } else if (enclosed_area == "negative") {
-            mNegativeSideIsEnclosed = true;
+        if (active_side_of_skin == "both") {
+            if (enclosed_area == "positive") {
+                mPositiveSideIsEnclosed = true;
+            } else if (enclosed_area == "negative") {
+                mNegativeSideIsEnclosed = true;
+            }
+        } else if (enclosed_area != "none") {
+            KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "The keyword 'enclosed_area' will be ignored, because one side of the skin is not active as given in the 'active_side_of_skin' keyword." << std::endl;
         }
 
         // If true, then elements will be declared SBM_BOUNDARY which are intersected by the tessellated skin geometry
@@ -276,11 +280,11 @@ namespace Kratos
     void ShiftedBoundaryPointBasedInterfaceUtility::ResetFlags()
     {
         // Activate all elements and initialize flags to false
-        // NOTE Resetting the interface flags will eliminate previously embedded model parts except for their wall conditions!
+        // NOTE Resetting the SBM flags will eliminate previously embedded model parts except for their wall conditions!
         block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
             rNode.Set(ACTIVE, true);         // Nodes that belong to the elements to be assembled
-            rNode.Set(SBM_BOUNDARY, false);      // Nodes that belong to the support clouds of the positive side
-            rNode.Set(SBM_INTERFACE, false);     // Nodes that belong to the support clouds of the negative side
+            rNode.Set(SBM_BOUNDARY, false);      // Nodes that belong to the support clouds of the positive side  //TODO use variables with correct names?
+            rNode.Set(SBM_INTERFACE, false);     // Nodes that belong to the support clouds of the negative side  //TODO use variables with correct names?
         });
         block_for_each(mpModelPart->Elements(), [](ElementType& rElement){
             rElement.Set(ACTIVE, true);      // Elements in the positive distance region (the ones to be assembled)
@@ -1680,6 +1684,7 @@ namespace Kratos
             // NOTE that the positive side of the boundary equals a positive inwards skin normal, negative dot product equals a negative inward skin normal
             // NOTE that it is necessary to define the side of points of gamma_tilde here for the search of the support clouds afterwards (SetLateralSupportCloud)
             // NOTE that this will cause troubles if inverted elements exist as opposed to having a local definition of sides
+            // NOTE that it is necessary here to set the other side's flag to false because it might have been set to true by another skin geometry embedded previously.
             Vector sides_vector(n_nodes);
             for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                 auto& r_node = r_geom[i_node];
@@ -1687,9 +1692,11 @@ namespace Kratos
                 if (side_voting > 0.0) {
                     sides_vector[i_node] =  1.0;
                     r_node.Set(SBM_BOUNDARY, true);
+                    r_node.Set(SBM_INTERFACE, false);
                 } else {
                     sides_vector[i_node] = -1.0;
                     r_node.Set(SBM_INTERFACE, true);
+                    r_node.Set(SBM_BOUNDARY, false);
                 }
             }
             rSidesVectorMap.insert(std::make_pair(p_element, sides_vector));
