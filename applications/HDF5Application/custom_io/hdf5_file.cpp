@@ -850,27 +850,21 @@ bool File::HasDataType(const std::string& rPath) const
 {
     KRATOS_TRY;
 
-    hid_t dset_id, dtype_id;
+    using primitive_type = typename DataTypeTraits<TDataType>::PrimitiveType;
+
+    hid_t dset_id, dtype_id, kratos_type_id;
+    htri_t result;
+
+    kratos_type_id = Internals::GetPrimitiveH5Type<primitive_type>();
 
     KRATOS_HDF5_CALL_WITH_RETURN(dset_id, H5Dopen, GetFileId(), rPath.c_str(), H5P_DEFAULT)
     KRATOS_HDF5_CALL_WITH_RETURN(dtype_id, H5Dget_type, dset_id);
-    H5T_class_t type = H5Tget_class(dtype_id);
+    KRATOS_HDF5_CALL_WITH_RETURN(result, H5Tequal, dtype_id, kratos_type_id);
 
-    KRATOS_ERROR_IF(type == H5T_NO_CLASS) << "Invalid data type." << std::endl;
     KRATOS_HDF5_CALL(H5Tclose, dtype_id)
     KRATOS_HDF5_CALL(H5Dclose, dset_id)
 
-    if constexpr(std::is_same_v<TDataType, bool>) {
-        return type == H5T_INTEGER;
-    } else if constexpr(std::is_same_v<TDataType, int>) {
-        return type == H5T_INTEGER;
-    } else if constexpr(std::is_same_v<TDataType, double>) {
-        return type == H5T_FLOAT;
-    } else if constexpr(std::is_same_v<TDataType, char>) {
-        return type == H5T_INTEGER;
-    } else {
-        static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
-    }
+    return (result > 0);
 
     KRATOS_CATCH("");
 }
@@ -1254,6 +1248,8 @@ void File::ReadDataSetImpl(
 }
 
 // template instantiations
+template KRATOS_API(HDF5_APPLICATION) bool File::HasDataType<char>(const std::string&) const;
+template KRATOS_API(HDF5_APPLICATION) bool File::HasDataType<unsigned char>(const std::string&) const;
 template KRATOS_API(HDF5_APPLICATION) bool File::HasDataType<int>(const std::string&) const;
 template KRATOS_API(HDF5_APPLICATION) bool File::HasDataType<double>(const std::string&) const;
 
@@ -1291,10 +1287,14 @@ template KRATOS_API(HDF5_APPLICATION) void File::ReadDataSetIndependent(const st
 
 #endif
 
+KRATOS_HDF5_FILE_DATA_SET_PRIMITIVE_METHOD_INSTANTIATION(char)
+KRATOS_HDF5_FILE_DATA_SET_PRIMITIVE_METHOD_INSTANTIATION(unsigned char)
 KRATOS_HDF5_FILE_DATA_SET_PRIMITIVE_METHOD_INSTANTIATION(bool)
 KRATOS_HDF5_FILE_DATA_SET_PRIMITIVE_METHOD_INSTANTIATION(int)
 KRATOS_HDF5_FILE_DATA_SET_PRIMITIVE_METHOD_INSTANTIATION(double)
 
+KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(char);
+KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(unsigned char);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(bool);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(int);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(double);
@@ -1311,6 +1311,7 @@ KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(array_1d<double, 9>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(std::string);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<bool>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<char>);
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<unsigned char>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<int>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<double>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<array_1d<double, 3>>);
@@ -1319,6 +1320,7 @@ KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<array_1d<double, 6>>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<array_1d<double, 9>>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Matrix<int>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Matrix<char>);
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Matrix<unsigned char>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Matrix<double>);
 
 #undef KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION
