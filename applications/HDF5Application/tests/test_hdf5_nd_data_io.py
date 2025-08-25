@@ -28,7 +28,7 @@ class TestNDDataIO(UnitTest.TestCase):
 
     def tearDown(self) -> None:
         self.data_communicator.Barrier()
-        # DeleteFileIfExisting("test_nd_data_io.h5")
+        DeleteFileIfExisting("test_nd_data_io.h5")
 
     def test_BoolNDData(self):
         numpy_array = np.random.random((self.data_communicator.Rank() + 10, 5, 6)) > 0.5

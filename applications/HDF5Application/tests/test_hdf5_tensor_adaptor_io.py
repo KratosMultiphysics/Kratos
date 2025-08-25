@@ -47,7 +47,7 @@ class TestTensorAdaptorIO(UnitTest.TestCase):
 
     def tearDown(self) -> None:
         self.data_communicator.Barrier()
-        # DeleteFileIfExisting("test_tensor_adaptor_io.h5")
+        DeleteFileIfExisting("test_tensor_adaptor_io.h5")
 
     def __TestTensorAdaptor(self, variable, container):
         attributes_in = Kratos.Parameters("""{"custom_attrib": "custom_value"}""")
