@@ -49,7 +49,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
                                                                    bool CalculateStiffnessMatrixFlag,
                                                                    bool CalculateResidualVectorFlag)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const PropertiesType&                           Prop = this->GetProperties();
     const GeometryType&                             Geom = this->GetGeometry();
