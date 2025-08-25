@@ -201,7 +201,8 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
                                                                ElementVariables& rVariables,
                                                                unsigned int      GPoint)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
+
     this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 

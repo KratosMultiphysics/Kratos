@@ -48,7 +48,7 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
                                                                 bool CalculateStiffnessMatrixFlag,
                                                                 bool CalculateResidualVectorFlag)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
                                                          rCurrentProcessInfo, CalculateStiffnessMatrixFlag,
