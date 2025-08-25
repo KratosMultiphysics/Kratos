@@ -75,7 +75,7 @@ void DofArrayUtilities::SetUpDofArray(
 
     // Here we do a reduction in a tree so to have everything on thread 0
     std::size_t old_max = n_threads;
-    std::size_t new_max = ceil(0.5*static_cast<double>(old_max));
+    std::size_t new_max = std::ceil(0.5*static_cast<double>(old_max));
     while (new_max >= 1 && new_max != old_max) {
         IndexPartition<std::size_t>(new_max).for_each([&](std::size_t Index){
             if (Index + new_max < old_max) {
