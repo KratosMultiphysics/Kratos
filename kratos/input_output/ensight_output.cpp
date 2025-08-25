@@ -494,7 +494,7 @@ void EnSightOutput::WriteCaseFile()
     }
 
     // Condition data variables
-    for (const auto& r_variable_name_param : mOutputSettings["condition_data_variables"]) {
+    for (const auto& r_variable_name_param : mOutputSettings["condition_data_value_variables"]) {
         const std::string& r_variable_name = r_variable_name_param.GetString();
         const auto variable_type = mVariableTypeMap[r_variable_name];
         const std::string file_extension = GetExtensionFile(variable_type);
