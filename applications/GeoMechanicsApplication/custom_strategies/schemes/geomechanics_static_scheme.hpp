@@ -31,7 +31,10 @@ public:
     }
 
 protected:
-    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override {}
+    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
+    {
+        // Since this is a static scheme, the derivatives are not updated
+    }
 };
 
 } // namespace Kratos
