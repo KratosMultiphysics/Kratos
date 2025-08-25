@@ -420,8 +420,6 @@ void EnSightOutput::WriteCaseFile()
     // filename increment:     1
     // time values:            1.0    2.0    3.0
 
-    // TODO: Check this
-
     // FORMAT Section
     case_file << "FORMAT\n";
     if (mEnSightFileFormat == EnSightFileFormat::EnSightGold) {
@@ -1583,7 +1581,8 @@ void EnSightOutput::WriteGeometricalVariableToFile(
     const bool is_ensight_6 = mEnSightFileFormat == EnSightFileFormat::EnSight6;
     const std::string label = is_ensight_gold ? "EnSightGold" : "EnSight6";
     const std::string type_label = GetTypeLabel(variable_type);
-    WriteString(var_file, "Per_elem " + type_label + " values for the " + label + " geometry. Nodal variable: " + rVariableName);
+    const std::string entity_label = IsElement ? "Elemental" : "Conditional";
+    WriteString(var_file, "Per_elem " + type_label + " values for the " + label + " geometry. " + entity_label + " variable: " + rVariableName);
 
     /* EnSight6 */
 
@@ -1962,7 +1961,8 @@ void EnSightOutput::WriteGeometricalFlagToFile(
     const bool is_ensight_6 = mEnSightFileFormat == EnSightFileFormat::EnSight6;
     const std::string label = is_ensight_gold ? "EnSightGold" : "EnSight6";
     const std::string type_label = GetTypeLabel(variable_type);
-    WriteString(var_file, "Per_elem " + type_label + " values for the " + label + " geometry. Nodal variable: " + rFlagName);
+    const std::string entity_label = IsElement ? "Elemental" : "Conditional";
+    WriteString(var_file, "Per_elem " + type_label + " values for the " + label + " geometry. " + entity_label + " variable: " + rFlagName);
 
     // Write lambda that check that the counter is 6 for ensight 6 and gold
     auto check_counter_ensight_6 = [](unsigned int& rCounter) -> bool {
@@ -2056,7 +2056,8 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
     const bool is_ensight_6 = mEnSightFileFormat == EnSightFileFormat::EnSight6;
     const std::string label = is_ensight_gold ? "EnSightGold" : "EnSight6";
     const std::string type_label = GetTypeLabel(variable_type);
-    WriteString(var_file, "Per_elem " + type_label + " values for the " + label + " geometry. Nodal variable: " + rVariableName);
+    const std::string entity_label = IsElement ? "Elemental" : "Conditional";
+    WriteString(var_file, "Per_elem " + type_label + " values for the " + label + " geometry. " + entity_label + " variable: " + rVariableName);
 
     // Write lambda that check that the counter is 6 for ensight 6 and gold
     auto check_counter_ensight_6 = [](unsigned int& rCounter) -> bool {
