@@ -1717,21 +1717,21 @@ void EnSightOutput::WriteGeometricalVariableToFile(
                 for (const auto* p_geometrical_object : r_geometrical_objects) {
                     ++counter;
                     new_line = check_counter(counter);
-                    WriteScalarData(var_file, p_geometrical_object->GetValue(r_variable), new_line, false, !new_line);
+                    WriteScalarData(var_file, p_geometrical_object->GetValue(r_variable), new_line, !is_ensight_gold && counter == 1, !new_line);
                 }
             } else if (KratosComponents<Variable<int>>::Has(rVariableName)) {
                 const auto& r_variable = KratosComponents<Variable<int>>::Get(rVariableName);
                 for (const auto* p_geometrical_object : r_geometrical_objects) {
                     ++counter;
                     new_line = check_counter(counter);
-                    WriteScalarData(var_file, p_geometrical_object->GetValue(r_variable), new_line, false, !new_line);
+                    WriteScalarData(var_file, p_geometrical_object->GetValue(r_variable), new_line, !is_ensight_gold && counter == 1, !new_line);
                 }
             }  else if (KratosComponents<Variable<double>>::Has(rVariableName)) {
                 const auto& r_variable = KratosComponents<Variable<double>>::Get(rVariableName);
                 for (const auto* p_geometrical_object : r_geometrical_objects) {
                     ++counter;
                     new_line = check_counter(counter);
-                    WriteScalarData(var_file, p_geometrical_object->GetValue(r_variable), new_line, false, !new_line);
+                    WriteScalarData(var_file, p_geometrical_object->GetValue(r_variable), new_line, !is_ensight_gold && counter == 1, !new_line);
                 }
             } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName)) {
                 const auto& r_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(rVariableName);
@@ -1756,7 +1756,7 @@ void EnSightOutput::WriteGeometricalVariableToFile(
                     for (const auto* p_geometrical_object : r_geometrical_objects) {
                         counter += 3;
                         new_line = check_counter(counter);
-                        WriteVectorData(var_file, p_geometrical_object->GetValue(r_variable), new_line, false, !new_line);
+                        WriteVectorData(var_file, p_geometrical_object->GetValue(r_variable), new_line, counter == 1, !new_line);
                     }
                 }
             } else if (KratosComponents<Variable<Vector>>::Has(rVariableName)) {
@@ -1810,11 +1810,11 @@ void EnSightOutput::WriteGeometricalVariableToFile(
                         for (const auto* p_geometrical_object : r_geometrical_objects) {
                             counter += 3;
                             new_line = check_counter(counter);
-                            WriteVectorData(var_file, p_geometrical_object->GetValue(r_variable), new_line, false, !new_line);
+                            WriteVectorData(var_file, p_geometrical_object->GetValue(r_variable), new_line, counter == 1, !new_line);
                         }
                     } else if (variable_type == VariableType::TENSOR_SYMMETRIC) {
                         for (const auto* p_geometrical_object : r_geometrical_objects) {
-                            WriteSymmetricTensorData(var_file, p_geometrical_object->GetValue(r_variable));
+                            WriteSymmetricTensorData(var_file, p_geometrical_object->GetValue(r_variable), true, true);
                         }
                     } else {
                         KRATOS_ERROR << "Unknown variable type for vector: " << rVariableName << std::endl;
@@ -1847,7 +1847,7 @@ void EnSightOutput::WriteGeometricalVariableToFile(
                     }
                 } else {
                     for (const auto* p_geometrical_object : r_geometrical_objects) {
-                        WriteSymmetricTensorData(var_file, p_geometrical_object->GetValue(r_variable));
+                        WriteSymmetricTensorData(var_file, p_geometrical_object->GetValue(r_variable), true, true);
                     }
                 }
             } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)) {
@@ -1889,7 +1889,7 @@ void EnSightOutput::WriteGeometricalVariableToFile(
                 } else {
                     if (variable_type == VariableType::TENSOR_SYMMETRIC) {
                         for (const auto* p_geometrical_object : r_geometrical_objects) {
-                            WriteSymmetricTensorData(var_file, p_geometrical_object->GetValue(r_variable));
+                            WriteSymmetricTensorData(var_file, p_geometrical_object->GetValue(r_variable), true, true);
                         }
                     } else if (variable_type == VariableType::TENSOR_ASYMMETRIC) {
                         // TODO: Implement asymmetric tensor
@@ -1899,8 +1899,6 @@ void EnSightOutput::WriteGeometricalVariableToFile(
                     }
                 }
             }
-
-            WriteString(var_file, "");
         }
     }
 
@@ -1985,10 +1983,8 @@ void EnSightOutput::WriteGeometricalFlagToFile(
                 ++counter;
                 new_line = check_counter(counter);
                 const int flag = p_geometrical_object->IsDefined(r_flag) ? static_cast<int>(p_geometrical_object->Is(r_flag)) : -1; // Default to -1 if not defined
-                WriteScalarData(var_file, flag, new_line, false, !new_line);
+                WriteScalarData(var_file, flag, new_line, is_ensight_6 && counter == 1, !new_line);
             }
-
-            WriteString(var_file, "");
         }
     }
 
@@ -2102,7 +2098,7 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                             }
                         }
                     }
-                    WriteScalarData(var_file, value, new_line, false, !new_line);
+                    WriteScalarData(var_file, value, new_line, is_ensight_6 && counter == 1, !new_line);
                 }
             } else if (KratosComponents<Variable<int>>::Has(rVariableName)) {
                 const auto& r_variable = KratosComponents<Variable<int>>::Get(rVariableName);
@@ -2111,7 +2107,7 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                     new_line = check_counter(counter);
                     const Element& r_element = dynamic_cast<const Element&>(*p_geometrical_object);
                     const int value = GetAverageIntegrationValue<int>(r_element, r_variable);
-                    WriteScalarData(var_file, value, new_line, false, !new_line);
+                    WriteScalarData(var_file, value, new_line, is_ensight_6 && counter == 1, !new_line);
                 }
             }  else if (KratosComponents<Variable<double>>::Has(rVariableName)) {
                 const auto& r_variable = KratosComponents<Variable<double>>::Get(rVariableName);
@@ -2120,7 +2116,7 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                     new_line = check_counter(counter);
                     const Element& r_element = dynamic_cast<const Element&>(*p_geometrical_object);
                     const double value = GetAverageIntegrationValue<double>(r_element, r_variable);
-                    WriteScalarData(var_file, value, new_line, false, !new_line);
+                    WriteScalarData(var_file, value, new_line, is_ensight_6 && counter == 1, !new_line);
                 }
             } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName)) {
                 const auto& r_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(rVariableName);
@@ -2148,7 +2144,7 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                         new_line = check_counter(counter);
                         const Element& r_element = dynamic_cast<const Element&>(*p_geometrical_object);
                         const array_1d<double, 3> value = GetAverageIntegrationValue<array_1d<double, 3>>(r_element, r_variable);
-                        WriteVectorData(var_file, value, new_line, false, !new_line);
+                        WriteVectorData(var_file, value, new_line, counter == 1, !new_line);
                     }
                 }
             } else if (KratosComponents<Variable<Vector>>::Has(rVariableName)) {
@@ -2206,13 +2202,13 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                             new_line = check_counter(counter);
                             const Element& r_element = dynamic_cast<const Element&>(*p_geometrical_object);
                             const Vector value = GetAverageIntegrationValue<Vector>(r_element, r_variable);
-                            WriteVectorData(var_file, value, new_line, false, !new_line);
+                            WriteVectorData(var_file, value, new_line, counter == 1, !new_line);
                         }
                     } else if (variable_type == VariableType::TENSOR_SYMMETRIC) {
                         for (const auto* p_geometrical_object : r_geometrical_objects) {
                             const Element& r_element = dynamic_cast<const Element&>(*p_geometrical_object);
                             const Vector value = GetAverageIntegrationValue<Vector>(r_element, r_variable);
-                            WriteSymmetricTensorData(var_file, value);
+                            WriteSymmetricTensorData(var_file, value, true, true);
                         }
                     } else {
                         KRATOS_ERROR << "Unknown variable type for vector: " << rVariableName << std::endl;
@@ -2248,7 +2244,7 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                     for (const auto* p_geometrical_object : r_geometrical_objects) {
                         const Element& r_element = dynamic_cast<const Element&>(*p_geometrical_object);
                         const array_1d<double, 6> value = GetAverageIntegrationValue<array_1d<double, 6>>(r_element, r_variable);
-                        WriteSymmetricTensorData(var_file, value);
+                        WriteSymmetricTensorData(var_file, value, true, true);
                     }
                 }
             } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)) {
@@ -2293,7 +2289,7 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                         for (const auto* p_geometrical_object : r_geometrical_objects) {
                             const Element& r_element = dynamic_cast<const Element&>(*p_geometrical_object);
                             const Matrix value = GetAverageIntegrationValue<Matrix>(r_element, r_variable);
-                            WriteSymmetricTensorData(var_file, value);
+                            WriteSymmetricTensorData(var_file, value, true, true);
                         }
                     } else if (variable_type == VariableType::TENSOR_ASYMMETRIC) {
                         // TODO: Implement asymmetric tensor
@@ -2303,8 +2299,6 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                     }
                 }
             }
-
-            WriteString(var_file, "");
         }
     }
 
