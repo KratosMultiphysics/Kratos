@@ -346,9 +346,9 @@ class TestTensorAdaptors(KratosUnittest.TestCase):
         with self.assertRaises(RuntimeError):
             ta.data = fortran_numpy_data
 
-    def test_TensorAdaptorWithDynamicDimensionalArray(self):
+    def test_TensorAdaptorWithNDData(self):
         np_array = numpy.ones((self.model_part.NumberOfNodes(), 3))
-        dd_array = Kratos.DoubleDynamicDimensionalArray(np_array, copy=False)
+        dd_array = Kratos.DoubleNDData(np_array, copy=False)
         ta_no_copy = Kratos.TensorAdaptors.DoubleTensorAdaptor(self.model_part.Nodes, dd_array, copy = False)
         ta_copy = Kratos.TensorAdaptors.DoubleTensorAdaptor(self.model_part.Nodes, dd_array)
 

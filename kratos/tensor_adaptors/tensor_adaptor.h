@@ -24,7 +24,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "containers/dynamic_dimensional_array.h"
+#include "containers/nd_data.h"
 #include "intrusive_ptr/intrusive_ptr.hpp"
 
 namespace Kratos {
@@ -115,7 +115,7 @@ public:
                                         ModelPart::GeometryContainerType::Pointer
                                     >;
 
-    using Storage = DynamicDimensionalArray<TDataType>;
+    using Storage = NDData<TDataType>;
 
     ///@}
     ///@name Life cycle
@@ -133,7 +133,7 @@ public:
      */
     TensorAdaptor(
         ContainerPointerType pContainer,
-        typename DynamicDimensionalArray<TDataType>::Pointer pData,
+        typename NDData<TDataType>::Pointer pData,
         const bool Copy = true);
 
     /**
@@ -227,9 +227,9 @@ public:
 
     /**
      * @brief Returns the internal data storage.
-     * @details This returns the internal storage which is a @ref DynamicDimensionalArray. This
+     * @details This returns the internal storage which is a @ref NDData. This
      *          does not allow changing the internal storage, and the shape of the internal storage
-     *          since @ref DynamicDimensionalArray does not have interfaces to change the shape or
+     *          since @ref NDData does not have interfaces to change the shape or
      *          to change the array which it points data to.
      */
     typename Storage::Pointer pGetStorage();

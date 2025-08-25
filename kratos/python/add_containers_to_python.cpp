@@ -21,7 +21,7 @@
 #include "containers/variables_list_data_value_container.h"
 #include "containers/flags.h"
 #include "containers/variable.h"
-#include "containers/dynamic_dimensional_array.h"
+#include "containers/nd_data.h"
 #include "includes/define_python.h"
 #include "includes/kratos_flags.h"
 #include "includes/constitutive_law.h"
@@ -86,13 +86,14 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
 }
 
 template<class TDataType>
-void AddDynamicDimensionalArray(
+void AddNDData(
     pybind11::module& m,
     const std::string& rName)
 {
-    py::class_<DynamicDimensionalArray<TDataType>, typename DynamicDimensionalArray<TDataType>::Pointer>(m, rName.c_str())
+    py::class_<NDData<TDataType>, typename NDData<TDataType>::Pointer>(m, rName.c_str())
         .def(py::init<const DenseVector<unsigned int>&>(), py::arg("shape"))
         .def(py::init<const DenseVector<unsigned int>&, const TDataType>(), py::arg("shape"), py::arg("value"))
+        .def(py::init<const NDData<TDataType>&>(), py::arg("other"))
         .def(py::init([](py::array& rArray, const bool Copy){
             KRATOS_TRY
 
@@ -107,9 +108,9 @@ void AddDynamicDimensionalArray(
                     << "The numpy array needs to be of the same type as internal data to use copy = false [ passed numpy array's dtype = "
                     << rArray.dtype() << " ].";
                 auto casted_array = rArray.cast<pybind11::array_t<TDataType, pybind11::array::c_style>>();
-                return Kratos::make_shared<DynamicDimensionalArray<TDataType>>(casted_array.mutable_data(), shape, Copy);
+                return Kratos::make_shared<NDData<TDataType>>(casted_array.mutable_data(), shape, Copy);
             } else {
-                auto p_dda = Kratos::make_shared<DynamicDimensionalArray<TDataType>>(shape);
+                auto p_dda = Kratos::make_shared<NDData<TDataType>>(shape);
                 if (!AssignData<
                         TDataType,
                         bool,
@@ -126,7 +127,7 @@ void AddDynamicDimensionalArray(
                         long double>(*p_dda, rArray))
                 {
                     KRATOS_ERROR
-                        << "DynamicDimensionalArray cannot be assigned an numpy array with \""
+                        << "NDData cannot be assigned an numpy array with \""
                         << rArray.dtype() << "\". They can be only set with numpy arrays having following dtypes:"
                         << "\n\t numpy.bool"
                         << "\n\t numpy.uint8"
@@ -147,7 +148,7 @@ void AddDynamicDimensionalArray(
             KRATOS_CATCH("")
         }), py::arg("numpy_array").noconvert(), py::arg("copy") = true)
         .def("to_numpy", &GetPybindArray<TDataType>)
-        .def("__str__", PrintObject<DynamicDimensionalArray<TDataType>>)
+        .def("__str__", PrintObject<NDData<TDataType>>)
         ;
 }
 
@@ -744,10 +745,10 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONVECTION_DIFFUSION_SETTINGS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RADIATION_SETTINGS)
 
-    AddDynamicDimensionalArray<unsigned char>(m, "UIntDynamicDimensionalArray");
-    AddDynamicDimensionalArray<bool>(m, "BoolDynamicDimensionalArray");
-    AddDynamicDimensionalArray<int>(m, "IntDynamicDimensionalArray");
-    AddDynamicDimensionalArray<double>(m, "DoubleDynamicDimensionalArray");
+    AddNDData<unsigned char>(m, "UIntNDData");
+    AddNDData<bool>(m, "BoolNDData");
+    AddNDData<int>(m, "IntNDData");
+    AddNDData<double>(m, "DoubleNDData");
 
 }
 } // namespace Kratos::Python.
