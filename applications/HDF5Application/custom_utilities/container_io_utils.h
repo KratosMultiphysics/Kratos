@@ -58,10 +58,10 @@ public:
     ///@{
 
     template<class TDataType>
-    using TLSType = char;
+    using TLSType = unsigned char;
 
     template<class TDataType>
-    using ComponentType = char;
+    using ComponentType = unsigned char;
 
     constexpr static DataAvailabilityStatesList DataAvailability = DataAvailabilityStatesList::INCONCLUSIVE;
 
@@ -70,21 +70,25 @@ public:
     ///@{
 
     template<class TEntityType>
-    inline char GetValue(
+    inline unsigned char GetValue(
         const TEntityType& rEntity,
         const Flags& rFlag,
-        char& rTLS) const
+        unsigned char& rTLS) const
     {
-        return rEntity.Is(rFlag);
+        return (rEntity.IsDefined(rFlag) ? rEntity.Is(rFlag) : 255);
     }
 
     template<class TEntityType>
     inline void SetValue(
         TEntityType& rEntity,
         const Flags& rFlag,
-        const char rValue) const
+        const unsigned char rValue) const
     {
-        rEntity.Set(rFlag, static_cast<bool>(rValue));
+        if (rValue == 255) {
+            rEntity.Reset(rFlag);
+        } else {
+            rEntity.Set(rFlag, static_cast<bool>(rValue));
+        }
     }
 
     template<class TEntityType>
@@ -657,7 +661,7 @@ void CopyFromContiguousDataArray(
     const TContainerDataIO& rContainerDataIO,
     TDataType const* pBegin,
     const std::vector<unsigned int>& rShape,
-    const Vector<bool>& rAvailability)
+    const Vector<unsigned char>& rAvailability)
 {
     KRATOS_TRY
 
