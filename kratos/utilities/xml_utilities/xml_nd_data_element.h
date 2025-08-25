@@ -19,14 +19,14 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/dynamic_dimensional_array.h"
+#include "containers/nd_data.h"
 
 namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(KRATOS_CORE) XmlDynamicDimensionalArrayElement {
+class KRATOS_API(KRATOS_CORE) XmlNDDataElement {
 public:
     ///@name Type definitions
     ///@{
@@ -34,13 +34,13 @@ public:
     using IndexType = std::size_t;
 
     using ArrayPointerType = std::variant<
-                                    DynamicDimensionalArray<unsigned char>::Pointer,
-                                    DynamicDimensionalArray<bool>::Pointer,
-                                    DynamicDimensionalArray<int>::Pointer,
-                                    DynamicDimensionalArray<double>::Pointer
+                                    NDData<unsigned char>::Pointer,
+                                    NDData<bool>::Pointer,
+                                    NDData<int>::Pointer,
+                                    NDData<double>::Pointer
                                 >;
 
-    KRATOS_CLASS_POINTER_DEFINITION(XmlDynamicDimensionalArrayElement);
+    KRATOS_CLASS_POINTER_DEFINITION(XmlNDDataElement);
 
     ///@}
     ///@name Life cycle
@@ -50,16 +50,16 @@ public:
      * @brief Constructor.
      * @param rTagName The tag name of the XML element.
      */
-    XmlDynamicDimensionalArrayElement(const std::string& rTagName);
+    XmlNDDataElement(const std::string& rTagName);
 
     /**
      * @brief Constructor.
      * @param rDataName The name of the data element.
-     * @param rDynamicDimensionalArrays The expressions to write as data.
+     * @param rListOfNDDataPointers List of pointers to N-Dimensional data sets to write.
      */
-    XmlDynamicDimensionalArrayElement(
+    XmlNDDataElement(
         const std::string& rDataName,
-        const std::vector<ArrayPointerType>& rDynamicDimensionalArrays);
+        const std::vector<ArrayPointerType>& rListOfNDDataPointers);
 
     ///@}
     ///@name Public operations
@@ -95,27 +95,27 @@ public:
      * @brief Add a sub-element to the XML element.
      * @param pXmlElement The sub-element to add.
      */
-    void AddElement(const XmlDynamicDimensionalArrayElement::Pointer pXmlElement);
+    void AddElement(const XmlNDDataElement::Pointer pXmlElement);
 
     /**
      * @brief Get sub-elements with a specific tag name.
      * @param rTagName The tag name of the sub-elements.
      * @return The vector of sub-elements.
      */
-    std::vector<XmlDynamicDimensionalArrayElement::Pointer> GetElements(const std::string& rTagName) const;
+    std::vector<XmlNDDataElement::Pointer> GetElements(const std::string& rTagName) const;
 
     /**
      * @brief Get all sub-elements of the XML element.
      * @return The vector of sub-elements.
      */
-    const std::vector<XmlDynamicDimensionalArrayElement::Pointer>& GetElements() const;
+    const std::vector<XmlNDDataElement::Pointer>& GetElements() const;
 
     /**
      * @brief Clear all sub-elements of the XML element.
      */
     void ClearElements();
 
-    const std::vector<ArrayPointerType> GetDynamicDimensionalArrays() const;
+    const std::vector<ArrayPointerType> GetListOfNDData() const;
 
     ///@}
 
@@ -127,9 +127,9 @@ private:
 
     std::vector<std::pair<std::string, std::string>> mAttributes; /// The attributes of the XML element.
 
-    std::vector<XmlDynamicDimensionalArrayElement::Pointer> mXmlElements; /// The sub-elements of the XML element.
+    std::vector<XmlNDDataElement::Pointer> mXmlElements; /// The sub-elements of the XML element.
 
-    const std::vector<ArrayPointerType> mDynamicDimensionalArrays; /// The arrays to write as data.
+    const std::vector<ArrayPointerType> mListOfNDData; /// The arrays to write as data.
 
     ///@}
 };
