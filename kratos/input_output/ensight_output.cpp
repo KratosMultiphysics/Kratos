@@ -1303,7 +1303,9 @@ void EnSightOutput::WriteNodalVariableToFile(
         // Write lambda that check that the counter is 6 for ensight 6
         auto check_counter = [](unsigned int& rCounter) -> bool {
             const bool check = rCounter == 6;
-            rCounter = 0;
+            if (check) {
+                rCounter = 0;
+            }
             return check;
         };
 
@@ -1503,7 +1505,9 @@ void EnSightOutput::WriteNodalFlagToFile(
         // Write lambda that check that the counter is 6 for ensight 6
         auto check_counter = [](unsigned int& rCounter) -> bool {
             const bool check = rCounter == 6;
-            rCounter = 0;
+            if (check) {
+                rCounter = 0;
+            }
             return check;
         };
 
@@ -1670,7 +1674,9 @@ void EnSightOutput::WriteGeometricalVariableToFile(
     // Write lambda that check that the counter is 6 for ensight 6 and gold
     auto check_counter_ensight_6 = [](unsigned int& rCounter) -> bool {
         const bool check = rCounter == 6;
-        rCounter = 0;
+        if (check) {
+            rCounter = 0;
+        }
         return check;
     };
     auto check_counter_ensight_gold = [](unsigned int& rCounter) -> bool {
@@ -1936,7 +1942,9 @@ void EnSightOutput::WriteGeometricalFlagToFile(
     // Write lambda that check that the counter is 6 for ensight 6 and gold
     auto check_counter_ensight_6 = [](unsigned int& rCounter) -> bool {
         const bool check = rCounter == 6;
-        rCounter = 0;
+        if (check) {
+            rCounter = 0;
+        }
         return check;
     };
     auto check_counter_ensight_gold = [](unsigned int& rCounter) -> bool {
@@ -2025,7 +2033,9 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
     // Write lambda that check that the counter is 6 for ensight 6 and gold
     auto check_counter_ensight_6 = [](unsigned int& rCounter) -> bool {
         const bool check = rCounter == 6;
-        rCounter = 0;
+        if (check) {
+            rCounter = 0;
+        }
         return check;
     };
     auto check_counter_ensight_gold = [](unsigned int& rCounter) -> bool {
