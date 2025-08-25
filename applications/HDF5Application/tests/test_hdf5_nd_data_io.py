@@ -1,10 +1,8 @@
 import numpy as np
-from pathlib import Path
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.HDF5Application as KratosHDF5
 from KratosMultiphysics import KratosUnittest as UnitTest
-from KratosMultiphysics.testing.utilities import ReadModelPart
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 
 class TestNDDataIO(UnitTest.TestCase):
