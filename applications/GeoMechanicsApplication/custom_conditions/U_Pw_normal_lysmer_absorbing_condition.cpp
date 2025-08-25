@@ -38,6 +38,8 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLeftHandSide(Matrix&
     this->CalculateConditionStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
     this->AddLHS(rLeftHandSideMatrix, stiffness_matrix);
+
+	mStiffnessMatrix = rLeftHandSideMatrix;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -47,7 +49,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateLocalSystem(Matrix& 
 {
     this->CalculateLeftHandSide(rLhsMatrix, rCurrentProcessInfo);
 
-    this->CalculateAndAddRHS(rRightHandSideVector, rLhsMatrix);
+    this->CalculateAndAddRHS(rRightHandSideVector, mStiffnessMatrix);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -112,14 +114,14 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRightHandSide(Vector
         rRightHandSideVector = ZeroVector(CONDITION_SIZE);
 
     } else {
-        ElementMatrixType stiffness_matrix;
+        //ElementMatrixType stiffness_matrix;
 
-        this->CalculateConditionStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
+        //this->CalculateConditionStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
-        Matrix global_stiffness_matrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
-        GeoElementUtilities::AssembleUUBlockMatrix(global_stiffness_matrix, stiffness_matrix);
+        //Matrix global_stiffness_matrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
+        //GeoElementUtilities::AssembleUUBlockMatrix(global_stiffness_matrix, stiffness_matrix);
 
-        this->CalculateAndAddRHS(rRightHandSideVector, global_stiffness_matrix);
+        this->CalculateAndAddRHS(rRightHandSideVector, mStiffnessMatrix);
     }
 }
 

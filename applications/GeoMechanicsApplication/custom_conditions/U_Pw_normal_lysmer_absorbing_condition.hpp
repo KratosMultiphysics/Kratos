@@ -231,6 +231,8 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
+
+	Matrix mStiffnessMatrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
 }; // class UPwLysmerAbsorbingCondition.
 
 } // namespace Kratos.

@@ -3,8 +3,8 @@ import os
 import sys
 
 
-sys.path.append(r"C:\software_development\Kratos4\bin\Release")
-sys.path.append(r"C:\software_development\Kratos4\bin\Release\libs")
+# sys.path.append(r"C:\software_development\Kratos4\bin\Release")
+# sys.path.append(r"C:\software_development\Kratos4\bin\Release\libs")
 sys.path.append(os.path.join('..','..','..'))
 
 import KratosMultiphysics as Kratos
@@ -225,13 +225,10 @@ if __name__ == '__main__':
         err_msg += '    "python geomechanics_analysis.py <my-parameter-file>.json"\n'
         raise TypeError(err_msg)
 
-    # if len(argv) == 2: # ProjectParameters is being passed from outside
-    #     parameter_file_name = argv[1]
-    # else: # using default name
-    #     parameter_file_name = "ProjectParameters.json"
-
-    os.chdir(r"C:\software_development\stem2\benchmark_tests\test_1d_wave_prop_drained_soil\benchmark_tests\test_1d_wave_prop_drained_soil\inputs_kratos")
-    parameter_file_name = "ProjectParameters_stage_1.json"
+    if len(argv) == 2: # ProjectParameters is being passed from outside
+        parameter_file_name = argv[1]
+    else: # using default name
+        parameter_file_name = "ProjectParameters.json"
 
     with open(parameter_file_name,'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
@@ -239,3 +236,49 @@ if __name__ == '__main__':
     model = Kratos.Model()
     simulation = GeoMechanicsAnalysis(model,parameters)
     simulation.Run()
+
+    #
+    # # os.chdir(r"C:\software_development\stem2\benchmark_tests\test_1d_wave_prop_drained_soil\benchmark_tests\test_1d_wave_prop_drained_soil\inputs_kratos")
+    #
+    # input_dir = r"C:\software_development\STEM\benchmark_tests\test_1d_wave_prop_drained_soil_3D\inputs_kratos"
+    # input_dir = r"C:\software_development\STEM\run_stem\brick_bathe"
+    #
+    # os.chdir(input_dir)
+    #
+    # parameter_file_name = "ProjectParameters_stage_1.json"
+    #
+    # with open(parameter_file_name,'r') as parameter_file:
+    #     parameters = Kratos.Parameters(parameter_file.read())
+    #
+    # model = Kratos.Model()
+    # simulation = GeoMechanicsAnalysis(model, parameters)
+    #
+    # import cProfile
+    # import pstats
+    #
+    # cProfile.run('simulation.Run()','profiler_output.prof')
+    #
+    # stats = pstats.Stats('profiler_output.prof')
+    # stats.strip_dirs()  # Removes extraneous path info
+    # stats.sort_stats('cumtime')  # Sort by cumulative time (other options below)
+    # stats.print_stats(20)
+    #
+    #
+    # # simulation.Run()
+    #
+    # import matplotlib.pyplot as plt
+    # import json
+    # with open(input_dir + r"\json_output.json", "r") as f:
+    #     output_data = json.load(f)
+    #
+    # time = output_data["TIME"]
+    # velocity = output_data["NODE_9"]["VELOCITY_Y"]
+    #
+    # plt.plot(time, velocity, label='Velocity at Node 1')
+    # plt.xlabel('Time (s)')
+    # plt.ylabel('Velocity (m/s)')
+    # plt.grid()
+    # plt.show()
+    # a=1+1
+
+

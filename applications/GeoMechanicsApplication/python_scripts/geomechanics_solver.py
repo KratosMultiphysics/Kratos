@@ -115,6 +115,7 @@ class GeoMechanicalSolver(PythonSolver):
             "block_builder"              : true,
             "prebuild_dynamics"          : false,
             "initialize_acceleration"    : false,
+            "use_diagonal_scale_lumping"  : false,
             "search_neighbours_step"     : false,
             "linear_solver_settings":{
                 "solver_type": "amgcl",
@@ -535,6 +536,7 @@ class GeoMechanicalSolver(PythonSolver):
             gamma = self.settings["newmark_gamma"].GetDouble()
 
             calculate_initial_acceleration = self.settings["initialize_acceleration"].GetBool()
+            use_diagonal_scale_lumping = self.settings["use_diagonal_scale_lumping"].GetBool()
 
             # delta time has to be initialized before solving solution steps
             self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.settings["time_stepping"]["time_step"].GetDouble()
@@ -543,8 +545,7 @@ class GeoMechanicalSolver(PythonSolver):
 
             new_builder_and_solver = GeoMechanicsApplication.ResidualBasedBlockBuilderAndSolverNohBathe(
                                                                                         self.linear_solver,
-                                                                                        beta,
-                                                                                        gamma,
+                                                                                        use_diagonal_scale_lumping,
                                                                                         calculate_initial_acceleration)
 
             solving_strategy = GeoMechanicsApplication.GeoMechanicNewtonRaphsonStrategyNohBathe(

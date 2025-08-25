@@ -95,38 +95,45 @@ public:
 
         // only update derivatives, solution step is updated in the strategy.
         // Note that this workflow of only updating the derivatives is specific for this scheme.
-        TSystemVectorType first_derivative_vector;
-        TSystemVectorType second_derivative_vector;
+
+		//bool alter_derivatives_outside_scheme = false;
+		//if (mSecondDerivativeVector.empty() || mFirstDerivativeVector.empty() || alter_derivatives_outside_scheme) {
+
+  //          Geo::SparseSystemUtilities::GetUFirstAndSecondDerivativeVector(
+  //              mFirstDerivativeVector, mSecondDerivativeVector, rDofSet, rModelPart, 0);
+		//}    
+        TSystemVectorType mFirstDerivativeVector;
+        TSystemVectorType mSecondDerivativeVector;
 
         Geo::SparseSystemUtilities::GetUFirstAndSecondDerivativeVector(
-            first_derivative_vector, second_derivative_vector, rDofSet, rModelPart, 0);
+            mFirstDerivativeVector, mSecondDerivativeVector, rDofSet, rModelPart, 0);
 
         TSystemVectorType delta_first_derivative_vector = TSystemVectorType(rDofSet.size(), 0.0);
         TSparseSpace::UnaliasedAdd(delta_first_derivative_vector,
                                    (this->GetGamma() / (this->GetBeta() * this->GetDeltaTime())), Dx);
         TSparseSpace::UnaliasedAdd(delta_first_derivative_vector,
-                                   -(this->GetGamma() / this->GetBeta()), first_derivative_vector);
+                                   -(this->GetGamma() / this->GetBeta()), mFirstDerivativeVector);
         TSparseSpace::UnaliasedAdd(delta_first_derivative_vector,
                                    this->GetDeltaTime() * (1 - this->GetGamma() / (2 * this->GetBeta())),
-                                   second_derivative_vector);
+            mSecondDerivativeVector);
 
         // performs: TSystemVectorType delta_second_derivative_vector = Dx * (1 / (mBeta * delta_time * delta_time)) - first_derivative_vector * (1 / (mBeta * delta_time)) - r_second_derivative_vector * (1 / (2 * mBeta));
         TSystemVectorType delta_second_derivative_vector = TSystemVectorType(rDofSet.size(), 0.0);
         TSparseSpace::UnaliasedAdd(delta_second_derivative_vector,
                                    1 / (this->GetBeta() * this->GetDeltaTime() * this->GetDeltaTime()), Dx);
         TSparseSpace::UnaliasedAdd(delta_second_derivative_vector,
-                                   -1 / (this->GetBeta() * this->GetDeltaTime()), first_derivative_vector);
+                                   -1 / (this->GetBeta() * this->GetDeltaTime()), mFirstDerivativeVector);
         TSparseSpace::UnaliasedAdd(delta_second_derivative_vector, -1 / (2 * this->GetBeta()),
-                                   second_derivative_vector);
+            mSecondDerivativeVector);
 
         // performs: first_derivative_vector += delta_first_derivative_vector;
-        TSparseSpace::UnaliasedAdd(first_derivative_vector, 1.0, delta_first_derivative_vector);
+        TSparseSpace::UnaliasedAdd(mFirstDerivativeVector, 1.0, delta_first_derivative_vector);
 
         // performs: second_derivative_vector += delta_second_derivative_vector;
-        TSparseSpace::UnaliasedAdd(second_derivative_vector, 1.0, delta_second_derivative_vector);
+        TSparseSpace::UnaliasedAdd(mSecondDerivativeVector, 1.0, delta_second_derivative_vector);
 
         Geo::SparseSystemUtilities::SetUFirstAndSecondDerivativeVector(
-            first_derivative_vector, second_derivative_vector, rModelPart);
+            mFirstDerivativeVector, mSecondDerivativeVector, rModelPart);
 
         KRATOS_CATCH("")
     }
