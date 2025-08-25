@@ -1697,9 +1697,9 @@ void EnSightOutput::WriteGeometricalVariableToFile(
         if (r_part_data.PartElements != IsElement) continue;
 
         // Write part data
-        unsigned int counter = 0;
         bool new_line = true;
         for (const auto& it : r_part_data.PartGeometricalObjects) {
+            unsigned int counter = 0;
             const std::string& r_ensight_element_type = it.first;
             const auto& r_geometrical_objects = it.second;
 
@@ -1899,6 +1899,11 @@ void EnSightOutput::WriteGeometricalVariableToFile(
                     }
                 }
             }
+
+            // Adding new line if needed
+            if (!new_line) {
+                WriteString(var_file, "");
+            }
         }
     }
 
@@ -1963,9 +1968,9 @@ void EnSightOutput::WriteGeometricalFlagToFile(
         if (r_part_data.PartElements != IsElement) continue;
 
         // Write part data
-        unsigned int counter = 0;
         bool new_line = true;
         for (const auto& it : r_part_data.PartGeometricalObjects) {
+            unsigned int counter = 0;
             const std::string& r_ensight_element_type = it.first;
             const auto& r_geometrical_objects = it.second;
 
@@ -1984,6 +1989,11 @@ void EnSightOutput::WriteGeometricalFlagToFile(
                 new_line = check_counter(counter);
                 const int flag = p_geometrical_object->IsDefined(r_flag) ? static_cast<int>(p_geometrical_object->Is(r_flag)) : -1; // Default to -1 if not defined
                 WriteScalarData(var_file, flag, new_line, is_ensight_6 && counter == 1, !new_line);
+            }
+
+            // Adding new line if needed
+            if (!new_line) {
+                WriteString(var_file, "");
             }
         }
     }
@@ -2052,9 +2062,9 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
         if (r_part_data.PartElements != IsElement) continue;
 
         // Write part data
-        unsigned int counter = 0;
         bool new_line = true;
         for (const auto& it : r_part_data.PartGeometricalObjects) {
+            unsigned int counter = 0;
             const std::string& r_ensight_element_type = it.first;
             const auto& r_geometrical_objects = it.second;
 
@@ -2298,6 +2308,11 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                         KRATOS_ERROR << "Unknown variable type for matrix: " << rVariableName << std::endl;
                     }
                 }
+            }
+
+            // Adding new line if needed
+            if (!new_line) {
+                WriteString(var_file, "");
             }
         }
     }
