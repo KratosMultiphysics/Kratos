@@ -393,7 +393,7 @@ void AddCustomIOToPython(pybind11::module& m)
     py::class_<HDF5::TensorAdaptorIO, HDF5::TensorAdaptorIO::Pointer>(m, "TensorAdaptorIO")
         .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("Write", &HDF5::TensorAdaptorIO::Write, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"), py::arg("attributes") = Parameters("""{}"""))
-        // .def("Read", &HDF5::TensorAdaptorIO::Read, py::arg("tensor_adaptor_name"))
+        .def("Read", &HDF5::TensorAdaptorIO::Read, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"))
         ;
 
 #ifdef KRATOS_USING_MPI
