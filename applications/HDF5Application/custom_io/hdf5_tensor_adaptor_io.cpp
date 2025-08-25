@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "custom_utilities/data_type_utilities.h"
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
 
 // Application includes
@@ -56,7 +57,19 @@ void TensorAdaptorIO::Write(
     std::visit([this, &dataset_path](auto p_tensor_adaptor){
         WriteInfo info;
         const auto& r_tensor_shape = p_tensor_adaptor->Shape();
-        this->mpFile->WriteDataSet(dataset_path, p_tensor_adaptor->ViewData().data(), r_tensor_shape.data().begin(), r_tensor_shape.data().end(), info);
+        if constexpr(std::is_same_v<BareType<decltype(*p_tensor_adaptor)>, TensorAdaptor<bool>>) {
+            // HDF5 does not allow writing bool because, HDF5 does not differentiate
+            // bool and and unsigned char when written. Therefore, we only allow writing
+            // unsigned char. Hence, we need to convert bool array to unsigned char array
+            Vector<unsigned char> temp_bools(p_tensor_adaptor->Size());
+            const auto span = p_tensor_adaptor->ViewData();
+            IndexPartition<IndexType>(temp_bools.size()).for_each([&temp_bools, &span](const auto Index) {
+                temp_bools[Index] = static_cast<unsigned char>(span[Index]);
+            });
+            this->mpFile->WriteDataSet(dataset_path, temp_bools.data().begin(), r_tensor_shape.data().begin(), r_tensor_shape.data().end(), info);
+        } else {
+            this->mpFile->WriteDataSet(dataset_path, p_tensor_adaptor->ViewData().data(), r_tensor_shape.data().begin(), r_tensor_shape.data().end(), info);
+        }
         WritePartitionTable(*this->mpFile, dataset_path, info);
     }, pTensorAdaptor);
 
@@ -66,11 +79,13 @@ void TensorAdaptorIO::Write(
     KRATOS_CATCH("");
 }
 
-std::pair<TensorAdaptorIO::TensorAdaptorPointerType, Parameters> TensorAdaptorIO::Read(const std::string& rExpressionName)
+Parameters TensorAdaptorIO::Read(
+    const std::string& rTensorAdaptorName,
+    TensorAdaptorPointerType pTensorAdaptor)
 {
     KRATOS_TRY
 
-    const auto& dataset_path = mPrefix + rExpressionName;
+    const auto& dataset_path = mPrefix + rTensorAdaptorName;
 
     KRATOS_ERROR_IF_NOT(mpFile->HasPath(dataset_path))
         << "Path \"" << dataset_path << "\" does not exist.";
@@ -101,25 +116,36 @@ std::pair<TensorAdaptorIO::TensorAdaptorPointerType, Parameters> TensorAdaptorIO
     tensor_shape[0] = block_size;
     std::copy(h5_dimensions.begin() + 1, h5_dimensions.end(), tensor_shape.data().begin() + 1);
 
-    TensorAdaptorPointerType tensor_adaptor;
-    if (mpFile->HasDataType<bool>(dataset_path)) {
-        tensor_adaptor = Kratos::make_shared<TensorAdaptor<bool>>(tensor_shape);
-    } else if (mpFile->HasDataType<int>(dataset_path)) {
-        tensor_adaptor = Kratos::make_shared<TensorAdaptor<int>>(tensor_shape);
-    } else if (mpFile->HasDataType<double>(dataset_path)) {
-        tensor_adaptor = Kratos::make_shared<TensorAdaptor<double>>(tensor_shape);
-    } else {
-        KRATOS_ERROR
-                << "Unsupported data set type found at \"" << dataset_path
-                << "\". TensorAdaptors only support bool, int and double data types.\n";
-    }
 
     std::visit([this, &dataset_path, &tensor_shape, start_index](auto p_tensor_adaptor) {
-        this->mpFile->ReadDataSet(dataset_path, p_tensor_adaptor->ViewData().data(), tensor_shape.data().begin(),tensor_shape.data().end(), start_index);
-    }, tensor_adaptor);
+        const auto& current_shape = p_tensor_adaptor->Shape();
 
-    auto attributes = mpFile->ReadAttribute(dataset_path);
-    return std::make_pair(tensor_adaptor, attributes);
+        KRATOS_ERROR_IF_NOT(tensor_shape.size() == current_shape.size())
+            << "Number of dimensions mismatch [ shape in the hdf5 = " << tensor_shape
+            << ", shape of the tensor = " << current_shape << " ].\n";
+
+        for (IndexType i_dim = 0; i_dim < tensor_shape.size(); ++i_dim) {
+            KRATOS_ERROR_IF_NOT(tensor_shape[i_dim] == current_shape[i_dim])
+                << "Number of components in dimensions mismatch [ shape in the hdf5 = " << tensor_shape
+                << ", shape of the tensor = " << current_shape << " ].\n";
+        }
+
+        if constexpr(std::is_same_v<BareType<decltype(*p_tensor_adaptor)>, TensorAdaptor<bool>>) {
+            // HDF5 does not allow reading bool because, HDF5 does not differentiate
+            // bool and and unsigned char when written. Therefore, we only allow reading
+            // unsigned char. Hence, we need to convert unsigned char array to bool.
+            Vector<unsigned char> temp_values(p_tensor_adaptor->Size());
+            this->mpFile->ReadDataSet(dataset_path, temp_values.data().begin(), tensor_shape.data().begin(),tensor_shape.data().end(), start_index);
+            const auto span = p_tensor_adaptor->ViewData();
+            IndexPartition<IndexType>(temp_values.size()).for_each([&temp_values, &span](const auto Index) {
+                span[Index] = temp_values[Index];
+            });
+        } else {
+            this->mpFile->ReadDataSet(dataset_path, p_tensor_adaptor->ViewData().data(), tensor_shape.data().begin(),tensor_shape.data().end(), start_index);
+        }
+    }, pTensorAdaptor);
+
+    return mpFile->ReadAttribute(dataset_path);
 
     KRATOS_CATCH("");
 }

@@ -73,7 +73,9 @@ public:
         TensorAdaptorPointerType pTensorAdaptor,
         const Parameters Attributes);
 
-    std::pair<TensorAdaptorPointerType, Parameters> Read(const std::string& rTensorAdaptorName);
+    Parameters Read(
+        const std::string& rTensorAdaptorName,
+        TensorAdaptorPointerType pTensorAdaptor);
 
     ///@}
 
