@@ -546,7 +546,7 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
 
     // Open the geometry file for writing
     const std::string step_label = InputOutputUtilities::GenerateStepLabel(current_step, 8);
-    const std::string full_path = GetOutputFileName(rFileName, "." + step_label);
+    const std::string full_path = GetOutputFileName(rFileName, ".geo");
     std::ofstream geo_file(full_path, mFileFormat == FileFormat::BINARY ? std::ios::binary : std::ios::out);
 
     KRATOS_ERROR_IF_NOT(geo_file.is_open()) << "File \"" << full_path << "\" could not be opened!" << std::endl;
@@ -703,14 +703,17 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
     // Coordinates for EnSight 6 are written before the parts
     if (is_ensight_6) {
         // Write coordinates
-        WriteString(geo_file, "\tcoordinates");
-        WriteScalarData(geo_file, mrModelPart.NumberOfNodes(), true, true);
+        WriteString(geo_file, "coordinates");
+        WriteScalarData(geo_file, mrModelPart.NumberOfNodes());
 
         // Write IDs, then X, then Y, then Z blocks
         for (const auto& r_node : mrModelPart.Nodes()) {
-            WriteScalarData(geo_file, r_node.Id(), false, true);
+            WriteScalarData(geo_file, r_node.Id(), false);
+            WriteString(geo_file, " ", false);
             WriteScalarData(geo_file, r_node.X(),  false);
+            WriteString(geo_file, " ", false);
             WriteScalarData(geo_file, r_node.Y(),  false);
+            WriteString(geo_file, " ", false);
             WriteScalarData(geo_file, r_node.Z());
         }
 
@@ -760,11 +763,11 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
             const auto& r_geometrical_objects = it.second;
 
             WriteString(geo_file, r_ensight_element_type);
-            WriteString(geo_file, "\t\t", false);
+            WriteString(geo_file, "\t", false);
             WriteScalarData(geo_file, r_geometrical_objects.size());
 
             for (const auto* p_geometrical_object : r_geometrical_objects) {
-                WriteScalarData(geo_file, p_geometrical_object->Id(), is_ensight_6, true);
+                WriteScalarData(geo_file, p_geometrical_object->Id(), !is_ensight_6, is_ensight_6);
                 GetGeometryConnectivity(*p_geometrical_object, connectivity);
                 for (const auto index : connectivity) {
                     // WriteScalarData(geo_file, r_part_data.KratosIdToLocalId.at(r_node.Id()));
@@ -1119,6 +1122,7 @@ void EnSightOutput::WriteNodalVariableToFile(
                         KRATOS_ERROR << "Unknown variable type for vector: " << rVariableName << std::endl;
                     }
                 }
+                WriteString(var_file, "");
             }
         } else { // Non-historical data
             for (const auto& r_part_data : mPartDatas) {
@@ -1264,6 +1268,7 @@ void EnSightOutput::WriteNodalVariableToFile(
                         KRATOS_ERROR << "Unknown variable type for vector: " << rVariableName << std::endl;
                     }
                 }
+                WriteString(var_file, "");
             }
         }
     } else { // For Ensight 6
@@ -1492,6 +1497,7 @@ void EnSightOutput::WriteNodalFlagToFile(
                 const int flag = p_node->IsDefined(r_flag) ? static_cast<int>(p_node->Is(r_flag)) : -1; // Default to -1 if not defined
                 WriteScalarData(var_file, flag);
             }
+            WriteString(var_file, "");
         }
     } else {
         // Write lambda that check that the counter is 6 for ensight 6
@@ -1883,6 +1889,8 @@ void EnSightOutput::WriteGeometricalVariableToFile(
                     }
                 }
             }
+
+            WriteString(var_file, "");
         }
     }
 
@@ -1967,6 +1975,8 @@ void EnSightOutput::WriteGeometricalFlagToFile(
                 const int flag = p_geometrical_object->IsDefined(r_flag) ? static_cast<int>(p_geometrical_object->Is(r_flag)) : -1; // Default to -1 if not defined
                 WriteScalarData(var_file, flag, new_line, false, !new_line);
             }
+
+            WriteString(var_file, "");
         }
     }
 
@@ -2279,6 +2289,8 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                     }
                 }
             }
+
+            WriteString(var_file, "");
         }
     }
 
