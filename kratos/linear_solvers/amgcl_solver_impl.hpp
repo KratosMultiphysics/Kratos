@@ -31,6 +31,7 @@
 #endif
 
 #ifdef KRATOS_USING_MPI
+#include <amgcl/mpi/util.hpp>
 #include <amgcl/mpi/make_solver.hpp>
 #include <amgcl/mpi/preconditioner.hpp>
 #include <amgcl/mpi/solver/runtime.hpp>
