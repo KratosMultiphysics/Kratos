@@ -13,11 +13,11 @@
 
 // Application includes
 #include "custom_elements/U_Pw_base_element.hpp"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
-#include "custom_utilities/check_utilities.h"
 
 namespace Kratos
 {
@@ -30,11 +30,13 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     if (int ierr = Element::Check(rCurrentProcessInfo); ierr != 0) return ierr;
 
     const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geometry = this->GetGeometry();
+    const GeometryType&   r_geometry   = this->GetGeometry();
 
-    CheckUtilities::CheckHasNodalSolutionStepData(r_geometry, {std::cref(DISPLACEMENT), std::cref(VELOCITY), std::cref(ACCELERATION), std::cref(WATER_PRESSURE),
-                                                std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
-    CheckUtilities::CheckHasDofs(r_geometry, {std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y), std::cref(WATER_PRESSURE)});
+    CheckUtilities::CheckHasNodalSolutionStepData(
+        r_geometry, {std::cref(DISPLACEMENT), std::cref(VELOCITY), std::cref(ACCELERATION),
+                     std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
+    CheckUtilities::CheckHasDofs(
+        r_geometry, {std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y), std::cref(WATER_PRESSURE)});
     if (this->GetGeometry().WorkingSpaceDimension() > 2)
         CheckUtilities::CheckHasDofs(r_geometry, {std::cref(DISPLACEMENT_Z)});
 
@@ -62,7 +64,8 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
         // If this is a 2D problem, nodes must be in XY plane
         for (unsigned int i = 0; i < this->GetGeometry().PointsNumber(); ++i) {
             if (r_geometry[i].Z() != 0.0)
-                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << r_geometry[i].Id() << std::endl;
+                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << r_geometry[i].Id()
+                             << std::endl;
         }
     }
 

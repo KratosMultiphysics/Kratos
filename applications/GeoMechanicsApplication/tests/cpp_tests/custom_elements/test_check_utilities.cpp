@@ -37,7 +37,7 @@ Line2D2<Node> CreatLineGeometryWithVariables()
     nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
     return Line2D2<Node>(nodes);
 }
-}
+} // namespace
 
 namespace Kratos::Testing
 {
@@ -76,7 +76,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalVariables, KratosGeoMechanics
 
     // Act and Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        CheckUtilities::CheckHasNodalSolutionStepData(line_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)}),
+        CheckUtilities::CheckHasNodalSolutionStepData(
+            line_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)}),
         "Missing variable WATER_PRESSURE on nodes 0 1")
 
     // Arrange 2
@@ -84,7 +85,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalVariables, KratosGeoMechanics
 
     // Act and Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        CheckUtilities::CheckHasNodalSolutionStepData(line_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)}),
+        CheckUtilities::CheckHasNodalSolutionStepData(
+            line_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)}),
         "Missing variable VOLUME_ACCELERATION on nodes 0 1")
 }
 

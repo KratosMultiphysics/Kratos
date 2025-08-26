@@ -265,8 +265,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     RemoveThreeNodes(model_part);
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
     p_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Missing the DoF for the variable WATER_PRESSURE on nodes 1 2 3")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "Missing the DoF for the variable WATER_PRESSURE on nodes 1 2 3")
 
     RemoveThreeNodes(model_part);
     p_element = CreateTransientPwElementWithPWDofs<2, 3>(model_part, p_properties);

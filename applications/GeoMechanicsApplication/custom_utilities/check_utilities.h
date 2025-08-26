@@ -13,11 +13,11 @@
 #pragma once
 
 // Project includes
-#include "includes/define.h"
-#include "includes/variables.h"
-#include "includes/node.h"
-#include "geometries/geometry.h"
 #include "geo_aliases.h"
+#include "geometries/geometry.h"
+#include "includes/define.h"
+#include "includes/node.h"
+#include "includes/variables.h"
 
 #include <optional>
 #include <string>
@@ -31,11 +31,10 @@ public:
     static void CheckDomainSize(double                            DomainSize,
                                 std::size_t                       Id,
                                 const std::optional<std::string>& PrintName = std::nullopt);
-								
-	static void CheckHasNodalSolutionStepData(const Geometry<Node>&             rGeometry, 
-        const Geo::ConstVariableDataRefs& rVariableRefs);
-    static void CheckHasDofs(const Geometry<Node>& rGeometry, 
-        const Geo::ConstVariableDataRefs& rVariableRefs);
+
+    static void CheckHasNodalSolutionStepData(const Geometry<Node>&             rGeometry,
+                                              const Geo::ConstVariableDataRefs& rVariableRefs);
+    static void CheckHasDofs(const Geometry<Node>& rGeometry, const Geo::ConstVariableDataRefs& rVariableRefs);
 
 private:
     static std::string PrintVectorContent(const std::vector<size_t>& rVector);

@@ -12,8 +12,8 @@
 
 // Application includes
 #include "custom_elements/steady_state_Pw_interface_element.hpp"
-#include "includes/cfd_variables.h"
 #include "custom_utilities/check_utilities.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {
@@ -47,12 +47,13 @@ int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCu
     if (ierr != 0) return ierr;
 
     const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geometry = this->GetGeometry();
+    const GeometryType&   r_geometry   = this->GetGeometry();
 
     if (this->Id() < 1)
         KRATOS_ERROR << "Element found with Id 0 or negative, element: " << this->Id() << std::endl;
 
-    CheckUtilities::CheckHasNodalSolutionStepData(r_geometry, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
+    CheckUtilities::CheckHasNodalSolutionStepData(
+        r_geometry, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
     CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
 
     // Verify specific properties
@@ -112,7 +113,7 @@ void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rL
 
     // Previous definitions
     const PropertiesType&                           r_properties = this->GetProperties();
-    const GeometryType&                             r_geometry = this->GetGeometry();
+    const GeometryType&                             r_geometry   = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         r_geometry.IntegrationPoints(mThisIntegrationMethod);
     const unsigned int NumGPoints = IntegrationPoints.size();

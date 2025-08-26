@@ -27,8 +27,8 @@ void CheckUtilities::CheckDomainSize(double DomainSize, std::size_t Id, const st
         << min_domain_size << " for element " << Id << std::endl;
 }
 
-void CheckUtilities::CheckHasNodalSolutionStepData(const Geometry<Node>& rGeometry, 
-    const Geo::ConstVariableDataRefs& rVariableRefs)
+void CheckUtilities::CheckHasNodalSolutionStepData(const Geometry<Node>&             rGeometry,
+                                                   const Geo::ConstVariableDataRefs& rVariableRefs)
 {
     for (const auto& r_variable_ref : rVariableRefs) {
         std::vector<std::size_t> missing_node_ids;
@@ -38,7 +38,7 @@ void CheckUtilities::CheckHasNodalSolutionStepData(const Geometry<Node>& rGeomet
             }
         }
         if (!missing_node_ids.empty())
-           KRATOS_ERROR << "Missing variable " << r_variable_ref.get().Name() << " on nodes "
+            KRATOS_ERROR << "Missing variable " << r_variable_ref.get().Name() << " on nodes "
                          << PrintVectorContent(missing_node_ids) << std::endl;
     }
 }
@@ -52,21 +52,21 @@ void CheckUtilities::CheckHasDofs(const Geometry<Node>& rGeometry, const Geo::Co
                 missing_node_ids.push_back(node.Id());
             }
         }
-        
+
         if (!missing_node_ids.empty())
             KRATOS_ERROR << "Missing the DoF for the variable " << r_variable_ref.get().Name()
-                             << " on nodes " << PrintVectorContent(missing_node_ids) << std::endl;
+                         << " on nodes " << PrintVectorContent(missing_node_ids) << std::endl;
     }
 }
 
-    std::string CheckUtilities::PrintVectorContent(const std::vector<size_t>& rVector)
+std::string CheckUtilities::PrintVectorContent(const std::vector<size_t>& rVector)
 {
     std::ostringstream oss;
     for (const auto& r_value : rVector)
         oss << r_value << " ";
 
     std::string output = oss.str();
-    output.pop_back();
+    if (!output.empty()) output.pop_back();
 
     return output;
 }
