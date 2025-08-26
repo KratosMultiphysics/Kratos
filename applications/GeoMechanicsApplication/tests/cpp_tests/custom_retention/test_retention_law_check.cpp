@@ -34,8 +34,8 @@ public:
     MOCK_METHOD(int, Check, (const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo), (override));
 
 private:
-    MOCK_METHOD(void, save, (Serializer & rSerializer));
-    MOCK_METHOD(void, load, (Serializer & rSerializer));
+    MOCK_METHOD(void, save, (Serializer & rSerializer), (const, override));
+    MOCK_METHOD(void, load, (Serializer & rSerializer), (override));
 };
 } // namespace Kratos
 
