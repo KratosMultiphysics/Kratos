@@ -16,7 +16,7 @@
       "input_filename"                : "mesh"
     },
     "material_import_settings": {
-      "materials_filename"            : "MaterialParameters_stage1.json"
+      "materials_filename"            : "MaterialParameters_linear.json"
     },
     "time_stepping": {
       "time_step"                     : 0.001,

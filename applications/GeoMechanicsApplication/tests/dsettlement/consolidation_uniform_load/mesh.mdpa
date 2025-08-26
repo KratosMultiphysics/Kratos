@@ -1,5 +1,6 @@
 Begin Properties 0
 End Properties
+
 Begin Nodes
   1  1.0000000000 -5.0000000000 0.0000000000
   2  1.0000000000 0.0000000000 0.0000000000
@@ -88,8 +89,6 @@ Begin Conditions LineNormalLoadDiffOrderCondition2D3N
 End Conditions
 
 Begin SubModelPart Soil-0
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     16
     17
@@ -250,44 +249,30 @@ Begin SubModelPart gravity
 End SubModelPart 
 
 Begin SubModelPart TopWaterPressure0
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     2
     3
     14
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
 End SubModelPart 
 
 Begin SubModelPart Bottom1
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     1
     4
     24
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
 End SubModelPart 
 
 Begin SubModelPart FixedPressure2
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     1
     4
     24
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
 End SubModelPart 
 
 Begin SubModelPart Side3
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     3
     4
@@ -301,13 +286,9 @@ Begin SubModelPart Side3
     22
     23
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
 End SubModelPart 
 
 Begin SubModelPart Side4
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     1
     2
@@ -321,13 +302,9 @@ Begin SubModelPart Side4
     12
     13
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
 End SubModelPart 
 
 Begin SubModelPart SoilExcludingBoundary
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     5
     6
@@ -671,8 +648,6 @@ Begin SubModelPart LineLoad2
   Begin SubModelPartTables
     2
   End SubModelPartTables
-  Begin SubModelPartElements
-  End SubModelPartElements
   Begin SubModelPartNodes
     2
     3
@@ -778,12 +753,11 @@ Begin Table 3 X LINE_LOAD_Y
    0.0000000000 -10000.0000000000 
    1.0000000000 -10000.0000000000 
 End Table
+
 Begin SubModelPart LineLoad3
   Begin SubModelPartTables
     3
   End SubModelPartTables
-  Begin SubModelPartElements
-  End SubModelPartElements
   Begin SubModelPartNodes
     2
     3
@@ -792,5 +766,4 @@ Begin SubModelPart LineLoad3
   Begin SubModelPartConditions
     21
   End SubModelPartConditions
-End SubModelPart 
-
+End SubModelPart

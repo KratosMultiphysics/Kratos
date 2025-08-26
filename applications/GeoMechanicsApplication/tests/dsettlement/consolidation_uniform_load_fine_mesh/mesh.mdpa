@@ -643,7 +643,7 @@ Begin Nodes
   639   0.2000000000  -5.0000000000   0.0000000000
   640   0.1000000000  -5.0000000000   0.0000000000
   641   0.0000000000  -5.0000000000   0.0000000000
-End Nodes  //OK
+End Nodes
 
 Begin Elements SmallStrainUPwDiffOrderElement2D6N
         1          0    87    93    55    89    72    70 
@@ -936,7 +936,7 @@ Begin Elements SmallStrainUPwDiffOrderElement2D6N
       288          0   176   152   165   164   156   169 
       289          0    59    55    93    53    72    73 
       290          0    12     5     6     8     4     7 
-End Elements //OK
+End Elements
 
 Begin Conditions LineLoadDiffOrderCondition2D3N
     2 0 1 6 3
@@ -944,7 +944,7 @@ Begin Conditions LineLoadDiffOrderCondition2D3N
     4 0 16 32 24
     5 0 32 55 42
     6 0 55 87 70
-End Conditions  //OK
+End Conditions
 
 Begin Conditions LineNormalLoadDiffOrderCondition2D3N
     12 0 1 6 3
@@ -952,7 +952,7 @@ Begin Conditions LineNormalLoadDiffOrderCondition2D3N
     14 0 16 32 24
     15 0 32 55 42
     16 0 55 87 70
-End Conditions  //OK
+End Conditions
 
 Begin SubModelPart Soil-0
   Begin SubModelPartNodes
@@ -1890,7 +1890,7 @@ Begin SubModelPart Soil-0
           289
           290
   End SubModelPartElements
-End SubModelPart  //OK
+End SubModelPart
 
 Begin SubModelPart gravity
   Begin SubModelPartNodes
@@ -2828,7 +2828,7 @@ Begin SubModelPart gravity
           289
           290
   End SubModelPartElements
-End SubModelPart  //OK
+End SubModelPart
 
 Begin SubModelPart TopWaterPressure0
   Begin SubModelPartNodes
@@ -2844,7 +2844,7 @@ Begin SubModelPart TopWaterPressure0
            70
            87
   End SubModelPartNodes
-End SubModelPart  //OK
+End SubModelPart
 
 Begin SubModelPart Bottom1
   Begin SubModelPartNodes
@@ -2860,7 +2860,7 @@ Begin SubModelPart Bottom1
           640
           641
   End SubModelPartNodes
-End SubModelPart  //OK
+End SubModelPart
 
 Begin SubModelPart FixedPressure2
   Begin SubModelPartNodes
@@ -2876,7 +2876,7 @@ Begin SubModelPart FixedPressure2
           640
           641
   End SubModelPartNodes
-End SubModelPart  //OK
+End SubModelPart
 
 Begin SubModelPart Side3
   Begin SubModelPartNodes
@@ -2932,7 +2932,7 @@ Begin SubModelPart Side3
           632
           641
   End SubModelPartNodes
-End SubModelPart  //OK
+End SubModelPart
 
 Begin SubModelPart Side4
   Begin SubModelPartNodes
@@ -2988,7 +2988,7 @@ Begin SubModelPart Side4
           618
           630
   End SubModelPartNodes
-End SubModelPart  //OK
+End SubModelPart
 
 
 Begin SubModelPart Head_line0
@@ -3927,7 +3927,7 @@ Begin SubModelPart Head_line0
           289
           290
   End SubModelPartElements
-End SubModelPart  //OK
+End SubModelPart
 
 Begin SubModelPart PhreaticLineContactStress0
   Begin SubModelPartNodes
@@ -4888,7 +4888,7 @@ Begin SubModelPart K0_model_part
           289
           290
   End SubModelPartElements
-End SubModelPart  //OK
+End SubModelPart
 
 Begin SubModelPart Head_line1
   Begin SubModelPartNodes
@@ -5826,7 +5826,7 @@ Begin SubModelPart Head_line1
           289
           290
   End SubModelPartElements
-End SubModelPart  //OK
+End SubModelPart
 
 Begin SubModelPart PhreaticLineContactStress1
   Begin SubModelPartNodes
@@ -6818,7 +6818,7 @@ Begin SubModelPart Head_line2
           289
           290
   End SubModelPartElements
-End SubModelPart  //OK
+End SubModelPart
 
 Begin SubModelPart PhreaticLineContactStress2
   Begin SubModelPartNodes
