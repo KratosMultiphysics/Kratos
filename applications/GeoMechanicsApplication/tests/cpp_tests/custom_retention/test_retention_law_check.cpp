@@ -56,17 +56,15 @@ KRATOS_TEST_CASE_IN_SUITE(RetentionLaw_CheckRetentionwVector, KratosGeoMechanics
     const auto mock_retention_law = std::make_shared<MockRetentionLaw>();
     retention_law_vector.push_back(mock_retention_law);
     retention_law_vector.push_back(mock_retention_law);
-
-    // Act
     EXPECT_CALL(*mock_retention_law, Check(_, _)).WillOnce(Return(1));
 
-    // Assert
+    // Act and Assert
     KRATOS_EXPECT_EQ(RetentionLaw::Check(retention_law_vector, properties, current_process_info), 1);
 
-    // Act
+    // Arrange
     EXPECT_CALL(*mock_retention_law, Check(_, _)).WillOnce(Return(0));
 
-    // Assert
+    // Act and Assert
     KRATOS_EXPECT_EQ(RetentionLaw::Check(retention_law_vector, properties, current_process_info), 0);
 }
 
