@@ -135,12 +135,14 @@ public:
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
         switch (this->GetGeometry().GetGeometryOrderType()) {
-        case GeometryData::Kratos_Cubic_Order:
-            return GeometryData::IntegrationMethod::GI_GAUSS_3;
-        case GeometryData::Kratos_Quartic_Order:
-            return GeometryData::IntegrationMethod::GI_GAUSS_5;
+            using enum GeometryData::KratosGeometryOrderType;
+            using enum GeometryData::IntegrationMethod;
+        case Kratos_Cubic_Order:
+            return GI_GAUSS_3;
+        case Kratos_Quartic_Order:
+            return GI_GAUSS_5;
         default:
-            return GeometryData::IntegrationMethod::GI_GAUSS_2;
+            return GI_GAUSS_2;
         }
     }
 
@@ -294,15 +296,16 @@ private:
                                                              const ProcessInfo& rCurrentProcessInfo)
     {
         switch (rContribution) {
-        case CalculationContribution::Permeability:
+            using enum CalculationContribution;
+        case Permeability:
             return std::make_unique<PermeabilityCalculator>(CreatePermeabilityInputProvider());
-        case CalculationContribution::Compressibility:
+        case Compressibility:
             if (GetProperties()[RETENTION_LAW] == "PressureFilterLaw") {
                 return std::make_unique<FilterCompressibilityCalculator>(
                     CreateFilterCompressibilityInputProvider(rCurrentProcessInfo));
             }
             return std::make_unique<CompressibilityCalculator>(CreateCompressibilityInputProvider(rCurrentProcessInfo));
-        case CalculationContribution::FluidBodyFlow:
+        case FluidBodyFlow:
             return std::make_unique<FluidBodyFlowCalculator>(CreateFluidBodyFlowInputProvider());
         default:
             KRATOS_ERROR << "Unknown contribution" << std::endl;
