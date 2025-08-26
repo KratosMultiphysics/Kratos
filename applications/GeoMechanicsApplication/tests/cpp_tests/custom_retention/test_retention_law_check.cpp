@@ -13,8 +13,8 @@
 #include "custom_retention/retention_law.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 using namespace ::testing;
 
@@ -37,16 +37,16 @@ private:
     MOCK_METHOD(void, save, (Serializer & rSerializer));
     MOCK_METHOD(void, load, (Serializer & rSerializer));
 };
-}
+} // namespace Kratos
+
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(RetentionLaw_CheckRetentionwVector,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(RetentionLaw_CheckRetentionwVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     std::vector<RetentionLaw::Pointer> retention_law_vector;
-    const auto                         properties = Properties();
+    const auto                         properties           = Properties();
     const auto                         current_process_info = ProcessInfo();
 
     // Act and Assert
@@ -56,14 +56,17 @@ KRATOS_TEST_CASE_IN_SUITE(RetentionLaw_CheckRetentionwVector,
     const auto mock_retention_law = std::make_shared<MockRetentionLaw>();
     retention_law_vector.push_back(mock_retention_law);
     retention_law_vector.push_back(mock_retention_law);
-    EXPECT_CALL(*mock_retention_law,Check(_,_)).WillOnce(Return(1));
 
-    // Act and Assert
+    // Act
+    EXPECT_CALL(*mock_retention_law, Check(_, _)).WillOnce(Return(1));
+
+    // Assert
     KRATOS_EXPECT_EQ(RetentionLaw::Check(retention_law_vector, properties, current_process_info), 1);
 
+    // Act
     EXPECT_CALL(*mock_retention_law, Check(_, _)).WillOnce(Return(0));
 
-    // Act and Assert
+    // Assert
     KRATOS_EXPECT_EQ(RetentionLaw::Check(retention_law_vector, properties, current_process_info), 0);
 }
 
