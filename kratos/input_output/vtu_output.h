@@ -54,27 +54,6 @@ public:
                                     NDData<double>::Pointer
                                 >;
 
-    using KratosDataPointerTypes = std::variant<
-                                    const Flags*,
-                                    const Variable<double>*,
-                                    const Variable<array_1d<double, 3>>*,
-                                    const Variable<array_1d<double, 4>>*,
-                                    const Variable<array_1d<double, 6>>*,
-                                    const Variable<array_1d<double, 9>>*,
-                                    const Variable<Vector>*,
-                                    const Variable<Matrix>*
-                                >;
-
-    using SupportedDoubledVariables = std::variant<
-                                    const Variable<double>*,
-                                    const Variable<array_1d<double, 3>>*,
-                                    const Variable<array_1d<double, 4>>*,
-                                    const Variable<array_1d<double, 6>>*,
-                                    const Variable<array_1d<double, 9>>*,
-                                    const Variable<Vector>*,
-                                    const Variable<Matrix>*
-                                >;
-
     using SupportedVariables = std::variant<
                                     const Variable<int>*,
                                     const Variable<double>*,
@@ -258,8 +237,6 @@ private:
 
     std::map<std::string, SupportedVariables> mNonHistoricalCellVariablesMap; /// Map to store supported non-historical cell variables.
 
-    std::map<std::string, SupportedVariables> mGaussPointVariablesMap; /// Map to store supported non-historical cell variables.
-
     std::map<std::string, const Flags*> mNodalFlagsMap; /// Map to store nodal flags.
 
     std::map<std::string, const Flags*> mCellFlagsMap; /// Map to store cell flags.
@@ -267,10 +244,6 @@ private:
     std::map<std::string, FieldPointerType> mPointFieldsMap;
 
     std::map<std::string, FieldPointerType> mCellFieldsMap;
-
-    std::map<std::string, ContainerExpression<ModelPart::NodesContainerType>::Pointer> mPointContainerExpressionsMap; /// Map to store point container expressions.
-
-    std::map<std::string, SupportedCellContainerExpressions> mCellContainerExpressionsMap; /// Map to store supported cell container expressions.
 
     ///@}
     ///@name Private operations

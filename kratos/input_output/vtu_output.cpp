@@ -403,7 +403,7 @@ template<class TDataType>
 void VtuOutput::AddHistoricalVariable(const Variable<TDataType>& rVariable)
 {
     VtuOutputHelperUtilities::CheckDataArrayName(
-        rVariable.Name(), mNonHistoricalNodalVariablesMap, mNodalFlagsMap, mPointContainerExpressionsMap);
+        rVariable.Name(), mNonHistoricalNodalVariablesMap, mNodalFlagsMap, mPointFieldsMap);
     mHistoricalVariablesMap[rVariable.Name()] = &rVariable;
 }
 
@@ -415,7 +415,7 @@ void VtuOutput::AddNonHistoricalVariable(
     if (rEntityFlags.Is(NODES)) {
         VtuOutputHelperUtilities::CheckDataArrayName(
             rVariable.Name(), mHistoricalVariablesMap, mNodalFlagsMap,
-            mPointContainerExpressionsMap);
+            mPointFieldsMap);
         mNonHistoricalNodalVariablesMap[rVariable.Name()] = &rVariable;
     } else {
         KRATOS_ERROR_IF_NOT(!rEntityFlags.Is(CONDITIONS) || (rEntityFlags.Is(CONDITIONS) && mIsConditionsConsidered))
@@ -429,7 +429,7 @@ void VtuOutput::AddNonHistoricalVariable(
             << mrModelPart.FullName() << "\" ].\n";
 
         VtuOutputHelperUtilities::CheckDataArrayName(
-            rVariable.Name(), mCellFlagsMap, mCellContainerExpressionsMap);
+            rVariable.Name(), mCellFlagsMap, mCellFieldsMap);
         mNonHistoricalCellVariablesMap[rVariable.Name()] = &rVariable;
     }
 }
@@ -442,7 +442,7 @@ void VtuOutput::AddFlagVariable(
     if (rEntityFlags.Is(NODES)) {
         VtuOutputHelperUtilities::CheckDataArrayName(
             rFlagName, mHistoricalVariablesMap, mNonHistoricalNodalVariablesMap,
-            mPointContainerExpressionsMap);
+            mPointFieldsMap);
         mNodalFlagsMap[rFlagName] = &rFlagVariable;
     } else {
         KRATOS_ERROR_IF_NOT(!rEntityFlags.Is(CONDITIONS) || (rEntityFlags.Is(CONDITIONS) && mIsConditionsConsidered))
@@ -456,7 +456,7 @@ void VtuOutput::AddFlagVariable(
             << mrModelPart.FullName() << "\" ].\n";
 
         VtuOutputHelperUtilities::CheckDataArrayName(
-            rFlagName, mNonHistoricalCellVariablesMap, mCellContainerExpressionsMap);
+            rFlagName, mNonHistoricalCellVariablesMap, mCellFieldsMap);
         mCellFlagsMap[rFlagName] = &rFlagVariable;
     }
 }
@@ -506,12 +506,10 @@ void VtuOutput::AddContainerExpression(
         VtuOutputHelperUtilities::CheckDataArrayName(
             rExpressionName, mHistoricalVariablesMap,
             mNonHistoricalNodalVariablesMap, mNodalFlagsMap);
-        mPointContainerExpressionsMap[rExpressionName] = pContainerExpression;
         mPointFieldsMap[rExpressionName] = p_nd_data;
     } else {
         VtuOutputHelperUtilities::CheckDataArrayName(
             rExpressionName, mNonHistoricalCellVariablesMap, mCellFlagsMap);
-        mCellContainerExpressionsMap[rExpressionName] = pContainerExpression;
         mCellFieldsMap[rExpressionName] = p_nd_data;
     }
 }
@@ -562,9 +560,9 @@ void VtuOutput::PrintModelPart(
     piece_element->AddElement(point_data_element);
 
     // generate and add point field data
-    AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*point_data_element, mrModelPart.pNodes(), mNodalFlagsMap, rXmlDataElementWrapper);
-    AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*point_data_element, mrModelPart.pNodes(), mNonHistoricalNodalVariablesMap, rXmlDataElementWrapper);
-    AddFieldsFromTensorAdaptor<HistoricalVariableTensorAdaptor>(*point_data_element, mrModelPart.pNodes(), mHistoricalVariablesMap, rXmlDataElementWrapper);
+    AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*point_data_element, rModelPart.pNodes(), mNodalFlagsMap, rXmlDataElementWrapper);
+    AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*point_data_element, rModelPart.pNodes(), mNonHistoricalNodalVariablesMap, rXmlDataElementWrapper);
+    AddFieldsFromTensorAdaptor<HistoricalVariableTensorAdaptor>(*point_data_element, rModelPart.pNodes(), mHistoricalVariablesMap, rXmlDataElementWrapper);
     AddFields(*point_data_element, mPointFieldsMap, rXmlDataElementWrapper);
 
     // create cell data
@@ -573,13 +571,11 @@ void VtuOutput::PrintModelPart(
 
     // generate and add cell field data
     if (mIsElementsConsidered) {
-        AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*cell_data_element, mrModelPart.pElements(), mCellFlagsMap, rXmlDataElementWrapper);
-        AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*cell_data_element, mrModelPart.pElements(), mNonHistoricalCellVariablesMap, rXmlDataElementWrapper);
-        AddFieldsFromTensorAdaptor<GaussPointVariableTensorAdaptor>(*cell_data_element, mrModelPart.pElements(), mGaussPointVariablesMap, rXmlDataElementWrapper, mrModelPart.pGetProcessInfo());
+        AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*cell_data_element, rModelPart.pElements(), mCellFlagsMap, rXmlDataElementWrapper);
+        AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*cell_data_element, rModelPart.pElements(), mNonHistoricalCellVariablesMap, rXmlDataElementWrapper);
     } else if (mIsConditionsConsidered) {
-        AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*cell_data_element, mrModelPart.pConditions(), mCellFlagsMap, rXmlDataElementWrapper);
-        AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*cell_data_element, mrModelPart.pConditions(), mNonHistoricalCellVariablesMap, rXmlDataElementWrapper);
-        AddFieldsFromTensorAdaptor<GaussPointVariableTensorAdaptor>(*cell_data_element, mrModelPart.pConditions(), mGaussPointVariablesMap, rXmlDataElementWrapper, mrModelPart.pGetProcessInfo());
+        AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*cell_data_element, rModelPart.pConditions(), mCellFlagsMap, rXmlDataElementWrapper);
+        AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*cell_data_element, rModelPart.pConditions(), mNonHistoricalCellVariablesMap, rXmlDataElementWrapper);
     }
     AddFields(*cell_data_element, mCellFieldsMap, rXmlDataElementWrapper);
 
@@ -594,7 +590,6 @@ void VtuOutput::PrintModelPart(
 
     std::ofstream output_file;
     output_file.open(output_vtu_file_name.str(), std::ios::out | std::ios::trunc);
-
     vtk_file_element.Write(output_file);
     output_file.close();
 
@@ -631,12 +626,12 @@ void VtuOutput::ClearCellFlags()
 
 void VtuOutput::ClearNodalContainerExpressions()
 {
-    mPointContainerExpressionsMap.clear();
+    mPointFieldsMap.clear();
 }
 
 void VtuOutput::ClearCellContainerExpressions()
 {
-    mCellContainerExpressionsMap.clear();
+    mCellFieldsMap.clear();
 }
 
 const ModelPart& VtuOutput::GetModelPart() const
