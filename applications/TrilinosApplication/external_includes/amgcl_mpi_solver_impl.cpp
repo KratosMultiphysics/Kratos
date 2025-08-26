@@ -19,6 +19,8 @@
 #include "linear_solvers/amgcl_solver_impl.hpp"
 #include "amgcl_mpi_solver.h"
 
+#include "custom_utilities/trilinos_solver_utilities.h"
+
 
 namespace Kratos {
 
@@ -50,10 +52,15 @@ struct AMGCLAdaptor<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>>
     {
         return rVector.Values();
     }
+
+    MPI_Comm GetCommunicator(Epetra_FECrsMatrix& rMatrix) const noexcept
+    {
+        return TrilinosSolverUtilities::GetMPICommFromEpetraComm(rMatrix.Comm());
+    }
 };
 
 
-template class AmgclMPISolver<
+template class KRATOS_API(TRILINOS_APPLICATION) AmgclMPISolver<
     TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>,
     UblasSpace<double, Matrix, Vector>
 >;

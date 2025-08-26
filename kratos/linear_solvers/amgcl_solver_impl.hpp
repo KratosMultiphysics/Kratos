@@ -30,6 +30,12 @@
 #include <amgcl/backend/vexcl_static_matrix.hpp>
 #endif
 
+#ifdef KRATOS_USING_MPI
+#include <amgcl/mpi/make_solver.hpp>
+#include <amgcl/mpi/preconditioner.hpp>
+#include <amgcl/mpi/solver/runtime.hpp>
+#endif
+
 // Core includes
 #include "includes/define.h"
 #include "input_output/logger.h"
@@ -84,27 +90,57 @@ struct AMGCLSolver<TSparse,TDense>::Impl
     >;
 
     template <class TBackend>
-    using MakeSolver = std::unique_ptr<amgcl::make_solver<
+    using MakeSharedMemorySolver = std::unique_ptr<amgcl::make_solver<
         amgcl::runtime::preconditioner<TBackend>,
         amgcl::runtime::solver::wrapper<TBackend>
     >>;
 
-    std::variant<
-         std::monostate
-        ,MakeSolver<amgcl::backend::builtin<BackendMatrix<1>>>
-        ,MakeSolver<amgcl::backend::builtin<BackendMatrix<2>>>
-        ,MakeSolver<amgcl::backend::builtin<BackendMatrix<3>>>
-        ,MakeSolver<amgcl::backend::builtin<BackendMatrix<4>>>
-        ,MakeSolver<amgcl::backend::builtin<BackendMatrix<5>>>
-        ,MakeSolver<amgcl::backend::builtin<BackendMatrix<6>>>
-        #ifdef AMGCL_GPGPU
-        ,MakeSolver<amgcl::backend::vexcl<BackendMatrix<1>>>
-        ,MakeSolver<amgcl::backend::vexcl<BackendMatrix<2>>>
-        ,MakeSolver<amgcl::backend::vexcl<BackendMatrix<3>>>
-        ,MakeSolver<amgcl::backend::vexcl<BackendMatrix<4>>>
-        ,MakeSolver<amgcl::backend::vexcl<BackendMatrix<5>>>
-        ,MakeSolver<amgcl::backend::vexcl<BackendMatrix<6>>>
-        #endif
+    #ifdef KRATOS_USING_MPI
+    template <class TBackend>
+    using MakeDistributedSolver = std::unique_ptr<amgcl::mpi::make_solver<
+        amgcl::runtime::mpi::preconditioner<TBackend>,
+        amgcl::runtime::mpi::solver::wrapper<TBackend>
+    >>;
+    #endif
+
+    std::conditional_t<
+        TSparse::IsDistributed(),
+        std::variant<
+            std::monostate
+            #ifdef KRATOS_USING_MPI
+                ,MakeDistributedSolver<amgcl::backend::builtin<BackendMatrix<1>>>
+                ,MakeDistributedSolver<amgcl::backend::builtin<BackendMatrix<2>>>
+                ,MakeDistributedSolver<amgcl::backend::builtin<BackendMatrix<3>>>
+                ,MakeDistributedSolver<amgcl::backend::builtin<BackendMatrix<4>>>
+                ,MakeDistributedSolver<amgcl::backend::builtin<BackendMatrix<5>>>
+                ,MakeDistributedSolver<amgcl::backend::builtin<BackendMatrix<6>>>
+                #ifdef AMGCL_GPGPU
+                    ,MakeDistributedSolver<amgcl::backend::vexcl<BackendMatrix<1>>>
+                    ,MakeDistributedSolver<amgcl::backend::vexcl<BackendMatrix<2>>>
+                    ,MakeDistributedSolver<amgcl::backend::vexcl<BackendMatrix<3>>>
+                    ,MakeDistributedSolver<amgcl::backend::vexcl<BackendMatrix<4>>>
+                    ,MakeDistributedSolver<amgcl::backend::vexcl<BackendMatrix<5>>>
+                    ,MakeDistributedSolver<amgcl::backend::vexcl<BackendMatrix<6>>>
+                #endif
+            #endif
+        >,
+        std::variant<
+             std::monostate
+            ,MakeSharedMemorySolver<amgcl::backend::builtin<BackendMatrix<1>>>
+            ,MakeSharedMemorySolver<amgcl::backend::builtin<BackendMatrix<2>>>
+            ,MakeSharedMemorySolver<amgcl::backend::builtin<BackendMatrix<3>>>
+            ,MakeSharedMemorySolver<amgcl::backend::builtin<BackendMatrix<4>>>
+            ,MakeSharedMemorySolver<amgcl::backend::builtin<BackendMatrix<5>>>
+            ,MakeSharedMemorySolver<amgcl::backend::builtin<BackendMatrix<6>>>
+            #ifdef AMGCL_GPGPU
+                ,MakeSharedMemorySolver<amgcl::backend::vexcl<BackendMatrix<1>>>
+                ,MakeSharedMemorySolver<amgcl::backend::vexcl<BackendMatrix<2>>>
+                ,MakeSharedMemorySolver<amgcl::backend::vexcl<BackendMatrix<3>>>
+                ,MakeSharedMemorySolver<amgcl::backend::vexcl<BackendMatrix<4>>>
+                ,MakeSharedMemorySolver<amgcl::backend::vexcl<BackendMatrix<5>>>
+                ,MakeSharedMemorySolver<amgcl::backend::vexcl<BackendMatrix<6>>>
+            #endif
+        >
     > mpSolver;
 }; // struct AMGCLSolver::Impl
 
@@ -476,13 +512,15 @@ void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType& rLhs,
     // Compute the multigrid hierarchy.
     if (mUseGPGPU) {
         #ifdef AMGCL_GPGPU
-        // Construct a GPU-bound solver.
+
+        // Initialize the static GPU environment.
         auto &vexcl_context = VexCLContext();
         KRATOS_ERROR_IF_NOT(vexcl_context) << "failed to initialize VexCL context";
 
-        #define KRATOS_MAKE_AMGCL_SOLVER(BLOCK_SIZE)                                                        \
+        // Construct a GPU-bound shared-memory solver.
+        #define KRATOS_MAKE_SHARED_MEMORY_AMGCL_SOLVER(BLOCK_SIZE)                                          \
             using BackendType = amgcl::backend::vexcl<typename Impl::template BackendMatrix<BLOCK_SIZE>>;   \
-            using SolverType = typename Impl::template MakeSolver<BackendType>::element_type;               \
+            using SolverType = typename Impl::template MakeSharedMemorySolver<BackendType>::element_type;   \
                                                                                                             \
             typename BackendType::params backend_parameters;                                                \
             backend_parameters.q = vexcl_context;                                                           \
@@ -494,6 +532,35 @@ void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType& rLhs,
                 backend_parameters));                                                                       \
             KRATOS_CATCH("")
 
+        // Construct a GPU-bound distributed-memory solver.
+        #ifdef KRATOS_USING_MPI
+            #define KRATOS_MAKE_DISTRIBUTED_AMGCL_SOLVER(BLOCK_SIZE)                                            \
+                using BackendType = amgcl::backend::vexcl<typename Impl::template BackendMatrix<BLOCK_SIZE>>;   \
+                using SolverType = typename Impl::template MakeDistributedSolver<BackendType>::element_type;    \
+                                                                                                                \
+                typename BackendType::params backend_parameters;                                                \
+                backend_parameters.q = vexcl_context;                                                           \
+                                                                                                                \
+                KRATOS_TRY                                                                                      \
+                mpImpl->mpSolver = std::unique_ptr<SolverType>(new SolverType(                                  \
+                    AMGCLAdaptor<TSparse>().GetCommunicator(rLhs),                                              \
+                    AMGCLAdaptor<TSparse>().template MakeMatrixAdaptor<BLOCK_SIZE>(rLhs),                       \
+                    mAMGCLParameters,                                                                           \
+                    backend_parameters));                                                                       \
+                KRATOS_CATCH("")
+        #else
+            #define KRATOS_MAKE_DISTRIBUTED_AMGCL_SOLVER(BLOCK_SIZE)                                            \
+                KRATOS_ERROR << "Requesting a distributed memory AMGCL solver but Kratos was compiled "         \
+                             << "without MPI support.";
+        #endif
+
+        #define KRATOS_MAKE_AMGCL_SOLVER(BLOCK_SIZE)                                                        \
+            if constexpr (TSparse::IsDistributed()) {                                                       \
+                KRATOS_MAKE_DISTRIBUTED_AMGCL_SOLVER(BLOCK_SIZE)                                            \
+            } else {                                                                                        \
+                KRATOS_MAKE_SHARED_MEMORY_AMGCL_SOLVER(BLOCK_SIZE)                                          \
+            }
+
         switch (mBlockSize.value()) {
             case 1: {KRATOS_MAKE_AMGCL_SOLVER(1) break;}
             case 2: {KRATOS_MAKE_AMGCL_SOLVER(2) break;}
@@ -506,15 +573,17 @@ void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType& rLhs,
         } // switch mBlockSize
 
         #undef KRATOS_MAKE_AMGCL_SOLVER
+        #undef KRATOS_MAKE_DISTRIBUTED_AMGCL_SOLVER
+        #undef KRATOS_MAKE_SHARED_MEMORY_AMGCL_SOLVER
 
         #else
         KRATOS_ERROR << "Requested a GPU-bound AMGCL solver, but Kratos was compiled without VexCL support!";
         #endif
     } /*if mUseGPGPU*/ else {
-        // Construct a CPU-bound solver.
-        #define KRATOS_MAKE_AMGCL_SOLVER(BLOCK_SIZE)                                                        \
+        // Construct a CPU-bound shared-memory solver.
+        #define KRATOS_MAKE_SHARED_MEMORY_AMGCL_SOLVER(BLOCK_SIZE)                                          \
             using BackendType = amgcl::backend::builtin<typename Impl::template BackendMatrix<BLOCK_SIZE>>; \
-            using SolverType = typename Impl::template MakeSolver<BackendType>::element_type;               \
+            using SolverType = typename Impl::template MakeSharedMemorySolver<BackendType>::element_type;   \
                                                                                                             \
             KRATOS_TRY                                                                                      \
             mpImpl->mpSolver = std::unique_ptr<SolverType>(new SolverType(                                  \
@@ -522,6 +591,31 @@ void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType& rLhs,
                 mAMGCLParameters));                                                                         \
             KRATOS_CATCH("")
 
+        // Construct a CPU-bound distributed-memory solver.
+        #ifdef KRATOS_USING_MPI
+            #define KRATOS_MAKE_DISTRIBUTED_AMGCL_SOLVER(BLOCK_SIZE)                                            \
+                using BackendType = amgcl::backend::builtin<typename Impl::template BackendMatrix<BLOCK_SIZE>>; \
+                using SolverType = typename Impl::template MakeDistributedSolver<BackendType>::element_type;    \
+                                                                                                                \
+                KRATOS_TRY                                                                                      \
+                mpImpl->mpSolver = std::unique_ptr<SolverType>(new SolverType(                                  \
+                    AMGCLAdaptor<TSparse>().GetCommunicator(rLhs),                                              \
+                    AMGCLAdaptor<TSparse>().template MakeMatrixAdaptor<BLOCK_SIZE>(rLhs),                       \
+                    mAMGCLParameters));                                                                         \
+                KRATOS_CATCH("")
+        #else
+            #define KRATOS_MAKE_DISTRIBUTED_AMGCL_SOLVER(BLOCK_SIZE)                                            \
+                KRATOS_ERROR << "Requesting a distributed memory AMGCL solver but Kratos was compiled "         \
+                             << "without MPI support.";
+        #endif
+
+        #define KRATOS_MAKE_AMGCL_SOLVER(BLOCK_SIZE)                                                        \
+            if constexpr (TSparse::IsDistributed()) {                                                       \
+                KRATOS_MAKE_DISTRIBUTED_AMGCL_SOLVER(BLOCK_SIZE)                                            \
+            } else {                                                                                        \
+                KRATOS_MAKE_SHARED_MEMORY_AMGCL_SOLVER(BLOCK_SIZE)                                          \
+            }
+
         switch (mBlockSize.value()) {
             case 1: {KRATOS_MAKE_AMGCL_SOLVER(1) break;}
             case 2: {KRATOS_MAKE_AMGCL_SOLVER(2) break;}
@@ -534,6 +628,8 @@ void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType& rLhs,
         } // switch mBlockSize
 
         #undef KRATOS_MAKE_AMGCL_SOLVER
+        #undef KRATOS_MAKE_DISTRIBUTED_AMGCL_SOLVER
+        #undef KRATOS_MAKE_SHARED_MEMORY_AMGCL_SOLVER
     } /*if mUseGPGPU else*/
 
     // Issue message about memory footprint.
@@ -590,9 +686,6 @@ bool AMGCLSolver<TSparse,TDense>::PerformSolutionStep(SparseMatrixType& rLhs,
 {
     KRATOS_TRY
 
-    // Nothing to do if the input system is empty.
-    if (!TSparse::Size(rSolution)) return true;
-
     const auto [iteration_count, residual_norm] = std::visit(
         [&rSolution, &rRhs] (auto& rp_solver) -> std::pair<std::size_t,typename TSparse::DataType> {
             using ElementType = std::remove_reference_t<decltype(rp_solver)>;
@@ -612,6 +705,7 @@ bool AMGCLSolver<TSparse,TDense>::PerformSolutionStep(SparseMatrixType& rLhs,
 
                     auto it_solution_begin = reinterpret_cast<StaticVectorType*>(AMGCLAdaptor<TSparse>().MakeVectorIterator(rSolution));
                     const auto it_rhs_begin = reinterpret_cast<StaticVectorType*>(AMGCLAdaptor<TSparse>().MakeVectorIterator(rRhs));
+                    KRATOS_WATCH(block_system_size);
                     const auto [iteration_count, residual_norm] = r_solver(
                         boost::make_iterator_range(it_rhs_begin, it_rhs_begin + block_system_size),
                         boost::make_iterator_range(it_solution_begin, it_solution_begin + block_system_size));
@@ -637,6 +731,7 @@ bool AMGCLSolver<TSparse,TDense>::PerformSolutionStep(SparseMatrixType& rLhs,
                     vex::copy(solution.begin(), solution.end(), it_solution_begin);
                     return std::pair<std::size_t,typename TSparse::DataType>(iteration_count, residual_norm);
                 #endif
+
                 } else {
                     static_assert(std::is_same_v<ElementType,std::monostate>, "unhandled solver type");
                     return {};

@@ -147,23 +147,6 @@ public:
                              VectorType& rSolution,
                              VectorType& rRhs) override;
 
-    /// @copydoc LinearSolver::Solve(SparseMatrixType&,VectorType&,VectorType&)
-    bool Solve(SparseMatrixType& rA,
-               VectorType& rX,
-               VectorType& rB) override
-    {
-        this->InitializeSolutionStep(rA, rX, rB);
-        const auto status = this->PerformSolutionStep(rA, rX, rB);
-        this->FinalizeSolutionStep(rA, rX, rB);
-        return status;
-    }
-
-    /// @copydoc LinearSolver::Solve(SparseMatrixType&,DenseMatrixType&,DenseMatrixType&)
-    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
-    {
-        return false;
-    }
-
     /// @copydoc LinearSolver::AdditionalPhysicalDataIsNeeded
     bool AdditionalPhysicalDataIsNeeded() override
     {

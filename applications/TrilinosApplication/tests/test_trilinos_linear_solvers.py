@@ -102,10 +102,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         nproc = data_comm.Size()
         target_norm = tolerance*space.TwoNorm(pboriginal.GetReference())*nproc #multiplying by nproc the target tolerance to give some slack. Not really nice :-(
 
-        if(achieved_norm > target_norm):
-            print("target_norm   :",target_norm)
-            print("achieved_norm :",achieved_norm)
-        self.assertTrue(achieved_norm <= target_norm)
+        self.assertLessEqual(achieved_norm, target_norm)
 
         #destroy the preconditioner - this is needed since  the solver should be destroyed before the destructor of the system matrix is called
         del linear_solver
