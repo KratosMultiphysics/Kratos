@@ -144,11 +144,11 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         expected_total_stress = [-10324.4, -30053.2, -50021.0, -70014.2, -89998.3, -110028.0]
         
         for i in range(6):
-            actual_pressure = reader.nodal_values_at_time("WATER_PRESSURE", 7862.4, output_data, [nodes[i]])[0]
+            actual_pressure = reader.nodal_values_at_time("WATER_PRESSURE", 8726.4, output_data, [nodes[i]])[0]
             self.assertAlmostEqual(actual_pressure, expected_pressure[i], 4)
         
             actual_total_stress = reader.nodal_values_at_time(
-                "TOTAL_STRESS_TENSOR", 7862.4, output_data, [nodes[i]])[0][1]
+                "TOTAL_STRESS_TENSOR", 8726.4, output_data, [nodes[i]])[0][1]
             self.assertAlmostEqual(actual_total_stress, expected_total_stress[i], 4)
 
         os.chdir(current_working_directory)
