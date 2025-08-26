@@ -1248,32 +1248,22 @@ Begin SubModelPart Soil
 End SubModelPart
 
 Begin SubModelPart TopWaterPressure0
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     2
     3
     104
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
 End SubModelPart 
 
 Begin SubModelPart Bottom
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     1
     4
     204
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
 End SubModelPart 
 
 Begin SubModelPart Sides
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     1
     2
@@ -1478,13 +1468,9 @@ Begin SubModelPart Sides
     202
     203
   End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
 End SubModelPart 
 
 Begin SubModelPart SoilExcludingBoundary
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     5
     6
@@ -2150,8 +2136,6 @@ Begin SubModelPart LineLoad4
   Begin SubModelPartTables
     4
   End SubModelPartTables
-  Begin SubModelPartElements
-  End SubModelPartElements
   Begin SubModelPartNodes
     2
     3
@@ -2181,8 +2165,6 @@ Begin SubModelPart LineLoad5
   Begin SubModelPartTables
     5
   End SubModelPartTables
-  Begin SubModelPartElements
-  End SubModelPartElements
   Begin SubModelPartNodes
     2
     3
