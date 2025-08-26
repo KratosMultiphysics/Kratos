@@ -11,53 +11,38 @@
 //
 
 // System includes
-#include <vector>
-#include <iomanip>
 #include <numeric>
 #include <type_traits>
 
 // External includes
 
 // Project includes
-#include "expression/container_data_io.h"
-#include "expression/container_expression.h"
-#include "expression/literal_flat_expression.h"
-#include "expression/variable_expression_io.h"
 #include "includes/data_communicator.h"
 #include "input_output/base_64_encoded_output.h"
 #include "input_output/vtk_definitions.h"
-#include "utilities/global_pointer_utilities.h"
-#include "utilities/parallel_utilities.h"
-#include "utilities/pointer_communicator.h"
-#include "utilities/string_utilities.h"
-#include "utilities/xml_utilities/xml_expression_element.h"
-#include "utilities/xml_utilities/xml_ostream_ascii_writer.h"
-#include "utilities/xml_utilities/xml_ostream_base64_binary_writer.h"
-
-#include "utilities/container_io_utils.h"
-#include "tensor_adaptors/node_position_tensor_adaptor.h"
-#include "tensor_adaptors/variable_tensor_adaptor.h"
-#include "tensor_adaptors/historical_variable_tensor_adaptor.h"
 #include "tensor_adaptors/flags_tensor_adaptor.h"
 #include "tensor_adaptors/gauss_point_variable_tensor_adaptor.h"
-
+#include "tensor_adaptors/historical_variable_tensor_adaptor.h"
+#include "tensor_adaptors/node_position_tensor_adaptor.h"
+#include "tensor_adaptors/variable_tensor_adaptor.h"
+#include "utilities/container_io_utils.h"
 #include "utilities/data_type_traits.h"
-
-#include "utilities/xml_utilities/xml_elements_array.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/xml_utilities/xml_ascii_nd_data_element.h"
 #include "utilities/xml_utilities/xml_base64_binary_nd_data_element.h"
+#include "utilities/xml_utilities/xml_elements_array.h"
 
 // Include base h
 #include "vtu_output.h"
-
-namespace Kratos {
+namespace Kratos
+{
 
     KRATOS_CREATE_LOCAL_FLAG(VtuOutput, NODES,   1);
     KRATOS_CREATE_LOCAL_FLAG(VtuOutput, CONDITIONS,  2);
     KRATOS_CREATE_LOCAL_FLAG(VtuOutput, ELEMENTS, 3);
 
-namespace {
-
+namespace
+{
 struct XmlAsciiNDDataElementWrapper
 {
     IndexType mPrecision;
@@ -95,6 +80,16 @@ std::string GetEndianness()
     } else {
         return "BigEndian";
     }
+}
+
+template<class... TLists>
+void CheckDataArrayName(
+    const std::string& rName,
+    TLists&... rLists)
+{
+    const bool found_existing_name = !(... && (rLists.find(rName) == rLists.end()));
+    KRATOS_ERROR_IF(found_existing_name)
+        << "Found an existing data array with the same name = \"" << rName << "\".\n";
 }
 
 template <class TContainerType>
@@ -244,126 +239,6 @@ void AddFields(
 
 } // namespace
 
-namespace VtuOutputHelperUtilities {
-
-template<class... TLists>
-void CheckDataArrayName(
-    const std::string& rName,
-    TLists&... rLists)
-{
-    const bool found_existing_name = !(... && (rLists.find(rName) == rLists.end()));
-    KRATOS_ERROR_IF(found_existing_name)
-        << "Found an existing data array with the same name = \"" << rName << "\".\n";
-}
-
-// void CreatePDataArrays(
-//     XmlExpressionElement& rOutputElement,
-//     const XmlExpressionElement& rInputElement)
-// {
-//     for (const auto& p_element : rInputElement.GetElements()) {
-//         auto new_pdata_array = Kratos::make_shared<XmlExpressionElement>("PDataArray");
-//         CopyAttributes(*new_pdata_array, *p_element);
-//         rOutputElement.AddElement(new_pdata_array);
-//     }
-// }
-
-// std::string GetEndianness()
-// {
-//     int i = 0x0001;
-
-//     if (*reinterpret_cast<char*>(&i) != 0) {
-//         return "LittleEndian";
-//     } else {
-//         return "BigEndian";
-//     }
-// }
-
-// void WritePvtuFile(
-//     XmlExpressionElement::Pointer pVtkFileElement,
-//     const ModelPart& rModelPart,
-//     const std::string& rOutputFileNamePrefix,
-//     const std::string& rOutputFileName)
-// {
-//     // get list of file names
-//     std::stringstream list_of_file_names;
-
-//     const auto& r_communicator = rModelPart.GetCommunicator();
-//     const auto& r_data_communicator = r_communicator.GetDataCommunicator();
-
-//     // TODO: May be we want to check a rank which has some entities (not empty ranks)
-//     //       Then write on that rank.
-//     const int writing_rank = 0;
-
-//     list_of_file_names << rOutputFileName << "\n";
-//     if (r_data_communicator.Rank() == writing_rank) {
-//         for (int rank = 0; rank < r_data_communicator.Size(); ++rank) {
-//             if (rank != writing_rank) {
-//                 std::string msg;
-//                 r_data_communicator.Recv(msg, rank);
-//                 list_of_file_names << msg;
-//             }
-//         }
-//     } else {
-//         r_data_communicator.Send(list_of_file_names.str(), writing_rank);
-//     }
-//     r_data_communicator.Barrier();
-
-//     if (r_data_communicator.Rank() == writing_rank) {
-//         // create the vtk file
-//         auto vtk_file_element = Kratos::make_shared<XmlExpressionElement>("VTKFile");
-//         vtk_file_element->AddAttribute("type", "PUnstructuredGrid");
-//         vtk_file_element->AddAttribute("version", "0.1");
-//         vtk_file_element->AddAttribute("byte_order", GetEndianness());
-
-//         // create the unstructured grid
-//         auto unstructured_grid_element = Kratos::make_shared<XmlExpressionElement>("PUnstructuredGrid");
-//         unstructured_grid_element->AddAttribute("GhostLevel", "0");
-//         vtk_file_element->AddElement(unstructured_grid_element);
-
-//         // get the points xml element
-//         auto piece = pVtkFileElement->GetElements("UnstructuredGrid")[0]->GetElements("Piece")[0];
-
-//         auto points = piece->GetElements("Points")[0];
-//         auto p_points = Kratos::make_shared<XmlExpressionElement>("PPoints");
-//         VtuOutputHelperUtilities::CreatePDataArrays(*p_points, *points);
-//         unstructured_grid_element->AddElement(p_points);
-
-//         auto cells = piece->GetElements("Cells")[0];
-//         auto p_cells = Kratos::make_shared<XmlExpressionElement>("PCells");
-//         VtuOutputHelperUtilities::CreatePDataArrays(*p_cells, *cells);
-//         unstructured_grid_element->AddElement(p_cells);
-
-//         auto point_data = piece->GetElements("PointData")[0];
-//         auto p_point_data = Kratos::make_shared<XmlExpressionElement>("PPointData");
-//         VtuOutputHelperUtilities::CreatePDataArrays(*p_point_data, *point_data);
-//         unstructured_grid_element->AddElement(p_point_data);
-
-//         auto cell_data = piece->GetElements("CellData")[0];
-//         auto p_cell_data = Kratos::make_shared<XmlExpressionElement>("PCellData");
-//         VtuOutputHelperUtilities::CreatePDataArrays(*p_cell_data, *cell_data);
-//         unstructured_grid_element->AddElement(p_cell_data);
-
-//         // now write all the pieces
-//         const auto& r_file_names = StringUtilities::SplitStringByDelimiter(list_of_file_names.str(), '\n');
-//         for (const auto& r_file_name : r_file_names) {
-//             auto piece = Kratos::make_shared<XmlExpressionElement>("Piece");
-//             piece->AddAttribute("Source", r_file_name);
-//             unstructured_grid_element->AddElement(piece);
-//         }
-
-//         // writing to file
-//         std::stringstream output_pvtu_file_name;
-//         output_pvtu_file_name << rOutputFileNamePrefix << ".pvtu";
-//         std::ofstream output_file;
-//         output_file.open(output_pvtu_file_name.str(), std::ios::out | std::ios::trunc);
-//         XmlOStreamAsciiWriter writer(output_file, 1);
-//         writer.WriteElement(*vtk_file_element);
-//         output_file.close();
-//     }
-// }
-
-}; // namespace VtuOutputHelperUtilities
-
 VtuOutput::VtuOutput(
     ModelPart& rModelPart,
     const bool IsInitialConfiguration,
@@ -402,7 +277,7 @@ VtuOutput::VtuOutput(
 template<class TDataType>
 void VtuOutput::AddHistoricalVariable(const Variable<TDataType>& rVariable)
 {
-    VtuOutputHelperUtilities::CheckDataArrayName(
+    CheckDataArrayName(
         rVariable.Name(), mNonHistoricalNodalVariablesMap, mNodalFlagsMap, mPointFieldsMap);
     mHistoricalVariablesMap[rVariable.Name()] = &rVariable;
 }
@@ -413,7 +288,7 @@ void VtuOutput::AddNonHistoricalVariable(
     const Flags& rEntityFlags)
 {
     if (rEntityFlags.Is(NODES)) {
-        VtuOutputHelperUtilities::CheckDataArrayName(
+        CheckDataArrayName(
             rVariable.Name(), mHistoricalVariablesMap, mNodalFlagsMap,
             mPointFieldsMap);
         mNonHistoricalNodalVariablesMap[rVariable.Name()] = &rVariable;
@@ -428,7 +303,7 @@ void VtuOutput::AddNonHistoricalVariable(
             << rVariable.Name() << "\" cannot be written for a model part with only conditions [ model part name = \""
             << mrModelPart.FullName() << "\" ].\n";
 
-        VtuOutputHelperUtilities::CheckDataArrayName(
+        CheckDataArrayName(
             rVariable.Name(), mCellFlagsMap, mCellFieldsMap);
         mNonHistoricalCellVariablesMap[rVariable.Name()] = &rVariable;
     }
@@ -440,7 +315,7 @@ void VtuOutput::AddFlagVariable(
     const Flags& rEntityFlags)
 {
     if (rEntityFlags.Is(NODES)) {
-        VtuOutputHelperUtilities::CheckDataArrayName(
+        CheckDataArrayName(
             rFlagName, mHistoricalVariablesMap, mNonHistoricalNodalVariablesMap,
             mPointFieldsMap);
         mNodalFlagsMap[rFlagName] = &rFlagVariable;
@@ -455,7 +330,7 @@ void VtuOutput::AddFlagVariable(
             << rFlagName << "\" cannot be written for a model part with only conditions [ model part name = \""
             << mrModelPart.FullName() << "\" ].\n";
 
-        VtuOutputHelperUtilities::CheckDataArrayName(
+        CheckDataArrayName(
             rFlagName, mNonHistoricalCellVariablesMap, mCellFieldsMap);
         mCellFlagsMap[rFlagName] = &rFlagVariable;
     }
@@ -503,12 +378,12 @@ void VtuOutput::AddContainerExpression(
     });
 
     if constexpr (std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
-        VtuOutputHelperUtilities::CheckDataArrayName(
+        CheckDataArrayName(
             rExpressionName, mHistoricalVariablesMap,
             mNonHistoricalNodalVariablesMap, mNodalFlagsMap);
         mPointFieldsMap[rExpressionName] = p_nd_data;
     } else {
-        VtuOutputHelperUtilities::CheckDataArrayName(
+        CheckDataArrayName(
             rExpressionName, mNonHistoricalCellVariablesMap, mCellFlagsMap);
         mCellFieldsMap[rExpressionName] = p_nd_data;
     }
@@ -592,11 +467,6 @@ void VtuOutput::PrintModelPart(
     output_file.open(output_vtu_file_name.str(), std::ios::out | std::ios::trunc);
     vtk_file_element.Write(output_file);
     output_file.close();
-
-    // if (r_communicator.IsDistributed()) {
-    //     VtuOutputHelperUtilities::WritePvtuFile(vtk_file_element, rModelPart, rOutputFileNamePrefix,
-    //                                             output_vtu_file_name.str());
-    // }
 }
 
 void VtuOutput::ClearHistoricalVariables()

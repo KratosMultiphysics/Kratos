@@ -26,8 +26,8 @@
 #include "includes/model_part.h"
 #include "containers/variable.h"
 #include "containers/flags.h"
-#include "expression/container_expression.h"
 #include "containers/nd_data.h"
+#include "expression/container_expression.h"
 
 namespace Kratos {
 /**
