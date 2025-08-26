@@ -52,7 +52,7 @@
             "scaling": true
         },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list": ["PhreaticLineContactStress0", "TopWaterPressure", "Bottom", "Sides", "SoilExcludingBoundary", "Soil"],
+        "processes_sub_model_part_list": ["PhreaticLineContactStress", "TopWaterPressure", "Bottom", "Sides", "SoilExcludingBoundary", "Soil"],
         "body_domain_sub_model_part_list": ["Soil"],
         "move_mesh_flag": false
     },
@@ -191,7 +191,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyNormalLoadTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.PhreaticLineContactStress0",
+                    "model_part_name": "PorousDomain.PhreaticLineContactStress",
                     "variable_name": "NORMAL_CONTACT_STRESS",
                     "active": [true, false],
                     "value": [0.0, 0.0],

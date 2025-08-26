@@ -2084,7 +2084,7 @@ Begin SubModelPart SoilExcludingBoundary
   End SubModelPartElements
 End SubModelPart
 
-Begin SubModelPart PhreaticLineContactStress0
+Begin SubModelPart PhreaticLineContactStress
   Begin SubModelPartNodes
     2
     3
