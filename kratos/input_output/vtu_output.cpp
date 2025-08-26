@@ -571,7 +571,7 @@ void VtuOutput::PrintModelPart(
     auto cell_data_element = Kratos::make_shared<XmlElementsArray>("CellData");
     piece_element->AddElement(cell_data_element);
 
-    // generate and add point field data
+    // generate and add cell field data
     if (mIsElementsConsidered) {
         AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*cell_data_element, mrModelPart.pElements(), mCellFlagsMap, rXmlDataElementWrapper);
         AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*cell_data_element, mrModelPart.pElements(), mNonHistoricalCellVariablesMap, rXmlDataElementWrapper);
