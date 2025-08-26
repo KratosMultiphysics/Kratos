@@ -1247,7 +1247,7 @@ Begin SubModelPart Soil
   End SubModelPartElements
 End SubModelPart
 
-Begin SubModelPart TopWaterPressure0
+Begin SubModelPart TopWaterPressure
   Begin SubModelPartNodes
     2
     3
