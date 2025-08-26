@@ -169,6 +169,12 @@ void  AddLinearSolvers(pybind11::module& m)
         ;
 }
 
+// Dummy solver definition to mark LinearSolver as an imported class
+// (MSVC linker workaround)
+class KRATOS_API(LINEARSOLVERS_APPLICATION) DummyDistributedLinearSolver
+    : public TrilinosLinearSolverType
+{};
+
 } // namespace Python:: Kratos.
 
 #endif // KRATOS_PYTHON defined
