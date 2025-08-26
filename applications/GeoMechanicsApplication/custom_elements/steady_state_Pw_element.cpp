@@ -45,7 +45,7 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
     KRATOS_TRY
 
     const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geometry = this->GetGeometry();
+    const GeometryType&   r_geometry   = this->GetGeometry();
 
     CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), this->Id());
 
@@ -79,7 +79,8 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
         // If this is a 2D problem, nodes must be in XY plane
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             if (r_geometry[i].Z() != 0.0)
-                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << r_geometry[i].Id() << std::endl;
+                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << r_geometry[i].Id()
+                             << std::endl;
         }
     }
 

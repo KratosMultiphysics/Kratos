@@ -109,8 +109,9 @@ public:
      */
     virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) = 0;
 
-    static int Check(const std::vector<RetentionLaw::Pointer>&            rRetentionLawVector,
-              const Properties & rProperties, const ProcessInfo& rCurrentProcessInfo)
+    static int Check(const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
+                     const Properties&                         rProperties,
+                     const ProcessInfo&                        rCurrentProcessInfo)
     {
         if (!rRetentionLawVector.empty()) {
             return rRetentionLawVector[0]->Check(rProperties, rCurrentProcessInfo);
