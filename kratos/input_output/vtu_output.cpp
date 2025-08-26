@@ -14,6 +14,7 @@
 #include <vector>
 #include <iomanip>
 #include <numeric>
+#include <type_traits>
 
 // External includes
 
@@ -33,6 +34,19 @@
 #include "utilities/xml_utilities/xml_ostream_ascii_writer.h"
 #include "utilities/xml_utilities/xml_ostream_base64_binary_writer.h"
 
+#include "utilities/container_io_utils.h"
+#include "tensor_adaptors/node_position_tensor_adaptor.h"
+#include "tensor_adaptors/variable_tensor_adaptor.h"
+#include "tensor_adaptors/historical_variable_tensor_adaptor.h"
+#include "tensor_adaptors/flags_tensor_adaptor.h"
+#include "tensor_adaptors/gauss_point_variable_tensor_adaptor.h"
+
+#include "utilities/data_type_traits.h"
+
+#include "utilities/xml_utilities/xml_elements_array.h"
+#include "utilities/xml_utilities/xml_ascii_nd_data_element.h"
+#include "utilities/xml_utilities/xml_base64_binary_nd_data_element.h"
+
 // Include base h
 #include "vtu_output.h"
 
@@ -41,6 +55,272 @@ namespace Kratos {
     KRATOS_CREATE_LOCAL_FLAG(VtuOutput, NODES,   1);
     KRATOS_CREATE_LOCAL_FLAG(VtuOutput, CONDITIONS,  2);
     KRATOS_CREATE_LOCAL_FLAG(VtuOutput, ELEMENTS, 3);
+
+namespace {
+
+class Xml
+{
+public:
+    Xml()
+    {
+
+    }
+
+
+private:
+
+    template <class TDataType, class... TArgs>
+    XmlElement::Pointer CreateDataArrayElement(
+        const VtuOutput::WriterFormat& WriterFormat,
+        TArgs&&... rArgs)
+    {
+        switch (WriterFormat) {
+            case VtuOutput::WriterFormat::ASCII:
+                return Kratos::make_shared<XmlAsciiNDDataElement<TDataType>>(rArgs...);
+            case VtuOutput::WriterFormat::BINARY:
+                return Kratos::make_shared<XmlBase64BinaryNDDataElement<TDataType>>(rArgs...);
+            default:
+                KRATOS_ERROR << "Unsupported writer format.";
+                return nullptr;
+        }
+    }
+
+
+};
+
+template <class TDataType, class... TArgs>
+XmlElement::Pointer CreateDataArrayElement(
+    const VtuOutput::WriterFormat& WriterFormat,
+    TArgs&&... rArgs)
+{
+    switch (WriterFormat) {
+        case VtuOutput::WriterFormat::ASCII:
+            return Kratos::make_shared<XmlAsciiNDDataElement<TDataType>>(rArgs...);
+        case VtuOutput::WriterFormat::BINARY:
+            return Kratos::make_shared<XmlBase64BinaryNDDataElement<TDataType>>(rArgs...);
+        default:
+            KRATOS_ERROR << "Unsupported writer format.";
+            return nullptr;
+    }
+}
+
+template <class TContainerType>
+NDData<int>::Pointer GetOffsets(const TContainerType& rContainer)
+{
+    auto p_offsets = Kratos::make_shared<NDData<int>>(DenseVector<unsigned int>(1, rContainer.size()));
+    auto span = p_offsets->ViewData();
+
+    IndexType total_offset = 0;
+    auto data_itr = span.begin();
+    for (const auto& r_entity : rContainer) {
+        total_offset += r_entity.GetGeometry().size();
+        *(data_itr++) = total_offset;
+    }
+
+    return p_offsets;
+}
+
+template<class TContainerType>
+NDData<unsigned char>::Pointer GetGeometryTypes(const TContainerType& rContainer)
+{
+    auto p_geometry_types = Kratos::make_shared<NDData<unsigned char>>(DenseVector<unsigned int>(1, rContainer.size()));
+    auto span = p_geometry_types->ViewData();
+
+    IndexPartition<IndexType>(rContainer.size()).for_each([&span, &rContainer](const IndexType Index) {
+        const auto p_itr = VtkDefinitions::KratosVtkGeometryTypes.find((rContainer.begin() + Index)->GetGeometry().GetGeometryType());
+        if (p_itr != VtkDefinitions::KratosVtkGeometryTypes.end()) {
+            *(span.begin() + Index) = static_cast<unsigned char>(p_itr->second);
+        } else {
+            KRATOS_ERROR << "Element with id " << (rContainer.begin() + Index)->Id() << " has unsupported geometry.";
+        }
+    });
+    return p_geometry_types;
+}
+
+template<class TContainerType>
+NDData<int>::Pointer GetConnectivities(
+    const NDData<int>& rOffsets,
+    const TContainerType& rContainer,
+    const std::unordered_map<IndexType, IndexType>& rKratosVtuIndicesMap)
+{
+    const auto offsets_span = rOffsets.ViewData();
+
+    auto p_connectivities = Kratos::make_shared<NDData<int>>(DenseVector<unsigned int>(1, offsets_span.back()));
+    auto connectivities_span = p_connectivities->ViewData();
+
+    IndexPartition<IndexType>(rContainer.size()).for_each([&connectivities_span, &offsets_span, &rContainer, &rKratosVtuIndicesMap](const IndexType Index) {
+        const auto& r_geometry = (rContainer.begin() + Index)->GetGeometry();
+        auto entity_data_begin_itr = connectivities_span.begin() + offsets_span[Index] - r_geometry.size();
+
+        for (const auto& r_node : r_geometry) {
+            const auto p_itr = rKratosVtuIndicesMap.find(r_node.Id());
+            if (p_itr != rKratosVtuIndicesMap.end()) {
+                *(entity_data_begin_itr++) = p_itr->second;
+            } else {
+                KRATOS_ERROR << "Node with id " << r_node.Id() << " not found in nodes list.";
+            }
+        }
+    });
+    return p_connectivities;
+}
+
+template<class TContainerType>
+XmlElement::Pointer CreateCellsXmlElement(
+    const VtuOutput::WriterFormat& rWriterFormat,
+    const TContainerType& rContainer,
+    const std::unordered_map<IndexType, IndexType>& rKratosVtuIndicesMap)
+{
+    auto p_cells_xml_element = Kratos::make_shared<XmlElementsArray>("Cells");
+
+    auto p_offsets = GetOffsets(rContainer);
+
+    p_cells_xml_element->AddElement(CreateDataArrayElement<int>(rWriterFormat, "connectivity", GetConnectivities(*p_offsets, rContainer, rKratosVtuIndicesMap)));
+    p_cells_xml_element->AddElement(CreateDataArrayElement<int>(rWriterFormat, "offsets", p_offsets));
+    p_cells_xml_element->AddElement(CreateDataArrayElement<unsigned char>(rWriterFormat, "types", GetGeometryTypes(rContainer)));
+
+    return p_cells_xml_element;
+}
+
+template<class TTensorAdaptorType, class TContainerPointerType, class TMapType, class... TArgs>
+void AddFieldsFromTensorAdaptor(
+    const VtuOutput::WriterFormat& rWriterFormat,
+    XmlElementsArray& rXmlElement,
+    TContainerPointerType pContainer,
+    const TMapType& rMap,
+    TArgs&&... rArgs)
+{
+    KRATOS_TRY
+
+    for (const auto& r_pair : rMap) {
+        using data_type = BareType<decltype(r_pair.second)>;
+        if constexpr(std::is_same_v<data_type, Flags>) {
+            // the map is of type flags
+            TTensorAdaptorType tensor_adaptor(pContainer, *r_pair.second, rArgs...);
+            tensor_adaptor.Check();
+            tensor_adaptor.CollectData();
+            rXmlElement.AddElement(CreateDataArrayElement<int>(rWriterFormat, r_pair.first, tensor_adaptor.pGetStorage()));
+        } else {
+            std::visit([&](const auto p_variable) {
+                using primitive_data_type = typename DataTypeTraits<typename BareType<decltype(*p_variable)>::Type>::PrimitiveType;
+                if constexpr(std::is_same_v<primitive_data_type, int>) {
+                    // we only support int variable, and there are no TensorAdaptors to
+                    // collect data from integer variables, we do it manually here.
+                    auto p_nd_data = Kratos::make_shared<NDData<int>>(DenseVector<unsigned int>(1, pContainer->size()));
+                    const auto& shape = p_nd_data->Shape();
+                    if constexpr (std::is_same_v<TTensorAdaptorType, HistoricalVariableTensorAdaptor>) {
+                        ContainerIOUtils::CopyToContiguousArray<int>(
+                            *pContainer, p_nd_data->ViewData(),
+                            shape.data().begin(), shape.data().begin() + 1,
+                            [p_variable](int& rValue, const Node& rNode) {
+                                rValue = rNode.FastGetSolutionStepValue(*p_variable);
+                            });
+                    } else {
+                        ContainerIOUtils::CopyToContiguousArray<int>(
+                            *pContainer, p_nd_data->ViewData(),
+                            shape.data().begin(), shape.data().begin() + 1,
+                            [p_variable](int& rValue, const auto& rNode) {
+                                rValue = rNode.GetValue(*p_variable);
+                            });
+                    }
+                    rXmlElement.AddElement(CreateDataArrayElement<int>(rWriterFormat, r_pair.first, p_nd_data));
+                } else {
+                    TTensorAdaptorType tensor_adaptor(pContainer, p_variable, rArgs...);
+                    tensor_adaptor.Check();
+                    tensor_adaptor.CollectData();
+                    rXmlElement.AddElement(CreateDataArrayElement<double>(rWriterFormat, r_pair.first, tensor_adaptor.pGetStorage()));
+                }
+            }, r_pair.second);
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+void AddFields(
+    const VtuOutput::WriterFormat& rWriterFormat,
+    XmlElementsArray& rXmlElement,
+    const std::map<std::string, VtuOutput::FieldPointerType>& rMap)
+{
+    for (const auto& r_pair : rMap) {
+        std::visit([&rXmlElement, &r_pair, &rWriterFormat](auto pNDData) {
+            using data_type = typename BareType<decltype(*pNDData)>::DataType;
+            rXmlElement.AddElement(CreateDataArrayElement<data_type>(rWriterFormat, r_pair.first, pNDData));
+        }, r_pair.second);
+    }
+}
+
+// template<template <class> class TXmlDataArrayType, class TCellsContainerPointerType, class... TArgs>
+// XmlElement::Pointer GetVtkXmlElement(
+//     ModelPart::NodesContainerType::Pointer pNodes,
+//     TCellsContainerPointerType pCells,
+//     const Globals::Configuration& rConfiguration,
+//     const std::unordered_map<IndexType, IndexType>& rKratosVtuIndicesMap,
+//     const std::unordered_map<std::string, const Flags*>& rNodalFlagsMap,
+//     const std::unordered_map<std::string, VtuOutput::SupportedVariables>& rHistoricalVariablesMap,
+//     const std::unordered_map<std::string, VtuOutput::SupportedVariables>& rNodalVariablesMap,
+//     const std::unordered_map<std::string, const Flags*>& rCellFlagsMap,
+//     const std::unordered_map<std::string, VtuOutput::SupportedVariables>& rCellVariablesMap,
+//     const std::unordered_map<std::string, VtuOutput::SupportedVariables>& rCellGaussPointVariablesMap,
+//     TArgs&&... rArgs)
+// {
+//     KRATOS_TRY
+
+//     // create the vtk file
+//     auto vtk_file_element = Kratos::make_shared<XmlElementsArray>("VTKFile");
+//     vtk_file_element->AddAttribute("type", "UnstructuredGrid");
+//     vtk_file_element->AddAttribute("version", "0.1");
+//     vtk_file_element->AddAttribute("byte_order", VtuOutputHelperUtilities::GetEndianness());
+
+//     // create the unstructured grid
+//     auto unstructured_grid_element = Kratos::make_shared<XmlElementsArray>("UnstructuredGrid");
+//     vtk_file_element->AddElement(unstructured_grid_element);
+
+//     // create the piece element
+//     auto piece_element = Kratos::make_shared<XmlElementsArray>("Piece");
+//     piece_element->AddAttribute("NumberOfPoints", std::to_string(pNodes.size()));
+//     piece_element->AddAttribute("NumberOfCells", std::to_string(pCells.size()));
+//     unstructured_grid_element->AddElement(piece_element);
+
+//     // create the position element
+//     NodePositionTensorAdaptor node_position_tensor_adaptor(pNodes, rConfiguration);
+//     node_position_tensor_adaptor.Check();
+//     node_position_tensor_adaptor.CollectData();
+
+//     // create the points element
+//     auto points_element = Kratos::make_shared<XmlElementsArray>("Points");
+//     points_element->AddElement(Kratos::make_shared<TXmlDataArrayType<double>>("Position", node_position_tensor_adaptor.pGetStorage(), rArgs...));
+//     piece_element->AddElement(points_element);
+
+//     // create the cells element
+//     auto cells_element = CreateCellsXmlElement(*pCells, rKratosVtuIndicesMap);
+//     piece_element->AddElement(cells_element);
+
+//     // create the point data
+//     auto point_data_element = Kratos::make_shared<XmlElementsArray>("PointData");
+//     piece_element->AddElement(point_data_element);
+
+//     // generate and add point field data
+//     AddFields(*point_data_element, mPointFieldsMap);
+//     AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*point_data_element, mrModelPart.pNodes(), mNodalFlagsMap);
+//     AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*point_data_element, mrModelPart.pNodes(), mNonHistoricalNodalVariablesMap);
+//     AddFieldsFromTensorAdaptor<HistoricalVariableTensorAdaptor>(*point_data_element, mrModelPart.pNodes(), mHistoricalVariablesMap);
+
+//     // create cell data
+//     auto cell_data_element = Kratos::make_shared<XmlElementsArray>("CellData");
+//     piece_element->AddElement(cell_data_element);
+
+//     // generate and add cell field data
+//     AddFields(*cell_data_element, mCellFieldsMap);
+//     AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*point_data_element, pCells, mCellFlagsMap);
+//     AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*point_data_element, pCells, mNonHistoricalCellVariablesMap);
+//     AddFieldsFromTensorAdaptor<GaussPointVariableTensorAdaptor>(*point_data_element, pCells, mGaussPointVariablesMap, mrModelPart.pGetProcessInfo());
+
+//     return vtk_file_element;
+
+//     KRATOS_CATCH("");
+// }
+
+} // namespace
 
 namespace VtuOutputHelperUtilities {
 
@@ -674,104 +954,82 @@ void VtuOutput::PrintModelPart(
     ModelPart& rModelPart) const
 {
     // create the vtk file
-    auto vtk_file_element = Kratos::make_shared<XmlExpressionElement>("VTKFile");
-    vtk_file_element->AddAttribute("type", "UnstructuredGrid");
-    vtk_file_element->AddAttribute("version", "0.1");
-    vtk_file_element->AddAttribute("byte_order", VtuOutputHelperUtilities::GetEndianness());
+    XmlElementsArray vtk_file_element("VTKFile");
+    vtk_file_element.AddAttribute("type", "UnstructuredGrid");
+    vtk_file_element.AddAttribute("version", "0.1");
+    vtk_file_element.AddAttribute("byte_order", VtuOutputHelperUtilities::GetEndianness());
 
     // create the unstructured grid
-    auto unstructured_grid_element = Kratos::make_shared<XmlExpressionElement>("UnstructuredGrid");
-    vtk_file_element->AddElement(unstructured_grid_element);
+    auto unstructured_grid_element = Kratos::make_shared<XmlElementsArray>("UnstructuredGrid");
+    vtk_file_element.AddElement(unstructured_grid_element);
 
     // create the piece element
-    auto piece_element = Kratos::make_shared<XmlExpressionElement>("Piece");
-    piece_element->AddAttribute("NumberOfPoints",
-                                std::to_string(rModelPart.NumberOfNodes()));
-    piece_element->AddAttribute(
-        "NumberOfCells",
+    auto piece_element = Kratos::make_shared<XmlElementsArray>("Piece");
+    piece_element->AddAttribute("NumberOfPoints", std::to_string(rModelPart.NumberOfNodes()));
+    piece_element->AddAttribute("NumberOfCells",
         std::to_string(mIsElementsConsidered ? rModelPart.NumberOfElements()
                                              : rModelPart.NumberOfConditions()));
     unstructured_grid_element->AddElement(piece_element);
 
+    // create the position element
+    NodePositionTensorAdaptor node_position_tensor_adaptor(rModelPart.pNodes(), mIsInitialConfiguration ? Globals::Configuration::Initial : Globals::Configuration::Current);
+    node_position_tensor_adaptor.Check();
+    node_position_tensor_adaptor.CollectData();
+
     // create the points element
-    auto points_element = VtuOutputHelperUtilities::CreatePointsXmlElement(
-        rModelPart, mIsInitialConfiguration);
+    auto points_element = Kratos::make_shared<XmlElementsArray>("Points");
+    points_element->AddElement(CreateDataArrayElement<double>(mOutputFormat, "Position", node_position_tensor_adaptor.pGetStorage()));
     piece_element->AddElement(points_element);
 
     // create the cells element
-    XmlExpressionElement::Pointer cells_element;
-    if (mIsElementsConsidered) {
-        cells_element = VtuOutputHelperUtilities::CreateCellsXmlElement(
-            rModelPart.GetCommunicator().LocalMesh().Elements(), mKratosVtuIndicesMap);
-    } else {
-        cells_element = VtuOutputHelperUtilities::CreateCellsXmlElement(
-            rModelPart.GetCommunicator().LocalMesh().Conditions(), mKratosVtuIndicesMap);
-    }
+    auto cells_element = mIsElementsConsidered ? CreateCellsXmlElement(mOutputFormat, rModelPart.Elements(), mKratosVtuIndicesMap) : CreateCellsXmlElement(mOutputFormat, rModelPart.Conditions(), mKratosVtuIndicesMap);
     piece_element->AddElement(cells_element);
 
     // create the point data
-    auto point_data_element = Kratos::make_shared<XmlExpressionElement>("PointData");
+    auto point_data_element = Kratos::make_shared<XmlElementsArray>("PointData");
     piece_element->AddElement(point_data_element);
-    VtuOutputHelperUtilities::AddListOfVariables<ModelPart::NodesContainerType, ContainerDataIOTags::Historical>(
-        point_data_element, rModelPart, mHistoricalVariablesMap);
-    VtuOutputHelperUtilities::AddListOfVariables<ModelPart::NodesContainerType, ContainerDataIOTags::NonHistorical>(
-        point_data_element, rModelPart, mNonHistoricalNodalVariablesMap);
-    VtuOutputHelperUtilities::AddListOfFlags<ModelPart::NodesContainerType>(
-        point_data_element, rModelPart, mNodalFlagsMap);
-    VtuOutputHelperUtilities::AddListOfContainerExpressions(
-        point_data_element, rModelPart, mKratosVtuIndicesMap, mPointContainerExpressionsMap);
+
+    // generate and add point field data
+    AddFields(mOutputFormat, *point_data_element, mPointFieldsMap);
+    AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(mOutputFormat, *point_data_element, mrModelPart.pNodes(), mNodalFlagsMap);
+    AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(mOutputFormat, *point_data_element, mrModelPart.pNodes(), mNonHistoricalNodalVariablesMap);
+    AddFieldsFromTensorAdaptor<HistoricalVariableTensorAdaptor>(mOutputFormat, *point_data_element, mrModelPart.pNodes(), mHistoricalVariablesMap);
 
     // create cell data
-    auto cell_data_element = Kratos::make_shared<XmlExpressionElement>("CellData");
+    auto cell_data_element = Kratos::make_shared<XmlElementsArray>("CellData");
     piece_element->AddElement(cell_data_element);
+
+    // generate and add point field data
+    AddFields(mOutputFormat, *cell_data_element, mCellFieldsMap);
     if (mIsElementsConsidered) {
-        VtuOutputHelperUtilities::AddListOfVariables<ModelPart::ElementsContainerType, ContainerDataIOTags::NonHistorical>(
-            cell_data_element, rModelPart, mNonHistoricalCellVariablesMap);
-        VtuOutputHelperUtilities::AddListOfFlags<ModelPart::ElementsContainerType>(
-            cell_data_element, rModelPart, mCellFlagsMap);
+        AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(mOutputFormat, *point_data_element, mrModelPart.pElements(), mCellFlagsMap);
+        AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(mOutputFormat, *point_data_element, mrModelPart.pElements(), mNonHistoricalCellVariablesMap);
+        AddFieldsFromTensorAdaptor<GaussPointVariableTensorAdaptor>(mOutputFormat, *point_data_element, mrModelPart.pElements(), mGaussPointVariablesMap, mrModelPart.pGetProcessInfo());
     } else if (mIsConditionsConsidered) {
-        VtuOutputHelperUtilities::AddListOfVariables<ModelPart::ConditionsContainerType, ContainerDataIOTags::NonHistorical>(
-            cell_data_element, rModelPart, mNonHistoricalCellVariablesMap);
-        VtuOutputHelperUtilities::AddListOfFlags<ModelPart::ConditionsContainerType>(
-            cell_data_element, rModelPart, mCellFlagsMap);
+        AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(mOutputFormat, *point_data_element, mrModelPart.pConditions(), mCellFlagsMap);
+        AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(mOutputFormat, *point_data_element, mrModelPart.pConditions(), mNonHistoricalCellVariablesMap);
+        AddFieldsFromTensorAdaptor<GaussPointVariableTensorAdaptor>(mOutputFormat, *point_data_element, mrModelPart.pConditions(), mGaussPointVariablesMap, mrModelPart.pGetProcessInfo());
     }
 
-    VtuOutputHelperUtilities::AddListOfContainerExpressions(
-        cell_data_element, rModelPart, mKratosVtuIndicesMap, mCellContainerExpressionsMap);
-
-    const auto& r_communiator = rModelPart.GetCommunicator();
+    const auto& r_communicator = rModelPart.GetCommunicator();
 
     std::stringstream output_vtu_file_name;
     output_vtu_file_name << rOutputFileNamePrefix;
-    if (r_communiator.IsDistributed()) {
-        output_vtu_file_name << "_" << r_communiator.MyPID();
+    if (r_communicator.IsDistributed()) {
+        output_vtu_file_name << "_" << r_communicator.MyPID();
     }
     output_vtu_file_name << ".vtu";
 
     std::ofstream output_file;
     output_file.open(output_vtu_file_name.str(), std::ios::out | std::ios::trunc);
 
-    switch (mOutputFormat) {
-        case WriterFormat::ASCII:
-        {
-            XmlOStreamAsciiWriter writer(output_file, mPrecision);
-            writer.WriteElement(*vtk_file_element);
-        }
-        break;
-        case WriterFormat::BINARY:
-        {
-            XmlOStreamBase64BinaryWriter writer(output_file);
-            writer.WriteElement(*vtk_file_element);
-        }
-        break;
-    }
-
+    vtk_file_element.Write(output_file);
     output_file.close();
 
-    if (r_communiator.IsDistributed()) {
-        VtuOutputHelperUtilities::WritePvtuFile(vtk_file_element, rModelPart, rOutputFileNamePrefix,
-                                                output_vtu_file_name.str());
-    }
+    // if (r_communicator.IsDistributed()) {
+    //     VtuOutputHelperUtilities::WritePvtuFile(vtk_file_element, rModelPart, rOutputFileNamePrefix,
+    //                                             output_vtu_file_name.str());
+    // }
 }
 
 void VtuOutput::ClearHistoricalVariables()
