@@ -38,7 +38,7 @@ void XmlBase64BinaryNDDataElement<TDataType>::Write(
     std::ostream& rOStream,
     const IndexType Level) const
 {
-    const auto span = mpNDData->ViewData();
+    const auto span = this->mpNDData->ViewData();
 
     if (span.size() == 0) {
         this->WriteEmptyElementTag(rOStream, Level);
@@ -48,7 +48,7 @@ void XmlBase64BinaryNDDataElement<TDataType>::Write(
         // write the data
         const std::string tabbing(Level * 3, ' ');
 
-        rOStream << tabbing;
+        rOStream << tabbing << "  ";
 
         const unsigned int total_data_size = sizeof(TDataType) * span.size();
 
@@ -59,6 +59,8 @@ void XmlBase64BinaryNDDataElement<TDataType>::Write(
             base64_encoder.WriteData(&total_data_size, 1);
             base64_encoder.WriteData(span.begin(), span.size());
         }
+
+        rOStream << "\n";
 
         this->WriteElementTagEnd(rOStream, Level);
     }

@@ -18,7 +18,7 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/nd_data.h"
-#include "xml_element.h"
+#include "xml_nd_data_element.h"
 
 namespace Kratos {
 
@@ -26,12 +26,14 @@ namespace Kratos {
 ///@{
 
 template<class TDataType>
-class KRATOS_API(KRATOS_CORE) XmlAsciiNDDataElement : public XmlElement {
+class KRATOS_API(KRATOS_CORE) XmlAsciiNDDataElement : public XmlNDDataElement<TDataType> {
 public:
     ///@name Type definitions
     ///@{
 
-    using BaseType = XmlElement;
+    using IndexType = std::size_t;
+
+    using BaseType = XmlNDDataElement<TDataType>;
 
     KRATOS_CLASS_POINTER_DEFINITION(XmlAsciiNDDataElement);
 
@@ -41,7 +43,8 @@ public:
 
     XmlAsciiNDDataElement(
         const std::string& rDataArrayName,
-        typename NDData<TDataType>::Pointer pNDData);
+        typename NDData<TDataType>::Pointer pNDData,
+        const IndexType Precision);
 
     ///@}
     ///@name Public operations
@@ -57,7 +60,7 @@ private:
     ///@name Private member variables
     ///@{
 
-    typename NDData<TDataType>::Pointer mpNDData;
+    const IndexType mPrecision;
 
     ///@}
 };
