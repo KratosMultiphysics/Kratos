@@ -62,7 +62,9 @@ void ComputeBeamVectorsProcess::ComputeT0AndN0(
     // Evaluate at the start of the beam (parameter = 0)
     array_1d<double, 3> local_coordinates = ZeroVector(3);
     std::vector<array_1d<double, 3>> global_space_derivatives;
-    rCurve.GlobalSpaceDerivatives(global_space_derivatives, local_coordinates, 1);
+    
+    mpParentCurve->GlobalSpaceDerivatives(global_space_derivatives, local_coordinates, 1);
+
 
     // Tangent vector (normalized)
     rT0 = global_space_derivatives[1];
@@ -91,7 +93,7 @@ void ComputeBeamVectorsProcess::ComputeT0AndN0(
     // Evaluate at the start of the beam (parameter = 0)
     array_1d<double, 3> local_coordinates = ZeroVector(3);
     std::vector<array_1d<double, 3>> global_space_derivatives;
-    rCurve.GlobalSpaceDerivatives(global_space_derivatives, local_coordinates, 1);
+    mpParentCurve->GlobalSpaceDerivatives(global_space_derivatives, local_coordinates, 1);
 
     // Compute tangent vector (normalized)
     rT0 = global_space_derivatives[1];
