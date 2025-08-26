@@ -53,15 +53,25 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
     r_active_shell_mp.AddNodalSolutionStepVariable(ACTIVE_SHELL_KAPPA_2);
     r_active_shell_mp.AddNodalSolutionStepVariable(ACTIVE_SHELL_KAPPA_12);
 
-
+    KRATOS_WATCH(mIgaModelPartName) //CHECK LEO
+    KRATOS_WATCH(mActiveShellDofModelPartName) //CHECK LEO
+    KRATOS_WATCH(mrModel) //CHECK LEO
+    KRATOS_WATCH(r_iga_model_part) //CHECK LEO
+    KRATOS_WATCH(r_iga_model_part.rProperties()) //CHECK LEO
+    KRATOS_WATCH(r_iga_model_part.Elements()) //CHECK LEO
+    //exit(0);//CHECK LEO
 
     for (auto& r_element : r_iga_model_part.Elements()) {
         auto& r_geometry = r_element.GetGeometry().GetGeometryParent(0);
+        KRATOS_WATCH(r_element.GetGeometry().GetGeometryParent(0)) //CHECK LEO
         if (!r_geometry.Has(ACTIVE_SHELL_NODE_GP)) {
             const auto& r_center = r_geometry.Center();
             auto p_active_shell_node = r_active_shell_mp.CreateNewNode(r_geometry.Id(), r_center[0], r_center[1], r_center[2]);
+            
+            KRATOS_WATCH(p_active_shell_node) //CHECK LEO
 
-            p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA) = 1.0;
+            p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA) = 0.5;
+            // p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12) = 0.1;
 
             GlobalPointersVector<Node> nodes;
             nodes.push_back(p_active_shell_node);

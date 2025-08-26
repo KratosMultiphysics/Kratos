@@ -330,6 +330,8 @@ namespace Kratos
 
     void ActiveShell3pElement::InitializeActiveShellDofs()
     {
+        // KRATOS_WATCH(GetGeometry())
+        // KRATOS_WATCH(GetGeometry().GetGeometryParent(0))
         const Node& r_active_shell_node = GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
 
         mACTUATION_ALPHA = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA); 
