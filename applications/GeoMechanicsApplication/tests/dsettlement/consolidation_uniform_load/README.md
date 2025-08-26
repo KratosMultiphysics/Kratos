@@ -18,7 +18,7 @@ The following common conditions hold for all stages:
   - Displacements on the bottom are fixed in all directions.
   - Displacements on the sides are fixed in the X direction.
   - The uniform loads is used to apply the load on the top of the model. Moreover, the LineNormalLoadDiffOrderCondition2D3N condition is used for the phreatic line.
-  - Gravity is applied to the entire domain (-9.81 [m/s^2] in the negative Y direction).
+  - Gravity is applied to the entire domain (-9.81 $\mathrm{[m/s^2]}$ in the negative Y direction).
 
 ## Assertions
 The results for pore water pressure and stresses at locations Y = 0, -1, -2, -3, -4, -5 are selected and they are compared by regression. 
