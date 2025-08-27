@@ -369,7 +369,7 @@ template <class TReduction,
 template <class TContainerType,
           class TFunctionType,
           std::enable_if_t<!std::is_same_v<
-            std::iterator_traits<typename decltype(std::declval<std::remove_cv_t<TContainerType>>().begin())::value_type>,
+            typename std::iterator_traits<decltype(std::declval<std::remove_cv_t<TContainerType>>().begin())>::value_type,
             void
           >, bool> = true
          >

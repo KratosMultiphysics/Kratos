@@ -50,7 +50,7 @@ AxisymContactDomainPenalty2DCondition::AxisymContactDomainPenalty2DCondition( Ax
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 AxisymContactDomainPenalty2DCondition&  AxisymContactDomainPenalty2DCondition::operator=(AxisymContactDomainPenalty2DCondition const& rOther)
@@ -190,7 +190,7 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( ConditionVariab
     ElementType&  MasterElement  = mContactVariables.GetMasterElement();
     GeometryType& MasterGeometry = mContactVariables.GetMasterGeometry();
 
-    //Get the parent coodinates derivative [dN/d£]
+    //Get the parent coordinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = MasterGeometry.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
     //Get integration points number

@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_processes/apply_c_phi_reduction_process.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
 
@@ -28,6 +29,10 @@ void ApplyCPhiReductionProcess::ExecuteInitializeSolutionStep()
     mReductionFactor = mPreviousReductionFactor - mReductionIncrement;
     KRATOS_ERROR_IF(mReductionFactor <= 0.01)
         << "Reduction factor should not drop below 0.01, calculation stopped." << std::endl;
+    KRATOS_ERROR_IF(mReductionIncrement <= 0.001)
+        << "Reduction increment should not drop below 0.001, calculation stopped. Final safety "
+           "factor = "
+        << 1.0 / mPreviousReductionFactor << std::endl;
     KRATOS_INFO("ApplyCPhiReductionProces::ExecuteInitializeSolutionStep")
         << "Try a c-phi reduction factor " << mReductionFactor << " (safety factor "
         << 1. / mReductionFactor << ") Previous reduction = " << mPreviousReductionFactor
@@ -90,8 +95,9 @@ double ApplyCPhiReductionProcess::GetAndCheckPhi(const Element::PropertiesType& 
                         static_cast<int>(part_properties[UMAT_PARAMETERS].size()))
         << "Invalid INDEX_OF_UMAT_PHI_PARAMETER: " << part_properties[INDEX_OF_UMAT_PHI_PARAMETER]
         << " (out-of-bounds index)" << std::endl;
-    const double phi = part_properties[UMAT_PARAMETERS][part_properties[INDEX_OF_UMAT_PHI_PARAMETER] - 1];
-    KRATOS_ERROR_IF(phi < 0. || phi > 90.) << "Friction angle Phi out of range: " << phi << std::endl;
+    const auto phi = ConstitutiveLawUtilities::GetFrictionAngleInDegrees(part_properties);
+    KRATOS_ERROR_IF(phi < 0. || phi > 90.)
+        << "Friction angle Phi out of range [0;90] (degrees): " << phi << std::endl;
     return phi;
 }
 
@@ -120,7 +126,7 @@ double ApplyCPhiReductionProcess::GetAndCheckC(const Element::PropertiesType& rP
                         static_cast<int>(part_properties[UMAT_PARAMETERS].size()))
         << "invalid INDEX_OF_UMAT_C_PARAMETER: " << part_properties[INDEX_OF_UMAT_C_PARAMETER]
         << " (out-of-bounds index)" << std::endl;
-    const auto c = part_properties[UMAT_PARAMETERS][part_properties[INDEX_OF_UMAT_C_PARAMETER] - 1];
+    const auto c = ConstitutiveLawUtilities::GetCohesion(part_properties);
     KRATOS_ERROR_IF(c < 0.) << "Cohesion C out of range: " << c << std::endl;
     return c;
 }

@@ -173,7 +173,7 @@ namespace Kratos
 				//std::cout<<nodes_tree2<<std::endl;
 
 				unsigned int n_points_in_radius;
-				//radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
+				//radius means the distance, closer than which no node shall be allowed. if closer -> mark for erasing
 				double radius;
 
 				for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
@@ -223,7 +223,7 @@ namespace Kratos
 //				(nodes_begin + i)->Id() = i+1;
 			}
 
-			//give the corrdinates to the mesher
+			//give the coordinates to the mesher
 			for(unsigned int i = 0; i<ThisModelPart.Nodes().size(); i++)
 			{
 				int base = i*3;
@@ -313,7 +313,7 @@ namespace Kratos
 
 
 				//cases:
-				//4 nodes on the wall - elminate
+				//4 nodes on the wall - eliminate
 				// at least one node of boundary OR at least one node NOT of fluid --> pass alpha shape
 				/*
 				if(nb == 4) // 4 nodes on the wall
@@ -782,7 +782,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 						neighb(i) = Element::WeakPointer();
 				}
 			}
-			std::cout << "time for adding neigbours" << adding_neighb.elapsed() << std::endl;;
+			std::cout << "time for adding neighbours" << adding_neighb.elapsed() << std::endl;;
 
 
 
@@ -848,7 +848,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 
 
 
-			//here we remove lonely nodes that are not teh flying nodes, but are the lonely nodes inside water vol
+			//here we remove lonely nodes that are not the flying nodes, but are the lonely nodes inside water vol
 			/*
 			for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); in++)
 			{
@@ -1139,7 +1139,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			const double x3 = c4[0]; const double y3 = c4[1]; const double z3 = c4[2];
 
 // 			KRATOS_WATCH("111111111111111111111");
-			//calculate min side lenght
+			//calculate min side length
 			//(use xc as a auxiliary vector) !!!!!!!!!!!!
 			double aux;
 			noalias(xc) = c4; noalias(xc)-=c1; aux = inner_prod(xc,xc); hmin = aux; hmax = aux;

@@ -19,8 +19,15 @@
 namespace Kratos
 {
 
-Matrix ThreeDimensional::FillConstitutiveMatrix(double c1, double c2, double c3) const
+Matrix ThreeDimensional::CalculateElasticMatrix(const Properties& rProperties) const
 {
+    const auto youngs_modulus = rProperties[YOUNG_MODULUS];
+    const auto poissons_ratio = rProperties[POISSON_RATIO];
+    const auto c0 = youngs_modulus / ((1.0 + poissons_ratio) * (1.0 - 2.0 * poissons_ratio));
+    const auto c1 = (1.0 - poissons_ratio) * c0;
+    const auto c2 = poissons_ratio * c0;
+    const auto c3 = (0.5 - poissons_ratio) * c0;
+
     Matrix result = ZeroMatrix(GetStrainSize(), GetStrainSize());
 
     result(INDEX_3D_XX, INDEX_3D_XX) = c1;
@@ -51,6 +58,18 @@ std::size_t ThreeDimensional::GetStrainSize() const { return VOIGT_SIZE_3D; }
 
 std::size_t ThreeDimensional::GetDimension() const { return N_DIM_3D; }
 
+std::size_t ThreeDimensional::GetNumberOfNormalComponents() const { return 3; }
+
 Flags ThreeDimensional::GetSpatialType() const { return ConstitutiveLaw::THREE_DIMENSIONAL_LAW; }
+
+void ThreeDimensional::save(Serializer&) const
+{
+    // No data members to be saved (yet)
+}
+
+void ThreeDimensional::load(Serializer&)
+{
+    // No data members to be saved (yet)
+}
 
 } // namespace Kratos

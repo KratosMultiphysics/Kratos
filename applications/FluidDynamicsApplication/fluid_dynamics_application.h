@@ -82,6 +82,8 @@
 #include "custom_elements/compressible_navier_stokes_explicit.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
 #include "custom_elements/two_fluid_navier_stokes_alpha_method.h"
+#include "custom_elements/two_fluid_navier_stokes_fractional.h"
+#include "custom_elements/two_fluid_navier_stokes_fractional_convection.h"
 
 #include "custom_elements/data_containers/axisymmetric_navier_stokes/axisymmetric_navier_stokes_data.h"
 #include "custom_elements/data_containers/low_mach_navier_stokes/low_mach_navier_stokes_data.h"
@@ -94,8 +96,11 @@
 #include "custom_elements/data_containers/two_fluid_navier_stokes/two_fluid_navier_stokes_data.h"
 #include "custom_elements/data_containers/two_fluid_navier_stokes_alpha_method/two_fluid_navier_stokes_alpha_method_data.h"
 #include "custom_elements/data_containers/weakly_compressible_navier_stokes/weakly_compressible_navier_stokes_data.h"
+#include "custom_elements/data_containers/two_fluid_fractional_navier_stokes/two_fluid_navier_stokes_fractional_data.h"
+#include "custom_elements/data_containers/two_fluid_fractional_navier_stokes/two_fluid_navier_stokes_fractional_convection_data.h"
 
 #include "custom_constitutive/bingham_3d_law.h"
+#include "custom_constitutive/bingham_2d_law.h"
 #include "custom_constitutive/euler_2d_law.h"
 #include "custom_constitutive/euler_3d_law.h"
 #include "custom_constitutive/herschel_bulkley_3d_law.h"
@@ -290,6 +295,7 @@ private:
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mQSVMSDEMCoupled2D3N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,6> > mQSVMSDEMCoupled2D6N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mQSVMSDEMCoupled3D4N;
+    const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,10> > mQSVMSDEMCoupled3D10N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mQSVMSDEMCoupled2D4N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,9> > mQSVMSDEMCoupled2D9N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mQSVMSDEMCoupled3D8N;
@@ -297,6 +303,7 @@ private:
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mAlternativeQSVMSDEMCoupled2D3N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,6> > mAlternativeQSVMSDEMCoupled2D6N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mAlternativeQSVMSDEMCoupled3D4N;
+    const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,10> > mAlternativeQSVMSDEMCoupled3D10N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mAlternativeQSVMSDEMCoupled2D4N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,9> > mAlternativeQSVMSDEMCoupled2D9N;
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mAlternativeQSVMSDEMCoupled3D8N;
@@ -310,6 +317,7 @@ private:
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mDVMSDEMCoupled2D3N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,6> > mDVMSDEMCoupled2D6N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mDVMSDEMCoupled3D4N;
+    const DVMSDEMCoupled< QSVMSDEMCoupledData<3,10> > mDVMSDEMCoupled3D10N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mDVMSDEMCoupled2D4N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,9> > mDVMSDEMCoupled2D9N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mDVMSDEMCoupled3D8N;
@@ -317,6 +325,7 @@ private:
     const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mAlternativeDVMSDEMCoupled2D3N;
     const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<2,6> > mAlternativeDVMSDEMCoupled2D6N;
     const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mAlternativeDVMSDEMCoupled3D4N;
+    const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<3,10> > mAlternativeDVMSDEMCoupled3D10N;
     const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mAlternativeDVMSDEMCoupled2D4N;
     const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<2,9> > mAlternativeDVMSDEMCoupled2D9N;
     const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mAlternativeDVMSDEMCoupled3D8N;
@@ -465,6 +474,10 @@ private:
     const TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<3, 4> > mTwoFluidNavierStokesAlphaMethod3D4N;
     const TwoFluidNavierStokesWallCondition<2,2> mTwoFluidNavierStokesWallCondition2D;
     const TwoFluidNavierStokesWallCondition<3,3> mTwoFluidNavierStokesWallCondition3D;
+    const TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<2, 3>> mTwoFluidNavierStokesFractional2D3N;
+    const TwoFluidNavierStokesFractional<TwoFluidNavierStokesFractionalData<3, 4>> mTwoFluidNavierStokesFractional3D4N;
+    const TwoFluidNavierStokesFractionalConvection<TwoFluidNavierStokesFractionalConvectionData<2, 3>> mTwoFluidNavierStokesFractionalConvection2D3N;
+    const TwoFluidNavierStokesFractionalConvection<TwoFluidNavierStokesFractionalConvectionData<3, 4>> mTwoFluidNavierStokesFractionalConvection3D4N;
 
     /// Incompressible Navier-Stokes div-stable element
     const IncompressibleNavierStokesP2P1Continuous<2> mIncompressibleNavierStokesP2P1Continuous2D6N;
@@ -472,6 +485,7 @@ private:
 
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;
+    const Bingham2DLaw mBingham2DLaw;
     const Euler2DLaw mEuler2DLaw;
     const Euler3DLaw mEuler3DLaw;
     const HerschelBulkley3DLaw mHerschelBulkley3DLaw;

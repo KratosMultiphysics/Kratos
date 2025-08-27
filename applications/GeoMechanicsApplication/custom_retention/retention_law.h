@@ -87,7 +87,7 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-    virtual double& CalculateValue(Parameters& rParameters, const Variable<double>& rThisVariable, double& rValue) = 0;
+    double& CalculateValue(Parameters& rParameters, const Variable<double>& rThisVariable, double& rValue) const;
 
     virtual double CalculateSaturation(Parameters& rParameters) const = 0;
 

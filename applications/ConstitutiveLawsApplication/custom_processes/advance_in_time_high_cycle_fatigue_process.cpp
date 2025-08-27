@@ -43,7 +43,7 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
     process_info[AIT_CONTROL_PARAMETER] = true;
 
-    if (!process_info[DAMAGE_ACTIVATION]) {
+    this->MonotonicOrCyclicLoad();  //This method checks which kind of load is being applied: monotonic or cyclic.
 
 
         KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
@@ -82,23 +82,40 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     
     this->CyclePeriodPerIntegrationPoint(cycle_found);  //This method detects if a cycle has finished somewhere in the model and
                                                         //computes the time period of the cycle that has just finished.
-
-    if (cycle_found) {  //If a cycle has finished then it is possible to apply the advancing strategy
+    double maximum_damage_increment = 0.0;
+    double maximum_plastic_dissipation_increment = 0.0;
+    if (cycle_found || process_info[NEW_MODEL_PART]) {
+        this->NoLinearitiesInitiationAndAccumulation(maximum_damage_increment, maximum_plastic_dissipation_increment);  //This method computes the no-linearities accumulation cycle by cycle.
+                                                                                                                        //It also updates the reference no-linearities if a new load block is applied.
+    }
+    bool advancing_strategy_allowed = mThisParameters["fatigue"]["advancing_strategy"].GetBool();
+    if (cycle_found && advancing_strategy_allowed) {  //If a cycle has finished then it is possible to apply the advancing strategy
         bool advancing_strategy = false;
-        this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[DAMAGE_ACTIVATION]);  //Check if the conditions are optimal to apply the advancing strategy in
+        this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[NO_LINEARITY_ACTIVATION]); //Checks if the conditions are optimal to apply the advancing strategy in
                                                                         //terms of max stress and reversion factor variation.
         if (advancing_strategy) {//&& process_info[AIT_CONTROL_PARAMETER]
             double increment = 0.0;
-            if (!process_info[DAMAGE_ACTIVATION]) {
-                this->TimeIncrement(increment);
+            if (!process_info[NO_LINEARITY_ACTIVATION]) { //Stable conditions + No damage/plasticity -> Big jump prior no-linearities initiation
+                this->TimeIncrementBlock1(increment);
+                this->TimeIncrementBlock2(increment);
                 if (increment > 0.0) {
+                    this->TimeAndCyclesUpdate(increment);
+                }
+                process_info[ADVANCE_STRATEGY_APPLIED] = true;
+            } else {
+                if (std::abs(maximum_damage_increment) + std::abs(maximum_plastic_dissipation_increment) < tolerance) { //Stable conditions + Damage/Plastic dissipation but not accumulated in the last cycle -> Big jump after no-linearities initiation
+                    this->TimeIncrementBlock1(increment);
+                    this->TimeIncrementBlock2(increment);
+                    if (increment > 0.0) {
+                        this->TimeAndCyclesUpdate(increment);
+                        process_info[ADVANCE_STRATEGY_APPLIED] = true;
+                    }
+                } else if (std::abs(maximum_plastic_dissipation_increment) < tolerance) { //Stable conditions + Plastic dissipation but not accumulated in the last cycle -> Small jump after no-linearities initiation
+                    this->TimeIncrementBlock1(increment);
+                    increment = std::min(increment, mThisParameters["fatigue"]["advancing_strategy_damage"].GetDouble());
                     this->TimeAndCyclesUpdate(increment);
                     process_info[ADVANCE_STRATEGY_APPLIED] = true;
                 }
-            } else {
-                increment = mThisParameters["fatigue"]["advancing_strategy_damage"].GetDouble();
-                this->TimeAndCyclesUpdate(increment);
-                process_info[ADVANCE_STRATEGY_APPLIED] = true;
             }
         }
     }
@@ -200,7 +217,7 @@ void AdvanceInTimeHighCycleFatigueProcess::CyclePeriodPerIntegrationPoint(bool& 
     KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
     for (auto& r_elem : mrModelPart.Elements()) {   //This loop is done for all the integration points even if the cycle has not changed
-        unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
+        IndexType number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
         r_elem.CalculateOnIntegrationPoints(CYCLE_INDICATOR, cycle_identifier, process_info);
         r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, process_info);
         r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
@@ -237,9 +254,75 @@ void AdvanceInTimeHighCycleFatigueProcess::CyclePeriodPerIntegrationPoint(bool& 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(bool& rAdvancingStrategy, bool DamageIndicator)
+void AdvanceInTimeHighCycleFatigueProcess::NoLinearitiesInitiationAndAccumulation(double& rMaximumDamageIncrement, double& rMaximumPlasticDissipationIncrement)
 {
-    rAdvancingStrategy = false;
+    auto& process_info = mrModelPart.GetProcessInfo();
+    std::vector<double> damage;
+    std::vector<double> previous_cycle_damage;
+    std::vector<double> plastic_dissipation;
+    std::vector<double> previous_cycle_plastic_dissipation;
+    std::vector<double> plastic_damage;
+
+    KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
+
+    for (auto& r_elem : mrModelPart.Elements()) {
+        // Check if damage is a variable of the current integration point constitutive law. Otherwise makes no sense to include it on the analysis.
+        IndexType number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
+        std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(number_of_ip);
+        r_elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,process_info);
+
+        const bool is_damage = constitutive_law_vector[0]->Has(DAMAGE);
+        const bool is_plasticity = constitutive_law_vector[0]->Has(PLASTIC_DISSIPATION);
+        const bool is_coupled_plastic_damage = constitutive_law_vector[0]->Has(DISSIPATION);
+        if (is_coupled_plastic_damage) {
+            r_elem.CalculateOnIntegrationPoints(DISSIPATION, plastic_damage, process_info);
+            r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, previous_cycle_damage, process_info);
+            r_elem.CalculateOnIntegrationPoints(PLASTIC_DISSIPATION, plastic_dissipation, process_info);
+            r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_PLASTIC_DISSIPATION, previous_cycle_plastic_dissipation, process_info);
+            for (IndexType i = 0; i < number_of_ip; i++) {
+                if (plastic_damage[i] > 0.0) {
+                    rMaximumDamageIncrement = std::max(rMaximumDamageIncrement, std::abs(plastic_damage[i] - previous_cycle_damage[i]));
+                    process_info[NO_LINEARITY_ACTIVATION] = true;
+                }
+                if (plastic_dissipation[i] > 0.0) {
+                    rMaximumPlasticDissipationIncrement = std::max(rMaximumPlasticDissipationIncrement, std::abs(plastic_dissipation[i] - previous_cycle_plastic_dissipation[i]));
+                    process_info[NO_LINEARITY_ACTIVATION] = true;
+                }
+            }
+            r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, plastic_damage, process_info);
+            r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE_PLASTIC_DISSIPATION, plastic_dissipation, process_info);
+        } else {
+            if (is_damage) {
+                r_elem.CalculateOnIntegrationPoints(DAMAGE, damage, process_info);
+                r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, previous_cycle_damage, process_info);
+                for (IndexType i = 0; i < number_of_ip; i++) {
+                    if (damage[i] > 0.0) {
+                        rMaximumDamageIncrement = std::max(rMaximumDamageIncrement, std::abs(damage[i] - previous_cycle_damage[i]));
+                        process_info[NO_LINEARITY_ACTIVATION] = true;
+                    }
+                }
+                r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, damage, process_info);
+            }
+            if (is_plasticity) {
+                r_elem.CalculateOnIntegrationPoints(PLASTIC_DISSIPATION, plastic_dissipation, process_info);
+                r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_PLASTIC_DISSIPATION, previous_cycle_plastic_dissipation, process_info);
+                for (IndexType i = 0; i < number_of_ip; i++) {
+                    if (plastic_dissipation[i] > 0.0) {
+                        rMaximumPlasticDissipationIncrement = std::max(rMaximumPlasticDissipationIncrement, std::abs(plastic_dissipation[i] - previous_cycle_plastic_dissipation[i]));
+                        process_info[NO_LINEARITY_ACTIVATION] = true;
+                    }
+                }
+                r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE_PLASTIC_DISSIPATION, plastic_dissipation, process_info);
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(bool& rAdvancingStrategy, bool NoLinearityIndicator)
+{
     auto& process_info = mrModelPart.GetProcessInfo();
     std::vector<double> max_stress_rel_error;
     std::vector<double> rev_factor_rel_error;
@@ -281,7 +364,7 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
         r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
         r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
 
-        for (unsigned int i = 0; i < number_of_ip; i++) {
+        for (IndexType i = 0; i < number_of_ip; i++) {
             if (max_stress[i] > s_th[i]) {
                 fatigue_in_course = true;
                 acumulated_max_stress_rel_error += max_stress_rel_error[i];
@@ -299,15 +382,9 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
+void AdvanceInTimeHighCycleFatigueProcess::TimeIncrementBlock1(double& rIncrement)
 {
     auto& process_info = mrModelPart.GetProcessInfo();
-    std::vector<double>  cycles_to_failure_element;
-    std::vector<int>  local_number_of_cycles;
-    std::vector<double> period;
-    std::vector<double> s_th;
-    std::vector<double> max_stress;
-    double min_time_increment;
     double time = process_info[TIME];
     bool current_constraints_process_list_detected = false;
 
@@ -318,11 +395,29 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
     std::vector<std::string> constraints_list = has_cyclic_constraints_list ? mThisParameters["fatigue"]["cyclic_constraints_process_list"].GetStringArray() : mThisParameters["fatigue"]["constraints_process_list"].GetStringArray();
     
     double model_part_final_time = mThisParameters["problem_data"]["end_time"].GetDouble();
-    for (unsigned int i = 0; i < constraints_list.size(); i++) {
-        for (unsigned int j = 0; j < mThisParameters["processes"]["constraints_process_list"].size(); j++) {
-            std::string model_part_name = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["model_part_name"].GetString();
-            double model_part_end_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][1].GetDouble();
-            if (constraints_list[i] == model_part_name && time <= model_part_end_time && !current_constraints_process_list_detected) {
+    for (IndexType i = 0; i < constraints_list.size(); i++) {
+        for (IndexType j = 0; j < constraints_process_list.size(); j++) {
+            const auto& parameters = constraints_process_list[j]["Parameters"];
+            const auto& interval = parameters["interval"];
+            const std::string model_part_name = parameters["model_part_name"].GetString();
+            const double model_part_start_time = interval[0].GetDouble();
+            double model_part_end_time;
+            const auto& interval_end = interval[1];
+
+            if (interval_end.IsString()) {
+                const std::string interval_value = interval_end.GetString();
+                if (interval_value == "End") {
+                    model_part_end_time = mThisParameters["problem_data"]["end_time"].GetDouble();
+                } else {
+                    KRATOS_ERROR << "Unexpected string in interval end: " << interval_value << std::endl;
+                }
+            } else if (interval_end.IsDouble()) {
+                model_part_end_time = interval_end.GetDouble();
+            } else {
+                KRATOS_ERROR << "Interval end is neither a double nor a string!" << std::endl;
+            }
+
+            if (constraints_list[i] == model_part_name && time >= model_part_start_time && time <= model_part_end_time && !current_constraints_process_list_detected) {
                 model_part_final_time = model_part_end_time;
                 current_constraints_process_list_detected = true;
             }
@@ -333,32 +428,46 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
     }
 
     double model_part_advancing_time = model_part_final_time - time;
-    min_time_increment = std::min(user_avancing_time, model_part_advancing_time);
 
-    // KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
+	rIncrement = std::min(user_avancing_time, model_part_advancing_time);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AdvanceInTimeHighCycleFatigueProcess::TimeIncrementBlock2(double& rIncrement)
+{
+    auto& process_info = mrModelPart.GetProcessInfo();
+    std::vector<double>  cycles_to_failure_element;
+    std::vector<int>  local_number_of_cycles;
+    std::vector<double> period;
+    std::vector<double> s_th;
+    std::vector<double> max_stress;
+
+    double user_avancing_cycles = mThisParameters["fatigue"]["advancing_strategy_cycles"].GetDouble();
 
     for (auto& r_elem : mrModelPart.Elements()) {
-        unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
+        IndexType number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
         r_elem.CalculateOnIntegrationPoints(CYCLES_TO_FAILURE, cycles_to_failure_element, process_info);
         r_elem.CalculateOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, process_info);
         r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
         r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
         r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
-        for (unsigned int i = 0; i < number_of_ip; i++) {
+        for (IndexType i = 0; i < number_of_ip; i++) {
             if (max_stress[i] > s_th[i]) {  //This is used to guarantee that only IP in fatigue conditions are taken into account
-                double Nf_conversion_to_time = (cycles_to_failure_element[i] - local_number_of_cycles[i]) * period[i];
+                double Nf_conversion_to_time = (cycles_to_failure_element[i] + 1.0 - local_number_of_cycles[i]) * period[i]; //One cycle is added to guarantee that no-linearity starts in the current cycle
                 double user_avancing_cycles_conversion_to_time = user_avancing_cycles * period[i];
-                if (Nf_conversion_to_time < min_time_increment) {
-                    min_time_increment = Nf_conversion_to_time;
+                if (Nf_conversion_to_time < rIncrement && Nf_conversion_to_time > tolerance) {  //The positive condition for Nf-Nlocal is added for those cases where some points have already been
+                                                                                                        //completely degradated through fatigue but there are other regions with scope for fatigue degradation
+                    rIncrement = Nf_conversion_to_time;
                 }
-                if (user_avancing_cycles_conversion_to_time < min_time_increment) {
-                    min_time_increment = user_avancing_cycles_conversion_to_time;
+                if (user_avancing_cycles_conversion_to_time < rIncrement) {
+                    rIncrement = user_avancing_cycles_conversion_to_time;
 
                 }
             }
         }
     }
-	rIncrement = min_time_increment;
 }
 
 /***********************************************************************************/
@@ -381,7 +490,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(const double Incr
         // double time_increment = 0.0;
         std::vector<double> previous_cycle_time;    //time when the previous cycle finished. It is used to obtain the new period for the current cycle
 
-        unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
+        IndexType number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
         r_elem.CalculateOnIntegrationPoints(CYCLE_INDICATOR, cycle_identifier, r_process_info);
         r_elem.CalculateOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, r_process_info);
         r_elem.CalculateOnIntegrationPoints(NUMBER_OF_CYCLES, global_number_of_cycles, r_process_info);
@@ -396,14 +505,14 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(const double Incr
         const bool is_fatigue = constitutive_law_vector[0]->Has(CYCLE_INDICATOR);
 
         if (is_fatigue) {
-            for (unsigned int i = 0; i < number_of_ip; i++) {
-                unsigned int local_cycles_increment;
+            for (IndexType i = 0; i < number_of_ip; i++) {
+                IndexType local_cycles_increment;
                 if (period[i] == 0.0) {
                     local_cycles_increment = 0;
                     previous_cycle_time[i] += Increment;
                 } else {
                     local_cycles_increment = std::trunc(Increment / period[i]);
-                    time_increment = std::trunc(Increment / period[i]) * period[i];
+                    time_increment = (std::trunc(Increment / period[i])) * period[i];
                     previous_cycle_time[i] += time_increment;
                 }
                 increment_in_number_of_cycles[i] = local_cycles_increment;

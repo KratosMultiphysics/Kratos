@@ -14,7 +14,7 @@
 #include "nusselt_hanz_marshall.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   NusseltHanzMarshall::NusseltHanzMarshall() {}
   NusseltHanzMarshall::~NusseltHanzMarshall() {}
 

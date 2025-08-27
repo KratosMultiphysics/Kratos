@@ -19,7 +19,6 @@
 #include "includes/constitutive_law.h"
 #include "includes/define.h"
 #include "includes/kratos_export_api.h"
-#include "includes/serializer.h"
 #include "includes/smart_pointers.h"
 #include "includes/ublas_interface.h"
 
@@ -37,7 +36,6 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallStrainUPwDiffOrderElement);
 
     using UPwBaseElement::mConstitutiveLawVector;
-    using UPwBaseElement::mIsInitialised;
     using UPwBaseElement::mRetentionLawVector;
     using UPwBaseElement::mStateVariablesFinalized;
     using UPwBaseElement::mStressVector;
@@ -46,8 +44,9 @@ public:
 
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
-                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy))
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
         SetUpPressureGeometryPointer();
     }
@@ -55,8 +54,9 @@ public:
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
                                    PropertiesType::Pointer            pProperties,
-                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
         SetUpPressureGeometryPointer();
     }
@@ -70,8 +70,6 @@ public:
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -192,7 +190,7 @@ protected:
 
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint);
 
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
     void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
@@ -246,7 +244,7 @@ protected:
                                         std::vector<Vector>& rStressVectors,
                                         std::vector<Matrix>& rConstitutiveMatrices);
 
-    Vector GetPressureSolutionVector();
+    [[nodiscard]] Vector GetPressureSolutionVector() const;
 
     [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures);
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures);
@@ -270,15 +268,9 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, UPwBaseElement)
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, UPwBaseElement)
-    }
+    void load(Serializer& rSerializer) override;
 
     // Private Operations
 

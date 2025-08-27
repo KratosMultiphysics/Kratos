@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(HEAT_GENERATION_MECHANISM_H_INCLUDED)
-#define HEAT_GENERATION_MECHANISM_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -95,5 +94,3 @@ namespace Kratos
   }
 
 } // namespace Kratos
-
-#endif // HEAT_GENERATION_MECHANISM_H_INCLUDED

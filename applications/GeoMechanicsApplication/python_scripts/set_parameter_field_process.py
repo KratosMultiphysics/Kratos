@@ -1,14 +1,16 @@
 import json
 import importlib
+import warnings
+from typing import Optional
 
 import KratosMultiphysics
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
 
-def Factory(settings, Model):
+def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise TypeError("expected input shall be a Parameters object, encapsulating a json string")
-    return SetParameterFieldProcess(Model, settings["Parameters"])
+    return SetParameterFieldProcess(model, settings["Parameters"])
 
 
 class SetParameterFieldProcess(KratosMultiphysics.Process):
@@ -30,10 +32,10 @@ class SetParameterFieldProcess(KratosMultiphysics.Process):
     filled in at the 'dataset' parameter, within the projectparameters.json
     """
 
-    def __init__(self, Model, settings ):
+    def __init__(self, model, settings):
         KratosMultiphysics.Process.__init__(self)
 
-        self.model_part = Model[settings["model_part_name"].GetString()]
+        self.model_part = model[settings["model_part_name"].GetString()]
 
         self.params = KratosMultiphysics.Parameters("{}")
         self.params.AddValue("model_part_name", settings["model_part_name"])
@@ -41,22 +43,19 @@ class SetParameterFieldProcess(KratosMultiphysics.Process):
         self.params.AddValue("func_type", settings["func_type"])
         self.params.AddValue("function", settings["function"])
         self.params.AddValue("dataset", settings["dataset"])
-        is_variable_vector_type = isinstance(self.GetVariableBasedOnString(), KratosMultiphysics.VectorVariable)
-        if "input" in settings["func_type"].GetString() and is_variable_vector_type:
+        if ("input" in settings["func_type"].GetString() and
+                isinstance(self.GetVariableBasedOnString(), KratosMultiphysics.VectorVariable)):
             self.params.AddValue("vector_variable_indices", settings["vector_variable_indices"])
         if "json_file" in settings["func_type"].GetString():
             self.params.AddValue("dataset_file_name", settings["dataset_file_name"])
         self.process = KratosGeo.SetParameterFieldProcess(self.model_part, self.params)
 
-    def GetVariableBasedOnString(self):
+    def GetVariableBasedOnString(self) -> Optional[KratosMultiphysics.VariableData]:
         """
         This function returns the variable based on the variable name string.
 
-
-        Returns
-        -------
-        variable : KratosMultiphysics.Variable
-
+        Returns:
+            - Optional[KratosMultiphysics.VariableData]: the kratos variable object
         """
 
         # Get variable object
@@ -67,8 +66,10 @@ class SetParameterFieldProcess(KratosMultiphysics.Process):
                 variable = getattr(kratos_module, self.params["variable_name"].GetString())
                 return variable
 
-        raise AttributeError(f'The variable: {self.params["variable_name"].GetString()} is not present within '
-                             f'the imported modules')
+        # add warning if variable is not found
+        warnings.warn(f'The variable: {self.params["variable_name"].GetString()} is not present within '
+                      f'the imported modules')
+        return None
 
 
     def ExecuteInitialize(self):
@@ -94,6 +95,9 @@ class SetParameterFieldProcess(KratosMultiphysics.Process):
             all_coordinates = []
 
             variable = self.GetVariableBasedOnString()
+            if variable is None:
+                raise AttributeError(f'The variable: {self.params["variable_name"].GetString()} is not present within '
+                                     f'the imported modules')
 
             for element in self.model_part.Elements:
 
@@ -115,13 +119,13 @@ class SetParameterFieldProcess(KratosMultiphysics.Process):
             custom_module = importlib.import_module("." + self.params["function"].GetString(),
                                                                 KratosGeo.__name__ + ".user_defined_scripts")
 
-            CustomParameterField = getattr(custom_module, 'ParameterField')
-            custom_class = CustomParameterField()
+            custom_parameter_field_class = getattr(custom_module, 'ParameterField')
+            parameter_field = custom_parameter_field_class()
 
             # validate and generate custom defined parameter field
-            custom_class.validate_input(input_dict, return_dict)
-            custom_class.generate_field()
-            custom_class.validate_output()
+            parameter_field.validate_input(input_dict, return_dict)
+            parameter_field.generate_field()
+            parameter_field.validate_output()
 
             self.params["dataset"].SetString(json.dumps(return_dict))
 

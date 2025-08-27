@@ -14,6 +14,10 @@
 #include "custom_retention/van_genuchten_law.h"
 #include "geo_mechanics_application_variables.h"
 
+#include <string>
+
+using namespace std::string_literals;
+
 namespace Kratos
 {
 
@@ -103,23 +107,6 @@ double VanGenuchtenLaw::CalculateBishopCoefficient(Parameters& rParameters) cons
     return CalculateEffectiveSaturation(rParameters);
 }
 
-double& VanGenuchtenLaw::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
-{
-    if (rThisVariable == DEGREE_OF_SATURATION) {
-        rValue = this->CalculateSaturation(rParameterValues);
-    } else if (rThisVariable == EFFECTIVE_SATURATION) {
-        rValue = this->CalculateEffectiveSaturation(rParameterValues);
-    } else if (rThisVariable == BISHOP_COEFFICIENT) {
-        rValue = this->CalculateBishopCoefficient(rParameterValues);
-    } else if (rThisVariable == DERIVATIVE_OF_SATURATION) {
-        rValue = this->CalculateDerivativeOfSaturation(rParameterValues);
-    } else if (rThisVariable == RELATIVE_PERMEABILITY) {
-        rValue = this->CalculateRelativePermeability(rParameterValues);
-    }
-
-    return rValue;
-}
-
 int VanGenuchtenLaw::Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SATURATED_SATURATION))
@@ -171,5 +158,7 @@ int VanGenuchtenLaw::Check(const Properties& rMaterialProperties, const ProcessI
 
     return 0;
 }
+
+std::string VanGenuchtenLaw::Info() const { return "VanGenuchtenLaw"s; }
 
 } // namespace Kratos

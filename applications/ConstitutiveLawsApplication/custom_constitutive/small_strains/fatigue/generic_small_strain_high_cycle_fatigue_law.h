@@ -66,6 +66,8 @@ public:
     /// The define the Voigt size, already defined in the  integrator
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
 
+    typedef array_1d<double, VoigtSize> BoundedArrayType;
+
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainHighCycleFatigueLaw);
 
@@ -474,6 +476,10 @@ private:
         rSerializer.save("CyclesToFailure", mCyclesToFailure);
         rSerializer.save("PreviousCycleTime", mPreviousCycleTime);
         rSerializer.save("Period", mPeriod);
+        rSerializer.save("ReferenceDamage", mReferenceDamage);
+        rSerializer.save("PreviousCycleDamage", mPreviousCycleDamage);
+        rSerializer.save("FirstCycleOfANewLoad", mFirstCycleOfANewLoad);
+        rSerializer.save("CFactor", mCFactor);
     }
 
     void load(Serializer &rSerializer) override
@@ -499,6 +505,10 @@ private:
         rSerializer.load("CyclesToFailure", mCyclesToFailure);
         rSerializer.load("PreviousCycleTime", mPreviousCycleTime);
         rSerializer.load("Period", mPeriod);
+        rSerializer.load("ReferenceDamage", mReferenceDamage);
+        rSerializer.save("PreviousCycleDamage", mPreviousCycleDamage);
+        rSerializer.load("FirstCycleOfANewLoad", mFirstCycleOfANewLoad);
+        rSerializer.load("CFactor", mCFactor);
     }
     ///@}
 

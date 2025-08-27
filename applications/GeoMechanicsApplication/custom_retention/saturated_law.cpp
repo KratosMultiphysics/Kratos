@@ -14,6 +14,10 @@
 #include "custom_retention/saturated_law.h"
 #include "geo_mechanics_application_variables.h"
 
+#include <string>
+
+using namespace std::string_literals;
+
 namespace Kratos
 {
 
@@ -39,24 +43,6 @@ double SaturatedLaw::CalculateBishopCoefficient(Parameters& rParameters) const
     return CalculateEffectiveSaturation(rParameters);
 }
 
-double& SaturatedLaw::CalculateValue(RetentionLaw::Parameters& rParameterValues,
-                                     const Variable<double>&   rThisVariable,
-                                     double&                   rValue)
-{
-    if (rThisVariable == DEGREE_OF_SATURATION) {
-        rValue = this->CalculateSaturation(rParameterValues);
-    } else if (rThisVariable == EFFECTIVE_SATURATION) {
-        rValue = this->CalculateEffectiveSaturation(rParameterValues);
-    } else if (rThisVariable == BISHOP_COEFFICIENT) {
-        rValue = this->CalculateBishopCoefficient(rParameterValues);
-    } else if (rThisVariable == DERIVATIVE_OF_SATURATION) {
-        rValue = this->CalculateDerivativeOfSaturation(rParameterValues);
-    } else if (rThisVariable == RELATIVE_PERMEABILITY) {
-        rValue = this->CalculateRelativePermeability(rParameterValues);
-    }
-    return rValue;
-}
-
 int SaturatedLaw::Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rMaterialProperties.Has(SATURATED_SATURATION)) {
@@ -69,4 +55,5 @@ int SaturatedLaw::Check(const Properties& rMaterialProperties, const ProcessInfo
     return 0;
 }
 
+std::string SaturatedLaw::Info() const { return "SaturatedLaw"s; }
 } // namespace Kratos

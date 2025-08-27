@@ -106,6 +106,12 @@ public:
     double CalculateReversionFactor(const double MaxStress, const double MinStress);
 
     /**
+     * @brief This method calculates the ultimate stress
+     * depending on the used softening law
+     */
+    double UltimateStressDamage(const Properties& rMaterialParameters);
+
+    /**
      * @brief This method sets the variables required
      * for calculating fatigue reduction factor and Wohler stress
      */
@@ -383,6 +389,7 @@ void save(Serializer& rSerializer) const
     rSerializer.save("ThresholdStress",mThresholdStress);
     rSerializer.save("CyclesToFailure",mCyclesToFailure);
     rSerializer.save("NewCycleIndicator",mNewCycleIndicator);
+    rSerializer.save("CFactor",mCFactor);
 }
 
 void load(Serializer& rSerializer)
@@ -403,6 +410,7 @@ void load(Serializer& rSerializer)
     rSerializer.load("ThresholdStress",mThresholdStress);
     rSerializer.load("CyclesToFailure",mCyclesToFailure);
     rSerializer.load("NewCycleIndicator",mNewCycleIndicator);
+    rSerializer.load("CFactor",mCFactor);
 }
 
 }; // class

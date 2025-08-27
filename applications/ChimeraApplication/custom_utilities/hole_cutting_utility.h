@@ -100,7 +100,7 @@ public:
      * @param rModelPart The modelpart where the hole is to be cut.
      * @param rHoleModelPart The modelpart containing the nodes and corresponding elements from the cut hole. (deactivated elements)
      * @param rHoleBoundaryModelPart Boundary modelpart of the rHoleModelPart
-     * @param Distance is the the distance (magnitude) at which hole is to be cut from the zero distance layer.
+     * @param Distance is the distance (magnitude) at which hole is to be cut from the zero distance layer.
      */
     template<int TDim>
     void CreateHoleAfterDistance(ModelPart &rModelPart,
@@ -113,9 +113,9 @@ public:
      * @brief Removes the elements which are out of the domain.
      *          An element is removed even if one of its nodes is out of the domain (-ve or +ve) as indicated by GetInside and MainDomainOrNot
      * @param rModelPart The modelpart From where the elements are to be removed.
-     * @param rModifiedModelPart The modified modelpart without the the elements which are out side.
+     * @param rModifiedModelPart The modified modelpart without the elements which are out side.
      * @param DomainType says which sign (-ve or +ve) is inside
-     * @param OverLapDistance is the the distance (magnitude) at which hole is to be cut from the zero distance layer.
+     * @param OverLapDistance is the distance (magnitude) at which hole is to be cut from the zero distance layer.
      * @param GetInside works in combination with MainDomainOrNot to get the feeling of what is inside or what is outside.
      */
     template<int TDim>
