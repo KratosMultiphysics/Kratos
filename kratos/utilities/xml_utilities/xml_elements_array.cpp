@@ -29,11 +29,14 @@ void XmlElementsArray::AddElement(XmlElement::Pointer pElement)
     mElementsArray.push_back(pElement);
 }
 
-void XmlElementsArray::AddAttribute(
-    const std::string& rName,
-    const std::string& rValue)
+std::vector<XmlElement::Pointer> XmlElementsArray::GetElements() const
 {
-    mAttributes[rName] = rValue;
+    return mElementsArray;
+}
+
+void XmlElementsArray::ClearElements()
+{
+    mElementsArray.clear();
 }
 
 void XmlElementsArray:: Write(

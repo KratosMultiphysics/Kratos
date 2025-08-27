@@ -24,6 +24,28 @@ XmlElement::XmlElement(const std::string& rTagName)
 {
 }
 
+std::string XmlElement::GetTagName() const
+{
+    return mTagName;
+}
+
+void XmlElement::AddAttribute(
+    const std::string& rName,
+    const std::string& rValue)
+{
+    mAttributes[rName] = rValue;
+}
+
+std::map<std::string, std::string> XmlElement::GetAttributes() const
+{
+    return mAttributes;
+}
+
+void XmlElement::ClearAttributes()
+{
+    mAttributes.clear();
+}
+
 void XmlElement::WriteElementTagStart(
     std::ostream& rOStream,
     const IndexType Level) const

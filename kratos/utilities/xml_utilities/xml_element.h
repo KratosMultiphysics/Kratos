@@ -14,7 +14,7 @@
 
 // System includes
 #include <string>
-#include <unordered_map>
+#include <map>
 
 // Project includes
 #include "includes/define.h"
@@ -51,6 +51,16 @@ public:
     ///@name Public operations
     ///@{
 
+    void AddAttribute(
+        const std::string& rName,
+        const std::string& rValue);
+
+    std::string GetTagName() const;
+
+    std::map<std::string, std::string> GetAttributes() const;
+
+    void ClearAttributes();
+
     /**
      * @brief Writes an XML expression element.
      * @param XmlExpressionElement Expression xml element to be written.
@@ -82,7 +92,7 @@ protected:
     ///@name Protected member variables
     ///@{
 
-    std::unordered_map<std::string, std::string> mAttributes;
+    std::map<std::string, std::string> mAttributes;
 
     ///@}
 private:

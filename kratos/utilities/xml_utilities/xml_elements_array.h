@@ -54,9 +54,9 @@ public:
 
     void AddElement(XmlElement::Pointer pElement);
 
-    void AddAttribute(
-        const std::string& rName,
-        const std::string& rValue);
+    std::vector<XmlElement::Pointer> GetElements() const;
+
+    void ClearElements();
 
     /**
      * @brief Writes an XML expression element.
