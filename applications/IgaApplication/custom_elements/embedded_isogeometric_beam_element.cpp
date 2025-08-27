@@ -272,28 +272,28 @@ namespace Kratos {
             rSuperElementKinematicVariables.G2 += dr(i, 1) * X0;
 
             rSuperElementKinematicVariables.GiDeri(0,0) += ddr(i,0)*X0[0];
-            rSuperElementKinematicVariables.GiDeri(0,1) += ddr(i,1)*X0[0];
-            rSuperElementKinematicVariables.GiDeri(0,2) += ddr(i,2)*X0[0];
+            rSuperElementKinematicVariables.GiDeri(0,1) += ddr(i,2)*X0[0];
+            rSuperElementKinematicVariables.GiDeri(0,2) += ddr(i,1)*X0[0];
             rSuperElementKinematicVariables.GiDeri(1,0) += ddr(i,0)*X0[1];
-            rSuperElementKinematicVariables.GiDeri(1,1) += ddr(i,1)*X0[1];
-            rSuperElementKinematicVariables.GiDeri(1,2) += ddr(i,2)*X0[1];
+            rSuperElementKinematicVariables.GiDeri(1,1) += ddr(i,2)*X0[1];
+            rSuperElementKinematicVariables.GiDeri(1,2) += ddr(i,1)*X0[1];
             rSuperElementKinematicVariables.GiDeri(2,0) += ddr(i,0)*X0[2];
-            rSuperElementKinematicVariables.GiDeri(2,1) += ddr(i,1)*X0[2];
-            rSuperElementKinematicVariables.GiDeri(2,2) += ddr(i,2)*X0[2];
+            rSuperElementKinematicVariables.GiDeri(2,1) += ddr(i,2)*X0[2];
+            rSuperElementKinematicVariables.GiDeri(2,2) += ddr(i,1)*X0[2];
 
             array_1d<double, 3> x = X0 + u;
             rSuperElementKinematicVariables.g1 += dr(i, 0) * x;
             rSuperElementKinematicVariables.g2 += dr(i, 1) * x;
 
             rSuperElementKinematicVariables.giDeri(0,0) += ddr(i,0)*x[0];
-            rSuperElementKinematicVariables.giDeri(0,1) += ddr(i,1)*x[0];
-            rSuperElementKinematicVariables.giDeri(0,2) += ddr(i,2)*x[0];
+            rSuperElementKinematicVariables.giDeri(0,1) += ddr(i,2)*x[0];
+            rSuperElementKinematicVariables.giDeri(0,2) += ddr(i,1)*x[0];
             rSuperElementKinematicVariables.giDeri(1,0) += ddr(i,0)*x[1];
-            rSuperElementKinematicVariables.giDeri(1,1) += ddr(i,1)*x[1];
-            rSuperElementKinematicVariables.giDeri(1,2) += ddr(i,2)*x[1];
+            rSuperElementKinematicVariables.giDeri(1,1) += ddr(i,2)*x[1];
+            rSuperElementKinematicVariables.giDeri(1,2) += ddr(i,1)*x[1];
             rSuperElementKinematicVariables.giDeri(2,0) += ddr(i,0)*x[2];
-            rSuperElementKinematicVariables.giDeri(2,1) += ddr(i,1)*x[2];
-            rSuperElementKinematicVariables.giDeri(2,2) += ddr(i,2)*x[2];
+            rSuperElementKinematicVariables.giDeri(2,1) += ddr(i,2)*x[2];
+            rSuperElementKinematicVariables.giDeri(2,2) += ddr(i,1)*x[2];
         }
         rSuperElementKinematicVariables.G3 = cross_prod(rSuperElementKinematicVariables.G1,rSuperElementKinematicVariables.G2);
         rSuperElementKinematicVariables.G3 = rSuperElementKinematicVariables.G3/norm_2(rSuperElementKinematicVariables.G3);
@@ -1184,7 +1184,7 @@ namespace Kratos {
         Vector3d tilde_t2 = rSuperElementKinematicVariables.g1*rNestedElementKinematicVariables.local_tangent[0] + rSuperElementKinematicVariables.g2*rNestedElementKinematicVariables.local_tangent[1];
         double l_t2 = norm_2(tilde_t2);
         rNestedElementKinematicVariables.t2 = tilde_t2/l_t2;
-        Vector3d tilde_t3 = rSuperElementKinematicVariables.g3;
+        Vector3d tilde_t3 = cross_prod(rSuperElementKinematicVariables.g1,rSuperElementKinematicVariables.g2);;
         double l_t3 = norm_2(tilde_t3);
         rNestedElementKinematicVariables.t3 = tilde_t3/l_t3;
         Vector3d tilde_t1 = cross_prod(tilde_t2,tilde_t3);
@@ -1221,8 +1221,8 @@ namespace Kratos {
             a2_der_r.clear();
             a1_r(xyz_r) = dr(i,0);
             a2_r(xyz_r) = dr(i,1);
-            a1_der_r(xyz_r) = ddr(i,0)*rNestedElementKinematicVariables.local_tangent[0]+ddr(i,2)*rNestedElementKinematicVariables.local_tangent[1];
-            a2_der_r(xyz_r) = ddr(i,2)*rNestedElementKinematicVariables.local_tangent[0]+ddr(i,1)*rNestedElementKinematicVariables.local_tangent[1];
+            a1_der_r(xyz_r) = ddr(i,0)*rNestedElementKinematicVariables.local_tangent[0]+ddr(i,1)*rNestedElementKinematicVariables.local_tangent[1];
+            a2_der_r(xyz_r) = ddr(i,1)*rNestedElementKinematicVariables.local_tangent[0]+ddr(i,2)*rNestedElementKinematicVariables.local_tangent[1];
 
             //variation of the non normalized local vector
             Vector3d tilde_2_r = rNestedElementKinematicVariables.local_tangent[0]*a1_r + rNestedElementKinematicVariables.local_tangent[1]*a2_r;
@@ -1274,8 +1274,8 @@ namespace Kratos {
                 a2_der_s.clear();
                 a1_s(xyz_s) = dr(j,0);
                 a2_s(xyz_s) = dr(j,0);
-                a1_der_s(xyz_s) = ddr(j,0)* rNestedElementKinematicVariables.local_tangent[0]+ddr(j,2)*rNestedElementKinematicVariables.local_tangent[1];
-                a2_der_s(xyz_s) = ddr(j,2)* rNestedElementKinematicVariables.local_tangent[0]+ddr(j,1)*rNestedElementKinematicVariables.local_tangent[1];
+                a1_der_s(xyz_s) = ddr(j,0)* rNestedElementKinematicVariables.local_tangent[0]+ddr(j,1)*rNestedElementKinematicVariables.local_tangent[1];
+                a2_der_s(xyz_s) = ddr(j,1)* rNestedElementKinematicVariables.local_tangent[0]+ddr(j,2)*rNestedElementKinematicVariables.local_tangent[1];
 
                 //variation of the non normalized local vector
                 Vector3d tilde_2_s = rNestedElementKinematicVariables.local_tangent[0]*a1_s +  rNestedElementKinematicVariables.local_tangent[1]*a2_s;
