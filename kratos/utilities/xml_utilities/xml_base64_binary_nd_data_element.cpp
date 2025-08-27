@@ -26,11 +26,20 @@ namespace Kratos {
 template<class TDataType>
 XmlBase64BinaryNDDataElement<TDataType>::XmlBase64BinaryNDDataElement(
     const std::string& rDataArrayName,
-    typename NDData<TDataType>::Pointer pNDData)
-    : BaseType(rDataArrayName, pNDData)
+    typename NDData<TDataType>::Pointer pNDData,
+    const DenseVector<unsigned int>& rShape)
+    : BaseType(rDataArrayName, pNDData, rShape)
 {
     // modify the format information
     this->mAttributes["format"] = "binary";
+}
+
+template<class TDataType>
+XmlBase64BinaryNDDataElement<TDataType>::XmlBase64BinaryNDDataElement(
+    const std::string& rDataArrayName,
+    typename NDData<TDataType>::Pointer pNDData)
+    : XmlBase64BinaryNDDataElement(rDataArrayName, pNDData, pNDData->Shape())
+{
 }
 
 template<class TDataType>

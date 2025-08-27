@@ -57,6 +57,16 @@ struct XmlAsciiNDDataElementWrapper
         using data_type = typename BareType<decltype(*pNDData)>::DataType;
         return Kratos::make_shared<XmlAsciiNDDataElement<data_type>>(rDataArrayName, pNDData, mPrecision);
     }
+
+    template<class NDDataTypePointer>
+    XmlElement::Pointer Get(
+        const std::string& rDataArrayName,
+        NDDataTypePointer pNDData,
+        const DenseVector<unsigned int>& rShape)
+    {
+        using data_type = typename BareType<decltype(*pNDData)>::DataType;
+        return Kratos::make_shared<XmlAsciiNDDataElement<data_type>>(rDataArrayName, pNDData, rShape, mPrecision);
+    }
 };
 
 struct XmlBase64BinaryNDDataElementWrapper
@@ -68,6 +78,16 @@ struct XmlBase64BinaryNDDataElementWrapper
     {
         using data_type = typename BareType<decltype(*pNDData)>::DataType;
         return Kratos::make_shared<XmlBase64BinaryNDDataElement<data_type>>(rDataArrayName, pNDData);
+    }
+
+    template<class NDDataTypePointer>
+    XmlElement::Pointer Get(
+        const std::string& rDataArrayName,
+        NDDataTypePointer pNDData,
+        const DenseVector<unsigned int>& rShape)
+    {
+        using data_type = typename BareType<decltype(*pNDData)>::DataType;
+        return Kratos::make_shared<XmlBase64BinaryNDDataElement<data_type>>(rDataArrayName, pNDData, rShape);
     }
 };
 
@@ -569,17 +589,9 @@ std::string VtuOutput::PrintGaussPointFields(
                 std::copy(gp_ta_shape.begin() + 2, gp_ta_shape.end(), shape.begin());
                 shape[0] = gp_ta_shape[0] * gp_ta_shape[1];
 
-                auto gauss_field_nd_data = Kratos::make_shared<NDData<double>>(shape);
-                const auto gauss_field_span = gauss_field_nd_data->ViewData();
-                const auto gauss_ta_span = gp_ta.ViewData();
-
-                IndexPartition<IndexType>(gauss_ta_span.size()).for_each([&gauss_field_span, &gauss_ta_span](const auto Index) {
-                    gauss_field_span[Index] = gauss_ta_span[Index];
-                });
-
                 if (gp_ta.Size() > 0) {
                     is_gauss_point_data_available = true;
-                    point_data_element->AddElement(rXmlDataElementWrapper.Get(pVariable->Name(), gauss_field_nd_data));
+                    point_data_element->AddElement(rXmlDataElementWrapper.Get(pVariable->Name(), gp_ta.pGetStorage(), shape));
                 }
             }
         }, r_pair.second);

@@ -29,12 +29,22 @@ template<class TDataType>
 XmlAsciiNDDataElement<TDataType>::XmlAsciiNDDataElement(
     const std::string& rDataArrayName,
     typename NDData<TDataType>::Pointer pNDData,
+    const DenseVector<unsigned int>& rShape,
     const IndexType Precision)
-    : BaseType(rDataArrayName, pNDData),
+    : BaseType(rDataArrayName, pNDData, rShape),
       mPrecision(Precision)
 {
     // add the format information
     this->mAttributes["format"] = "ascii";
+}
+
+template<class TDataType>
+XmlAsciiNDDataElement<TDataType>::XmlAsciiNDDataElement(
+    const std::string& rDataArrayName,
+    typename NDData<TDataType>::Pointer pNDData,
+    const IndexType Precision)
+    : XmlAsciiNDDataElement(rDataArrayName, pNDData, pNDData->Shape(), Precision)
+{
 }
 
 template<class TDataType>
