@@ -5,18 +5,6 @@ import test_helper
 
 
 class KratosGeoMechanicsAvoidSmallEndStepTests(KratosUnittest.TestCase):
-    """
-    This class contains regression tests
-    """
-
-    def setUp(self):
-        # Code here will be placed BEFORE every test in this TestCase.
-        pass
-
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
-
     def test_avoid_small_last_step(self):
         """
         Test calculation that without countermeasure does a very small step to reach the end_time.
