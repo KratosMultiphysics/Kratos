@@ -12,11 +12,10 @@
     "model_part_name"                 : "PorousDomain",
     "domain_size"                     : 2,
     "model_import_settings": {
-      "input_type"                    : "mdpa",
-      "input_filename"                : "mesh"
+      "input_type"                    : "use_input_model_part"
     },
     "material_import_settings": {
-      "materials_filename"            : "MaterialParameters_abc.json"
+      "materials_filename"            : "../common/MaterialParameters_abc.json"
     },
     "time_stepping": {
       "time_step"                     : 86.4,
@@ -41,9 +40,6 @@
     "number_cycles"                   : 100,
     "reduction_factor"                : 0.5,
     "increase_factor"                 : 2.0,
-    "desired_iterations"              : 4,
-    "max_radius_factor"               : 10.0,
-    "min_radius_factor"               : 0.1,
     "calculate_reactions"             : true,
     "max_line_search_iterations"      : 5,
     "first_alpha_value"               : 0.5,
@@ -63,7 +59,6 @@
                                          "BottomWaterPressure",
                                          "LeftSide",
                                          "RightSide",
-                                         "SoilExcludingBoundary",
                                          "LineLoad2"],
     "body_domain_sub_model_part_list" : ["Soil-0"],
     "move_mesh_flag"                  : false
@@ -91,18 +86,8 @@
               "body_output"             : true,
               "node_output"             : false,
               "skin_output"             : false,
-              "nodal_results"           : ["DISPLACEMENT",
-                                           "TOTAL_DISPLACEMENT",
-                                           "WATER_PRESSURE",
-                                           "VOLUME_ACCELERATION",
-                                           "LINE_LOAD_Y",
-                                           "TOTAL_STRESS_TENSOR",
-                                           "CAUCHY_STRESS_TENSOR"],
-              "gauss_point_results"     : ["GREEN_LAGRANGE_STRAIN_TENSOR",
-                                           "ENGINEERING_STRAIN_TENSOR",
-                                           "VON_MISES_STRESS",
-                                           "FLUID_FLUX_VECTOR",
-                                           "HYDRAULIC_HEAD"]
+              "nodal_results"           : ["WATER_PRESSURE", "TOTAL_STRESS_TENSOR"],
+              "gauss_point_results"     : []
             }
           }
         }
@@ -201,22 +186,6 @@
         }
       },
       {
-        "python_module"            : "apply_normal_load_table_process",
-        "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name"             : "ApplyNormalLoadTableProcess",
-        "Parameters": {
-          "model_part_name"        : "PorousDomain.PhreaticLineContactStress1",
-          "variable_name"          : "NORMAL_CONTACT_STRESS",
-          "active"                 : [true, false],
-          "value"                  : [0.0, 0.0],
-          "table"                  : [0, 0],
-          "fluid_pressure_type"    : "Hydrostatic",
-          "gravity_direction"      : 1,
-          "reference_coordinate"   : 0,
-          "specific_weight"        : 10000
-        }
-      },
-      {
         "python_module"            : "apply_vector_constraint_table_process",
         "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
         "process_name"             : "ApplyVectorConstraintTableProcess",
@@ -230,17 +199,6 @@
       }
     ],
     "auxiliary_process_list": [
-      {
-        "python_module"            : "fix_model_part_above_phreatic_line_process",
-        "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name"             : "FixWaterPressuresAbovePhreaticLineProcess",
-        "Parameters": {
-          "model_part_name"        : "PorousDomain.SoilExcludingBoundary",
-          "x_coordinates"          : [0, 1],
-          "y_coordinates"          : [0, 0],
-          "z_coordinates"          : [0, 0]
-        }
-      },
       {
         "python_module"            : "geo_extrapolate_integration_point_values_to_nodes_process",
         "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
