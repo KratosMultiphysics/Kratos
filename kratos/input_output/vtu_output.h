@@ -260,6 +260,8 @@ private:
 
     std::vector<std::tuple<ModelPart*, CellType, std::unordered_map<IndexType, IndexType>*>> mModelPartCellData;
 
+    std::vector<std::pair<IndexType, double>> mStepInfo;
+
     ///@}
     ///@name Private operations
     ///@{

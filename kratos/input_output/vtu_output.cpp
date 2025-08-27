@@ -731,30 +731,65 @@ void VtuOutput::PrintOutput(const std::string& rOutputFolderName)
         }
     }
 
-    // now generate the vtm file
-    XmlElementsArray vtm_file_element("VTKFile");
-    vtm_file_element.AddAttribute("type", "vtkMultiBlockDataSet");
-    vtm_file_element.AddAttribute("version", "1.0");
-    vtm_file_element.AddAttribute("byte_order", GetEndianness());
+    if (mrModelPart.GetCommunicator().MyPID() == 0) {
+        // now generate the vtm file
+        XmlElementsArray vtm_file_element("VTKFile");
+        vtm_file_element.AddAttribute("type", "vtkMultiBlockDataSet");
+        vtm_file_element.AddAttribute("version", "1.0");
+        vtm_file_element.AddAttribute("byte_order", GetEndianness());
 
-    auto multi_block_set_element = Kratos::make_shared<XmlElementsArray>("vtkMultiBlockDataSet");
-    vtm_file_element.AddElement(multi_block_set_element);
+        auto multi_block_set_element = Kratos::make_shared<XmlElementsArray>("vtkMultiBlockDataSet");
+        vtm_file_element.AddElement(multi_block_set_element);
 
-    IndexType local_index = 0;
-    for (IndexType i = 0; i < vtm_info.size(); ++i) {
-        if (vtm_info[i].second != "") {
-            auto current_element = Kratos::make_shared<XmlElementsArray>("DataSet");
-            current_element->AddAttribute("index", std::to_string(local_index++));
-            current_element->AddAttribute("name", vtm_info[i].first);
-            current_element->AddAttribute("file", vtm_info[i].second.substr(rOutputFolderName.size() + 1));
-            multi_block_set_element->AddElement(current_element);
+        IndexType local_index = 0;
+        for (IndexType i = 0; i < vtm_info.size(); ++i) {
+            if (vtm_info[i].second != "") {
+                auto current_element = Kratos::make_shared<XmlElementsArray>("DataSet");
+                current_element->AddAttribute("index", std::to_string(local_index++));
+                current_element->AddAttribute("name", vtm_info[i].first);
+                current_element->AddAttribute("file", vtm_info[i].second.substr(rOutputFolderName.size() + 1));
+                multi_block_set_element->AddElement(current_element);
+            }
+        }
+
+        std::ofstream output_file;
+        output_file.open(rOutputFolderName + "/" + mrModelPart.FullName() + suffix + ".vtm", std::ios::out | std::ios::trunc);
+        vtm_file_element.Write(output_file);
+        output_file.close();
+
+        // now generate the pvd file
+        if (!suffix.empty()) {
+            // get the step
+            const auto step = r_process_info[STEP];
+
+            // only generate if the STEP variable is found
+            const double time = (r_process_info.Has(TIME) ? r_process_info[TIME] : static_cast<double>(step));
+
+            mStepInfo.push_back(std::make_pair(step, time));
+
+            XmlElementsArray pvd_file_element("VTKFile");
+            pvd_file_element.AddAttribute("type", "Collection");
+            pvd_file_element.AddAttribute("version", "0.1");
+
+            auto collection_element = Kratos::make_shared<XmlElementsArray>("Collection");
+            pvd_file_element.AddElement(collection_element);
+
+            for ([[maybe_unused]] auto [current_step, current_time] : mStepInfo) {
+                std::stringstream str_time;
+                str_time << std::scientific << std::setprecision(mPrecision) << current_time;
+
+                auto p_step_element = Kratos::make_shared<XmlElementsArray>("DataSet");
+                p_step_element->AddAttribute("timestep", str_time.str());
+                p_step_element->AddAttribute("file", mrModelPart.FullName() + "_" + std::to_string(current_step) + ".vtm");
+                collection_element->AddElement(p_step_element);
+            }
+
+            std::ofstream output_file;
+            output_file.open(rOutputFolderName + "/" + mrModelPart.FullName() + ".pvd", std::ios::out | std::ios::trunc);
+            pvd_file_element.Write(output_file);
+            output_file.close();
         }
     }
-
-    std::ofstream output_file;
-    output_file.open(rOutputFolderName + "/" + mrModelPart.FullName() + suffix + ".vtm", std::ios::out | std::ios::trunc);
-    vtm_file_element.Write(output_file);
-    output_file.close();
 }
 
 // template instantiations
