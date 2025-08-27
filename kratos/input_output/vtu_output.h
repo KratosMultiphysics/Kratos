@@ -86,6 +86,13 @@ public:
         BINARY  /// Binary format.
     };
 
+    enum CellType
+    {
+        None,
+        Conditions,
+        Elements
+    };
+
     ///@}
     ///@name Life cycle
     ///@{
@@ -102,7 +109,8 @@ public:
         ModelPart& rModelPart,
         const bool IsInitialConfiguration = true,
         const WriterFormat OutputFormat = WriterFormat::BINARY,
-        const IndexType Precision = 9);
+        const IndexType Precision = 9,
+        const bool OutputSubModelParts = false);
 
     ///@}
     ///@name Public operations
@@ -139,6 +147,11 @@ public:
     void AddFlagVariable(
         const std::string& rFlagName,
         const Flags& rFlagVariable,
+        const Flags& rEntityFlags);
+
+    template<class TDataType>
+    void AddIntegrationPointVariable(
+        const Variable<TDataType>& rVariable,
         const Flags& rEntityFlags);
 
     /**
@@ -222,10 +235,6 @@ private:
 
     const IndexType mPrecision; /// The precision used for writing floating-point values.
 
-    bool mIsConditionsConsidered; /// Flag indicating if conditions are considered.
-
-    bool mIsElementsConsidered; /// Flag indicating if elements are considered.
-
     // TODO: In the future study to replace the std::map
     // TODO: Study replace string, expensive, with hashes or keys
 
@@ -241,9 +250,13 @@ private:
 
     std::map<std::string, const Flags*> mCellFlagsMap; /// Map to store cell flags.
 
+    std::map<std::string, SupportedVariables> mGaussPointCellVariablesMap;
+
     std::map<std::string, FieldPointerType> mPointFieldsMap;
 
     std::map<std::string, FieldPointerType> mCellFieldsMap;
+
+    std::vector<std::tuple<ModelPart*, CellType, std::unordered_map<IndexType, IndexType>>> mModelPartCellData;
 
     ///@}
     ///@name Private operations
@@ -254,11 +267,38 @@ private:
     * @param rOutputFileNamePrefix The output file name prefix.
     * @param rModelPart            The model part to write.
     */
-    template<class TXmlDataElementWrapper>
+    template<class TCellsPointerType, class TXmlDataElementWrapper>
     void PrintModelPart(
         const std::string& rOutputFileNamePrefix,
-        ModelPart& rModelPart,
+        ModelPart::NodesContainerType::Pointer pNodes,
+        TCellsPointerType pCells,
+        const std::unordered_map<IndexType, IndexType>& rKratosVtuIndicesMap,
+        const DataCommunicator& rDataCommunicator,
         TXmlDataElementWrapper& rXmlDataElementWrapper) const;
+
+    template<class TCellsPointerType, class TXmlDataElementWrapper>
+    void PrintGaussPointFields(
+        const std::string& rOutputFileNamePrefix,
+        TCellsPointerType pCells,
+        const DataCommunicator& rDataCommunicator,
+        ProcessInfo::Pointer pProcessInfo,
+        TXmlDataElementWrapper& rXmlDataElementWrapper) const;
+
+    template<class TCellsPointerType>
+    void PrintModelPartDispatcher(
+        const std::string& rOutputFileNamePrefix,
+        ModelPart::NodesContainerType::Pointer pNodes,
+        TCellsPointerType pCells,
+        const std::unordered_map<IndexType, IndexType>& rKratosVtuIndicesMap,
+        const DataCommunicator& rDataCommunicator) const;
+
+    template<class TCellsPointerType>
+    void PrintGaussPointFieldsDispatcher(
+        const std::string& rOutputFileNamePrefix,
+        TCellsPointerType pCells,
+        const DataCommunicator& rDataCommunicator,
+        ProcessInfo::Pointer pProcessInfo) const;
+
 
     ///@}
 };
