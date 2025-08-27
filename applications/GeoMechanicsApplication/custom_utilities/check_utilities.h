@@ -83,11 +83,12 @@ public:
     void CheckAvailabilityOnly(const Variable<T>& rVariable)
     {
         if (!mrProperties.Has(rVariable))
-            KRATOS_ERROR << rVariable.Name() << " does not exist in the " << mrPrintName << mId << std::endl;
+            KRATOS_ERROR << rVariable.Name() << " does not exist in the " << mrPrintName << " "
+                         << mId << "." << std::endl;
     }
 
 private:
-    const std::string& mrPrintName;
+    const std::string  mrPrintName;
     const Properties&  mrProperties;
     const std::size_t  mId;
     const bool         mIncludeLower;

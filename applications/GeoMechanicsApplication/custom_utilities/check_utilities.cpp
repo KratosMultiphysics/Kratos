@@ -107,9 +107,9 @@ void CheckProperties::CheckRangeBounds(const Variable<double>& rVariable, double
         print_range << (mIncludeLower ? "[" : "]") << LowerBound << "; "
                     << ((mUpperBound == std::numeric_limits<double>::max()) ? "-" : std::to_string(UpperBound))
                     << (mIncludeUpper ? "]" : "[");
-        KRATOS_ERROR << rVariable.Name() << " in the " << mrPrintName << mId
+        KRATOS_ERROR << rVariable.Name() << " in the " << mrPrintName << " " << mId
                      << " has an invalid value: " << value << " out of the range "
-                     << print_range.str() << std::endl;
+                     << print_range.str() << "." << std::endl;
     }
 }
 
