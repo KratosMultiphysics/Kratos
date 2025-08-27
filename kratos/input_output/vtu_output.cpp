@@ -30,6 +30,7 @@
 #include "utilities/data_type_traits.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+#include "utilities/string_utilities.h"
 #include "utilities/xml_utilities/xml_ascii_nd_data_element.h"
 #include "utilities/xml_utilities/xml_base64_binary_nd_data_element.h"
 #include "utilities/xml_utilities/xml_elements_array.h"
@@ -187,6 +188,15 @@ NDData<int>::Pointer GetConnectivities(
     return p_connectivities;
 }
 
+void CopyAttributes(
+    const XmlElement& rSource,
+    XmlElement& rDestination)
+{
+    for (const auto& [attribute, value] : rSource.GetAttributes()) {
+        rDestination.AddAttribute(attribute, value);
+    }
+}
+
 template<class TCellsPointerType, class TXmlDataElementWrapper>
 XmlElement::Pointer CreateCellsXmlElement(
     TCellsPointerType pCells,
@@ -306,6 +316,123 @@ void FillCellDataRecursively(
     for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
         FillCellDataRecursively(rOutput, r_sub_model_part);
     }
+}
+
+std::string WritePVTUFile(
+    XmlElementsArray& rPointDataElement,
+    XmlElementsArray& rCellDataElement,
+    const std::string& rOutputVtuFileName,
+    const DataCommunicator& rDataCommunicator)
+{
+    // get list of file names
+    std::stringstream list_of_file_names;
+
+    // TODO: May be we want to check a rank which has some entities (not empty ranks)
+    //       Then write on that rank.
+    const int writing_rank = 0;
+
+    list_of_file_names << rOutputVtuFileName << "\n";
+    if (rDataCommunicator.Rank() == writing_rank) {
+        for (int rank = 0; rank < rDataCommunicator.Size(); ++rank) {
+            if (rank != writing_rank) {
+                std::string msg;
+                rDataCommunicator.Recv(msg, rank);
+                list_of_file_names << msg;
+            }
+        }
+    } else {
+        rDataCommunicator.Send(list_of_file_names.str(), writing_rank);
+    }
+
+    rDataCommunicator.Barrier();
+
+    const auto& p_vtu_file_name = rOutputVtuFileName.substr(0, rOutputVtuFileName.rfind("_")) + ".pvtu";
+
+    if (rDataCommunicator.Rank() == writing_rank) {
+        // create the pvtu file
+        XmlElementsArray p_vtu_file_element("VTKFile");
+        p_vtu_file_element.AddAttribute("type", "PUnstructuredGrid");
+        p_vtu_file_element.AddAttribute("version", "0.1");
+        p_vtu_file_element.AddAttribute("byte_order", GetEndianness());
+
+        // create the unstructured grid
+        auto p_unstructured_grid_element = Kratos::make_shared<XmlElementsArray>("PUnstructuredGrid");
+        p_unstructured_grid_element->AddAttribute("GhostLevel", "0");
+        p_vtu_file_element.AddElement(p_unstructured_grid_element);
+
+        // ppoints_element
+        auto p_points_element = Kratos::make_shared<XmlElementsArray>("PPoints");
+        p_unstructured_grid_element->AddElement(p_points_element);
+
+        // position element
+        auto p_position_element = Kratos::make_shared<XmlElementsArray>("PDataArray");
+        p_position_element->AddAttribute("type", "Float64");
+        p_position_element->AddAttribute("Name", "Position");
+        p_position_element->AddAttribute("NumberOfComponents", "3");
+        p_points_element->AddElement(p_position_element);
+
+        // pcells element
+        auto p_cells_element = Kratos::make_shared<XmlElementsArray>("PCells");
+        p_unstructured_grid_element->AddElement(p_cells_element);
+
+        // connectivity element
+        auto p_connectivity_element = Kratos::make_shared<XmlElementsArray>("PDataArray");
+        p_connectivity_element->AddAttribute("type", "Int32");
+        p_connectivity_element->AddAttribute("Name", "connectivity");
+        p_connectivity_element->AddAttribute("NumberOfComponents", "1");
+        p_cells_element->AddElement(p_connectivity_element);
+
+        // offsets element
+        auto p_offsets_element = Kratos::make_shared<XmlElementsArray>("PDataArray");
+        p_offsets_element->AddAttribute("type", "Int32");
+        p_offsets_element->AddAttribute("Name", "offsets");
+        p_offsets_element->AddAttribute("NumberOfComponents", "1");
+        p_cells_element->AddElement(p_offsets_element);
+
+        // types element
+        auto p_types_element = Kratos::make_shared<XmlElementsArray>("PDataArray");
+        p_types_element->AddAttribute("type", "Int32");
+        p_types_element->AddAttribute("Name", "types");
+        p_types_element->AddAttribute("NumberOfComponents", "1");
+        p_cells_element->AddElement(p_types_element);
+
+        // ppoint data element
+        auto p_point_data_element = Kratos::make_shared<XmlElementsArray>("PPointData");
+        p_unstructured_grid_element->AddElement(p_point_data_element);
+
+        // now add the point data fields
+        for (const auto& p_element : rPointDataElement.GetElements()) {
+            auto p_current_element = Kratos::make_shared<XmlElementsArray>("PDataArray");
+            CopyAttributes(*p_element, *p_current_element);
+            p_point_data_element->AddElement(p_current_element);
+        }
+
+        // pcell data element
+        auto p_cell_data_element = Kratos::make_shared<XmlElementsArray>("PCellData");
+        p_unstructured_grid_element->AddElement(p_cell_data_element);
+
+        // now add the cell data fields
+        for (const auto& p_element : rCellDataElement.GetElements()) {
+            auto p_current_element = Kratos::make_shared<XmlElementsArray>("PDataArray");
+            CopyAttributes(*p_element, *p_current_element);
+            p_cell_data_element->AddElement(p_current_element);
+        }
+
+        // now add the piece elements
+        const auto& r_file_names = StringUtilities::SplitStringByDelimiter(list_of_file_names.str(), '\n');
+        for (const auto& r_file_name : r_file_names) {
+            auto piece = Kratos::make_shared<XmlElementsArray>("Piece");
+            piece->AddAttribute("Source", r_file_name.substr(r_file_name.rfind("/") + 1));
+            p_unstructured_grid_element->AddElement(piece);
+        }
+
+        // writing to file
+        std::ofstream output_file;
+        output_file.open(p_vtu_file_name, std::ios::out | std::ios::trunc);
+        p_vtu_file_element.Write(output_file);
+    }
+
+    return p_vtu_file_name;
 }
 
 } // namespace
@@ -511,6 +638,9 @@ std::string VtuOutput::PrintModelPart(
     vtk_file_element.Write(output_file);
     output_file.close();
 
+    if (rDataCommunicator.IsDistributed()) {
+        return WritePVTUFile(*point_data_element, *cell_data_element, output_vtu_file_name.str(), rDataCommunicator);
+    }
     return output_vtu_file_name.str();
 }
 
@@ -610,10 +740,16 @@ std::string VtuOutput::PrintGaussPointFields(
         vtk_file_element.Write(output_file);
         output_file.close();
 
+        if (rDataCommunicator.IsDistributed()) {
+            return WritePVTUFile(*point_data_element, *Kratos::make_shared<XmlElementsArray>(""), output_vtu_file_name.str(), rDataCommunicator);
+        }
+
         return output_vtu_file_name.str();
     } else {
         return "";
     }
+
+    return "";
 }
 
 template<class TCellsPointerType>
@@ -697,13 +833,24 @@ const ModelPart& VtuOutput::GetModelPart() const
 
 void VtuOutput::PrintOutput(const std::string& rOutputFolderName)
 {
-    std::filesystem::create_directories(rOutputFolderName + "/" + mrModelPart.FullName());
+    KRATOS_TRY
 
     const auto& r_process_info = mrModelPart.GetProcessInfo();
 
-    const std::string suffix = (r_process_info.Has(STEP) ? "_" + std::to_string(r_process_info[STEP]) : "");
+    KRATOS_ERROR_IF_NOT(r_process_info.Has(STEP))
+        << "STEP variable is not found in the process info of " << mrModelPart.FullName() << ".\n";
 
-    std::vector<std::pair<std::string, std::string>> vtm_info;
+    KRATOS_ERROR_IF_NOT(r_process_info.Has(TIME))
+        << "TIME variable is not found in the process info of " << mrModelPart.FullName() << ".\n";
+
+    // Add the step info.
+    mStepInfo.push_back(std::make_pair(r_process_info[STEP], r_process_info[TIME]));
+
+    std::filesystem::create_directories(rOutputFolderName + "/" + mrModelPart.FullName());
+
+    const std::string suffix = "_" + std::to_string(r_process_info[STEP]);
+
+    std::vector<std::pair<std::string, std::string>> pvd_info;
     for ([[maybe_unused]] auto [p_model_part, cell_type, p_kratos_vtu_indices_map] : mModelPartCellData) {
         const auto& r_data_communicator = p_model_part->GetCommunicator().GetDataCommunicator();
         auto p_process_info = p_model_part->pGetProcessInfo();
@@ -724,84 +871,61 @@ void VtuOutput::PrintOutput(const std::string& rOutputFolderName)
         const auto& current_mp_name = rOutputFolderName + "/" + mrModelPart.FullName() + "/" + p_model_part->FullName() + cell_type_suffix + suffix;
         const auto& r_model_part_name = p_model_part->FullName() + cell_type_suffix;
         const auto& r_kratos_vtu_indices_map = *p_kratos_vtu_indices_map;
+
         switch (cell_type) {
             case Elements:
-                vtm_info.push_back(std::make_pair(r_model_part_name, PrintModelPartDispatcher(current_mp_name, p_model_part->pNodes(), p_model_part->pElements(), r_kratos_vtu_indices_map, r_data_communicator)));
+                pvd_info.push_back(std::make_pair(r_model_part_name, PrintModelPartDispatcher(current_mp_name, p_model_part->pNodes(), p_model_part->pElements(), r_kratos_vtu_indices_map, r_data_communicator)));
                 if (!mGaussPointCellVariablesMap.empty()) {
-                    vtm_info.push_back(std::make_pair(r_model_part_name + "_GAUSS", PrintGaussPointFieldsDispatcher(current_mp_name, p_model_part->pElements(), r_data_communicator, p_process_info)));
+                    pvd_info.push_back(std::make_pair(r_model_part_name + "_GAUSS", PrintGaussPointFieldsDispatcher(current_mp_name, p_model_part->pElements(), r_data_communicator, p_process_info)));
                 }
                 break;
             case Conditions:
-                vtm_info.push_back(std::make_pair(r_model_part_name, PrintModelPartDispatcher(current_mp_name, p_model_part->pNodes(), p_model_part->pConditions(), r_kratos_vtu_indices_map, r_data_communicator)));
+                pvd_info.push_back(std::make_pair(r_model_part_name, PrintModelPartDispatcher(current_mp_name, p_model_part->pNodes(), p_model_part->pConditions(), r_kratos_vtu_indices_map, r_data_communicator)));
                 if (!mGaussPointCellVariablesMap.empty()) {
-                    vtm_info.push_back(std::make_pair(r_model_part_name + "_GAUSS", PrintGaussPointFieldsDispatcher(current_mp_name, p_model_part->pConditions(), r_data_communicator, p_process_info)));
+                    pvd_info.push_back(std::make_pair(r_model_part_name + "_GAUSS", PrintGaussPointFieldsDispatcher(current_mp_name, p_model_part->pConditions(), r_data_communicator, p_process_info)));
                 }
                 break;
             default:
-                vtm_info.push_back(std::make_pair(r_model_part_name, PrintModelPartDispatcher(current_mp_name, p_model_part->pNodes(), p_model_part->pElements(), r_kratos_vtu_indices_map, r_data_communicator)));
+                pvd_info.push_back(std::make_pair(r_model_part_name, PrintModelPartDispatcher(current_mp_name, p_model_part->pNodes(), p_model_part->pElements(), r_kratos_vtu_indices_map, r_data_communicator)));
                 break;
         }
     }
 
     if (mrModelPart.GetCommunicator().MyPID() == 0) {
-        // now generate the vtm file
-        XmlElementsArray vtm_file_element("VTKFile");
-        vtm_file_element.AddAttribute("type", "vtkMultiBlockDataSet");
-        vtm_file_element.AddAttribute("version", "1.0");
-        vtm_file_element.AddAttribute("byte_order", GetEndianness());
+        // now generate the pvd file
+        XmlElementsArray pvd_file_element("VTKFile");
+        pvd_file_element.AddAttribute("type", "Collection");
+        pvd_file_element.AddAttribute("version", "1.0");
+        pvd_file_element.AddAttribute("byte_order", GetEndianness());
 
-        auto multi_block_set_element = Kratos::make_shared<XmlElementsArray>("vtkMultiBlockDataSet");
-        vtm_file_element.AddElement(multi_block_set_element);
+        auto collection_element = Kratos::make_shared<XmlElementsArray>("Collection");
+        pvd_file_element.AddElement(collection_element);
 
-        IndexType local_index = 0;
-        for (IndexType i = 0; i < vtm_info.size(); ++i) {
-            if (vtm_info[i].second != "") {
-                auto current_element = Kratos::make_shared<XmlElementsArray>("DataSet");
-                current_element->AddAttribute("index", std::to_string(local_index++));
-                current_element->AddAttribute("name", vtm_info[i].first);
-                current_element->AddAttribute("file", vtm_info[i].second.substr(rOutputFolderName.size() + 1));
-                multi_block_set_element->AddElement(current_element);
+        for (auto& [step, time] : mStepInfo) {
+            IndexType local_index = 0;
+            for (IndexType i = 0; i < pvd_info.size(); ++i) {
+                if (pvd_info[i].second != "") {
+                    auto current_element = Kratos::make_shared<XmlElementsArray>("DataSet");
+
+                    std::stringstream str_time;
+                    str_time << std::scientific << std::setprecision(mPrecision) << time;
+
+                    current_element->AddAttribute("timestep", str_time.str());
+                    current_element->AddAttribute("name", pvd_info[i].first);
+                    current_element->AddAttribute("part", std::to_string(local_index++));
+                    current_element->AddAttribute("file", pvd_info[i].second.substr(rOutputFolderName.size() + 1));
+                    collection_element->AddElement(current_element);
+                }
             }
         }
 
         std::ofstream output_file;
-        output_file.open(rOutputFolderName + "/" + mrModelPart.FullName() + suffix + ".vtm", std::ios::out | std::ios::trunc);
-        vtm_file_element.Write(output_file);
+        output_file.open(rOutputFolderName + "/" + mrModelPart.FullName() + ".pvd", std::ios::out | std::ios::trunc);
+        pvd_file_element.Write(output_file);
         output_file.close();
-
-        // now generate the pvd file
-        if (!suffix.empty()) {
-            // get the step
-            const auto step = r_process_info[STEP];
-
-            // only generate if the STEP variable is found
-            const double time = (r_process_info.Has(TIME) ? r_process_info[TIME] : static_cast<double>(step));
-
-            mStepInfo.push_back(std::make_pair(step, time));
-
-            XmlElementsArray pvd_file_element("VTKFile");
-            pvd_file_element.AddAttribute("type", "Collection");
-            pvd_file_element.AddAttribute("version", "0.1");
-
-            auto collection_element = Kratos::make_shared<XmlElementsArray>("Collection");
-            pvd_file_element.AddElement(collection_element);
-
-            for ([[maybe_unused]] auto [current_step, current_time] : mStepInfo) {
-                std::stringstream str_time;
-                str_time << std::scientific << std::setprecision(mPrecision) << current_time;
-
-                auto p_step_element = Kratos::make_shared<XmlElementsArray>("DataSet");
-                p_step_element->AddAttribute("timestep", str_time.str());
-                p_step_element->AddAttribute("file", mrModelPart.FullName() + "_" + std::to_string(current_step) + ".vtm");
-                collection_element->AddElement(p_step_element);
-            }
-
-            std::ofstream output_file;
-            output_file.open(rOutputFolderName + "/" + mrModelPart.FullName() + ".pvd", std::ios::out | std::ios::trunc);
-            pvd_file_element.Write(output_file);
-            output_file.close();
-        }
     }
+
+    KRATOS_CATCH("");
 }
 
 // template instantiations
