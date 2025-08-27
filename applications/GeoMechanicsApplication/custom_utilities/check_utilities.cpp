@@ -71,4 +71,46 @@ std::string CheckUtilities::PrintVectorContent(const std::vector<size_t>& rVecto
     return output;
 }
 
+void CheckProperties::Check(const Variable<double>& rVariable)
+{
+    CheckAvailabilityOnly(rVariable);
+    CheckRangeBounds(rVariable, mLowerBound, mUpperBound);
+}
+
+void CheckProperties::Check(const Variable<double>& rVariable, double UpperBound)
+{
+    CheckAvailabilityOnly(rVariable);
+    CheckRangeBounds(rVariable, mLowerBound, UpperBound);
+}
+
+void CheckProperties::Check(const Variable<double>& rVariable, double LowerBound, double UpperBound)
+{
+    CheckAvailabilityOnly(rVariable);
+    CheckRangeBounds(rVariable, LowerBound, UpperBound);
+}
+
+void CheckProperties::CheckRangeBounds(const Variable<double>& rVariable, double LowerBound, double UpperBound)
+{
+    const auto value = mrProperties[rVariable];
+    bool       in_range;
+    if (!mIncludeLower && !mIncludeUpper) { // Open interval
+        in_range = (value > LowerBound && value < UpperBound);
+    } else if (mIncludeLower && mIncludeUpper) { // Closed interval
+        in_range = (value >= LowerBound && value <= UpperBound);
+    } else if (mIncludeLower) { // Left-closed right-open
+        in_range = (value >= LowerBound && value < UpperBound);
+    } else { // Right-closed left-open
+        in_range = (value > LowerBound && value <= UpperBound);
+    }
+    if (!in_range) {
+        std::ostringstream print_range;
+        print_range << (mIncludeLower ? "[" : "]") << LowerBound << "; "
+                    << ((mUpperBound == std::numeric_limits<double>::max()) ? "-" : std::to_string(UpperBound))
+                    << (mIncludeUpper ? "]" : "[");
+        KRATOS_ERROR << rVariable.Name() << " in the " << mrPrintName << mId
+                     << " has an invalid value: " << value << " out of the range "
+                     << print_range.str() << std::endl;
+    }
+}
+
 } /* namespace Kratos.*/
