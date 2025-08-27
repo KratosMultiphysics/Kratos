@@ -2,7 +2,7 @@
     "problem_data": {
         "problem_name": "uvec_3d",
         "start_time": 0.0,
-        "end_time": 0.0013,
+        "end_time": 1.0,
         "echo_level": 1,
         "parallel_type": "OpenMP",
         "number_of_threads": 8
@@ -19,7 +19,7 @@
             "materials_filename": "MaterialParameters.json"
         },
         "time_stepping": {
-            "time_step": 5e-05,
+            "time_step": 0.9999995,
             "max_delta_time_factor": 1000
         },
         "reduction_factor": 1.0,

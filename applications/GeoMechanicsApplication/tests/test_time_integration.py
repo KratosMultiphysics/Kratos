@@ -20,6 +20,8 @@ class KratosGeoMechanicsTimeIntegrationTests(KratosUnittest.TestCase):
     def test_avoid_small_last_step(self):
         """
         Test dynamic calculation that without countermeasure does a very small step to reach the end_time.
+        This is triggered by setting the end-time to 1.0 and the time-step to 0.9999995.
+        The countermeasure scales the time step to 1.0, such that only one step is taken.
         :return:
         """
         test_name = 'test_time_integration'
@@ -32,7 +34,7 @@ class KratosGeoMechanicsTimeIntegrationTests(KratosUnittest.TestCase):
 
         number_of_steps_taken = len(simulation_output["results"]["DISPLACEMENT"])
 
-        self.assertEqual(number_of_steps_taken, 26)
+        self.assertEqual(number_of_steps_taken, 1)
 
 if __name__ == '__main__':
     KratosUnittest.main()
