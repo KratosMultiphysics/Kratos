@@ -38,10 +38,11 @@ void DofArrayUtilities::SetUpDofArray(
 
     // Allocate auxiliary arrays
     DofsVectorType dof_list;
+    unsigned int assumed_dofs_per_element = 20;
     std::size_t n_threads = ParallelUtilities::GetNumThreads();
     std::vector<AuxiliaryDofsSetType> dofs_aux_list(n_threads);
     for (IndexType i = 0; i < n_threads; ++i) {
-        dofs_aux_list[i].reserve(rModelPart.NumberOfElements());
+        dofs_aux_list[i].reserve(assumed_dofs_per_element*rModelPart.NumberOfElements());
     }
 
     KRATOS_INFO_IF("DofArrayUtilities", (EchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Setting up the DOFs" << std::endl;
@@ -80,7 +81,6 @@ void DofArrayUtilities::SetUpDofArray(
         IndexPartition<std::size_t>(new_max).for_each([&](std::size_t Index){
             if (Index + new_max < old_max) {
                 dofs_aux_list[Index].insert(dofs_aux_list[Index + new_max].begin(), dofs_aux_list[Index + new_max].end());
-                dofs_aux_list[Index + new_max].clear();
             }
         });
 
@@ -88,7 +88,7 @@ void DofArrayUtilities::SetUpDofArray(
         new_max = std::ceil(0.5*static_cast<double>(old_max));
     }
 
-    // Fill and sort the provided DOF array from the auxiliary global DOFs set
+    // Fill and sort the provided DOF array from the reduced (i.e., thread 0) auxiliary global DOFs set
     KRATOS_INFO_IF("DofArrayUtilities", EchoLevel > 2) << "Initializing ordered array filling" << std::endl;
     rDofArray.insert(dofs_aux_list[0].begin(), dofs_aux_list[0].end());
 
