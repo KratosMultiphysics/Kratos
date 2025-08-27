@@ -13,6 +13,7 @@
 // System includes
 #include <numeric>
 #include <type_traits>
+#include <filesystem>
 
 // External includes
 
@@ -249,30 +250,36 @@ void AddFields(
 }
 
 void FillCellData(
-    std::vector<std::tuple<ModelPart*, VtuOutput::CellType, std::unordered_map<IndexType, IndexType>>>& rOutput,
+    std::vector<std::tuple<ModelPart*, VtuOutput::CellType, std::unordered_map<IndexType, IndexType>*>>& rOutput,
     ModelPart& rModelPart)
 {
     const bool has_elements = rModelPart.GetCommunicator().GlobalNumberOfElements() > 0;
     const bool has_conditions = rModelPart.GetCommunicator().GlobalNumberOfConditions() > 0;
 
+    auto p_indices_map = new std::unordered_map<IndexType, IndexType>{};
+
     if (has_elements) {
-        rOutput.push_back(std::make_tuple(&rModelPart, VtuOutput::CellType::Elements, std::unordered_map<IndexType, IndexType>{}));
-    } else if (has_conditions) {
-        rOutput.push_back(std::make_tuple(&rModelPart, VtuOutput::CellType::Conditions, std::unordered_map<IndexType, IndexType>{}));
-    } else {
-        rOutput.push_back(std::make_tuple(&rModelPart, VtuOutput::CellType::None, std::unordered_map<IndexType, IndexType>{}));
+        rOutput.push_back(std::make_tuple(&rModelPart, VtuOutput::CellType::Elements, p_indices_map));
+    }
+
+    if (has_conditions) {
+        rOutput.push_back(std::make_tuple(&rModelPart, VtuOutput::CellType::Conditions, p_indices_map));
+    }
+
+    if (!has_elements && !has_conditions) {
+        rOutput.push_back(std::make_tuple(&rModelPart, VtuOutput::CellType::None, p_indices_map));
     }
 
     if (has_elements || has_conditions) {
         IndexType vtu_index = 0;
         for (const auto& r_node : rModelPart.Nodes()) {
-            std::get<2>(rOutput.back())[r_node.Id()] = vtu_index++;
+            (*p_indices_map)[r_node.Id()] = vtu_index++;
         }
     }
 }
 
 void FillCellDataRecursively(
-    std::vector<std::tuple<ModelPart*, VtuOutput::CellType, std::unordered_map<IndexType, IndexType>>>& rOutput,
+    std::vector<std::tuple<ModelPart*, VtuOutput::CellType, std::unordered_map<IndexType, IndexType>*>>& rOutput,
     ModelPart& rModelPart)
 {
     FillCellData(rOutput, rModelPart);
@@ -298,6 +305,22 @@ VtuOutput::VtuOutput(
         FillCellDataRecursively(mModelPartCellData, rModelPart);
     } else {
         FillCellData(mModelPartCellData, rModelPart);
+    }
+}
+
+VtuOutput::~VtuOutput()
+{
+    std::vector<std::unordered_map<IndexType, IndexType>*> list_of_maps;
+    for ([[maybe_unused]] auto [p_model_part, cell_type, p_kratos_vtu_indices_map] : mModelPartCellData) {
+        list_of_maps.push_back(p_kratos_vtu_indices_map);
+    }
+
+    std::sort(list_of_maps.begin(), list_of_maps.end());
+    list_of_maps.erase(std::unique(list_of_maps.begin(), list_of_maps.end()), list_of_maps.end() );
+
+    // now delete
+    for (auto p_map : list_of_maps) {
+        delete p_map;
     }
 }
 
@@ -399,7 +422,7 @@ void VtuOutput::AddContainerExpression(
 }
 
 template<class TCellsPointerType, class TXmlDataElementWrapper>
-void VtuOutput::PrintModelPart(
+std::string VtuOutput::PrintModelPart(
     const std::string& rOutputFileNamePrefix,
     ModelPart::NodesContainerType::Pointer pNodes,
     TCellsPointerType pCells,
@@ -467,10 +490,12 @@ void VtuOutput::PrintModelPart(
     output_file.open(output_vtu_file_name.str(), std::ios::out | std::ios::trunc);
     vtk_file_element.Write(output_file);
     output_file.close();
+
+    return output_vtu_file_name.str();
 }
 
 template<class TCellsPointerType, class TXmlDataElementWrapper>
-void VtuOutput::PrintGaussPointFields(
+std::string VtuOutput::PrintGaussPointFields(
     const std::string& rOutputFileNamePrefix,
     TCellsPointerType pCells,
     const DataCommunicator& rDataCommunicator,
@@ -528,8 +553,9 @@ void VtuOutput::PrintGaussPointFields(
     piece_element->AddElement(point_data_element);
 
     // add the gauss point data
+    bool is_gauss_point_data_available = false;
     for (const auto& r_pair : mGaussPointCellVariablesMap) {
-        std::visit([&pCells, &point_data_element, &rXmlDataElementWrapper, &pProcessInfo](auto pVariable) {
+        std::visit([&pCells, &point_data_element, &rXmlDataElementWrapper, &pProcessInfo, &is_gauss_point_data_available](auto pVariable) {
             using data_type = typename DataTypeTraits<typename BareType<decltype(*pVariable)>::Type>::PrimitiveType;
             if constexpr(std::is_same_v<data_type, double>) {
                 GaussPointVariableTensorAdaptor gp_ta(pCells, pVariable,  pProcessInfo);
@@ -551,26 +577,35 @@ void VtuOutput::PrintGaussPointFields(
                     gauss_field_span[Index] = gauss_ta_span[Index];
                 });
 
-                point_data_element->AddElement(rXmlDataElementWrapper.Get(pVariable->Name(), gauss_field_nd_data));
+                if (gp_ta.Size() > 0) {
+                    is_gauss_point_data_available = true;
+                    point_data_element->AddElement(rXmlDataElementWrapper.Get(pVariable->Name(), gauss_field_nd_data));
+                }
             }
         }, r_pair.second);
     }
 
-    std::stringstream output_vtu_file_name;
-    output_vtu_file_name << rOutputFileNamePrefix << "_GAUSS";
-    if (rDataCommunicator.IsDistributed()) {
-        output_vtu_file_name << "_" << rDataCommunicator.Rank();
-    }
-    output_vtu_file_name << ".vtu";
+    if (rDataCommunicator.OrReduceAll(is_gauss_point_data_available)) {
+        std::stringstream output_vtu_file_name;
+        output_vtu_file_name << rOutputFileNamePrefix << "_GAUSS";
+        if (rDataCommunicator.IsDistributed()) {
+            output_vtu_file_name << "_" << rDataCommunicator.Rank();
+        }
+        output_vtu_file_name << ".vtu";
 
-    std::ofstream output_file;
-    output_file.open(output_vtu_file_name.str(), std::ios::out | std::ios::trunc);
-    vtk_file_element.Write(output_file);
-    output_file.close();
+        std::ofstream output_file;
+        output_file.open(output_vtu_file_name.str(), std::ios::out | std::ios::trunc);
+        vtk_file_element.Write(output_file);
+        output_file.close();
+
+        return output_vtu_file_name.str();
+    } else {
+        return "";
+    }
 }
 
 template<class TCellsPointerType>
-void VtuOutput::PrintModelPartDispatcher(
+std::string VtuOutput::PrintModelPartDispatcher(
     const std::string& rOutputFileNamePrefix,
     ModelPart::NodesContainerType::Pointer pNodes,
     TCellsPointerType pCells,
@@ -580,19 +615,17 @@ void VtuOutput::PrintModelPartDispatcher(
     switch (mOutputFormat)  {
         case ASCII: {
                 XmlAsciiNDDataElementWrapper data_element_wrapper{mPrecision};
-                PrintModelPart(rOutputFileNamePrefix, pNodes, pCells, rKratosVtuIndicesMap, rDataCommunicator, data_element_wrapper);
-                break;
+                return PrintModelPart(rOutputFileNamePrefix, pNodes, pCells, rKratosVtuIndicesMap, rDataCommunicator, data_element_wrapper);
             }
         case BINARY: {
                 XmlBase64BinaryNDDataElementWrapper data_element_wrapper;
-                PrintModelPart(rOutputFileNamePrefix, pNodes, pCells, rKratosVtuIndicesMap, rDataCommunicator, data_element_wrapper);
-                break;
+                return PrintModelPart(rOutputFileNamePrefix, pNodes, pCells, rKratosVtuIndicesMap, rDataCommunicator, data_element_wrapper);
             }
     }
 }
 
 template<class TCellsPointerType>
-void VtuOutput::PrintGaussPointFieldsDispatcher(
+std::string VtuOutput::PrintGaussPointFieldsDispatcher(
     const std::string& rOutputFileNamePrefix,
     TCellsPointerType pCells,
     const DataCommunicator& rDataCommunicator,
@@ -601,13 +634,11 @@ void VtuOutput::PrintGaussPointFieldsDispatcher(
     switch (mOutputFormat)  {
         case ASCII: {
                 XmlAsciiNDDataElementWrapper data_element_wrapper{mPrecision};
-                PrintGaussPointFields(rOutputFileNamePrefix, pCells, rDataCommunicator, pProcessInfo, data_element_wrapper);
-                break;
+                return PrintGaussPointFields(rOutputFileNamePrefix, pCells, rDataCommunicator, pProcessInfo, data_element_wrapper);
             }
         case BINARY: {
                 XmlBase64BinaryNDDataElementWrapper data_element_wrapper;
-                PrintGaussPointFields(rOutputFileNamePrefix, pCells, rDataCommunicator, pProcessInfo, data_element_wrapper);
-                break;
+                return PrintGaussPointFields(rOutputFileNamePrefix, pCells, rDataCommunicator, pProcessInfo, data_element_wrapper);
             }
     }
 }
@@ -652,30 +683,78 @@ const ModelPart& VtuOutput::GetModelPart() const
     return mrModelPart;
 }
 
-void VtuOutput::PrintOutput(const std::string& rOutputFilenamePrefix)
+void VtuOutput::PrintOutput(const std::string& rOutputFolderName)
 {
-    for ([[maybe_unused]]auto [p_model_part, cell_type, r_kratos_vtu_indices_map] : mModelPartCellData) {
+    std::filesystem::create_directories(rOutputFolderName + "/" + mrModelPart.FullName());
+
+    const auto& r_process_info = mrModelPart.GetProcessInfo();
+
+    const std::string suffix = (r_process_info.Has(STEP) ? "_" + std::to_string(r_process_info[STEP]) : "");
+
+    std::vector<std::pair<std::string, std::string>> vtm_info;
+    for ([[maybe_unused]] auto [p_model_part, cell_type, p_kratos_vtu_indices_map] : mModelPartCellData) {
         const auto& r_data_communicator = p_model_part->GetCommunicator().GetDataCommunicator();
         auto p_process_info = p_model_part->pGetProcessInfo();
-        const auto& current_mp_name = rOutputFilenamePrefix + "_" + p_model_part->FullName();
+
+        std::string cell_type_suffix;
         switch (cell_type) {
             case Elements:
-                PrintModelPartDispatcher(current_mp_name, p_model_part->pNodes(), p_model_part->pElements(), r_kratos_vtu_indices_map, r_data_communicator);
+                cell_type_suffix = "_ELEMENTS";
+                break;
+            case Conditions:
+                cell_type_suffix = "_CONDITIONS";
+                break;
+            default:
+                cell_type_suffix = "_NODES";
+                break;
+        }
+
+        const auto& current_mp_name = rOutputFolderName + "/" + mrModelPart.FullName() + "/" + p_model_part->FullName() + cell_type_suffix + suffix;
+        const auto& r_model_part_name = p_model_part->FullName() + cell_type_suffix;
+        const auto& r_kratos_vtu_indices_map = *p_kratos_vtu_indices_map;
+        switch (cell_type) {
+            case Elements:
+                vtm_info.push_back(std::make_pair(r_model_part_name, PrintModelPartDispatcher(current_mp_name, p_model_part->pNodes(), p_model_part->pElements(), r_kratos_vtu_indices_map, r_data_communicator)));
                 if (!mGaussPointCellVariablesMap.empty()) {
-                    PrintGaussPointFieldsDispatcher(current_mp_name, p_model_part->pElements(), r_data_communicator, p_process_info);
+                    vtm_info.push_back(std::make_pair(r_model_part_name + "_GAUSS", PrintGaussPointFieldsDispatcher(current_mp_name, p_model_part->pElements(), r_data_communicator, p_process_info)));
                 }
                 break;
             case Conditions:
-                PrintModelPartDispatcher(current_mp_name, p_model_part->pNodes(), p_model_part->pConditions(), r_kratos_vtu_indices_map, r_data_communicator);
+                vtm_info.push_back(std::make_pair(r_model_part_name, PrintModelPartDispatcher(current_mp_name, p_model_part->pNodes(), p_model_part->pConditions(), r_kratos_vtu_indices_map, r_data_communicator)));
                 if (!mGaussPointCellVariablesMap.empty()) {
-                    PrintGaussPointFieldsDispatcher(current_mp_name, p_model_part->pConditions(), r_data_communicator, p_process_info);
+                    vtm_info.push_back(std::make_pair(r_model_part_name + "_GAUSS", PrintGaussPointFieldsDispatcher(current_mp_name, p_model_part->pConditions(), r_data_communicator, p_process_info)));
                 }
                 break;
             default:
-                PrintModelPartDispatcher(current_mp_name, p_model_part->pNodes(), p_model_part->pElements(), r_kratos_vtu_indices_map, r_data_communicator);
+                vtm_info.push_back(std::make_pair(r_model_part_name, PrintModelPartDispatcher(current_mp_name, p_model_part->pNodes(), p_model_part->pElements(), r_kratos_vtu_indices_map, r_data_communicator)));
                 break;
         }
     }
+
+    // now generate the vtm file
+    XmlElementsArray vtm_file_element("VTKFile");
+    vtm_file_element.AddAttribute("type", "vtkMultiBlockDataSet");
+    vtm_file_element.AddAttribute("version", "1.0");
+    vtm_file_element.AddAttribute("byte_order", GetEndianness());
+
+    auto multi_block_set_element = Kratos::make_shared<XmlElementsArray>("vtkMultiBlockDataSet");
+    vtm_file_element.AddElement(multi_block_set_element);
+
+    IndexType local_index = 0;
+    for (IndexType i = 0; i < vtm_info.size(); ++i) {
+        if (vtm_info[i].second != "") {
+            auto current_element = Kratos::make_shared<XmlElementsArray>("DataSet");
+            current_element->AddAttribute("index", std::to_string(local_index++));
+            current_element->AddAttribute("name", vtm_info[i].first);
+            current_element->AddAttribute("file", vtm_info[i].second.substr(rOutputFolderName.size() + 1));
+            multi_block_set_element->AddElement(current_element);
+        }
+    }
+
+    std::ofstream output_file;
+    output_file.open(rOutputFolderName + "/" + mrModelPart.FullName() + suffix + ".vtm", std::ios::out | std::ios::trunc);
+    vtm_file_element.Write(output_file);
+    output_file.close();
 }
 
 // template instantiations

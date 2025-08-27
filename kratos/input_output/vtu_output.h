@@ -112,6 +112,8 @@ public:
         const IndexType Precision = 9,
         const bool OutputSubModelParts = false);
 
+    ~VtuOutput() override;
+
     ///@}
     ///@name Public operations
     ///@{
@@ -256,7 +258,7 @@ private:
 
     std::map<std::string, FieldPointerType> mCellFieldsMap;
 
-    std::vector<std::tuple<ModelPart*, CellType, std::unordered_map<IndexType, IndexType>>> mModelPartCellData;
+    std::vector<std::tuple<ModelPart*, CellType, std::unordered_map<IndexType, IndexType>*>> mModelPartCellData;
 
     ///@}
     ///@name Private operations
@@ -268,7 +270,7 @@ private:
     * @param rModelPart            The model part to write.
     */
     template<class TCellsPointerType, class TXmlDataElementWrapper>
-    void PrintModelPart(
+    std::string PrintModelPart(
         const std::string& rOutputFileNamePrefix,
         ModelPart::NodesContainerType::Pointer pNodes,
         TCellsPointerType pCells,
@@ -277,7 +279,7 @@ private:
         TXmlDataElementWrapper& rXmlDataElementWrapper) const;
 
     template<class TCellsPointerType, class TXmlDataElementWrapper>
-    void PrintGaussPointFields(
+    std::string PrintGaussPointFields(
         const std::string& rOutputFileNamePrefix,
         TCellsPointerType pCells,
         const DataCommunicator& rDataCommunicator,
@@ -285,7 +287,7 @@ private:
         TXmlDataElementWrapper& rXmlDataElementWrapper) const;
 
     template<class TCellsPointerType>
-    void PrintModelPartDispatcher(
+    std::string PrintModelPartDispatcher(
         const std::string& rOutputFileNamePrefix,
         ModelPart::NodesContainerType::Pointer pNodes,
         TCellsPointerType pCells,
@@ -293,12 +295,11 @@ private:
         const DataCommunicator& rDataCommunicator) const;
 
     template<class TCellsPointerType>
-    void PrintGaussPointFieldsDispatcher(
+    std::string PrintGaussPointFieldsDispatcher(
         const std::string& rOutputFileNamePrefix,
         TCellsPointerType pCells,
         const DataCommunicator& rDataCommunicator,
         ProcessInfo::Pointer pProcessInfo) const;
-
 
     ///@}
 };
