@@ -62,7 +62,7 @@ public:
     ///@name Type definitions
     ///@{
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(VariableTensorAdaptor);
+    KRATOS_CLASS_POINTER_DEFINITION(VariableTensorAdaptor);
 
     using BaseType = TensorAdaptor<double>;
 
