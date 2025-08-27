@@ -231,10 +231,11 @@ public:
     GeometriesArrayType GenerateBoundariesEntities() const override
     {
         switch (mMidGeometry->GetGeometryFamily()) {
-        case GeometryData::KratosGeometryFamily::Kratos_Linear:
+            using enum GeometryData::KratosGeometryFamily;
+        case Kratos_Linear:
             return this->GenerateEdges();
-        case GeometryData::KratosGeometryFamily::Kratos_Triangle:
-        case GeometryData::KratosGeometryFamily::Kratos_Quadrilateral:
+        case Kratos_Triangle:
+        case Kratos_Quadrilateral:
             return this->GenerateFaces();
         default:
             KRATOS_ERROR << "Unsupported geometry type for generating boundaries entities\n";
@@ -327,11 +328,12 @@ private:
     [[nodiscard]] std::size_t GetNumberOfCornerPoints() const
     {
         switch (mMidGeometry->GetGeometryFamily()) {
-        case GeometryData::KratosGeometryFamily::Kratos_Linear:
+            using enum GeometryData::KratosGeometryFamily;
+        case Kratos_Linear:
             return 2;
-        case GeometryData::KratosGeometryFamily::Kratos_Triangle:
+        case Kratos_Triangle:
             return 3;
-        case GeometryData::KratosGeometryFamily::Kratos_Quadrilateral:
+        case Kratos_Quadrilateral:
             return 4;
         default:
             KRATOS_ERROR << "The geometry family of the mid-geometry is not supported\n";
