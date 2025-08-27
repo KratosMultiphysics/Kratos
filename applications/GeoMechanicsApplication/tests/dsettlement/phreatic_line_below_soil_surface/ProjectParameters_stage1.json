@@ -52,7 +52,7 @@
             "scaling": true
         },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list": ["PhreaticLineContactStress", "TopWaterPressure", "Bottom", "Sides", "SoilExcludingBoundary", "Soil"],
+        "processes_sub_model_part_list": ["TopWaterPressure", "Bottom", "Sides", "SoilExcludingBoundary", "Soil"],
         "body_domain_sub_model_part_list": ["Soil"],
         "move_mesh_flag": false
     },
@@ -90,25 +90,6 @@
     "processes": {
         "constraints_process_list": [
             {
-                "python_module": "apply_scalar_constraint_table_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyScalarConstraintTableProcess",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.TopWaterPressure",
-                    "variable_name": "WATER_PRESSURE",
-                    "is_fixed": true,
-                    "value": 0.0,
-                    "table": 0,
-                    "fluid_pressure_type": "Phreatic_Multi_Line",
-                    "gravity_direction": 1,
-                    "out_of_plane_direction": 2,
-                    "x_coordinates": [0, 1],
-                    "y_coordinates": [40, 40],
-                    "z_coordinates": [0, 0],
-                    "specific_weight": 10000
-                }
-            },
-            {
                 "python_module": "apply_vector_constraint_table_process",
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
@@ -119,25 +100,6 @@
                     "is_fixed": [true, true, false],
                     "value": [0.0, 0.0, 0.0],
                     "table": [0, 0, 0]
-                }
-            },
-            {
-                "python_module": "apply_scalar_constraint_table_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyScalarConstraintTableProcess",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.Bottom",
-                    "variable_name": "WATER_PRESSURE",
-                    "is_fixed": true,
-                    "value": 0.0,
-                    "table": 0,
-                    "fluid_pressure_type": "Phreatic_Multi_Line",
-                    "gravity_direction": 1,
-                    "out_of_plane_direction": 2,
-                    "x_coordinates": [0, 1],
-                    "y_coordinates": [40, 40],
-                    "z_coordinates": [0, 0],
-                    "specific_weight": 10000
                 }
             },
             {
@@ -161,7 +123,42 @@
                     "model_part_name": "PorousDomain.Soil",
                     "variable_name": "WATER_PRESSURE",
                     "is_fixed": false,
-                    "value": 0.0,
+                    "table": 0,
+                    "fluid_pressure_type": "Phreatic_Multi_Line",
+                    "gravity_direction": 1,
+                    "out_of_plane_direction": 2,
+                    "x_coordinates": [0, 1],
+                    "y_coordinates": [40, 40],
+                    "z_coordinates": [0, 0],
+                    "specific_weight": 10000
+                }
+            },
+            {
+                "python_module": "apply_scalar_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyScalarConstraintTableProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.TopWaterPressure",
+                    "variable_name": "WATER_PRESSURE",
+                    "is_fixed": true,
+                    "table": 0,
+                    "fluid_pressure_type": "Phreatic_Multi_Line",
+                    "gravity_direction": 1,
+                    "out_of_plane_direction": 2,
+                    "x_coordinates": [0, 1],
+                    "y_coordinates": [40, 40],
+                    "z_coordinates": [0, 0],
+                    "specific_weight": 10000
+                }
+            },
+            {
+                "python_module": "apply_scalar_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyScalarConstraintTableProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Bottom",
+                    "variable_name": "WATER_PRESSURE",
+                    "is_fixed": true,
                     "table": 0,
                     "fluid_pressure_type": "Phreatic_Multi_Line",
                     "gravity_direction": 1,
@@ -184,22 +181,6 @@
                     "active": [false, true, false],
                     "value": [0.0, -9.81, 0.0],
                     "table": [0, 0, 0]
-                }
-            },
-            {
-                "python_module": "apply_normal_load_table_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyNormalLoadTableProcess",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.PhreaticLineContactStress",
-                    "variable_name": "NORMAL_CONTACT_STRESS",
-                    "active": [true, false],
-                    "value": [0.0, 0.0],
-                    "table": [0, 0],
-                    "fluid_pressure_type": "Hydrostatic",
-                    "gravity_direction": 1,
-                    "reference_coordinate": 40,
-                    "specific_weight": 10000
                 }
             }
         ],
