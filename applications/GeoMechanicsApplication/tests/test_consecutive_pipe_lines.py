@@ -134,3 +134,6 @@ class TestConsecutivePipeLines(KratosUnittest.TestCase):
                                       int(250), 1)]
         critical_head_found = self.linear_search(file_path, heads)
         self.assertAlmostEqual(critical_head_found, 2.43, 2)
+
+if __name__ == '__main__':
+    KratosUnittest.main()
