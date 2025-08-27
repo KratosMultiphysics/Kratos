@@ -244,9 +244,9 @@ private:
 
     std::map<std::string, SupportedVariables> mHistoricalVariablesMap; /// Map to store supported historical variables.
 
-    std::map<std::string, SupportedVariables> mNonHistoricalNodalVariablesMap; /// Map to store supported non-historical nodal variables.
+    std::map<std::string, SupportedVariables> mPointVariablesMap; /// Map to store supported non-historical nodal variables.
 
-    std::map<std::string, SupportedVariables> mNonHistoricalCellVariablesMap; /// Map to store supported non-historical cell variables.
+    std::map<std::string, SupportedVariables> mCellVariablesMap; /// Map to store supported non-historical cell variables.
 
     std::map<std::string, const Flags*> mNodalFlagsMap; /// Map to store nodal flags.
 
