@@ -426,7 +426,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
     law_2D.FinalizeMaterialResponseCauchy(law_parameters);
 
     const auto scoped_registration_law =
-        ScopedSerializerRegistration{"InterfacePlaneStrain"s, InterfacePlaneStrain{}};
+        ScopedSerializerRegistration{std::make_pair("InterfacePlaneStrain"s, InterfacePlaneStrain{})};
     auto       serializer = Serializer{new std::stringstream{}};
     const auto tag_2D     = "test_2D_tag"s;
     serializer.save(tag_2D, law_2D);
@@ -452,7 +452,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
     law_3D.FinalizeMaterialResponseCauchy(law_parameters);
 
     const auto scoped_registration_law_3D = ScopedSerializerRegistration{
-        "InterfaceThreeDimensionalSurface"s, InterfaceThreeDimensionalSurface{}};
+        std::make_pair("InterfaceThreeDimensionalSurface"s, InterfaceThreeDimensionalSurface{})};
     const auto tag_3D = "test_tag"s;
     serializer.save(tag_3D, law_3D);
 
