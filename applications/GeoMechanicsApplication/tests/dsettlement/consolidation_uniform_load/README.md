@@ -9,9 +9,9 @@ A schematic is shown in the figure below. This case is simulated on both a coars
 ## Setup
 
 The test is performed in 3 stages:
-1. A K0 stage with a linear elastic model, with a Young's modulus of 1 [GPa] and a Poisson's ratio of 0.2.
-2. A consolidation stage with abc model (8.64 seconds). An uniform load of 10 [kN] is applied at the top of the column, in the negative Y direction. The keyword "reset_displacement" is set to true here, such that the total displacements start counting from the start of this stage. The time-step is 0.001 days (8.64 seconds), such that there is horizontal stress distribution by the abc model. 
-3. Another settlement stage (100 days), the same uniform load and also the same material as previous stage is applied. The time-step is > 0.001 days, such that there is no horizontal stress distribution by the abc model.
+1. A K0 stage with a linear elastic model, with a Young's modulus of 1 [GPa] and a Poisson's ratio of 0.2. Phreatic line is set at the top of the colomn. The bottom pressure is fixed as Dirichlet condition and its value is based on the hydrostatic pressure inserted at the bed. 
+2. A consolidation stage with abc model (8.64 [s]). An uniform load of 10 [kN] is applied at the top of the column, in the negative Y direction. The keyword "reset_displacement" is set to true here, such that the total displacements start counting from the start of this stage. The time-step is 8.64 [s], such that there is horizontal stress distribution by the abc model. 
+3. Another settlement stage (100 days), the same uniform load and also the same material as previous stage is applied. The time-step is > 8.64 [s], such that there is no horizontal stress distribution by the abc model.
 
 
 The following common conditions hold for all stages:
