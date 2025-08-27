@@ -40,7 +40,7 @@ from test_strain_measures import KratosGeoMechanicsStrainMeasureTests
 from test_transient_thermal import KratosGeoMechanicsTransientThermalTests
 from test_transient_thermal_validation import KratosGeoMechanicsTransientThermalValidationTests
 from test_rotation_with_moving_load import KratosGeoMechanicsRotationWithMovingLoadTests
-from test_time_integration import KratosGeoMechanicsTimeIntegrationTests
+from test_avoid_small_end_step import KratosGeoMechanicsAvoidSmallEndStepTests
 from c_phi_reduction_process import KratosGeoMechanicsCPhiReductionProcess
 from test_partial_saturation import KratosGeoMechanicsPartialSaturation
 
@@ -134,7 +134,7 @@ def AssembleTestSuites():
                         TestSellmeijersRule,
                         TestElementaryGroundWaterFlow,
                         KratosGeoMechanicsTransientThermalTests,
-                        KratosGeoMechanicsTimeIntegrationTests,
+                        KratosGeoMechanicsAvoidSmallEndStepTests,
                         KratosGeoMechanicsTransientPressureLineElementTests,
                         KratosGeoMechanicsTransientPressurePointFluxTests,
                         KratosGeoMechanicsPartialSaturation,
