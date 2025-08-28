@@ -53,10 +53,10 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
         r_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
     CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
 
-    const auto check_properties = new CheckProperties("material properties", r_properties);
-    check_properties->Check(DENSITY_WATER);
-    check_properties->Check(POROSITY);
-    check_properties->Check(DYNAMIC_VISCOSITY);
+    const CheckProperties check_properties("material properties", r_properties);
+    check_properties.Check(DENSITY_WATER);
+    check_properties.Check(POROSITY);
+    check_properties.Check(DYNAMIC_VISCOSITY);
 
     if (TDim == 2) {
         // If this is a 2D problem, nodes must be in XY plane
@@ -66,13 +66,13 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
                              << std::endl;
         }
     }
-    check_properties->Check(PERMEABILITY_XX);
-    check_properties->Check(PERMEABILITY_YY);
-    check_properties->Check(PERMEABILITY_XY);
+    check_properties.Check(PERMEABILITY_XX);
+    check_properties.Check(PERMEABILITY_YY);
+    check_properties.Check(PERMEABILITY_XY);
     if constexpr (TDim > 2) {
-        check_properties->Check(PERMEABILITY_ZZ);
-        check_properties->Check(PERMEABILITY_YZ);
-        check_properties->Check(PERMEABILITY_ZX);
+        check_properties.Check(PERMEABILITY_ZZ);
+        check_properties.Check(PERMEABILITY_YZ);
+        check_properties.Check(PERMEABILITY_ZX);
     }
 
     // Verify that the constitutive law has the correct dimension
