@@ -864,9 +864,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, r_properties);
     auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
     const auto permeability_update_factors = GetOptionalPermeabilityUpdateFactors(strain_vectors);
-    std::transform(permeability_update_factors.cbegin(), permeability_update_factors.cend(),
-                   relative_permeability_values.cbegin(), relative_permeability_values.begin(),
-                   std::multiplies<>{});
+    std::ranges::transform(permeability_update_factors, relative_permeability_values,
+                           relative_permeability_values.begin(), std::multiplies<>{});
 
     const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
 
@@ -966,9 +965,8 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
 
     auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
         GeoTransportEquationUtilities::CalculateFluidPressures(Variables.NContainer, Variables.PressureVector));
-    std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
-                   rPermeabilityUpdateFactors.cbegin(), relative_permeability_values.begin(),
-                   std::multiplies<>{});
+    std::ranges::transform(relative_permeability_values, rPermeabilityUpdateFactors,
+                           relative_permeability_values.begin(), std::multiplies<>{});
 
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
         this->CalculateKinematics(Variables, integration_point);
@@ -1281,9 +1279,8 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateRelativePer
 
     auto result = std::vector<double>{};
     result.reserve(rFluidPressures.size());
-    std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   std::back_inserter(result),
-                   [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
+    std::ranges::transform(mRetentionLawVector, rFluidPressures, std::back_inserter(result),
+                           [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
         retention_law_params.SetFluidPressure(FluidPressure);
         return pRetentionLaw->CalculateRelativePermeability(retention_law_params);
     });
@@ -1299,9 +1296,8 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBishopCoeff
 
     auto result = std::vector<double>{};
     result.reserve(rFluidPressures.size());
-    std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
-                   std::back_inserter(result),
-                   [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
+    std::ranges::transform(mRetentionLawVector, rFluidPressures, std::back_inserter(result),
+                           [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
         retention_law_params.SetFluidPressure(FluidPressure);
         return pRetentionLaw->CalculateBishopCoefficient(retention_law_params);
     });
@@ -1492,8 +1488,9 @@ template <unsigned int TDim, unsigned int TNumNodes>
 Vector UPwSmallStrainElement<TDim, TNumNodes>::GetPressureSolutionVector()
 {
     Vector result(TNumNodes);
-    std::transform(this->GetGeometry().begin(), this->GetGeometry().end(), result.begin(),
-                   [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
+    std::ranges::transform(this->GetGeometry(), result.begin(), [](const auto& node) {
+        return node.FastGetSolutionStepValue(WATER_PRESSURE);
+    });
     return result;
 }
 

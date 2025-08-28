@@ -12,6 +12,13 @@ class GeoMechanicsTimeIntegrationScheme
 }
 Scheme <|-- GeoMechanicsTimeIntegrationScheme
 
+class GeoMechanicsStaticScheme
+{
+    void UpdateVariablesDerivatives() override;
+}
+
+GeoMechanicsTimeIntegrationScheme <|-- GeoMechanicsStaticScheme
+
 class BackwardEulerScheme
 {
     void UpdateVariablesDerivatives() override;
