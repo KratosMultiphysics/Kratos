@@ -379,7 +379,7 @@ void VtkOutput::WriteConditionsAndElementsToFile(const ModelPart& rModelPart, st
 template<typename TContainerType>
 std::size_t VtkOutput::DetermineVtkContainerSize(const TContainerType& rContainer) const
 {
-    return block_for_each<SumReduction<std::size_t>>(rContainer,[this](const typename TContainerType::data_type& rEntity) {
+    return block_for_each<SumReduction<std::size_t>>(rContainer,[](const typename TContainerType::data_type& rEntity) {
         if (InputOutputUtilities::SkippableEntity(rEntity, "VtkOutput")) {
             return 0;
         } else {
@@ -394,7 +394,7 @@ std::size_t VtkOutput::DetermineVtkContainerSize(const TContainerType& rContaine
 template<typename TContainerType>
 std::size_t VtkOutput::DetermineVtkCellListSize(const TContainerType& rContainer) const
 {
-    return block_for_each<SumReduction<std::size_t>>(rContainer,[this](const typename TContainerType::data_type& rEntity) -> std::size_t {
+    return block_for_each<SumReduction<std::size_t>>(rContainer,[](const typename TContainerType::data_type& rEntity) -> std::size_t {
         if (InputOutputUtilities::SkippableEntity(rEntity, "VtkOutput")) {
             return 0;
         } else {
