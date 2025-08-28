@@ -1,5 +1,5 @@
 # Settlement on a fully saturated column with uniform load
-This test consists of a rectangular soil domain, 1.0m wide and 50.0m deep. The mesh consists of SmallStrainUPwDiffOrderElement2D6N elements. The phreatic line is kept at the top of the column, namely at $y = 50$ [m], resulting in a column with hydrostatic pressure. Here, the material property "USE_HENCKY_STRAIN" is set to false, in combination with "MOVE_MESH_FLAG" as false, it leads to a NEN-Bjerrum formulation. The test is done with both high intrinsic permeability (1.504633E-12) and a lower value (1.5041E-14).
+This test consists of a rectangular soil domain, 1.0m wide and 50.0m deep. The mesh consists of SmallStrainUPwDiffOrderElement2D6N elements. The phreatic line is kept at the top of the column, namely at $y = 50$ [m], resulting in a column with hydrostatic pressure. Here, the material property "USE_HENCKY_STRAIN" is set to false, in combination with "MOVE_MESH_FLAG" as false, it leads to a NEN-Bjerrum formulation. The test is done with both high intrinsic permeability (1.504633E-12 [m2]) and a lower value (1.5041E-14 [m2]).
 
 A phreatic line is assumed at the top of the column, making the column fully saturated. Hydrostatic pressure is applied, and under this assumption, the pressure boundary at the bottom is fixed at 50 [kPa].
 
@@ -23,11 +23,11 @@ The following common conditions hold for all stages:
 
 ## Assertions
 For the high-permeability case, the following assertions are made in this test:
-1. The total vertical displacement at the top of the column is expected to be -1.71094 after 100 days (stage 2).
-2. The total vertical displacement at the top of the column is expected to be -8.63753 after 10000 days (stage 5).
+1. The total vertical displacement at the top of the column is expected to be -1.71094m after 100 days (stage 2).
+2. The total vertical displacement at the top of the column is expected to be -8.63753m after 10000 days (stage 5).
 
 The expected values are based on the analytical solution of a fully saturated column with uniform load.
 
 For the low-permeability case, the following assertions are made in this test:
-1. The total vertical displacement at the top of the column is expected to be -0.496382 after 100 days (stage 2). This is based on a regression value.
-2. The total vertical displacement at the top of the column is expected to be -8.48 after 10000 days (stage 5). This is based on an analytical value.
+1. The total vertical displacement at the top of the column is expected to be -0.496382m after 100 days (stage 2). This is based on a regression value.
+2. The total vertical displacement at the top of the column is expected to be -8.48m after 10000 days (stage 5). This is based on an analytical value.
