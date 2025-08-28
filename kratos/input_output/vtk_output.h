@@ -528,14 +528,6 @@ private:
      */
     void WriteModelPartWithoutNodesToFile(ModelPart& rModelPart, const std::string& rOutputFilename);
 
-    /**
-     * @brief Checks if the given geometry can be skipped during output
-     * @param rGeometry the geometry to be checked
-     * @return true if the geometry can be skipped, false otherwise
-     */
-    template<typename TEntityType>
-    bool SkippableEntity(const TEntityType& rEntity) const;
-
     ///@}
 };
 
