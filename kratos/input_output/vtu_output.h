@@ -27,6 +27,7 @@
 #include "containers/variable.h"
 #include "containers/flags.h"
 #include "containers/nd_data.h"
+#include "includes/global_variables.h"
 #include "expression/container_expression.h"
 
 namespace Kratos {
@@ -54,26 +55,38 @@ public:
                                     NDData<double>::Pointer
                                 >;
 
-    using SupportedVariables = std::variant<
-                                    const Variable<int>*,
-                                    const Variable<double>*,
-                                    const Variable<array_1d<double, 3>>*,
-                                    const Variable<array_1d<double, 4>>*,
-                                    const Variable<array_1d<double, 6>>*,
-                                    const Variable<array_1d<double, 9>>*,
-                                    const Variable<Vector>*,
-                                    const Variable<Matrix>*
-                                >;
+    using CellContainerPointerType = std::variant<
+                                        ModelPart::ConditionsContainerType::Pointer,
+                                        ModelPart::ElementsContainerType::Pointer
+                                    >;
+
+    using SupportedVariablePointerType = std::variant<
+                                                Variable<int> const *,
+                                                Variable<double> const *,
+                                                Variable<array_1d<double, 3>> const *,
+                                                Variable<array_1d<double, 4>> const *,
+                                                Variable<array_1d<double, 6>> const *,
+                                                Variable<array_1d<double, 9>> const *,
+                                                Variable<Vector> const *,
+                                                Variable<Matrix> const *
+                                            >;
+
+    using SupportedContainerExpressionPointerType = std::variant<
+                                                        ContainerExpression<ModelPart::NodesContainerType> const *,
+                                                        ContainerExpression<ModelPart::ConditionsContainerType> const *,
+                                                        ContainerExpression<ModelPart::ElementsContainerType> const *
+                                                    >;
 
     using SupportedCellContainerExpressions = std::variant<
                                                 ContainerExpression<ModelPart::ConditionsContainerType>::Pointer,
                                                 ContainerExpression<ModelPart::ElementsContainerType>::Pointer>;
 
-    KRATOS_CLASS_POINTER_DEFINITION(VtuOutput);
+    using IndicesMap = std::unordered_map<IndexType, IndexType>;
 
-    KRATOS_DEFINE_LOCAL_FLAG( NODES );
-    KRATOS_DEFINE_LOCAL_FLAG( CONDITIONS );
-    KRATOS_DEFINE_LOCAL_FLAG( ELEMENTS );
+    template<class T>
+    using DataMap = std::unordered_map<Globals::DataLocation, std::map<std::string, T>>;
+
+    KRATOS_CLASS_POINTER_DEFINITION(VtuOutput);
 
     ///@}
     ///@name Public enums
@@ -86,11 +99,13 @@ public:
         BINARY  /// Binary format.
     };
 
-    enum CellType
+    struct ModelPartData
     {
-        None,
-        Conditions,
-        Elements
+        ModelPart * mpModelPart;
+        std::shared_ptr<VtuOutput::IndicesMap> mpIndicesMap;
+        std::optional<CellContainerPointerType> mpContainer;
+        std::map<std::string, FieldPointerType> mPointFields;
+        std::map<std::string, FieldPointerType> mCellFields;
     };
 
     ///@}
@@ -112,102 +127,34 @@ public:
         const IndexType Precision = 9,
         const bool OutputSubModelParts = false);
 
-    ~VtuOutput() override;
-
     ///@}
     ///@name Public operations
     ///@{
 
-    /**
-     * @brief Adds historical variables to the output.
-     *
-     * @tparam TDataType
-     * @param rVariable
-     */
-    template<class TDataType>
-    void AddHistoricalVariable(const Variable<TDataType>& rVariable);
-
-    /**
-     * @brief Adds non historical variables to the output.
-     *
-     * @tparam TDataType
-     * @param rVariable         Variable to be added.
-     * @param rEntityFlags      Considered container for the variable. Either NODES, CONDITIONS or ELEMENTS
-     */
-    template<class TDataType>
-    void AddNonHistoricalVariable(
-        const Variable<TDataType>& rVariable,
-        const Flags& rEntityFlags);
-
-    /**
-     * @brief Adds flag output.
-     *
-     * @param rFlagName         Flag name.
-     * @param rFlagVariable     Variable to be added.
-     * @param rEntityFlags      Considered container for the variable. Either NODES, CONDITIONS or ELEMENTS
-     */
-    void AddFlagVariable(
+    void AddFlag(
         const std::string& rFlagName,
         const Flags& rFlagVariable,
-        const Flags& rEntityFlags);
+        Globals::DataLocation DataLocation);
 
-    template<class TDataType>
+    void AddVariable(
+        SupportedVariablePointerType pVariable,
+        Globals::DataLocation DataLocation);
+
     void AddIntegrationPointVariable(
-        const Variable<TDataType>& rVariable,
-        const Flags& rEntityFlags);
+        SupportedVariablePointerType pVariable,
+        Globals::DataLocation DataLocation);
 
-    /**
-     * @brief Adds container expressions to the vtu output.
-     *
-     * This adds container expressions to the output. Proper care should be taken when updating ContainerExpressions because
-     * In python, when a container expression is assigned with a new container expression, it does not call the assignment operator.
-     * Hence, the new expression takes place. Therefore, when container expressions required to be outputted, then it is best
-     * to always clear the existing container expressions and add the new ones. Otherwise, the vtu output may be writing not the
-     * latest container expression.
-     *
-     * @tparam TContainerType
-     * @param rExpressionName           Name for the container expression.
-     * @param pContainerExpression      Container expression.
-     */
-    template <class TContainerType>
     void AddContainerExpression(
         const std::string& rExpressionName,
-        const typename ContainerExpression<TContainerType>::Pointer pContainerExpression);
+        SupportedContainerExpressionPointerType pContainerExpression);
 
-    /**
-    * @brief Clears the historical variables.
-    */
-    void ClearHistoricalVariables();
+    void ClearFlags(Globals::DataLocation DataLocation);
 
-    /**
-    * @brief Clears the nodal non-historical variables.
-    */
-    void ClearNodalNonHistoricalVariables();
+    void ClearVariables(Globals::DataLocation DataLocation);
 
-    /**
-    * @brief Clears the cell non-historical variables.
-    */
-    void ClearCellNonHistoricalVariables();
+    void ClearIntegrationPointVariables(Globals::DataLocation DataLocation);
 
-    /**
-    * @brief Clears the nodal flags.
-    */
-    void ClearNodalFlags();
-
-    /**
-    * @brief Clears the cell flags.
-    */
-    void ClearCellFlags();
-
-    /**
-    * @brief Clears the nodal container expressions.
-    */
-    void ClearNodalContainerExpressions();
-
-    /**
-    * @brief Clears the cell container expressions.
-    */
-    void ClearCellContainerExpressions();
+    void ClearContainerExpression(Globals::DataLocation DataLocation) {}
 
     /**
     * @brief Returns the model part.
@@ -237,28 +184,13 @@ private:
 
     const IndexType mPrecision; /// The precision used for writing floating-point values.
 
-    // TODO: In the future study to replace the std::map
-    // TODO: Study replace string, expensive, with hashes or keys
+    DataMap<Flags const *> mFlags;
 
-    std::unordered_map<IndexType, IndexType> mKratosVtuIndicesMap; /// Map to store Kratos VTU indices.
+    DataMap<SupportedVariablePointerType> mVariables;
 
-    std::map<std::string, SupportedVariables> mHistoricalVariablesMap; /// Map to store supported historical variables.
+    DataMap<SupportedVariablePointerType> mIntegrationPointVariables;
 
-    std::map<std::string, SupportedVariables> mPointVariablesMap; /// Map to store supported non-historical nodal variables.
-
-    std::map<std::string, SupportedVariables> mCellVariablesMap; /// Map to store supported non-historical cell variables.
-
-    std::map<std::string, const Flags*> mNodalFlagsMap; /// Map to store nodal flags.
-
-    std::map<std::string, const Flags*> mCellFlagsMap; /// Map to store cell flags.
-
-    std::map<std::string, SupportedVariables> mGaussPointCellVariablesMap;
-
-    std::map<std::string, FieldPointerType> mPointFieldsMap;
-
-    std::map<std::string, FieldPointerType> mCellFieldsMap;
-
-    std::vector<std::tuple<ModelPart*, CellType, std::unordered_map<IndexType, IndexType>*>> mModelPartCellData;
+    std::vector<ModelPartData> mListOfModelPartData;
 
     std::vector<std::pair<IndexType, double>> mStepInfo;
 
@@ -266,42 +198,17 @@ private:
     ///@name Private operations
     ///@{
 
-    /**
-    * @brief Writes the model part to a file.
-    * @param rOutputFileNamePrefix The output file name prefix.
-    * @param rModelPart            The model part to write.
-    */
-    template<class TCellsPointerType, class TXmlDataElementWrapper>
-    std::string PrintModelPart(
-        const std::string& rOutputFileNamePrefix,
-        ModelPart::NodesContainerType::Pointer pNodes,
-        TCellsPointerType pCells,
-        const std::unordered_map<IndexType, IndexType>& rKratosVtuIndicesMap,
-        const DataCommunicator& rDataCommunicator,
+    template<class TXmlDataElementWrapper>
+    std::pair<std::string, std::string> WriteUnstructuredGridData(
+        const std::string& rOutputPrefix,
+        ModelPartData& rModelPartData,
         TXmlDataElementWrapper& rXmlDataElementWrapper) const;
 
-    template<class TCellsPointerType, class TXmlDataElementWrapper>
-    std::string PrintGaussPointFields(
-        const std::string& rOutputFileNamePrefix,
-        TCellsPointerType pCells,
-        const DataCommunicator& rDataCommunicator,
-        ProcessInfo::Pointer pProcessInfo,
+    template<class TXmlDataElementWrapper>
+    std::pair<std::string, std::string> WriteIntegrationPointData(
+        const std::string& rOutputPrefix,
+        ModelPartData& rModelPartData,
         TXmlDataElementWrapper& rXmlDataElementWrapper) const;
-
-    template<class TCellsPointerType>
-    std::string PrintModelPartDispatcher(
-        const std::string& rOutputFileNamePrefix,
-        ModelPart::NodesContainerType::Pointer pNodes,
-        TCellsPointerType pCells,
-        const std::unordered_map<IndexType, IndexType>& rKratosVtuIndicesMap,
-        const DataCommunicator& rDataCommunicator) const;
-
-    template<class TCellsPointerType>
-    std::string PrintGaussPointFieldsDispatcher(
-        const std::string& rOutputFileNamePrefix,
-        TCellsPointerType pCells,
-        const DataCommunicator& rDataCommunicator,
-        ProcessInfo::Pointer pProcessInfo) const;
 
     ///@}
 };
