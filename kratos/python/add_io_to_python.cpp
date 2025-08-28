@@ -220,6 +220,12 @@ void  AddIOToPython(pybind11::module& m)
         .def("AddTensorAdaptor", &VtuOutput::AddTensorAdaptor, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"))
         .def("GetModelPart", &VtuOutput::GetModelPart, py::return_value_policy::reference)
         .def("PrintOutput", &VtuOutput::PrintOutput, py::arg("output_file_name_prefix"))
+        .def("ClearFlags", &VtuOutput::ClearFlags, py::arg("data_location"))
+        .def("ClearVariables", &VtuOutput::ClearVariables, py::arg("data_location"))
+        .def("ClearIntegrationPointVariables", &VtuOutput::ClearIntegrationPointVariables, py::arg("data_location"))
+        .def("ClearPointFields", &VtuOutput::ClearPointFields)
+        .def("ClearCellFields", &VtuOutput::ClearCellFields)
+        .def("__str__", PrintObject<VtuOutput>)
         ;
 }
 }  // namespace Kratos::Python.

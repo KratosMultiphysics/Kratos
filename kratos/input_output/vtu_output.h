@@ -161,7 +161,9 @@ public:
 
     void ClearIntegrationPointVariables(Globals::DataLocation DataLocation);
 
-    void ClearContainerExpression(Globals::DataLocation DataLocation) {}
+    void ClearPointFields();
+
+    void ClearCellFields();
 
     /**
     * @brief Returns the model part.
@@ -179,6 +181,20 @@ public:
     void PrintOutput(const std::string& rOutputFilenamePrefix);
 
     ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override;
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override;
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override;
+
+    ///@}
+
 private:
     ///@name Private member variables
     ///@{

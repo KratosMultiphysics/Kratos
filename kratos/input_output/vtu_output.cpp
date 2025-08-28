@@ -516,6 +516,38 @@ NDData<double>::Pointer GetSynchronizedNodalNDData(
     return p_nd_data;
 }
 
+template<class TMapType>
+void PrintDataLocationData(
+    std::ostream& rOStream,
+    const std::string& rMapType,
+    const std::unordered_map<Globals::DataLocation, TMapType>& rMap)
+{
+    rOStream << "List of " << rMapType << "s:";
+    for (const auto& [data_location, map] : rMap) {
+        switch (data_location) {
+            case Globals::DataLocation::NodeHistorical:
+                rOStream << "\n\tNode historical " << rMapType << "s:";
+                break;
+            case Globals::DataLocation::NodeNonHistorical:
+                rOStream << "\n\tNode " << rMapType << "s:";
+                break;
+            case Globals::DataLocation::Condition:
+                rOStream << "\n\tCondition " << rMapType << "s:";
+                break;
+            case Globals::DataLocation::Element:
+                rOStream << "\n\tElement " << rMapType << "s:";
+                break;
+            default:
+                rOStream << "\n\tUnsupported " << rMapType << "s:";
+                break;
+        }
+
+        for ([[maybe_unused]]const auto& [name, variable] : map) {
+            rOStream << "\n\t\t" << name;
+        }
+    }
+}
+
 } // namespace
 
 VtuOutput::VtuOutput(
@@ -631,6 +663,20 @@ void VtuOutput::ClearIntegrationPointVariables(Globals::DataLocation DataLocatio
         default:
             KRATOS_ERROR << "Integration point variables can be only cleared on Condition, and Element data locations.";
             break;
+    }
+}
+
+void VtuOutput::ClearPointFields()
+{
+    for (auto& r_model_part_data : mListOfModelPartData) {
+        r_model_part_data.mPointFields.clear();
+    }
+}
+
+void VtuOutput::ClearCellFields()
+{
+    for (auto& r_model_part_data : mListOfModelPartData) {
+        r_model_part_data.mCellFields.clear();
     }
 }
 
@@ -1206,6 +1252,65 @@ void VtuOutput::PrintOutput(const std::string& rOutputFolderName)
     }
 
     KRATOS_CATCH("");
+}
+
+std::string VtuOutput::Info() const
+{
+    std::stringstream info;
+    info << "VtuOutput: " << mrModelPart.FullName() << " [ writer = ";
+    switch (mOutputFormat) {
+        case ASCII:
+            info << "ASCII";
+            break;
+        case BINARY:
+            info << "BINARY";
+            break;
+    }
+    info << ", precision = " << mPrecision << ", is initial configuration = "
+         << (mIsInitialConfiguration ? "yes" : "no") << " ]";
+    return info.str();
+}
+
+void VtuOutput::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << this->Info();
+}
+
+void VtuOutput::PrintData(std::ostream& rOStream) const
+{
+    PrintDataLocationData(rOStream, "flag", mFlags);
+    rOStream << "\n";
+    PrintDataLocationData(rOStream, "variable", mVariables);
+    rOStream << "\n";
+    PrintDataLocationData(rOStream, "integration variable", mIntegrationPointVariables);
+    rOStream << "\n";
+
+    rOStream << "List of model part info:";
+    for (const auto& r_model_part_data : mListOfModelPartData) {
+        rOStream << "\n\t" << r_model_part_data.mpModelPart->FullName();
+        if (r_model_part_data.mpContainer.has_value()) {
+            std::visit([&rOStream](auto pContainer){
+                using container_type = BareType<decltype(*pContainer)>;
+                rOStream << " with " << pContainer->size() << " " << ModelPart::Container<container_type>::GetEntityName() << "s";
+            }, r_model_part_data.mpContainer.value());
+        } else {
+            rOStream << " with " << r_model_part_data.mpModelPart->NumberOfNodes() << " nodes";
+        }
+
+        rOStream << "\n\t\t" << "Point fields:";
+        for (const auto& [name, field] : r_model_part_data.mPointFields) {
+            std::visit([&rOStream, &name](auto pNDData){
+                rOStream << "\n\t\t\t" << name << ": " << *pNDData;
+            }, field);
+        }
+
+        rOStream << "\n\t\t" << "Cell fields:";
+        for (const auto& [name, field] : r_model_part_data.mCellFields) {
+            std::visit([&rOStream, &name](auto pNDData){
+                rOStream << "\n\t\t\t" << name << ": " << *pNDData;
+            }, field);
+        }
+    }
 }
 
 } // namespace Kratos
