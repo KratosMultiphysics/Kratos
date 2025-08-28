@@ -44,33 +44,22 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
 {
     KRATOS_TRY
 
-    const PropertiesType& Prop = this->GetProperties();
-    const GeometryType&   Geom = this->GetGeometry();
+    const PropertiesType& r_properties = this->GetProperties();
+    const GeometryType&   r_geometry   = this->GetGeometry();
 
-    CheckUtilities::CheckDomainSize(Geom.DomainSize(), this->Id());
+    CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), this->Id());
 
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        if (Geom[i].SolutionStepsDataHas(WATER_PRESSURE) == false)
-            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
-
-        if (Geom[i].SolutionStepsDataHas(VOLUME_ACCELERATION) == false)
-            KRATOS_ERROR << "missing VOLUME_ACCELERATION variable on node " << Geom[i].Id() << std::endl;
-
-        if (Geom[i].HasDofFor(WATER_PRESSURE) == false)
-            KRATOS_ERROR << "missing the dof for the variable WATER_PRESSURE "
-                            "on node "
-                         << Geom[i].Id() << std::endl;
-    }
-
-    // Verify ProcessInfo variables
+    CheckUtilities::CheckHasNodalSolutionStepData(
+        r_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
+    CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
 
     // Verify properties
-    if (Prop.Has(DENSITY_WATER) == false || Prop[DENSITY_WATER] < 0.0)
+    if (!r_properties.Has(DENSITY_WATER) || r_properties[DENSITY_WATER] < 0.0)
         KRATOS_ERROR << "DENSITY_WATER does not exist in the material "
                         "properties or has an invalid value at element"
                      << this->Id() << std::endl;
 
-    if (Prop.Has(POROSITY) == false || Prop[POROSITY] < 0.0 || Prop[POROSITY] > 1.0)
+    if (!r_properties.Has(POROSITY) || r_properties[POROSITY] < 0.0 || r_properties[POROSITY] > 1.0)
         KRATOS_ERROR << "POROSITY does not exist in the material properties or "
                         "has an invalid value at element"
                      << this->Id() << std::endl;
@@ -78,44 +67,45 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
     if (TDim == 2) {
         // If this is a 2D problem, nodes must be in XY plane
         for (unsigned int i = 0; i < TNumNodes; ++i) {
-            if (Geom[i].Z() != 0.0)
-                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << Geom[i].Id() << std::endl;
+            if (r_geometry[i].Z() != 0.0)
+                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << r_geometry[i].Id()
+                             << std::endl;
         }
     }
 
     // Verify specific properties
-    if (Prop.Has(DYNAMIC_VISCOSITY) == false || Prop[DYNAMIC_VISCOSITY] < 0.0)
+    if (!r_properties.Has(DYNAMIC_VISCOSITY) || r_properties[DYNAMIC_VISCOSITY] < 0.0)
         KRATOS_ERROR << "DYNAMIC_VISCOSITY does not exist in the material "
                         "properties or has an invalid value at element"
                      << this->Id() << std::endl;
 
-    if (Prop.Has(PERMEABILITY_XX) == false || Prop[PERMEABILITY_XX] < 0.0)
+    if (!r_properties.Has(PERMEABILITY_XX) || r_properties[PERMEABILITY_XX] < 0.0)
         KRATOS_ERROR << "PERMEABILITY_XX does not exist in the material "
                         "properties or has an invalid value at element"
                      << this->Id() << std::endl;
 
-    if (Prop.Has(PERMEABILITY_YY) == false || Prop[PERMEABILITY_YY] < 0.0)
+    if (!r_properties.Has(PERMEABILITY_YY) || r_properties[PERMEABILITY_YY] < 0.0)
         KRATOS_ERROR << "PERMEABILITY_YY does not exist in the material "
                         "properties or has an invalid value at element"
                      << this->Id() << std::endl;
 
-    if (Prop.Has(PERMEABILITY_XY) == false || Prop[PERMEABILITY_XY] < 0.0)
+    if (!r_properties.Has(PERMEABILITY_XY) || r_properties[PERMEABILITY_XY] < 0.0)
         KRATOS_ERROR << "PERMEABILITY_XY does not exist in the material "
                         "properties or has an invalid value at element"
                      << this->Id() << std::endl;
 
     if constexpr (TDim > 2) {
-        if (Prop.Has(PERMEABILITY_ZZ) == false || Prop[PERMEABILITY_ZZ] < 0.0)
+        if (!r_properties.Has(PERMEABILITY_ZZ) || r_properties[PERMEABILITY_ZZ] < 0.0)
             KRATOS_ERROR << "PERMEABILITY_ZZ does not exist in the material "
                             "properties or has an invalid value at element"
                          << this->Id() << std::endl;
 
-        if (Prop.Has(PERMEABILITY_YZ) == false || Prop[PERMEABILITY_YZ] < 0.0)
+        if (!r_properties.Has(PERMEABILITY_YZ) || r_properties[PERMEABILITY_YZ] < 0.0)
             KRATOS_ERROR << "PERMEABILITY_YZ does not exist in the material "
                             "properties or has an invalid value at element"
                          << this->Id() << std::endl;
 
-        if (Prop.Has(PERMEABILITY_ZX) == false || Prop[PERMEABILITY_ZX] < 0.0)
+        if (!r_properties.Has(PERMEABILITY_ZX) || r_properties[PERMEABILITY_ZX] < 0.0)
             KRATOS_ERROR << "PERMEABILITY_ZX does not exist in the material "
                             "properties or has an invalid value at element"
                          << this->Id() << std::endl;
@@ -125,7 +115,7 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
 
     // Check constitutive law
     if (!mRetentionLawVector.empty()) {
-        return mRetentionLawVector[0]->Check(Prop, rCurrentProcessInfo);
+        return mRetentionLawVector[0]->Check(r_properties, rCurrentProcessInfo);
     }
 
     return 0;
@@ -143,9 +133,9 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLef
     KRATOS_TRY
 
     // Previous definitions
-    const GeometryType&                             Geom = this->GetGeometry();
+    const GeometryType&                             r_geometry = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        Geom.IntegrationPoints(this->GetIntegrationMethod());
+        r_geometry.IntegrationPoints(this->GetIntegrationMethod());
     const unsigned int NumGPoints = IntegrationPoints.size();
 
     // Element variables
@@ -201,7 +191,8 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
                                                                ElementVariables& rVariables,
                                                                unsigned int      GPoint)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
+
     this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 
