@@ -25,16 +25,18 @@ class TestVtuOutputBase:
     def setUpClass(cls, output_prefix: str, setup_method) -> None:
         cls.model =  Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("test")
+        cls.model_part.ProcessInfo[Kratos.STEP] = 1
+        cls.model_part.ProcessInfo[Kratos.TIME] = 1.0
         cls.output_prefix = output_prefix
         setup_method(cls.model_part)
         cls.SetSolution()
 
     def WriteVtu(self, output_format: Kratos.VtuOutput.WriterFormat):
         vtu_output = Kratos.VtuOutput(self.model_part, True, output_format, 9)
-        vtu_output.AddHistoricalVariable(Kratos.PRESSURE)
-        vtu_output.AddHistoricalVariable(Kratos.VELOCITY)
-        vtu_output.AddHistoricalVariable(Kratos.DISPLACEMENT)
-        vtu_output.AddNonHistoricalVariable(Kratos.DETERMINANT, vtu_output.ELEMENTS)
+        vtu_output.AddVariable(Kratos.PRESSURE, Kratos.Globals.DataLocation.NodeHistorical)
+        vtu_output.AddVariable(Kratos.VELOCITY, Kratos.Globals.DataLocation.NodeHistorical)
+        vtu_output.AddVariable(Kratos.DISPLACEMENT, Kratos.Globals.DataLocation.NodeHistorical)
+        vtu_output.AddVariable(Kratos.DETERMINANT, Kratos.Globals.DataLocation.Element)
 
         a = Kratos.Expression.NodalExpression(self.model_part)
         Kratos.Expression.VariableExpressionIO.Read(a, Kratos.PRESSURE, True)
