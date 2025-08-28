@@ -35,14 +35,6 @@ XmlBase64BinaryNDDataElement<TDataType>::XmlBase64BinaryNDDataElement(
 }
 
 template<class TDataType>
-XmlBase64BinaryNDDataElement<TDataType>::XmlBase64BinaryNDDataElement(
-    const std::string& rDataArrayName,
-    typename NDData<TDataType>::Pointer pNDData)
-    : XmlBase64BinaryNDDataElement(rDataArrayName, pNDData, pNDData->Shape())
-{
-}
-
-template<class TDataType>
 void XmlBase64BinaryNDDataElement<TDataType>::Write(
     std::ostream& rOStream,
     const IndexType Level) const

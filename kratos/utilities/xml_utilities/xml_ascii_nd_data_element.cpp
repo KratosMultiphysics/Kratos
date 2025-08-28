@@ -39,15 +39,6 @@ XmlAsciiNDDataElement<TDataType>::XmlAsciiNDDataElement(
 }
 
 template<class TDataType>
-XmlAsciiNDDataElement<TDataType>::XmlAsciiNDDataElement(
-    const std::string& rDataArrayName,
-    typename NDData<TDataType>::Pointer pNDData,
-    const IndexType Precision)
-    : XmlAsciiNDDataElement(rDataArrayName, pNDData, pNDData->Shape(), Precision)
-{
-}
-
-template<class TDataType>
 void XmlAsciiNDDataElement<TDataType>::Write(
     std::ostream& rOStream,
     const IndexType Level) const

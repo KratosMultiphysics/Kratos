@@ -56,14 +56,6 @@ XmlNDDataElement<TDataType>::XmlNDDataElement(
     mAttributes["NumberOfComponents"] = std::to_string(std::accumulate(rShape.begin() + 1, rShape.end(), 1u, std::multiplies<unsigned int>{}));
 }
 
-template<class TDataType>
-XmlNDDataElement<TDataType>::XmlNDDataElement(
-    const std::string& rDataArrayName,
-    typename NDData<TDataType>::Pointer pNDData)
-    : XmlNDDataElement(rDataArrayName, pNDData, pNDData->Shape())
-{
-}
-
 // template instantiations
 template class XmlNDDataElement<unsigned char>;
 template class XmlNDDataElement<bool>;
