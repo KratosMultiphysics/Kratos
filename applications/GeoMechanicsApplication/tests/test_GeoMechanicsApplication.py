@@ -122,6 +122,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsHydraulicHeads,
                         KratosGeoMechanicsSetMovingLoadProcessTests,
                         KratosGeoMechanicsSurfaceInterfaceElementTests,
+                        KratosGeoMechanicsAvoidSmallEndStepTests,
     ]
 
     night_test_cases = [
@@ -134,7 +135,6 @@ def AssembleTestSuites():
                         TestSellmeijersRule,
                         TestElementaryGroundWaterFlow,
                         KratosGeoMechanicsTransientThermalTests,
-                        KratosGeoMechanicsAvoidSmallEndStepTests,
                         KratosGeoMechanicsTransientPressureLineElementTests,
                         KratosGeoMechanicsTransientPressurePointFluxTests,
                         KratosGeoMechanicsPartialSaturation,
