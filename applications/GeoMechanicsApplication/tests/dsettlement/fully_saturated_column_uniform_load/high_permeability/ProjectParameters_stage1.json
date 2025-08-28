@@ -13,7 +13,7 @@
     "domain_size"                     : 2,
     "model_import_settings": {
       "input_type"                    : "mdpa",
-      "input_filename"                : "mesh"
+      "input_filename"                : "../mesh"
     },
     "material_import_settings": {
       "materials_filename"            : "MaterialParameters_linear.json"
