@@ -1,5 +1,6 @@
 import sys
 import os
+import json
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
@@ -29,6 +30,28 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
 
         bottom_node_ids = [5, 7, 9]
         self.assertVerticalStressAtBottomNodes(output_data, bottom_node_ids)
+
+    def test_triangle_3n_static_scheme(self):
+        test_name = 'test_triangle_3n_static'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+        simulation = test_helper.run_kratos(file_path)
+
+        output_data = self.fetchOutputFromFile(os.path.join(file_path, f"{test_name}.post.res"))
+        top_node_nbrs = [0, 1, 5]
+        n_dim = 2
+        self.assert_linear_elastic_block(simulation, output_data, top_node_nbrs, n_dim)
+
+        bottom_node_ids = [5, 7, 9]
+        self.assertVerticalStressAtBottomNodes(output_data, bottom_node_ids)
+
+        with open(os.path.join(file_path,f"{test_name}_json_output.json")) as f:
+            calculated_results = json.load(f)
+
+        calculated_velocity_y = calculated_results["NODE_1"]["VELOCITY_Y"]
+        calculated_acceleration_y = calculated_results["NODE_1"]["ACCELERATION_Y"]
+
+        self.assertVectorAlmostEqual(calculated_velocity_y,[0,0,0,0])
+        self.assertVectorAlmostEqual(calculated_acceleration_y, [0, 0, 0,0])
 
     def test_triangle_3n_rebuild_level_0(self):
         test_name = 'test_triangle_3n_rebuild_0'
