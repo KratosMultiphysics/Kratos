@@ -21,14 +21,15 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/io.h"
-#include "includes/model_part.h"
-#include "containers/variable.h"
 #include "containers/flags.h"
 #include "containers/nd_data.h"
-#include "includes/global_variables.h"
+#include "containers/variable.h"
 #include "expression/container_expression.h"
+#include "includes/define.h"
+#include "includes/global_variables.h"
+#include "includes/io.h"
+#include "includes/model_part.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 
 namespace Kratos {
 /**
@@ -77,9 +78,11 @@ public:
                                                         ContainerExpression<ModelPart::ElementsContainerType> const *
                                                     >;
 
-    using SupportedCellContainerExpressions = std::variant<
-                                                ContainerExpression<ModelPart::ConditionsContainerType>::Pointer,
-                                                ContainerExpression<ModelPart::ElementsContainerType>::Pointer>;
+    using SupportedTensorAdaptorPointerType = std::variant<
+                                                    TensorAdaptor<bool>::Pointer,
+                                                    TensorAdaptor<int>::Pointer,
+                                                    TensorAdaptor<double>::Pointer
+                                                >;
 
     using IndicesMap = std::unordered_map<IndexType, IndexType>;
 
@@ -147,6 +150,10 @@ public:
     void AddContainerExpression(
         const std::string& rExpressionName,
         SupportedContainerExpressionPointerType pContainerExpression);
+
+    void AddTensorAdaptor(
+        const std::string& rTensorAdaptorName,
+        SupportedTensorAdaptorPointerType pTensorAdaptor);
 
     void ClearFlags(Globals::DataLocation DataLocation);
 

@@ -34,6 +34,7 @@
 #include "utilities/xml_utilities/xml_ascii_nd_data_element.h"
 #include "utilities/xml_utilities/xml_base64_binary_nd_data_element.h"
 #include "utilities/xml_utilities/xml_elements_array.h"
+#include "utilities/variable_utils.h"
 #include "includes/variables.h"
 
 // Include base h
@@ -487,6 +488,34 @@ std::string WritePartitionedUnstructuredGridData(
     return p_vtu_file_name;
 }
 
+template<class TShapeType>
+NDData<double>::Pointer GetSynchronizedNodalNDData(
+    ModelPart& rModelPart,
+    const TShapeType& rDataShape)
+{
+    rModelPart.GetCommunicator().SynchronizeVariable(TENSOR_ADAPTOR_SYNC);
+
+    // construct the nd_data shape
+    DenseVector<unsigned int> nd_data_shape(rDataShape.size() + 1);
+    // vtu output always write data for local and ghost nodes.
+    nd_data_shape[0] = rModelPart.NumberOfNodes();
+    std::copy(rDataShape.begin(), rDataShape.end(), nd_data_shape.begin() + 1);
+
+    auto p_nd_data = Kratos::make_shared<NDData<double>>(nd_data_shape);
+    const auto nd_data_span = p_nd_data->ViewData();
+
+    // now read the variable data back to the nd_data
+    IndexPartition<IndexType>(nd_data_shape[0]).for_each([&rModelPart, &nd_data_span](const auto Index) {
+        const auto& r_values = (rModelPart.NodesBegin() + Index)->GetValue(TENSOR_ADAPTOR_SYNC);
+        const auto data_begin_index = Index * r_values.size();
+        for (IndexType i = 0; i < r_values.size(); ++i) {
+            nd_data_span[data_begin_index + i] = r_values[i];
+        }
+    });
+
+    return p_nd_data;
+}
+
 } // namespace
 
 VtuOutput::VtuOutput(
@@ -634,7 +663,10 @@ void VtuOutput::AddContainerExpression(
                     // we need to synchronize the values so that ghost mesh nodes
                     // will be correctly filled.
 
-                    // first fill in the local nodal values to the temporary variable TENSOR_ADAPTOR_SYNC
+                    // first clear the TENSOR_ADAPTOR_SYNC.
+                    VariableUtils().SetNonHistoricalVariableToZero(TENSOR_ADAPTOR_SYNC, p_model_part->Nodes());
+
+                    // secondly fill in the local nodal values to the temporary variable TENSOR_ADAPTOR_SYNC
                     IndexPartition<IndexType>(r_expression_container.size()).for_each(Vector{number_of_data_components}, [&r_expression_container, &r_expression, number_of_data_components](const auto Index, auto& rTLS) {
                         const auto data_begin_index = Index * number_of_data_components;
                         auto& r_node = *(r_expression_container.begin() + Index);
@@ -644,36 +676,10 @@ void VtuOutput::AddContainerExpression(
                         r_node.SetValue(TENSOR_ADAPTOR_SYNC, rTLS);
                     });
 
-                    // now reset the ghost nodes for proper synchronization
-                    block_for_each(p_model_part->GetCommunicator().GhostMesh().Nodes(), Vector{number_of_data_components}, [](auto& rNode, auto& rTLS) {
-                        rNode.SetValue(TENSOR_ADAPTOR_SYNC, rTLS);
-                    });
-
-                    // now do the synchronization
-                    p_model_part->GetCommunicator().SynchronizeVariable(TENSOR_ADAPTOR_SYNC);
-
-                    // construct the nd_data shape
-                    DenseVector<unsigned int> nd_data_shape(data_shape.size() + 1);
-                    // vtu output always write data for local and ghost nodes.
-                    nd_data_shape[0] = p_model_part->Nodes().size();
-                    std::copy(data_shape.begin(), data_shape.end(), nd_data_shape.begin() + 1);
-
-                    auto p_nd_data = Kratos::make_shared<NDData<double>>(nd_data_shape);
-                    const auto nd_data_span = p_nd_data->ViewData();
-
-                    // now read the variable data back to the nd_data
-                    IndexPartition<IndexType>(nd_data_shape[0]).for_each([p_model_part, &nd_data_span, number_of_data_components](const auto Index) {
-                        const auto data_begin_index = Index * number_of_data_components;
-                        const auto& r_values = (p_model_part->Nodes().begin() + Index)->GetValue(TENSOR_ADAPTOR_SYNC);
-                        for (IndexType i = 0; i < number_of_data_components; ++i) {
-                            nd_data_span[data_begin_index + i] = r_values[i];
-                        }
-                    });
-
                     // the p_nd_data is now correctly filled. Add it to the
                     // map and then exit the for loop since, the given container expression
                     // is already found.
-                    r_model_part_data.mPointFields[rExpressionName] = p_nd_data;
+                    r_model_part_data.mPointFields[rExpressionName] = GetSynchronizedNodalNDData(*p_model_part, data_shape);
                     break;
                 }
             } else {
@@ -713,6 +719,93 @@ void VtuOutput::AddContainerExpression(
             }
         }
     }, pContainerExpression);
+}
+
+void VtuOutput::AddTensorAdaptor(
+    const std::string& rTensorAdaptorName,
+    SupportedTensorAdaptorPointerType pTensorAdaptor)
+{
+    std::visit([this, &rTensorAdaptorName](auto p_tensor_adaptor) {
+        const auto shape = p_tensor_adaptor->Shape();
+        const auto number_of_data_components = std::accumulate(shape.begin() + 1, shape.end(), 1u, std::multiplies<unsigned int>{});
+
+        if (!std::visit([this, &rTensorAdaptorName, &p_tensor_adaptor, &shape, number_of_data_components](auto p_ta_container){
+            using ta_container_type = BareType<decltype(*p_ta_container)>;
+
+            // first check to which model part output this tenor adaptor belongs to
+            for (IndexType i = 0; i < this->mListOfModelPartData.size(); ++i) {
+                auto& r_model_part_data = this->mListOfModelPartData[i];
+                auto p_model_part = r_model_part_data.mpModelPart;
+
+                if constexpr(std::is_same_v<ta_container_type, ModelPart::NodesContainerType>) {
+                    // tensor adaptor is having a nodal container. Now we check if
+                    // it is of normal model part nodes, local nodes, ghost nodes or interface nodes
+
+                    auto& r_communicator = p_model_part->GetCommunicator();
+
+                    KRATOS_ERROR_IF(&*(p_ta_container) == &r_communicator.GhostMesh().Nodes())
+                        << "TensorAdaptors having containers referring to ghost nodes container is not allowed [ ghost nodes model part = "
+                        << p_model_part->FullName() << ", tensor_adaptor = " << *p_tensor_adaptor << " ].\n";
+
+                    KRATOS_ERROR_IF(&*(p_ta_container) == &r_communicator.InterfaceMesh().Nodes())
+                        << "TensorAdaptors having containers referring to interface nodes container is not allowed [ interface nodes model part = "
+                        << p_model_part->FullName() << ", tensor_adaptor = " << *p_tensor_adaptor << " ].\n";
+
+                    if (&*(p_ta_container) == &p_model_part->Nodes()) {
+                        // here we don't have to do anything. add the tensor adaptor's
+                        // NDDaTa
+                        r_model_part_data.mPointFields[rTensorAdaptorName] = p_tensor_adaptor->pGetStorage();
+                        return true;
+                    } else if (&*(p_ta_container) == &p_model_part->GetCommunicator().LocalMesh().Nodes()) {
+                        // the tensor adaptor is having a container referring to the local mesh nodes.
+                        // now we have to construct the nodal values for all the nodes including ghost mesh
+                        // nodes.
+
+                        // first clear the TENSOR_ADAPTOR_SYNC.
+                        VariableUtils().SetNonHistoricalVariableToZero(TENSOR_ADAPTOR_SYNC, p_model_part->Nodes());
+
+                        auto span = p_tensor_adaptor->ViewData();
+
+                        // secondly fill in the local nodal values to the temporary variable TENSOR_ADAPTOR_SYNC
+                        IndexPartition<IndexType>(p_ta_container->size()).for_each(Vector{number_of_data_components}, [&p_ta_container, &span, number_of_data_components](const auto Index, auto& rTLS) {
+                            const auto data_begin_index = Index * number_of_data_components;
+                            std::copy(span.begin() + data_begin_index, span.begin() + data_begin_index + number_of_data_components, rTLS.begin());
+                            (p_ta_container->begin() + Index)->SetValue(TENSOR_ADAPTOR_SYNC, rTLS);
+                        });
+
+                        // the p_nd_data is now correctly filled. Add it to the
+                        // map and then exit the for loop since, the given container expression
+                        // is already found.
+                        std::vector<unsigned int> data_shape(shape.begin() + 1, shape.end());
+                        r_model_part_data.mPointFields[rTensorAdaptorName] = GetSynchronizedNodalNDData(*p_model_part, data_shape);
+                        return true;
+                    }
+                } else if constexpr(std::is_same_v<ta_container_type, ModelPart::ConditionsContainerType>) {
+                    // ghost, local and model part containers are the same. so we check only the model part container
+                    if (r_model_part_data.mpContainer.has_value() &&
+                        std::holds_alternative<ModelPart::ConditionsContainerType::Pointer>(r_model_part_data.mpContainer.value()) &&
+                        &*p_ta_container == &p_model_part->Conditions()) {
+                            r_model_part_data.mCellFields[rTensorAdaptorName] = p_tensor_adaptor->pGetStorage();
+                            return true;
+                    }
+                } else if constexpr(std::is_same_v<ta_container_type, ModelPart::ElementsContainerType>) {
+                    // ghost, local and model part containers are the same. so we check only the model part container
+                    if (r_model_part_data.mpContainer.has_value() &&
+                        std::holds_alternative<ModelPart::ConditionsContainerType::Pointer>(r_model_part_data.mpContainer.value()) &&
+                        &*p_ta_container == &p_model_part->Elements()) {
+                            r_model_part_data.mCellFields[rTensorAdaptorName] = p_tensor_adaptor->pGetStorage();
+                            return true;
+                    }
+                }
+            }
+
+            // hasn't found a valid container.
+            return false;
+        }, p_tensor_adaptor->GetContainer())) {
+            KRATOS_ERROR << "The container in the tensor adaptor is not referring to any of the containers "
+                         << "written by this VTU output [ tensor_adaptor = " << *p_tensor_adaptor << " ].\n";
+        }
+    }, pTensorAdaptor);
 }
 
 template<class TXmlDataElementWrapper>
