@@ -54,13 +54,12 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         const auto& rGeometryElement    = itElem->GetGeometry();
         const auto  rBoundaryGeometries = rGeometryElement.GenerateBoundariesEntities();
 
-        for (IndexType iFace = 0; iFace < rBoundaryGeometries.size(); ++iFace) {
-            DenseVector<IndexType> FaceIds(rBoundaryGeometries[iFace].size());
+        for (const auto& r_boundary_geometry : rBoundaryGeometries) {
+            DenseVector<IndexType> FaceIds(r_boundary_geometry.size());
 
             // faces or edges for 2D and 3D elements
-            for (IndexType iNode = 0; iNode < FaceIds.size(); ++iNode) {
-                FaceIds[iNode] = rBoundaryGeometries[iFace][iNode].Id();
-            }
+            std::ranges::transform(r_boundary_geometry, FaceIds.begin(),
+                                   [](const Node& rNode) { return rNode.Id(); });
 
             hashmap::iterator itFace = FacesMap.find(FaceIds);
             if (itFace == FacesMap.end() && rGeometryElement.LocalSpaceDimension() == 3) {

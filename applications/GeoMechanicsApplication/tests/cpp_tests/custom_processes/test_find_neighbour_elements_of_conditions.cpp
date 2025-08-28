@@ -49,7 +49,8 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                                            std::vector<std::size_t>{2, 1, 3},
                                            std::vector<std::size_t>{3, 2, 1}));
 
-class ParametrizedFindHexaNeighbourElementsOfConditions : public ::testing::TestWithParam<std::vector<std::size_t>>
+class ParametrizedFindHexaNeighbourElementsOfConditions
+    : public ::testing::TestWithParam<std::vector<std::size_t>>
 {
 };
 
@@ -83,4 +84,3 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                                            std::vector<std::size_t>{3, 2, 1, 4}));
 
 } // namespace Kratos::Testing
-    
