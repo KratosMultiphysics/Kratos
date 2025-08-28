@@ -87,6 +87,15 @@ public:
                          << mId << "." << std::endl;
     }
 
+    template <typename T>
+    void CheckAvailabilityAndEmpty(const Variable<T>& rVariable)
+    {
+        CheckAvailabilityOnly(rVariable);
+        if (mrProperties[rVariable].empty())
+            KRATOS_ERROR << rVariable.Name() << " is empty in the " << mrPrintName << " " << mId
+                         << "." << std::endl;
+    }
+
 private:
     const std::string mrPrintName;
     const Properties& mrProperties;
