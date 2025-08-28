@@ -609,130 +609,110 @@ void VtuOutput::AddContainerExpression(
     const std::string& rExpressionName,
     SupportedContainerExpressionPointerType pContainerExpression)
 {
-    // std::visit([this, &rExpressionName](auto p_container_expression) {
-    //     const auto& r_expression = p_container_expression->GetExpression();
+    std::visit([this, &rExpressionName](auto p_container_expression) {
+        const auto& r_expression = p_container_expression->GetExpression();
 
-    //     const auto number_of_entities = r_expression.NumberOfEntities();
-    //     const auto number_of_data_components = r_expression.GetItemComponentCount();
-    //     const auto& data_shape = r_expression.GetItemShape();
+        const auto number_of_data_components = r_expression.GetItemComponentCount();
+        const auto& data_shape = r_expression.GetItemShape();
 
-    //     auto& r_expression_container = p_container_expression->GetContainer();
+        auto& r_expression_container = p_container_expression->GetContainer();
 
-    //     using expression_container_type = BareType<decltype(r_expression_container)>;
+        using expression_container_type = BareType<decltype(r_expression_container)>;
 
-    //     IndexType i_model_part_data = 0;
-    //     for (; i_model_part_data < this->mListOfModelPartData.size(); ++i_model_part_data) {
-    //         auto& r_model_part_data = this->mListOfModelPartData[i_model_part_data];
+        IndexType i_model_part_data = 0;
+        for (; i_model_part_data < this->mListOfModelPartData.size(); ++i_model_part_data) {
+            auto& r_model_part_data = this->mListOfModelPartData[i_model_part_data];
 
-    //         // get the model part
-    //         auto p_model_part = r_model_part_data.mpModelPart;
+            // get the model part
+            auto p_model_part = r_model_part_data.mpModelPart;
 
-    //         if constexpr(std::is_same_v<expression_container_type, ModelPart::NodesContainerType>) {
-    //             // Check for the name
-    //             CheckDataArrayName(rExpressionName, mHistoricalVariablesMap, mPointVariablesMap, mPointFlagsMap);
+            // expressions are created from local mesh entities.
 
-    //             // special case for nodes since, container expression may be created from
-    //             // ghost nodes, interface nodes, local nodes, or the base nodes in the model part.
-    //             // so it is required to identify  the proper container.
+            if constexpr(std::is_same_v<expression_container_type, ModelPart::NodesContainerType>) {
+                if (&r_expression_container == &p_model_part->GetCommunicator().LocalMesh().Nodes()) {
+                    // since expressions are created from local mesh nodes
+                    // we need to synchronize the values so that ghost mesh nodes
+                    // will be correctly filled.
 
-    //             const bool mp_nodes = &r_expression_container == &p_model_part->Nodes();
-    //             const bool mp_local_nodes = &r_expression_container == &p_model_part->GetCommunicator().LocalMesh().Nodes();
+                    // first fill in the local nodal values to the temporary variable TENSOR_ADAPTOR_SYNC
+                    IndexPartition<IndexType>(r_expression_container.size()).for_each(Vector{number_of_data_components}, [&r_expression_container, &r_expression, number_of_data_components](const auto Index, auto& rTLS) {
+                        const auto data_begin_index = Index * number_of_data_components;
+                        auto& r_node = *(r_expression_container.begin() + Index);
+                        for (IndexType i = 0; i < number_of_data_components; ++i) {
+                            rTLS[i] = r_expression.Evaluate(Index, data_begin_index, i);
+                        }
+                        r_node.SetValue(TENSOR_ADAPTOR_SYNC, rTLS);
+                    });
 
-    //             if (mp_nodes || mp_local_nodes) {
-    //                 // construct the nd_data shape
-    //                 DenseVector<unsigned int> nd_data_shape(data_shape.size() + 1);
-    //                 // vtu output always write data for local and ghost nodes.
-    //                 nd_data_shape[0] = p_model_part->Nodes().size();
-    //                 std::copy(data_shape.begin(), data_shape.end(), nd_data_shape.begin() + 1);
+                    // now reset the ghost nodes for proper synchronization
+                    block_for_each(p_model_part->GetCommunicator().GhostMesh().Nodes(), Vector{number_of_data_components}, [](auto& rNode, auto& rTLS) {
+                        rNode.SetValue(TENSOR_ADAPTOR_SYNC, rTLS);
+                    });
 
-    //                 auto p_nd_data = Kratos::make_shared<NDData<double>>(nd_data_shape);
-    //                 const auto nd_data_span = p_nd_data->ViewData();
+                    // now do the synchronization
+                    p_model_part->GetCommunicator().SynchronizeVariable(TENSOR_ADAPTOR_SYNC);
 
-    //                 if (mp_nodes) {
-    //                     // nothing to do here. Just copy the values
-    //                     IndexPartition<IndexType>(nd_data_shape[0]).for_each([&nd_data_span, &r_expression, number_of_data_components](const auto Index) {
-    //                         const auto data_begin_index = Index * number_of_data_components;
-    //                         for (IndexType i = 0; i < number_of_data_components; ++i) {
-    //                             nd_data_span[data_begin_index + i] = r_expression.Evaluate(Index, data_begin_index, i);
-    //                         }
-    //                     });
-    //                 } else {
-    //                     // expression is constructed on the local nodes.
-    //                     // therefore we need to fill in the ghost node values.
+                    // construct the nd_data shape
+                    DenseVector<unsigned int> nd_data_shape(data_shape.size() + 1);
+                    // vtu output always write data for local and ghost nodes.
+                    nd_data_shape[0] = p_model_part->Nodes().size();
+                    std::copy(data_shape.begin(), data_shape.end(), nd_data_shape.begin() + 1);
 
-    //                     // first fill in the local nodal values to the temporary variable TENSOR_ADAPTOR_SYNC
-    //                     IndexPartition<IndexType>(r_expression_container.size()).for_each(Vector{number_of_data_components}, [&r_expression_container, &r_expression, number_of_data_components](const auto Index, auto& rTLS) {
-    //                         const auto data_begin_index = Index * number_of_data_components;
-    //                         auto& r_node = *(r_expression_container.begin() + Index);
-    //                         for (IndexType i = 0; i < number_of_data_components; ++i) {
-    //                             rTLS[i] = r_expression.Evaluate(Index, data_begin_index, i);
-    //                         }
-    //                         r_node.SetValue(TENSOR_ADAPTOR_SYNC, rTLS);
-    //                     });
+                    auto p_nd_data = Kratos::make_shared<NDData<double>>(nd_data_shape);
+                    const auto nd_data_span = p_nd_data->ViewData();
 
-    //                     // now reset the ghost nodes for proper synchronization
-    //                     block_for_each(p_model_part->GetCommunicator().GhostMesh().Nodes(), Vector{number_of_data_components}, [](auto& rNode, auto& rTLS) {
-    //                         rNode.SetValue(TENSOR_ADAPTOR_SYNC, rTLS);
-    //                     });
+                    // now read the variable data back to the nd_data
+                    IndexPartition<IndexType>(nd_data_shape[0]).for_each([p_model_part, &nd_data_span, number_of_data_components](const auto Index) {
+                        const auto data_begin_index = Index * number_of_data_components;
+                        const auto& r_values = (p_model_part->Nodes().begin() + Index)->GetValue(TENSOR_ADAPTOR_SYNC);
+                        for (IndexType i = 0; i < number_of_data_components; ++i) {
+                            nd_data_span[data_begin_index + i] = r_values[i];
+                        }
+                    });
 
-    //                     // now do the synchronization
-    //                     p_model_part->GetCommunicator().SynchronizeVariable(TENSOR_ADAPTOR_SYNC);
+                    // the p_nd_data is now correctly filled. Add it to the
+                    // map and then exit the for loop since, the given container expression
+                    // is already found.
+                    r_model_part_data.mPointFields[rExpressionName] = p_nd_data;
+                    break;
+                }
+            } else {
+                if (r_model_part_data.mpContainer.has_value()) {
+                    if (std::visit([this, &r_model_part_data, &rExpressionName, &r_expression, &r_expression_container, &data_shape, number_of_data_components](auto p_model_part_container) {
+                        using model_part_container = BareType<decltype(*p_model_part_container)>;
 
-    //                     // now read the variable data back to the nd_data
-    //                     IndexPartition<IndexType>(nd_data_shape[0]).for_each([p_model_part, &nd_data_span, number_of_data_components](const auto Index) {
-    //                         const auto data_begin_index = Index * number_of_data_components;
-    //                         const auto& r_values = (p_model_part->Nodes().begin() + Index)->GetValue(TENSOR_ADAPTOR_SYNC);
-    //                         for (IndexType i = 0; i < number_of_data_components; ++i) {
-    //                             nd_data_span[data_begin_index + i] = r_values[i];
-    //                         }
-    //                     });
-    //                 }
+                        if constexpr(std::is_same_v<expression_container_type, model_part_container>) {
+                            if (&r_expression_container == &*p_model_part_container) {
+                                // found a correct container. Just copy the data
 
-    //                 // the p_nd_data is now correctly filled. Add it to the
-    //                 // map and then exit the for loop since, the given container expression
-    //                 // is already found.
-    //                 r_model_part_data.mFields[rExpressionName] = p_nd_data;
-    //                 break;
-    //             }
-    //         } else {
-    //             if (r_model_part_data.mpContainer.has_value()) {
-    //                 if (std::visit([this, &r_model_part_data, &rExpressionName, &r_expression, &r_expression_container, &data_shape, number_of_data_components](auto p_model_part_container) {
-    //                     using model_part_container = BareType<decltype(*p_model_part_container)>;
+                                // construct the nd_data shape
+                                DenseVector<unsigned int> nd_data_shape(data_shape.size() + 1);
+                                // vtu output always write data for local and ghost nodes.
+                                nd_data_shape[0] = r_expression_container.size();
+                                std::copy(data_shape.begin(), data_shape.end(), nd_data_shape.begin() + 1);
 
-    //                     if constexpr(std::is_same_v<expression_container_type, model_part_container>) {
-    //                         CheckDataArrayName(rExpressionName, this->mCellFlagsMap, this->mCellVariablesMap);
+                                auto p_nd_data = Kratos::make_shared<NDData<double>>(nd_data_shape);
+                                const auto nd_data_span = p_nd_data->ViewData();
 
-    //                         if (&r_expression_container == &*p_model_part_container) {
-    //                             // found a correct container. Just copy the data
+                                IndexPartition<IndexType>(r_expression_container.size()).for_each([&nd_data_span, &r_expression, number_of_data_components](auto Index){
+                                    const auto data_begin_index = Index * number_of_data_components;
+                                    for (IndexType i = 0; i < number_of_data_components; ++i) {
+                                        nd_data_span[data_begin_index + i] = r_expression.Evaluate(Index, data_begin_index, i);
+                                    }
+                                });
 
-    //                             // construct the nd_data shape
-    //                             DenseVector<unsigned int> nd_data_shape(data_shape.size() + 1);
-    //                             // vtu output always write data for local and ghost nodes.
-    //                             nd_data_shape[0] = r_expression_container.size();
-    //                             std::copy(data_shape.begin(), data_shape.end(), nd_data_shape.begin() + 1);
-
-    //                             auto p_nd_data = Kratos::make_shared<NDData<double>>(nd_data_shape);
-    //                             const auto nd_data_span = p_nd_data->ViewData();
-
-    //                             IndexPartition<IndexType>(r_expression_container.size()).for_each([&nd_data_span, &r_expression, number_of_data_components](auto Index){
-    //                                 const auto data_begin_index = Index * number_of_data_components;
-    //                                 for (IndexType i = 0; i < number_of_data_components; ++i) {
-    //                                     nd_data_span[data_begin_index + i] = r_expression.Evaluate(Index, data_begin_index, i);
-    //                                 }
-    //                             });
-
-    //                             r_model_part_data.mFields[rExpressionName] = p_nd_data;
-    //                             return true;
-    //                         }
-    //                     }
-    //                     return false;
-    //                 }, r_model_part_data.mpContainer.value())) {
-    //                     break;
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }, pContainerExpression);
+                                r_model_part_data.mCellFields[rExpressionName] = p_nd_data;
+                                return true;
+                            }
+                        }
+                        return false;
+                    }, r_model_part_data.mpContainer.value())) {
+                        break;
+                    }
+                }
+            }
+        }
+    }, pContainerExpression);
 }
 
 template<class TXmlDataElementWrapper>
