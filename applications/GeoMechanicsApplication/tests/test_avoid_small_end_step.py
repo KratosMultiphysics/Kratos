@@ -21,8 +21,10 @@ class KratosGeoMechanicsAvoidSmallEndStepTests(KratosUnittest.TestCase):
         simulation_output = reader.read_output_from(os.path.join(file_path, "test_avoid_small_end_step.post.res"))
 
         number_of_steps_taken = len(simulation_output["results"]["DISPLACEMENT"])
-
         self.assertEqual(number_of_steps_taken, 1)
+
+        end_time = simulation_output["results"]["DISPLACEMENT"][0]["time"]
+        self.assertEqual(end_time, 1.0)
 
 if __name__ == '__main__':
     KratosUnittest.main()
