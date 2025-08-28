@@ -306,6 +306,10 @@ void AddModelPartData(
         // the given model part has atleast elements
         // or conditions. Then we require the id map
         // to construct the connectivities.
+
+        KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfNodes() == 0)
+            << "Model part \"" << rModelPart.FullName() << "\" has entities, but no nodes found.";
+
         IndexType vtu_index = 0;
         for (const auto& r_node : rModelPart.Nodes()) {
             (*p_indices_map)[r_node.Id()] = vtu_index++;
@@ -473,8 +477,8 @@ std::string WritePartitionedUnstructuredGridData(
             // since we are writing to the same folder the pvtu files
             piece->AddAttribute(
                 "Source", std::filesystem::relative(
-                              r_file_name,
-                              std::filesystem::path(p_vtu_file_name).parent_path())
+                              std::filesystem::absolute(r_file_name),
+                              std::filesystem::absolute(p_vtu_file_name).parent_path())
                               .string());
             p_unstructured_grid_element->AddElement(piece);
         }
@@ -856,7 +860,7 @@ void VtuOutput::AddTensorAdaptor(
 
 template<class TXmlDataElementWrapper>
 std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
-    const std::string& rOutputFolderName,
+    const std::string& rOutputFileNamePrefix,
     ModelPartData& rModelPartData,
     TXmlDataElementWrapper& rXmlDataElementWrapper) const
 {
@@ -924,7 +928,7 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
     AddFields(*cell_data_element, rModelPartData.mCellFields, rXmlDataElementWrapper);
 
     std::stringstream output_vtu_file_name;
-    output_vtu_file_name << rOutputFolderName << "/" << rModelPartData.mpModelPart->FullName();
+    output_vtu_file_name << rOutputFileNamePrefix << "/" << rModelPartData.mpModelPart->FullName();
 
     // identify suffix with the entity type.
     std::string suffix;
@@ -949,8 +953,8 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
 
     // write the vtu file.
     std::ofstream output_file;
-    output_file.open(output_vtu_file_name.str(), std::ios::out |
-    std::ios::trunc); vtk_file_element.Write(output_file);
+    output_file.open(output_vtu_file_name.str(), std::ios::out | std::ios::trunc);
+    vtk_file_element.Write(output_file);
     output_file.close();
 
     // if it is run on a distributed system, create the pvtu file.
@@ -967,7 +971,7 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
 
 template<class TXmlDataElementWrapper>
 std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
-    const std::string& rOutputFolderName,
+    const std::string& rOutputFileNamePrefix,
     ModelPartData& rModelPartData,
     TXmlDataElementWrapper& rXmlDataElementWrapper) const
 {
@@ -1116,7 +1120,7 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
     if (r_data_communicator.OrReduceAll(is_gauss_point_data_available)) {
         std::stringstream output_vtu_file_name;
         output_vtu_file_name
-            << rOutputFolderName << "/" << rModelPartData.mpModelPart->FullName()
+            << rOutputFileNamePrefix << "/" << rModelPartData.mpModelPart->FullName()
             << "_gauss_" << mrModelPart.GetProcessInfo()[STEP]
             << (r_data_communicator.IsDistributed()
                     ? "_" + std::to_string(r_data_communicator.Rank())
@@ -1144,7 +1148,7 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
     }
 }
 
-void VtuOutput::PrintOutput(const std::string& rOutputFolderName)
+void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
 {
     KRATOS_TRY
 
@@ -1161,7 +1165,7 @@ void VtuOutput::PrintOutput(const std::string& rOutputFolderName)
     // Add the step info.
     mStepInfo.push_back(std::make_pair(r_process_info[STEP], r_process_info[TIME]));
 
-    std::filesystem::create_directories(rOutputFolderName);
+    std::filesystem::create_directories(rOutputFileNamePrefix);
 
     std::vector<std::pair<std::string, std::string>> pvd_file_name_info;
 
@@ -1172,11 +1176,11 @@ void VtuOutput::PrintOutput(const std::string& rOutputFolderName)
                 XmlAsciiNDDataElementWrapper data_element_wrapper{mPrecision, &mrModelPart.GetCommunicator().GetDataCommunicator()};
                 // first write the unstructured grid data
                 pvd_file_name_info.push_back(WriteUnstructuredGridData(
-                    rOutputFolderName, r_model_part_data, data_element_wrapper));
+                    rOutputFileNamePrefix, r_model_part_data, data_element_wrapper));
 
                 // now write the gauss point info
                 pvd_file_name_info.push_back(WriteIntegrationPointData(
-                    rOutputFolderName, r_model_part_data, data_element_wrapper));
+                    rOutputFileNamePrefix, r_model_part_data, data_element_wrapper));
                 break;
             }
             case BINARY:
@@ -1184,11 +1188,11 @@ void VtuOutput::PrintOutput(const std::string& rOutputFolderName)
                 XmlBase64BinaryNDDataElementWrapper data_element_wrapper{&mrModelPart.GetCommunicator().GetDataCommunicator()};
                 // first write the unstructured grid data
                 pvd_file_name_info.push_back(WriteUnstructuredGridData(
-                    rOutputFolderName, r_model_part_data, data_element_wrapper));
+                    rOutputFileNamePrefix, r_model_part_data, data_element_wrapper));
 
                 // now write the gauss point info
                 pvd_file_name_info.push_back(WriteIntegrationPointData(
-                    rOutputFolderName, r_model_part_data, data_element_wrapper));
+                    rOutputFileNamePrefix, r_model_part_data, data_element_wrapper));
                 break;
             }
         }
@@ -1237,8 +1241,8 @@ void VtuOutput::PrintOutput(const std::string& rOutputFolderName)
                     current_element->AddAttribute("part", std::to_string(local_index++));
                     current_element->AddAttribute(
                         "file", std::filesystem::relative(
-                                    current_vtu_file_name,
-                                    std::filesystem::path(rOutputFolderName).parent_path())
+                                    std::filesystem::absolute(current_vtu_file_name),
+                                    std::filesystem::absolute(rOutputFileNamePrefix).parent_path())
                                     .string());
                     collection_element->AddElement(current_element);
                 }
@@ -1246,7 +1250,7 @@ void VtuOutput::PrintOutput(const std::string& rOutputFolderName)
         }
 
         std::ofstream output_file;
-        output_file.open(rOutputFolderName + ".pvd", std::ios::out | std::ios::trunc);
+        output_file.open(rOutputFileNamePrefix + ".pvd", std::ios::out | std::ios::trunc);
         pvd_file_element.Write(output_file);
         output_file.close();
     }
@@ -1287,7 +1291,7 @@ void VtuOutput::PrintData(std::ostream& rOStream) const
 
     rOStream << "List of model part info:";
     for (const auto& r_model_part_data : mListOfModelPartData) {
-        rOStream << "\n\t" << r_model_part_data.mpModelPart->FullName();
+        rOStream << "\n\tModel part: \"" << r_model_part_data.mpModelPart->FullName() << "\"";
         if (r_model_part_data.mpContainer.has_value()) {
             std::visit([&rOStream](auto pContainer){
                 using container_type = BareType<decltype(*pContainer)>;
