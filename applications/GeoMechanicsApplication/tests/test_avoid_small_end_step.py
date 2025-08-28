@@ -5,7 +5,7 @@ import test_helper
 
 
 class KratosGeoMechanicsAvoidSmallEndStepTests(KratosUnittest.TestCase):
-    def test_avoid_small_last_step(self):
+    def test_avoid_small_end_step(self):
         """
         Test calculation that without countermeasure does a very small step to reach the end_time.
         This is triggered by setting the end-time to 1.0 and the time-step to 0.9999995.

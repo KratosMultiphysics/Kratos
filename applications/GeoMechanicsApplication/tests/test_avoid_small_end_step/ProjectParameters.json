@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "test_quad_4n",
+        "problem_name":         "test_avoid_small_end_step",
         "start_time":           0.0,
         "end_time":             1.0,
         "echo_level":           1,
