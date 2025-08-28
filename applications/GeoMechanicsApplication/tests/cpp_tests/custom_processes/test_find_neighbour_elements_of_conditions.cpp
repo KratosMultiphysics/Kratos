@@ -22,7 +22,7 @@ class ParametrizedFindNeighbourElementsOfConditions : public ::testing::TestWith
 {
 };
 
-TEST_P(ParametrizedFindNeighbourElementsOfConditions, NeighboringElementsAreFoundForDifferentNodeOrderings)
+TEST_P(ParametrizedFindNeighbourElementsOfConditions, NeighboringTetraElementsAreFoundForDifferentNodeOrderings)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
@@ -49,4 +49,38 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                                            std::vector<std::size_t>{2, 1, 3},
                                            std::vector<std::size_t>{3, 2, 1}));
 
+class ParametrizedFindHexaNeighbourElementsOfConditions : public ::testing::TestWithParam<std::vector<std::size_t>>
+{
+};
+
+TEST_P(ParametrizedFindHexaNeighbourElementsOfConditions, NeighboringHexaElementsAreFoundForDifferentNodeOrderings)
+{
+    Model model;
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D8NElement(model);
+
+    PointerVector<Node> nodes;
+    const auto          order = GetParam();
+    nodes.push_back(r_model_part.pGetNode(order[0]));
+    nodes.push_back(r_model_part.pGetNode(order[1]));
+    nodes.push_back(r_model_part.pGetNode(order[2]));
+    nodes.push_back(r_model_part.pGetNode(order[3]));
+
+    auto p_condition = ElementSetupUtilities::Create3D4NCondition(nodes);
+    r_model_part.AddCondition(p_condition);
+
+    FindNeighbourElementsOfConditionsProcess process(r_model_part);
+
+    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
+    process.Execute();
+    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+}
+
+INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
+                         ParametrizedFindHexaNeighbourElementsOfConditions,
+                         ::testing::Values(std::vector<std::size_t>{4, 3, 2, 1},
+                                           std::vector<std::size_t>{1, 4, 3, 2},
+                                           std::vector<std::size_t>{2, 1, 4, 3},
+                                           std::vector<std::size_t>{3, 2, 1, 4}));
+
 } // namespace Kratos::Testing
+    

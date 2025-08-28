@@ -318,28 +318,7 @@ hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingHe
     if (itFace != FacesMap.end()) return itFace;
 
     if (FaceIds.size() == 4) {
-        // first try
-        std::swap(FaceIds[0], FaceIds[1]);
-        std::swap(FaceIds[1], FaceIds[2]);
-        std::swap(FaceIds[2], FaceIds[3]);
-
-        itFace = FacesMap.find(FaceIds);
-        if (itFace != FacesMap.end()) return itFace;
-
-        // Second try
-        std::swap(FaceIds[0], FaceIds[1]);
-        std::swap(FaceIds[1], FaceIds[2]);
-        std::swap(FaceIds[2], FaceIds[3]);
-
-        itFace = FacesMap.find(FaceIds);
-        if (itFace != FacesMap.end()) return itFace;
-
-        // Third try
-        std::swap(FaceIds[0], FaceIds[1]);
-        std::swap(FaceIds[1], FaceIds[2]);
-        std::swap(FaceIds[2], FaceIds[3]);
-
-        itFace = FacesMap.find(FaceIds);
+        hashmap::iterator itFace = FindPermutations(FaceIds, FacesMap);
         if (itFace != FacesMap.end()) return itFace;
     }
 

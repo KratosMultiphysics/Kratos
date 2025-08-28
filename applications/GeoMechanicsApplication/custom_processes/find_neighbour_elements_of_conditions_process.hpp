@@ -106,7 +106,6 @@ private:
     hashmap::iterator FindFaceReorderingHexahedra3D8(DenseVector<int> FaceIds, hashmap& FacesMap) const;
     hashmap::iterator FindFaceReorderingHexahedra3D20(DenseVector<int> FaceIds, hashmap& FacesMap) const;
     hashmap::iterator FindPermutations(DenseVector<int> FaceIds, hashmap& FacesMap) const;
-    
 
     ///@}
     ///@name Member Variables
