@@ -89,7 +89,7 @@ void CheckProperties::Check(const Variable<double>& rVariable, double LowerBound
     CheckRangeBounds(rVariable, LowerBound, UpperBound);
 }
 
-void CheckProperties::CheckRangeBounds(const Variable<double>& rVariable, double LowerBound, double UpperBound)
+void CheckProperties::CheckRangeBounds(const Variable<double>& rVariable, double LowerBound, double UpperBound) const
 {
     const auto value = mrProperties[rVariable];
     bool       in_range;
