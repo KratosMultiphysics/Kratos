@@ -34,7 +34,7 @@ namespace Kratos
 
         const Parameters iga_physics_parameters = ReadParamatersFile(rDataFileName);
         
-        KRATOS_WATCH(iga_physics_parameters) //CHECKLEO
+        // KRATOS_WATCH(iga_physics_parameters) //CHECKLEO
 
         CreateIntegrationDomain(
             cad_model_part,
@@ -81,31 +81,30 @@ namespace Kratos
             ? rModelPart.GetSubModelPart(sub_model_part_name)
             : rModelPart.CreateSubModelPart(sub_model_part_name);
 
-        // Pull actuation from the per-patch parameters and store it on the sub-model-part
-        if (rParameters["parameters"].Has("applied_actuation_list") &&
-            rParameters["parameters"].Has("applied_actuation_value"))
-        {
-            const auto& names  = rParameters["parameters"]["applied_actuation_list"];
-            const auto& values = rParameters["parameters"]["applied_actuation_value"];
+        SetAppliedActuationOnSubModelPart(sub_model_part, rParameters["parameters"]);
+        // // Pull actuation from the per-patch parameters and store it on the sub-model-part
+        // if (rParameters["parameters"].Has("applied_actuation_list") &&
+        //     rParameters["parameters"].Has("applied_actuation_value"))
+        // {
+        //     const auto& names  = rParameters["parameters"]["applied_actuation_list"];
+        //     const auto& values = rParameters["parameters"]["applied_actuation_value"];
 
-            KRATOS_ERROR_IF(names.size() != values.size())
-                << "Size mismatch: applied_actuation_list vs applied_actuation_value\n";
+        //     KRATOS_ERROR_IF(names.size() != values.size())
+        //         << "Size mismatch: applied_actuation_list vs applied_actuation_value\n";
 
-            KRATOS_WATCH(names.size())
-            for (std::size_t i=0; i<names.size(); ++i) {
-                const std::string key = names[i].GetString();
-                const double val = values[i].GetDouble();
+        //     for (std::size_t i=0; i<names.size(); ++i) {
+        //         const std::string key = names[i].GetString();
+        //         const double val = values[i].GetDouble();
 
-                if      (key == "alpha") sub_model_part.SetValue(ACTIVE_SHELL_ALPHA, val);
-                else if (key == "beta")  sub_model_part.SetValue(ACTIVE_SHELL_BETA,  val);
-                else KRATOS_WARNING("IGA") << "Unknown actuation key '"<<key<<"' ignored.\n";
-            KRATOS_WATCH(sub_model_part.GetValue(ACTIVE_SHELL_ALPHA)) 
-            KRATOS_WATCH(sub_model_part.GetValue(ACTIVE_SHELL_BETA))   
-            KRATOS_WATCH(sub_model_part)
-            KRATOS_WATCH(rParameters)
-            KRATOS_WATCH(sub_model_part.rProperties()) //CHECK LEO
-            }
-        }
+        //         if      (key == "alpha")    sub_model_part.SetValue(ACTIVE_SHELL_ALPHA, val);
+        //         else if (key == "beta")     sub_model_part.SetValue(ACTIVE_SHELL_BETA,  val);
+        //         else if (key == "gamma")    sub_model_part.SetValue(ACTIVE_SHELL_GAMMA, val);
+        //         else if (key == "kappa_1")   sub_model_part.SetValue(ACTIVE_SHELL_KAPPA_1, val);
+        //         else if (key == "kappa_2")   sub_model_part.SetValue(ACTIVE_SHELL_KAPPA_2, val);
+        //         else if (key == "kappa_12")  sub_model_part.SetValue(ACTIVE_SHELL_KAPPA_12, val);
+        //         else KRATOS_WARNING("IGA") << "Unknown actuation key '" << key << "' ignored.\n";
+        //     }
+        // }
 
 
         // Generate the list of geometries, which are needed, here.
@@ -228,8 +227,8 @@ namespace Kratos
                 KRATOS_ERROR << "\"type\" does not exist: " << type
                     << ". Possible types are \"element\" and \"condition\"." << std::endl;
             }
-        KRATOS_WATCH(rParameters) //CHECKLEO
-        KRATOS_WATCH(rModelPart) //CHECKLEO
+        // KRATOS_WATCH(rParameters) //CHECKLEO
+        // KRATOS_WATCH(rModelPart) //CHECKLEO
         }
     }
 
@@ -466,4 +465,34 @@ namespace Kratos
     }
 
     ///@}
+
+
+    // Helper function to assign actuation values from parameters to a sub-model-part
+    void IgaModeler::SetAppliedActuationOnSubModelPart(
+        ModelPart& rSubModelPart,
+        const Parameters& rParameters) const
+    {
+        if (rParameters.Has("applied_actuation_list") &&
+            rParameters.Has("applied_actuation_value"))
+        {
+            const auto& names  = rParameters["applied_actuation_list"];
+            const auto& values = rParameters["applied_actuation_value"];
+
+            KRATOS_ERROR_IF(names.size() != values.size())
+                << "Size mismatch: applied_actuation_list vs applied_actuation_value\n";
+
+            for (std::size_t i=0; i<names.size(); ++i) {
+                const std::string key = names[i].GetString();
+                const double val = values[i].GetDouble();
+
+                if      (key == "alpha")     rSubModelPart.SetValue(ACTIVE_SHELL_ALPHA, val);
+                else if (key == "beta")      rSubModelPart.SetValue(ACTIVE_SHELL_BETA,  val);
+                else if (key == "gamma")     rSubModelPart.SetValue(ACTIVE_SHELL_GAMMA, val);
+                else if (key == "kappa_1")   rSubModelPart.SetValue(ACTIVE_SHELL_KAPPA_1, val);
+                else if (key == "kappa_2")   rSubModelPart.SetValue(ACTIVE_SHELL_KAPPA_2, val);
+                else if (key == "kappa_12")  rSubModelPart.SetValue(ACTIVE_SHELL_KAPPA_12, val);
+                else KRATOS_WARNING("IGA") << "Unknown actuation key '" << key << "' ignored.\n";
+            }
+        }
+    }
 }

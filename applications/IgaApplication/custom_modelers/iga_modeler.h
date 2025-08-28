@@ -22,6 +22,8 @@
 #include "modeler/modeler.h"
 #include "includes/properties.h"
 #include "includes/define.h"
+#include "includes/model_part.h"        
+#include "includes/kratos_parameters.h" 
 
 #include "integration/integration_info.h"
 
@@ -190,6 +192,13 @@ private:
 
     Parameters ReadParamatersFile(
         const std::string& rDataFileName) const;
+
+
+    /// Applies actuation values from parameters to the given sub-model-part.
+    /// Expects "applied_actuation_list" and "applied_actuation_value" in rParameters.
+    void SetAppliedActuationOnSubModelPart(
+        ModelPart& rSubModelPart,
+        const Parameters& rParameters) const;
 
     ///@}
     ///@name Serializer
