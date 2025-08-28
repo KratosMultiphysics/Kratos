@@ -42,7 +42,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         FacesMap.insert(hashmap::value_type(Ids, std::vector<Condition::Pointer>({*itCond.base()})));
 
         DenseVector<int> IdsSorted = Ids;
-        std::sort(IdsSorted.begin(), IdsSorted.end());
+        std::ranges::sort(IdsSorted);
         FacesMapSorted.insert(
             hashmap::value_type(IdsSorted, std::vector<Condition::Pointer>({*itCond.base()})));
     }
@@ -204,11 +204,8 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
 bool FindNeighbourElementsOfConditionsProcess::CheckIfAllConditionsAreVisited() const
 {
-    const auto& r_conditions = mrModelPart.Conditions();
-
-    // Check if all conditions are visited
-    return std::all_of(r_conditions.begin(), r_conditions.end(),
-                       [](const auto& r_cond) { return r_cond.Is(VISITED); });
+    return std::ranges::all_of(mrModelPart.Conditions(),
+                               [](const auto& r_cond) { return r_cond.Is(VISITED); });
 }
 
 void FindNeighbourElementsOfConditionsProcess::CheckIf1DElementIsNeighbour(hashmap& rFacesMap)
