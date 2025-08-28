@@ -11,6 +11,7 @@
 
 // Project includes
 #include "iga_modeler.h"
+#include "iga_application_variables.h" //CHECKLEO
 
 
 namespace Kratos
@@ -32,6 +33,8 @@ namespace Kratos
             : "physics.iga.json";
 
         const Parameters iga_physics_parameters = ReadParamatersFile(rDataFileName);
+        
+        KRATOS_WATCH(iga_physics_parameters) //CHECKLEO
 
         CreateIntegrationDomain(
             cad_model_part,
@@ -77,6 +80,33 @@ namespace Kratos
         ModelPart& sub_model_part = rModelPart.HasSubModelPart(sub_model_part_name)
             ? rModelPart.GetSubModelPart(sub_model_part_name)
             : rModelPart.CreateSubModelPart(sub_model_part_name);
+
+        // Pull actuation from the per-patch parameters and store it on the sub-model-part
+        if (rParameters["parameters"].Has("applied_actuation_list") &&
+            rParameters["parameters"].Has("applied_actuation_value"))
+        {
+            const auto& names  = rParameters["parameters"]["applied_actuation_list"];
+            const auto& values = rParameters["parameters"]["applied_actuation_value"];
+
+            KRATOS_ERROR_IF(names.size() != values.size())
+                << "Size mismatch: applied_actuation_list vs applied_actuation_value\n";
+
+            KRATOS_WATCH(names.size())
+            for (std::size_t i=0; i<names.size(); ++i) {
+                const std::string key = names[i].GetString();
+                const double val = values[i].GetDouble();
+
+                if      (key == "alpha") sub_model_part.SetValue(ACTIVE_SHELL_ALPHA, val);
+                else if (key == "beta")  sub_model_part.SetValue(ACTIVE_SHELL_BETA,  val);
+                else KRATOS_WARNING("IGA") << "Unknown actuation key '"<<key<<"' ignored.\n";
+            KRATOS_WATCH(sub_model_part.GetValue(ACTIVE_SHELL_ALPHA)) 
+            KRATOS_WATCH(sub_model_part.GetValue(ACTIVE_SHELL_BETA))   
+            KRATOS_WATCH(sub_model_part)
+            KRATOS_WATCH(rParameters)
+            KRATOS_WATCH(sub_model_part.rProperties()) //CHECK LEO
+            }
+        }
+
 
         // Generate the list of geometries, which are needed, here.
         GeometriesArrayType geometry_list;
@@ -133,6 +163,10 @@ namespace Kratos
             << "Creating " << name << "s of type: " << type
             << " for " << rGeometryList.size() << " geometries"
             << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
+        
+        // KRATOS_WATCH(rParameters) //CHECKLEO
+        // KRATOS_WATCH(rModelPart) //CHECKLEO
+        
 
         for (SizeType i = 0; i < rGeometryList.size(); ++i)
         {
@@ -194,6 +228,8 @@ namespace Kratos
                 KRATOS_ERROR << "\"type\" does not exist: " << type
                     << ". Possible types are \"element\" and \"condition\"." << std::endl;
             }
+        KRATOS_WATCH(rParameters) //CHECKLEO
+        KRATOS_WATCH(rModelPart) //CHECKLEO
         }
     }
 
@@ -273,8 +309,11 @@ namespace Kratos
     {
         const Condition& rReferenceCondition = KratosComponents<Condition>::Get(rConditionName);
 
-        ModelPart::ConditionsContainerType new_condition_list;
+        // KRATOS_WATCH(rConditionName) //CHECKLEO
+        // KRATOS_WATCH(rReferenceCondition) //CHECKLEO
 
+        ModelPart::ConditionsContainerType new_condition_list;
+        
         KRATOS_INFO_IF("CreateConditions", mEchoLevel > 2)
             << "Creating conditions of type " << rConditionName
             << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
@@ -290,6 +329,7 @@ namespace Kratos
         }
 
         rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
+        KRATOS_WATCH(new_condition_list)
     }
 
     /// Reads in a json formatted file and returns its KratosParameters instance.
@@ -309,7 +349,6 @@ namespace Kratos
 
         std::stringstream buffer;
         buffer << infile.rdbuf();
-
         return Parameters(buffer.str());
     }
 
