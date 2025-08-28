@@ -23,7 +23,6 @@
 #include "input_output/base_64_encoded_output.h"
 #include "input_output/vtk_definitions.h"
 #include "tensor_adaptors/flags_tensor_adaptor.h"
-#include "tensor_adaptors/gauss_point_variable_tensor_adaptor.h"
 #include "tensor_adaptors/historical_variable_tensor_adaptor.h"
 #include "tensor_adaptors/node_position_tensor_adaptor.h"
 #include "tensor_adaptors/variable_tensor_adaptor.h"
@@ -73,18 +72,6 @@ struct XmlAsciiNDDataElementWrapper
             rDataArrayName, pNDData,
             GetSynchronizedShape(pNDData->Shape(), *mpDataCommunicator), mPrecision);
     }
-
-    template<class NDDataTypePointer>
-    XmlElement::Pointer Get(
-        const std::string& rDataArrayName,
-        NDDataTypePointer pNDData,
-        const DenseVector<unsigned int>& rShape)
-    {
-        using data_type = typename BareType<decltype(*pNDData)>::DataType;
-        return Kratos::make_shared<XmlAsciiNDDataElement<data_type>>(
-            rDataArrayName, pNDData,
-            GetSynchronizedShape(rShape, *mpDataCommunicator), mPrecision);
-    }
 };
 
 struct XmlBase64BinaryNDDataElementWrapper
@@ -100,17 +87,6 @@ struct XmlBase64BinaryNDDataElementWrapper
         return Kratos::make_shared<XmlBase64BinaryNDDataElement<data_type>>(
             rDataArrayName, pNDData,
             GetSynchronizedShape(pNDData->Shape(), *mpDataCommunicator));
-    }
-
-    template<class NDDataTypePointer>
-    XmlElement::Pointer Get(
-        const std::string& rDataArrayName,
-        NDDataTypePointer pNDData,
-        const DenseVector<unsigned int>& rShape)
-    {
-        using data_type = typename BareType<decltype(*pNDData)>::DataType;
-        return Kratos::make_shared<XmlBase64BinaryNDDataElement<data_type>>(
-            rDataArrayName, pNDData, GetSynchronizedShape(rShape, *mpDataCommunicator));
     }
 };
 
@@ -899,13 +875,29 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
     auto unstructured_grid_element = Kratos::make_shared<XmlElementsArray>("UnstructuredGrid");
     vtk_file_element.AddElement(unstructured_grid_element);
 
-    const auto total_gauss_points = std::visit([](auto p_container) {
-            return block_for_each<SumReduction<IndexType>>(
-                *p_container, [](const auto& rEntity) {
-                    return rEntity.GetGeometry().IntegrationPointsNumber(
-                        rEntity.GetIntegrationMethod());
-                });
-        }, rModelPartData.mpContainer.value());
+    DenseVector<std::size_t> offsets;
+
+    const auto total_gauss_points = std::visit([&offsets](auto p_container) {
+        // resize the offsets
+        offsets.resize(p_container->size(), false);
+
+        // first entity gp offset is zero.
+        offsets[0] = 0;
+
+        // now compute the offsets for each entity. This allows
+        // having different number of gps in different entities.
+        // which is the case if we have a model part with mixed type
+        // of elements.
+        for (IndexType i = 1; i < p_container->size(); ++i) {
+            const auto& r_entity = *(p_container->begin() + i);
+            const auto number_of_gps = r_entity.GetGeometry().IntegrationPointsNumber(r_entity.GetIntegrationMethod());
+            offsets[i] = offsets[i - 1] + number_of_gps;
+        }
+
+        // now add the number of gps of the first entity.
+        const auto& r_entity = *(p_container->begin());
+        return offsets[offsets.size() - 1] + r_entity.GetGeometry().IntegrationPointsNumber(r_entity.GetIntegrationMethod());
+    }, rModelPartData.mpContainer.value());
 
     // create the piece element
     auto piece_element = Kratos::make_shared<XmlElementsArray>("Piece");
@@ -919,19 +911,17 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
     gauss_point_nd_data_shape[1] = 3;
     auto gauss_point_positions = Kratos::make_shared<NDData<double>>(gauss_point_nd_data_shape);
     const auto span = gauss_point_positions->ViewData();
-    auto gauss_point_itr = span.begin();
-    array_1d<double, 3> coordinates;
 
-    std::visit([&gauss_point_itr, &coordinates](auto p_container){
-        for (const auto& r_entity : (*p_container)) {
+    std::visit([&span, &offsets](auto p_container){
+        IndexPartition<IndexType>(p_container->size()).for_each(array_1d<double, 3>{}, [&span, &p_container, &offsets](const auto Index, auto& rTLS) {
+            const auto& r_entity = *(p_container->begin() + Index);
             const auto number_of_gauss_points = r_entity.GetGeometry().IntegrationPointsNumber(r_entity.GetIntegrationMethod());
             for (IndexType i = 0; i < number_of_gauss_points; ++i) {
-                r_entity.GetGeometry().GlobalCoordinates(coordinates, i);
-                *(gauss_point_itr++) = coordinates[0];
-                *(gauss_point_itr++) = coordinates[1];
-                *(gauss_point_itr++) = coordinates[2];
+                r_entity.GetGeometry().GlobalCoordinates(rTLS, i);
+                std::copy(rTLS.begin(), rTLS.end(), span.begin() + offsets[Index] * 3 + i * 3);
             }
-        }
+
+        });
     }, rModelPartData.mpContainer.value());
 
     // create the gauss points element
@@ -949,23 +939,54 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
     // add the gauss point data
     bool is_gauss_point_data_available = false;
     for (const auto& r_pair : integration_point_vars) {
-        std::visit([&point_data_element, &rXmlDataElementWrapper, &rModelPartData, &is_gauss_point_data_available](auto pVariable, auto pContainer) {
-            using data_type = typename DataTypeTraits<typename BareType<decltype(*pVariable)>::Type>::PrimitiveType;
-            if constexpr(std::is_same_v<data_type, double>) {
-                GaussPointVariableTensorAdaptor gp_ta(pContainer, pVariable,  rModelPartData.mpModelPart->pGetProcessInfo());
-                gp_ta.CollectData();
-                const auto& gp_ta_shape = gp_ta.Shape();
+        std::visit([&offsets, &point_data_element, &rXmlDataElementWrapper, &rModelPartData, &is_gauss_point_data_available, total_gauss_points](auto pVariable, auto pContainer) {
+            // type information of the variable
+            using data_type = typename BareType<decltype(*pVariable)>::Type;
+            using data_type_traits = DataTypeTraits<data_type>;
+            using primitive_data_type = typename data_type_traits::PrimitiveType;
 
-                KRATOS_ERROR_IF(gp_ta_shape.size() < 2)
-                    << "Gauss points requires at least 2 dimensional tensor data";
+            if constexpr(std::is_same_v<primitive_data_type, double>) {
+                // here we cannot use GaussPointVariableTensorAdaptor because
+                // it does not allow recording gauss point information if different
+                // entities have different number of gauss points.
+                // hence we do the computation here manually.
 
-                DenseVector<unsigned int> shape(gp_ta_shape.size() - 1);
-                std::copy(gp_ta_shape.begin() + 2, gp_ta_shape.end(), shape.begin());
-                shape[0] = gp_ta_shape[0] * gp_ta_shape[1];
+                std::vector<data_type> output;
 
-                if (gp_ta.Size() > 0) {
+                // first we need to find out the shape of the gauss point data
+                std::vector<unsigned int> local_shape(data_type_traits::Dimension, 0u);
+                if (!pContainer->empty()) {
+                    pContainer->front().CalculateOnIntegrationPoints(
+                        *pVariable, output, rModelPartData.mpModelPart->GetProcessInfo());
+
+                    if (!output.empty()) {
+                        // if there are available gauss point information
+                        data_type_traits::Shape(output.front(), local_shape.data(),
+                                                local_shape.data() + local_shape.size());
+                    }
+                }
+
+                // now do the communication between ranks to get the correct size
+                const auto& max_local_shape = rModelPartData.mpModelPart->GetCommunicator().GetDataCommunicator().MaxAll(local_shape);
+
+                // now we construct the nd_data_shape
+                DenseVector<unsigned int> nd_data_shape(local_shape.size() + 1);
+                std::copy(max_local_shape.begin(), max_local_shape.end(), nd_data_shape.begin() + 1);
+                nd_data_shape[0] = total_gauss_points;
+
+                const auto total_number_of_components = std::accumulate(max_local_shape.begin(), max_local_shape.end(), 1u, std::multiplies<unsigned int>{});
+
+                auto p_gauss_data = Kratos::make_shared<NDData<double>>(nd_data_shape);
+                auto span = p_gauss_data->ViewData();
+
+                if (span.size() > 0) {
                     is_gauss_point_data_available = true;
-                    point_data_element->AddElement(rXmlDataElementWrapper.Get(pVariable->Name(), gp_ta.pGetStorage(), shape));
+                    IndexPartition<IndexType>(pContainer->size()).for_each(output, [&span, &pContainer, &pVariable, &rModelPartData, &offsets, total_number_of_components](const auto Index, auto& rTLS) {
+                        auto& r_entity = *(pContainer->begin() + Index);
+                        r_entity.CalculateOnIntegrationPoints(*pVariable, rTLS, rModelPartData.mpModelPart->GetProcessInfo());
+                        DataTypeTraits<std::vector<data_type>>::CopyToContiguousData(span.begin() + offsets[Index] * total_number_of_components, rTLS);
+                    });
+                    point_data_element->AddElement(rXmlDataElementWrapper.Get(pVariable->Name(), p_gauss_data));
                 }
             }
         }, r_pair.second, rModelPartData.mpContainer.value());
