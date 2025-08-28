@@ -112,6 +112,11 @@ Condition::Pointer ElementSetupUtilities::Create3D4NCondition(const PointerVecto
         1, Kratos::make_shared<Quadrilateral3D4<Node>>(rNodes));
 }
 
+Condition::Pointer ElementSetupUtilities::Create3D6NCondition(const PointerVector<Node>& rNodes)
+{
+    return make_intrusive<UPwNormalFaceLoadCondition<3, 6>>(1, Kratos::make_shared<Triangle3D6<Node>>(rNodes));
+}
+
 Element::Pointer ElementSetupUtilities::Create2D6NElement(const PointerVector<Node>& rNodes,
                                                           const Properties::Pointer& rProperties)
 {

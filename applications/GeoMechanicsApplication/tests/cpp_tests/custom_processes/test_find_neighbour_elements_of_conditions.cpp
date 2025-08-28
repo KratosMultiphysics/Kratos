@@ -83,4 +83,38 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                                            std::vector<std::size_t>{2, 1, 4, 3},
                                            std::vector<std::size_t>{3, 2, 1, 4}));
 
+class ParametrizedFindQuadraticTetraNeighbourElementsOfConditions
+    : public ::testing::TestWithParam<std::vector<std::size_t>>
+{
+};
+
+TEST_P(ParametrizedFindQuadraticTetraNeighbourElementsOfConditions, NeighboringHexaElementsAreFoundForDifferentNodeOrderings)
+{
+    Model model;
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D10NUPwDiffOrderElement(model);
+
+    PointerVector<Node> nodes;
+    const auto          order = GetParam();
+    nodes.push_back(r_model_part.pGetNode(order[0]));
+    nodes.push_back(r_model_part.pGetNode(order[1]));
+    nodes.push_back(r_model_part.pGetNode(order[2]));
+    nodes.push_back(r_model_part.pGetNode(order[3]));
+    nodes.push_back(r_model_part.pGetNode(order[4]));
+    nodes.push_back(r_model_part.pGetNode(order[5]));
+
+    auto p_condition = ElementSetupUtilities::Create3D6NCondition(nodes);
+    r_model_part.AddCondition(p_condition);
+
+    FindNeighbourElementsOfConditionsProcess process(r_model_part);
+
+    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
+    process.Execute();
+    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+}
+
+INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
+                         ParametrizedFindQuadraticTetraNeighbourElementsOfConditions,
+                         ::testing::Values(std::vector<std::size_t>{1, 3, 2, 7, 6, 5},
+                                           std::vector<std::size_t>{2, 1, 3, 5, 7, 6},
+                                           std::vector<std::size_t>{3, 2, 1, 6, 5, 7}));
 } // namespace Kratos::Testing
