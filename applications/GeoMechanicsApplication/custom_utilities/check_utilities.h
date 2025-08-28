@@ -88,13 +88,13 @@ public:
     }
 
 private:
-    const std::string  mrPrintName;
-    const Properties&  mrProperties;
-    const std::size_t  mId;
-    const bool         mIncludeLower;
-    const bool         mIncludeUpper;
-    const double       mLowerBound = 0.0;
-    const double       mUpperBound = std::numeric_limits<double>::max();
+    const std::string mrPrintName;
+    const Properties& mrProperties;
+    const std::size_t mId;
+    const bool        mIncludeLower;
+    const bool        mIncludeUpper;
+    const double      mLowerBound = 0.0;
+    const double      mUpperBound = std::numeric_limits<double>::max();
     void CheckRangeBounds(const Variable<double>& rVariable, double LowerBound, double UpperBound);
 };
 
