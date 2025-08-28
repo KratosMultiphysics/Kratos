@@ -107,7 +107,7 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
         number_of_stages = len(comparison_data)
         run_multiple_stages.run_stages(file_path, number_of_stages)
 
-        time = 1.0
+        time = [1.0, 2.0]
         bottom_node_ids = [1, 2, 6, 11, 17, 25, 34, 46, 59, 75, 90]
         for output_file_name, expected_total_reaction_y in comparison_data:
             output_file_path = os.path.join(file_path, output_file_name)
@@ -136,7 +136,7 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
        orchestrator_instance = orchestrator_class(project)
        orchestrator_instance.Run()
 
-       time = 1.0
+       time = [1.0, 2.0]
        bottom_node_ids = [1, 2, 6, 11, 17, 25, 34, 46, 59, 75, 90]
        for output_file_name, expected_total_reaction_y in comparison_data:
            output_file_path = os.path.join(file_path, output_file_name)
@@ -158,7 +158,7 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
         project_parameters_filename = test_helper.get_file_path(os.path.join(file_path, "ProjectParametersLoadFromCheckpoint.json"))
         self.run_orchestrator_based_workflow(file_path, project_parameters_filename)
 
-        time = 1.0
+        time = [1.0, 2.0]
         bottom_node_ids = [1, 2, 6, 11, 17, 25, 34, 46, 59, 75, 90]
         for output_file_name, expected_total_reaction_y in comparison_data:
             output_file_path = os.path.join(file_path, output_file_name)
