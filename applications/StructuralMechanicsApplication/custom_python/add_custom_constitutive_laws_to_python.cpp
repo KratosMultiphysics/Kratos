@@ -74,6 +74,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     py::class_< TimoshenkoBeamPlaneStrainElasticConstitutiveLaw, typename TimoshenkoBeamPlaneStrainElasticConstitutiveLaw::Pointer, ConstitutiveLaw >
     (m, "TimoshenkoBeamPlaneStrainElasticConstitutiveLaw").def(py::init<>() )
     ;
+
 }
 
 }  // namespace Kratos::Python.

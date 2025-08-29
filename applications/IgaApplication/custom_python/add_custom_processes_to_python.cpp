@@ -19,7 +19,8 @@
 #include "custom_processes/nitsche_stabilization_model_part_process.h"
 #include "custom_processes/map_nurbs_volume_results_to_embedded_geometry_process.h"
 #include "custom_processes/assign_integration_points_to_background_elements_process.h"
-
+#include "custom_processes/compute_beam_vectors_process.h"
+#include "geometries/nurbs_curve_on_surface_geometry.h"
 #include "iga_application_variables.h"
 
 
@@ -52,8 +53,11 @@ void AddCustomProcessesToPython(
         .def(py::init<Model&, Parameters >())
         ;
 
-
-
+    py::class_<ComputeBeamVectorsProcess, ComputeBeamVectorsProcess::Pointer, Process>(m, "ComputeBeamVectorsProcess")
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, const NurbsCurveGeometry<3, PointerVector<Node>>&>())
+        .def(py::init<ModelPart&, const NurbsCurveOnSurfaceGeometry<3, PointerVector<Node>, PointerVector<Node>>&>())
+        ;
 }
 
 } // namespace Python
