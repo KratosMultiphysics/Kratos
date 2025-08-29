@@ -16,6 +16,7 @@
 
 #include "custom_constitutive/small_strain_umat_law.hpp"
 #include "constitutive_law_dimension.h"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
@@ -204,13 +205,9 @@ int SmallStrainUMATLaw<TVoigtSize>::Check(const Properties&   rMaterialPropertie
                                           const GeometryType& rElementGeometry,
                                           const ProcessInfo&  rCurrentProcessInfo) const
 {
-    // Verify Properties variables
-    if (!rMaterialProperties.Has(UDSM_NAME) || rMaterialProperties[UDSM_NAME] == "")
-        KRATOS_ERROR << "UDSM_NAME has Key zero, is not defined for property"
-                     << rMaterialProperties.Id() << std::endl;
-
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(IS_FORTRAN_UDSM))
-        << "IS_FORTRAN_UDSM is not defined for property" << rMaterialProperties.Id() << std::endl;
+    const CheckProperties check_properties("property", rMaterialProperties);
+    check_properties.CheckAvailabilityAndEmpty(UDSM_NAME);
+    check_properties.CheckAvailabilityOnly(IS_FORTRAN_UDSM);
 
     return 0;
 }
