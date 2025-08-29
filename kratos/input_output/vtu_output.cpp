@@ -118,6 +118,47 @@ void CheckDataArrayName(
     }
 }
 
+void CheckDataArrayName(
+    const std::string& rName,
+    const Globals::DataLocation& rLocation,
+    const VtuOutput::ModelPartData& rModelPartData)
+{
+    bool found_existing_name = false;
+    switch (rLocation) {
+        case Globals::DataLocation::NodeHistorical:
+        case Globals::DataLocation::NodeNonHistorical:
+            found_existing_name = rModelPartData.mPointFields.find(rName) != rModelPartData.mPointFields.end();
+            break;
+        case Globals::DataLocation::Condition:
+        case Globals::DataLocation::Element:
+            found_existing_name = rModelPartData.mCellFields.find(rName) != rModelPartData.mCellFields.end();
+            break;
+        default:
+            KRATOS_ERROR << "Unsupported data location type.";
+    }
+    KRATOS_ERROR_IF(found_existing_name)
+            << "Found an existing data array with the same name = \"" << rName << "\".\n";
+}
+
+void CheckDataArrayName(
+    const std::string& rName,
+    const Globals::DataLocation& rLocation,
+    const std::vector<VtuOutput::ModelPartData>& rListOfModelPartData)
+{
+    for (const auto& r_model_part_data : rListOfModelPartData) {
+        switch (rLocation) {
+            case Globals::DataLocation::NodeHistorical:
+            case Globals::DataLocation::NodeNonHistorical:
+                if (r_model_part_data.UsePointsForDataFieldOutput) {
+                    CheckDataArrayName(rName, rLocation, r_model_part_data);
+                }
+                break;
+            default:
+                CheckDataArrayName(rName, rLocation, r_model_part_data);
+        }
+    }
+}
+
 template <class TContainerType>
 NDData<int>::Pointer GetOffsets(const TContainerType& rContainer)
 {
@@ -637,6 +678,7 @@ void VtuOutput::AddFlag(
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
             CheckDataArrayName(rFlagName, {DataLocation}, mFlags, mVariables);
+            CheckDataArrayName(rFlagName, DataLocation, mListOfModelPartData);
             mFlags[DataLocation][rFlagName] = &rFlagVariable;
             break;
         default:
@@ -659,6 +701,7 @@ void VtuOutput::AddVariable(
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
             CheckDataArrayName(GetName(pVariable), {DataLocation}, mFlags, mVariables);
+            CheckDataArrayName(GetName(pVariable), DataLocation, mListOfModelPartData);
             mVariables[DataLocation][GetName(pVariable)] = pVariable;
             break;
         default:
@@ -741,10 +784,9 @@ void VtuOutput::ClearCellFields()
 
 void VtuOutput::AddContainerExpression(
     const std::string& rExpressionName,
-    SupportedContainerExpressionPointerType pContainerExpression,
-    const bool Overwrite)
+    SupportedContainerExpressionPointerType pContainerExpression)
 {
-    std::visit([this, &rExpressionName, Overwrite](auto p_container_expression) {
+    std::visit([this, &rExpressionName](auto p_container_expression) {
         const auto& r_expression = p_container_expression->GetExpression();
 
         const auto number_of_data_components = r_expression.GetItemComponentCount();
@@ -767,6 +809,9 @@ void VtuOutput::AddContainerExpression(
                         // first check if there are any nodal fields present with the same name already
                         CheckDataArrayName(rExpressionName, {Globals::DataLocation::NodeHistorical, Globals::DataLocation::NodeNonHistorical}, mFlags, mVariables);
                     }
+
+                    // now check if the rExpressionName is found in the mPointFields of this model part
+                    CheckDataArrayName(rExpressionName, Globals::DataLocation::NodeNonHistorical, r_model_part_data);
 
                     // since expressions are created from local mesh nodes
                     // we need to synchronize the values so that ghost mesh nodes
@@ -816,6 +861,10 @@ void VtuOutput::AddContainerExpression(
                                         nd_data_span[data_begin_index + i] = r_expression.Evaluate(Index, data_begin_index, i);
                                     }
                                 });
+
+                                KRATOS_ERROR_IF_NOT(r_model_part_data.mCellFields.find(rExpressionName) == r_model_part_data.mCellFields.end())
+                                    << "Found an existing data array with the same expression name = \"" << rExpressionName << "\" [ "
+                                    << "expression : " << r_expression << " ]\n" << *this;
 
                                 r_model_part_data.mCellFields[rExpressionName] = p_nd_data;
                                 return true;
@@ -869,11 +918,27 @@ void VtuOutput::AddTensorAdaptor(
                         << p_model_part->FullName() << ", tensor_adaptor = " << *p_tensor_adaptor << " ].\n";
 
                     if (&*(p_ta_container) == &p_model_part->Nodes()) {
+                        if (r_model_part_data.UsePointsForDataFieldOutput) {
+                            // first check if there are any nodal fields present with the same name already
+                            CheckDataArrayName(rTensorAdaptorName, {Globals::DataLocation::NodeHistorical, Globals::DataLocation::NodeNonHistorical}, mFlags, mVariables);
+                        }
+
+                        // now check if the rTensorAdaptorName is found in the mPointFields of this model part
+                        CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::NodeNonHistorical, r_model_part_data);
+
                         // here we don't have to do anything. add the tensor adaptor's
                         // NDData
                         r_model_part_data.mPointFields[rTensorAdaptorName] = tensor_adaptor_type(*p_tensor_adaptor, Copy).pGetStorage();
                         return true;
                     } else if (&*(p_ta_container) == &p_model_part->GetCommunicator().LocalMesh().Nodes()) {
+                        if (r_model_part_data.UsePointsForDataFieldOutput) {
+                            // first check if there are any nodal fields present with the same name already
+                            CheckDataArrayName(rTensorAdaptorName, {Globals::DataLocation::NodeHistorical, Globals::DataLocation::NodeNonHistorical}, mFlags, mVariables);
+                        }
+
+                        // now check if the rTensorAdaptorName is found in the mPointFields of this model part
+                        CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::NodeNonHistorical, r_model_part_data);
+
                         // the tensor adaptor is having a container referring to the local mesh nodes.
                         // now we have to construct the nodal values for all the nodes including ghost mesh
                         // nodes.
@@ -903,6 +968,8 @@ void VtuOutput::AddTensorAdaptor(
                     if (r_model_part_data.mpCells.has_value() &&
                         std::holds_alternative<ModelPart::ConditionsContainerType::Pointer>(r_model_part_data.mpCells.value()) &&
                         &*p_ta_container == &p_model_part->Conditions()) {
+                            // now check if the rTensorAdaptorName is found in the mPointFields of this model part
+                            CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::Condition, r_model_part_data);
                             r_model_part_data.mCellFields[rTensorAdaptorName] = tensor_adaptor_type(*p_tensor_adaptor, Copy).pGetStorage();
                             return true;
                     }
@@ -911,6 +978,8 @@ void VtuOutput::AddTensorAdaptor(
                     if (r_model_part_data.mpCells.has_value() &&
                         std::holds_alternative<ModelPart::ElementsContainerType::Pointer>(r_model_part_data.mpCells.value()) &&
                         &*p_ta_container == &p_model_part->Elements()) {
+                            // now check if the rTensorAdaptorName is found in the mPointFields of this model part
+                            CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::Element, r_model_part_data);
                             r_model_part_data.mCellFields[rTensorAdaptorName] = tensor_adaptor_type(*p_tensor_adaptor, Copy).pGetStorage();
                             return true;
                     }

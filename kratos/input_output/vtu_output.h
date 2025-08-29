@@ -73,9 +73,9 @@ public:
                                             >;
 
     using SupportedContainerExpressionPointerType = std::variant<
-                                                        ContainerExpression<ModelPart::NodesContainerType> const *,
-                                                        ContainerExpression<ModelPart::ConditionsContainerType> const *,
-                                                        ContainerExpression<ModelPart::ElementsContainerType> const *
+                                                        ContainerExpression<ModelPart::NodesContainerType>::Pointer,
+                                                        ContainerExpression<ModelPart::ConditionsContainerType>::Pointer,
+                                                        ContainerExpression<ModelPart::ElementsContainerType>::Pointer
                                                     >;
 
     using SupportedTensorAdaptorPointerType = std::variant<
@@ -151,14 +151,12 @@ public:
 
     void AddContainerExpression(
         const std::string& rExpressionName,
-        SupportedContainerExpressionPointerType pContainerExpression,
-        const bool Overwrite = false);
+        SupportedContainerExpressionPointerType pContainerExpression);
 
     void AddTensorAdaptor(
         const std::string& rTensorAdaptorName,
         SupportedTensorAdaptorPointerType pTensorAdaptor,
-        const bool Copy = true,
-        const bool Overwrite = false);
+        const bool Copy = true);
 
     void ClearFlags(Globals::DataLocation DataLocation);
 
