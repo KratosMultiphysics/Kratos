@@ -56,8 +56,6 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
         for (const auto& r_boundary_geometry : rBoundaryGeometries) {
             DenseVector<IndexType> FaceIds(r_boundary_geometry.size());
-
-            // faces or edges for 2D and 3D elements
             std::ranges::transform(r_boundary_geometry, FaceIds.begin(),
                                    [](const Node& rNode) { return rNode.Id(); });
 
@@ -238,7 +236,7 @@ hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindPermutations(Den
                                                                              hashmap& FacesMap) const
 {
     for (std::size_t i = 0; i < FaceIds.size() - 1; ++i) {
-        std::rotate(FaceIds.begin(), FaceIds.begin() + 1, FaceIds.end());
+        std::ranges::rotate(FaceIds, FaceIds.begin() + 1);
 
         hashmap::iterator itFace = FacesMap.find(FaceIds);
         if (itFace != FacesMap.end()) return itFace;
