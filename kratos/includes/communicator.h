@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -19,7 +19,6 @@
 #include <iostream>
 #include <sstream>
 #include <cstddef>
-
 
 // External includes
 
@@ -159,6 +158,9 @@ public:
         Condition by * operator and not a pointer for more convenient
         usage. */
     typedef MeshType::ConditionConstantIterator ConditionConstantIterator;
+
+    /// Container of Dofs used to hold the dofset on the builder and solver class.
+    using DofSetType = PointerVectorSet<Dof<double>>;
 
     ///@}
     ///@name Life Cycle
@@ -304,6 +306,8 @@ public:
 
     virtual bool SynchronizeDofs();
 
+    virtual bool SynchronizeDofSet(DofSetType& rDofSet);
+
     virtual bool SynchronizeVariable(Variable<int> const& rThisVariable);
 
     virtual bool SynchronizeVariable(Variable<double> const& rThisVariable);
@@ -344,50 +348,50 @@ public:
 
     virtual bool SynchronizeNonHistoricalVariable(Variable<Quaternion<double>> const& rThisVariable);
 
-    /** 
+    /**
      * @brief Synchronize variable in nodal solution step data to the maximum value across all processes.
      * @param ThisVariable The variable to be synchronized.
      */
     virtual bool SynchronizeCurrentDataToMax(Variable<double> const& ThisVariable);
 
-    /** 
+    /**
      * @brief Synchronize variable in nodal data to the maximum value across all processes.
      * @param ThisVariable The variable to be synchronized.
      */
     virtual bool SynchronizeNonHistoricalDataToMax(Variable<double> const& ThisVariable);
 
-    /** 
+    /**
      * @brief Synchronize variable in nodal solution step data to the absolute maximum value across all processes.
      * @param ThisVariable The variable to be synchronized.
      */
     virtual bool SynchronizeCurrentDataToAbsMax(Variable<double> const& ThisVariable);
 
-    /** 
+    /**
      * @brief Synchronize variable in nodal data to the absolute maximum value across all processes.
      * @param ThisVariable The variable to be synchronized.
      */
     virtual bool SynchronizeNonHistoricalDataToAbsMax(Variable<double> const& ThisVariable);
 
-    /** 
+    /**
      * @brief Synchronize variable in nodal solution step data to the minimum value across all processes.
      * @param ThisVariable The variable to be synchronized.
      */
     virtual bool SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable);
 
     /**
-     * @brief Synchronize variable in nodal data to the minimum value across all processes. 
+     * @brief Synchronize variable in nodal data to the minimum value across all processes.
      * @param ThisVariable The variable to be synchronized.
      */
     virtual bool SynchronizeNonHistoricalDataToMin(Variable<double> const& ThisVariable);
 
-    /** 
+    /**
      * @brief Synchronize variable in nodal solution step data to the absolute minimum value across all processes.
      * @param ThisVariable The variable to be synchronized.
      */
     virtual bool SynchronizeCurrentDataToAbsMin(Variable<double> const& ThisVariable);
 
     /**
-     * @brief Synchronize variable in nodal data to the absolute minimum value across all processes. 
+     * @brief Synchronize variable in nodal data to the absolute minimum value across all processes.
      * @param ThisVariable The variable to be synchronized.
      */
     virtual bool SynchronizeNonHistoricalDataToAbsMin(Variable<double> const& ThisVariable);
