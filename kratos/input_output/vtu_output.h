@@ -130,7 +130,8 @@ public:
         const bool IsInitialConfiguration = true,
         const WriterFormat OutputFormat = WriterFormat::BINARY,
         const IndexType Precision = 9,
-        const bool OutputSubModelParts = false);
+        const bool OutputSubModelParts = false,
+        const IndexType EchoLevel = 0);
 
     ///@}
     ///@name Public operations
@@ -205,6 +206,8 @@ private:
     ModelPart& mrModelPart; /// Reference to the model part.
 
     const bool mIsInitialConfiguration; /// Flag indicating if it is the initial configuration.
+
+    const IndexType mEchoLevel;
 
     const WriterFormat mOutputFormat; /// The output format for writing the model part.
 

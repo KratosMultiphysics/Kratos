@@ -159,6 +159,18 @@ void CheckDataArrayName(
     }
 }
 
+std::string GetEntityName(const std::optional<VtuOutput::CellContainerPointerType>& pCellContainer)
+{
+    if (pCellContainer.has_value()) {
+        return std::visit([](auto p_cell_container) {
+            using container_type = BareType<decltype(*p_cell_container)>;
+            return ModelPart::Container<container_type>::GetEntityName();
+        }, pCellContainer.value());
+    } else {
+        return "node";
+    }
+}
+
 template <class TContainerType>
 NDData<int>::Pointer GetOffsets(const TContainerType& rContainer)
 {
@@ -182,11 +194,13 @@ NDData<unsigned char>::Pointer GetGeometryTypes(const TContainerType& rContainer
     auto span = p_geometry_types->ViewData();
 
     IndexPartition<IndexType>(rContainer.size()).for_each([&span, &rContainer](const IndexType Index) {
+        KRATOS_WATCH(static_cast<int>((rContainer.begin() + Index)->GetGeometry().GetGeometryType()));
         const auto p_itr = VtkDefinitions::KratosVtkGeometryTypes.find((rContainer.begin() + Index)->GetGeometry().GetGeometryType());
         if (p_itr != VtkDefinitions::KratosVtkGeometryTypes.end()) {
             *(span.begin() + Index) = static_cast<unsigned char>(p_itr->second);
         } else {
-            KRATOS_ERROR << "Element with id " << (rContainer.begin() + Index)->Id() << " has unsupported geometry.";
+            KRATOS_ERROR << "Unsupported geometry [ " << ModelPart::Container<TContainerType>::GetEntityName()
+                         << " id = " << (rContainer.begin() + Index)->Id() << " ].\n";
         }
     });
     return p_geometry_types;
@@ -347,7 +361,8 @@ ModelPart::NodesContainerType::Pointer GetNodesContainer(TEntityContainerType& r
 
 void AddModelPartData(
     std::vector<VtuOutput::ModelPartData>& rOutput,
-    ModelPart& rModelPart)
+    ModelPart& rModelPart,
+    const IndexType EchoLevel)
 {
     const bool has_elements   = rModelPart.GetCommunicator().GlobalNumberOfElements() > 0;
     const bool has_conditions = rModelPart.GetCommunicator().GlobalNumberOfConditions() > 0;
@@ -361,11 +376,15 @@ void AddModelPartData(
 
         // now check if it has proper nodes
         if (rModelPart.NumberOfNodes() > 0) {
+            KRATOS_INFO_IF("VtuOutput", EchoLevel > 0)
+                << "Configuring output for \"" << rModelPart.FullName() << "\" elements with existing nodes container.\n";
             FillIndicesMap(*p_indices_map, rModelPart.Nodes());
             VtuOutput::ModelPartData model_part_data{true, &rModelPart, rModelPart.pNodes(), rModelPart.pElements(), p_indices_map};
             rOutput.push_back(model_part_data);
         } else {
             // create the nodes container.
+            KRATOS_INFO_IF("VtuOutput", EchoLevel > 0)
+                << "Configuring output for \"" << rModelPart.FullName() << "\" elements with new nodes container.\n";
             auto p_nodes = GetNodesContainer(rModelPart.Elements());
             FillIndicesMap(*p_indices_map, *p_nodes);
             VtuOutput::ModelPartData model_part_data{false, &rModelPart, p_nodes, rModelPart.pElements(), p_indices_map};
@@ -381,6 +400,8 @@ void AddModelPartData(
         auto p_indices_map = Kratos::make_shared<VtuOutput::IndicesMap>();
 
         if (!has_elements && rModelPart.NumberOfNodes() > 0) {
+            KRATOS_INFO_IF("VtuOutput", EchoLevel > 0)
+                << "Configuring output for \"" << rModelPart.FullName() << "\" conditions with existing nodes container.\n";
             FillIndicesMap(*p_indices_map, rModelPart.Nodes());
             VtuOutput::ModelPartData model_part_data{true, &rModelPart, rModelPart.pNodes(), rModelPart.pConditions(), p_indices_map};
             rOutput.push_back(model_part_data);
@@ -391,6 +412,9 @@ void AddModelPartData(
             // In order to avoid writing nodes, which are not used by the conditions,
             // this will use a new nodes list.
 
+            KRATOS_INFO_IF("VtuOutput", EchoLevel > 0)
+                << "Configuring output for \"" << rModelPart.FullName() << "\" conditions with new nodes container.\n";
+
             auto p_nodes = GetNodesContainer(rModelPart.Conditions());
             FillIndicesMap(*p_indices_map, *p_nodes);
             VtuOutput::ModelPartData model_part_data{false, &rModelPart, p_nodes, rModelPart.pConditions(), p_indices_map};
@@ -399,6 +423,8 @@ void AddModelPartData(
     }
 
     if (!has_elements && !has_conditions) {
+        KRATOS_INFO_IF("VtuOutput", EchoLevel > 0)
+            << "Configuring output for \"" << rModelPart.FullName() << "\" nodes.\n";
         // Model part does not have either conditions or elements.
         // Hence, only adding the nodes.
         VtuOutput::ModelPartData model_part_data{true, &rModelPart, rModelPart.pNodes(), std::nullopt, Kratos::make_shared<VtuOutput::IndicesMap>()};
@@ -408,14 +434,15 @@ void AddModelPartData(
 
 void AddModelPartDataRecursively(
     std::vector<VtuOutput::ModelPartData>& rOutput,
-    ModelPart& rModelPart)
+    ModelPart& rModelPart,
+    const IndexType EchoLevel)
 {
     // add the current model part data to the output.
-    AddModelPartData(rOutput, rModelPart);
+    AddModelPartData(rOutput, rModelPart, EchoLevel);
 
     // now recursively add all the sub model part data.
     for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
-        AddModelPartDataRecursively(rOutput, r_sub_model_part);
+        AddModelPartDataRecursively(rOutput, r_sub_model_part, EchoLevel);
     }
 }
 
@@ -646,18 +673,20 @@ VtuOutput::VtuOutput(
     const bool IsInitialConfiguration,
     const WriterFormat OutputFormat,
     const IndexType Precision,
-    const bool OutputSubModelParts)
+    const bool OutputSubModelParts,
+    const IndexType EchoLevel)
     : mrModelPart(rModelPart),
       mIsInitialConfiguration(IsInitialConfiguration),
+      mEchoLevel(EchoLevel),
       mOutputFormat(OutputFormat),
       mPrecision(Precision)
 {
     if (OutputSubModelParts) {
         // Collect all model part data recursively.
-        AddModelPartDataRecursively(mListOfModelPartData, rModelPart);
+        AddModelPartDataRecursively(mListOfModelPartData, rModelPart, mEchoLevel);
     } else {
         // Only collect the data from the Passed model part
-        AddModelPartData(mListOfModelPartData, rModelPart);
+        AddModelPartData(mListOfModelPartData, rModelPart, mEchoLevel);
     }
 }
 
@@ -1077,15 +1106,7 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
     output_vtu_file_name << rOutputFileNamePrefix << "/" << rModelPartData.mpModelPart->FullName();
 
     // identify suffix with the entity type.
-    std::string suffix;
-    if (rModelPartData.mpCells.has_value()) {
-        suffix = std::visit([](auto p_container) {
-            using container_type = BareType<decltype(*p_container)>;
-            return "_" + ModelPart::Container<container_type>::GetEntityName() + "s";
-        }, rModelPartData.mpCells.value());
-    } else {
-        suffix = "_nodes";
-    }
+    const std::string& suffix = "_" + GetEntityName(rModelPartData.mpCells) + "s";
 
     const std::string pvd_data_set_name = rModelPartData.mpModelPart->FullName() + suffix;
     const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
@@ -1267,7 +1288,7 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
         std::stringstream output_vtu_file_name;
         output_vtu_file_name
             << rOutputFileNamePrefix << "/" << rModelPartData.mpModelPart->FullName() << "_"
-            << std::visit([](const auto pContainer) { return ModelPart::Container<BareType<decltype(*pContainer)>>::GetEntityName(); }, rModelPartData.mpCells.value())
+            << GetEntityName(rModelPartData.mpCells)
             << "_gauss_" << mrModelPart.GetProcessInfo()[STEP]
             << (r_data_communicator.IsDistributed()
                     ? "_" + std::to_string(r_data_communicator.Rank())
@@ -1322,10 +1343,16 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
             {
                 XmlAsciiNDDataElementWrapper data_element_wrapper{mPrecision, &mrModelPart.GetCommunicator().GetDataCommunicator()};
                 // first write the unstructured grid data
+                KRATOS_INFO_IF("VtuOutput", mEchoLevel > 1)
+                    << "Writing \"" << r_model_part_data.mpModelPart->FullName()
+                    << "\" " << GetEntityName(r_model_part_data.mpCells) << " fields in ASCII format...\n";
                 pvd_file_name_info.push_back(WriteUnstructuredGridData(
                     rOutputFileNamePrefix, r_model_part_data, data_element_wrapper));
 
                 // now write the gauss point info
+                KRATOS_INFO_IF("VtuOutput", mEchoLevel > 1)
+                    << "Writing \"" << r_model_part_data.mpModelPart->FullName()
+                    << "\" " << GetEntityName(r_model_part_data.mpCells) << " gauss point fields in ASCII format...\n";
                 pvd_file_name_info.push_back(WriteIntegrationPointData(
                     rOutputFileNamePrefix, r_model_part_data, data_element_wrapper));
                 break;
@@ -1334,10 +1361,16 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
             {
                 XmlBase64BinaryNDDataElementWrapper data_element_wrapper{&mrModelPart.GetCommunicator().GetDataCommunicator()};
                 // first write the unstructured grid data
+                KRATOS_INFO_IF("VtuOutput", mEchoLevel > 1)
+                    << "Writing \"" << r_model_part_data.mpModelPart->FullName()
+                    << "\" " << GetEntityName(r_model_part_data.mpCells) << " fields in binary format...\n";
                 pvd_file_name_info.push_back(WriteUnstructuredGridData(
                     rOutputFileNamePrefix, r_model_part_data, data_element_wrapper));
 
                 // now write the gauss point info
+                KRATOS_INFO_IF("VtuOutput", mEchoLevel > 1)
+                    << "Writing \"" << r_model_part_data.mpModelPart->FullName()
+                    << "\" " << GetEntityName(r_model_part_data.mpCells) << " gauss point fields in binary format...\n";
                 pvd_file_name_info.push_back(WriteIntegrationPointData(
                     rOutputFileNamePrefix, r_model_part_data, data_element_wrapper));
                 break;
@@ -1347,6 +1380,9 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
 
     // now generate the *.pvd file
     if (mrModelPart.GetCommunicator().MyPID() == 0) {
+        KRATOS_INFO_IF("VtuOutput", mEchoLevel > 1)
+                    << "Writing \"" << mrModelPart.FullName()
+                    << "\" PVD file...\n";
         // Single pvd file links all the vtu files from sum-model parts
         // partitioned model_parts and time step vtu files together.
 
@@ -1418,7 +1454,7 @@ std::string VtuOutput::Info() const
             break;
     }
     info << ", precision = " << mPrecision << ", is initial configuration = "
-         << (mIsInitialConfiguration ? "yes" : "no") << " ]";
+         << (mIsInitialConfiguration ? "yes" : "no") << ", echo level = " << mEchoLevel << " ]";
     return info.str();
 }
 
@@ -1438,16 +1474,9 @@ void VtuOutput::PrintData(std::ostream& rOStream) const
 
     rOStream << "List of model part info:";
     for (const auto& r_model_part_data : mListOfModelPartData) {
-        rOStream << "\n\tModel part: \"" << r_model_part_data.mpModelPart->FullName() << "\"";
-        if (r_model_part_data.mpCells.has_value()) {
-            std::visit([&rOStream](auto pContainer){
-                using container_type = BareType<decltype(*pContainer)>;
-                rOStream << " with " << pContainer->size() << " " << ModelPart::Container<container_type>::GetEntityName() << "s";
-            }, r_model_part_data.mpCells.value());
-        } else {
-            rOStream << " with " << r_model_part_data.mpModelPart->NumberOfNodes() << " nodes";
-        }
-        rOStream << ", used for point fields = " << (r_model_part_data.UsePointsForDataFieldOutput ? "yes" : "no");
+        rOStream << "\n\tModel part: \"" << r_model_part_data.mpModelPart->FullName() << "\""
+                 << " with " << GetEntityName(r_model_part_data.mpCells) << "s"
+                 << ", used for point fields = " << (r_model_part_data.UsePointsForDataFieldOutput ? "yes" : "no");
 
         if (r_model_part_data.UsePointsForDataFieldOutput) {
             rOStream << "\n\t\t" << "Point fields:";

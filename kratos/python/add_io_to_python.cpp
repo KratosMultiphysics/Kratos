@@ -212,7 +212,13 @@ void  AddIOToPython(pybind11::module& m)
         .export_values();
 
     vtu_output
-        .def(py::init<ModelPart&, const bool, const VtuOutput::WriterFormat, const std::size_t, const bool>(), py::arg("model_part"), py::arg("is_initial_configuration_considered") = true, py::arg("binary_output") = VtuOutput::WriterFormat::BINARY, py::arg("precision") = 9, py::arg("output_sub_model_parts") = false)
+        .def(py::init<ModelPart&, const bool, const VtuOutput::WriterFormat, const std::size_t, const bool, const IndexType>(),
+            py::arg("model_part"),
+            py::arg("is_initial_configuration_considered") = true,
+            py::arg("binary_output") = VtuOutput::WriterFormat::BINARY,
+            py::arg("precision") = 9,
+            py::arg("output_sub_model_parts") = false,
+            py::arg("echo_level") = 0)
         .def("AddFlag", &VtuOutput::AddFlag, py::arg("flag_name"), py::arg("flag"), py::arg("data_location"))
         .def("AddVariable", &VtuOutput::AddVariable, py::arg("variable"), py::arg("data_location"))
         .def("AddIntegrationPointVariable", &VtuOutput::AddIntegrationPointVariable, py::arg("variable"), py::arg("data_location"))
