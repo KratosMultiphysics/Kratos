@@ -11,6 +11,7 @@
 //
 
 #include "custom_utilities/check_utilities.h"
+#include "geo_mechanics_application_variables.h"
 #include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
@@ -111,5 +112,55 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalDof, KratosGeoMechanicsFastSu
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         CheckUtilities::CheckHasDofs(line_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)}),
         "Missing the DoF for the variable VOLUME_ACCELERATION on nodes 0 1")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckProperties, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto properties = Properties();
+    properties.SetValue(DENSITY_WATER, 1000.0);
+    properties.SetValue(DENSITY, 0.0);
+    CheckProperties check_properties("property", properties, CheckProperties::Bounds::AllInclusive);
+
+    // Act and Assert
+    EXPECT_NO_THROW(check_properties.Check(DENSITY_WATER));
+    EXPECT_NO_THROW(check_properties.Check(DENSITY));
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.Check(DENSITY_WATER, 500.0),
+                                      "DENSITY_WATER in the property 0 has an invalid value: 1000 "
+                                      "out of the range [0; 500.000000].")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.Check(DENSITY_WATER, 100.0, 500.0),
+                                      "DENSITY_WATER in the property 0 has an invalid value: 1000 "
+                                      "out of the range [100; 500.000000].")
+
+    check_properties.SetNewBounds(CheckProperties::Bounds::AllExclusive);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.Check(DENSITY_WATER, 1000.0),
+                                      "DENSITY_WATER in the property 0 has an invalid value: 1000 "
+                                      "out of the range (0; 1000.000000).")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.Check(DENSITY),
+        "DENSITY in the property 0 has an invalid value: 0 out of the range (0; -).")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.SingleUseBounds(CheckProperties::Bounds::InclusiveLowerAndExclusiveUpper)->Check(DENSITY_WATER, 1000.0), "DENSITY_WATER in the property 0 has an invalid value: 1000 out of the range [0; 1000.000000).")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.SingleUseBounds(CheckProperties::Bounds::ExclusiveLowerAndInclusiveUpper)->Check(DENSITY),
+        "DENSITY in the property 0 has an invalid value: 0 out of the range (0; -].")
+
+    // Arrange 2
+    auto            properties_2 = Properties();
+    constexpr auto  element_Id   = 1;
+    CheckProperties check_properties_2("property at element", properties_2, element_Id,
+                                       CheckProperties::Bounds::AllInclusive);
+    // Act and Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties_2.CheckAvailabilityOnly(UDSM_NAME),
+                                      " UDSM_NAME does not exist in the property at element 1.")
+    properties_2.SetValue(UDSM_NAME, "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties_2.CheckAvailabilityAndEmpty(UDSM_NAME),
+                                      "UDSM_NAME is empty in the property at element 1.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties_2.CheckAvailabilityOnly(UDSM_NUMBER),
+                                      "UDSM_NUMBER does not exist in the property at element 1.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties_2.CheckAvailabilityOnly(IS_FORTRAN_UDSM),
+        "IS_FORTRAN_UDSM does not exist in the property at element 1.")
 }
 } // namespace Kratos::Testing

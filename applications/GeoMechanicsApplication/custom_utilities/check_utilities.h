@@ -72,14 +72,14 @@ public:
     void Check(const Variable<T>& rVariable) const
     {
         CheckAvailabilityOnly(rVariable);
-        CheckRangeBounds(rVariable, mLowerBound, mUpperBound);
+        CheckRangeBounds(rVariable, mDefaultLowerBound, mDefaultUpperBound);
     }
 
     template <typename T>
     void Check(const Variable<T>& rVariable, double UpperBound) const
     {
         CheckAvailabilityOnly(rVariable);
-        CheckRangeBounds(rVariable, mLowerBound, UpperBound);
+        CheckRangeBounds(rVariable, mDefaultLowerBound, UpperBound);
     }
 
     template <typename T>
@@ -111,8 +111,8 @@ private:
     const Properties& mrProperties;
     const std::size_t mId;
     Bounds            mOption;
-    const double      mLowerBound = 0.0;
-    const double      mUpperBound = std::numeric_limits<double>::max();
+    const double      mDefaultLowerBound = 0.0;
+    const double      mDefaultUpperBound = std::numeric_limits<double>::max();
 
     template <typename T>
     void CheckRangeBounds(const Variable<T>& rVariable, double LowerBound, double UpperBound) const
