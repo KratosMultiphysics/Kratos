@@ -102,14 +102,20 @@ std::string GetEndianness()
     }
 }
 
-template<class... TLists>
+template<class... T>
 void CheckDataArrayName(
     const std::string& rName,
-    TLists&... rLists)
+    const std::vector<Globals::DataLocation>& rLocations,
+    const VtuOutput::DataMap<T>&... rMaps)
 {
-    const bool found_existing_name = !(... && (rLists.find(rName) == rLists.end()));
-    KRATOS_ERROR_IF(found_existing_name)
-        << "Found an existing data array with the same name = \"" << rName << "\".\n";
+    for (const auto& r_location : rLocations) {
+        const bool found_existing_name =
+            !(... && (rMaps.find(r_location) == rMaps.end() ||
+                      rMaps.find(r_location)->second.find(rName) ==
+                          rMaps.find(r_location)->second.end()));
+        KRATOS_ERROR_IF(found_existing_name)
+                << "Found an existing data array with the same name = \"" << rName << "\".\n";
+    }
 }
 
 template <class TContainerType>
@@ -626,8 +632,11 @@ void VtuOutput::AddFlag(
 {
     switch (DataLocation) {
         case Globals::DataLocation::NodeNonHistorical:
+            // additionally check here in the historical containers.
+            CheckDataArrayName(rFlagName, {Globals::DataLocation::NodeHistorical}, mFlags, mVariables);
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
+            CheckDataArrayName(rFlagName, {DataLocation}, mFlags, mVariables);
             mFlags[DataLocation][rFlagName] = &rFlagVariable;
             break;
         default:
@@ -642,9 +651,14 @@ void VtuOutput::AddVariable(
 {
     switch (DataLocation) {
         case Globals::DataLocation::NodeHistorical:
+            // additionally check here in the non historical containers.
+            CheckDataArrayName(GetName(pVariable), {Globals::DataLocation::NodeNonHistorical}, mFlags, mVariables);
         case Globals::DataLocation::NodeNonHistorical:
+            // additionally check here in the historical containers.
+            CheckDataArrayName(GetName(pVariable), {Globals::DataLocation::NodeHistorical}, mFlags, mVariables);
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
+            CheckDataArrayName(GetName(pVariable), {DataLocation}, mFlags, mVariables);
             mVariables[DataLocation][GetName(pVariable)] = pVariable;
             break;
         default:
@@ -660,6 +674,7 @@ void VtuOutput::AddIntegrationPointVariable(
     switch (DataLocation) {
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
+            CheckDataArrayName(GetName(pVariable), {DataLocation}, mIntegrationPointVariables);
             mIntegrationPointVariables[DataLocation][GetName(pVariable)] = pVariable;
             break;
         default:
@@ -726,9 +741,10 @@ void VtuOutput::ClearCellFields()
 
 void VtuOutput::AddContainerExpression(
     const std::string& rExpressionName,
-    SupportedContainerExpressionPointerType pContainerExpression)
+    SupportedContainerExpressionPointerType pContainerExpression,
+    const bool Overwrite)
 {
-    std::visit([this, &rExpressionName](auto p_container_expression) {
+    std::visit([this, &rExpressionName, Overwrite](auto p_container_expression) {
         const auto& r_expression = p_container_expression->GetExpression();
 
         const auto number_of_data_components = r_expression.GetItemComponentCount();
@@ -745,9 +761,13 @@ void VtuOutput::AddContainerExpression(
             auto p_model_part = r_model_part_data.mpModelPart;
 
             // expressions are created from local mesh entities.
-
             if constexpr(std::is_same_v<expression_container_type, ModelPart::NodesContainerType>) {
                 if (&r_expression_container == &p_model_part->GetCommunicator().LocalMesh().Nodes()) {
+                    if (r_model_part_data.UsePointsForDataFieldOutput) {
+                        // first check if there are any nodal fields present with the same name already
+                        CheckDataArrayName(rExpressionName, {Globals::DataLocation::NodeHistorical, Globals::DataLocation::NodeNonHistorical}, mFlags, mVariables);
+                    }
+
                     // since expressions are created from local mesh nodes
                     // we need to synchronize the values so that ghost mesh nodes
                     // will be correctly filled.

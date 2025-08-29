@@ -151,12 +151,14 @@ public:
 
     void AddContainerExpression(
         const std::string& rExpressionName,
-        SupportedContainerExpressionPointerType pContainerExpression);
+        SupportedContainerExpressionPointerType pContainerExpression,
+        const bool Overwrite = false);
 
     void AddTensorAdaptor(
         const std::string& rTensorAdaptorName,
         SupportedTensorAdaptorPointerType pTensorAdaptor,
-        const bool Copy = true);
+        const bool Copy = true,
+        const bool Overwrite = false);
 
     void ClearFlags(Globals::DataLocation DataLocation);
 
