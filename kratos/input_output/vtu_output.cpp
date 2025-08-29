@@ -839,7 +839,7 @@ void VtuOutput::AddContainerExpression(
                 }
             } else {
                 if (r_model_part_data.mpCells.has_value()) {
-                    return std::visit([this, &r_model_part_data, &rExpressionName, &r_expression, &r_expression_container, &data_shape, number_of_data_components](auto p_model_part_container) {
+                    if (std::visit([this, &r_model_part_data, &rExpressionName, &r_expression, &r_expression_container, &data_shape, number_of_data_components](auto p_model_part_container) {
                         using model_part_container = BareType<decltype(*p_model_part_container)>;
 
                         if constexpr(std::is_same_v<expression_container_type, model_part_container>) {
@@ -870,8 +870,11 @@ void VtuOutput::AddContainerExpression(
                                 return true;
                             }
                         }
+
                         return false;
-                    }, r_model_part_data.mpCells.value());
+                    }, r_model_part_data.mpCells.value())) {
+                        return true;
+                    }
                 }
             }
         }
