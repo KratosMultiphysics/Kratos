@@ -698,8 +698,7 @@ void VtuOutput::AddContainerExpression(
 
         using expression_container_type = BareType<decltype(r_expression_container)>;
 
-        IndexType i_model_part_data = 0;
-        for (; i_model_part_data < this->mListOfModelPartData.size(); ++i_model_part_data) {
+        for (IndexType i_model_part_data = 0; i_model_part_data < this->mListOfModelPartData.size(); ++i_model_part_data) {
             auto& r_model_part_data = this->mListOfModelPartData[i_model_part_data];
 
             // get the model part
@@ -730,11 +729,11 @@ void VtuOutput::AddContainerExpression(
                     // map and then exit the for loop since, the given container expression
                     // is already found.
                     r_model_part_data.mPointFields[rExpressionName] = GetSynchronizedNodalNDData(*p_model_part, data_shape);
-                    break;
+                    return true;
                 }
             } else {
                 if (r_model_part_data.mpContainer.has_value()) {
-                    if (std::visit([this, &r_model_part_data, &rExpressionName, &r_expression, &r_expression_container, &data_shape, number_of_data_components](auto p_model_part_container) {
+                    return std::visit([this, &r_model_part_data, &rExpressionName, &r_expression, &r_expression_container, &data_shape, number_of_data_components](auto p_model_part_container) {
                         using model_part_container = BareType<decltype(*p_model_part_container)>;
 
                         if constexpr(std::is_same_v<expression_container_type, model_part_container>) {
@@ -762,24 +761,31 @@ void VtuOutput::AddContainerExpression(
                             }
                         }
                         return false;
-                    }, r_model_part_data.mpContainer.value())) {
-                        break;
-                    }
+                    }, r_model_part_data.mpContainer.value());
                 }
             }
         }
+
+        KRATOS_ERROR
+            << "The container in the ContainerExpression is not referring to any of the containers "
+            << "written by this VTU output [ container expression name = " << rExpressionName
+            << ", tensor_adaptor = " << *p_container_expression << " ]\n"
+            << *this;
+
     }, pContainerExpression);
 }
 
 void VtuOutput::AddTensorAdaptor(
     const std::string& rTensorAdaptorName,
-    SupportedTensorAdaptorPointerType pTensorAdaptor)
+    SupportedTensorAdaptorPointerType pTensorAdaptor,
+    const bool Copy)
 {
-    std::visit([this, &rTensorAdaptorName](auto p_tensor_adaptor) {
+    std::visit([this, &rTensorAdaptorName, Copy](auto p_tensor_adaptor) {
+        using tensor_adaptor_type = BareType<decltype(*p_tensor_adaptor)>;
         const auto shape = p_tensor_adaptor->Shape();
         const auto number_of_data_components = std::accumulate(shape.begin() + 1, shape.end(), 1u, std::multiplies<unsigned int>{});
 
-        if (!std::visit([this, &rTensorAdaptorName, &p_tensor_adaptor, &shape, number_of_data_components](auto p_ta_container){
+        const bool ta_added = std::visit([this, &rTensorAdaptorName, &p_tensor_adaptor, &shape, number_of_data_components, Copy](auto p_ta_container){
             using ta_container_type = BareType<decltype(*p_ta_container)>;
 
             // first check to which model part output this tenor adaptor belongs to
@@ -803,8 +809,8 @@ void VtuOutput::AddTensorAdaptor(
 
                     if (&*(p_ta_container) == &p_model_part->Nodes()) {
                         // here we don't have to do anything. add the tensor adaptor's
-                        // NDDaTa
-                        r_model_part_data.mPointFields[rTensorAdaptorName] = p_tensor_adaptor->pGetStorage();
+                        // NDData
+                        r_model_part_data.mPointFields[rTensorAdaptorName] = tensor_adaptor_type(*p_tensor_adaptor, Copy).pGetStorage();
                         return true;
                     } else if (&*(p_ta_container) == &p_model_part->GetCommunicator().LocalMesh().Nodes()) {
                         // the tensor adaptor is having a container referring to the local mesh nodes.
@@ -835,15 +841,15 @@ void VtuOutput::AddTensorAdaptor(
                     if (r_model_part_data.mpContainer.has_value() &&
                         std::holds_alternative<ModelPart::ConditionsContainerType::Pointer>(r_model_part_data.mpContainer.value()) &&
                         &*p_ta_container == &p_model_part->Conditions()) {
-                            r_model_part_data.mCellFields[rTensorAdaptorName] = p_tensor_adaptor->pGetStorage();
+                            r_model_part_data.mCellFields[rTensorAdaptorName] = tensor_adaptor_type(*p_tensor_adaptor, Copy).pGetStorage();
                             return true;
                     }
                 } else if constexpr(std::is_same_v<ta_container_type, ModelPart::ElementsContainerType>) {
                     // ghost, local and model part containers are the same. so we check only the model part container
                     if (r_model_part_data.mpContainer.has_value() &&
-                        std::holds_alternative<ModelPart::ConditionsContainerType::Pointer>(r_model_part_data.mpContainer.value()) &&
+                        std::holds_alternative<ModelPart::ElementsContainerType::Pointer>(r_model_part_data.mpContainer.value()) &&
                         &*p_ta_container == &p_model_part->Elements()) {
-                            r_model_part_data.mCellFields[rTensorAdaptorName] = p_tensor_adaptor->pGetStorage();
+                            r_model_part_data.mCellFields[rTensorAdaptorName] = tensor_adaptor_type(*p_tensor_adaptor, Copy).pGetStorage();
                             return true;
                     }
                 }
@@ -851,10 +857,14 @@ void VtuOutput::AddTensorAdaptor(
 
             // hasn't found a valid container.
             return false;
-        }, p_tensor_adaptor->GetContainer())) {
-            KRATOS_ERROR << "The container in the tensor adaptor is not referring to any of the containers "
-                         << "written by this VTU output [ tensor_adaptor = " << *p_tensor_adaptor << " ].\n";
-        }
+        }, p_tensor_adaptor->GetContainer());
+
+        KRATOS_ERROR_IF_NOT(ta_added)
+            << "The container in the TensorAdaptor is not referring to any of the containers "
+            << "written by this VTU output [ tensor adaptor name = " << rTensorAdaptorName
+            << ", tensor_adaptor = " << *p_tensor_adaptor << " ]\n"
+            << *this;
+
     }, pTensorAdaptor);
 }
 

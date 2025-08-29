@@ -153,7 +153,8 @@ public:
 
     void AddTensorAdaptor(
         const std::string& rTensorAdaptorName,
-        SupportedTensorAdaptorPointerType pTensorAdaptor);
+        SupportedTensorAdaptorPointerType pTensorAdaptor,
+        const bool Copy = true);
 
     void ClearFlags(Globals::DataLocation DataLocation);
 
