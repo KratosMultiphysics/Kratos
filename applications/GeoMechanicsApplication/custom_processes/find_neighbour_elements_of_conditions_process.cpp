@@ -266,22 +266,7 @@ hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingTe
     if (itFace != FacesMap.end()) return itFace;
 
     if (FaceIds.size() == 6) {
-        // first try
-        std::swap(FaceIds[0], FaceIds[1]);
-        std::swap(FaceIds[1], FaceIds[2]);
-        std::swap(FaceIds[3], FaceIds[4]);
-        std::swap(FaceIds[4], FaceIds[5]);
-
-        itFace = FacesMap.find(FaceIds);
-        if (itFace != FacesMap.end()) return itFace;
-
-        // Second try
-        std::swap(FaceIds[0], FaceIds[1]);
-        std::swap(FaceIds[1], FaceIds[2]);
-        std::swap(FaceIds[3], FaceIds[4]);
-        std::swap(FaceIds[4], FaceIds[5]);
-
-        itFace = FacesMap.find(FaceIds);
+        hashmap::iterator itFace = FindPermutationsQuadratic(FaceIds, FacesMap);
         if (itFace != FacesMap.end()) return itFace;
     }
 
@@ -332,37 +317,7 @@ hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingHe
     if (itFace != FacesMap.end()) return itFace;
 
     if (FaceIds.size() == 8) {
-        // first try
-        std::swap(FaceIds[0], FaceIds[1]);
-        std::swap(FaceIds[1], FaceIds[2]);
-        std::swap(FaceIds[2], FaceIds[3]);
-        std::swap(FaceIds[4], FaceIds[5]);
-        std::swap(FaceIds[5], FaceIds[6]);
-        std::swap(FaceIds[6], FaceIds[7]);
-
-        itFace = FacesMap.find(FaceIds);
-        if (itFace != FacesMap.end()) return itFace;
-
-        // Second try
-        std::swap(FaceIds[0], FaceIds[1]);
-        std::swap(FaceIds[1], FaceIds[2]);
-        std::swap(FaceIds[2], FaceIds[3]);
-        std::swap(FaceIds[4], FaceIds[5]);
-        std::swap(FaceIds[5], FaceIds[6]);
-        std::swap(FaceIds[6], FaceIds[7]);
-
-        itFace = FacesMap.find(FaceIds);
-        if (itFace != FacesMap.end()) return itFace;
-
-        // Third try
-        std::swap(FaceIds[0], FaceIds[1]);
-        std::swap(FaceIds[1], FaceIds[2]);
-        std::swap(FaceIds[2], FaceIds[3]);
-        std::swap(FaceIds[4], FaceIds[5]);
-        std::swap(FaceIds[5], FaceIds[6]);
-        std::swap(FaceIds[6], FaceIds[7]);
-
-        itFace = FacesMap.find(FaceIds);
+        hashmap::iterator itFace = FindPermutationsQuadratic(FaceIds, FacesMap);
         if (itFace != FacesMap.end()) return itFace;
     }
 
@@ -376,6 +331,20 @@ hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindPermutations(Den
 {
     for (std::size_t i = 0; i < FaceIds.size() - 1; ++i) {
         std::rotate(FaceIds.begin(), FaceIds.begin() + 1, FaceIds.end());
+
+        hashmap::iterator itFace = FacesMap.find(FaceIds);
+        if (itFace != FacesMap.end()) return itFace;
+    }
+    return FacesMap.end();
+}
+
+hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindPermutationsQuadratic(DenseVector<int> FaceIds,
+                                                                                      hashmap& FacesMap) const
+{
+    for (std::size_t i = 0; i < FaceIds.size() / 2 - 1; ++i) {
+        std::rotate(FaceIds.begin(), FaceIds.begin() + 1, FaceIds.begin() + FaceIds.size() / 2);
+        std::rotate(FaceIds.begin() + FaceIds.size() / 2, FaceIds.begin() + FaceIds.size() / 2 + 1,
+                    FaceIds.end());
 
         hashmap::iterator itFace = FacesMap.find(FaceIds);
         if (itFace != FacesMap.end()) return itFace;
