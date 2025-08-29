@@ -535,24 +535,22 @@ std::string WritePartitionedUnstructuredGridData(
 }
 
 template<class TShapeType>
-NDData<double>::Pointer GetSynchronizedNodalNDData(
-    ModelPart& rModelPart,
+NDData<double>::Pointer GetNodalNDData(
+    ModelPart::NodesContainerType& rNodes,
     const TShapeType& rDataShape)
 {
-    rModelPart.GetCommunicator().SynchronizeVariable(TENSOR_ADAPTOR_SYNC);
-
     // construct the nd_data shape
     DenseVector<unsigned int> nd_data_shape(rDataShape.size() + 1);
     // vtu output always write data for local and ghost nodes.
-    nd_data_shape[0] = rModelPart.NumberOfNodes();
+    nd_data_shape[0] = rNodes.size();
     std::copy(rDataShape.begin(), rDataShape.end(), nd_data_shape.begin() + 1);
 
     auto p_nd_data = Kratos::make_shared<NDData<double>>(nd_data_shape);
     const auto nd_data_span = p_nd_data->ViewData();
 
     // now read the variable data back to the nd_data
-    IndexPartition<IndexType>(nd_data_shape[0]).for_each([&rModelPart, &nd_data_span](const auto Index) {
-        const auto& r_values = (rModelPart.NodesBegin() + Index)->GetValue(TENSOR_ADAPTOR_SYNC);
+    IndexPartition<IndexType>(nd_data_shape[0]).for_each([&rNodes, &nd_data_span](const auto Index) {
+        const auto& r_values = (rNodes.begin() + Index)->GetValue(TENSOR_ADAPTOR_SYNC);
         const auto data_begin_index = Index * r_values.size();
         for (IndexType i = 0; i < r_values.size(); ++i) {
             nd_data_span[data_begin_index + i] = r_values[i];
@@ -770,7 +768,8 @@ void VtuOutput::AddContainerExpression(
                     // the p_nd_data is now correctly filled. Add it to the
                     // map and then exit the for loop since, the given container expression
                     // is already found.
-                    r_model_part_data.mPointFields[rExpressionName] = GetSynchronizedNodalNDData(*p_model_part, data_shape);
+                    p_model_part->GetCommunicator().SynchronizeVariable(TENSOR_ADAPTOR_SYNC);
+                    r_model_part_data.mPointFields[rExpressionName] = GetNodalNDData(*r_model_part_data.mpPoints, data_shape);
                     return true;
                 }
             } else {
@@ -875,7 +874,8 @@ void VtuOutput::AddTensorAdaptor(
                         // map and then exit the for loop since, the given container expression
                         // is already found.
                         std::vector<unsigned int> data_shape(shape.begin() + 1, shape.end());
-                        r_model_part_data.mPointFields[rTensorAdaptorName] = GetSynchronizedNodalNDData(*p_model_part, data_shape);
+                        p_model_part->GetCommunicator().SynchronizeVariable(TENSOR_ADAPTOR_SYNC);
+                        r_model_part_data.mPointFields[rTensorAdaptorName] = GetNodalNDData(*r_model_part_data.mpPoints, data_shape);
                         return true;
                     }
                 } else if constexpr(std::is_same_v<ta_container_type, ModelPart::ConditionsContainerType>) {
