@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Dadvand"
+  given-names: "Pooyan"
+  orcid: "https://orcid.org/0000-0001-9515-9273"
+- family-names: "Rossi"
+  given-names: "Riccardo"
+  orcid: "https://orcid.org/0000-0003-0528-7074"
+- family-names: "Oñate Ibañez de Navarra"
+  given-names: "Eugenio"
+  orcid: "https://orcid.org/0000-0002-0804-7095"
+title: "An Object-oriented Environment for Developing Finite Element Codes for Multi-disciplinary Applications"
+version: 9.2
+doi: 10.1007/s11831-010-9045-2
+date-released: 2010-07-22
+url: "https://doi.org/10.1007/s11831-010-9045-2"
