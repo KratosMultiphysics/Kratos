@@ -40,25 +40,13 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     if (this->GetGeometry().WorkingSpaceDimension() > 2)
         CheckUtilities::CheckHasDofs(r_geometry, {std::cref(DISPLACEMENT_Z)});
 
-    // Verify properties
-    if (!r_properties.Has(DENSITY_SOLID) || r_properties[DENSITY_SOLID] < 0.0)
-        KRATOS_ERROR << "DENSITY_SOLID has Key zero, is not defined or has an "
-                        "invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(DENSITY_WATER) || r_properties[DENSITY_WATER] < 0.0)
-        KRATOS_ERROR << "DENSITY_WATER has Key zero, is not defined or has an "
-                        "invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(BULK_MODULUS_SOLID) || r_properties[BULK_MODULUS_SOLID] < 0.0)
-        KRATOS_ERROR
-            << "BULK_MODULUS_SOLID has Key zero, is not defined or has an invalid value at element"
-            << this->Id() << std::endl;
-
-    if (!r_properties.Has(POROSITY) || r_properties[POROSITY] < 0.0 || r_properties[POROSITY] > 1.0)
-        KRATOS_ERROR << "POROSITY has Key zero, is not defined or has an invalid value at element"
-                     << this->Id() << std::endl;
+    const CheckProperties check_properties("material properties at element", r_properties,
+                                           this->Id(), CheckProperties::Bounds::AllInclusive);
+    check_properties.Check(DENSITY_SOLID);
+    check_properties.Check(DENSITY_WATER);
+    check_properties.Check(BULK_MODULUS_SOLID);
+    constexpr auto max_value_porosity = 1.0;
+    check_properties.Check(POROSITY, max_value_porosity);
 
     if (this->GetGeometry().WorkingSpaceDimension() == 2) {
         // If this is a 2D problem, nodes must be in XY plane
