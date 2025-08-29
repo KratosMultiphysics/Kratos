@@ -32,7 +32,6 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         GeometryType& rGeometry = itCond->GetGeometry();
 
         DenseVector<IndexType> Ids(rGeometry.size());
-
         for (IndexType i = 0; i < Ids.size(); ++i) {
             rGeometry[i].Set(BOUNDARY, true);
             Ids[i] = rGeometry[i].Id();
@@ -59,14 +58,14 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
             std::ranges::transform(r_boundary_geometry, FaceIds.begin(),
                                    [](const Node& rNode) { return rNode.Id(); });
 
-            hashmap::iterator itFace = FacesMap.find(FaceIds);
+            auto itFace = FacesMap.find(FaceIds);
             if (itFace == FacesMap.end() && (rGeometryElement.LocalSpaceDimension() == 3 ||
                                              (rGeometryElement.LocalSpaceDimension() == 2 &&
                                               dynamic_cast<const InterfaceElement*>(&(*itElem))))) {
                 // condition is not found but might be a problem of ordering in 3D geometries!
                 DenseVector<int> FaceIdsSorted = FaceIds;
-                std::sort(FaceIdsSorted.begin(), FaceIdsSorted.end());
-                hashmap::iterator itFaceSorted = FacesMapSorted.find(FaceIdsSorted);
+                std::ranges::sort(FaceIdsSorted);
+                auto itFaceSorted = FacesMapSorted.find(FaceIdsSorted);
                 if (itFaceSorted != FacesMapSorted.end()) {
                     // try different orderings
                     using enum GeometryData::KratosGeometryOrderType;
@@ -105,7 +104,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                     PointIds[iNode] = rPointGeometries[iPoint][iNode].Id();
                 }
 
-                hashmap::iterator itFace = FacesMap.find(PointIds);
+                auto itFace = FacesMap.find(PointIds);
                 if (itFace != FacesMap.end()) {
                     // condition is found!
                     // but check if there are more than one condition on the element
@@ -137,7 +136,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                         EdgeIds[iNode] = rBoundaryGeometries[iEdge][iNode].Id();
                     }
 
-                    hashmap::iterator itFace = FacesMap.find(EdgeIds);
+                    auto itFace = FacesMap.find(EdgeIds);
                     // There might be a need to check this for different types of 3D elements
                     // as the ordering numbers might be inconsistent
 
@@ -202,7 +201,7 @@ void FindNeighbourElementsOfConditionsProcess::CheckIf1DElementIsNeighbour(hashm
                 std::transform(r_nodes.begin(), r_nodes.end(), FaceIds.begin(),
                                [](const auto& r_node) { return r_node.Id(); });
 
-                hashmap::iterator itFace = rFacesMap.find(FaceIds);
+                auto itFace = rFacesMap.find(FaceIds);
 
                 if (itFace != rFacesMap.end()) {
                     // condition is found!
@@ -238,7 +237,7 @@ hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindPermutations(Den
     for (std::size_t i = 0; i < FaceIds.size() - 1; ++i) {
         std::ranges::rotate(FaceIds, FaceIds.begin() + 1);
 
-        hashmap::iterator itFace = FacesMap.find(FaceIds);
+        auto itFace = FacesMap.find(FaceIds);
         if (itFace != FacesMap.end()) return itFace;
     }
     return FacesMap.end();
@@ -252,7 +251,7 @@ hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindPermutationsQuad
         std::rotate(FaceIds.begin() + FaceIds.size() / 2, FaceIds.begin() + FaceIds.size() / 2 + 1,
                     FaceIds.end());
 
-        hashmap::iterator itFace = FacesMap.find(FaceIds);
+        auto itFace = FacesMap.find(FaceIds);
         if (itFace != FacesMap.end()) return itFace;
     }
     return FacesMap.end();
