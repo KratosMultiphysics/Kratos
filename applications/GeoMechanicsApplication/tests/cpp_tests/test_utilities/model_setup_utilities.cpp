@@ -181,6 +181,21 @@ ModelPart& CreateModelPartWithASingle2D15NElement(Model& rModel, const Geo::Cons
     return result;
 }
 
+ModelPart& CreateModelPartWithASingle3D6NInterfaceElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+{
+    ModelPart& result = rModel.CreateModelPart("Main");
+    AddNodalVariablesToModelPart(result, rNodalVariables);
+
+    auto nodes = CreateNewNodes(result, ElementSetupUtilities::CreatePointsFor3D6NInterfaceElement());
+    AddDofsToNodes(result.Nodes(), rNodalVariables);
+
+    auto element = ElementSetupUtilities::Create3D6NInterfaceElement(nodes, result.CreateNewProperties(0));
+
+    result.AddElement(element);
+
+    return result;
+}
+
 ModelPart& CreateModelPartWithASingle2D6NDiffOrderElement(Model& rModel)
 {
     // similar to a 1D-consolidation test

@@ -14,9 +14,12 @@
 #include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
 #include "custom_conditions/line_load_2D_diff_order_condition.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/interface_element.h"
+#include "custom_elements/interface_stress_state.h"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_elements/three_dimensional_stress_state.h"
+#include "custom_geometries/interface_geometry.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/quadrilateral_3d_8.h"
 #include "geometries/tetrahedra_3d_10.h"
@@ -79,6 +82,12 @@ std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor3D10NElement()
 {
     return {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, {0.5, 0.0, 0.0},
             {0.5, 0.5, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 0.5}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}};
+}
+
+std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor3D6NInterfaceElement()
+{
+    return {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0},
+            {0.0, 0.0, 0.1}, {1.0, 0.0, 0.1}, {0.0, 1.0, 0.1}};
 }
 
 std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor2D15NElement()
@@ -175,6 +184,14 @@ Element::Pointer ElementSetupUtilities::Create2D15NElement(const PointerVector<N
 Element::Pointer ElementSetupUtilities::Create2D15NElement()
 {
     return Create2D15NElement(GenerateNodes(CreatePointsFor2D15NElement()), std::make_shared<Properties>(0));
+}
+
+Element::Pointer ElementSetupUtilities::Create3D6NInterfaceElement(const PointerVector<Node>& rNodes,
+                                                                   const Properties::Pointer& rProperties)
+{
+    return make_intrusive<InterfaceElement>(
+        1, std::make_shared<InterfaceGeometry<Triangle3D3<Node>>>(rNodes), rProperties,
+        std::make_unique<SurfaceInterfaceStressState>());
 }
 
 Element::Pointer ElementSetupUtilities::Create3D10NElement(const PointerVector<Node>& rNodes,

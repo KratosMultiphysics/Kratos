@@ -32,10 +32,8 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         GeometryType& rGeometry = itCond->GetGeometry();
 
         DenseVector<IndexType> Ids(rGeometry.size());
-        for (IndexType i = 0; i < Ids.size(); ++i) {
-            rGeometry[i].Set(BOUNDARY, true);
-            Ids[i] = rGeometry[i].Id();
-        }
+        std::ranges::transform(rGeometry, Ids.begin(), [](const auto& rNode) { return rNode.Id(); });
+        for (auto& rNode : rGeometry) rNode.Set(BOUNDARY, true);
 
         // adds to the map
         FacesMap.insert(hashmap::value_type(Ids, std::vector<Condition::Pointer>({*itCond.base()})));
