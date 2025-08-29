@@ -56,32 +56,13 @@ int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCu
         r_geometry, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
     CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
 
-    // Verify specific properties
-    if (!r_properties.Has(MINIMUM_JOINT_WIDTH) || r_properties[MINIMUM_JOINT_WIDTH] <= 0.0)
-        KRATOS_ERROR << "MINIMUM_JOINT_WIDTH has Key zero, is not defined or "
-                        "has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(TRANSVERSAL_PERMEABILITY) || r_properties[TRANSVERSAL_PERMEABILITY] < 0.0)
-        KRATOS_ERROR << "TRANSVERSAL_PERMEABILITY has Key zero, is not defined "
-                        "or has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(DYNAMIC_VISCOSITY) || r_properties[DYNAMIC_VISCOSITY] <= 0.0)
-        KRATOS_ERROR << "DYNAMIC_VISCOSITY has Key zero, is not defined or has "
-                        "an invalid value at element"
-                     << this->Id() << std::endl;
-
-    // Verify properties
-    if (!r_properties.Has(DENSITY_WATER) || r_properties[DENSITY_WATER] < 0.0)
-        KRATOS_ERROR << "DENSITY_WATER does not exist in the material "
-                        "properties or has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(POROSITY) || r_properties[POROSITY] < 0.0 || r_properties[POROSITY] > 1.0)
-        KRATOS_ERROR << "POROSITY does not exist in the material properties or "
-                        "has an invalid value at element"
-                     << this->Id() << std::endl;
+    const CheckProperties check_properties("property at element", r_properties, this->Id());
+    check_properties.Check(MINIMUM_JOINT_WIDTH);
+    check_properties.AsInclusive()->Check(TRANSVERSAL_PERMEABILITY);
+    check_properties.Check(DYNAMIC_VISCOSITY);
+    check_properties.AsInclusive()->Check(DENSITY_WATER);
+    constexpr auto max_value_porosity = 1.0;
+    check_properties.Check(POROSITY, max_value_porosity);
 
     // Verify the constitutive law
     if (!r_properties.Has(CONSTITUTIVE_LAW))
