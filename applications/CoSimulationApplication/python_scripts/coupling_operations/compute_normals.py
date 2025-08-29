@@ -38,7 +38,15 @@ class ComputeNormalsOperation(CoSimulationCouplingOperation):
         if not self.interface_data.IsDefinedOnThisRank(): return
 
         smp_normal_calculator = self.interface_data.GetModelPart()
-        KM.NormalCalculationUtils().CalculateNormals(smp_normal_calculator)
+        unit_normals: bool = self.settings["unit_normals"].GetBool()
+        if self.settings["entities"].GetString() == "conditions":
+            if unit_normals:
+                raise NotImplementedError(f"Computing unit normals for conditions is not implemented yet")
+            KM.NormalCalculationUtils().CalculateNormals(smp_normal_calculator)
+        elif self.settings["entities"].GetString() == "elements":
+            KM.NormalCalculationUtils().CalculateElementNormals(smp_normal_calculator, unit_normals)
+        else:
+            raise ValueError(f"Invalid entities for ComputeNormalsOperation: {self.settings['entities'].GetString()}. Options are \"conditions\" or \"elements\"")
 
     def PrintInfo(self):
         pass
@@ -50,8 +58,10 @@ class ComputeNormalsOperation(CoSimulationCouplingOperation):
     @classmethod
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
-            "solver"    : "UNSPECIFIED",
-            "data_name" : "UNSPECIFIED"
+            "solver"        : "UNSPECIFIED",
+            "data_name"     : "UNSPECIFIED",
+            "entities"      : "conditions",
+            "unit_normals"  : false
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
