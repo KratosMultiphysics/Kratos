@@ -34,6 +34,7 @@ class ShiftedBoundaryFormulation(object):
             "element_type"                   : "shifted_boundary_weakly_compressible_navier_stokes",
             "boundary_model_parts"           : [],
             "enclosed_areas"                 : [],
+            "deactivate_unstable_clusters"   : false,
             "slip_length"                    : 1.0e8,
             "charact_length"                 : 1.0,
             "penalty_coefficient"            : 10.0,
@@ -82,6 +83,9 @@ class ShiftedBoundaryFormulation(object):
                     if area not in ["none", "negative", "positive"]:
                         err_msg = 'Provided enclosed area designation is unknown. Available designations are \'none\', \'negative\' and \'positive\'.'
                         raise Exception(err_msg)
+
+        # Decide whether enclosed volumes of the fluid domain created by embedded geometries should be deactivated if no degree of freedom is fixed (unstable)
+        self.deactivate_unstable_clusters = formulation_settings["deactivate_unstable_clusters"].GetBool()
 
         self.postprocess_skin_points = formulation_settings["postprocess_skin_points"].GetBool()
         self.postprocess_velocity = formulation_settings["postprocess_velocity"].GetBool()
@@ -159,6 +163,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         self.non_historical_nodal_properties_variables_list = self.shifted_boundary_formulation.non_historical_nodal_properties_variables_list
         self.skin_model_part_names = self.shifted_boundary_formulation.skin_model_part_names
         self.enclosed_areas = self.shifted_boundary_formulation.enclosed_areas
+        self.deactivate_unstable_clusters = self.shifted_boundary_formulation.deactivate_unstable_clusters
         self.postprocess_skin_points = self.shifted_boundary_formulation.postprocess_skin_points
         self.postprocess_velocity = self.shifted_boundary_formulation.postprocess_velocity
         self.postprocess_pressure = self.shifted_boundary_formulation.postprocess_pressure
@@ -286,6 +291,8 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         # Compute the BDF coefficients
         (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
+        #TODO deactivate unstable regions here because fixed dofs are only found after applying boundary conditions
+
         # Call the base solver InitializeSolutionStep()
         super(NavierStokesShiftedBoundaryMonolithicSolver, self).InitializeSolutionStep()
 
@@ -368,7 +375,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             KM.Logger.PrintInfo(self.__class__.__name__, "New shifted-boundary point-based interface utility created for skin model part '" + skin_model_part_name + "'.")
 
         if len(self.sbm_interface_utilities) == 1:
-            self.sbm_interface_utilities[0].CalculateAndAddPointBasedInterface()
+            self.sbm_interface_utilities[0].CalculateAndAddPointBasedInterface(self.deactivate_unstable_clusters)
             KM.Logger.PrintInfo(self.__class__.__name__, "Extension operators were calculated and interface conditions added.")
 
         elif len(self.sbm_interface_utilities) > 1:
@@ -382,20 +389,18 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
                 sbm_interface_utility.LocateSkinPoints()
 
             # To be done after locating the skin points because elements in which skin points are located
-            # might not be intersected by tessellated skin and might be marked as boundary here
+            # might not be intersected by tessellated skin and might be marked as boundary when locating the skin points
             self.sbm_interface_utilities[0].SetInterfaceFlags()
 
-            # Deactivate BOUNDARY elements and nodes which are surrounded by deactivated elements
-            self.sbm_interface_utilities[0].DeactivateElementsAndNodes()
+            # Deactivate BOUNDARY elements and nodes which are surrounded by deactivated elements. Also find and deactivate unstable clusters if requested.
+            # An unstable cluster is defined as enclosed fluid volume created by deactivated elements, in which no degree of freedom is fixed.
+            self.sbm_interface_utilities[0].DeactivateElementsAndNodes(self.deactivate_unstable_clusters)
 
             # Add Kratos conditions for points at the boundary based on extension operators
             # NOTE that the same boundary sub model part is being used here for all skin model parts and their utilities to add conditions
             for i_skin, sbm_interface_utility in enumerate(self.sbm_interface_utilities):
                 sbm_interface_utility.CalculateAndAddSkinIntegrationPointConditions()
                 KM.Logger.PrintInfo(self.__class__.__name__, "Integration point conditions added for skin model part '" + self.skin_model_part_names[i_skin] + "'.")
-
-            #TODO Search for enclosed volumes and fix the pressure of one node if it has not been fixed yet? (instead of defining enclosed_areas)
-            #sbm_interface_utilities[0].FixEnclosedVolumesPressure()
 
             KM.Logger.PrintInfo(self.__class__.__name__, "Extension operators were calculated and interface conditions added.")
 

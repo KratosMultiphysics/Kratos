@@ -20,6 +20,7 @@
 #include "containers/model.h"
 #include "geometries/plane_3d.h"
 #include "includes/define.h"
+#include "includes/element.h"
 #include "includes/key_hash.h"
 #include "modified_shape_functions/modified_shape_functions.h"
 
@@ -91,36 +92,31 @@ public:
         RBF
     };
 
-    using PointDistanceFunctionType = std::function<double(const Geometry<Node>&, const Point&)>;
-    using IntersectionPlaneConstructorType = std::function<Plane3D(const std::vector<array_1d<double,3>>&)>;
-
+    // variable types
     using IndexType = ModelPart::IndexType;
-
     using NodeType = ModelPart::NodeType;
-
     using ElementType = Element;
-
     using GeometryType = ModelPart::GeometryType;
-
     using ShapeFunctionsGradientsType = GeometryType::ShapeFunctionsGradientsType;
 
+    // function types
+    using PointDistanceFunctionType = std::function<double(const Geometry<Node>&, const Point&)>;
+    using IntersectionPlaneConstructorType = std::function<Plane3D(const std::vector<array_1d<double,3>>&)>;
     using MeshlessShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&)>;
-
     using ElementSizeFunctionType = std::function<double(const GeometryType&)>;
 
+    // set and vector types
+    using NodesSetType = std::unordered_set<NodeType::Pointer, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
+    using ElementsSetType = std::unordered_set<ElementType::Pointer, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
+    using CloudDataVectorType = DenseVector<std::pair<NodeType::Pointer, double>>;
     using SkinPointsDataVectorType = DenseVector<std::tuple< array_1d<double,3>, array_1d<double,3>, std::size_t >>; // vector of position, area normal and ID of skin points
 
+    // map types
     using SkinPointsToElementsMapType = std::unordered_map<ElementType::Pointer, SkinPointsDataVectorType, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
-
     using SidesVectorToElementsMapType = std::unordered_map<ElementType::Pointer, Vector, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
-
     using AverageSkinToElementsMapType = std::unordered_map<ElementType::Pointer, std::pair<array_1d<double,3>, array_1d<double,3>>, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
-
-    using NodesCloudSetType = std::unordered_set<NodeType::Pointer, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
-
-    using CloudDataVectorType = DenseVector<std::pair<NodeType::Pointer, double>>;
-
     using NodesCloudMapType = std::unordered_map<NodeType::Pointer, CloudDataVectorType, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
+    using ClustersMapType = std::unordered_map<std::size_t, std::tuple<NodesSetType, ElementsSetType, std::unordered_set<std::size_t>>>;
 
     ///@}
     ///@name Pointer Definitions
@@ -154,7 +150,9 @@ public:
     ///@{
 
     //TODO
-    void CalculateAndAddPointBasedInterface();
+    void CalculateAndAddPointBasedInterface(
+        const bool DeactivateUnstableClusters
+    );
 
     //TODO
     void ResetFlags();
@@ -178,13 +176,12 @@ public:
     // TODO node ACTIVE : nodes that belong to the elements to be assembled (all nodes as the interface is discontinuous)
     // element ACTIVE : elements which are not BOUNDARY (the ones to be assembled)
     // To be done after all necessary elements have been declared SBM_BOUNDARY (--> after SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes and LocateSkinPoints)
-    void DeactivateElementsAndNodes();
+    void DeactivateElementsAndNodes(
+        const bool DeactivateUnstableClusters
+    );
 
     //TODO
     void CalculateAndAddSkinIntegrationPointConditions();
-
-    //TODO
-    void FixEnclosedVolumesPressure();
 
     //TODO
     // Calculate positive and negative side pressure at the nodes of the skin model part
@@ -323,6 +320,38 @@ protected:
     template <std::size_t TDim>
     void MapSkinPointsToElements(SkinPointsToElementsMapType& rSkinPointsMap);
 
+    //TODO
+    void FindAndDeactivateUnstableClusters();
+
+    void AddNewCluster(
+        ClustersMapType& ClustersMap,
+        std::size_t& MaxClusterId,
+        NodeType::Pointer pNode);
+
+    //TODO can be used in parallel
+    // Boundary here is defined as elements that are already deactivated and which nodes have an ACTIVATION_LEVEL of 1 before being added to a cluster.
+    // It is expected that a starting node was already inserted into rBoundaryNodes
+    void AdvanceClusterAlongBoundary(
+        const std::size_t ClusterId,
+        NodesSetType& rBoundaryNodes,
+        std::unordered_set<std::size_t>& rFoundIds,
+        LockObject& Mutex);
+
+    //TODO
+    void AdvanceClusterAlongBoundary(
+        const std::size_t ClusterId,
+        NodesSetType& rBoundaryNodes,
+        std::unordered_set<std::size_t>& rFoundIds);
+
+    //TODO
+    void MergeConnectedClusters(ClustersMapType& rClustersMap);
+
+    //TODO
+    const bool FindClusterElementsUntilFixedDof(
+        const std::size_t ClusterId,
+        const NodesSetType& rBoundaryNodes,
+        ElementsSetType& rClusterElements);
+
     /**TODO*/
     void SetSidesVectorsAndSkinNormalsForSplitElements(
         const SkinPointsToElementsMapType& rSkinPointsMap,
@@ -362,7 +391,7 @@ protected:
     void AddLateralSupportLayer(
         const std::vector<NodeType::Pointer>& PreviousLayerNodes,
         std::vector<NodeType::Pointer>& CurrentLayerNodes,
-        NodesCloudSetType& SupportNodesSet);
+        NodesSetType& SupportNodesSet);
 
     //TODO with dot product
     void AddLateralSupportLayer(
@@ -370,7 +399,7 @@ protected:
         const array_1d<double,3>& rAvgSkinNormal,
         const std::vector<NodeType::Pointer>& PreviousLayerNodes,
         std::vector<NodeType::Pointer>& CurrentLayerNodes,
-        NodesCloudSetType& SupportNodesSet);
+        NodesSetType& SupportNodesSet);
 
     /**
      * @brief Create a pointer vector of pointers to all the nodes affecting the respective side of a split element's boundary.
@@ -426,6 +455,7 @@ protected:
     //TODO
     // Calculate positive and negative side pressure inside a given SBM_BOUNDARY element using given shape function values.
     // returns true if pressure of point was calculated successfully
+    //TODO rename to CalculatePressureInsideSplitElement ?
     bool CalculatePressureAtSplitElementSkinPoint(
         const ElementType::Pointer pElement,
         const Vector& rPointShapeFunctionValues,
