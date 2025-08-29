@@ -78,9 +78,9 @@ void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList,
     rConditionDofList = GetDofs();
 }
 
-void GeneralUPwDiffOrderCondition::CalculateLocalSystem(Matrix& rLeftHandSideMatrix,
-                                                        Vector& rRightHandSideVector,
-                                                        const ProcessInfo&)
+void GeneralUPwDiffOrderCondition::CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
+                                                        Vector&            rRightHandSideVector,
+                                                        const ProcessInfo& rProcessInfo)
 {
     KRATOS_TRY
 
@@ -88,28 +88,30 @@ void GeneralUPwDiffOrderCondition::CalculateLocalSystem(Matrix& rLeftHandSideMat
     const SizeType condition_size =
         r_geom.PointsNumber() * r_geom.WorkingSpaceDimension() + mpPressureGeometry->PointsNumber();
 
-    rLeftHandSideMatrix  = ZeroMatrix(condition_size, condition_size);
-    rRightHandSideVector = ZeroVector(condition_size);
-
-    const auto CalculateResidualVectorFlag = true;
-    CalculateAll(rRightHandSideVector, CalculateResidualVectorFlag);
+    rLeftHandSideMatrix = ZeroMatrix(condition_size, condition_size);
+    CalculateRightHandSide(rRightHandSideVector, rProcessInfo);
 
     KRATOS_CATCH("")
 }
 
-void GeneralUPwDiffOrderCondition::CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo&)
+void GeneralUPwDiffOrderCondition::CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo& rProcessInfo)
 {
     const auto& r_geom = GetGeometry();
     const auto  condition_size =
         r_geom.PointsNumber() * r_geom.WorkingSpaceDimension() + mpPressureGeometry->PointsNumber();
 
-    // Resetting the RHS
     rRightHandSideVector = ZeroVector(condition_size);
 
     // calculation flags
     bool CalculateResidualVectorFlag = true;
 
     CalculateAll(rRightHandSideVector, CalculateResidualVectorFlag);
+
+    if (rProcessInfo[USE_PROTOTYPE_NULL_STEPPING] && CalculateResidualVectorFlag) {
+        auto fraction_of_unbalance = (rProcessInfo[TIME] - rProcessInfo[START_TIME]) /
+                                     (rProcessInfo[END_TIME] - rProcessInfo[START_TIME]);
+        rRightHandSideVector *= fraction_of_unbalance;
+    }
 }
 
 void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
