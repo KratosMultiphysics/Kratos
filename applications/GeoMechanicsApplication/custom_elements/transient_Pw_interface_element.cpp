@@ -60,47 +60,17 @@ int TransientPwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurr
         r_geometry, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
     CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
 
-    // Verify specific properties
-    if (!r_properties.Has(MINIMUM_JOINT_WIDTH) || r_properties[MINIMUM_JOINT_WIDTH] <= 0.0)
-        KRATOS_ERROR << "MINIMUM_JOINT_WIDTH has Key zero, is not defined or "
-                        "has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(TRANSVERSAL_PERMEABILITY) || r_properties[TRANSVERSAL_PERMEABILITY] < 0.0)
-        KRATOS_ERROR << "TRANSVERSAL_PERMEABILITY has Key zero, is not defined "
-                        "or has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(BULK_MODULUS_FLUID) || r_properties[BULK_MODULUS_FLUID] <= 0.0)
-        KRATOS_ERROR << "BULK_MODULUS_FLUID has Key zero, is not defined or "
-                        "has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(DYNAMIC_VISCOSITY) || r_properties[DYNAMIC_VISCOSITY] <= 0.0)
-        KRATOS_ERROR << "DYNAMIC_VISCOSITY has Key zero, is not defined or has "
-                        "an invalid value at element"
-                     << this->Id() << std::endl;
-
-    KRATOS_ERROR_IF_NOT(r_properties.Has(BIOT_COEFFICIENT))
-        << "BIOT_COEFFICIENT does not exist in the material properties in "
-           "element"
-        << this->Id() << std::endl;
-
-    // Verify properties
-    if (!r_properties.Has(DENSITY_WATER) || r_properties[DENSITY_WATER] < 0.0)
-        KRATOS_ERROR << "DENSITY_WATER does not exist in the material "
-                        "properties or has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(BULK_MODULUS_SOLID) || r_properties[BULK_MODULUS_SOLID] < 0.0)
-        KRATOS_ERROR << "BULK_MODULUS_SOLID does not exist in the material "
-                        "properties or has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(POROSITY) || r_properties[POROSITY] < 0.0 || r_properties[POROSITY] > 1.0)
-        KRATOS_ERROR << "POROSITY does not exist in the material properties or "
-                        "has an invalid value at element"
-                     << this->Id() << std::endl;
+    const CheckProperties check_properties("material properties at element", r_properties,
+                                           this->Id(), CheckProperties::Bounds::AllInclusive);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive)->Check(MINIMUM_JOINT_WIDTH);
+    check_properties.Check(TRANSVERSAL_PERMEABILITY);
+    check_properties.Check(BULK_MODULUS_FLUID);
+    check_properties.Check(DYNAMIC_VISCOSITY);
+    check_properties.CheckAvailabilityOnly(BIOT_COEFFICIENT);
+    check_properties.Check(DENSITY_WATER);
+    check_properties.Check(BULK_MODULUS_SOLID);
+    constexpr auto max_value_porosity = 1.0;
+    check_properties.Check(POROSITY, max_value_porosity);
 
     return ierr;
 
