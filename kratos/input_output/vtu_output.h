@@ -104,9 +104,11 @@ public:
 
     struct ModelPartData
     {
-        ModelPart * mpModelPart;
-        std::shared_ptr<VtuOutput::IndicesMap> mpIndicesMap;
-        std::optional<CellContainerPointerType> mpContainer;
+        bool                                    UsePointsForDataFieldOutput;
+        ModelPart *                             mpModelPart;
+        ModelPart::NodesContainerType::Pointer  mpPoints;
+        std::optional<CellContainerPointerType> mpCells;
+        std::shared_ptr<VtuOutput::IndicesMap>  mpIndicesMap;
         std::map<std::string, FieldPointerType> mPointFields;
         std::map<std::string, FieldPointerType> mCellFields;
     };

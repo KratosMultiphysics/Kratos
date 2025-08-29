@@ -270,6 +270,34 @@ void AddFields(
     }
 }
 
+void FillIndicesMap(
+    VtuOutput::IndicesMap& rIndicesMap,
+    const ModelPart::NodesContainerType& rNodes)
+{
+    rIndicesMap.clear();
+    IndexType vtu_index = 0;
+    for (const auto& r_node : rNodes) {
+        rIndicesMap[r_node.Id()] = vtu_index++;
+    }
+}
+
+template<class TEntityContainerType>
+ModelPart::NodesContainerType::Pointer GetNodesContainer(TEntityContainerType& rContainer)
+{
+    std::vector<ModelPart::NodeType::Pointer> temp_nodes;
+    temp_nodes.reserve(rContainer.size() * 20);
+    for (auto& r_entity : rContainer) {
+        auto& r_geometry = r_entity.GetGeometry();
+        for (auto p_itr = r_geometry.ptr_begin(); p_itr != r_geometry.ptr_end(); ++p_itr) {
+            temp_nodes.push_back(*p_itr);
+        }
+    }
+
+    auto p_nodes_container = Kratos::make_shared<ModelPart::NodesContainerType>();
+    p_nodes_container->insert(temp_nodes.begin(), temp_nodes.end());
+    return p_nodes_container;
+}
+
 void AddModelPartData(
     std::vector<VtuOutput::ModelPartData>& rOutput,
     ModelPart& rModelPart)
@@ -277,43 +305,57 @@ void AddModelPartData(
     const bool has_elements   = rModelPart.GetCommunicator().GlobalNumberOfElements() > 0;
     const bool has_conditions = rModelPart.GetCommunicator().GlobalNumberOfConditions() > 0;
 
-    auto p_indices_map = Kratos::make_shared<VtuOutput::IndicesMap>();
-
     if (has_elements) {
         // Model part has elements. Hence add a separate output
         // for elements.
-        VtuOutput::ModelPartData model_part_data{&rModelPart, p_indices_map,
-                                                 rModelPart.pElements()};
-        rOutput.push_back(model_part_data);
+
+        // indices map to be filled
+        auto p_indices_map = Kratos::make_shared<VtuOutput::IndicesMap>();
+
+        // now check if it has proper nodes
+        if (rModelPart.NumberOfNodes() > 0) {
+            FillIndicesMap(*p_indices_map, rModelPart.Nodes());
+            VtuOutput::ModelPartData model_part_data{true, &rModelPart, rModelPart.pNodes(), rModelPart.pElements(), p_indices_map};
+            rOutput.push_back(model_part_data);
+        } else {
+            // create the nodes container.
+            auto p_nodes = GetNodesContainer(rModelPart.Elements());
+            FillIndicesMap(*p_indices_map, *p_nodes);
+            VtuOutput::ModelPartData model_part_data{false, &rModelPart, p_nodes, rModelPart.pElements(), p_indices_map};
+            rOutput.push_back(model_part_data);
+        }
     }
 
     if (has_conditions) {
         // Model part has conditions. Hence add a separate output
         // for conditions.
-        VtuOutput::ModelPartData model_part_data{&rModelPart, p_indices_map,
-                                                 rModelPart.pConditions()};
-        rOutput.push_back(model_part_data);
+
+        // indices map to be filled
+        auto p_indices_map = Kratos::make_shared<VtuOutput::IndicesMap>();
+
+        if (!has_elements && rModelPart.NumberOfNodes() > 0) {
+            FillIndicesMap(*p_indices_map, rModelPart.Nodes());
+            VtuOutput::ModelPartData model_part_data{true, &rModelPart, rModelPart.pNodes(), rModelPart.pConditions(), p_indices_map};
+            rOutput.push_back(model_part_data);
+        } else {
+            // either this model part also contains elements, or it does not
+            // contain nodes. In either case, the nodes list given by the rModelPart
+            // does not reflect the actual nodes used by the conditions.
+            // In order to avoid writing nodes, which are not used by the conditions,
+            // this will use a new nodes list.
+
+            auto p_nodes = GetNodesContainer(rModelPart.Conditions());
+            FillIndicesMap(*p_indices_map, *p_nodes);
+            VtuOutput::ModelPartData model_part_data{false, &rModelPart, p_nodes, rModelPart.pConditions(), p_indices_map};
+            rOutput.push_back(model_part_data);
+        }
     }
 
     if (!has_elements && !has_conditions) {
         // Model part does not have either conditions or elements.
         // Hence, only adding the nodes.
-        VtuOutput::ModelPartData model_part_data{&rModelPart, p_indices_map};
+        VtuOutput::ModelPartData model_part_data{true, &rModelPart, rModelPart.pNodes(), std::nullopt, Kratos::make_shared<VtuOutput::IndicesMap>()};
         rOutput.push_back(model_part_data);
-    }
-
-    if (has_elements || has_conditions) {
-        // the given model part has atleast elements
-        // or conditions. Then we require the id map
-        // to construct the connectivities.
-
-        KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfNodes() == 0)
-            << "Model part \"" << rModelPart.FullName() << "\" has entities, but no nodes found.";
-
-        IndexType vtu_index = 0;
-        for (const auto& r_node : rModelPart.Nodes()) {
-            (*p_indices_map)[r_node.Id()] = vtu_index++;
-        }
     }
 }
 
@@ -732,7 +774,7 @@ void VtuOutput::AddContainerExpression(
                     return true;
                 }
             } else {
-                if (r_model_part_data.mpContainer.has_value()) {
+                if (r_model_part_data.mpCells.has_value()) {
                     return std::visit([this, &r_model_part_data, &rExpressionName, &r_expression, &r_expression_container, &data_shape, number_of_data_components](auto p_model_part_container) {
                         using model_part_container = BareType<decltype(*p_model_part_container)>;
 
@@ -761,7 +803,7 @@ void VtuOutput::AddContainerExpression(
                             }
                         }
                         return false;
-                    }, r_model_part_data.mpContainer.value());
+                    }, r_model_part_data.mpCells.value());
                 }
             }
         }
@@ -838,16 +880,16 @@ void VtuOutput::AddTensorAdaptor(
                     }
                 } else if constexpr(std::is_same_v<ta_container_type, ModelPart::ConditionsContainerType>) {
                     // ghost, local and model part containers are the same. so we check only the model part container
-                    if (r_model_part_data.mpContainer.has_value() &&
-                        std::holds_alternative<ModelPart::ConditionsContainerType::Pointer>(r_model_part_data.mpContainer.value()) &&
+                    if (r_model_part_data.mpCells.has_value() &&
+                        std::holds_alternative<ModelPart::ConditionsContainerType::Pointer>(r_model_part_data.mpCells.value()) &&
                         &*p_ta_container == &p_model_part->Conditions()) {
                             r_model_part_data.mCellFields[rTensorAdaptorName] = tensor_adaptor_type(*p_tensor_adaptor, Copy).pGetStorage();
                             return true;
                     }
                 } else if constexpr(std::is_same_v<ta_container_type, ModelPart::ElementsContainerType>) {
                     // ghost, local and model part containers are the same. so we check only the model part container
-                    if (r_model_part_data.mpContainer.has_value() &&
-                        std::holds_alternative<ModelPart::ElementsContainerType::Pointer>(r_model_part_data.mpContainer.value()) &&
+                    if (r_model_part_data.mpCells.has_value() &&
+                        std::holds_alternative<ModelPart::ElementsContainerType::Pointer>(r_model_part_data.mpCells.value()) &&
                         &*p_ta_container == &p_model_part->Elements()) {
                             r_model_part_data.mCellFields[rTensorAdaptorName] = tensor_adaptor_type(*p_tensor_adaptor, Copy).pGetStorage();
                             return true;
@@ -874,7 +916,7 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
     ModelPartData& rModelPartData,
     TXmlDataElementWrapper& rXmlDataElementWrapper) const
 {
-    auto p_nodes = rModelPartData.mpModelPart->pNodes();
+    auto p_nodes = rModelPartData.mpPoints;
 
     // create the vtk file
     XmlElementsArray vtk_file_element("VTKFile");
@@ -893,9 +935,9 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
     // adding number of cells
     piece_element->AddAttribute(
         "NumberOfCells",
-        std::to_string(rModelPartData.mpContainer.has_value()
+        std::to_string(rModelPartData.mpCells.has_value()
                            ? std::visit([](auto v) { return v->size(); },
-                                        rModelPartData.mpContainer.value())
+                                        rModelPartData.mpCells.value())
                            : 0u));
     unstructured_grid_element->AddElement(piece_element);
 
@@ -911,29 +953,31 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
     piece_element->AddElement(points_element);
 
     // create the cells element
-    auto cells_element = CreateCellsXmlElement(rModelPartData.mpContainer, *rModelPartData.mpIndicesMap, rXmlDataElementWrapper);
+    auto cells_element = CreateCellsXmlElement(rModelPartData.mpCells, *rModelPartData.mpIndicesMap, rXmlDataElementWrapper);
     piece_element->AddElement(cells_element);
 
     // create the point data
     auto point_data_element = Kratos::make_shared<XmlElementsArray>("PointData");
     piece_element->AddElement(point_data_element);
 
-    // generate and add point field data
-    AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeNonHistorical, mFlags), rXmlDataElementWrapper);
-    AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeNonHistorical, mVariables), rXmlDataElementWrapper);
-    AddFieldsFromTensorAdaptor<HistoricalVariableTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeHistorical, mVariables), rXmlDataElementWrapper);
-    AddFields(*point_data_element, rModelPartData.mPointFields, rXmlDataElementWrapper);
+    if (rModelPartData.UsePointsForDataFieldOutput) {
+        // generate and add point field data
+        AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeNonHistorical, mFlags), rXmlDataElementWrapper);
+        AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeNonHistorical, mVariables), rXmlDataElementWrapper);
+        AddFieldsFromTensorAdaptor<HistoricalVariableTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeHistorical, mVariables), rXmlDataElementWrapper);
+        AddFields(*point_data_element, rModelPartData.mPointFields, rXmlDataElementWrapper);
+    }
 
     // create cell data
     auto cell_data_element = Kratos::make_shared<XmlElementsArray>("CellData");
     piece_element->AddElement(cell_data_element);
 
     // generate and add cell field data
-    if (rModelPartData.mpContainer.has_value()) {
+    if (rModelPartData.mpCells.has_value()) {
         std::visit([this, &rModelPartData, &cell_data_element, &rXmlDataElementWrapper](auto p_container){
-            AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*cell_data_element, p_container, GetContainerMap(this->mFlags, rModelPartData.mpContainer.value()), rXmlDataElementWrapper);
-            AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*cell_data_element, p_container, GetContainerMap(this->mVariables, rModelPartData.mpContainer.value()), rXmlDataElementWrapper);
-        }, rModelPartData.mpContainer.value());
+            AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*cell_data_element, p_container, GetContainerMap(this->mFlags, rModelPartData.mpCells.value()), rXmlDataElementWrapper);
+            AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*cell_data_element, p_container, GetContainerMap(this->mVariables, rModelPartData.mpCells.value()), rXmlDataElementWrapper);
+        }, rModelPartData.mpCells.value());
     }
     AddFields(*cell_data_element, rModelPartData.mCellFields, rXmlDataElementWrapper);
 
@@ -942,11 +986,11 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
 
     // identify suffix with the entity type.
     std::string suffix;
-    if (rModelPartData.mpContainer.has_value()) {
+    if (rModelPartData.mpCells.has_value()) {
         suffix = std::visit([](auto p_container) {
             using container_type = BareType<decltype(*p_container)>;
             return "_" + ModelPart::Container<container_type>::GetEntityName() + "s";
-        }, rModelPartData.mpContainer.value());
+        }, rModelPartData.mpCells.value());
     } else {
         suffix = "_nodes";
     }
@@ -985,13 +1029,13 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
     ModelPartData& rModelPartData,
     TXmlDataElementWrapper& rXmlDataElementWrapper) const
 {
-    if (!rModelPartData.mpContainer.has_value()) {
+    if (!rModelPartData.mpCells.has_value()) {
         // nothing to do here.
         return std::make_pair("", "");
     }
 
     const auto& integration_point_vars = GetContainerMap(
-        mIntegrationPointVariables, rModelPartData.mpContainer.value());
+        mIntegrationPointVariables, rModelPartData.mpCells.value());
 
     if (integration_point_vars.empty()) {
         // nothing to do here.
@@ -1030,7 +1074,7 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
         // now add the number of gps of the first entity.
         const auto& r_entity = *(p_container->begin());
         return offsets[offsets.size() - 1] + r_entity.GetGeometry().IntegrationPointsNumber(r_entity.GetIntegrationMethod());
-    }, rModelPartData.mpContainer.value());
+    }, rModelPartData.mpCells.value());
 
     // create the piece element
     auto piece_element = Kratos::make_shared<XmlElementsArray>("Piece");
@@ -1055,7 +1099,7 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
             }
 
         });
-    }, rModelPartData.mpContainer.value());
+    }, rModelPartData.mpCells.value());
 
     // create the gauss points element
     auto points_element = Kratos::make_shared<XmlElementsArray>("Points");
@@ -1122,7 +1166,7 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
                     point_data_element->AddElement(rXmlDataElementWrapper.Get(pVariable->Name(), p_gauss_data));
                 }
             }
-        }, r_pair.second, rModelPartData.mpContainer.value());
+        }, r_pair.second, rModelPartData.mpCells.value());
     }
 
     const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
@@ -1302,20 +1346,23 @@ void VtuOutput::PrintData(std::ostream& rOStream) const
     rOStream << "List of model part info:";
     for (const auto& r_model_part_data : mListOfModelPartData) {
         rOStream << "\n\tModel part: \"" << r_model_part_data.mpModelPart->FullName() << "\"";
-        if (r_model_part_data.mpContainer.has_value()) {
+        if (r_model_part_data.mpCells.has_value()) {
             std::visit([&rOStream](auto pContainer){
                 using container_type = BareType<decltype(*pContainer)>;
                 rOStream << " with " << pContainer->size() << " " << ModelPart::Container<container_type>::GetEntityName() << "s";
-            }, r_model_part_data.mpContainer.value());
+            }, r_model_part_data.mpCells.value());
         } else {
             rOStream << " with " << r_model_part_data.mpModelPart->NumberOfNodes() << " nodes";
         }
+        rOStream << ", used for point fields = " << (r_model_part_data.UsePointsForDataFieldOutput ? "yes" : "no");
 
-        rOStream << "\n\t\t" << "Point fields:";
-        for (const auto& [name, field] : r_model_part_data.mPointFields) {
-            std::visit([&rOStream, &name](auto pNDData){
-                rOStream << "\n\t\t\t" << name << ": " << *pNDData;
-            }, field);
+        if (r_model_part_data.UsePointsForDataFieldOutput) {
+            rOStream << "\n\t\t" << "Point fields:";
+            for (const auto& [name, field] : r_model_part_data.mPointFields) {
+                std::visit([&rOStream, &name](auto pNDData){
+                    rOStream << "\n\t\t\t" << name << ": " << *pNDData;
+                }, field);
+            }
         }
 
         rOStream << "\n\t\t" << "Cell fields:";
