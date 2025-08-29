@@ -2,7 +2,7 @@
 // detail/impl/signal_set_service.ipp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -386,6 +386,7 @@ asio::error_code signal_set_service::add(
         if (state->flags_[signal_number] != signal_set_base::flags::dont_care)
         {
           ec = asio::error::invalid_argument;
+          delete new_registration;
           return ec;
         }
         struct sigaction sa;
@@ -397,6 +398,7 @@ asio::error_code signal_set_service::add(
         {
           ec = asio::error_code(errno,
               asio::error::get_system_category());
+          delete new_registration;
           return ec;
         }
         state->flags_[signal_number] = f;
@@ -656,10 +658,9 @@ void signal_set_service::add_service(signal_set_service* service)
   // scheduler used to create signal_set objects.
   if (state->service_list_ != 0)
   {
-    if (!ASIO_CONCURRENCY_HINT_IS_LOCKING(SCHEDULER,
-          service->scheduler_.concurrency_hint())
-        || !ASIO_CONCURRENCY_HINT_IS_LOCKING(SCHEDULER,
-          state->service_list_->scheduler_.concurrency_hint()))
+    if (!config(service->context()).get("scheduler", "locking", true)
+        || !config(state->service_list_->context()).get(
+            "scheduler", "locking", true))
     {
       std::logic_error ex(
           "Thread-unsafe execution context objects require "
