@@ -159,7 +159,7 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
         r_geom, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
     CheckUtilities::CheckHasDofs(r_geom, {std::cref(WATER_PRESSURE)});
 
-    CheckProperties check_properties("material properties at element", r_properties, this->Id(),
+    const CheckProperties check_properties("material properties at element", r_properties, this->Id(),
                                      CheckProperties::Bounds::AllInclusive);
     check_properties.Check(DENSITY_WATER);
     check_properties.Check(BULK_MODULUS_SOLID);
