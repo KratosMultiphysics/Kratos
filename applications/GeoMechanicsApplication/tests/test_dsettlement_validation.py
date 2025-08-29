@@ -255,6 +255,8 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         # for total_displacement_vector, node_id in zip(actual_total_displacement_along_top_edge, top_node_ids):
         #     self.assertAlmostEqual(total_displacement_vector[1], -1.70, 4, msg=f"total vertical displacement at node {node_id} at time {time_in_sec} [s]")
 
+        output_stage_4 = reader.read_output_from(project_path / "stage4.post.res")
+
         output_stage_5 = reader.read_output_from(project_path / "stage5.post.res")
         time_in_sec = 10000.0 * 86400.0
         actual_total_displacement_along_top_edge = reader.nodal_values_at_time(
@@ -287,7 +289,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         if test_helper.want_test_plots():
             data_points_by_node = {node_id : [] for node_id in top_node_ids}
-            for output_data in (output_stage_3, output_stage_5):
+            for output_data in (output_stage_3, output_stage_4, output_stage_5):
                 for node_id in top_node_ids:
                     data_points_by_node[node_id].extend(extract_nodal_settlement_over_time(output_data, node_id))
 
