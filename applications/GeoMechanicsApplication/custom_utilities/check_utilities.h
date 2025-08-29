@@ -44,36 +44,29 @@ private:
 class KRATOS_API(GEO_MECHANICS_APPLICATION) CheckProperties
 {
 public:
-    CheckProperties(const std::string& rPrintName,
-                    const Properties&  rProperties,
-                    bool               IncludeLower = false,
-                    bool               IncludeUpper = false)
-        : mrPrintName(rPrintName),
-          mrProperties(rProperties),
-          mId(rProperties.Id()),
-          mIncludeLower(IncludeLower),
-          mIncludeUpper(IncludeUpper)
+    enum class Bounds {
+        AllInclusive,
+        AllExclusive,
+        InclusiveLowerAndExclusiveUpper,
+        ExclusiveLowerAndInclusiveUpper
+    };
+
+    CheckProperties(const std::string& rPrintName, const Properties& rProperties, Bounds Option)
+        : mrPrintName(rPrintName), mrProperties(rProperties), mId(rProperties.Id()), mOption(Option)
     {
     }
 
-    CheckProperties(const std::string& rPrintName,
-                    const Properties&  rProperties,
-                    std::size_t        Id,
-                    bool               IncludeLower = false,
-                    bool               IncludeUpper = false)
-        : mrPrintName(rPrintName), mrProperties(rProperties), mId(Id), mIncludeLower(IncludeLower), mIncludeUpper(IncludeUpper)
+    CheckProperties(const std::string& rPrintName, const Properties& rProperties, std::size_t Id, Bounds Option)
+        : mrPrintName(rPrintName), mrProperties(rProperties), mId(Id), mOption(Option)
     {
     }
 
-    std::unique_ptr<CheckProperties> AsExclusive() const
+    std::unique_ptr<CheckProperties> SingleUseBounds(Bounds Option) const
     {
-        return std::make_unique<CheckProperties>(mrPrintName, mrProperties, mId, false, false);
+        return std::make_unique<CheckProperties>(mrPrintName, mrProperties, mId, Option);
     }
 
-    std::unique_ptr<CheckProperties> AsInclusive() const
-    {
-        return std::make_unique<CheckProperties>(mrPrintName, mrProperties, mId, true, true);
-    }
+    void SetNewBounds(Bounds Option) { mOption = Option; }
 
     template <typename T>
     void Check(const Variable<T>& rVariable) const
@@ -117,8 +110,7 @@ private:
     const std::string mrPrintName;
     const Properties& mrProperties;
     const std::size_t mId;
-    const bool        mIncludeLower;
-    const bool        mIncludeUpper;
+    Bounds            mOption;
     const double      mLowerBound = 0.0;
     const double      mUpperBound = std::numeric_limits<double>::max();
 
@@ -127,20 +119,28 @@ private:
     {
         const auto value = mrProperties[rVariable];
         bool       in_range;
-        if (!mIncludeLower && !mIncludeUpper) { // Open interval
+        switch (mOption) {
+        case Bounds::AllExclusive:
             in_range = (value > LowerBound && value < UpperBound);
-        } else if (mIncludeLower && mIncludeUpper) { // Closed interval
+            break;
+        case Bounds::AllInclusive:
             in_range = (value >= LowerBound && value <= UpperBound);
-        } else if (mIncludeLower) { // Left-closed right-open
+            break;
+        case Bounds::InclusiveLowerAndExclusiveUpper:
             in_range = (value >= LowerBound && value < UpperBound);
-        } else { // Right-closed left-open
+            break;
+        case Bounds::ExclusiveLowerAndInclusiveUpper:
             in_range = (value > LowerBound && value <= UpperBound);
         }
         if (!in_range) {
             std::ostringstream print_range;
-            print_range << (mIncludeLower ? "[" : "(") << LowerBound << "; "
+            const auto         include_lower_bound = (mOption == Bounds::AllInclusive) ||
+                                             (mOption == Bounds::InclusiveLowerAndExclusiveUpper);
+            const auto include_upper_bound = (mOption == Bounds::AllInclusive) ||
+                                             (mOption == Bounds::ExclusiveLowerAndInclusiveUpper);
+            print_range << (include_lower_bound ? "[" : "(") << LowerBound << "; "
                         << ((UpperBound == std::numeric_limits<double>::max()) ? "-" : std::to_string(UpperBound))
-                        << (mIncludeUpper ? "]" : ")");
+                        << (include_upper_bound ? "]" : ")");
             KRATOS_ERROR << rVariable.Name() << " in the " << mrPrintName << " " << mId
                          << " has an invalid value: " << value << " out of the range "
                          << print_range.str() << "." << std::endl;

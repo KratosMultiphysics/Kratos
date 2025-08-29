@@ -56,11 +56,12 @@ int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCu
         r_geometry, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
     CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
 
-    const CheckProperties check_properties("property at element", r_properties, this->Id());
+    const CheckProperties check_properties("property at element", r_properties, this->Id(),
+                                           CheckProperties::Bounds::AllExclusive);
     check_properties.Check(MINIMUM_JOINT_WIDTH);
-    check_properties.AsInclusive()->Check(TRANSVERSAL_PERMEABILITY);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllInclusive)->Check(TRANSVERSAL_PERMEABILITY);
     check_properties.Check(DYNAMIC_VISCOSITY);
-    check_properties.AsInclusive()->Check(DENSITY_WATER);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllInclusive)->Check(DENSITY_WATER);
     constexpr auto max_value_porosity = 1.0;
     check_properties.Check(POROSITY, max_value_porosity);
 

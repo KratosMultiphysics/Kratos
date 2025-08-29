@@ -53,7 +53,8 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
         r_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
     CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
 
-    const CheckProperties check_properties("material properties", r_properties);
+    const CheckProperties check_properties("material properties", r_properties,
+                                           CheckProperties::Bounds::AllExclusive);
     check_properties.Check(DENSITY_WATER);
     check_properties.Check(POROSITY);
     check_properties.Check(DYNAMIC_VISCOSITY);
@@ -66,6 +67,7 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
                              << std::endl;
         }
     }
+    check_properties.SetNewBounds(CheckProperties::Bounds::AllInclusive);
     check_properties.Check(PERMEABILITY_XX);
     check_properties.Check(PERMEABILITY_YY);
     check_properties.Check(PERMEABILITY_XY);

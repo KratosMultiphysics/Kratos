@@ -99,7 +99,8 @@ int GeoIncrementalLinearElasticInterfaceLaw::Check(const Properties& rMaterialPr
 {
     const auto result = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
-    const CheckProperties check_properties("material properties", rMaterialProperties);
+    const CheckProperties check_properties("material properties", rMaterialProperties,
+                                           CheckProperties::Bounds::AllExclusive);
     check_properties.Check(INTERFACE_NORMAL_STIFFNESS);
     check_properties.Check(INTERFACE_SHEAR_STIFFNESS);
 

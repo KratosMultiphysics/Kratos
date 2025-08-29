@@ -50,7 +50,7 @@ int SteadyStatePwPipingElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurre
     KRATOS_TRY
     const auto            inclusive_bounds = true;
     const CheckProperties check_properties("property at element", this->GetProperties(), this->Id(),
-                                           inclusive_bounds, inclusive_bounds);
+                                           CheckProperties::Bounds::AllInclusive);
     check_properties.Check(PIPE_ETA);
     check_properties.Check(PIPE_THETA);
     check_properties.Check(PIPE_D_70);
