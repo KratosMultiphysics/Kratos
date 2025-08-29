@@ -99,6 +99,20 @@ def get_data_points_from(file_path):
     return result
 
 
+def make_settlement_plot(stage_outputs, node_ids, path_to_ref_data_points, figure_filename):
+    data_points_by_node = {node_id : [] for node_id in node_ids}
+    for output_data in stage_outputs:
+        for node_id in node_ids:
+            data_points_by_node[node_id].extend(extract_nodal_settlement_over_time(output_data, node_id))
+
+    graph_series = []
+    graph_series.append(make_plot_data(get_data_points_from(path_to_ref_data_points), 'ref', marker='+'))
+    for node_id in node_ids:
+        graph_series.append(make_plot_data(data_points_by_node[node_id], f'node {node_id}', linestyle=':', marker='+'))
+
+    plot_settlement_results(graph_series, figure_filename)
+
+
 class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
     def test_settlement_dry_column(self):
         """
@@ -288,17 +302,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         plot_water_pressure_results(graph_series, "test_case_3_stress_plot_after_10000_days.png")
 
         if test_helper.want_test_plots():
-            data_points_by_node = {node_id : [] for node_id in top_node_ids}
-            for output_data in (output_stage_3, output_stage_4, output_stage_5):
-                for node_id in top_node_ids:
-                    data_points_by_node[node_id].extend(extract_nodal_settlement_over_time(output_data, node_id))
-
-            graph_series = []
-            graph_series.append(make_plot_data(get_data_points_from(project_path / "ref_settlement_data.txt"), 'ref', marker='+'))
-            for node_id in top_node_ids:
-                graph_series.append(make_plot_data(data_points_by_node[node_id], f'node {node_id}', linestyle=':', marker='+'))
-
-            plot_settlement_results(graph_series, "test_case_3_settlement_plot.png")
+            make_settlement_plot((output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", "test_case_3_settlement_plot.png")
 
       
 if __name__ == "__main__":
