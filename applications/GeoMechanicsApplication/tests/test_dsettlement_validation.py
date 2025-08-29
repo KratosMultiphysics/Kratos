@@ -2,6 +2,7 @@ from KratosMultiphysics.GeoMechanicsApplication import run_multiple_stages
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 import matplotlib.pyplot as plt
+import pathlib
 
 import test_helper
 
@@ -238,7 +239,8 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         top_node_ids = [2, 3, 104]
         reader = test_helper.GiDOutputFileReader()
-        output_data = reader.read_output_from(os.path.join(project_path, "stage3.post.res"))
+        project_path = pathlib.Path(project_path)
+        output_data = reader.read_output_from(project_path / "stage3.post.res")
         points_for_node_2 = extract_nodal_settlement_over_time(output_data, 2)
         points_for_node_3 = extract_nodal_settlement_over_time(output_data, 3)
         points_for_node_104 = extract_nodal_settlement_over_time(output_data, 104)
@@ -257,7 +259,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         # for total_displacement_vector, node_id in zip(actual_total_displacement_along_top_edge, top_node_ids):
         #     self.assertAlmostEqual(total_displacement_vector[1], -1.70, 4, msg=f"total vertical displacement at node {node_id} at time {time_in_sec} [s]")
 
-        output_data = reader.read_output_from(os.path.join(project_path, "stage5.post.res"))
+        output_data = reader.read_output_from(project_path / "stage5.post.res")
         points_for_node_2.extend(extract_nodal_settlement_over_time(output_data, 2))
         points_for_node_3.extend(extract_nodal_settlement_over_time(output_data, 3))
         points_for_node_104.extend(extract_nodal_settlement_over_time(output_data, 104))
@@ -269,7 +271,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         # for total_displacement_vector, node_id in zip(actual_total_displacement_along_top_edge, top_node_ids):
         #     self.assertAlmostEqual(total_displacement_vector[1], -8.64, 4, msg=f"total vertical displacement at node {node_id} at time {time_in_sec} [s]")
 
-        reference_points = get_data_points_from(os.path.join(project_path, "ref_settlement_data.txt"))
+        reference_points = get_data_points_from(project_path / "ref_settlement_data.txt")
 
         graph_series = []
         graph_series.append(make_plot_data(reference_points, 'ref', marker='+'))
@@ -279,17 +281,17 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         plot_settlement_results(graph_series, "test_case_3_settlement_plot.png")
 
-        reference_points = get_data_points_from(os.path.join(project_path, "ref_water_pressures_after_10000_days.txt"))
+        reference_points = get_data_points_from(project_path / "ref_water_pressures_after_10000_days.txt")
 
         graph_series = []
         graph_series.append(make_water_pressure_plot_data(reference_points, 'ref P_w', marker='+'))
 
-        reference_points = get_data_points_from(os.path.join(project_path, "ref_effective_vertical_stresses_after_10000_days.txt"))
+        reference_points = get_data_points_from(project_path / "ref_effective_vertical_stresses_after_10000_days.txt")
 
         graph_series.append(make_water_pressure_plot_data(reference_points, 'ref sigma_yy;eff', marker='+'))
 
         left_side_corner_node_ids = [3] + list(range(105, 154)) + [4]
-        coordinates = test_helper.read_coordinates_from_post_msh_file(os.path.join(project_path, "stage5.post.msh"), node_ids=left_side_corner_node_ids)
+        coordinates = test_helper.read_coordinates_from_post_msh_file(project_path / "stage5.post.msh", node_ids=left_side_corner_node_ids)
         ys = [(coord[1] - 50.0) for coord in coordinates]
         node_id_to_water_pressure_map = reader.nodal_values_at_time2("WATER_PRESSURE", time_in_sec, output_data, node_ids=left_side_corner_node_ids)
         water_pressures = [-1.0 * (node_id_to_water_pressure_map[node_id] / 1000.0) for node_id in left_side_corner_node_ids]
