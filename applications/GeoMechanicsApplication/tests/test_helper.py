@@ -438,6 +438,10 @@ def are_dictionaries_almost_equal(expected: Dict[Any, Any],
     return True
 
 
+def want_test_plots() -> bool:
+    return os.environ.get("KRATOS_GEO_MAKE_TEST_PLOTS", "off").lower() == "on"
+
+
 class GiDOutputFileReader:
     def __init__(self):
         self._reset_internal_state()

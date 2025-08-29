@@ -240,46 +240,28 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         top_node_ids = [2, 3, 104]
         reader = test_helper.GiDOutputFileReader()
         project_path = pathlib.Path(project_path)
-        output_data = reader.read_output_from(project_path / "stage3.post.res")
-        points_for_node_2 = extract_nodal_settlement_over_time(output_data, 2)
-        points_for_node_3 = extract_nodal_settlement_over_time(output_data, 3)
-        points_for_node_104 = extract_nodal_settlement_over_time(output_data, 104)
-
+        output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
         time_in_sec = 0.1 * 86400.0 + 1.0
         actual_total_displacement_along_top_edge = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", time_in_sec, output_data, top_node_ids
+            "TOTAL_DISPLACEMENT", time_in_sec, output_stage_3, top_node_ids
         )
         # for total_displacement_vector, node_id in zip(actual_total_displacement_along_top_edge, top_node_ids):
         #     self.assertAlmostEqual(total_displacement_vector[1], 0.0, 4, msg=f"total vertical displacement at node {node_id} at time {time_in_sec} [s]")
 
         time_in_sec = 100.0 * 86400.0
         actual_total_displacement_along_top_edge = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", time_in_sec, output_data, top_node_ids
+            "TOTAL_DISPLACEMENT", time_in_sec, output_stage_3, top_node_ids
         )
         # for total_displacement_vector, node_id in zip(actual_total_displacement_along_top_edge, top_node_ids):
         #     self.assertAlmostEqual(total_displacement_vector[1], -1.70, 4, msg=f"total vertical displacement at node {node_id} at time {time_in_sec} [s]")
 
-        output_data = reader.read_output_from(project_path / "stage5.post.res")
-        points_for_node_2.extend(extract_nodal_settlement_over_time(output_data, 2))
-        points_for_node_3.extend(extract_nodal_settlement_over_time(output_data, 3))
-        points_for_node_104.extend(extract_nodal_settlement_over_time(output_data, 104))
-
+        output_stage_5 = reader.read_output_from(project_path / "stage5.post.res")
         time_in_sec = 10000.0 * 86400.0
         actual_total_displacement_along_top_edge = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", time_in_sec, output_data, top_node_ids
+            "TOTAL_DISPLACEMENT", time_in_sec, output_stage_5, top_node_ids
         )
         # for total_displacement_vector, node_id in zip(actual_total_displacement_along_top_edge, top_node_ids):
         #     self.assertAlmostEqual(total_displacement_vector[1], -8.64, 4, msg=f"total vertical displacement at node {node_id} at time {time_in_sec} [s]")
-
-        reference_points = get_data_points_from(project_path / "ref_settlement_data.txt")
-
-        graph_series = []
-        graph_series.append(make_plot_data(reference_points, 'ref', marker='+'))
-        graph_series.append(make_plot_data(points_for_node_2, 'node 2', linestyle='-', marker='+'))
-        graph_series.append(make_plot_data(points_for_node_3, 'node 3', linestyle='--', marker='+'))
-        graph_series.append(make_plot_data(points_for_node_104, 'node 104', linestyle=':', marker='+'))
-
-        plot_settlement_results(graph_series, "test_case_3_settlement_plot.png")
 
         reference_points = get_data_points_from(project_path / "ref_water_pressures_after_10000_days.txt")
 
@@ -293,15 +275,32 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         left_side_corner_node_ids = [3] + list(range(105, 154)) + [4]
         coordinates = test_helper.read_coordinates_from_post_msh_file(project_path / "stage5.post.msh", node_ids=left_side_corner_node_ids)
         ys = [(coord[1] - 50.0) for coord in coordinates]
-        node_id_to_water_pressure_map = reader.nodal_values_at_time2("WATER_PRESSURE", time_in_sec, output_data, node_ids=left_side_corner_node_ids)
+        node_id_to_water_pressure_map = reader.nodal_values_at_time2("WATER_PRESSURE", time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
         water_pressures = [-1.0 * (node_id_to_water_pressure_map[node_id] / 1000.0) for node_id in left_side_corner_node_ids]
         graph_series.append(PlotDataSeries(water_pressures, ys, 'P_w [Kratos]', linestyle=':', marker='+'))
 
-        node_id_to_effective_stress_map = reader.nodal_values_at_time2("CAUCHY_STRESS_TENSOR", time_in_sec, output_data, node_ids=left_side_corner_node_ids)
+        node_id_to_effective_stress_map = reader.nodal_values_at_time2("CAUCHY_STRESS_TENSOR", time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
         effective_vertical_stresses = [-1.0 * (node_id_to_effective_stress_map[node_id][1] / 1000.0) for node_id in left_side_corner_node_ids]
         graph_series.append(PlotDataSeries(effective_vertical_stresses, ys, 'sigma_yy;eff [Kratos]', linestyle=':', marker='+'))
 
         plot_water_pressure_results(graph_series, "test_case_3_stress_plot_after_10000_days.png")
+
+        if test_helper.want_test_plots():
+            data_points_node_2 = []
+            data_points_node_3 = []
+            data_points_node_104 = []
+            for output_data in (output_stage_3, output_stage_5):
+                data_points_node_2.extend(extract_nodal_settlement_over_time(output_data, 2))
+                data_points_node_3.extend(extract_nodal_settlement_over_time(output_data, 3))
+                data_points_node_104.extend(extract_nodal_settlement_over_time(output_data, 104))
+
+            graph_series = []
+            graph_series.append(make_plot_data(get_data_points_from(project_path / "ref_settlement_data.txt"), 'ref', marker='+'))
+            graph_series.append(make_plot_data(data_points_node_2, 'node 2', linestyle='-', marker='+'))
+            graph_series.append(make_plot_data(data_points_node_3, 'node 3', linestyle='--', marker='+'))
+            graph_series.append(make_plot_data(data_points_node_104, 'node 104', linestyle=':', marker='+'))
+
+            plot_settlement_results(graph_series, "test_case_3_settlement_plot.png")
 
       
 if __name__ == "__main__":
