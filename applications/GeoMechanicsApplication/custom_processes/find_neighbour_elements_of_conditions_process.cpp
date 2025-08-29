@@ -15,6 +15,7 @@
 #include "custom_elements/interface_element.h"
 #include "geometries/geometry.h"
 #include "includes/kratos_flags.h"
+#include <memory>
 
 namespace Kratos
 {
@@ -33,7 +34,8 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
         DenseVector<IndexType> Ids(rGeometry.size());
         std::ranges::transform(rGeometry, Ids.begin(), [](const auto& rNode) { return rNode.Id(); });
-        for (auto& rNode : rGeometry) rNode.Set(BOUNDARY, true);
+        for (auto& rNode : rGeometry)
+            rNode.Set(BOUNDARY, true);
 
         // adds to the map
         FacesMap.insert(hashmap::value_type(Ids, std::vector<Condition::Pointer>({*itCond.base()})));
@@ -57,9 +59,10 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                                    [](const Node& rNode) { return rNode.Id(); });
 
             auto itFace = FacesMap.find(FaceIds);
-            if (itFace == FacesMap.end() && (rGeometryElement.LocalSpaceDimension() == 3 ||
-                                             (rGeometryElement.LocalSpaceDimension() == 2 &&
-                                              dynamic_cast<const InterfaceElement*>(&(*itElem))))) {
+            if (itFace == FacesMap.end() &&
+                (rGeometryElement.LocalSpaceDimension() == 3 ||
+                 (rGeometryElement.LocalSpaceDimension() == 2 &&
+                  dynamic_cast<const InterfaceElement*>(std::to_address(itElem))))) {
                 // condition is not found but might be a problem of ordering in 3D geometries!
                 DenseVector<int> FaceIdsSorted = FaceIds;
                 std::ranges::sort(FaceIdsSorted);
