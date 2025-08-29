@@ -13,7 +13,7 @@
         "domain_size": 2,
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "HeightAquiferD10L30"
+            "input_filename": "../common/HeightAquiferD10L30"
         },
         "material_import_settings": {
             "materials_filename": "MaterialParameters.json"
