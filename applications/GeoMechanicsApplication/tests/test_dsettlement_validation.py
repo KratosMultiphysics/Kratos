@@ -93,7 +93,7 @@ def get_data_points_from(file_path):
             if line.startswith("#"):
                 continue
 
-            x, y = line.split()
+            _, x, y = line.split()  # ignore the row number
             result.append((float(x), float(y)))
 
     return result
