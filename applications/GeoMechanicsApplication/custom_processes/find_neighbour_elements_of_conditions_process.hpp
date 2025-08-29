@@ -101,10 +101,6 @@ public:
 private:
     ///@name Static Member Variables
     ///@{
-    hashmap::iterator FindFaceReorderingTetrahedra3D10(DenseVector<int> FaceIds, hashmap& FacesMap) const;
-    hashmap::iterator FindFaceReorderingTetrahedra3D4(DenseVector<int> FaceIds, hashmap& FacesMap) const;
-    hashmap::iterator FindFaceReorderingHexahedra3D8(DenseVector<int> FaceIds, hashmap& FacesMap) const;
-    hashmap::iterator FindFaceReorderingHexahedra3D20(DenseVector<int> FaceIds, hashmap& FacesMap) const;
     hashmap::iterator FindPermutations(DenseVector<int> FaceIds, hashmap& FacesMap) const;
     hashmap::iterator FindPermutationsQuadratic(DenseVector<int> FaceIds, hashmap& FacesMap) const;
 

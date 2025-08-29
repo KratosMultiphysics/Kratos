@@ -71,13 +71,13 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                     // try different orderings
                     using enum GeometryData::KratosGeometryType;
                     if (rGeometryElement.GetGeometryType() == Kratos_Tetrahedra3D10) {
-                        itFace = FindFaceReorderingTetrahedra3D10(FaceIds, FacesMap);
+                        itFace = FindPermutationsQuadratic(FaceIds, FacesMap);
                     } else if (rGeometryElement.GetGeometryType() == Kratos_Tetrahedra3D4) {
-                        itFace = FindFaceReorderingTetrahedra3D4(FaceIds, FacesMap);
+                        itFace = FindPermutations(FaceIds, FacesMap);
                     } else if (rGeometryElement.GetGeometryType() == Kratos_Hexahedra3D8) {
-                        itFace = FindFaceReorderingHexahedra3D8(FaceIds, FacesMap);
+                        itFace = FindPermutations(FaceIds, FacesMap);
                     } else if (rGeometryElement.GetGeometryType() == Kratos_Hexahedra3D20) {
-                        itFace = FindFaceReorderingHexahedra3D20(FaceIds, FacesMap);
+                        itFace = FindPermutationsQuadratic(FaceIds, FacesMap);
                     }
                 }
             } else if (itFace == FacesMap.end() && rGeometryElement.LocalSpaceDimension() == 2 &&
@@ -86,16 +86,16 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                 switch (rGeometryElement.GetGeometryType()) {
                     using enum GeometryData::KratosGeometryType;
                 case Kratos_Triangle3D3:
-                    itFace = FindFaceReorderingTetrahedra3D4(FaceIds, FacesMap);
+                    itFace = FindPermutations(FaceIds, FacesMap);
                     break;
                 case Kratos_Quadrilateral3D4:
-                    itFace = FindFaceReorderingHexahedra3D8(FaceIds, FacesMap);
+                    itFace = FindPermutations(FaceIds, FacesMap);
                     break;
                 case Kratos_Triangle3D6:
-                    itFace = FindFaceReorderingTetrahedra3D10(FaceIds, FacesMap);
+                    itFace = FindPermutationsQuadratic(FaceIds, FacesMap);
                     break;
                 case Kratos_Quadrilateral3D8:
-                    itFace = FindFaceReorderingHexahedra3D20(FaceIds, FacesMap);
+                    itFace = FindPermutationsQuadratic(FaceIds, FacesMap);
                     break;
                 default:
                     break;
@@ -255,75 +255,6 @@ void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnEleme
             p_condition->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
         }
     }
-}
-
-hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingTetrahedra3D10(
-    DenseVector<int> FaceIds, hashmap& FacesMap) const
-{
-    KRATOS_TRY
-
-    hashmap::iterator itFace = FacesMap.find(FaceIds);
-    if (itFace != FacesMap.end()) return itFace;
-
-    if (FaceIds.size() == 6) {
-        hashmap::iterator itFace = FindPermutationsQuadratic(FaceIds, FacesMap);
-        if (itFace != FacesMap.end()) return itFace;
-    }
-
-    return FacesMap.end();
-
-    KRATOS_CATCH("")
-}
-
-hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingTetrahedra3D4(DenseVector<int> FaceIds,
-                                                                                            hashmap& FacesMap) const
-{
-    KRATOS_TRY
-
-    if (FaceIds.size() == 3) {
-        hashmap::iterator itFace = FindPermutations(FaceIds, FacesMap);
-        if (itFace != FacesMap.end()) return itFace;
-    }
-
-    return FacesMap.end();
-
-    KRATOS_CATCH("")
-}
-
-hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingHexahedra3D8(DenseVector<int> FaceIds,
-                                                                                           hashmap& FacesMap) const
-{
-    KRATOS_TRY
-
-    hashmap::iterator itFace = FacesMap.find(FaceIds);
-    if (itFace != FacesMap.end()) return itFace;
-
-    if (FaceIds.size() == 4) {
-        hashmap::iterator itFace = FindPermutations(FaceIds, FacesMap);
-        if (itFace != FacesMap.end()) return itFace;
-    }
-
-    return FacesMap.end();
-
-    KRATOS_CATCH("")
-}
-
-hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindFaceReorderingHexahedra3D20(DenseVector<int> FaceIds,
-                                                                                            hashmap& FacesMap) const
-{
-    KRATOS_TRY
-
-    hashmap::iterator itFace = FacesMap.find(FaceIds);
-    if (itFace != FacesMap.end()) return itFace;
-
-    if (FaceIds.size() == 8) {
-        hashmap::iterator itFace = FindPermutationsQuadratic(FaceIds, FacesMap);
-        if (itFace != FacesMap.end()) return itFace;
-    }
-
-    return FacesMap.end();
-
-    KRATOS_CATCH("")
 }
 
 hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindPermutations(DenseVector<int> FaceIds,

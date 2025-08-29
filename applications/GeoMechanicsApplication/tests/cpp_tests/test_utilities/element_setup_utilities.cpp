@@ -120,7 +120,8 @@ Condition::Pointer ElementSetupUtilities::Create3D6NCondition(const PointerVecto
 
 Condition::Pointer ElementSetupUtilities::Create3D8NCondition(const PointerVector<Node>& rNodes)
 {
-    return make_intrusive<UPwNormalFaceLoadCondition<3, 8>>(1, Kratos::make_shared<Quadrilateral3D8<Node>>(rNodes));
+    return make_intrusive<UPwNormalFaceLoadCondition<3, 8>>(
+        1, Kratos::make_shared<Quadrilateral3D8<Node>>(rNodes));
 }
 
 Element::Pointer ElementSetupUtilities::Create2D6NElement(const PointerVector<Node>& rNodes,
