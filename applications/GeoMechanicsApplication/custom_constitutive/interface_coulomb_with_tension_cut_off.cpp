@@ -70,7 +70,6 @@ int InterfaceCoulombWithTensionCutOff::Check(const Properties&   rMaterialProper
 {
     const auto result = ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
-    constexpr auto inclusive_bound = true;
     const CheckProperties check_properties("property", rMaterialProperties, CheckProperties::Bounds::AllInclusive);
     check_properties.Check(GEO_COHESION);
     constexpr auto max_value_angle = 90.0;

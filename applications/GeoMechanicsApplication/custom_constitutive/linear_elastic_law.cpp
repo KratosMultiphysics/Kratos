@@ -153,9 +153,6 @@ int GeoLinearElasticLaw::Check(const Properties&   rMaterialProperties,
                                const GeometryType& rElementGeometry,
                                const ProcessInfo&  rCurrentProcessInfo) const
 {
-    constexpr auto inclusive_lower = true;
-    constexpr auto inclusive_upper = false;
-
     const CheckProperties check_properties("parameters of material", rMaterialProperties,
                                            CheckProperties::Bounds::AllInclusive);
     check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive)->Check(YOUNG_MODULUS);
