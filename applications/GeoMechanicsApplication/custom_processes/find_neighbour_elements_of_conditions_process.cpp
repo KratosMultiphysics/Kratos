@@ -69,16 +69,11 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                 hashmap::iterator itFaceSorted = FacesMapSorted.find(FaceIdsSorted);
                 if (itFaceSorted != FacesMapSorted.end()) {
                     // try different orderings
-                    using enum GeometryData::KratosGeometryType;
-                    if (rGeometryElement.GetGeometryType() == Kratos_Tetrahedra3D10) {
-                        itFace = FindPermutationsQuadratic(FaceIds, FacesMap);
-                    } else if (rGeometryElement.GetGeometryType() == Kratos_Tetrahedra3D4) {
+                    using enum GeometryData::KratosGeometryOrderType;
+                    if (rGeometryElement.GetGeometryOrderType() == Kratos_Linear_Order)
                         itFace = FindPermutations(FaceIds, FacesMap);
-                    } else if (rGeometryElement.GetGeometryType() == Kratos_Hexahedra3D8) {
-                        itFace = FindPermutations(FaceIds, FacesMap);
-                    } else if (rGeometryElement.GetGeometryType() == Kratos_Hexahedra3D20) {
+                    else if (rGeometryElement.GetGeometryOrderType() == Kratos_Quadratic_Order)
                         itFace = FindPermutationsQuadratic(FaceIds, FacesMap);
-                    }
                 }
             } else if (itFace == FacesMap.end() && rGeometryElement.LocalSpaceDimension() == 2 &&
                        dynamic_cast<const InterfaceElement*>(&(*itElem))) {
