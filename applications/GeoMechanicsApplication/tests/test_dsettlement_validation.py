@@ -81,6 +81,23 @@ def plot_water_pressure_results(series_collection, figure_filename):
     plt.savefig(png_file_path)
 
 
+def get_data_points_from(file_path):
+    result = []
+    with open(file_path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+
+            if line.startswith("#"):
+                continue
+
+            x, y = line.split()
+            result.append((float(x), float(y)))
+
+    return result
+
+
 class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
     def test_settlement_dry_column(self):
         """
@@ -252,81 +269,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         # for total_displacement_vector, node_id in zip(actual_total_displacement_along_top_edge, top_node_ids):
         #     self.assertAlmostEqual(total_displacement_vector[1], -8.64, 4, msg=f"total vertical displacement at node {node_id} at time {time_in_sec} [s]")
 
-        # Provided by Wijtze Pieter (time in days, settlement in meters)
-        reference_points = [
-(0.10,	0.00),
-(0.10,	0.00),
-(0.20,	0.00),
-(0.33,	0.00),
-(0.49,	0.00),
-(0.69,	0.01),
-(0.94,	0.01),
-(1.26,	0.02),
-(1.67,	0.03),
-(2.18,	0.05),
-(2.82,	0.08),
-(3.63,	0.11),
-(4.65,	0.14),
-(5.94,	0.19),
-(7.56,	0.25),
-(9.60,	0.31),
-(12.18,	0.39),
-(15.43,	0.48),
-(19.53,	0.59),
-(24.70,	0.71),
-(31.21,	0.84),
-(39.42,	0.99),
-(49.77,	1.15),
-(62.82,	1.32),
-(79.26,	1.51),
-(100.00,	1.70),
-(100.10,	2.01),
-(100.20,	2.13),
-(100.33,	2.22),
-(100.49,	2.31),
-(100.69,	2.40),
-(100.94,	2.48),
-(101.00,	2.50),
-(101.26,	2.56),
-(101.66,	2.63),
-(102.16,	2.70),
-(102.79,	2.76),
-(103.59,	2.82),
-(104.60,	2.88),
-(105.87,	2.94),
-(107.47,	3.01),
-(109.48,	3.09),
-(112.01,	3.17),
-(115.20,	3.25),
-(119.22,	3.35),
-(124.29,	3.46),
-(130.66,	3.57),
-(138.69,	3.70),
-(148.81,	3.84),
-(161.55,	3.99),
-(177.60,	4.14),
-(197.81,	4.31),
-(223.26,	4.49),
-(255.32,	4.68),
-(295.71,	4.87),
-(346.57,	5.07),
-(410.63,	5.28),
-(491.31,	5.49),
-(592.93,	5.70),
-(720.93,	5.92),
-(882.14,	6.14),
-(1085.18,	6.36),
-(1340.92,	6.59),
-(1663.02,	6.81),
-(2068.71,	7.04),
-(2579.67,	7.27),
-(3223.24,	7.49),
-(4033.82,	7.72),
-(5054.74,	7.95),
-(6340.61,	8.18),
-(7960.16,	8.41),
-(10000.00,	8.64),
-            ]
+        reference_points = get_data_points_from(os.path.join(project_path, "ref_settlement_data.txt"))
 
         graph_series = []
         graph_series.append(make_plot_data(reference_points, 'ref', marker='+'))
