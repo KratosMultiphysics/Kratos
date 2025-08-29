@@ -29,7 +29,7 @@ def make_water_pressure_plot_data(points, label='', linestyle='-', marker=None):
     return PlotDataSeries(water_pressures, ys, label=label, linestyle=linestyle, marker=marker)
 
 
-def extract_total_y_displacements_over_time(output_data, node_id):
+def extract_nodal_settlement_over_time(output_data, node_id):
     result = []
     for item in output_data["results"]["TOTAL_DISPLACEMENT"]:
         if item["location"] != "OnNodes":
@@ -40,7 +40,7 @@ def extract_total_y_displacements_over_time(output_data, node_id):
         total_y_displacement = None
         for value_item in item["values"]:
             if value_item["node"] == node_id:
-                total_y_displacement = value_item["value"][1]
+                total_y_displacement = -1.0 * value_item["value"][1]
                 break
         assert total_y_displacement is not None
 
@@ -55,8 +55,9 @@ def plot_settlement_results(series_collection, figure_filename):
         axes.plot(series.x_values, series.y_values, label=series.label, linestyle=series.linestyle, marker=series.marker)
     axes.grid()
     axes.grid(which="minor", color="0.9")
+    axes.yaxis.set_inverted(True)
     axes.set_xlabel('Time [day]')
-    axes.set_ylabel('Total vertical displacement [m]')
+    axes.set_ylabel('Settlement [m]')
     figure.legend(loc='outside center right')
 
     #plt.show()
@@ -221,9 +222,9 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         top_node_ids = [2, 3, 104]
         reader = test_helper.GiDOutputFileReader()
         output_data = reader.read_output_from(os.path.join(project_path, "stage3.post.res"))
-        points_for_node_2 = extract_total_y_displacements_over_time(output_data, 2)
-        points_for_node_3 = extract_total_y_displacements_over_time(output_data, 3)
-        points_for_node_104 = extract_total_y_displacements_over_time(output_data, 104)
+        points_for_node_2 = extract_nodal_settlement_over_time(output_data, 2)
+        points_for_node_3 = extract_nodal_settlement_over_time(output_data, 3)
+        points_for_node_104 = extract_nodal_settlement_over_time(output_data, 104)
 
         time_in_sec = 0.1 * 86400.0 + 1.0
         actual_total_displacement_along_top_edge = reader.nodal_values_at_time(
@@ -240,9 +241,9 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         #     self.assertAlmostEqual(total_displacement_vector[1], -1.70, 4, msg=f"total vertical displacement at node {node_id} at time {time_in_sec} [s]")
 
         output_data = reader.read_output_from(os.path.join(project_path, "stage5.post.res"))
-        points_for_node_2.extend(extract_total_y_displacements_over_time(output_data, 2))
-        points_for_node_3.extend(extract_total_y_displacements_over_time(output_data, 3))
-        points_for_node_104.extend(extract_total_y_displacements_over_time(output_data, 104))
+        points_for_node_2.extend(extract_nodal_settlement_over_time(output_data, 2))
+        points_for_node_3.extend(extract_nodal_settlement_over_time(output_data, 3))
+        points_for_node_104.extend(extract_nodal_settlement_over_time(output_data, 104))
 
         time_in_sec = 10000.0 * 86400.0
         actual_total_displacement_along_top_edge = reader.nodal_values_at_time(
@@ -326,7 +327,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 (7960.16,	8.41),
 (10000.00,	8.64),
             ]
-        reference_points = [(data[0], -1.0 * data[1]) for data in reference_points]
 
         graph_series = []
         graph_series.append(make_plot_data(reference_points, 'ref', marker='+'))
