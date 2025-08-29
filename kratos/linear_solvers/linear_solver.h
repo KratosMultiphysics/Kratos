@@ -40,7 +40,7 @@ namespace Kratos {
  * @author Riccardo Rossi
  */
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-class LinearSolver
+class KRATOS_API(KRATOS_CORE) LinearSolver
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LinearSolver);
