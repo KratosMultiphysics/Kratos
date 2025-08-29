@@ -62,7 +62,9 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                                    [](const Node& rNode) { return rNode.Id(); });
 
             hashmap::iterator itFace = FacesMap.find(FaceIds);
-            if (itFace == FacesMap.end() && rGeometryElement.LocalSpaceDimension() == 3) {
+            if (itFace == FacesMap.end() && (rGeometryElement.LocalSpaceDimension() == 3 ||
+                                             (rGeometryElement.LocalSpaceDimension() == 2 &&
+                                              dynamic_cast<const InterfaceElement*>(&(*itElem))))) {
                 // condition is not found but might be a problem of ordering in 3D geometries!
                 DenseVector<int> FaceIdsSorted = FaceIds;
                 std::sort(FaceIdsSorted.begin(), FaceIdsSorted.end());
@@ -70,30 +72,10 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                 if (itFaceSorted != FacesMapSorted.end()) {
                     // try different orderings
                     using enum GeometryData::KratosGeometryOrderType;
-                    if (rGeometryElement.GetGeometryOrderType() == Kratos_Linear_Order)
+                    if (r_boundary_geometry.GetGeometryOrderType() == Kratos_Linear_Order)
                         itFace = FindPermutations(FaceIds, FacesMap);
-                    else if (rGeometryElement.GetGeometryOrderType() == Kratos_Quadratic_Order)
+                    else if (r_boundary_geometry.GetGeometryOrderType() == Kratos_Quadratic_Order)
                         itFace = FindPermutationsQuadratic(FaceIds, FacesMap);
-                }
-            } else if (itFace == FacesMap.end() && rGeometryElement.LocalSpaceDimension() == 2 &&
-                       dynamic_cast<const InterfaceElement*>(&(*itElem))) {
-                // A surface interface element requires the same permutations per face as a tetrahedron
-                switch (rGeometryElement.GetGeometryType()) {
-                    using enum GeometryData::KratosGeometryType;
-                case Kratos_Triangle3D3:
-                    itFace = FindPermutations(FaceIds, FacesMap);
-                    break;
-                case Kratos_Quadrilateral3D4:
-                    itFace = FindPermutations(FaceIds, FacesMap);
-                    break;
-                case Kratos_Triangle3D6:
-                    itFace = FindPermutationsQuadratic(FaceIds, FacesMap);
-                    break;
-                case Kratos_Quadrilateral3D8:
-                    itFace = FindPermutationsQuadratic(FaceIds, FacesMap);
-                    break;
-                default:
-                    break;
                 }
             }
 
