@@ -18,6 +18,7 @@
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_elements/three_dimensional_stress_state.h"
 #include "element_setup_utilities.h"
+#include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/tetrahedra_3d_10.h"
 #include "geometries/tetrahedra_3d_4.h"
@@ -119,6 +120,30 @@ ModelPart& CreateModelPartWithASingle3D8NElement(Model& rModel, const Geo::Const
 
     auto element = make_intrusive<UPwSmallStrainElement<3, 8>>(
         1, Kratos::make_shared<Hexahedra3D8<Node>>(nodes), result.CreateNewProperties(0),
+        std::make_unique<ThreeDimensionalStressState>());
+
+    result.AddElement(element);
+
+    return result;
+}
+
+ModelPart& CreateModelPartWithASingle3D20NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+{
+    ModelPart& result = rModel.CreateModelPart("Main");
+    AddNodalVariablesToModelPart(result, rNodalVariables);
+
+    auto nodes = CreateNewNodes(
+        result,
+        {
+            {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0},
+            {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0},
+            {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0},
+            {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0},
+        });
+    AddDofsToNodes(result.Nodes(), rNodalVariables);
+
+    auto element = make_intrusive<UPwSmallStrainElement<3, 20>>(
+        1, Kratos::make_shared<Hexahedra3D20<Node>>(nodes), result.CreateNewProperties(0),
         std::make_unique<ThreeDimensionalStressState>());
 
     result.AddElement(element);

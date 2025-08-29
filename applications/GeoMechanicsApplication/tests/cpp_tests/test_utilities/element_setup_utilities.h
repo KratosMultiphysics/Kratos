@@ -41,6 +41,8 @@ public:
 
     static Condition::Pointer Create3D6NCondition(const PointerVector<Node>& rNodes);
 
+    static Condition::Pointer Create3D8NCondition(const PointerVector<Node>& rNodes);
+
     static Element::Pointer Create2D6NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
     static Element::Pointer Create2D6NElement();

@@ -18,6 +18,7 @@
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_elements/three_dimensional_stress_state.h"
 #include "geometries/quadrilateral_3d_4.h"
+#include "geometries/quadrilateral_3d_8.h"
 #include "geometries/tetrahedra_3d_10.h"
 #include "geometries/triangle_2d_10.h"
 #include "geometries/triangle_2d_15.h"
@@ -115,6 +116,11 @@ Condition::Pointer ElementSetupUtilities::Create3D4NCondition(const PointerVecto
 Condition::Pointer ElementSetupUtilities::Create3D6NCondition(const PointerVector<Node>& rNodes)
 {
     return make_intrusive<UPwNormalFaceLoadCondition<3, 6>>(1, Kratos::make_shared<Triangle3D6<Node>>(rNodes));
+}
+
+Condition::Pointer ElementSetupUtilities::Create3D8NCondition(const PointerVector<Node>& rNodes)
+{
+    return make_intrusive<UPwNormalFaceLoadCondition<3, 8>>(1, Kratos::make_shared<Quadrilateral3D8<Node>>(rNodes));
 }
 
 Element::Pointer ElementSetupUtilities::Create2D6NElement(const PointerVector<Node>& rNodes,
