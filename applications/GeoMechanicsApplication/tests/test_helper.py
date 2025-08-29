@@ -589,6 +589,24 @@ class GiDOutputFileReader:
         return [item["value"] for item in matching_item["values"] if item["node"] in node_ids]
 
     @staticmethod
+    def nodal_values_at_time2(result_item_name, time, output_data, node_ids=None):
+        matching_item = None
+        for item in output_data["results"][result_item_name]:
+            if math.isclose(item["time"], time):
+                matching_item = item
+                break
+        if matching_item is None:
+            raise RuntimeError(f"'{result_item_name}' does not have results at time {time}")
+
+        if matching_item["location"] != "OnNodes":
+            raise RuntimeError(f"'{result_item_name}' is not a nodal result")
+
+        if not node_ids: # return all values
+            return {item["node"] : item["value"] for item in matching_item["values"]}
+
+        return {item["node"] : item["value"] for item in matching_item["values"] if item["node"] in node_ids}
+
+    @staticmethod
     def element_integration_point_values_at_time(result_item_name, time, output_data, element_ids=None, integration_point_indices=None):
         if element_ids and element_ids != sorted(element_ids):
             raise RuntimeError("Element IDs must be sorted")
