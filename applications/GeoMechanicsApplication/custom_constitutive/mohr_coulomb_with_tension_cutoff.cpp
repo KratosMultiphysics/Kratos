@@ -15,6 +15,7 @@
 // Application includes
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
 #include "custom_constitutive/constitutive_law_dimension.h"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
@@ -124,16 +125,17 @@ int MohrCoulombWithTensionCutOff::Check(const Properties&   rMaterialProperties,
 {
     const auto result = ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
-    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, GEO_COHESION);
-    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, GEO_FRICTION_ANGLE);
-    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, GEO_DILATANCY_ANGLE,
-                                            rMaterialProperties[GEO_FRICTION_ANGLE]);
-    ConstitutiveLawUtilities::CheckProperty(
-        rMaterialProperties, GEO_TENSILE_STRENGTH,
+    const CheckProperties check_properties("property", rMaterialProperties, CheckProperties::Bounds::AllInclusive);
+    check_properties.Check(GEO_COHESION);
+    check_properties.Check(GEO_FRICTION_ANGLE);
+    check_properties.Check(GEO_DILATANCY_ANGLE, rMaterialProperties[GEO_FRICTION_ANGLE]);
+    check_properties.Check(
+        GEO_TENSILE_STRENGTH,
         rMaterialProperties[GEO_COHESION] /
             std::tan(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE])));
-    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, YOUNG_MODULUS);
-    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, POISSON_RATIO, 0.5);
+    check_properties.Check(YOUNG_MODULUS);
+    constexpr auto max_value_poisson_ratio = 0.5;
+    check_properties.Check(POISSON_RATIO, max_value_poisson_ratio);
     return result;
 }
 
