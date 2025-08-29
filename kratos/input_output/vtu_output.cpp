@@ -1266,7 +1266,8 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
     if (r_data_communicator.OrReduceAll(is_gauss_point_data_available)) {
         std::stringstream output_vtu_file_name;
         output_vtu_file_name
-            << rOutputFileNamePrefix << "/" << rModelPartData.mpModelPart->FullName()
+            << rOutputFileNamePrefix << "/" << rModelPartData.mpModelPart->FullName() << "_"
+            << std::visit([](const auto pContainer) { return ModelPart::Container<BareType<decltype(*pContainer)>>::GetEntityName(); }, rModelPartData.mpCells.value())
             << "_gauss_" << mrModelPart.GetProcessInfo()[STEP]
             << (r_data_communicator.IsDistributed()
                     ? "_" + std::to_string(r_data_communicator.Rank())
