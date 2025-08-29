@@ -67,7 +67,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 expected_settlement_after_ten_thousand_days
                 - actual_settlement_after_ten_thousand_days
             )
-            / expected_settlement_after_one_hundred_days)
+            / actual_settlement_after_ten_thousand_days)
             < 0.01
         )
 
@@ -130,7 +130,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         test_root = os.path.join("dsettlement", "fully_saturated_column_uniform_load")
         project_path = test_helper.get_file_path(os.path.join(test_root, test_name))
 
-        cwd = os.getcwd()
+        original_working_directory = os.getcwd()
         os.chdir(project_path)
 
         import KratosMultiphysics.GeoMechanicsApplication.run_geo_settlement as run_geo_settlement
@@ -171,7 +171,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             < 0.01
         )
 
-        os.chdir(cwd)
+        os.chdir(original_working_directory)
 
       
 if __name__ == "__main__":
