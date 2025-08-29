@@ -171,7 +171,7 @@ jobs:
         fi
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_tests.py -v 2 -l nightly -c python3
+        python3 kratos/python_scripts/testing/run_python_tests.py -v 2 -l small -c python3
 
     - name: Prepare Parallel Env
       shell: bash
@@ -220,7 +220,7 @@ jobs:
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -l mpi_nightly -n 2
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -l mpi_small -n 2
 
     - name: Running Python MPI tests (3 Cores)
       shell: bash
@@ -231,7 +231,7 @@ jobs:
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -l mpi_nightly -n 3
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -l mpi_small -n 3
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
@@ -242,7 +242,7 @@ jobs:
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -l mpi_nightly -n 4
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -l mpi_small -n 4
 
 
   windows:
@@ -298,7 +298,7 @@ jobs:
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/python_scripts/testing/run_python_tests.py -l nightly -c python
+        python kratos/python_scripts/testing/run_python_tests.py -l small -c python
 
 
   rocky:
@@ -343,7 +343,7 @@ jobs:
         if [ -f /etc/bashrc ]; then source /etc/bashrc; fi
         export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3.8 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3.8
+        python3.8 kratos/python_scripts/testing/run_python_tests.py -l small -c python3.8
 
 
   ubuntu-core-without-unity:
@@ -413,7 +413,7 @@ jobs:
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3
+        python3 kratos/python_scripts/testing/run_python_tests.py -l small -c python3
 
     - name: Running MPI C++ tests (2 Cores)
       shell: bash
@@ -444,21 +444,21 @@ jobs:
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 2
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_small -n 2
 
     - name: Running Python MPI tests (3 Cores)
       shell: bash
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 3
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_small -n 3
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_small -n 4
 
 
   windows-core-without-unity:
@@ -542,7 +542,7 @@ jobs:
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/python_scripts/testing/run_python_tests.py -l nightly -c python
+        python kratos/python_scripts/testing/run_python_tests.py -l small -c python
 
 
   ubuntu-intel:
@@ -594,7 +594,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3
+        python3 kratos/python_scripts/testing/run_python_tests.py -l small -c python3
 
     - name: Running MPI C++ tests (2 Cores)
       shell: bash
@@ -630,7 +630,7 @@ jobs:
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 2
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_small -n 2
 
     - name: Running Python MPI tests (3 Cores)
       shell: bash
@@ -639,7 +639,7 @@ jobs:
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 3
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_small -n 3
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
@@ -648,4 +648,4 @@ jobs:
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_small -n 4
