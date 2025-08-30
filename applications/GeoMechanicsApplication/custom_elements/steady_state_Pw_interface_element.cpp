@@ -59,9 +59,9 @@ int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCu
     const CheckProperties check_properties("property at element", r_properties, this->Id(),
                                            CheckProperties::Bounds::AllExclusive);
     check_properties.Check(MINIMUM_JOINT_WIDTH);
-    check_properties.SingleUseBounds(CheckProperties::Bounds::AllInclusive)->Check(TRANSVERSAL_PERMEABILITY);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllInclusive).Check(TRANSVERSAL_PERMEABILITY);
     check_properties.Check(DYNAMIC_VISCOSITY);
-    check_properties.SingleUseBounds(CheckProperties::Bounds::AllInclusive)->Check(DENSITY_WATER);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllInclusive).Check(DENSITY_WATER);
     constexpr auto max_value_porosity = 1.0;
     check_properties.Check(POROSITY, max_value_porosity);
 

@@ -66,7 +66,7 @@ int SaturatedBelowPhreaticLevelLaw::Check(const Properties& rMaterialProperties,
     constexpr auto        max_value = 1.0;
     check_properties.Check(SATURATED_SATURATION, max_value);
     check_properties.SingleUseBounds(CheckProperties::Bounds::InclusiveLowerAndExclusiveUpper)
-        ->Check(RESIDUAL_SATURATION, rMaterialProperties[SATURATED_SATURATION]);
+        .Check(RESIDUAL_SATURATION, rMaterialProperties[SATURATED_SATURATION]);
     check_properties.Check(MINIMUM_RELATIVE_PERMEABILITY, max_value);
 
     return 0;

@@ -61,9 +61,13 @@ public:
     {
     }
 
-    std::unique_ptr<CheckProperties> SingleUseBounds(Bounds RangeBoundsType) const
+    CheckProperties(const CheckProperties&) = delete;
+
+    CheckProperties(CheckProperties&&) = default;
+
+    CheckProperties SingleUseBounds(Bounds RangeBoundsType) const
     {
-        return std::make_unique<CheckProperties>(mrPrintName, mrProperties, mId, RangeBoundsType);
+        return CheckProperties(mrPrintName, mrProperties, mId, RangeBoundsType);
     }
 
     void SetNewBounds(Bounds RangeBoundsType) { mRangeBoundsType = RangeBoundsType; }

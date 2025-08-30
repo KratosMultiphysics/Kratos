@@ -115,10 +115,10 @@ int VanGenuchtenLaw::Check(const Properties& rMaterialProperties, const ProcessI
     constexpr auto max_value = 1.0;
     check_properties.Check(SATURATED_SATURATION, max_value);
     check_properties.SingleUseBounds(InclusiveLowerAndExclusiveUpper)
-        ->Check(RESIDUAL_SATURATION, rMaterialProperties[SATURATED_SATURATION]);
+        .Check(RESIDUAL_SATURATION, rMaterialProperties[SATURATED_SATURATION]);
     check_properties.Check(MINIMUM_RELATIVE_PERMEABILITY, max_value);
-    check_properties.SingleUseBounds(AllExclusive)->Check(VAN_GENUCHTEN_AIR_ENTRY_PRESSURE);
-    check_properties.SingleUseBounds(AllExclusive)->Check(VAN_GENUCHTEN_GN);
+    check_properties.SingleUseBounds(AllExclusive).Check(VAN_GENUCHTEN_AIR_ENTRY_PRESSURE);
+    check_properties.SingleUseBounds(AllExclusive).Check(VAN_GENUCHTEN_GN);
     check_properties.Check(VAN_GENUCHTEN_GL);
 
     return 0;

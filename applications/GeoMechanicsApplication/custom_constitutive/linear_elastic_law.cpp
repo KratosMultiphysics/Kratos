@@ -159,7 +159,7 @@ int GeoLinearElasticLaw::Check(const Properties&   rMaterialProperties,
     constexpr auto min_value_poisson_ratio = -1.0;
     constexpr auto max_value_poisson_ratio = 0.5;
     check_properties.SingleUseBounds(CheckProperties::Bounds::InclusiveLowerAndExclusiveUpper)
-        ->Check(POISSON_RATIO, min_value_poisson_ratio, max_value_poisson_ratio);
+        .Check(POISSON_RATIO, min_value_poisson_ratio, max_value_poisson_ratio);
 
     return 0;
 }

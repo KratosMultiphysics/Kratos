@@ -62,7 +62,7 @@ int TransientPwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurr
 
     const CheckProperties check_properties("material properties at element", r_properties,
                                            this->Id(), CheckProperties::Bounds::AllInclusive);
-    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive)->Check(MINIMUM_JOINT_WIDTH);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(MINIMUM_JOINT_WIDTH);
     check_properties.Check(TRANSVERSAL_PERMEABILITY);
     check_properties.Check(BULK_MODULUS_FLUID);
     check_properties.Check(DYNAMIC_VISCOSITY);

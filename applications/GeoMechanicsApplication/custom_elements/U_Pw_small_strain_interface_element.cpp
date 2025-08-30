@@ -58,7 +58,7 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
 
     const CheckProperties check_properties("property at element", r_properties, this->Id(),
                                            CheckProperties::Bounds::AllInclusive);
-    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive)->Check(MINIMUM_JOINT_WIDTH);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(MINIMUM_JOINT_WIDTH);
 
     if (!r_properties[IGNORE_UNDRAINED]) {
         check_properties.Check(TRANSVERSAL_PERMEABILITY);
