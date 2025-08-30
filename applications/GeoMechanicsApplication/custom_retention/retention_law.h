@@ -109,6 +109,18 @@ public:
      */
     virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) = 0;
 
+    static int Check(const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
+                     const Properties&                         rProperties,
+                     const ProcessInfo&                        rCurrentProcessInfo)
+    {
+        KRATOS_INFO_IF("RetentionLaw::Check", rRetentionLawVector.empty())
+            << " Warning: a retention law should have been provided." << std::endl;
+        if (!rRetentionLawVector.empty()) {
+            return rRetentionLawVector[0]->Check(rProperties, rCurrentProcessInfo);
+        }
+        return 0;
+    }
+
     /**
      * @brief This method is used to check that two Retention Laws are the same type (references)
      * @param rLHS The first argument

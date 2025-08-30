@@ -109,12 +109,7 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
             << " in element id: " << this->Id() << std::endl;
     }
 
-    // Check retention law
-    if (!mRetentionLawVector.empty()) {
-        return mRetentionLawVector[0]->Check(r_prop, rCurrentProcessInfo);
-    }
-
-    return 0;
+    return RetentionLaw::Check(mRetentionLawVector, r_prop, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }

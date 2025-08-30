@@ -103,12 +103,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
         return mConstitutiveLawVector[0]->Check(r_properties, r_geometry, rCurrentProcessInfo);
     }
 
-    // Check retention law
-    if (!mRetentionLawVector.empty()) {
-        return mRetentionLawVector[0]->Check(r_properties, rCurrentProcessInfo);
-    }
-
-    return 0;
+    return RetentionLaw::Check(mRetentionLawVector, r_properties, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }

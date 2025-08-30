@@ -113,12 +113,7 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
 
     // Verify that the constitutive law has the correct dimension
 
-    // Check constitutive law
-    if (!mRetentionLawVector.empty()) {
-        return mRetentionLawVector[0]->Check(r_properties, rCurrentProcessInfo);
-    }
-
-    return 0;
+    return RetentionLaw::Check(mRetentionLawVector, r_properties, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }
