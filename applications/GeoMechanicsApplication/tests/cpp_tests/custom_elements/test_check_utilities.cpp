@@ -120,7 +120,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckProperties, KratosGeoMechanicsFast
     auto properties = Properties();
     properties.SetValue(DENSITY_WATER, 1000.0);
     properties.SetValue(DENSITY, 0.0);
-    CheckProperties check_properties("property", properties, CheckProperties::Bounds::AllInclusive);
+    const CheckProperties check_properties("property", properties, CheckProperties::Bounds::AllInclusive);
 
     // Act and Assert
     EXPECT_NO_THROW(check_properties.Check(DENSITY_WATER));
@@ -147,10 +147,10 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckProperties, KratosGeoMechanicsFast
         "DENSITY in the property 0 has an invalid value: 0 out of the range (0; -].")
 
     // Arrange 2
-    auto            properties_2 = Properties();
-    constexpr auto  element_Id   = 1;
-    CheckProperties check_properties_2("property at element", properties_2, element_Id,
-                                       CheckProperties::Bounds::AllInclusive);
+    auto                  properties_2 = Properties();
+    constexpr auto        element_Id   = 1;
+    const CheckProperties check_properties_2("property at element", properties_2, element_Id,
+                                             CheckProperties::Bounds::AllInclusive);
     // Act and Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties_2.CheckAvailabilityOnly(UDSM_NAME),
                                       " UDSM_NAME does not exist in the property at element 1.")

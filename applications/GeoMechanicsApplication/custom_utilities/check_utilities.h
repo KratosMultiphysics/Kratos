@@ -70,7 +70,7 @@ public:
         return CheckProperties(mrPrintName, mrProperties, mId, RangeBoundsType);
     }
 
-    void SetNewBounds(Bounds RangeBoundsType) { mRangeBoundsType = RangeBoundsType; }
+    void SetNewBounds(Bounds RangeBoundsType) const { mRangeBoundsType = RangeBoundsType; }
 
     template <typename T>
     void Check(const Variable<T>& rVariable) const
@@ -114,7 +114,7 @@ private:
     const std::string mrPrintName;
     const Properties& mrProperties;
     const std::size_t mId;
-    Bounds            mRangeBoundsType;
+    mutable Bounds    mRangeBoundsType;
     const double      mDefaultLowerBound = 0.0;
     const double      mDefaultUpperBound = std::numeric_limits<double>::max();
 
