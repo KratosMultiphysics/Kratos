@@ -111,8 +111,8 @@ public:
     }
 
 private:
-    const std::string mrPrintName;
     const Properties& mrProperties;
+    const std::string mrPrintName;
     const std::size_t mId;
     mutable Bounds    mRangeBoundsType;
     const double      mDefaultLowerBound = 0.0;
