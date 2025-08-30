@@ -70,5 +70,4 @@ std::string CheckUtilities::PrintVectorContent(const std::vector<size_t>& rVecto
 
     return output;
 }
-
 } /* namespace Kratos.*/

@@ -11,6 +11,7 @@
 //
 
 #include "linear_elastic_law.h"
+#include "custom_utilities/check_utilities.h"
 #include "includes/mat_variables.h"
 
 namespace Kratos
@@ -152,21 +153,13 @@ int GeoLinearElasticLaw::Check(const Properties&   rMaterialProperties,
                                const GeometryType& rElementGeometry,
                                const ProcessInfo&  rCurrentProcessInfo) const
 {
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS))
-        << "YOUNG_MODULUS is not available in the parameters of material "
-        << rMaterialProperties.Id() << "." << std::endl;
-    KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0)
-        << "The value of YOUNG_MODULUS (" << rMaterialProperties[YOUNG_MODULUS]
-        << ") should be positive in material " << rMaterialProperties.Id() << "." << std::endl;
-
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO))
-        << "POISSON_RATIO is not available in the parameters of material "
-        << rMaterialProperties.Id() << "." << std::endl;
-
-    const auto nu = rMaterialProperties[POISSON_RATIO];
-    KRATOS_ERROR_IF(nu < -1.0 || nu >= 0.5) << "The value of POISSON_RATIO (" << nu
-                                            << ") should be in the range [-1.0, 0.5> in material "
-                                            << rMaterialProperties.Id() << "." << std::endl;
+    const CheckProperties check_properties(rMaterialProperties, "parameters of material",
+                                           CheckProperties::Bounds::AllExclusive);
+    check_properties.Check(YOUNG_MODULUS);
+    constexpr auto min_value_poisson_ratio = -1.0;
+    constexpr auto max_value_poisson_ratio = 0.5;
+    check_properties.SingleUseBounds(CheckProperties::Bounds::InclusiveLowerAndExclusiveUpper)
+        .Check(POISSON_RATIO, min_value_poisson_ratio, max_value_poisson_ratio);
 
     return 0;
 }
