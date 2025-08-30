@@ -61,7 +61,7 @@ double SaturatedBelowPhreaticLevelLaw::CalculateBishopCoefficient(Parameters& rP
 
 int SaturatedBelowPhreaticLevelLaw::Check(const Properties& rMaterialProperties, const ProcessInfo&)
 {
-    const CheckProperties check_properties("parameters of material", rMaterialProperties,
+    const CheckProperties check_properties(rMaterialProperties, "parameters of material",
                                            CheckProperties::Bounds::AllInclusive);
     constexpr auto        max_value = 1.0;
     check_properties.Check(SATURATED_SATURATION, max_value);

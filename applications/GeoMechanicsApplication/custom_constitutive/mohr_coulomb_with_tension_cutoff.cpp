@@ -125,7 +125,7 @@ int MohrCoulombWithTensionCutOff::Check(const Properties&   rMaterialProperties,
 {
     const auto result = ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
-    const CheckProperties check_properties("property", rMaterialProperties, CheckProperties::Bounds::AllInclusive);
+    const CheckProperties check_properties(rMaterialProperties, "property", CheckProperties::Bounds::AllInclusive);
     check_properties.Check(GEO_COHESION);
     check_properties.Check(GEO_FRICTION_ANGLE);
     check_properties.Check(GEO_DILATANCY_ANGLE, rMaterialProperties[GEO_FRICTION_ANGLE]);

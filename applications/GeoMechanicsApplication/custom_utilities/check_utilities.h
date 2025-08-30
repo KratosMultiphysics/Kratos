@@ -51,13 +51,13 @@ public:
         ExclusiveLowerAndInclusiveUpper
     };
 
-    CheckProperties(const std::string& rPrintName, const Properties& rProperties, Bounds RangeBoundsType)
-        : mrPrintName(rPrintName), mrProperties(rProperties), mId(rProperties.Id()), mRangeBoundsType(RangeBoundsType)
+    CheckProperties(const Properties& rProperties, const std::string& rPrintName, Bounds RangeBoundsType)
+        : mrProperties(rProperties), mrPrintName(rPrintName), mId(rProperties.Id()), mRangeBoundsType(RangeBoundsType)
     {
     }
 
-    CheckProperties(const std::string& rPrintName, const Properties& rProperties, std::size_t Id, Bounds RangeBoundsType)
-        : mrPrintName(rPrintName), mrProperties(rProperties), mId(Id), mRangeBoundsType(RangeBoundsType)
+    CheckProperties(const Properties& rProperties, const std::string& rPrintName, std::size_t Id, Bounds RangeBoundsType)
+        : mrProperties(rProperties), mrPrintName(rPrintName), mId(Id), mRangeBoundsType(RangeBoundsType)
     {
     }
 
@@ -67,7 +67,7 @@ public:
 
     CheckProperties SingleUseBounds(Bounds RangeBoundsType) const
     {
-        return CheckProperties(mrPrintName, mrProperties, mId, RangeBoundsType);
+        return CheckProperties(mrProperties, mrPrintName, mId, RangeBoundsType);
     }
 
     void SetNewBounds(Bounds RangeBoundsType) const { mRangeBoundsType = RangeBoundsType; }

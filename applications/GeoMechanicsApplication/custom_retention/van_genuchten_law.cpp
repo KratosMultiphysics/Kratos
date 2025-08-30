@@ -111,7 +111,7 @@ double VanGenuchtenLaw::CalculateBishopCoefficient(Parameters& rParameters) cons
 int VanGenuchtenLaw::Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
 {
     using enum CheckProperties::Bounds;
-    const CheckProperties check_properties("parameters of material", rMaterialProperties, AllInclusive);
+    const CheckProperties check_properties(rMaterialProperties, "parameters of material", AllInclusive);
     constexpr auto max_value = 1.0;
     check_properties.Check(SATURATED_SATURATION, max_value);
     check_properties.SingleUseBounds(InclusiveLowerAndExclusiveUpper)

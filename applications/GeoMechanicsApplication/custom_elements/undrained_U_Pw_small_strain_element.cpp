@@ -56,7 +56,7 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     ierr = UPwBaseElement::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
-    const CheckProperties check_properties("material properties at element", r_properties,
+    const CheckProperties check_properties(r_properties, "material properties at element",
                                            element_Id, CheckProperties::Bounds::AllInclusive);
     check_properties.Check(BULK_MODULUS_FLUID);
 

@@ -153,7 +153,7 @@ int GeoLinearElasticLaw::Check(const Properties&   rMaterialProperties,
                                const GeometryType& rElementGeometry,
                                const ProcessInfo&  rCurrentProcessInfo) const
 {
-    const CheckProperties check_properties("parameters of material", rMaterialProperties,
+    const CheckProperties check_properties(rMaterialProperties, "parameters of material",
                                            CheckProperties::Bounds::AllExclusive);
     check_properties.Check(YOUNG_MODULUS);
     constexpr auto min_value_poisson_ratio = -1.0;

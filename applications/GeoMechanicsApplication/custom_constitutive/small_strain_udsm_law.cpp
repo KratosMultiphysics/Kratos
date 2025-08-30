@@ -218,7 +218,7 @@ int SmallStrainUDSMLaw::Check(const Properties&   rMaterialProperties,
 {
     KRATOS_TRY
 
-    const CheckProperties check_properties("property", rMaterialProperties, CheckProperties::Bounds::AllExclusive);
+    const CheckProperties check_properties(rMaterialProperties, "property", CheckProperties::Bounds::AllExclusive);
     check_properties.CheckAvailabilityAndEmpty(UDSM_NAME);
     check_properties.Check(UDSM_NUMBER);
     check_properties.CheckAvailabilityOnly(IS_FORTRAN_UDSM);

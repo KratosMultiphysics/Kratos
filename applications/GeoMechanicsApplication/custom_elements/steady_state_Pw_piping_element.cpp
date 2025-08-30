@@ -48,7 +48,7 @@ int SteadyStatePwPipingElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurre
     if (ierr != 0) return ierr;
 
     KRATOS_TRY
-    const CheckProperties check_properties("property at element", this->GetProperties(), this->Id(),
+    const CheckProperties check_properties(this->GetProperties(), "property at element", this->Id(),
                                            CheckProperties::Bounds::AllInclusive);
     check_properties.Check(PIPE_ETA);
     check_properties.Check(PIPE_THETA);
