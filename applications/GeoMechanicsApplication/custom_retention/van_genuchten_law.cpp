@@ -110,15 +110,15 @@ double VanGenuchtenLaw::CalculateBishopCoefficient(Parameters& rParameters) cons
 
 int VanGenuchtenLaw::Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
 {
-    const CheckProperties check_properties("parameters of material", rMaterialProperties,
-                                           CheckProperties::Bounds::AllInclusive);
-    constexpr auto        max_value = 1.0;
+    using enum CheckProperties::Bounds;
+    const CheckProperties check_properties("parameters of material", rMaterialProperties, AllInclusive);
+    constexpr auto max_value = 1.0;
     check_properties.Check(SATURATED_SATURATION, max_value);
-    check_properties.SingleUseBounds(CheckProperties::Bounds::InclusiveLowerAndExclusiveUpper)
+    check_properties.SingleUseBounds(InclusiveLowerAndExclusiveUpper)
         ->Check(RESIDUAL_SATURATION, rMaterialProperties[SATURATED_SATURATION]);
     check_properties.Check(MINIMUM_RELATIVE_PERMEABILITY, max_value);
-    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive)->Check(VAN_GENUCHTEN_AIR_ENTRY_PRESSURE);
-    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive)->Check(VAN_GENUCHTEN_GN);
+    check_properties.SingleUseBounds(AllExclusive)->Check(VAN_GENUCHTEN_AIR_ENTRY_PRESSURE);
+    check_properties.SingleUseBounds(AllExclusive)->Check(VAN_GENUCHTEN_GN);
     check_properties.Check(VAN_GENUCHTEN_GL);
 
     return 0;

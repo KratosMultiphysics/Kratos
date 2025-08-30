@@ -51,22 +51,22 @@ public:
         ExclusiveLowerAndInclusiveUpper
     };
 
-    CheckProperties(const std::string& rPrintName, const Properties& rProperties, Bounds Option)
-        : mrPrintName(rPrintName), mrProperties(rProperties), mId(rProperties.Id()), mOption(Option)
+    CheckProperties(const std::string& rPrintName, const Properties& rProperties, Bounds RangeBoundsType)
+        : mrPrintName(rPrintName), mrProperties(rProperties), mId(rProperties.Id()), mRangeBoundsType(RangeBoundsType)
     {
     }
 
-    CheckProperties(const std::string& rPrintName, const Properties& rProperties, std::size_t Id, Bounds Option)
-        : mrPrintName(rPrintName), mrProperties(rProperties), mId(Id), mOption(Option)
+    CheckProperties(const std::string& rPrintName, const Properties& rProperties, std::size_t Id, Bounds RangeBoundsType)
+        : mrPrintName(rPrintName), mrProperties(rProperties), mId(Id), mRangeBoundsType(RangeBoundsType)
     {
     }
 
-    std::unique_ptr<CheckProperties> SingleUseBounds(Bounds Option) const
+    std::unique_ptr<CheckProperties> SingleUseBounds(Bounds RangeBoundsType) const
     {
-        return std::make_unique<CheckProperties>(mrPrintName, mrProperties, mId, Option);
+        return std::make_unique<CheckProperties>(mrPrintName, mrProperties, mId, RangeBoundsType);
     }
 
-    void SetNewBounds(Bounds Option) { mOption = Option; }
+    void SetNewBounds(Bounds RangeBoundsType) { mRangeBoundsType = RangeBoundsType; }
 
     template <typename T>
     void Check(const Variable<T>& rVariable) const
@@ -110,7 +110,7 @@ private:
     const std::string mrPrintName;
     const Properties& mrProperties;
     const std::size_t mId;
-    Bounds            mOption;
+    Bounds            mRangeBoundsType;
     const double      mDefaultLowerBound = 0.0;
     const double      mDefaultUpperBound = std::numeric_limits<double>::max();
 
@@ -119,25 +119,30 @@ private:
     {
         const auto value = mrProperties[rVariable];
         bool       in_range;
-        switch (mOption) {
-        case Bounds::AllExclusive:
+        using enum CheckProperties::Bounds;
+        switch (mRangeBoundsType) {
+        case AllExclusive:
             in_range = (value > LowerBound && value < UpperBound);
             break;
-        case Bounds::AllInclusive:
+        case AllInclusive:
             in_range = (value >= LowerBound && value <= UpperBound);
             break;
-        case Bounds::InclusiveLowerAndExclusiveUpper:
+        case InclusiveLowerAndExclusiveUpper:
             in_range = (value >= LowerBound && value < UpperBound);
             break;
-        case Bounds::ExclusiveLowerAndInclusiveUpper:
+        case ExclusiveLowerAndInclusiveUpper:
             in_range = (value > LowerBound && value <= UpperBound);
+            break;
+        default:
+            KRATOS_ERROR << " Unknown type of range bounds";
+            break;
         }
         if (!in_range) {
             std::ostringstream print_range;
-            const auto         include_lower_bound = (mOption == Bounds::AllInclusive) ||
-                                             (mOption == Bounds::InclusiveLowerAndExclusiveUpper);
-            const auto include_upper_bound = (mOption == Bounds::AllInclusive) ||
-                                             (mOption == Bounds::ExclusiveLowerAndInclusiveUpper);
+            const auto         include_lower_bound = (mRangeBoundsType == AllInclusive) ||
+                                             (mRangeBoundsType == InclusiveLowerAndExclusiveUpper);
+            const auto include_upper_bound = (mRangeBoundsType == AllInclusive) ||
+                                             (mRangeBoundsType == ExclusiveLowerAndInclusiveUpper);
             print_range << (include_lower_bound ? "[" : "(") << LowerBound << "; "
                         << ((UpperBound == std::numeric_limits<double>::max()) ? "-" : std::to_string(UpperBound))
                         << (include_upper_bound ? "]" : ")");
