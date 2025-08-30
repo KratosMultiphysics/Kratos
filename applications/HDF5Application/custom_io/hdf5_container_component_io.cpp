@@ -250,7 +250,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
         std::vector<int> shape(value_type_traits::Dimension);
 
         // first we have to check the availability
-        Vector<bool> availability(rLocalContainer.size(), true);
+        Vector<unsigned char> availability(rLocalContainer.size(), 1);
         Internals::DataAvailabilityStatesList container_data_availability = TContainerDataIO::DataAvailability;
 
         // check for the availability. Here we do not check for the case CONSISTENTLY_UNAVAILABLE
@@ -385,7 +385,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Rea
         const auto data_availability = attributes["__data_availability"].GetString();
 
         // there is no need to read data sets which cannot be set, hence can ignore the whole block
-        Vector<bool> availability(BlockSize, true);
+        Vector<unsigned char> availability(BlockSize, 1);
         if (data_availability != "CONSISTENTLY_UNAVAILABLE ") {
             if constexpr(value_type_traits::IsDynamic) {
                 std::vector<unsigned int> shape;

@@ -32,6 +32,8 @@
 #include "custom_io/hdf5_vertex_container_io.h"
 #include "custom_io/hdf5_container_component_io.h"
 #include "custom_io/hdf5_properties_io.h"
+#include "custom_io/hdf5_nd_data_io.h"
+#include "custom_io/hdf5_tensor_adaptor_io.h"
 
 #include "custom_utilities/container_io_utils.h"
 
@@ -381,6 +383,18 @@ void AddCustomIOToPython(pybind11::module& m)
     auto hdf5_properties_io = m.def_submodule("HDF5PropertiesIO");
     hdf5_properties_io.def("Read", &HDF5::Internals::ReadProperties, py::arg("hdf5_file"), py::arg("prefix"), py::arg("list_of_properties"));
     hdf5_properties_io.def("Write", &HDF5::Internals::WriteProperties, py::arg("hdf5_file"), py::arg("prefix"), py::arg("list_of_properties"));
+
+    py::class_<HDF5::NDDataIO, HDF5::NDDataIO::Pointer>(m, "NDDataIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
+        .def("Write", &HDF5::NDDataIO::Write, py::arg("nd_data_name"), py::arg("nd_data"), py::arg("attributes") = Parameters("""{}"""))
+        .def("Read", &HDF5::NDDataIO::Read, py::arg("nd_data_name"))
+    ;
+
+    py::class_<HDF5::TensorAdaptorIO, HDF5::TensorAdaptorIO::Pointer>(m, "TensorAdaptorIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
+        .def("Write", &HDF5::TensorAdaptorIO::Write, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"), py::arg("attributes") = Parameters("""{}"""))
+        .def("Read", &HDF5::TensorAdaptorIO::Read, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"))
+        ;
 
 #ifdef KRATOS_USING_MPI
     py::class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, HDF5::ModelPartIO>(m,"HDF5PartitionedModelPartIO")
