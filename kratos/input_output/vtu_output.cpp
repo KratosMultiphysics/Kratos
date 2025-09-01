@@ -303,7 +303,7 @@ void AddConnectivityData(
         }
 
         KRATOS_INFO_IF("VtuOutput", EchoLevel > 2) << "------ Collecting Vtk geometry type info...\n";
-        auto p_connectivity_nd_data = GetGeometryTypes(rIgnoredIndices, *p_container, EchoLevel);
+        auto p_type_data = GetGeometryTypes(rIgnoredIndices, *p_container, EchoLevel);
 
         KRATOS_INFO_IF("VtuOutput", EchoLevel > 2)
         << "------ Ignored " << rIgnoredIndices.size() << "/"
@@ -316,7 +316,7 @@ void AddConnectivityData(
         KRATOS_INFO_IF("VtuOutput", EchoLevel > 2) << "------ Collecting geometry connectivity info...\n";
         rCellElement.AddElement(rXmlDataElementWrapper.Get("connectivity", GetConnectivities(*p_offsets, *p_container, indices_map, rIgnoredIndices)));
         rCellElement.AddElement(rXmlDataElementWrapper.Get("offsets", p_offsets));
-        rCellElement.AddElement(rXmlDataElementWrapper.Get("types", p_connectivity_nd_data));
+        rCellElement.AddElement(rXmlDataElementWrapper.Get("types", GetNonIgnoredNDData(rIgnoredIndices, p_type_data)));
     }, pCells);
 }
 
@@ -1122,13 +1122,6 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
     auto piece_element = Kratos::make_shared<XmlElementsArray>("Piece");
     // adding number of points
     piece_element->AddAttribute("NumberOfPoints", std::to_string(p_nodes->size()));
-    // adding number of cells
-    piece_element->AddAttribute(
-        "NumberOfCells",
-        std::to_string(rUnstructuredGridData.mpCells.has_value()
-                           ? std::visit([](auto v) { return v->size(); },
-                                        rUnstructuredGridData.mpCells.value())
-                           : 0u));
     unstructured_grid_element->AddElement(piece_element);
 
     // create the position element
@@ -1149,6 +1142,14 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
     if (rUnstructuredGridData.mpCells.has_value()) {
         KRATOS_INFO_IF("VtuOutput", mEchoLevel > 2) << "--- Collecting " << GetEntityName(rUnstructuredGridData.mpCells) << " connectivity data...\n";
         AddConnectivityData(*cells_element, ignored_indices, *rUnstructuredGridData.mpPoints, rUnstructuredGridData.mpCells.value(), rXmlDataElementWrapper, mEchoLevel);
+        // adding number of cells
+        KRATOS_WATCH(ignored_indices.size());
+        piece_element->AddAttribute(
+            "NumberOfCells",
+            std::to_string(std::visit([&ignored_indices](auto v) { return v->size() - ignored_indices.size(); }, rUnstructuredGridData.mpCells.value())));
+    } else {
+        // adding number of cells
+        piece_element->AddAttribute("NumberOfCells", "0");
     }
     piece_element->AddElement(cells_element);
 
