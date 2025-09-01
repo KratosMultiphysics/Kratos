@@ -154,6 +154,15 @@ std::string GetEntityName(const std::optional<VtuOutput::CellContainerPointerTyp
     }
 }
 
+void CopyAttributes(
+    const XmlElement& rSource,
+    XmlElement& rDestination)
+{
+    for (const auto& [attribute, value] : rSource.GetAttributes()) {
+        rDestination.AddAttribute(attribute, value);
+    }
+}
+
 template<class NDDataPointerType>
 NDDataPointerType GetNonIgnoredNDData(
     const std::set<IndexType>& rIgnoredIndices,
@@ -274,15 +283,6 @@ NDData<int>::Pointer GetConnectivities(
         }
     });
     return p_connectivities;
-}
-
-void CopyAttributes(
-    const XmlElement& rSource,
-    XmlElement& rDestination)
-{
-    for (const auto& [attribute, value] : rSource.GetAttributes()) {
-        rDestination.AddAttribute(attribute, value);
-    }
 }
 
 template<class TXmlDataElementWrapper>
@@ -1316,7 +1316,6 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
         KRATOS_INFO_IF("VtuOutput", mEchoLevel > 2) << "--- Collecting " << GetEntityName(rUnstructuredGridData.mpCells) << " connectivity data...\n";
         AddConnectivityData(*cells_element, ignored_indices, *rUnstructuredGridData.mpPoints, rUnstructuredGridData.mpCells.value(), rXmlDataElementWrapper, mEchoLevel);
         // adding number of cells
-        KRATOS_WATCH(ignored_indices.size());
         piece_element->AddAttribute(
             "NumberOfCells",
             std::to_string(std::visit([&ignored_indices](auto v) { return v->size() - ignored_indices.size(); }, rUnstructuredGridData.mpCells.value())));
