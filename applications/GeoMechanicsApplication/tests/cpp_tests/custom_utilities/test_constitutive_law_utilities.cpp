@@ -19,6 +19,15 @@
 
 using namespace Kratos;
 
+namespace
+{
+class StubConstitutiveLaw2 : public ConstitutiveLaw
+{
+public:
+    [[nodiscard]] SizeType GetStrainSize() const override { return 4; }
+};
+} // namespace
+
 namespace Kratos::Testing
 {
 
@@ -128,6 +137,20 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseADebugErrorWhenIndexInUMatParametersIsOutOfBounds
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         ConstitutiveLawUtilities::GetCohesion(properties),
         "Got out-of-bounds INDEX_OF_UMAT_C_PARAMETER (material ID: 0): 3 is not in range [1, 2]");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto                     properties       = Properties{};
+    ConstitutiveLaw::Pointer constitutive_law = Kratos::make_shared<StubConstitutiveLaw2>();
+    properties.GetValue(CONSTITUTIVE_LAW)     = constitutive_law;
+
+    const std::vector<std::size_t> expected_sizes{2, 3};
+    constexpr std::size_t          dimension   = 2;
+    constexpr std::size_t          element_id  = 1;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        ConstitutiveLawUtilities::CheckStrainSize(properties, expected_sizes, dimension, element_id), "Wrong constitutive law used. This is a 2D element! Expected strain size is 2 3  (element Id = 1).");
 }
 
 } // namespace Kratos::Testing

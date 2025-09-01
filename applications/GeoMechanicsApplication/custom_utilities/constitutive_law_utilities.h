@@ -48,12 +48,11 @@ public:
                                                   std::size_t NumberOfNormalComponents);
 
     static void CheckStrainSize(const Properties&               rProperties,
-                                const std::vector<std::size_t>& rAllowableStrainSizes,
+                                const std::vector<std::size_t>& rExpectedStrainSizes,
                                 std::size_t                     Dim,
                                 std::size_t                     ElementId);
-    
-    static void CheckStrainMeasures(const Properties& rProperties,
-                                std::size_t                     ElementId);
+
+    static void CheckStrainMeasures(const Properties& rProperties, std::size_t ElementId);
 
 }; /* Class ConstitutiveLawUtilities*/
 

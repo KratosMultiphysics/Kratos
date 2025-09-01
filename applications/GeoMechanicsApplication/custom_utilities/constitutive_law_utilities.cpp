@@ -113,22 +113,20 @@ Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      Nor
 }
 
 void ConstitutiveLawUtilities::CheckStrainSize(const Properties& rProperties,
-                                               const std::vector<std::size_t>& rAllowableStrainSizes,
+                                               const std::vector<std::size_t>& rExpectedStrainSizes,
                                                std::size_t Dim,
                                                std::size_t ElementId)
 {
     const std::size_t strain_size = rProperties[CONSTITUTIVE_LAW]->GetStrainSize();
-    const auto        size_exists = std::any_of(
-        rAllowableStrainSizes.begin(), rAllowableStrainSizes.end(),
+    const bool        size_exists = std::any_of(
+        rExpectedStrainSizes.begin(), rExpectedStrainSizes.end(),
         [strain_size](std::size_t allowable_size) { return strain_size == allowable_size; });
     if (!size_exists) {
         std::stringstream ss;
-        std::copy(rAllowableStrainSizes.begin(), rAllowableStrainSizes.end(),
-                  std::ostream_iterator<int>(ss, " "));
-        KRATOS_ERROR_IF_NOT(strain_size == 2)
-            << "Wrong constitutive law used. This is a " << Dim
-            << "D element! Expected strain size is "
-            << ss.str() << " (element Id = " << ElementId << ")" << std::endl;
+        std::copy(rExpectedStrainSizes.begin(), rExpectedStrainSizes.end(),
+                  std::ostream_iterator<std::size_t>(ss, " "));
+        KRATOS_ERROR << "Wrong constitutive law used. This is a " << Dim << "D element! Expected strain size is "
+                     << ss.str() << " (element Id = " << ElementId << ")." << std::endl;
     }
 }
 
@@ -137,7 +135,7 @@ void ConstitutiveLawUtilities::CheckStrainMeasures(const Properties& rProperties
     ConstitutiveLaw::Features LawFeatures;
     rProperties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
     bool correct_strain_measure = false;
-    for (const auto & strain_measure: LawFeatures.mStrainMeasures) {
+    for (const auto& strain_measure : LawFeatures.mStrainMeasures) {
         if (strain_measure == ConstitutiveLaw::StrainMeasure_Infinitesimal)
             correct_strain_measure = true;
     }
