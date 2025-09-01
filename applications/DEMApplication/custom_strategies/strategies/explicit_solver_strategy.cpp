@@ -410,10 +410,18 @@ namespace Kratos {
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
 
+        Timer::Start("SearchOperations");
         SearchDEMOperations(r_model_part);
         SearchFEMOperations(r_model_part);
+        Timer::Stop("SearchOperations");
+
+        Timer::Start("ForceUpdate");
         ForceOperations(r_model_part);
+        Timer::Stop("ForceUpdate");
+
+        Timer::Start("Integration");
         PerformTimeIntegrationOfMotion();
+        Timer::Stop("Integration");
 
         return 0.00;
 

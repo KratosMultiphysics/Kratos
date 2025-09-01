@@ -45,9 +45,24 @@ class AnalysisStage(object):
         """This function executes the entire AnalysisStage
         It can be overridden by derived classes
         """
+        KratosMultiphysics.Timer.SetOutputFile("data_timing.txt")
+        KratosMultiphysics.Timer.SetPrintOnScreen(True)
+        KratosMultiphysics.Timer.SetPrintIntervalInformation(False)
+        KratosMultiphysics.Timer.Start("Simulation")
+        KratosMultiphysics.Timer.Start("Initialization")
         self.Initialize()
+        self._GetSolver().ResetPrescribedMotionFlagsRespectingImposedDofs() 
+        self._GetSolver().CalculateInitialFinalState()
+        KratosMultiphysics.Timer.Stop("Initialization")
+        KratosMultiphysics.Timer.Start("SolutionLoop")
         self.RunSolutionLoop()
+        KratosMultiphysics.Timer.Stop("SolutionLoop")
+        KratosMultiphysics.Timer.Start("Finalization")
+        self._GetSolver().CalculateInitialFinalState()
         self.Finalize()
+        KratosMultiphysics.Timer.Stop("Finalization")
+        KratosMultiphysics.Timer.Stop("Simulation")
+        KratosMultiphysics.Timer.PrintTimingInformation()
 
     def KeepAdvancingSolutionLoop(self):
         """This function specifies the stopping criteria for breaking the solution loop
@@ -59,16 +74,19 @@ class AnalysisStage(object):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
-        self._GetSolver().ResetPrescribedMotionFlagsRespectingImposedDofs()
-        self._GetSolver().CalculateInitialFinalState()
         while self.KeepAdvancingSolutionLoop():
+            KratosMultiphysics.Timer.Start("StepInitialization")
             self.time = self._AdvanceTime()
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
+            KratosMultiphysics.Timer.Stop("StepInitialization")
+            KratosMultiphysics.Timer.Start("StepSolution")
             is_converged = self._GetSolver().SolveSolutionStep()
+            KratosMultiphysics.Timer.Stop("StepSolution")
             #self.FinalizeSolutionStep()
+            KratosMultiphysics.Timer.Start("StepOutput")
             self.OutputSolutionStep()
-        self._GetSolver().CalculateInitialFinalState()
+            KratosMultiphysics.Timer.Stop("StepOutput")
 
     def Initialize(self):
         """This function initializes the AnalysisStage
