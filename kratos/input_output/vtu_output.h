@@ -157,6 +157,14 @@ public:
         const std::string& rTensorAdaptorName,
         SupportedTensorAdaptorPointerType pTensorAdaptor);
 
+    void UpdateContainerExpression(
+        const std::string& rExpressionName,
+        SupportedContainerExpressionPointerType pContainerExpression);
+
+    void UpdateTensorAdaptor(
+        const std::string& rTensorAdaptorName,
+        SupportedTensorAdaptorPointerType pTensorAdaptor);
+
     /**
     * @brief Returns the model part.
     * @return The constant reference to the model part.

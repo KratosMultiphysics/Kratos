@@ -750,6 +750,73 @@ void PrintDataLocationData(
     }
 }
 
+enum UnstructuredGridMeshType
+{
+    NodesNormal,
+    NodesLocal,
+    NodesGhost,
+    NodesInterface,
+    Conditions,
+    Elements,
+    NONE
+};
+
+Globals::DataLocation GetGlobalDataLocation(const UnstructuredGridMeshType MeshType)
+{
+    switch (MeshType) {
+        case NodesNormal:
+        case NodesGhost:
+        case NodesInterface:
+        case NodesLocal:
+            return Globals::DataLocation::NodeNonHistorical;
+        case Conditions:
+            return Globals::DataLocation::Condition;
+        case Elements:
+            return Globals::DataLocation::Element;
+        default:
+            KRATOS_ERROR << "No conversion found.";
+    }
+}
+
+template<class TContainerType>
+std::pair<UnstructuredGridMeshType, std::vector<VtuOutput::UnstructuredGridData>::iterator> FindUnstructuredGridData(
+    const TContainerType& rContainer,
+    std::vector<VtuOutput::UnstructuredGridData>& rUnstructuredGridDataList)
+{
+    for (auto itr = rUnstructuredGridDataList.begin(); itr != rUnstructuredGridDataList.end(); ++itr) {
+        auto p_model_part = itr->mpModelPart;
+        if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
+            if (itr->UsePointsForDataFieldOutput) {
+                if (&rContainer == &p_model_part->Nodes()) {
+                    return std::make_pair(UnstructuredGridMeshType::NodesNormal, itr);
+                } else if (&rContainer == &p_model_part->GetCommunicator().LocalMesh().Nodes()) {
+                    return std::make_pair(UnstructuredGridMeshType::NodesLocal, itr);
+                } else if (&rContainer == &p_model_part->GetCommunicator().GhostMesh().Nodes()) {
+                    return std::make_pair(UnstructuredGridMeshType::NodesGhost, itr);
+                } else if (&rContainer == &p_model_part->GetCommunicator().InterfaceMesh().Nodes()) {
+                    return std::make_pair(UnstructuredGridMeshType::NodesInterface, itr);
+                }
+            }
+        } else if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+            if (itr->mpCells.has_value() &&
+                std::holds_alternative<ModelPart::ConditionsContainerType::Pointer>(itr->mpCells.value()) &&
+                &rContainer == &*std::get<ModelPart::ConditionsContainerType::Pointer>(itr->mpCells.value())) {
+                return std::make_pair(UnstructuredGridMeshType::Conditions, itr);
+            }
+        } else if constexpr(std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
+            if (itr->mpCells.has_value() &&
+                std::holds_alternative<ModelPart::ElementsContainerType::Pointer>(itr->mpCells.value()) &&
+                &rContainer == &*std::get<ModelPart::ElementsContainerType::Pointer>(itr->mpCells.value())) {
+                return std::make_pair(UnstructuredGridMeshType::Elements, itr);
+            }
+        } else {
+            KRATOS_ERROR << "Unsupported container type.";
+        }
+    }
+
+    return std::make_pair(UnstructuredGridMeshType::NONE, rUnstructuredGridDataList.end());
+}
+
 } // namespace
 
 VtuOutput::VtuOutput(
@@ -881,97 +948,80 @@ void VtuOutput::AddContainerExpression(
 
         auto& r_expression_container = p_container_expression->GetContainer();
 
-        using expression_container_type = BareType<decltype(r_expression_container)>;
+        [[maybe_unused]] const auto& [mesh_type, itr] = FindUnstructuredGridData(p_container_expression->GetContainer(), this->mListOfUnstructuredGridData);
 
-        for (IndexType i_model_part_data = 0; i_model_part_data < this->mListOfUnstructuredGridData.size(); ++i_model_part_data) {
-            auto& r_model_part_data = this->mListOfUnstructuredGridData[i_model_part_data];
+        switch (mesh_type) {
+            case UnstructuredGridMeshType::Conditions:
+            case UnstructuredGridMeshType::Elements: {
+                auto& r_unstructured_grid_data = *itr;
 
-            // get the model part
-            auto p_model_part = r_model_part_data.mpModelPart;
+                // check for existing field names
+                CheckDataArrayName(rExpressionName, {GetGlobalDataLocation(mesh_type)}, mFlags, mVariables);
+                CheckDataArrayName(rExpressionName, GetGlobalDataLocation(mesh_type), r_unstructured_grid_data);
 
-            // expressions are created from local mesh entities.
-            if constexpr(std::is_same_v<expression_container_type, ModelPart::NodesContainerType>) {
-                if (&r_expression_container == &p_model_part->GetCommunicator().LocalMesh().Nodes()) {
-                    if (r_model_part_data.UsePointsForDataFieldOutput) {
-                        // first check if there are any nodal fields present with the same name already
-                        CheckDataArrayName(rExpressionName, {Globals::DataLocation::NodeHistorical, Globals::DataLocation::NodeNonHistorical}, mFlags, mVariables);
+                // construct the nd_data shape
+                DenseVector<unsigned int> nd_data_shape(data_shape.size() + 1);
+                // vtu output always write data for local and ghost nodes.
+                nd_data_shape[0] = r_expression_container.size();
+                std::copy(data_shape.begin(), data_shape.end(), nd_data_shape.begin() + 1);
+
+                auto p_nd_data = Kratos::make_shared<NDData<double>>(nd_data_shape);
+                const auto nd_data_span = p_nd_data->ViewData();
+
+                IndexPartition<IndexType>(r_expression_container.size()).for_each([&nd_data_span, &r_expression, number_of_data_components](auto Index){
+                    const auto data_begin_index = Index * number_of_data_components;
+                    for (IndexType i = 0; i < number_of_data_components; ++i) {
+                        nd_data_span[data_begin_index + i] = r_expression.Evaluate(Index, data_begin_index, i);
                     }
+                });
 
-                    // now check if the rExpressionName is found in the mPointFields of this model part
-                    CheckDataArrayName(rExpressionName, Globals::DataLocation::NodeNonHistorical, r_model_part_data);
+                KRATOS_ERROR_IF_NOT(r_unstructured_grid_data.mCellFields.find(rExpressionName) == r_unstructured_grid_data.mCellFields.end())
+                    << "Found an existing data array with the same expression name = \"" << rExpressionName << "\" [ "
+                    << "expression : " << r_expression << " ]\n" << *this;
 
-                    // since expressions are created from local mesh nodes
-                    // we need to synchronize the values so that ghost mesh nodes
-                    // will be correctly filled.
-
-                    // first clear the TENSOR_ADAPTOR_SYNC.
-                    VariableUtils().SetNonHistoricalVariableToZero(TENSOR_ADAPTOR_SYNC, p_model_part->Nodes());
-
-                    // secondly fill in the local nodal values to the temporary variable TENSOR_ADAPTOR_SYNC
-                    IndexPartition<IndexType>(r_expression_container.size()).for_each(Vector{number_of_data_components}, [&r_expression_container, &r_expression, number_of_data_components](const auto Index, auto& rTLS) {
-                        const auto data_begin_index = Index * number_of_data_components;
-                        auto& r_node = *(r_expression_container.begin() + Index);
-                        for (IndexType i = 0; i < number_of_data_components; ++i) {
-                            rTLS[i] = r_expression.Evaluate(Index, data_begin_index, i);
-                        }
-                        r_node.SetValue(TENSOR_ADAPTOR_SYNC, rTLS);
-                    });
-
-                    // the p_nd_data is now correctly filled. Add it to the
-                    // map and then exit the for loop since, the given container expression
-                    // is already found.
-                    p_model_part->GetCommunicator().SynchronizeVariable(TENSOR_ADAPTOR_SYNC);
-                    r_model_part_data.mPointFields[rExpressionName] = GetNodalNDData(*r_model_part_data.mpPoints, data_shape);
-                    return true;
-                }
-            } else {
-                if (r_model_part_data.mpCells.has_value()) {
-                    if (std::visit([this, &r_model_part_data, &rExpressionName, &r_expression, &r_expression_container, &data_shape, number_of_data_components](auto p_model_part_container) {
-                        using model_part_container = BareType<decltype(*p_model_part_container)>;
-
-                        if constexpr(std::is_same_v<expression_container_type, model_part_container>) {
-                            if (&r_expression_container == &*p_model_part_container) {
-                                // found a correct container. Just copy the data
-
-                                // construct the nd_data shape
-                                DenseVector<unsigned int> nd_data_shape(data_shape.size() + 1);
-                                // vtu output always write data for local and ghost nodes.
-                                nd_data_shape[0] = r_expression_container.size();
-                                std::copy(data_shape.begin(), data_shape.end(), nd_data_shape.begin() + 1);
-
-                                auto p_nd_data = Kratos::make_shared<NDData<double>>(nd_data_shape);
-                                const auto nd_data_span = p_nd_data->ViewData();
-
-                                IndexPartition<IndexType>(r_expression_container.size()).for_each([&nd_data_span, &r_expression, number_of_data_components](auto Index){
-                                    const auto data_begin_index = Index * number_of_data_components;
-                                    for (IndexType i = 0; i < number_of_data_components; ++i) {
-                                        nd_data_span[data_begin_index + i] = r_expression.Evaluate(Index, data_begin_index, i);
-                                    }
-                                });
-
-                                KRATOS_ERROR_IF_NOT(r_model_part_data.mCellFields.find(rExpressionName) == r_model_part_data.mCellFields.end())
-                                    << "Found an existing data array with the same expression name = \"" << rExpressionName << "\" [ "
-                                    << "expression : " << r_expression << " ]\n" << *this;
-
-                                r_model_part_data.mCellFields[rExpressionName] = p_nd_data;
-                                return true;
-                            }
-                        }
-
-                        return false;
-                    }, r_model_part_data.mpCells.value())) {
-                        return true;
-                    }
-                }
+                r_unstructured_grid_data.mCellFields[rExpressionName] = p_nd_data;
+                break;
             }
+            case UnstructuredGridMeshType::NodesNormal:
+            case UnstructuredGridMeshType::NodesLocal: {
+                auto& r_unstructured_grid_data = *itr;
+                // first check if there are any nodal fields present with the same name already
+                CheckDataArrayName(rExpressionName, {Globals::DataLocation::NodeHistorical, Globals::DataLocation::NodeNonHistorical}, mFlags, mVariables);
+                // now check if the rExpressionName is found in the mPointFields of this model part
+                CheckDataArrayName(rExpressionName, Globals::DataLocation::NodeNonHistorical, r_unstructured_grid_data);
+
+                // since expressions are created from local mesh nodes
+                // we need to synchronize the values so that ghost mesh nodes
+                // will be correctly filled.
+
+                // first clear the TENSOR_ADAPTOR_SYNC.
+                VariableUtils().SetNonHistoricalVariableToZero(TENSOR_ADAPTOR_SYNC, r_unstructured_grid_data.mpModelPart->Nodes());
+
+                // secondly fill in the local nodal values to the temporary variable TENSOR_ADAPTOR_SYNC
+                IndexPartition<IndexType>(r_expression_container.size()).for_each(Vector{number_of_data_components}, [&r_expression_container, &r_expression, number_of_data_components](const auto Index, auto& rTLS) {
+                    const auto data_begin_index = Index * number_of_data_components;
+                    auto& r_node = *(r_expression_container.begin() + Index);
+                    for (IndexType i = 0; i < number_of_data_components; ++i) {
+                        rTLS[i] = r_expression.Evaluate(Index, data_begin_index, i);
+                    }
+                    r_node.SetValue(TENSOR_ADAPTOR_SYNC, rTLS);
+                });
+
+                // the p_nd_data is now correctly filled. Add it to the
+                // map and then exit the for loop since, the given container expression
+                // is already found.
+                r_unstructured_grid_data.mpModelPart->GetCommunicator().SynchronizeVariable(TENSOR_ADAPTOR_SYNC);
+                r_unstructured_grid_data.mPointFields[rExpressionName] = GetNodalNDData(*r_unstructured_grid_data.mpPoints, data_shape);
+                break;
+            }
+            default:
+                KRATOS_ERROR
+                    << "The container in the ContainerExpression is not referring to any of the containers "
+                    << "written by this Vtu output [ container expression name = " << rExpressionName
+                    << ", tensor_adaptor = " << *p_container_expression << " ]\n"
+                    << *this;
+                break;
         }
-
-        KRATOS_ERROR
-            << "The container in the ContainerExpression is not referring to any of the containers "
-            << "written by this VTU output [ container expression name = " << rExpressionName
-            << ", tensor_adaptor = " << *p_container_expression << " ]\n"
-            << *this;
-
     }, pContainerExpression);
 
     KRATOS_CATCH("");
@@ -989,6 +1039,7 @@ void VtuOutput::AddTensorAdaptor(
 
     std::visit([this, &rTensorAdaptorName](auto p_tensor_adaptor) {
         using tensor_adaptor_type = BareType<decltype(*p_tensor_adaptor)>;
+        using storage_type = typename tensor_adaptor_type::Storage;
         auto shape = p_tensor_adaptor->Shape();
         auto ta_span = p_tensor_adaptor->ViewData();
 
@@ -999,102 +1050,83 @@ void VtuOutput::AddTensorAdaptor(
         const auto& max_data_shape = this->mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(local_data_shape);
         if (shape[0] == 0) std::copy(max_data_shape.begin(), max_data_shape.end(), shape.begin() + 1);
 
-        const auto number_of_data_components = std::accumulate(shape.begin() + 1, shape.end(), 1u, std::multiplies<unsigned int>{});
+        std::visit([this, &rTensorAdaptorName, &p_tensor_adaptor, &ta_span, &shape](auto pContainer){
+            [[maybe_unused]] const auto& [mesh_type, itr] = FindUnstructuredGridData(*pContainer, this->mListOfUnstructuredGridData);
 
-        const bool ta_added = std::visit([this, &rTensorAdaptorName, &p_tensor_adaptor, &shape, &ta_span, number_of_data_components](auto p_ta_container){
-            using ta_container_type = BareType<decltype(*p_ta_container)>;
-
-            // first check to which model part output this tenor adaptor belongs to
-            for (IndexType i = 0; i < this->mListOfUnstructuredGridData.size(); ++i) {
-                auto& r_model_part_data = this->mListOfUnstructuredGridData[i];
-                auto p_model_part = r_model_part_data.mpModelPart;
-
-                if constexpr(std::is_same_v<ta_container_type, ModelPart::NodesContainerType>) {
-                    // tensor adaptor is having a nodal container. Now we check if
-                    // it is of normal model part nodes, local nodes, ghost nodes or interface nodes
-
-                    auto& r_communicator = p_model_part->GetCommunicator();
-
-                    KRATOS_ERROR_IF(&*(p_ta_container) == &r_communicator.GhostMesh().Nodes())
-                        << "TensorAdaptors having containers referring to ghost nodes container is not allowed [ ghost nodes model part = "
-                        << p_model_part->FullName() << ", tensor_adaptor = " << *p_tensor_adaptor << " ].\n";
-
-                    KRATOS_ERROR_IF(&*(p_ta_container) == &r_communicator.InterfaceMesh().Nodes())
-                        << "TensorAdaptors having containers referring to interface nodes container is not allowed [ interface nodes model part = "
-                        << p_model_part->FullName() << ", tensor_adaptor = " << *p_tensor_adaptor << " ].\n";
-
-                    if (&*(p_ta_container) == &p_model_part->Nodes() || &*(p_ta_container) == &p_model_part->GetCommunicator().LocalMesh().Nodes()) {
-                        if (r_model_part_data.UsePointsForDataFieldOutput) {
-                            // first check if there are any nodal fields present with the same name already
-                            CheckDataArrayName(rTensorAdaptorName, {Globals::DataLocation::NodeHistorical, Globals::DataLocation::NodeNonHistorical}, mFlags, mVariables);
-                        }
-
-                        // now check if the rTensorAdaptorName is found in the mPointFields of this model part
-                        CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::NodeNonHistorical, r_model_part_data);
-                    }
-
-                    if (&*(p_ta_container) == &p_model_part->Nodes()) {
-                        // now we have to check for the shapes, since TensorAdaptors may not have consistent shapes in the
-                        // dimensions except for the first dimension [Eg. TensorAdaptor created from a dynamic variable, where
-                        // one rank is having zero entities.] Hence needs to communicate the dimensions
-                        r_model_part_data.mPointFields[rTensorAdaptorName] = Kratos::make_shared<typename tensor_adaptor_type::Storage>(ta_span.data(), shape);;
-                        return true;
-                    } else if (&*(p_ta_container) == &p_model_part->GetCommunicator().LocalMesh().Nodes()) {
-                        // the tensor adaptor is having a container referring to the local mesh nodes.
-                        // now we have to construct the nodal values for all the nodes including ghost mesh
-                        // nodes.
-
-                        // first clear the TENSOR_ADAPTOR_SYNC.
-                        VariableUtils().SetNonHistoricalVariableToZero(TENSOR_ADAPTOR_SYNC, p_model_part->Nodes());
-
-                        // secondly fill in the local nodal values to the temporary variable TENSOR_ADAPTOR_SYNC
-                        IndexPartition<IndexType>(p_ta_container->size()).for_each(Vector{number_of_data_components}, [&p_ta_container, &ta_span, number_of_data_components](const auto Index, auto& rTLS) {
-                            const auto data_begin_index = Index * number_of_data_components;
-                            std::copy(ta_span.begin() + data_begin_index, ta_span.begin() + data_begin_index + number_of_data_components, rTLS.begin());
-                            (p_ta_container->begin() + Index)->SetValue(TENSOR_ADAPTOR_SYNC, rTLS);
-                        });
-
-                        // the p_nd_data is now correctly filled. Add it to the
-                        // map and then exit the for loop since, the given container expression
-                        // is already found.
-                        p_model_part->GetCommunicator().SynchronizeVariable(TENSOR_ADAPTOR_SYNC);
-                        r_model_part_data.mPointFields[rTensorAdaptorName] = GetNodalNDData(*r_model_part_data.mpPoints, shape);
-                        return true;
-                    }
-                } else if constexpr(std::is_same_v<ta_container_type, ModelPart::ConditionsContainerType>) {
-                    // ghost, local and model part containers are the same. so we check only the model part container
-                    if (r_model_part_data.mpCells.has_value() &&
-                        std::holds_alternative<ModelPart::ConditionsContainerType::Pointer>(r_model_part_data.mpCells.value()) &&
-                        &*p_ta_container == &p_model_part->Conditions()) {
-                            // now check if the rTensorAdaptorName is found in the mPointFields of this model part
-                            CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::Condition, r_model_part_data);
-                            r_model_part_data.mCellFields[rTensorAdaptorName] = tensor_adaptor_type(*p_tensor_adaptor).pGetStorage();
-                            return true;
-                    }
-                } else if constexpr(std::is_same_v<ta_container_type, ModelPart::ElementsContainerType>) {
-                    // ghost, local and model part containers are the same. so we check only the model part container
-                    if (r_model_part_data.mpCells.has_value() &&
-                        std::holds_alternative<ModelPart::ElementsContainerType::Pointer>(r_model_part_data.mpCells.value()) &&
-                        &*p_ta_container == &p_model_part->Elements()) {
-                            // now check if the rTensorAdaptorName is found in the mPointFields of this model part
-                            CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::Element, r_model_part_data);
-                            r_model_part_data.mCellFields[rTensorAdaptorName] = tensor_adaptor_type(*p_tensor_adaptor).pGetStorage();
-                            return true;
-                    }
+            switch (mesh_type) {
+                case UnstructuredGridMeshType::Conditions:
+                case UnstructuredGridMeshType::Elements: {
+                    auto& r_unstructured_grid_data = *itr;
+                    // check for existing field names
+                    CheckDataArrayName(rTensorAdaptorName, {GetGlobalDataLocation(mesh_type)}, mFlags, mVariables);
+                    CheckDataArrayName(rTensorAdaptorName, GetGlobalDataLocation(mesh_type), r_unstructured_grid_data);
+                    r_unstructured_grid_data.mCellFields[rTensorAdaptorName] = Kratos::make_shared<storage_type>(ta_span.data(), shape);
+                    break;
                 }
+                case UnstructuredGridMeshType::NodesNormal: {
+                    auto& r_unstructured_grid_data = *itr;
+                    // check for existing field names
+                    CheckDataArrayName(rTensorAdaptorName, {Globals::DataLocation::NodeNonHistorical, Globals::DataLocation::NodeHistorical}, mFlags, mVariables);
+                    CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::NodeNonHistorical, r_unstructured_grid_data);
+
+                    r_unstructured_grid_data.mPointFields[rTensorAdaptorName] = Kratos::make_shared<storage_type>(ta_span.data(), shape);
+                    break;
+                } case UnstructuredGridMeshType::NodesLocal: {
+                    auto& r_unstructured_grid_data = *itr;
+                    // check for existing field names
+                    CheckDataArrayName(rTensorAdaptorName, {Globals::DataLocation::NodeNonHistorical, Globals::DataLocation::NodeHistorical}, mFlags, mVariables);
+                    CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::NodeNonHistorical, r_unstructured_grid_data);
+
+                    auto& p_model_part = r_unstructured_grid_data.mpModelPart;
+                    const auto number_of_data_components = std::accumulate(shape.begin() + 1, shape.end(), 1u, std::multiplies<unsigned int>{});
+
+                    // first clear the TENSOR_ADAPTOR_SYNC.
+                    VariableUtils().SetNonHistoricalVariableToZero(TENSOR_ADAPTOR_SYNC, p_model_part->Nodes());
+
+                    auto& container = r_unstructured_grid_data.mpModelPart->GetCommunicator().LocalMesh().Nodes();
+
+                    // secondly fill in the local nodal values to the temporary variable TENSOR_ADAPTOR_SYNC
+                    IndexPartition<IndexType>(container.size()).for_each(Vector{number_of_data_components}, [&container, &ta_span, number_of_data_components](const auto Index, auto& rTLS) {
+                        const auto data_begin_index = Index * number_of_data_components;
+                        std::copy(ta_span.begin() + data_begin_index, ta_span.begin() + data_begin_index + number_of_data_components, rTLS.begin());
+                        (container.begin() + Index)->SetValue(TENSOR_ADAPTOR_SYNC, rTLS);
+                    });
+
+                    // the p_nd_data is now correctly filled. Add it to the
+                    // map and then exit the for loop since, the given container expression
+                    // is already found.
+                    p_model_part->GetCommunicator().SynchronizeVariable(TENSOR_ADAPTOR_SYNC);
+                    r_unstructured_grid_data.mPointFields[rTensorAdaptorName] = GetNodalNDData(*r_unstructured_grid_data.mpPoints, shape);
+                    break;
+                }
+                default:
+                    KRATOS_ERROR
+                        << "The container in the TensorAdaptor is not referring to any of the containers "
+                        << "written by this Vtu output [ tensor adaptor name = " << rTensorAdaptorName
+                        << ", tensor_adaptor = " << *p_tensor_adaptor << " ]\n"
+                        << *this;
+                    break;
             }
-
-            // hasn't found a valid container.
-            return false;
         }, p_tensor_adaptor->GetContainer());
-
-        KRATOS_ERROR_IF_NOT(ta_added)
-            << "The container in the TensorAdaptor is not referring to any of the containers "
-            << "written by this VTU output [ tensor adaptor name = " << rTensorAdaptorName
-            << ", tensor_adaptor = " << *p_tensor_adaptor << " ]\n"
-            << *this;
-
     }, pTensorAdaptor);
+
+    KRATOS_CATCH("");
+}
+
+void VtuOutput::UpdateContainerExpression(
+    const std::string& rExpressionName,
+    SupportedContainerExpressionPointerType pContainerExpression)
+{
+    KRATOS_TRY
+
+    KRATOS_CATCH("");
+}
+
+void VtuOutput::UpdateTensorAdaptor(
+    const std::string& rTensorAdaptorName,
+    SupportedTensorAdaptorPointerType pTensorAdaptor)
+{
+    KRATOS_TRY
 
     KRATOS_CATCH("");
 }

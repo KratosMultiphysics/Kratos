@@ -208,13 +208,15 @@ class TestVtuOutput(kratos_unittest.TestCase):
         vtu_output.AddTensorAdaptor("PRESSURE_3", ta)
 
         ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(self.model_part.Conditions, Kratos.DoubleNDData([4,5]))
-        vtu_output.AddTensorAdaptor("PRESSURE", ta)
+        with self.assertRaises(RuntimeError):
+            vtu_output.AddTensorAdaptor("PRESSURE", ta)
         vtu_output.AddTensorAdaptor("PRESSURE_1", ta)
         vtu_output.AddTensorAdaptor("PRESSURE_2", ta)
         vtu_output.AddTensorAdaptor("PRESSURE_3", ta)
 
         ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(self.model_part.Elements, Kratos.DoubleNDData([4,5]))
-        vtu_output.AddTensorAdaptor("PRESSURE", ta)
+        with self.assertRaises(RuntimeError):
+            vtu_output.AddTensorAdaptor("PRESSURE", ta)
         vtu_output.AddTensorAdaptor("PRESSURE_1", ta)
         vtu_output.AddTensorAdaptor("PRESSURE_2", ta)
         vtu_output.AddTensorAdaptor("PRESSURE_3", ta)
