@@ -104,7 +104,7 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
                         "element "
                      << this->Id() << std::endl;
 
-    const SizeType strain_size = r_properties.GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+    const SizeType strain_size = r_properties[CONSTITUTIVE_LAW]->GetStrainSize();
     if (TDim == 2) {
         KRATOS_ERROR_IF_NOT(strain_size == 2)
             << "Wrong constitutive law used. This is a 2D element! expected "
