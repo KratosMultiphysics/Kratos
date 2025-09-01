@@ -35,7 +35,7 @@ class TestVtuOutputBase:
         cls.SetSolution()
 
     def WriteVtu(self, output_format: Kratos.VtuOutput.WriterFormat):
-        vtu_output = Kratos.VtuOutput(self.model_part, True, output_format, 9, echo_level=3, output_sub_model_parts=self.output_sub_model_parts)
+        vtu_output = Kratos.VtuOutput(self.model_part, True, output_format, 9, echo_level=0, output_sub_model_parts=self.output_sub_model_parts)
         vtu_output.AddVariable(Kratos.PRESSURE, Kratos.Globals.DataLocation.NodeHistorical)
         vtu_output.AddVariable(Kratos.VELOCITY, Kratos.Globals.DataLocation.NodeHistorical)
         vtu_output.AddVariable(Kratos.DISPLACEMENT, Kratos.Globals.DataLocation.NodeHistorical)
@@ -69,8 +69,8 @@ class TestVtuOutputBase:
                 output_file_prefix = "ascii" + self.output_prefix + "/Main"
             else:
                 output_file_prefix = "binary" + self.output_prefix + "/Main"
-            vtu_output.PrintOutput(output_file_prefix + "_temp")
-            self.Check(output_file_prefix + "_temp",  output_file_prefix)
+            vtu_output.PrintOutput("temp/" + output_file_prefix)
+            self.Check("temp/" + output_file_prefix,  output_file_prefix)
 
     def test_WriteMeshAscii(self):
         self.WriteVtu(Kratos.VtuOutput.ASCII)
@@ -95,8 +95,8 @@ class TestVtuOutputBase:
             check_file(f"{output_prefix}/{file_path.name}", str(file_path))
         check_file(f"{output_prefix}.pvd", f"{reference_prefix}.pvd")
 
-        if Path(output_prefix).is_dir():
-            shutil.rmtree(Path(output_prefix))
+        if Path(output_prefix).parent.parent.is_dir():
+            shutil.rmtree(Path(output_prefix).parent.parent)
 
 class TestVtuOutput(kratos_unittest.TestCase):
     @classmethod
