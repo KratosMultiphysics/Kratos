@@ -41,8 +41,7 @@ public:
 
     XmlNDDataElement(
         const std::string& rDataArrayName,
-        typename NDData<TDataType>::Pointer pNDData,
-        const DenseVector<unsigned int>& rShape);
+        typename NDData<TDataType>::Pointer pNDData);
 
     ///@}
 

@@ -28,8 +28,7 @@ namespace Kratos {
 template<class TDataType>
 XmlNDDataElement<TDataType>::XmlNDDataElement(
     const std::string& rDataArrayName,
-    typename NDData<TDataType>::Pointer pNDData,
-    const DenseVector<unsigned int>& rShape)
+    typename NDData<TDataType>::Pointer pNDData)
     : BaseType("DataArray"),
       mpNDData(pNDData)
 {
@@ -49,11 +48,8 @@ XmlNDDataElement<TDataType>::XmlNDDataElement(
         KRATOS_ERROR << "Unsupported data type.";
     }
 
-    KRATOS_ERROR_IF(pNDData->Size() != std::accumulate(rShape.begin(), rShape.end(), 1u, std::multiplies<unsigned int>{}))
-        << "Total number of components in shape mismatch [ "
-        << " rShape = " << rShape << ", NDData shape = " << pNDData->Shape() << " ].\n";
-
-    mAttributes["NumberOfComponents"] = std::to_string(std::accumulate(rShape.begin() + 1, rShape.end(), 1u, std::multiplies<unsigned int>{}));
+    const auto& shape = pNDData->Shape();
+    mAttributes["NumberOfComponents"] = std::to_string(std::accumulate(shape.begin() + 1, shape.end(), 1u, std::multiplies<unsigned int>{}));
 }
 
 // template instantiations
